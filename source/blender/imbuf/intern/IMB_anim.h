@@ -62,7 +62,7 @@
 #endif
 
 #include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail
-                            BLI_countlist BLI_stringdec */
+							BLI_countlist BLI_stringdec */
 
 #include "imbuf.h"
 #include "imbuf_patch.h"

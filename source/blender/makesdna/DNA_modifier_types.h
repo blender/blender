@@ -168,31 +168,31 @@ typedef struct ArrayModifierData {
 	struct Object *offset_ob;
 	/* a constant duplicate offset;
 	   1 means the duplicates are 1 unit apart
-    */
+	*/
 	float offset[3];
 	/* a scaled factor for duplicate offsets;
 	   1 means the duplicates are 1 object-width apart
-    */
+	*/
 	float scale[3];
 	/* the length over which to distribute the duplicates */
 	float length;
 	/* the limit below which to merge vertices in adjacent duplicates */
 	float merge_dist;
 	/* determines how duplicate count is calculated; one of:
-	      MOD_ARR_FIXEDCOUNT -> fixed
-	      MOD_ARR_FITLENGTH  -> calculated to fit a set length
-	      MOD_ARR_FITCURVE   -> calculated to fit the length of a Curve object
-    */
+		  MOD_ARR_FIXEDCOUNT -> fixed
+		  MOD_ARR_FITLENGTH  -> calculated to fit a set length
+		  MOD_ARR_FITCURVE   -> calculated to fit the length of a Curve object
+	*/
 	int fit_type;
 	/* flags specifying how total offset is calculated; binary OR of:
-	     MOD_ARR_OFF_CONST    -> total offset += offset
-	     MOD_ARR_OFF_RELATIVE -> total offset += relative * object width
-	     MOD_ARR_OFF_OBJ      -> total offset += offset_ob's matrix
+		 MOD_ARR_OFF_CONST    -> total offset += offset
+		 MOD_ARR_OFF_RELATIVE -> total offset += relative * object width
+		 MOD_ARR_OFF_OBJ      -> total offset += offset_ob's matrix
 	   total offset is the sum of the individual enabled offsets
 	*/
 	int offset_type;
 	/* general flags:
-	      MOD_ARR_MERGE -> merge vertices in adjacent duplicates
+		  MOD_ARR_MERGE -> merge vertices in adjacent duplicates
 	*/
 	int flags;
 	/* the number of duplicates to generate for MOD_ARR_FIXEDCOUNT */

@@ -311,7 +311,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *op)
 		}
 		else if(ob->type == OB_FONT) {
 			EditFont *ef= ((Curve*)ob->data)->editfont;
-    		int i, selstart, selend;
+			int i, selstart, selend;
 
 			if(ef && BKE_font_getselection(ob, &selstart, &selend)) {
 				for(i=selstart; i<=selend; i++)
@@ -320,8 +320,8 @@ static int material_slot_assign_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-    DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-    WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -400,7 +400,7 @@ static int material_slot_de_select(bContext *C, int select)
 		}
 	}
 
-    WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	return OPERATOR_FINISHED;
 }

@@ -92,13 +92,13 @@ void BLI_linklist_append(LinkNode **listp, void *ptr) {
 	nlink->next = NULL;
 	
 	if(node == NULL){
-        *listp = nlink;
-    } else {
-        while(node->next != NULL){
-            node = node->next;   
-        }
-        node->next = nlink;
-    }
+		*listp = nlink;
+	} else {
+		while(node->next != NULL){
+			node = node->next;   
+		}
+		node->next = nlink;
+	}
 }
 
 void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, MemArena *ma) {

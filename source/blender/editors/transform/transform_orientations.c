@@ -483,7 +483,7 @@ void applyTransformOrientation(const bContext *C, float mat[3][3], char *name) {
 				break;
 			}
 		}
-  	}
+	  }
 }
 
 static int count_bone_select(bArmature *arm, ListBase *lb, int do_it) 
@@ -815,7 +815,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				float mat[4][4];
 
 				/* Rotation of MetaElem is stored in quat */
- 				quat_to_mat4( mat,ml_sel->quat);
+				 quat_to_mat4( mat,ml_sel->quat);
 
 				VECCOPY(normal, mat[2]);
 

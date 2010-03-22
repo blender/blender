@@ -75,21 +75,21 @@ typedef struct bKeyboardSensor {
 } bKeyboardSensor;
 
 typedef struct bPropertySensor {
-    int type;
-    int pad;
+	int type;
+	int pad;
 	char name[32];
 	char value[32];
-    char maxvalue[32];
+	char maxvalue[32];
 } bPropertySensor;
 
 typedef struct bActuatorSensor {
-    int type;
-    int pad;
+	int type;
+	int pad;
 	char name[32];
 } bActuatorSensor;
 
 typedef struct bDelaySensor {
-    short delay;
+	short delay;
 	short duration;
 	short flag;
 	short pad;
@@ -101,7 +101,7 @@ typedef struct bCollisionSensor {
 	// struct Material *ma; // XXX remove materialName
 	short damptimer, damp;
 	short mode;             /* flag to choose material or property */
- 	short pad2;
+	 short pad2;
 } bCollisionSensor;
 
 typedef struct bRadarSensor {

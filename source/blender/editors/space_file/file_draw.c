@@ -169,7 +169,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	loadbutton = UI_GetStringWidth(sfile->params->title) + btn_margin;
 	if (loadbutton < btn_minw) {
 		loadbutton = MAX2(btn_minw, 
-		                  btn_margin + UI_GetStringWidth(params->title));
+						  btn_margin + UI_GetStringWidth(params->title));
 	}
 	
 	if (available_w <= loadbutton + separator + input_minw 
@@ -191,29 +191,29 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* Text input fields for directory and file. */
 	if (available_w > 0) {
 		but = uiDefBut(block, TEX, B_FS_DIRNAME, "",
-		         min_x, line1_y, line1_w, btn_h, 
-		         params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
-		         "File path.");
+				 min_x, line1_y, line1_w, btn_h, 
+				 params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
+				 "File path.");
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
 		uiDefBut(block, TEX, B_FS_FILENAME, "",
-		         min_x, line2_y, line2_w, btn_h,
-		         params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, 
-		         "File name.");
+				 min_x, line2_y, line2_w, btn_h,
+				 params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, 
+				 "File name.");
 	}
 	
 	/* Filename number increment / decrement buttons. */
 	if (fnumbuttons) {
 		uiBlockBeginAlign(block);
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
-		        min_x + line2_w + separator, line2_y, 
-		        btn_fn_w, btn_h, 
-		        "Decrement the filename number");    
+				min_x + line2_w + separator, line2_y, 
+				btn_fn_w, btn_h, 
+				"Decrement the filename number");    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", -1); 
 	
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMIN, 
-		        min_x + line2_w + separator + btn_fn_w, line2_y, 
-		        btn_fn_w, btn_h, 
-		        "Increment the filename number");    
+				min_x + line2_w + separator + btn_fn_w, line2_y, 
+				btn_fn_w, btn_h, 
+				"Increment the filename number");    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", 1); 
 		uiBlockEndAlign(block);
 	}

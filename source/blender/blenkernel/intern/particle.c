@@ -3466,9 +3466,9 @@ void make_local_particlesettings(ParticleSettings *part)
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(part->id.lib==0) return;
 	if(part->id.us==1) {
@@ -4238,7 +4238,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 		normalize_v3(side);
 		cross_v3_v3v3(nor, vec, side);
 
- 		unit_m4(mat);
+		 unit_m4(mat);
 		VECCOPY(mat[0], vec);
 		VECCOPY(mat[1], side);
 		VECCOPY(mat[2], nor);

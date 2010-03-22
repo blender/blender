@@ -680,7 +680,7 @@ void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *prop
 void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider, int lock);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname,
-		      PointerRNA *used_ptr, char *used_propname, int active_layer);
+			  PointerRNA *used_ptr, char *used_propname, int active_layer);
 void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);

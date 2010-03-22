@@ -1681,13 +1681,13 @@ static void single_mat_users_expand(void)
 /* used for copying scenes */
 void ED_object_single_users(Scene *scene, int full)
 {
-    single_object_users(scene, NULL, 0);
+	single_object_users(scene, NULL, 0);
 
-    if(full) {
-        single_obdata_users(scene, 0);
-        single_mat_users_expand();
-        single_tex_users_expand();
-    }
+	if(full) {
+		single_obdata_users(scene, 0);
+		single_mat_users_expand();
+		single_tex_users_expand();
+	}
 
 	clear_id_newpoins();
 }
@@ -1827,7 +1827,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 	int flag= RNA_enum_get(op->ptr, "type"); /* 0==ALL, SELECTED==selected objecs */
 
 	if(RNA_boolean_get(op->ptr, "object"))
-	    single_object_users(scene, v3d, flag);
+		single_object_users(scene, v3d, flag);
 
 	if(RNA_boolean_get(op->ptr, "obdata"))
 		single_obdata_users(scene, flag);

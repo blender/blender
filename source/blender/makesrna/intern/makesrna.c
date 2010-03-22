@@ -2294,8 +2294,8 @@ static void rna_generate(BlenderRNA *brna, FILE *f, char *filename, char *api_fi
 	FunctionDefRNA *dfunc;
 	
 	fprintf(f, "\n/* Automatically generated struct definitions for the Data API.\n"
-	             "   Do not edit manually, changes will be overwritten.           */\n\n"
-	              "#define RNA_RUNTIME\n\n");
+				 "   Do not edit manually, changes will be overwritten.           */\n\n"
+				  "#define RNA_RUNTIME\n\n");
 
 	fprintf(f, "#include <float.h>\n");
 	fprintf(f, "#include <limits.h>\n");
@@ -2370,7 +2370,7 @@ static void rna_generate_header(BlenderRNA *brna, FILE *f)
 	fprintf(f, "#define __RNA_BLENDER_H__\n\n");
 
 	fprintf(f, "/* Automatically generated function declarations for the Data API.\n"
-	             "   Do not edit manually, changes will be overwritten.              */\n\n");
+				 "   Do not edit manually, changes will be overwritten.              */\n\n");
 
 	fprintf(f, "#include \"RNA_types.h\"\n\n");
 
@@ -2525,7 +2525,7 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 	fprintf(f, "#define __RNA_BLENDER_CPP_H__\n\n");
 
 	fprintf(f, "/* Automatically generated classes for the Data API.\n"
-	             "   Do not edit manually, changes will be overwritten. */\n\n");
+				 "   Do not edit manually, changes will be overwritten. */\n\n");
 
 	fprintf(f, "#include \"RNA_blender.h\"\n");
 	fprintf(f, "#include \"RNA_types.h\"\n");

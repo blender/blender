@@ -99,7 +99,7 @@ void text_pop_suggest_list();
 
 /* text_ops.c */
 enum { LINE_BEGIN, LINE_END, FILE_TOP, FILE_BOTTOM, PREV_CHAR, NEXT_CHAR,
-       PREV_WORD, NEXT_WORD, PREV_LINE, NEXT_LINE, PREV_PAGE, NEXT_PAGE };
+	   PREV_WORD, NEXT_WORD, PREV_LINE, NEXT_LINE, PREV_PAGE, NEXT_PAGE };
 enum { DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_NEXT_WORD, DEL_PREV_WORD };
 
 void TEXT_OT_new(struct wmOperatorType *ot);

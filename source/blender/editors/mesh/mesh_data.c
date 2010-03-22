@@ -202,7 +202,7 @@ int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 	CustomDataLayer *cdl;
 	int index;
 
- 	index= CustomData_get_active_layer_index(data, CD_MTFACE);
+	 index= CustomData_get_active_layer_index(data, CD_MTFACE);
 	cdl= (index == -1) ? NULL: &data->layers[index];
 
 	if(!cdl)
@@ -262,7 +262,7 @@ int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 	CustomDataLayer *cdl;
 	int index;
 
- 	index= CustomData_get_active_layer_index(data, CD_MCOL);
+	 index= CustomData_get_active_layer_index(data, CD_MCOL);
 	cdl= (index == -1)? NULL: &data->layers[index];
 
 	if(!cdl)
@@ -569,7 +569,7 @@ static void mesh_calc_edges(Mesh *mesh, int update)
 	ehi = BLI_edgehashIterator_new(eh);
 	med = CustomData_get_layer(&edata, CD_MEDGE);
 	for(i = 0; !BLI_edgehashIterator_isDone(ehi);
-	    BLI_edgehashIterator_step(ehi), ++i, ++med) {
+		BLI_edgehashIterator_step(ehi), ++i, ++med) {
 
 		if(update && (med_orig=BLI_edgehashIterator_getValue(ehi))) {
 			*med= *med_orig; /* copy from the original */

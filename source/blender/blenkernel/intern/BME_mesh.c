@@ -87,7 +87,7 @@ void BME_free_mesh(BME_Mesh *bm)
 	if(bm->ldata.totlayer) BLI_mempool_destroy(bm->ldata.pool);
 	if(bm->pdata.totlayer) BLI_mempool_destroy(bm->pdata.pool);
 
- 	/*free custom data*/
+	 /*free custom data*/
 	CustomData_free(&bm->vdata,0);
 	CustomData_free(&bm->edata,0);
 	CustomData_free(&bm->ldata,0);

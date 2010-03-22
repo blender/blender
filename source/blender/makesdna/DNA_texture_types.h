@@ -170,7 +170,7 @@ typedef struct PointDensity {
 	short noise_depth;
 	short noise_influence;
 	short noise_basis;
-    short pdpad3[3];
+	short pdpad3[3];
 	float noise_fac;
 	
 	float speed_scale;

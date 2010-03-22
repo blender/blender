@@ -1547,7 +1547,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 					printf("something wrong in areafullscreen\n");
 				return NULL;
 			}
-			    // old feature described below (ton)
+				// old feature described below (ton)
 				// in autoplay screens the headers are disabled by
 				// default. So use the old headertype instead
 

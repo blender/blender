@@ -490,7 +490,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 	float *orco, *vnors, *nors, imat[3][3], mat[4][4], vec[3];
 	int a, i, need_orco, totface, totvert;
 	CustomDataMask dataMask = CD_MASK_BAREMESH | CD_MASK_MCOL
-	                          | CD_MASK_MTFACE | CD_MASK_NORMAL;
+							  | CD_MASK_MTFACE | CD_MASK_NORMAL;
 
 
 	init_fastshade_for_ob(re, ob, &need_orco, mat, imat);
@@ -1784,9 +1784,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 		if(cu->flag & CU_PATH) calc_curvepath(ob);
 
- 		if (!forRender) {
- 			tex_space_curve(cu);
- 		}
+		 if (!forRender) {
+			 tex_space_curve(cu);
+		 }
 
 		if(!forOrco) curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, originalVerts, deformedVerts);
 

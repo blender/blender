@@ -89,21 +89,21 @@
  */
 short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb) 
 {
- 	BezTriple *bezt;
- 	int i;
+	 BezTriple *bezt;
+	 int i;
 	
 	/* sanity check */
 	if (ELEM(NULL, fcu, fcu->bezt))
 		return 0;
 	
 	/* set the F-Curve into the editdata so that it can be accessed */
- 	if (bed) {
- 		bed->fcu= fcu;
- 		bed->curIndex= 0;
- 	}
+	 if (bed) {
+		 bed->fcu= fcu;
+		 bed->curIndex= 0;
+	 }
 	
 	/* if function to apply to bezier curves is set, then loop through executing it on beztriples */
- 	if (bezt_cb) {
+	 if (bezt_cb) {
 		/* if there's a validation func, include that check in the loop 
 		 * (this is should be more efficient than checking for it in every loop)
 		 */
@@ -133,10 +133,10 @@ short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc 
 	 }
 	
 	/* unset the F-Curve from the editdata now that it's done */
- 	if (bed) {
- 		bed->fcu= NULL;
- 		bed->curIndex= 0;
- 	}
+	 if (bed) {
+		 bed->fcu= NULL;
+		 bed->curIndex= 0;
+	 }
 
 	/* if fcu_cb (F-Curve post-editing callback) has been specified then execute it */
 	if (fcu_cb)

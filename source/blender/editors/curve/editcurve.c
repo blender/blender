@@ -504,8 +504,8 @@ void CURVE_OT_separate(wmOperatorType *ot)
 static short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
 {
 	/* return u!=-1:     1 row in u-direction selected. U has value between 0-pntsv 
-     * return v!=-1: 1 collumn in v-direction selected. V has value between 0-pntsu 
-     */
+	 * return v!=-1: 1 collumn in v-direction selected. V has value between 0-pntsu 
+	 */
 	BPoint *bp;
 	int a, b, sel;
 
@@ -1898,11 +1898,11 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		amount= 0;
 		if(nu->type == CU_BEZIER) {
-        /* 
-           Insert a point into a 2D Bezier curve. 
-           Endpoints are preserved. Otherwise, all selected and inserted points are 
-           newly created. Old points are discarded.
-        */
+		/* 
+		   Insert a point into a 2D Bezier curve. 
+		   Endpoints are preserved. Otherwise, all selected and inserted points are 
+		   newly created. Old points are discarded.
+		*/
 			/* count */
 			if(nu->flagu & CU_NURB_CYCLIC) {
 				a= nu->pntsu;
@@ -1980,12 +1980,12 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 			}
 		} /* End of 'if(nu->type == CU_BEZIER)' */
 		else if (nu->pntsv==1) {
-        /* 
-           All flat lines (ie. co-planar), except flat Nurbs. Flat NURB curves 
-           are handled together with the regular NURB plane division, as it 
-           should be. I split it off just now, let's see if it is
-           stable... nzc 30-5-'00
-         */
+		/* 
+		   All flat lines (ie. co-planar), except flat Nurbs. Flat NURB curves 
+		   are handled together with the regular NURB plane division, as it 
+		   should be. I split it off just now, let's see if it is
+		   stable... nzc 30-5-'00
+		 */
 			/* count */
 			if(nu->flagu & CU_NURB_CYCLIC) {
 				a= nu->pntsu;
@@ -2024,7 +2024,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 					bpn++;
 
 					if( (bp->f1 & SELECT) && (prevbp->f1 & SELECT) ) {
-                 // printf("*** subdivideNurb: insert 'linear' point\n");
+				 // printf("*** subdivideNurb: insert 'linear' point\n");
 						memcpy(bpn, bp, sizeof(BPoint));
 						bpn->vec[0]= (prevbp->vec[0]+bp->vec[0])/2.0;
 						bpn->vec[1]= (prevbp->vec[1]+bp->vec[1])/2.0;
@@ -2048,54 +2048,54 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 			}
 		} /* End of 'else if(nu->pntsv==1)' */
 		else if(nu->type == CU_NURBS) {
-        /* This is a very strange test ... */
-        /** 
-           Subdivide NURB surfaces - nzc 30-5-'00 -
+		/* This is a very strange test ... */
+		/** 
+		   Subdivide NURB surfaces - nzc 30-5-'00 -
            
-             Subdivision of a NURB curve can be effected by adding a 
-           control point (insertion of a knot), or by raising the
-           degree of the functions used to build the NURB. The
-           expression 
+			 Subdivision of a NURB curve can be effected by adding a 
+		   control point (insertion of a knot), or by raising the
+		   degree of the functions used to build the NURB. The
+		   expression 
 
-               degree = #knots - #controlpoints + 1 (J Walter piece)
-               degree = #knots - #controlpoints     (Blender
-                                                      implementation)
-                 ( this is confusing.... what is true? Another concern
-                 is that the JW piece allows the curve to become
-                 explicitly 1st order derivative discontinuous, while
-                 this is not what we want here... )
+			   degree = #knots - #controlpoints + 1 (J Walter piece)
+			   degree = #knots - #controlpoints     (Blender
+													  implementation)
+				 ( this is confusing.... what is true? Another concern
+				 is that the JW piece allows the curve to become
+				 explicitly 1st order derivative discontinuous, while
+				 this is not what we want here... )
 
-           is an invariant for a single NURB curve. Raising the degree
-           of the NURB is done elsewhere; the degree is assumed
-           constant during this opration. Degree is a property shared
-           by all controlpoints in a curve (even though it is stored
-           per control point - this can be misleading).
-             Adding a knot is done by searching for the place in the
-           knot vector where a certain knot value must be inserted, or
-           by picking an appropriate knot value between two existing
-           ones. The number of controlpoints that is influenced by the
-           insertion depends on the order of the curve. A certain
-           minimum number of knots is needed to form high-order
-           curves, as can be seen from the equation above. In Blender,
-           currently NURBs may be up to 6th order, so we modify at
-           most 6 points. One point is added. For an n-degree curve,
-           n points are discarded, and n+1 points inserted
-           (so effectively, n points are modified).  (that holds for
-           the JW piece, but it seems not for our NURBs)
-              In practice, the knot spacing is copied, but the tail
-           (the points following the insertion point) need to be
-           offset to keep the knot series ascending. The knot series
-           is always a series of monotonically ascending integers in
-           Blender. When not enough control points are available to
-           fit the order, duplicates of the endpoints are added as
-           needed. 
-        */
+		   is an invariant for a single NURB curve. Raising the degree
+		   of the NURB is done elsewhere; the degree is assumed
+		   constant during this opration. Degree is a property shared
+		   by all controlpoints in a curve (even though it is stored
+		   per control point - this can be misleading).
+			 Adding a knot is done by searching for the place in the
+		   knot vector where a certain knot value must be inserted, or
+		   by picking an appropriate knot value between two existing
+		   ones. The number of controlpoints that is influenced by the
+		   insertion depends on the order of the curve. A certain
+		   minimum number of knots is needed to form high-order
+		   curves, as can be seen from the equation above. In Blender,
+		   currently NURBs may be up to 6th order, so we modify at
+		   most 6 points. One point is added. For an n-degree curve,
+		   n points are discarded, and n+1 points inserted
+		   (so effectively, n points are modified).  (that holds for
+		   the JW piece, but it seems not for our NURBs)
+			  In practice, the knot spacing is copied, but the tail
+		   (the points following the insertion point) need to be
+		   offset to keep the knot series ascending. The knot series
+		   is always a series of monotonically ascending integers in
+		   Blender. When not enough control points are available to
+		   fit the order, duplicates of the endpoints are added as
+		   needed. 
+		*/
 			/* selection-arrays */
 			usel= MEM_callocN(sizeof(int)*nu->pntsu, "subivideNurb3");
 			vsel= MEM_callocN(sizeof(int)*nu->pntsv, "subivideNurb3");
 			sel= 0;
 
-         /* Count the number of selected points. */
+		 /* Count the number of selected points. */
 			bp= nu->bp;
 			for(a=0; a<nu->pntsv; a++) {
 				for(b=0; b<nu->pntsu; b++) {
@@ -2108,8 +2108,8 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 				}
 			}
 			if( sel == (nu->pntsu*nu->pntsv) ) {	/* subdivide entire nurb */
-           /* Global subdivision is a special case of partial
-              subdivision. Strange it is considered separately... */
+		   /* Global subdivision is a special case of partial
+			  subdivision. Strange it is considered separately... */
 				bpn=bpnew= MEM_mallocN( (2*nu->pntsu-1)*(2*nu->pntsv-1)*sizeof(BPoint), "subdivideNurb4");
 				bp= nu->bp;
 				/* first subdivide rows */
@@ -2176,13 +2176,13 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 						if( (a<nu->pntsv-1) && vsel[a]==nu->pntsu && vsel[a+1]==nu->pntsu ) {
 							prevbp= bp- nu->pntsu;
 							for(b=0; b<nu->pntsu; b++) {
-                       /* 
-                          This simple bisection must be replaces by a
-                          subtle resampling of a number of points. Our 
-                          task is made slightly easier because each
-                          point in our curve is a separate data
-                          node. (is it?)
-                       */
+					   /* 
+						  This simple bisection must be replaces by a
+						  subtle resampling of a number of points. Our 
+						  task is made slightly easier because each
+						  point in our curve is a separate data
+						  node. (is it?)
+					   */
 								*bpn= *prevbp;
 								bpn->vec[0]= (prevbp->vec[0]+bp->vec[0])/2.0;
 								bpn->vec[1]= (prevbp->vec[1]+bp->vec[1])/2.0;
@@ -2208,8 +2208,8 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 					}
 
 					if(sel) {	/* U ! */
-                 /* Inserting U points is sort of 'default' Flat curves only get */
-                 /* U points inserted in them.                                   */
+				 /* Inserting U points is sort of 'default' Flat curves only get */
+				 /* U points inserted in them.                                   */
 						bpn=bpnew= MEM_mallocN( (sel+nu->pntsu)*nu->pntsv*sizeof(BPoint), "subdivideNurb4");
 						bp= nu->bp;
 						for(a=0; a<nu->pntsv; a++) {
@@ -2218,13 +2218,13 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 								bpn++; 
 								bp++;
 								if( (b<nu->pntsu-1) && usel[b]==nu->pntsv && usel[b+1]==nu->pntsv ) {
-                          /* 
-                             One thing that bugs me here is that the
-                             orders of things are not the same as in
-                             the JW piece. Also, this implies that we
-                             handle at most 3rd order curves? I miss
-                             some symmetry here...
-                          */
+						  /* 
+							 One thing that bugs me here is that the
+							 orders of things are not the same as in
+							 the JW piece. Also, this implies that we
+							 handle at most 3rd order curves? I miss
+							 some symmetry here...
+						  */
 									prevbp= bp- 1;
 									*bpn= *prevbp;
 									bpn->vec[0]= (prevbp->vec[0]+bp->vec[0])/2.0;
@@ -2239,7 +2239,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 						nu->bp= bpnew;
 						nu->pntsu+= sel;
 						makeknots(nu, 1); /* shift knots
-                                                     forward */
+													 forward */
 					}
 				}
 			}

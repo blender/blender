@@ -204,7 +204,7 @@ static int curveModifier_isDisabled(ModifierData *md, int userRenderParams)
 }
 
 static void curveModifier_foreachObjectLink(
-					    ModifierData *md, Object *ob,
+						ModifierData *md, Object *ob,
 	 void (*walk)(void *userData, Object *ob, Object **obpoin),
 		void *userData)
 {
@@ -215,7 +215,7 @@ static void curveModifier_foreachObjectLink(
 
 static void curveModifier_updateDepgraph(
 					 ModifierData *md, DagForest *forest, Scene *scene,
-      Object *ob, DagNode *obNode)
+	  Object *ob, DagNode *obNode)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
 
@@ -228,7 +228,7 @@ static void curveModifier_updateDepgraph(
 }
 
 static void curveModifier_deformVerts(
-				      ModifierData *md, Object *ob, DerivedMesh *derivedData,
+					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
@@ -239,7 +239,7 @@ static void curveModifier_deformVerts(
 
 static void curveModifier_deformVertsEM(
 					ModifierData *md, Object *ob, EditMesh *editData,
-     DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+	 DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
@@ -280,7 +280,7 @@ static int latticeModifier_isDisabled(ModifierData *md, int userRenderParams)
 }
 
 static void latticeModifier_foreachObjectLink(
-					      ModifierData *md, Object *ob,
+						  ModifierData *md, Object *ob,
 	   void (*walk)(void *userData, Object *ob, Object **obpoin),
 		  void *userData)
 {
@@ -317,7 +317,7 @@ static void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 
 static void latticeModifier_deformVerts(
 					ModifierData *md, Object *ob, DerivedMesh *derivedData,
-     float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -325,12 +325,12 @@ static void latticeModifier_deformVerts(
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
 	lattice_deform_verts(lmd->object, ob, derivedData,
-			     vertexCos, numVerts, lmd->name);
+				 vertexCos, numVerts, lmd->name);
 }
 
 static void latticeModifier_deformVertsEM(
 					  ModifierData *md, Object *ob, EditMesh *editData,
-       DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
@@ -463,22 +463,22 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 
 	maxVerts = dm->getNumVerts(dm);
 	vertMap = MEM_callocN(sizeof(*vertMap) * maxVerts,
-			      "build modifier vertMap");
+				  "build modifier vertMap");
 	for(i = 0; i < maxVerts; ++i) vertMap[i] = i;
 
 	maxEdges = dm->getNumEdges(dm);
 	edgeMap = MEM_callocN(sizeof(*edgeMap) * maxEdges,
-			      "build modifier edgeMap");
+				  "build modifier edgeMap");
 	for(i = 0; i < maxEdges; ++i) edgeMap[i] = i;
 
 	maxFaces = dm->getNumFaces(dm);
 	faceMap = MEM_callocN(sizeof(*faceMap) * maxFaces,
-			      "build modifier faceMap");
+				  "build modifier faceMap");
 	for(i = 0; i < maxFaces; ++i) faceMap[i] = i;
 
 	if (ob) {
 		frac = bsystem_time(md->scene, ob, md->scene->r.cfra,
-				    bmd->start - 1.0f) / bmd->length;
+					bmd->start - 1.0f) / bmd->length;
 	} else {
 		frac = md->scene->r.cfra - bmd->start / bmd->length;
 	}
@@ -493,7 +493,7 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 
 		if(bmd->randomize)
 			BLI_array_randomize(faceMap, sizeof(*faceMap),
-					    maxFaces, bmd->seed);
+						maxFaces, bmd->seed);
 
 		/* get the set of all vert indices that will be in the final mesh,
 		* mapped to the new indices
@@ -532,7 +532,7 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 	} else if(numEdges) {
 		if(bmd->randomize)
 			BLI_array_randomize(edgeMap, sizeof(*edgeMap),
-					    maxEdges, bmd->seed);
+						maxEdges, bmd->seed);
 
 		/* get the set of all vert indices that will be in the final mesh,
 		* mapped to the new indices
@@ -563,7 +563,7 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 
 		if(bmd->randomize)
 			BLI_array_randomize(vertMap, sizeof(*vertMap),
-					    maxVerts, bmd->seed);
+						maxVerts, bmd->seed);
 
 		/* get the set of all vert indices that will be in the final mesh,
 		* mapped to the new indices
@@ -576,7 +576,7 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 	* the mesh
 	*/
 	result = CDDM_from_template(dm, BLI_ghash_size(vertHash),
-				    BLI_ghash_size(edgeHash), numFaces);
+					BLI_ghash_size(edgeHash), numFaces);
 
 	/* copy the vertices across */
 	for(hashIter = BLI_ghashIterator_new(vertHash);
@@ -662,7 +662,7 @@ static CustomDataMask maskModifier_requiredDataMask(Object *ob, ModifierData *md
 }
 
 static void maskModifier_foreachObjectLink(
-					      ModifierData *md, Object *ob,
+						  ModifierData *md, Object *ob,
 	   void (*walk)(void *userData, Object *ob, Object **obpoin),
 		  void *userData)
 {
@@ -1028,7 +1028,7 @@ static void arrayModifier_copyData(ModifierData *md, ModifierData *target)
 }
 
 static void arrayModifier_foreachObjectLink(
-					    ModifierData *md, Object *ob,
+						ModifierData *md, Object *ob,
 	 void (*walk)(void *userData, Object *ob, Object **obpoin),
 		void *userData)
 {
@@ -1124,13 +1124,13 @@ static int calc_mapping(IndexMapEntry *indexMap, int oldIndex, int copyNum)
 			return indexMap[oldIndex].new;
 		else
 			return calc_mapping(indexMap, indexMap[oldIndex].merge,
-					    copyNum - 1);
+						copyNum - 1);
 	}
 }
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  Scene *scene, Object *ob, DerivedMesh *dm,
-       int initFlags)
+	   int initFlags)
 {
 	int i, j;
 	/* offset matrix */
@@ -1160,7 +1160,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	unit_m4(offset);
 
 	indexMap = MEM_callocN(sizeof(*indexMap) * dm->getNumVerts(dm),
-			       "indexmap");
+				   "indexmap");
 
 	src_mvert = dm->getVertArray(dm);
 
@@ -1185,7 +1185,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 		mul_serie_m4(result_mat, offset,
 				 obinv, amd->offset_ob->obmat,
-     NULL, NULL, NULL, NULL, NULL);
+	 NULL, NULL, NULL, NULL, NULL);
 		copy_m4_m4(offset, result_mat);
 	}
 
@@ -1542,12 +1542,12 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  mface[numFaces].v4 = vert_map[mface[numFaces].v4];
 
 					  test_index_face(&mface[numFaces], &result->faceData,
-					                  numFaces, 4);
+									  numFaces, 4);
 				  }
 				  else
 				  {
 					  test_index_face(&mface[numFaces], &result->faceData,
-					                  numFaces, 3);
+									  numFaces, 3);
 				  }
 
 				  origindex[numFaces] = ORIGINDEX_NONE;
@@ -1643,12 +1643,12 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  mface[numFaces].v4 = vert_map[mface[numFaces].v4];
 
 					  test_index_face(&mface[numFaces], &result->faceData,
-					                  numFaces, 4);
+									  numFaces, 4);
 				  }
 				  else
 				  {
 					  test_index_face(&mface[numFaces], &result->faceData,
-					                  numFaces, 3);
+									  numFaces, 3);
 				  }
 				  origindex[numFaces] = ORIGINDEX_NONE;
 
@@ -1714,7 +1714,7 @@ static void mirrorModifier_copyData(ModifierData *md, ModifierData *target)
 }
 
 static void mirrorModifier_foreachObjectLink(
-					     ModifierData *md, Object *ob,
+						 ModifierData *md, Object *ob,
 	  void (*walk)(void *userData, Object *ob, Object **obpoin),
 		 void *userData)
 {
@@ -1924,7 +1924,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 }
 
 static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
-					    Object *ob, DerivedMesh *dm,
+						Object *ob, DerivedMesh *dm,
 						int initFlags)
 {
 	DerivedMesh *result = dm;
@@ -2198,7 +2198,7 @@ static void smoothmesh_print(SmoothMesh *mesh)
 		dm->getVert(dm, vert->oldIndex, &mv);
 
 		printf("%3d: ind={%3d, %3d}, pos={% 5.1f, % 5.1f, % 5.1f}",
-		       i, vert->oldIndex, vert->newIndex,
+			   i, vert->oldIndex, vert->newIndex,
 	 mv.co[0], mv.co[1], mv.co[2]);
 		printf(", faces={");
 		for(node = vert->faces; node != NULL; node = node->next) {
@@ -2213,7 +2213,7 @@ static void smoothmesh_print(SmoothMesh *mesh)
 		LinkNode *node;
 
 		printf("%4d: indices={%4d, %4d}, verts={%4d, %4d}",
-		       i,
+			   i,
 	 edge->oldIndex, edge->newIndex,
   edge->verts[0]->newIndex, edge->verts[1]->newIndex);
 		if(edge->verts[0] == edge->verts[1]) printf(" <- DUPLICATE VERTEX");
@@ -2229,7 +2229,7 @@ static void smoothmesh_print(SmoothMesh *mesh)
 		SmoothFace *face = &mesh->faces[i];
 
 		printf("%4d: indices={%4d, %4d}, edges={", i,
-		       face->oldIndex, face->newIndex);
+			   face->oldIndex, face->newIndex);
 		for(j = 0; j < SMOOTHFACE_MAX_EDGES && face->edges[j]; j++) {
 			if(face->flip[j])
 				printf(" -%-2d", face->edges[j]->newIndex);
@@ -2257,7 +2257,7 @@ static SmoothMesh *smoothmesh_from_derivedmesh(DerivedMesh *dm)
 	totface = dm->getNumFaces(dm);
 
 	mesh = smoothmesh_new(totvert, totedge, totface,
-			      totvert, totedge, totface);
+				  totvert, totedge, totface);
 
 	mesh->dm = dm;
 
@@ -2390,7 +2390,7 @@ static SmoothVert *other_vert(SmoothEdge *edge, SmoothVert *vert)
  * (this should never happen)
  */
 static SmoothEdge *other_edge(SmoothFace *face, SmoothVert *vert,
-			      SmoothEdge *edge)
+				  SmoothEdge *edge)
 {
 	int i,j;
 	for(i = 0; i < SMOOTHFACE_MAX_EDGES && face->edges[i]; i++) {
@@ -2584,7 +2584,7 @@ static void edge_replace_vert(void *ptr, void *userdata)
 
 #ifdef EDGESPLIT_DEBUG_3
 	printf("replacing vert %4d with %4d in edge %4d",
-	       find->newIndex, replace->newIndex, edge->newIndex);
+		   find->newIndex, replace->newIndex, edge->newIndex);
 	printf(": {%4d, %4d}", edge->verts[0]->newIndex, edge->verts[1]->newIndex);
 #endif
 
@@ -2620,14 +2620,14 @@ static void face_replace_edge(void *ptr, void *userdata)
 
 #ifdef EDGESPLIT_DEBUG_3
 	printf("replacing edge %4d with %4d in face %4d",
-	       find->newIndex, replace->newIndex, face->newIndex);
+		   find->newIndex, replace->newIndex, face->newIndex);
 	if(face->edges[3])
 		printf(": {%2d %2d %2d %2d}",
-		       face->edges[0]->newIndex, face->edges[1]->newIndex,
+			   face->edges[0]->newIndex, face->edges[1]->newIndex,
 	 face->edges[2]->newIndex, face->edges[3]->newIndex);
 	else
 		printf(": {%2d %2d %2d}",
-		       face->edges[0]->newIndex, face->edges[1]->newIndex,
+			   face->edges[0]->newIndex, face->edges[1]->newIndex,
 	 face->edges[2]->newIndex);
 #endif
 
@@ -2642,11 +2642,11 @@ static void face_replace_edge(void *ptr, void *userdata)
 #ifdef EDGESPLIT_DEBUG_3
 	if(face->edges[3])
 		printf(" -> {%2d %2d %2d %2d}\n",
-		       face->edges[0]->newIndex, face->edges[1]->newIndex,
+			   face->edges[0]->newIndex, face->edges[1]->newIndex,
 	 face->edges[2]->newIndex, face->edges[3]->newIndex);
 	else
 		printf(" -> {%2d %2d %2d}\n",
-		       face->edges[0]->newIndex, face->edges[1]->newIndex,
+			   face->edges[0]->newIndex, face->edges[1]->newIndex,
 	 face->edges[2]->newIndex);
 #endif
 }
@@ -2696,7 +2696,7 @@ static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge,
 	LinkNode *visited_edges = NULL;
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== START === find_other_sharp_edge(edge = %4d, vert = %4d)\n",
-	       edge->newIndex, vert->newIndex);
+		   edge->newIndex, vert->newIndex);
 #endif
 
 	/* get a face on which to start */
@@ -2717,10 +2717,10 @@ static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge,
 	* seen before
 	*/
 	while(face && !edge_is_sharp(edge2, flags, threshold)
-		     && !linklist_contains(visited_edges, edge2)) {
+			 && !linklist_contains(visited_edges, edge2)) {
 #ifdef EDGESPLIT_DEBUG_3
 		printf("current face %4d; current edge %4d\n", face->newIndex,
-		       edge2->newIndex);
+			   edge2->newIndex);
 #endif
 		/* get the next face */
 		face = other_face(edge2, face);
@@ -2738,30 +2738,30 @@ static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge,
 			edge2 = other_edge(face, vert, edge2);
 #ifdef EDGESPLIT_DEBUG_3
 			printf("next face %4d; next edge %4d\n",
-			       face->newIndex, edge2->newIndex);
+				   face->newIndex, edge2->newIndex);
 		} else {
 			printf("loose edge: %4d\n", edge2->newIndex);
 #endif
 		}
-		     }
+			 }
 
-		     /* either we came back to the start edge or we found a sharp/loose edge */
-		     if(linklist_contains(visited_edges, edge2))
-			     /* we came back to the start edge */
-			     edge2 = NULL;
+			 /* either we came back to the start edge or we found a sharp/loose edge */
+			 if(linklist_contains(visited_edges, edge2))
+				 /* we came back to the start edge */
+				 edge2 = NULL;
 
-		     BLI_linklist_free(visited_edges, NULL);
+			 BLI_linklist_free(visited_edges, NULL);
 
 #ifdef EDGESPLIT_DEBUG_1
-		     printf("=== END === find_other_sharp_edge(edge = %4d, vert = %4d), "
-				     "returning edge %d\n",
+			 printf("=== END === find_other_sharp_edge(edge = %4d, vert = %4d), "
+					 "returning edge %d\n",
 	 edge->newIndex, vert->newIndex, edge2 ? edge2->newIndex : -1);
 #endif
-		     return edge2;
+			 return edge2;
 }
 
 static void split_single_vert(SmoothVert *vert, SmoothFace *face,
-			      SmoothMesh *mesh)
+				  SmoothMesh *mesh)
 {
 	SmoothVert *copy_vert;
 	ReplaceData repdata;
@@ -2819,17 +2819,17 @@ static void pop_propagate_stack(SmoothEdge **edge, SmoothVert **vert, SmoothMesh
 static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh);
 
 static void propagate_split(SmoothEdge *edge, SmoothVert *vert,
-			    SmoothMesh *mesh)
+				SmoothMesh *mesh)
 {
 	SmoothEdge *edge2;
 	LinkNode *visited_faces = NULL;
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== START === propagate_split(edge = %4d, vert = %4d)\n",
-	       edge->newIndex, vert->newIndex);
+		   edge->newIndex, vert->newIndex);
 #endif
 
 	edge2 = find_other_sharp_edge(vert, edge, &visited_faces,
-				      mesh->threshold, mesh->flags);
+					  mesh->threshold, mesh->flags);
 
 	if(!edge2) {
 		/* didn't find a sharp or loose edge, so we've hit a dead end */
@@ -2871,7 +2871,7 @@ static void propagate_split(SmoothEdge *edge, SmoothVert *vert,
 	BLI_linklist_free(visited_faces, NULL);
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== END === propagate_split(edge = %4d, vert = %4d)\n",
-	       edge->newIndex, vert->newIndex);
+		   edge->newIndex, vert->newIndex);
 #endif
 }
 
@@ -2884,11 +2884,11 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 	LinkNode *visited_faces = NULL;
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== START === split_edge(edge = %4d, vert = %4d)\n",
-	       edge->newIndex, vert->newIndex);
+		   edge->newIndex, vert->newIndex);
 #endif
 
 	edge2 = find_other_sharp_edge(vert, edge, &visited_faces,
-				      mesh->threshold, mesh->flags);
+					  mesh->threshold, mesh->flags);
 
 	if(!edge2) {
 		/* didn't find a sharp or loose edge, so try the other vert */
@@ -2958,12 +2958,12 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 	BLI_linklist_free(visited_faces, NULL);
 #ifdef EDGESPLIT_DEBUG_1
 	printf("=== END === split_edge(edge = %4d, vert = %4d)\n",
-	       edge->newIndex, vert->newIndex);
+		   edge->newIndex, vert->newIndex);
 #endif
 }
 
 static void tag_and_count_extra_edges(SmoothMesh *mesh, float split_angle,
-				      int flags, int *extra_edges)
+					  int flags, int *extra_edges)
 {
 	/* if normal1 dot normal2 < threshold, angle is greater, so split */
 	/* FIXME not sure if this always works */
@@ -3327,7 +3327,7 @@ static int displaceModifier_dependsOnTime(ModifierData *md)
 }
 
 static void displaceModifier_foreachObjectLink(ModifierData *md, Object *ob,
-					       ObjectWalkFunc walk, void *userData)
+						   ObjectWalkFunc walk, void *userData)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 
@@ -3352,7 +3352,7 @@ static int displaceModifier_isDisabled(ModifierData *md, int useRenderParams)
 }
 
 static void displaceModifier_updateDepgraph(
-					    ModifierData *md, DagForest *forest, Scene *scene,
+						ModifierData *md, DagForest *forest, Scene *scene,
 	 Object *ob, DagNode *obNode)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
@@ -3385,7 +3385,7 @@ static void validate_layer_name(const CustomData *data, int type, char *name, ch
 }
 
 static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
-			       DerivedMesh *dm,
+				   DerivedMesh *dm,
 	  float (*co)[3], float (*texco)[3],
 		  int numVerts)
 {
@@ -3492,7 +3492,7 @@ static void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 /* dm must be a CDDerivedMesh */
 static void displaceModifier_do(
 				DisplaceModifierData *dmd, Object *ob,
-    DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+	DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
 	int i;
 	MVert *mvert;
@@ -3509,7 +3509,7 @@ static void displaceModifier_do(
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 
 	tex_co = MEM_callocN(sizeof(*tex_co) * numVerts,
-			     "displaceModifier_do tex_co");
+				 "displaceModifier_do tex_co");
 	get_texture_coords(dmd, ob, dm, vertexCos, tex_co, numVerts);
 
 	for(i = 0; i < numVerts; ++i) {
@@ -3565,12 +3565,12 @@ static void displaceModifier_do(
 
 static void displaceModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm= get_cddm(md->scene, ob, NULL, derivedData, vertexCos);
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
-			     vertexCos, numVerts);
+				 vertexCos, numVerts);
 
 	if(dm != derivedData)
 		dm->release(dm);
@@ -3583,7 +3583,7 @@ static void displaceModifier_deformVertsEM(
 	DerivedMesh *dm= get_cddm(md->scene, ob, editData, derivedData, vertexCos);
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
-			     vertexCos, numVerts);
+				 vertexCos, numVerts);
 
 	if(dm != derivedData)
 		dm->release(dm);
@@ -3642,18 +3642,18 @@ static void uvprojectModifier_foreachObjectLink(ModifierData *md, Object *ob,
 }
 
 static void uvprojectModifier_foreachIDLink(ModifierData *md, Object *ob,
-					    IDWalkFunc walk, void *userData)
+						IDWalkFunc walk, void *userData)
 {
 	UVProjectModifierData *umd = (UVProjectModifierData*) md;
 
 	walk(userData, ob, (ID **)&umd->image);
 
 	uvprojectModifier_foreachObjectLink(md, ob, (ObjectWalkFunc)walk,
-					    userData);
+						userData);
 }
 
 static void uvprojectModifier_updateDepgraph(ModifierData *md,
-					     DagForest *forest, Scene *scene, Object *ob, DagNode *obNode)
+						 DagForest *forest, Scene *scene, Object *ob, DagNode *obNode)
 {
 	UVProjectModifierData *umd = (UVProjectModifierData*) md;
 	int i;
@@ -3711,7 +3711,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	numVerts = dm->getNumVerts(dm);
 
 	coords = MEM_callocN(sizeof(*coords) * numVerts,
-			     "uvprojectModifier_do coords");
+				 "uvprojectModifier_do coords");
 	dm->getVertCos(dm, coords);
 
 	/* convert coords to world space */
@@ -4092,7 +4092,7 @@ static CustomDataMask smoothModifier_requiredDataMask(Object *ob, ModifierData *
 }
 
 static void smoothModifier_do(
-			      SmoothModifierData *smd, Object *ob, DerivedMesh *dm,
+				  SmoothModifierData *smd, Object *ob, DerivedMesh *dm,
 	 float (*vertexCos)[3], int numVerts)
 {
 	MDeformVert *dvert = NULL;
@@ -4220,7 +4220,7 @@ static void smoothModifier_do(
 }
 
 static void smoothModifier_deformVerts(
-				       ModifierData *md, Object *ob, DerivedMesh *derivedData,
+					   ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	   float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm= get_dm(md->scene, ob, NULL, derivedData, NULL, 0);
@@ -4234,7 +4234,7 @@ static void smoothModifier_deformVerts(
 
 static void smoothModifier_deformVertsEM(
 					 ModifierData *md, Object *ob, EditMesh *editData,
-      DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+	  DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm= get_dm(md->scene, ob, editData, derivedData, NULL, 0);
 
@@ -4302,7 +4302,7 @@ static CustomDataMask castModifier_requiredDataMask(Object *ob, ModifierData *md
 static void castModifier_foreachObjectLink(
 					   ModifierData *md, Object *ob,
 	void (*walk)(void *userData, Object *ob, Object **obpoin),
-	       void *userData)
+		   void *userData)
 {
 	CastModifierData *cmd = (CastModifierData*) md;
 
@@ -4311,7 +4311,7 @@ static void castModifier_foreachObjectLink(
 
 static void castModifier_updateDepgraph(
 					ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
-     DagNode *obNode)
+	 DagNode *obNode)
 {
 	CastModifierData *cmd = (CastModifierData*) md;
 
@@ -4325,7 +4325,7 @@ static void castModifier_updateDepgraph(
 
 static void castModifier_sphere_do(
 				   CastModifierData *cmd, Object *ob, DerivedMesh *dm,
-       float (*vertexCos)[3], int numVerts)
+	   float (*vertexCos)[3], int numVerts)
 {
 	MDeformVert *dvert = NULL;
 
@@ -4502,7 +4502,7 @@ static void castModifier_sphere_do(
 
 static void castModifier_cuboid_do(
 				   CastModifierData *cmd, Object *ob, DerivedMesh *dm,
-       float (*vertexCos)[3], int numVerts)
+	   float (*vertexCos)[3], int numVerts)
 {
 	MDeformVert *dvert = NULL;
 	Object *ctrl_ob = NULL;
@@ -4772,7 +4772,7 @@ static void castModifier_cuboid_do(
 }
 
 static void castModifier_deformVerts(
-				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
+					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = NULL;
@@ -4795,7 +4795,7 @@ static void castModifier_deformVerts(
 }
 
 static void castModifier_deformVertsEM(
-				       ModifierData *md, Object *ob, EditMesh *editData,
+					   ModifierData *md, Object *ob, EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = get_dm(md->scene, ob, editData, derivedData, NULL, 0);
@@ -4873,7 +4873,7 @@ static void waveModifier_foreachObjectLink(
 }
 
 static void waveModifier_foreachIDLink(ModifierData *md, Object *ob,
-				       IDWalkFunc walk, void *userData)
+					   IDWalkFunc walk, void *userData)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
 
@@ -4884,7 +4884,7 @@ static void waveModifier_foreachIDLink(ModifierData *md, Object *ob,
 
 static void waveModifier_updateDepgraph(
 					ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
-     DagNode *obNode)
+	 DagNode *obNode)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
 
@@ -4921,7 +4921,7 @@ static CustomDataMask waveModifier_requiredDataMask(Object *ob, ModifierData *md
 }
 
 static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
-				       DerivedMesh *dm,
+					   DerivedMesh *dm,
 	   float (*co)[3], float (*texco)[3],
 		   int numVerts)
 {
@@ -5009,7 +5009,7 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 
 static void waveModifier_do(WaveModifierData *md, 
 		Scene *scene, Object *ob, DerivedMesh *dm,
-       float (*vertexCos)[3], int numVerts)
+	   float (*vertexCos)[3], int numVerts)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
 	MVert *mvert = NULL;
@@ -5057,7 +5057,7 @@ static void waveModifier_do(WaveModifierData *md,
 
 	if(wmd->texture) {
 		tex_co = MEM_mallocN(sizeof(*tex_co) * numVerts,
-				     "waveModifier_do tex_co");
+					 "waveModifier_do tex_co");
 		wavemod_get_texture_coords(wmd, ob, dm, vertexCos, tex_co, numVerts);
 	}
 
@@ -5165,7 +5165,7 @@ static void waveModifier_do(WaveModifierData *md,
 }
 
 static void waveModifier_deformVerts(
-				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
+					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm= derivedData;
@@ -5183,7 +5183,7 @@ static void waveModifier_deformVerts(
 }
 
 static void waveModifier_deformVertsEM(
-				       ModifierData *md, Object *ob, EditMesh *editData,
+					   ModifierData *md, Object *ob, EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm= derivedData;
@@ -5237,8 +5237,8 @@ static int armatureModifier_isDisabled(ModifierData *md, int useRenderParams)
 }
 
 static void armatureModifier_foreachObjectLink(
-					       ModifierData *md, Object *ob,
-	    void (*walk)(void *userData, Object *ob, Object **obpoin),
+						   ModifierData *md, Object *ob,
+		void (*walk)(void *userData, Object *ob, Object **obpoin),
 		   void *userData)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
@@ -5247,7 +5247,7 @@ static void armatureModifier_foreachObjectLink(
 }
 
 static void armatureModifier_updateDepgraph(
-					    ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
+						ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
 	 DagNode *obNode)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
@@ -5262,14 +5262,14 @@ static void armatureModifier_updateDepgraph(
 
 static void armatureModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
 	armature_deform_verts(amd->object, ob, derivedData, vertexCos, NULL,
-			      numVerts, amd->deformflag, 
+				  numVerts, amd->deformflag, 
 	 (float(*)[3])amd->prevCos, amd->defgrp_name);
 	/* free cache */
 	if(amd->prevCos) {
@@ -5288,15 +5288,15 @@ static void armatureModifier_deformVertsEM(
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, NULL, numVerts,
-			      amd->deformflag, NULL, amd->defgrp_name);
+				  amd->deformflag, NULL, amd->defgrp_name);
 
 	if(!derivedData) dm->release(dm);
 }
 
 static void armatureModifier_deformMatricesEM(
-					      ModifierData *md, Object *ob, EditMesh *editData,
+						  ModifierData *md, Object *ob, EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3],
-					     float (*defMats)[3][3], int numVerts)
+						 float (*defMats)[3][3], int numVerts)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 	DerivedMesh *dm = derivedData;
@@ -5304,7 +5304,7 @@ static void armatureModifier_deformMatricesEM(
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
-			      amd->deformflag, NULL, amd->defgrp_name);
+				  amd->deformflag, NULL, amd->defgrp_name);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -5362,7 +5362,7 @@ static int hookModifier_isDisabled(ModifierData *md, int useRenderParams)
 static void hookModifier_foreachObjectLink(
 					   ModifierData *md, Object *ob,
 	void (*walk)(void *userData, Object *ob, Object **obpoin),
-	       void *userData)
+		   void *userData)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
 
@@ -5385,7 +5385,7 @@ static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest, Sce
 }
 
 static void hookModifier_deformVerts(
-				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
+					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
@@ -5405,7 +5405,7 @@ static void hookModifier_deformVerts(
 	}
 	invert_m4_m4(ob->imat, ob->obmat);
 	mul_serie_m4(mat, ob->imat, dmat, hmd->parentinv,
-		     NULL, NULL, NULL, NULL, NULL);
+			 NULL, NULL, NULL, NULL, NULL);
 
 	/* vertex indices? */
 	if(hmd->indexar) {
@@ -5507,7 +5507,7 @@ static void hookModifier_deformVerts(
 }
 
 static void hookModifier_deformVertsEM(
-				       ModifierData *md, Object *ob, EditMesh *editData,
+					   ModifierData *md, Object *ob, EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
@@ -5523,7 +5523,7 @@ static void hookModifier_deformVertsEM(
 
 static void softbodyModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	sbObjectStep(md->scene, ob, (float)md->scene->r.cfra, vertexCos, numVerts);
 }
@@ -5984,9 +5984,9 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 }
 
 static DerivedMesh *solidifyModifier_applyModifierEM(ModifierData *md,
-						     Object *ob,
-						     EditMesh *editData,
-						     DerivedMesh *derivedData)
+							 Object *ob,
+							 EditMesh *editData,
+							 DerivedMesh *derivedData)
 {
 	return solidifyModifier_applyModifier(md, ob, derivedData, 0, 1);
 }
@@ -6075,8 +6075,8 @@ static void screwModifier_copyData(ModifierData *md, ModifierData *target)
 }
 
 static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
-                                        DerivedMesh *derivedData,
-                                        int useRenderParams, int isFinalCalc)
+										DerivedMesh *derivedData,
+										int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm= derivedData;
 	DerivedMesh *result;
@@ -6766,7 +6766,7 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 
 
 static void screwModifier_updateDepgraph(
-                                    ModifierData *md, DagForest *forest,
+									ModifierData *md, DagForest *forest,
 									Scene *scene, Object *ob, DagNode *obNode)
 {
 	ScrewModifierData *ltmd= (ScrewModifierData*) md;
@@ -6775,15 +6775,15 @@ static void screwModifier_updateDepgraph(
 		DagNode *curNode= dag_get_node(forest, ltmd->ob_axis);
 
 		dag_add_relation(forest, curNode, obNode,
-		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA,
-		                 "Screw Modifier");
+						 DAG_RL_DATA_DATA | DAG_RL_OB_DATA,
+						 "Screw Modifier");
 	}
 }
 
 static void screwModifier_foreachObjectLink(
-                ModifierData *md, Object *ob,
-                void (*walk)(void *userData, Object *ob, Object **obpoin),
-                void *userData)
+				ModifierData *md, Object *ob,
+				void (*walk)(void *userData, Object *ob, Object **obpoin),
+				void *userData)
 {
 	ScrewModifierData *ltmd= (ScrewModifierData*) md;
 
@@ -6792,8 +6792,8 @@ static void screwModifier_foreachObjectLink(
 
 /* This dosnt work with material*/
 static DerivedMesh *screwModifier_applyModifierEM(
-                        ModifierData *md, Object *ob, EditMesh *editData,
-                        DerivedMesh *derivedData)
+						ModifierData *md, Object *ob, EditMesh *editData,
+						DerivedMesh *derivedData)
 {
 	return screwModifier_applyModifier(md, ob, derivedData, 0, 1);
 }
@@ -6826,7 +6826,7 @@ static void smokeModifier_freeData(ModifierData *md)
 
 static void smokeModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	SmokeModifierData *smd = (SmokeModifierData*) md;
 	DerivedMesh *dm = dm= get_cddm(md->scene, ob, NULL, derivedData, vertexCos);
@@ -6844,7 +6844,7 @@ static int smokeModifier_dependsOnTime(ModifierData *md)
 
 static void smokeModifier_updateDepgraph(
 					 ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
-      DagNode *obNode)
+	  DagNode *obNode)
 {
 	/*SmokeModifierData *smd = (SmokeModifierData *) md;
 	if(smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
@@ -6916,7 +6916,7 @@ static DerivedMesh *clothModifier_applyModifier(ModifierData *md, Object *ob,
 
 static void clothModifier_updateDepgraph(
 					 ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
-      DagNode *obNode)
+	  DagNode *obNode)
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
 	
@@ -7056,7 +7056,7 @@ static int collisionModifier_dependsOnTime(ModifierData *md)
 
 static void collisionModifier_deformVerts(
 					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
-       float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+	   float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	CollisionModifierData *collmd = (CollisionModifierData*) md;
 	DerivedMesh *dm = NULL;
@@ -7225,7 +7225,7 @@ static int surfaceModifier_dependsOnTime(ModifierData *md)
 
 static void surfaceModifier_deformVerts(
 					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	    float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+		float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
 	unsigned int numverts = 0, i = 0;
@@ -7319,7 +7319,7 @@ static int booleanModifier_isDisabled(ModifierData *md, int useRenderParams)
 }
 
 static void booleanModifier_foreachObjectLink(
-					      ModifierData *md, Object *ob,
+						  ModifierData *md, Object *ob,
 	   void (*walk)(void *userData, Object *ob, Object **obpoin),
 		  void *userData)
 {
@@ -7351,7 +7351,7 @@ static DerivedMesh *booleanModifier_applyModifier(
 
 	/* we do a quick sanity check */
 	if(dm && (derivedData->getNumFaces(derivedData) > 3)
-		    && bmd->object && dm->getNumFaces(dm) > 3) {
+			&& bmd->object && dm->getNumFaces(dm) > 3) {
 		DerivedMesh *result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,
 				1 + bmd->operation);
 
@@ -7454,8 +7454,8 @@ static CustomDataMask particleSystemModifier_requiredDataMask(Object *ob, Modifi
 
 /* saves the current emitter state for a particle system and calculates particles */
 static void particleSystemModifier_deformVerts(
-					       ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	    float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+						   ModifierData *md, Object *ob, DerivedMesh *derivedData,
+		float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
@@ -7524,8 +7524,8 @@ static void particleSystemModifier_deformVerts(
  * updates is coded */
 #if 0
 static void particleSystemModifier_deformVertsEM(
-                ModifierData *md, Object *ob, EditMesh *editData,
-                DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+				ModifierData *md, Object *ob, EditMesh *editData,
+				DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
@@ -7844,7 +7844,7 @@ static CustomDataMask explodeModifier_requiredDataMask(Object *ob, ModifierData 
 
 static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 					 ParticleSystemModifierData *psmd,
-      Object *ob, DerivedMesh *dm)
+	  Object *ob, DerivedMesh *dm)
 {
 	ParticleSystem *psys=psmd->psys;
 	MFace *fa=0, *mface=0;
@@ -8683,7 +8683,7 @@ static DerivedMesh * fluidsimModifier_applyModifier(
 
 static void fluidsimModifier_updateDepgraph(
 		ModifierData *md, DagForest *forest, Scene *scene,
-      Object *ob, DagNode *obNode)
+	  Object *ob, DagNode *obNode)
 {
 	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
 	Base *base;
@@ -8774,7 +8774,7 @@ static void meshdeformModifier_foreachObjectLink(
 }
 
 static void meshdeformModifier_updateDepgraph(
-					      ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
+						  ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
 	   DagNode *obNode)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
@@ -8842,7 +8842,7 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 
 static void meshdeformModifier_do(
 				  ModifierData *md, Object *ob, DerivedMesh *dm,
-      float (*vertexCos)[3], int numVerts)
+	  float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 	Mesh *me= (mmd->object)? mmd->object->data: NULL;
@@ -9010,7 +9010,7 @@ static void meshdeformModifier_deformVerts(
 }
 
 static void meshdeformModifier_deformVertsEM(
-					     ModifierData *md, Object *ob, EditMesh *editData,
+						 ModifierData *md, Object *ob, EditMesh *editData,
 	  DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm;
@@ -9263,7 +9263,7 @@ static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, Edi
 
 static void shapekeyModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	KeyBlock *kb= ob_get_keyblock(ob);
 	float (*deformedVerts)[3];
@@ -9288,9 +9288,9 @@ static void shapekeyModifier_deformVertsEM(
 }
 
 static void shapekeyModifier_deformMatricesEM(
-					      ModifierData *md, Object *ob, EditMesh *editData,
+						  ModifierData *md, Object *ob, EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3],
-					     float (*defMats)[3][3], int numVerts)
+						 float (*defMats)[3][3], int numVerts)
 {
 	Key *key= ob_get_key(ob);
 	KeyBlock *kb= ob_get_keyblock(ob);
@@ -9738,7 +9738,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Screw);
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
-                | eModifierTypeFlag_SupportsEditmode
+				| eModifierTypeFlag_SupportsEditmode
 				| eModifierTypeFlag_EnableInEditmode
 				| eModifierTypeFlag_AcceptsCVs;
 		

@@ -209,8 +209,8 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 			* Really Blender should never _ever_ try
 			* to do such a thing, but just to be safe
 			* clamp it anyway (or fix the bScreen
-		    * scaling routine, and be damn sure you
-		    * fixed it). - zr  (2001!)
+			* scaling routine, and be damn sure you
+			* fixed it). - zr  (2001!)
 			*/
 		
 		if (swin->winrct.xmax > win->sizex)

@@ -4146,7 +4146,7 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 			if(prop->flag & PROP_RNAPTR) {
 				*((PointerRNA*)dest)= *((PointerRNA*)src);
 				break;
- 			}
+			 }
 			
 			if (ptype!=srna && !RNA_struct_is_a(srna, ptype)) {
 				fprintf(stderr, "%s.%s: wrong type for parameter %s, an object of type %s was expected, passed an object of type %s\n", tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));

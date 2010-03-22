@@ -35,16 +35,16 @@
 
 static void rgb_to_yuv(float rgb[3], float yuv[3]) 
 {
-        yuv[0]= 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2];
-        yuv[1]= 0.492*(rgb[2] - yuv[0]);
-        yuv[2]= 0.877*(rgb[0] - yuv[0]);
+		yuv[0]= 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2];
+		yuv[1]= 0.492*(rgb[2] - yuv[0]);
+		yuv[2]= 0.877*(rgb[0] - yuv[0]);
 
-        /* Normalize */
-        yuv[1]*= 255.0/(122*2.0);
-        yuv[1]+= 0.5;
+		/* Normalize */
+		yuv[1]*= 255.0/(122*2.0);
+		yuv[1]+= 0.5;
 
-        yuv[2]*= 255.0/(157*2.0);
-        yuv[2]+= 0.5;
+		yuv[2]*= 255.0/(157*2.0);
+		yuv[2]+= 0.5;
 }
 
 static void scope_put_pixel(unsigned char* table, unsigned char * pos)
@@ -580,7 +580,7 @@ static void vectorscope_put_cross(unsigned char r, unsigned char g,
 	rgb_to_yuv(rgb, yuv);
 			
 	p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
-		       + (int) ((yuv[1] * (w - 3) + 1)));
+			   + (int) ((yuv[1] * (w - 3) + 1)));
 
 	if (r == 0 && g == 0 && b == 0) {
 		r = 255;
@@ -631,7 +631,7 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_byte(struct ImBuf * ibuf)
 			rgb_to_yuv(rgb, yuv);
 			
 			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
-				       + (int) ((yuv[1] * (w - 3) + 1)));
+					   + (int) ((yuv[1] * (w - 3) + 1)));
 			scope_put_pixel(wtable, (unsigned char*)p);
 		}
 	}
@@ -681,7 +681,7 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_float(struct ImBuf * ibuf)
 			rgb_to_yuv(rgb, yuv);
 			
 			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
-				       + (int) ((yuv[1] * (w - 3) + 1)));
+					   + (int) ((yuv[1] * (w - 3) + 1)));
 			scope_put_pixel(wtable, (unsigned char*)p);
 		}
 	}

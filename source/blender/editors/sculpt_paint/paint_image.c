@@ -422,7 +422,7 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 	UndoImageTile *tile;
 
 	tmpibuf= IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32,
-	                        IB_rectfloat|IB_rect, 0);
+							IB_rectfloat|IB_rect, 0);
 	
 	for(tile=lb->first; tile; tile=tile->next) {
 		/* find image based on name, pointer becomes invalid with global undo */
@@ -498,14 +498,14 @@ static void barycentric_weights_v2_persp(float v1[4], float v2[4], float v3[4], 
    wtot = w[0]+w[1]+w[2];
 
    if (wtot != 0.0f) {
-       wtot_inv = 1.0f/wtot;
+	   wtot_inv = 1.0f/wtot;
 
-       w[0] = w[0]*wtot_inv;
-       w[1] = w[1]*wtot_inv;
-       w[2] = w[2]*wtot_inv;
+	   w[0] = w[0]*wtot_inv;
+	   w[1] = w[1]*wtot_inv;
+	   w[2] = w[2]*wtot_inv;
    }
    else /* dummy values for zero area face */
-       w[0] = w[1] = w[2] = 1.0f/3.0f;
+	   w[0] = w[1] = w[2] = 1.0f/3.0f;
 }
 
 static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
@@ -691,7 +691,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
  *  0	: no occlusion
  * -1	: no occlusion but 2D intersection is true (avoid testing the other half of a quad)
  *  1	: occluded
-    2	: occluded with w[3] weights set (need to know in some cases) */
+	2	: occluded with w[3] weights set (need to know in some cases) */
 
 static int project_paint_occlude_ptv(float pt[3], float v1[3], float v2[3], float v3[3], float w[3], int is_ortho)
 {
@@ -2871,7 +2871,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		if (ps->dm_mtface_clone==NULL || ps->dm_mtface_clone==ps->dm_mtface) {
 			ps->do_layer_clone = 0;
 			ps->dm_mtface_clone= NULL;
-            printf("ACK!\n");
+			printf("ACK!\n");
 		}
 	}
 	
@@ -4992,7 +4992,7 @@ static int paint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *even
 	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-	        toggle_paint_cursor(C, !ts->imapaint.paintcursor);
+			toggle_paint_cursor(C, !ts->imapaint.paintcursor);
 	return ret;
 }
 

@@ -420,7 +420,7 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
 static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 {
 	/* sample box, is clipped already, and minx etc. have been set at ibuf size.
-       Enlarge with antialiased edges of the pixels */
+	   Enlarge with antialiased edges of the pixels */
 
 	float muly, mulx, div, col[4];
 	int x, y, startx, endx, starty, endy;
@@ -1080,7 +1080,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 
 	if (tex->imaflag & TEX_FILTER_MIN) {
 		// make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy)
-	 	const float addval = (0.5f * tex->filtersize) / (float)MIN2(ibuf->x, ibuf->y);
+		 const float addval = (0.5f * tex->filtersize) / (float)MIN2(ibuf->x, ibuf->y);
 		if (addval > minx) minx = addval;
 		if (addval > miny) miny = addval;
 	}
@@ -1481,7 +1481,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 	
 	if(tex->imaflag & TEX_FILTER_MIN) {
 		/* make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy) */
-	 	float addval= (0.5f * tex->filtersize) / (float) MIN2(ibuf->x, ibuf->y);
+		 float addval= (0.5f * tex->filtersize) / (float) MIN2(ibuf->x, ibuf->y);
  		
 		if(addval > minx)
 			minx= addval;

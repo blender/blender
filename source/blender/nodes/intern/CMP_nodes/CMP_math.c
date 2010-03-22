@@ -171,7 +171,7 @@ static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bN
 		stackbuf=alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
 	}
 	/* and if it doesn't exist use the second input since we 
- 	know that one of them must exist at this point*/
+	 know that one of them must exist at this point*/
 	else  {
 		stackbuf=alloc_compbuf(cbuf2->x, cbuf2->y, CB_VAL, 1);
 	}

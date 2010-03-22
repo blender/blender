@@ -183,7 +183,7 @@ static PyObject *Quaternion_Difference(QuaternionObject * self, QuaternionObject
 	tempQuat[3] = - self->quat[3];
 
 	dot = sqrt(tempQuat[0] * tempQuat[0] + tempQuat[1] *  tempQuat[1] +
-			       tempQuat[2] * tempQuat[2] + tempQuat[3] * tempQuat[3]);
+				   tempQuat[2] * tempQuat[2] + tempQuat[3] * tempQuat[3]);
 
 	for(x = 0; x < 4; x++) {
 		tempQuat[x] /= (float)(dot * dot);
@@ -731,7 +731,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 				PyErr_SetString(PyExc_AttributeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 				return NULL;
 			}
-	   		if(size == 3){ //get angle in axis/angle
+			   if(size == 3){ //get angle in axis/angle
 				n = PySequence_GetItem(args, 1);
 				if(n == NULL) { // parsed item not a number or getItem fail
 					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");

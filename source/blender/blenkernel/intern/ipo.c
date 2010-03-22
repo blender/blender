@@ -1811,7 +1811,7 @@ void do_versions_ipos_to_animato(Main *main)
 			Sequence * seq;
 			
 			for(seq = scene->ed->seqbasep->first; 
-			    seq; seq = seq->next) {
+				seq; seq = seq->next) {
 				short adrcode = SEQ_FAC1;
 				
 				if (G.f & G_DEBUG) 

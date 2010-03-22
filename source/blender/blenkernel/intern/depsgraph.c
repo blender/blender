@@ -951,7 +951,7 @@ static void dag_node_print_dependency_cycle(DagForest *dag, DagNode *startnode, 
 {
 	DagNode *node;
 
-    for(node = dag->DagNode.first; node; node= node->next)
+	for(node = dag->DagNode.first; node; node= node->next)
 		node->color= DAG_WHITE;
 
 	printf("  %s depends on %s through %s.\n", dag_node_name(endnode), dag_node_name(startnode), name);
@@ -1533,7 +1533,7 @@ int	is_acyclic( DagForest	*dag) {
 
 void set_node_xy(DagNode *node, float x, float y)
 {
- 	node->x = x;
+	 node->x = x;
 	node->y = y;
 }
 

@@ -231,7 +231,7 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 //			scrarea_do_windraw(curarea);	// after findnearestedge, backbuf!
 			
 			sprintf(msg,"Number of Cuts: %d (S)mooth: ",numcuts);
-            strcat(msg, smooth ? "on":"off");
+			strcat(msg, smooth ? "on":"off");
 			
 //			headerprint(msg);
 			/* Need to figure preview */
@@ -444,10 +444,10 @@ typedef struct CutCurve {
    
 	Contributed by Robert Wenzlaff (Det. Thorn).
 
-    2.5 revamp:
-    - non modal (no menu before cutting)
-    - exit on mouse release
-    - polygon/segment drawing can become handled by WM cb later
+	2.5 revamp:
+	- non modal (no menu before cutting)
+	- exit on mouse release
+	- polygon/segment drawing can become handled by WM cb later
 
 */
 

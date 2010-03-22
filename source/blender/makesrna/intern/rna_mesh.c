@@ -525,28 +525,28 @@ static void rna_MeshTextureFace_uv4_set(PointerRNA *ptr, const float *values)
 
 static int rna_CustomDataData_numverts(PointerRNA *ptr, int type)
 {
-    Mesh *me= (Mesh*)ptr->id.data;
-    CustomData *fdata= rna_mesh_fdata(me);
-    CustomDataLayer *cdl;
-    int a;
-    size_t b;
+	Mesh *me= (Mesh*)ptr->id.data;
+	CustomData *fdata= rna_mesh_fdata(me);
+	CustomDataLayer *cdl;
+	int a;
+	size_t b;
 
-    for(cdl=fdata->layers, a=0; a<fdata->totlayer; cdl++, a++) {
-        if(cdl->type == type) {
-            b= ((char*)ptr->data - ((char*)cdl->data))/CustomData_sizeof(type);
-            if(b >= 0 && b < me->totface)
-                return (me->mface[b].v4? 4: 3);
-        }
-    }
+	for(cdl=fdata->layers, a=0; a<fdata->totlayer; cdl++, a++) {
+		if(cdl->type == type) {
+			b= ((char*)ptr->data - ((char*)cdl->data))/CustomData_sizeof(type);
+			if(b >= 0 && b < me->totface)
+				return (me->mface[b].v4? 4: 3);
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
 static int rna_MeshTextureFace_uv_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
 	length[0]= rna_CustomDataData_numverts(ptr, CD_MTFACE);
 	length[1]= 2;
-    return length[0]*length[1];
+	return length[0]*length[1];
 }
 
 static void rna_MeshTextureFace_uv_get(PointerRNA *ptr, float *values)

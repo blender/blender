@@ -239,12 +239,12 @@ static PointerRNA rna_Test_test_get(PointerRNA *ptr)
 typedef void (CollectionDefFunc)(struct BlenderRNA *brna, struct PropertyRNA *cprop);
 
 typedef struct MainCollectionDef {
-    const char	*identifier;
-    const char	*type;
-    const char	*iter_begin;
-    const char	*name;
-    const char	*description;
-    CollectionDefFunc *func;
+	const char	*identifier;
+	const char	*type;
+	const char	*iter_begin;
+	const char	*name;
+	const char	*description;
+	CollectionDefFunc *func;
 } MainCollectionDef;
 
 void RNA_def_main(BlenderRNA *brna)

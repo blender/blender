@@ -297,7 +297,7 @@ static void node_header_area_draw(const bContext *C, ARegion *ar)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *scene= CTX_data_scene(C);
 
-    /* find and set the context */
+	/* find and set the context */
 	snode_set_context(snode, scene);
 
 	ED_region_header(C, ar);

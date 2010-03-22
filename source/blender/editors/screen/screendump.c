@@ -275,7 +275,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 					BKE_reportf(&sj->reports, RPT_INFO, "Saved file: %s", name);
 				}
 				
-                /* imbuf knows which rects are not part of ibuf */
+				/* imbuf knows which rects are not part of ibuf */
 				IMB_freeImBuf(ibuf);	
 			}
 			

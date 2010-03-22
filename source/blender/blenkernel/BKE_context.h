@@ -167,7 +167,7 @@ void CTX_wm_menu_set(bContext *C, struct ARegion *menu);
 /* Data Context
 
    - listbases consist of CollectionPointerLink items and must be
-     freed with BLI_freelistN!
+	 freed with BLI_freelistN!
    - the dir listbase consits of LinkData items */
 
 PointerRNA CTX_data_pointer_get(const bContext *C, const char *member);

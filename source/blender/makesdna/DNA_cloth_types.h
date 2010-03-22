@@ -77,7 +77,7 @@ typedef struct ClothSimSettings
 	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.*/
 	short	vgroup_struct;  /* vertex group for scaling structural stiffness */
 	short	presets; /* used for presets on GUI */
- 	short 	reset;
+	 short 	reset;
 
 	struct EffectorWeights *effector_weights;
 } ClothSimSettings;

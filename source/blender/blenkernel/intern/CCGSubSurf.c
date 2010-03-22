@@ -170,7 +170,7 @@ static void *_ehashIterator_getCurrent(EHashIterator *ehi) {
 
 static void _ehashIterator_next(EHashIterator *ehi) {
 	if (ehi->curEntry) {
-        ehi->curEntry = ehi->curEntry->next;
+		ehi->curEntry = ehi->curEntry->next;
 		while (!ehi->curEntry) {
 			ehi->curBucket++;
 			if (ehi->curBucket==ehi->eh->curSize)

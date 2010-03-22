@@ -418,7 +418,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	else if(ob->type==OB_FONT) {
 		scene->obedit= ob; // XXX for context
 		ok= 1;
- 		make_editText(ob);
+		 make_editText(ob);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, scene);
 	}
@@ -476,9 +476,9 @@ static int editmode_toggle_poll(bContext *C)
 		return 0;
 
 	return ob && (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
-		      ob->type == OB_FONT || ob->type == OB_MBALL ||
-		      ob->type == OB_LATTICE || ob->type == OB_SURF ||
-		      ob->type == OB_CURVE);
+			  ob->type == OB_FONT || ob->type == OB_MBALL ||
+			  ob->type == OB_LATTICE || ob->type == OB_SURF ||
+			  ob->type == OB_CURVE);
 }
 
 void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
@@ -1932,12 +1932,12 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *ptr, in
 	ob = CTX_data_active_object(C);
 	while(ob && input->identifier) {
 		if((input->value == OB_MODE_EDIT && ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE) ||
-						    (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
-						     (ob->type == OB_FONT) || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) ||
+							(ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
+							 (ob->type == OB_FONT) || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) ||
 		   (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
 		   (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
 		   ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
-		     input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
+			 input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
 		   (input->value == OB_MODE_OBJECT))
 			RNA_enum_item_add(&item, &totitem, input);
 		++input;
@@ -2119,16 +2119,16 @@ static int game_property_remove(bContext *C, wmOperator *op)
 
 	index = RNA_int_get(op->ptr, "index");
 
-    prop= BLI_findlink(&ob->prop, index);
+	prop= BLI_findlink(&ob->prop, index);
 
-    if(prop) {
+	if(prop) {
 		BLI_remlink(&ob->prop, prop);
 		free_property(prop);
 		return OPERATOR_FINISHED;
-    }
-    else {
-    	return OPERATOR_CANCELLED;
-    }
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void OBJECT_OT_game_property_remove(wmOperatorType *ot)

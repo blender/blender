@@ -769,7 +769,7 @@ static short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 /* Write the given value to a setting using RNA, and return success */
 static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_index, float value)
 {
-    // printf("%p %s %i %f\n", ptr, path, array_index, value);
+	// printf("%p %s %i %f\n", ptr, path, array_index, value);
 
 	PropertyRNA *prop;
 	PointerRNA new_ptr;
@@ -1740,7 +1740,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 */
 	// TODO: need to double check that this all works correctly
 	if ((recalc & ADT_RECALC_ANIM) || (adt->recalc & ADT_RECALC_ANIM))
- 	{
+	 {
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF))
 		{

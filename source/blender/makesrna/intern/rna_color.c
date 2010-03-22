@@ -276,12 +276,12 @@ static void rna_ColorRamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_def_curvemappoint(BlenderRNA *brna)
 {
 	StructRNA *srna;
-    PropertyRNA *prop;
+	PropertyRNA *prop;
 	static EnumPropertyItem prop_handle_type_items[] = {
-        {0, "AUTO", 0, "Auto Handle", ""},
-        {CUMA_VECTOR, "VECTOR", 0, "Vector Handle", ""},
+		{0, "AUTO", 0, "Auto Handle", ""},
+		{CUMA_VECTOR, "VECTOR", 0, "Vector Handle", ""},
 		{0, NULL, 0, NULL, NULL}
-    };
+	};
 
 	srna= RNA_def_struct(brna, "CurveMapPoint", NULL);
 	RNA_def_struct_ui_text(srna, "CurveMapPoint", "Point of a curve used for a curve mapping");
@@ -308,12 +308,12 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 static void rna_def_curvemap(BlenderRNA *brna)
 {
 	StructRNA *srna;
-    PropertyRNA *prop;
+	PropertyRNA *prop;
 	static EnumPropertyItem prop_extend_items[] = {
-        {0, "HORIZONTAL", 0, "Horizontal", ""},
-        {CUMA_EXTEND_EXTRAPOLATE, "EXTRAPOLATED", 0, "Extrapolated", ""},
+		{0, "HORIZONTAL", 0, "Horizontal", ""},
+		{CUMA_EXTEND_EXTRAPOLATE, "EXTRAPOLATED", 0, "Extrapolated", ""},
 		{0, NULL, 0, NULL, NULL}
-    };
+	};
 
 	srna= RNA_def_struct(brna, "CurveMap", NULL);
 	RNA_def_struct_ui_text(srna, "CurveMap", "Curve in a curve mapping");

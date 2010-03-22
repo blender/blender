@@ -159,10 +159,10 @@ static SpaceLink *nla_new(const bContext *C)
 	ar->v2d.cur = ar->v2d.tot;
 	
 	ar->v2d.min[0]= 0.0f;
- 	ar->v2d.min[1]= 0.0f;
+	 ar->v2d.min[1]= 0.0f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
- 	ar->v2d.max[1]= 10000.0f;
+	 ar->v2d.max[1]= 10000.0f;
  	
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;

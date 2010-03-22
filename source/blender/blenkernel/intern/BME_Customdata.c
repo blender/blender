@@ -135,7 +135,7 @@ static void BME_CD_alloc_block(BME_CustomData *data, void **block)
 }
 
 void BME_CD_copy_data(const BME_CustomData *source, BME_CustomData *dest,
-                            void *src_block, void **dest_block)
+							void *src_block, void **dest_block)
 {
 	const BME_LayerTypeInfo *typeInfo;
 	int dest_i, src_i;
@@ -151,7 +151,7 @@ void BME_CD_copy_data(const BME_CustomData *source, BME_CustomData *dest,
 		 * (this should work because layers are ordered by type)
 		 */
 		while(dest_i < dest->totlayer
-		      && dest->layers[dest_i].type < source->layers[src_i].type)
+			  && dest->layers[dest_i].type < source->layers[src_i].type)
 			++dest_i;
 
 		/* if there are no more dest layers, we're done */

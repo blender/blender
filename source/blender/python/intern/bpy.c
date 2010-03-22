@@ -52,23 +52,23 @@ static char bpy_home_paths_doc[] =
 
 PyObject *bpy_home_paths(PyObject *self, PyObject *args)
 {
-    PyObject *ret= PyTuple_New(3);
-    char *path;
-    char *subfolder= "";
+	PyObject *ret= PyTuple_New(3);
+	char *path;
+	char *subfolder= "";
     
 	if (!PyArg_ParseTuple(args, "|s:blender_homes", &subfolder))
 		return NULL;
 
-    path= BLI_gethome_folder(subfolder, BLI_GETHOME_SYSTEM);
-    PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(path?path:""));
+	path= BLI_gethome_folder(subfolder, BLI_GETHOME_SYSTEM);
+	PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(path?path:""));
 
-    path= BLI_gethome_folder(subfolder, BLI_GETHOME_LOCAL);
-    PyTuple_SET_ITEM(ret, 1, PyUnicode_FromString(path?path:""));
+	path= BLI_gethome_folder(subfolder, BLI_GETHOME_LOCAL);
+	PyTuple_SET_ITEM(ret, 1, PyUnicode_FromString(path?path:""));
 
-    path= BLI_gethome_folder(subfolder, BLI_GETHOME_USER);
-    PyTuple_SET_ITEM(ret, 2, PyUnicode_FromString(path?path:""));
+	path= BLI_gethome_folder(subfolder, BLI_GETHOME_USER);
+	PyTuple_SET_ITEM(ret, 2, PyUnicode_FromString(path?path:""));
     
-    return ret;
+	return ret;
 }
 
 static PyMethodDef meth_bpy_home_paths[] = {{ "home_paths", (PyCFunction)bpy_home_paths, METH_VARARGS, bpy_home_paths_doc}};

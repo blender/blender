@@ -1778,7 +1778,7 @@ Operator->invoke()
 Operator->modal()
   - for every mousemove, apply vertex paint
   - exit on mouse release, free customdata
-    (return OPERATOR_FINISHED also removes handler and operator)
+	(return OPERATOR_FINISHED also removes handler and operator)
 
 For future:
   - implement a stroke event (or mousemove with past positons)

@@ -178,13 +178,13 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 		if(ob->pd)
 			ob->pd->deflect= 0;
 
-        DAG_scene_sort(scene);
+		DAG_scene_sort(scene);
 	}
 	else if(md->type == eModifierType_Surface) {
 		if(ob->pd && ob->pd->shape == PFIELD_SHAPE_SURFACE)
 			ob->pd->shape = PFIELD_SHAPE_PLANE;
 
-        DAG_scene_sort(scene);
+		DAG_scene_sort(scene);
 	}
 	else if(md->type == eModifierType_Smoke) {
 		ob->dt = OB_TEXTURE;
@@ -502,7 +502,7 @@ static int modifier_poll(bContext *C)
 static int modifier_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-    Object *ob = CTX_data_active_object(C);
+	Object *ob = CTX_data_active_object(C);
 	int type= RNA_enum_get(op->ptr, "type");
 
 	if(!ED_object_modifier_add(op->reports, scene, ob, NULL, type))

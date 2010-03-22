@@ -1001,8 +1001,8 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 	t->poseobj= ob;	/* we also allow non-active objects to be transformed, in weightpaint */
 
 	/* init trans data */
-    td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransPoseBone");
-    tdx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
+	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransPoseBone");
+	tdx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
 	for(i=0; i<t->total; i++, td++, tdx++) {
 		td->ext= tdx;
 		td->val = NULL;
@@ -1069,12 +1069,12 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 		}
 	}
 
-    if (!t->total) return;
+	if (!t->total) return;
 
 	copy_m3_m4(mtx, t->obedit->obmat);
 	invert_m3_m3(smtx, mtx);
 
-    td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransEditBone");
+	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransEditBone");
 
 	for (ebo = edbo->first; ebo; ebo = ebo->next)
 	{
@@ -1231,7 +1231,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 static void createTransMBallVerts(bContext *C, TransInfo *t)
 {
 	MetaBall *mb = (MetaBall*)t->obedit->data;
- 	MetaElem *ml;
+	 MetaElem *ml;
 	TransData *td;
 	TransDataExtension *tx;
 	float mtx[3][3], smtx[3][3];
@@ -1361,7 +1361,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
 	TransData *td = NULL;
-  	Nurb *nu;
+	  Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
@@ -1409,7 +1409,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	copy_m3_m4(mtx, t->obedit->obmat);
 	invert_m3_m3(smtx, mtx);
 
-    td = t->data;
+	td = t->data;
 	for(nu= cu->editnurb->first; nu; nu= nu->next) {
 		if(nu->type == CU_BEZIER) {
 			TransData *head, *tail;
@@ -1581,7 +1581,7 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 		bp++;
 	}
 
- 	/* note: in prop mode we need at least 1 selected */
+	 /* note: in prop mode we need at least 1 selected */
 	if (countsel==0) return;
 
 	if(propmode) t->total = count;
@@ -1666,7 +1666,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 		}
 	}
 
- 	/* note: in prop mode we need at least 1 selected */
+	 /* note: in prop mode we need at least 1 selected */
 	if (hasselected==0) return;
 
 	t->total = count;
@@ -2148,7 +2148,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		}
 	}
 
- 	/* note: in prop mode we need at least 1 selected */
+	 /* note: in prop mode we need at least 1 selected */
 	if (countsel==0) return;
 
 	/* check active */
@@ -2471,7 +2471,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 		}
 	}
 
- 	/* note: in prop mode we need at least 1 selected */
+	 /* note: in prop mode we need at least 1 selected */
 	if (countsel==0) return;
 
 	t->total= (propmode)? count: countsel;
@@ -3602,7 +3602,7 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 	/* dynamically allocate an array of chars to mark whether an TransData's
 	 * pointers have been fixed already, so that we don't override ones that are
 	 * already done
- 	 */
+	  */
 	adjusted= MEM_callocN(t->total, "beztmap_adjusted_map");
 	
 	/* for each beztmap item, find if it is used anywhere */
@@ -4756,7 +4756,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				FCurve *fcu= (FCurve *)ale->key_data;
 				
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
-				     ((cancelled == 0) || (duplicate)) )
+					 ((cancelled == 0) || (duplicate)) )
 				{
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
@@ -4783,7 +4783,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			
 			/* Do curve cleanups? */
 			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
-			     ((cancelled == 0) || (duplicate)) )
+				 ((cancelled == 0) || (duplicate)) )
 			{
 				posttrans_action_clean(&ac, (bAction *)ac.data);
 			}
@@ -4852,7 +4852,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				FCurve *fcu= (FCurve *)ale->key_data;
 				
 				if ( (sipo->flag & SIPO_NOTRANSKEYCULL)==0 &&
-				     ((cancelled == 0) || (duplicate)) )
+					 ((cancelled == 0) || (duplicate)) )
 				{
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
@@ -5215,7 +5215,7 @@ void createTransData(bContext *C, TransInfo *t)
 		t->ext = NULL;
 		if (t->obedit->type == OB_MESH) {
 			createTransEditVerts(C, t);
-   		}
+		   }
 		else if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 			createTransCurveVerts(C, t);
 		}
@@ -5228,7 +5228,7 @@ void createTransData(bContext *C, TransInfo *t)
 		else if (t->obedit->type==OB_ARMATURE) {
 			t->flag &= ~T_PROP_EDIT;
 			createTransArmatureVerts(C, t);
-  		}
+		  }
 		else {
 			printf("edit type not implemented!\n");
 		}

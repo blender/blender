@@ -305,10 +305,10 @@ static void fcm_fn_generator_new_data (void *mdata)
  */
 static double sinc (double x)
 {
-    if (fabs(x) < 0.0001)
-        return 1.0;
-    else
-        return sin(M_PI * x) / (M_PI * x);
+	if (fabs(x) < 0.0001)
+		return 1.0;
+	else
+		return sin(M_PI * x) / (M_PI * x);
 }
 
 static void fcm_fn_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)

@@ -165,28 +165,28 @@ struct DerivedMesh {
 	 * passed as a float or short array, only one should be non-NULL.
 	 */
 	void (*foreachMappedVert)(
-	                      DerivedMesh *dm,
-	                      void (*func)(void *userData, int index, float *co,
-	                                   float *no_f, short *no_s),
-	                      void *userData);
+						  DerivedMesh *dm,
+						  void (*func)(void *userData, int index, float *co,
+									   float *no_f, short *no_s),
+						  void *userData);
 
 	/* Iterate over each mapped edge in the derived mesh, calling the
 	 * given function with the original edge and the mapped edge's new
 	 * coordinates.
 	 */
 	void (*foreachMappedEdge)(DerivedMesh *dm,
-	                          void (*func)(void *userData, int index,
-	                                       float *v0co, float *v1co),
-	                          void *userData);
+							  void (*func)(void *userData, int index,
+										   float *v0co, float *v1co),
+							  void *userData);
 
 	/* Iterate over each mapped face in the derived mesh, calling the
 	 * given function with the original face and the mapped face's (or
 	 * faces') center and normal.
 	 */
 	void (*foreachMappedFaceCenter)(DerivedMesh *dm,
-	                                void (*func)(void *userData, int index,
-	                                             float *cent, float *no),
-	                                void *userData);
+									void (*func)(void *userData, int index,
+												 float *cent, float *no),
+									void *userData);
 
 	/* Iterate over all vertex points, calling DO_MINMAX with given args.
 	 *
@@ -240,7 +240,7 @@ struct DerivedMesh {
 	 * Also called for *final* editmode DerivedMeshes
 	 */
 	void (*drawFacesSolid)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
-	                       int fast, int (*setMaterial)(int, void *attribs));
+						   int fast, int (*setMaterial)(int, void *attribs));
 
 	/* Draw all faces
 	 *  o If useTwoSided, draw front and back using col arrays
@@ -248,14 +248,14 @@ struct DerivedMesh {
 	 *    in ABGR format, and should be passed as per-face vertex color.
 	 */
 	void (*drawFacesColored)(DerivedMesh *dm, int useTwoSided,
-	                         unsigned char *col1, unsigned char *col2);
+							 unsigned char *col1, unsigned char *col2);
 
 	/* Draw all faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
 	 */
 	void (*drawFacesTex)(DerivedMesh *dm,
-	                     int (*setDrawOptions)(struct MTFace *tface,
-	                     struct MCol *mcol, int matnr));
+						 int (*setDrawOptions)(struct MTFace *tface,
+						 struct MCol *mcol, int matnr));
 
 	/* Draw all faces with GLSL materials
 	 *  o setMaterial is called for every different material nr
@@ -278,17 +278,17 @@ struct DerivedMesh {
 	 * smooth shaded.
 	 */
 	void (*drawMappedFaces)(DerivedMesh *dm,
-	                        int (*setDrawOptions)(void *userData, int index,
-	                                              int *drawSmooth_r),
-	                        void *userData, int useColors);
+							int (*setDrawOptions)(void *userData, int index,
+												  int *drawSmooth_r),
+							void *userData, int useColors);
 
 	/* Draw mapped faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
 	 */
 	void (*drawMappedFacesTex)(DerivedMesh *dm,
-	                           int (*setDrawOptions)(void *userData,
-	                                                 int index),
-	                           void *userData);
+							   int (*setDrawOptions)(void *userData,
+													 int index),
+							   void *userData);
 
 	/* Draw mapped faces with GLSL materials
 	 *  o setMaterial is called for every different material nr
@@ -304,8 +304,8 @@ struct DerivedMesh {
 	 *    returns true
 	 */
 	void (*drawMappedEdges)(DerivedMesh *dm,
-	                        int (*setDrawOptions)(void *userData, int index),
-	                        void *userData);
+							int (*setDrawOptions)(void *userData, int index),
+							void *userData);
 
 	/* Draw mapped edges as lines with interpolation values
 	 *  o Only if !setDrawOptions or
@@ -315,12 +315,12 @@ struct DerivedMesh {
 	 * NOTE: This routine is optional!
 	 */
 	void (*drawMappedEdgesInterp)(DerivedMesh *dm, 
-	                              int (*setDrawOptions)(void *userData,
-	                                                    int index), 
-	                              void (*setDrawInterpOptions)(void *userData,
-	                                                           int index,
-	                                                           float t),
-	                              void *userData);
+								  int (*setDrawOptions)(void *userData,
+														int index), 
+								  void (*setDrawInterpOptions)(void *userData,
+															   int index,
+															   float t),
+								  void *userData);
 
 	/* Release reference to the DerivedMesh. This function decides internally
 	 * if the DerivedMesh will be freed, or cached for later use. */
@@ -337,14 +337,14 @@ void DM_init_funcs(DerivedMesh *dm);
  * sets up the custom data layers)
  */
 void DM_init(DerivedMesh *dm, DerivedMeshType type,
-             int numVerts, int numEdges, int numFaces);
+			 int numVerts, int numEdges, int numFaces);
 
 /* utility function to initialise a DerivedMesh for the desired number
  * of vertices, edges and faces, with a layer setup copied from source
  */
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
-                      DerivedMeshType type,
-                      int numVerts, int numEdges, int numFaces);
+					  DerivedMeshType type,
+					  int numVerts, int numEdges, int numFaces);
 
 /* utility function to release a DerivedMesh's layers
  * returns 1 if DerivedMesh has to be released by the backend, 0 otherwise
@@ -371,11 +371,11 @@ void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask);
  * freed, see BKE_customdata.h for the different options
  */
 void DM_add_vert_layer(struct DerivedMesh *dm, int type, int alloctype,
-                       void *layer);
+					   void *layer);
 void DM_add_edge_layer(struct DerivedMesh *dm, int type, int alloctype,
-                       void *layer);
+					   void *layer);
 void DM_add_face_layer(struct DerivedMesh *dm, int type, int alloctype,
-                       void *layer);
+					   void *layer);
 
 /* custom data access functions
  * return pointer to data from first layer which matches type
@@ -408,11 +408,11 @@ void DM_set_face_data(struct DerivedMesh *dm, int index, int type, void *data);
  * these copy all layers for which the CD_FLAG_NOCOPY flag is not set
  */
 void DM_copy_vert_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                       int source_index, int dest_index, int count);
+					   int source_index, int dest_index, int count);
 void DM_copy_edge_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                       int source_index, int dest_index, int count);
+					   int source_index, int dest_index, int count);
 void DM_copy_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                       int source_index, int dest_index, int count);
+					   int source_index, int dest_index, int count);
 
 /* custom data free functions
  * free count elements, starting at index
@@ -427,8 +427,8 @@ void DM_free_face_data(struct DerivedMesh *dm, int index, int count);
  * indexed by dest_index in the dest mesh
  */
 void DM_interp_vert_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                         int *src_indices, float *weights,
-                         int count, int dest_index);
+						 int *src_indices, float *weights,
+						 int count, int dest_index);
 
 /* interpolates edge data from the edges indexed by src_indices in the
  * source mesh using the given weights and stores the result in the edge indexed
@@ -439,9 +439,9 @@ void DM_interp_vert_data(struct DerivedMesh *source, struct DerivedMesh *dest,
  */
 typedef float EdgeVertWeight[SUB_ELEMS_EDGE][SUB_ELEMS_EDGE];
 void DM_interp_edge_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                         int *src_indices,
-                         float *weights, EdgeVertWeight *vert_weights,
-                         int count, int dest_index);
+						 int *src_indices,
+						 float *weights, EdgeVertWeight *vert_weights,
+						 int count, int dest_index);
 
 /* interpolates face data from the faces indexed by src_indices in the
  * source mesh using the given weights and stores the result in the face indexed
@@ -452,9 +452,9 @@ void DM_interp_edge_data(struct DerivedMesh *source, struct DerivedMesh *dest,
  */
 typedef float FaceVertWeight[SUB_ELEMS_FACE][SUB_ELEMS_FACE];
 void DM_interp_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                         int *src_indices,
-                         float *weights, FaceVertWeight *vert_weights,
-                         int count, int dest_index);
+						 int *src_indices,
+						 float *weights, FaceVertWeight *vert_weights,
+						 int count, int dest_index);
 
 void DM_swap_face_data(struct DerivedMesh *dm, int index, int *corner_indices);
 
@@ -468,42 +468,42 @@ float *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 
 	/* */
 DerivedMesh *mesh_get_derived_final(struct Scene *scene, struct Object *ob,
-                                    CustomDataMask dataMask);
+									CustomDataMask dataMask);
 DerivedMesh *mesh_get_derived_deform(struct Scene *scene, struct Object *ob,
-                                     CustomDataMask dataMask);
+									 CustomDataMask dataMask);
 
 DerivedMesh *mesh_create_derived_for_modifier(struct Scene *scene, struct Object *ob, struct ModifierData *md);
 
 DerivedMesh *mesh_create_derived_render(struct Scene *scene, struct Object *ob,
-                                        CustomDataMask dataMask);
+										CustomDataMask dataMask);
 
 DerivedMesh *mesh_create_derived_index_render(struct Scene *scene, struct Object *ob, CustomDataMask dataMask, int index);
 
 		/* same as above but wont use render settings */
 DerivedMesh *mesh_create_derived_view(struct Scene *scene, struct Object *ob,
-                                      CustomDataMask dataMask);
+									  CustomDataMask dataMask);
 DerivedMesh *mesh_create_derived_no_deform(struct Scene *scene, struct Object *ob,
-                                           float (*vertCos)[3],
-                                           CustomDataMask dataMask);
+										   float (*vertCos)[3],
+										   CustomDataMask dataMask);
 DerivedMesh *mesh_create_derived_no_deform_render(struct Scene *scene, struct Object *ob,
-                                                  float (*vertCos)[3],
-                                                  CustomDataMask dataMask);
+												  float (*vertCos)[3],
+												  CustomDataMask dataMask);
 /* for gameengine */
 DerivedMesh *mesh_create_derived_no_virtual(struct Scene *scene, struct Object *ob, float (*vertCos)[3],
-                                            CustomDataMask dataMask);
+											CustomDataMask dataMask);
 
 DerivedMesh *editmesh_get_derived_base(struct Object *, struct EditMesh *em);
 DerivedMesh *editmesh_get_derived_cage(struct Scene *scene, struct Object *, 
 									   struct EditMesh *em, CustomDataMask dataMask);
 DerivedMesh *editmesh_get_derived_cage_and_final(struct Scene *scene, struct Object *, 
 												 struct EditMesh *em, DerivedMesh **final_r,
-                                                 CustomDataMask dataMask);
+												 CustomDataMask dataMask);
 void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em, CustomDataMask dataMask);
 
 /* returns an array of deform matrices for crazyspace correction, and the
    number of modifiers left */
 int editmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct EditMesh *em,
-                                       float (**deformmats)[3][3], float (**deformcos)[3]);
+									   float (**deformmats)[3][3], float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 

@@ -731,21 +731,21 @@ static char *actuator_pup(Object *owner)
 	case OB_ARMATURE:
 		return "Actuators  %t|Action %x15|Armature %x23|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-                        "|Scene %x11|Random %x13|Message %x14|Game %x17"
+						"|Scene %x11|Random %x13|Message %x14|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
 		break;
 
 	case OB_MESH:
 		return "Actuators  %t|Shape Action %x21|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-                        "|Scene %x11|Random %x13|Message %x14|Game %x17"
+						"|Scene %x11|Random %x13|Message %x14|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
 		break;
 
 	default:
 		return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-                        "|Scene %x11|Random %x13|Message %x14|Game %x17"
+						"|Scene %x11|Random %x13|Message %x14|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
 	}
 }
@@ -2125,7 +2125,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			
 			break;
 		}
-    case ACT_SOUND:
+	case ACT_SOUND:
 		{
 			sa = act->data;
 			sa->sndnr = 0;
@@ -2177,27 +2177,27 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		}
 	case ACT_CAMERA:
 
- 		ysize= 48;
+		 ysize= 48;
         
- 		glRects(xco, yco-ysize, xco+width, yco);
- 		uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
+		 glRects(xco, yco-ysize, xco+width, yco);
+		 uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 		
- 		ca= act->data;
+		 ca= act->data;
         
- 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+10, yco-24, (width-20)/2, 19, &(ca->ob), "Look at this Object");
- 		uiDefButF(block, NUM, 0, "Height:",	xco+10+(width-20)/2, yco-24, (width-20)/2, 19, &ca->height, 0.0, 20.0, 0, 0, "");
+		 uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+10, yco-24, (width-20)/2, 19, &(ca->ob), "Look at this Object");
+		 uiDefButF(block, NUM, 0, "Height:",	xco+10+(width-20)/2, yco-24, (width-20)/2, 19, &ca->height, 0.0, 20.0, 0, 0, "");
 		
- 		uiDefButF(block, NUM, 0, "Min:",	xco+10, yco-44, (width-60)/2, 19, &ca->min, 0.0, 20.0, 0, 0, "");
+		 uiDefButF(block, NUM, 0, "Min:",	xco+10, yco-44, (width-60)/2, 19, &ca->min, 0.0, 20.0, 0, 0, "");
 		
- 		if(ca->axis==0) ca->axis= 'x';
- 		uiDefButS(block, ROW, 0, "X",	xco+10+(width-60)/2, yco-44, 20, 19, &ca->axis, 4.0, (float)'x', 0, 0, "Camera tries to get behind the X axis");
- 		uiDefButS(block, ROW, 0, "Y",	xco+30+(width-60)/2, yco-44, 20, 19, &ca->axis, 4.0, (float)'y', 0, 0, "Camera tries to get behind the Y axis");
+		 if(ca->axis==0) ca->axis= 'x';
+		 uiDefButS(block, ROW, 0, "X",	xco+10+(width-60)/2, yco-44, 20, 19, &ca->axis, 4.0, (float)'x', 0, 0, "Camera tries to get behind the X axis");
+		 uiDefButS(block, ROW, 0, "Y",	xco+30+(width-60)/2, yco-44, 20, 19, &ca->axis, 4.0, (float)'y', 0, 0, "Camera tries to get behind the Y axis");
 		
- 		uiDefButF(block, NUM, 0, "Max:",	xco+20+(width)/2, yco-44, (width-60)/2, 19, &ca->max, 0.0, 20.0, 0, 0, "");
+		 uiDefButF(block, NUM, 0, "Max:",	xco+20+(width)/2, yco-44, (width-60)/2, 19, &ca->max, 0.0, 20.0, 0, 0, "");
 
- 		yco-= ysize;
+		 yco-= ysize;
         
-         break;
+		 break;
 		 		
 	case ACT_EDIT_OBJECT:
 		
@@ -2288,11 +2288,11 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		str= "Edit Object %t|Add Object %x0|End Object %x1|Replace Mesh %x2|Track to %x3|Dynamics %x4";
 		uiDefButS(block, MENU, B_REDR, str,		xco+40, yco-24, (width-80), 19, &eoa->type, 0.0, 0.0, 0, 0, "");
 
- 		yco-= ysize;
+		 yco-= ysize;
         
-        break;
+		break;
  
- 	case ACT_CONSTRAINT:
+	 case ACT_CONSTRAINT:
 		coa= act->data;
 	
 		if (coa->type == ACT_CONST_TYPE_LOC) {
@@ -2425,79 +2425,79 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		}
 		str= "Constraint Type %t|Location %x0|Distance %x1|Orientation %x2|Force field %x3";
 		but = uiDefButS(block, MENU, B_REDR, str,		xco+40, yco-23, (width-80), 19, &coa->type, 0.0, 0.0, 0, 0, "");
- 		yco-= ysize;
-        break;
+		 yco-= ysize;
+		break;
  
 	case ACT_SCENE:
-  		sca= act->data; 
+		  sca= act->data; 
 		
-  		if(sca->type==ACT_SCENE_RESTART) { 
-  			ysize= 28; 
-  			glRects(xco, yco-ysize, xco+width, yco); 
-  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
-  		} 
-  		else if(sca->type==ACT_SCENE_CAMERA) { 
+		  if(sca->type==ACT_SCENE_RESTART) { 
+			  ysize= 28; 
+			  glRects(xco, yco-ysize, xco+width, yco); 
+			  uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+		  } 
+		  else if(sca->type==ACT_SCENE_CAMERA) { 
 			
-  			ysize= 48; 
-  			glRects(xco, yco-ysize, xco+width, yco); 
-  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+			  ysize= 48; 
+			  glRects(xco, yco-ysize, xco+width, yco); 
+			  uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	 
-  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(sca->camera), "Set this Camera. Leave empty to refer to self object"); 
-  		} 
-  		else if(sca->type==ACT_SCENE_SET) { 
+			  uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(sca->camera), "Set this Camera. Leave empty to refer to self object"); 
+		  } 
+		  else if(sca->type==ACT_SCENE_SET) { 
 			
-  			ysize= 48; 
-  			glRects(xco, yco-ysize, xco+width, yco); 
-  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+			  ysize= 48; 
+			  glRects(xco, yco-ysize, xco+width, yco); 
+			  uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Set this Scene"); 
-  		} 
+			  uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Set this Scene"); 
+		  } 
 		else if(sca->type==ACT_SCENE_ADD_FRONT) { 
 			
-  			ysize= 48; 
-  			glRects(xco, yco-ysize, xco+width, yco); 
-  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+			  ysize= 48; 
+			  glRects(xco, yco-ysize, xco+width, yco); 
+			  uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Add an Overlay Scene"); 
-  		} 
+			  uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Add an Overlay Scene"); 
+		  } 
 		else if(sca->type==ACT_SCENE_ADD_BACK) { 
 			
-  			ysize= 48; 
-  			glRects(xco, yco-ysize, xco+width, yco); 
-  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+			  ysize= 48; 
+			  glRects(xco, yco-ysize, xco+width, yco); 
+			  uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Add a Background Scene"); 
-  		} 
+			  uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Add a Background Scene"); 
+		  } 
 		else if(sca->type==ACT_SCENE_REMOVE) { 
 			
-  			ysize= 48; 
-  			glRects(xco, yco-ysize, xco+width, yco); 
-  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+			  ysize= 48; 
+			  glRects(xco, yco-ysize, xco+width, yco); 
+			  uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Remove a Scene");
-  		} 
+			  uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Remove a Scene");
+		  } 
 		else if(sca->type==ACT_SCENE_SUSPEND) { 
 			
-  			ysize= 48; 
-  			glRects(xco, yco-ysize, xco+width, yco); 
-  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+			  ysize= 48; 
+			  glRects(xco, yco-ysize, xco+width, yco); 
+			  uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Pause a Scene");
-  		} 
+			  uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Pause a Scene");
+		  } 
 		else if(sca->type==ACT_SCENE_RESUME) { 
 			
-  			ysize= 48; 
-  			glRects(xco, yco-ysize, xco+width, yco); 
-  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+			  ysize= 48; 
+			  glRects(xco, yco-ysize, xco+width, yco); 
+			  uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Unpause a Scene");
-  		} 
+			  uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Unpause a Scene");
+		  } 
 
 		str= "Scene %t|Restart %x0|Set Scene %x1|Set Camera %x2|Add OverlayScene %x3|Add BackgroundScene %x4|Remove Scene %x5|Suspend Scene %x6|Resume Scene %x7";
 		uiDefButS(block, MENU, B_REDR, str,		xco+40, yco-24, (width-80), 19, &sca->type, 0.0, 0.0, 0, 0, ""); 
 
-  		yco-= ysize; 
-  		break; 
+		  yco-= ysize; 
+		  break; 
 	case ACT_GAME:
 		{
 			gma = act->data; 
@@ -2507,7 +2507,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				ysize = 48;
 				glRects(xco, yco-ysize, xco+width, yco); 
 				uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
-		   		uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, 63, 0, 0, "Load this blend file, use the \"//\" prefix for a path relative to the current blend file");
+				   uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, 63, 0, 0, "Load this blend file, use the \"//\" prefix for a path relative to the current blend file");
 //				uiDefBut(block, TEX, 1, "Anim: ", xco+10, yco-64,width-20,19, &(gma->loadaniname), 0, 63, 0, 0, "Use this loadinganimation");
 			}
 /*			else if (gma->type == ACT_GAME_START)
@@ -2516,7 +2516,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				glRects(xco, yco-ysize, xco+width, yco); 
 				uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 
-		   		uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, 63, 0, 0, "Load this file");
+				   uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, 63, 0, 0, "Load this file");
 				uiDefBut(block, TEX, 1, "Anim: ", xco+10, yco-64,width-20,19, &(gma->loadaniname), 0, 63, 0, 0, "Use this loadinganimation");
 			}
 */			else if (ELEM4(gma->type, ACT_GAME_RESTART, ACT_GAME_QUIT, ACT_GAME_SAVECFG, ACT_GAME_LOADCFG))
@@ -2759,16 +2759,16 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 
 		if (ma->bodyType == ACT_MESG_MESG)
 		{
-    		/* line 3: Message Body */
-    		uiDefBut(block, TEX, 1, "Body: ",
-    		(xco+10+(0.20*(width-20))),(yco-(myline++*24)),(0.8*(width-20)),19,
-    		&ma->body, 0, 31, 0, 0,
-    		"Optional message body Text");
+			/* line 3: Message Body */
+			uiDefBut(block, TEX, 1, "Body: ",
+			(xco+10+(0.20*(width-20))),(yco-(myline++*24)),(0.8*(width-20)),19,
+			&ma->body, 0, 31, 0, 0,
+			"Optional message body Text");
 		} else
 		{
 			/* line 3: Property body (set by property) */
 			uiDefBut(block, TEX, 1, "Propname: ",
-    		(xco+10+(0.20*(width-20))),(yco-(myline++*24)),(0.8*(width-20)),19,
+			(xco+10+(0.20*(width-20))),(yco-(myline++*24)),(0.8*(width-20)),19,
 			&ma->body, 0, 31, 0, 0,
 			"The message body will be set by the Property Value");
 		}
@@ -2783,7 +2783,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		{
 			ysize +=20;
 		}
-        glRects( xco, yco-ysize, xco+width, yco ); 
+		glRects( xco, yco-ysize, xco+width, yco ); 
 		uiEmboss( (float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1 );
 
 		switch(tdfa->type)
@@ -2826,16 +2826,16 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		uiDefButS(block, MENU, B_REDR, str,	xco+30,yco-24,width-60, 19, &tdfa->type, 0.0, 0.0, 0.0, 0.0, "2D filter type");
 		
 		yco -= ysize;
-        break;
+		break;
 	case ACT_PARENT:
-  		parAct = act->data; 
+		  parAct = act->data; 
 
-  		if(parAct->type==ACT_PARENT_SET) { 
+		  if(parAct->type==ACT_PARENT_SET) { 
 			
-  			ysize= 48; 
-  			glRects(xco, yco-ysize, xco+width, yco); 
-  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
-  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+95, yco-24, (width-100), 19, &(parAct->ob), "Set this object as parent"); 
+			  ysize= 48; 
+			  glRects(xco, yco-ysize, xco+width, yco); 
+			  uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+			  uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+95, yco-24, (width-100), 19, &(parAct->ob), "Set this object as parent"); 
 			uiBlockBeginAlign(block);
 			uiDefButBitS(block, TOGN, ACT_PARENT_COMPOUND, B_REDR,
 				  "Compound",
@@ -2848,21 +2848,21 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				  0.0, 0.0, 0, 0,
 				  "Make this object ghost while parented (only if not compound)");
 			uiBlockEndAlign(block);
-  		}
-  		else if(parAct->type==ACT_PARENT_REMOVE) { 
+		  }
+		  else if(parAct->type==ACT_PARENT_REMOVE) { 
 			
-  			ysize= 28; 
-  			glRects(xco, yco-ysize, xco+width, yco); 
-  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
- 		}
+			  ysize= 28; 
+			  glRects(xco, yco-ysize, xco+width, yco); 
+			  uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+		 }
 
 		str= "Parent %t|Set Parent %x0|Remove Parent %x1";
 		uiDefButI(block, MENU, B_REDR, str,		xco+5, yco-24, parAct->type==1?(width-80):90, 19, &parAct->type, 0.0, 0.0, 0, 0, ""); 
 
-  		yco-= ysize; 
-  		break; 
+		  yco-= ysize; 
+		  break; 
 	case ACT_ARMATURE:
-  		armAct = act->data; 
+		  armAct = act->data; 
 
 		if (ob->type == OB_ARMATURE) {
 			str= "Constraint %t|Run armature %x0|Enable %x1|Disable %x2|Set target %x3|Set weight %x4";
@@ -2897,13 +2897,13 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 					break;
 				}
 			}
-  		}
+		  }
 		glRects(xco, yco-ysize, xco+width, yco); 
 		uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
-  		yco-= ysize; 
-  		break; 
+		  yco-= ysize; 
+		  break; 
 
- 	default:
+	 default:
 		ysize= 4;
 
 		glRects(xco, yco-ysize, xco+width, yco);

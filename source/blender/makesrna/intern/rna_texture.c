@@ -429,8 +429,8 @@ static void rna_def_mtex(BlenderRNA *brna)
 		{MTEX_BLEND_SAT, "SATURATION", 0, "Saturation", ""},
 		{MTEX_BLEND_VAL, "VALUE", 0, "Value", ""},
 		{MTEX_BLEND_COLOR, "COLOR", 0, "Color", ""},
-        {MTEX_SOFT_LIGHT, "SOFT LIGHT", 0, "Soft Light", ""}, 
-        {MTEX_LIN_LIGHT    , "LINEAR LIGHT", 0, "Linear Light", ""}, 
+		{MTEX_SOFT_LIGHT, "SOFT LIGHT", 0, "Soft Light", ""}, 
+		{MTEX_LIN_LIGHT    , "LINEAR LIGHT", 0, "Linear Light", ""}, 
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem output_node_items[] = {

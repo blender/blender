@@ -61,7 +61,7 @@ static PyObject *Buffer_item( PyObject * self, int i );
 static PyObject *Buffer_slice( PyObject * self, int begin, int end );
 static int Buffer_ass_item( PyObject * self, int i, PyObject * v );
 static int Buffer_ass_slice( PyObject * self, int begin, int end,
-			     PyObject * seq );
+				 PyObject * seq );
 
 static PySequenceMethods Buffer_SeqMethods = {
 	( lenfunc ) Buffer_len,	/*sq_length */
@@ -430,7 +430,7 @@ BGL_Wrap(3, AreTexturesResident,  GLboolean,  (GLsizei, GLuintP, GLbooleanP))
 BGL_Wrap(1, Begin,          void,     (GLenum))
 BGL_Wrap(2, BindTexture,    void,   (GLenum, GLuint))
 BGL_Wrap(7, Bitmap,         void,     (GLsizei, GLsizei, GLfloat,
-                        GLfloat, GLfloat, GLfloat, GLubyteP))
+						GLfloat, GLfloat, GLfloat, GLubyteP))
 BGL_Wrap(2, BlendFunc,        void,     (GLenum, GLenum))
 BGL_Wrap(1, CallList,         void,     (GLuint))
 BGL_Wrap(3, CallLists,        void,     (GLsizei, GLenum, GLvoidP))
@@ -511,7 +511,7 @@ BGL_Wrap(2, Fogi,             void,     (GLenum, GLint))
 BGL_Wrap(2, Fogiv,            void,     (GLenum, GLintP))
 BGL_Wrap(1, FrontFace,        void,     (GLenum))
 BGL_Wrap(6, Frustum,          void,     (GLdouble, GLdouble,
-                        GLdouble, GLdouble, GLdouble, GLdouble))
+						GLdouble, GLdouble, GLdouble, GLdouble))
 BGL_Wrap(1, GenLists,         GLuint,   (GLsizei))
 BGL_Wrap(2, GenTextures,      void,   (GLsizei, GLuintP))
 BGL_Wrap(2, GetBooleanv,      void,     (GLenum, GLbooleanP))
@@ -573,19 +573,19 @@ BGL_Wrap(1, LoadMatrixf,    void,     (GLfloatP))
 BGL_Wrap(1, LoadName,       void,     (GLuint))
 BGL_Wrap(1, LogicOp,        void,     (GLenum))
 BGL_Wrap(6, Map1d,          void,     (GLenum, GLdouble, GLdouble,
-                        GLint, GLint, GLdoubleP))
+						GLint, GLint, GLdoubleP))
 BGL_Wrap(6, Map1f,          void,     (GLenum, GLfloat, GLfloat,
-                        GLint, GLint, GLfloatP))
+						GLint, GLint, GLfloatP))
 BGL_Wrap(10, Map2d,         void,     (GLenum, GLdouble, GLdouble,
-                        GLint, GLint, GLdouble, GLdouble, GLint, GLint, GLdoubleP))
+						GLint, GLint, GLdouble, GLdouble, GLint, GLint, GLdoubleP))
 BGL_Wrap(10, Map2f,         void,     (GLenum, GLfloat, GLfloat,
-                        GLint, GLint, GLfloat, GLfloat, GLint, GLint, GLfloatP))
+						GLint, GLint, GLfloat, GLfloat, GLint, GLint, GLfloatP))
 BGL_Wrap(3, MapGrid1d,        void,     (GLint, GLdouble, GLdouble))
 BGL_Wrap(3, MapGrid1f,        void,     (GLint, GLfloat, GLfloat))
 BGL_Wrap(6, MapGrid2d,        void,     (GLint, GLdouble, GLdouble,
-                        GLint, GLdouble, GLdouble))
+						GLint, GLdouble, GLdouble))
 BGL_Wrap(6, MapGrid2f,        void,     (GLint, GLfloat, GLfloat,
-                        GLint, GLfloat, GLfloat))
+						GLint, GLfloat, GLfloat))
 BGL_Wrap(3, Materialf,        void,     (GLenum, GLenum, GLfloat))
 BGL_Wrap(3, Materialfv,       void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, Materiali,        void,     (GLenum, GLenum, GLint))
@@ -605,7 +605,7 @@ BGL_Wrap(1, Normal3iv,        void,     (GLintP))
 BGL_Wrap(3, Normal3s,         void,     (GLshort, GLshort, GLshort))
 BGL_Wrap(1, Normal3sv,        void,     (GLshortP))
 BGL_Wrap(6, Ortho,            void,     (GLdouble, GLdouble,
-                        GLdouble, GLdouble, GLdouble, GLdouble))
+						GLdouble, GLdouble, GLdouble, GLdouble))
 BGL_Wrap(1, PassThrough,      void,     (GLfloat))
 BGL_Wrap(3, PixelMapfv,       void,     (GLenum, GLint, GLfloatP))
 BGL_Wrap(3, PixelMapuiv,      void,     (GLenum, GLint, GLuintP))
@@ -654,7 +654,7 @@ BGL_Wrap(4, RasterPos4s,      void,     (GLshort, GLshort, GLshort, GLshort))
 BGL_Wrap(1, RasterPos4sv,     void,     (GLshortP))
 BGL_Wrap(1, ReadBuffer,       void,     (GLenum))
 BGL_Wrap(7, ReadPixels,       void,     (GLint, GLint, GLsizei,
-                        GLsizei, GLenum, GLenum, GLvoidP))
+						GLsizei, GLenum, GLenum, GLvoidP))
 BGL_Wrap(4, Rectd,          void,     (GLdouble, GLdouble, GLdouble, GLdouble))
 BGL_Wrap(2, Rectdv,         void,     (GLdoubleP, GLdoubleP))
 BGL_Wrap(4, Rectf,          void,     (GLfloat, GLfloat, GLfloat, GLfloat))
@@ -717,9 +717,9 @@ BGL_Wrap(3, TexGenfv,       void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, TexGeni,        void,     (GLenum, GLenum, GLint))
 BGL_Wrap(3, TexGeniv,       void,     (GLenum, GLenum, GLintP))
 BGL_Wrap(8, TexImage1D,     void,     (GLenum, GLint, GLint,
-                        GLsizei, GLint, GLenum, GLenum, GLvoidP))
+						GLsizei, GLint, GLenum, GLenum, GLvoidP))
 BGL_Wrap(9, TexImage2D,     void,     (GLenum, GLint, GLint,
-                        GLsizei, GLsizei, GLint, GLenum, GLenum, GLvoidP))
+						GLsizei, GLsizei, GLint, GLenum, GLenum, GLvoidP))
 BGL_Wrap(3, TexParameterf,      void,     (GLenum, GLenum, GLfloat))
 BGL_Wrap(3, TexParameterfv,     void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, TexParameteri,      void,     (GLenum, GLenum, GLint))

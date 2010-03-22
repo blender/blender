@@ -1964,7 +1964,7 @@ int mouse_armature(bContext *C, short mval[2], int extend)
 			ED_armature_deselectall(obedit, 0, 0);
 		
 		/* by definition the non-root connected bones have no root point drawn,
-	       so a root selection needs to be delivered to the parent tip */
+		   so a root selection needs to be delivered to the parent tip */
 		
 		if(selmask & BONE_SELECTED) {
 			if(nearBone->parent && (nearBone->flag & BONE_CONNECTED)) {
@@ -3691,7 +3691,7 @@ static int armature_subdivs_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_subdivs(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
- 		{0, "SIMPLE", 0, "Simple", ""},
+		 {0, "SIMPLE", 0, "Simple", ""},
 		{1, "MULTI", 0, "Multi", ""},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -4212,7 +4212,7 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items,
-		     BONE_SELECT_PARENT, "Direction", "");
+			 BONE_SELECT_PARENT, "Direction", "");
 	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
 }
 
@@ -4357,28 +4357,28 @@ void ARMATURE_OT_align(wmOperatorType *ot)
 static int bone_looper(Object *ob, Bone *bone, void *data,
 				int (*bone_func)(Object *, Bone *, void *)) 
 {
-    /* We want to apply the function bone_func to every bone 
+	/* We want to apply the function bone_func to every bone 
 	* in an armature -- feed bone_looper the first bone and 
 	* a pointer to the bone_func and watch it go!. The int count 
 	* can be useful for counting bones with a certain property
 	* (e.g. skinnable)
 	*/
-    int count = 0;
+	int count = 0;
 	
-    if (bone) {
+	if (bone) {
 		/* only do bone_func if the bone is non null */
-        count += bone_func(ob, bone, data);
+		count += bone_func(ob, bone, data);
 		
 		/* try to execute bone_func for the first child */
-        count += bone_looper(ob, bone->childbase.first, data, bone_func);
+		count += bone_looper(ob, bone->childbase.first, data, bone_func);
 		
 		/* try to execute bone_func for the next bone at this
 			* depth of the recursion.
 			*/
-        count += bone_looper(ob, bone->next, data, bone_func);
-    }
+		count += bone_looper(ob, bone->next, data, bone_func);
+	}
 	
-    return count;
+	return count;
 }
 
 /* called from editview.c, for mode-less pose selection */
@@ -4496,28 +4496,28 @@ void ED_pose_deselectall (Object *ob, int test, int doundo)
 
 static int bone_skinnable(Object *ob, Bone *bone, void *datap)
 {
-    /* Bones that are deforming
-     * are regarded to be "skinnable" and are eligible for
-     * auto-skinning.
-     *
-     * This function performs 2 functions:
-     *
-     *   a) It returns 1 if the bone is skinnable.
-     *      If we loop over all bones with this 
-     *      function, we can count the number of
-     *      skinnable bones.
-     *   b) If the pointer data is non null,
-     *      it is treated like a handle to a
-     *      bone pointer -- the bone pointer
-     *      is set to point at this bone, and
-     *      the pointer the handle points to
-     *      is incremented to point to the
-     *      next member of an array of pointers
-     *      to bones. This way we can loop using
-     *      this function to construct an array of
-     *      pointers to bones that point to all
-     *      skinnable bones.
-     */
+	/* Bones that are deforming
+	 * are regarded to be "skinnable" and are eligible for
+	 * auto-skinning.
+	 *
+	 * This function performs 2 functions:
+	 *
+	 *   a) It returns 1 if the bone is skinnable.
+	 *      If we loop over all bones with this 
+	 *      function, we can count the number of
+	 *      skinnable bones.
+	 *   b) If the pointer data is non null,
+	 *      it is treated like a handle to a
+	 *      bone pointer -- the bone pointer
+	 *      is set to point at this bone, and
+	 *      the pointer the handle points to
+	 *      is incremented to point to the
+	 *      next member of an array of pointers
+	 *      to bones. This way we can loop using
+	 *      this function to construct an array of
+	 *      pointers to bones that point to all
+	 *      skinnable bones.
+	 */
 	Bone ***hbone;
 	int a, segments;
 	struct { Object *armob; void *list; int heat; } *data = datap;
@@ -4540,50 +4540,50 @@ static int bone_skinnable(Object *ob, Bone *bone, void *datap)
 			return segments;
 		}
 	}
-    return 0;
+	return 0;
 }
 
 static int ED_vgroup_add_unique_bone(Object *ob, Bone *bone, void *data) 
 {
-    /* This group creates a vertex group to ob that has the
-      * same name as bone (provided the bone is skinnable). 
+	/* This group creates a vertex group to ob that has the
+	  * same name as bone (provided the bone is skinnable). 
 	 * If such a vertex group aleady exist the routine exits.
-      */
+	  */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
 		if (!defgroup_find_name(ob,bone->name)) {
 			ED_vgroup_add_name(ob, bone->name);
 			return 1;
 		}
-    }
-    return 0;
+	}
+	return 0;
 }
 
 static int dgroup_skinnable(Object *ob, Bone *bone, void *datap) 
 {
-    /* Bones that are deforming
-     * are regarded to be "skinnable" and are eligible for
-     * auto-skinning.
-     *
-     * This function performs 2 functions:
-     *
-     *   a) If the bone is skinnable, it creates 
-     *      a vertex group for ob that has
-     *      the name of the skinnable bone
-     *      (if one doesn't exist already).
-     *   b) If the pointer data is non null,
-     *      it is treated like a handle to a
-     *      bDeformGroup pointer -- the 
-     *      bDeformGroup pointer is set to point
-     *      to the deform group with the bone's
-     *      name, and the pointer the handle 
-     *      points to is incremented to point to the
-     *      next member of an array of pointers
-     *      to bDeformGroups. This way we can loop using
-     *      this function to construct an array of
-     *      pointers to bDeformGroups, all with names
-     *      of skinnable bones.
-     */
-    bDeformGroup ***hgroup, *defgroup;
+	/* Bones that are deforming
+	 * are regarded to be "skinnable" and are eligible for
+	 * auto-skinning.
+	 *
+	 * This function performs 2 functions:
+	 *
+	 *   a) If the bone is skinnable, it creates 
+	 *      a vertex group for ob that has
+	 *      the name of the skinnable bone
+	 *      (if one doesn't exist already).
+	 *   b) If the pointer data is non null,
+	 *      it is treated like a handle to a
+	 *      bDeformGroup pointer -- the 
+	 *      bDeformGroup pointer is set to point
+	 *      to the deform group with the bone's
+	 *      name, and the pointer the handle 
+	 *      points to is incremented to point to the
+	 *      next member of an array of pointers
+	 *      to bDeformGroups. This way we can loop using
+	 *      this function to construct an array of
+	 *      pointers to bDeformGroups, all with names
+	 *      of skinnable bones.
+	 */
+	bDeformGroup ***hgroup, *defgroup;
 	int a, segments;
 	struct { Object *armob; void *list; int heat; } *data= datap;
 
@@ -4608,7 +4608,7 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *datap)
 			return segments;
 		}
 	}
-    return 0;
+	return 0;
 }
 
 static void add_vgroups__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
@@ -4721,7 +4721,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	selected = MEM_callocN(numbones*sizeof(int), "selected");
 
 	for (j=0; j < numbones; ++j) {
-   		bone = bonelist[j];
+		   bone = bonelist[j];
 		dgroup = dgrouplist[j];
 		
 		/* handle bbone */
@@ -4786,7 +4786,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	}
 
 	/* create verts */
-    mesh = (Mesh*)ob->data;
+	mesh = (Mesh*)ob->data;
 	verts = MEM_callocN(mesh->totvert*sizeof(*verts), "closestboneverts");
 
 	if (wpmode) {
@@ -4802,7 +4802,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	}
 	else if (modifiers_findByType(ob, eModifierType_Subsurf)) {
 		/* is subsurf on? Lets use the verts on the limit surface then.
-	 	 * = same amount of vertices as mesh, but vertices  moved to the
+		  * = same amount of vertices as mesh, but vertices  moved to the
 		 * subsurfed position, like for 'optimal'. */
 		subsurf_calculate_limit_positions(mesh, verts);
 		vertsfilled = 1;
@@ -4825,9 +4825,9 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 			dgroupflip, root, tip, selected, mat4_to_scale(par->obmat));
 	}
 	
-    /* free the memory allocated */
-    MEM_freeN(bonelist);
-    MEM_freeN(dgrouplist);
+	/* free the memory allocated */
+	MEM_freeN(bonelist);
+	MEM_freeN(dgrouplist);
 	MEM_freeN(dgroupflip);
 	MEM_freeN(root);
 	MEM_freeN(tip);
@@ -5625,7 +5625,7 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[]= {
- 		{0, "XAXIS", 0, "X-Axis", "Left/Right"},
+		 {0, "XAXIS", 0, "X-Axis", "Left/Right"},
 		{1, "YAXIS", 0, "Y-Axis", "Front/Back"},
 		{2, "ZAXIS", 0, "Z-Axis", "Top/Bottom"},
 		{0, NULL, 0, NULL, NULL}};
@@ -5805,7 +5805,7 @@ EditBone * test_subdivideByCorrelation(Scene *scene, Object *obedit, ReebArc *ar
 		lastBone = subdivideArcBy(arm, arm->edbo, iter, invmat, tmat, nextAdaptativeSubdivision);
 	}
 	
-  	return lastBone;
+	  return lastBone;
 }
 
 float arcLengthRatio(ReebArc *arc)

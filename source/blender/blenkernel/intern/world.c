@@ -135,9 +135,9 @@ void make_local_world(World *wrld)
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(wrld->id.lib==0) return;
 	if(wrld->id.us==1) {

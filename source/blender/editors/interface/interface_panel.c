@@ -802,7 +802,7 @@ void uiBeginPanels(const bContext *C, ARegion *ar)
 {
 	Panel *pa;
   
-  	/* set all panels as inactive, so that at the end we know
+	  /* set all panels as inactive, so that at the end we know
 	 * which ones were used */
 	for(pa=ar->panels.first; pa; pa=pa->next) {
 		if(pa->runtime_flag & PNL_ACTIVE)

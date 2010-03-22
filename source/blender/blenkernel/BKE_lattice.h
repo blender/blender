@@ -59,11 +59,11 @@ void curve_deform_vector(struct Scene *scene, struct Object *cuOb, struct Object
 						 float *orco, float *vec, float mat[][3], int no_rot_axis);
 
 void lattice_deform_verts(struct Object *laOb, struct Object *target,
-                          struct DerivedMesh *dm, float (*vertexCos)[3],
-                          int numVerts, char *vgroup);
+						  struct DerivedMesh *dm, float (*vertexCos)[3],
+						  int numVerts, char *vgroup);
 void armature_deform_verts(struct Object *armOb, struct Object *target,
-                           struct DerivedMesh *dm, float (*vertexCos)[3],
-                           float (*defMats)[3][3], int numVerts, int deformflag, 
+						   struct DerivedMesh *dm, float (*vertexCos)[3],
+						   float (*defMats)[3][3], int numVerts, int deformflag, 
 						   float (*prevCos)[3], const char *defgrp_name);
 
 float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3];

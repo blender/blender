@@ -92,12 +92,12 @@
 /* Note: there's a similar function in key.c (ob_get_key) */
 Key *actedit_get_shapekeys (bAnimContext *ac, SpaceAction *saction) 
 {
-    Scene *scene= ac->scene;
-    Object *ob;
-    Key *key;
+	Scene *scene= ac->scene;
+	Object *ob;
+	Key *key;
 	
-    ob = OBACT;
-    if (ob == NULL) 
+	ob = OBACT;
+	if (ob == NULL) 
 		return NULL;
 	
 	/* XXX pinning is not available in 'ShapeKey' mode... */
@@ -127,7 +127,7 @@ Key *actedit_get_shapekeys (bAnimContext *ac, SpaceAction *saction)
 			return key;
 	}
 	
-    return NULL;
+	return NULL;
 }
 
 /* Get data being edited in Action Editor (depending on current 'mode') */

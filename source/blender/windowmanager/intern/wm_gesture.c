@@ -238,7 +238,7 @@ static void draw_filled_lasso(wmGesture *gt)
 		if (lastv)
 			e = BLI_addfilledge(lastv, v);
 		lastv = v;
-        if (firstv==NULL) firstv = v;
+		if (firstv==NULL) firstv = v;
 	}
 	
 	/* highly unlikely this will fail, but could crash if (gt->points == 0) */

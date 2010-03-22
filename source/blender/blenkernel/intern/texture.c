@@ -643,9 +643,9 @@ void make_local_texture(Tex *tex)
 	int a, local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(tex->id.lib==0) return;
 

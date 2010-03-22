@@ -509,7 +509,7 @@ static PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args)
 	}
 
 	if((strcmp(plane, "X") == 0)
-	    && matSize == 2) {
+		&& matSize == 2) {
 		mat[0] = 1.0f;
 		mat[2] = factor;
 		mat[3] = 1.0f;

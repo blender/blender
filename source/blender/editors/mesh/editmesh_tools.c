@@ -1599,16 +1599,16 @@ static void fill_quad_single(EditMesh *em, EditFace *efa, struct GHash *gh, int 
 		hold = addfacelist(em, verts[i],verts[i+1],v[right],NULL,NULL,NULL);
 		facecopy(em, efa,hold);
 		if(i+1 != (vertsize-1)/2) {
-            if(seltype == SUBDIV_SELECT_INNER) {
-	 		   hold->e2->f2 |= EDGEINNER;
-            }
+			if(seltype == SUBDIV_SELECT_INNER) {
+				hold->e2->f2 |= EDGEINNER;
+			}
 		}
 		hold = addfacelist(em, verts[vertsize-2-i],verts[vertsize-1-i],v[left],NULL,NULL,NULL);
 		facecopy(em, efa,hold);
 		if(i+1 != (vertsize-1)/2) {
-            if(seltype == SUBDIV_SELECT_INNER) {
-		 		hold->e3->f2 |= EDGEINNER;
-            }
+			if(seltype == SUBDIV_SELECT_INNER) {
+				 hold->e3->f2 |= EDGEINNER;
+			}
 		}
 	}
 }
@@ -1675,9 +1675,9 @@ static void fill_tri_single(EditMesh *em, EditFace *efa, struct GHash *gh, int n
 	for(i=0;i<(vertsize-1);i++) {
 		hold = addfacelist(em, verts[i],verts[i+1],v[op],NULL,NULL,NULL);
 		if(i+1 != vertsize-1) {
-            if(seltype == SUBDIV_SELECT_INNER) {
-		 		hold->e2->f2 |= EDGEINNER;
-            }
+			if(seltype == SUBDIV_SELECT_INNER) {
+				 hold->e2->f2 |= EDGEINNER;
+			}
 		}
 		facecopy(em, efa,hold);
 	}
@@ -2265,7 +2265,7 @@ static void fill_quad_quadruple(EditMesh *em, EditFace *efa, struct GHash *gh, i
 			   0|---*---*---|0
 				|           |
 			   1*           *1
-		     2  |           |   4
+			 2  |           |   4
 			   2*           *2
 				|           |
 			   3|---*---*---|3
@@ -3587,7 +3587,7 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 		return;
 
 	/* how many edges does each face have */
- 	if(face[0]->e4) fac1= 4;
+	 if(face[0]->e4) fac1= 4;
 	else fac1= 3;
 
 	if(face[1]->e4) fac2= 4;
@@ -3641,11 +3641,11 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 
 	hiddenedges = MEM_mallocN(sizeof(EditVert*)*numhidden+1, "RotateEdgeHiddenVerts");
 	if(!hiddenedges) {
-        BKE_report(op->reports, RPT_ERROR, "Memory allocation failed");
-        return;
-    }
+		BKE_report(op->reports, RPT_ERROR, "Memory allocation failed");
+		return;
+	}
 
-    numhidden = 0;
+	numhidden = 0;
 	for(srchedge=em->edges.first; srchedge; srchedge=srchedge->next)
 		if(srchedge->h && (srchedge->v1->f & SELECT || srchedge->v2->f & SELECT))
 			hiddenedges[numhidden++] = srchedge;
@@ -4609,7 +4609,7 @@ useless:
 							mvalo[0] = -1;
 					} else if(ELEM(event, RIGHTARROWKEY, WHEELUPMOUSE)) { // Scroll through Control Edges
 						look = vertlist;
-				 		while(look) {
+						 while(look) {
 							if(nearest == (EditVert*)look->link) {
 								if(look->next == NULL) {
 									nearest =  (EditVert*)vertlist->link;
@@ -4623,7 +4623,7 @@ useless:
 						}
 					} else if(ELEM(event, LEFTARROWKEY, WHEELDOWNMOUSE)) { // Scroll through Control Edges
 						look = vertlist;
-				 		while(look) {
+						 while(look) {
 							if(look->next) {
 								if(look->next->link == nearest) {
 									nearest = (EditVert*)look->link;
@@ -4761,7 +4761,7 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 	add_numbut(12, TOG|SHO, "Sort", 0, 0, &m_sort, NULL);
 
 	if (!do_clever_numbuts((mode ? "Set Flags" : "Clear Flags"), 13, REDRAW))
- 		return;
+		 return;
 
 	/* these 2 cant both be on */
 	if (mode) /* are we seeting*/
@@ -5970,7 +5970,7 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 	PathNode *currpn;
 	PathNode *Q;
 	int v, *previous, pathvert, pnindex; /*pnindex redundant?*/
- 	int unbalanced, totnodes;
+	 int unbalanced, totnodes;
 	short physical;
 	float *cost;
 	Heap *heap; /*binary heap for sorting pointers to PathNodes based upon a 'cost'*/

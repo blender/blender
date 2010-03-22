@@ -174,7 +174,7 @@ static void rna_Object_layer_update__internal(Scene *scene, Base *base, Object *
 {
 	/* try to avoid scene sort */
 	if((ob->lay & scene->lay) && (base->lay & scene->lay)) {
- 		/* pass */
+		 /* pass */
 	} else if((ob->lay & scene->lay)==0 && (base->lay & scene->lay)==0) {
 		/* pass */
 	} else {

@@ -877,7 +877,7 @@ static void setNearestAxis3d(TransInfo *t)
 		axis[1] = (float)(icoord[1] - t->center2d[1]);
 		axis[2] = 0.0f;
 
- 		if (normalize_v3(axis) != 0.0f) {
+		 if (normalize_v3(axis) != 0.0f) {
 			project_v3_v3v3(proj, mvec, axis);
 			sub_v3_v3v3(axis, mvec, proj);
 			len[i] = normalize_v3(axis);

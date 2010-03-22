@@ -714,7 +714,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 		
 		/* find the group (weak loop-in-loop) */
 		for(index = 0, curdef = target->defbase.first; curdef;
-		    curdef = curdef->next, index++)
+			curdef = curdef->next, index++)
 			if (!strcmp(curdef->name, vgroup))
 				break;
 
@@ -746,7 +746,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 						VECCOPY(vec, vertexCos[a]);
 						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
 						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec,
-						         dvert->dw[j].weight);
+								 dvert->dw[j].weight);
 						mul_m4_v3(cd.objectspace, vertexCos[a]);
 						break;
 					}
@@ -804,7 +804,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco
 }
 
 void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
-                          float (*vertexCos)[3], int numVerts, char *vgroup)
+						  float (*vertexCos)[3], int numVerts, char *vgroup)
 {
 	int a;
 	int use_vgroups;
@@ -834,7 +834,7 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 		
 		/* find the group (weak loop-in-loop) */
 		for(curdef = target->defbase.first; curdef;
-		    curdef = curdef->next, index++)
+			curdef = curdef->next, index++)
 			if(!strcmp(curdef->name, vgroup)) break;
 
 		if(curdef && (me->dvert || dm)) {
@@ -865,7 +865,7 @@ int object_deform_mball(Object *ob)
 
 		for (dl=ob->disp.first; dl; dl=dl->next) {
 			lattice_deform_verts(ob->parent, ob, NULL,
-			                     (float(*)[3]) dl->verts, dl->nr, NULL);
+								 (float(*)[3]) dl->verts, dl->nr, NULL);
 		}
 
 		return 1;

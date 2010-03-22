@@ -209,7 +209,7 @@ static void rna_Modifier_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Modifier_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_Modifier_update(bmain, scene, ptr);
-    DAG_scene_sort(scene);
+	DAG_scene_sort(scene);
 }
 
 static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -497,7 +497,7 @@ static void rna_UVProjector_object_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object **ob= (Object**)ptr->data;
 
-    if(*ob)
+	if(*ob)
 		id_us_min((ID*)*ob);
 	if(value.data)
 		id_us_plus((ID*)value.data);
@@ -2101,20 +2101,20 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	prop= RNA_def_property(srna, "steps", PROP_INT, PROP_UNSIGNED);
-    RNA_def_property_range(prop, 2, 10000);
+	RNA_def_property_range(prop, 2, 10000);
 	RNA_def_property_ui_range(prop, 2, 512, 1, 0);
 	RNA_def_property_ui_text(prop, "Steps", "Number of steps in the revolution");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "render_steps", PROP_INT, PROP_UNSIGNED);
-    RNA_def_property_range(prop, 2, 10000);
+	RNA_def_property_range(prop, 2, 10000);
 	RNA_def_property_ui_range(prop, 2, 512, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Steps", "Number of steps in the revolution");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "iterations", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "iter");
-    RNA_def_property_range(prop, 1, 10000);
+	RNA_def_property_range(prop, 1, 10000);
 	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
 	RNA_def_property_ui_text(prop, "Iterations", "Number of times to apply the screw operation");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -2125,7 +2125,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
-    RNA_def_property_ui_range(prop, 0, -M_PI*2, M_PI*2, 2);
+	RNA_def_property_ui_range(prop, 0, -M_PI*2, M_PI*2, 2);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Angle", "Angle of revolution");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");

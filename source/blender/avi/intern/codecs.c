@@ -44,41 +44,41 @@
 
 void *avi_format_convert (AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, int *size) {
   if (from == to)
-    return buffer;
+	return buffer;
     
   if (from != AVI_FORMAT_RGB24 &&
-      to != AVI_FORMAT_RGB24)
-    return avi_format_convert(movie, stream, 
-			      avi_format_convert (movie, stream, buffer, from, AVI_FORMAT_RGB24, size), 
-			      AVI_FORMAT_RGB24, to, size);
+	  to != AVI_FORMAT_RGB24)
+	return avi_format_convert(movie, stream, 
+				  avi_format_convert (movie, stream, buffer, from, AVI_FORMAT_RGB24, size), 
+				  AVI_FORMAT_RGB24, to, size);
   
   switch (to) {
   case AVI_FORMAT_RGB24:
-    switch (from) {
-    case AVI_FORMAT_AVI_RGB:
-      buffer = avi_converter_from_avi_rgb (movie, stream, buffer, size);
-      break;
-    case AVI_FORMAT_MJPEG:
-      buffer = avi_converter_from_mjpeg (movie, stream, buffer, size);
-      break;
-    case AVI_FORMAT_RGB32:
-      buffer = avi_converter_from_rgb32 (movie, stream, buffer, size);
-      break;
-    default:
-      break;
-    }
-    break;
+	switch (from) {
+	case AVI_FORMAT_AVI_RGB:
+	  buffer = avi_converter_from_avi_rgb (movie, stream, buffer, size);
+	  break;
+	case AVI_FORMAT_MJPEG:
+	  buffer = avi_converter_from_mjpeg (movie, stream, buffer, size);
+	  break;
+	case AVI_FORMAT_RGB32:
+	  buffer = avi_converter_from_rgb32 (movie, stream, buffer, size);
+	  break;
+	default:
+	  break;
+	}
+	break;
   case AVI_FORMAT_AVI_RGB:
-    buffer = avi_converter_to_avi_rgb (movie, stream, buffer, size);
-    break;
+	buffer = avi_converter_to_avi_rgb (movie, stream, buffer, size);
+	break;
   case AVI_FORMAT_MJPEG:
-    buffer = avi_converter_to_mjpeg (movie, stream, buffer, size);
-    break;
+	buffer = avi_converter_to_mjpeg (movie, stream, buffer, size);
+	break;
   case AVI_FORMAT_RGB32:
-    buffer = avi_converter_to_rgb32 (movie, stream, buffer, size);
-    break;
+	buffer = avi_converter_to_rgb32 (movie, stream, buffer, size);
+	break;
   default:
-    break;
+	break;
   }
 
   return buffer;
@@ -88,11 +88,11 @@ int avi_get_data_id (AviFormat format, int stream) {
   char fcc[5];
 
   if (avi_get_format_type (format) == FCC("vids"))
-    sprintf (fcc,"%2.2ddc",stream);
+	sprintf (fcc,"%2.2ddc",stream);
   else if (avi_get_format_type (format) == FCC("auds"))
-    sprintf (fcc,"%2.2ddc",stream);
+	sprintf (fcc,"%2.2ddc",stream);
   else
-    return 0;
+	return 0;
 
   return FCC(fcc);
 }
@@ -103,11 +103,11 @@ int avi_get_format_type (AviFormat format) {
   case AVI_FORMAT_RGB32:
   case AVI_FORMAT_AVI_RGB:
   case AVI_FORMAT_MJPEG:
-    return FCC("vids");
-    break;
+	return FCC("vids");
+	break;
   default:
-    return 0;
-    break;
+	return 0;
+	break;
   }
 }
 
@@ -116,14 +116,14 @@ int avi_get_format_fcc (AviFormat format) {
   case AVI_FORMAT_RGB24:
   case AVI_FORMAT_RGB32:
   case AVI_FORMAT_AVI_RGB:
-    return FCC("DIB ");
-    break;
+	return FCC("DIB ");
+	break;
   case AVI_FORMAT_MJPEG:
-    return FCC("MJPG");
-    break;
+	return FCC("MJPG");
+	break;
   default:
-    return 0;
-    break;
+	return 0;
+	break;
   }
 }
 
@@ -132,13 +132,13 @@ int avi_get_format_compression (AviFormat format) {
   case AVI_FORMAT_RGB24:
   case AVI_FORMAT_RGB32:
   case AVI_FORMAT_AVI_RGB:
-    return 0;
-    break;
+	return 0;
+	break;
   case AVI_FORMAT_MJPEG:
-    return FCC("MJPG");
-    break;
+	return FCC("MJPG");
+	break;
   default:
-    return 0;
-    break;
+	return 0;
+	break;
   }
 }

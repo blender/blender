@@ -409,7 +409,7 @@ static int rna_wmKeyMapItem_map_type_get(PointerRNA *ptr)
 	wmKeyMapItem *kmi= ptr->data;
 
 	if(ISTIMER(kmi->type)) return KMI_TYPE_TIMER;
-    if(ISKEYBOARD(kmi->type)) return KMI_TYPE_KEYBOARD;
+	if(ISKEYBOARD(kmi->type)) return KMI_TYPE_KEYBOARD;
 	if(ISTWEAK(kmi->type)) return KMI_TYPE_TWEAK;
 	if(ISMOUSE(kmi->type)) return KMI_TYPE_MOUSE;
 	if(kmi->type == KM_TEXTINPUT) return KMI_TYPE_TEXTINPUT;

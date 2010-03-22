@@ -221,7 +221,7 @@ struct ImBuf *IMB_loadiffmem(int *mem, int flags) {
 			if (GET_ID(mem) == FORM){
 				len = ((GET_BIG_LONG(mem+1) + 1) & ~1) + 8;
 				if ((GET_ID(mem+2) == ILBM) || (GET_ID(mem+2) == ANIM)) break;
- 				mem = (int *)((uchar *)mem +len);
+				 mem = (int *)((uchar *)mem +len);
 				maxlen -= len;
 			} else return(0);
 		}

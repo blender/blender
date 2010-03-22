@@ -968,7 +968,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 /**************************** Copy Utilities ******************************/
 
 static void copy_object__forwardModifierLinks(void *userData, Object *ob,
-                                              ID **idpoin)
+											  ID **idpoin)
 {
 	/* this is copied from ID_NEW; it might be better to have a macro */
 	if(*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;

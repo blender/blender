@@ -75,7 +75,7 @@ double tval()
 static CM_SOLVER_DEF	solvers [] =
 {
 	{ "Implicit", CM_IMPLICIT, implicit_init, implicit_solver, implicit_free },
-        // { "Implicit C++", CM_IMPLICITCPP, implicitcpp_init, implicitcpp_solver, implicitcpp_free },
+		// { "Implicit C++", CM_IMPLICITCPP, implicitcpp_init, implicitcpp_solver, implicitcpp_free },
 };
 
 /* ********** cloth engine ******* */
@@ -745,10 +745,10 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 	verts = clothObj->verts;
 	
 	if (((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) || 
-		     (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) && 
-		     ((clmd->sim_parms->vgroup_mass>0) || 
-		     (clmd->sim_parms->vgroup_struct>0)||
-		     (clmd->sim_parms->vgroup_bend>0)))
+			 (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) && 
+			 ((clmd->sim_parms->vgroup_mass>0) || 
+			 (clmd->sim_parms->vgroup_struct>0)||
+			 (clmd->sim_parms->vgroup_bend>0)))
 	{
 		for ( i = 0; i < numverts; i++, verts++ )
 		{	
@@ -770,7 +770,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						verts->goal  = ( float ) pow ( verts->goal , 4.0f );
 						if ( verts->goal >=SOFTGOALSNAP )
 						{
- 							verts->flags |= CLOTH_VERT_FLAG_PINNED;
+							 verts->flags |= CLOTH_VERT_FLAG_PINNED;
 						}
 					}
 					

@@ -292,7 +292,7 @@ int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, s
 	
 	/* yah, opengl doesn't do concave... tsk! */
 	ED_region_pixelspace(vc->ar);
- 	draw_triangulated(mcords, tot);	
+	 draw_triangulated(mcords, tot);	
 	
 	glBegin(GL_LINE_LOOP);	/* for zero sized masks, lines */
 	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);
@@ -794,7 +794,7 @@ static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
 				MTFace *tf, *base_tf;
 
 				base_tf = (MTFace*)CustomData_em_get(&em->fdata, base_efa->data,
-				                                     CD_MTFACE);
+													 CD_MTFACE);
 
 				if(!base_tf)
 					return selcount;
@@ -802,7 +802,7 @@ static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
 						tf = (MTFace*)CustomData_em_get(&em->fdata, efa->data,
-						                                CD_MTFACE);
+														CD_MTFACE);
 
 						if(base_tf->tpage == tf->tpage) {
 							EM_select_face(efa, 1);
@@ -1318,7 +1318,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 
 int mesh_layers_menu_charlen(CustomData *data, int type)
 {
- 	int i, len = 0;
+	 int i, len = 0;
 	/* see if there is a duplicate */
 	for(i=0; i<data->totlayer; i++) {
 		if((&data->layers[i])->type == type) {
@@ -1972,7 +1972,7 @@ static void edgering_select(EditMesh *em, EditEdge *startedge, int select)
 	
 	/* (de)select the edges */
 	for(eed= em->edges.first; eed; eed= eed->next) {
-    		if(eed->f2) EM_select_edge(eed, select);
+			if(eed->f2) EM_select_edge(eed, select);
 	}
 }
 

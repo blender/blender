@@ -397,25 +397,25 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		if( shift==0 || v3d->twtype==0) {
 			v3d->twtype= V3D_MANIP_TRANSLATE;
 		}
-        ED_area_tag_redraw(sa);
-        break;
+		ED_area_tag_redraw(sa);
+		break;
 	case B_MAN_ROT:
 		if( shift==0 || v3d->twtype==0) {
-            v3d->twtype= V3D_MANIP_ROTATE;
+			v3d->twtype= V3D_MANIP_ROTATE;
 		}
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_SCALE:
 		if( shift==0 || v3d->twtype==0) {
-            v3d->twtype= V3D_MANIP_SCALE;
+			v3d->twtype= V3D_MANIP_SCALE;
 		}
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	case B_NDOF:
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_MODE:
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	default:
 		break;
@@ -506,8 +506,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), 0,0,XIC+10,YIC, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
 		
 			uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
-				      0,0,XIC,YIC,
-				      &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
+					  0,0,XIC,YIC,
+					  &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
 		}
 		 */
 

@@ -302,7 +302,7 @@ short imb_addrectImBuf(struct ImBuf * ibuf)
 	imb_freerectImBuf(ibuf);
 
 	size = ibuf->x * ibuf->y;
- 	size = size * sizeof(unsigned int);
+	 size = size * sizeof(unsigned int);
 
 	if ( (ibuf->rect = MEM_mapallocN(size, "imb_addrectImBuf")) ){
 		ibuf->mall |= IB_rect;

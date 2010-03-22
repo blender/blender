@@ -53,7 +53,7 @@ typedef struct Camera {
 	
 	/* yafray: dof params */
 	/* qdn: yafray var 'YF_dofdist' now enabled for defocus composit node as well.
-	        The name was not changed so that no other files need to be modified */
+			The name was not changed so that no other files need to be modified */
 	float YF_dofdist, YF_aperture;
 	short YF_bkhtype, YF_bkhbias;
 	float YF_bkhrot;

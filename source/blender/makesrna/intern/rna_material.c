@@ -648,8 +648,8 @@ static void rna_def_material_colors(StructRNA *srna)
 		{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
 		{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
 		{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
-        {MA_RAMP_SOFT, "SOFT LIGHT", 0, "Soft Light", ""}, 
-        {MA_RAMP_LINEAR, "LINEAR LIGHT", 0, "Linear Light", ""}, 
+		{MA_RAMP_SOFT, "SOFT LIGHT", 0, "Soft Light", ""}, 
+		{MA_RAMP_LINEAR, "LINEAR LIGHT", 0, "Linear Light", ""}, 
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_ramp_input_items[] = {

@@ -113,7 +113,7 @@ static MFace *dm_getFaceArray(DerivedMesh *dm)
 static MVert *dm_dupVertArray(DerivedMesh *dm)
 {
 	MVert *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumVerts(dm),
-	                         "dm_dupVertArray tmp");
+							 "dm_dupVertArray tmp");
 
 	if(tmp) dm->copyVertArray(dm, tmp);
 
@@ -123,7 +123,7 @@ static MVert *dm_dupVertArray(DerivedMesh *dm)
 static MEdge *dm_dupEdgeArray(DerivedMesh *dm)
 {
 	MEdge *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumEdges(dm),
-	                         "dm_dupEdgeArray tmp");
+							 "dm_dupEdgeArray tmp");
 
 	if(tmp) dm->copyEdgeArray(dm, tmp);
 
@@ -133,7 +133,7 @@ static MEdge *dm_dupEdgeArray(DerivedMesh *dm)
 static MFace *dm_dupFaceArray(DerivedMesh *dm)
 {
 	MFace *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumFaces(dm),
-	                         "dm_dupFaceArray tmp");
+							 "dm_dupFaceArray tmp");
 
 	if(tmp) dm->copyFaceArray(dm, tmp);
 
@@ -161,7 +161,7 @@ void DM_init_funcs(DerivedMesh *dm)
 }
 
 void DM_init(DerivedMesh *dm, DerivedMeshType type,
-             int numVerts, int numEdges, int numFaces)
+			 int numVerts, int numEdges, int numFaces)
 {
 	dm->type = type;
 	dm->numVertData = numVerts;
@@ -174,14 +174,14 @@ void DM_init(DerivedMesh *dm, DerivedMeshType type,
 }
 
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type,
-                      int numVerts, int numEdges, int numFaces)
+					  int numVerts, int numEdges, int numFaces)
 {
 	CustomData_copy(&source->vertData, &dm->vertData, CD_MASK_DERIVEDMESH,
-	                CD_CALLOC, numVerts);
+					CD_CALLOC, numVerts);
 	CustomData_copy(&source->edgeData, &dm->edgeData, CD_MASK_DERIVEDMESH,
-	                CD_CALLOC, numEdges);
+					CD_CALLOC, numEdges);
 	CustomData_copy(&source->faceData, &dm->faceData, CD_MASK_DERIVEDMESH,
-	                CD_CALLOC, numFaces);
+					CD_CALLOC, numFaces);
 
 	dm->type = type;
 	dm->numVertData = numVerts;
@@ -352,24 +352,24 @@ void DM_set_face_data(DerivedMesh *dm, int index, int type, void *data)
 }
 
 void DM_copy_vert_data(DerivedMesh *source, DerivedMesh *dest,
-                       int source_index, int dest_index, int count)
+					   int source_index, int dest_index, int count)
 {
 	CustomData_copy_data(&source->vertData, &dest->vertData,
-	                     source_index, dest_index, count);
+						 source_index, dest_index, count);
 }
 
 void DM_copy_edge_data(DerivedMesh *source, DerivedMesh *dest,
-                       int source_index, int dest_index, int count)
+					   int source_index, int dest_index, int count)
 {
 	CustomData_copy_data(&source->edgeData, &dest->edgeData,
-	                     source_index, dest_index, count);
+						 source_index, dest_index, count);
 }
 
 void DM_copy_face_data(DerivedMesh *source, DerivedMesh *dest,
-                       int source_index, int dest_index, int count)
+					   int source_index, int dest_index, int count)
 {
 	CustomData_copy_data(&source->faceData, &dest->faceData,
-	                     source_index, dest_index, count);
+						 source_index, dest_index, count);
 }
 
 void DM_free_vert_data(struct DerivedMesh *dm, int index, int count)
@@ -388,29 +388,29 @@ void DM_free_face_data(struct DerivedMesh *dm, int index, int count)
 }
 
 void DM_interp_vert_data(DerivedMesh *source, DerivedMesh *dest,
-                         int *src_indices, float *weights,
-                         int count, int dest_index)
+						 int *src_indices, float *weights,
+						 int count, int dest_index)
 {
 	CustomData_interp(&source->vertData, &dest->vertData, src_indices,
-	                  weights, NULL, count, dest_index);
+					  weights, NULL, count, dest_index);
 }
 
 void DM_interp_edge_data(DerivedMesh *source, DerivedMesh *dest,
-                         int *src_indices,
-                         float *weights, EdgeVertWeight *vert_weights,
-                         int count, int dest_index)
+						 int *src_indices,
+						 float *weights, EdgeVertWeight *vert_weights,
+						 int count, int dest_index)
 {
 	CustomData_interp(&source->edgeData, &dest->edgeData, src_indices,
-	                  weights, (float*)vert_weights, count, dest_index);
+					  weights, (float*)vert_weights, count, dest_index);
 }
 
 void DM_interp_face_data(DerivedMesh *source, DerivedMesh *dest,
-                         int *src_indices,
-                         float *weights, FaceVertWeight *vert_weights,
-                         int count, int dest_index)
+						 int *src_indices,
+						 float *weights, FaceVertWeight *vert_weights,
+						 int count, int dest_index)
 {
 	CustomData_interp(&source->faceData, &dest->faceData, src_indices,
-	                  weights, (float*)vert_weights, count, dest_index);
+					  weights, (float*)vert_weights, count, dest_index);
 }
 
 void DM_swap_face_data(DerivedMesh *dm, int index, int *corner_indices)
@@ -635,8 +635,8 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
 			if(draw) {
 				if (draw==2) { /* enabled with stipple */
-	  				glEnable(GL_POLYGON_STIPPLE);
-	  				glPolygonStipple(stipple_quarttone);
+					  glEnable(GL_POLYGON_STIPPLE);
+					  glPolygonStipple(stipple_quarttone);
 				}
 				
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
@@ -706,9 +706,9 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 }
 
 static void emDM_drawFacesTex_common(DerivedMesh *dm,
-               int (*drawParams)(MTFace *tface, MCol *mcol, int matnr),
-               int (*drawParamsMapped)(void *userData, int index),
-               void *userData) 
+			   int (*drawParams)(MTFace *tface, MCol *mcol, int matnr),
+			   int (*drawParamsMapped)(void *userData, int index),
+			   void *userData) 
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditMesh *em= emdm->em;
@@ -884,8 +884,8 @@ static void emDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void 
 }
 
 static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
-               int (*setMaterial)(int, void *attribs),
-               int (*setDrawOptions)(void *userData, int index), void *userData) 
+			   int (*setMaterial)(int, void *attribs),
+			   int (*setDrawOptions)(void *userData, int index), void *userData) 
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditMesh *em= emdm->em;
@@ -1034,7 +1034,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 }
 
 static void emDM_drawFacesGLSL(DerivedMesh *dm,
-               int (*setMaterial)(int, void *attribs))
+			   int (*setMaterial)(int, void *attribs))
 {
 	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
 }
@@ -1151,7 +1151,7 @@ static void emDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
 	if(!v4) face_r->v4 = 0;
 
 	for(i = 0, ev = em->verts.first; v1 || v2 || v3 || v4;
-	    i++, ev = ev->next) {
+		i++, ev = ev->next) {
 		if(ev == v1) {
 			face_r->v1 = i;
 			v1 = NULL;
@@ -1297,12 +1297,12 @@ static void emDM_release(DerivedMesh *dm)
 }
 
 static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
-                                           float (*vertexCos)[3])
+										   float (*vertexCos)[3])
 {
 	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");
 
 	DM_init(&emdm->dm, DM_TYPE_EDITMESH, BLI_countlist(&em->verts),
-	                 BLI_countlist(&em->edges), BLI_countlist(&em->faces));
+					 BLI_countlist(&em->edges), BLI_countlist(&em->faces));
 
 	emdm->dm.getMinMax = emDM_getMinMax;
 
@@ -1345,7 +1345,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 
 		for(eve = em->verts.first, i = 0; eve; eve = eve->next, ++i)
 			DM_set_vert_data(&emdm->dm, i, CD_MDEFORMVERT,
-			                 CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT));
+							 CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT));
 	}
 
 	if(vertexCos) {
@@ -1596,9 +1596,9 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
  * - apply deform modifiers and input vertexco
  */
 static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos)[3],
-                                DerivedMesh **deform_r, DerivedMesh **final_r,
-                                int useRenderParams, int useDeform,
-                                int needMapping, CustomDataMask dataMask, int index, int useCache)
+								DerivedMesh **deform_r, DerivedMesh **final_r,
+								int useRenderParams, int useDeform,
+								int needMapping, CustomDataMask dataMask, int index, int useCache)
 {
 	Mesh *me = ob->data;
 	ModifierData *firstmd, *md;
@@ -1716,7 +1716,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					 */
 					numVerts = dm->getNumVerts(dm);
 					deformedVerts =
-					    MEM_mallocN(sizeof(*deformedVerts) * numVerts, "dfmv");
+						MEM_mallocN(sizeof(*deformedVerts) * numVerts, "dfmv");
 					dm->getVertCos(dm, deformedVerts);
 				} else {
 					deformedVerts = mesh_getVertexCos(me, &numVerts);
@@ -1891,8 +1891,8 @@ static int editmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedM
 }
 
 static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, DerivedMesh **cage_r,
-                                    DerivedMesh **final_r,
-                                    CustomDataMask dataMask)
+									DerivedMesh **final_r,
+									CustomDataMask dataMask)
 {
 	ModifierData *md;
 	float (*deformedVerts)[3] = NULL;
@@ -1947,7 +1947,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 					 */
 					numVerts = dm->getNumVerts(dm);
 					deformedVerts =
-					    MEM_mallocN(sizeof(*deformedVerts) * numVerts, "dfmv");
+						MEM_mallocN(sizeof(*deformedVerts) * numVerts, "dfmv");
 					dm->getVertCos(dm, deformedVerts);
 				} else {
 					deformedVerts = editmesh_getVertexCos(em, &numVerts);
@@ -2029,8 +2029,8 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 				*cage_r = dm;
 			} else {
 				*cage_r =
-				    getEditMeshDerivedMesh(em, ob,
-				        deformedVerts ? MEM_dupallocN(deformedVerts) : NULL);
+					getEditMeshDerivedMesh(em, ob,
+						deformedVerts ? MEM_dupallocN(deformedVerts) : NULL);
 			}
 		}
 	}
@@ -2202,7 +2202,7 @@ DerivedMesh *mesh_create_derived_view(Scene *scene, Object *ob, CustomDataMask d
 }
 
 DerivedMesh *mesh_create_derived_no_deform(Scene *scene, Object *ob, float (*vertCos)[3],
-                                           CustomDataMask dataMask)
+										   CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 	
@@ -2212,7 +2212,7 @@ DerivedMesh *mesh_create_derived_no_deform(Scene *scene, Object *ob, float (*ver
 }
 
 DerivedMesh *mesh_create_derived_no_virtual(Scene *scene, Object *ob, float (*vertCos)[3],
-                                            CustomDataMask dataMask)
+											CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 	
@@ -2222,8 +2222,8 @@ DerivedMesh *mesh_create_derived_no_virtual(Scene *scene, Object *ob, float (*ve
 }
 
 DerivedMesh *mesh_create_derived_no_deform_render(Scene *scene, Object *ob,
-                                                  float (*vertCos)[3],
-                                                  CustomDataMask dataMask)
+												  float (*vertCos)[3],
+												  CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 
@@ -2235,7 +2235,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Scene *scene, Object *ob,
 /***/
 
 DerivedMesh *editmesh_get_derived_cage_and_final(Scene *scene, Object *obedit, EditMesh *em, DerivedMesh **final_r,
-                                                 CustomDataMask dataMask)
+												 CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh

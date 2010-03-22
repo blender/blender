@@ -207,7 +207,7 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, int siz
 	if (bytes_in_buffer == 0) {  \
 		if (! (*datasrc->fill_input_buffer) (cinfo))  \
 			{ action; }  \
-	  	INPUT_RELOAD(cinfo);  \
+		  INPUT_RELOAD(cinfo);  \
 	}  \
 	bytes_in_buffer--
 
@@ -699,7 +699,7 @@ static int save_jstjpeg(char * name, struct ImBuf * ibuf)
 	sprintf(fieldname, "%s.jf0", name);
 
 	returnval = save_vidjpeg(fieldname, tbuf) ;
-        if (returnval == 1) {
+		if (returnval == 1) {
 		IMB_rectcpy(tbuf, ibuf, 0, 0, tbuf->x, 0, ibuf->x, ibuf->y);
 		sprintf(fieldname, "%s.jf1", name);
 		returnval = save_vidjpeg(fieldname, tbuf);

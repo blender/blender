@@ -1205,7 +1205,7 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 {
 	
 	/*	Draw a 3d octahedral bone, we use normalized space based on length,
-	    for glDisplayLists */
+		for glDisplayLists */
 	
 	glScalef(length, length, length);
 

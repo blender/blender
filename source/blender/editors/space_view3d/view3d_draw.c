@@ -476,11 +476,11 @@ static void drawfloor(Scene *scene, View3D *v3d)
 		
 		if (draw_line) {
 			glBegin(GL_LINE_STRIP);
-	        vert[0]= a*v3d->grid;
-	        vert[1]= grid;
-	        glVertex3fv(vert);
-	        vert[1]= -grid;
-	        glVertex3fv(vert);
+			vert[0]= a*v3d->grid;
+			vert[1]= grid;
+			glVertex3fv(vert);
+			vert[1]= -grid;
+			glVertex3fv(vert);
 			glEnd();
 		}
 	}
@@ -515,11 +515,11 @@ static void drawfloor(Scene *scene, View3D *v3d)
 		
 		if (draw_line) {
 			glBegin(GL_LINE_STRIP);
-	        vert[1]= a*v3d->grid;
-	        vert[0]= grid;
-	        glVertex3fv(vert );
-	        vert[0]= -grid;
-	        glVertex3fv(vert);
+			vert[1]= a*v3d->grid;
+			vert[0]= grid;
+			glVertex3fv(vert );
+			vert[0]= -grid;
+			glVertex3fv(vert);
 			glEnd();
 		}
 	}
@@ -1077,7 +1077,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	rcti winrct;
 
 	if(base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
-		     paint_facesel_test(base->object)));
+			 paint_facesel_test(base->object)));
 	else if((base && (base->object->mode & OB_MODE_TEXTURE_PAINT)) &&
 		scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
 	else if((base && (base->object->mode & OB_MODE_PARTICLE_EDIT)) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));

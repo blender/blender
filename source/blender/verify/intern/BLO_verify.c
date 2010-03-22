@@ -377,7 +377,7 @@ BLO_verify_end(
 
 	/* verify the signature */
 	verifySuccess = RSA_verify(NID_ripemd160, digest, RIPEMD160_DIGEST_LENGTH,
-			       BLO_verify->streamHeader->signature,
+				   BLO_verify->streamHeader->signature,
 				   BLO_verify->streamHeader->signatureLen, rsa);
 	if (verifySuccess == 1) {
 #ifndef NDEBUG

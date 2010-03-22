@@ -335,8 +335,8 @@ int add_name(char *str)
 				
 		/*
 		 * Put )(void) at the end? Maybe )(). Should check this with
-         * old sdna. Actually, sometimes )(), sometimes )(void...)
-         * Alas.. such is the nature of braindamage :(
+		 * old sdna. Actually, sometimes )(), sometimes )(void...)
+		 * Alas.. such is the nature of braindamage :(
 		 *
 		 * Sorted it out: always do )(), except for headdraw and
 		 * windraw, part of ScrArea. This is important, because some
@@ -920,7 +920,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 	if (debugSDNA) printf("\tStart of header scan:\n"); 
 	for (i = 0; strlen(includefiles[i]); i++) {
 		sprintf(str, "%s%s", baseDirectory, includefiles[i]);
-  		if (debugSDNA) printf("\t|-- Converting %s\n", str); 
+		  if (debugSDNA) printf("\t|-- Converting %s\n", str); 
 		if (convert_include(str)) {
 			return (1);
 		}

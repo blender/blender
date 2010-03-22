@@ -227,7 +227,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 
 static void file_listener(ScrArea *sa, wmNotifier *wmn)
 {
-    /* SpaceFile* sfile = (SpaceFile*)sa->spacedata.first; */
+	/* SpaceFile* sfile = (SpaceFile*)sa->spacedata.first; */
 
 	/* context changes */
 	switch(wmn->category) {

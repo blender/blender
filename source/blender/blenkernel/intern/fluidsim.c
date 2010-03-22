@@ -609,9 +609,9 @@ void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 //-------------------------------------------------------------------------------
 
 void initElbeemMesh(struct Scene *scene, struct Object *ob, 
-		    int *numVertices, float **vertices, 
-      int *numTriangles, int **triangles,
-      int useGlobalCoords, int modifierIndex) 
+			int *numVertices, float **vertices, 
+	  int *numTriangles, int **triangles,
+	  int useGlobalCoords, int modifierIndex) 
 {
 	DerivedMesh *dm = NULL;
 	MVert *mvert;

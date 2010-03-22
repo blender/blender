@@ -219,7 +219,7 @@ typedef struct RenderData {
 	
 	short dimensionspreset;		/* for the dimensions presets menu */
  	
- 	short filtertype;	/* filter is box, tent, gauss, mitch, etc */
+	 short filtertype;	/* filter is box, tent, gauss, mitch, etc */
 
 	short size, maximsize;	/* size in %, max in Kb */
 	/* from buttons: */
@@ -245,7 +245,7 @@ typedef struct RenderData {
 	/** Mode bits:                                                           */
 	/* 0: Enable backbuffering for images                                    */
 	short bufflag;
- 	short quality;
+	 short quality;
 	
 	/**
 	 * Render to image editor, fullscreen or to new window.
@@ -328,7 +328,7 @@ typedef struct RenderData {
 	/** post-production settings. Depricated, but here for upwards compat (initialized to 1) */	 
 	float postgamma, posthue, postsat;	 
 	
- 	/* Dither noise intensity */
+	 /* Dither noise intensity */
 	float dither_intensity;
 	
 	/* Bake Render options */

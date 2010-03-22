@@ -161,7 +161,7 @@ static void image_info(Image *ima, ImBuf *ibuf, char *str)
 			ofs+= sprintf(str+ofs, "%d frs", IMB_anim_get_duration(ima->anim));
 	}
 	else
-	 	ofs= sprintf(str, "Image");
+		 ofs= sprintf(str, "Image");
 	
 	ofs+= sprintf(str+ofs, ": size %d x %d,", ibuf->x, ibuf->y);
 	

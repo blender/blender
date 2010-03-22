@@ -708,7 +708,7 @@ static void pchan_b_bone_defmats(bPoseChannel *pchan, int use_quaternion, int re
 	invert_m4_m4(b_bone_mats[0].mat, bone->arm_mat);
 
 	/* then we make the b_bone_mats:
-	    - first transform to local bone space
+		- first transform to local bone space
 		- translate over the curve to the bbone mat space
 		- transform with b_bone matrix
 		- transform back into global space */
@@ -905,7 +905,7 @@ static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, Dua
 }
 
 void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
-                           float (*vertexCos)[3], float (*defMats)[3][3],
+						   float (*vertexCos)[3], float (*defMats)[3][3],
 						   int numVerts, int deformflag, 
 						   float (*prevCos)[3], const char *defgrp_name)
 {
@@ -983,9 +983,9 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 
 			if(use_dverts) {
 				defnrToPC = MEM_callocN(sizeof(*defnrToPC) * numGroups,
-				                        "defnrToBone");
+										"defnrToBone");
 				for(i = 0, dg = target->defbase.first; dg;
-				    i++, dg = dg->next) {
+					i++, dg = dg->next) {
 					defnrToPC[i] = get_pose_channel(armOb->pose, dg->name);
 					/* exclude non-deforming bones */
 					if(defnrToPC[i]) {
@@ -1070,10 +1070,10 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 					
 					if(bone && bone->flag & BONE_MULT_VG_ENV) {
 						weight *= distfactor_to_bone(co, bone->arm_head,
-						                             bone->arm_tail,
-						                             bone->rad_head,
-						                             bone->rad_tail,
-						                             bone->dist);
+													 bone->arm_tail,
+													 bone->rad_head,
+													 bone->rad_tail,
+													 bone->dist);
 					}
 					pchan_bone_deform(pchan, weight, vec, dq, smat, co, &contrib);
 				}
@@ -1083,7 +1083,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			 */
 			if(deformed == 0 && use_envelope) {
 				for(pchan = armOb->pose->chanbase.first; pchan;
-				    pchan = pchan->next) {
+					pchan = pchan->next) {
 					if(!(pchan->bone->flag & BONE_NO_DEFORM))
 						contrib += dist_bone_deform(pchan, vec, dq, smat, co);
 				}
@@ -1091,7 +1091,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		}
 		else if(use_envelope) {
 			for(pchan = armOb->pose->chanbase.first; pchan;
-			    pchan = pchan->next) {
+				pchan = pchan->next) {
 				if(!(pchan->bone->flag & BONE_NO_DEFORM))
 					contrib += dist_bone_deform(pchan, vec, dq, smat, co);
 			}
@@ -1293,10 +1293,10 @@ void pchan_apply_mat4(bPoseChannel *pchan, float mat[][4])
  */
 void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float arm_mat[][4])
 {
- 	float imat[4][4];
+	 float imat[4][4];
  
- 	invert_m4_m4(imat, arm_mat);
- 	mul_m4_m4m4(delta_mat, pose_mat, imat);
+	 invert_m4_m4(imat, arm_mat);
+	 mul_m4_m4m4(delta_mat, pose_mat, imat);
 }
 
 /* **************** Rotation Mode Conversions ****************************** */
@@ -1369,21 +1369,21 @@ void BKE_rotMode_change_values (float quat[4], float eul[3], float axis[3], floa
   
   *************************************************************************** */
 /*  Computes vector and roll based on a rotation. "mat" must
-     contain only a rotation, and no scaling. */ 
+	 contain only a rotation, and no scaling. */ 
 void mat3_to_vec_roll(float mat[][3], float *vec, float *roll) 
 {
-    if (vec)
-        copy_v3_v3(vec, mat[1]);
+	if (vec)
+		copy_v3_v3(vec, mat[1]);
 
-    if (roll) {
-        float vecmat[3][3], vecmatinv[3][3], rollmat[3][3];
+	if (roll) {
+		float vecmat[3][3], vecmatinv[3][3], rollmat[3][3];
 
-        vec_roll_to_mat3(mat[1], 0.0f, vecmat);
-        invert_m3_m3(vecmatinv, vecmat);
-        mul_m3_m3m3(rollmat, vecmatinv, mat);
+		vec_roll_to_mat3(mat[1], 0.0f, vecmat);
+		invert_m3_m3(vecmatinv, vecmat);
+		mul_m3_m3m3(rollmat, vecmatinv, mat);
 
-        *roll= (float)atan2(rollmat[2][0], rollmat[2][2]);
-    }
+		*roll= (float)atan2(rollmat[2][0], rollmat[2][2]);
+	}
 }
 
 /*	Calculates the rest matrix of a bone based

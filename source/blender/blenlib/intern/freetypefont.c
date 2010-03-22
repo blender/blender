@@ -429,7 +429,7 @@ static int check_freetypefont(PackedFile * pf)
 							&face );
 	if(err) {
 		success = 0;
-	    //XXX error("This is not a valid font");
+		//XXX error("This is not a valid font");
 	}
 	else {
 /*
@@ -522,14 +522,14 @@ int BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 
 typedef struct  FT_Outline_
   {
-    short       n_contours;      /* number of contours in glyph        */
-    short       n_points;        /* number of points in the glyph      */
+	short       n_contours;      /* number of contours in glyph        */
+	short       n_points;        /* number of points in the glyph      */
 
-    FT_Vector*  points;          /* the outline's points               */
-    char*       tags;            /* the points flags                   */
-    short*      contours;        /* the contour end points             */
+	FT_Vector*  points;          /* the outline's points               */
+	char*       tags;            /* the points flags                   */
+	short*      contours;        /* the contour end points             */
 
-    int         flags;           /* outline masks                      */
+	int         flags;           /* outline masks                      */
 
   } FT_Outline;
 
@@ -569,44 +569,44 @@ The following rules are applied to decompose the contour's points into segments 
 Note that it is possible to mix conic and cubic arcs in a single contour, even though no current
 font driver produces such outlines.
 
-                                  *            # on      
-                                               * off
-                               __---__
+								  *            # on      
+											   * off
+							   __---__
   #-__                      _--       -_
-      --__                _-            -
-          --__           #               \
-              --__                        #
-                  -#
-                           Two "on" points
+	  --__                _-            -
+		  --__           #               \
+			  --__                        #
+				  -#
+						   Two "on" points
    Two "on" points       and one "conic" point
-                            between them
+							between them
 
 
 
-                *
+				*
   #            __      Two "on" points with two "conic"
    \          -  -     points between them. The point
-    \        /    \    marked '0' is the middle of the
-     -      0      \   "off" points, and is a 'virtual'
-      -_  _-       #   "on" point where the curve passes.
-        --             It does not appear in the point
-                       list.
-        *
+	\        /    \    marked '0' is the middle of the
+	 -      0      \   "off" points, and is a 'virtual'
+	  -_  _-       #   "on" point where the curve passes.
+		--             It does not appear in the point
+					   list.
+		*
 
 
 
 
-        *                # on
-                   *     * off
-         __---__
-      _--       -_
-    _-            -
+		*                # on
+				   *     * off
+		 __---__
+	  _--       -_
+	_-            -
    #               \
-                    #
+					#
 
-     Two "on" points
+	 Two "on" points
    and two "cubic" point
-      between them
+	  between them
 
 
 Each glyph's original outline points are located on a grid of indivisible units. The points are stored

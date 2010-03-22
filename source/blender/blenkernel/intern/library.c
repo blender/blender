@@ -598,10 +598,10 @@ static ID *alloc_libblock_notest(short type)
 			break;
 		case ID_PA:
 			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
-  			break;
+			  break;
 		case ID_WM:
 			id = MEM_callocN(sizeof(wmWindowManager), "Window manager");
-  			break;
+			  break;
 		case ID_GD:
 			id = MEM_callocN(sizeof(bGPdata), "Grease Pencil");
 			break;
@@ -682,7 +682,7 @@ void *copy_libblock(void *rt)
 
 static void free_library(Library *lib)
 {
-    /* no freeing needed for libraries yet */
+	/* no freeing needed for libraries yet */
 }
 
 static void (*free_windowmanager_cb)(bContext *, wmWindowManager *)= NULL;
@@ -1362,17 +1362,17 @@ void text_idbutton(struct ID *id, char *text)
 	if(id) {
 		if(GS(id->name)==ID_SCE)
 			strcpy(text, "SCE: ");
-        else if(GS(id->name)==ID_SCE)
+		else if(GS(id->name)==ID_SCE)
 			strcpy(text, "SCR: ");
-        else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
+		else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
 			strcpy(text, "NT: ");
-        else {
+		else {
 			text[0]= id->name[0];
 			text[1]= id->name[1];
 			text[2]= ':';
 			text[3]= ' ';
 			text[4]= 0;
-        }
+		}
 	}
 	else
 		strcpy(text, "");

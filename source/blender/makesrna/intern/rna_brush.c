@@ -367,7 +367,7 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Flip", "");
 
 	/* XXX: Tool (this will be for pressing a modifier key for a different brush,
-	        e.g. switching to a Smooth brush in the middle of the stroke */
+			e.g. switching to a Smooth brush in the middle of the stroke */
 }
 
 void RNA_def_brush(BlenderRNA *brna)

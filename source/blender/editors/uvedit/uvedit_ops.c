@@ -2294,7 +2294,7 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	MTFace *tface;
 	int x, y, radius, width, height, select;
 	float zoomx, zoomy, offset[2], ellipse[2];
-    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
     
 	/* get operator properties */
 	select= (gesture_mode == GESTURE_MODAL_SELECT);

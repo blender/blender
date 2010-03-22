@@ -644,7 +644,7 @@ void ED_object_constraint_dependency_update(Scene *scene, Object *ob)
 	ED_object_constraint_update(ob);
 
 	if(ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
-    DAG_scene_sort(scene);
+	DAG_scene_sort(scene);
 }
 
 static int constraint_poll(bContext *C)

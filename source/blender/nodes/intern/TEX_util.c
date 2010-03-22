@@ -35,11 +35,11 @@
 	the TexDelegate* from its input stack, and uses tex_call_delegate to
 	retrieve the colour from the delegate.
  
-    comments: (ton)
+	comments: (ton)
     
-    This system needs recode, a node system should rely on the stack, and 
+	This system needs recode, a node system should rely on the stack, and 
 	callbacks for nodes only should evaluate own node, not recursively go
-    over other previous ones.
+	over other previous ones.
 */
 
 #include <assert.h>

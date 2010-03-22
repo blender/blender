@@ -160,7 +160,7 @@ According to RFC 3629 "UTF-8, a transformation format of ISO 10646"
 (http://tools.ietf.org/html/rfc3629), the valid UTF-8 encoding are:
 
   Char. number range  |        UTF-8 octet sequence
-      (hexadecimal)    |              (binary)
+	  (hexadecimal)    |              (binary)
    --------------------+---------------------------------------------
    0000 0000-0000 007F | 0xxxxxxx
    0000 0080-0000 07FF | 110xxxxx 10xxxxxx
@@ -202,7 +202,7 @@ int utf8towchar(wchar_t *w, char *c)
 				*w = '?';
 			}
 		} else
-		    *w=(c[0] & 0x7f);
+			*w=(c[0] & 0x7f);
 
 		c++;
 		w++;
@@ -832,8 +832,8 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			linedata4[lnr]= wsnr;
 			
 			if ( (tb->h != 0.0) &&
-			     ((-(yof-(tb->y/cu->fsize))) > ((tb->h/cu->fsize)-(linedist*cu->fsize))) &&
-			     (cu->totbox > (curbox+1)) ) {
+				 ((-(yof-(tb->y/cu->fsize))) > ((tb->h/cu->fsize)-(linedist*cu->fsize))) &&
+				 (cu->totbox > (curbox+1)) ) {
 				maxlen= 0;
 				tb++;
 				curbox++;
@@ -927,13 +927,13 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				ct++;
 			}
 		} else if((cu->spacemode==CU_FLUSH) &&
-		          (cu->tb[0].w != 0.0)) {
+				  (cu->tb[0].w != 0.0)) {
 			for(i=0;i<lnr;i++)
 				if(linedata2[i]>1)
 					linedata[i]= (linedata3[i]-linedata[i])/(linedata2[i]-1);
 			for (i=0; i<=slen; i++) {
 				for (j=i; (mem[j]) && (mem[j]!='\n') && 
-				          (mem[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
+						  (mem[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
 //				if ((mem[j]!='\r') && (mem[j]!='\n') && (mem[j])) {
 					ct->xof+= ct->charnr*linedata[ct->linenr];
 //				}
@@ -944,10 +944,10 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			float curofs= 0.0f;
 			for (i=0; i<=slen; i++) {
 				for (j=i; (mem[j]) && (mem[j]!='\n') && 
-				          (mem[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
+						  (mem[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
 				if ((mem[j]!='\r') && (mem[j]!='\n') &&
-				    ((chartransdata[j].dobreak!=0))) {
-				    if (mem[i]==' ') curofs += (linedata3[ct->linenr]-linedata[ct->linenr])/linedata4[ct->linenr];
+					((chartransdata[j].dobreak!=0))) {
+					if (mem[i]==' ') curofs += (linedata3[ct->linenr]-linedata[ct->linenr])/linedata4[ct->linenr];
 					ct->xof+= curofs;
 				}
 				if (mem[i]=='\n' || mem[i]=='\r' || chartransdata[i].dobreak) curofs= 0;

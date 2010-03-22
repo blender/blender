@@ -793,7 +793,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	/* safety border */
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && 
-	    (sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
+		(sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
 		float fac= 0.1;
 		float x1 = v2d->tot.xmin;
 		float y1 = v2d->tot.ymin;

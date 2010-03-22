@@ -63,14 +63,14 @@ struct wmTimer;
  
 /* Background Picture in 3D-View */
 typedef struct BGpic {
-    struct BGpic *next, *prev;
+	struct BGpic *next, *prev;
 
-    struct Image *ima;
+	struct Image *ima;
 	struct ImageUser iuser;
-    float xof, yof, size, blend;
-    short view;
-    short flag;
-    float pad2;
+	float xof, yof, size, blend;
+	short view;
+	short flag;
+	float pad2;
 } BGpic;
 
 /* ********************************* */

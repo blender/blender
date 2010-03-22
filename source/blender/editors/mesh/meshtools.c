@@ -684,7 +684,7 @@ void sort_faces(Scene *scene, View3D *v3d)
 /* sort index list instead of faces itself 
    and apply this permutation to all face layers */
    
-  	if (event == 5) {
+	  if (event == 5) {
 		/* Random */
 		for(i=0; i<me->totface; i++) {
 			face_sort_floats[i] = BLI_frand();

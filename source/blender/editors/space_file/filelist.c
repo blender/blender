@@ -873,7 +873,7 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 #ifdef WITH_OPENEXR
 				||	BLI_testextensie(file->relname, ".exr")
 #endif
-			    ) {
+				) {
 				file->flags |= IMAGEFILE;			
 			}
 			else if(BLI_testextensie(file->relname, ".avi")

@@ -634,7 +634,7 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 	Scene *scene= (Scene*)ptr->id.data;
 	SceneRenderLayer *rl= (SceneRenderLayer*)ptr->data;
 
-    BLI_strncpy(rl->name, value, sizeof(rl->name));
+	BLI_strncpy(rl->name, value, sizeof(rl->name));
 
 	if(scene->nodetree) {
 		bNode *node;
@@ -1385,7 +1385,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{DOME_PANORAM_SPH, "PANORAM_SPH", 0, "Spherical Panoramic", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
- 	static EnumPropertyItem stereo_modes_items[] ={
+	 static EnumPropertyItem stereo_modes_items[] ={
 		{STEREO_QUADBUFFERED, "QUADBUFFERED", 0, "Quad-Buffer", ""},
 		{STEREO_ABOVEBELOW, "ABOVEBELOW", 0, "Above-Below", ""},
 		{STEREO_INTERLACED, "INTERLACED", 0, "Interlaced", ""},
@@ -1394,7 +1394,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{STEREO_VINTERLACE, "VINTERLACE", 0, "Vinterlace", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
- 	static EnumPropertyItem stereo_items[] ={
+	 static EnumPropertyItem stereo_items[] ={
 		{STEREO_NOSTEREO, "NONE", 0, "None", "Disable Stereo and Dome environments"},
 		{STEREO_ENABLED, "STEREO", 0, "Stereo", "Enable Stereo environment"},
 		{STEREO_DOME, "DOME", 0, "Dome", "Enable Dome environment"},
@@ -2344,7 +2344,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "full_sample", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FULL_SAMPLE);
- 	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_full_sample_get", NULL);
+	 RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_full_sample_get", NULL);
 	RNA_def_property_ui_text(prop, "Full Sample","Save for every anti-aliasing sample the entire RenderLayer results. This solves anti-aliasing issues with compositing");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	

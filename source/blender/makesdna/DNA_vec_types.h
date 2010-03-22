@@ -78,13 +78,13 @@ typedef struct vec4d {
 #endif
 
 typedef struct rcti {
-    int xmin, xmax;
-    int ymin, ymax;
+	int xmin, xmax;
+	int ymin, ymax;
 } rcti;
 
 typedef struct rctf {
-    float xmin, xmax;
-    float ymin, ymax;
+	float xmin, xmax;
+	float ymin, ymax;
 } rctf;
 
 #endif

@@ -5812,10 +5812,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 		}
 
-        if(ob->pd && ob->pd->forcefield) {
-            draw_forcefield(scene, ob, rv3d);
-        }
-    }
+		if(ob->pd && ob->pd->forcefield) {
+			draw_forcefield(scene, ob, rv3d);
+		}
+	}
 
 	/* code for new particle system */
 	if(		(warning_recursive==0) &&
@@ -5972,7 +5972,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		}
 	}
 
-    if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+	if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 
 		bConstraint *con;
 		for(con=ob->constraints.first; con; con= con->next) 
@@ -5985,24 +5985,24 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 		}
 
-        /* draw extra: after normal draw because of makeDispList */
-        if(dtx && (G.f & G_RENDER_OGL)==0) {
+		/* draw extra: after normal draw because of makeDispList */
+		if(dtx && (G.f & G_RENDER_OGL)==0) {
         
-            if(dtx & OB_AXIS) {
-                drawaxes(1.0f, flag, OB_ARROWS);
-            }
-            if(dtx & OB_BOUNDBOX) draw_bounding_volume(scene, ob);
-            if(dtx & OB_TEXSPACE) drawtexspace(ob);
-            if(dtx & OB_DRAWNAME) {
-                /* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
-                /* but, we also dont draw names for sets or duplicators */
-                if(flag == 0) {
-                    view3d_cached_text_draw_add(0.0f, 0.0f, 0.0f, ob->id.name+2, 10, 0);
-                }
-            }
-            /*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
-            if((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) drawWireExtra(scene, rv3d, ob);
-        }
+			if(dtx & OB_AXIS) {
+				drawaxes(1.0f, flag, OB_ARROWS);
+			}
+			if(dtx & OB_BOUNDBOX) draw_bounding_volume(scene, ob);
+			if(dtx & OB_TEXSPACE) drawtexspace(ob);
+			if(dtx & OB_DRAWNAME) {
+				/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
+				/* but, we also dont draw names for sets or duplicators */
+				if(flag == 0) {
+					view3d_cached_text_draw_add(0.0f, 0.0f, 0.0f, ob->id.name+2, 10, 0);
+				}
+			}
+			/*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
+			if((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) drawWireExtra(scene, rv3d, ob);
+		}
 	}
 
 	if(dt<OB_SHADED) {
@@ -6053,8 +6053,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			else if((flag & DRAW_CONSTCOLOR)==0) {
 				/* we don't draw centers for duplicators and sets */
 				if(U.obcenter_dia > 0) {
-                    /* check > 0 otherwise grease pencil can draw into the circle select which is annoying. */
-                    drawcentercircle(v3d, rv3d, ob->obmat[3], do_draw_center, ob->id.lib || ob->id.us>1);
+					/* check > 0 otherwise grease pencil can draw into the circle select which is annoying. */
+					drawcentercircle(v3d, rv3d, ob->obmat[3], do_draw_center, ob->id.lib || ob->id.us>1);
 				}
 			}
 		}

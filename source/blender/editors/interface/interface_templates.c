@@ -168,8 +168,8 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 
 			/* hide dot-datablocks */
 			if(U.uiflag & USER_HIDE_DOT)
-    			if ((id->name[2]=='.') && (str[0] != '.'))
-    				continue;
+				if ((id->name[2]=='.') && (str[0] != '.'))
+					continue;
 
 			if(BLI_strcasestr(id->name+2, str)) {
 				iconid= ui_id_icon_get((bContext*)C, id, 0);
@@ -812,9 +812,9 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 			
 			if (md->type==eModifierType_ParticleSystem) {
-		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
+				ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 				
-	    		if (!(ob->mode & OB_MODE_PARTICLE_EDIT) && psys->pathcache) {
+				if (!(ob->mode & OB_MODE_PARTICLE_EDIT) && psys->pathcache) {
 					if(ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
 						uiItemO(row, "Convert", 0, "OBJECT_OT_duplicates_make_real");
 					else if(psys->part->ren_as == PART_DRAW_PATH)
@@ -1176,8 +1176,8 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 				/* do the scripts menu */
 				/* XXX menustr = buildmenu_pyconstraints(data->text, &pyconindex);
 				but2 = uiDefButI(block, MENU, B_CONSTRAINT_TEST, menustr,
-				      xco+120, yco-24, 150, 20, &pyconindex,
-				      0, 0, 0, 0, "Set the Script Constraint to use");
+					  xco+120, yco-24, 150, 20, &pyconindex,
+					  0, 0, 0, 0, "Set the Script Constraint to use");
 				uiButSetFunc(but2, validate_pyconstraint_cb, data, &pyconindex);
 				MEM_freeN(menustr);	 */
 				
@@ -2043,7 +2043,7 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
 //	  the array of layer bitflags
 
 void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
-		      PointerRNA *used_ptr, char *used_propname, int active_layer)
+			  PointerRNA *used_ptr, char *used_propname, int active_layer)
 {
 	uiLayout *uRow, *uCol;
 	PropertyRNA *prop, *used_prop= NULL;

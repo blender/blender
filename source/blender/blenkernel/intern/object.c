@@ -710,9 +710,9 @@ void make_local_camera(Camera *cam)
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(cam->id.lib==0) return;
 	if(cam->id.us==1) {
@@ -858,9 +858,9 @@ void make_local_lamp(Lamp *la)
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(la->id.lib==0) return;
 	if(la->id.us==1) {
@@ -1356,9 +1356,9 @@ void make_local_object(Object *ob)
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(ob->id.lib==NULL) return;
 	
@@ -1766,7 +1766,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	
 	
 	/* vec: 4 items! */
- 	if( where_on_path(par, ctime, vec, dir, NULL, &radius) ) {
+	 if( where_on_path(par, ctime, vec, dir, NULL, &radius) ) {
 
 		if(cu->flag & CU_FOLLOW) {
 			vec_to_quat( quat,dir, ob->trackflag, ob->upflag);

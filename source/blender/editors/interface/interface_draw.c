@@ -81,7 +81,7 @@ int uiGetRoundBox(void)
 void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad)
 {
 	float vec[7][2]= {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+					  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	int a;
 	
 	/* mult */
@@ -151,7 +151,7 @@ static void round_box_shade_col(float *col1, float *col2, float fac)
 void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown)
 {
 	float vec[7][2]= {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+					  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	float div= maxy-miny;
 	float coltop[3], coldown[3], color[4];
 	int a;
@@ -258,7 +258,7 @@ void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy
 void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight)
 {
 	float vec[7][2]= {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
-	                  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+					  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	float div= maxx-minx;
 	float colLeft[3], colRight[3], color[4];
 	int a;

@@ -109,17 +109,17 @@ AviError AVI_set_compress_option (AviMovie *movie, int option_type, int stream, 
 				
 		}
 
-    fseek (movie->fp, movie->offset_table[0], SEEK_SET);
-    awrite (movie, movie->header, 1, sizeof(AviMainHeader), movie->fp, AVI_MAINH);
+	fseek (movie->fp, movie->offset_table[0], SEEK_SET);
+	awrite (movie, movie->header, 1, sizeof(AviMainHeader), movie->fp, AVI_MAINH);
 
-    break;
+	break;
   case AVI_OPTION_TYPE_STRH:
-    break;
+	break;
   case AVI_OPTION_TYPE_STRF:
-    break;
+	break;
   default:
-    return AVI_ERROR_OPTION;
-    break;
+	return AVI_ERROR_OPTION;
+	break;
   }
 
   return AVI_ERROR_NONE;

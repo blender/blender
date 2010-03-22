@@ -316,7 +316,7 @@ NOTE THAT U/V COORDINATES ARE SOMETIMES SWAPPED !!
 u	|     |  F1 |  F2 |
 	|     |     |     |
 	()----p1----p2----()
-	       v ->
+		   v ->
 */
 
 /* ------------------------------------------------------------------------- */
@@ -1006,8 +1006,8 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 
 		/* use actual Blender units for strand width and fall back to minimum width */
 		if(ma->mode & MA_STR_B_UNITS){
-            crosslen= len_v3(cross);
-            w= 2.0f*crosslen*ma->strand_min/w;
+			crosslen= len_v3(cross);
+			w= 2.0f*crosslen*ma->strand_min/w;
 
 			if(width < w)
 				width= w;
@@ -3713,7 +3713,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 			lar->sunsky->effect_type = la->sun_effect_type;
 		
 			VECCOPY(vec,ob->obmat[2]);
-		    normalize_v3(vec);
+			normalize_v3(vec);
 		    
 			InitSunSky(lar->sunsky, la->atm_turbidity, vec, la->horizon_brightness, 
 					la->spread, la->sun_brightness, la->sun_size, la->backscattered_light,
@@ -4674,7 +4674,7 @@ static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd
 
 	/* don't allow lamp, animated duplis, or radio render */
 	return (render_object_type(obd->type) &&
-	        (!(dob->type == OB_DUPLIGROUP) || !dob->animated));
+			(!(dob->type == OB_DUPLIGROUP) || !dob->animated));
 }
 
 static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, int level, int enable)
@@ -4723,7 +4723,7 @@ static int get_vector_renderlayers(Scene *sce)
 	SceneRenderLayer *srl;
 	unsigned int lay= 0;
 
-    for(srl= sce->r.layers.first; srl; srl= srl->next)
+	for(srl= sce->r.layers.first; srl; srl= srl->next)
 		if(srl->passflag & SCE_PASS_VECTOR)
 			lay |= srl->lay;
 

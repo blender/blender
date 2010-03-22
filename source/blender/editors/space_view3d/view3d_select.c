@@ -2051,10 +2051,10 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int x= RNA_int_get(op->ptr, "x");
 	int y= RNA_int_get(op->ptr, "y");
 	int radius= RNA_int_get(op->ptr, "radius");
-    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
-    int selecting;
+	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+	int selecting;
 	
-    selecting= (gesture_mode==GESTURE_MODAL_SELECT);
+	selecting= (gesture_mode==GESTURE_MODAL_SELECT);
     
 	if(CTX_data_edit_object(C) || (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		ViewContext vc;

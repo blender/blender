@@ -744,7 +744,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 
 		for (a=0, med=me->medge; a<me->totedge; a++, med++)
 			if (BLI_edgehash_haskey(ehash1, med->v1, med->v2) &&
-			    BLI_edgehash_haskey(ehash2, med->v1, med->v2))
+				BLI_edgehash_haskey(ehash2, med->v1, med->v2))
 				med->flag |= ME_SEAM;
 
 		BLI_edgehash_free(ehash1, NULL);

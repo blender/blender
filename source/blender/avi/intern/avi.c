@@ -197,8 +197,8 @@ int AVI_is_avi (char *name) {
 		return 0;
 
 	if (GET_FCC (fp) != FCC("RIFF") ||
-	    !GET_FCC (fp) ||
-	    GET_FCC (fp) != FCC("AVI ")) {
+		!GET_FCC (fp) ||
+		GET_FCC (fp) != FCC("AVI ")) {
 		ret = 0;
 	} else {
 		ret = 1;
@@ -228,19 +228,19 @@ int AVI_is_avi (char *name) {
 		return 0;
 
 	if (GET_FCC (movie.fp) != FCC("RIFF") ||
-	    !(movie.size = GET_FCC (movie.fp))) {
-	    fclose(movie.fp);
+		!(movie.size = GET_FCC (movie.fp))) {
+		fclose(movie.fp);
 		return 0;
 	}
 
 	movie.header = &header;
 
 	if (GET_FCC (movie.fp) != FCC("AVI ") ||
-	    GET_FCC (movie.fp) != FCC("LIST") ||
-	    !GET_FCC (movie.fp) ||
-	    GET_FCC (movie.fp) != FCC("hdrl") ||
-	    (movie.header->fcc = GET_FCC (movie.fp)) != FCC("avih") ||
-	    !(movie.header->size = GET_FCC (movie.fp))) {
+		GET_FCC (movie.fp) != FCC("LIST") ||
+		!GET_FCC (movie.fp) ||
+		GET_FCC (movie.fp) != FCC("hdrl") ||
+		(movie.header->fcc = GET_FCC (movie.fp)) != FCC("avih") ||
+		!(movie.header->size = GET_FCC (movie.fp))) {
 		DEBUG("bad initial header info\n");
 		fclose(movie.fp);
 		return 0;
@@ -274,10 +274,10 @@ int AVI_is_avi (char *name) {
 	for (temp=0; temp < movie.header->Streams; temp++) {
 
 		if (GET_FCC(movie.fp) != FCC("LIST") ||
-		    !GET_FCC (movie.fp) ||
-		    GET_FCC (movie.fp) != FCC ("strl") ||
-		    (movie.streams[temp].sh.fcc = GET_FCC (movie.fp)) != FCC ("strh") ||
-		    !(movie.streams[temp].sh.size = GET_FCC (movie.fp))) {
+			!GET_FCC (movie.fp) ||
+			GET_FCC (movie.fp) != FCC ("strl") ||
+			(movie.streams[temp].sh.fcc = GET_FCC (movie.fp)) != FCC ("strh") ||
+			!(movie.streams[temp].sh.size = GET_FCC (movie.fp))) {
 			DEBUG("bad stream header information\n");
 			
 			MEM_freeN(movie.streams);
@@ -357,7 +357,7 @@ int AVI_is_avi (char *name) {
 				
 				fcca = bi->Compression;
 
-                if ( movie.streams[temp].format ==
+				if ( movie.streams[temp].format ==
 					 AVI_FORMAT_AVI_RGB) {
 					if (fcca == FCC ("DIB ") ||
 						fcca == FCC ("RGB ") ||
@@ -386,7 +386,7 @@ int AVI_is_avi (char *name) {
 				
 				MEM_freeN(movie.streams);
 				fclose(movie.fp);
-			    return 0;				
+				return 0;				
 			}
 			fseek(movie.fp, temp, SEEK_CUR);			
 		}
@@ -417,17 +417,17 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 		return AVI_ERROR_OPEN;
 
 	if (GET_FCC (movie->fp) != FCC("RIFF") ||
-	    !(movie->size = GET_FCC (movie->fp)))
+		!(movie->size = GET_FCC (movie->fp)))
 		return AVI_ERROR_FORMAT;
 
 	movie->header = (AviMainHeader *) MEM_mallocN (sizeof (AviMainHeader), "movieheader");
 
 	if (GET_FCC (movie->fp) != FCC("AVI ") ||
-	    GET_FCC (movie->fp) != FCC("LIST") ||
-	    !GET_FCC (movie->fp) ||
-	    GET_FCC (movie->fp) != FCC("hdrl") ||
-	    (movie->header->fcc = GET_FCC (movie->fp)) != FCC("avih") ||
-	    !(movie->header->size = GET_FCC (movie->fp))) {
+		GET_FCC (movie->fp) != FCC("LIST") ||
+		!GET_FCC (movie->fp) ||
+		GET_FCC (movie->fp) != FCC("hdrl") ||
+		(movie->header->fcc = GET_FCC (movie->fp)) != FCC("avih") ||
+		!(movie->header->size = GET_FCC (movie->fp))) {
 		DEBUG("bad initial header info\n");
 		return AVI_ERROR_FORMAT;
 	}
@@ -459,10 +459,10 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 	for (temp=0; temp < movie->header->Streams; temp++) {
 
 		if (GET_FCC(movie->fp) != FCC("LIST") ||
-		    !GET_FCC (movie->fp) ||
-		    GET_FCC (movie->fp) != FCC ("strl") ||
-		    (movie->streams[temp].sh.fcc = GET_FCC (movie->fp)) != FCC ("strh") ||
-		    !(movie->streams[temp].sh.size = GET_FCC (movie->fp))) {
+			!GET_FCC (movie->fp) ||
+			GET_FCC (movie->fp) != FCC ("strl") ||
+			(movie->streams[temp].sh.fcc = GET_FCC (movie->fp)) != FCC ("strh") ||
+			!(movie->streams[temp].sh.size = GET_FCC (movie->fp))) {
 			DEBUG("bad stream header information\n");
 			return AVI_ERROR_FORMAT;				
 		}
@@ -535,7 +535,7 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 				
 				fcca = bi->Compression;
 
-                                if ( movie->streams[temp].format ==
+								if ( movie->streams[temp].format ==
 					 AVI_FORMAT_AVI_RGB) {
 					if (fcca == FCC ("DIB ") ||
 						fcca == FCC ("RGB ") ||
@@ -559,7 +559,7 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 			temp= GET_FCC (movie->fp);
 			if (temp<0 || ftell(movie->fp) > movie->size) {
 				DEBUG("incorrect size in header or error in AVI\n");
-			    return AVI_ERROR_FORMAT;				
+				return AVI_ERROR_FORMAT;				
 			}
 			fseek(movie->fp, temp, SEEK_CUR);			
 		}
@@ -584,7 +584,7 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 		}
 		if (ftell(movie->fp) > movie->size) {
 			DEBUG("incorrect size in header or error in AVI\n");
-		    return AVI_ERROR_FORMAT;
+			return AVI_ERROR_FORMAT;
 		}
 	}
 
@@ -727,9 +727,9 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...) {
 	movie->header->fcc = FCC("avih");
 	movie->header->size = 56;
 	movie->header->MicroSecPerFrame = 66667;
- 	movie->header->MaxBytesPerSec = 0; 
- 	movie->header->PaddingGranularity = 0; 
- 	movie->header->Flags = AVIF_HASINDEX | AVIF_MUSTUSEINDEX;
+	 movie->header->MaxBytesPerSec = 0; 
+	 movie->header->PaddingGranularity = 0; 
+	 movie->header->Flags = AVIF_HASINDEX | AVIF_MUSTUSEINDEX;
 	movie->header->TotalFrames = 0;
 	movie->header->InitialFrames = 0;
 	movie->header->Streams = streams;
@@ -906,10 +906,10 @@ AviError AVI_write_frame (AviMovie *movie, int frame_num, ...) {
 
 	if (frame_num+1 > movie->index_entries) {
 		temp = (AviIndexEntry *) MEM_mallocN ((frame_num+1) * 
-		    (movie->header->Streams+1) * sizeof(AviIndexEntry),"newidxentry");
+			(movie->header->Streams+1) * sizeof(AviIndexEntry),"newidxentry");
 		if (movie->entries != NULL) {
 			memcpy (temp, movie->entries, movie->index_entries * (movie->header->Streams+1)
-			    * sizeof(AviIndexEntry));
+				* sizeof(AviIndexEntry));
 			MEM_freeN (movie->entries);
 		}
 

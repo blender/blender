@@ -2074,7 +2074,7 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 
 uiLayout *uiLayoutListBox(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *actptr, PropertyRNA *actprop)
 {
-    uiLayoutItemBx *box= ui_layout_box(layout, LISTBOX);
+	uiLayoutItemBx *box= ui_layout_box(layout, LISTBOX);
 	uiBut *but= box->roundbox;
 
 	but->rnasearchpoin= *ptr;

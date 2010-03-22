@@ -51,8 +51,8 @@ static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *
    float alpha;
 	
    difference=fabs(inColor2[0]-inColor1[0])+
-               fabs(inColor2[1]-inColor1[1])+
-               fabs(inColor2[2]-inColor1[2]);
+			   fabs(inColor2[1]-inColor1[1])+
+			   fabs(inColor2[2]-inColor1[2]);
 
    /*average together the distances*/
    difference=difference/3.0;
@@ -61,19 +61,19 @@ static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *
 
    /*make 100% transparent*/
 	if(difference < tolerence){
-      outColor[3]=0.0;
+	  outColor[3]=0.0;
 	}
    /*in the falloff region, make partially transparent */
    else if(difference < falloff+tolerence){
-      difference=difference-tolerence;
-      alpha=difference/falloff;
-      /*only change if more transparent than before */
-      if(alpha < inColor1[3]) {      
-         outColor[3]=alpha;
-      }
-      else { /* leave as before */
-         outColor[3]=inColor1[3];
-      }
+	  difference=difference-tolerence;
+	  alpha=difference/falloff;
+	  /*only change if more transparent than before */
+	  if(alpha < inColor1[3]) {      
+		 outColor[3]=alpha;
+	  }
+	  else { /* leave as before */
+		 outColor[3]=inColor1[3];
+	  }
    }
 	else {
 		/*foreground object*/
@@ -99,7 +99,7 @@ static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **
 
    /* if there's an image, use that, if not use the color */
    if(in[1]->data) {
-      imbuf2=typecheck_compbuf(in[1]->data, CB_RGBA);
+	  imbuf2=typecheck_compbuf(in[1]->data, CB_RGBA);
    }
 	
 	c=node->storage;

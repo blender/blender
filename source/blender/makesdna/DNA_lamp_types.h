@@ -81,16 +81,16 @@ typedef struct Lamp {
 	/* sun/sky */
 	short sun_effect_type;
 	short skyblendtype;
-    float horizon_brightness;
-    float spread;
-    float sun_brightness;
-    float sun_size;
-    float backscattered_light;
-    float sun_intensity;
+	float horizon_brightness;
+	float spread;
+	float sun_brightness;
+	float sun_size;
+	float backscattered_light;
+	float sun_intensity;
 	float atm_turbidity;
-    float atm_inscattering_factor;
-    float atm_extinction_factor;
-    float atm_distance_factor;
+	float atm_inscattering_factor;
+	float atm_extinction_factor;
+	float atm_distance_factor;
 	float skyblendfac;
 	float sky_exposure;
 	short sky_colorspace, pad4;

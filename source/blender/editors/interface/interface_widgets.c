@@ -63,16 +63,16 @@
 
 /* ************** widget base functions ************** */
 /*
-     - in: roundbox codes for corner types and radius
-     - return: array of [size][2][x,y] points, the edges of the roundbox, + UV coords
+	 - in: roundbox codes for corner types and radius
+	 - return: array of [size][2][x,y] points, the edges of the roundbox, + UV coords
  
-     - draw black box with alpha 0 on exact button boundbox
-     - for ever AA step:
-        - draw the inner part for a round filled box, with color blend codes or texture coords
-        - draw outline in outline color
-        - draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
-        - draw extra decorations
-     - draw background color box with alpha 1 on exact button boundbox
+	 - draw black box with alpha 0 on exact button boundbox
+	 - for ever AA step:
+		- draw the inner part for a round filled box, with color blend codes or texture coords
+		- draw outline in outline color
+		- draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
+		- draw extra decorations
+	 - draw background color box with alpha 1 on exact button boundbox
  
  */
 

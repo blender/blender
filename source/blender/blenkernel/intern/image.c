@@ -446,16 +446,16 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 	strcpy(ibuf->name, "//Untitled");
 	ibuf->userflags |= IB_BITMAPDIRTY;
 	
-    switch(uvtestgrid) {
-    case 1:
-        BKE_image_buf_fill_checker(rect, rect_float, width, height);
-        break;
-    case 2:
-        BKE_image_buf_fill_checker_color(rect, rect_float, width, height);
-        break;
-    default:
-        BKE_image_buf_fill_color(rect, rect_float, width, height, color);
-    }
+	switch(uvtestgrid) {
+	case 1:
+		BKE_image_buf_fill_checker(rect, rect_float, width, height);
+		break;
+	case 2:
+		BKE_image_buf_fill_checker_color(rect, rect_float, width, height);
+		break;
+	default:
+		BKE_image_buf_fill_color(rect, rect_float, width, height, color);
+	}
 
 	return ibuf;
 }

@@ -769,7 +769,7 @@ enum {
 
 #define ST_SCROLL_SELECT        0x0001 // scrollable
 #define ST_CLEAR_NAMESPACE      0x0010 // clear namespace after script
-                                       // execution (see BPY_main.c)
+									   // execution (see BPY_main.c)
 #define	ST_FIND_WRAP			0x0020
 #define	ST_FIND_ALL				0x0040
 

@@ -44,7 +44,7 @@ static void resetNDofInput(NDofInput *n);
 
 void initNDofInput(NDofInput *n)
 {
-    int i;
+	int i;
 
 	n->flag = 0;
 	n->axis = 0;
@@ -128,9 +128,9 @@ void applyNDofInput(NDofInput *n, float *vec)
 
 static int updateNDofMotion(NDofInput *n)
 {
-    float fval[7];
-    int i;
-    int retval = 0;
+	float fval[7];
+	int i;
+	int retval = 0;
 
 	getndof(fval);
 

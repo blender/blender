@@ -188,15 +188,15 @@ static SpaceLink *sequencer_new(const bContext *C)
 	/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
 	ar->v2d.keepzoom= V2D_KEEPASPECT | V2D_KEEPZOOM;
 	ar->v2d.minzoom= 0.00001f;
-    ar->v2d.maxzoom= 100000.0f;
-    ar->v2d.tot.xmin= -960.0f; /* 1920 width centered */
-    ar->v2d.tot.ymin= -540.0f; /* 1080 height centered */
-    ar->v2d.tot.xmax= 960.0f;
-    ar->v2d.tot.ymax= 540.0f;
-    ar->v2d.min[0]= 0.0f;
-    ar->v2d.min[1]= 0.0f;
-    ar->v2d.max[0]= 12000.0f;
-    ar->v2d.max[1]= 12000.0f;
+	ar->v2d.maxzoom= 100000.0f;
+	ar->v2d.tot.xmin= -960.0f; /* 1920 width centered */
+	ar->v2d.tot.ymin= -540.0f; /* 1080 height centered */
+	ar->v2d.tot.xmax= 960.0f;
+	ar->v2d.tot.ymax= 540.0f;
+	ar->v2d.min[0]= 0.0f;
+	ar->v2d.min[1]= 0.0f;
+	ar->v2d.max[0]= 12000.0f;
+	ar->v2d.max[1]= 12000.0f;
 	ar->v2d.cur= ar->v2d.tot;
 	ar->v2d.align= V2D_ALIGN_FREE; 
 	ar->v2d.keeptot= V2D_KEEPTOT_FREE;

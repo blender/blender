@@ -915,12 +915,12 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
 		fsset.generateVertexVectors = (domainSettings->domainNovecgen==0);
 
 		// init blender trafo matrix
- 		// fprintf(stderr,"elbeemInit - mpTrafo:\n");
+		 // fprintf(stderr,"elbeemInit - mpTrafo:\n");
 		{ int j; 
 		for(i=0; i<4; i++) {
 			for(j=0; j<4; j++) {
 				fsset.surfaceTrafo[i*4+j] = invDomMat[j][i];
- 				// fprintf(stderr,"elbeemInit - mpTrafo %d %d = %f (%d) \n", i,j, fsset.surfaceTrafo[i*4+j] , (i*4+j) );
+				 // fprintf(stderr,"elbeemInit - mpTrafo %d %d = %f (%d) \n", i,j, fsset.surfaceTrafo[i*4+j] , (i*4+j) );
 			}
 		} }
 

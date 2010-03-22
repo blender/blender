@@ -1197,7 +1197,7 @@ void BLI_join_dirfile(char *string, const char *dir, const char *file)
   Logic:
 
   - if an image is "below" current .blend file directory, rebuild the
-    same dir structure in dest_dir
+	same dir structure in dest_dir
 
   For example //textures/foo/bar.png becomes
   [dest_dir]/textures/foo/bar.png.

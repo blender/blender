@@ -731,7 +731,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		pointsize = UI_GetThemeValuef(TH_FACEDOT_SIZE);
 		glPointSize(pointsize); // TODO - drawobject.c changes this value after - Investigate!
 		
-	    /* unselected faces */
+		/* unselected faces */
 		UI_ThemeColor(TH_WIRE);
 
 		bglBegin(GL_POINTS);
@@ -763,7 +763,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	/* 6. draw uv vertices */
 	
 	if(drawfaces != 2) { /* 2 means Mesh Face Mode */
-	    /* unselected uvs */
+		/* unselected uvs */
 		UI_ThemeColor(TH_VERTEX);
 		pointsize = UI_GetThemeValuef(TH_VERTEX_SIZE);
 		glPointSize(pointsize);
@@ -787,7 +787,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	
 		/* pinned uvs */
 		/* give odd pointsizes odd pin pointsizes */
-	    glPointSize(pointsize*2 + (((int)pointsize % 2)? (-1): 0));
+		glPointSize(pointsize*2 + (((int)pointsize % 2)? (-1): 0));
 		cpack(0xFF);
 	
 		bglBegin(GL_POINTS);
@@ -809,7 +809,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	
 		/* selected uvs */
 		UI_ThemeColor(TH_VERTEX_SELECT);
-	    glPointSize(pointsize);
+		glPointSize(pointsize);
 	
 		bglBegin(GL_POINTS);
 		for(efa= em->faces.first; efa; efa= efa->next) {

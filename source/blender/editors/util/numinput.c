@@ -170,13 +170,13 @@ char handleNumInput(NumInput *n, wmEvent *event)
 			if (!n->ctrl[idx])
 				n->ctrl[idx] = 1;
 
-	        n->val[idx] += n->increment;
+			n->val[idx] += n->increment;
 			break;
 		case NUM_MODAL_INCREMENT_DOWN:
 			if (!n->ctrl[idx])
 				n->ctrl[idx] = 1;
 
-	        n->val[idx] -= n->increment;
+			n->val[idx] -= n->increment;
 			break;
 		default:
 			return 0;

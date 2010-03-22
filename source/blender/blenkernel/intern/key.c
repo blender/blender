@@ -178,11 +178,11 @@ Key *copy_key(Key *key)
 void make_local_key(Key *key)
 {
 
-    /* - only lib users: do nothing
-    * - only local users: set flag
-    * - mixed: make copy
-    */
-    if(key==0) return;
+	/* - only lib users: do nothing
+	* - only local users: set flag
+	* - mixed: make copy
+	*/
+	if(key==0) return;
 	
 	key->id.lib= 0;
 	new_id(0, (ID *)key, 0);

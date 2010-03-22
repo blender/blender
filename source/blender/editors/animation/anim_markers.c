@@ -394,7 +394,7 @@ functions:
 
 	exit()	cleanup, send notifier
 
-    cancel() to escpae from modal
+	cancel() to escpae from modal
 
 callbacks:
 

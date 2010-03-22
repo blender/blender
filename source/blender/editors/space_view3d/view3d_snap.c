@@ -255,7 +255,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		bArmature *arm= obedit->data;
 		int totmalloc= BLI_countlist(arm->edbo);
 
-        totmalloc *= 2;  /* probably overkill but bones can have 2 trans verts each */
+		totmalloc *= 2;  /* probably overkill but bones can have 2 trans verts each */
 
 		tv=transvmain= MEM_callocN(totmalloc*sizeof(TransVert), "maketransverts armature");
 		
@@ -1088,18 +1088,18 @@ void VIEW3D_OT_snap_selected_to_center(wmOperatorType *ot)
 /*New Code - Snap Cursor to Center -*/
 static int snap_curs_to_center(bContext *C, wmOperator *op)
 {
-    Scene *scene= CTX_data_scene(C);
-    View3D *v3d= CTX_wm_view3d(C);
-    float *curs;
-    curs= give_cursor(scene, v3d);
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
+	float *curs;
+	curs= give_cursor(scene, v3d);
 
-    curs[0]= 0.0;
-    curs[1]= 0.0;
-    curs[2]= 0.0;
+	curs[0]= 0.0;
+	curs[1]= 0.0;
+	curs[2]= 0.0;
 	
-    WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 	
-    return OPERATOR_FINISHED;
+	return OPERATOR_FINISHED;
 }
 
 void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
@@ -1110,12 +1110,12 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 	ot->description= "Snap cursor to the Center";
 	ot->idname= "VIEW3D_OT_snap_cursor_to_center";
 	
-    /* api callbacks */ 
-    ot->exec= snap_curs_to_center;
-   	ot->poll= ED_operator_view3d_active;
+	/* api callbacks */ 
+	ot->exec= snap_curs_to_center;
+	   ot->poll= ED_operator_view3d_active;
 	
-    /* flags */
-   	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* flags */
+	   ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* **************************************************** */

@@ -154,17 +154,17 @@ void mul_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
 void mul_m3_m3m3(float m1[][3], float m3[][3], float m2[][3])
 {
    /*  m1[i][j] = m2[i][k]*m3[k][j], args are flipped!  */
-  	m1[0][0]= m2[0][0]*m3[0][0] + m2[0][1]*m3[1][0] + m2[0][2]*m3[2][0]; 
-  	m1[0][1]= m2[0][0]*m3[0][1] + m2[0][1]*m3[1][1] + m2[0][2]*m3[2][1]; 
-  	m1[0][2]= m2[0][0]*m3[0][2] + m2[0][1]*m3[1][2] + m2[0][2]*m3[2][2]; 
+	  m1[0][0]= m2[0][0]*m3[0][0] + m2[0][1]*m3[1][0] + m2[0][2]*m3[2][0]; 
+	  m1[0][1]= m2[0][0]*m3[0][1] + m2[0][1]*m3[1][1] + m2[0][2]*m3[2][1]; 
+	  m1[0][2]= m2[0][0]*m3[0][2] + m2[0][1]*m3[1][2] + m2[0][2]*m3[2][2]; 
 
-  	m1[1][0]= m2[1][0]*m3[0][0] + m2[1][1]*m3[1][0] + m2[1][2]*m3[2][0]; 
-  	m1[1][1]= m2[1][0]*m3[0][1] + m2[1][1]*m3[1][1] + m2[1][2]*m3[2][1]; 
-  	m1[1][2]= m2[1][0]*m3[0][2] + m2[1][1]*m3[1][2] + m2[1][2]*m3[2][2]; 
+	  m1[1][0]= m2[1][0]*m3[0][0] + m2[1][1]*m3[1][0] + m2[1][2]*m3[2][0]; 
+	  m1[1][1]= m2[1][0]*m3[0][1] + m2[1][1]*m3[1][1] + m2[1][2]*m3[2][1]; 
+	  m1[1][2]= m2[1][0]*m3[0][2] + m2[1][1]*m3[1][2] + m2[1][2]*m3[2][2]; 
 
-  	m1[2][0]= m2[2][0]*m3[0][0] + m2[2][1]*m3[1][0] + m2[2][2]*m3[2][0]; 
-  	m1[2][1]= m2[2][0]*m3[0][1] + m2[2][1]*m3[1][1] + m2[2][2]*m3[2][1]; 
-  	m1[2][2]= m2[2][0]*m3[0][2] + m2[2][1]*m3[1][2] + m2[2][2]*m3[2][2]; 
+	  m1[2][0]= m2[2][0]*m3[0][0] + m2[2][1]*m3[1][0] + m2[2][2]*m3[2][0]; 
+	  m1[2][1]= m2[2][0]*m3[0][1] + m2[2][1]*m3[1][1] + m2[2][2]*m3[2][1]; 
+	  m1[2][2]= m2[2][0]*m3[0][2] + m2[2][1]*m3[1][2] + m2[2][2]*m3[2][2]; 
 }
 
 void mul_m4_m4m3(float (*m1)[4], float (*m3)[4], float (*m2)[3])
@@ -183,18 +183,18 @@ void mul_m4_m4m3(float (*m1)[4], float (*m3)[4], float (*m2)[3])
 /* m1 = m2 * m3, ignore the elements on the 4th row/column of m3*/
 void mul_m3_m3m4(float m1[][3], float m2[][3], float m3[][4])
 {
-    /* m1[i][j] = m2[i][k] * m3[k][j] */
-    m1[0][0] = m2[0][0] * m3[0][0] + m2[0][1] * m3[1][0] +m2[0][2] * m3[2][0];
-    m1[0][1] = m2[0][0] * m3[0][1] + m2[0][1] * m3[1][1] +m2[0][2] * m3[2][1];
-    m1[0][2] = m2[0][0] * m3[0][2] + m2[0][1] * m3[1][2] +m2[0][2] * m3[2][2];
+	/* m1[i][j] = m2[i][k] * m3[k][j] */
+	m1[0][0] = m2[0][0] * m3[0][0] + m2[0][1] * m3[1][0] +m2[0][2] * m3[2][0];
+	m1[0][1] = m2[0][0] * m3[0][1] + m2[0][1] * m3[1][1] +m2[0][2] * m3[2][1];
+	m1[0][2] = m2[0][0] * m3[0][2] + m2[0][1] * m3[1][2] +m2[0][2] * m3[2][2];
 
-    m1[1][0] = m2[1][0] * m3[0][0] + m2[1][1] * m3[1][0] +m2[1][2] * m3[2][0];
-    m1[1][1] = m2[1][0] * m3[0][1] + m2[1][1] * m3[1][1] +m2[1][2] * m3[2][1];
-    m1[1][2] = m2[1][0] * m3[0][2] + m2[1][1] * m3[1][2] +m2[1][2] * m3[2][2];
+	m1[1][0] = m2[1][0] * m3[0][0] + m2[1][1] * m3[1][0] +m2[1][2] * m3[2][0];
+	m1[1][1] = m2[1][0] * m3[0][1] + m2[1][1] * m3[1][1] +m2[1][2] * m3[2][1];
+	m1[1][2] = m2[1][0] * m3[0][2] + m2[1][1] * m3[1][2] +m2[1][2] * m3[2][2];
 
-    m1[2][0] = m2[2][0] * m3[0][0] + m2[2][1] * m3[1][0] +m2[2][2] * m3[2][0];
-    m1[2][1] = m2[2][0] * m3[0][1] + m2[2][1] * m3[1][1] +m2[2][2] * m3[2][1];
-    m1[2][2] = m2[2][0] * m3[0][2] + m2[2][1] * m3[1][2] +m2[2][2] * m3[2][2];
+	m1[2][0] = m2[2][0] * m3[0][0] + m2[2][1] * m3[1][0] +m2[2][2] * m3[2][0];
+	m1[2][1] = m2[2][0] * m3[0][1] + m2[2][1] * m3[1][1] +m2[2][2] * m3[2][1];
+	m1[2][2] = m2[2][0] * m3[0][2] + m2[2][1] * m3[1][2] +m2[2][2] * m3[2][2];
 }
 
 void mul_m4_m3m4(float (*m1)[4], float (*m3)[3], float (*m2)[4])
@@ -437,8 +437,8 @@ int invert_m3_m3(float m1[3][3], float m2[3][3])
 
 	/* then determinant old matrix! */
 	det= m2[0][0]* (m2[1][1]*m2[2][2] - m2[1][2]*m2[2][1])
-	    -m2[1][0]* (m2[0][1]*m2[2][2] - m2[0][2]*m2[2][1])
-	    +m2[2][0]* (m2[0][1]*m2[1][2] - m2[0][2]*m2[1][1]);
+		-m2[1][0]* (m2[0][1]*m2[2][2] - m2[0][2]*m2[2][1])
+		+m2[2][0]* (m2[0][1]*m2[1][2] - m2[0][2]*m2[1][1]);
 
 	success= (det != 0);
 
@@ -823,8 +823,8 @@ float determinant_m3(float a1, float a2, float a3,
 	float ans;
 
 	ans = a1 * determinant_m2(b2, b3, c2, c3)
-	    - b1 * determinant_m2(a2, a3, c2, c3)
-	    + c1 * determinant_m2(a2, a3, b2, b3);
+		- b1 * determinant_m2(a2, a3, c2, c3)
+		+ c1 * determinant_m2(a2, a3, b2, b3);
 
 	return ans;
 }
@@ -855,9 +855,9 @@ float determinant_m4(float m[][4])
 	d4= m[3][3];
 
 	ans = a1 * determinant_m3(b2, b3, b4, c2, c3, c4, d2, d3, d4)
-	    - b1 * determinant_m3(a2, a3, a4, c2, c3, c4, d2, d3, d4)
-	    + c1 * determinant_m3(a2, a3, a4, b2, b3, b4, d2, d3, d4)
-	    - d1 * determinant_m3(a2, a3, a4, b2, b3, b4, c2, c3, c4);
+		- b1 * determinant_m3(a2, a3, a4, c2, c3, c4, d2, d3, d4)
+		+ c1 * determinant_m3(a2, a3, a4, b2, b3, b4, d2, d3, d4)
+		- d1 * determinant_m3(a2, a3, a4, b2, b3, b4, c2, c3, c4);
 
 	return ans;
 }
@@ -938,47 +938,47 @@ void scale_m4_fl(float m[][4], float scale)
 
 void translate_m4(float mat[][4],float Tx, float Ty, float Tz)
 {
-    mat[3][0] += (Tx*mat[0][0] + Ty*mat[1][0] + Tz*mat[2][0]);
-    mat[3][1] += (Tx*mat[0][1] + Ty*mat[1][1] + Tz*mat[2][1]);
-    mat[3][2] += (Tx*mat[0][2] + Ty*mat[1][2] + Tz*mat[2][2]);
+	mat[3][0] += (Tx*mat[0][0] + Ty*mat[1][0] + Tz*mat[2][0]);
+	mat[3][1] += (Tx*mat[0][1] + Ty*mat[1][1] + Tz*mat[2][1]);
+	mat[3][2] += (Tx*mat[0][2] + Ty*mat[1][2] + Tz*mat[2][2]);
 }
 
 void rotate_m4(float mat[][4], const char axis, const float angle)
 {
 	int col;
-    float temp[4]= {0.0f, 0.0f, 0.0f, 0.0f};
-    float cosine, sine;
+	float temp[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	float cosine, sine;
 
-    cosine = (float)cos(angle);
-    sine = (float)sin(angle);
-    switch(axis){
-    case 'X':    
-        for(col=0 ; col<4 ; col++)
-            temp[col] = cosine*mat[1][col] + sine*mat[2][col];
-        for(col=0 ; col<4 ; col++) {
-	    mat[2][col] = - sine*mat[1][col] + cosine*mat[2][col];
-            mat[1][col] = temp[col];
+	cosine = (float)cos(angle);
+	sine = (float)sin(angle);
+	switch(axis){
+	case 'X':    
+		for(col=0 ; col<4 ; col++)
+			temp[col] = cosine*mat[1][col] + sine*mat[2][col];
+		for(col=0 ; col<4 ; col++) {
+		mat[2][col] = - sine*mat[1][col] + cosine*mat[2][col];
+			mat[1][col] = temp[col];
 	}
-        break;
+		break;
 
-    case 'Y':
-        for(col=0 ; col<4 ; col++)
-            temp[col] = cosine*mat[0][col] - sine*mat[2][col];
-        for(col=0 ; col<4 ; col++) {
-            mat[2][col] = sine*mat[0][col] + cosine*mat[2][col];
-            mat[0][col] = temp[col];
-        }
+	case 'Y':
+		for(col=0 ; col<4 ; col++)
+			temp[col] = cosine*mat[0][col] - sine*mat[2][col];
+		for(col=0 ; col<4 ; col++) {
+			mat[2][col] = sine*mat[0][col] + cosine*mat[2][col];
+			mat[0][col] = temp[col];
+		}
 	break;
 
-    case 'Z':
-        for(col=0 ; col<4 ; col++)
-            temp[col] = cosine*mat[0][col] + sine*mat[1][col];
-        for(col=0 ; col<4 ; col++) {
-            mat[1][col] = - sine*mat[0][col] + cosine*mat[1][col];
-            mat[0][col] = temp[col];
-        }
+	case 'Z':
+		for(col=0 ; col<4 ; col++)
+			temp[col] = cosine*mat[0][col] + sine*mat[1][col];
+		for(col=0 ; col<4 ; col++) {
+			mat[1][col] = - sine*mat[0][col] + cosine*mat[1][col];
+			mat[0][col] = temp[col];
+		}
 	break;
-    }
+	}
 }
 
 void blend_m3_m3m3(float out[][3], float dst[][3], float src[][3], float srcweight)

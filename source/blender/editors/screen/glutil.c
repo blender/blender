@@ -541,7 +541,7 @@ void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w,
 		floatbuf_to_srgb_byte(rectf, rect32, 0, img_w, 0, img_h, img_w);
 	} else {
 		floatbuf_to_byte(rectf, rect32, 0, img_w, 0, img_h, img_w);
- 	}
+	 }
 	
 	glaDrawPixelsSafe(fx, fy, img_w, img_h, img_w, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
 

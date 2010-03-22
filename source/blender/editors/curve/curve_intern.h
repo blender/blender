@@ -39,7 +39,7 @@ char *ED_lorem;
 enum { DEL_ALL, DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };
 enum { CASE_LOWER, CASE_UPPER };
 enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD,
-       PREV_LINE, NEXT_LINE, PREV_PAGE, NEXT_PAGE };
+	   PREV_LINE, NEXT_LINE, PREV_PAGE, NEXT_PAGE };
 
 void FONT_OT_text_insert(struct wmOperatorType *ot);
 void FONT_OT_line_break(struct wmOperatorType *ot);

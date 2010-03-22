@@ -35,13 +35,13 @@
 
 struct streamGlueControlStruct *Global_streamGlueControl;
 
-        int
+		int
 streamGlueWrite(
-        struct streamGlueControlStruct *streamGlueControl,
-        struct streamGlueStruct **streamGlue,
-        unsigned char *data,
-        unsigned int dataIn,
-        int finishUp)
+		struct streamGlueControlStruct *streamGlueControl,
+		struct streamGlueStruct **streamGlue,
+		unsigned char *data,
+		unsigned int dataIn,
+		int finishUp)
 {
 	printf("called with %d bytes in buffer [%s]\n", dataIn, data);
 	return (0);

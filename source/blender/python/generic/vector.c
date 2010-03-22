@@ -522,7 +522,7 @@ static char Vector_Angle_doc[] =
 "   .. note:: Zero length vectors raise an :exc:`AttributeError`.\n";
 static PyObject *Vector_Angle(VectorObject * self, VectorObject * value)
 {
-    double dot = 0.0f, angleRads, test_v1 = 0.0f, test_v2 = 0.0f;
+	double dot = 0.0f, angleRads, test_v1 = 0.0f, test_v2 = 0.0f;
 	int x, size;
 	
 	if (!VectorObject_Check(value)) {
@@ -797,7 +797,7 @@ static PyObject *Vector_slice(VectorObject * self, int begin, int end)
 /*----------------------------object[z:y]------------------------
   sequence slice (set) */
 static int Vector_ass_slice(VectorObject * self, int begin, int end,
-			     PyObject * seq)
+				 PyObject * seq)
 {
 	int i, y, size = 0;
 	float vec[4], scalar;
@@ -1321,8 +1321,8 @@ static PyObject *Vector_subscript(VectorObject* self, PyObject* item)
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-			     "vector indices must be integers, not %.200s",
-			     item->ob_type->tp_name);
+				 "vector indices must be integers, not %.200s",
+				 item->ob_type->tp_name);
 		return NULL;
 	}
 }
@@ -1352,8 +1352,8 @@ static int Vector_ass_subscript(VectorObject* self, PyObject* item, PyObject* va
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-			     "vector indices must be integers, not %.200s",
-			     item->ob_type->tp_name);
+				 "vector indices must be integers, not %.200s",
+				 item->ob_type->tp_name);
 		return -1;
 	}
 }
@@ -1515,11 +1515,11 @@ static PyObject *Vector_getSwizzle(VectorObject * self, void *closure)
 
 /* Set the items of this vector using a swizzle.
    - If value is a vector or list this operates like an array copy, except that
-     the destination is effectively re-ordered as defined by the swizzle. At
-     most min(len(source), len(dest)) values will be copied.
+	 the destination is effectively re-ordered as defined by the swizzle. At
+	 most min(len(source), len(dest)) values will be copied.
    - If the value is scalar, it is copied to all axes listed in the swizzle.
    - If an axis appears more than once in the swizzle, the final occurrence is
-     the one that determines its value.
+	 the one that determines its value.
 
    Returns 0 on success and -1 on failure. On failure, the vector will be
    unchanged. */

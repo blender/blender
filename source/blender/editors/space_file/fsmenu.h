@@ -48,7 +48,7 @@ struct FSMenu* fsmenu_get		(void);
 int		fsmenu_get_nentries		(struct FSMenu* fsmenu, FSMenuCategory category);
 
 	/** Returns the fsmenu entry at @a index (or NULL if a bad index)
-     * or a separator.
+	 * or a separator.
 	 */
 char*	fsmenu_get_entry		(struct FSMenu* fsmenu, FSMenuCategory category, int index);
 

@@ -1334,8 +1334,8 @@ static int wm_operator_winactive_normal(bContext *C)
 {
 	wmWindow *win= CTX_wm_window(C);
 
-    if(win==NULL || win->screen==NULL || win->screen->full != SCREENNORMAL)
-    	return 0;
+	if(win==NULL || win->screen==NULL || win->screen->full != SCREENNORMAL)
+		return 0;
 
 	return 1;
 }
@@ -1959,7 +1959,7 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 */
 
 void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C),
-			       wmPaintCursorDraw draw, void *customdata)
+				   wmPaintCursorDraw draw, void *customdata)
 {
 	wmPaintCursor *pc= MEM_callocN(sizeof(wmPaintCursor), "paint cursor");
 	
@@ -2131,8 +2131,8 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	
-    if(RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_NOP)
-        return;
+	if(RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_NOP)
+		return;
 
 	/* operator arguments and storage. */
 	RNA_int_set(op->ptr, "x", rect->xmin);
@@ -2632,7 +2632,7 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rc->initial_mouse[0] = mouse[0];
 	rc->initial_mouse[1] = mouse[1];
 	rc->cursor = WM_paint_cursor_activate(CTX_wm_manager(C), op->type->poll,
-					      wm_radial_control_paint, op->customdata);
+						  wm_radial_control_paint, op->customdata);
 
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
@@ -2657,7 +2657,7 @@ void WM_radial_control_string(wmOperator *op, char str[], int maxlen)
 }
 
 /** Important: this doesn't define an actual operator, it
-    just sets up the common parts of the radial control op. **/
+	just sets up the common parts of the radial control op. **/
 void WM_OT_radial_control_partial(wmOperatorType *ot)
 {
 	static EnumPropertyItem radial_mode_items[] = {

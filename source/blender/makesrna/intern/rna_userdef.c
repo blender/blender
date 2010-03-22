@@ -1382,7 +1382,7 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ThemeSpace");
 	RNA_def_struct_ui_text(srna, "Theme Sequence Editor", "Theme settings for the Sequence Editor");
 
-    rna_def_userdef_theme_spaces_main(srna, SPACE_IMAGE);
+	rna_def_userdef_theme_spaces_main(srna, SPACE_IMAGE);
 
 	prop= RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
@@ -1901,7 +1901,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show View Name", "Show the name of the view's direction in each 3D View");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
     
-    prop= RNA_def_property(srna, "show_splash", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_splash", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_SPLASH_DISABLE);
 	RNA_def_property_ui_text(prop, "Show Splash", "Display splash screen on startup");
 

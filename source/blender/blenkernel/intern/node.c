@@ -1048,11 +1048,11 @@ bNodeTree *ntreeAddTree(int type)
 	ntree->alltypes.last = NULL;
 
 	/* this helps RNA identify ID pointers as nodetree */
-    if(ntree->type==NTREE_SHADER)
+	if(ntree->type==NTREE_SHADER)
 		BLI_strncpy(ntree->id.name, "NTShader Nodetree", sizeof(ntree->id.name));
-    else if(ntree->type==NTREE_COMPOSIT)
+	else if(ntree->type==NTREE_COMPOSIT)
 		BLI_strncpy(ntree->id.name, "NTCompositing Nodetree", sizeof(ntree->id.name));
-    else if(ntree->type==NTREE_TEXTURE)
+	else if(ntree->type==NTREE_TEXTURE)
 		BLI_strncpy(ntree->id.name, "NTTexture Nodetree", sizeof(ntree->id.name));
 	
 	ntreeInitTypes(ntree);
@@ -1354,9 +1354,9 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	int local=0, lib=0;
 	
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(ntree->id.lib==NULL) return;
 	if(ntree->id.us==1) {
@@ -1547,7 +1547,7 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 	if(ntree==NULL) return NULL;
 
 	/* check for group edit */
-    for(node= ntree->nodes.first; node; node= node->next)
+	for(node= ntree->nodes.first; node; node= node->next)
 		if(node->flag & NODE_GROUP_EDIT)
 			break;
 
@@ -1571,7 +1571,7 @@ int nodeSetActiveID(bNodeTree *ntree, short idtype, ID *id)
 	if(ntree==NULL) return ok;
 
 	/* check for group edit */
-    for(node= ntree->nodes.first; node; node= node->next)
+	for(node= ntree->nodes.first; node; node= node->next)
 		if(node->flag & NODE_GROUP_EDIT)
 			break;
 
@@ -2641,7 +2641,7 @@ static void gpu_from_node_stack(ListBase *sockets, bNodeStack **ns, GPUNodeStack
 	for (sock=sockets->first, i=0; sock; sock=sock->next, i++) {
 		memset(&gs[i], 0, sizeof(gs[i]));
 
-    	QUATCOPY(gs[i].vec, ns[i]->vec);
+		QUATCOPY(gs[i].vec, ns[i]->vec);
 		gs[i].link= ns[i]->data;
 
 		if (sock->type == SOCK_VALUE)
@@ -2734,7 +2734,7 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
 			if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout))
 				data_from_gpu_stack(&node->outputs, nsout, gpuout);
 		}
-        else if(node->type==NODE_GROUP && node->id) {
+		else if(node->type==NODE_GROUP && node->id) {
 			node_get_stack(node, stack, nsin, nsout);
 			gpu_node_group_execute(stack, mat, node, nsin, nsout);
 		}
@@ -2994,7 +2994,7 @@ void nodeRegisterType(ListBase *typelist, const bNodeType *ntype)
 		bNodeType *ntypen= MEM_callocN(sizeof(bNodeType), "node type");
 		*ntypen= *ntype;
 		BLI_addtail(typelist, ntypen);
- 	}
+	 }
 }
 
 static void registerCompositNodes(ListBase *ntypelist)

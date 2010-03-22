@@ -1144,7 +1144,7 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 		if (!BLI_exists(filename)) {
 			return NULL;
 		}
- 		fp = fopen(filename, "rb");
+		 fp = fopen(filename, "rb");
 	} else if (mode==PTCACHE_FILE_WRITE) {
 		BLI_make_existing_file(filename); /* will create the dir if needs be, same as //textures is created */
 		fp = fopen(filename, "wb");
@@ -1153,13 +1153,13 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 		fp = fopen(filename, "rb+");
 	}
 
- 	if (!fp)
- 		return NULL;
+	 if (!fp)
+		 return NULL;
 	
 	pf= MEM_mallocN(sizeof(PTCacheFile), "PTCacheFile");
 	pf->fp= fp;
  	
- 	return pf;
+	 return pf;
 }
 
 static void ptcache_file_close(PTCacheFile *pf)

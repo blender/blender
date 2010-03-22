@@ -38,10 +38,10 @@
 #include <math.h> // for fabs
 
 #ifndef WIN32
-    #include <unistd.h> // for read close
-    #include <sys/param.h> // for MAXPATHLEN
+	#include <unistd.h> // for read close
+	#include <sys/param.h> // for MAXPATHLEN
 #else
-    #include <io.h> // for open close read
+	#include <io.h> // for open close read
 #include "winsock2.h"
 #include "BLI_winstuff.h"
 #endif
@@ -194,10 +194,10 @@ READ
 	- read file
 	- read SDNA
 	- per LibBlock
-               - read recursive
-               - read associated direct data
-               - link direct data (internal and to LibBlock)
-        - free file
+			   - read recursive
+			   - read associated direct data
+			   - link direct data (internal and to LibBlock)
+		- free file
 - join all Mains
 - link all LibBlocks and indirect pointers to libblocks
 - initialize FileGlobal and copy pointers to Global
@@ -219,12 +219,12 @@ READ
 
 // only used here in readfile.c
 #define SWITCH_LONGINT(a) { \
-    char s_i, *p_i; \
-    p_i= (char *)&(a);  \
-    s_i=p_i[0]; p_i[0]=p_i[7]; p_i[7]=s_i; \
-    s_i=p_i[1]; p_i[1]=p_i[6]; p_i[6]=s_i; \
-    s_i=p_i[2]; p_i[2]=p_i[5]; p_i[5]=s_i; \
-    s_i=p_i[3]; p_i[3]=p_i[4]; p_i[4]=s_i; }
+	char s_i, *p_i; \
+	p_i= (char *)&(a);  \
+	s_i=p_i[0]; p_i[0]=p_i[7]; p_i[7]=s_i; \
+	s_i=p_i[1]; p_i[1]=p_i[6]; p_i[6]=s_i; \
+	s_i=p_i[2]; p_i[2]=p_i[5]; p_i[5]=s_i; \
+	s_i=p_i[3]; p_i[3]=p_i[4]; p_i[4]=s_i; }
 
 /***/
 
@@ -1213,7 +1213,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 	
 	/* used entries were restored, so we put them to zero */
 	for (i=0; i<fd->imamap->nentries; i++, entry++) {
-	 	if (entry->nr>0)
+		 if (entry->nr>0)
 			entry->newp= NULL;
 	}
 	
@@ -3383,7 +3383,7 @@ static void direct_link_latt(FileData *fd, Lattice *lt)
 /* ************ READ OBJECT ***************** */
 
 static void lib_link_modifiers__linkModifiers(void *userData, Object *ob,
-                                              ID **idpoin)
+											  ID **idpoin)
 {
 	FileData *fd = userData;
 
@@ -3492,7 +3492,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				else if(sens->type==SENS_MESSAGE) {
 					bMessageSensor *ms= sens->data;
 					ms->fromObject=
-					    newlibadr(fd, ob->id.lib, ms->fromObject);
+						newlibadr(fd, ob->id.lib, ms->fromObject);
 				}
 				sens= sens->next;
 			}
@@ -4791,7 +4791,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					sfile->op= NULL;
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
-                    SpaceImaSel *simasel= (SpaceImaSel *)sl;
+					SpaceImaSel *simasel= (SpaceImaSel *)sl;
 					if (simasel->files) {
 						//XXX BIF_filelist_freelib(simasel->files);
 					}
@@ -6176,10 +6176,10 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.cur= ar->v2d.tot;
 				
 				ar->v2d.min[0]= 0.0f;
- 				ar->v2d.min[1]= 0.0f;
+				 ar->v2d.min[1]= 0.0f;
 				
 				ar->v2d.max[0]= MAXFRAMEF;
- 				ar->v2d.max[1]= FLT_MAX;
+				 ar->v2d.max[1]= FLT_MAX;
 			 	
 				ar->v2d.minzoom= 0.01f;
 				ar->v2d.maxzoom= 50;
@@ -6219,7 +6219,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				break;
 			}
 			case SPACE_FILE:
- 			{
+			 {
 				// SpaceFile *sfile= (SpaceFile *)sl;
 				ar->v2d.tot.xmin = ar->v2d.tot.ymin = 0;
 				ar->v2d.tot.xmax = ar->winx;
@@ -6564,8 +6564,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Tex *tex = main->tex.first;
 		while (tex) {
 			if ((tex->rfac == 0.0) &&
-			    (tex->gfac == 0.0) &&
-			    (tex->bfac == 0.0)) {
+				(tex->gfac == 0.0) &&
+				(tex->bfac == 0.0)) {
 				tex->rfac = 1.0;
 				tex->gfac = 1.0;
 				tex->bfac = 1.0;
@@ -6579,8 +6579,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Tex *tex = main->tex.first;
 		while (tex) {
 			if ((tex->rfac == 0.0) &&
-			    (tex->gfac == 0.0) &&
-			    (tex->bfac == 0.0)) {
+				(tex->gfac == 0.0) &&
+				(tex->bfac == 0.0)) {
 				tex->rfac = 1.0;
 				tex->gfac = 1.0;
 				tex->bfac = 1.0;
@@ -6770,7 +6770,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob= main->object.first;
 		while(ob) {
 			ob->scaflag = ob->gameflag & (64+128+256+512+1024+2048);
-			    /* 64 is do_fh */
+				/* 64 is do_fh */
 			ob->gameflag &= ~(128+256+512+1024+2048);
 			ob = ob->id.next;
 		}
@@ -6882,8 +6882,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bRaySensor *rs;
 		bCollisionSensor *cs;
 		while(ob) {
-		    /* Set anisotropic friction off for old objects,
-		     * values to 1.0.  */
+			/* Set anisotropic friction off for old objects,
+			 * values to 1.0.  */
 			ob->gameflag &= ~OB_ANISOTROPIC_FRICTION;
 			ob->anisotropicFriction[0] = 1.0;
 			ob->anisotropicFriction[1] = 1.0;
@@ -7204,7 +7204,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 
 		/*  As of now, this insures that the transition from the old Track system
-		    to the new full constraint Track is painless for everyone. - theeth
+			to the new full constraint Track is painless for everyone. - theeth
 		*/
 		ob = main->object.first;
 
@@ -7241,7 +7241,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							}
 						}
 					}
-                }
+				}
 			}
 
 			/* Change Ob->Track in real TrackTo constraint */
@@ -7321,7 +7321,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 
 		/*  As of now, this insures that the transition from the old Track system
-		    to the new full constraint Track is painless for everyone.*/
+			to the new full constraint Track is painless for everyone.*/
 		ob = main->object.first;
 
 		while (ob) {
@@ -7357,7 +7357,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							}
 						}
 					}
-                }
+				}
 			}
 
 			ob = ob->id.next;
@@ -10952,7 +10952,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				/* this is actually only needed on UI call? when ID was already read before, and another append
 				   happens which invokes same ID... in that case the lookup table needs this entry */
 				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
-                // commented because this can print way too much
+				// commented because this can print way too much
 				// if(G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
 			}
 		}

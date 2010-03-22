@@ -257,7 +257,7 @@ static int fwritecolrs(FILE* file, int width, int channels, unsigned char* ibufs
 	rgbe_scan = (RGBE*)MEM_mallocN(sizeof(RGBE)*width, "radhdr_write_tmpscan");
 
 	/* convert scanline */
-        j= 0;
+		j= 0;
 	for (i=0;i<width;i++) {
 		if (fpscan) {
 			fcol[RED] = fpscan[j];

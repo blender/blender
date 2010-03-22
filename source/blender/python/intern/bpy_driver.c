@@ -271,11 +271,11 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 
 	PyGILState_Release(gilstate);
     
-    if(finite(result)) {
-        return (float)result;
-    }
-    else {
-        fprintf(stderr, "\tBPY_pydriver_eval() - driver '%s' evaluates to '%f'\n", dvar->name, result);
-        return 0.0f;
-    }
+	if(finite(result)) {
+		return (float)result;
+	}
+	else {
+		fprintf(stderr, "\tBPY_pydriver_eval() - driver '%s' evaluates to '%f'\n", dvar->name, result);
+		return 0.0f;
+	}
 }

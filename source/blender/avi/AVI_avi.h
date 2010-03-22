@@ -175,7 +175,7 @@ typedef struct _AviStreamRec {
 } AviStreamRec;
 
 typedef struct _AviMovie {
-    FILE *fp; 
+	FILE *fp; 
 	
 	int type;
 #define AVI_MOVIE_READ  0

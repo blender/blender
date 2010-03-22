@@ -658,8 +658,8 @@ static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], St
 		obi= sseg->obi - re->objectinstance;
 		index= sseg->strand->index;
 
-  		projectvert(p1->co, winmat, hoco1);
-  		projectvert(p2->co, winmat, hoco2);
+		  projectvert(p1->co, winmat, hoco1);
+		  projectvert(p2->co, winmat, hoco2);
   
 		for(a=0; a<totzspan; a++) {
 #if 0

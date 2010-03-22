@@ -329,7 +329,7 @@ static int is_pow2(int n)
 
 static int smaller_pow2(int n)
 {
-    while (!is_pow2(n))
+	while (!is_pow2(n))
 		n= n&(n-1);
 
 	return n;

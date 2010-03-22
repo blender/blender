@@ -230,9 +230,9 @@ static ImBuf * IMB_cast_away_list(ImBuf * i)
 }
 
 static void do_plugin_effect(Scene *scene, Sequence *seq, int cfra,
-			     float facf0, float facf1, int x, int y, 
-			     struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			     struct ImBuf *ibuf3, struct ImBuf *out)
+				 float facf0, float facf1, int x, int y, 
+				 struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+				 struct ImBuf *ibuf3, struct ImBuf *out)
 {
 	char *cp;
 	int float_rendering;
@@ -323,7 +323,7 @@ static void do_plugin_effect(Scene *scene, Sequence *seq, int cfra,
 }
 
 static int do_plugin_early_out(struct Sequence *seq,
-			       float facf0, float facf1)
+				   float facf0, float facf1)
 {
 	return 0;
 }
@@ -348,7 +348,7 @@ static void init_alpha_over_or_under(Sequence * seq)
 }
 
 static void do_alphaover_effect_byte(float facf0, float facf1, int x, int y, 
-				     char * rect1, char *rect2, char *out)
+					 char * rect1, char *rect2, char *out)
 {
 	int fac2, mfac, fac, fac4;
 	int xo, tempc;
@@ -414,7 +414,7 @@ static void do_alphaover_effect_byte(float facf0, float facf1, int x, int y,
 }
 
 static void do_alphaover_effect_float(float facf0, float facf1, int x, int y, 
-				      float * rect1, float *rect2, float *out)
+					  float * rect1, float *rect2, float *out)
 {
 	float fac2, mfac, fac, fac4;
 	int xo;
@@ -568,8 +568,8 @@ void do_alphaunder_effect_byte(
 
 
 static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y, 
-				       float *rect1, float *rect2, 
-				       float *out)
+					   float *rect1, float *rect2, 
+					   float *out)
 {
 	float fac2, mfac, fac, fac4;
 	int xo;
@@ -763,9 +763,9 @@ void do_cross_effect_float(float facf0, float facf1, int x, int y,
 /* carefull: also used by speed effect! */
 
 static void do_cross_effect(Scene *scene, Sequence *seq, int cfra,
-			    float facf0, float facf1, int x, int y, 
-			    struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			    struct ImBuf *ibuf3, struct ImBuf *out)
+				float facf0, float facf1, int x, int y, 
+				struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+				struct ImBuf *ibuf3, struct ImBuf *out)
 {
 	if (out->rect_float) {
 		do_cross_effect_float(
@@ -854,7 +854,7 @@ static float gammaCorrect(float c)
 	if (i < 0) res = -pow(abs(c), valid_gamma);
 	else if (i >= RE_GAMMA_TABLE_SIZE ) res = pow(c, valid_gamma);
 	else res = gamma_range_table[i] + 
-  			 ( (c - color_domain_table[i]) * gamfactor_table[i]); 
+			   ( (c - color_domain_table[i]) * gamfactor_table[i]); 
 	
 	return res;
 } /* end of float gammaCorrect(float col) */
@@ -871,7 +871,7 @@ static float invGammaCorrect(float col)
 	if (i < 0) res = -pow(abs(col), valid_inv_gamma);
 	else if (i >= RE_GAMMA_TABLE_SIZE) res = pow(col, valid_inv_gamma);
 	else res = inv_gamma_range_table[i] + 
-  			 ( (col - color_domain_table[i]) * inv_gamfactor_table[i]);
+			   ( (col - color_domain_table[i]) * inv_gamfactor_table[i]);
  
 	return res;
 } /* end of float invGammaCorrect(float col) */
@@ -926,10 +926,10 @@ static void free_gammacross(Sequence * seq)
 }
 
 static void do_gammacross_effect_byte(float facf0, float facf1, 
-				      int x, int y, 
-				      unsigned char *rect1, 
-				      unsigned char *rect2, 
-				      unsigned char *out)
+					  int x, int y, 
+					  unsigned char *rect1, 
+					  unsigned char *rect2, 
+					  unsigned char *out)
 {
 	int fac1, fac2, col;
 	int xo;
@@ -982,9 +982,9 @@ static void do_gammacross_effect_byte(float facf0, float facf1,
 }
 
 static void do_gammacross_effect_float(float facf0, float facf1, 
-				       int x, int y, 
-				       float *rect1, float *rect2, 
-				       float *out)
+					   int x, int y, 
+					   float *rect1, float *rect2, 
+					   float *out)
 {
 	float fac1, fac2;
 	int xo;
@@ -1050,8 +1050,8 @@ static void do_gammacross_effect(Scene *scene, Sequence *seq, int cfra,
    ********************************************************************** */
 
 static void do_add_effect_byte(float facf0, float facf1, int x, int y, 
-			       unsigned char *rect1, unsigned char *rect2, 
-			       unsigned char *out)
+				   unsigned char *rect1, unsigned char *rect2, 
+				   unsigned char *out)
 {
 	int col, xo, fac1, fac3;
 	char *rt1, *rt2, *rt;
@@ -1162,8 +1162,8 @@ static void do_add_effect(Scene *scene, Sequence *seq, int cfra,
    ********************************************************************** */
 
 static void do_sub_effect_byte(float facf0, float facf1, 
-			       int x, int y, 
-			       char *rect1, char *rect2, char *out)
+				   int x, int y, 
+				   char *rect1, char *rect2, char *out)
 {
 	int col, xo, fac1, fac3;
 	char *rt1, *rt2, *rt;
@@ -1382,8 +1382,8 @@ static void do_drop_effect(Scene *scene, Sequence *seq, int cfra,
    ********************************************************************** */
 
 static void do_mul_effect_byte(float facf0, float facf1, int x, int y, 
-			       unsigned char *rect1, unsigned char *rect2, 
-			       unsigned char *out)
+				   unsigned char *rect1, unsigned char *rect2, 
+				   unsigned char *out)
 {
 	int xo, fac1, fac3;
 	char *rt1, *rt2, *rt;
@@ -1431,8 +1431,8 @@ static void do_mul_effect_byte(float facf0, float facf1, int x, int y,
 }
 
 static void do_mul_effect_float(float facf0, float facf1, int x, int y, 
-			        float *rect1, float *rect2, 
-			        float *out)
+					float *rect1, float *rect2, 
+					float *out)
 {
 	int xo;
 	float fac1, fac3;
@@ -1611,13 +1611,13 @@ float hyp3,hyp4,b4,b5
 					output = in_band(wipezone,width,hyp,facf0,1,1);
 				else
 					output = in_band(wipezone,width,hyp,facf0,0,1);
-		 	}
+			 }
 			else {
 				if(b1 < b2)
 					output = in_band(wipezone,width,hyp,facf0,0,1);
 				else
 					output = in_band(wipezone,width,hyp,facf0,1,1);
-		 	}
+			 }
 		break;
 	 
 		case DO_DOUBLE_WIPE:
@@ -1657,50 +1657,50 @@ float hyp3,hyp4,b4,b5
 				if(  hyp < hwidth && hyp2 > hwidth )
 					output = in_band(wipezone,hwidth,hyp,facf0,1,1);
 				else if( hyp > hwidth && hyp2 < hwidth )
-				 	 output = in_band(wipezone,hwidth,hyp2,facf0,1,1);
+					  output = in_band(wipezone,hwidth,hyp2,facf0,1,1);
 				else
-				 	 output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
+					  output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
 			}
 			if(!wipe->forward)output = 1-output;
-	 	break;
-	 	case DO_CLOCK_WIPE:
-	 	 	/*
-	 	 		temp1: angle of effect center in rads
-	 	 		temp2: angle of line through (halfx,halfy) and (x,y) in rads
-	 	 		temp3: angle of low side of blur
-	 	 		temp4: angle of high side of blur
-	 	 	*/
-		 	output = 1.0f - facf0;
-	 		widthf = wipe->edgeWidth*2.0f*(float)M_PI;
- 	 		temp1 = 2.0f * (float)M_PI * facf0;
+		 break;
+		 case DO_CLOCK_WIPE:
+			  /*
+				  temp1: angle of effect center in rads
+				  temp2: angle of line through (halfx,halfy) and (x,y) in rads
+				  temp3: angle of low side of blur
+				  temp4: angle of high side of blur
+			  */
+			 output = 1.0f - facf0;
+			 widthf = wipe->edgeWidth*2.0f*(float)M_PI;
+			  temp1 = 2.0f * (float)M_PI * facf0;
 	 	 	
- 			if(wipe->forward){
- 				temp1 = 2.0f*(float)M_PI - temp1;
- 			}
+			 if(wipe->forward){
+				 temp1 = 2.0f*(float)M_PI - temp1;
+			 }
  	 		
- 	 		x = x - halfx;
- 	 		y = y - halfy;
+			  x = x - halfx;
+			  y = y - halfy;
 
- 	 		temp2 = asin(abs(y)/sqrt(x*x + y*y));
- 	 		if(x <= 0 && y >= 0) temp2 = (float)M_PI - temp2;
- 	 		else if(x<=0 && y <= 0) temp2 += (float)M_PI;
- 	 		else if(x >= 0 && y <= 0) temp2 = 2.0f*(float)M_PI - temp2;
+			  temp2 = asin(abs(y)/sqrt(x*x + y*y));
+			  if(x <= 0 && y >= 0) temp2 = (float)M_PI - temp2;
+			  else if(x<=0 && y <= 0) temp2 += (float)M_PI;
+			  else if(x >= 0 && y <= 0) temp2 = 2.0f*(float)M_PI - temp2;
 
- 	 		if(wipe->forward){
-	 	 		temp3 = temp1-(widthf*0.5f)*facf0;
-	 	 		temp4 = temp1+(widthf*0.5f)*(1-facf0);
- 	 		} else{
-	 	 		temp3 = temp1-(widthf*0.5f)*(1-facf0);
-	 	 		temp4 = temp1+(widthf*0.5f)*facf0;
+			  if(wipe->forward){
+				  temp3 = temp1-(widthf*0.5f)*facf0;
+				  temp4 = temp1+(widthf*0.5f)*(1-facf0);
+			  } else{
+				  temp3 = temp1-(widthf*0.5f)*(1-facf0);
+				  temp4 = temp1+(widthf*0.5f)*facf0;
 			}
- 	 		if (temp3 < 0) temp3 = 0;
- 	 		if (temp4 > 2.0f*(float)M_PI) temp4 = 2.0f*(float)M_PI;
+			  if (temp3 < 0) temp3 = 0;
+			  if (temp4 > 2.0f*(float)M_PI) temp4 = 2.0f*(float)M_PI;
  	 		
  	 		
- 	 		if(temp2 < temp3) output = 0;
- 	 		else if (temp2 > temp4) output = 1;
- 	 		else output = (temp2-temp3)/(temp4-temp3);
-	 	 	if(x == 0 && y == 0) output = 1;
+			  if(temp2 < temp3) output = 0;
+			  else if (temp2 > temp4) output = 1;
+			  else output = (temp2-temp3)/(temp4-temp3);
+			  if(x == 0 && y == 0) output = 1;
 			if(output != output) output = 1;
 			if(wipe->forward) output = 1 - output;
 		break;
@@ -1735,9 +1735,9 @@ float hyp3,hyp4,b4,b5
 				if( hyp < hwidth && hyp2 > hwidth )
 					output = in_band(wipezone,hwidth,hyp,facf0,1,1);
 				else if( hyp > hwidth && hyp2 < hwidth )
-				 	output = in_band(wipezone,hwidth,hyp2,facf0,1,1);
+					 output = in_band(wipezone,hwidth,hyp2,facf0,1,1);
 				else
-				 	output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
+					 output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
 			}
 
 			if(invert)facf0 = 1-facf0;
@@ -1776,11 +1776,11 @@ float hyp3,hyp4,b4,b5
 			hwidth = width*0.5f;
 
 			temp1 = (halfx-(halfx)*facf0);
-		 	pointdist = sqrt(temp1*temp1 + temp1*temp1);
+			 pointdist = sqrt(temp1*temp1 + temp1*temp1);
 		 
-		 	temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
-		 	if(temp2 > pointdist) output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,0,1);
-		 	else output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,1,1);
+			 temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
+			 if(temp2 > pointdist) output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,0,1);
+			 else output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,1,1);
 		 
 			if(!wipe->forward) output = 1-output;
 			
@@ -1936,14 +1936,14 @@ static void do_wipe_effect(Scene *scene, Sequence *seq, int cfra,
 {
 	if (out->rect_float) {
 		do_wipe_effect_float(seq,
-				     facf0, facf1, x, y,
-				     ibuf1->rect_float, ibuf2->rect_float,
-				     out->rect_float);
+					 facf0, facf1, x, y,
+					 ibuf1->rect_float, ibuf2->rect_float,
+					 out->rect_float);
 	} else {
 		do_wipe_effect_byte(seq,
-				    facf0, facf1, x, y,
-				    (unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
-				    (unsigned char*) out->rect);
+					facf0, facf1, x, y,
+					(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
+					(unsigned char*) out->rect);
 	}
 }
 /* **********************************************************************
@@ -2466,8 +2466,8 @@ static void RVAddBitmaps_float (float* a, float* b, float* c,
 /*	For each pixel whose total luminance exceeds the threshold, */
 /*	Multiply it's value by BOOST and add it to the output map */
 static void RVIsolateHighlights_byte (unsigned char* in, unsigned char* out, 
-				      int width, int height, int threshold, 
-				      float boost, float clamp)
+					  int width, int height, int threshold, 
+					  float boost, float clamp)
 {
 	int x,y,index;
 	int	intensity;
@@ -2475,7 +2475,7 @@ static void RVIsolateHighlights_byte (unsigned char* in, unsigned char* out,
 
 	for(y=0;y< height;y++) {
 		for (x=0;x< width;x++) {
-	 		index= (x+y*width)*4;
+			 index= (x+y*width)*4;
 
 			/*	Isolate the intensity */
 			intensity=(in[index+GlowR]+in[index+GlowG]+in[index+GlowB]-threshold);
@@ -2495,8 +2495,8 @@ static void RVIsolateHighlights_byte (unsigned char* in, unsigned char* out,
 }
 
 static void RVIsolateHighlights_float (float* in, float* out, 
-				      int width, int height, float threshold, 
-				      float boost, float clamp)
+					  int width, int height, float threshold, 
+					  float boost, float clamp)
 {
 	int x,y,index;
 	float	intensity;
@@ -2504,7 +2504,7 @@ static void RVIsolateHighlights_float (float* in, float* out,
 
 	for(y=0;y< height;y++) {
 		for (x=0;x< width;x++) {
-	 		index= (x+y*width)*4;
+			 index= (x+y*width)*4;
 
 			/*	Isolate the intensity */
 			intensity=(in[index+GlowR]+in[index+GlowG]+in[index+GlowB]-threshold);
@@ -2593,14 +2593,14 @@ static void do_glow_effect(Scene *scene, Sequence *seq, int cfra,
 {
 	if (out->rect_float) {
 		do_glow_effect_float(seq,
-				     facf0, facf1, x, y,
-				     ibuf1->rect_float, ibuf2->rect_float,
-				     out->rect_float);
+					 facf0, facf1, x, y,
+					 ibuf1->rect_float, ibuf2->rect_float,
+					 out->rect_float);
 	} else {
 		do_glow_effect_byte(seq,
-				    facf0, facf1, x, y,
-				    (char*) ibuf1->rect, (char*) ibuf2->rect,
-				    (char*) out->rect);
+					facf0, facf1, x, y,
+					(char*) ibuf1->rect, (char*) ibuf2->rect,
+					(char*) out->rect);
 	}
 }
 
@@ -2726,7 +2726,7 @@ static void init_speed_effect(Sequence *seq)
 
 	if(seq->effectdata) MEM_freeN(seq->effectdata);
 	seq->effectdata = MEM_callocN(sizeof(struct SpeedControlVars), 
-				      "speedcontrolvars");
+					  "speedcontrolvars");
 
 	v = (SpeedControlVars *)seq->effectdata;
 	v->globalSpeed = 1.0;
@@ -2807,7 +2807,7 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 		return;
 	}
 	if (!seq->seq1) { /* make coverity happy and check for (CID 598)
-	                     input strip ... */
+						 input strip ... */
 		return;
 	}
 
@@ -2854,16 +2854,16 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 		for (cfra = 1; cfra < v->length; cfra++) {
 			if(fcu) {
-                               if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-                                       ctime = seq->startdisp + cfra;
-				       div = 1.0;
-                               } else {
-                                       ctime= cfra;
-                                       div= v->length / 100.0f;
-                                       if(div==0.0) return;
-                               }
+							   if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+									   ctime = seq->startdisp + cfra;
+					   div = 1.0;
+							   } else {
+									   ctime= cfra;
+									   div= v->length / 100.0f;
+									   if(div==0.0) return;
+							   }
 			       
-			       facf = evaluate_fcurve(fcu, ctime/div);
+				   facf = evaluate_fcurve(fcu, ctime/div);
 			} else {
 				facf = fallback_fac;
 			}
@@ -2885,19 +2885,19 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 		for (cfra = 0; cfra < v->length; cfra++) {
 
 			if(fcu) {
-                               if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-                                       ctime = seq->startdisp + cfra;
-                                       div = 1.0;
-                               } else {
-                                       ctime= cfra;
-                                       div= v->length / 100.0f;
-                                       if(div==0.0) return;
-                               }
+							   if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+									   ctime = seq->startdisp + cfra;
+									   div = 1.0;
+							   } else {
+									   ctime= cfra;
+									   div= v->length / 100.0f;
+									   if(div==0.0) return;
+							   }
 		
-			       facf = evaluate_fcurve(fcu, ctime / div);
-			       if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
-				       facf *= v->length;
-			       }
+				   facf = evaluate_fcurve(fcu, ctime / div);
+				   if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
+					   facf *= v->length;
+				   }
 			}
 			
 			if (!fcu) {
@@ -3005,16 +3005,16 @@ static void get_default_fac_fade(struct Sequence *seq, int cfra,
 }
 
 static void do_overdrop_effect(Scene *scene, Sequence *seq, int cfra,
-			       float fac, float facf, 
-			       int x, int y, struct ImBuf * ibuf1, 
-			       struct ImBuf * ibuf2, 
-			       struct ImBuf * ibuf3, 
-			       struct ImBuf * out)
+				   float fac, float facf, 
+				   int x, int y, struct ImBuf * ibuf1, 
+				   struct ImBuf * ibuf2, 
+				   struct ImBuf * ibuf3, 
+				   struct ImBuf * out)
 {
 	do_drop_effect(scene, seq, cfra, fac, facf, x, y, 
-		       ibuf1, ibuf2, ibuf3, out);
+			   ibuf1, ibuf2, ibuf3, out);
 	do_alphaover_effect(scene, seq, cfra, fac, facf, x, y, 
-			    ibuf1, ibuf2, ibuf3, out);
+				ibuf1, ibuf2, ibuf3, out);
 }
 
 static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)

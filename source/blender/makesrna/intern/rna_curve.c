@@ -1096,7 +1096,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Spline", NULL);
-    RNA_def_struct_sdna(srna, "Nurb");
+	RNA_def_struct_sdna(srna, "Nurb");
 	RNA_def_struct_ui_text(srna, "Spline", "Element of a curve, either Nurbs, Bezier or Polyline or a character with text objects");
 
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);

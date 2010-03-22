@@ -175,10 +175,10 @@ static void rna_generic_op_invoke(FunctionRNA *func, int flag)
 		RNA_def_property_flag(parm, PROP_REQUIRED);
 	}
 
-    if(flag & WM_GEN_INVOKE_SIZE) {
-        parm= RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
-        parm= RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
-    }
+	if(flag & WM_GEN_INVOKE_SIZE) {
+		parm= RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
+		parm= RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
+	}
 
 	if(flag & WM_GEN_INVOKE_RETURN) {
 		parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", "");

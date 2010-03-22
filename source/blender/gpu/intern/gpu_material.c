@@ -435,34 +435,34 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 #if 0
 static void area_lamp_vectors(LampRen *lar)
 {
-    float xsize= 0.5*lar->area_size, ysize= 0.5*lar->area_sizey, multifac;
+	float xsize= 0.5*lar->area_size, ysize= 0.5*lar->area_sizey, multifac;
 
-    /* make it smaller, so area light can be multisampled */
-    multifac= 1.0f/sqrt((float)lar->ray_totsamp);
-    xsize *= multifac;
-    ysize *= multifac;
+	/* make it smaller, so area light can be multisampled */
+	multifac= 1.0f/sqrt((float)lar->ray_totsamp);
+	xsize *= multifac;
+	ysize *= multifac;
 
-    /* corner vectors */
-    lar->area[0][0]= lar->co[0] - xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
-    lar->area[0][1]= lar->co[1] - xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
-    lar->area[0][2]= lar->co[2] - xsize*lar->mat[0][2] - ysize*lar->mat[1][2];
+	/* corner vectors */
+	lar->area[0][0]= lar->co[0] - xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
+	lar->area[0][1]= lar->co[1] - xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
+	lar->area[0][2]= lar->co[2] - xsize*lar->mat[0][2] - ysize*lar->mat[1][2];
 
-    /* corner vectors */
-    lar->area[1][0]= lar->co[0] - xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
-    lar->area[1][1]= lar->co[1] - xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
-    lar->area[1][2]= lar->co[2] - xsize*lar->mat[0][2] + ysize*lar->mat[1][2];
+	/* corner vectors */
+	lar->area[1][0]= lar->co[0] - xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
+	lar->area[1][1]= lar->co[1] - xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
+	lar->area[1][2]= lar->co[2] - xsize*lar->mat[0][2] + ysize*lar->mat[1][2];
 
-    /* corner vectors */
-    lar->area[2][0]= lar->co[0] + xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
-    lar->area[2][1]= lar->co[1] + xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
-    lar->area[2][2]= lar->co[2] + xsize*lar->mat[0][2] + ysize*lar->mat[1][2];
+	/* corner vectors */
+	lar->area[2][0]= lar->co[0] + xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
+	lar->area[2][1]= lar->co[1] + xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
+	lar->area[2][2]= lar->co[2] + xsize*lar->mat[0][2] + ysize*lar->mat[1][2];
 
-    /* corner vectors */
-    lar->area[3][0]= lar->co[0] + xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
-    lar->area[3][1]= lar->co[1] + xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
-    lar->area[3][2]= lar->co[2] + xsize*lar->mat[0][2] - ysize*lar->mat[1][2];
-    /* only for correction button size, matrix size works on energy */
-    lar->areasize= lar->dist*lar->dist/(4.0*xsize*ysize);
+	/* corner vectors */
+	lar->area[3][0]= lar->co[0] + xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
+	lar->area[3][1]= lar->co[1] + xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
+	lar->area[3][2]= lar->co[2] + xsize*lar->mat[0][2] - ysize*lar->mat[1][2];
+	/* only for correction button size, matrix size works on energy */
+	lar->areasize= lar->dist*lar->dist/(4.0*xsize*ysize);
 }
 #endif
 
@@ -965,7 +965,7 @@ static void do_material_tex(GPUShadeInput *shi)
 
 				if(tex->imaflag & TEX_USEALPHA)
 					talpha= 1;
-		    }
+			}
 			else continue;
 
 			/* texture output */
@@ -1187,7 +1187,7 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		shr->alpha = shi->alpha;
 
 		if(world) {
-        	/* exposure correction */
+			/* exposure correction */
 			if(world->exp!=0.0f || world->range!=1.0f) {
 				linfac= 1.0 + pow((2.0*world->exp + 0.5), -10);
 				logfac= log((linfac-1.0)/linfac)/world->range;
@@ -1478,7 +1478,7 @@ void GPU_lamp_free(Object *ob)
 int GPU_lamp_has_shadow_buffer(GPULamp *lamp)
 {
 	return (!(lamp->scene->gm.flag & GAME_GLSL_NO_SHADOWS) &&
-	        !(lamp->scene->gm.flag & GAME_GLSL_NO_LIGHTS) &&
+			!(lamp->scene->gm.flag & GAME_GLSL_NO_LIGHTS) &&
 			lamp->tex && lamp->fb);
 }
 

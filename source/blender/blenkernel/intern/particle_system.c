@@ -286,7 +286,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 
 	   node: the allocated links - total derived mesh element count 
 	   nodearray: the array of nodes aligned with the base mesh's elements, so
-	              each original elements can reference its derived elements
+				  each original elements can reference its derived elements
 	*/
 	Mesh *me= (Mesh*)ob->data;
 	PARTICLE_P;
@@ -511,18 +511,18 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 static void hammersley_create(float *out, int n, int seed, float amount)
 {
 	RNG *rng;
-    double p, t, offs[2];
-    int k, kk;
+	double p, t, offs[2];
+	int k, kk;
 
 	rng = rng_new(31415926 + n + seed);
 	offs[0]= rng_getDouble(rng) + amount;
 	offs[1]= rng_getDouble(rng) + amount;
 	rng_free(rng);
 
-    for (k = 0; k < n; k++) {
-        t = 0;
-        for (p = 0.5, kk = k; kk; p *= 0.5, kk >>= 1)
-            if (kk & 1) /* kk mod 2 = 1 */
+	for (k = 0; k < n; k++) {
+		t = 0;
+		for (p = 0.5, kk = k; kk; p *= 0.5, kk >>= 1)
+			if (kk & 1) /* kk mod 2 = 1 */
 				t += p;
     
 		out[2*k + 0]= fmod((double)k/(double)n + offs[0], 1.0);
@@ -545,7 +545,7 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
 
 	rng = rng_new(31415926 + num + seed2);
 	x= 0;
-        num2 = 2 * num;
+		num2 = 2 * num;
 	for(i=0; i<num2; i+=2) {
 	
 		jit[i]= x + amount*rad1*(0.5f - rng_getFloat(rng));

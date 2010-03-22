@@ -391,7 +391,7 @@ MINLINE int compare_v3v3(float *v1, float *v2, float limit)
 
 MINLINE int compare_len_v3v3(float *v1, float *v2, float limit)
 {
-    float x,y,z;
+	float x,y,z;
 
 	x=v1[0]-v2[0];
 	y=v1[1]-v2[1];

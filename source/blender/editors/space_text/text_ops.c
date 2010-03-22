@@ -1699,7 +1699,7 @@ static void screen_skip(SpaceText *st, int lines)
 {
 	int last;
 
- 	st->top += lines;
+	 st->top += lines;
 
 	last= txt_get_span(st->text->lines.first, st->text->lines.last);
 	last= last - (st->viewlines/2);
@@ -1849,9 +1849,9 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll";
-    /*don't really see the difference between this and
-      scroll_bar. Both do basically the same thing (aside 
-      from keymaps).*/
+	/*don't really see the difference between this and
+	  scroll_bar. Both do basically the same thing (aside 
+	  from keymaps).*/
 	ot->idname= "TEXT_OT_scroll";
 	ot->description= "Scroll text screen";
 	
@@ -1902,9 +1902,9 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scrollbar";
-    /*don't really see the difference between this and
-      scroll. Both do basically the same thing (aside 
-      from keymaps).*/
+	/*don't really see the difference between this and
+	  scroll. Both do basically the same thing (aside 
+	  from keymaps).*/
 	ot->idname= "TEXT_OT_scroll_bar";
 	ot->description= "Scroll text screen";
 	

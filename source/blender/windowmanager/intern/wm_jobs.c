@@ -69,11 +69,11 @@ Start or re-run job
 
 Stop job
   - signal job to end
-    on end, job will tag itself as sleeping
+	on end, job will tag itself as sleeping
 
 Remove job
 - signal job to end
-    on end, job will remove itself
+	on end, job will remove itself
 
 When job is done:
 - it puts timer to sleep (or removes?)

@@ -1285,7 +1285,7 @@ static void vgroup_assign_verts(Object *ob, float weight)
 						done=1;
 						break;
 					}
-			 	}
+				 }
 				/*		If not: Add the group and set its weight */
 				if(!done){
 					newdw = MEM_callocN(sizeof(MDeformWeight)*(dvert->totweight+1), "deformWeight");

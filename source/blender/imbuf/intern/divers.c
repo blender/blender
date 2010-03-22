@@ -156,7 +156,7 @@ void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 	if (rect) {
 		for (i = 255 ; i >= 0 ; i--) 
 			gam[i] = (255.0 * pow(i / 255.0 ,
-					      gamma))  + 0.5;
+						  gamma))  + 0.5;
 
 		for (i = ibuf->x * ibuf->y ; i>0 ; i--, rect+=4){
 			rect[0] = gam[rect[0]];

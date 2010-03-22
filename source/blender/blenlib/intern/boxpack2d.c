@@ -240,17 +240,17 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 				if (vert->free & quad_flags[j]) {
 					switch (j) {
 					case BL:
-					 	SET_BOXRIGHT(box, vert->x);
-					 	SET_BOXTOP(box, vert->y);
-					 	break;
+						 SET_BOXRIGHT(box, vert->x);
+						 SET_BOXTOP(box, vert->y);
+						 break;
 					case TR:
-					 	SET_BOXLEFT(box, vert->x);
-					 	SET_BOXBOTTOM(box, vert->y);
-					 	break;
+						 SET_BOXLEFT(box, vert->x);
+						 SET_BOXBOTTOM(box, vert->y);
+						 break;
 					case TL:
-					 	SET_BOXRIGHT(box, vert->x);
-					 	SET_BOXBOTTOM(box, vert->y);
-					 	break;
+						 SET_BOXRIGHT(box, vert->x);
+						 SET_BOXBOTTOM(box, vert->y);
+						 break;
 					case BR:
 						SET_BOXLEFT(box, vert->x);
 						SET_BOXTOP(box, vert->y);
@@ -302,11 +302,11 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 						case TR:
 							box->v[BL]= vert;
 							vert->trb = box;
-						 	break;
+							 break;
 						case TL:
 							box->v[BR]= vert;
 							vert->tlb = box;
-						 	break;
+							 break;
 						case BR:
 							box->v[TL]= vert;
 							vert->brb = box;
@@ -314,7 +314,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 						case BL:
 							box->v[TR]= vert;
 							vert->blb = box;
-						 	break;
+							 break;
 						}
 						
 						/* Mask free flags for verts that are

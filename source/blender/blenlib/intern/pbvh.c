@@ -225,7 +225,7 @@ static void update_node_vb(PBVH *bvh, PBVHNode *node)
 /* Adapted from BLI_kdopbvh.c */
 /* Returns the index of the first element on the right of the partition */
 static int partition_indices(int *prim_indices, int lo, int hi, int axis,
-			     float mid, BBC *prim_bbc)
+				 float mid, BBC *prim_bbc)
 {
 	int i=lo, j=hi;
 	for(;;) {
@@ -241,7 +241,7 @@ static int partition_indices(int *prim_indices, int lo, int hi, int axis,
 }
 
 void check_partitioning(int *prim_indices, int lo, int hi, int axis,
-			       float mid, BBC *prim_bbc, int index_of_2nd_partition)
+				   float mid, BBC *prim_bbc, int index_of_2nd_partition)
 {
 	int i;
 	for(i = lo; i <= hi; ++i) {
@@ -273,8 +273,8 @@ static void grow_nodes(PBVH *bvh, int totnode)
 /* Add a vertex to the map, with a positive value for unique vertices and
    a negative value for additional vertices */
 static int map_insert_vert(PBVH *bvh, GHash *map,
-			    unsigned int *face_verts,
-			    unsigned int *uniq_verts, int vertex)
+				unsigned int *face_verts,
+				unsigned int *uniq_verts, int vertex)
 {
 	void *value, *key = SET_INT_IN_POINTER(vertex);
 
@@ -328,8 +328,8 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 	/* Build the vertex list, unique verts first */
 	for(iter = BLI_ghashIterator_new(map), i = 0;
-	    !BLI_ghashIterator_isDone(iter);
-	    BLI_ghashIterator_step(iter), ++i) {
+		!BLI_ghashIterator_isDone(iter);
+		BLI_ghashIterator_step(iter), ++i) {
 		void *value = BLI_ghashIterator_getValue(iter);
 		int ndx = GET_INT_FROM_POINTER(value);
 
@@ -375,7 +375,7 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 */
 
 void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
-	       int offset, int count)
+		   int offset, int count)
 {
 	int i, axis, end;
 	BB cb_backing;
@@ -746,11 +746,11 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 
 	/* subtle assumptions:
 	   - We know that for all edited vertices, the nodes with faces
-	     adjacent to these vertices have been marked with PBVH_UpdateNormals.
+		 adjacent to these vertices have been marked with PBVH_UpdateNormals.
 		 This is true because if the vertex is inside the brush radius, the
 		 bounding box of it's adjacent faces will be as well.
 	   - However this is only true for the vertices that have actually been
-	     edited, not for all vertices in the nodes marked for update, so we
+		 edited, not for all vertices in the nodes marked for update, so we
 		 can only update vertices marked with ME_VERT_PBVH_UPDATE.
 	*/
 
@@ -998,8 +998,8 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	faces= MEM_callocN(sizeof(void*)*tot, "PBVH Grid Faces");
 
 	for(hiter = BLI_ghashIterator_new(map), i = 0;
-	    !BLI_ghashIterator_isDone(hiter);
-	    BLI_ghashIterator_step(hiter), ++i)
+		!BLI_ghashIterator_isDone(hiter);
+		BLI_ghashIterator_step(hiter), ++i)
 		faces[i]= BLI_ghashIterator_getKey(hiter);
 
 	BLI_ghashIterator_free(hiter);
@@ -1124,7 +1124,7 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 }
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
-		      float ray_start[3], float ray_normal[3], int original)
+			  float ray_start[3], float ray_normal[3], int original)
 {
 	RaycastData rcd;
 

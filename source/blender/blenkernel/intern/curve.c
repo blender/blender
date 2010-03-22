@@ -569,7 +569,7 @@ static void calcknots(float *knots, short aantal, short order, short type)
 	float k;
 	int a, t;
 
-        t = aantal+order;
+		t = aantal+order;
 	if(type==0) {
 
 		for(a=0;a<t;a++) {
@@ -624,7 +624,7 @@ static void makecyclicknots(float *knots, short pnts, short order)
 	}
 
 	b= order;
-        c=pnts + order + order2;
+		c=pnts + order + order2;
 	for(a=pnts+order2; a<c; a++) {
 		knots[a]= knots[a-1]+ (knots[b]-knots[b-1]);
 		b--;
@@ -671,14 +671,14 @@ static void basisNurb(float t, short order, short pnts, float *knots, float *bas
 	int i, i1 = 0, i2 = 0 ,j, orderpluspnts, opp2, o2;
 
 	orderpluspnts= order+pnts;
-        opp2 = orderpluspnts-1;
+		opp2 = orderpluspnts-1;
 
 	/* this is for float inaccuracy */
 	if(t < knots[0]) t= knots[0];
 	else if(t > knots[opp2]) t= knots[opp2];
 
 	/* this part is order '1' */
-        o2 = order + 1;
+		o2 = order + 1;
 	for(i=0;i<opp2;i++) {
 		if(knots[i]!=knots[i+1] && t>= knots[i] && t<=knots[i+1]) {
 			basis[i]= 1.0;
@@ -1002,18 +1002,18 @@ void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int i
 	f*= it;
 	rt3= (q3-q0+3.0f*(q1-q2))/f;
  	
-  	q0= rt0;
+	  q0= rt0;
 	q1= rt1+rt2+rt3;
 	q2= 2*rt2+6*rt3;
 	q3= 6*rt3;
   
-  	for(a=0; a<=it; a++) {
+	  for(a=0; a<=it; a++) {
 		*p= q0;
 		p = (float *)(((char *)p)+stride);
 		q0+= q1;
- 		q1+= q2;
- 		q2+= q3;
- 	}
+		 q1+= q2;
+		 q2+= q3;
+	 }
 }
 
 static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float *p3, float *p, int it, int stride)
@@ -1023,7 +1023,7 @@ static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float
 	 *
 	 * This could also be optimized like forward_diff_bezier */
 	int a;
-  	for(a=0; a<=it; a++) {
+	  for(a=0; a<=it; a++) {
 		float t = (float)a / (float)it;
 
 		int i;
@@ -1032,7 +1032,7 @@ static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float
 		}
 		normalize_v3(p);
 		p = (float *)(((char *)p)+stride);
- 	}
+	 }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1061,7 +1061,7 @@ float *make_orco_surf(Object *ob)
 		sizev = nu->pntsv*nu->resolv;
 		if (nu->flagu & CU_NURB_CYCLIC) sizeu++;
 		if (nu->flagv & CU_NURB_CYCLIC) sizev++;
- 		if(nu->pntsv>1) tot+= sizeu * sizev;
+		 if(nu->pntsv>1) tot+= sizeu * sizev;
 		
 		nu= nu->next;
 	}
@@ -1464,7 +1464,7 @@ static short bevelinside(BevList *bl1,BevList *bl2)
 				/* there's a transition, calc intersection point */
 				mode= cu_isectLL(prevbevp->vec, bevp->vec, hvec1, hvec2, 0, 1, &lab, &mu, vec);
 				/* if lab==0.0 or lab==1.0 then the edge intersects exactly a transition
-			           only allow for one situation: we choose lab= 1.0
+					   only allow for one situation: we choose lab= 1.0
 				 */
 				if(mode>=0 && lab!=0.0) {
 					if(vec[0]<hvec1[0]) links++;
@@ -2578,13 +2578,13 @@ void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
 
 void testhandlesNurb(Nurb *nu)
 {
-    /* use when something has changed with handles.
-    it treats all BezTriples with the following rules:
-    PHASE 1: do types have to be altered?
-       Auto handles: become aligned when selection status is NOT(000 || 111)
-       Vector handles: become 'nothing' when (one half selected AND other not)
-    PHASE 2: recalculate handles
-    */
+	/* use when something has changed with handles.
+	it treats all BezTriples with the following rules:
+	PHASE 1: do types have to be altered?
+	   Auto handles: become aligned when selection status is NOT(000 || 111)
+	   Vector handles: become 'nothing' when (one half selected AND other not)
+	PHASE 2: recalculate handles
+	*/
 	BezTriple *bezt;
 	short flag, a;
 

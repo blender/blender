@@ -50,7 +50,7 @@ static struct StructRNA* rna_Controller_refine(struct PointerRNA *ptr)
 			return &RNA_XorController;
 		case CONT_LOGIC_XNOR:
 			return &RNA_XnorController;
- 		case CONT_EXPRESSION:
+		 case CONT_EXPRESSION:
 			return &RNA_ExpressionController;
 		case CONT_PYTHON:
 			return &RNA_PythonController;

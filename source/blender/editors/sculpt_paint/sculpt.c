@@ -191,7 +191,7 @@ static void projectf(bglMats *mats, const float v[3], float p[2])
 
 /* Get a screen-space rectangle of the modified area */
 int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
-			    Object *ob, rcti *rect)
+				Object *ob, rcti *rect)
 {
 	/* can't use ob->sculpt->tree, only valid during sculpt */
 	DerivedMesh *dm= ob->derivedFinal;
@@ -232,7 +232,7 @@ int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 }
 
 void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
-			      RegionView3D *rv3d, Object *ob)
+				  RegionView3D *rv3d, Object *ob)
 {
 	DerivedMesh *dm= ob->derivedFinal;
 	PBVH *tree= (dm)? dm->getPBVH(ob, dm): NULL;
@@ -886,9 +886,9 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 		
 		if(f->v4) {
 			skip= (f->v1==vert?2:
-			       f->v2==vert?3:
-			       f->v3==vert?0:
-			       f->v4==vert?1:-1);
+				   f->v2==vert?3:
+				   f->v3==vert?0:
+				   f->v4==vert?1:-1);
 		}
 
 		for(i=0; i<(f->v4?4:3); ++i) {
@@ -1579,7 +1579,7 @@ static char *sculpt_tool_name(Sculpt *sd)
 	case SCULPT_TOOL_LAYER:
 		return "Layer Brush"; break;
 	case SCULPT_TOOL_FLATTEN:
- 		return "Flatten Brush"; break;
+		 return "Flatten Brush"; break;
 	default:
 		return "Sculpting"; break;
 	}
@@ -1631,7 +1631,7 @@ static void SCULPT_OT_radial_control(wmOperatorType *ot)
 }
 
 /**** Operator for applying a stroke (various attributes including mouse path)
-      using the current brush. ****/
+	  using the current brush. ****/
 
 static float unproject_brush_radius(Object *ob, ViewContext *vc, float center[3], float offset)
 {
@@ -1693,7 +1693,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 		if(!ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
 			if(!ss->layer_co)
 				ss->layer_co= MEM_mallocN(sizeof(float) * 3 * ss->totvert,
-								       "sculpt mesh vertices copy");
+									   "sculpt mesh vertices copy");
 			for(i = 0; i < ss->totvert; ++i)
 				copy_v3_v3(ss->layer_co[i], ss->mvert[i].co);
 		}
@@ -1756,7 +1756,7 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 		dy = cache->mouse[1] - cache->initial_mouse[1];
 		cache->pixel_radius = sqrt(dx*dx + dy*dy);
 		cache->radius = unproject_brush_radius(ss->ob, paint_stroke_view_context(stroke),
-						       cache->true_location, cache->pixel_radius);
+							   cache->true_location, cache->pixel_radius);
 		cache->rotation = atan2(dy, dx);
 	}
 	else if(brush->flag & BRUSH_RAKE) {
@@ -1861,7 +1861,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	srd.hit = 0;
 	srd.original = (cache)? cache->original: 0;
 	BLI_pbvh_raycast(ss->tree, sculpt_raycast_cb, &srd,
-		     ray_start, ray_normal, srd.original);
+			 ray_start, ray_normal, srd.original);
 	
 	copy_v3_v3(out, ray_normal);
 	mul_v3_fl(out, srd.dist);
@@ -2017,7 +2017,7 @@ static int over_mesh(bContext *C, struct wmOperator *op, float x, float y)
 }
 
 static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
-				    wmEvent *event)
+					wmEvent *event)
 {
 	/* Don't start the stroke until mouse goes over the mesh */
 	if(over_mesh(C, op, event->x, event->y)) {

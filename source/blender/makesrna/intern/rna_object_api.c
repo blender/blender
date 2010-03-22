@@ -81,10 +81,10 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
 	Scene *sce = CTX_data_scene(C);
 
 	/* perform the mesh extraction based on type */
- 	switch (ob->type) {
- 	case OB_FONT:
- 	case OB_CURVE:
- 	case OB_SURF:
+	 switch (ob->type) {
+	 case OB_FONT:
+	 case OB_CURVE:
+	 case OB_SURF:
 
 		/* copies object and modifiers (but not the data) */
 		tmpobj= copy_object(ob);
@@ -124,7 +124,7 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
 		free_libblock_us( &G.main->object, tmpobj );
 		break;
 
- 	case OB_MBALL:
+	 case OB_MBALL:
 		/* metaballs don't have modifiers, so just convert to mesh */
 		ob = find_basis_mball( sce, ob );
 		/* todo, re-generatre for render-res */
@@ -132,9 +132,9 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
 
 		tmpmesh = add_mesh("Mesh");
 		mball_to_mesh( &ob->disp, tmpmesh );
- 		break;
+		 break;
 
- 	case OB_MESH:
+	 case OB_MESH:
 		/* copies object and modifiers (but not the data) */
 		if (cage) {
 			/* copies the data */
@@ -159,10 +159,10 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
 		}
 		
 		break;
- 	default:
+	 default:
 		BKE_report(reports, RPT_ERROR, "Object does not have geometry data");
- 		return NULL;
-  	}
+		 return NULL;
+	  }
 
 	/* Copy materials to new mesh */
 	switch (ob->type) {

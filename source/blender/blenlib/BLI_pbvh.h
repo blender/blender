@@ -47,7 +47,7 @@ typedef void (*BLI_pbvh_HitCallback)(PBVHNode *node, void *data);
 
 PBVH *BLI_pbvh_new(void);
 void BLI_pbvh_build_mesh(PBVH *bvh, struct MFace *faces, struct MVert *verts,
-		    int totface, int totvert);
+			int totface, int totvert);
 void BLI_pbvh_build_grids(PBVH *bvh, struct DMGridData **grids,
 	struct DMGridAdjacency *gridadj, int totgrid,
 	int gridsize, void **gridfaces);
@@ -71,7 +71,7 @@ void BLI_pbvh_search_gather(PBVH *bvh,
    hit first */
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
-		      float ray_start[3], float ray_normal[3], int original);
+			  float ray_start[3], float ray_normal[3], int original);
 int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	float ray_start[3], float ray_normal[3], float *dist);
 
@@ -182,7 +182,7 @@ typedef struct PBVHVertexIter {
 			vi.height= vi.gridsize; \
 			vi.grid= vi.grids[vi.grid_indices[vi.g]]; \
 			vi.skip= 0; \
-		 	\
+			 \
 			/*if(mode == PVBH_ITER_UNIQUE) { \
 				vi.grid += subm->grid.offset; \
 				vi.skip= subm->grid.skip; \
@@ -193,7 +193,7 @@ typedef struct PBVHVertexIter {
 			vi.width= vi.totvert; \
 			vi.height= 1; \
 		} \
-	 	\
+		 \
 		for(vi.gy=0; vi.gy<vi.height; vi.gy++) { \
 			if(vi.grid) vi.grid += vi.skip; \
 			\

@@ -260,14 +260,14 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 				* the angle between quats 
 				* this means small rotations wont lag */
 			if (quat && !ofs && !dist) {
-			 	float vec1[3], vec2[3];
+				 float vec1[3], vec2[3];
 				
-			 	VECCOPY(vec1, sms.new_quat);
-			 	VECCOPY(vec2, sms.orig_quat);
-			 	normalize_v3(vec1);
-			 	normalize_v3(vec2);
-			 	/* scale the time allowed by the rotation */
-			 	sms.time_allowed *= angle_normalized_v3v3(vec1, vec2)/(M_PI/2); 
+				 VECCOPY(vec1, sms.new_quat);
+				 VECCOPY(vec2, sms.orig_quat);
+				 normalize_v3(vec1);
+				 normalize_v3(vec2);
+				 /* scale the time allowed by the rotation */
+				 sms.time_allowed *= angle_normalized_v3v3(vec1, vec2)/(M_PI/2); 
 			}
 			
 			/* original values */
@@ -692,8 +692,8 @@ void view3d_unproject(bglMats *mats, float out[3], const short x, const short y,
 {
 	double ux, uy, uz;
 
-        gluUnProject(x,y,z, mats->modelview, mats->projection,
-		     (GLint *)mats->viewport, &ux, &uy, &uz );
+		gluUnProject(x,y,z, mats->modelview, mats->projection,
+			 (GLint *)mats->viewport, &ux, &uy, &uz );
 	out[0] = ux;
 	out[1] = uy;
 	out[2] = uz;
@@ -902,20 +902,20 @@ int get_view3d_ortho(View3D *v3d, RegionView3D *rv3d)
   Camera *cam;
   
   if(rv3d->persp==RV3D_CAMOB) {
-      if(v3d->camera && v3d->camera->type==OB_CAMERA) {
-          cam= v3d->camera->data;
+	  if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+		  cam= v3d->camera->data;
 
-          if(cam && cam->type==CAM_ORTHO)
-              return 1;
-          else
-              return 0;
-      }
-      else
-          return 0;
+		  if(cam && cam->type==CAM_ORTHO)
+			  return 1;
+		  else
+			  return 0;
+	  }
+	  else
+		  return 0;
   }
   
   if(rv3d->persp==RV3D_ORTHO)
-      return 1;
+	  return 1;
 
   return 0;
 }
@@ -2571,7 +2571,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				ID *id_key;
 				/* transform the parent or the camera? */
 				if(fly->root_parent) {
-                    Object *ob_update;
+					Object *ob_update;
                     
 					float view_mat[4][4];
 					float prev_view_imat[4][4];

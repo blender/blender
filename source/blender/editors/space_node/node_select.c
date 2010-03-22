@@ -127,7 +127,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-    /* send notifiers */
+	/* send notifiers */
 	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
 	
 	/* allow tweak event to work too */

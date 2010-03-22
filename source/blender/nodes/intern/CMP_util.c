@@ -725,18 +725,18 @@ void gamma_correct_compbuf(CompBuf *img, int inversed)
 
    drect= img->rect;
    if(inversed) {
-      for(x=img->x*img->y; x>0; x--, drect+=4) {
-         if(drect[0]>0.0f) drect[0]= sqrt(drect[0]); else drect[0]= 0.0f;
-         if(drect[1]>0.0f) drect[1]= sqrt(drect[1]); else drect[1]= 0.0f;
-         if(drect[2]>0.0f) drect[2]= sqrt(drect[2]); else drect[2]= 0.0f;
-      }
+	  for(x=img->x*img->y; x>0; x--, drect+=4) {
+		 if(drect[0]>0.0f) drect[0]= sqrt(drect[0]); else drect[0]= 0.0f;
+		 if(drect[1]>0.0f) drect[1]= sqrt(drect[1]); else drect[1]= 0.0f;
+		 if(drect[2]>0.0f) drect[2]= sqrt(drect[2]); else drect[2]= 0.0f;
+	  }
    }
    else {
-      for(x=img->x*img->y; x>0; x--, drect+=4) {
-         if(drect[0]>0.0f) drect[0]*= drect[0]; else drect[0]= 0.0f;
-         if(drect[1]>0.0f) drect[1]*= drect[1]; else drect[1]= 0.0f;
-         if(drect[2]>0.0f) drect[2]*= drect[2]; else drect[2]= 0.0f;
-      }
+	  for(x=img->x*img->y; x>0; x--, drect+=4) {
+		 if(drect[0]>0.0f) drect[0]*= drect[0]; else drect[0]= 0.0f;
+		 if(drect[1]>0.0f) drect[1]*= drect[1]; else drect[1]= 0.0f;
+		 if(drect[2]>0.0f) drect[2]*= drect[2]; else drect[2]= 0.0f;
+	  }
    }
 }
 
@@ -749,7 +749,7 @@ void premul_compbuf(CompBuf *img, int inversed)
 
    drect= img->rect;
    if(inversed) {
-      for(x=img->x*img->y; x>0; x--, drect+=4) {
+	  for(x=img->x*img->y; x>0; x--, drect+=4) {
 		 if(fabs(drect[3]) < 1e-5f) {
 			 drect[0]= 0.0f;
 			 drect[1]= 0.0f;
@@ -760,14 +760,14 @@ void premul_compbuf(CompBuf *img, int inversed)
 			 drect[1] /= drect[3];
 			 drect[2] /= drect[3];
 		 }
-      }
+	  }
    }
    else {
-      for(x=img->x*img->y; x>0; x--, drect+=4) {
+	  for(x=img->x*img->y; x>0; x--, drect+=4) {
 		 drect[0] *= drect[3];
 		 drect[1] *= drect[3];
 		 drect[2] *= drect[3];
-      }
+	  }
    }
 }
 

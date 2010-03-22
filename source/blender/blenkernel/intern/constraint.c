@@ -3054,7 +3054,7 @@ static void rbj_new_data (void *cdata)
 	bRigidBodyJointConstraint *data= (bRigidBodyJointConstraint *)cdata;
 	
 	// removed code which set target of this constraint  
-    data->type=1;
+	data->type=1;
 }
 
 static void rbj_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)

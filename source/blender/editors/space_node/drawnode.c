@@ -811,17 +811,17 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *C, Pointe
    uiItemR(col, NULL, 0, ptr, "algorithm", 0);
 
    if(RNA_enum_get(ptr, "algorithm")==0) {
-      uiItemL(col, "Limiting Channel:", 0);
-      row=uiLayoutRow(col,0);
-      uiItemR(row, NULL, 0, ptr, "limit_channel", UI_ITEM_R_EXPAND);
+	  uiItemL(col, "Limiting Channel:", 0);
+	  row=uiLayoutRow(col,0);
+	  uiItemR(row, NULL, 0, ptr, "limit_channel", UI_ITEM_R_EXPAND);
    }
 
    uiItemR(col, NULL, 0, ptr, "ratio", UI_ITEM_R_SLIDER);
    uiItemR(col, NULL, 0, ptr, "unspill", 0);   
    if (RNA_enum_get(ptr, "unspill")== 1) {
-      uiItemR(col, NULL, 0, ptr, "unspill_red", UI_ITEM_R_SLIDER);
-      uiItemR(col, NULL, 0, ptr, "unspill_green", UI_ITEM_R_SLIDER);
-      uiItemR(col, NULL, 0, ptr, "unspill_blue", UI_ITEM_R_SLIDER);
+	  uiItemR(col, NULL, 0, ptr, "unspill_red", UI_ITEM_R_SLIDER);
+	  uiItemR(col, NULL, 0, ptr, "unspill_green", UI_ITEM_R_SLIDER);
+	  uiItemR(col, NULL, 0, ptr, "unspill_blue", UI_ITEM_R_SLIDER);
    }
 }
 
@@ -866,9 +866,9 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext *C, Poin
 
    uiItemR(col, NULL, 0, ptr, "algorithm", 0);
    if(RNA_enum_get(ptr, "algorithm")==0) {
-      uiItemL(col, "Limiting Channel:", 0);
-      row=uiLayoutRow(col,0);
-      uiItemR(row, NULL, 0, ptr, "limit_channel", UI_ITEM_R_EXPAND);
+	  uiItemL(col, "Limiting Channel:", 0);
+	  row=uiLayoutRow(col,0);
+	  uiItemR(row, NULL, 0, ptr, "limit_channel", UI_ITEM_R_EXPAND);
    }
    
 	uiItemR(col, NULL, 0, ptr, "high", UI_ITEM_R_SLIDER);
@@ -1103,9 +1103,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_SCALE:
 			ntype->uifunc= node_composit_buts_scale;
 			break;
-      case CMP_NODE_ROTATE:
-         ntype->uifunc=node_composit_buts_rotate;
-         break;
+	  case CMP_NODE_ROTATE:
+		 ntype->uifunc=node_composit_buts_rotate;
+		 break;
 		case CMP_NODE_CHANNEL_MATTE:
 			ntype->uifunc= node_composit_buts_channel_matte;
 			break;
@@ -1129,13 +1129,13 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_VIEW_LEVELS:
 			ntype->uifunc=node_composit_buts_view_levels;
- 			break;
+			 break;
 		case CMP_NODE_COLORBALANCE:
 			ntype->uifunc=node_composit_buts_colorbalance;
- 			break;
+			 break;
 		case CMP_NODE_HUECORRECT:
 			ntype->uifunc=node_composit_buts_huecorrect;
- 			break;
+			 break;
 		default:
 			ntype->uifunc= NULL;
 	}
