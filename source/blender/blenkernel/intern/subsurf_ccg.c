@@ -1251,7 +1251,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 				return;
 
 			glShadeModel((faceFlags[0] & ME_SMOOTH)? GL_SMOOTH: GL_FLAT);
-			BLI_pbvh_draw(ccgdm->pbvh, partial_redraw_planes, NULL);
+			BLI_pbvh_draw(ccgdm->pbvh, partial_redraw_planes, NULL, (faceFlags[0] & ME_SMOOTH));
 			glShadeModel(GL_FLAT);
 		}
 

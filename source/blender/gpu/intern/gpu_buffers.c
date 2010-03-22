@@ -520,11 +520,11 @@ void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 }
 
 void GPU_update_grid_buffers(void *buffers_v, DMGridData **grids,
-	int *grid_indices, int totgrid, int gridsize)
+	int *grid_indices, int totgrid, int gridsize, int smooth)
 {
 	GPU_Buffers *buffers = buffers_v;
 	DMGridData *vert_data;
-	int i, totvert;
+	int i, j, k, totvert;
 
 	totvert= gridsize*gridsize*totgrid;
 
@@ -539,6 +539,22 @@ void GPU_update_grid_buffers(void *buffers_v, DMGridData **grids,
 			for(i = 0; i < totgrid; ++i) {
 				DMGridData *grid= grids[grid_indices[i]];
 				memcpy(vert_data, grid, sizeof(DMGridData)*gridsize*gridsize);
+
+				if(!smooth) {
+					/* for flat shading, recalc normals and set the last vertex of
+					   each quad in the index buffer to have the flat normal as
+					   that is what opengl will use */
+					for(j = 0; j < gridsize-1; ++j) {
+						for(k = 0; k < gridsize-1; ++k) {
+							normal_quad_v3(vert_data[(j+1)*gridsize + (k+1)].no,
+								vert_data[(j+1)*gridsize + k].co,
+								vert_data[(j+1)*gridsize + k+1].co,
+								vert_data[j*gridsize + k+1].co,
+								vert_data[j*gridsize + k].co);
+						}
+					}
+				}
+
 				vert_data += gridsize*gridsize;
 			}
 			glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
@@ -589,10 +605,10 @@ void *GPU_build_grid_buffers(DMGridData **grids,
 				for(i = 0; i < totgrid; ++i) {
 					for(j = 0; j < gridsize-1; ++j) {
 						for(k = 0; k < gridsize-1; ++k) {
+							*(quad_data++)= offset + j*gridsize + k+1;
 							*(quad_data++)= offset + j*gridsize + k;
 							*(quad_data++)= offset + (j+1)*gridsize + k;
 							*(quad_data++)= offset + (j+1)*gridsize + k+1;
-							*(quad_data++)= offset + j*gridsize + k+1;
 						}
 					}
 
@@ -619,10 +635,10 @@ void *GPU_build_grid_buffers(DMGridData **grids,
 				for(i = 0; i < totgrid; ++i) {
 					for(j = 0; j < gridsize-1; ++j) {
 						for(k = 0; k < gridsize-1; ++k) {
+							*(quad_data++)= offset + j*gridsize + k+1;
 							*(quad_data++)= offset + j*gridsize + k;
 							*(quad_data++)= offset + (j+1)*gridsize + k;
 							*(quad_data++)= offset + (j+1)*gridsize + k+1;
-							*(quad_data++)= offset + j*gridsize + k+1;
 						}
 					}
 
@@ -642,7 +658,6 @@ void *GPU_build_grid_buffers(DMGridData **grids,
 	/* Build VBO */
 	if(buffers->index_buf)
 		glGenBuffersARB(1, &buffers->vert_buf);
-	GPU_update_grid_buffers(buffers, grids, grid_indices, totgrid, gridsize);
 
 	buffers->tot_quad = totquad;
 

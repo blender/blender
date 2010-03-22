@@ -353,6 +353,8 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 				  node->uniq_verts,
 				  node->uniq_verts + node->face_verts);
 
+	node->flag |= PBVH_UpdateDrawBuffers;
+
 	BLI_ghash_free(map, NULL, NULL);
 }
 
@@ -361,6 +363,8 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 	node->draw_buffers =
 		GPU_build_grid_buffers(bvh->grids, node->prim_indices,
 				node->totprim, bvh->gridsize);
+
+	node->flag |= PBVH_UpdateDrawBuffers;
 }
 
 /* Recursively build a node in the tree
@@ -855,7 +859,7 @@ static void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes,
 	}
 }
 
-static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
+static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, int smooth)
 {
 	PBVHNode *node;
 	int n;
@@ -870,7 +874,8 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 						   bvh->grids,
 						   node->prim_indices,
 						   node->totprim,
-						   bvh->gridsize);
+						   bvh->gridsize,
+						   smooth);
 			}
 			else {
 				GPU_update_mesh_buffers(node->draw_buffers,
@@ -929,9 +934,6 @@ void BLI_pbvh_update(PBVH *bvh, int flag, float (*face_nors)[3])
 
 	if(flag & (PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw))
 		pbvh_update_BB_redraw(bvh, nodes, totnode, flag);
-
-	if(flag & PBVH_UpdateDrawBuffers)
-		pbvh_update_draw_buffers(bvh, nodes, totnode);
 
 	if(flag & (PBVH_UpdateBB|PBVH_UpdateOriginalBB))
 		pbvh_flush_bb(bvh, bvh->nodes, flag);
@@ -1297,9 +1299,18 @@ int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 	return 1;
 }
 
-void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3])
+void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smooth)
 {
-	BLI_pbvh_update(bvh, PBVH_UpdateNormals|PBVH_UpdateDrawBuffers, face_nors);
+	PBVHNode **nodes;
+	int totnode;
+
+	BLI_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(PBVH_UpdateNormals|PBVH_UpdateDrawBuffers),
+		&nodes, &totnode);
+
+	pbvh_update_normals(bvh, nodes, totnode, face_nors);
+	pbvh_update_draw_buffers(bvh, nodes, totnode, smooth);
+
+	if(nodes) MEM_freeN(nodes);
 
 	if(planes) {
 		BLI_pbvh_search_callback(bvh, BLI_pbvh_node_planes_contain_AABB,
