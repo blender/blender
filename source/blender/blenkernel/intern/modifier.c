@@ -42,6 +42,7 @@
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
+#include "BLI_uvproject.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -3673,6 +3674,7 @@ typedef struct Projector {
 	Object *ob;				/* object this projector is derived from */
 	float projmat[4][4];	/* projection matrix */ 
 	float normal[3];		/* projector normal in world space */
+	void *uci;				/* optional uv-project info (panorama projection) */
 } Projector;
 
 static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
@@ -3688,9 +3690,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	int num_projectors = 0;
 	float aspect;
 	char uvname[32];
+	float aspx= umd->aspectx ? 1.0f : umd->aspectx;
+	float aspy= umd->aspecty ? 1.0f : umd->aspecty;
+	int free_uci= 0;
 	
-	if(umd->aspecty != 0) aspect = umd->aspectx / umd->aspecty;
-	else aspect = 1.0f;
+	aspect = aspx / aspy;
 
 	for(i = 0; i < umd->num_projectors; ++i)
 		if(umd->projectors[i])
@@ -3705,20 +3709,6 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	/* make sure we're using an existing layer */
 	validate_layer_name(&dm->faceData, CD_MTFACE, umd->uvlayer_name, uvname);
 
-	/* make sure we are not modifying the original UV layer */
-	tface = CustomData_duplicate_referenced_layer_named(&dm->faceData,
-			CD_MTFACE, uvname);
-
-	numVerts = dm->getNumVerts(dm);
-
-	coords = MEM_callocN(sizeof(*coords) * numVerts,
-				 "uvprojectModifier_do coords");
-	dm->getVertCos(dm, coords);
-
-	/* convert coords to world space */
-	for(i = 0, co = coords; i < numVerts; ++i, ++co)
-		mul_m4_v3(ob->obmat, *co);
-
 	/* calculate a projection matrix and normal for each projector */
 	for(i = 0; i < num_projectors; ++i) {
 		float tmpmat[4][4];
@@ -3729,7 +3719,13 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
 		if(projectors[i].ob->type == OB_CAMERA) {
 			cam = (Camera *)projectors[i].ob->data;
-			if(cam->type == CAM_PERSP) {
+			projectors[i].uci= NULL;
+
+			if(cam->flag & CAM_PANORAMA) {
+				projectors[i].uci= project_camera_info(projectors[i].ob, NULL, aspx, aspy);
+				free_uci= 1;
+			}
+			else if(cam->type == CAM_PERSP) {
 				float perspmat[4][4];
 				float xmax; 
 				float xmin;
@@ -3778,15 +3774,15 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		offsetmat[3][0] = offsetmat[3][1] = offsetmat[3][2] = 0.5;
 		
 		if (cam) {
-			if (umd->aspectx == umd->aspecty) { 
+			if (aspx == aspy) { 
 				offsetmat[3][0] -= cam->shiftx;
 				offsetmat[3][1] -= cam->shifty;
-			} else if (umd->aspectx < umd->aspecty)  {
-				offsetmat[3][0] -=(cam->shiftx * umd->aspecty/umd->aspectx);
+			} else if (aspx < aspy)  {
+				offsetmat[3][0] -=(cam->shiftx * aspy/aspx);
 				offsetmat[3][1] -= cam->shifty;
 			} else {
 				offsetmat[3][0] -= cam->shiftx;
-				offsetmat[3][1] -=(cam->shifty * umd->aspectx/umd->aspecty);
+				offsetmat[3][1] -=(cam->shifty * aspx/aspy);
 			}
 		}
 		
@@ -3799,8 +3795,23 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		mul_mat3_m4_v3(projectors[i].ob->obmat, projectors[i].normal);
 	}
 
+	/* make sure we are not modifying the original UV layer */
+	tface = CustomData_duplicate_referenced_layer_named(&dm->faceData,
+			CD_MTFACE, uvname);
+
+	
+	numVerts = dm->getNumVerts(dm);
+
+	coords = MEM_callocN(sizeof(*coords) * numVerts,
+				 "uvprojectModifier_do coords");
+	dm->getVertCos(dm, coords);
+
+	/* convert coords to world space */
+	for(i = 0, co = coords; i < numVerts; ++i, ++co)
+		mul_m4_v3(ob->obmat, *co);
+	
 	/* if only one projector, project coords to UVs */
-	if(num_projectors == 1)
+	if(num_projectors == 1 && projectors[0].uci==NULL)
 		for(i = 0, co = coords; i < numVerts; ++i, ++co)
 			mul_project_m4_v4(projectors[0].projmat, *co);
 
@@ -3810,17 +3821,26 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	/* apply coords as UVs, and apply image if tfaces are new */
 	for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tface) {
 		if(override_image || !image || tface->tpage == image) {
-			if(num_projectors == 1) {
-				/* apply transformed coords as UVs */
-				tface->uv[0][0] = coords[mf->v1][0];
-				tface->uv[0][1] = coords[mf->v1][1];
-				tface->uv[1][0] = coords[mf->v2][0];
-				tface->uv[1][1] = coords[mf->v2][1];
-				tface->uv[2][0] = coords[mf->v3][0];
-				tface->uv[2][1] = coords[mf->v3][1];
-				if(mf->v4) {
-					tface->uv[3][0] = coords[mf->v4][0];
-					tface->uv[3][1] = coords[mf->v4][1];
+				if(num_projectors == 1) {
+					if(projectors[0].uci) {
+						project_from_camera(tface->uv[0], coords[mf->v1], projectors[0].uci);
+						project_from_camera(tface->uv[1], coords[mf->v2], projectors[0].uci);
+						project_from_camera(tface->uv[2], coords[mf->v3], projectors[0].uci);
+						if(mf->v3)
+							project_from_camera(tface->uv[3], coords[mf->v4], projectors[0].uci);
+					}
+					else {
+						/* apply transformed coords as UVs */
+						tface->uv[0][0] = coords[mf->v1][0];
+						tface->uv[0][1] = coords[mf->v1][1];
+						tface->uv[1][0] = coords[mf->v2][0];
+						tface->uv[1][1] = coords[mf->v2][1];
+						tface->uv[2][0] = coords[mf->v3][0];
+						tface->uv[2][1] = coords[mf->v3][1];
+						if(mf->v4) {
+							tface->uv[3][0] = coords[mf->v4][0];
+							tface->uv[3][1] = coords[mf->v4][1];
+						}
 				}
 			} else {
 				/* multiple projectors, select the closest to face normal
@@ -3858,23 +3878,32 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 						best_projector = &projectors[j];
 					}
 				}
+				
+				if(best_projector->uci) {
+					project_from_camera(tface->uv[0], coords[mf->v1], best_projector->uci);
+					project_from_camera(tface->uv[1], coords[mf->v2], best_projector->uci);
+					project_from_camera(tface->uv[2], coords[mf->v3], best_projector->uci);
+					if(mf->v3)
+						project_from_camera(tface->uv[3], coords[mf->v4], best_projector->uci);
+				}
+				else {
+					mul_project_m4_v4(best_projector->projmat, co1);
+					mul_project_m4_v4(best_projector->projmat, co2);
+					mul_project_m4_v4(best_projector->projmat, co3);
+					if(mf->v4)
+						mul_project_m4_v4(best_projector->projmat, co4);
 
-				mul_project_m4_v4(best_projector->projmat, co1);
-				mul_project_m4_v4(best_projector->projmat, co2);
-				mul_project_m4_v4(best_projector->projmat, co3);
-				if(mf->v4)
-					mul_project_m4_v4(best_projector->projmat, co4);
-
-				/* apply transformed coords as UVs */
-				tface->uv[0][0] = co1[0];
-				tface->uv[0][1] = co1[1];
-				tface->uv[1][0] = co2[0];
-				tface->uv[1][1] = co2[1];
-				tface->uv[2][0] = co3[0];
-				tface->uv[2][1] = co3[1];
-				if(mf->v4) {
-					tface->uv[3][0] = co4[0];
-					tface->uv[3][1] = co4[1];
+					/* apply transformed coords as UVs */
+					tface->uv[0][0] = co1[0];
+					tface->uv[0][1] = co1[1];
+					tface->uv[1][0] = co2[0];
+					tface->uv[1][1] = co2[1];
+					tface->uv[2][0] = co3[0];
+					tface->uv[2][1] = co3[1];
+					if(mf->v4) {
+						tface->uv[3][0] = co4[0];
+						tface->uv[3][1] = co4[1];
+					}
 				}
 			}
 		}
@@ -3886,7 +3915,15 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	}
 
 	MEM_freeN(coords);
-
+	
+	if(free_uci) {
+		int j;
+		for(j = 0; j < num_projectors; ++j) {
+			if(projectors[j].uci) {
+				MEM_freeN(projectors[j].uci);
+			}
+		}
+	}
 	return dm;
 }
 

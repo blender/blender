@@ -36,7 +36,7 @@ typedef struct UvCameraInfo {
 	float shiftx, shifty;
 	float rotmat[4][4];
 	float caminv[4][4];
-	short do_persp, do_pano;
+	short do_persp, do_pano, do_rotmat;
 } UvCameraInfo;
 
 void project_from_camera(float target[2], float source[3], UvCameraInfo *uci)
@@ -47,7 +47,8 @@ void project_from_camera(float target[2], float source[3], UvCameraInfo *uci)
 	pv4[3]= 1.0;
 
 	/* rotmat is the object matrix in this case */
-	mul_m4_v4(uci->rotmat, pv4);
+	if(uci->do_rotmat)
+		mul_m4_v4(uci->rotmat, pv4);
 
 	/* caminv is the inverse camera matrix */
 	mul_m4_v4(uci->caminv, pv4);
@@ -87,7 +88,7 @@ void project_from_view(float target[2], float source[3], float persmat[4][4], fl
 {
 	float pv[3], pv4[4], x= 0.0, y= 0.0;
 
-	mul_m4_v3(rotmat, pv);
+	mul_v3_m4v3(pv, rotmat, source);
 
 	copy_v3_v3(pv4, source);
 	pv4[3]= 1.0;
@@ -123,7 +124,7 @@ void project_from_view(float target[2], float source[3], float persmat[4][4], fl
 
 /* 'rotmat' can be obedit->obmat when uv project is used.
  * 'winx' and 'winy' can be from scene->r.xsch/ysch */ 
-UvCameraInfo *project_camera_info(Object *ob, float rotmat[4][4], float winx, float winy)
+UvCameraInfo *project_camera_info(Object *ob, float (*rotmat)[4], float winx, float winy)
 {
 	UvCameraInfo uci;
 	Camera *camera= ob->data;
@@ -138,7 +139,13 @@ UvCameraInfo *project_camera_info(Object *ob, float rotmat[4][4], float winx, fl
 		UvCameraInfo *uci_pt;
 
 		/* normal projection */
-		copy_m4_m4(uci.rotmat, rotmat);
+		if(rotmat) {
+			copy_m4_m4(uci.rotmat, rotmat);
+			uci.do_rotmat= 1;
+		}
+		else {
+			uci.do_rotmat= 0;
+		}
 
 		/* also make aspect ratio adjustment factors */
 		if (winx > winy) {
@@ -166,7 +173,7 @@ void project_from_view_ortho(float target[2], float source[3], float rotmat[4][4
 {
 	float pv[3];
 
-	mul_m4_v3(rotmat, pv);
+	mul_v3_m4v3(pv, rotmat, source);
 
 	/* ortho projection */
 	target[0] = -pv[0];

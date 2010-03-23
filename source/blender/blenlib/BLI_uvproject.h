@@ -23,6 +23,7 @@
 #define BKE_UVPROJECT_H
 
 struct UvCameraInfo;
+struct Object;
 
 /* create uv info from the camera, needs to be freed */
 struct UvCameraInfo *project_camera_info(struct Object *ob, float rotmat[4][4], float winx, float winy);
