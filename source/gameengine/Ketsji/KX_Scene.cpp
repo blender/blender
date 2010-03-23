@@ -407,34 +407,6 @@ bool KX_Scene::IsClearingZBuffer()
 	return m_isclearingZbuffer;
 }
 
-void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
-{
-	int len;
-
-	if (cb_list && (len=PyList_GET_SIZE(cb_list)))
-	{
-		PyObject* args= PyTuple_New(0); // save python creating each call
-		PyObject* func;
-		PyObject* ret;
-
-		// Iterate the list and run the callbacks
-		for (int pos=0; pos < len; pos++)
-		{
-			func= PyList_GET_ITEM(cb_list, pos);
-			ret= PyObject_Call(func, args, NULL);
-			if (ret==NULL) {
-				PyErr_Print();
-				PyErr_Clear();
-			}
-			else {
-				Py_DECREF(ret);
-			}
-		}
-
-		Py_DECREF(args);
-	}
-}
-
 void KX_Scene::EnableZBufferClearing(bool isclearingZbuffer)
 {
 	m_isclearingZbuffer = isclearingZbuffer;
@@ -1657,9 +1629,6 @@ double KX_Scene::getSuspendedDelta()
 	return m_suspendeddelta;
 }
 
-#ifndef DISABLE_PYTHON
-
-
 #include "KX_BulletPhysicsController.h"
 
 static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
@@ -1853,6 +1822,36 @@ void KX_Scene::Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_
 void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
 {
 	m_filtermanager.RenderFilters(canvas);
+}
+
+#ifndef DISABLE_PYTHON
+
+void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
+{
+	int len;
+
+	if (cb_list && (len=PyList_GET_SIZE(cb_list)))
+	{
+		PyObject* args= PyTuple_New(0); // save python creating each call
+		PyObject* func;
+		PyObject* ret;
+
+		// Iterate the list and run the callbacks
+		for (int pos=0; pos < len; pos++)
+		{
+			func= PyList_GET_ITEM(cb_list, pos);
+			ret= PyObject_Call(func, args, NULL);
+			if (ret==NULL) {
+				PyErr_Print();
+				PyErr_Clear();
+			}
+			else {
+				Py_DECREF(ret);
+			}
+		}
+
+		Py_DECREF(args);
+	}
 }
 
 //----------------------------------------------------------------------------

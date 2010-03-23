@@ -64,11 +64,14 @@
 
 void WM_operator_free(wmOperator *op)
 {
+
+#ifndef DISABLE_PYTHON
 	if(op->py_instance) {
 		/* do this first incase there are any __del__ functions or
 		 * similar that use properties */
 		BPY_DECREF(op->py_instance);
 	}
+#endif
 
 	if(op->ptr) {
 		op->properties= op->ptr->data;
