@@ -2976,7 +2976,7 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 
 	RNA_parameter_list_create(&parms, self_ptr, self_func);
 	RNA_parameter_list_begin(&parms, &iter);
-	parms_len= RNA_parameter_list_size(&parms);
+	parms_len= RNA_parameter_list_arg_count(&parms);
 	ret_len= 0;
 
 	if(pyargs_len + pykw_len > parms_len) {

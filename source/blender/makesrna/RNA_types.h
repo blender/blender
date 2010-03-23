@@ -245,8 +245,10 @@ typedef struct ParameterList {
 	/* storage for parameters */
 	void *data;
 
-	/* store the parameter count */
-	int tot;
+	/* store the parameter size */
+	int alloc_size;
+
+	int arg_count, ret_count;
 
 	/* function passed at creation time */
 	struct FunctionRNA *func;
