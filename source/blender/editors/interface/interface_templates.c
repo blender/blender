@@ -815,10 +815,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 				}
 			}
 			else {
-				uiItemEnumO(row, "Apply", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_DATA);
+				uiItemEnumO(row, "OBJECT_OT_modifier_apply", "Apply", 0, "apply_as", MODIFIER_APPLY_DATA);
 				
 				if (modifier_sameTopology(md))
-					uiItemEnumO(row, "Apply as Shape", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_SHAPE);
+					uiItemEnumO(row, "OBJECT_OT_modifier_apply", "Apply as Shape", 0, "apply_as", MODIFIER_APPLY_SHAPE);
 			}
 			
 			uiBlockClearButLock(block);

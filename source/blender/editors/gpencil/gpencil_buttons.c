@@ -257,11 +257,11 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 		
 		/* 'stick to view' option */
 		row= uiLayoutRow(col, 1);
-		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "VIEW");
-		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "CURSOR");
+		uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "VIEW", NULL, 0);
+		uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "CURSOR", NULL, 0);
 		row= uiLayoutRow(col, 1);
-		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "SURFACE");
-		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "STROKE");
+		uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "SURFACE", NULL, 0);
+		uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "STROKE", NULL, 0);
 		
 		row= uiLayoutRow(col, 0);
 		uiLayoutSetActive(row, (gpd->flag & (GP_DATA_DEPTH_STROKE|GP_DATA_DEPTH_VIEW)) ? 1:0);

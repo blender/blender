@@ -203,10 +203,10 @@ void TEXT_OT_properties(wmOperatorType *ot)
 	uiPopupMenu *pup;
 
 	pup= uiPupMenuBegin(C, "Text", 0);
-	uiItemEnumO(layout, "Top of File", 0, "TEXT_OT_move", "type", FILE_TOP);
-	uiItemEnumO(layout, "Bottom of File", 0, "TEXT_OT_move", "type", FILE_BOTTOM);
-	uiItemEnumO(layout, "Page Up", 0, "TEXT_OT_move", "type", PREV_PAGE);
-	uiItemEnumO(layout,  "Page Down", 0, "TEXT_OT_move", "type", NEXT_PAGE);
+	uiItemEnumO(layout, "TEXT_OT_move", "Top of File", 0, "type", FILE_TOP);
+	uiItemEnumO(layout, "TEXT_OT_move", "Bottom of File", 0, "type", FILE_BOTTOM);
+	uiItemEnumO(layout, "TEXT_OT_move", "Page Up", 0, "type", PREV_PAGE);
+	uiItemEnumO(layout, "TEXT_OT_move", "Page Down", 0, "type", NEXT_PAGE);
 	uiPupMenuEnd(C, pup);
 }
 #endif

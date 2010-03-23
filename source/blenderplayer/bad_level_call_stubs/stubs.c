@@ -238,25 +238,25 @@ void load_editMesh(struct Scene *scene, struct Object *ob){}
 
 void uiItemR(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int flag){}
 
-PointerRNA uiItemFullO(struct uiLayout *layout, char *name, int icon, char *idname, struct IDProperty *properties, int context, int flag){PointerRNA a; return a;}
+PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){PointerRNA a; return a;}
 struct uiLayout *uiLayoutRow(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumn(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumnFlow(struct uiLayout *layout, int number, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutBox(struct uiLayout *layout){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutSplit(struct uiLayout *layout, float percentage, int align){return (struct uiLayout *) NULL;}
 void uiItemsEnumR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname){}
-void uiItemMenuEnumR(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname){}
-void uiItemEnumR_string(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value){}
-void uiItemPointerR(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname){}
+void uiItemMenuEnumR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *name, int icon){}
+void uiItemEnumR_string(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *value, char *name, int icon){}
+void uiItemPointerR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname, char *name, int icon){}
 void uiItemsEnumO(struct uiLayout *layout, char *opname, char *propname){}
 void uiItemEnumO_string(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value_str){}
-void uiItemMenuEnumO(struct uiLayout *layout, char *name, int icon, char *opname, char *propname){}
+void uiItemMenuEnumO(struct uiLayout *layout, char *opname, char *propname, char *name, int icon){}
 void uiItemBooleanO(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, int value){}
 void uiItemIntO(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, int value){}
 void uiItemFloatO(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, float value){}
 void uiItemStringO(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value){}
 void uiItemL(struct uiLayout *layout, char *name, int icon){}
-void uiItemM(struct uiLayout *layout, struct bContext *C, char *name, int icon, char *menuname){}
+void uiItemM(struct uiLayout *layout, struct bContext *C, char *menuname, char *name, int icon){}
 void uiItemS(struct uiLayout *layout){}
 void uiItemFullR(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag){}
 void uiLayoutSetContextPointer(struct uiLayout *layout, char *name, struct PointerRNA *ptr){}

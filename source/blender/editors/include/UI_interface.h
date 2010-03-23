@@ -693,32 +693,32 @@ void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
-void uiItemEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
+void uiItemEnumO(uiLayout *layout, char *opname, char *name, int icon, char *propname, int value);
 void uiItemEnumO_string(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value);
 void uiItemsEnumO(uiLayout *layout, char *opname, char *propname);
 void uiItemBooleanO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
 void uiItemIntO(uiLayout *layout, char *name, int icon, char *opname, char *propname, int value);
 void uiItemFloatO(uiLayout *layout, char *name, int icon, char *opname, char *propname, float value);
 void uiItemStringO(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value);
-PointerRNA uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, struct IDProperty *properties, int context, int flag);
+PointerRNA uiItemFullO(uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag);
 
 void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int flag);
 void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag);
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value);
-void uiItemEnumR_string(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value);
+void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, char *propname, char *value, char *name, int icon);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);
-void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname);
+void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname, char *name, int icon);
 void uiItemsFullEnumO(uiLayout *layout, char *opname, char *propname, struct IDProperty *properties, int context, int flag);
 
 void uiItemL(uiLayout *layout, char *name, int icon); /* label */
 void uiItemLDrag(uiLayout *layout, struct PointerRNA *ptr, char *name, int icon); /* label icon for dragging */
-void uiItemM(uiLayout *layout, struct bContext *C, char *name, int icon, char *menuname); /* menu */
+void uiItemM(uiLayout *layout, struct bContext *C, char *menuname, char *name, int icon); /* menu */
 void uiItemV(uiLayout *layout, char *name, int icon, int argval); /* value */
 void uiItemS(uiLayout *layout); /* separator */
 
 void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func, void *arg);
-void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname);
-void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
+void uiItemMenuEnumO(uiLayout *layout, char *opname, char *propname, char *name, int icon);
+void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname, char *name, int icon);
 
 /* UI Operators */
 void UI_buttons_operatortypes(void);

@@ -1326,23 +1326,23 @@ void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, Packed
 	pup= uiPupMenuBegin(C, "Unpack file", 0);
 	layout= uiPupMenuLayout(pup);
 
-	uiItemEnumO(layout, "Remove Pack", 0, opname, "method", PF_REMOVE);
+	uiItemEnumO(layout, opname, "Remove Pack", 0, "method", PF_REMOVE);
 
 	if(strcmp(abs_name, local_name)) {
 		switch(checkPackedFile(local_name, pf)) {
 			case PF_NOFILE:
 				sprintf(line, "Create %s", local_name);
-				uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_LOCAL);
+				uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_LOCAL);
 				break;
 			case PF_EQUAL:
 				sprintf(line, "Use %s (identical)", local_name);
-				uiItemEnumO(layout, line, 0, opname, "method", PF_USE_LOCAL);
+				uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
 				break;
 			case PF_DIFFERS:
 				sprintf(line, "Use %s (differs)", local_name);
-				uiItemEnumO(layout, line, 0, opname, "method", PF_USE_LOCAL);
+				uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
 				sprintf(line, "Overwrite %s", local_name);
-				uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_LOCAL);
+				uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_LOCAL);
 				break;
 		}
 	}
@@ -1350,17 +1350,17 @@ void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, Packed
 	switch(checkPackedFile(abs_name, pf)) {
 		case PF_NOFILE:
 			sprintf(line, "Create %s", abs_name);
-			uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_ORIGINAL);
+			uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
 			break;
 		case PF_EQUAL:
 			sprintf(line, "Use %s (identical)", abs_name);
-			uiItemEnumO(layout, line, 0, opname, "method", PF_USE_ORIGINAL);
+			uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
 			break;
 		case PF_DIFFERS:
 			sprintf(line, "Use %s (differs)", local_name);
-			uiItemEnumO(layout, line, 0, opname, "method", PF_USE_ORIGINAL);
+			uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
 			sprintf(line, "Overwrite %s", local_name);
-			uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_ORIGINAL);
+			uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
 			break;
 	}
 

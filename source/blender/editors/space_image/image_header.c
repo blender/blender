@@ -74,10 +74,10 @@ static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	pup= uiPupMenuBegin(C, "Toolbox", 0);
 	layout= uiPupMenuLayout(pup);
 
-	uiItemM(layout, C, NULL, 0, "IMAGE_MT_view");
-	if(show_uvedit) uiItemM(layout, C, NULL, 0, "IMAGE_MT_select");
-	uiItemM(layout, C, NULL, 0, "IMAGE_MT_image");
-	if(show_uvedit) uiItemM(layout, C, NULL, 0, "IMAGE_MT_uvs");
+	uiItemM(layout, C, "IMAGE_MT_view", NULL, 0);
+	if(show_uvedit) uiItemM(layout, C, "IMAGE_MT_select", NULL, 0);
+	uiItemM(layout, C, "IMAGE_MT_image", NULL, 0);
+	if(show_uvedit) uiItemM(layout, C, "IMAGE_MT_uvs", NULL, 0);
 
 	uiPupMenuEnd(C, pup);
 

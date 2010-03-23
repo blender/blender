@@ -4565,8 +4565,8 @@ static int delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(obedit->type==OB_SURF) {
 		pup= uiPupMenuBegin(C, "Delete", 0);
 		layout= uiPupMenuLayout(pup);
-		uiItemEnumO(layout, NULL, 0, op->type->idname, "type", 0);
-		uiItemEnumO(layout, NULL, 0, op->type->idname, "type", 2);
+		uiItemEnumO(layout, op->type->idname, NULL, 0, "type", 0);
+		uiItemEnumO(layout, op->type->idname, NULL, 0, "type", 2);
 		uiPupMenuEnd(C, pup);
 	}
 	else {

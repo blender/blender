@@ -926,7 +926,7 @@ static Base *mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffe
 				WM_operator_properties_create(&ptr, "OBJECT_OT_select_name");
 				RNA_string_set(&ptr, "name", name);
 				RNA_boolean_set(&ptr, "extend", extend);
-				uiItemFullO(column, name, uiIconFromID((ID *)ob), "OBJECT_OT_select_name", ptr.data, WM_OP_EXEC_DEFAULT, 0);
+				uiItemFullO(column, "OBJECT_OT_select_name", name, uiIconFromID((ID *)ob), ptr.data, WM_OP_EXEC_DEFAULT, 0);
 			}
 
 			node= node->next;

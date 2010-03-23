@@ -1566,7 +1566,7 @@ static int nla_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *event
 			continue;
 		
 		/* add entry to add this type of modifier */
-		uiItemEnumO(layout, fmi->name, 0, "NLA_OT_fmodifier_add", "type", i);
+		uiItemEnumO(layout, "NLA_OT_fmodifier_add", fmi->name, 0, "type", i);
 	}
 	uiItemS(layout);
 	

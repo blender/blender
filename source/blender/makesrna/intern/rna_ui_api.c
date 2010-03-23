@@ -37,7 +37,7 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, char *propname, int expand, int slider, int toggle, int icon_only, int event, int full_event, int no_bg, int index)
+static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, char *name, int icon, int expand, int slider, int toggle, int icon_only, int event, int full_event, int no_bg, int index)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	int flag= 0;
@@ -58,9 +58,9 @@ static void rna_uiItemR(uiLayout *layout, char *name, int icon, PointerRNA *ptr,
 	uiItemFullR(layout, name, icon, ptr, prop, index, 0, flag);
 }
 
-static PointerRNA rna_uiItemO(uiLayout *layout, char *name, int icon, char *opname)
+static PointerRNA rna_uiItemO(uiLayout *layout, char *opname, char *name, int icon)
 {
-	return uiItemFullO(layout, name, icon, opname, NULL, uiLayoutGetOperatorContext(layout), UI_ITEM_O_RETURN_PROPS);
+	return uiItemFullO(layout, opname, name, icon, NULL, uiLayoutGetOperatorContext(layout), UI_ITEM_O_RETURN_PROPS);
 }
 
 #else
@@ -83,13 +83,17 @@ static void api_ui_item_common(FunctionRNA *func)
 
 }
 
-static void api_ui_item_op_common(FunctionRNA *func)
+static void api_ui_item_op(FunctionRNA *func)
 {
 	PropertyRNA *parm;
-
-	api_ui_item_common(func);
 	parm= RNA_def_string(func, "operator", "", 0, "", "Identifier of the operator.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED);	
+}
+
+static void api_ui_item_op_common(FunctionRNA *func)
+{
+	api_ui_item_op(func);
+	api_ui_item_common(func);
 }
 
 static void api_ui_item_rna_common(FunctionRNA *func)
@@ -150,8 +154,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	/* items */
 	func= RNA_def_function(srna, "prop", "rna_uiItemR");
-	api_ui_item_common(func);
 	api_ui_item_rna_common(func);
+	api_ui_item_common(func);
 	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	RNA_def_boolean(func, "slider", 0, "", "Use slider widget for numeric values.");
 	RNA_def_boolean(func, "toggle", 0, "", "Use toggle widget for boolean values.");
@@ -165,22 +169,22 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_rna_common(func);
 
 	func= RNA_def_function(srna, "prop_menu_enum", "uiItemMenuEnumR");
-	api_ui_item_common(func);
 	api_ui_item_rna_common(func);
+	api_ui_item_common(func);
 
 	func= RNA_def_function(srna, "prop_enum", "uiItemEnumR_string");
-	api_ui_item_common(func);
 	api_ui_item_rna_common(func);
 	parm= RNA_def_string(func, "value", "", 0, "", "Enum property value.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	api_ui_item_common(func);
 
 	func= RNA_def_function(srna, "prop_object", "uiItemPointerR");
-	api_ui_item_common(func);
 	api_ui_item_rna_common(func);
 	parm= RNA_def_pointer(func, "search_data", "AnyType", "", "Data from which to take collection to search in.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_string(func, "search_property", "", 0, "", "Identifier of search collection property.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	api_ui_item_common(func);
 
 	func= RNA_def_function(srna, "operator", "rna_uiItemO");
 	api_ui_item_op_common(func);
@@ -202,9 +206,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "operator_menu_enum", "uiItemMenuEnumO");
-	api_ui_item_op_common(func);
+	api_ui_item_op(func); /* cant use api_ui_item_op_common because property must come right after */
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	api_ui_item_common(func);
 
 /*	func= RNA_def_function(srna, "operator_boolean", "uiItemBooleanO");
 	api_ui_item_op_common(func);
@@ -239,8 +244,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func= RNA_def_function(srna, "menu", "uiItemM");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	api_ui_item_common(func);
 	parm= RNA_def_string(func, "menu", "", 0, "", "Identifier of the menu.");
+	api_ui_item_common(func);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "separator", "uiItemS");
