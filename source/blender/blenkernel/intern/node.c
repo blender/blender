@@ -2519,9 +2519,38 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 /* local tree then owns all compbufs */
 bNodeTree *ntreeLocalize(bNodeTree *ntree)
 {
-	bNodeTree *ltree= ntreeCopyTree(ntree, 0);
+	bNodeTree *ltree;
 	bNode *node;
 	bNodeSocket *sock;
+	
+	bAction *action_backup= NULL, *tmpact_backup= NULL;
+	
+	/* Workaround for copying an action on each render!
+	 * set action to NULL so animdata actions dont get copied */
+	AnimData *adt= BKE_animdata_from_id(&ntree->id);
+
+	if(adt) {
+		action_backup= adt->action;
+		tmpact_backup= adt->tmpact;
+
+		adt->action= NULL;
+		adt->tmpact= NULL;
+	}
+
+	/* node copy func */
+	ltree= ntreeCopyTree(ntree, 0);
+
+	if(adt) {
+		AnimData *ladt= BKE_animdata_from_id(&ltree->id);
+
+		ladt->action = action_backup;
+		ladt->tmpact = tmpact_backup;
+
+		if(action_backup) action_backup->id.us++;
+		if(tmpact_backup) tmpact_backup->id.us++;
+		
+	}
+	/* end animdata uglyness */
 	
 	/* move over the compbufs */
 	/* right after ntreeCopyTree() oldsock pointers are valid */
