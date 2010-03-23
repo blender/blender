@@ -1516,6 +1516,7 @@ static void direct_link_curvemapping(FileData *fd, CurveMapping *cumap)
 	for(a=0; a<CM_TOT; a++) {
 		cumap->cm[a].curve= newdataadr(fd, cumap->cm[a].curve);
 		cumap->cm[a].table= NULL;
+		cumap->cm[a].premultable= NULL;
 	}
 }
 
