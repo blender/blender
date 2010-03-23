@@ -3469,7 +3469,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	ViewContext vc;
-	float location[3];
+	float location[3] = {0.0f, 0.0f, 0.0f};
 	short mval[2];
 
 	if(rv3d && !RNA_property_is_set(op->ptr, "location")) {
