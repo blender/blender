@@ -41,17 +41,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
 #include "RNA_access.h"
@@ -78,8 +72,6 @@
 #include "ED_armature.h"
 #include "ED_mesh.h"
 #include "ED_particle.h"
-#include "ED_space_api.h"
-#include "ED_transform.h"
 #include "ED_view3d.h"
 
 #include "UI_resources.h"

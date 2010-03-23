@@ -34,12 +34,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -64,7 +61,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "UI_interface.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

@@ -16,8 +16,6 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 
-#include "RNA_access.h"
-#include "RNA_types.h"
 
 #include "ED_keyframing.h"
 

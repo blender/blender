@@ -28,9 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_color_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_string.h"
@@ -52,7 +50,6 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 #include "interface_intern.h"
 
 void ui_template_fix_linking()
@@ -609,9 +606,6 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 #include <string.h>
 
 #include "DNA_object_force.h"
-#include "DNA_object_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
@@ -621,7 +615,6 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 #include "BKE_particle.h"
 #include "BKE_report.h"
 
-#include "UI_resources.h"
 #include "ED_util.h"
 
 #include "BLI_math.h"
@@ -891,7 +884,6 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int
 
 /************************ Constraint Template *************************/
 
-#include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 
 #include "BKE_action.h"

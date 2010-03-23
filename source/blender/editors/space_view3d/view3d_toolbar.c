@@ -31,23 +31,8 @@
 #include <math.h>
 #include <float.h>
 
-#include "DNA_ID.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -76,23 +61,12 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
-#include "ED_armature.h"
-#include "ED_curve.h"
-#include "ED_image.h"
-#include "ED_keyframing.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_particle.h"
 #include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_types.h"
 #include "ED_util.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "view3d_intern.h"	// own include
 

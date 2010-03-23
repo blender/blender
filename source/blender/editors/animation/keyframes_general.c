@@ -36,14 +36,9 @@
 #include "BLI_math.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_access.h"
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"

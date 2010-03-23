@@ -41,7 +41,6 @@
 
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -56,7 +55,6 @@
 #include "ED_datafiles.h"
 #include "ED_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "console_intern.h"

@@ -29,11 +29,8 @@
 #include <string.h>
 
 #include "DNA_color_types.h"
-#include "DNA_listBase.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
 
@@ -48,7 +45,6 @@
 #include "BIF_glutil.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
 
 #include "interface_intern.h"
 

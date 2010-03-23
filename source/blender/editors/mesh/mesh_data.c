@@ -32,14 +32,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"

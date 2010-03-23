@@ -32,10 +32,8 @@
 #include "DNA_curve_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
@@ -68,20 +66,16 @@
 #include "GPU_material.h"
 
 #include "RNA_access.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
-#include "ED_render.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "render_intern.h"	// own include
 

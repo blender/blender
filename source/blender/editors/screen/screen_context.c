@@ -29,7 +29,6 @@
 
 #include "DNA_object_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_action_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 

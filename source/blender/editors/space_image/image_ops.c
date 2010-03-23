@@ -30,16 +30,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_image_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -63,7 +56,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 #include "RNA_enum_types.h"
 
 #include "ED_image.h"

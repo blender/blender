@@ -45,20 +45,7 @@
 #include "MEM_guardedalloc.h"
 
 /* types */
-#include "DNA_curve_types.h"
-#include "DNA_object_types.h"
 #include "DNA_object_fluidsim.h"	
-#include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_key_types.h" 
 
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
@@ -81,16 +68,13 @@
 #include "BKE_scene.h"
 #include "BKE_softbody.h"
 
-#include "PIL_time.h"
 
 #include "LBM_fluidsim.h"
 
 #include "BIF_gl.h"
 
-#include "ED_fluidsim.h"
 #include "ED_screen.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
 
 #include "physics_intern.h" // own include
@@ -98,10 +82,18 @@
 /* enable/disable overall compilation */
 #ifndef DISABLE_ELBEEM
 
+#include "WM_api.h"
+
+#include "DNA_scene_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_mesh_types.h"
+
+#include "PIL_time.h"
+
 /* XXX */
 /* from header info.c */
 static int start_progress_bar(void) {return 0;};
-static void end_progress_bar(wmWindow *win) {WM_cursor_restore(win);};
+static void end_progress_bar(struct wmWindow *win) {WM_cursor_restore(win);};
 static void waitcursor(int val) {};
 static int progress_bar(wmWindow *win, float done, char *busy_info) { WM_timecursor(win,done*100); return 0;}
 static int pupmenu() {return 0;}

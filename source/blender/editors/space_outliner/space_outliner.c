@@ -29,16 +29,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_color_types.h"
-#include "DNA_object_types.h"
-#include "DNA_outliner_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_vec_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -52,7 +42,6 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "WM_api.h"
@@ -61,12 +50,9 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "RNA_access.h"
-#include "RNA_types.h"
 
 #include "outliner_intern.h"
 

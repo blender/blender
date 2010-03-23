@@ -45,22 +45,9 @@
 #include "BLI_math.h"
 #include "BLI_ghash.h"
 
-#include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_brush_types.h"
-#include "DNA_cloth_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
 #include "DNA_particle_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -90,9 +77,7 @@
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
-#include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 #include "ED_view3d.h"
 
 #include "paint_intern.h"

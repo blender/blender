@@ -33,16 +33,12 @@
 
 #include "DNA_actuator_types.h"
 #include "DNA_controller_types.h"
-#include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sensor_types.h"
-#include "DNA_sound_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_action_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -58,19 +54,14 @@
 #include "BKE_sca.h"
 #include "BKE_utildefines.h"
 
-#include "ED_screen.h"
-#include "ED_types.h"
 #include "ED_util.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
 /* XXX BAD BAD */
 #include "../interface/interface_intern.h"

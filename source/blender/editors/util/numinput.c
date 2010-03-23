@@ -34,7 +34,6 @@
 #include "BKE_utildefines.h"	/* ABS */
 
 #include "WM_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "ED_numinput.h"
 

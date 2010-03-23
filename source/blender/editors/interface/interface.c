@@ -32,11 +32,8 @@
  
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
@@ -58,7 +55,6 @@
 
 #include "UI_interface.h"
 
-#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -66,7 +62,6 @@
 #include "wm_window.h"
 
 #include "RNA_access.h"
-#include "RNA_types.h"
 
 #include "BPY_extern.h"
 

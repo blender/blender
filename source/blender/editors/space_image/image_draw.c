@@ -31,9 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_image_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -56,13 +54,11 @@
 
 #include "ED_gpencil.h"
 #include "ED_image.h"
-#include "ED_screen.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
 
 #include "image_intern.h"
 

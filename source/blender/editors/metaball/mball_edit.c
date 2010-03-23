@@ -43,9 +43,6 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
-#include "DNA_userdef_types.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"

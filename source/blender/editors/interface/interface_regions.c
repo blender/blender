@@ -30,10 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_screen_types.h"
-#include "DNA_view2d_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"

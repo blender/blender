@@ -34,12 +34,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -51,7 +47,6 @@
 
 #include "BKE_utildefines.h"
 
-#include "ED_util.h"
 #include "ED_mesh.h"
 
 #include "UI_interface.h"

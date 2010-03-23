@@ -40,15 +40,8 @@
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
-#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -61,11 +54,7 @@
 #include "BKE_key.h"
 #include "BKE_material.h"
 
-#include "ED_anim_api.h"
 #include "ED_keyframing.h"
-#include "ED_keyframes_edit.h"
-#include "ED_screen.h"
-#include "ED_util.h"
 
 #include "UI_interface.h"
 
@@ -74,7 +63,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "anim_intern.h"
 

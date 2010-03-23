@@ -34,29 +34,17 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
-#include "DNA_outliner_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_text_types.h"
 #include "DNA_world_types.h"
 #include "DNA_sequence_types.h"
 
@@ -87,7 +75,6 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
-#include "ED_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -103,16 +90,10 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_armature.h"
 #include "ED_keyframing.h"
-#include "ED_object.h"
-#include "ED_particle.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
 
 #include "outliner_intern.h"
 
-#include "PIL_time.h" 
 
 
 #define OL_H	19

@@ -29,7 +29,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -42,7 +41,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_global.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_view3d.h" /* only for sequencer view3d drawing callback */
 

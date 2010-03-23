@@ -32,8 +32,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_object_force.h"
-#include "DNA_modifier_types.h"
 
 #include "BKE_context.h"
 #include "BKE_particle.h"
@@ -46,12 +44,8 @@
 
 #include "BLI_blenlib.h"
 
-#include "ED_screen.h"
-#include "ED_physics.h"
 #include "ED_particle.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

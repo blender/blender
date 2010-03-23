@@ -29,12 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_vec_types.h"
-#include "DNA_view2d_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -51,7 +46,6 @@
 
 #include "ED_screen.h"
 
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 static int view2d_poll(bContext *C)

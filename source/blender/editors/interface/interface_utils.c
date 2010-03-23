@@ -37,8 +37,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
 
 /*************************** RNA Utilities ******************************/
 

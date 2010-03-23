@@ -36,11 +36,9 @@
 
 #include "BLI_blenlib.h"
 
-#include "DNA_image_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_texture_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

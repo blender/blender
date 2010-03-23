@@ -39,15 +39,10 @@
 #include "BLI_dynstr.h"
 #include "BLI_dlrbTree.h"
 
-#include "DNA_listBase.h"
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -63,21 +58,15 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "BIF_gl.h"
 
-#include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
-#include "ED_keyframing.h"
-#include "ED_keyframes_edit.h"
 #include "ED_screen.h"
 
 #include "armature_intern.h"

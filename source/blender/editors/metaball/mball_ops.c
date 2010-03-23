@@ -31,8 +31,6 @@
 
 #include "RNA_access.h"
 
-#include "DNA_listBase.h"
-#include "DNA_windowmanager_types.h"
 
 #include "ED_screen.h"
 

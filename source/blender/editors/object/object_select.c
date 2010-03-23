@@ -35,10 +35,8 @@
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -60,7 +58,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_screen.h"
 
 #include "RNA_access.h"

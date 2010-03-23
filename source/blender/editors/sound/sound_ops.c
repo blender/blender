@@ -33,9 +33,7 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -47,7 +45,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "ED_sound.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

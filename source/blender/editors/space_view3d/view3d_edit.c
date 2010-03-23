@@ -31,17 +31,9 @@
 #include <math.h>
 #include <float.h>
 
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -60,7 +52,6 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "RE_pipeline.h"	// make_stars
 
 #include "BIF_gl.h"
 
@@ -72,15 +63,10 @@
 
 #include "ED_particle.h"
 #include "ED_retopo.h"
-#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
-#include "ED_types.h"
 #include "ED_mesh.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "PIL_time.h" /* smoothview */
 

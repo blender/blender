@@ -34,19 +34,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
 #include "DNA_gpencil_types.h"
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -55,20 +51,15 @@
 #include "BKE_sequencer.h"
 #include "BKE_utildefines.h"
 
-#include "PIL_time.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "ED_gpencil.h"
 #include "ED_sequencer.h"
-#include "ED_util.h"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "gpencil_intern.h"
 

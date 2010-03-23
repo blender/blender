@@ -31,14 +31,9 @@
 #include <stdlib.h> // for qsort
 #include <float.h>
 
-#include "PIL_time.h"
 
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 #include "DNA_object_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_armature_types.h"
 
 #include "BKE_context.h"
 
@@ -53,13 +48,10 @@
 
 //#include "BDR_editobject.h"
 
-#include "ED_mesh.h"
-#include "ED_armature.h"
 //#include "BIF_interface.h"
 //#include "BIF_toolbox.h"
 //#include "BIF_graphics.h"
 #include "BIF_gl.h"
-#include "UI_resources.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"

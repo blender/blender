@@ -46,8 +46,6 @@
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -66,7 +64,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_curve.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"

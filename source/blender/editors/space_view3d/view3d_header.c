@@ -30,19 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "DNA_armature_types.h"
-#include "DNA_ID.h"
-#include "DNA_image_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h" /* U.smooth_viewtx */
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 
@@ -66,9 +54,6 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h" /* for VECCOPY */
 
-#include "ED_armature.h"
-#include "ED_particle.h"
-#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_util.h"
 #include "ED_screen.h"
@@ -78,7 +63,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -90,9 +74,7 @@
 #include "BLI_editVert.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "view3d_intern.h"
 

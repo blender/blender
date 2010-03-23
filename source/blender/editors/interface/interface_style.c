@@ -30,10 +30,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -50,13 +48,8 @@
 #include "BLF_api.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "ED_datafiles.h"
-#include "ED_util.h"
-#include "ED_types.h"
 
 #include "interface_intern.h"
 

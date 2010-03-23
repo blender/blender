@@ -32,12 +32,6 @@
 #include <float.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -66,17 +60,12 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "ED_anim_api.h"
-#include "ED_keyframing.h"
 #include "ED_screen.h"
-#include "ED_types.h"
-#include "ED_util.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "nla_intern.h"	// own include
 

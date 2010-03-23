@@ -33,7 +33,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -58,7 +57,6 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-#include "ED_armature.h"
 #include "ED_mesh.h"
 
 #include "meshlaplacian.h"

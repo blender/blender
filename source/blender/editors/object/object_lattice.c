@@ -47,7 +47,6 @@
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 
-#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_util.h"

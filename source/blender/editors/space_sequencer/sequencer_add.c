@@ -41,18 +41,8 @@
 #include "BLI_math.h"
 #include "BLI_storage_types.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 
-#include "DNA_ipo_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_view2d_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_sound_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -71,23 +61,13 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 /* for menu/popup icons etc etc*/
-#include "UI_interface.h"
-#include "UI_resources.h"
 
-#include "ED_anim_api.h"
-#include "ED_space_api.h"
-#include "ED_types.h"
 #include "ED_screen.h"
-#include "ED_util.h"
-#include "ED_fileselect.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "BKE_sound.h"

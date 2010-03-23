@@ -40,14 +40,9 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "DNA_image_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_customdata.h"
@@ -65,7 +60,6 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "GPU_draw.h"
 
 #ifndef DISABLE_PYTHON
 //#include "BPY_extern.h"
@@ -74,7 +68,6 @@
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
-#include "ED_object.h"
 #include "ED_view3d.h"
 
 #include "WM_api.h"

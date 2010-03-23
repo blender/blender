@@ -30,11 +30,7 @@
 #include <stdio.h>
 
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_customdata_types.h"
 #include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -49,29 +45,17 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
 #include "ED_image.h"
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_types.h"
-#include "ED_util.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
-#include "RNA_access.h"
 
-#include "RE_pipeline.h"
 
 #include "image_intern.h"
 

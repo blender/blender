@@ -34,22 +34,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_ID.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_curve_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -72,7 +60,6 @@
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
-#include "PIL_time.h"
 
 #include "BIF_gl.h"
 #include "BIF_generate.h"
@@ -88,7 +75,6 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_transform.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
 

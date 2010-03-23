@@ -30,19 +30,13 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -74,24 +68,19 @@
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "BLF_api.h"
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
 #include "ED_gpencil.h"
-#include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_screen_types.h"
-#include "ED_util.h"
 #include "ED_transform.h"
-#include "ED_types.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "GPU_draw.h"
 #include "GPU_material.h"

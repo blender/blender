@@ -39,12 +39,10 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

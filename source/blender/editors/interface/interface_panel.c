@@ -39,8 +39,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
@@ -56,7 +54,6 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
-#include "UI_view2d.h"
 
 #include "interface_intern.h"
 

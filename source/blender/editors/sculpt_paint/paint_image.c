@@ -50,18 +50,10 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "DNA_brush_types.h"
-#include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 #include "BKE_idprop.h"
@@ -82,11 +74,9 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "UI_interface.h"
 #include "UI_view2d.h"
 
 #include "ED_image.h"
-#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_view3d.h"

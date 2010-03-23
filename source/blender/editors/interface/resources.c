@@ -42,7 +42,6 @@
 
 
 #include "DNA_curve_types.h"
-#include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -50,8 +49,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -62,7 +59,6 @@
 #include "BIF_gl.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_interface_icons.h"
 
 #include "interface_intern.h"

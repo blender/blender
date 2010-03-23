@@ -36,15 +36,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_force.h"
-#include "DNA_object_types.h"
-#include "DNA_vec_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
@@ -66,7 +60,6 @@
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
 
-#include "PIL_time.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -75,7 +68,6 @@
 #include "ED_particle.h"
 #include "ED_view3d.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"

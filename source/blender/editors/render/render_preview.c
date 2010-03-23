@@ -46,12 +46,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
-#include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_image_types.h"
 #include "DNA_material_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_space_types.h"
@@ -83,7 +80,6 @@
 
 #include "RE_pipeline.h"
 
-#include "GPU_material.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

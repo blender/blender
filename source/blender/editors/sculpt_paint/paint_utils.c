@@ -7,8 +7,6 @@
 #include "DNA_object_types.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

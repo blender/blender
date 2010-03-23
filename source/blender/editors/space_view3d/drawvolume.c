@@ -35,35 +35,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.h"
 
 
 
 
-#include "DNA_armature_types.h"
-#include "DNA_boid_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_constraint_types.h" // for drawing constraint
-#include "DNA_effect_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_object_fluidsim.h"
-#include "DNA_particle_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_smoke_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -99,23 +77,13 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "GPU_draw.h"
-#include "GPU_material.h"
 #include "GPU_extensions.h"
 
 #include "ED_mesh.h"
-#include "ED_particle.h"
-#include "ED_screen.h"
-#include "ED_types.h"
-#include "ED_util.h"
 
-#include "UI_resources.h"
-#include "UI_interface_icons.h"
 
-#include "WM_api.h"
 #include "BLF_api.h"
 
-#include "GPU_extensions.h"
 
 #include "view3d_intern.h"	// own include
 

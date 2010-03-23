@@ -26,14 +26,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_userdef_types.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -55,7 +49,6 @@
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
-#include "UI_resources.h"
 //#include "BIF_screen.h"
 //#include "BIF_space.h"
 //#include "BIF_mywindow.h"

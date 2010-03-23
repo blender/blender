@@ -34,14 +34,11 @@
 
 #include "PIL_time.h"
 
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h" // Temporary, for snapping to other unselected meshes
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -73,7 +70,6 @@
 #include "ED_armature.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
-#include "ED_transform.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 

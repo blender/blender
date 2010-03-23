@@ -43,15 +43,9 @@
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
 
-#include "DNA_curve_types.h"
 #include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -68,8 +62,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_anim_api.h"
-#include "ED_curve.h"
 #include "ED_keyframes_edit.h"
 #include "ED_object.h"
 #include "ED_screen.h"

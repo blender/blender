@@ -36,15 +36,10 @@
 #include "BLI_math.h"
 #include "BLI_dynstr.h"
 
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_text_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -68,9 +63,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
-#include "RNA_types.h"
 
-#include "ED_object.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"

@@ -36,14 +36,12 @@
 #include "DNA_cloth_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -68,9 +66,7 @@
 #include "WM_types.h"
 
 #include "ED_mesh.h"
-#include "ED_view3d.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "object_intern.h"

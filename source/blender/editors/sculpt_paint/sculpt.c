@@ -39,20 +39,11 @@
 #include "BLI_pbvh.h"
 #include "BLI_threads.h"
 
-#include "DNA_armature_types.h"
-#include "DNA_brush_types.h"
-#include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_color_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_cdderivedmesh.h"
@@ -79,11 +70,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
-#include "ED_space_api.h"
-#include "ED_util.h"
 #include "ED_view3d.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
@@ -91,12 +79,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "IMB_imbuf_types.h"
 
 #include "RE_render_ext.h"
-#include "RE_shader_ext.h" /*for multitex_ext*/
 
-#include "GPU_draw.h"
 #include "gpu_buffers.h"
 
 #include <math.h>

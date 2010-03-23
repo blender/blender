@@ -39,7 +39,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
 
 #include "text_intern.h"

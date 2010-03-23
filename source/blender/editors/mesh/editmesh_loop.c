@@ -40,13 +40,9 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "MEM_guardedalloc.h"
 
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -74,7 +70,6 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "WM_types.h"
 
 #include "ED_mesh.h"
-#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "mesh_intern.h"

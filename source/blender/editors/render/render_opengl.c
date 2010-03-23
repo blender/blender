@@ -37,9 +37,7 @@
 #include "BLI_editVert.h"
 #include "BLI_dlrbTree.h"
 
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_object.h"
@@ -59,23 +57,15 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_util.h"
 #include "ED_screen.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_screen_types.h"
-#include "ED_keyframes_draw.h"
 #include "ED_view3d.h"
 
 #include "RE_pipeline.h"
-#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "GPU_extensions.h"
 

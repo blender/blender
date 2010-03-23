@@ -44,21 +44,8 @@
 #include "BLI_math.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -80,10 +67,8 @@
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
-#include "ED_keyframes_draw.h"
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
-#include "ED_space_api.h"
 #include "ED_transform.h"
 
 #include "WM_api.h"

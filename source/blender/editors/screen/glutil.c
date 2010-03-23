@@ -32,7 +32,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_vec_types.h"
-#include "DNA_listBase.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_colortools.h"

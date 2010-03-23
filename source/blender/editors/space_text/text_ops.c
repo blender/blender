@@ -35,13 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_constraint_types.h"
-#include "DNA_object_types.h"
-#include "DNA_action_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_text_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "PIL_time.h"

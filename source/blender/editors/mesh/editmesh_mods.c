@@ -41,16 +41,11 @@ editmesh_mods.c, UI level access, no geometry changes
 
 
 
-#include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -78,11 +73,9 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_resources.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
