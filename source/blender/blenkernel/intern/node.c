@@ -2543,8 +2543,8 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	if(adt) {
 		AnimData *ladt= BKE_animdata_from_id(&ltree->id);
 
-		ladt->action = action_backup;
-		ladt->tmpact = tmpact_backup;
+		adt->action= ladt->action= action_backup;
+		adt->tmpact= ladt->tmpact= tmpact_backup;
 
 		if(action_backup) action_backup->id.us++;
 		if(tmpact_backup) tmpact_backup->id.us++;
