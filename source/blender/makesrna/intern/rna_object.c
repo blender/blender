@@ -76,12 +76,17 @@ static EnumPropertyItem collision_bounds_items[] = {
 	//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+/* used for 2 enums */
+#define OBTYPE_CU_CURVE {OB_CURVE, "CURVE", 0, "Curve", ""}
+#define OBTYPE_CU_SURF {OB_SURF, "SURFACE", 0, "Surface", ""}
+#define OBTYPE_CU_TEXT {OB_FONT, "TEXT", 0, "Text", ""}
+    
 EnumPropertyItem object_type_items[] = {
 	{OB_MESH, "MESH", 0, "Mesh", ""},
-	{OB_CURVE, "CURVE", 0, "Curve", ""},
-	{OB_SURF, "SURFACE", 0, "Surface", ""},
+	OBTYPE_CU_CURVE,
+	OBTYPE_CU_SURF,
 	{OB_MBALL, "META", 0, "Meta", ""},
-	{OB_FONT, "TEXT", 0, "Text", ""},
+	OBTYPE_CU_TEXT,
 	{0, "", 0, NULL, NULL},
 	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
 	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
@@ -91,6 +96,12 @@ EnumPropertyItem object_type_items[] = {
 	{OB_LAMP, "LAMP", 0, "Lamp", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem object_type_curve_items[] = {
+	OBTYPE_CU_CURVE,
+	OBTYPE_CU_SURF,
+	OBTYPE_CU_TEXT,
+	{0, NULL, 0, NULL, NULL}};
+    
 #ifdef RNA_RUNTIME
 
 #include "BLI_math.h"

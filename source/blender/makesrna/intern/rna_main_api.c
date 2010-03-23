@@ -54,6 +54,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -241,6 +242,20 @@ void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
 		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" must have zero users to be removed, found %d.", image->id.name+2, ID_REAL_USERS(image));
 
 	/* XXX python now has invalid pointer? */
+}
+
+Curve *rna_Main_curves_new(Main *bmain, char* name, int type)
+{
+	Curve *cu= add_curve(name, type);
+	cu->id.us--;
+	return cu;
+}
+void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
+{
+	if(ID_REAL_USERS(cu) <= 0)
+		free_libblock(&bmain->curve, cu);
+	else
+		BKE_reportf(reports, RPT_ERROR, "Curve \"%s\" must have zero users to be removed, found %d.", cu->id.name+2, ID_REAL_USERS(cu));
 }
 
 Tex *rna_Main_textures_new(Main *bmain, char* name)
@@ -508,7 +523,7 @@ void RNA_def_main_screens(BlenderRNA *brna, PropertyRNA *cprop)
 }
 void RNA_def_main_window_managers(BlenderRNA *brna, PropertyRNA *cprop)
 {
-
+    
 }
 void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -552,7 +567,29 @@ void RNA_def_main_lattices(BlenderRNA *brna, PropertyRNA *cprop)
 }
 void RNA_def_main_curves(BlenderRNA *brna, PropertyRNA *cprop)
 {
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "MainCurves");
+	srna= RNA_def_struct(brna, "MainCurves", NULL);
+	RNA_def_struct_ui_text(srna, "Main Curves", "Collection of curves");
+
+	func= RNA_def_function(srna, "new", "rna_Main_curves_new");
+	RNA_def_function_ui_description(func, "Add a new curve to the main database");
+	parm= RNA_def_string(func, "name", "Curve", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", object_type_curve_items, 0, "Type", "The type of curve object to add");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "curve", "Curve", "", "New curve datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_curves_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a curve from the current blendfile.");
+	parm= RNA_def_pointer(func, "curve", "Curve", "", "Curve to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 void RNA_def_main_metaballs(BlenderRNA *brna, PropertyRNA *cprop)
 {
