@@ -189,7 +189,7 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 			if(strcmp(RNA_property_identifier(prop), "filename") == 0)
 				continue;
 
-			uiItemFullR(pa->layout, NULL, 0, op->ptr, prop, -1, 0, 0);
+			uiItemFullR(pa->layout, op->ptr, prop, -1, 0, 0, NULL, 0);
 			empty= 0;
 		}
 		RNA_STRUCT_END;

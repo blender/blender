@@ -702,8 +702,8 @@ void uiItemFloatO(uiLayout *layout, char *name, int icon, char *opname, char *pr
 void uiItemStringO(uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value);
 PointerRNA uiItemFullO(uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag);
 
-void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int flag);
-void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag);
+void uiItemR(uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, char *name, int icon);
+void uiItemFullR(uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag, char *name, int icon);
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value);
 void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, char *propname, char *value, char *name, int icon);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);

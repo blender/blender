@@ -743,57 +743,57 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 		uiLayoutSetActive(split, !(bone->parent && bone->flag & BONE_CONNECTED));
 	}
 	colsub = uiLayoutColumn(split, 1);
-	uiItemR(colsub, "Location", 0, ptr, "location", 0);
+	uiItemR(colsub, ptr, "location", 0, "Location", 0);
 	colsub = uiLayoutColumn(split, 1);
 	uiItemL(colsub, "", 0);
-	uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+	uiItemR(colsub, ptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
 	
 	split = uiLayoutSplit(layout, 0.8, 0);
 	
 	switch(RNA_enum_get(ptr, "rotation_mode")) {
 		case ROT_MODE_QUAT: /* quaternion */
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, "Rotation", 0, ptr, "rotation_quaternion", 0);
+			uiItemR(colsub, ptr, "rotation_quaternion", 0, "Rotation", 0);
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, "4L", 0, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
+			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", 0);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
 			else
 				uiItemL(colsub, "", 0);
-			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
 			break;
 		case ROT_MODE_AXISANGLE: /* axis angle */
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, "Rotation", 0, ptr, "rotation_axis_angle", 0);
+			uiItemR(colsub, ptr, "rotation_axis_angle", 0, "Rotation", 0);
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, "4L", 0, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE);
+			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", 0);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
 			else
 				uiItemL(colsub, "", 0);
-			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
 			break;
 		default: /* euler rotations */
 			colsub = uiLayoutColumn(split, 1);
-			uiItemR(colsub, "Rotation", 0, ptr, "rotation_euler", 0);
+			uiItemR(colsub, ptr, "rotation_euler", 0, "Rotation", 0);
 			colsub = uiLayoutColumn(split, 1);
 			uiItemL(colsub, "", 0);
-			uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
 			break;
 	}
-	uiItemR(layout, "", 0, ptr, "rotation_mode", 0);
+	uiItemR(layout, ptr, "rotation_mode", 0, "", 0);
 	
 	split = uiLayoutSplit(layout, 0.8, 0);
 	colsub = uiLayoutColumn(split, 1);
-	uiItemR(colsub, "Scale", 0, ptr, "scale", 0);
+	uiItemR(colsub, ptr, "scale", 0, "Scale", 0);
 	colsub = uiLayoutColumn(split, 1);
 	uiItemL(colsub, "", 0);
-	uiItemR(colsub, "", ICON_LOCKED, ptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY);
+	uiItemR(colsub, ptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
 	
 	if (ptr->type == &RNA_Object) {
 		Object *ob = ptr->data;
 		if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
-			uiItemR(layout, "Dimensions", 0, ptr, "dimensions", 0);
+			uiItemR(layout, ptr, "dimensions", 0, "Dimensions", 0);
 	}
 }
 
@@ -919,18 +919,18 @@ static void v3d_editarmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 
 
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, "Head", 0, &eboneptr, "head", 0);
+	uiItemR(col, &eboneptr, "head", 0, "Head", 0);
 	if (ebone->parent && ebone->flag & BONE_CONNECTED ) {
 		PointerRNA parptr = RNA_pointer_get(&eboneptr, "parent");
-		uiItemR(col, "Radius", 0, &parptr, "tail_radius", 0);
+		uiItemR(col, &parptr, "tail_radius", 0, "Radius", 0);
 	} else {
-		uiItemR(col, "Radius", 0, &eboneptr, "head_radius", 0);
+		uiItemR(col, &eboneptr, "head_radius", 0, "Radius", 0);
 	}
 	
-	uiItemR(col, "Tail", 0, &eboneptr, "tail", 0);
-	uiItemR(col, "Radius", 0, &eboneptr, "tail_radius", 0);
+	uiItemR(col, &eboneptr, "tail", 0, "Tail", 0);
+	uiItemR(col, &eboneptr, "tail_radius", 0, "Radius", 0);
 	
-	uiItemR(col, "Roll", 0, &eboneptr, "roll", 0);
+	uiItemR(col, &eboneptr, "roll", 0, "Roll", 0);
 }
 
 static void v3d_editmetaball_buts(uiLayout *layout, Object *ob, float lim)
@@ -949,12 +949,12 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob, float lim)
 	RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem, &ptr);
 	
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, "Location", 0, &ptr, "location", 0);
+	uiItemR(col, &ptr, "location", 0, "Location", 0);
 	
-	uiItemR(col, "Radius", 0, &ptr, "radius", 0);
-	uiItemR(col, "Stiffness", 0, &ptr, "stiffness", 0);
+	uiItemR(col, &ptr, "radius", 0, "Radius", 0);
+	uiItemR(col, &ptr, "stiffness", 0, "Stiffness", 0);
 	
-	uiItemR(col, "Type", 0, &ptr, "type", 0);
+	uiItemR(col, &ptr, "type", 0, "Type", 0);
 	
 	col= uiLayoutColumn(layout, 1);
 	switch (RNA_enum_get(&ptr, "type")) {
@@ -962,24 +962,24 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob, float lim)
 			break;
 		case MB_CUBE:
 			uiItemL(col, "Size:", 0);
-			uiItemR(col, "X", 0, &ptr, "size_x", 0);
-			uiItemR(col, "Y", 0, &ptr, "size_y", 0);
-			uiItemR(col, "Z", 0, &ptr, "size_z", 0);
+			uiItemR(col, &ptr, "size_x", 0, "X", 0);
+			uiItemR(col, &ptr, "size_y", 0, "Y", 0);
+			uiItemR(col, &ptr, "size_z", 0, "Z", 0);
 			break;
 		case MB_TUBE:
 			uiItemL(col, "Size:", 0);
-			uiItemR(col, "X", 0, &ptr, "size_x", 0);
+			uiItemR(col, &ptr, "size_x", 0, "X", 0);
 			break;
 		case MB_PLANE:
 			uiItemL(col, "Size:", 0);
-			uiItemR(col, "X", 0, &ptr, "size_x", 0);
-			uiItemR(col, "Y", 0, &ptr, "size_y", 0);
+			uiItemR(col, &ptr, "size_x", 0, "X", 0);
+			uiItemR(col, &ptr, "size_y", 0, "Y", 0);
 			break;
 		case MB_ELIPSOID:
 			uiItemL(col, "Size:", 0);
-			uiItemR(col, "X", 0, &ptr, "size_x", 0);
-			uiItemR(col, "Y", 0, &ptr, "size_y", 0);
-			uiItemR(col, "Z", 0, &ptr, "size_z", 0);
+			uiItemR(col, &ptr, "size_x", 0, "X", 0);
+			uiItemR(col, &ptr, "size_y", 0, "Y", 0);
+			uiItemR(col, &ptr, "size_z", 0, "Z", 0);
 			break;		   
 	}	
 }

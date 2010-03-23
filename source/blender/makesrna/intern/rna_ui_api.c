@@ -55,7 +55,7 @@ static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, char 
 	flag |= (full_event)? UI_ITEM_R_FULL_EVENT: 0;
 	flag |= (no_bg)? UI_ITEM_R_NO_BG: 0;
 
-	uiItemFullR(layout, name, icon, ptr, prop, index, 0, flag);
+	uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon);
 }
 
 static PointerRNA rna_uiItemO(uiLayout *layout, char *opname, char *name, int icon)

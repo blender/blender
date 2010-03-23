@@ -225,14 +225,14 @@ static void draw_modifier__fn_generator(uiLayout *layout, ID *id, FModifier *fcm
 	
 	/* add the settings */
 	col= uiLayoutColumn(layout, 1);
-		uiItemR(col, "", 0, &ptr, "function_type", 0);
-		uiItemR(col, NULL, 0, &ptr, "additive", UI_ITEM_R_TOGGLE);
+		uiItemR(col, &ptr, "function_type", 0, "", 0);
+		uiItemR(col, &ptr, "additive", UI_ITEM_R_TOGGLE, NULL, 0);
 	
 	col= uiLayoutColumn(layout, 0); // no grouping for now
-		uiItemR(col, NULL, 0, &ptr, "amplitude", 0);
-		uiItemR(col, NULL, 0, &ptr, "phase_multiplier", 0);
-		uiItemR(col, NULL, 0, &ptr, "phase_offset", 0);
-		uiItemR(col, NULL, 0, &ptr, "value_offset", 0);
+		uiItemR(col, &ptr, "amplitude", 0, NULL, 0);
+		uiItemR(col, &ptr, "phase_multiplier", 0, NULL, 0);
+		uiItemR(col, &ptr, "phase_offset", 0, NULL, 0);
+		uiItemR(col, &ptr, "value_offset", 0, NULL, 0);
 }
 
 /* --------------- */
@@ -254,14 +254,14 @@ static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, shor
 	/* before range */
 	col= uiLayoutColumn(split, 1);
 		uiItemL(col, "Before:", 0);
-		uiItemR(col, "", 0, &ptr, "before_mode", 0);
-		uiItemR(col, NULL, 0, &ptr, "before_cycles", 0);
+		uiItemR(col, &ptr, "before_mode", 0, "", 0);
+		uiItemR(col, &ptr, "before_cycles", 0, NULL, 0);
 		
 	/* after range */
 	col= uiLayoutColumn(split, 1);
 		uiItemL(col, "After:", 0);
-		uiItemR(col, "", 0, &ptr, "after_mode", 0);
-		uiItemR(col, NULL, 0, &ptr, "after_cycles", 0);
+		uiItemR(col, &ptr, "after_mode", 0, "", 0);
+		uiItemR(col, &ptr, "after_cycles", 0, NULL, 0);
 }
 
 /* --------------- */
@@ -276,20 +276,20 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	RNA_pointer_create(id, &RNA_FModifierNoise, fcm, &ptr);
 	
 	/* blending mode */
-	uiItemR(layout, NULL, 0, &ptr, "modification", 0);
+	uiItemR(layout, &ptr, "modification", 0, NULL, 0);
 	
 	/* split into 2 columns */
 	split= uiLayoutSplit(layout, 0.5f, 0);
 	
 	/* col 1 */
 	col= uiLayoutColumn(split, 0);
-		uiItemR(col, NULL, 0, &ptr, "size", 0);
-		uiItemR(col, NULL, 0, &ptr, "strength", 0);
+		uiItemR(col, &ptr, "size", 0, NULL, 0);
+		uiItemR(col, &ptr, "strength", 0, NULL, 0);
 	
 	/* col 2 */
 	col= uiLayoutColumn(split, 0);
-		uiItemR(col, NULL, 0, &ptr, "phase", 0);
-		uiItemR(col, NULL, 0, &ptr, "depth", 0);
+		uiItemR(col, &ptr, "phase", 0, NULL, 0);
+		uiItemR(col, &ptr, "depth", 0, NULL, 0);
 }
 
 /* --------------- */
@@ -470,11 +470,11 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	/* general settings */
 	col= uiLayoutColumn(layout, 1);
 		uiItemL(col, "Envelope:", 0);
-		uiItemR(col, NULL, 0, &ptr, "reference_value", 0);
+		uiItemR(col, &ptr, "reference_value", 0, NULL, 0);
 		
 		row= uiLayoutRow(col, 1);
-			uiItemR(row, "Min", 0, &ptr, "default_minimum", 0);
-			uiItemR(row, "Max", 0, &ptr, "default_maximum", 0);
+			uiItemR(row, &ptr, "default_minimum", 0, "Min", 0);
+			uiItemR(row, &ptr, "default_maximum", 0, "Max", 0);
 			
 	/* control points header */
 	// TODO: move this control-point control stuff to using the new special widgets for lists
@@ -526,13 +526,13 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
-			uiItemR(col, NULL, 0, &ptr, "use_minimum_x", 0);
-			uiItemR(col, NULL, 0, &ptr, "minimum_x", 0);
+			uiItemR(col, &ptr, "use_minimum_x", 0, NULL, 0);
+			uiItemR(col, &ptr, "minimum_x", 0, NULL, 0);
 			
 		/* y-minimum*/
 		col= uiLayoutColumn(split, 1);
-			uiItemR(col, NULL, 0, &ptr, "use_minimum_y", 0);
-			uiItemR(col, NULL, 0, &ptr, "minimum_y", 0);
+			uiItemR(col, &ptr, "use_minimum_y", 0, NULL, 0);
+			uiItemR(col, &ptr, "minimum_y", 0, NULL, 0);
 	}
 	
 	/* row 2: maximum */
@@ -544,13 +544,13 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
-			uiItemR(col, NULL, 0, &ptr, "use_maximum_x", 0);
-			uiItemR(col, NULL, 0, &ptr, "maximum_x", 0);
+			uiItemR(col, &ptr, "use_maximum_x", 0, NULL, 0);
+			uiItemR(col, &ptr, "maximum_x", 0, NULL, 0);
 			
 		/* y-minimum*/
 		col= uiLayoutColumn(split, 1);
-			uiItemR(col, NULL, 0, &ptr, "use_maximum_y", 0);
-			uiItemR(col, NULL, 0, &ptr, "maximum_y", 0);
+			uiItemR(col, &ptr, "use_maximum_y", 0, NULL, 0);
+			uiItemR(col, &ptr, "maximum_y", 0, NULL, 0);
 	}
 }
 
@@ -567,24 +567,24 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 	
 	/* block 1: "stepping" settings */
 	col= uiLayoutColumn(layout, 0);
-		uiItemR(col, NULL, 0, &ptr, "step_size", 0);
-		uiItemR(col, NULL, 0, &ptr, "offset", 0);
+		uiItemR(col, &ptr, "step_size", 0, NULL, 0);
+		uiItemR(col, &ptr, "offset", 0, NULL, 0);
 		
 	/* block 2: start range settings */
 	col= uiLayoutColumn(layout, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_start_frame", 0);
+		uiItemR(col, &ptr, "use_start_frame", 0, NULL, 0);
 		
 		subcol = uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_start_frame"));
-			uiItemR(subcol, NULL, 0, &ptr, "start_frame", 0);
+			uiItemR(subcol, &ptr, "start_frame", 0, NULL, 0);
 			
 	/* block 3: end range settings */
 	col= uiLayoutColumn(layout, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_end_frame", 0);
+		uiItemR(col, &ptr, "use_end_frame", 0, NULL, 0);
 		
 		subcol = uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_end_frame"));
-			uiItemR(subcol, NULL, 0, &ptr, "end_frame", 0);
+			uiItemR(subcol, &ptr, "end_frame", 0, NULL, 0);
 }
 
 /* --------------- */
@@ -616,10 +616,10 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* expand */
-		uiItemR(subrow, "", 0, &ptr, "expanded", UI_ITEM_R_ICON_ONLY);
+		uiItemR(subrow, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 		
 		/* checkbox for 'active' status (for now) */
-		uiItemR(subrow, "", 0, &ptr, "active", UI_ITEM_R_ICON_ONLY);
+		uiItemR(subrow, &ptr, "active", UI_ITEM_R_ICON_ONLY, "", 0);
 		
 		/* name */
 		if (fmi)
@@ -633,7 +633,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		
 		
 		/* 'mute' button */
-		uiItemR(subrow, "", 0, &ptr, "muted", UI_ITEM_R_ICON_ONLY);
+		uiItemR(subrow, &ptr, "muted", UI_ITEM_R_ICON_ONLY, "", 0);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		

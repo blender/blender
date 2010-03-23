@@ -883,11 +883,11 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 		}
 		else {
 			row= uiLayoutRow(layout, 0);
-			uiItemR(row, NULL, 0, &imaptr, "source", (compact)? 0: UI_ITEM_R_EXPAND);
+			uiItemR(row, &imaptr, "source", (compact)? 0: UI_ITEM_R_EXPAND, NULL, 0);
 
 			if(ima->source != IMA_SRC_GENERATED) {
 				row= uiLayoutRow(layout, 1);
-				uiItemR(row, "", 0, &imaptr, "filename", 0);
+				uiItemR(row, &imaptr, "filename", 0, "", 0);
 				uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
 			}
 
@@ -922,14 +922,14 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 					split= uiLayoutSplit(layout, 0, 0);
 
 					col= uiLayoutColumn(split, 0);
-					uiItemR(col, NULL, 0, &imaptr, "fields", 0);
+					uiItemR(col, &imaptr, "fields", 0, NULL, 0);
 					row= uiLayoutRow(col, 0);
-					uiItemR(row, NULL, 0, &imaptr, "field_order", UI_ITEM_R_EXPAND);
+					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, 0);
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
 
 					col= uiLayoutColumn(split, 0);
-					uiItemR(col, NULL, 0, &imaptr, "antialias", 0);
-					uiItemR(col, NULL, 0, &imaptr, "premultiply", 0);
+					uiItemR(col, &imaptr, "antialias", 0, NULL, 0);
+					uiItemR(col, &imaptr, "premultiply", 0, NULL, 0);
 				}
 			}
 
@@ -942,30 +942,30 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 				 
 				sprintf(str, "(%d) Frames", iuser->framenr);
 				row= uiLayoutRow(col, 1);
-				uiItemR(col, str, 0, userptr, "frames", 0);
+				uiItemR(col, userptr, "frames", 0, str, 0);
 				if(ima->anim) {
 					block= uiLayoutGetBlock(row);
 					but= uiDefBut(block, BUT, 0, "<", 0, 0, UI_UNIT_X*2, UI_UNIT_Y, 0, 0, 0, 0, 0, "Set the number of frames from the movie or sequence.");
 					uiButSetFunc(but, set_frames_cb, ima, iuser);
 				}
 
-				uiItemR(col, "Start", 0, userptr, "start_frame", 0);
-				uiItemR(col, NULL, 0, userptr, "offset", 0);
+				uiItemR(col, userptr, "start_frame", 0, "Start", 0);
+				uiItemR(col, userptr, "offset", 0, NULL, 0);
 
 				col= uiLayoutColumn(split, 0);
-				uiItemR(col, "Fields", 0, userptr, "fields_per_frame", 0);
-				uiItemR(col, NULL, 0, userptr, "auto_refresh", 0);
-				uiItemR(col, NULL, 0, userptr, "cyclic", 0);
+				uiItemR(col, userptr, "fields_per_frame", 0, "Fields", 0);
+				uiItemR(col, userptr, "auto_refresh", 0, NULL, 0);
+				uiItemR(col, userptr, "cyclic", 0, NULL, 0);
 			}
 			else if(ima->source==IMA_SRC_GENERATED) {
 				split= uiLayoutSplit(layout, 0, 0);
 
 				col= uiLayoutColumn(split, 1);
-				uiItemR(col, "X", 0, &imaptr, "generated_width", 0);
-				uiItemR(col, "Y", 0, &imaptr, "generated_height", 0);
+				uiItemR(col, &imaptr, "generated_width", 0, "X", 0);
+				uiItemR(col, &imaptr, "generated_height", 0, "Y", 0);
 
 				col= uiLayoutColumn(split, 0);
-				uiItemR(col, NULL, 0, &imaptr, "generated_type", UI_ITEM_R_EXPAND);
+				uiItemR(col, &imaptr, "generated_type", UI_ITEM_R_EXPAND, NULL, 0);
 			}
 
 					}

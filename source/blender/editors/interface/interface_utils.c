@@ -157,7 +157,7 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int 
 		else
 			col= NULL;
 
-		uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0);
+		uiItemFullR(col, ptr, prop, -1, 0, 0, "", 0);
 	}
 	RNA_STRUCT_END;
 }

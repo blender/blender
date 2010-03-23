@@ -466,7 +466,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlockEndAlign(block);
 	
 	/* Draw type */
-	uiItemR(layout, "", 0, &v3dptr, "viewport_shading", UI_ITEM_R_ICON_ONLY);
+	uiItemR(layout, &v3dptr, "viewport_shading", UI_ITEM_R_ICON_ONLY, "", 0);
 
 	if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)))) {
 		/* Manipulators aren't used in weight paint mode */
@@ -474,13 +474,13 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		PointerRNA meshptr;
 
 		RNA_pointer_create(&ob->id, &RNA_Mesh, ob->data, &meshptr);
-		uiItemR(layout, "", 0, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY);
+		uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", 0);
 	} else {
 		char *str_menu;
 
 		row= uiLayoutRow(layout, 1);
-		uiItemR(row, "", 0, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY);
-		uiItemR(row, "", 0, &v3dptr, "pivot_point_align", UI_ITEM_R_ICON_ONLY);
+		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", 0);
+		uiItemR(row, &v3dptr, "pivot_point_align", UI_ITEM_R_ICON_ONLY, "", 0);
 
 		/* NDOF */
 		/* Not implemented yet
@@ -495,7 +495,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		/* Transform widget / manipulators */
 		row= uiLayoutRow(layout, 1);
-		uiItemR(row, "", 0, &v3dptr, "manipulator", UI_ITEM_R_ICON_ONLY);
+		uiItemR(row, &v3dptr, "manipulator", UI_ITEM_R_ICON_ONLY, "", 0);
 		block= uiLayoutGetBlock(row);
 		
 		if(v3d->twflag & V3D_USE_MANIPULATOR) {
@@ -523,7 +523,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiTemplateLayers(layout, &v3dptr, "visible_layers", &v3dptr, "used_layers", ob_lay);
 
 		/* Scene lock */
-		uiItemR(layout, "", 0, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY);
+		uiItemR(layout, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY, "", 0);
 	}
 	
 	/* selection modus, dont use python for this since it cant do the toggle buttons with shift+click as well as clicking to set one. */
