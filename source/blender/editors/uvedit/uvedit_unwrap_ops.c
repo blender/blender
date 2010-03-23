@@ -49,6 +49,7 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
+#include "BLI_uvproject.h"
 
 #include "PIL_time.h"
 
@@ -865,115 +866,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
 }
 
 /**************** Project From View operator **************/
-
-static void uv_from_view_bounds(float target[2], float source[3], float rotmat[4][4])
-{
-	float pv[3];
-
-	mul_m4_v3(rotmat, pv);
-
-	/* ortho projection */
-	target[0] = -pv[0];
-	target[1] = pv[2];
-}
-
-typedef struct UvCameraInfo {
-	float camangle;
-	float camsize;
-	float xasp, yasp;
-	float shiftx, shifty;
-	float rotmat[4][4];
-	float caminv[4][4];
-	short do_persp, do_pano;
-} UvCameraInfo;
-
-//static void uv_from_camera(float camsize, float camangle, float xasp, float yasp, float target[2], float source[3], float rotmat[4][4], float caminv[4][4], int persp, int pano)
-static void uv_from_camera(UvCameraInfo *uci, float target[2], float source[3])
-{
-	float pv4[4];
-
-	copy_v3_v3(pv4, source);
-	pv4[3]= 1.0;
-
-	/* rotmat is the object matrix in this case */
-	mul_m4_v4(uci->rotmat, pv4);
-
-	/* caminv is the inverse camera matrix */
-	mul_m4_v4(uci->caminv, pv4);
-
-	if(uci->do_pano) {
-		float angle= atan2f(pv4[0], -pv4[2]) / (M_PI * 2.0); /* angle around the camera */
-		if (uci->do_persp==0) {
-			target[0] = angle; /* no correct method here, just map to  0-1 */
-			target[1] = pv4[1] / uci->camsize;
-		}
-		else {
-			float vec2d[2]= {pv4[0], pv4[2]}; /* 2D position from the camera */
-			target[0] = angle * (M_PI / uci->camangle);
-			target[1] = pv4[1] / (len_v2(vec2d) * uci->camsize);
-		}
-	}
-	else {
-		if (pv4[2]==0.0f) pv4[2]=0.00001f; /* don't allow div by 0 */
-
-		if (uci->do_persp==0) {
-			target[0]=(pv4[0]/uci->camsize) * uci->xasp;
-			target[1]=(pv4[1]/uci->camsize) * uci->yasp;
-		}
-		else {
-			target[0]=(-pv4[0]*((1.0f/uci->camsize)/pv4[2])*uci->xasp) / 2.0f;
-			target[1]=(-pv4[1]*((1.0f/uci->camsize)/pv4[2])*uci->yasp) / 2.0f;
-		}
-	}
-
-	/* adds camera shift + 0.5 */
-	target[0] += uci->shiftx;
-	target[1] += uci->shifty;
-}
-
-static void uv_from_view(ARegion *ar, float target[2], float source[3], float rotmat[4][4])
-{
-	RegionView3D *rv3d= ar->regiondata;
-	float pv[3], pv4[4], dx, dy, x= 0.0, y= 0.0;
-
-	mul_m4_v3(rotmat, pv);
-
-	dx= ar->winx;
-	dy= ar->winy;
-
-	copy_v3_v3(pv4, source);
-	pv4[3]= 1.0;
-
-	/* rotmat is the object matrix in this case */
-	mul_m4_v4(rotmat, pv4); 
-
-	/* almost project_short */
-	mul_m4_v4(rv3d->persmat, pv4);
-	if(fabs(pv4[3]) > 0.00001) { /* avoid division by zero */
-		target[0] = dx/2.0 + (dx/2.0)*pv4[0]/pv4[3];
-		target[1] = dy/2.0 + (dy/2.0)*pv4[1]/pv4[3];
-	}
-	else {
-		/* scaling is lost but give a valid result */
-		target[0] = dx/2.0 + (dx/2.0)*pv4[0];
-		target[1] = dy/2.0 + (dy/2.0)*pv4[1];
-	}
-
-	/* v3d->persmat seems to do this funky scaling */ 
-	if(dx > dy) {
-		y= (dx-dy)/2.0;
-		dy = dx;
-	}
-	else {
-		x= (dy-dx)/2.0;
-		dx = dy;
-	}
-
-	target[0]= (x + target[0])/dx;
-	target[1]= (y + target[1])/dy;
-}
-
-static int from_view_exec(bContext *C, wmOperator *op)
+static int uv_from_view_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -1004,53 +897,31 @@ static int from_view_exec(bContext *C, wmOperator *op)
 			if(efa->f & SELECT) {
 				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-				uv_from_view_bounds(tf->uv[0], efa->v1->co, rotmat);
-				uv_from_view_bounds(tf->uv[1], efa->v2->co, rotmat);
-				uv_from_view_bounds(tf->uv[2], efa->v3->co, rotmat);
+				project_from_view_ortho(tf->uv[0], efa->v1->co, rotmat);
+				project_from_view_ortho(tf->uv[1], efa->v2->co, rotmat);
+				project_from_view_ortho(tf->uv[2], efa->v3->co, rotmat);
 				if(efa->v4)
-					uv_from_view_bounds(tf->uv[3], efa->v4->co, rotmat);
+					project_from_view_ortho(tf->uv[3], efa->v4->co, rotmat);
 			}
 		}
 	}
 	else if (camera) {
-		UvCameraInfo uci;
-
-		uci.do_pano = (camera->flag & CAM_PANORAMA);
-		uci.do_persp = (camera->type==CAM_PERSP);
-
-		uci.camangle= DEG2RAD(camera->angle)/2.0f;
-		uci.camsize=  uci.do_persp ?  uci.camsize= tanf(uci.camangle) : camera->ortho_scale;
-
-		if (invert_m4_m4(uci.caminv, v3d->camera->obmat)) {
-
-			/* normal projection */
-			copy_m4_m4(uci.rotmat, obedit->obmat);
-
-			/* also make aspect ratio adjustment factors */
-			if (scene->r.xsch > scene->r.ysch) {
-				uci.xasp= 1.0f;
-				uci.yasp= (float)(scene->r.xsch)/(float)(scene->r.ysch);
-			}
-			else {
-				uci.xasp= (float)(scene->r.ysch)/(float)(scene->r.xsch);
-				uci.yasp= 1.0f;
-			}
-			
-			/* include 0.5f here to move the UVs into the center */
-			uci.shiftx = 0.5f - camera->shiftx;
-			uci.shifty = 0.5f - camera->shifty;
-
+		struct UvCameraInfo *uci= project_camera_info(v3d->camera, obedit->obmat, scene->r.xsch, scene->r.ysch);
+		
+		if(uci) {
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(efa->f & SELECT) {
 					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-					uv_from_camera(&uci, tf->uv[0], efa->v1->co);
-					uv_from_camera(&uci, tf->uv[1], efa->v2->co);
-					uv_from_camera(&uci, tf->uv[2], efa->v3->co);
+					project_from_camera(tf->uv[0], efa->v1->co, uci);
+					project_from_camera(tf->uv[1], efa->v2->co, uci);
+					project_from_camera(tf->uv[2], efa->v3->co, uci);
 					if(efa->v4)
-						uv_from_camera(&uci, tf->uv[3], efa->v4->co);
+						project_from_camera(tf->uv[3], efa->v4->co, uci);
 				}
 			}
+			
+			MEM_freeN(uci);
 		}
 	}
 	else {
@@ -1060,11 +931,11 @@ static int from_view_exec(bContext *C, wmOperator *op)
 			if(efa->f & SELECT) {
 				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-				uv_from_view(ar, tf->uv[0], efa->v1->co, rotmat);
-				uv_from_view(ar, tf->uv[1], efa->v2->co, rotmat);
-				uv_from_view(ar, tf->uv[2], efa->v3->co, rotmat);
+				project_from_view(tf->uv[0], efa->v1->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
+				project_from_view(tf->uv[1], efa->v2->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
+				project_from_view(tf->uv[2], efa->v3->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
 				if(efa->v4)
-					uv_from_view(ar, tf->uv[3], efa->v4->co, rotmat);
+					project_from_view(tf->uv[3], efa->v4->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
 			}
 		}
 	}
@@ -1078,7 +949,7 @@ static int from_view_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int from_view_poll(bContext *C)
+static int uv_from_view_poll(bContext *C)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
@@ -1096,8 +967,8 @@ void UV_OT_from_view(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= from_view_exec;
-	ot->poll= from_view_poll;
+	ot->exec= uv_from_view_exec;
+	ot->poll= uv_from_view_poll;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "orthographic", 0, "Orthographic", "Use orthographic projection.");
