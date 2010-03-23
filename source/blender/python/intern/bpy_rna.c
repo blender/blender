@@ -1099,12 +1099,17 @@ static Py_ssize_t pyrna_prop_collection_length( BPy_PropertyRNA *self )
 static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_ssize_t keynum)
 {
 	PointerRNA newptr;
+    int len= RNA_property_collection_length(&self->ptr, self->prop);
 
-	if(keynum < 0) keynum += RNA_property_collection_length(&self->ptr, self->prop);
+	if(keynum < 0) keynum += len;
 
-	if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr))
-		return pyrna_struct_CreatePyObject(&newptr);
-
+    if(keynum >= 0 && keynum < len)  {
+        if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr)) {
+            return pyrna_struct_CreatePyObject(&newptr);
+        }        
+        PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d could not be found", keynum);
+        return NULL;
+    }
 	PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d out of range", keynum);
 	return NULL;
 }
