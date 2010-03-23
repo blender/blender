@@ -3049,6 +3049,13 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	
 	RNA_parameter_list_end(&iter);
 
+    /* TODO: arg passing is currently messed up with keyword and args,
+	 * needs reworking however this should stop annoying problems
+     * where args are ignored (for now) */
+    if(i != pyargs_len) {
+		PyErr_Format(PyExc_TypeError, "%.200s.%.200s(): congratulations, you found a bug in blender. argument %d needs to be a keyword argument until its fixed", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), i+1);
+		err= -1;
+	}
 
 	/* Check if we gave args that dont exist in the function
 	 * printing the error is slow but it should only happen when developing.
