@@ -127,8 +127,6 @@ typedef struct KeyingSetInfo {
 	char name[64];
 		/* keying settings */
 	short keyingflag;
-		/* builtin? */
-	short builtin;
 	
 	/* polling callbacks */
 		/* callback for polling the context for whether the right data is available */
@@ -189,6 +187,9 @@ void ANIM_keyingset_infos_exit(void);
 
 /* Get the active KeyingSet for the given scene */
 struct KeyingSet *ANIM_scene_get_active_keyingset(struct Scene *scene);
+
+/* Get the index of the Keying Set provided, for the given Scene */
+int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks);
 
 /* Check if KeyingSet can be used in the current context */
 short ANIM_keyingset_context_ok_poll(struct bContext *C, struct KeyingSet *ks);

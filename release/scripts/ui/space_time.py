@@ -77,7 +77,7 @@ class TIME_HT_header(bpy.types.Header):
         layout.separator()
 
         row = layout.row(align=True)
-        row.prop_object(scene, "active_keying_set", scene, "keying_sets", text="")
+        row.prop_object(scene, "active_keying_set", scene, "all_keying_sets", text="")
         row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 

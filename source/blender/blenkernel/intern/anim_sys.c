@@ -769,10 +769,10 @@ static short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 /* Write the given value to a setting using RNA, and return success */
 static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_index, float value)
 {
-	// printf("%p %s %i %f\n", ptr, path, array_index, value);
-
 	PropertyRNA *prop;
 	PointerRNA new_ptr;
+	
+	//printf("%p %s %i %f\n", ptr, path, array_index, value);
 	
 	/* get property to write to */
 	if (RNA_path_resolve(ptr, path, &new_ptr, &prop)) 
@@ -781,7 +781,7 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 		if (RNA_property_animateable(&new_ptr, prop)) 
 		{
 			int array_len= RNA_property_array_length(&new_ptr, prop);
-
+			
 			if(array_len && array_index >= array_len)
 			{
 				if (G.f & G_DEBUG) {
@@ -789,10 +789,10 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 						(ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name+2) : "<No ID>",
 						path, array_index, array_len-1);
 				}
-
+				
 				return 0;
 			}
-
+			
 			switch (RNA_property_type(prop)) 
 			{
 				case PROP_BOOLEAN:
@@ -1003,7 +1003,12 @@ static void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 		animsys_evaluate_fcurves(&strip_ptr, &strip->fcurves, NULL, ctime);
 	}
 
-	if (strip->flag & NLASTRIP_FLAG_USR_TIME && strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC)
+	/* if user can control the evaluation time (using F-Curves), consider the option which allows this time to be clamped 
+	 * to lie within extents of the action-clip, so that a steady changing rate of progress through several cycles of the clip
+	 * can be achieved easily
+	 */
+	// NOTE: if we add any more of these special cases, we better group them up nicely...
+	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) && (strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC))
 		strip->strip_time= fmod(strip->strip_time - strip->actstart, strip->actend - strip->actstart);
 }
 
@@ -1740,7 +1745,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 */
 	// TODO: need to double check that this all works correctly
 	if ((recalc & ADT_RECALC_ANIM) || (adt->recalc & ADT_RECALC_ANIM))
-	 {
+	{
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF))
 		{

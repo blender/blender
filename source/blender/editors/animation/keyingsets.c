@@ -521,20 +521,12 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, const char name[
 /* Add the given KeyingSetInfo to the list of type infos, and create an appropriate builtin set too */
 void ANIM_keyingset_info_register (const bContext *C, KeyingSetInfo *ksi)
 {
-	Scene *scene = CTX_data_scene(C);
-	ListBase *list = NULL;
 	KeyingSet *ks;
-	
-	/* determine the KeyingSet list to include the new KeyingSet in */
-	if (ksi->builtin==0 && scene)
-		list = &scene->keyingsets;
-	else
-		list = &builtin_keyingsets;
 	
 	/* create a new KeyingSet 
 	 *	- inherit name and keyframing settings from the typeinfo
 	 */
-	ks = BKE_keyingset_add(list, ksi->name, ksi->builtin, ksi->keyingflag);
+	ks = BKE_keyingset_add(&builtin_keyingsets, ksi->name, 1, ksi->keyingflag);
 	
 	/* link this KeyingSet with its typeinfo */
 	memcpy(&ks->typeinfo, ksi->name, sizeof(ks->typeinfo));
@@ -549,8 +541,10 @@ void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks, *ksn;
 	
-	/* find relevant scene KeyingSets which use this, and remove them */
-	for (ks= scene->keyingsets.first; ks; ks= ksn) {
+	/* find relevant builtin KeyingSets which use this, and remove them */
+	// TODO: this isn't done now, since unregister is really only used atm when we
+	// reload the scripts, which kindof defeats the purpose of "builtin"?
+	for (ks= builtin_keyingsets.first; ks; ks= ksn) {
 		ksn = ks->next;
 		
 		/* remove if matching typeinfo name */
@@ -559,11 +553,6 @@ void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
 			BLI_freelinkN(&scene->keyingsets, ks);
 		}
 	}
-	
-	/* do the same with builtin sets? */
-	// TODO: this isn't done now, since unregister is really only used atm when we
-	// reload the scripts, which kindof defeats the purpose of "builtin"?
-	
 	
 	/* free the type info */
 	BLI_freelinkN(&keyingset_type_infos, ksi);
@@ -595,18 +584,49 @@ void ANIM_keyingset_infos_exit ()
 /* Get the active Keying Set for the Scene provided */
 KeyingSet *ANIM_scene_get_active_keyingset (Scene *scene)
 {
-	if (ELEM(NULL, scene, scene->keyingsets.first))
+	/* if no scene, we've got no hope of finding the Keying Set */
+	if (scene == NULL)
 		return NULL;
 	
 	/* currently, there are several possibilities here:
 	 *	-   0: no active keying set
 	 *	- > 0: one of the user-defined Keying Sets, but indices start from 0 (hence the -1)
-	 *	- < 0: a builtin keying set (XXX this isn't enabled yet so that we don't get errors on reading back files)
+	 *	- < 0: a builtin keying set
 	 */
 	if (scene->active_keyingset > 0)
 		return BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
-	else // for now...
-		return NULL; 
+	else
+		return BLI_findlink(&builtin_keyingsets, (-scene->active_keyingset)-1);
+}
+
+/* Get the index of the Keying Set provided, for the given Scene */
+int ANIM_scene_get_keyingset_index (Scene *scene, KeyingSet *ks)
+{
+	int index;
+	
+	/* if no KeyingSet provided, have none */
+	if (ks == NULL)
+		return 0;
+	
+	/* check if the KeyingSet exists in scene list */
+	if (scene) {
+		/* get index and if valid, return 
+		 *	- (absolute) Scene KeyingSets are from (>= 1)
+		 */
+		index = BLI_findindex(&scene->keyingsets, ks);
+		if (index != -1)
+			return (index + 1);
+	}
+	
+	/* still here, so try builtins list too 
+	 *	- builtins are from (<= -1)
+	 *	- none/invalid is (= 0)
+	 */
+	index = BLI_findindex(&builtin_keyingsets, ks);
+	if (index != -1)
+		return -(index + 1);
+	else
+		return 0;
 }
 
 /* Check if KeyingSet can be used in the current context */

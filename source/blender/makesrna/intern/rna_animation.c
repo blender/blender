@@ -362,16 +362,11 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	
 	RNA_define_verify_sdna(0); // not in sdna
 		
-		/* Name */
-	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	/* Name */
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_flag(prop, PROP_REGISTER);
-	
-	prop= RNA_def_property(srna, "bl_builtin", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "builtin", 1);
-	RNA_def_property_ui_text(prop, "BuiltIn", "Keying Set type is required internally.");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	
 	rna_def_common_keying_flags(srna, 1); /* '1' arg here is to indicate that we need these to be set on registering */
@@ -471,6 +466,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	/* Name */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_struct_ui_icon(srna, ICON_KEY_HLT); // TODO: we need a dedicated icon
 	RNA_def_struct_name_property(srna, prop);
 	
 	/* TypeInfo associated with Relative KeyingSet (only) */
@@ -501,7 +497,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	/* Flags */
 	prop= RNA_def_property(srna, "absolute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_ABSOLUTE);
-	RNA_def_property_ui_text(prop, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
+	RNA_def_property_ui_text(prop, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");	
 	
 	/* Keyframing Flags */
 	rna_def_common_keying_flags(srna, 0);
