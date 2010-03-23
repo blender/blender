@@ -2835,6 +2835,10 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 	
 	if( is_u_selected(nu1, nu1->pntsu-1) );
 	else {
+		/* For 2D curves blender uses orderv=0. It doesn't make any sense mathematically. */
+		/* but after rotating orderu=0 will be confusing. */
+		if (nu1->orderv == 0) nu1->orderv= 1;
+
 		rotate_direction_nurb(nu1);
 		if( is_u_selected(nu1, nu1->pntsu-1) );
 		else {
@@ -2855,6 +2859,7 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 	/* 2nd nurbs: u = 0 selected */
 	if( is_u_selected(nu2, 0) );
 	else {
+		if (nu2->orderv == 0) nu2->orderv= 1;
 		rotate_direction_nurb(nu2);
 		if( is_u_selected(nu2, 0) );
 		else {
@@ -2900,8 +2905,8 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 	/* merge */
 	origu= nu1->pntsu;
 	nu1->pntsu+= nu2->pntsu;
-	if(nu1->orderu<3) nu1->orderu++;
-	if(nu1->orderv<3) nu1->orderv++;
+	if(nu1->orderu<3 && nu1->orderu<nu1->pntsu) nu1->orderu++;
+	if(nu1->orderv<3 && nu1->orderv<nu1->pntsv) nu1->orderv++;
 	temp= nu1->bp;
 	nu1->bp= MEM_mallocN(nu1->pntsu*nu1->pntsv*sizeof(BPoint), "mergeBP");
 	
@@ -2976,7 +2981,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 		BLI_freelistN(&nsortbase);
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	while(nus2) {
 		merge_2_nurb(op, editnurb, nus1->nu, nus2->nu);
 		nus2= nus2->next;
