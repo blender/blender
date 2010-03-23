@@ -1188,6 +1188,11 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Image Pin", "Display current image regardless of object selection");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
+	prop= RNA_def_property(srna, "sample_histogram", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "sample_line_hist");
+	RNA_def_property_struct_type(prop, "Histogram");
+	RNA_def_property_ui_text(prop, "Line sample", "Sampled colors along line");
+	
 	/* image draw */
 	prop= RNA_def_property(srna, "draw_repeated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_DRAW_TILE);

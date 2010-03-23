@@ -475,6 +475,7 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_cycle_render_slot);
 
 	WM_operatortype_append(IMAGE_OT_sample);
+	WM_operatortype_append(IMAGE_OT_sample_line);
 	WM_operatortype_append(IMAGE_OT_curves_point_set);
 
 	WM_operatortype_append(IMAGE_OT_record_composite);

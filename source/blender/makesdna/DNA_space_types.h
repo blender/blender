@@ -260,6 +260,7 @@ typedef struct SpaceImage {
 	struct bGPdata *gpd;			/* grease pencil data */
 	
 	struct Histogram hist;			/* viewer histogram */
+	struct Histogram sample_line_hist;	/* sample line histogram */
 } SpaceImage;
 
 typedef struct SpaceNla {
