@@ -1956,7 +1956,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 							interp_v3_v3v3(beztn->vec[1], vec+9, vec+12, factor);
 							VECCOPY(beztn->vec[2], vec+12);
 							/* handle of next bezt */
-							if(a==0 && (nu->flagu & CU_NURB_CYCLIC)) {VECCOPY(beztnew->vec[0], vec+6);}
+							if(a==0 && i == number_cuts - 1 && (nu->flagu & CU_NURB_CYCLIC)) {VECCOPY(beztnew->vec[0], vec+6);}
 							else {VECCOPY(bezt->vec[0], vec+6);}
 
 							beztn->radius = (prevbezt->radius + bezt->radius)/2;
