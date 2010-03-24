@@ -1934,7 +1934,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					if( BEZSELECTED_HIDDENHANDLES(cu, prevbezt) && BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
 						float prevvec[3][3];
 
-						memcpy(prevvec, prevbezt->vec, sizeof(float) * 12);
+						memcpy(prevvec, prevbezt->vec, sizeof(float) * 9);
 
 						for (i = 0; i < number_cuts; i++) {
 							factor = 1.0f / (number_cuts + 1 - i);
@@ -1962,7 +1962,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 							beztn->radius = (prevbezt->radius + bezt->radius)/2;
 							beztn->weight = (prevbezt->weight + bezt->weight)/2;
 
-							memcpy(prevvec, beztn->vec, sizeof(float) * 12);
+							memcpy(prevvec, beztn->vec, sizeof(float) * 9);
 							beztn++;
 						}
 					}
