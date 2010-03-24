@@ -103,7 +103,6 @@ EnumPropertyItem constraint_ik_axisref_items[] ={
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 
-#include "ED_object.h"
 
 static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 {

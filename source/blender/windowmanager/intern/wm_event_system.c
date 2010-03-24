@@ -56,7 +56,6 @@
 #include "ED_fileselect.h"
 #include "ED_info.h"
 #include "ED_screen.h"
-#include "ED_space_api.h"
 #include "ED_util.h"
 
 #include "RNA_access.h"

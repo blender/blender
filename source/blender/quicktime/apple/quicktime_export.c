@@ -35,8 +35,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

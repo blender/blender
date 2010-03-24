@@ -39,8 +39,6 @@
 
 #include "BKE_context.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
 
 static wmKeyMap *rna_keymap_add(wmKeyConfig *keyconf, char *idname, int spaceid, int regionid, int modal)
 {

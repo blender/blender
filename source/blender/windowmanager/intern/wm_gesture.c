@@ -49,7 +49,6 @@
 #include "wm_subwindow.h"
 #include "wm_draw.h"
 
-#include "ED_screen.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

@@ -31,7 +31,6 @@
 
 #include "RNA_define.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #ifdef RNA_RUNTIME

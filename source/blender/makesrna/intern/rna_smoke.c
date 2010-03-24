@@ -46,7 +46,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"
 
-#include "ED_object.h"
 
 static void rna_Smoke_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {

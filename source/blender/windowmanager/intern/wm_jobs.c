@@ -48,7 +48,6 @@
 #include "wm_event_types.h"
 #include "wm.h"
 
-#include "ED_screen.h"
 
 
 /* ********************** Threaded Jobs Manager ****************************** */

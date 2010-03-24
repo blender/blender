@@ -44,10 +44,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_writeavi.h"
 
-#include "ED_object.h"
-#include "ED_anim_api.h"
 
-#include "WM_api.h"
 
 static void rna_Scene_set_frame(Scene *scene, bContext *C, int frame)
 {

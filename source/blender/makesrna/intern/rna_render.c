@@ -30,7 +30,6 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
 
 #include "RE_pipeline.h"
 
@@ -43,7 +42,6 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-#include "WM_api.h"
 
 /* RenderEngine */
 
