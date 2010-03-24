@@ -46,6 +46,8 @@ struct ID;
 struct ImBuf;
 struct Image;
 struct ImageUser;
+struct KeyingSetInfo;
+struct KeyingSet;
 struct LOD_Decimation_Info;
 struct MTex;
 struct Main;
@@ -78,8 +80,10 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmWindowManager;
 
+
+
 /*new render funcs */
-float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return NULL;}
+float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return (float *) NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name) {return (struct RenderLayer *)NULL;}
 
@@ -100,9 +104,9 @@ struct RenderResult *RE_GetResult(struct Render *re){return (struct RenderResult
 struct Render *RE_GetRender(const char *name){return (struct Render *) NULL;}
 
 /* blenkernel */
-char* btempdir(){return NULL;}
+char* btempdir(){return (char *) NULL;}
 void RE_FreeRenderResult(struct RenderResult *res){}
-char* datatoc_bmonofont_ttf(){return NULL;}
+char* datatoc_bmonofont_ttf(){return (char *) NULL;}
 int datatoc_bmonofont_ttf_size(){return 0;}
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty){return (struct RenderResult *) NULL;}
 void RE_GetResultImage(struct Render *re, struct RenderResult *rr){}
@@ -121,10 +125,11 @@ struct Render *RE_NewRender(const char *name){return (struct Render*) NULL;}
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame){}
 
 /* rna */
-float *give_cursor(struct Scene *scene, struct View3D *v3d){return NULL;}
+float *give_cursor(struct Scene *scene, struct View3D *v3d){return (float *) NULL;}
 void WM_menutype_free(void){}
 void WM_menutype_freelink(struct MenuType* mt){}
 int WM_menutype_add(struct MenuType *mt) {return 0;}
+int WM_operator_props_dialog_popup (struct bContext *C, struct wmOperator *op, int width, int height){return 0;}
 struct MenuType *WM_menutype_find(const char *idname, int quiet){return (struct MenuType *) NULL;}
 
 void WM_autosave_init(struct bContext *C){}
@@ -141,8 +146,8 @@ void object_test_constraints (struct Object *owner){}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr){}
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con){}
 void ED_node_composit_default(struct Scene *sce){}
-void *ED_region_draw_cb_activate(struct ARegionType *art, void(*draw)(const struct bContext *, struct ARegion *, void *), void *custumdata, int type){return 0;}
-void *ED_region_draw_cb_customdata(void *handle){return 0;}
+void *ED_region_draw_cb_activate(struct ARegionType *art, void(*draw)(const struct bContext *, struct ARegion *, void *), void *custumdata, int type){return 0;} /* XXX this one looks wierd */
+void *ED_region_draw_cb_customdata(void *handle){return 0;} /* XXX This one looks wrong also */
 void ED_region_draw_cb_exit(struct ARegionType *art, void *handle){}
 
 struct EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, struct EditBone *ebo){return (struct EditBone *) NULL;}
@@ -179,13 +184,16 @@ int WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2){ret
 
 
 /* rna editors */
-struct KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[]){return NULL;}
+struct KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[]){return (struct KeyingSetInfo *) NULL;}
+struct KeyingSet *ANIM_scene_get_active_keyingset (struct Scene *scene){return (struct KeyingSet *) NULL;}
+int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks){return 0;}
+struct ListBase builtin_keyingsets;
 void ANIM_keyingset_info_register (const struct bContext *C, struct KeyingSetInfo *ksi){}
 void ANIM_keyingset_info_unregister (const struct bContext *C, struct KeyingSetInfo *ksi){}
 short ANIM_add_driver(struct ID *id, const char rna_path[], int array_index, short flag, int type){return 0;}
 void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock){}
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r){return (struct ImBuf *) NULL;}
-char *ED_info_stats_string(struct Scene *scene){return NULL;}
+char *ED_info_stats_string(struct Scene *scene){return (char *) NULL;}
 void ED_area_tag_redraw(struct ScrArea *sa){}
 void ED_area_tag_refresh(struct ScrArea *sa){}
 void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type){} 
@@ -238,7 +246,7 @@ void load_editMesh(struct Scene *scene, struct Object *ob){}
 
 void uiItemR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, char *name, int icon){}
 
-PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){PointerRNA a; return a;}
+struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a; return a;}
 struct uiLayout *uiLayoutRow(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumn(struct uiLayout *layout, int align){return (struct uiLayout *) NULL;}
 struct uiLayout *uiLayoutColumnFlow(struct uiLayout *layout, int number, int align){return (struct uiLayout *) NULL;}
@@ -321,9 +329,9 @@ void WM_operator_py_idname(char *to, const char *from){}
 void WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width, int height){}
 short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
 short delete_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;};
-char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args){return NULL;}
-struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return NULL;}
-struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return NULL;}
+char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args){return (char *)NULL;}
+struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return (struct wmKeyMapItem *)NULL;}
+struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return (struct wmKeyMap *) NULL;}
 
 /* intern/decimation */
 int LOD_FreeDecimationData(struct LOD_Decimation_Info *info){return 0;}
