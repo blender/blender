@@ -155,8 +155,8 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.column()
         layout.menu("DOPESHEET_MT_key_transform", text="Transform")
 
-        layout.operator_menu_enum("action.snap", property="type", text="Snap")
-        layout.operator_menu_enum("action.mirror", property="type", text="Mirror")
+        layout.operator_menu_enum("action.snap", "type", text="Snap")
+        layout.operator_menu_enum("action.mirror", "type", text="Mirror")
 
         layout.separator()
         layout.operator("action.keyframe_insert")
@@ -166,10 +166,10 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.operator("action.delete")
 
         layout.separator()
-        layout.operator_menu_enum("action.keyframe_type", property="type", text="Keyframe Type")
-        layout.operator_menu_enum("action.handle_type", property="type", text="Handle Type")
-        layout.operator_menu_enum("action.interpolation_type", property="type", text="Interpolation Mode")
-        layout.operator_menu_enum("action.extrapolation_type", property="type", text="Extrapolation Mode")
+        layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
+        layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
+        layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
+        layout.operator_menu_enum("action.extrapolation_type", "type", text="Extrapolation Mode")
 
         layout.separator()
         layout.operator("action.clean")

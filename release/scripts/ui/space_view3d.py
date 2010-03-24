@@ -384,7 +384,7 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
         layout.operator("object.select_random", text="Random")
         layout.operator("object.select_mirror", text="Mirror")
         layout.operator("object.select_by_layer", text="Select All by Layer")
-        layout.operator_menu_enum("object.select_by_type", "type", "", text="Select All by Type...")
+        layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type...")
         layout.operator("object.select_camera", text="Select Camera")
 
         layout.separator()
@@ -834,7 +834,7 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
 
         layout.operator_menu_enum("object.make_links_scene", "type", text="Objects to Scene...")
         layout.operator_menu_enum("marker.make_links_scene", "type", text="Markers to Scene...")
-        layout.operator_enums("object.make_links_data", property="type") # inline
+        layout.operator_enums("object.make_links_data", "type") # inline
 
 
 # ********** Vertex paint menu **********
@@ -930,7 +930,7 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
         layout.prop(sculpt, "lock_y")
         layout.prop(sculpt, "lock_z")
         layout.separator()
-        layout.operator_menu_enum("brush.curve_preset", property="shape")
+        layout.operator_menu_enum("brush.curve_preset", "shape")
         layout.separator()
 
         sculpt_tool = brush.sculpt_tool

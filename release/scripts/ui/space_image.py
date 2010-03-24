@@ -586,7 +586,7 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
         brush = toolsettings.brush
 
         layout.template_curve_mapping(brush, "curve")
-        layout.operator_menu_enum("brush.curve_preset", property="shape")
+        layout.operator_menu_enum("brush.curve_preset", "shape")
 
 
 classes = [

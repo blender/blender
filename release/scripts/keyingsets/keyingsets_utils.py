@@ -70,7 +70,7 @@ def RKS_GEN_available(ksi, context, ks, data):
     # for each F-Curve, include an path to key it
     # NOTE: we don't need to set the group settings here
     for fcu in adt.action.fcurves:
-        ks.add_path(id_block, fcu.rna_path, index=fcu.array_index)
+        ks.add_path(id_block, fcu.data_path, index=fcu.array_index)
     
 # ------
 

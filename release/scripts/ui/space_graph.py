@@ -161,8 +161,8 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.column()
         layout.menu("GRAPH_MT_key_transform", text="Transform")
 
-        layout.operator_menu_enum("graph.snap", property="type", text="Snap")
-        layout.operator_menu_enum("graph.mirror", property="type", text="Mirror")
+        layout.operator_menu_enum("graph.snap", "type", text="Snap")
+        layout.operator_menu_enum("graph.mirror", "type", text="Mirror")
 
         layout.separator()
         layout.operator("graph.keyframe_insert")
@@ -173,9 +173,9 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.operator("graph.delete")
 
         layout.separator()
-        layout.operator_menu_enum("graph.handle_type", property="type", text="Handle Type")
-        layout.operator_menu_enum("graph.interpolation_type", property="type", text="Interpolation Mode")
-        layout.operator_menu_enum("graph.extrapolation_type", property="type", text="Extrapolation Mode")
+        layout.operator_menu_enum("graph.handle_type", "type", text="Handle Type")
+        layout.operator_menu_enum("graph.interpolation_type", "type", text="Interpolation Mode")
+        layout.operator_menu_enum("graph.extrapolation_type", "type", text="Extrapolation Mode")
 
         layout.separator()
         layout.operator("graph.clean")
