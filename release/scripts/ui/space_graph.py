@@ -142,6 +142,7 @@ class GRAPH_MT_channel(bpy.types.Menu):
 
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
+        layout.operator("anim.channels_visibility_set")
 
         layout.separator()
         layout.operator("anim.channels_expand")
