@@ -12,6 +12,7 @@ class RAS_ListSlot : public KX_ListSlot
 	friend class RAS_ListRasterizer;
 	unsigned int m_list;
 	unsigned int m_flag;
+	unsigned int m_matnr;
 	RAS_ListRasterizer* m_rasty;
 public:
 	RAS_ListSlot(RAS_ListRasterizer* rasty);
@@ -40,7 +41,8 @@ enum RAS_ListSlotFlags	{
 struct DerivedMesh;
 
 typedef std::map<RAS_DisplayArrayList, RAS_ListSlot*> RAS_ArrayLists;
-typedef std::map<DerivedMesh*, RAS_ListSlot*>		  RAS_DerivedMeshLists;
+typedef std::vector<RAS_ListSlot*>					  RAS_ListSlots;	// indexed by material slot number
+typedef std::map<DerivedMesh*, RAS_ListSlots*>		  RAS_DerivedMeshLists;
 
 class RAS_ListRasterizer : public RAS_VAOpenGLRasterizer
 {

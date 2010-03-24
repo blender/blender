@@ -25,7 +25,8 @@ RAS_ListSlot::RAS_ListSlot(RAS_ListRasterizer* rasty)
 :	KX_ListSlot(),
 	m_list(0),
 	m_flag(LIST_MODIFY|LIST_CREATE),
-	m_rasty(rasty)
+	m_rasty(rasty),
+	m_matnr(0)
 {
 }
 
@@ -121,11 +122,23 @@ void RAS_ListRasterizer::RemoveListSlot(RAS_ListSlot* list)
 	if (list->m_flag & LIST_DERIVEDMESH) {
 		RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.begin();
 		while(it != mDerivedMeshLists.end()) {
-			if (it->second == list) {
-				mDerivedMeshLists.erase(it);
+			RAS_ListSlots *slots = it->second;
+			if (slots->size() > list->m_matnr && slots->at(list->m_matnr) == list) {
+				(*slots)[list->m_matnr] = NULL;
+				// check if all slots are NULL and if yes, delete the entry
+				int i;
+				for (i=slots->size(); i-- > 0; ) {
+					if (slots->at(i) != NULL)
+						break;
+				}
+				if (i < 0) {
+					slots->clear();
+					delete slots;
+					mDerivedMeshLists.erase(it);
+				}
 				break;
 			}
-			it++;
+			++it;
 		}
 	} else {
 		RAS_ArrayLists::iterator it = mArrayLists.begin();
@@ -152,13 +165,28 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 		if (ms.m_pDerivedMesh) {
 			// that means that we draw based on derived mesh, a display list is possible
 			// Note that we come here only for static derived mesh
+			int matnr = ms.m_bucket->GetPolyMaterial()->GetMaterialIndex();
+			RAS_ListSlots *listVector;
 			RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.find(ms.m_pDerivedMesh);
 			if(it == mDerivedMeshLists.end()) {
+				listVector = new RAS_ListSlots(matnr+4, NULL);
 				localSlot = new RAS_ListSlot(this);
 				localSlot->m_flag |= LIST_DERIVEDMESH;
-				mDerivedMeshLists.insert(std::pair<DerivedMesh*, RAS_ListSlot*>(ms.m_pDerivedMesh, localSlot));
+				localSlot->m_matnr = matnr;
+				(*listVector)[matnr] = localSlot;
+				mDerivedMeshLists.insert(std::pair<DerivedMesh*, RAS_ListSlots*>(ms.m_pDerivedMesh, listVector));
 			} else {
-				localSlot = static_cast<RAS_ListSlot*>(it->second->AddRef());
+				listVector = it->second;
+				if (listVector->size() <= matnr)
+					listVector->resize(matnr+4, NULL);
+				if ((localSlot = listVector->at(matnr)) == NULL) {
+					localSlot = new RAS_ListSlot(this);
+					localSlot->m_flag |= LIST_DERIVEDMESH;
+					localSlot->m_matnr = matnr;
+					(*listVector)[matnr] = localSlot;
+				} else {
+					localSlot->AddRef();
+				}
 			}
 		} else {
 			RAS_ArrayLists::iterator it = mArrayLists.find(ms.m_displayArrays);
@@ -179,8 +207,16 @@ void RAS_ListRasterizer::ReleaseAlloc()
 	for(RAS_ArrayLists::iterator it = mArrayLists.begin();it != mArrayLists.end();++it)
 		delete it->second;
 	mArrayLists.clear();
-	for (RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.begin();it != mDerivedMeshLists.end();++it)
-		delete it->second;
+	for (RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.begin();it != mDerivedMeshLists.end();++it) {
+		RAS_ListSlots* slots = it->second;
+		for (int i=slots->size(); i-- > 0; ) {
+			RAS_ListSlot* slot = slots->at(i);
+			if (slot)
+				delete slot;
+		}
+		slots->clear();
+		delete slots;
+	}
 	mDerivedMeshLists.clear();
 }
 
