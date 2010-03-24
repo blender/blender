@@ -26,7 +26,6 @@
 #include <stdio.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "DNA_color_types.h"
 

@@ -30,7 +30,6 @@
 #include <stdio.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

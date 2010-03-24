@@ -31,7 +31,6 @@
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
-#include "RNA_types.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"

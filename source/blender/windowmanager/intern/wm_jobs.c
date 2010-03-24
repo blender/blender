@@ -50,7 +50,6 @@
 
 #include "ED_screen.h"
 
-#include "RNA_types.h"
 
 /* ********************** Threaded Jobs Manager ****************************** */
 

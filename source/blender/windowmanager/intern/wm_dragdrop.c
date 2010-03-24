@@ -57,7 +57,6 @@
 #include "wm_event_system.h"
 #include "wm.h"
 
-#include "RNA_types.h"
 
 /* ****************************************************** */
 

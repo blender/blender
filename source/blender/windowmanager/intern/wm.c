@@ -56,7 +56,6 @@
 #include "ED_screen.h"
 #include "BPY_extern.h"
 
-#include "RNA_types.h"
 
 /* ****************************************************** */
 

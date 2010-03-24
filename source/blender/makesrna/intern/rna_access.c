@@ -47,7 +47,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 /* flush updates */
 #include "DNA_object_types.h"
