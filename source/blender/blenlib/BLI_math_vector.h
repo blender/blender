@@ -106,6 +106,7 @@ void interp_v2_v2v2v2(float r[2], const float a[2], const float b[2], const floa
 void interp_v3_v3v3(float r[3], const float a[3], const float b[3], const float t);
 void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3]);
 void interp_v3_v3v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float w[4]);
+void interp_v4_v4v4(float r[4], const float a[4], const float b[4], const float t);
 
 void mid_v3_v3v3(float r[3], float a[3], float b[3]);
 

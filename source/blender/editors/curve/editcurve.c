@@ -1874,21 +1874,6 @@ void CURVE_OT_select_inverse(wmOperatorType *ot)
  * @param  None
 */
 
-void subdivide_v3(float *v, float *v1, float *v2, float factor)
-{
-	v[0]= v1[0] + factor*(v2[0] - v1[0]);
-	v[1]= v1[1] + factor*(v2[1] - v1[1]);
-	v[2]= v1[2] + factor*(v2[2] - v1[2]);
-}
-
-void subdivide_v4(float *v, float *v1, float *v2, float factor)
-{
-	v[0]= v1[0] + factor*(v2[0] - v1[0]);
-	v[1]= v1[1] + factor*(v2[1] - v1[1]);
-	v[2]= v1[2] + factor*(v2[2] - v1[2]);
-	v[3]= v1[3] + factor*(v2[3] - v1[3]);
-}
-
 static void subdividenurb(Object *obedit, int number_cuts)
 {
 	Curve *cu= obedit->data;
@@ -1957,18 +1942,18 @@ static void subdividenurb(Object *obedit, int number_cuts)
 							memcpy(beztn, bezt, sizeof(BezTriple));
 
 							/* midpoint subdividing */
-							subdivide_v3(vec, prevvec[1], prevvec[2], factor);
-							subdivide_v3(vec+3, prevvec[2], bezt->vec[0], factor);
-							subdivide_v3(vec+6, bezt->vec[0], bezt->vec[1], factor);
+							interp_v3_v3v3(vec, prevvec[1], prevvec[2], factor);
+							interp_v3_v3v3(vec+3, prevvec[2], bezt->vec[0], factor);
+							interp_v3_v3v3(vec+6, bezt->vec[0], bezt->vec[1], factor);
 
-							subdivide_v3(vec+9, vec, vec+3, factor);
-							subdivide_v3(vec+12, vec+3, vec+6, factor);
+							interp_v3_v3v3(vec+9, vec, vec+3, factor);
+							interp_v3_v3v3(vec+12, vec+3, vec+6, factor);
 
 							/* change handle of prev beztn */
 							VECCOPY((beztn-1)->vec[2], vec);
 							/* new point */
 							VECCOPY(beztn->vec[0], vec+9);
-							subdivide_v3(beztn->vec[1], vec+9, vec+12, factor);
+							interp_v3_v3v3(beztn->vec[1], vec+9, vec+12, factor);
 							VECCOPY(beztn->vec[2], vec+12);
 							/* handle of next bezt */
 							if(a==0 && (nu->flagu & CU_NURB_CYCLIC)) {VECCOPY(beztnew->vec[0], vec+6);}
@@ -2045,7 +2030,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 							factor = (float)(i + 1) / (number_cuts + 1);
 
 							memcpy(bpn, bp, sizeof(BPoint));
-							subdivide_v4(bpn->vec, prevbp->vec, bp->vec, factor);
+							interp_v4_v4v4(bpn->vec, prevbp->vec, bp->vec, factor);
 							bpn++;
 						}
 
@@ -2147,7 +2132,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 							for (i = 0; i < number_cuts; i++) {
 								factor = (float)(i + 1) / (number_cuts + 1);
 								*bpn= *bp;
-								subdivide_v4(bpn->vec, prevbp->vec, bp->vec, factor);
+								interp_v4_v4v4(bpn->vec, prevbp->vec, bp->vec, factor);
 								bpn++;
 							}
 						}
@@ -2165,7 +2150,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 						for (i = 0; i < number_cuts; i++) {
 							factor = (float)(i + 1) / (number_cuts + 1);
 							*tmp= *bp;
-							subdivide_v4(tmp->vec, prevbp->vec, bp->vec, factor);
+							interp_v4_v4v4(tmp->vec, prevbp->vec, bp->vec, factor);
 							tmp += countu;
 						}
 						bp++; 
@@ -2212,7 +2197,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 										  node. (is it?)
 										*/
 										*bpn= *prevbp;
-										subdivide_v4(bpn->vec, prevbp->vec, bp->vec, factor);
+										interp_v4_v4v4(bpn->vec, prevbp->vec, bp->vec, factor);
 										bpn++;
 
 									prevbp++;
@@ -2256,7 +2241,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 										factor = (float)(i + 1) / (number_cuts + 1);
 									prevbp= bp- 1;
 									*bpn= *prevbp;
-									subdivide_v4(bpn->vec, prevbp->vec, bp->vec, factor);
+									interp_v4_v4v4(bpn->vec, prevbp->vec, bp->vec, factor);
 									bpn++;
 									}
 								}
