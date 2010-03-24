@@ -57,14 +57,10 @@ def RKS_GEN_available(ksi, context, ks, data):
     # try to get the animation data associated with the closest 
     # ID-block to the data (neither of which may exist/be easy to find)
     id_block = data.id_data
-    try:
-        adt = id_block.animation_data
-    except:
-        # there isn't any animation data available 
-        return;
-        
+    adt = getattr(id_block, "animation_data", None)
+
     # there must also be an active action...
-    if adt.action is None:
+    if adt is None or adt.action is None:
         return;
         
     # for each F-Curve, include an path to key it
@@ -89,13 +85,10 @@ def get_transform_generators_base_info(data):
     else:
         # get the path to the ID-block
         path = data.path_to_id()
-        
-        try:
-            # try to use the name of the data element to group the F-Curve
-            grouping = data.name
-        except:
-            # fallback on the KeyingSet name
-            grouping = None;
+
+        # try to use the name of the data element to group the F-Curve
+        # else fallback on the KeyingSet name
+        grouping = getattr(data, "name", None)
         
     # return the ID-block and the path
     return id_block, path, grouping
