@@ -3690,8 +3690,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	int num_projectors = 0;
 	float aspect;
 	char uvname[32];
-	float aspx= umd->aspectx ? 1.0f : umd->aspectx;
-	float aspy= umd->aspecty ? 1.0f : umd->aspecty;
+	float aspx= umd->aspectx ? umd->aspectx : 1.0f;
+	float aspy= umd->aspecty ? umd->aspecty : 1.0f;
 	int free_uci= 0;
 	
 	aspect = aspx / aspy;

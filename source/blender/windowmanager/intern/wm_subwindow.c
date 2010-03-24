@@ -44,7 +44,6 @@
 #include "BKE_global.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "wm_subwindow.h"

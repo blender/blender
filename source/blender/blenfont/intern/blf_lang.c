@@ -45,7 +45,6 @@
 #include "BLI_linklist.h"	/* linknode */
 #include "BLI_string.h"
 
-#include "BIF_gl.h"
 
 #ifdef __APPLE__
 #include "BKE_utildefines.h"

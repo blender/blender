@@ -56,28 +56,31 @@ void project_from_camera(float target[2], float source[3], UvCameraInfo *uci)
 	if(uci->do_pano) {
 		float angle= atan2f(pv4[0], -pv4[2]) / (M_PI * 2.0); /* angle around the camera */
 		if (uci->do_persp==0) {
-			target[0] = angle; /* no correct method here, just map to  0-1 */
-			target[1] = pv4[1] / uci->camsize;
+			target[0]= angle; /* no correct method here, just map to  0-1 */
+			target[1]= pv4[1] / uci->camsize;
 		}
 		else {
 			float vec2d[2]= {pv4[0], pv4[2]}; /* 2D position from the camera */
-			target[0] = angle * (M_PI / uci->camangle);
-			target[1] = pv4[1] / (len_v2(vec2d) * uci->camsize);
+			target[0]= angle * (M_PI / uci->camangle);
+			target[1]= pv4[1] / (len_v2(vec2d) * uci->camsize);
 		}
 	}
 	else {
 		if (pv4[2]==0.0f) pv4[2]= 0.00001f; /* don't allow div by 0 */
 
 		if (uci->do_persp==0) {
-			target[0]=(pv4[0]/uci->camsize) * uci->xasp;
-			target[1]=(pv4[1]/uci->camsize) * uci->yasp;
+			target[0]= (pv4[0]/uci->camsize);
+			target[1]= (pv4[1]/uci->camsize);
 		}
 		else {
-			target[0]=(-pv4[0]*((1.0f/uci->camsize)/pv4[2])*uci->xasp) / 2.0f;
-			target[1]=(-pv4[1]*((1.0f/uci->camsize)/pv4[2])*uci->yasp) / 2.0f;
+			target[0]= (-pv4[0]*((1.0f/uci->camsize)/pv4[2])) / 2.0f;
+			target[1]= (-pv4[1]*((1.0f/uci->camsize)/pv4[2])) / 2.0f;
 		}
 	}
 
+	target[0] *= uci->xasp;
+	target[1] *= uci->yasp;
+	
 	/* adds camera shift + 0.5 */
 	target[0] += uci->shiftx;
 	target[1] += uci->shifty;
