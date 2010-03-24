@@ -176,13 +176,13 @@ static StructRNA *rna_KeyingSetInfo_register(const bContext *C, ReportList *repo
 	if (validate(&dummyptr, data, have_function) != 0)
 		return NULL;
 	
-	if (strlen(identifier) >= sizeof(dummyksi.name)) {
-		BKE_reportf(reports, RPT_ERROR, "registering keying set info class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummyksi.name));
+	if (strlen(identifier) >= sizeof(dummyksi.idname)) {
+		BKE_reportf(reports, RPT_ERROR, "registering keying set info class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummyksi.idname));
 		return NULL;
 	}
 	
 	/* check if we have registered this info before, and remove it */
-	ksi = ANIM_keyingset_info_find_named(dummyksi.name);
+	ksi = ANIM_keyingset_info_find_named(dummyksi.idname);
 	if (ksi && ksi->ext.srna)
 		rna_KeyingSetInfo_unregister(C, ksi->ext.srna);
 	
@@ -191,7 +191,7 @@ static StructRNA *rna_KeyingSetInfo_register(const bContext *C, ReportList *repo
 	memcpy(ksi, &dummyksi, sizeof(KeyingSetInfo));
 	
 	/* set RNA-extensions info */
-	ksi->ext.srna= RNA_def_struct(&BLENDER_RNA, ksi->name, "KeyingSetInfo"); 
+	ksi->ext.srna= RNA_def_struct(&BLENDER_RNA, ksi->idname, "KeyingSetInfo"); 
 	ksi->ext.data= data;
 	ksi->ext.call= call;
 	ksi->ext.free= free;
@@ -360,6 +360,10 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	/* Properties --------------------- */
 	
 	RNA_define_verify_sdna(0); // not in sdna
+		
+	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "idname");
+	RNA_def_property_flag(prop, PROP_REGISTER);
 		
 	/* Name */
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);

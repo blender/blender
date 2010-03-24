@@ -41,19 +41,20 @@
 #include "BKE_animsys.h"
 
 static KS_Path *rna_KeyingSet_add_path(KeyingSet *keyingset, ReportList *reports, 
-		ID *id, char rna_path[], int array_index, int entire_array,
-		int grouping_method, char group_name[])
+		ID *id, char rna_path[], int index, int grouping_method, char group_name[])
 {
 	KS_Path *ksp = NULL;
 	short flag = 0;
 	
-	/* validate flags */
-	if (entire_array)
+	/* special case when index = -1, we key the whole array (as with other places where index is used) */
+	if (index == -1) {
 		flag |= KSP_FLAG_WHOLE_ARRAY;
+		index = 0;
+	}
 	
 	/* if data is valid, call the API function for this */
 	if (keyingset) {
-		ksp= BKE_keyingset_add_path(keyingset, id, group_name, rna_path, array_index, flag, grouping_method);
+		ksp= BKE_keyingset_add_path(keyingset, id, group_name, rna_path, index, flag, grouping_method);
 		keyingset->active_path= BLI_countlist(&keyingset->paths); 
 	}
 	else {
@@ -100,9 +101,8 @@ void RNA_api_keyingset(StructRNA *srna)
 		/* rna-path */
 	parm= RNA_def_string(func, "data_path", "", 256, "Data-Path", "RNA-Path to destination property."); // xxx hopefully this is long enough
 		RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm=RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Array Index", "If applicable, the index ", 0, INT_MAX);
-		/* flags */
-	parm=RNA_def_boolean(func, "entire_array", 1, "Entire Array", "When an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used.");
+		/* index (defaults to -1 for entire array) */
+	parm=RNA_def_int(func, "index", -1, 0, INT_MAX, "Index", "The index of the destination property (i.e. axis of Location/Rotation/etc.), or -1 for the entire array.", 0, INT_MAX);
 		/* grouping */
 	parm=RNA_def_enum(func, "grouping_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME, "Grouping Method", "Method used to define which Group-name to use.");
 	parm=RNA_def_string(func, "group_name", "", 64, "Group Name", "Name of Action Group to assign destination to (only if grouping mode is to use this name).");

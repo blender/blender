@@ -125,6 +125,8 @@ typedef struct KeyingSetInfo {
 	/* info */
 		/* identifier so that user can hook this up to a KeyingSet */
 	char name[64];
+		/* identifier used for class name, which KeyingSet instances reference as "Typeinfo Name" */
+	char idname[64];
 		/* keying settings */
 	short keyingflag;
 	

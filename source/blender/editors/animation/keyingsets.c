@@ -471,7 +471,7 @@ KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[])
 		
 	/* search by comparing names */
 	for (ksi = keyingset_type_infos.first; ksi; ksi = ksi->next) {
-		if (strcmp(ksi->name, name) == 0)
+		if (strcmp(ksi->idname, name) == 0)
 			return ksi;
 	}
 	
@@ -517,7 +517,7 @@ void ANIM_keyingset_info_register (const bContext *C, KeyingSetInfo *ksi)
 	ks = BKE_keyingset_add(&builtin_keyingsets, ksi->name, 1, ksi->keyingflag);
 	
 	/* link this KeyingSet with its typeinfo */
-	memcpy(&ks->typeinfo, ksi->name, sizeof(ks->typeinfo));
+	memcpy(&ks->typeinfo, ksi->idname, sizeof(ks->typeinfo));
 	
 	/* add type-info to the list */
 	BLI_addtail(&keyingset_type_infos, ksi);
@@ -536,7 +536,7 @@ void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
 		ksn = ks->next;
 		
 		/* remove if matching typeinfo name */
-		if (strcmp(ks->typeinfo, ksi->name) == 0) {
+		if (strcmp(ks->typeinfo, ksi->idname) == 0) {
 			BKE_keyingset_free(ks);
 			BLI_freelinkN(&scene->keyingsets, ks);
 		}
