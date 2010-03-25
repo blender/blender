@@ -10659,7 +10659,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(md= ob->modifiers.first; md; md= md->next) {
 				if (md->type == eModifierType_Fluidsim) {
 					FluidsimModifierData *fmd = (FluidsimModifierData *)md;
-					fmd->fss->flag |= OB_FLUIDSIM_ACTIVE;
+				/*	fmd->fss->flag |= OB_FLUIDSIM_ACTIVE; 
+				 	temporarily commented out for matt_ebb */
 				}
 			}
 		}
