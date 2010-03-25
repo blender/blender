@@ -604,6 +604,7 @@ void bezt_remap_times(BeztEditData *bed, BezTriple *bezt)
 /* ******************************************* */
 /* Transform */
 
+/* snaps the keyframe to the nearest frame */
 static short snap_bezier_nearest(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT)
@@ -611,6 +612,7 @@ static short snap_bezier_nearest(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+/* snaps the keyframe to the neares second */
 static short snap_bezier_nearestsec(BeztEditData *bed, BezTriple *bezt)
 {
 	const Scene *scene= bed->scene;
@@ -621,6 +623,7 @@ static short snap_bezier_nearestsec(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+/* snaps the keyframe to the current frame */
 static short snap_bezier_cframe(BeztEditData *bed, BezTriple *bezt)
 {
 	const Scene *scene= bed->scene;
@@ -629,6 +632,7 @@ static short snap_bezier_cframe(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+/* snaps the keyframe time to the nearest marker's frame */
 static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT)
@@ -636,20 +640,21 @@ static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+/* make the handles have the same value as the key */
 static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT) {
-		// XXX currently this snaps both handles to the nearest horizontal value, but perhaps user just wants to level out handles instead?
-		bezt->vec[0][1]= bezt->vec[2][1]= (float)floor(bezt->vec[1][1] + 0.5f);
+		bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
+		
 		if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
 		if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
 	}
 	return 0;	
 }
 
+/* value to snap to is stored in the custom data -> first float value slot */
 static short snap_bezier_value(BeztEditData *bed, BezTriple *bezt)
 {
-	/* value to snap to is stored in the custom data -> first float value slot */
 	if (bezt->f2 & SELECT)
 		bezt->vec[1][1]= bed->f1;
 	return 0;
