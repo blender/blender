@@ -654,6 +654,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
         layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
         layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframe...")
+        layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
 
         layout.separator()
 
@@ -1020,6 +1021,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
         layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframe...")
+        layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
 
         layout.separator()
 

@@ -44,6 +44,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_library.h"
+#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "nla_private.h"
