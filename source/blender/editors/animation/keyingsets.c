@@ -45,6 +45,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
@@ -55,6 +56,7 @@
 #include "BKE_material.h"
 
 #include "ED_keyframing.h"
+#include "ED_screen.h"
 
 #include "UI_interface.h"
 
@@ -450,6 +452,55 @@ void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 }
 
 /* ******************************************* */
+
+/* Change Active KeyingSet Operator ------------------------ */
+/* This operator checks if a menu should be shown for choosing the KeyingSet to make the active one */
+
+static int keyingset_active_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* call the menu, which will call this operator again, hence the cancelled */
+	ANIM_keying_sets_menu_setup(C, op->type->name, "ANIM_OT_keying_set_active_set");
+	return OPERATOR_CANCELLED;
+}
+
+static int keyingset_active_menu_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	int type= RNA_int_get(op->ptr, "type");
+	
+	/* simply set the scene's active keying set index, unless the type == 0 
+	 * (i.e. which happens if we want the current active to be maintained) 
+	 */
+	if (type)
+		scene->active_keyingset= type;
+		
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ANIM_OT_keying_set_active_set (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Active Keying Set";
+	ot->idname= "ANIM_OT_keying_set_active_set";
+	
+	/* callbacks */
+	ot->invoke= keyingset_active_menu_invoke;
+	ot->exec= keyingset_active_menu_exec; 
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* keyingset to use
+	 *	- here the type is int not enum, since many of the indicies here are determined dynamically
+	 */
+	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+}
+
+/* ******************************************* */
 /* REGISTERED KEYING SETS */
 
 /* Keying Set Type Info declarations */
@@ -569,6 +620,8 @@ void ANIM_keyingset_infos_exit ()
 /* ******************************************* */
 /* KEYING SETS API (for UI) */
 
+/* Getters for Active/Indices ----------------------------- */
+
 /* Get the active Keying Set for the Scene provided */
 KeyingSet *ANIM_scene_get_active_keyingset (Scene *scene)
 {
@@ -617,6 +670,57 @@ int ANIM_scene_get_keyingset_index (Scene *scene, KeyingSet *ks)
 		return 0;
 }
 
+/* Menu of All Keying Sets ----------------------------- */
+
+/* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
+void ANIM_keying_sets_menu_setup (bContext *C, char title[], char op_name[])
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	int i = 0;
+	
+	pup= uiPupMenuBegin(C, title, 0);
+	layout= uiPupMenuLayout(pup);
+	
+	/* active Keying Set 
+	 *	- only include entry if it exists
+	 */
+	if (scene->active_keyingset) {
+		uiItemIntO(layout, "Active Keying Set", 0, op_name, "type", i++);
+		uiItemS(layout);
+	}
+	else
+		i++;
+	
+	/* user-defined Keying Sets 
+	 *	- these are listed in the order in which they were defined for the active scene
+	 */
+	if (scene->keyingsets.first) {
+		for (ks= scene->keyingsets.first; ks; ks= ks->next) {
+			if (ANIM_keyingset_context_ok_poll(C, ks))
+				uiItemIntO(layout, ks->name, 0, op_name, "type", i++);
+		}
+		uiItemS(layout);
+	}
+	
+	/* builtin Keying Sets */
+	i= -1;
+	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
+		/* only show KeyingSet if context is suitable */
+		if (ANIM_keyingset_context_ok_poll(C, ks))
+			uiItemIntO(layout, ks->name, 0, op_name, "type", i--);
+	}
+	
+	uiPupMenuEnd(C, pup);
+} 
+
+/* ******************************************* */
+/* KEYFRAME MODIFICATION */
+
+/* Polling API ----------------------------------------------- */
+
 /* Check if KeyingSet can be used in the current context */
 short ANIM_keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
 {
@@ -634,9 +738,6 @@ short ANIM_keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
 	
 	return 1;
 }
-
-/* ******************************************* */
-/* KEYFRAME MODIFICATION */
 
 /* Special 'Overrides' Iterator for Relative KeyingSets ------ */
 

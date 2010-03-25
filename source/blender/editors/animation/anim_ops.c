@@ -361,6 +361,8 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_keying_set_remove);
 	WM_operatortype_append(ANIM_OT_keying_set_path_add);
 	WM_operatortype_append(ANIM_OT_keying_set_path_remove);
+	
+	WM_operatortype_append(ANIM_OT_keying_set_active_set);
 }
 
 void ED_keymap_anim(wmKeyConfig *keyconf)

@@ -269,14 +269,6 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 
 /* ****************************** */
 
-static int rna_KeyingSet_typeinfo_name_editable(PointerRNA *ptr)
-{
-	KeyingSet *ks= (KeyingSet *)ptr->data;
-	
-	/* only editable if we're using relative paths */
-	return ((ks->flag & KEYINGSET_ABSOLUTE)==0);
-}
-
 static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr)
 {
 	KeyingSet *ks= (KeyingSet *)ptr->data;
@@ -319,6 +311,17 @@ static void rna_KeyingSet_active_ksPath_index_range(PointerRNA *ptr, int *min, i
 	*max= MAX2(0, *max);
 }
 
+static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)
+{
+	KeyingSet *ks= (KeyingSet *)ptr->data;
+	KeyingSetInfo *ksi = NULL;
+	
+	/* keying set info is only for builtin Keying Sets */
+	if ((ks->flag & KEYINGSET_ABSOLUTE)==0)
+		ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
+	return rna_pointer_inherit_refine(ptr, &RNA_KeyingSetInfo, ksi);
+}
+
 #else
 
 /* helper function for Keying Set -> keying settings */
@@ -353,7 +356,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "KeyingSetInfo", NULL);
 	RNA_def_struct_sdna(srna, "KeyingSetInfo");
-	RNA_def_struct_ui_text(srna, "Keying Set Info", "Callback function defines for relative Keying Sets");
+	RNA_def_struct_ui_text(srna, "Keying Set Info", "Callback function defines for builtin Keying Sets");
 	RNA_def_struct_refine_func(srna, "rna_KeyingSetInfo_refine");
 	RNA_def_struct_register_funcs(srna, "rna_KeyingSetInfo_register", "rna_KeyingSetInfo_unregister");
 	
@@ -472,12 +475,11 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_KEY_HLT); // TODO: we need a dedicated icon
 	RNA_def_struct_name_property(srna, prop);
 	
-	/* TypeInfo associated with Relative KeyingSet (only) */
-	prop= RNA_def_property(srna, "typeinfo_name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_string_sdna(prop, NULL, "typeinfo");
-	RNA_def_property_editable_func(prop, "rna_KeyingSet_typeinfo_name_editable");
-	RNA_def_property_ui_text(prop, "TypeInfo Name", "");
+	/* KeyingSetInfo (Type Info) for Builtin Sets only  */
+	prop= RNA_def_property(srna, "type_info", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "KeyingSetInfo");
+	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_typeinfo_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Type Info", "Callback function defines for builtin Keying Sets");
 	
 	/* Paths */
 	prop= RNA_def_property(srna, "paths", PROP_COLLECTION, PROP_NONE);

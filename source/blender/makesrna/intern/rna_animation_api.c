@@ -81,6 +81,26 @@ static void rna_KeyingSet_remove_path(KeyingSet *keyingset, ReportList *reports,
 	}
 }
 
+static void rna_KeyingSet_remove_all_paths(KeyingSet *keyingset, ReportList *reports)
+{
+	/* if data is valid, call the API function for this */
+	if (keyingset) {
+		KS_Path *ksp, *kspn;
+		
+		/* free each path as we go to avoid looping twice */
+		for (ksp= keyingset->paths.first; ksp; ksp= kspn) {
+			kspn= ksp->next;
+			BKE_keyingset_free_path(keyingset, ksp);
+		}
+			
+		/* reset the active path, since there aren't any left */
+		keyingset->active_path = 0;
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Keying Set Paths could not be removed.");
+	}
+}
+
 #else
 
 void RNA_api_keyingset(StructRNA *srna)
@@ -114,6 +134,11 @@ void RNA_api_keyingset(StructRNA *srna)
 		/* path to remove */
 	parm= RNA_def_pointer(func, "path", "KeyingSetPath", "Path", ""); 
 		RNA_def_property_flag(parm, PROP_REQUIRED);
+		
+	/* Remove All Paths */
+	func= RNA_def_function(srna, "remove_all_paths", "rna_KeyingSet_remove_all_paths");
+	RNA_def_function_ui_description(func, "Remove all the paths from the Keying Set.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 }
 
 #endif
