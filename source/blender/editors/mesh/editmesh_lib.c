@@ -39,12 +39,10 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -522,9 +520,9 @@ void EM_set_flag_all(EditMesh *em, int flag)
 
 void EM_set_flag_all_selectmode(EditMesh *em, int flag)
 {
- 	EditVert *eve;
- 	EditEdge *eed;
- 	EditFace *efa;
+	 EditVert *eve;
+	 EditEdge *eed;
+	 EditFace *efa;
 
 	int selvert= 0, seledge= 0, selface= 0;
 
@@ -582,7 +580,7 @@ void EM_set_flag_all_selectmode(EditMesh *em, int flag)
 		em->totvertsel= selvert;
 		em->totedgesel= seledge;
 		em->totfacesel= selface;
- 	}
+	 }
  }
 /* flush for changes in vertices only */
 void EM_deselect_flush(EditMesh *em)
@@ -1655,7 +1653,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 	
 	/* if del_old==1 then extrude is in partial geometry, to keep it manifold.
 					 verts with f1==0 and (eve->f & 128)==0) are removed
-	                 edges with eed->f2>2 are removed
+					 edges with eed->f2>2 are removed
 					 faces with efa->f1 are removed
 	   if del_old==0 the extrude creates a volume.
 	*/

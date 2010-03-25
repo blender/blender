@@ -32,7 +32,6 @@
 #include <time.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #ifdef RNA_RUNTIME
 

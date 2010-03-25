@@ -47,8 +47,8 @@
 #include "wm.h"
 #include "wm_event_system.h"
 #include "wm_subwindow.h"
+#include "wm_draw.h"
 
-#include "ED_screen.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -238,7 +238,7 @@ static void draw_filled_lasso(wmGesture *gt)
 		if (lastv)
 			e = BLI_addfilledge(lastv, v);
 		lastv = v;
-        if (firstv==NULL) firstv = v;
+		if (firstv==NULL) firstv = v;
 	}
 	
 	/* highly unlikely this will fail, but could crash if (gt->points == 0) */
@@ -346,8 +346,8 @@ void wm_gesture_tag_redraw(bContext *C)
 	
 	if(screen)
 		screen->do_draw_gesture= 1;
-	if(ar && win->drawmethod != USER_DRAW_TRIPLE)
-		ED_region_tag_redraw(ar);
+
+	wm_tag_redraw_overlay(win, ar);
 }
 
 

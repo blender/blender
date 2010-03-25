@@ -39,8 +39,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
@@ -56,7 +54,6 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
-#include "UI_view2d.h"
 
 #include "interface_intern.h"
 
@@ -802,7 +799,7 @@ void uiBeginPanels(const bContext *C, ARegion *ar)
 {
 	Panel *pa;
   
-  	/* set all panels as inactive, so that at the end we know
+	  /* set all panels as inactive, so that at the end we know
 	 * which ones were used */
 	for(pa=ar->panels.first; pa; pa=pa->next) {
 		if(pa->runtime_flag & PNL_ACTIVE)

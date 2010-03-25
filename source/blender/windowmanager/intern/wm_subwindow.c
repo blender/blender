@@ -44,7 +44,6 @@
 #include "BKE_global.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "wm_subwindow.h"
@@ -209,8 +208,8 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 			* Really Blender should never _ever_ try
 			* to do such a thing, but just to be safe
 			* clamp it anyway (or fix the bScreen
-		    * scaling routine, and be damn sure you
-		    * fixed it). - zr  (2001!)
+			* scaling routine, and be damn sure you
+			* fixed it). - zr  (2001!)
 			*/
 		
 		if (swin->winrct.xmax > win->sizex)

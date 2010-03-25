@@ -38,17 +38,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_ID.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -74,8 +68,6 @@
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
 #include "BLF_api.h"
 
 #include "UI_resources.h"
@@ -1205,7 +1197,7 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 {
 	
 	/*	Draw a 3d octahedral bone, we use normalized space based on length,
-	    for glDisplayLists */
+		for glDisplayLists */
 	
 	glScalef(length, length, length);
 

@@ -83,7 +83,7 @@ static void node_composit_exec_crop(void *data, bNode *node, bNodeStack **in, bN
 				srcfp= cbuf->rect     + (y * cbuf->x     + outputrect.xmin) * cbuf->type;
 				outfp= stackbuf->rect + (y * stackbuf->x + outputrect.xmin) * stackbuf->type;
 				for(x=outputrect.xmin; x<outputrect.xmax; x++, outfp+= stackbuf->type, srcfp+= cbuf->type)
-                			memcpy(outfp, srcfp, sizeof(float)*stackbuf->type);
+							memcpy(outfp, srcfp, sizeof(float)*stackbuf->type);
 			}
 		}
 

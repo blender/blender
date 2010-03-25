@@ -29,9 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_boid_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_boids.h"

@@ -30,8 +30,6 @@
 #include <stdio.h>
 
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
-#include "RNA_types.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -46,10 +44,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_writeavi.h"
 
-#include "ED_object.h"
-#include "ED_anim_api.h"
 
-#include "WM_api.h"
 
 static void rna_Scene_set_frame(Scene *scene, bContext *C, int frame)
 {

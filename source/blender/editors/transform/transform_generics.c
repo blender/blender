@@ -35,24 +35,11 @@
 #include "BLO_sys_types.h" // for intptr_t support
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 
@@ -105,7 +92,6 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "RNA_access.h"
 
 #include "WM_types.h"
 #include "WM_api.h"

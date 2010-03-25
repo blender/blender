@@ -31,10 +31,6 @@
 
 #include "DNA_text_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -46,7 +42,6 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -60,7 +55,6 @@
 
 #include "RNA_access.h"
 
-#include "ED_markers.h"
 
 #include "text_intern.h"	// own include
 

@@ -30,10 +30,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -53,26 +51,22 @@
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
-#include "ED_util.h"
-#include "ED_types.h"
 
 #include "interface_intern.h"
 
 /* ************** widget base functions ************** */
 /*
-     - in: roundbox codes for corner types and radius
-     - return: array of [size][2][x,y] points, the edges of the roundbox, + UV coords
+	 - in: roundbox codes for corner types and radius
+	 - return: array of [size][2][x,y] points, the edges of the roundbox, + UV coords
  
-     - draw black box with alpha 0 on exact button boundbox
-     - for ever AA step:
-        - draw the inner part for a round filled box, with color blend codes or texture coords
-        - draw outline in outline color
-        - draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
-        - draw extra decorations
-     - draw background color box with alpha 1 on exact button boundbox
+	 - draw black box with alpha 0 on exact button boundbox
+	 - for ever AA step:
+		- draw the inner part for a round filled box, with color blend codes or texture coords
+		- draw outline in outline color
+		- draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
+		- draw extra decorations
+	 - draw background color box with alpha 1 on exact button boundbox
  
  */
 

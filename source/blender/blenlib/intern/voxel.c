@@ -93,9 +93,9 @@ float voxel_sample_trilinear(float *data, int *res, float *co)
 		const float w[2] = {1.f - dz, dz};
 	
 		return w[0] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[0]] + u[1] * data[xc[1] + yc[0] + zc[0]] )
-		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[0]] + u[1] * data[xc[1] + yc[1] + zc[0]] ) )
-		     + w[1] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]] )
-		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]] ) );
+						+ v[1] * ( u[0] * data[xc[0] + yc[1] + zc[0]] + u[1] * data[xc[1] + yc[1] + zc[0]] ) )
+			 + w[1] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]] )
+						+ v[1] * ( u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]] ) );
 	
 	}
 	return 0.f;
@@ -119,14 +119,14 @@ float voxel_sample_triquadratic(float *data, int *res, float *co)
 		const float w[3] = {dz*(0.5f*dz - 1.f) + 0.5f, dz*(1.f - dz) + 0.5f, 0.5f*dz*dz};
 
 		return w[0] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[0]] + u[1] * data[xc[1] + yc[0] + zc[0]] + u[2] * data[xc[2] + yc[0] + zc[0]] )
-		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[0]] + u[1] * data[xc[1] + yc[1] + zc[0]] + u[2] * data[xc[2] + yc[1] + zc[0]] )
-		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[0]] + u[1] * data[xc[1] + yc[2] + zc[0]] + u[2] * data[xc[2] + yc[2] + zc[0]] ) )
-		     + w[1] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]] + u[2] * data[xc[2] + yc[0] + zc[1]] )
-		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]] + u[2] * data[xc[2] + yc[1] + zc[1]] )
-		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[1]] + u[1] * data[xc[1] + yc[2] + zc[1]] + u[2] * data[xc[2] + yc[2] + zc[1]] ) )
-		     + w[2] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[2]] + u[1] * data[xc[1] + yc[0] + zc[2]] + u[2] * data[xc[2] + yc[0] + zc[2]] )
-		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[2]] + u[1] * data[xc[1] + yc[1] + zc[2]] + u[2] * data[xc[2] + yc[1] + zc[2]] )
-		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[2]] + u[1] * data[xc[1] + yc[2] + zc[2]] + u[2] * data[xc[2] + yc[2] + zc[2]] ) );
+						+ v[1] * ( u[0] * data[xc[0] + yc[1] + zc[0]] + u[1] * data[xc[1] + yc[1] + zc[0]] + u[2] * data[xc[2] + yc[1] + zc[0]] )
+						+ v[2] * ( u[0] * data[xc[0] + yc[2] + zc[0]] + u[1] * data[xc[1] + yc[2] + zc[0]] + u[2] * data[xc[2] + yc[2] + zc[0]] ) )
+			 + w[1] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]] + u[2] * data[xc[2] + yc[0] + zc[1]] )
+						+ v[1] * ( u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]] + u[2] * data[xc[2] + yc[1] + zc[1]] )
+						+ v[2] * ( u[0] * data[xc[0] + yc[2] + zc[1]] + u[1] * data[xc[1] + yc[2] + zc[1]] + u[2] * data[xc[2] + yc[2] + zc[1]] ) )
+			 + w[2] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[2]] + u[1] * data[xc[1] + yc[0] + zc[2]] + u[2] * data[xc[2] + yc[0] + zc[2]] )
+						+ v[1] * ( u[0] * data[xc[0] + yc[1] + zc[2]] + u[1] * data[xc[1] + yc[1] + zc[2]] + u[2] * data[xc[2] + yc[1] + zc[2]] )
+						+ v[2] * ( u[0] * data[xc[0] + yc[2] + zc[2]] + u[1] * data[xc[1] + yc[2] + zc[2]] + u[2] * data[xc[2] + yc[2] + zc[2]] ) );
 
 }
 	return 0.f;
@@ -176,21 +176,21 @@ float voxel_sample_tricubic(float *data, int *res, float *co, int bspline)
 		}
 
 		return w[0] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[0]] + u[1] * data[xc[1] + yc[0] + zc[0]] + u[2] * data[xc[2] + yc[0] + zc[0]] + u[3] * data[xc[3] + yc[0] + zc[0]] )
-		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[0]] + u[1] * data[xc[1] + yc[1] + zc[0]] + u[2] * data[xc[2] + yc[1] + zc[0]] + u[3] * data[xc[3] + yc[1] + zc[0]] )
-		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[0]] + u[1] * data[xc[1] + yc[2] + zc[0]] + u[2] * data[xc[2] + yc[2] + zc[0]] + u[3] * data[xc[3] + yc[2] + zc[0]] )
-		                + v[3] * ( u[0] * data[xc[0] + yc[3] + zc[0]] + u[1] * data[xc[1] + yc[3] + zc[0]] + u[2] * data[xc[2] + yc[3] + zc[0]] + u[3] * data[xc[3] + yc[3] + zc[0]] ) )
-		     + w[1] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]] + u[2] * data[xc[2] + yc[0] + zc[1]] + u[3] * data[xc[3] + yc[0] + zc[1]] )
-		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]] + u[2] * data[xc[2] + yc[1] + zc[1]] + u[3] * data[xc[3] + yc[1] + zc[1]] )
-		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[1]] + u[1] * data[xc[1] + yc[2] + zc[1]] + u[2] * data[xc[2] + yc[2] + zc[1]] + u[3] * data[xc[3] + yc[2] + zc[1]] )
-		                + v[3] * ( u[0] * data[xc[0] + yc[3] + zc[1]] + u[1] * data[xc[1] + yc[3] + zc[1]] + u[2] * data[xc[2] + yc[3] + zc[1]] + u[3] * data[xc[3] + yc[3] + zc[1]] ) )
-		     + w[2] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[2]] + u[1] * data[xc[1] + yc[0] + zc[2]] + u[2] * data[xc[2] + yc[0] + zc[2]] + u[3] * data[xc[3] + yc[0] + zc[2]] )
-		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[2]] + u[1] * data[xc[1] + yc[1] + zc[2]] + u[2] * data[xc[2] + yc[1] + zc[2]] + u[3] * data[xc[3] + yc[1] + zc[2]] )
-		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[2]] + u[1] * data[xc[1] + yc[2] + zc[2]] + u[2] * data[xc[2] + yc[2] + zc[2]] + u[3] * data[xc[3] + yc[2] + zc[2]] )
-		                + v[3] * ( u[0] * data[xc[0] + yc[3] + zc[2]] + u[1] * data[xc[1] + yc[3] + zc[2]] + u[2] * data[xc[2] + yc[3] + zc[2]] + u[3] * data[xc[3] + yc[3] + zc[2]] ) )
-		     + w[3] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[3]] + u[1] * data[xc[1] + yc[0] + zc[3]] + u[2] * data[xc[2] + yc[0] + zc[3]] + u[3] * data[xc[3] + yc[0] + zc[3]] )
-		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[3]] + u[1] * data[xc[1] + yc[1] + zc[3]] + u[2] * data[xc[2] + yc[1] + zc[3]] + u[3] * data[xc[3] + yc[1] + zc[3]] )
-		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[3]] + u[1] * data[xc[1] + yc[2] + zc[3]] + u[2] * data[xc[2] + yc[2] + zc[3]] + u[3] * data[xc[3] + yc[2] + zc[3]] )
-		                + v[3] * ( u[0] * data[xc[0] + yc[3] + zc[3]] + u[1] * data[xc[1] + yc[3] + zc[3]] + u[2] * data[xc[2] + yc[3] + zc[3]] + u[3] * data[xc[3] + yc[3] + zc[3]] ) );
+						+ v[1] * ( u[0] * data[xc[0] + yc[1] + zc[0]] + u[1] * data[xc[1] + yc[1] + zc[0]] + u[2] * data[xc[2] + yc[1] + zc[0]] + u[3] * data[xc[3] + yc[1] + zc[0]] )
+						+ v[2] * ( u[0] * data[xc[0] + yc[2] + zc[0]] + u[1] * data[xc[1] + yc[2] + zc[0]] + u[2] * data[xc[2] + yc[2] + zc[0]] + u[3] * data[xc[3] + yc[2] + zc[0]] )
+						+ v[3] * ( u[0] * data[xc[0] + yc[3] + zc[0]] + u[1] * data[xc[1] + yc[3] + zc[0]] + u[2] * data[xc[2] + yc[3] + zc[0]] + u[3] * data[xc[3] + yc[3] + zc[0]] ) )
+			 + w[1] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]] + u[2] * data[xc[2] + yc[0] + zc[1]] + u[3] * data[xc[3] + yc[0] + zc[1]] )
+						+ v[1] * ( u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]] + u[2] * data[xc[2] + yc[1] + zc[1]] + u[3] * data[xc[3] + yc[1] + zc[1]] )
+						+ v[2] * ( u[0] * data[xc[0] + yc[2] + zc[1]] + u[1] * data[xc[1] + yc[2] + zc[1]] + u[2] * data[xc[2] + yc[2] + zc[1]] + u[3] * data[xc[3] + yc[2] + zc[1]] )
+						+ v[3] * ( u[0] * data[xc[0] + yc[3] + zc[1]] + u[1] * data[xc[1] + yc[3] + zc[1]] + u[2] * data[xc[2] + yc[3] + zc[1]] + u[3] * data[xc[3] + yc[3] + zc[1]] ) )
+			 + w[2] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[2]] + u[1] * data[xc[1] + yc[0] + zc[2]] + u[2] * data[xc[2] + yc[0] + zc[2]] + u[3] * data[xc[3] + yc[0] + zc[2]] )
+						+ v[1] * ( u[0] * data[xc[0] + yc[1] + zc[2]] + u[1] * data[xc[1] + yc[1] + zc[2]] + u[2] * data[xc[2] + yc[1] + zc[2]] + u[3] * data[xc[3] + yc[1] + zc[2]] )
+						+ v[2] * ( u[0] * data[xc[0] + yc[2] + zc[2]] + u[1] * data[xc[1] + yc[2] + zc[2]] + u[2] * data[xc[2] + yc[2] + zc[2]] + u[3] * data[xc[3] + yc[2] + zc[2]] )
+						+ v[3] * ( u[0] * data[xc[0] + yc[3] + zc[2]] + u[1] * data[xc[1] + yc[3] + zc[2]] + u[2] * data[xc[2] + yc[3] + zc[2]] + u[3] * data[xc[3] + yc[3] + zc[2]] ) )
+			 + w[3] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[3]] + u[1] * data[xc[1] + yc[0] + zc[3]] + u[2] * data[xc[2] + yc[0] + zc[3]] + u[3] * data[xc[3] + yc[0] + zc[3]] )
+						+ v[1] * ( u[0] * data[xc[0] + yc[1] + zc[3]] + u[1] * data[xc[1] + yc[1] + zc[3]] + u[2] * data[xc[2] + yc[1] + zc[3]] + u[3] * data[xc[3] + yc[1] + zc[3]] )
+						+ v[2] * ( u[0] * data[xc[0] + yc[2] + zc[3]] + u[1] * data[xc[1] + yc[2] + zc[3]] + u[2] * data[xc[2] + yc[2] + zc[3]] + u[3] * data[xc[3] + yc[2] + zc[3]] )
+						+ v[3] * ( u[0] * data[xc[0] + yc[3] + zc[3]] + u[1] * data[xc[1] + yc[3] + zc[3]] + u[2] * data[xc[2] + yc[3] + zc[3]] + u[3] * data[xc[3] + yc[3] + zc[3]] ) );
 
 	}
 	return 0.f;

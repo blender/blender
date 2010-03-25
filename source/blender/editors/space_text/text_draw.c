@@ -249,14 +249,14 @@ int text_check_format_len(TextLine *line, unsigned int len)
 /* Formats the specified line. If do_next is set, the process will move on to
  the succeeding line if it is affected (eg. multiline strings). Format strings
  may contain any of the following characters:
- 	'_'		Whitespace
- 	'#'		Comment text
- 	'!'		Punctuation and other symbols
- 	'n'		Numerals
- 	'l'		String letters
- 	'v'		Special variables (class, def)
- 	'b'		Built-in names (print, for, etc.)
- 	'q'		Other text (identifiers, etc.)
+	 '_'		Whitespace
+	 '#'		Comment text
+	 '!'		Punctuation and other symbols
+	 'n'		Numerals
+	 'l'		String letters
+	 'v'		Special variables (class, def)
+	 'b'		Built-in names (print, for, etc.)
+	 'q'		Other text (identifiers, etc.)
  It is terminated with a null-terminator '\0' followed by a continuation
  flag indicating whether the line is part of a multi-line string. */
 

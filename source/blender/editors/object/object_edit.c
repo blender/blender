@@ -35,36 +35,14 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
 #include "DNA_group_types.h"
-#include "DNA_image_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_fluidsim.h"
-#include "DNA_object_force.h"
-#include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
-#include "DNA_world_types.h"
-#include "DNA_modifier_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -113,28 +91,20 @@
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 
-#include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_mball.h"
 #include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_types.h"
 #include "ED_util.h"
-#include "ED_view3d.h"
 
-#include "UI_interface.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 /* for menu/popup icons etc etc*/
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -418,7 +388,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	else if(ob->type==OB_FONT) {
 		scene->obedit= ob; // XXX for context
 		ok= 1;
- 		make_editText(ob);
+		 make_editText(ob);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, scene);
 	}
@@ -476,9 +446,9 @@ static int editmode_toggle_poll(bContext *C)
 		return 0;
 
 	return ob && (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
-		      ob->type == OB_FONT || ob->type == OB_MBALL ||
-		      ob->type == OB_LATTICE || ob->type == OB_SURF ||
-		      ob->type == OB_CURVE);
+			  ob->type == OB_FONT || ob->type == OB_MBALL ||
+			  ob->type == OB_LATTICE || ob->type == OB_SURF ||
+			  ob->type == OB_CURVE);
 }
 
 void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
@@ -1932,12 +1902,12 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *ptr, in
 	ob = CTX_data_active_object(C);
 	while(ob && input->identifier) {
 		if((input->value == OB_MODE_EDIT && ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE) ||
-						    (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
-						     (ob->type == OB_FONT) || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) ||
+							(ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
+							 (ob->type == OB_FONT) || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) ||
 		   (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
 		   (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
 		   ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
-		     input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
+			 input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
 		   (input->value == OB_MODE_OBJECT))
 			RNA_enum_item_add(&item, &totitem, input);
 		++input;
@@ -2119,16 +2089,16 @@ static int game_property_remove(bContext *C, wmOperator *op)
 
 	index = RNA_int_get(op->ptr, "index");
 
-    prop= BLI_findlink(&ob->prop, index);
+	prop= BLI_findlink(&ob->prop, index);
 
-    if(prop) {
+	if(prop) {
 		BLI_remlink(&ob->prop, prop);
 		free_property(prop);
 		return OPERATOR_FINISHED;
-    }
-    else {
-    	return OPERATOR_CANCELLED;
-    }
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void OBJECT_OT_game_property_remove(wmOperatorType *ot)

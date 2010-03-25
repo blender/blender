@@ -53,7 +53,7 @@ typedef struct VFontData {
 
 typedef struct VChar {
 	struct VChar    *next, *prev;
- 	ListBase        nurbsbase;
+	 ListBase        nurbsbase;
 	intptr_t   index;
 	float           resol;
 	float           width;

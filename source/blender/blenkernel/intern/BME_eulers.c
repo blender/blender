@@ -71,7 +71,7 @@
 	code. 
 
    *The term "Euler Operator" is actually a misnomer when referring to a non-manifold 
-    data structure. Its use is in keeping with the convention established by others.
+	data structure. Its use is in keeping with the convention established by others.
 
 	TODO:
 	-Finish inserting 'strict' validation in all Eulers

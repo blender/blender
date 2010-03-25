@@ -43,15 +43,9 @@
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
 
-#include "DNA_curve_types.h"
 #include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -68,8 +62,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_anim_api.h"
-#include "ED_curve.h"
 #include "ED_keyframes_edit.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -504,8 +496,8 @@ void CURVE_OT_separate(wmOperatorType *ot)
 static short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
 {
 	/* return u!=-1:     1 row in u-direction selected. U has value between 0-pntsv 
-     * return v!=-1: 1 collumn in v-direction selected. V has value between 0-pntsu 
-     */
+	 * return v!=-1: 1 collumn in v-direction selected. V has value between 0-pntsu 
+	 */
 	BPoint *bp;
 	int a, b, sel;
 
@@ -1882,27 +1874,27 @@ void CURVE_OT_select_inverse(wmOperatorType *ot)
  * @param  None
 */
 
-static int subdivide_exec(bContext *C, wmOperator *op)
+static void subdividenurb(Object *obedit, int number_cuts)
 {
-	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu;
 	BezTriple *prevbezt, *bezt, *beztnew, *beztn;
 	BPoint *bp, *prevbp, *bpnew, *bpn;
 	float vec[15];
-	int a, b, sel, amount, *usel, *vsel;
+	int a, b, sel, amount, *usel, *vsel, i;
+	float factor;
 
    // printf("*** subdivideNurb: entering subdivide\n");
 
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		amount= 0;
 		if(nu->type == CU_BEZIER) {
-        /* 
-           Insert a point into a 2D Bezier curve. 
-           Endpoints are preserved. Otherwise, all selected and inserted points are 
-           newly created. Old points are discarded.
-        */
+		/* 
+		   Insert a point into a 2D Bezier curve. 
+		   Endpoints are preserved. Otherwise, all selected and inserted points are 
+		   newly created. Old points are discarded.
+		*/
 			/* count */
 			if(nu->flagu & CU_NURB_CYCLIC) {
 				a= nu->pntsu;
@@ -1915,7 +1907,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 				bezt= prevbezt+1;
 			}
 			while(a--) {
-				if( BEZSELECTED_HIDDENHANDLES(cu, prevbezt) && BEZSELECTED_HIDDENHANDLES(cu, bezt) ) amount++;
+				if( BEZSELECTED_HIDDENHANDLES(cu, prevbezt) && BEZSELECTED_HIDDENHANDLES(cu, bezt) ) amount+=number_cuts;
 				prevbezt= bezt;
 				bezt++;
 			}
@@ -1940,30 +1932,39 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 					beztn++;
 
 					if( BEZSELECTED_HIDDENHANDLES(cu, prevbezt) && BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
-						memcpy(beztn, bezt, sizeof(BezTriple));
-						
-						/* midpoint subdividing */
-						mid_v3_v3v3(vec, prevbezt->vec[1], prevbezt->vec[2]);
-						mid_v3_v3v3(vec+3, prevbezt->vec[2], bezt->vec[0]);
-						mid_v3_v3v3(vec+6, bezt->vec[0], bezt->vec[1]);
-						
-						mid_v3_v3v3(vec+9, vec, vec+3);
-						mid_v3_v3v3(vec+12, vec+3, vec+6);
-						
-						/* change handle of prev beztn */
-						VECCOPY((beztn-1)->vec[2], vec);
-						/* new point */
-						VECCOPY(beztn->vec[0], vec+9);
-						mid_v3_v3v3(beztn->vec[1], vec+9, vec+12);
-						VECCOPY(beztn->vec[2], vec+12);
-						/* handle of next bezt */
-						if(a==0 && (nu->flagu & CU_NURB_CYCLIC)) {VECCOPY(beztnew->vec[0], vec+6);}
-						else {VECCOPY(bezt->vec[0], vec+6);}
-						
-						beztn->radius = (prevbezt->radius + bezt->radius)/2.0f;
-						beztn->weight = (prevbezt->weight + bezt->weight)/2.0f;
-						
-						beztn++;
+						float prevvec[3][3];
+
+						memcpy(prevvec, prevbezt->vec, sizeof(float) * 9);
+
+						for (i = 0; i < number_cuts; i++) {
+							factor = 1.0f / (number_cuts + 1 - i);
+
+							memcpy(beztn, bezt, sizeof(BezTriple));
+
+							/* midpoint subdividing */
+							interp_v3_v3v3(vec, prevvec[1], prevvec[2], factor);
+							interp_v3_v3v3(vec+3, prevvec[2], bezt->vec[0], factor);
+							interp_v3_v3v3(vec+6, bezt->vec[0], bezt->vec[1], factor);
+
+							interp_v3_v3v3(vec+9, vec, vec+3, factor);
+							interp_v3_v3v3(vec+12, vec+3, vec+6, factor);
+
+							/* change handle of prev beztn */
+							VECCOPY((beztn-1)->vec[2], vec);
+							/* new point */
+							VECCOPY(beztn->vec[0], vec+9);
+							interp_v3_v3v3(beztn->vec[1], vec+9, vec+12, factor);
+							VECCOPY(beztn->vec[2], vec+12);
+							/* handle of next bezt */
+							if(a==0 && i == number_cuts - 1 && (nu->flagu & CU_NURB_CYCLIC)) {VECCOPY(beztnew->vec[0], vec+6);}
+							else {VECCOPY(bezt->vec[0], vec+6);}
+
+							beztn->radius = (prevbezt->radius + bezt->radius)/2;
+							beztn->weight = (prevbezt->weight + bezt->weight)/2;
+
+							memcpy(prevvec, beztn->vec, sizeof(float) * 9);
+							beztn++;
+						}
 					}
 
 					prevbezt= bezt;
@@ -1980,12 +1981,12 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 			}
 		} /* End of 'if(nu->type == CU_BEZIER)' */
 		else if (nu->pntsv==1) {
-        /* 
-           All flat lines (ie. co-planar), except flat Nurbs. Flat NURB curves 
-           are handled together with the regular NURB plane division, as it 
-           should be. I split it off just now, let's see if it is
-           stable... nzc 30-5-'00
-         */
+		/* 
+		   All flat lines (ie. co-planar), except flat Nurbs. Flat NURB curves 
+		   are handled together with the regular NURB plane division, as it 
+		   should be. I split it off just now, let's see if it is
+		   stable... nzc 30-5-'00
+		 */
 			/* count */
 			if(nu->flagu & CU_NURB_CYCLIC) {
 				a= nu->pntsu;
@@ -1998,7 +1999,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 				bp= prevbp+1;
 			}
 			while(a--) {
-				if( (bp->f1 & SELECT) && (prevbp->f1 & SELECT) ) amount++;
+				if( (bp->f1 & SELECT) && (prevbp->f1 & SELECT) ) amount+=number_cuts;
 				prevbp= bp;
 				bp++;
 			}
@@ -2024,13 +2025,14 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 					bpn++;
 
 					if( (bp->f1 & SELECT) && (prevbp->f1 & SELECT) ) {
-                 // printf("*** subdivideNurb: insert 'linear' point\n");
-						memcpy(bpn, bp, sizeof(BPoint));
-						bpn->vec[0]= (prevbp->vec[0]+bp->vec[0])/2.0;
-						bpn->vec[1]= (prevbp->vec[1]+bp->vec[1])/2.0;
-						bpn->vec[2]= (prevbp->vec[2]+bp->vec[2])/2.0;
-						bpn->vec[3]= (prevbp->vec[3]+bp->vec[3])/2.0;
-						bpn++;
+				 // printf("*** subdivideNurb: insert 'linear' point\n");
+						for (i = 0; i < number_cuts; i++) {
+							factor = (float)(i + 1) / (number_cuts + 1);
+
+							memcpy(bpn, bp, sizeof(BPoint));
+							interp_v4_v4v4(bpn->vec, prevbp->vec, bp->vec, factor);
+							bpn++;
+						}
 
 					}
 					prevbp= bp;
@@ -2048,54 +2050,54 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 			}
 		} /* End of 'else if(nu->pntsv==1)' */
 		else if(nu->type == CU_NURBS) {
-        /* This is a very strange test ... */
-        /** 
-           Subdivide NURB surfaces - nzc 30-5-'00 -
+		/* This is a very strange test ... */
+		/** 
+		   Subdivide NURB surfaces - nzc 30-5-'00 -
            
-             Subdivision of a NURB curve can be effected by adding a 
-           control point (insertion of a knot), or by raising the
-           degree of the functions used to build the NURB. The
-           expression 
+			 Subdivision of a NURB curve can be effected by adding a 
+		   control point (insertion of a knot), or by raising the
+		   degree of the functions used to build the NURB. The
+		   expression 
 
-               degree = #knots - #controlpoints + 1 (J Walter piece)
-               degree = #knots - #controlpoints     (Blender
-                                                      implementation)
-                 ( this is confusing.... what is true? Another concern
-                 is that the JW piece allows the curve to become
-                 explicitly 1st order derivative discontinuous, while
-                 this is not what we want here... )
+			   degree = #knots - #controlpoints + 1 (J Walter piece)
+			   degree = #knots - #controlpoints     (Blender
+													  implementation)
+				 ( this is confusing.... what is true? Another concern
+				 is that the JW piece allows the curve to become
+				 explicitly 1st order derivative discontinuous, while
+				 this is not what we want here... )
 
-           is an invariant for a single NURB curve. Raising the degree
-           of the NURB is done elsewhere; the degree is assumed
-           constant during this opration. Degree is a property shared
-           by all controlpoints in a curve (even though it is stored
-           per control point - this can be misleading).
-             Adding a knot is done by searching for the place in the
-           knot vector where a certain knot value must be inserted, or
-           by picking an appropriate knot value between two existing
-           ones. The number of controlpoints that is influenced by the
-           insertion depends on the order of the curve. A certain
-           minimum number of knots is needed to form high-order
-           curves, as can be seen from the equation above. In Blender,
-           currently NURBs may be up to 6th order, so we modify at
-           most 6 points. One point is added. For an n-degree curve,
-           n points are discarded, and n+1 points inserted
-           (so effectively, n points are modified).  (that holds for
-           the JW piece, but it seems not for our NURBs)
-              In practice, the knot spacing is copied, but the tail
-           (the points following the insertion point) need to be
-           offset to keep the knot series ascending. The knot series
-           is always a series of monotonically ascending integers in
-           Blender. When not enough control points are available to
-           fit the order, duplicates of the endpoints are added as
-           needed. 
-        */
+		   is an invariant for a single NURB curve. Raising the degree
+		   of the NURB is done elsewhere; the degree is assumed
+		   constant during this opration. Degree is a property shared
+		   by all controlpoints in a curve (even though it is stored
+		   per control point - this can be misleading).
+			 Adding a knot is done by searching for the place in the
+		   knot vector where a certain knot value must be inserted, or
+		   by picking an appropriate knot value between two existing
+		   ones. The number of controlpoints that is influenced by the
+		   insertion depends on the order of the curve. A certain
+		   minimum number of knots is needed to form high-order
+		   curves, as can be seen from the equation above. In Blender,
+		   currently NURBs may be up to 6th order, so we modify at
+		   most 6 points. One point is added. For an n-degree curve,
+		   n points are discarded, and n+1 points inserted
+		   (so effectively, n points are modified).  (that holds for
+		   the JW piece, but it seems not for our NURBs)
+			  In practice, the knot spacing is copied, but the tail
+		   (the points following the insertion point) need to be
+		   offset to keep the knot series ascending. The knot series
+		   is always a series of monotonically ascending integers in
+		   Blender. When not enough control points are available to
+		   fit the order, duplicates of the endpoints are added as
+		   needed. 
+		*/
 			/* selection-arrays */
 			usel= MEM_callocN(sizeof(int)*nu->pntsu, "subivideNurb3");
 			vsel= MEM_callocN(sizeof(int)*nu->pntsv, "subivideNurb3");
 			sel= 0;
 
-         /* Count the number of selected points. */
+		 /* Count the number of selected points. */
 			bp= nu->bp;
 			for(a=0; a<nu->pntsv; a++) {
 				for(b=0; b<nu->pntsu; b++) {
@@ -2108,9 +2110,16 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 				}
 			}
 			if( sel == (nu->pntsu*nu->pntsv) ) {	/* subdivide entire nurb */
-           /* Global subdivision is a special case of partial
-              subdivision. Strange it is considered separately... */
-				bpn=bpnew= MEM_mallocN( (2*nu->pntsu-1)*(2*nu->pntsv-1)*sizeof(BPoint), "subdivideNurb4");
+		   /* Global subdivision is a special case of partial
+			  subdivision. Strange it is considered separately... */
+
+				/* count of nodes (after subdivision) along U axis */
+				int countu= nu->pntsu + (nu->pntsu - 1) * number_cuts;
+
+				/* total count of nodes after subdivision */
+				int tot= ((number_cuts+1)*nu->pntsu-number_cuts)*((number_cuts+1)*nu->pntsv-number_cuts);
+
+				bpn=bpnew= MEM_mallocN( tot*sizeof(BPoint), "subdivideNurb4");
 				bp= nu->bp;
 				/* first subdivide rows */
 				for(a=0; a<nu->pntsv; a++) {
@@ -2119,41 +2128,43 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 						bpn++; 
 						bp++;
 						if(b<nu->pntsu-1) {
-							*bpn= *bp;
 							prevbp= bp-1;
-							bpn->vec[0]= (prevbp->vec[0]+bp->vec[0])/2.0;
-							bpn->vec[1]= (prevbp->vec[1]+bp->vec[1])/2.0;
-							bpn->vec[2]= (prevbp->vec[2]+bp->vec[2])/2.0;
-							bpn->vec[3]= (prevbp->vec[3]+bp->vec[3])/2.0;
-							bpn++;
+							for (i = 0; i < number_cuts; i++) {
+								factor = (float)(i + 1) / (number_cuts + 1);
+								*bpn= *bp;
+								interp_v4_v4v4(bpn->vec, prevbp->vec, bp->vec, factor);
+								bpn++;
+							}
 						}
 					}
-					bpn+= (2*nu->pntsu-1);
+					bpn+= number_cuts * countu;
 				}
 				/* now insert new */
-				bpn= bpnew+(2*nu->pntsu-1);
-				bp= bpnew+(4*nu->pntsu-2);
+				bpn= bpnew+((number_cuts+1)*nu->pntsu - number_cuts);
+				bp= bpnew+(number_cuts+1)*((number_cuts+1)*nu->pntsu-number_cuts);
 				prevbp= bpnew;
 				for(a=1; a<nu->pntsv; a++) {
 
-					for(b=0; b<2*nu->pntsu-1; b++) {
-						*bpn= *bp;
-						bpn->vec[0]= (prevbp->vec[0]+bp->vec[0])/2.0;
-						bpn->vec[1]= (prevbp->vec[1]+bp->vec[1])/2.0;
-						bpn->vec[2]= (prevbp->vec[2]+bp->vec[2])/2.0;
-						bpn->vec[3]= (prevbp->vec[3]+bp->vec[3])/2.0;
-						bpn++; 
+					for(b=0; b<(number_cuts+1)*nu->pntsu-number_cuts; b++) {
+						BPoint *tmp= bpn;
+						for (i = 0; i < number_cuts; i++) {
+							factor = (float)(i + 1) / (number_cuts + 1);
+							*tmp= *bp;
+							interp_v4_v4v4(tmp->vec, prevbp->vec, bp->vec, factor);
+							tmp += countu;
+						}
 						bp++; 
 						prevbp++;
+						bpn++;
 					}
-					bp+= (2*nu->pntsu-1);
-					bpn+= (2*nu->pntsu-1);
-					prevbp+= (2*nu->pntsu-1);
+					bp+= number_cuts * countu;
+					bpn+= number_cuts * countu;
+					prevbp+= number_cuts * countu;
 				}
 				MEM_freeN(nu->bp);
 				nu->bp= bpnew;
-				nu->pntsu= 2*nu->pntsu-1;
-				nu->pntsv= 2*nu->pntsv-1;
+				nu->pntsu= (number_cuts+1)*nu->pntsu-number_cuts;
+				nu->pntsv= (number_cuts+1)*nu->pntsv-number_cuts;
 				makeknots(nu, 1);
 				makeknots(nu, 2);
 			} /* End of 'if(sel== nu->pntsu*nu->pntsv)' (subdivide entire NURB) */
@@ -2161,7 +2172,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 				/* subdivide in v direction? */
 				sel= 0;
 				for(a=0; a<nu->pntsv-1; a++) {
-					if(vsel[a]==nu->pntsu && vsel[a+1]==nu->pntsu) sel++;
+					if(vsel[a]==nu->pntsu && vsel[a+1]==nu->pntsu) sel+=number_cuts;
 				}
 
 				if(sel) {   /* V ! */
@@ -2170,29 +2181,30 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 					for(a=0; a<nu->pntsv; a++) {
 						for(b=0; b<nu->pntsu; b++) {
 							*bpn= *bp;
-							bpn++; 
+							bpn++;
 							bp++;
 						}
 						if( (a<nu->pntsv-1) && vsel[a]==nu->pntsu && vsel[a+1]==nu->pntsu ) {
-							prevbp= bp- nu->pntsu;
-							for(b=0; b<nu->pntsu; b++) {
-                       /* 
-                          This simple bisection must be replaces by a
-                          subtle resampling of a number of points. Our 
-                          task is made slightly easier because each
-                          point in our curve is a separate data
-                          node. (is it?)
-                       */
-								*bpn= *prevbp;
-								bpn->vec[0]= (prevbp->vec[0]+bp->vec[0])/2.0;
-								bpn->vec[1]= (prevbp->vec[1]+bp->vec[1])/2.0;
-								bpn->vec[2]= (prevbp->vec[2]+bp->vec[2])/2.0;
-								bpn->vec[3]= (prevbp->vec[3]+bp->vec[3])/2.0;
-								bpn++;
-								prevbp++;
-								bp++;
+							for (i = 0; i < number_cuts; i++) {
+								factor = (float)(i + 1) / (number_cuts + 1);
+								prevbp= bp- nu->pntsu;
+								for(b=0; b<nu->pntsu; b++) {
+										/*
+										  This simple bisection must be replaces by a
+										  subtle resampling of a number of points. Our
+										  task is made slightly easier because each
+										  point in our curve is a separate data
+										  node. (is it?)
+										*/
+										*bpn= *prevbp;
+										interp_v4_v4v4(bpn->vec, prevbp->vec, bp->vec, factor);
+										bpn++;
+
+									prevbp++;
+									bp++;
+								}
+								bp-= nu->pntsu;
 							}
-							bp-= nu->pntsu;
 						}
 					}
 					MEM_freeN(nu->bp);
@@ -2204,12 +2216,12 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 					/* or in u direction? */
 					sel= 0;
 					for(a=0; a<nu->pntsu-1; a++) {
-						if(usel[a]==nu->pntsv && usel[a+1]==nu->pntsv) sel++;
+						if(usel[a]==nu->pntsv && usel[a+1]==nu->pntsv) sel+=number_cuts;
 					}
 
 					if(sel) {	/* U ! */
-                 /* Inserting U points is sort of 'default' Flat curves only get */
-                 /* U points inserted in them.                                   */
+				 /* Inserting U points is sort of 'default' Flat curves only get */
+				 /* U points inserted in them.                                   */
 						bpn=bpnew= MEM_mallocN( (sel+nu->pntsu)*nu->pntsv*sizeof(BPoint), "subdivideNurb4");
 						bp= nu->bp;
 						for(a=0; a<nu->pntsv; a++) {
@@ -2218,20 +2230,20 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 								bpn++; 
 								bp++;
 								if( (b<nu->pntsu-1) && usel[b]==nu->pntsv && usel[b+1]==nu->pntsv ) {
-                          /* 
-                             One thing that bugs me here is that the
-                             orders of things are not the same as in
-                             the JW piece. Also, this implies that we
-                             handle at most 3rd order curves? I miss
-                             some symmetry here...
-                          */
+									/*
+									   One thing that bugs me here is that the
+									   orders of things are not the same as in
+									   the JW piece. Also, this implies that we
+									   handle at most 3rd order curves? I miss
+									   some symmetry here...
+									*/
+									for (i = 0; i < number_cuts; i++) {
+										factor = (float)(i + 1) / (number_cuts + 1);
 									prevbp= bp- 1;
 									*bpn= *prevbp;
-									bpn->vec[0]= (prevbp->vec[0]+bp->vec[0])/2.0;
-									bpn->vec[1]= (prevbp->vec[1]+bp->vec[1])/2.0;
-									bpn->vec[2]= (prevbp->vec[2]+bp->vec[2])/2.0;
-									bpn->vec[3]= (prevbp->vec[3]+bp->vec[3])/2.0;
+									interp_v4_v4v4(bpn->vec, prevbp->vec, bp->vec, factor);
 									bpn++;
+									}
 								}
 							}
 						}
@@ -2239,7 +2251,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 						nu->bp= bpnew;
 						nu->pntsu+= sel;
 						makeknots(nu, 1); /* shift knots
-                                                     forward */
+													 forward */
 					}
 				}
 			}
@@ -2248,6 +2260,14 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 
 		} /* End of 'if(nu->type == CU_NURBS)'  */
 	}
+}
+
+static int subdivide_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	int number_cuts= RNA_int_get(op->ptr, "number_cuts");
+
+	subdividenurb(obedit, number_cuts);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
@@ -2267,6 +2287,8 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, 100, "Number of cuts", "", 1, 100);
 }
 
 /******************** find nearest ************************/
@@ -2798,6 +2820,10 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 	
 	if( is_u_selected(nu1, nu1->pntsu-1) );
 	else {
+		/* For 2D curves blender uses orderv=0. It doesn't make any sense mathematically. */
+		/* but after rotating orderu=0 will be confusing. */
+		if (nu1->orderv == 0) nu1->orderv= 1;
+
 		rotate_direction_nurb(nu1);
 		if( is_u_selected(nu1, nu1->pntsu-1) );
 		else {
@@ -2818,6 +2844,7 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 	/* 2nd nurbs: u = 0 selected */
 	if( is_u_selected(nu2, 0) );
 	else {
+		if (nu2->orderv == 0) nu2->orderv= 1;
 		rotate_direction_nurb(nu2);
 		if( is_u_selected(nu2, 0) );
 		else {
@@ -2863,8 +2890,8 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 	/* merge */
 	origu= nu1->pntsu;
 	nu1->pntsu+= nu2->pntsu;
-	if(nu1->orderu<3) nu1->orderu++;
-	if(nu1->orderv<3) nu1->orderv++;
+	if(nu1->orderu<3 && nu1->orderu<nu1->pntsu) nu1->orderu++;
+	if(nu1->orderv<3 && nu1->orderv<nu1->pntsv) nu1->orderv++;
 	temp= nu1->bp;
 	nu1->bp= MEM_mallocN(nu1->pntsu*nu1->pntsv*sizeof(BPoint), "mergeBP");
 	
@@ -2939,7 +2966,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 		BLI_freelistN(&nsortbase);
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	while(nus2) {
 		merge_2_nurb(op, editnurb, nus1->nu, nus2->nu);
 		nus2= nus2->next;
@@ -3477,7 +3504,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	ViewContext vc;
-	float location[3];
+	float location[3] = {0.0f, 0.0f, 0.0f};
 	short mval[2];
 
 	if(rv3d && !RNA_property_is_set(op->ptr, "location")) {
@@ -4573,8 +4600,8 @@ static int delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(obedit->type==OB_SURF) {
 		pup= uiPupMenuBegin(C, "Delete", 0);
 		layout= uiPupMenuLayout(pup);
-		uiItemEnumO(layout, NULL, 0, op->type->idname, "type", 0);
-		uiItemEnumO(layout, NULL, 0, op->type->idname, "type", 2);
+		uiItemEnumO(layout, op->type->idname, NULL, 0, "type", 0);
+		uiItemEnumO(layout, op->type->idname, NULL, 0, "type", 2);
 		uiPupMenuEnd(C, pup);
 	}
 	else {

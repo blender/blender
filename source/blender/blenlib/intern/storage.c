@@ -334,7 +334,7 @@ void BLI_adddirstrings()
 			strcpy(files[num].owner, pwuser->pw_name);
 			} else {
 				sprintf(files[num].owner, "%d", files[num].s.st_uid);
-            }
+			}
 		}
 #endif
 

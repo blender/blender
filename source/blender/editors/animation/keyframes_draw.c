@@ -44,16 +44,11 @@
 #include "BLI_math.h"
 #include "BLI_dlrbTree.h"
 
-#include "DNA_listBase.h"
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
@@ -61,11 +56,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
-#include "DNA_view2d_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -80,8 +71,6 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 

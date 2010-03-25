@@ -1099,12 +1099,17 @@ static Py_ssize_t pyrna_prop_collection_length( BPy_PropertyRNA *self )
 static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_ssize_t keynum)
 {
 	PointerRNA newptr;
+    int len= RNA_property_collection_length(&self->ptr, self->prop);
 
-	if(keynum < 0) keynum += RNA_property_collection_length(&self->ptr, self->prop);
+	if(keynum < 0) keynum += len;
 
-	if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr))
-		return pyrna_struct_CreatePyObject(&newptr);
-
+    if(keynum >= 0 && keynum < len)  {
+        if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr)) {
+            return pyrna_struct_CreatePyObject(&newptr);
+        }        
+        PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d could not be found", keynum);
+        return NULL;
+    }
 	PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d out of range", keynum);
 	return NULL;
 }
@@ -2030,8 +2035,8 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 		}
 	}
 	else if ((prop = RNA_struct_find_property(&self->ptr, name))) {
-  		ret = pyrna_prop_to_py(&self->ptr, prop);
-  	}
+		  ret = pyrna_prop_to_py(&self->ptr, prop);
+	  }
 	/* RNA function only if callback is declared (no optional functions) */
 	else if ((func = RNA_struct_find_function(&self->ptr, name)) && RNA_function_defined(func)) {
 		ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self, func);
@@ -2971,7 +2976,7 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 
 	RNA_parameter_list_create(&parms, self_ptr, self_func);
 	RNA_parameter_list_begin(&parms, &iter);
-	parms_len= RNA_parameter_list_size(&parms);
+	parms_len= RNA_parameter_list_arg_count(&parms);
 	ret_len= 0;
 
 	if(pyargs_len + pykw_len > parms_len) {
@@ -2999,7 +3004,7 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 		parm_id= RNA_property_identifier(parm);
 		item= NULL;
 
-		if ((i < pyargs_len) && (flag & PROP_REQUIRED)) {
+		if (i < pyargs_len) {
 			item= PyTuple_GET_ITEM(args, i);
 			i++;
 
@@ -3043,7 +3048,6 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	}
 	
 	RNA_parameter_list_end(&iter);
-
 
 	/* Check if we gave args that dont exist in the function
 	 * printing the error is slow but it should only happen when developing.
@@ -3903,19 +3907,19 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, int parent, const char *error_pr
 	}
 
 	if(py_srna==NULL) {
-	 	PyErr_Format(PyExc_SystemError, "%.200s internal error, self of type '%.200s' had no bl_rna attribute, should never happen", error_prefix, Py_TYPE(self)->tp_name);
+		 PyErr_Format(PyExc_SystemError, "%.200s internal error, self of type '%.200s' had no bl_rna attribute, should never happen", error_prefix, Py_TYPE(self)->tp_name);
 		return NULL;
 	}
 
 	if(!BPy_StructRNA_Check(py_srna)) {
-	 	PyErr_Format(PyExc_SystemError, "%.200s internal error, bl_rna was of type '%.200s', instead of %.200s instance", error_prefix, Py_TYPE(py_srna)->tp_name, pyrna_struct_Type.tp_name);
-	 	Py_DECREF(py_srna);
+		 PyErr_Format(PyExc_SystemError, "%.200s internal error, bl_rna was of type '%.200s', instead of %.200s instance", error_prefix, Py_TYPE(py_srna)->tp_name, pyrna_struct_Type.tp_name);
+		 Py_DECREF(py_srna);
 		return NULL;
 	}
 
 	if(py_srna->ptr.type != &RNA_Struct) {
 		PyErr_Format(PyExc_SystemError, "%.200s internal error, bl_rna was not a RNA_Struct type of rna struct", error_prefix);
-	 	Py_DECREF(py_srna);
+		 Py_DECREF(py_srna);
 		return NULL;
 	}
 
@@ -4441,12 +4445,12 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	PyObject *item;
 	const char *identifier= "";
 
-    if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")) {
+	if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")) {
 		PyErr_SetString(PyExc_AttributeError, "bpy.types.register(...): already registered as a subclass.");
 		return NULL;
-    }
+	}
 
-    /* warning: gets parent classes srna, only for the register function */
+	/* warning: gets parent classes srna, only for the register function */
 	srna= pyrna_struct_as_srna(py_class, 1, "bpy.types.register(...):");
 	if(srna==NULL)
 		return NULL;
@@ -4513,10 +4517,10 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
 	StructUnregisterFunc unreg;
 	StructRNA *srna;
 
-    /*if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")==NULL) {
+	/*if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")==NULL) {
 		PyErr_SetString(PyExc_ValueError, "bpy.types.unregister(): not a registered as a subclass.");
 		return NULL;
-    }*/
+	}*/
 
 	srna= pyrna_struct_as_srna(py_class, 0, "bpy.types.unregister(...):");
 	if(srna==NULL)

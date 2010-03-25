@@ -40,18 +40,12 @@
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
-#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
@@ -61,11 +55,8 @@
 #include "BKE_key.h"
 #include "BKE_material.h"
 
-#include "ED_anim_api.h"
 #include "ED_keyframing.h"
-#include "ED_keyframes_edit.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 
 #include "UI_interface.h"
 
@@ -74,7 +65,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "anim_intern.h"
 
@@ -462,6 +452,55 @@ void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 }
 
 /* ******************************************* */
+
+/* Change Active KeyingSet Operator ------------------------ */
+/* This operator checks if a menu should be shown for choosing the KeyingSet to make the active one */
+
+static int keyingset_active_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* call the menu, which will call this operator again, hence the cancelled */
+	ANIM_keying_sets_menu_setup(C, op->type->name, "ANIM_OT_keying_set_active_set");
+	return OPERATOR_CANCELLED;
+}
+
+static int keyingset_active_menu_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	int type= RNA_int_get(op->ptr, "type");
+	
+	/* simply set the scene's active keying set index, unless the type == 0 
+	 * (i.e. which happens if we want the current active to be maintained) 
+	 */
+	if (type)
+		scene->active_keyingset= type;
+		
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ANIM_OT_keying_set_active_set (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Active Keying Set";
+	ot->idname= "ANIM_OT_keying_set_active_set";
+	
+	/* callbacks */
+	ot->invoke= keyingset_active_menu_invoke;
+	ot->exec= keyingset_active_menu_exec; 
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* keyingset to use
+	 *	- here the type is int not enum, since many of the indicies here are determined dynamically
+	 */
+	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+}
+
+/* ******************************************* */
 /* REGISTERED KEYING SETS */
 
 /* Keying Set Type Info declarations */
@@ -483,7 +522,7 @@ KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[])
 		
 	/* search by comparing names */
 	for (ksi = keyingset_type_infos.first; ksi; ksi = ksi->next) {
-		if (strcmp(ksi->name, name) == 0)
+		if (strcmp(ksi->idname, name) == 0)
 			return ksi;
 	}
 	
@@ -521,23 +560,15 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, const char name[
 /* Add the given KeyingSetInfo to the list of type infos, and create an appropriate builtin set too */
 void ANIM_keyingset_info_register (const bContext *C, KeyingSetInfo *ksi)
 {
-	Scene *scene = CTX_data_scene(C);
-	ListBase *list = NULL;
 	KeyingSet *ks;
-	
-	/* determine the KeyingSet list to include the new KeyingSet in */
-	if (ksi->builtin==0 && scene)
-		list = &scene->keyingsets;
-	else
-		list = &builtin_keyingsets;
 	
 	/* create a new KeyingSet 
 	 *	- inherit name and keyframing settings from the typeinfo
 	 */
-	ks = BKE_keyingset_add(list, ksi->name, ksi->builtin, ksi->keyingflag);
+	ks = BKE_keyingset_add(&builtin_keyingsets, ksi->name, 1, ksi->keyingflag);
 	
 	/* link this KeyingSet with its typeinfo */
-	memcpy(&ks->typeinfo, ksi->name, sizeof(ks->typeinfo));
+	memcpy(&ks->typeinfo, ksi->idname, sizeof(ks->typeinfo));
 	
 	/* add type-info to the list */
 	BLI_addtail(&keyingset_type_infos, ksi);
@@ -549,21 +580,18 @@ void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks, *ksn;
 	
-	/* find relevant scene KeyingSets which use this, and remove them */
-	for (ks= scene->keyingsets.first; ks; ks= ksn) {
+	/* find relevant builtin KeyingSets which use this, and remove them */
+	// TODO: this isn't done now, since unregister is really only used atm when we
+	// reload the scripts, which kindof defeats the purpose of "builtin"?
+	for (ks= builtin_keyingsets.first; ks; ks= ksn) {
 		ksn = ks->next;
 		
 		/* remove if matching typeinfo name */
-		if (strcmp(ks->typeinfo, ksi->name) == 0) {
+		if (strcmp(ks->typeinfo, ksi->idname) == 0) {
 			BKE_keyingset_free(ks);
 			BLI_freelinkN(&scene->keyingsets, ks);
 		}
 	}
-	
-	/* do the same with builtin sets? */
-	// TODO: this isn't done now, since unregister is really only used atm when we
-	// reload the scripts, which kindof defeats the purpose of "builtin"?
-	
 	
 	/* free the type info */
 	BLI_freelinkN(&keyingset_type_infos, ksi);
@@ -592,22 +620,106 @@ void ANIM_keyingset_infos_exit ()
 /* ******************************************* */
 /* KEYING SETS API (for UI) */
 
+/* Getters for Active/Indices ----------------------------- */
+
 /* Get the active Keying Set for the Scene provided */
 KeyingSet *ANIM_scene_get_active_keyingset (Scene *scene)
 {
-	if (ELEM(NULL, scene, scene->keyingsets.first))
+	/* if no scene, we've got no hope of finding the Keying Set */
+	if (scene == NULL)
 		return NULL;
 	
 	/* currently, there are several possibilities here:
 	 *	-   0: no active keying set
 	 *	- > 0: one of the user-defined Keying Sets, but indices start from 0 (hence the -1)
-	 *	- < 0: a builtin keying set (XXX this isn't enabled yet so that we don't get errors on reading back files)
+	 *	- < 0: a builtin keying set
 	 */
 	if (scene->active_keyingset > 0)
 		return BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
-	else // for now...
-		return NULL; 
+	else
+		return BLI_findlink(&builtin_keyingsets, (-scene->active_keyingset)-1);
 }
+
+/* Get the index of the Keying Set provided, for the given Scene */
+int ANIM_scene_get_keyingset_index (Scene *scene, KeyingSet *ks)
+{
+	int index;
+	
+	/* if no KeyingSet provided, have none */
+	if (ks == NULL)
+		return 0;
+	
+	/* check if the KeyingSet exists in scene list */
+	if (scene) {
+		/* get index and if valid, return 
+		 *	- (absolute) Scene KeyingSets are from (>= 1)
+		 */
+		index = BLI_findindex(&scene->keyingsets, ks);
+		if (index != -1)
+			return (index + 1);
+	}
+	
+	/* still here, so try builtins list too 
+	 *	- builtins are from (<= -1)
+	 *	- none/invalid is (= 0)
+	 */
+	index = BLI_findindex(&builtin_keyingsets, ks);
+	if (index != -1)
+		return -(index + 1);
+	else
+		return 0;
+}
+
+/* Menu of All Keying Sets ----------------------------- */
+
+/* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
+void ANIM_keying_sets_menu_setup (bContext *C, char title[], char op_name[])
+{
+	Scene *scene= CTX_data_scene(C);
+	KeyingSet *ks;
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	int i = 0;
+	
+	pup= uiPupMenuBegin(C, title, 0);
+	layout= uiPupMenuLayout(pup);
+	
+	/* active Keying Set 
+	 *	- only include entry if it exists
+	 */
+	if (scene->active_keyingset) {
+		uiItemIntO(layout, "Active Keying Set", 0, op_name, "type", i++);
+		uiItemS(layout);
+	}
+	else
+		i++;
+	
+	/* user-defined Keying Sets 
+	 *	- these are listed in the order in which they were defined for the active scene
+	 */
+	if (scene->keyingsets.first) {
+		for (ks= scene->keyingsets.first; ks; ks= ks->next) {
+			if (ANIM_keyingset_context_ok_poll(C, ks))
+				uiItemIntO(layout, ks->name, 0, op_name, "type", i++);
+		}
+		uiItemS(layout);
+	}
+	
+	/* builtin Keying Sets */
+	i= -1;
+	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
+		/* only show KeyingSet if context is suitable */
+		if (ANIM_keyingset_context_ok_poll(C, ks))
+			uiItemIntO(layout, ks->name, 0, op_name, "type", i--);
+	}
+	
+	uiPupMenuEnd(C, pup);
+} 
+
+/* ******************************************* */
+/* KEYFRAME MODIFICATION */
+
+/* Polling API ----------------------------------------------- */
 
 /* Check if KeyingSet can be used in the current context */
 short ANIM_keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
@@ -626,9 +738,6 @@ short ANIM_keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
 	
 	return 1;
 }
-
-/* ******************************************* */
-/* KEYFRAME MODIFICATION */
 
 /* Special 'Overrides' Iterator for Relative KeyingSets ------ */
 

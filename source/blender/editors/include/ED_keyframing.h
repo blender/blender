@@ -125,10 +125,10 @@ typedef struct KeyingSetInfo {
 	/* info */
 		/* identifier so that user can hook this up to a KeyingSet */
 	char name[64];
+		/* identifier used for class name, which KeyingSet instances reference as "Typeinfo Name" */
+	char idname[64];
 		/* keying settings */
 	short keyingflag;
-		/* builtin? */
-	short builtin;
 	
 	/* polling callbacks */
 		/* callback for polling the context for whether the right data is available */
@@ -189,6 +189,12 @@ void ANIM_keyingset_infos_exit(void);
 
 /* Get the active KeyingSet for the given scene */
 struct KeyingSet *ANIM_scene_get_active_keyingset(struct Scene *scene);
+
+/* Get the index of the Keying Set provided, for the given Scene */
+int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks);
+
+/* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
+void ANIM_keying_sets_menu_setup(struct bContext *C, char title[], char op_name[]);
 
 /* Check if KeyingSet can be used in the current context */
 short ANIM_keyingset_context_ok_poll(struct bContext *C, struct KeyingSet *ks);

@@ -75,7 +75,7 @@ float gammaCorrect(float c)
 	if (i < 0) res = -pow(abs(c), valid_gamma);
 	else if (i >= RE_GAMMA_TABLE_SIZE ) res = pow(c, valid_gamma);
 	else res = gamma_range_table[i] + 
-  			 ( (c - color_domain_table[i]) * gamfactor_table[i]); 
+			   ( (c - color_domain_table[i]) * gamfactor_table[i]); 
 	
 	return res;
 } /* end of float gammaCorrect(float col) */
@@ -92,7 +92,7 @@ float invGammaCorrect(float col)
 	if (i < 0) res = -pow(abs(col), valid_inv_gamma);
 	else if (i >= RE_GAMMA_TABLE_SIZE) res = pow(col, valid_inv_gamma);
 	else res = inv_gamma_range_table[i] + 
-  			 ( (col - color_domain_table[i]) * inv_gamfactor_table[i]);
+			   ( (col - color_domain_table[i]) * inv_gamfactor_table[i]);
 			   
 	return res;
 } /* end of float invGammaCorrect(float col) */

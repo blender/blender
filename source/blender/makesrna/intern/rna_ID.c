@@ -27,7 +27,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "DNA_ID.h"
 

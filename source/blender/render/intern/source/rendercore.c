@@ -1028,7 +1028,7 @@ void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
 static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
 {
 	/* for all pixels with max speed, set to zero */
-    RenderLayer *rlpp[RE_MAX_OSA];
+	RenderLayer *rlpp[RE_MAX_OSA];
 	float *fp;
 	int a, sample, totsample;
 	
@@ -1045,9 +1045,9 @@ static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
 
 static unsigned short *make_solid_mask(RenderPart *pa)
 { 
- 	intptr_t *rd= pa->rectdaps;
- 	unsigned short *solidmask, *sp;
- 	int x;
+	 intptr_t *rd= pa->rectdaps;
+	 unsigned short *solidmask, *sp;
+	 int x;
  	
 	if(rd==NULL) return NULL;
  	
@@ -1092,7 +1092,7 @@ static void addAlphaOverFloatMask(float *dest, float *source, unsigned short dma
 		dest[3]+= source[3];
 		
 		return;
- 	}
+	 }
 
 	dest[0]= (mul*dest[0]) + source[0];
 	dest[1]= (mul*dest[1]) + source[1];
@@ -2725,12 +2725,12 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	}
 	
 	/* calculate return value */
- 	for(a=0; a<re->r.threads; a++) {
+	 for(a=0; a<re->r.threads; a++) {
 		vdone+= handles[a].vdone;
 		
 		zbuf_free_span(handles[a].zspan);
 		MEM_freeN(handles[a].zspan);
- 	}
+	 }
 
 	MEM_freeN(handles);
 	

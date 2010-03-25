@@ -357,9 +357,9 @@ typedef enum ePose_Flags {
 	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3),
 		/* recalculate bone paths */
 	POSE_RECALCPATHS = (1<<4),
-	    /* set by armature_rebuild_pose to give a chance to the IK solver to rebuild IK tree */
+		/* set by armature_rebuild_pose to give a chance to the IK solver to rebuild IK tree */
 	POSE_WAS_REBUILT = (1<<5),
-	    /* set by game_copy_pose to indicate that this pose is used in the game engine */
+		/* set by game_copy_pose to indicate that this pose is used in the game engine */
 	POSE_GAME_ENGINE = (1<<6),
 } ePose_Flags;
 

@@ -35,20 +35,13 @@
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
-#include "DNA_image_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_bmfont.h"
 #include "BKE_displist.h"
@@ -68,7 +61,6 @@
 #include "BIF_glutil.h"
 
 #include "UI_resources.h"
-#include "UI_interface_icons.h"
 
 #include "gpu_buffers.h"
 #include "GPU_extensions.h"

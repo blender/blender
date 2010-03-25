@@ -19,7 +19,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -27,7 +26,6 @@
 #include "BKE_context.h"
 #include "BKE_paint.h"
 
-#include "ED_sculpt.h"
 #include "ED_screen.h"
 #include "UI_resources.h"
 
@@ -36,7 +34,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "paint_intern.h"
 #include "sculpt_intern.h"
@@ -68,7 +65,7 @@ void BRUSH_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Brush";
-    ot->description= "Add brush by mode type";
+	ot->description= "Add brush by mode type";
 	ot->idname= "BRUSH_OT_add";
 	
 	/* api callbacks */

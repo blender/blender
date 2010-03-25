@@ -11,8 +11,7 @@ from keyingsets_utils import *
 
 # Location
 class BUILTIN_KSI_Location(bpy.types.KeyingSetInfo):
-	bl_idname = "Location"
-	bl_builtin = True
+	bl_label = "Location"
 	
 	# poll - use predefined callback for selected bones/objects
 	poll = RKS_POLL_selected_items
@@ -25,8 +24,7 @@ class BUILTIN_KSI_Location(bpy.types.KeyingSetInfo):
 	
 # Rotation
 class BUILTIN_KSI_Rotation(bpy.types.KeyingSetInfo):
-	bl_idname = "Rotation"
-	bl_builtin = True
+	bl_label = "Rotation"
 	
 	# poll - use predefined callback for selected bones/objects
 	poll = RKS_POLL_selected_items
@@ -39,8 +37,7 @@ class BUILTIN_KSI_Rotation(bpy.types.KeyingSetInfo):
 	
 # Scale
 class BUILTIN_KSI_Scaling(bpy.types.KeyingSetInfo):
-	bl_idname = "Scaling"
-	bl_builtin = True
+	bl_label = "Scaling"
 	
 	# poll - use predefined callback for selected bones/objects
 	poll = RKS_POLL_selected_items
@@ -55,8 +52,7 @@ class BUILTIN_KSI_Scaling(bpy.types.KeyingSetInfo):
 	
 # LocRot
 class BUILTIN_KSI_LocRot(bpy.types.KeyingSetInfo):
-	bl_idname = "LocRot"
-	bl_builtin = True
+	bl_label = "LocRot"
 	
 	# poll - use predefined callback for selected bones/objects
 	poll = RKS_POLL_selected_items
@@ -73,8 +69,7 @@ class BUILTIN_KSI_LocRot(bpy.types.KeyingSetInfo):
 
 # LocScale
 class BUILTIN_KSI_LocScale(bpy.types.KeyingSetInfo):
-	bl_idname = "LocScale"
-	bl_builtin = True
+	bl_label = "LocScale"
 	
 	# poll - use predefined callback for selected bones/objects
 	poll = RKS_POLL_selected_items
@@ -91,8 +86,7 @@ class BUILTIN_KSI_LocScale(bpy.types.KeyingSetInfo):
 
 # LocRotScale
 class BUILTIN_KSI_LocRotScale(bpy.types.KeyingSetInfo):
-	bl_idname = "LocRotScale"
-	bl_builtin = True
+	bl_label = "LocRotScale"
 	
 	# poll - use predefined callback for selected bones/objects
 	poll = RKS_POLL_selected_items
@@ -111,8 +105,7 @@ class BUILTIN_KSI_LocRotScale(bpy.types.KeyingSetInfo):
 
 # RotScale
 class BUILTIN_KSI_RotScale(bpy.types.KeyingSetInfo):
-	bl_idname = "RotScale"
-	bl_builtin = True
+	bl_label = "RotScale"
 	
 	# poll - use predefined callback for selected bones/objects
 	poll = RKS_POLL_selected_items
@@ -131,8 +124,7 @@ class BUILTIN_KSI_RotScale(bpy.types.KeyingSetInfo):
 
 # Location
 class BUILTIN_KSI_VisualLoc(bpy.types.KeyingSetInfo):
-	bl_idname = "Visual Location"
-	bl_builtin = True
+	bl_label = "Visual Location"
 	
 	insertkey_visual = True
 	
@@ -147,8 +139,7 @@ class BUILTIN_KSI_VisualLoc(bpy.types.KeyingSetInfo):
 	
 # Rotation
 class BUILTIN_KSI_VisualRot(bpy.types.KeyingSetInfo):
-	bl_idname = "Visual Rotation"
-	bl_builtin = True
+	bl_label = "Visual Rotation"
 	
 	insertkey_visual = True
 	
@@ -163,8 +154,7 @@ class BUILTIN_KSI_VisualRot(bpy.types.KeyingSetInfo):
 
 # VisualLocRot
 class BUILTIN_KSI_VisualLocRot(bpy.types.KeyingSetInfo):
-	bl_idname = "Visual LocRot"
-	bl_builtin = True
+	bl_label = "Visual LocRot"
 	
 	insertkey_visual = True
 	
@@ -185,8 +175,7 @@ class BUILTIN_KSI_VisualLocRot(bpy.types.KeyingSetInfo):
 
 # Available
 class BUILTIN_KSI_Available(bpy.types.KeyingSetInfo):
-	bl_idname = "Available"
-	bl_builtin = True
+	bl_label = "Available"
 	
 	# poll - use predefined callback for selected objects
 	# TODO: this should really check whether the selected object (or datablock) 

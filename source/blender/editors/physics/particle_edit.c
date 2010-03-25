@@ -36,15 +36,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_force.h"
-#include "DNA_object_types.h"
-#include "DNA_vec_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
@@ -66,7 +60,6 @@
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
 
-#include "PIL_time.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -75,7 +68,6 @@
 #include "ED_particle.h"
 #include "ED_view3d.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -2386,7 +2378,7 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 	ParticleBrushData *brush= &pset->brush[pset->brushtype];
 	edit= psys->edit;
 
-	weight= (float)(brush->strength / 100.0f);
+	weight= brush->strength;
 
 	LOOP_SELECTED_POINTS {
 		ParticleData *pa= psys->particles + p;
@@ -2509,6 +2501,8 @@ static int brush_radial_control_exec(bContext *C, wmOperator *op)
 		brush->size= new_value;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		brush->strength= new_value;
+
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -2944,7 +2938,7 @@ static void brush_puff(PEData *data, int point_index)
 			VECCOPY(co, key->co);
 			mul_m4_v3(mat, co);
 			length += len_v3v3(lastco, co);
-			if((key->flag & PEK_SELECT) && !(key->flag & PEK_HIDE)) {
+			if((data->select==0 || (key->flag & PEK_SELECT)) && !(key->flag & PEK_HIDE)) {
 				VECADDFAC(kco, rootco, nor, length);
 
 				/* blend between the current and straight position */
@@ -3359,7 +3353,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				data.mval= mval;
 				data.rad= (float)brush->size;
 
-				data.combfac= (float)(brush->strength - 50) / 50.0f;
+				data.combfac= (brush->strength - 0.5f) * 2.0f;
 				if(data.combfac < 0.0f)
 					data.combfac= 1.0f - 9.0f * data.combfac;
 				else
@@ -3381,7 +3375,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					PE_set_view3d_data(C, &data);
 					data.mval= mval;
 					data.rad= (float)brush->size;
-					data.cutfac= (float)(brush->strength / 100.0f);
+					data.cutfac= brush->strength;
 
 					if(selected)
 						foreach_selected_point(&data, brush_cut);
@@ -3405,7 +3399,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				data.mval= mval;
 				
 				data.rad= (float)brush->size;
-				data.growfac= (float)brush->strength / 5000.0f;
+				data.growfac= brush->strength / 50.0f;
 
 				if(brush->invert ^ flip)
 					data.growfac= 1.0f - data.growfac;
@@ -3427,8 +3421,9 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					data.dm= psmd->dm;
 					data.mval= mval;
 					data.rad= (float)brush->size;
+					data.select= selected;
 
-					data.pufffac= (float)(brush->strength - 50) / 50.0f;
+					data.pufffac= (brush->strength - 0.5f) * 2.0f;
 					if(data.pufffac < 0.0f)
 						data.pufffac= 1.0f - 9.0f * data.pufffac;
 					else
@@ -3449,7 +3444,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					PE_set_view3d_data(C, &data);
 					data.mval= mval;
 
-					added= brush_add(&data, brush->strength);
+					added= brush_add(&data, brush->count);
 
 					if(pset->flag & PE_KEEP_LENGTHS)
 						recalc_lengths(edit);
@@ -3469,7 +3464,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				data.vec[0]= data.vec[1]= data.vec[2]= 0.0f;
 				data.tot= 0;
 
-				data.smoothfac= (float)(brush->strength / 100.0f);
+				data.smoothfac= brush->strength;
 
 				invert_m4_m4(ob->imat, ob->obmat);
 
@@ -3492,7 +3487,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					data.mval= mval;
 					data.rad= (float)brush->size;
 
-					data.weightfac = (float)(brush->strength / 100.0f); /* note that this will never be zero */
+					data.weightfac = brush->strength; /* note that this will never be zero */
 
 					foreach_mouse_hit_key(&data, brush_weight, selected);
 				}

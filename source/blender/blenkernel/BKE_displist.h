@@ -66,10 +66,10 @@ struct DerivedMesh;
 
 /* used for curves, nurbs, mball, importing */
 typedef struct DispList {
-    struct DispList *next, *prev;
-    short type, flag;
-    int parts, nr;
-    short col, rt;              /* rt used by initrenderNurbs */
+	struct DispList *next, *prev;
+	short type, flag;
+	int parts, nr;
+	short col, rt;              /* rt used by initrenderNurbs */
 	float *verts, *nors;
 	int *index;
 	unsigned int *col1, *col2;

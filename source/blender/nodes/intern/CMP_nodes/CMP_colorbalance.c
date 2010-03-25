@@ -56,7 +56,7 @@ DO_INLINE float colorbalance_cdl(float in, float offset, float power, float slop
 
 DO_INLINE float colorbalance_lgg(float in, float lift, float gamma, float gain)
 {
-	float x = gain*(in+lift*(1-in));
+	float x = gain*(in+(lift-1)*(1-in));
 	
 	/* prevent NaN */
 	if (x < 0.f) x = 0.f;
@@ -150,7 +150,7 @@ static void node_composit_init_colorbalance(bNode *node)
 {
 	NodeColorBalance *n= node->storage= MEM_callocN(sizeof(NodeColorBalance), "node colorbalance");
 
-	n->lift[0] = n->lift[1] = n->lift[2] = 0.0f;
+	n->lift[0] = n->lift[1] = n->lift[2] = 1.0f;
 	n->gamma[0] = n->gamma[1] = n->gamma[2] = 1.0f;
 	n->gain[0] = n->gain[1] = n->gain[2] = 1.0f;
 }

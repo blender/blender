@@ -69,32 +69,32 @@ static void do_channel_matte(bNode *node, float *out, float *in)
 	float alpha=0.0;	
 
 	switch(c->algorithm) {
-      case 0: { /* Alpha=key_channel-limit channel */
-         int key_channel=node->custom2-1;
-         int limit_channel=c->channel-1;
-         alpha=in[key_channel]-in[limit_channel];
-         break;
-      }
-      case 1: {  	/* Alpha=G-MAX(R, B) */
-         switch(node->custom2) {
-            case 1: {
-		            alpha=in[0]-MAX2(in[1],in[2]);
-		            break;
-	         }
-            case 2: {
-		            alpha=in[1]-MAX2(in[0],in[2]);
-		            break;
-	         }
-            case 3: {
-		            alpha=in[2]-MAX2(in[0],in[1]);
-		            break;
-	         }
-            default:
-	            break;
-         }
-      }
-      default:
-         break;
+	  case 0: { /* Alpha=key_channel-limit channel */
+		 int key_channel=node->custom2-1;
+		 int limit_channel=c->channel-1;
+		 alpha=in[key_channel]-in[limit_channel];
+		 break;
+	  }
+	  case 1: {  	/* Alpha=G-MAX(R, B) */
+		 switch(node->custom2) {
+			case 1: {
+					alpha=in[0]-MAX2(in[1],in[2]);
+					break;
+			 }
+			case 2: {
+					alpha=in[1]-MAX2(in[0],in[2]);
+					break;
+			 }
+			case 3: {
+					alpha=in[2]-MAX2(in[0],in[1]);
+					break;
+			 }
+			default:
+				break;
+		 }
+	  }
+	  default:
+		 break;
    }
 	
 	/*flip because 0.0 is transparent, not 1.0*/

@@ -30,7 +30,6 @@
 #include <time.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -38,7 +37,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "ED_armature.h"
 
 void rna_EditBone_align_roll(EditBone *ebo, float *no)
 {

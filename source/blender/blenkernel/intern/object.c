@@ -58,8 +58,9 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_editVert.h"
+#include "BLI_math.h"
+#include "BLI_pbvh.h"
 
 #include "BKE_utildefines.h"
 
@@ -231,23 +232,26 @@ void object_free_display(Object *ob)
 	freedisplist(&ob->disp);
 }
 
-void free_sculptsession(SculptSession **ssp)
+void free_sculptsession(Object *ob)
 {
-	if(ssp && *ssp) {
-		SculptSession *ss = *ssp;
+	if(ob && ob->sculpt) {
+		SculptSession *ss = ob->sculpt;
+		DerivedMesh *dm= ob->derivedFinal;
+
+		if(ss->pbvh)
+			BLI_pbvh_free(ss->pbvh);
+		if(dm && dm->getPBVH)
+			dm->getPBVH(NULL, dm); /* signal to clear */
 
 		if(ss->texcache)
 			MEM_freeN(ss->texcache);
-
-		if(ss->layer_disps)
-			MEM_freeN(ss->layer_disps);
 
 		if(ss->layer_co)
 			MEM_freeN(ss->layer_co);
 
 		MEM_freeN(ss);
 
-		*ssp = NULL;
+		ob->sculpt = NULL;
 	}
 }
 
@@ -306,7 +310,7 @@ void free_object(Object *ob)
 	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
 
-	free_sculptsession(&ob->sculpt);
+	free_sculptsession(ob);
 
 	if(ob->pc_ids.first) BLI_freelistN(&ob->pc_ids);
 }
@@ -710,9 +714,9 @@ void make_local_camera(Camera *cam)
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(cam->id.lib==0) return;
 	if(cam->id.us==1) {
@@ -858,9 +862,9 @@ void make_local_lamp(Lamp *la)
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(la->id.lib==0) return;
 	if(la->id.us==1) {
@@ -1356,9 +1360,9 @@ void make_local_object(Object *ob)
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(ob->id.lib==NULL) return;
 	
@@ -1766,7 +1770,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	
 	
 	/* vec: 4 items! */
- 	if( where_on_path(par, ctime, vec, dir, NULL, &radius) ) {
+	 if( where_on_path(par, ctime, vec, dir, NULL, &radius) ) {
 
 		if(cu->flag & CU_FOLLOW) {
 			vec_to_quat( quat,dir, ob->trackflag, ob->upflag);
@@ -2298,6 +2302,44 @@ void object_boundbox_flag(Object *ob, int flag, int set)
 	if(bb) {
 		if(set) bb->flag |= flag;
 		else bb->flag &= ~flag;
+	}
+}
+
+void object_get_dimensions(Object *ob, float *value)
+{
+	BoundBox *bb = NULL;
+	
+	bb= object_get_boundbox(ob);
+	if (bb) {
+		float scale[3];
+		
+		mat4_to_size( scale,ob->obmat);
+		
+		value[0] = fabs(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
+		value[1] = fabs(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
+		value[2] = fabs(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
+	} else {
+		value[0] = value[1] = value[2] = 0.f;
+	}
+}
+
+void object_set_dimensions(Object *ob, const float *value)
+{
+	BoundBox *bb = NULL;
+	
+	bb= object_get_boundbox(ob);
+	if (bb) {
+		float scale[3], len[3];
+		
+		mat4_to_size( scale,ob->obmat);
+		
+		len[0] = bb->vec[4][0] - bb->vec[0][0];
+		len[1] = bb->vec[2][1] - bb->vec[0][1];
+		len[2] = bb->vec[1][2] - bb->vec[0][2];
+		
+		if (len[0] > 0.f) ob->size[0] = value[0] / len[0];
+		if (len[1] > 0.f) ob->size[1] = value[1] / len[1];
+		if (len[2] > 0.f) ob->size[2] = value[2] / len[2];
 	}
 }
 

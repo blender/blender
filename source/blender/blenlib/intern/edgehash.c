@@ -82,7 +82,7 @@ void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 		v1 ^= v0;
 		v0 ^= v1;
 	}
- 	hash = EDGEHASH(v0,v1)%eh->nbuckets;
+	 hash = EDGEHASH(v0,v1)%eh->nbuckets;
 
 	e->v0 = v0;
 	e->v1 = v1;
@@ -215,7 +215,7 @@ void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val) {
 
 void BLI_edgehashIterator_step(EdgeHashIterator *ehi) {
 	if (ehi->curEntry) {
-        ehi->curEntry= ehi->curEntry->next;
+		ehi->curEntry= ehi->curEntry->next;
 		while (!ehi->curEntry) {
 			ehi->curBucket++;
 			if (ehi->curBucket==ehi->eh->nbuckets)

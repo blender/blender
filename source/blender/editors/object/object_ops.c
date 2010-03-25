@@ -33,11 +33,6 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -342,6 +337,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert_menu", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete_v3d", IKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_keying_set_active_set", IKEY, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0);
 	
 	WM_keymap_verify_item(keymap, "GROUP_OT_create", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove", GKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);

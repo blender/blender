@@ -32,11 +32,8 @@
  
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
@@ -58,7 +55,6 @@
 
 #include "UI_interface.h"
 
-#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -66,7 +62,6 @@
 #include "wm_window.h"
 
 #include "RNA_access.h"
-#include "RNA_types.h"
 
 #include "BPY_extern.h"
 
@@ -289,7 +284,7 @@ void ui_bounds_block(uiBlock *block)
 			if(bt->x1 < block->minx) block->minx= bt->x1;
 			if(bt->y1 < block->miny) block->miny= bt->y1;
 	
-  			if(bt->x2 > block->maxx) block->maxx= bt->x2;
+			  if(bt->x2 > block->maxx) block->maxx= bt->x2;
 			if(bt->y2 > block->maxy) block->maxy= bt->y2;
 
 			bt= bt->next;
@@ -373,9 +368,9 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_
 	width= block->maxx - block->minx;
 	height= block->maxy - block->miny;
     
-    /* avoid divide by zero below, caused by calling with no UI, but better not crash */
-    oldwidth= oldwidth > 0 ? oldwidth : MAX2(1, width);
-    oldheight= oldheight > 0 ? oldheight : MAX2(1, height);
+	/* avoid divide by zero below, caused by calling with no UI, but better not crash */
+	oldwidth= oldwidth > 0 ? oldwidth : MAX2(1, width);
+	oldheight= oldheight > 0 ? oldheight : MAX2(1, height);
 
 	/* offset block based on mouse position, user offset is scaled
 	   along in case we resized the block in ui_text_bounds_block */
@@ -1185,12 +1180,12 @@ void ui_get_but_vectorf(uiBut *but, float *vec)
 		float *fp= (float *)but->poin;
 		VECCOPY(vec, fp);
 	}
-    else {
-        if (but->editvec==NULL) {
-            fprintf(stderr, "ui_get_but_vectorf: can't get color, should never happen\n");
-            vec[0]= vec[1]= vec[2]= 0.0f;
-        }
-    }
+	else {
+		if (but->editvec==NULL) {
+			fprintf(stderr, "ui_get_but_vectorf: can't get color, should never happen\n");
+			vec[0]= vec[1]= vec[2]= 0.0f;
+		}
+	}
 }
 
 /* for buttons pointing to color for example */
@@ -1599,7 +1594,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 	}
 	else if(but->type == IDPOIN) {
 		/* ID pointer */
-    	but->idpoin_func(C, (char*)str, but->idpoin_idpp);
+		but->idpoin_func(C, (char*)str, but->idpoin_idpp);
 		return 1;
 	}
 	else if(but->type == TEX) {
@@ -2308,7 +2303,7 @@ ui_def_but is the function that draws many button types
 for float buttons:
 	"a1" Click Step (how much to change the value each click)
 	"a2" Number of decimal point values to display. 0 defaults to 3 (0.000) 1,2,3, and a maximum of 4,
-       all greater values will be clamped to 4.
+	   all greater values will be clamped to 4.
 
 */
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)

@@ -47,20 +47,9 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_action_types.h"  /* for some special action-editor settings */
 #include "DNA_constraint_types.h"
-#include "DNA_ipo_types.h"		/* some silly ipo flag	*/
-#include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"		/* PET modes			*/
-#include "DNA_screen_types.h"	/* area dimensions		*/
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 
@@ -98,7 +87,6 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_markers.h"
-#include "ED_util.h"
 #include "ED_view3d.h"
 #include "ED_mesh.h"
 
@@ -112,7 +100,6 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 
-#include "PIL_time.h"			/* sleep				*/
 
 #include "UI_resources.h"
 
@@ -556,7 +543,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->redraw |= TREDRAW_SOFT;
 
 		if (t->state == TRANS_STARTING) {
-		    t->state = TRANS_RUNNING;
+			t->state = TRANS_RUNNING;
 		}
 
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
@@ -2540,16 +2527,16 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		if ((t->flag & T_V3D_ALIGN)==0) {	// align mode doesn't resize objects itself
 			if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)){
 				/* scale val and reset size */
- 				*td->val = td->ival * (1 + (fsize[0] - 1) * td->factor);
+				 *td->val = td->ival * (1 + (fsize[0] - 1) * td->factor);
 				
 				td->ext->size[0] = td->ext->isize[0];
 				td->ext->size[1] = td->ext->isize[1];
 				td->ext->size[2] = td->ext->isize[2];
- 			}
+			 }
 			else {
 				/* Reset val if SINGLESIZE but using a constraint */
 				if (td->flag & TD_SINGLESIZE)
-	 				*td->val = td->ival;
+					 *td->val = td->ival;
 				
 				td->ext->size[0] = td->ext->isize[0] * (1 + (fsize[0] - 1) * td->factor);
 				td->ext->size[1] = td->ext->isize[1] * (1 + (fsize[1] - 1) * td->factor);
@@ -2948,7 +2935,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		/* rotation */
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
 			/* euler or quaternion? */
- 	  	    if ((td->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
+			   if ((td->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				mat3_to_quat( quat,fmat);	// Actual transform
 				
@@ -5719,11 +5706,11 @@ void BIF_TransformSetUndo(char *str)
 void NDofTransform()
 {
 #if 0 // TRANSFORM_FIX_ME
-    float fval[7];
-    float maxval = 50.0f; // also serves as threshold
-    int axis = -1;
-    int mode = 0;
-    int i;
+	float fval[7];
+	float maxval = 50.0f; // also serves as threshold
+	int axis = -1;
+	int mode = 0;
+	int i;
 
 	getndof(fval);
 

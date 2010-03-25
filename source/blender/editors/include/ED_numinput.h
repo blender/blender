@@ -27,13 +27,13 @@
 
 
 typedef struct NumInput {
-    short  idx;
-    short  idx_max;
-    short  flag;        /* Different flags to indicate different behaviors                                */
-    char   inv[3];      /* If the value is inverted or not                                                */
-    float  val[3];      /* Direct value of the input                                                      */
-    int    ctrl[3];     /* Control to indicate what to do with the numbers that are typed                 */
-    float  increment;
+	short  idx;
+	short  idx_max;
+	short  flag;        /* Different flags to indicate different behaviors                                */
+	char   inv[3];      /* If the value is inverted or not                                                */
+	float  val[3];      /* Direct value of the input                                                      */
+	int    ctrl[3];     /* Control to indicate what to do with the numbers that are typed                 */
+	float  increment;
 } NumInput ;
 
 /* NUMINPUT FLAGS */

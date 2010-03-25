@@ -30,19 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "DNA_armature_types.h"
-#include "DNA_ID.h"
-#include "DNA_image_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h" /* U.smooth_viewtx */
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 
@@ -66,9 +54,6 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h" /* for VECCOPY */
 
-#include "ED_armature.h"
-#include "ED_particle.h"
-#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_util.h"
 #include "ED_screen.h"
@@ -78,7 +63,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -90,9 +74,7 @@
 #include "BLI_editVert.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "view3d_intern.h"
 
@@ -397,25 +379,25 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		if( shift==0 || v3d->twtype==0) {
 			v3d->twtype= V3D_MANIP_TRANSLATE;
 		}
-        ED_area_tag_redraw(sa);
-        break;
+		ED_area_tag_redraw(sa);
+		break;
 	case B_MAN_ROT:
 		if( shift==0 || v3d->twtype==0) {
-            v3d->twtype= V3D_MANIP_ROTATE;
+			v3d->twtype= V3D_MANIP_ROTATE;
 		}
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_SCALE:
 		if( shift==0 || v3d->twtype==0) {
-            v3d->twtype= V3D_MANIP_SCALE;
+			v3d->twtype= V3D_MANIP_SCALE;
 		}
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	case B_NDOF:
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_MODE:
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	default:
 		break;
@@ -484,7 +466,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlockEndAlign(block);
 	
 	/* Draw type */
-	uiItemR(layout, "", 0, &v3dptr, "viewport_shading", UI_ITEM_R_ICON_ONLY);
+	uiItemR(layout, &v3dptr, "viewport_shading", UI_ITEM_R_ICON_ONLY, "", 0);
 
 	if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)))) {
 		/* Manipulators aren't used in weight paint mode */
@@ -492,13 +474,13 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		PointerRNA meshptr;
 
 		RNA_pointer_create(&ob->id, &RNA_Mesh, ob->data, &meshptr);
-		uiItemR(layout, "", 0, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY);
+		uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", 0);
 	} else {
 		char *str_menu;
 
 		row= uiLayoutRow(layout, 1);
-		uiItemR(row, "", 0, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY);
-		uiItemR(row, "", 0, &v3dptr, "pivot_point_align", UI_ITEM_R_ICON_ONLY);
+		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", 0);
+		uiItemR(row, &v3dptr, "pivot_point_align", UI_ITEM_R_ICON_ONLY, "", 0);
 
 		/* NDOF */
 		/* Not implemented yet
@@ -506,14 +488,14 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), 0,0,XIC+10,YIC, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
 		
 			uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
-				      0,0,XIC,YIC,
-				      &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
+					  0,0,XIC,YIC,
+					  &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
 		}
 		 */
 
 		/* Transform widget / manipulators */
 		row= uiLayoutRow(layout, 1);
-		uiItemR(row, "", 0, &v3dptr, "manipulator", UI_ITEM_R_ICON_ONLY);
+		uiItemR(row, &v3dptr, "manipulator", UI_ITEM_R_ICON_ONLY, "", 0);
 		block= uiLayoutGetBlock(row);
 		
 		if(v3d->twflag & V3D_USE_MANIPULATOR) {
@@ -541,7 +523,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiTemplateLayers(layout, &v3dptr, "visible_layers", &v3dptr, "used_layers", ob_lay);
 
 		/* Scene lock */
-		uiItemR(layout, "", 0, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY);
+		uiItemR(layout, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY, "", 0);
 	}
 	
 	/* selection modus, dont use python for this since it cant do the toggle buttons with shift+click as well as clicking to set one. */

@@ -38,18 +38,9 @@
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_anim.h"
 #include "BKE_idprop.h"
@@ -78,13 +69,9 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
-#include "ED_anim_api.h"
 #include "ED_keyframing.h"
-#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
-#include "ED_transform.h" /* for autokey TFM_TRANSLATION, etc */
-#include "ED_view3d.h"
 
 #include "UI_interface.h"
 
@@ -1435,7 +1422,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 void POSE_OT_autoside_names (wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[]= {
- 		{0, "XAXIS", 0, "X-Axis", "Left/Right"},
+		 {0, "XAXIS", 0, "X-Axis", "Left/Right"},
 		{1, "YAXIS", 0, "Y-Axis", "Front/Back"},
 		{2, "ZAXIS", 0, "Z-Axis", "Top/Bottom"},
 		{0, NULL, 0, NULL, NULL}};

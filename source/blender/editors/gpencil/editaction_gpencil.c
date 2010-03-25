@@ -36,14 +36,6 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
-#include "DNA_listBase.h"
-#include "DNA_action_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -54,15 +46,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "PIL_time.h"
 
-#include "ED_anim_api.h"
-#include "ED_gpencil.h"
-#include "ED_keyframes_edit.h"
-#include "ED_keyframes_draw.h"
-#include "ED_markers.h"
-#include "ED_util.h"
-#include "ED_types.h"
 
 #include "gpencil_intern.h"
 

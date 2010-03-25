@@ -44,6 +44,6 @@ int NewBooleanMesh(struct Scene *scene, struct Base *base, struct Base *base_sel
    are in fact mesh object. On success returns a DerivedMesh. On failure
    returns NULL and reports an error. */
 struct DerivedMesh *NewBooleanDerivedMesh(struct DerivedMesh *dm, struct Object *ob, struct DerivedMesh *dm_select, struct Object *ob_select,
-                                   int int_op_type);
+								   int int_op_type);
 #endif
 

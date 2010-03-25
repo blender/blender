@@ -28,9 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_color_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_string.h"
@@ -52,7 +50,6 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 #include "interface_intern.h"
 
 void ui_template_fix_linking()
@@ -82,49 +79,49 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	/* more 'generic' filtering options */
 	row= uiLayoutRow(layout, 1);
 	
-	uiItemR(row, "", 0, ptr, "only_selected", 0);
-	uiItemR(row, "", 0, ptr, "display_transforms", 0); // xxx: include in another position instead?
+	uiItemR(row, ptr, "only_selected", 0, "", 0);
+	uiItemR(row, ptr, "display_transforms", 0, "", 0); // xxx: include in another position instead?
 	
 	if (nlaActive)
-		uiItemR(row, "", 0, ptr, "include_missing_nla", 0);
+		uiItemR(row, ptr, "include_missing_nla", 0, "", 0);
 	
 	/* datatype based - only available datatypes are shown */
 	row= uiLayoutRow(layout, 1);
 
-	uiItemR(row, "", 0, ptr, "display_scene", 0);
-	uiItemR(row, "", 0, ptr, "display_world", 0);
-	uiItemR(row, "", 0, ptr, "display_node", 0);
+	uiItemR(row, ptr, "display_scene", 0, "", 0);
+	uiItemR(row, ptr, "display_world", 0, "", 0);
+	uiItemR(row, ptr, "display_node", 0, "", 0);
 	
 	if (mainptr && mainptr->mesh.first)
-		uiItemR(row, "", 0, ptr, "display_mesh", 0);
+		uiItemR(row, ptr, "display_mesh", 0, "", 0);
 	if (mainptr && mainptr->key.first)
-		uiItemR(row, "", 0, ptr, "display_shapekeys", 0);
+		uiItemR(row, ptr, "display_shapekeys", 0, "", 0);
 	if (mainptr && mainptr->mat.first)
-		uiItemR(row, "", 0, ptr, "display_material", 0);
+		uiItemR(row, ptr, "display_material", 0, "", 0);
 	if (mainptr && mainptr->lamp.first)
-		uiItemR(row, "", 0, ptr, "display_lamp", 0);
+		uiItemR(row, ptr, "display_lamp", 0, "", 0);
 	if (mainptr && mainptr->tex.first)
-		uiItemR(row, "", 0, ptr, "display_texture", 0);
+		uiItemR(row, ptr, "display_texture", 0, "", 0);
 	if (mainptr && mainptr->camera.first)
-		uiItemR(row, "", 0, ptr, "display_camera", 0);
+		uiItemR(row, ptr, "display_camera", 0, "", 0);
 	if (mainptr && mainptr->curve.first)
-		uiItemR(row, "", 0, ptr, "display_curve", 0);
+		uiItemR(row, ptr, "display_curve", 0, "", 0);
 	if (mainptr && mainptr->mball.first)
-		uiItemR(row, "", 0, ptr, "display_metaball", 0);
+		uiItemR(row, ptr, "display_metaball", 0, "", 0);
 	if (mainptr && mainptr->armature.first)
-		uiItemR(row, "", 0, ptr, "display_armature", 0);
+		uiItemR(row, ptr, "display_armature", 0, "", 0);
 	if (mainptr && mainptr->particle.first)
-		uiItemR(row, "", 0, ptr, "display_particle", 0);
+		uiItemR(row, ptr, "display_particle", 0, "", 0);
 	
 	/* group-based filtering (only when groups are available */
 	if (mainptr && mainptr->group.first) {
 		row= uiLayoutRow(layout, 1);
 		
-		uiItemR(row, "", 0, ptr, "only_group_objects", 0);
+		uiItemR(row, ptr, "only_group_objects", 0, "", 0);
 		
 		/* if enabled, show the group selection field too */
 		if (RNA_boolean_get(ptr, "only_group_objects"))
-			uiItemR(row, "", 0, ptr, "filtering_group", 0);
+			uiItemR(row, ptr, "filtering_group", 0, "", 0);
 	}
 }
 
@@ -168,8 +165,8 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 
 			/* hide dot-datablocks */
 			if(U.uiflag & USER_HIDE_DOT)
-    			if ((id->name[2]=='.') && (str[0] != '.'))
-    				continue;
+				if ((id->name[2]=='.') && (str[0] != '.'))
+					continue;
 
 			if(BLI_strcasestr(id->name+2, str)) {
 				iconid= ui_id_icon_get((bContext*)C, id, 0);
@@ -565,10 +562,10 @@ void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	
 	/* ID-Type Selector - just have a menu of icons */
 	// FIXME: the icon-only setting doesn't work when we supply a blank name
-	uiItemFullR(row, "", 0, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY);
+	uiItemFullR(row, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", 0);
 	
 	/* ID-Block Selector - just use pointer widget... */
-	uiItemFullR(row, "", 0, ptr, propID, 0, 0, 0);
+	uiItemFullR(row, ptr, propID, 0, 0, 0, "", 0);
 }
 
 /********************* RNA Path Builder Template ********************/
@@ -597,7 +594,7 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 	row= uiLayoutRow(layout, 1);
 	
 	/* Path (existing string) Widget */
-	uiItemR(row, text, ICON_RNA, ptr, propname, 0);
+	uiItemR(row, ptr, propname, 0, text, ICON_RNA);
 	
 	// TODO: attach something to this to make allow searching of nested properties to 'build' the path
 }
@@ -609,9 +606,6 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 #include <string.h>
 
 #include "DNA_object_force.h"
-#include "DNA_object_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
@@ -621,7 +615,6 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 #include "BKE_particle.h"
 #include "BKE_report.h"
 
-#include "UI_resources.h"
 #include "ED_util.h"
 
 #include "BLI_math.h"
@@ -728,7 +721,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* Open/Close .................................  */
-		uiItemR(row, "", 0, &ptr, "expanded", 0);
+		uiItemR(row, &ptr, "expanded", 0, "", 0);
 		
 		/* modifier-type icon */
 		uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
@@ -748,7 +741,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		block = uiLayoutGetBlock(row);
 		
 		/* modifier name */
-		uiItemR(row, "", 0, &ptr, "name", 0);
+		uiItemR(row, &ptr, "name", 0, "", 0);
 		
 		if (compact) {
 			/* insert delete button at end of top row before splitting to second line */
@@ -770,11 +763,11 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
 			&& (md->type!=eModifierType_Surface) ) 
 		{
-			uiItemR(row, "", 0, &ptr, "render", 0);
-			uiItemR(row, "", 0, &ptr, "realtime", 0);
+			uiItemR(row, &ptr, "render", 0, "", 0);
+			uiItemR(row, &ptr, "realtime", 0, "", 0);
 			
 			if (mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, "", 0, &ptr, "editmode", 0);
+				uiItemR(row, &ptr, "editmode", 0, "", 0);
 		}
 		if ((ob->type==OB_MESH) && modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) 
 		{
@@ -812,9 +805,9 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 			
 			if (md->type==eModifierType_ParticleSystem) {
-		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
+				ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 				
-	    		if (!(ob->mode & OB_MODE_PARTICLE_EDIT) && psys->pathcache) {
+				if (!(ob->mode & OB_MODE_PARTICLE_EDIT) && psys->pathcache) {
 					if(ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
 						uiItemO(row, "Convert", 0, "OBJECT_OT_duplicates_make_real");
 					else if(psys->part->ren_as == PART_DRAW_PATH)
@@ -822,10 +815,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 				}
 			}
 			else {
-				uiItemEnumO(row, "Apply", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_DATA);
+				uiItemEnumO(row, "OBJECT_OT_modifier_apply", "Apply", 0, "apply_as", MODIFIER_APPLY_DATA);
 				
 				if (modifier_sameTopology(md))
-					uiItemEnumO(row, "Apply as Shape", 0, "OBJECT_OT_modifier_apply", "apply_as", MODIFIER_APPLY_SHAPE);
+					uiItemEnumO(row, "OBJECT_OT_modifier_apply", "Apply as Shape", 0, "apply_as", MODIFIER_APPLY_SHAPE);
 			}
 			
 			uiBlockClearButLock(block);
@@ -891,7 +884,6 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int
 
 /************************ Constraint Template *************************/
 
-#include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 
 #include "BKE_action.h"
@@ -1074,7 +1066,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20;
 	
 	/* open/close */
-	uiItemR(subrow, "", 0, &ptr, "expanded", UI_ITEM_R_ICON_ONLY);
+	uiItemR(subrow, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 	
 	/* name */	
 	uiBlockSetEmboss(block, UI_EMBOSS);
@@ -1085,7 +1077,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 	
 	if(proxy_protected == 0) {
-		uiItemR(subrow, "", 0, &ptr, "name", 0);
+		uiItemR(subrow, &ptr, "name", 0, "", 0);
 	}
 	else
 		uiItemL(subrow, con->name, 0);
@@ -1176,8 +1168,8 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 				/* do the scripts menu */
 				/* XXX menustr = buildmenu_pyconstraints(data->text, &pyconindex);
 				but2 = uiDefButI(block, MENU, B_CONSTRAINT_TEST, menustr,
-				      xco+120, yco-24, 150, 20, &pyconindex,
-				      0, 0, 0, 0, "Set the Script Constraint to use");
+					  xco+120, yco-24, 150, 20, &pyconindex,
+					  0, 0, 0, 0, "Set the Script Constraint to use");
 				uiButSetFunc(but2, validate_pyconstraint_cb, data, &pyconindex);
 				MEM_freeN(menustr);	 */
 				
@@ -1494,8 +1486,8 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 		PointerRNA ptr;
 		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
 		row= uiLayoutRow(layout, 0);
-		uiItemR(row, "Pos", 0, &ptr, "position", 0);
-		uiItemR(row, "", 0, &ptr, "color", 0);
+		uiItemR(row, &ptr, "position", 0, "Pos", 0);
+		uiItemR(row, &ptr, "color", 0, "", 0);
 	}
 
 }
@@ -1517,7 +1509,7 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 		CBData *cbd= coba->data + coba->cur;
 		PointerRNA ptr;
 		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
-		uiItemR(layout, "", 0, &ptr, "color", 0);
+		uiItemR(layout, &ptr, "color", 0, "", 0);
 	}
 
 	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
@@ -1922,8 +1914,8 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	/* black/white levels */
 	if(levels) {
 		split= uiLayoutSplit(layout, 0, 0);
-		uiItemR(uiLayoutColumn(split, 0), NULL, 0, ptr, "black_level", UI_ITEM_R_EXPAND);
-		uiItemR(uiLayoutColumn(split, 0), NULL, 0, ptr, "white_level", UI_ITEM_R_EXPAND);
+		uiItemR(uiLayoutColumn(split, 0), ptr, "black_level", UI_ITEM_R_EXPAND, NULL, 0);
+		uiItemR(uiLayoutColumn(split, 0), ptr, "white_level", UI_ITEM_R_EXPAND, NULL, 0);
 
 		uiLayoutRow(layout, 0);
 		bt=uiDefBut(block, BUT, 0, "Reset",	0, 0, UI_UNIT_X*10, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Reset Black/White point and curves");
@@ -2012,9 +2004,9 @@ void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
 	/* nselected, selected, active color swatches */
 	csPtr= RNA_property_pointer_get(ptr, prop);
 	
-	uiItemR(row, "", 0, &csPtr, "normal", 0);
-	uiItemR(row, "", 0, &csPtr, "selected", 0);
-	uiItemR(row, "", 0, &csPtr, "active", 0);
+	uiItemR(row, &csPtr, "normal", 0, "", 0);
+	uiItemR(row, &csPtr, "selected", 0, "", 0);
+	uiItemR(row, &csPtr, "active", 0, "", 0);
 }
 
 /********************* Layer Buttons Template ************************/
@@ -2043,7 +2035,7 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
 //	  the array of layer bitflags
 
 void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
-		      PointerRNA *used_ptr, char *used_propname, int active_layer)
+			  PointerRNA *used_ptr, char *used_propname, int active_layer)
 {
 	uiLayout *uRow, *uCol;
 	PropertyRNA *prop, *used_prop= NULL;
@@ -2205,11 +2197,11 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		row= uiLayoutRow(split, 1);
 		if(i == 0) uiItemL(row, "", 0);
-		else uiItemR(row, "", 0, itemptr, "value", 0);
+		else uiItemR(row, itemptr, "value", 0, "", 0);
 
 		if(ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH))
 			uiLayoutSetActive(row, 0);
-		//uiItemR(row, "", ICON_MUTE_IPO_OFF, itemptr, "mute", 0);
+		//uiItemR(row, itemptr, "mute", 0, "", ICON_MUTE_IPO_OFF);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	else

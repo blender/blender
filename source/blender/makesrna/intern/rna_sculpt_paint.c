@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -34,6 +33,7 @@
 
 #include "BKE_paint.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 static EnumPropertyItem particle_edit_hair_brush_items[] = {
@@ -128,7 +128,21 @@ static void rna_ParticleEdit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	if(ob) DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
+static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
+{
+	ParticleEditSettings *pset= (ParticleEditSettings*)ptr->data;
+	
+	/* redraw hair completely if weight brush is/was used */
+	if(pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) {
+		Object *ob = (pset->scene->basact)? pset->scene->basact->object: NULL;
+		if(ob) {
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+		}
+	}
 
+	pset->brushtype = value;
+}
 static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -407,7 +421,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "brushtype");
 	RNA_def_property_enum_items(prop, particle_edit_hair_brush_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ParticleEdit_tool_itemf");
+	RNA_def_property_enum_funcs(prop, NULL, "rna_ParticleEdit_tool_set", "rna_ParticleEdit_tool_itemf");
 	RNA_def_property_ui_text(prop, "Tool", "");
 
 	prop= RNA_def_property(srna, "selection_mode", PROP_ENUM, PROP_NONE);
@@ -445,7 +459,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "draw_particles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_DRAW_PART);
 	RNA_def_property_ui_text(prop, "Draw Particles", "Draw actual particles");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_redo");
 
 	prop= RNA_def_property(srna, "add_interpolate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_INTERPOLATE_ADDED);
@@ -504,10 +518,14 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 1, 100, 10, 3);
 	RNA_def_property_ui_text(prop, "Size", "Brush size");
 
-	prop= RNA_def_property(srna, "strength", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 1, INT_MAX);
-	RNA_def_property_ui_range(prop, 1, 100, 10, 3);
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.001, 1.0);
 	RNA_def_property_ui_text(prop, "Strength", "Brush strength");
+
+	prop= RNA_def_property(srna, "count", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 1, 1000);
+	RNA_def_property_ui_range(prop, 1, 100, 10, 3);
+	RNA_def_property_ui_text(prop, "Count", "Particle count");
 
 	prop= RNA_def_property(srna, "steps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "step");

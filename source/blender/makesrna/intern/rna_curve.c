@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -1017,12 +1016,12 @@ static void rna_def_curve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
 	RNA_def_property_range(prop, 0, INT_MAX);
-	RNA_def_property_ui_range(prop, 1, 64, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 64, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering. Zero skips this property");
 	
 	prop= RNA_def_property(srna, "render_resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
-	RNA_def_property_ui_range(prop, 1, 64, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 64, 1, 0);
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property");
 	
@@ -1096,7 +1095,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Spline", NULL);
-    RNA_def_struct_sdna(srna, "Nurb");
+	RNA_def_struct_sdna(srna, "Nurb");
 	RNA_def_struct_ui_text(srna, "Spline", "Element of a curve, either Nurbs, Bezier or Polyline or a character with text objects");
 
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);

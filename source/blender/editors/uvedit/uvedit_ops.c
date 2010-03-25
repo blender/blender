@@ -34,12 +34,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -62,7 +58,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -2294,7 +2289,7 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	MTFace *tface;
 	int x, y, radius, width, height, select;
 	float zoomx, zoomy, offset[2], ellipse[2];
-    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
     
 	/* get operator properties */
 	select= (gesture_mode == GESTURE_MODAL_SELECT);

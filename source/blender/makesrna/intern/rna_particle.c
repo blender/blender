@@ -28,8 +28,6 @@
 #include "limits.h"
 
 #include "RNA_define.h"
-#include "RNA_types.h"
-#include "RNA_access.h"
 
 #include "rna_internal.h"
 

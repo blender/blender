@@ -33,7 +33,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -58,7 +57,6 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-#include "ED_armature.h"
 #include "ED_mesh.h"
 
 #include "meshlaplacian.h"
@@ -390,7 +388,7 @@ float laplacian_system_get_solution(int v)
 
 /************************* Heat Bone Weighting ******************************/
 /* From "Automatic Rigging and Animation of 3D Characters"
-         Ilya Baran and Jovan Popovic, SIGGRAPH 2007 */
+		 Ilya Baran and Jovan Popovic, SIGGRAPH 2007 */
 
 #define C_WEIGHT			1.0f
 #define WEIGHT_LIMIT_START	0.05f
@@ -751,7 +749,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 #ifdef RIGID_DEFORM
 /********************** As-Rigid-As-Possible Deformation ******************/
 /* From "As-Rigid-As-Possible Surface Modeling",
-        Olga Sorkine and Marc Alexa, ESGP 2007. */
+		Olga Sorkine and Marc Alexa, ESGP 2007. */
 
 /* investigate:
    - transpose R in orthogonal
@@ -1042,7 +1040,7 @@ typedef struct MeshDeformBind {
 /* our own triangle intersection, so we can fully control the epsilons and
  * prevent corner case from going wrong*/
 static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
-    float vert1[3], float vert2[3], float *isectco, float *uvw)
+	float vert1[3], float vert2[3], float *isectco, float *uvw)
 {
 	float edge1[3], edge2[3], tvec[3], pvec[3], qvec[3];
 	float det,inv_det, u, v, dir[3], isectdir[3];

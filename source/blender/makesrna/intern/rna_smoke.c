@@ -26,7 +26,6 @@
 #include <limits.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -47,7 +46,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"
 
-#include "ED_object.h"
 
 static void rna_Smoke_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -57,7 +55,7 @@ static void rna_Smoke_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Smoke_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_Smoke_update(bmain, scene, ptr);
-    DAG_scene_sort(scene);
+	DAG_scene_sort(scene);
 }
 
 static void rna_Smoke_reset(Main *bmain, Scene *scene, PointerRNA *ptr)

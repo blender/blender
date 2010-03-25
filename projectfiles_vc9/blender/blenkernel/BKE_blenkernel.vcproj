@@ -647,6 +647,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\image_gen.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\implicit.c"
 				>
 			</File>

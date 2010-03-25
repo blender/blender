@@ -34,19 +34,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
-#include "DNA_brush_types.h"
-#include "DNA_color_types.h"
-#include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_node_types.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_colortools.h"
@@ -70,14 +61,9 @@
 
 #include "RE_pipeline.h"
 
-#include "IMB_imbuf_types.h"
 
 #include "ED_node.h"
-#include "ED_render.h"
 #include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_transform.h"
-#include "ED_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

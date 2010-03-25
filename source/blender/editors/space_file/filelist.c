@@ -84,7 +84,6 @@
 
 #include "PIL_time.h"
 
-#include "UI_interface.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -136,7 +135,7 @@ typedef struct FileList
 	short hide_parent;
 
 	void (*readf)(struct FileList *);
-	int  (*filterf)(struct FileList *, struct direntry* file, unsigned int filter, short hide_dot);
+	int  (*filterf)(struct direntry* file, const char* dir, unsigned int filter, short hide_dot);
 
 } FileList;
 
@@ -873,7 +872,7 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 #ifdef WITH_OPENEXR
 				||	BLI_testextensie(file->relname, ".exr")
 #endif
-			    ) {
+				) {
 				file->flags |= IMAGEFILE;			
 			}
 			else if(BLI_testextensie(file->relname, ".avi")
@@ -1310,7 +1309,11 @@ static void thumbnails_update(void *tjv)
 		while (limg) {
 			if (!limg->done && limg->img) {
 				tj->filelist->filelist[limg->index].image = limg->img;
-				tj->filelist->filelist[limg->index].flags = limg->flags;
+				/* update flag for movie files where thumbnail can't be created */
+				if (limg->flags & MOVIEFILE_ICON) {
+					tj->filelist->filelist[limg->index].flags &= ~MOVIEFILE;
+					tj->filelist->filelist[limg->index].flags |= MOVIEFILE_ICON;
+				}
 				limg->done=1;
 			}
 			limg = limg->next;

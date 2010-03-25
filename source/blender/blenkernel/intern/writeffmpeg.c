@@ -206,7 +206,7 @@ static const char** get_file_extensions(int format)
 	}
 	case FFMPEG_MPEG2: {
 		static const char * rv[] = { ".dvd", ".vob", ".mpg", ".mpeg",
-					     NULL };
+						 NULL };
 		return rv;
 	}
 	case FFMPEG_MPEG4: {
@@ -271,7 +271,7 @@ static int write_video_frame(RenderData *rd, AVFrame* frame, ReportList *reports
 	}
 
 	outsize = avcodec_encode_video(c, video_buffer, video_buffersize, 
-				       frame);
+					   frame);
 	if (outsize != 0) {
 		AVPacket packet;
 		av_init_packet(&packet);
@@ -446,7 +446,7 @@ static void set_ffmpeg_properties(RenderData *rd, AVCodecContext *c, const char 
 /* prepare a video stream for the output file */
 
 static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContext* of,
-				    int rectx, int recty) 
+					int rectx, int recty) 
 {
 	AVStream* st;
 	AVCodecContext* c;
@@ -552,7 +552,7 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	video_buffersize = 2000000;
 	video_buffer = (uint8_t*)MEM_mallocN(video_buffersize, 
-					     "FFMPEG video buffer");
+						 "FFMPEG video buffer");
 	
 	current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
 
@@ -1053,7 +1053,7 @@ IDProperty *ffmpeg_property_add(RenderData *rd, char * type, int opt_index, int 
 /* not all versions of ffmpeg include that, so here we go ... */
 
 static const AVOption *my_av_find_opt(void *v, const char *name, 
-				      const char *unit, int mask, int flags){
+					  const char *unit, int mask, int flags){
 	AVClass *c= *(AVClass**)v; 
 	const AVOption *o= c->option;
 

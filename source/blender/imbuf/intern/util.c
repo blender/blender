@@ -327,7 +327,7 @@ static int isffmpeg (char *filename) {
 	if(UTIL_DEBUG) dump_format(pFormatCtx, 0, filename, 0);
 
 
-        /* Find the first video stream */
+		/* Find the first video stream */
 	videoStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
 		if(pFormatCtx->streams[i] &&
@@ -345,7 +345,7 @@ static int isffmpeg (char *filename) {
 
 	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[videoStream]);
 
-        /* Find the decoder for the video stream */
+		/* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
 	if(pCodec==NULL) {
 		av_close_input_file(pFormatCtx);

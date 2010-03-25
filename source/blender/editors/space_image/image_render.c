@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "DNA_image_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
@@ -40,11 +39,9 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "ED_screen.h"
 
 #include "RE_pipeline.h"
 
-#include "WM_api.h"
 
 #define HEADER_HEIGHT 18
 

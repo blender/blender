@@ -72,7 +72,7 @@ void setup_temp();
 /*** Exported functions ***/
 
 BFILE *BLI_bfile_fopen(const char *path, const char *mode, int bflags,
-                       BEnvVarFam envvars)
+					   BEnvVarFam envvars)
 {
 	BFILE *bfile;
 
@@ -107,7 +107,7 @@ BFILE *BLI_bfile_fopen(const char *path, const char *mode, int bflags,
 
 
 BFILE *BLI_bfile_open(const char *pathname, int flags, int bflags,
-                      BEnvVarFam envvars)
+					  BEnvVarFam envvars)
 {
 	BFILE *bfile;
 
@@ -171,7 +171,7 @@ ssize_t BLI_bfile_read(BFILE *f, void *buf, size_t count) {
 
 
 size_t BLI_bfile_fwrite(const void *ptr, size_t size, size_t nmemb,
-                        BFILE *f)
+						BFILE *f)
 {
 	size_t ret;
 
@@ -389,7 +389,7 @@ void expand_envvars(char* src, char* dst) {
 				}
 				/* Figure the name of the env var we just found  */
 				strncpy(name, hit1 + ENVVAR_P_SIZE,
-				        hit2 - (hit1 + ENVVAR_P_SIZE));
+						hit2 - (hit1 + ENVVAR_P_SIZE));
 				name[hit2 - (hit1 + ENVVAR_P_SIZE)] = '\0';
 				/* See if we can get something with that name */
 				value = getenv(name);

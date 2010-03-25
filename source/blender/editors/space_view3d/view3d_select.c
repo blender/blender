@@ -31,21 +31,12 @@
 #include <math.h>
 #include <float.h>
 
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -65,7 +56,6 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "RE_pipeline.h"	// make_stars
 
 #include "BIF_gl.h"
 
@@ -82,15 +72,10 @@
 #include "ED_object.h"
 #include "ED_retopo.h"
 #include "ED_screen.h"
-#include "ED_types.h"
-#include "ED_util.h"
 #include "ED_mball.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
-#include "PIL_time.h" /* smoothview */
 
 #include "view3d_intern.h"	// own include
 
@@ -941,7 +926,7 @@ static Base *mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffe
 				WM_operator_properties_create(&ptr, "OBJECT_OT_select_name");
 				RNA_string_set(&ptr, "name", name);
 				RNA_boolean_set(&ptr, "extend", extend);
-				uiItemFullO(column, name, uiIconFromID((ID *)ob), "OBJECT_OT_select_name", ptr.data, WM_OP_EXEC_DEFAULT, 0);
+				uiItemFullO(column, "OBJECT_OT_select_name", name, uiIconFromID((ID *)ob), ptr.data, WM_OP_EXEC_DEFAULT, 0);
 			}
 
 			node= node->next;
@@ -2051,10 +2036,10 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int x= RNA_int_get(op->ptr, "x");
 	int y= RNA_int_get(op->ptr, "y");
 	int radius= RNA_int_get(op->ptr, "radius");
-    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
-    int selecting;
+	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+	int selecting;
 	
-    selecting= (gesture_mode==GESTURE_MODAL_SELECT);
+	selecting= (gesture_mode==GESTURE_MODAL_SELECT);
     
 	if(CTX_data_edit_object(C) || (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		ViewContext vc;

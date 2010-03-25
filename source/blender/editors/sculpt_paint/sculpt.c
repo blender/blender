@@ -39,20 +39,11 @@
 #include "BLI_pbvh.h"
 #include "BLI_threads.h"
 
-#include "DNA_armature_types.h"
-#include "DNA_brush_types.h"
-#include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_color_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_cdderivedmesh.h"
@@ -79,11 +70,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
-#include "ED_space_api.h"
-#include "ED_util.h"
 #include "ED_view3d.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
@@ -91,12 +79,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "IMB_imbuf_types.h"
 
 #include "RE_render_ext.h"
-#include "RE_shader_ext.h" /*for multitex_ext*/
 
-#include "GPU_draw.h"
 #include "gpu_buffers.h"
 
 #include <math.h>
@@ -133,6 +118,7 @@ typedef struct StrokeCache {
 	float radius;
 	float true_location[3];
 	float location[3];
+
 	float flip;
 	float pressure;
 	float mouse[2];
@@ -191,20 +177,18 @@ static void projectf(bglMats *mats, const float v[3], float p[2])
 
 /* Get a screen-space rectangle of the modified area */
 int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
-			    Object *ob, rcti *rect)
+				Object *ob, rcti *rect)
 {
-	/* can't use ob->sculpt->tree, only valid during sculpt */
-	DerivedMesh *dm= ob->derivedFinal;
-	PBVH *tree= (dm)? dm->getPBVH(ob, dm): NULL;
+	PBVH *pbvh= ob->sculpt->pbvh;
 	float bb_min[3], bb_max[3], pmat[4][4];
 	int i, j, k;
 
 	view3d_get_object_project_mat(rv3d, ob, pmat);
 
-	if(!tree)
+	if(!pbvh)
 		return 0;
 
-	BLI_pbvh_redraw_BB(tree, bb_min, bb_max);
+	BLI_pbvh_redraw_BB(pbvh, bb_min, bb_max);
 
 	rect->xmin = rect->ymin = INT_MAX;
 	rect->xmax = rect->ymax = INT_MIN;
@@ -232,10 +216,9 @@ int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 }
 
 void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
-			      RegionView3D *rv3d, Object *ob)
+				  RegionView3D *rv3d, Object *ob)
 {
-	DerivedMesh *dm= ob->derivedFinal;
-	PBVH *tree= (dm)? dm->getPBVH(ob, dm): NULL;
+	PBVH *pbvh= ob->sculpt->pbvh;
 	BoundBox *bb = MEM_callocN(sizeof(BoundBox), "sculpt boundbox");
 	bglMats mats;
 	rcti rect;
@@ -264,8 +247,8 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 	MEM_freeN(bb);
 
 	/* clear redraw flag from nodes */
-	if(tree)
-		BLI_pbvh_update(tree, PBVH_UpdateRedraw, NULL);
+	if(pbvh)
+		BLI_pbvh_update(pbvh, PBVH_UpdateRedraw, NULL);
 }
 
 /************************** Undo *************************/
@@ -289,11 +272,28 @@ typedef struct SculptUndoNode {
 	int gridsize;				/* same for grid */
 	int totgrid;				/* to restore into right location */
 	int *grids;					/* to restore into right location */
+
+	/* layer brush */
+	float *layer_disp;
 } SculptUndoNode;
 
 static void update_cb(PBVHNode *node, void *data)
 {
 	BLI_pbvh_node_mark_update(node);
+}
+
+/* Checks whether full update mode (slower) needs to be used to work with modifiers */
+static int sculpt_modifiers_active(Scene *scene, Object *ob)
+{
+	ModifierData *md;
+	
+	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
+		if(modifier_isEnabled(scene, md, eModifierMode_Realtime))
+			if(!ELEM(md->type, eModifierType_Multires, eModifierType_ShapeKey))
+				return 1;
+	}
+	
+	return 0;
 }
 
 static void sculpt_undo_restore(bContext *C, ListBase *lb)
@@ -327,7 +327,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 				mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
 			}
 		}
-		else if(unode->maxgrid) {
+		else if(unode->maxgrid && dm->getGridData) {
 			/* multires restore */
 			DMGridData **grids, *grid;
 			float (*co)[3];
@@ -360,11 +360,14 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		/* we update all nodes still, should be more clever, but also
 		   needs to work correct when exiting/entering sculpt mode and
 		   the nodes get recreated, though in that case it could do all */
-		BLI_pbvh_search_callback(ss->tree, NULL, NULL, update_cb, NULL);
-		BLI_pbvh_update(ss->tree, PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw, NULL);
+		BLI_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, NULL);
+		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw, NULL);
 
 		if((mmd=sculpt_multires_active(ob)))
 			multires_mark_as_modified(ob);
+
+		if(sculpt_modifiers_active(scene, ob))
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 }
 
@@ -381,6 +384,8 @@ static void sculpt_undo_free(ListBase *lb)
 			MEM_freeN(unode->index);
 		if(unode->grids)
 			MEM_freeN(unode->grids);
+		if(unode->layer_disp)
+			MEM_freeN(unode->layer_disp);
 	}
 }
 
@@ -418,8 +423,8 @@ static SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 	strcpy(unode->idname, ob->id.name);
 	unode->node= node;
 
-	BLI_pbvh_node_num_verts(ss->tree, node, &totvert, &allvert);
-	BLI_pbvh_node_get_grids(ss->tree, node, &grids, &totgrid,
+	BLI_pbvh_node_num_verts(ss->pbvh, node, &totvert, &allvert);
+	BLI_pbvh_node_get_grids(ss->pbvh, node, &grids, &totgrid,
 		&maxgrid, &gridsize, NULL, NULL);
 
 	unode->totvert= totvert;
@@ -448,7 +453,7 @@ static SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 	{
 		PBVHVertexIter vd;
 
-		BLI_pbvh_vertex_iter_begin(ss->tree, node, vd, PBVH_ITER_ALL) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL) {
 			copy_v3_v3(unode->co[vd.i], vd.co);
 			if(vd.no) VECCOPY(unode->no[vd.i], vd.no)
 			else normal_float_to_short_v3(unode->no[vd.i], vd.fno);
@@ -479,6 +484,11 @@ static void sculpt_undo_push_end(SculptSession *ss)
 		if(unode->no) {
 			MEM_freeN(unode->no);
 			unode->no= NULL;
+		}
+
+		if(unode->layer_disp) {
+			MEM_freeN(unode->layer_disp);
+			unode->layer_disp= NULL;
 		}
 	}
 
@@ -708,7 +718,7 @@ static int sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 		BLI_pbvh_node_get_original_BB(node, bb_min, bb_max);
 	else
 		BLI_pbvh_node_get_BB(node, bb_min, bb_max);
-
+	
 	for(i = 0; i < 3; ++i) {
 		if(bb_min[i] > center[i])
 			nearest[i] = bb_min[i];
@@ -751,7 +761,7 @@ static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], floa
 /* For draw/layer/flatten; finds average normal for all active vertices */
 static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3], PBVHNode **nodes, int totnode)
 {
-	PBVH *bvh= ss->tree;
+	PBVH *bvh= ss->pbvh;
 	StrokeCache *cache = ss->cache;
 	const int view = 0; /* XXX: should probably be a flag, not number: brush_type==SCULPT_TOOL_DRAW ? sculptmode_brush()->view : 0; */
 	float out[3] = {0.0f, 0.0f, 0.0f};
@@ -845,7 +855,7 @@ static void do_draw_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 		sculpt_undo_push_node(ss, nodes[n]);
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->tree, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if(sculpt_brush_test(&test, vd.co)) {
 				/* offset vertex */
 				float fade = tex_strength(ss, brush, vd.co, test.dist);
@@ -886,9 +896,9 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 		
 		if(f->v4) {
 			skip= (f->v1==vert?2:
-			       f->v2==vert?3:
-			       f->v3==vert?0:
-			       f->v4==vert?1:-1);
+				   f->v2==vert?3:
+				   f->v3==vert?0:
+				   f->v4==vert?1:-1);
 		}
 
 		for(i=0; i<(f->v4?4:3); ++i) {
@@ -916,7 +926,7 @@ static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node)
 	
 	sculpt_brush_test_init(ss, &test);
 
-	BLI_pbvh_vertex_iter_begin(ss->tree, node, vd, PBVH_ITER_UNIQUE) {
+	BLI_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
 		if(sculpt_brush_test(&test, vd.co)) {
 			float fade = tex_strength(ss, brush, vd.co, test.dist)*bstrength;
 			float avg[3], val[3];
@@ -948,7 +958,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 			
 	sculpt_brush_test_init(ss, &test);
 
-	BLI_pbvh_node_get_grids(ss->tree, node, &grid_indices, &totgrid,
+	BLI_pbvh_node_get_grids(ss->pbvh, node, &grid_indices, &totgrid,
 		NULL, &gridsize, &griddata, &gridadj);
 
 	#pragma omp critical
@@ -1050,13 +1060,13 @@ static void do_pinch_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 		sculpt_undo_push_node(ss, nodes[n]);
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->tree, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if(sculpt_brush_test(&test, vd.co)) {
 				float fade = tex_strength(ss, brush, vd.co, test.dist)*bstrength;
 				float val[3]= {vd.co[0]+(test.location[0]-vd.co[0])*fade,
 							   vd.co[1]+(test.location[1]-vd.co[1])*fade,
 							   vd.co[2]+(test.location[2]-vd.co[2])*fade};
-				
+
 				sculpt_clip(sd, ss, vd.co, val);			
 				if(vd.mvert) vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
 			}
@@ -1085,7 +1095,7 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 		origco= sculpt_undo_push_node(ss, nodes[n])->co;
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->tree, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if(sculpt_brush_test(&test, origco[vd.i])) {
 				float fade = tex_strength(ss, brush, origco[vd.i], test.dist)*bstrength;
 				float add[3]= {vd.co[0]+fade*grab_delta[0],
@@ -1110,10 +1120,6 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 	float lim= ss->cache->radius / 4;
 	int n;
 
-	/* XXX not working yet for multires */
-	if(ss->multires)
-		return;
-
 	if(ss->cache->flip)
 		lim = -lim;
 
@@ -1127,16 +1133,21 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
-		float (*origco)[3];
+		SculptUndoNode *unode;
+		float (*origco)[3], *layer_disp;
 		
-		origco= sculpt_undo_push_node(ss, nodes[n])->co;
+		unode= sculpt_undo_push_node(ss, nodes[n]);
+		origco=unode->co;
+		if(!unode->layer_disp)
+			unode->layer_disp= MEM_callocN(sizeof(float)*unode->totvert, "layer disp");
+		layer_disp= unode->layer_disp;
+
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->tree, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if(sculpt_brush_test(&test, vd.co)) {
 				float fade = tex_strength(ss, brush, vd.co, test.dist)*bstrength;
-				int index= vd.vert_indices[vd.i];
-				float *disp= &ss->layer_disps[index];
+				float *disp= &layer_disp[vd.i];
 				float val[3];
 				
 				*disp+= fade;
@@ -1146,6 +1157,8 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 					*disp = lim;
 				
 				if(ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
+					int index= vd.vert_indices[vd.i];
+
 					/* persistent base */
 					val[0] = ss->layer_co[index][0] + (*disp)*offset[0];
 					val[1] = ss->layer_co[index][1] + (*disp)*offset[1];
@@ -1181,7 +1194,7 @@ static void do_inflate_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, in
 		sculpt_undo_push_node(ss, nodes[n]);
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->tree, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if(sculpt_brush_test(&test, vd.co)) {
 				float fade = tex_strength(ss, brush, vd.co, test.dist)*bstrength;
 				float add[3];
@@ -1225,7 +1238,7 @@ static void calc_flatten_center(Sculpt *sd, SculptSession *ss, PBVHNode **nodes,
 		sculpt_undo_push_node(ss, nodes[n]);
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->tree, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if(sculpt_brush_test(&test, vd.co)) {
 				for(j = 0; j < FLATTEN_SAMPLE_SIZE; ++j) {
 					if(test.dist > outer_dist[j]) {
@@ -1297,7 +1310,7 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, PBVHNode **node
 		flip = bstr < 0;
 	}
 
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1305,7 +1318,7 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, PBVHNode **node
 		sculpt_undo_push_node(ss, nodes[n]);
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->tree, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 			if(sculpt_brush_test(&test, vd.co)) {
 				float intr[3], val[3];
 				
@@ -1358,7 +1371,7 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 	   area of influence */
 	if(brush->sculpt_tool == SCULPT_TOOL_GRAB) {
 		data.original= 1;
-		BLI_pbvh_search_gather(ss->tree, sculpt_search_sphere_cb, &data,
+		BLI_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data,
 				&nodes, &totnode);
 
 		if(cache->first_time)
@@ -1367,7 +1380,7 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 			copy_v3_v3(ss->cache->location, ss->cache->grab_active_location[ss->cache->symmetry]);
 	}
 	else {
-		BLI_pbvh_search_gather(ss->tree, sculpt_search_sphere_cb, &data,
+		BLI_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data,
 			&nodes, &totnode);
 	}
 
@@ -1458,20 +1471,6 @@ static void sculpt_update_tex(Sculpt *sd, SculptSession *ss)
 	}
 }
 
-/* Checks whether full update mode (slower) needs to be used to work with modifiers */
-static int sculpt_modifiers_active(Scene *scene, Object *ob)
-{
-	ModifierData *md;
-	
-	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
-		if(modifier_isEnabled(scene, md, eModifierMode_Realtime))
-			if(!ELEM(md->type, eModifierType_Multires, eModifierType_ShapeKey))
-				return 1;
-	}
-	
-	return 0;
-}
-
 /* Sculpt mode handles multires differently from regular meshes, but only if
    it's the last modifier on the stack and it is not on the first level */
 struct MultiresModifierData *sculpt_multires_active(Object *ob)
@@ -1546,7 +1545,7 @@ void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
 		ss->face_normals = NULL;
 	}
 
-	ss->tree = dm->getPBVH(ob, dm);
+	ss->pbvh = dm->getPBVH(ob, dm);
 	ss->fmap = (need_fmap && dm->getFaceMap)? dm->getFaceMap(ob, dm): NULL;
 }
 
@@ -1579,7 +1578,7 @@ static char *sculpt_tool_name(Sculpt *sd)
 	case SCULPT_TOOL_LAYER:
 		return "Layer Brush"; break;
 	case SCULPT_TOOL_FLATTEN:
- 		return "Flatten Brush"; break;
+		 return "Flatten Brush"; break;
 	default:
 		return "Sculpting"; break;
 	}
@@ -1631,7 +1630,7 @@ static void SCULPT_OT_radial_control(wmOperatorType *ot)
 }
 
 /**** Operator for applying a stroke (various attributes including mouse path)
-      using the current brush. ****/
+	  using the current brush. ****/
 
 static float unproject_brush_radius(Object *ob, ViewContext *vc, float center[3], float offset)
 {
@@ -1684,16 +1683,13 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 	view3d_get_transformation(vc->ar, vc->rv3d, vc->obact, cache->mats);
 
 	/* Initialize layer brush displacements and persistent coords */
-	if(brush->sculpt_tool == SCULPT_TOOL_LAYER && !ss->multires) {
-		if(!ss->layer_disps || !(brush->flag & BRUSH_PERSISTENT)) {
-			if(ss->layer_disps)
-				MEM_freeN(ss->layer_disps);
-			ss->layer_disps = MEM_callocN(sizeof(float) * ss->totvert, "layer brush displacements");
-		}
-		if(!ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
+	if(brush->sculpt_tool == SCULPT_TOOL_LAYER) {
+		/* not supported yet for multires */
+		if(!ss->multires && !ss->layer_co && (brush->flag & BRUSH_PERSISTENT)) {
 			if(!ss->layer_co)
 				ss->layer_co= MEM_mallocN(sizeof(float) * 3 * ss->totvert,
-								       "sculpt mesh vertices copy");
+									   "sculpt mesh vertices copy");
+
 			for(i = 0; i < ss->totvert; ++i)
 				copy_v3_v3(ss->layer_co[i], ss->mvert[i].co);
 		}
@@ -1756,7 +1752,7 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 		dy = cache->mouse[1] - cache->initial_mouse[1];
 		cache->pixel_radius = sqrt(dx*dx + dy*dy);
 		cache->radius = unproject_brush_radius(ss->ob, paint_stroke_view_context(stroke),
-						       cache->true_location, cache->pixel_radius);
+							   cache->true_location, cache->pixel_radius);
 		cache->rotation = atan2(dy, dx);
 	}
 	else if(brush->flag & BRUSH_RAKE) {
@@ -1779,17 +1775,27 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 
 	/* Find the grab delta */
 	if(brush->sculpt_tool == SCULPT_TOOL_GRAB) {
-		float grab_location[3];
+		float grab_location[3], imat[4][4];
 
 		if(cache->first_time)
 			copy_v3_v3(cache->orig_grab_location, cache->true_location);
 
-		initgrabz(cache->vc->rv3d, cache->orig_grab_location[0], cache->orig_grab_location[1], cache->orig_grab_location[2]);
+		/* compute 3d coordinate at same z from original location + mouse */
+		initgrabz(cache->vc->rv3d, cache->orig_grab_location[0],
+			cache->orig_grab_location[1], cache->orig_grab_location[2]);
 		window_to_3d_delta(cache->vc->ar, grab_location, cache->mouse[0], cache->mouse[1]);
 
-		if(!cache->first_time)
+		/* compute delta to move verts by */
+		if(!cache->first_time) {
 			sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
+			invert_m4_m4(imat, ss->ob->obmat);
+			mul_mat3_m4_v3(imat, cache->grab_delta);
+		}
+
 		copy_v3_v3(cache->old_grab_location, grab_location);
+
+		/* location stays the same for finding vertices in brush radius */
+		copy_v3_v3(cache->true_location, cache->orig_grab_location);
 	}
 }
 
@@ -1824,7 +1830,7 @@ void sculpt_raycast_cb(PBVHNode *node, void *data_v)
 		origco= (unode)? unode->co: NULL;
 	}
 
-	srd->hit |= BLI_pbvh_node_raycast(srd->ss->tree, node, origco,
+	srd->hit |= BLI_pbvh_node_raycast(srd->ss->pbvh, node, origco,
 		srd->ray_start, srd->ray_normal, &srd->dist);
 }
 
@@ -1860,8 +1866,8 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	srd.dist = dist;
 	srd.hit = 0;
 	srd.original = (cache)? cache->original: 0;
-	BLI_pbvh_raycast(ss->tree, sculpt_raycast_cb, &srd,
-		     ray_start, ray_normal, srd.original);
+	BLI_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd,
+			 ray_start, ray_normal, srd.original);
 	
 	copy_v3_v3(out, ray_normal);
 	mul_v3_fl(out, srd.dist);
@@ -1943,7 +1949,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 		PBVHNode **nodes;
 		int n, totnode;
 
-		BLI_pbvh_search_gather(ss->tree, NULL, NULL, &nodes, &totnode);
+		BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
 		#pragma omp parallel for private(n) schedule(static)
 		for(n=0; n<totnode; n++) {
@@ -1953,7 +1959,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 			if(unode) {
 				PBVHVertexIter vd;
 
-				BLI_pbvh_vertex_iter_begin(ss->tree, nodes[n], vd, PBVH_ITER_UNIQUE) {
+				BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 					copy_v3_v3(vd.co, unode->co[vd.i]);
 					if(vd.no) VECCOPY(vd.no, unode->no[vd.i])
 					else normal_short_to_float_v3(vd.fno, unode->no[vd.i]);
@@ -1968,8 +1974,8 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 				copy_v3_v3(fn, cache->face_norms[i]);
 		}
 
-		if(brush->sculpt_tool == SCULPT_TOOL_LAYER && !ss->multires)
-			memset(ss->layer_disps, 0, sizeof(float) * ss->totvert);
+		if(nodes)
+			MEM_freeN(nodes);
 	}
 }
 
@@ -1992,7 +1998,7 @@ static void sculpt_flush_update(bContext *C)
 	else {
 		rcti r;
 
-		BLI_pbvh_update(ss->tree, PBVH_UpdateBB, NULL);
+		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB, NULL);
 		redraw = sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r);
 
 		if(redraw) {
@@ -2017,7 +2023,7 @@ static int over_mesh(bContext *C, struct wmOperator *op, float x, float y)
 }
 
 static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
-				    wmEvent *event)
+					wmEvent *event)
 {
 	/* Don't start the stroke until mouse goes over the mesh */
 	if(over_mesh(C, op, event->x, event->y)) {
@@ -2067,7 +2073,7 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
 
 		sculpt_undo_push_end(ss);
 
-		BLI_pbvh_update(ss->tree, PBVH_UpdateOriginalBB, NULL);
+		BLI_pbvh_update(ss->pbvh, PBVH_UpdateOriginalBB, NULL);
 
 		if(ss->refkb) sculpt_key_to_mesh(ss->refkb, ob);
 
@@ -2177,10 +2183,6 @@ static int sculpt_set_persistent_base(bContext *C, wmOperator *op)
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 
 	if(ss) {
-		if(ss->layer_disps)
-			MEM_freeN(ss->layer_disps);
-		ss->layer_disps = NULL;
-
 		if(ss->layer_co)
 			MEM_freeN(ss->layer_co);
 		ss->layer_co = NULL;
@@ -2231,7 +2233,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		/* Leave sculptmode */
 		ob->mode &= ~OB_MODE_SCULPT;
 
-		free_sculptsession(&ob->sculpt);
+		free_sculptsession(ob);
 	}
 	else {
 		/* Enter sculptmode */
@@ -2246,7 +2248,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 
 		/* Create sculpt mode session data */
 		if(ob->sculpt)
-			free_sculptsession(&ob->sculpt);
+			free_sculptsession(ob);
 
 		sculpt_init_session(scene, ob);
 

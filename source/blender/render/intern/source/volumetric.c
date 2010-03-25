@@ -296,7 +296,7 @@ float vol_get_density(struct ShadeInput *shi, float *co)
 	if (shi->obi->obr->ob->type == OB_MBALL) {
 		const float md = metadensity(shi->obi->obr->ob, co);
 		if (md < 1.f) density *= md;
- 	}
+	 }
 	
 	return density * density_scale;
 }

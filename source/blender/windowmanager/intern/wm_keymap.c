@@ -47,7 +47,6 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_types.h"
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"

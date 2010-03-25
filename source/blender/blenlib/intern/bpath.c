@@ -77,7 +77,7 @@ enum BPathTypes {
 	BPATH_SEQ,
 	BPATH_CDATA,
 
- 	BPATH_DONE
+	 BPATH_DONE
 };
 
 void BLI_bpathIterator_init( struct BPathIterator *bpi, char *base_path ) {

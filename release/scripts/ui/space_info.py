@@ -221,7 +221,7 @@ class INFO_MT_add(bpy.types.Menu):
 
         layout.operator_menu_enum("object.curve_add", "type", text="Curve", icon='OUTLINER_OB_CURVE')
         layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='OUTLINER_OB_SURFACE')
-        layout.operator_menu_enum("object.metaball_add", "type", 'META', text="Metaball", icon='OUTLINER_OB_META')
+        layout.operator_menu_enum("object.metaball_add", "type", text="Metaball", icon='OUTLINER_OB_META')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
         layout.separator()
 
@@ -233,10 +233,10 @@ class INFO_MT_add(bpy.types.Menu):
 
         layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
         layout.operator_context = 'EXEC_SCREEN'
-        layout.operator_menu_enum("object.lamp_add", "type", 'LAMP', text="Lamp", icon='OUTLINER_OB_LAMP')
+        layout.operator_menu_enum("object.lamp_add", "type", text="Lamp", icon='OUTLINER_OB_LAMP')
         layout.separator()
 
-        layout.operator_menu_enum("object.effector_add", "type", 'EMPTY', text="Force Field", icon='OUTLINER_OB_EMPTY')
+        layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_EMPTY')
         layout.separator()
 
         if(len(bpy.data.groups) > 10):

@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -50,7 +49,7 @@ static struct StructRNA* rna_Controller_refine(struct PointerRNA *ptr)
 			return &RNA_XorController;
 		case CONT_LOGIC_XNOR:
 			return &RNA_XnorController;
- 		case CONT_EXPRESSION:
+		 case CONT_EXPRESSION:
 			return &RNA_ExpressionController;
 		case CONT_PYTHON:
 			return &RNA_PythonController;

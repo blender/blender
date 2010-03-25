@@ -205,17 +205,17 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 	/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
 	 * are done outside of blenkernel with ED_objects_single_users! */
 
-    /*  camera */
+	/*  camera */
 	if(type == SCE_COPY_LINK_DATA || type == SCE_COPY_FULL) {
-	    ID_NEW(scen->camera);
+		ID_NEW(scen->camera);
 	}
 
 	/* world */
 	if(type == SCE_COPY_FULL) {
-        if(scen->world) {
-            id_us_plus((ID *)scen->world);
-            scen->world= copy_world(scen->world);
-        }
+		if(scen->world) {
+			id_us_plus((ID *)scen->world);
+			scen->world= copy_world(scen->world);
+		}
 	}
 
 	sound_create_scene(scen);
@@ -238,9 +238,9 @@ void free_scene(Scene *sce)
 	
 	if(sce->gpd) {
 #if 0   // removed since this can be invalid memory when freeing everything
-        // since the grease pencil data is free'd before the scene.
-        // since grease pencil data is not (yet?), shared between objects
-        // its probably safe not to do this, some save and reload will free this.
+		// since the grease pencil data is free'd before the scene.
+		// since grease pencil data is not (yet?), shared between objects
+		// its probably safe not to do this, some save and reload will free this.
 		sce->gpd->id.us--;
 #endif
 		sce->gpd= NULL;
@@ -431,9 +431,10 @@ Scene *add_scene(char *name)
 	pset->fade_frames= 2;
 	pset->selectmode= SCE_SELECT_PATH;
 	for(a=0; a<PE_TOT_BRUSH; a++) {
-		pset->brush[a].strength= 50;
+		pset->brush[a].strength= 0.5;
 		pset->brush[a].size= 50;
 		pset->brush[a].step= 10;
+		pset->brush[a].count= 10;
 	}
 	pset->brush[PE_BRUSH_CUT].strength= 100;
 	
@@ -627,7 +628,7 @@ int next_object(Scene *scene, int val, Base **base, Object **ob)
 					fase= F_SCENE;
 				}
 				else {
-				    /* exception: empty scene */
+					/* exception: empty scene */
 					if(scene->set && scene->set->base.first) {
 						*base= scene->set->base.first;
 						*ob= (*base)->object;

@@ -30,7 +30,6 @@
 #include "BKE_text.h"
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 

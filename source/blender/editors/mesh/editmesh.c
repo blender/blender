@@ -32,21 +32,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
 
-#include "DNA_customdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_screen_types.h"
 #include "DNA_key_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

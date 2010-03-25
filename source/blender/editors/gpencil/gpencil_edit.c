@@ -34,23 +34,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
-#include "DNA_listBase.h"
-#include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_armature.h"
@@ -76,9 +69,6 @@
 
 #include "UI_view2d.h"
 
-#include "ED_armature.h"
-#include "ED_gpencil.h"
-#include "ED_sequencer.h"
 #include "ED_view3d.h"
 
 #include "gpencil_intern.h"

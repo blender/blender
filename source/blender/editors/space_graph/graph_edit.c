@@ -44,21 +44,8 @@
 #include "BLI_math.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -80,10 +67,8 @@
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
-#include "ED_keyframes_draw.h"
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
-#include "ED_space_api.h"
 #include "ED_transform.h"
 
 #include "WM_api.h"
@@ -1935,7 +1920,7 @@ static int graph_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *eve
 			continue;
 		
 		/* create operator menu item with relevant properties filled in */
-		props_ptr= uiItemFullO(layout, fmi->name, 0, "GRAPH_OT_fmodifier_add", NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		props_ptr= uiItemFullO(layout, "GRAPH_OT_fmodifier_add", fmi->name, 0, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 			/* the only thing that gets set from the menu is the type of F-Modifier to add */
 		RNA_enum_set(&props_ptr, "type", i);
 			/* the following properties are just repeats of existing ones... */

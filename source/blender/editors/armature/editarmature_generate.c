@@ -34,7 +34,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_armature_types.h"
 

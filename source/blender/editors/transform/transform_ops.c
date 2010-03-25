@@ -25,8 +25,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -533,9 +531,9 @@ void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Tilt";
-    /*optionals - 
-        "Tilt selected vertices."
-        "Specify an extra axis rotation for selected vertices of 3d curve." */
+	/*optionals - 
+		"Tilt selected vertices."
+		"Specify an extra axis rotation for selected vertices of 3d curve." */
 	ot->description= "Tilt selected control vertices of 3d curve"; 
 	ot->idname = OP_TILT;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -640,7 +638,7 @@ void TRANSFORM_OT_tosphere(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "To Sphere";
-    //added "around mesh center" to differentiate between "MESH_OT_vertices_to_sphere()" 
+	//added "around mesh center" to differentiate between "MESH_OT_vertices_to_sphere()" 
 	ot->description= "Move selected vertices outward in a spherical shape around mesh center";
 	ot->idname = OP_TOSPHERE;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;

@@ -34,9 +34,7 @@
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "BLI_ghash.h"
 #include "BLI_string.h"

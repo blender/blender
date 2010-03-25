@@ -76,7 +76,6 @@
 #include "BLO_writefile.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "ED_datafiles.h"
 #include "ED_object.h"

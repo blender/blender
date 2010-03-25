@@ -29,15 +29,12 @@
 #include <stdlib.h>
 
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
-#include "ED_screen.h"
 
 #include "outliner_intern.h"
 

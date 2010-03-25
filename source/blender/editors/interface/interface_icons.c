@@ -44,9 +44,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
 
-#include "DNA_material_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
@@ -66,7 +64,6 @@
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
-#include "UI_resources.h" /* elubie: should be removed once the enum for the ICONS is in BIF_preview_icons.h */
 
 #include "interface_intern.h"
 

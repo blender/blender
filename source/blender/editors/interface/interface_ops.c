@@ -33,11 +33,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_vec_types.h"
-#include "DNA_view2d_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
@@ -53,10 +48,8 @@
 
 #include "BIF_gl.h"
 
-#include "ED_screen.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 
 /* ********************************************************** */
 

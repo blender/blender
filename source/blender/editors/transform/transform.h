@@ -108,25 +108,25 @@ typedef struct TransSnap {
 
 typedef struct TransCon {
 	short orientation;	 /**/
-    char  text[50];      /* Description of the Constraint for header_print                            */
-    float mtx[3][3];     /* Matrix of the Constraint space                                            */
-    float imtx[3][3];    /* Inverse Matrix of the Constraint space                                    */
-    float pmtx[3][3];    /* Projection Constraint Matrix (same as imtx with some axis == 0)           */
-    float center[3];     /* transformation center to define where to draw the view widget
-                            ALWAYS in global space. Unlike the transformation center                  */
+	char  text[50];      /* Description of the Constraint for header_print                            */
+	float mtx[3][3];     /* Matrix of the Constraint space                                            */
+	float imtx[3][3];    /* Inverse Matrix of the Constraint space                                    */
+	float pmtx[3][3];    /* Projection Constraint Matrix (same as imtx with some axis == 0)           */
+	float center[3];     /* transformation center to define where to draw the view widget
+							ALWAYS in global space. Unlike the transformation center                  */
 	short imval[2];	     /* initial mouse value for visual calculation                                */
-	                     /* the one in TransInfo is not garanty to stay the same (Rotates change it)  */
-    int   mode;          /* Mode flags of the Constraint                                              */
+						 /* the one in TransInfo is not garanty to stay the same (Rotates change it)  */
+	int   mode;          /* Mode flags of the Constraint                                              */
 	void  (*drawExtra)(struct TransInfo *);
 						 /* For constraints that needs to draw differently from the other
 							uses this instead of the generic draw function							  */
-    void  (*applyVec)(struct TransInfo *, struct TransData *, float *, float *, float *);
-                         /* Apply function pointer for linear vectorial transformation                */
-                         /* The last three parameters are pointers to the in/out/printable vectors    */
-    void  (*applySize)(struct TransInfo *, struct TransData *, float [3][3]);
-                         /* Apply function pointer for size transformation */
-    void  (*applyRot)(struct TransInfo *, struct TransData *, float [3], float *);
-                         /* Apply function pointer for rotation transformation */
+	void  (*applyVec)(struct TransInfo *, struct TransData *, float *, float *, float *);
+						 /* Apply function pointer for linear vectorial transformation                */
+						 /* The last three parameters are pointers to the in/out/printable vectors    */
+	void  (*applySize)(struct TransInfo *, struct TransData *, float [3][3]);
+						 /* Apply function pointer for size transformation */
+	void  (*applyRot)(struct TransInfo *, struct TransData *, float [3], float *);
+						 /* Apply function pointer for rotation transformation */
 } TransCon;
 
 typedef struct TransDataExtension {
@@ -135,16 +135,16 @@ typedef struct TransDataExtension {
 	float drotAxis[3];	 /* Initial object drotAxis */
 	float dquat[4];		 /* Initial object dquat */
 	float dsize[3];		 /* Initial object dsize */
-    float *rot;          /* Rotation of the data to transform (Faculative)                                 */
-    float  irot[3];      /* Initial rotation                                                               */
-    float *quat;         /* Rotation quaternion of the data to transform (Faculative)                      */
-    float  iquat[4];	 /* Initial rotation quaternion                                                    */
+	float *rot;          /* Rotation of the data to transform (Faculative)                                 */
+	float  irot[3];      /* Initial rotation                                                               */
+	float *quat;         /* Rotation quaternion of the data to transform (Faculative)                      */
+	float  iquat[4];	 /* Initial rotation quaternion                                                    */
 	float *rotAngle;	 /* Rotation angle of the data to transform (Faculative) 						 */
 	float  irotAngle;	 /* Initial rotation angle 												 */
 	float *rotAxis;		 /* Rotation axis of the data to transform (Faculative) 						 */
 	float  irotAxis[4];	 /* Initial rotation axis 													 */
-    float *size;         /* Size of the data to transform (Faculative)                                     */
-    float  isize[3];	 /* Initial size                                                                   */
+	float *size;         /* Size of the data to transform (Faculative)                                     */
+	float  isize[3];	 /* Initial size                                                                   */
 	float  obmat[4][4];	 /* Object matrix */
 } TransDataExtension;
 
@@ -214,20 +214,20 @@ typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
 	float  rdist;        /* Distance to the nearest element (for Proportionnal Editing)                    */
 	float  factor;       /* Factor of the transformation (for Proportionnal Editing)                       */
-    float *loc;          /* Location of the data to transform                                              */
-    float  iloc[3];      /* Initial location                                                               */
+	float *loc;          /* Location of the data to transform                                              */
+	float  iloc[3];      /* Initial location                                                               */
 	float *val;          /* Value pointer for special transforms */
 	float  ival;         /* Old value*/
-    float  center[3];	 /* Individual data center                                                         */
-    float  mtx[3][3];    /* Transformation matrix from data space to global space                          */
-    float  smtx[3][3];   /* Transformation matrix from global space to data space                          */
+	float  center[3];	 /* Individual data center                                                         */
+	float  mtx[3][3];    /* Transformation matrix from data space to global space                          */
+	float  smtx[3][3];   /* Transformation matrix from global space to data space                          */
 	float  axismtx[3][3];/* Axis orientation matrix of the data                                            */
 	struct Object *ob;
 	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
 	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
-    int  flag;         /* Various flags */
+	int  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
 	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
 } TransData;
@@ -236,7 +236,7 @@ typedef struct MouseInput {
 	void	(*apply)(struct TransInfo *, struct MouseInput *, short [2], float [3]);
 	void	(*post)(struct TransInfo *, float [3]);
 
-    short   imval[2];       	/* initial mouse position                */
+	short   imval[2];       	/* initial mouse position                */
 	char	precision;
 	short	precision_mval[2];	/* mouse position when precision key was pressed */
 	int		center[2];
@@ -245,32 +245,32 @@ typedef struct MouseInput {
 } MouseInput;
 
 typedef struct TransInfo {
-    int         mode;           /* current mode                         */
-    int	        flag;           /* generic flags for special behaviors  */
-    int			modifiers;		/* special modifiers, by function, not key */
+	int         mode;           /* current mode                         */
+	int	        flag;           /* generic flags for special behaviors  */
+	int			modifiers;		/* special modifiers, by function, not key */
 	short		state;			/* current state (running, canceled,...)*/
-    int         options;        /* current context/options for transform                      */
-    float       val;            /* init value for some transformations (and rotation angle)  */
-    float       fac;            /* factor for distance based transform  */
-    int       (*transform)(struct TransInfo *, short *);
-                                /* transform function pointer           */
+	int         options;        /* current context/options for transform                      */
+	float       val;            /* init value for some transformations (and rotation angle)  */
+	float       fac;            /* factor for distance based transform  */
+	int       (*transform)(struct TransInfo *, short *);
+								/* transform function pointer           */
 	int       (*handleEvent)(struct TransInfo *, struct wmEvent *);
 								/* event handler function pointer  RETURN 1 if redraw is needed */
-    int         total;          /* total number of transformed data     */
-    TransData  *data;           /* transformed data (array)             */
+	int         total;          /* total number of transformed data     */
+	TransData  *data;           /* transformed data (array)             */
 	TransDataExtension *ext;	/* transformed data extension (array)   */
 	TransData2D *data2d;		/* transformed data for 2d (array)      */
-    TransCon    con;            /* transformed constraint               */
-    TransSnap	tsnap;
-    NumInput    num;            /* numerical input                      */
-    NDofInput   ndof;           /* ndof input                           */
-    MouseInput	mouse;			/* mouse input                          */
-    char        redraw;         /* redraw flag                          */
+	TransCon    con;            /* transformed constraint               */
+	TransSnap	tsnap;
+	NumInput    num;            /* numerical input                      */
+	NDofInput   ndof;           /* ndof input                           */
+	MouseInput	mouse;			/* mouse input                          */
+	char        redraw;         /* redraw flag                          */
 	float		prop_size;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
-    float       center[3];      /* center of transformation             */
-    int         center2d[2];    /* center in screen coordinates         */
-    short       imval[2];       /* initial mouse position               */
+	float       center[3];      /* center of transformation             */
+	int         center2d[2];    /* center in screen coordinates         */
+	short       imval[2];       /* initial mouse position               */
 	short		event_type;		/* event->type used to invoke transform */
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
@@ -317,12 +317,12 @@ typedef struct TransInfo {
 	struct Scene	*scene;
 	struct ToolSettings *settings;
 	struct wmTimer *animtimer;
-    short       mval[2];        /* current mouse position               */
-    struct Object   *obedit;
-    void		*draw_handle_apply;
-    void		*draw_handle_view;
-    void		*draw_handle_pixel;
-    void		*draw_handle_cursor;
+	short       mval[2];        /* current mouse position               */
+	struct Object   *obedit;
+	void		*draw_handle_apply;
+	void		*draw_handle_view;
+	void		*draw_handle_pixel;
+	void		*draw_handle_cursor;
 } TransInfo;
 
 
@@ -349,7 +349,7 @@ typedef struct TransInfo {
 #define T_POSE			(1 << 2)
 #define T_TEXTURE		(1 << 3)
 #define T_CAMERA		(1 << 4)
-	 	// trans on points, having no rotation/scale
+		 // trans on points, having no rotation/scale
 #define T_POINTS		(1 << 6)
 		// for manipulator exceptions, like scaling using center point, drawing help lines
 #define T_USES_MANIPULATOR	(1 << 7)

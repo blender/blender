@@ -40,15 +40,11 @@
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
-#include "DNA_object_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -67,7 +63,6 @@
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 
 #include "UI_interface.h"
 
@@ -76,7 +71,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "anim_intern.h"
 
@@ -1150,51 +1144,8 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 
 /* Insert Key Operator (With Menu) ------------------------ */
 /* This operator checks if a menu should be shown for choosing the KeyingSet to use, 
- * then calls the  
+ * then calls the menu if necessary before 
  */
-
-static void insert_key_menu_prompt (bContext *C)
-{
-	Scene *scene= CTX_data_scene(C);
-	KeyingSet *ks;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	int i = 0;
-	
-	pup= uiPupMenuBegin(C, "Insert Keyframe", 0);
-	layout= uiPupMenuLayout(pup);
-	
-	/* active Keying Set 
-	 *	- only include entry if it exists
-	 */
-	if (scene->active_keyingset) {
-		uiItemIntO(layout, "Active Keying Set", 0, "ANIM_OT_keyframe_insert_menu", "type", i++);
-		uiItemS(layout);
-	}
-	else
-		i++;
-	
-	/* user-defined Keying Sets 
-	 *	- these are listed in the order in which they were defined for the active scene
-	 */
-	if (scene->keyingsets.first) {
-		for (ks= scene->keyingsets.first; ks; ks= ks->next) {
-			if (ANIM_keyingset_context_ok_poll(C, ks))
-				uiItemIntO(layout, ks->name, 0, "ANIM_OT_keyframe_insert_menu", "type", i++);
-		}
-		uiItemS(layout);
-	}
-	
-	/* builtin Keying Sets */
-	i= -1;
-	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
-		/* only show KeyingSet if context is suitable */
-		if (ANIM_keyingset_context_ok_poll(C, ks))
-			uiItemIntO(layout, ks->name, 0, "ANIM_OT_keyframe_insert_menu", "type", i--);
-	}
-	
-	uiPupMenuEnd(C, pup);
-} 
 
 static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -1203,7 +1154,7 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	/* if prompting or no active Keying Set, show the menu */
 	if ((scene->active_keyingset == 0) || RNA_boolean_get(op->ptr, "always_prompt")) {
 		/* call the menu, which will call this operator again, hence the cancelled */
-		insert_key_menu_prompt(C);
+		ANIM_keying_sets_menu_setup(C, op->type->name, "ANIM_OT_keyframe_insert_menu");
 		return OPERATOR_CANCELLED;
 	}
 	else {

@@ -27,20 +27,15 @@
  */
 
 #include "DNA_node_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_context.h"
 #include "BKE_node.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

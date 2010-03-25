@@ -30,8 +30,6 @@
 #include "BKE_global.h"		/* for G			*/
 #include "BKE_utildefines.h"	/* ABS */
 
-#include "DNA_view3d_types.h" /* for G.vd (view3d) */
-#include "DNA_windowmanager_types.h" /* for G.vd (view3d) */
 
 #include "WM_types.h"
 
@@ -44,7 +42,7 @@ static void resetNDofInput(NDofInput *n);
 
 void initNDofInput(NDofInput *n)
 {
-    int i;
+	int i;
 
 	n->flag = 0;
 	n->axis = 0;
@@ -128,9 +126,9 @@ void applyNDofInput(NDofInput *n, float *vec)
 
 static int updateNDofMotion(NDofInput *n)
 {
-    float fval[7];
-    int i;
-    int retval = 0;
+	float fval[7];
+	int i;
+	int retval = 0;
 
 	getndof(fval);
 

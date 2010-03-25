@@ -32,17 +32,9 @@
 #include <float.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -63,7 +55,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h" /* for fly mode updating */
 
-#include "RE_pipeline.h"	// make_stars
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -72,16 +63,10 @@
 #include "WM_types.h"
 
 #include "ED_keyframing.h"
-#include "ED_mesh.h"
 #include "ED_screen.h"
-#include "ED_view3d.h"
 #include "ED_armature.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
-#include "GPU_draw.h"
 
 #include "PIL_time.h" /* smoothview */
 
@@ -260,14 +245,14 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 				* the angle between quats 
 				* this means small rotations wont lag */
 			if (quat && !ofs && !dist) {
-			 	float vec1[3], vec2[3];
+				 float vec1[3], vec2[3];
 				
-			 	VECCOPY(vec1, sms.new_quat);
-			 	VECCOPY(vec2, sms.orig_quat);
-			 	normalize_v3(vec1);
-			 	normalize_v3(vec2);
-			 	/* scale the time allowed by the rotation */
-			 	sms.time_allowed *= angle_normalized_v3v3(vec1, vec2)/(M_PI/2); 
+				 VECCOPY(vec1, sms.new_quat);
+				 VECCOPY(vec2, sms.orig_quat);
+				 normalize_v3(vec1);
+				 normalize_v3(vec2);
+				 /* scale the time allowed by the rotation */
+				 sms.time_allowed *= angle_normalized_v3v3(vec1, vec2)/(M_PI/2); 
 			}
 			
 			/* original values */
@@ -692,8 +677,8 @@ void view3d_unproject(bglMats *mats, float out[3], const short x, const short y,
 {
 	double ux, uy, uz;
 
-        gluUnProject(x,y,z, mats->modelview, mats->projection,
-		     (GLint *)mats->viewport, &ux, &uy, &uz );
+		gluUnProject(x,y,z, mats->modelview, mats->projection,
+			 (GLint *)mats->viewport, &ux, &uy, &uz );
 	out[0] = ux;
 	out[1] = uy;
 	out[2] = uz;
@@ -902,20 +887,20 @@ int get_view3d_ortho(View3D *v3d, RegionView3D *rv3d)
   Camera *cam;
   
   if(rv3d->persp==RV3D_CAMOB) {
-      if(v3d->camera && v3d->camera->type==OB_CAMERA) {
-          cam= v3d->camera->data;
+	  if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+		  cam= v3d->camera->data;
 
-          if(cam && cam->type==CAM_ORTHO)
-              return 1;
-          else
-              return 0;
-      }
-      else
-          return 0;
+		  if(cam && cam->type==CAM_ORTHO)
+			  return 1;
+		  else
+			  return 0;
+	  }
+	  else
+		  return 0;
   }
   
   if(rv3d->persp==RV3D_ORTHO)
-      return 1;
+	  return 1;
 
   return 0;
 }
@@ -1941,6 +1926,7 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, FLY_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, SPACEKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, FLY_MODAL_CONFIRM);
 
 	WM_modalkeymap_add_item(keymap, PADPLUSKEY, KM_PRESS, 0, 0, FLY_MODAL_ACCELERATE);
@@ -2571,7 +2557,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				ID *id_key;
 				/* transform the parent or the camera? */
 				if(fly->root_parent) {
-                    Object *ob_update;
+					Object *ob_update;
                     
 					float view_mat[4][4];
 					float prev_view_imat[4][4];

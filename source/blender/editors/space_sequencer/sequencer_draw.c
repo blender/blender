@@ -35,12 +35,9 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "DNA_gpencil_types.h"
-#include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_view2d_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
@@ -51,7 +48,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_sound.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "BIF_gl.h"
@@ -59,8 +55,6 @@
 
 #include "ED_anim_api.h"
 #include "ED_markers.h"
-#include "ED_space_api.h"
-#include "ED_sequencer.h"
 #include "ED_types.h"
 
 #include "UI_interface.h"
@@ -793,7 +787,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	/* safety border */
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && 
-	    (sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
+		(sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
 		float fac= 0.1;
 		float x1 = v2d->tot.xmin;
 		float y1 = v2d->tot.ymin;

@@ -42,10 +42,6 @@
 #include "BLI_winstuff.h"
 #endif
 
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_text_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -61,20 +57,13 @@
 #include "BKE_text.h"
 
 #include "ED_screen.h"
-#include "ED_types.h"
-#include "ED_util.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
-#include "RNA_access.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -136,7 +125,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Properties";
-    ot->description= "Toggle text properties panel";
+	ot->description= "Toggle text properties panel";
 	ot->idname= "TEXT_OT_properties";
 	
 	/* api callbacks */
@@ -214,10 +203,10 @@ void TEXT_OT_properties(wmOperatorType *ot)
 	uiPopupMenu *pup;
 
 	pup= uiPupMenuBegin(C, "Text", 0);
-	uiItemEnumO(layout, "Top of File", 0, "TEXT_OT_move", "type", FILE_TOP);
-	uiItemEnumO(layout, "Bottom of File", 0, "TEXT_OT_move", "type", FILE_BOTTOM);
-	uiItemEnumO(layout, "Page Up", 0, "TEXT_OT_move", "type", PREV_PAGE);
-	uiItemEnumO(layout,  "Page Down", 0, "TEXT_OT_move", "type", NEXT_PAGE);
+	uiItemEnumO(layout, "TEXT_OT_move", "Top of File", 0, "type", FILE_TOP);
+	uiItemEnumO(layout, "TEXT_OT_move", "Bottom of File", 0, "type", FILE_BOTTOM);
+	uiItemEnumO(layout, "TEXT_OT_move", "Page Up", 0, "type", PREV_PAGE);
+	uiItemEnumO(layout, "TEXT_OT_move", "Page Down", 0, "type", NEXT_PAGE);
 	uiPupMenuEnd(C, pup);
 }
 #endif

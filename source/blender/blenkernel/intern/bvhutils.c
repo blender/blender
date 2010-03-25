@@ -210,7 +210,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 		}
 		else  // Region 0
 		{
-            // Minimum at interior lv
+			// Minimum at interior lv
 			float invDet;
 			if(fabs(Det) > FLT_EPSILON)
 				invDet = 1.0f / Det;

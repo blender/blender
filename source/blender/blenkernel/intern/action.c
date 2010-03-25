@@ -64,13 +64,13 @@
 /* *********************** NOTE ON POSE AND ACTION **********************
 
   - Pose is the local (object level) component of armature. The current
-    object pose is saved in files, and (will be) is presorted for dependency
+	object pose is saved in files, and (will be) is presorted for dependency
   - Actions have fewer (or other) channels, and write data to a Pose
   - Currently ob->pose data is controlled in where_is_pose only. The (recalc)
-    event system takes care of calling that
+	event system takes care of calling that
   - The NLA system (here too) uses Poses as interpolation format for Actions
   - Therefore we assume poses to be static, and duplicates of poses have channels in
-    same order, for quick interpolation reasons
+	same order, for quick interpolation reasons
 
   ****************************** (ton) ************************************ */
 
@@ -1138,17 +1138,17 @@ static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mo
 
 bone matching diagram, strips A and B
 
-                 .------------------------.
-                 |         A              |
-                 '------------------------'
+				 .------------------------.
+				 |         A              |
+				 '------------------------'
 				 .          .             b2
-                 .          .-------------v----------.
-                 .      	|         B   .          |
-                 .          '------------------------'
-                 .          .             .
-                 .          .             .
+				 .          .-------------v----------.
+				 .      	|         B   .          |
+				 .          '------------------------'
+				 .          .             .
+				 .          .             .
 offset:          .    0     .    A-B      .  A-b2+B     
-                 .          .             .
+				 .          .             .
 
 */
 

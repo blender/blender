@@ -38,5 +38,7 @@ void		wm_draw_update			(struct bContext *C);
 void		wm_draw_window_clear	(struct wmWindow *win);
 void		wm_draw_region_clear	(struct wmWindow *win, struct ARegion *ar);
 
+void		wm_tag_redraw_overlay	(struct wmWindow *win, struct ARegion *ar);
+
 #endif /* WM_DRAW_H */
 

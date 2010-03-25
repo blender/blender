@@ -48,9 +48,7 @@
 #include "wm_event_types.h"
 #include "wm.h"
 
-#include "ED_screen.h"
 
-#include "RNA_types.h"
 
 /* ********************** Threaded Jobs Manager ****************************** */
 
@@ -69,11 +67,11 @@ Start or re-run job
 
 Stop job
   - signal job to end
-    on end, job will tag itself as sleeping
+	on end, job will tag itself as sleeping
 
 Remove job
 - signal job to end
-    on end, job will remove itself
+	on end, job will remove itself
 
 When job is done:
 - it puts timer to sleep (or removes?)

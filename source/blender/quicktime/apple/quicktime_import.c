@@ -783,25 +783,25 @@ bail:
 #if 0
 
 struct ImageDescription {
-     long         idSize;
-     CodecType    cType;
-     long         resvd1;
-     short        resvd2;
-     short        dataRefIndex;
-     short        version;
-     short        revisionLevel;
-     long         vendor;
-     CodecQ       temporalQuality;
-     CodecQ       spatialQuality;
-     short        width;
-     short        height;
-     Fixed        hRes;
-     Fixed        vRes;
-     long         dataSize;
-     short        frameCount;
-     Str31        name;
-     short        depth;
-     short        clutID;
+	 long         idSize;
+	 CodecType    cType;
+	 long         resvd1;
+	 short        resvd2;
+	 short        dataRefIndex;
+	 short        version;
+	 short        revisionLevel;
+	 long         vendor;
+	 CodecQ       temporalQuality;
+	 CodecQ       spatialQuality;
+	 short        width;
+	 short        height;
+	 Fixed        hRes;
+	 Fixed        vRes;
+	 long         dataSize;
+	 short        frameCount;
+	 Str31        name;
+	 short        depth;
+	 short        clutID;
 };
 
 #endif // 0

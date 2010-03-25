@@ -38,16 +38,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_ID.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -72,11 +66,8 @@
 #include "BIF_glutil.h"
 
 #include "ED_armature.h"
-#include "ED_anim_api.h"
 #include "ED_keyframes_draw.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
 #include "BLF_api.h"
 
 #include "UI_resources.h"

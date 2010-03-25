@@ -34,15 +34,15 @@ typedef void (*RNA_SetIndexFunc)(PointerRNA *, PropertyRNA *, int index, void *)
 
 /*
   arr[3][4][5]
-      0  1  2  <- dimension index
+	  0  1  2  <- dimension index
 */
 
 /*
   arr[2] = x
 
   py_to_array_index(arraydim=0, arrayoffset=0, index=2)
-    validate_array(lvalue_dim=0)
-    ... make real index ...
+	validate_array(lvalue_dim=0)
+	... make real index ...
 */
 
 /* arr[3]=x, self->arraydim is 0, lvalue_dim is 1 */

@@ -179,7 +179,7 @@ void detectBitmapFont(ImBuf *ibuf)
 	int i;
 	
 	if (ibuf != NULL) {
-	        // bitmap must have an x size that is a power of two
+			// bitmap must have an x size that is a power of two
 		if (is_power_of_two(ibuf->x)) {
 			rect = (unsigned char *) (ibuf->rect + (ibuf->x * (ibuf->y - 1)));
 			// printf ("starts with: %s %c %c %c %c\n", rect, rect[0], rect[1], rect[2], rect[3]);

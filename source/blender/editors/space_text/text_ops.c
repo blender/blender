@@ -35,13 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_constraint_types.h"
-#include "DNA_object_types.h"
-#include "DNA_action_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_text_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "PIL_time.h"
@@ -1699,7 +1693,7 @@ static void screen_skip(SpaceText *st, int lines)
 {
 	int last;
 
- 	st->top += lines;
+	 st->top += lines;
 
 	last= txt_get_span(st->text->lines.first, st->text->lines.last);
 	last= last - (st->viewlines/2);
@@ -1849,9 +1843,9 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll";
-    /*don't really see the difference between this and
-      scroll_bar. Both do basically the same thing (aside 
-      from keymaps).*/
+	/*don't really see the difference between this and
+	  scroll_bar. Both do basically the same thing (aside 
+	  from keymaps).*/
 	ot->idname= "TEXT_OT_scroll";
 	ot->description= "Scroll text screen";
 	
@@ -1902,9 +1896,9 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scrollbar";
-    /*don't really see the difference between this and
-      scroll. Both do basically the same thing (aside 
-      from keymaps).*/
+	/*don't really see the difference between this and
+	  scroll. Both do basically the same thing (aside 
+	  from keymaps).*/
 	ot->idname= "TEXT_OT_scroll_bar";
 	ot->description= "Scroll text screen";
 	
@@ -2614,25 +2608,25 @@ static int resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				/* modified locally and externally, ahhh. offer more possibilites. */
 				pup= uiPupMenuBegin(C, "File Modified Outside and Inside Blender", 0);
 				layout= uiPupMenuLayout(pup);
-				uiItemEnumO(layout, "Reload from disk (ignore local changes)", 0, op->type->idname, "resolution", RESOLVE_RELOAD);
-				uiItemEnumO(layout, "Save to disk (ignore outside changes)", 0, op->type->idname, "resolution", RESOLVE_SAVE);
-				uiItemEnumO(layout, "Make text internal (separate copy)", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO(layout, op->type->idname, "Reload from disk (ignore local changes)", 0, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO(layout, op->type->idname, "Save to disk (ignore outside changes)", 0, "resolution", RESOLVE_SAVE);
+				uiItemEnumO(layout, op->type->idname, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
 				uiPupMenuEnd(C, pup);
 			}
 			else {
 				pup= uiPupMenuBegin(C, "File Modified Outside Blender", 0);
 				layout= uiPupMenuLayout(pup);
-				uiItemEnumO(layout, "Reload from disk", 0, op->type->idname, "resolution", RESOLVE_RELOAD);
-				uiItemEnumO(layout, "Make text internal (separate copy)", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
-				uiItemEnumO(layout, "Ignore", 0, op->type->idname, "resolution", RESOLVE_IGNORE);
+				uiItemEnumO(layout, op->type->idname, "Reload from disk", 0, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO(layout, op->type->idname, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO(layout, op->type->idname, "Ignore", 0, "resolution", RESOLVE_IGNORE);
 				uiPupMenuEnd(C, pup);
 			}
 			break;
 		case 2:
 			pup= uiPupMenuBegin(C, "File Deleted Outside Blender", 0);
 			layout= uiPupMenuLayout(pup);
-			uiItemEnumO(layout, "Make text internal", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
-			uiItemEnumO(layout, "Recreate file", 0, op->type->idname, "resolution", RESOLVE_SAVE);
+			uiItemEnumO(layout, op->type->idname, "Make text internal", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+			uiItemEnumO(layout, op->type->idname, "Recreate file", 0, "resolution", RESOLVE_SAVE);
 			uiPupMenuEnd(C, pup);
 			break;
 	}

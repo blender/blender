@@ -7,8 +7,6 @@
 #include "DNA_object_types.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -221,7 +219,7 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}};
 
 	ot->name= "Preset";
-    ot->description= "Set brush shape";
+	ot->description= "Set brush shape";
 	ot->idname= "BRUSH_OT_curve_preset";
 
 	ot->exec= brush_curve_preset_exec;
@@ -244,7 +242,7 @@ static int paint_select_linked_exec(bContext *C, wmOperator *op)
 void PAINT_OT_face_select_linked(wmOperatorType *ot)
 {
 	ot->name= "Select Linked";
-    ot->description= "Select linked faces";
+	ot->description= "Select linked faces";
 	ot->idname= "PAINT_OT_face_select_linked";
 
 	ot->exec= paint_select_linked_exec;
@@ -264,7 +262,7 @@ static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent 
 void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 {
 	ot->name= "Select Linked Pick";
-    ot->description= "Select linked faces";
+	ot->description= "Select linked faces";
 	ot->idname= "PAINT_OT_face_select_linked_pick";
 
 	ot->invoke= paint_select_linked_pick_invoke;
@@ -287,7 +285,7 @@ static int face_select_all_exec(bContext *C, wmOperator *op)
 void PAINT_OT_face_select_all(wmOperatorType *ot)
 {
 	ot->name= "Face Selection";
-    ot->description= "Change selection for all faces";
+	ot->description= "Change selection for all faces";
 	ot->idname= "PAINT_OT_face_select_all";
 
 	ot->exec= face_select_all_exec;

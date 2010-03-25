@@ -59,7 +59,7 @@
 #endif
 
 #include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail
-                            BLI_countlist BLI_stringdec */
+							BLI_countlist BLI_stringdec */
 #include "DNA_userdef_types.h"
 #include "BKE_global.h"
 
@@ -256,7 +256,7 @@ static int an_stringdec(char *string, char* kop, char *staart,unsigned short *nu
 
 
 static void an_stringenc(char *string, char *head, char *start, unsigned short numlen, int pic) {
-    BLI_stringenc(string, head, start, numlen, pic);
+	BLI_stringenc(string, head, start, numlen, pic);
 }
 
 static void free_anim_avi (struct anim *anim) {
@@ -536,7 +536,7 @@ static int startffmpeg(struct anim * anim) {
 	dump_format(pFormatCtx, 0, anim->name, 0);
 
 
-        /* Find the first video stream */
+		/* Find the first video stream */
 	videoStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
 		if(get_codec_from_stream(pFormatCtx->streams[i])->codec_type
@@ -552,7 +552,7 @@ static int startffmpeg(struct anim * anim) {
 
 	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[videoStream]);
 
-        /* Find the decoder for the video stream */
+		/* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
 	if(pCodec==NULL) {
 		av_close_input_file(pFormatCtx);
@@ -599,7 +599,7 @@ static int startffmpeg(struct anim * anim) {
 	anim->pFrameRGB = avcodec_alloc_frame();
 
 	if (avpicture_get_size(PIX_FMT_RGBA, anim->x, anim->y)
-	    != anim->x * anim->y * 4) {
+		!= anim->x * anim->y * 4) {
 		fprintf (stderr,
 			 "ffmpeg has changed alloc scheme ... ARGHHH!\n");
 		avcodec_close(anim->pCodecCtx);
@@ -613,11 +613,11 @@ static int startffmpeg(struct anim * anim) {
 
 	if (anim->ib_flags & IB_animdeinterlace) {
 		avpicture_fill((AVPicture*) anim->pFrameDeinterlaced, 
-			       MEM_callocN(avpicture_get_size(
+				   MEM_callocN(avpicture_get_size(
 						   anim->pCodecCtx->pix_fmt,
 						   anim->x, anim->y), 
 					   "ffmpeg deinterlace"), 
-			       anim->pCodecCtx->pix_fmt, anim->x, anim->y);
+				   anim->pCodecCtx->pix_fmt, anim->x, anim->y);
 	}
 
 	if (pCodecCtx->has_b_frames) {
@@ -664,13 +664,13 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 	ibuf = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect, 0);
 
 	avpicture_fill((AVPicture*) anim->pFrameRGB, 
-		       (unsigned char*) ibuf->rect, 
-		       PIX_FMT_RGBA, anim->x, anim->y);
+			   (unsigned char*) ibuf->rect, 
+			   PIX_FMT_RGBA, anim->x, anim->y);
 
 	if (position != anim->curposition + 1) { 
 		if (position > anim->curposition + 1 
-		    && anim->preseek 
-		    && position - (anim->curposition + 1) < anim->preseek) {
+			&& anim->preseek 
+			&& position - (anim->curposition + 1) < anim->preseek) {
 			while(av_read_frame(anim->pFormatCtx, &packet)>=0) {
 				if (packet.stream_index == anim->videoStream) {
 					avcodec_decode_video(
@@ -698,11 +698,11 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 #else
 		double frame_rate = 
 			av_q2d(anim->pFormatCtx->streams[anim->videoStream]
-			       ->r_frame_rate);
+				   ->r_frame_rate);
 #endif
 		double time_base = 
 			av_q2d(anim->pFormatCtx->streams[anim->videoStream]
-			       ->time_base);
+				   ->time_base);
 		long long pos = (long long) (position - anim->preseek) 
 			* AV_TIME_BASE / frame_rate;
 		long long st_time = anim->pFormatCtx
@@ -717,7 +717,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 		}
 
 		av_seek_frame(anim->pFormatCtx, -1, 
-			      pos, AVSEEK_FLAG_BACKWARD);
+				  pos, AVSEEK_FLAG_BACKWARD);
 
 		pts_to_search = (long long) 
 			(((double) position) / time_base / frame_rate);
@@ -732,8 +732,8 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 	while(av_read_frame(anim->pFormatCtx, &packet)>=0) {
 		if(packet.stream_index == anim->videoStream) {
 			avcodec_decode_video(anim->pCodecCtx, 
-					     anim->pFrame, &frameFinished, 
-					     packet.data, packet.size);
+						 anim->pFrame, &frameFinished, 
+						 packet.data, packet.size);
 
 			if (frameFinished && !pos_found) {
 				if (packet.dts >= pts_to_search) {
@@ -748,21 +748,21 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 				/* This means the data wasnt read properly, 
 				   this check stops crashing */
 				if (input->data[0]==0 && input->data[1]==0 
-				    && input->data[2]==0 && input->data[3]==0){
+					&& input->data[2]==0 && input->data[3]==0){
 					av_free_packet(&packet);
 					break;
 				}
 
 				if (anim->ib_flags & IB_animdeinterlace) {
 					if (avpicture_deinterlace(
-						    (AVPicture*) 
-						    anim->pFrameDeinterlaced,
-						    (const AVPicture*)
-						    anim->pFrame,
-						    anim->pCodecCtx->pix_fmt,
-						    anim->pCodecCtx->width,
-						    anim->pCodecCtx->height)
-					    < 0) {
+							(AVPicture*) 
+							anim->pFrameDeinterlaced,
+							(const AVPicture*)
+							anim->pFrame,
+							anim->pCodecCtx->pix_fmt,
+							anim->pCodecCtx->width,
+							anim->pCodecCtx->height)
+						< 0) {
 						filter_y = 1;
 					} else {
 						input = anim->pFrameDeinterlaced;
@@ -931,8 +931,8 @@ static ImBuf * redcode_fetchibuf(struct anim * anim, int position) {
 		return NULL;
 	}
 	
-        ibuf = IMB_allocImBuf(raw_frame->width * 2, 
-			      raw_frame->height * 2, 32, IB_rectfloat, 0);
+		ibuf = IMB_allocImBuf(raw_frame->width * 2, 
+				  raw_frame->height * 2, 32, IB_rectfloat, 0);
 
 	redcode_decode_video_float(raw_frame, ibuf->rect_float, 1);
 

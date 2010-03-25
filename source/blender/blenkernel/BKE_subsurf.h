@@ -28,27 +28,29 @@
 #ifndef BKE_SUBSURF_H
 #define BKE_SUBSURF_H
 
-struct Mesh;
-struct Object;
+struct DMGridAdjacency;
+struct DMGridData;
 struct DerivedMesh;
 struct EditMesh;
+struct IndexNode;
+struct ListBase;
+struct Mesh;
 struct MultiresSubsurf;
+struct Object;
+struct PBVH;
 struct SubsurfModifierData;
-struct _CCGSubsurf;
-struct _CCGVert;
 struct _CCGEdge;
 struct _CCGFace;
-struct PBVH;
-struct DMGridData;
-struct DMGridAdjacency;
+struct _CCGSubsurf;
+struct _CCGVert;
 
 /**************************** External *****************************/
 
 struct DerivedMesh *subsurf_make_derived_from_derived(
-                        struct DerivedMesh *dm,
-                        struct SubsurfModifierData *smd,
-                        int useRenderParams, float (*vertCos)[3],
-                        int isFinalCalc, int editMode);
+						struct DerivedMesh *dm,
+						struct SubsurfModifierData *smd,
+						int useRenderParams, float (*vertCos)[3],
+						int isFinalCalc, int editMode);
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]);
 
@@ -64,12 +66,14 @@ typedef struct CCGDerivedMesh {
 	struct {int startVert; struct _CCGVert *vert;} *vertMap;
 	struct {int startVert; int startEdge; struct _CCGEdge *edge;} *edgeMap;
 	struct {int startVert; int startEdge;
-	        int startFace; struct _CCGFace *face;} *faceMap;
+			int startFace; struct _CCGFace *face;} *faceMap;
 
 	short *edgeFlags;
 	char *faceFlags;
 
 	struct PBVH *pbvh;
+	struct ListBase *fmap;
+	struct IndexNode *fmap_mem;
 
 	struct DMGridData **gridData;
 	struct DMGridAdjacency *gridAdjacency;

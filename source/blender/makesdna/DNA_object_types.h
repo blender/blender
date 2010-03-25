@@ -169,7 +169,7 @@ typedef struct Object {
 	float mass, damping, inertia;
 	/* The form factor k is introduced to give the user more control
 	 * and to fix incompatibility problems.
-     * For rotational symmetric objects, the inertia value can be
+	 * For rotational symmetric objects, the inertia value can be
 	 * expressed as: Theta = k * m * r^2
 	 * where m = Mass, r = Radius
 	 * For a Sphere, the form factor is by default = 0.4

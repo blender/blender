@@ -111,7 +111,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) > 0) {
-	 	PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 
@@ -177,7 +177,7 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) > 0) {
-	 	PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 
@@ -254,7 +254,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) > 0) {
-	 	PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 
@@ -321,7 +321,7 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) > 0) {
-	 	PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 
@@ -402,7 +402,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) > 0) {
-	 	PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 
@@ -477,7 +477,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) > 0) {
-	 	PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 
@@ -555,7 +555,7 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) > 0) {
-	 	PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 
@@ -667,7 +667,7 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) > 0) {
-	 	PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 
@@ -731,7 +731,7 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 	}
 
 	if(!RNA_struct_is_a(srna, &RNA_IDPropertyGroup)) {
-	 	PyErr_Format(PyExc_SystemError, "%.200s expected an RNA type derived from IDPropertyGroup", error_prefix);
+		 PyErr_Format(PyExc_SystemError, "%.200s expected an RNA type derived from IDPropertyGroup", error_prefix);
 		return NULL;
 	}
 
@@ -752,7 +752,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) > 0) {
-	 	PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 
@@ -813,7 +813,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) > 0) {
-	 	PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
 		return NULL;
 	}
 

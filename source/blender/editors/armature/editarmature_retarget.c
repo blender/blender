@@ -37,15 +37,9 @@
 
 #include "PIL_time.h"
 
-#include "DNA_ID.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -68,7 +62,6 @@
 
 #include "BIF_retarget.h"
 
-#include "PIL_time.h"
 
 //#include "mydevice.h"
 #include "reeb.h" // FIX ME

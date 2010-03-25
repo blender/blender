@@ -287,7 +287,7 @@ short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 		buf[17] |= 0x08;
 	}
 	fildes = fopen(name,"wb");
-        if (!fildes) return 0;
+		if (!fildes) return 0;
 
 	if (fwrite(buf, 1, 18,fildes) != 18) {
 		fclose(fildes);
@@ -297,9 +297,9 @@ short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 	if (ibuf->cmap){
 		for (i = 0 ; i<ibuf->maxcol ; i++){
 			if (fwrite(((uchar *)(ibuf->cmap + i)) + 1,1,3,fildes) != 3) {
-                fclose(fildes);
-                return (0);
-            }
+				fclose(fildes);
+				return (0);
+			}
 		}
 	}
 	

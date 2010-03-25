@@ -754,10 +754,10 @@ void colorcorrection_do_ibuf(ImBuf *ibuf, const char *profile)
 		cmsErrorAction(LCMS_ERROR_SHOW);
 	
 		hTransform = cmsCreateProofingTransform(imageProfile, TYPE_RGBA_8, imageProfile, TYPE_RGBA_8, 
-	                                          proofingProfile,
-	                                          INTENT_ABSOLUTE_COLORIMETRIC,
-	                                          INTENT_ABSOLUTE_COLORIMETRIC,
-	                                          cmsFLAGS_SOFTPROOFING);
+											  proofingProfile,
+											  INTENT_ABSOLUTE_COLORIMETRIC,
+											  INTENT_ABSOLUTE_COLORIMETRIC,
+											  cmsFLAGS_SOFTPROOFING);
 	
 		cmsDoTransform(hTransform, ibuf->rect, ibuf->crect, ibuf->x * ibuf->y);
 	

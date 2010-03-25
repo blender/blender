@@ -65,6 +65,9 @@ void ANIM_OT_keying_set_remove(struct wmOperatorType *ot);
 void ANIM_OT_keying_set_path_add(struct wmOperatorType *ot);
 void ANIM_OT_keying_set_path_remove(struct wmOperatorType *ot);
 
+/* KeyingSet general operators */
+void ANIM_OT_keying_set_active_set(struct wmOperatorType *ot);
+
 /* .......... */
 
 /* Driver management operators for UI buttons (RMB menu) */

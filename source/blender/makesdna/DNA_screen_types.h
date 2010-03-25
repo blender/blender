@@ -244,5 +244,9 @@ enum {
 #define RGN_FLAG_HIDDEN		1
 #define RGN_FLAG_TOO_SMALL	2
 
+/* region do_draw */
+#define RGN_DRAW			1
+#define RGN_DRAW_PARTIAL	2
+
 #endif
 

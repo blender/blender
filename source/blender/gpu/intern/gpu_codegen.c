@@ -492,7 +492,7 @@ static void codegen_set_unique_ids(ListBase *nodes)
 
 			/* set texid used for settings texture slot with multitexture */
 			if (codegen_input_has_texture(input) &&
-			    ((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL))) {
+				((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL))) {
 				if (input->link) {
 					/* input is texture from buffer, assign only one texid per
 					   buffer to avoid sampling the same texture twice */
@@ -1033,7 +1033,7 @@ static void gpu_node_input_socket(GPUNode *node, GPUNodeStack *sock)
 		gpu_node_input_link(node, sock->link, sock->type);
 	}
 	else {
-	 	link = GPU_node_link_create(0);
+		 link = GPU_node_link_create(0);
 		link->ptr1 = sock->vec;
 		gpu_node_input_link(node, link, sock->type);
 	}

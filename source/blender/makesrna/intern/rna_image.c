@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 #include "RNA_enum_types.h"
 
 #include "rna_internal.h"
@@ -181,7 +180,7 @@ static void rna_Image_size_get(PointerRNA *ptr,int *values)
 		values[0]= ibuf->x;
 		values[1]= ibuf->y;
 	}
-    else {
+	else {
 		values[0]= 0;
 		values[1]= 0;
 	}

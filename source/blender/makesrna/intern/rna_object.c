@@ -27,7 +27,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 #include "RNA_enum_types.h"
 
 #include "rna_internal.h"
@@ -76,12 +75,17 @@ static EnumPropertyItem collision_bounds_items[] = {
 	//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+/* used for 2 enums */
+#define OBTYPE_CU_CURVE {OB_CURVE, "CURVE", 0, "Curve", ""}
+#define OBTYPE_CU_SURF {OB_SURF, "SURFACE", 0, "Surface", ""}
+#define OBTYPE_CU_TEXT {OB_FONT, "TEXT", 0, "Text", ""}
+    
 EnumPropertyItem object_type_items[] = {
 	{OB_MESH, "MESH", 0, "Mesh", ""},
-	{OB_CURVE, "CURVE", 0, "Curve", ""},
-	{OB_SURF, "SURFACE", 0, "Surface", ""},
+	OBTYPE_CU_CURVE,
+	OBTYPE_CU_SURF,
 	{OB_MBALL, "META", 0, "Meta", ""},
-	{OB_FONT, "TEXT", 0, "Text", ""},
+	OBTYPE_CU_TEXT,
 	{0, "", 0, NULL, NULL},
 	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
 	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
@@ -91,6 +95,12 @@ EnumPropertyItem object_type_items[] = {
 	{OB_LAMP, "LAMP", 0, "Lamp", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem object_type_curve_items[] = {
+	OBTYPE_CU_CURVE,
+	OBTYPE_CU_SURF,
+	OBTYPE_CU_TEXT,
+	{0, NULL, 0, NULL, NULL}};
+    
 #ifdef RNA_RUNTIME
 
 #include "BLI_math.h"
@@ -174,7 +184,7 @@ static void rna_Object_layer_update__internal(Scene *scene, Base *base, Object *
 {
 	/* try to avoid scene sort */
 	if((ob->lay & scene->lay) && (base->lay & scene->lay)) {
- 		/* pass */
+		 /* pass */
 	} else if((ob->lay & scene->lay)==0 && (base->lay & scene->lay)==0) {
 		/* pass */
 	} else {
@@ -569,41 +579,13 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)
 {
 	Object *ob= ptr->data;
-	BoundBox *bb = NULL;
-	
-	bb= object_get_boundbox(ob);
-	if (bb) {
-		float scale[3];
-		
-		mat4_to_size( scale,ob->obmat);
-		
-		value[0] = fabs(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
-		value[1] = fabs(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
-		value[2] = fabs(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
-	} else {
-		value[0] = value[1] = value[2] = 0.f;
-	}
+	object_get_dimensions(ob, value);
 }
 
 static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
 {
 	Object *ob= ptr->data;
-	BoundBox *bb = NULL;
-	
-	bb= object_get_boundbox(ob);
-	if (bb) {
-		float scale[3], len[3];
-		
-		mat4_to_size( scale,ob->obmat);
-		
-		len[0] = bb->vec[4][0] - bb->vec[0][0];
-		len[1] = bb->vec[2][1] - bb->vec[0][1];
-		len[2] = bb->vec[1][2] - bb->vec[0][2];
-		
-		if (len[0] > 0.f) ob->size[0] = value[0] / len[0];
-		if (len[1] > 0.f) ob->size[1] = value[1] / len[1];
-		if (len[2] > 0.f) ob->size[2] = value[2] / len[2];
-	}
+	object_set_dimensions(ob, value);
 }
 
 static int rna_Object_location_editable(PointerRNA *ptr, int index)

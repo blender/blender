@@ -644,6 +644,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\uvproject.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\voxel.c"
 				>
 			</File>
@@ -794,6 +798,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_threads.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_uvproject.h"
 				>
 			</File>
 			<File

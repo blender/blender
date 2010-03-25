@@ -108,7 +108,7 @@ void unlink_mesh(Mesh *me)
 	}
 
 	if(me->key) {
-	   	me->key->id.us--;
+		   me->key->id.us--;
 		if (me->key->id.us == 0 && me->key->ipo )
 			me->key->ipo->id.us--;
 	}
@@ -274,9 +274,9 @@ void make_local_mesh(Mesh *me)
 	int local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(me->id.lib==0) return;
 	if(me->id.us==1) {

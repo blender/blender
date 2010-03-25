@@ -31,13 +31,8 @@
 #include <math.h>
 #include <float.h>
 
-#include "DNA_ID.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_node_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -61,16 +56,12 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "ED_gpencil.h"
 #include "ED_screen.h"
-#include "ED_types.h"
-#include "ED_util.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "node_intern.h"	// own include
 
@@ -123,7 +114,7 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	uiBlockSetHandleFunc(block, do_node_region_buttons, NULL);
 	
 	/* draw this node's name, etc. */
-	uiItemR(layout, NULL, ICON_NODE, &ptr, "name", 0);
+	uiItemR(layout, &ptr, "name", 0, NULL, ICON_NODE);
 	// TODO: a separator would be nice...
 	
 	/* draw this node's settings */

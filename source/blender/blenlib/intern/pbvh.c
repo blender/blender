@@ -225,7 +225,7 @@ static void update_node_vb(PBVH *bvh, PBVHNode *node)
 /* Adapted from BLI_kdopbvh.c */
 /* Returns the index of the first element on the right of the partition */
 static int partition_indices(int *prim_indices, int lo, int hi, int axis,
-			     float mid, BBC *prim_bbc)
+				 float mid, BBC *prim_bbc)
 {
 	int i=lo, j=hi;
 	for(;;) {
@@ -241,7 +241,7 @@ static int partition_indices(int *prim_indices, int lo, int hi, int axis,
 }
 
 void check_partitioning(int *prim_indices, int lo, int hi, int axis,
-			       float mid, BBC *prim_bbc, int index_of_2nd_partition)
+				   float mid, BBC *prim_bbc, int index_of_2nd_partition)
 {
 	int i;
 	for(i = lo; i <= hi; ++i) {
@@ -273,8 +273,8 @@ static void grow_nodes(PBVH *bvh, int totnode)
 /* Add a vertex to the map, with a positive value for unique vertices and
    a negative value for additional vertices */
 static int map_insert_vert(PBVH *bvh, GHash *map,
-			    unsigned int *face_verts,
-			    unsigned int *uniq_verts, int vertex)
+				unsigned int *face_verts,
+				unsigned int *uniq_verts, int vertex)
 {
 	void *value, *key = SET_INT_IN_POINTER(vertex);
 
@@ -328,8 +328,8 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 	/* Build the vertex list, unique verts first */
 	for(iter = BLI_ghashIterator_new(map), i = 0;
-	    !BLI_ghashIterator_isDone(iter);
-	    BLI_ghashIterator_step(iter), ++i) {
+		!BLI_ghashIterator_isDone(iter);
+		BLI_ghashIterator_step(iter), ++i) {
 		void *value = BLI_ghashIterator_getValue(iter);
 		int ndx = GET_INT_FROM_POINTER(value);
 
@@ -353,6 +353,8 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 				  node->uniq_verts,
 				  node->uniq_verts + node->face_verts);
 
+	node->flag |= PBVH_UpdateDrawBuffers;
+
 	BLI_ghash_free(map, NULL, NULL);
 }
 
@@ -361,6 +363,8 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 	node->draw_buffers =
 		GPU_build_grid_buffers(bvh->grids, node->prim_indices,
 				node->totprim, bvh->gridsize);
+
+	node->flag |= PBVH_UpdateDrawBuffers;
 }
 
 /* Recursively build a node in the tree
@@ -375,7 +379,7 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 */
 
 void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
-	       int offset, int count)
+		   int offset, int count)
 {
 	int i, axis, end;
 	BB cb_backing;
@@ -746,11 +750,11 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 
 	/* subtle assumptions:
 	   - We know that for all edited vertices, the nodes with faces
-	     adjacent to these vertices have been marked with PBVH_UpdateNormals.
+		 adjacent to these vertices have been marked with PBVH_UpdateNormals.
 		 This is true because if the vertex is inside the brush radius, the
 		 bounding box of it's adjacent faces will be as well.
 	   - However this is only true for the vertices that have actually been
-	     edited, not for all vertices in the nodes marked for update, so we
+		 edited, not for all vertices in the nodes marked for update, so we
 		 can only update vertices marked with ME_VERT_PBVH_UPDATE.
 	*/
 
@@ -855,7 +859,7 @@ static void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes,
 	}
 }
 
-static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
+static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, int smooth)
 {
 	PBVHNode *node;
 	int n;
@@ -870,7 +874,8 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 						   bvh->grids,
 						   node->prim_indices,
 						   node->totprim,
-						   bvh->gridsize);
+						   bvh->gridsize,
+						   smooth);
 			}
 			else {
 				GPU_update_mesh_buffers(node->draw_buffers,
@@ -929,9 +934,6 @@ void BLI_pbvh_update(PBVH *bvh, int flag, float (*face_nors)[3])
 
 	if(flag & (PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw))
 		pbvh_update_BB_redraw(bvh, nodes, totnode, flag);
-
-	if(flag & PBVH_UpdateDrawBuffers)
-		pbvh_update_draw_buffers(bvh, nodes, totnode);
 
 	if(flag & (PBVH_UpdateBB|PBVH_UpdateOriginalBB))
 		pbvh_flush_bb(bvh, bvh->nodes, flag);
@@ -998,8 +1000,8 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	faces= MEM_callocN(sizeof(void*)*tot, "PBVH Grid Faces");
 
 	for(hiter = BLI_ghashIterator_new(map), i = 0;
-	    !BLI_ghashIterator_isDone(hiter);
-	    BLI_ghashIterator_step(hiter), ++i)
+		!BLI_ghashIterator_isDone(hiter);
+		BLI_ghashIterator_step(hiter), ++i)
 		faces[i]= BLI_ghashIterator_getKey(hiter);
 
 	BLI_ghashIterator_free(hiter);
@@ -1124,7 +1126,7 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 }
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
-		      float ray_start[3], float ray_normal[3], int original)
+			  float ray_start[3], float ray_normal[3], int original)
 {
 	RaycastData rcd;
 
@@ -1297,9 +1299,18 @@ int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 	return 1;
 }
 
-void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3])
+void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smooth)
 {
-	BLI_pbvh_update(bvh, PBVH_UpdateNormals|PBVH_UpdateDrawBuffers, face_nors);
+	PBVHNode **nodes;
+	int totnode;
+
+	BLI_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(PBVH_UpdateNormals|PBVH_UpdateDrawBuffers),
+		&nodes, &totnode);
+
+	pbvh_update_normals(bvh, nodes, totnode, face_nors);
+	pbvh_update_draw_buffers(bvh, nodes, totnode, smooth);
+
+	if(nodes) MEM_freeN(nodes);
 
 	if(planes) {
 		BLI_pbvh_search_callback(bvh, BLI_pbvh_node_planes_contain_AABB,

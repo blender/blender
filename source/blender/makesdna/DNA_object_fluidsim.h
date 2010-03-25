@@ -63,8 +63,10 @@ typedef struct FluidsimSettings {
 	short viscosityExponent;
 	/* gravity strength */
 	float gravx,gravy,gravz;
-	/* anim start end time */
+	/* anim start end time (in seconds) */
 	float animStart, animEnd;
+	/* bake start end time (in blender frames) */
+	int bakeStart, bakeEnd;
 	/* g star param (LBM compressibility) */
 	float gstar;
 	/* activate refinement? */
@@ -160,8 +162,10 @@ typedef struct FluidsimSettings {
 #define OB_FSPART_FLOAT   (1<<4)
 #define OB_FSPART_TRACER  (1<<5)
 
-// new fluid bit flags for fss->flags - dg
-#define OB_FLUIDSIM_REVERSE (1 << 0)
+// new fluid bit flags for fss->flags
+#define OB_FLUIDSIM_REVERSE			(1 << 0)
+#define OB_FLUIDSIM_ACTIVE			(1 << 1)
+#define OB_FLUIDSIM_OVERRIDE_TIME	(1 << 2)
 
 #ifdef __cplusplus
 }

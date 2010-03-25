@@ -36,10 +36,7 @@
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_fileselect.h"
 
@@ -48,7 +45,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "UI_interface.h"
 #include "UI_view2d.h"
 
 #include "WM_api.h"

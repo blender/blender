@@ -29,9 +29,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -49,10 +46,7 @@
 #include "RNA_define.h"
 
 #include "ED_screen.h"
-#include "ED_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "script_intern.h"	// own include
 

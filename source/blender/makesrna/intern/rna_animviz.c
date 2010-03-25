@@ -24,10 +24,7 @@
 
 #include <stdlib.h>
 
-#include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
-#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 

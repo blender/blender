@@ -266,7 +266,7 @@ typedef struct SoftBody {
 	/* springs */
 	float inspring;		/* softbody inner springs */
 	float infrict;		/* softbody inner springs friction */
- 	char  namedVG_Spring_K[32]; /* along with it introduce Spring_K painting
+	 char  namedVG_Spring_K[32]; /* along with it introduce Spring_K painting
 							starting to fix old bug .. nastyness that VG are indexes 
 								rather find them by name tag to find it -> jow20090613 */
 	
@@ -286,7 +286,7 @@ typedef struct SoftBody {
 	float balldamp;		/* cooling down collision response  */
 	float ballstiff;	/* pressure the ball is loaded with  */
 	short sbc_mode;
-    short aeroedge,
+	short aeroedge,
 		minloops,
 		maxloops,
 		choke,
@@ -302,11 +302,11 @@ typedef struct SoftBody {
 	struct ListBase ptcaches;
 
 	struct EffectorWeights *effector_weights;
-    /* reverse esimated obmatrix .. no need to store in blend file .. how ever who cares */ 
+	/* reverse esimated obmatrix .. no need to store in blend file .. how ever who cares */ 
 	float lcom[3];
 	float lrot[3][3];
 	float lscale[3][3];
-    char  pad4[4];
+	char  pad4[4];
 
 } SoftBody;
 

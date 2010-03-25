@@ -686,7 +686,7 @@ void *new_pgn_element(int size)
 	if(cur) {
 		if(size+offs < blocksize) {
 			adr= (void *) (cur->data+offs);
-		 	offs+= size;
+			 offs+= size;
 			return adr;
 		}
 	}
@@ -1091,7 +1091,7 @@ int getedge (EDGELIST *table[],
 	q = table[HASH(i1, j1, k1)+HASH(i2, j2, k2)];
 	for (; q != NULL; q = q->next)
 		if (q->i1 == i1 && q->j1 == j1 && q->k1 == k1 &&
-		    q->i2 == i2 && q->j2 == j2 && q->k2 == k2)
+			q->i2 == i2 && q->j2 == j2 && q->k2 == k2)
 			return q->vid;
 	return -1;
 }
@@ -1240,7 +1240,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		p->z = neg.z;
 		return;
 	}
-  	if((dx == 0.0f) && (dz == 0.0f)){
+	  if((dx == 0.0f) && (dz == 0.0f)){
 		p->x = neg.x;
 		p->y = neg.y - negative*dy/(positive-negative);
 		p->z = neg.z;
@@ -1272,7 +1272,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 			p->y = 0.5f*(pos.y + neg.y);
 			if ((function(p->x,p->y,p->z)) > 0.0)	pos.y = p->y; else neg.y = p->y;
 		}
-  	}
+	  }
    
 	if((dx == 0.0f) && (dy == 0.0f)){
 		p->x = neg.x;
@@ -1580,7 +1580,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					if(ml->s > 10.0) ml->s = 10.0;
 					
 					/* Rotation of MetaElem is stored in quat */
- 					quat_to_mat4( temp3,ml->quat);
+					 quat_to_mat4( temp3,ml->quat);
 
 					/* Translation of MetaElem */
 					unit_m4(temp2);
@@ -2120,8 +2120,8 @@ void metaball_polygonize(Scene *scene, Object *ob)
 	/* don't polygonize metaballs with too high resolution (base mball to small) */
 	if(metaball_tree) {
 		if(ob->size[0]<=0.0001f*(metaball_tree->first->x_max - metaball_tree->first->x_min) ||
-		       ob->size[1]<=0.0001f*(metaball_tree->first->y_max - metaball_tree->first->y_min) ||
-		       ob->size[2]<=0.0001f*(metaball_tree->first->z_max - metaball_tree->first->z_min))
+			   ob->size[1]<=0.0001f*(metaball_tree->first->y_max - metaball_tree->first->y_min) ||
+			   ob->size[2]<=0.0001f*(metaball_tree->first->z_max - metaball_tree->first->z_min))
 		{
 			MEM_freeN(mainb);
 			return;

@@ -81,7 +81,6 @@
 
 //XXX #include "playanim_ext.h"
 #include "ED_datafiles.h"
-#include "UI_interface.h"
 
 #include "WM_api.h"
 

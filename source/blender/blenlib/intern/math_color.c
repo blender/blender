@@ -365,21 +365,21 @@ int constrain_rgb(float *r, float *g, float *b)
 {
 	float w;
 
-    /* Amount of white needed is w = - min(0, *r, *g, *b) */
+	/* Amount of white needed is w = - min(0, *r, *g, *b) */
     
-    w = (0 < *r) ? 0 : *r;
-    w = (w < *g) ? w : *g;
-    w = (w < *b) ? w : *b;
-    w = -w;
+	w = (0 < *r) ? 0 : *r;
+	w = (w < *g) ? w : *g;
+	w = (w < *b) ? w : *b;
+	w = -w;
 
-    /* Add just enough white to make r, g, b all positive. */
+	/* Add just enough white to make r, g, b all positive. */
     
-    if (w > 0) {
-        *r += w;  *g += w; *b += w;
-        return 1;                     /* Color modified to fit RGB gamut */
-    }
+	if (w > 0) {
+		*r += w;  *g += w; *b += w;
+		return 1;                     /* Color modified to fit RGB gamut */
+	}
 
-    return 0;                         /* Color within RGB gamut */
+	return 0;                         /* Color within RGB gamut */
 }
 
 float rgb_to_grayscale(float rgb[3])

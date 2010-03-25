@@ -109,10 +109,10 @@ static void init_render_jit(Render *re)
 
 static float filt_quadratic(float x)
 {
-    if (x <  0.0f) x = -x;
-    if (x < 0.5f) return 0.75f-(x*x);
-    if (x < 1.5f) return 0.50f*(x-1.5f)*(x-1.5f);
-    return 0.0f;
+	if (x <  0.0f) x = -x;
+	if (x < 0.5f) return 0.75f-(x*x);
+	if (x < 1.5f) return 0.50f*(x-1.5f)*(x-1.5f);
+	return 0.0f;
 }
 
 
@@ -120,11 +120,11 @@ static float filt_cubic(float x)
 {
 	float x2= x*x;
 	
-    if (x <  0.0f) x = -x;
+	if (x <  0.0f) x = -x;
 	
-    if (x < 1.0f) return 0.5*x*x2 - x2 + 2.0f/3.0f;
-    if (x < 2.0f) return (2.0-x)*(2.0-x)*(2.0-x)/6.0f;
-    return 0.0f;
+	if (x < 1.0f) return 0.5*x*x2 - x2 + 2.0f/3.0f;
+	if (x < 2.0f) return (2.0-x)*(2.0-x)*(2.0-x)/6.0f;
+	return 0.0f;
 }
 
 
@@ -132,10 +132,10 @@ static float filt_catrom(float x)
 {
 	float x2= x*x;
 	
-    if (x <  0.0f) x = -x;
-    if (x < 1.0f) return  1.5f*x2*x - 2.5f*x2  + 1.0f;
-    if (x < 2.0f) return -0.5f*x2*x + 2.5*x2 - 4.0f*x + 2.0f;
-    return 0.0f;
+	if (x <  0.0f) x = -x;
+	if (x < 1.0f) return  1.5f*x2*x - 2.5f*x2  + 1.0f;
+	if (x < 2.0f) return -0.5f*x2*x + 2.5*x2 - 4.0f*x + 2.0f;
+	return 0.0f;
 }
 
 static float filt_mitchell(float x)	/* Mitchell & Netravali's two-param cubic */

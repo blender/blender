@@ -439,7 +439,7 @@ void calc_curvepath(Object *ob)
 	fp= dist+1;
 	maxdist= dist+tot;
 	fac= 1.0f/((float)path->len-1.0f);
-        fac = fac * path->totdist;
+		fac = fac * path->totdist;
 	
 	for(a=0; a<path->len; a++) {
 		

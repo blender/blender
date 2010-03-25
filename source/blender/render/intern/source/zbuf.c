@@ -1910,10 +1910,10 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 				}
 			}
 
-            /* warning, this should never happen! */
+			/* warning, this should never happen! */
 			if(clve>38 || clvl>31) printf("clip overflow: clve clvl %d %d\n",clve,clvl);
 
-            /* perspective division */
+			/* perspective division */
 			f1=vez;
 			for(c1=0;c1<clve;c1++) {
 				hoco_to_zco(zspan, f1, f1);
@@ -3846,7 +3846,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 		ShadeInput *shi= ssamp->shi;
 		ShadeResult *shr= ssamp->shr;
 		
- 		for(sample=0; sample<ssamp->tot; sample++, shi++, shr++) {
+		 for(sample=0; sample<ssamp->tot; sample++, shi++, shr++) {
 		
 			if(shi->mask & (1<<a)) {
 				float fac= (1.0f - samp_shr->combined[3])*shr->combined[3];

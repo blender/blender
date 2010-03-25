@@ -31,9 +31,6 @@
 
 #include "DNA_packedFile_types.h"
 #include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -49,9 +46,6 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
-#include "ED_types.h"
-#include "ED_util.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -60,14 +54,12 @@
 #include "BIF_glutil.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "IMB_imbuf_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "WM_types.h"
 
 #include "info_intern.h"
 

@@ -406,6 +406,20 @@ class IMAGE_PT_view_histogram(bpy.types.Panel):
 
         layout.template_histogram(sima, "histogram")
 
+class IMAGE_PT_sample_line(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+    bl_label = "Sample Line"
+
+    def poll(self, context):
+        sima = context.space_data
+        return (sima and sima.image)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("image.sample_line")
+        sima = context.space_data
+        layout.template_histogram(sima, "sample_histogram")
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -572,7 +586,7 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
         brush = toolsettings.brush
 
         layout.template_curve_mapping(brush, "curve")
-        layout.operator_menu_enum("brush.curve_preset", property="shape")
+        layout.operator_menu_enum("brush.curve_preset", "shape")
 
 
 classes = [
@@ -592,7 +606,8 @@ classes = [
     IMAGE_PT_paint_curve,
     IMAGE_PT_game_properties,
     IMAGE_PT_view_properties,
-    IMAGE_PT_view_histogram]
+    IMAGE_PT_view_histogram,
+    IMAGE_PT_sample_line]
 
 
 def register():

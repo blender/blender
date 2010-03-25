@@ -137,7 +137,7 @@ static void VertexIt_Construct(CSG_VertexIteratorDescriptor *output, DerivedMesh
 	
 	it->pos = 0;
 
- 	// assign iterator function pointers.
+	 // assign iterator function pointers.
 	output->Step = VertexIt_Step;
 	output->Fill = VertexIt_Fill;
 	output->Done = VertexIt_Done;
@@ -353,9 +353,9 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	// create a new DerivedMesh
 	result = CDDM_new(vertex_it->num_elements, 0, face_it->num_elements);
 	CustomData_merge(&dm1->faceData, &result->faceData, CD_MASK_DERIVEDMESH,
-	                  CD_DEFAULT, face_it->num_elements); 
+					  CD_DEFAULT, face_it->num_elements); 
 	CustomData_merge(&dm2->faceData, &result->faceData, CD_MASK_DERIVEDMESH,
-	                  CD_DEFAULT, face_it->num_elements); 
+					  CD_DEFAULT, face_it->num_elements); 
 
 	// step through the vertex iterators:
 	for (i = 0; !vertex_it->Done(vertex_it->it); i++) {
@@ -422,7 +422,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 			mface->mat_nr = 0;
 
 		InterpCSGFace(result, orig_dm, i, orig_index, csgface.vertex_number,
-		              (orig_me == me2)? mapmat: NULL);
+					  (orig_me == me2)? mapmat: NULL);
 
 		test_index_face(mface, &result->faceData, i, csgface.vertex_number);
 	}
@@ -588,7 +588,7 @@ int NewBooleanMesh(Scene *scene, Base *base, Base *base_select, int int_op_type)
 }
 
 DerivedMesh *NewBooleanDerivedMesh(DerivedMesh *dm, struct Object *ob, DerivedMesh *dm_select, struct Object *ob_select,
-                                   int int_op_type)
+								   int int_op_type)
 {
 	return NewBooleanDerivedMesh_intern(dm, ob, dm_select, ob_select, int_op_type, NULL, NULL);
 }

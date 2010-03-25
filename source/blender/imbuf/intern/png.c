@@ -188,7 +188,7 @@ short imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 			 Flush);
 	} else {
 		fp = fopen(name, "wb");
-        if (!fp) {
+		if (!fp) {
 			MEM_freeN(pixels);
 			return 0;
 		}
@@ -443,7 +443,7 @@ struct ImBuf *imb_loadpng(unsigned char *mem, int size, int flags)
 			for(i = 0; i < count; i++) {
 				IMB_imginfo_add_field(ibuf, text_chunks[i].key, text_chunks[i].text);
 				ibuf->flags |= IB_imginfo;				
- 			}
+			 }
 		}
 
 		png_read_end(png_ptr, info_ptr);

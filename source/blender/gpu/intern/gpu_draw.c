@@ -762,11 +762,11 @@ void GPU_free_smoke(SmokeModifierData *smd)
 	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain)
 	{
 		if(smd->domain->tex)
-	 		GPU_texture_free(smd->domain->tex);
+			 GPU_texture_free(smd->domain->tex);
 		smd->domain->tex = NULL;
 
 		if(smd->domain->tex_shadow)
-	 		GPU_texture_free(smd->domain->tex_shadow);
+			 GPU_texture_free(smd->domain->tex_shadow);
 		smd->domain->tex_shadow = NULL;
 	}
 }

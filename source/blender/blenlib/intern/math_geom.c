@@ -957,7 +957,7 @@ int isect_line_line_strict_v3(float v1[3], float v2[3], float v3[3], float v4[3]
 int isect_aabb_aabb_v3(float min1[3], float max1[3], float min2[3], float max2[3])
 {
 	return (min1[0]<max2[0] && min1[1]<max2[1] && min1[2]<max2[2] &&
-	        min2[0]<max1[0] && min2[1]<max1[1] && min2[2]<max1[2]);
+			min2[0]<max1[0] && min2[1]<max1[1] && min2[2]<max1[2]);
 }
 
 /* find closest point to p on line through l1,l2 and return lambda,
@@ -1396,14 +1396,14 @@ void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3
    wtot = w[0]+w[1]+w[2];
 
    if (wtot != 0.0f) {
-       wtot_inv = 1.0f/wtot;
+	   wtot_inv = 1.0f/wtot;
 
-       w[0] = w[0]*wtot_inv;
-       w[1] = w[1]*wtot_inv;
-       w[2] = w[2]*wtot_inv;
+	   w[0] = w[0]*wtot_inv;
+	   w[1] = w[1]*wtot_inv;
+	   w[2] = w[2]*wtot_inv;
    }
    else /* dummy values for zero area face */
-       w[0] = w[1] = w[2] = 1.0f/3.0f;
+	   w[0] = w[1] = w[2] = 1.0f/3.0f;
 }
 
 /* given 2 triangles in 3D space, and a point in relation to the first triangle.
@@ -1608,21 +1608,21 @@ void interp_cubic_v3(float *x, float *v,float *x1, float *v1, float *x2, float *
 
 void orthographic_m4(float matrix[][4],float left, float right, float bottom, float top, float nearClip, float farClip)
 {
-    float Xdelta, Ydelta, Zdelta;
+	float Xdelta, Ydelta, Zdelta;
  
-    Xdelta = right - left;
-    Ydelta = top - bottom;
-    Zdelta = farClip - nearClip;
-    if (Xdelta == 0.0 || Ydelta == 0.0 || Zdelta == 0.0) {
+	Xdelta = right - left;
+	Ydelta = top - bottom;
+	Zdelta = farClip - nearClip;
+	if (Xdelta == 0.0 || Ydelta == 0.0 || Zdelta == 0.0) {
 		return;
-    }
-    unit_m4(matrix);
-    matrix[0][0] = 2.0f/Xdelta;
-    matrix[3][0] = -(right + left)/Xdelta;
-    matrix[1][1] = 2.0f/Ydelta;
-    matrix[3][1] = -(top + bottom)/Ydelta;
-    matrix[2][2] = -2.0f/Zdelta;		/* note: negate Z	*/
-    matrix[3][2] = -(farClip + nearClip)/Zdelta;
+	}
+	unit_m4(matrix);
+	matrix[0][0] = 2.0f/Xdelta;
+	matrix[3][0] = -(right + left)/Xdelta;
+	matrix[1][1] = 2.0f/Ydelta;
+	matrix[3][1] = -(top + bottom)/Ydelta;
+	matrix[2][2] = -2.0f/Zdelta;		/* note: negate Z	*/
+	matrix[3][2] = -(farClip + nearClip)/Zdelta;
 }
 
 void perspective_m4(float mat[][4],float left, float right, float bottom, float top, float nearClip, float farClip)
@@ -1644,22 +1644,22 @@ void perspective_m4(float mat[][4],float left, float right, float bottom, float 
 	mat[2][3] = -1.0f;
 	mat[3][2] = (-2.0f * nearClip * farClip)/Zdelta;
 	mat[0][1] = mat[0][2] = mat[0][3] =
-	    mat[1][0] = mat[1][2] = mat[1][3] =
-	    mat[3][0] = mat[3][1] = mat[3][3] = 0.0;
+		mat[1][0] = mat[1][2] = mat[1][3] =
+		mat[3][0] = mat[3][1] = mat[3][3] = 0.0;
 
 }
 
 static void i_multmatrix(float icand[][4], float Vm[][4])
 {
-    int row, col;
-    float temp[4][4];
+	int row, col;
+	float temp[4][4];
 
-    for(row=0 ; row<4 ; row++) 
-        for(col=0 ; col<4 ; col++)
-            temp[row][col] = icand[row][0] * Vm[0][col]
-                           + icand[row][1] * Vm[1][col]
-                           + icand[row][2] * Vm[2][col]
-                           + icand[row][3] * Vm[3][col];
+	for(row=0 ; row<4 ; row++) 
+		for(col=0 ; col<4 ; col++)
+			temp[row][col] = icand[row][0] * Vm[0][col]
+						   + icand[row][1] * Vm[1][col]
+						   + icand[row][2] * Vm[2][col]
+						   + icand[row][3] * Vm[3][col];
 	copy_m4_m4(Vm, temp);
 }
 
@@ -1669,10 +1669,10 @@ void polarview_m4(float Vm[][4],float dist, float azimuth, float incidence, floa
 
 	unit_m4(Vm);
 
-    translate_m4(Vm,0.0, 0.0, -dist);
-    rotate_m4(Vm,'z',-twist);	
-    rotate_m4(Vm,'x',-incidence);
-    rotate_m4(Vm,'z',-azimuth);
+	translate_m4(Vm,0.0, 0.0, -dist);
+	rotate_m4(Vm,'z',-twist);	
+	rotate_m4(Vm,'x',-incidence);
+	rotate_m4(Vm,'z',-azimuth);
 }
 
 void lookat_m4(float mat[][4],float vx, float vy, float vz, float px, float py, float pz, float twist)
@@ -1706,8 +1706,8 @@ void lookat_m4(float mat[][4],float vx, float vy, float vz, float px, float py, 
 	
 	i_multmatrix(mat1, mat);
 
-    mat1[1][1] = mat1[2][2] = 1.0f;	/* be careful here to reinit	*/
-    mat1[1][2] = mat1[2][1] = 0.0;	/* those modified by the last	*/
+	mat1[1][1] = mat1[2][2] = 1.0f;	/* be careful here to reinit	*/
+	mat1[1][2] = mat1[2][1] = 0.0;	/* those modified by the last	*/
 	
 	/* paragraph	*/
 	if (hyp != 0.0f) {			/* rotate Y	*/
@@ -1879,7 +1879,7 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 
 /* vector clouds */
 /* void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,float (*rpos)[3], float *rweight,
-  							   float lloc[3],float rloc[3],float lrot[3][3],float lscale[3][3])
+								 float lloc[3],float rloc[3],float lrot[3][3],float lscale[3][3])
 
 input
 (
@@ -1903,13 +1903,13 @@ pointers may be NULL if not needed
 /* can't believe there is none in math utils */
 float _det_m3(float m2[3][3])
 {
-    float det = 0.f;
-    if (m2){
-    det= m2[0][0]* (m2[1][1]*m2[2][2] - m2[1][2]*m2[2][1])
-        -m2[1][0]* (m2[0][1]*m2[2][2] - m2[0][2]*m2[2][1])
-        +m2[2][0]* (m2[0][1]*m2[1][2] - m2[0][2]*m2[1][1]);
-    }
-    return det;
+	float det = 0.f;
+	if (m2){
+	det= m2[0][0]* (m2[1][1]*m2[2][2] - m2[1][2]*m2[2][1])
+		-m2[1][0]* (m2[0][1]*m2[2][2] - m2[0][2]*m2[2][1])
+		+m2[2][0]* (m2[0][1]*m2[1][2] - m2[0][2]*m2[1][1]);
+	}
+	return det;
 }
 
 

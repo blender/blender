@@ -30,19 +30,13 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -74,24 +68,19 @@
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "BLF_api.h"
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
 #include "ED_gpencil.h"
-#include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_screen_types.h"
-#include "ED_util.h"
 #include "ED_transform.h"
-#include "ED_types.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "GPU_draw.h"
 #include "GPU_material.h"
@@ -476,11 +465,11 @@ static void drawfloor(Scene *scene, View3D *v3d)
 		
 		if (draw_line) {
 			glBegin(GL_LINE_STRIP);
-	        vert[0]= a*v3d->grid;
-	        vert[1]= grid;
-	        glVertex3fv(vert);
-	        vert[1]= -grid;
-	        glVertex3fv(vert);
+			vert[0]= a*v3d->grid;
+			vert[1]= grid;
+			glVertex3fv(vert);
+			vert[1]= -grid;
+			glVertex3fv(vert);
 			glEnd();
 		}
 	}
@@ -515,11 +504,11 @@ static void drawfloor(Scene *scene, View3D *v3d)
 		
 		if (draw_line) {
 			glBegin(GL_LINE_STRIP);
-	        vert[1]= a*v3d->grid;
-	        vert[0]= grid;
-	        glVertex3fv(vert );
-	        vert[0]= -grid;
-	        glVertex3fv(vert);
+			vert[1]= a*v3d->grid;
+			vert[0]= grid;
+			glVertex3fv(vert );
+			vert[0]= -grid;
+			glVertex3fv(vert);
 			glEnd();
 		}
 	}
@@ -1077,7 +1066,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	rcti winrct;
 
 	if(base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
-		     paint_facesel_test(base->object)));
+			 paint_facesel_test(base->object)));
 	else if((base && (base->object->mode & OB_MODE_TEXTURE_PAINT)) &&
 		scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
 	else if((base && (base->object->mode & OB_MODE_PARTICLE_EDIT)) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));

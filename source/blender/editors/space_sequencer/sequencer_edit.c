@@ -42,18 +42,10 @@
 #include "BLI_math.h"
 #include "BLI_storage_types.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 
 #include "DNA_ipo_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_view2d_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_sound_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -70,23 +62,14 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 
 /* for menu/popup icons etc etc*/
-#include "UI_interface.h"
-#include "UI_resources.h"
 
-#include "ED_anim_api.h"
-#include "ED_space_api.h"
-#include "ED_types.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
-#include "ED_util.h"
 #include "ED_sequencer.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 /* own include */
@@ -573,17 +556,17 @@ void change_sequence(Scene *scene)
 					U.plugseqdir, change_plugin_seq);
 			}
 			else if(event==12);	
-                                /* recalculate: only new_stripdata */
+								/* recalculate: only new_stripdata */
 			else {
 				/* free previous effect and init new effect */
 				struct SeqEffectHandle sh;
 
 				if (get_sequence_effect_num_inputs(
-					    last_seq->type)
-				    < get_sequence_effect_num_inputs(
-					    event_to_efftype(event))) {
+						last_seq->type)
+					< get_sequence_effect_num_inputs(
+						event_to_efftype(event))) {
 					error("New effect needs more "
-					      "input strips!");
+						  "input strips!");
 				} else {
 					sh = get_sequence_effect(last_seq);
 					sh.free(last_seq);
@@ -602,9 +585,9 @@ void change_sequence(Scene *scene)
 	else if(last_seq->type == SEQ_IMAGE) {
 		if(okee("Change images")) {
 			activate_fileselect(FILE_SPECIAL, 
-					    "Select Images", 
-					    ed->act_imagedir, 
-					    reload_image_strip);
+						"Select Images", 
+						ed->act_imagedir, 
+						reload_image_strip);
 		}
 	}
 	else if(last_seq->type == SEQ_MOVIE) {
@@ -646,13 +629,13 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 				return 0;
 			}
 			if((seq != activeseq) && (seq != seq2)) {
-                                if(seq2==0) seq2= seq;
-                                else if(seq1==0) seq1= seq;
-                                else if(seq3==0) seq3= seq;
-                                else {
+								if(seq2==0) seq2= seq;
+								else if(seq1==0) seq1= seq;
+								else if(seq3==0) seq3= seq;
+								else {
 									*error_str= "Can't apply effect to more than 3 sequence strips";
 									return 0;
-                                }
+								}
 			}
 		}
 	}
@@ -716,7 +699,7 @@ void reassign_inputs_seq_effect(Scene *scene)
 		seq_is_predecessor(seq3, last_seq)
 	) {
 		//BKE_report(op->reports, RPT_ERROR, "Can't reassign inputs: no cycles allowed"); // XXX operatorify
-	   	return;
+		   return;
 	}
 	
 	last_seq->seq1 = seq1;
@@ -1305,7 +1288,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	/* also check metas */
 	SEQP_BEGIN(ed, seq) {
 		if (seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK) &&
-		    seq_tx_test(seq)) {
+			seq_tx_test(seq)) {
 			if((seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0) {
 				seq->start= snap_frame-seq->startofs+seq->startstill;
 			} else { 

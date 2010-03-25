@@ -220,10 +220,10 @@ int BLI_strcaseeq(const char *a, const char *b)
 /* strcasestr not available in MSVC */
 char *BLI_strcasestr(const char *s, const char *find)
 {
-    register char c, sc;
-    register size_t len;
+	register char c, sc;
+	register size_t len;
 	
-    if ((c = *find++) != 0) {
+	if ((c = *find++) != 0) {
 		c= tolower(c);
 		len = strlen(find);
 		do {
@@ -234,8 +234,8 @@ char *BLI_strcasestr(const char *s, const char *find)
 			} while (sc != c);
 		} while (BLI_strncasecmp(s, find, len) != 0);
 		s--;
-    }
-    return ((char *) s);
+	}
+	return ((char *) s);
 }
 
 

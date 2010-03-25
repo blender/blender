@@ -37,7 +37,6 @@
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
@@ -63,7 +62,6 @@
 
 #include "ED_util.h"
 #include "ED_screen.h"
-#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen_types.h"
 #include "ED_keyframes_draw.h"
@@ -72,7 +70,6 @@
 #include "RNA_define.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "wm_window.h"
 

@@ -45,26 +45,8 @@
 
 /* Types --------------------------------------------------------------- */
 
-#include "DNA_listBase.h"
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_windowmanager_types.h"
-#include "DNA_world_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -82,15 +64,11 @@
 #include "BIF_glutil.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
-#include "ED_keyframing.h"
 #include "ED_keyframes_draw.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
 
 
 /* ************************************************************************* */

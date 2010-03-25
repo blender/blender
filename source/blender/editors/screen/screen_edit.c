@@ -28,10 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_vec_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
@@ -1547,7 +1544,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 					printf("something wrong in areafullscreen\n");
 				return NULL;
 			}
-			    // old feature described below (ton)
+				// old feature described below (ton)
 				// in autoplay screens the headers are disabled by
 				// default. So use the old headertype instead
 

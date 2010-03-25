@@ -27,10 +27,8 @@
 
 #include <stdlib.h>
 
-#include "DNA_windowmanager_types.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 #include "render_intern.h" // own include
 

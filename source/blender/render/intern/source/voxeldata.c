@@ -283,7 +283,7 @@ static void cache_voxeldata(struct Render *re,Tex *tex)
 
 void make_voxeldata(struct Render *re)
 {
-    Tex *tex;
+	Tex *tex;
 	
 	re->i.infostr= "Loading voxel datasets";
 	re->stats_draw(re->sdh, &re->i);
@@ -325,7 +325,7 @@ void free_voxeldata(Render *re)
 
 int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 {	 
-    int retval = TEX_INT;
+	int retval = TEX_INT;
 	VoxelData *vd = tex->vd;	
 	float co[3], offset[3] = {0.5, 0.5, 0.5};
 

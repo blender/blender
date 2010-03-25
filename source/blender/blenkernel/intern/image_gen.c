@@ -73,8 +73,8 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 	int checkerwidth= 32, dark= 1;
 	int x, y;
     
-    unsigned char *rect_orig= rect;
-    float *rect_float_orig= rect_float;
+	unsigned char *rect_orig= rect;
+	float *rect_float_orig= rect_float;
     
 	
 	float h=0.0, hoffs=0.0, hue=0.0, s=0.9, v=0.9, r, g, b;
@@ -109,8 +109,8 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 		}
 	}
 
-    rect= rect_orig;
-    rect_float= rect_float_orig;
+	rect= rect_orig;
+	rect_float= rect_float_orig;
 
 	/* 2nd pass, colored + */
 	for(y= 0; y<height; y++) {
@@ -179,12 +179,12 @@ static void checker_board_color_fill(unsigned char *rect, float *rect_float, int
 	sat= 1.0;
 
 	hue_step= larger_pow2(width / 8);
-    if(hue_step < 8) hue_step= 8;
+	if(hue_step < 8) hue_step= 8;
 
 	for(y= 0; y < height; y++)
 	{
         
-        val= 0.1 + (y * (0.4 / height)); /* use a number lower then 1.0 else its too bright */
+		val= 0.1 + (y * (0.4 / height)); /* use a number lower then 1.0 else its too bright */
 		for(x= 0; x < width; x++)
 		{
 			hue= (float)((double)(x/hue_step) * 1.0 / width * hue_step);
@@ -301,55 +301,55 @@ extern void stamp_font_begin(int size);
 
 static void checker_board_text(unsigned char *rect, float *rect_float, int width, int height, int step, int outline)
 {
-    int x, y;
-    int pen_x, pen_y;
-    char text[3]= {'A', '1', '\0'};
+	int x, y;
+	int pen_x, pen_y;
+	char text[3]= {'A', '1', '\0'};
 
-    /* hard coded size! */
+	/* hard coded size! */
 	stamp_font_begin(54);
-    BLF_buffer(rect_float, rect, width, height, 4);
+	BLF_buffer(rect_float, rect, width, height, 4);
     
 	for(y= 0; y < height; y+=step)
 	{
-        text[1]= '1';
+		text[1]= '1';
         
 		for(x= 0; x < width; x+=step)
 		{
-            /* hard coded offset */
-            pen_x = x + 33;
-            pen_y = y + 44;
+			/* hard coded offset */
+			pen_x = x + 33;
+			pen_y = y + 44;
             
-            /* terribly crappy outline font! */
-            BLF_buffer_col(1.0, 1.0, 1.0, 1.0);
+			/* terribly crappy outline font! */
+			BLF_buffer_col(1.0, 1.0, 1.0, 1.0);
 
-            BLF_position(pen_x-outline, pen_y, 0.0);
-            BLF_draw_buffer(text);
-            BLF_position(pen_x+outline, pen_y, 0.0);
-            BLF_draw_buffer(text);
-            BLF_position(pen_x, pen_y-outline, 0.0);
-            BLF_draw_buffer(text);
-            BLF_position(pen_x, pen_y+outline, 0.0);
-            BLF_draw_buffer(text);
+			BLF_position(pen_x-outline, pen_y, 0.0);
+			BLF_draw_buffer(text);
+			BLF_position(pen_x+outline, pen_y, 0.0);
+			BLF_draw_buffer(text);
+			BLF_position(pen_x, pen_y-outline, 0.0);
+			BLF_draw_buffer(text);
+			BLF_position(pen_x, pen_y+outline, 0.0);
+			BLF_draw_buffer(text);
             
-            BLF_position(pen_x-outline, pen_y-outline, 0.0);
-            BLF_draw_buffer(text);
-            BLF_position(pen_x+outline, pen_y+outline, 0.0);
-            BLF_draw_buffer(text);
-            BLF_position(pen_x-outline, pen_y+outline, 0.0);
-            BLF_draw_buffer(text);
-            BLF_position(pen_x+outline, pen_y-outline, 0.0);
-            BLF_draw_buffer(text);
+			BLF_position(pen_x-outline, pen_y-outline, 0.0);
+			BLF_draw_buffer(text);
+			BLF_position(pen_x+outline, pen_y+outline, 0.0);
+			BLF_draw_buffer(text);
+			BLF_position(pen_x-outline, pen_y+outline, 0.0);
+			BLF_draw_buffer(text);
+			BLF_position(pen_x+outline, pen_y-outline, 0.0);
+			BLF_draw_buffer(text);
 
-            BLF_buffer_col(0.0, 0.0, 0.0, 1.0);
-            BLF_position(pen_x, pen_y, 0.0);
-            BLF_draw_buffer(text);
+			BLF_buffer_col(0.0, 0.0, 0.0, 1.0);
+			BLF_position(pen_x, pen_y, 0.0);
+			BLF_draw_buffer(text);
             
-            text[1]++;
+			text[1]++;
 		}
-        text[0]++;
+		text[0]++;
 	}
     
-    /* cleanup the buffer. */
+	/* cleanup the buffer. */
 	BLF_buffer(0, 0, 0, 0, 0);
     
 }

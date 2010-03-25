@@ -32,10 +32,8 @@
 #include "DNA_curve_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
@@ -70,20 +68,16 @@
 #include "FRS_freestyle.h"
 
 #include "RNA_access.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
-#include "ED_render.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "render_intern.h"	// own include
 
@@ -313,7 +307,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *op)
 		}
 		else if(ob->type == OB_FONT) {
 			EditFont *ef= ((Curve*)ob->data)->editfont;
-    		int i, selstart, selend;
+			int i, selstart, selend;
 
 			if(ef && BKE_font_getselection(ob, &selstart, &selend)) {
 				for(i=selstart; i<=selend; i++)
@@ -322,8 +316,8 @@ static int material_slot_assign_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-    DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-    WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -402,7 +396,7 @@ static int material_slot_de_select(bContext *C, int select)
 		}
 	}
 
-    WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	return OPERATOR_FINISHED;
 }

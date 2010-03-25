@@ -245,8 +245,10 @@ typedef struct ParameterList {
 	/* storage for parameters */
 	void *data;
 
-	/* store the parameter count */
-	int tot;
+	/* store the parameter size */
+	int alloc_size;
+
+	int arg_count, ret_count;
 
 	/* function passed at creation time */
 	struct FunctionRNA *func;
@@ -340,6 +342,7 @@ typedef struct ExtensionRNA {
 #define MainActions Main
 #define MainGroups Main
 #define MainTextures Main
+#define MainCurves Main
 
 #ifdef __cplusplus
 }

@@ -101,7 +101,6 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
 
             col = row.column()
             col.prop(ks, "name")
-            col.prop(ks, "absolute")
 
             subcol = col.column()
             subcol.operator_context = 'INVOKE_DEFAULT'

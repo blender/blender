@@ -1309,8 +1309,10 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	m_logger->StartLog(tc_rasterizer, m_kxsystem->GetTimeInSeconds(), true);
 	SG_SetActiveStage(SG_STAGE_RENDER);
 
+#ifndef DISABLE_PYTHON
 	// Run any pre-drawing python callbacks
 	scene->RunDrawingCallbacks(scene->GetPreDrawCB());
+#endif
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
 	
@@ -1324,7 +1326,9 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
 	m_rendertools->MotionBlur(m_rasterizer);
 	scene->Render2DFilters(m_canvas);
+#ifndef DISABLE_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
+#endif
 	m_rasterizer->FlushDebugLines();
 }
 

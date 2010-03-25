@@ -59,22 +59,22 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 int zbuffer_strands_abuf(struct Render *re, struct RenderPart *pa, struct APixstrand *apixbuf, struct ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int sample, float (*jit)[2], float clipcrop, int shadow, struct StrandShadeCache *cache);
 
 typedef struct APixstr {
-    unsigned short mask[4];		/* jitter mask */
-    int z[4];					/* distance    */
-    int p[4];					/* index       */
+	unsigned short mask[4];		/* jitter mask */
+	int z[4];					/* distance    */
+	int p[4];					/* index       */
 	int obi[4];					/* object instance */
 	short shadfac[4];			/* optimize storage for irregular shadow */
-    struct APixstr *next;
+	struct APixstr *next;
 } APixstr;
 
 typedef struct APixstrand {
-    unsigned short mask[4];		/* jitter mask */
-    int z[4];					/* distance    */
-    int p[4];					/* index       */
+	unsigned short mask[4];		/* jitter mask */
+	int z[4];					/* distance    */
+	int p[4];					/* index       */
 	int obi[4];					/* object instance */
 	int seg[4];					/* for strands, segment number */
 	float u[4], v[4];			/* for strands, u,v coordinate in segment */
-    struct APixstrand *next;
+	struct APixstrand *next;
 } APixstrand;
 
 typedef struct APixstrMain

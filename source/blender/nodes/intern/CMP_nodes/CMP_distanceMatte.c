@@ -53,29 +53,29 @@ static void do_distance_matte(bNode *node, float *out, float *in)
    float alpha;
    
    distance=sqrt((c->key[0]-in[0])*(c->key[0]-in[0]) +
-                  (c->key[1]-in[1])*(c->key[1]-in[1]) +
-                  (c->key[2]-in[2])*(c->key[2]-in[2]));
+				  (c->key[1]-in[1])*(c->key[1]-in[1]) +
+				  (c->key[2]-in[2])*(c->key[2]-in[2]));
 
    VECCOPY(out, in);
 
    /*make 100% transparent */
    if(distance < tolerence) {
-      out[3]=0.0;
+	  out[3]=0.0;
    }
    /*in the falloff region, make partially transparent */
    else if(distance < falloff+tolerence){
-      distance=distance-tolerence;
-      alpha=distance/falloff;
-       /*only change if more transparent than before */
-      if(alpha < in[3]) {
-         out[3]=alpha;
-      }
-      else { /* leave as before */
-         out[3]=in[3];
-      }
+	  distance=distance-tolerence;
+	  alpha=distance/falloff;
+	   /*only change if more transparent than before */
+	  if(alpha < in[3]) {
+		 out[3]=alpha;
+	  }
+	  else { /* leave as before */
+		 out[3]=in[3];
+	  }
    }
    else {
-      out[3]=in[3];
+	  out[3]=in[3];
    }
 }
 

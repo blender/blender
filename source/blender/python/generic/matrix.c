@@ -221,7 +221,7 @@ static PyObject *Matrix_toQuat(MatrixObject * self)
 		return NULL;
 	} 
 	if(self->colSize == 3){
-        mat3_to_quat( quat,(float (*)[3])self->contigPtr);
+		mat3_to_quat( quat,(float (*)[3])self->contigPtr);
 	}else{
 		mat4_to_quat( quat,(float (*)[4])self->contigPtr);
 	}
@@ -1172,8 +1172,8 @@ static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-			     "vector indices must be integers, not %.200s",
-			     item->ob_type->tp_name);
+				 "vector indices must be integers, not %.200s",
+				 item->ob_type->tp_name);
 		return NULL;
 	}
 }
@@ -1203,8 +1203,8 @@ static int Matrix_ass_subscript(MatrixObject* self, PyObject* item, PyObject* va
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-			     "matrix indices must be integers, not %.200s",
-			     item->ob_type->tp_name);
+				 "matrix indices must be integers, not %.200s",
+				 item->ob_type->tp_name);
 		return -1;
 	}
 }
@@ -1389,13 +1389,13 @@ PyTypeObject matrix_Type = {
 /*------------------------newMatrixObject (internal)-------------
 creates a new matrix object
 self->matrix     self->contiguous_ptr (reference to data.xxx)
-       [0]------------->[0]
-                        [1]
-                        [2]
-       [1]------------->[3]
-                        [4]
-                        [5]
-	             ....
+	   [0]------------->[0]
+						[1]
+						[2]
+	   [1]------------->[3]
+						[4]
+						[5]
+				 ....
 self->matrix[1][1] = self->contigPtr[4] */
 
 /*pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER

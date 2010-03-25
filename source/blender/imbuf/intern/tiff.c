@@ -92,7 +92,7 @@ static void imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size)
 
 static int imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize) 
 {
-            return (0);
+			return (0);
 }
 
 /**

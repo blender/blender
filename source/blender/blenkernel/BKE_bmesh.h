@@ -218,11 +218,11 @@ typedef struct BME_TransData {
 	void *loc;    /* a pointer to the data to transform (likely the vert's cos) */
 	float factor; /* primary scaling factor; also accumulates number of weighted edges for beveling tool */
 	float weight; /* another scaling factor; used primarily for propogating vertex weights to transforms; */
-	              /* weight is also used across recursive bevels to help with the math */
+				  /* weight is also used across recursive bevels to help with the math */
 	float maxfactor; /* the unscaled, original factor (used only by "edge verts" in recursive beveling) */
 	float *max;   /* the maximum distance this vert can be transformed; negative is infinite
-	               * it points to the "parent" maxfactor (where maxfactor makes little sense)
-	               * where the max limit is stored (limits are stored per-corner) */
+				   * it points to the "parent" maxfactor (where maxfactor makes little sense)
+				   * where the max limit is stored (limits are stored per-corner) */
 } BME_TransData;
 
 typedef struct BME_TransData_Head {

@@ -292,11 +292,6 @@ public:
 						RAS_IRenderTools* rendertools);
 
 	/**
-	 * Run the registered python drawing functions.
-	 */
-	void RunDrawingCallbacks(PyObject* cb_list);
-
-	/**
 	 * Update all transforms according to the scenegraph.
 	 */
 	static bool KX_ScenegraphUpdateFunc(SG_IObject* node,void* gameobj,void* scene);
@@ -573,6 +568,11 @@ public:
 	static PyMappingMethods	Mapping;
 	static PySequenceMethods	Sequence;
 
+	/**
+	 * Run the registered python drawing functions.
+	 */
+	void RunDrawingCallbacks(PyObject* cb_list);
+	
 	PyObject* GetPreDrawCB() { return m_draw_call_pre; };
 	PyObject* GetPostDrawCB() { return m_draw_call_post; };
 #endif

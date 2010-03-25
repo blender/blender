@@ -30,23 +30,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "DNA_ID.h"
 #include "DNA_node_types.h"
-#include "DNA_image_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_action_types.h"
-#include "DNA_color_types.h"
-#include "DNA_customdata_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_text_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -73,9 +62,6 @@
 #include "WM_types.h"
 
 #include "ED_gpencil.h"
-#include "ED_screen.h"
-#include "ED_util.h"
-#include "ED_types.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -597,7 +583,7 @@ static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *socket_v)
 	
 	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, sock->locx, sock->locy-8, 140, 20, U.uistyles.first), 0);
 	
-	uiItemR(layout, "", 0, &ptr, "default_value", UI_ITEM_R_EXPAND);
+	uiItemR(layout, &ptr, "default_value", UI_ITEM_R_EXPAND, "", 0);
 	
 	return block;
 }

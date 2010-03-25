@@ -35,10 +35,8 @@
 #include "BLI_math.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
@@ -47,7 +45,6 @@
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
@@ -89,21 +86,21 @@
  */
 short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb) 
 {
- 	BezTriple *bezt;
- 	int i;
+	 BezTriple *bezt;
+	 int i;
 	
 	/* sanity check */
 	if (ELEM(NULL, fcu, fcu->bezt))
 		return 0;
 	
 	/* set the F-Curve into the editdata so that it can be accessed */
- 	if (bed) {
- 		bed->fcu= fcu;
- 		bed->curIndex= 0;
- 	}
+	 if (bed) {
+		 bed->fcu= fcu;
+		 bed->curIndex= 0;
+	 }
 	
 	/* if function to apply to bezier curves is set, then loop through executing it on beztriples */
- 	if (bezt_cb) {
+	 if (bezt_cb) {
 		/* if there's a validation func, include that check in the loop 
 		 * (this is should be more efficient than checking for it in every loop)
 		 */
@@ -133,10 +130,10 @@ short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc 
 	 }
 	
 	/* unset the F-Curve from the editdata now that it's done */
- 	if (bed) {
- 		bed->fcu= NULL;
- 		bed->curIndex= 0;
- 	}
+	 if (bed) {
+		 bed->fcu= NULL;
+		 bed->curIndex= 0;
+	 }
 
 	/* if fcu_cb (F-Curve post-editing callback) has been specified then execute it */
 	if (fcu_cb)
@@ -607,6 +604,7 @@ void bezt_remap_times(BeztEditData *bed, BezTriple *bezt)
 /* ******************************************* */
 /* Transform */
 
+/* snaps the keyframe to the nearest frame */
 static short snap_bezier_nearest(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT)
@@ -614,6 +612,7 @@ static short snap_bezier_nearest(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+/* snaps the keyframe to the neares second */
 static short snap_bezier_nearestsec(BeztEditData *bed, BezTriple *bezt)
 {
 	const Scene *scene= bed->scene;
@@ -624,6 +623,7 @@ static short snap_bezier_nearestsec(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+/* snaps the keyframe to the current frame */
 static short snap_bezier_cframe(BeztEditData *bed, BezTriple *bezt)
 {
 	const Scene *scene= bed->scene;
@@ -632,6 +632,7 @@ static short snap_bezier_cframe(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+/* snaps the keyframe time to the nearest marker's frame */
 static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT)
@@ -639,20 +640,21 @@ static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
+/* make the handles have the same value as the key */
 static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT) {
-		// XXX currently this snaps both handles to the nearest horizontal value, but perhaps user just wants to level out handles instead?
-		bezt->vec[0][1]= bezt->vec[2][1]= (float)floor(bezt->vec[1][1] + 0.5f);
+		bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
+		
 		if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
 		if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
 	}
 	return 0;	
 }
 
+/* value to snap to is stored in the custom data -> first float value slot */
 static short snap_bezier_value(BeztEditData *bed, BezTriple *bezt)
 {
-	/* value to snap to is stored in the custom data -> first float value slot */
 	if (bezt->f2 & SELECT)
 		bezt->vec[1][1]= bed->f1;
 	return 0;

@@ -32,20 +32,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_math.h"
@@ -86,7 +80,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_object.h"
@@ -286,7 +279,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		PointerRNA props_ptr;
 		
 		/* create operator menu item with relevant properties filled in */
-		props_ptr= uiItemFullO(layout, op->type->name, 0, op->idname, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		props_ptr= uiItemFullO(layout, op->idname, op->type->name, 0, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -679,23 +672,23 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_OBJECT);
+	uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_OBJECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_NAME);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_ENVELOPE);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_AUTO);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_BONE);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_NAME);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_AUTO);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_CURVE);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_FOLLOW);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_PATH_CONST);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_CURVE);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_FOLLOW);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_PATH_CONST);
 	}
 	else if(ob->type == OB_LATTICE) {
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_LATTICE);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_LATTICE);
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -1681,13 +1674,13 @@ static void single_mat_users_expand(void)
 /* used for copying scenes */
 void ED_object_single_users(Scene *scene, int full)
 {
-    single_object_users(scene, NULL, 0);
+	single_object_users(scene, NULL, 0);
 
-    if(full) {
-        single_obdata_users(scene, 0);
-        single_mat_users_expand();
-        single_tex_users_expand();
-    }
+	if(full) {
+		single_obdata_users(scene, 0);
+		single_mat_users_expand();
+		single_tex_users_expand();
+	}
 
 	clear_id_newpoins();
 }
@@ -1827,7 +1820,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 	int flag= RNA_enum_get(op->ptr, "type"); /* 0==ALL, SELECTED==selected objecs */
 
 	if(RNA_boolean_get(op->ptr, "object"))
-	    single_object_users(scene, v3d, flag);
+		single_object_users(scene, v3d, flag);
 
 	if(RNA_boolean_get(op->ptr, "obdata"))
 		single_obdata_users(scene, flag);

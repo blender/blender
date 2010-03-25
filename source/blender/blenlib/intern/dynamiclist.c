@@ -179,7 +179,7 @@ void *BLI_dlist_find_link(DynamicList *dlist, unsigned int index)
 	if(!dlist || !dlist->da.items) return NULL;
 
 	if((index <= dlist->da.last_item_index) && (index >= 0) && (dlist->da.count>0)){
-      		return dlist->da.items[index];
+			  return dlist->da.items[index];
 	}
 	else {
 		return NULL;

@@ -28,10 +28,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 
 #include "RNA_access.h"
 
@@ -43,7 +41,6 @@
 
 #include "BLI_math.h"
 
-#include "PIL_time.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -218,10 +215,10 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 /**** Public API ****/
 
 PaintStroke *paint_stroke_new(bContext *C,
-			      StrokeGetLocation get_location,
-			      StrokeTestStart test_start,
-			      StrokeUpdateStep update_step,
-			      StrokeDone done)
+				  StrokeGetLocation get_location,
+				  StrokeTestStart test_start,
+				  StrokeUpdateStep update_step,
+				  StrokeDone done)
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
 

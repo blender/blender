@@ -384,6 +384,7 @@ extern StructRNA RNA_SceneGameData;
 extern StructRNA RNA_SceneRenderLayer;
 extern StructRNA RNA_SceneSequence;
 extern StructRNA RNA_Screen;
+extern StructRNA RNA_ScrewModifier;
 extern StructRNA RNA_Sculpt;
 extern StructRNA RNA_Sensor;
 extern StructRNA RNA_Sequence;
@@ -765,10 +766,10 @@ char *RNA_path_append(const char *path, PointerRNA *ptr, PropertyRNA *prop,
 char *RNA_path_back(const char *path);
 
 int RNA_path_resolve(PointerRNA *ptr, const char *path,
-        PointerRNA *r_ptr, PropertyRNA **r_prop);
+		PointerRNA *r_ptr, PropertyRNA **r_prop);
 
 int RNA_path_resolve_full(PointerRNA *ptr, const char *path,
-        PointerRNA *r_ptr, PropertyRNA **r_prop, int *index);
+		PointerRNA *r_ptr, PropertyRNA **r_prop, int *index);
 
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
@@ -891,6 +892,8 @@ const struct ListBase *RNA_function_defined_parameters(FunctionRNA *func);
 ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, FunctionRNA *func);
 void RNA_parameter_list_free(ParameterList *parms);
 int  RNA_parameter_list_size(ParameterList *parms);
+int  RNA_parameter_list_arg_count(ParameterList *parms);
+int  RNA_parameter_list_ret_count(ParameterList *parms);
 
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter);
 void RNA_parameter_list_next(ParameterIterator *iter);

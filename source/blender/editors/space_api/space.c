@@ -37,7 +37,6 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
 
 /* */
 

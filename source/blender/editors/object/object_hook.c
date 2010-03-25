@@ -35,16 +35,11 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
@@ -62,14 +57,11 @@
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_view3d.h"
 #include "ED_screen.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "object_intern.h"

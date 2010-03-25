@@ -31,13 +31,7 @@
 #include <math.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -59,7 +53,6 @@
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
-#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 
@@ -71,8 +64,6 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "nla_intern.h"	// own include
 #include "nla_private.h" // FIXME... maybe this shouldn't be included?
@@ -923,7 +914,16 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *op)
 	
 	/* for each AnimData block, bake strips to animdata... */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		// FIXME
+		AnimData *adt = (AnimData *)ale->data;
+		
+		/* if animdata currently has an action, 'push down' this onto the stack first */
+		BKE_nla_action_pushdown(adt);
+		
+		/* temporarily mute the action, and start keying to it */
+		
+		/* start keying... */
+		
+		/* unmute the action */
 	}
 	
 	/* free temp data */
@@ -1575,7 +1575,7 @@ static int nla_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *event
 			continue;
 		
 		/* add entry to add this type of modifier */
-		uiItemEnumO(layout, fmi->name, 0, "NLA_OT_fmodifier_add", "type", i);
+		uiItemEnumO(layout, "NLA_OT_fmodifier_add", fmi->name, 0, "type", i);
 	}
 	uiItemS(layout);
 	

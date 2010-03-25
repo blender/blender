@@ -31,9 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_image_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -56,13 +54,11 @@
 
 #include "ED_gpencil.h"
 #include "ED_image.h"
-#include "ED_screen.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
 
 #include "image_intern.h"
 
@@ -156,6 +152,17 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	glColor3ub(255, 255, 255);
 	
 	UI_DrawString(10, 10, str);
+}
+
+void draw_image_line(struct ARegion *ar, int x1, int y1, int x2, int y2)
+{
+	glColor3ub(0,0,0);
+	glBegin(GL_LINES);
+	
+	glVertex2i(x1, y1);
+	glVertex2i(x2, y2);
+	
+	glEnd();
 }
 
 /* image drawing */

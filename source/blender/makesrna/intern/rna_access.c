@@ -47,7 +47,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 /* flush updates */
 #include "DNA_object_types.h"
@@ -3758,15 +3757,24 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, 
 {
 	PropertyRNA *parm;
 	void *data;
-	int tot= 0, size;
+	int alloc_size= 0, size;
 
+    parms->arg_count= 0;
+    parms->ret_count= 0;
+    
 	/* allocate data */
-	for(parm= func->cont.properties.first; parm; parm= parm->next)
-		tot+= rna_parameter_size_alloc(parm);
+	for(parm= func->cont.properties.first; parm; parm= parm->next) {
+		alloc_size += rna_parameter_size_alloc(parm);
 
-	parms->data= MEM_callocN(tot, "RNA_parameter_list_create");
+        if(parm->flag & PROP_OUTPUT)
+            parms->ret_count++;
+        else
+            parms->arg_count++;
+    }
+
+	parms->data= MEM_callocN(alloc_size, "RNA_parameter_list_create");
 	parms->func= func;
-	parms->tot= tot;
+	parms->alloc_size= alloc_size;
 
 	/* set default values */
 	data= parms->data;
@@ -3840,7 +3848,17 @@ void RNA_parameter_list_free(ParameterList *parms)
 
 int  RNA_parameter_list_size(ParameterList *parms)
 {
-	return parms->tot;
+	return parms->alloc_size;
+}
+
+int  RNA_parameter_list_arg_count(ParameterList *parms)
+{
+	return parms->arg_count;
+}
+
+int  RNA_parameter_list_ret_count(ParameterList *parms)
+{
+	return parms->ret_count;
 }
 
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
@@ -4146,7 +4164,7 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 			if(prop->flag & PROP_RNAPTR) {
 				*((PointerRNA*)dest)= *((PointerRNA*)src);
 				break;
- 			}
+			 }
 			
 			if (ptype!=srna && !RNA_struct_is_a(srna, ptype)) {
 				fprintf(stderr, "%s.%s: wrong type for parameter %s, an object of type %s was expected, passed an object of type %s\n", tid, fid, pid, RNA_struct_identifier(ptype), RNA_struct_identifier(srna));

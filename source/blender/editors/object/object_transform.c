@@ -29,16 +29,11 @@
 #include <string.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BLI_math.h"
 #include "BLI_editVert.h"
@@ -60,12 +55,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
-#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 

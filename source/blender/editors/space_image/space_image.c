@@ -29,13 +29,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_image_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -51,11 +47,8 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_gpencil.h"
-#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -69,7 +62,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -475,6 +467,7 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_cycle_render_slot);
 
 	WM_operatortype_append(IMAGE_OT_sample);
+	WM_operatortype_append(IMAGE_OT_sample_line);
 	WM_operatortype_append(IMAGE_OT_curves_point_set);
 
 	WM_operatortype_append(IMAGE_OT_record_composite);
@@ -825,7 +818,7 @@ static void image_scope_area_draw(const bContext *C, ARegion *ar)
 	void *lock;
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	if(ibuf)
-        histogram_update(&sima->hist, ibuf);
+		histogram_update(&sima->hist, ibuf);
 	ED_space_image_release_buffer(sima, lock);
 	
 	ED_region_panels(C, ar, 1, NULL, -1);

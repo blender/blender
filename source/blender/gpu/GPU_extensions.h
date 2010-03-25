@@ -91,14 +91,14 @@ int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver);
 /* GPU Texture
    - always returns unsigned char RGBA textures
    - if texture with non square dimensions is created, depending on the
-     graphics card capabilities the texture may actually be stored in a
+	 graphics card capabilities the texture may actually be stored in a
 	 larger texture with power of two dimensions. the actual dimensions
 	 may be queried with GPU_texture_opengl_width/height. GPU_texture_coord_2f
 	 calls glTexCoord2f with the coordinates adjusted for this.
    - can use reference counting:
-       - reference counter after GPU_texture_create is 1
-       - GPU_texture_ref increases by one
-       - GPU_texture_free decreases by one, and frees if 0
+	   - reference counter after GPU_texture_create is 1
+	   - GPU_texture_ref increases by one
+	   - GPU_texture_free decreases by one, and frees if 0
 	- if created with from_blender, will not free the texture
 */
 
@@ -123,10 +123,10 @@ int GPU_texture_opengl_height(GPUTexture *tex);
 
 /* GPU Framebuffer
    - this is a wrapper for an OpenGL framebuffer object (FBO). in practice
-     multiple FBO's may be created, to get around limitations on the number
+	 multiple FBO's may be created, to get around limitations on the number
 	 of attached textures and the dimension requirements.
    - after any of the GPU_framebuffer_* functions, GPU_framebuffer_restore must
-     be called before rendering to the window framebuffer again */
+	 be called before rendering to the window framebuffer again */
 
 GPUFrameBuffer *GPU_framebuffer_create();
 int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex);

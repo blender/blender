@@ -32,10 +32,7 @@
 
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"

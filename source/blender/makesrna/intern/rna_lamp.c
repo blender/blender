@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -263,7 +262,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sun Size", "Sun size");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
 
-  	prop= RNA_def_property(srna, "backscattered_light", PROP_FLOAT, PROP_NONE);
+	  prop= RNA_def_property(srna, "backscattered_light", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -1.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Backscattered Light", "Backscattered light");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");

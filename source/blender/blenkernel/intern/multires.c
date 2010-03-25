@@ -34,14 +34,15 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_pbvh.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
@@ -109,11 +110,16 @@ void multires_mark_as_modified(Object *ob)
 
 void multires_force_update(Object *ob)
 {
-
-	if(ob && ob->derivedFinal) {
-		ob->derivedFinal->needsFree =1;
-		ob->derivedFinal->release(ob->derivedFinal);
-		ob->derivedFinal = NULL;
+	if(ob) {
+		if(ob->derivedFinal) {
+			ob->derivedFinal->needsFree =1;
+			ob->derivedFinal->release(ob->derivedFinal);
+			ob->derivedFinal = NULL;
+		}
+		if(ob->sculpt && ob->sculpt->pbvh) {
+			BLI_pbvh_free(ob->sculpt->pbvh);
+			ob->sculpt->pbvh= NULL;
+		}
 	}
 }
 
@@ -650,7 +656,7 @@ void multires_stitch_grids(Object *ob)
 }
 
 DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int local_mmd, DerivedMesh *dm, Object *ob,
-						    int useRenderParams, int isFinalCalc)
+							int useRenderParams, int isFinalCalc)
 {
 	Mesh *me= ob->data;
 	DerivedMesh *result;
@@ -840,7 +846,7 @@ void multires_free(Multires *mr)
 }
 
 static void create_old_vert_face_map(ListBase **map, IndexNode **mem, const MultiresFace *mface,
-				     const int totvert, const int totface)
+					 const int totvert, const int totface)
 {
 	int i,j;
 	IndexNode *node = NULL;
@@ -859,7 +865,7 @@ static void create_old_vert_face_map(ListBase **map, IndexNode **mem, const Mult
 }
 
 static void create_old_vert_edge_map(ListBase **map, IndexNode **mem, const MultiresEdge *medge,
-				     const int totvert, const int totedge)
+					 const int totvert, const int totedge)
 {
 	int i,j;
 	IndexNode *node = NULL;
@@ -925,7 +931,7 @@ static void multires_load_old_edges(ListBase **emap, MultiresLevel *lvl, int *vv
 }
 
 static void multires_load_old_faces(ListBase **fmap, ListBase **emap, MultiresLevel *lvl, int *vvmap, int dst,
-				    int v1, int v2, int v3, int v4, int st2, int st3)
+					int v1, int v2, int v3, int v4, int st2, int st3)
 {
 	int fmid;
 	int emid13, emid14, emid23, emid24;
