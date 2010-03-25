@@ -25,8 +25,8 @@ RAS_ListSlot::RAS_ListSlot(RAS_ListRasterizer* rasty)
 :	KX_ListSlot(),
 	m_list(0),
 	m_flag(LIST_MODIFY|LIST_CREATE),
-	m_rasty(rasty),
-	m_matnr(0)
+	m_matnr(0),
+	m_rasty(rasty)
 {
 }
 
@@ -166,24 +166,25 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
 			// that means that we draw based on derived mesh, a display list is possible
 			// Note that we come here only for static derived mesh
 			int matnr = ms.m_bucket->GetPolyMaterial()->GetMaterialIndex();
+			RAS_ListSlot* nullSlot = NULL;
 			RAS_ListSlots *listVector;
 			RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.find(ms.m_pDerivedMesh);
 			if(it == mDerivedMeshLists.end()) {
-				listVector = new RAS_ListSlots(matnr+4, NULL);
+				listVector = new RAS_ListSlots(matnr+4, nullSlot);
 				localSlot = new RAS_ListSlot(this);
 				localSlot->m_flag |= LIST_DERIVEDMESH;
 				localSlot->m_matnr = matnr;
-				(*listVector)[matnr] = localSlot;
+				listVector->at(matnr) = localSlot;
 				mDerivedMeshLists.insert(std::pair<DerivedMesh*, RAS_ListSlots*>(ms.m_pDerivedMesh, listVector));
 			} else {
 				listVector = it->second;
 				if (listVector->size() <= matnr)
-					listVector->resize(matnr+4, NULL);
+					listVector->resize(matnr+4, nullSlot);
 				if ((localSlot = listVector->at(matnr)) == NULL) {
 					localSlot = new RAS_ListSlot(this);
 					localSlot->m_flag |= LIST_DERIVEDMESH;
 					localSlot->m_matnr = matnr;
-					(*listVector)[matnr] = localSlot;
+					listVector->at(matnr) = localSlot;
 				} else {
 					localSlot->AddRef();
 				}
