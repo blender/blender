@@ -234,7 +234,11 @@ KX_GameObject* KX_GameObject::GetParent()
 void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj, bool addToCompound, bool ghost)
 {
 	// check on valid node in case a python controller holds a reference to a deleted object
-	if (obj && GetSGNode() && obj->GetSGNode() && GetSGNode()->GetSGParent() != obj->GetSGNode())
+	if (obj && 
+		GetSGNode() &&			// object is not zombi
+		obj->GetSGNode() &&		// object is not zombi
+		GetSGNode()->GetSGParent() != obj->GetSGNode() &&	// not already parented to same object
+		!GetSGNode()->IsAncessor(obj->GetSGNode()))			// no parenting loop
 	{
 		// Make sure the objects have some scale
 		MT_Vector3 scale1 = NodeGetWorldScaling();

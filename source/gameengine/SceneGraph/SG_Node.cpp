@@ -150,6 +150,12 @@ GetRootSGParent(
 	return (m_SGparent ? (const SG_Node*) m_SGparent->GetRootSGParent() : (const SG_Node*) this);
 }
 
+bool SG_Node::IsAncessor(const SG_Node* child) const
+{
+	return (!child->m_SGparent) ? false : 
+		(child->m_SGparent == this) ? true : IsAncessor(child->m_SGparent);
+}
+
 	void 
 SG_Node::
 DisconnectFromParent(
