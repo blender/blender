@@ -579,41 +579,13 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)
 {
 	Object *ob= ptr->data;
-	BoundBox *bb = NULL;
-	
-	bb= object_get_boundbox(ob);
-	if (bb) {
-		float scale[3];
-		
-		mat4_to_size( scale,ob->obmat);
-		
-		value[0] = fabs(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
-		value[1] = fabs(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
-		value[2] = fabs(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
-	} else {
-		value[0] = value[1] = value[2] = 0.f;
-	}
+	object_get_dimensions(ob, value);
 }
 
 static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
 {
 	Object *ob= ptr->data;
-	BoundBox *bb = NULL;
-	
-	bb= object_get_boundbox(ob);
-	if (bb) {
-		float scale[3], len[3];
-		
-		mat4_to_size( scale,ob->obmat);
-		
-		len[0] = bb->vec[4][0] - bb->vec[0][0];
-		len[1] = bb->vec[2][1] - bb->vec[0][1];
-		len[2] = bb->vec[1][2] - bb->vec[0][2];
-		
-		if (len[0] > 0.f) ob->size[0] = value[0] / len[0];
-		if (len[1] > 0.f) ob->size[1] = value[1] / len[1];
-		if (len[2] > 0.f) ob->size[2] = value[2] / len[2];
-	}
+	object_set_dimensions(ob, value);
 }
 
 static int rna_Object_location_editable(PointerRNA *ptr, int index)

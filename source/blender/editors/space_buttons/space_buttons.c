@@ -258,6 +258,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					buttons_area_redraw(sa, BCONTEXT_TEXTURE);
 					buttons_area_redraw(sa, BCONTEXT_WORLD);
 					buttons_area_redraw(sa, BCONTEXT_DATA);
+					buttons_area_redraw(sa, BCONTEXT_PHYSICS);
 					sbuts->preview= 1;
 					break;
 				case ND_OB_ACTIVE:

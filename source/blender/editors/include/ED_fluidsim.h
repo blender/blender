@@ -34,8 +34,6 @@
 struct Object;
 struct FluidsimSettings;
 
-extern double fluidsimViscosityPreset[6];
-extern char* fluidsimViscosityPresetString[6];
 
 /* allocates and initializes fluidsim data */
 struct FluidsimSettings* fluidsimSettingsNew(struct Object *srcob);
