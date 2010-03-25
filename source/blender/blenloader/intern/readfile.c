@@ -3727,6 +3727,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
 			fluidmd->fss= newdataadr(fd, fluidmd->fss);
+			fluidmd->fss->fmd= fluidmd;
 			fluidmd->fss->meshSurfNormals = 0;
 		}
 		else if (md->type==eModifierType_Smoke) {
@@ -10642,13 +10643,62 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		} /* sequencer changes */
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 1)) {
 		Brush *brush;
+		Object *ob;
+		Scene *scene;
+		bNodeTree *ntree;
 		
 		for (brush= main->brush.first; brush; brush= brush->id.next) {
 			if (brush->curve) brush->curve->preset = CURVE_PRESET_SMOOTH;
 		}
+		
+		/* properly initialise active flag for fluidsim modifiers */
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for(md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Fluidsim) {
+					FluidsimModifierData *fmd = (FluidsimModifierData *)md;
+					fmd->fss->flag |= OB_FLUIDSIM_ACTIVE;
+				}
+			}
+		}
+		
+		/* adjustment to color balance node values */
+		for(scene= main->scene.first; scene; scene= scene->id.next) {
+			if(scene->nodetree) {
+				bNode *node=scene->nodetree->nodes.first;
+				
+				while(node) {
+					if (node->type == CMP_NODE_COLORBALANCE) {
+						NodeColorBalance *n= (NodeColorBalance *)node->storage;
+						n->lift[0] += 1.f;
+						n->lift[1] += 1.f;
+						n->lift[2] += 1.f;
+					}
+					node= node->next;
+				}
+			}
+		}
+		/* check inside node groups too */
+		for (ntree= main->nodetree.first; ntree; ntree=ntree->id.next) {
+			bNode *node=ntree->nodes.first;
+			
+			while(node) {
+				if (node->type == CMP_NODE_COLORBALANCE) {
+					NodeColorBalance *n= (NodeColorBalance *)node->storage;
+					n->lift[0] += 1.f;
+					n->lift[1] += 1.f;
+					n->lift[2] += 1.f;
+				}
+				node= node->next;
+			}
+		}
+
+	}
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

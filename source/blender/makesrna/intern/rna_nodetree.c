@@ -1927,7 +1927,8 @@ static void def_cmp_colorbalance(StructRNA *srna)
 	prop = RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "lift");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Lift", "Correction for Shadows");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
