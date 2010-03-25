@@ -1365,7 +1365,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 				}
 			} else {
 				if (ELEM(ob->type, OB_CURVE, OB_FONT) && (cu->flag & CU_DEFORM_FILL)) {
-					curve_to_filledpoly(cu, nurb, &cu->disp);
+					curve_to_filledpoly(cu, nurb, dispbase);
 				}
 
 				dm= CDDM_from_curve_customDB(ob, dispbase);
