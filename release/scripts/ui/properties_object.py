@@ -268,9 +268,10 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
             else:
                 layout.prop(ob, "dupli_group", text="")
 
-
+# XXX: the following options are all quite buggy, ancient hacks that should be dropped
 class OBJECT_PT_animation(ObjectButtonsPanel):
-    bl_label = "Animation"
+    bl_label = "Animation Hacks"
+    bl_default_closed = True
 
     def draw(self, context):
         layout = self.layout
@@ -293,16 +294,12 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.prop(ob, "slow_parent")
         row.active = (ob.parent is not None)
         col.prop(ob, "time_offset", text="Offset")
-
-        if wide_ui:
-            col = split.column()
-        col.label(text="Track:")
-        col.prop(ob, "track", text="")
+		
+        # XXX: these are still used for a few curve-related tracking features
+        col = split.column()
+        col.label(text="Tracking Axes:")
         col.prop(ob, "track_axis", text="Axis")
         col.prop(ob, "up_axis", text="Up Axis")
-        row = col.row()
-        row.prop(ob, "track_override_parent", text="Override Parent")
-        row.active = (ob.parent is not None)
 
 
 # import generic panels from other files
@@ -316,7 +313,7 @@ classes = [
     OBJECT_PT_groups,
     OBJECT_PT_display,
     OBJECT_PT_duplication,
-    OBJECT_PT_animation,
+    OBJECT_PT_animation, # XXX: panel of old hacks pending to be removed...
 
     OBJECT_PT_motion_paths,
     #OBJECT_PT_onion_skinning,

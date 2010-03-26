@@ -6426,6 +6426,25 @@ static void do_version_constraints_radians_degrees_250(ListBase *lb)
 	}
 }
 
+/* NOTE: this version patch is intended for versions < 2.52.2, but was initially introduced in 2.27 already */
+static void do_version_old_trackto_to_constraints(Object *ob)
+{
+	/* create new trackto constraint from the relationship */
+	if (ob->track)
+	{
+		bConstraint *con= add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_TRACKTO);
+		bTrackToConstraint *data = con->data;
+		
+		/* copy tracking settings from the object */
+		data->tar = ob->track;
+		data->reserved1 = ob->trackflag;
+		data->reserved2 = ob->upflag;
+	}
+	
+	/* clear old track setting */
+	ob->track = NULL;
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7248,36 +7267,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 
 			/* Change Ob->Track in real TrackTo constraint */
-
-			if (ob->track){
-				bConstraint *con;
-				bConstraintTypeInfo *cti;
-				bTrackToConstraint *data;
-				void *cdata;
-
-				list = &ob->constraints;
-				if (list)
-				{
-					con = MEM_callocN(sizeof(bConstraint), "constraint");
-					strcpy (con->name, "AutoTrack");
-					unique_constraint_name(con, list);
-					con->flag |= CONSTRAINT_EXPAND;
-					con->enforce=1.0F;
-					con->type = CONSTRAINT_TYPE_TRACKTO;
-					
-					cti= get_constraint_typeinfo(CONSTRAINT_TYPE_TRACKTO);
-					cdata= MEM_callocN(cti->size, cti->structName);
-					cti->new_data(cdata);
-					data = (bTrackToConstraint *)cdata;
-					
-					data->tar = ob->track;
-					data->reserved1 = ob->trackflag;
-					data->reserved2 = ob->upflag;
-					con->data= (void*) data;
-					BLI_addtail(list, con);
-				}
-				ob->track = 0;
-			}
+			do_version_old_trackto_to_constraints(ob);
 			
 			ob = ob->id.next;
 		}
@@ -10695,8 +10685,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				node= node->next;
 			}
 		}
-
 	}
+	
+	/* old-track -> constraints (this time we're really doing it!) */
+	if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 2)) {
+		Object *ob;
+		
+		for (ob = main->object.first; ob; ob = ob->id.next)
+			do_version_old_trackto_to_constraints(ob);
+	}
+	
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
 		

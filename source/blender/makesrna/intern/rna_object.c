@@ -1474,7 +1474,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_Object_boundbox_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Bound Box", "Objects bound box in object-space coords");
 
-	/* parent and track */
+	/* parent */
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_parent_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
@@ -1500,16 +1500,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Object_parent_bone_set");
 	RNA_def_property_ui_text(prop, "Parent Bone", "Name of parent bone in case of a bone parenting relation");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
-
-	prop= RNA_def_property(srna, "track", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
-	RNA_def_property_ui_text(prop, "Track", "Object being tracked to define the rotation (Old Track)");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
-
+	
+	/* Track and Up flags */
+	// XXX: these have been saved here for a bit longer (after old track was removed), since some other tools still refer to this
 	prop= RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
 	RNA_def_property_enum_items(prop, track_items);
-	RNA_def_property_ui_text(prop, "Track Axis", "Tracking axis pointing to the tracked object");
+	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points in 'forward' direction");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "up_axis", PROP_ENUM, PROP_NONE);
@@ -1517,7 +1514,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, up_items);
 	RNA_def_property_ui_text(prop, "Up Axis", "Axis that points in the upward direction");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
-
+	
 	/* proxy */
 	prop= RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Proxy", "Library object this proxy object controls");
@@ -1781,11 +1778,7 @@ static void rna_def_object(BlenderRNA *brna)
 	rna_def_motionpath_common(srna);
 	
 	/* duplicates */
-	prop= RNA_def_property(srna, "track_override_parent", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_POWERTRACK);
-	RNA_def_property_ui_text(prop, "Track Override Parent", "Override rotation from parenting");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
-
+		// XXX: evil old crap
 	prop= RNA_def_property(srna, "slow_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "partype", PARSLOW);
 	RNA_def_property_ui_text(prop, "Slow Parent", "Create a delay in the parent relationship");

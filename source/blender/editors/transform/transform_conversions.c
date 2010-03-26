@@ -4180,10 +4180,7 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 	if (t->mode == TFM_DUMMY)
 		skip_invert = 1;
 
-	if (skip_invert == 0 && (ob->track || constinv==0)) {
-		track= ob->track;
-		ob->track= NULL;
-		
+	if (skip_invert == 0 && constinv == 0) {
 		if (constinv == 0)
 			ob->transflag |= OB_NO_CONSTRAINTS; /* where_is_object_time checks this */
 		
@@ -4191,8 +4188,6 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 		
 		if (constinv == 0)
 			ob->transflag &= ~OB_NO_CONSTRAINTS;
-		
-		ob->track= track;
 	}
 	else
 		where_is_object(t->scene, ob);

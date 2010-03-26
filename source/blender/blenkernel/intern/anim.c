@@ -668,7 +668,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	if(level>MAX_DUPLI_RECUR) return;
 	
 	cfrao= scene->r.cfra;
-	if(ob->parent==NULL && ob->track==NULL && ob->ipo==NULL && ob->constraints.first==NULL) return;
+	if(ob->parent==NULL && ob->constraints.first==NULL) return;
 
 	if(ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
 	copyob= *ob;	/* store transform info */

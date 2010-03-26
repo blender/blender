@@ -361,11 +361,6 @@ void unlink_object(Scene *scene, Object *ob)
 			obt->recalc |= OB_RECALC;
 		}
 		
-		if(obt->track==ob) {
-			obt->track= NULL;
-			obt->recalc |= OB_RECALC_OB;
-		}
-		
 		modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
 		
 		if ELEM(obt->type, OB_CURVE, OB_FONT) {
@@ -2037,31 +2032,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 		object_to_mat4(ob, ob->obmat);
 	}
 
-	/* Handle tracking */
-	if(ob->track) {
-		/* Try to remove this tracking relationship if we can easily detect that
-		 * it is cyclic (i.e. direct tracking), and bound to cause us troubles.
-		 * For the other cases (i.e. a cyclic triangle, and higher orders), we can't
-		 * easily detect or know how to remove those relationships, safely, so just
-		 * let them be (with warnings).
-		 * Of course, this could also be a simple track that doesn't do anything bad either :)
-		 */
-		if (ob->track->track == ob) {
-			printf("Removed direct cyclic tracking between %s and %s\n", ob->id.name+2, ob->track->id.name+2);
-			ob->track->track = NULL;
-			ob->track = NULL;
-		}
-		else {
-			/* NOTE: disabled recursive recalc for tracking for now, since this causes crashes
-			 * when users create cyclic dependencies (stack overflow). Really, this step ought
-			 * not to be needed anymore with the depsgraph, though this may not be the case.
-			 * -- Aligorith, 2010 Mar 26
-			 */
-			//if( ctime != ob->track->ctime) where_is_object_time(scene, ob->track, ctime);
-			solve_tracking(ob, ob->track->obmat);
-		}
-	}
-
 	/* solve constraints */
 	if (ob->constraints.first && !(ob->flag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;
@@ -2157,33 +2127,6 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 	}
 
 }
-void solve_tracking (Object *ob, float targetmat[][4])
-{
-	float quat[4];
-	float vec[3];
-	float totmat[3][3];
-	float tmat[4][4];
-	
-	sub_v3_v3v3(vec, ob->obmat[3], targetmat[3]);
-	vec_to_quat( quat,vec, ob->trackflag, ob->upflag);
-	quat_to_mat3( totmat,quat);
-	
-	if(ob->parent && (ob->transflag & OB_POWERTRACK)) {
-		/* 'temporal' : clear parent info */
-		object_to_mat4(ob, tmat);
-		tmat[0][3]= ob->obmat[0][3];
-		tmat[1][3]= ob->obmat[1][3];
-		tmat[2][3]= ob->obmat[2][3];
-		tmat[3][0]= ob->obmat[3][0];
-		tmat[3][1]= ob->obmat[3][1];
-		tmat[3][2]= ob->obmat[3][2];
-		tmat[3][3]= ob->obmat[3][3];
-	}
-	else copy_m4_m4(tmat, ob->obmat);
-	
-	mul_m4_m3m4(ob->obmat, totmat, tmat);
-
-}
 
 void where_is_object(struct Scene *scene, Object *ob)
 {
@@ -2204,12 +2147,6 @@ for a lamp that is the child of another object */
 	int a;
 	
 	/* NO TIMEOFFS */
-	
-	/* no ipo! (because of dloc and realtime-ipos) */
-		// XXX old animation system
-	//ipo= ob->ipo;
-	//ob->ipo= NULL;
-
 	if(ob->parent) {
 		par= ob->parent;
 		
@@ -2231,9 +2168,6 @@ for a lamp that is the child of another object */
 		object_to_mat4(ob, ob->obmat);
 	}
 	
-	if(ob->track) 
-		solve_tracking(ob, ob->track->obmat);
-
 	/* solve constraints */
 	if (ob->constraints.first) {
 		bConstraintOb *cob;
@@ -2242,10 +2176,6 @@ for a lamp that is the child of another object */
 		solve_constraints(&ob->constraints, cob, (float)scene->r.cfra);
 		constraints_clear_evalob(cob);
 	}
-	
-	/*  WATCH IT!!! */
-		// XXX old animation system
-	//ob->ipo= ipo;
 }
 
 /* for calculation of the inverse parent transform, only used for editor */
@@ -2257,7 +2187,6 @@ void what_does_parent(Scene *scene, Object *ob, Object *workob)
 	unit_m4(workob->parentinv);
 	unit_m4(workob->constinv);
 	workob->parent= ob->parent;
-	workob->track= ob->track;
 
 	workob->trackflag= ob->trackflag;
 	workob->upflag= ob->upflag;

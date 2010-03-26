@@ -405,7 +405,7 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 
 static EnumPropertyItem prop_clear_parent_types[] = {
 	{0, "CLEAR", 0, "Clear Parent", ""},
-	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation (Clear Track)", ""},
+	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation", ""},
 	{2, "CLEAR_INVERSE", 0, "Clear Parent Inverse", ""},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -422,7 +422,6 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 		}			
 		else if(type == 1) {
 			ob->parent= NULL;
-			ob->track= NULL;
 			object_apply_mat4(ob, ob->obmat);
 		}
 		else if(type == 2)
@@ -916,7 +915,6 @@ static EnumPropertyItem prop_make_track_types[] = {
 	{1, "DAMPTRACK", 0, "Damped Track Constraint", ""},
 	{2, "TRACKTO", 0, "Track To Constraint", ""},
 	{3, "LOCKTRACK", 0, "Lock Track Constraint", ""},
-	{4, "OLDTRACK", 0, "Old Track", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -984,15 +982,6 @@ static int track_set_exec(bContext *C, wmOperator *op)
 					data->trackflag = TRACK_nZ;
 					data->lockflag = LOCK_Y;
 				}
-			}
-		}
-		CTX_DATA_END;
-	}
-	else {
-		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-			if(ob!=obact) {
-				ob->track= obact;
-				ob->recalc |= OB_RECALC;
 			}
 		}
 		CTX_DATA_END;
@@ -1353,7 +1342,6 @@ void single_object_users(Scene *scene, View3D *v3d, int flag)
 			modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
 			
 			ID_NEW(ob->parent);
-			ID_NEW(ob->track);
 		}
 	}
 
@@ -1732,7 +1720,6 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(ob->id.lib==NULL) {
 			ID_NEW(ob->parent);
-			ID_NEW(ob->track);
 		}
 	}
 	CTX_DATA_END;

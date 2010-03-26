@@ -1867,7 +1867,7 @@ static void samevolume_new_data (void *cdata)
 	data->volume = 1.0f;
 }
 
-static void samevolume_evaluate (bConstraint *con, bConstraintOb *cob)
+static void samevolume_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
 	bSameVolumeConstraint *data= con->data;
 
@@ -1896,7 +1896,6 @@ static void samevolume_evaluate (bConstraint *con, bConstraintOb *cob)
 			}
 			break;
 	}
-
 }
 
 static bConstraintTypeInfo CTI_SAMEVOL = {
