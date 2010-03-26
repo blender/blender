@@ -1214,7 +1214,7 @@ float *make_orco_curve(Scene *scene, Object *ob)
 
 /* ***************** BEVEL ****************** */
 
-void makebevelcurve(Scene *scene, Object *ob, ListBase *disp)
+void makebevelcurve(Scene *scene, Object *ob, ListBase *disp, int forRender)
 {
 	DispList *dl, *dlnew;
 	Curve *bevcu, *cu;
@@ -1231,14 +1231,21 @@ void makebevelcurve(Scene *scene, Object *ob, ListBase *disp)
 		if(cu->bevobj->type==OB_CURVE) {
 			bevcu= cu->bevobj->data;
 			if(bevcu->ext1==0.0 && bevcu->ext2==0.0) {
+				ListBase bevdisp= {NULL, NULL};
 				facx= cu->bevobj->size[0];
 				facy= cu->bevobj->size[1];
 
-				dl= bevcu->disp.first;
-				if(dl==0) {
-					makeDispListCurveTypes(scene, cu->bevobj, 0);
+				if (forRender) {
+					makeDispListCurveTypes_forRender(scene, cu->bevobj, &bevdisp, NULL, 0);
+					dl= bevdisp.first;
+				} else {
 					dl= bevcu->disp.first;
+					if(dl==0) {
+						makeDispListCurveTypes(scene, cu->bevobj, 0);
+						dl= bevcu->disp.first;
+					}
 				}
+
 				while(dl) {
 					if ELEM(dl->type, DL_POLY, DL_SEGM) {
 						dlnew= MEM_mallocN(sizeof(DispList), "makebevelcurve1");					
@@ -1260,6 +1267,8 @@ void makebevelcurve(Scene *scene, Object *ob, ListBase *disp)
 					}
 					dl= dl->next;
 				}
+
+				freedisplist(&bevdisp);
 			}
 		}
 	}

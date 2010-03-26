@@ -1299,7 +1299,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 		md = preTesselatePoint->next;
 	}
 
-	if (*derivedFinal) {
+	if (derivedFinal && *derivedFinal) {
 		(*derivedFinal)->release (*derivedFinal);
 	}
 
@@ -1354,6 +1354,13 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 				}
 			}
 		} else {
+			if (!derivedFinal) {
+				/* makeDisplistCurveTypes could be used for beveling, where derived mesh */
+				/* is totally unnecessary, so we could stop modifiers applying */
+				/* when we found constructive modifier but derived mesh is unwanted result */
+				break;
+			}
+
 			if (dm) {
 				if (dmDeformedVerts) {
 					DerivedMesh *tdm = CDDM_copy(dm);
@@ -1405,7 +1412,9 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 		MEM_freeN(dmDeformedVerts);
 	}
 
-	(*derivedFinal) = dm;
+	if (derivedFinal) {
+		(*derivedFinal) = dm;
+	}
 
 	if (deformedVerts) {
 		curve_applyVertexCos(ob->data, nurb, originalVerts);
@@ -1659,7 +1668,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		makeBevelList(ob);
 
 		/* If curve has no bevel will return nothing */
-		makebevelcurve(scene, ob, &dlbev);
+		makebevelcurve(scene, ob, &dlbev, forRender);
 
 		/* no bevel or extrude, and no width correction? */
 		if (!dlbev.first && cu->width==1.0f) {
