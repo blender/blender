@@ -2039,8 +2039,27 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 
 	/* Handle tracking */
 	if(ob->track) {
-		if( ctime != ob->track->ctime) where_is_object_time(scene, ob->track, ctime);
-		solve_tracking (ob, ob->track->obmat);
+		/* Try to remove this tracking relationship if we can easily detect that
+		 * it is cyclic (i.e. direct tracking), and bound to cause us troubles.
+		 * For the other cases (i.e. a cyclic triangle, and higher orders), we can't
+		 * easily detect or know how to remove those relationships, safely, so just
+		 * let them be (with warnings).
+		 * Of course, this could also be a simple track that doesn't do anything bad either :)
+		 */
+		if (ob->track->track == ob) {
+			printf("Removed direct cyclic tracking between %s and %s\n", ob->id.name+2, ob->track->id.name+2);
+			ob->track->track = NULL;
+			ob->track = NULL;
+		}
+		else {
+			/* NOTE: disabled recursive recalc for tracking for now, since this causes crashes
+			 * when users create cyclic dependencies (stack overflow). Really, this step ought
+			 * not to be needed anymore with the depsgraph, though this may not be the case.
+			 * -- Aligorith, 2010 Mar 26
+			 */
+			//if( ctime != ob->track->ctime) where_is_object_time(scene, ob->track, ctime);
+			solve_tracking(ob, ob->track->obmat);
+		}
 	}
 
 	/* solve constraints */
