@@ -291,6 +291,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 						ED_area_tag_redraw(sa);
 					else
 						buttons_area_redraw(sa, BCONTEXT_MODIFIER);
+						buttons_area_redraw(sa, BCONTEXT_PHYSICS);
 					break;
 				case ND_CONSTRAINT:
 					buttons_area_redraw(sa, BCONTEXT_CONSTRAINT);
@@ -300,6 +301,9 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					buttons_area_redraw(sa, BCONTEXT_PARTICLE);
 					break;
 				case ND_DRAW:
+					buttons_area_redraw(sa, BCONTEXT_OBJECT);
+					buttons_area_redraw(sa, BCONTEXT_DATA);
+					buttons_area_redraw(sa, BCONTEXT_PHYSICS);
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
 					/* currently works by redraws... if preview is set, it (re)starts job */
