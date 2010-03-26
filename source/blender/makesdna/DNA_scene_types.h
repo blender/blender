@@ -900,7 +900,7 @@ typedef struct Scene {
 #define R_NO_TEX			0x2000
 #define R_STAMP_INFO		0x4000	/* deprecated */
 #define R_FULL_SAMPLE		0x8000
-#define R_COMP_RERENDER		0x10000
+#define R_DEPRECATED		0x10000
 #define R_RECURS_PROTECTION	0x20000
 #define R_TEXNODE_PREVIEW	0x40000
 
