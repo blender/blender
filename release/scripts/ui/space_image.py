@@ -342,7 +342,7 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
         # ima = sima.image
         iuser = sima.image_user
 
-        layout.template_image(sima, "image", iuser, compact=True)
+        layout.template_image(sima, "image", iuser)
 
 
 class IMAGE_PT_game_properties(bpy.types.Panel):

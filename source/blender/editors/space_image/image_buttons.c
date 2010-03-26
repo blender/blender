@@ -883,7 +883,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 		}
 		else {
 			row= uiLayoutRow(layout, 0);
-			uiItemR(row, &imaptr, "source", (compact)? 0: UI_ITEM_R_EXPAND, NULL, 0);
+			uiItemR(row, &imaptr, "source", 0, NULL, 0);
 
 			if(ima->source != IMA_SRC_GENERATED) {
 				row= uiLayoutRow(layout, 1);
