@@ -86,7 +86,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 
 /* XXX */
 static void waitcursor(int val) {}
-static int pupmenu() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}
 
 /* XXX */
@@ -5961,17 +5960,15 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 	PathNode *currpn;
 	PathNode *Q;
 	int v, *previous, pathvert, pnindex; /*pnindex redundant?*/
-	 int unbalanced, totnodes;
-	short physical;
+	int unbalanced, totnodes;
 	float *cost;
+	int type= RNA_enum_get(op->ptr, "type");
 	Heap *heap; /*binary heap for sorting pointers to PathNodes based upon a 'cost'*/
 
 	s = t = NULL;
 
 	ese = ((EditSelection*)em->selected.last);
-	if(ese && ese->type == EDITVERT && ese->prev && ese->prev->type == EDITVERT){
-		physical= pupmenu("Distance Method? %t|Edge Length%x1|Topological%x0");
-
+	if(ese && ese->type == EDITVERT && ese->prev && ese->prev->type == EDITVERT) {
 		t = (EditVert*)ese->data;
 		s = (EditVert*)ese->prev->data;
 
@@ -6024,7 +6021,7 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 
 						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
 						newpe->v = ((PathNode*)eed->v2->tmp.p)->u;
-						if(physical){
+						if (type == PATH_SELECT_EDGE_LENGTH) {
 								newpe->w = len_v3v3(eed->v1->co, eed->v2->co);
 						}
 						else newpe->w = 1;
@@ -6036,7 +6033,7 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 						currpn = ((PathNode*)eed->v2->tmp.p);
 						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
 						newpe->v = ((PathNode*)eed->v1->tmp.p)->u;
-						if(physical){
+						if (type == PATH_SELECT_EDGE_LENGTH) {
 								newpe->w = len_v3v3(eed->v1->co, eed->v2->co);
 						}
 						else newpe->w = 1;
@@ -6124,7 +6121,6 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= select_vertex_path_exec;
-	ot->invoke= WM_menu_invoke;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
