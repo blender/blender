@@ -159,14 +159,18 @@ static int layers_exec(bContext *C, wmOperator *op)
 	
 	if(nr < 0)
 		return OPERATOR_CANCELLED;
-	
-	
+
 	if(nr == 0) {
 		/* all layers */
-		v3d->lay |= (1<<20)-1;
-
 		if(!v3d->layact)
 			v3d->layact= 1;
+
+		if (toggle && v3d->lay == ((1<<20)-1)) {
+			/* return to active layer only */
+			v3d->lay = v3d->layact;
+		} else {
+			v3d->lay |= (1<<20)-1;
+		}		
 	}
 	else {
 		int bit;
