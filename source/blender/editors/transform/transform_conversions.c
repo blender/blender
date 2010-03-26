@@ -4158,7 +4158,6 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *ob)
 {
 	Scene *scene = t->scene;
-	Object *track;
 	float obmtx[3][3];
 	short constinv;
 	short skip_invert = 0;

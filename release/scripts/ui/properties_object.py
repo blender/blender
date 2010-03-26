@@ -296,7 +296,8 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         col.prop(ob, "time_offset", text="Offset")
 		
         # XXX: these are still used for a few curve-related tracking features
-        col = split.column()
+        if wide_ui:
+            col = split.column()
         col.label(text="Tracking Axes:")
         col.prop(ob, "track_axis", text="Axis")
         col.prop(ob, "up_axis", text="Up Axis")
