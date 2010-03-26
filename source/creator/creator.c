@@ -1062,7 +1062,7 @@ int main(int argc, char **argv)
 	}
 
 	else {
-		if((G.fileflags & G_FILE_AUTOPLAY) && (G.fileflags & G_SCRIPT_AUTOEXEC))
+		if((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC))
 			WM_init_game(C);
 
 		else if(!G.file_loaded)
