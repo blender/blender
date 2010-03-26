@@ -2600,7 +2600,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 		float xmouse, ymouse;
 		
 		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
-		t->frame_side= (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
+		t->frame_side= (xmouse > CFRA) ? 'R' : 'L';
 	}
 	else {
 		/* normal transform - both sides of current frame are considered */
@@ -2691,7 +2691,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 							tdn->handle= -1;
 							
 							/* now, link the transform data up to this data */
-							if (t->mode == TFM_TRANSLATION) {
+							if (ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_EXTEND)) {
 								td->loc= tdn->h1;
 								VECCOPY(td->iloc, tdn->h1);
 								
@@ -2722,7 +2722,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 							tdn->handle= (tdn->handle) ? 2 : 1;
 							
 							/* now, link the transform data up to this data */
-							if (t->mode == TFM_TRANSLATION) {
+							if (ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_EXTEND)) {
 								td->loc= tdn->h2;
 								VECCOPY(td->iloc, tdn->h2);
 								
