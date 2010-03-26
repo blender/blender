@@ -161,7 +161,9 @@ static void gp_get_3d_reference (tGPsdata *p, float *vec)
 	float *fp= give_cursor(p->scene, v3d);
 	
 	/* the reference point used depends on the owner... */
-	if (p->ownerPtr.type == &RNA_Object) {
+#if 0 // XXX: disabled for now, since we can't draw relative ot the owner yet
+	if (p->ownerPtr.type == &RNA_Object) 
+	{
 		Object *ob= (Object *)p->ownerPtr.data;
 		
 		/* active Object 
@@ -169,7 +171,9 @@ static void gp_get_3d_reference (tGPsdata *p, float *vec)
 		 */
 		sub_v3_v3v3(vec, fp, ob->loc);
 	}
-	else {
+	else
+#endif	
+	{
 		/* use 3D-cursor */
 		copy_v3_v3(vec, fp);
 	}
