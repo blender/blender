@@ -2459,7 +2459,10 @@ void object_tfm_restore(Object *ob, void *obtfm_pt)
 void object_handle_update(Scene *scene, Object *ob)
 {
 	if(ob->recalc & OB_RECALC) {
-		
+		/* speed optimization for animation lookups */
+		if(ob->pose)
+			make_pose_channels_hash(ob->pose);
+
 		/* XXX new animsys warning: depsgraph tag OB_RECALC_DATA should not skip drivers, 
 		   which is only in where_is_object now */
 		if(ob->recalc & OB_RECALC) {

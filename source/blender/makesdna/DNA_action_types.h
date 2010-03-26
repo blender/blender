@@ -40,6 +40,7 @@
 struct SpaceLink;
 struct Object;
 struct Group;
+struct GHash;
 
 /* ************************************************ */
 /* Visualisation */
@@ -326,6 +327,7 @@ typedef enum eRotationModes {
  */
 typedef struct bPose {
 	ListBase chanbase; 			/* list of pose channels, PoseBones in RNA */
+	struct GHash *chanhash;		/* ghash for quicker string lookups */
 	
 	short flag, proxy_layer;	/* proxy layer: copy from armature, gets synced */
 	

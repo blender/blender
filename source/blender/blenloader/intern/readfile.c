@@ -3652,6 +3652,8 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 	link_list(fd, &pose->chanbase);
 	link_list(fd, &pose->agroups);
 
+	pose->chanhash= NULL;
+
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
 		pchan->bone= NULL;
 		pchan->parent= newdataadr(fd, pchan->parent);

@@ -56,8 +56,9 @@
 
 #include "BIK_api.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
+#include "BLI_math.h"
 
 #include "RNA_access.h"
 
@@ -370,6 +371,9 @@ bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
 	if (ELEM(NULL, pose, name) || (name[0] == 0))
 		return NULL;
 	
+	if(pose->chanhash)
+		return BLI_ghash_lookup(pose->chanhash, name);
+	
 	return BLI_findstring(&((bPose *)pose)->chanbase, name, offsetof(bPoseChannel, name));
 }
 
@@ -405,6 +409,7 @@ bPoseChannel *verify_pose_channel(bPose *pose, const char *name)
 	chan->protectflag = OB_LOCK_ROT4D;	/* lock by components by default */
 	
 	BLI_addtail(&pose->chanbase, chan);
+	free_pose_channels_hash(pose);
 	
 	return chan;
 }
@@ -519,6 +524,26 @@ void init_pose_ikparam(bPose *pose)
 	}
 }
 
+void make_pose_channels_hash(bPose *pose) 
+{
+	if(!pose->chanhash) {
+		bPoseChannel *pchan;
+
+		pose->chanhash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+		for(pchan=pose->chanbase.first; pchan; pchan=pchan->next)
+			BLI_ghash_insert(pose->chanhash, pchan->name, pchan);
+	}
+}
+
+void free_pose_channels_hash(bPose *pose) 
+{
+	if(pose->chanhash) {
+		BLI_ghash_free(pose->chanhash, NULL, NULL);
+		pose->chanhash= NULL;
+	}
+}
+
+
 void free_pose_channel(bPoseChannel *pchan)
 {
 	// XXX this case here will need to be removed when the new motionpaths are ready
@@ -550,6 +575,8 @@ void free_pose_channels(bPose *pose)
 		
 		BLI_freelistN(&pose->chanbase);
 	}
+
+	free_pose_channels_hash(pose);
 }
 
 void free_pose(bPose *pose)

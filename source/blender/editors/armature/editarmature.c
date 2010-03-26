@@ -892,6 +892,8 @@ int join_armature_exec(bContext *C, wmOperator *op)
 				
 				BLI_remlink(&opose->chanbase, pchan);
 				BLI_addtail(&pose->chanbase, pchan);
+				free_pose_channels_hash(opose);
+				free_pose_channels_hash(pose);
 			}
 			
 			ED_base_object_free_and_unlink(scene, base);
@@ -1095,6 +1097,7 @@ static void separate_armature_bones (Scene *scene, Object *ob, short sel)
 			
 			/* free any of the extra-data this pchan might have */
 			free_pose_channel(pchan);
+			free_pose_channels_hash(ob->pose);
 			
 			/* get rid of unneeded bone */
 			bone_free(arm, curbone);
@@ -1802,6 +1805,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 			
 			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
 				free_pose_channel(pchan);
+				free_pose_channels_hash(obedit->pose);
 				BLI_freelinkN (&obedit->pose->chanbase, pchan);
 			}
 			else {
