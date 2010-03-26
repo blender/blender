@@ -45,7 +45,7 @@ struct Scene;
 struct Main;
 	
 #define BLENDER_VERSION			252
-#define BLENDER_SUBVERSION		1
+#define BLENDER_SUBVERSION		2
 
 #define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0

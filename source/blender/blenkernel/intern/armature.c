@@ -1675,6 +1675,7 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 		next= pchan->next;
 		if(pchan->bone==NULL) {
 			free_pose_channel(pchan);
+			free_pose_channels_hash(pose);
 			BLI_freelinkN(&pose->chanbase, pchan);
 		}
 	}

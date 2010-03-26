@@ -76,7 +76,7 @@ void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float
 void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
 float *make_orco_curve(struct Scene *scene, struct Object *ob);
 float *make_orco_surf( struct Object *ob);
-void makebevelcurve(struct Scene *scene, struct Object *ob,  struct ListBase *disp);
+void makebevelcurve(struct Scene *scene, struct Object *ob,  struct ListBase *disp, int forRender);
 
 void makeBevelList( struct Object *ob);
 

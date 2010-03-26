@@ -1687,7 +1687,7 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 		return 0;
 
 	if(cache->flag & PTCACHE_DISK_CACHE) {
-		int ofra, efra = cache->endframe;
+		int ofra=0, efra = cache->endframe;
 
 		if(cfra==0)
 			add = 1;
@@ -2872,3 +2872,4 @@ void BKE_ptcache_invalidate(PointCache *cache)
 	cache->simframe = 0;
 	cache->last_exact = 0;
 }
+

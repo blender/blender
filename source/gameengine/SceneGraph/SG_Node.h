@@ -77,6 +77,13 @@ public:
 		SG_Node* child
 	);
 
+	/**
+	 * Return true if the node is the ancessor of child
+	 */
+		bool
+	IsAncessor(
+		const SG_Node* child
+	) const;
 	/** 
 	 * Get the current list of children. Do not use this interface for
 	 * adding or removing children please use the methods of this class for

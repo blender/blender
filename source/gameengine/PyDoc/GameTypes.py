@@ -5152,6 +5152,10 @@ class SCA_PropertySensor(SCA_ISensor):
 	@type propName: string
 	@ivar value: the value with which the sensor compares to the value of the property.
 	@type value: string
+	@ivar min: the minimum value of the range used to evaluate the property when in interval mode.
+	@type min: string
+	@ivar max: the maximum value of the range used to evaluate the property when in interval mode.
+	@type max: string
 	"""
 #{ Deprecated
 	def getType():

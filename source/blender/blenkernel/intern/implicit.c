@@ -1422,7 +1422,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 	/* 10x10x10 grid gives nice initial results */
 	HairGridVert grid[10][10][10];
 	HairGridVert colg[10][10][10];
-	ListBase *colliders = get_collider_cache(clmd->scene, NULL);
+	ListBase *colliders = get_collider_cache(clmd->scene, NULL, NULL);
 	ColliderCache *col = NULL;
 	float gmin[3], gmax[3], density;
 	/* 2.0f is an experimental value that seems to give good results */

@@ -3229,7 +3229,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	psys_update_effectors(sim);
 
 	if(part->type != PART_HAIR)
-		sim->colliders = get_collider_cache(sim->scene, NULL);
+		sim->colliders = get_collider_cache(sim->scene, NULL, NULL);
 
 	if(part->phystype==PART_PHYS_BOIDS){
 		ParticleTarget *pt = psys->targets.first;

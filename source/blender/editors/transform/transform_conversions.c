@@ -2600,7 +2600,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 		float xmouse, ymouse;
 		
 		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
-		t->frame_side= (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
+		t->frame_side= (xmouse > CFRA) ? 'R' : 'L';
 	}
 	else {
 		/* normal transform - both sides of current frame are considered */
@@ -2691,7 +2691,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 							tdn->handle= -1;
 							
 							/* now, link the transform data up to this data */
-							if (t->mode == TFM_TRANSLATION) {
+							if (ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_EXTEND)) {
 								td->loc= tdn->h1;
 								VECCOPY(td->iloc, tdn->h1);
 								
@@ -2722,7 +2722,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 							tdn->handle= (tdn->handle) ? 2 : 1;
 							
 							/* now, link the transform data up to this data */
-							if (t->mode == TFM_TRANSLATION) {
+							if (ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_EXTEND)) {
 								td->loc= tdn->h2;
 								VECCOPY(td->iloc, tdn->h2);
 								
@@ -4158,7 +4158,6 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *ob)
 {
 	Scene *scene = t->scene;
-	Object *track;
 	float obmtx[3][3];
 	short constinv;
 	short skip_invert = 0;
@@ -4180,10 +4179,7 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 	if (t->mode == TFM_DUMMY)
 		skip_invert = 1;
 
-	if (skip_invert == 0 && (ob->track || constinv==0)) {
-		track= ob->track;
-		ob->track= NULL;
-		
+	if (skip_invert == 0 && constinv == 0) {
 		if (constinv == 0)
 			ob->transflag |= OB_NO_CONSTRAINTS; /* where_is_object_time checks this */
 		
@@ -4191,8 +4187,6 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 		
 		if (constinv == 0)
 			ob->transflag &= ~OB_NO_CONSTRAINTS;
-		
-		ob->track= track;
 	}
 	else
 		where_is_object(t->scene, ob);

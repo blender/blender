@@ -973,10 +973,6 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 {
 	Material *ma, *mao;
 	ID *id;
-#if 0 // XXX old animation system
-	Ipo *ipo;
-	bActionStrip *strip;
-#endif // XXX old animation system
 	int a;
 	
 	/* XXX check object pointers */
@@ -990,17 +986,8 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 		}
 		modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
 		ID_NEW(ob->parent);
-		ID_NEW(ob->track);
 		ID_NEW(ob->proxy);
 		ID_NEW(ob->proxy_group);
-		
-#if 0 // XXX old animation system
-		for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-			bActionModifier *amod;
-			for(amod= strip->modifiers.first; amod; amod= amod->next)
-				ID_NEW(amod->ob);
-		}
-#endif // XXX old animation system
 	}
 	CTX_DATA_END;
 	

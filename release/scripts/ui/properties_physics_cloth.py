@@ -179,6 +179,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
         sub.prop(cloth, "self_collision_quality", slider=True, text="Quality")
         sub.prop(cloth, "self_min_distance", slider=True, text="Distance")
 
+        layout.prop(cloth, "group")
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
     bl_label = "Cloth Stiffness Scaling"

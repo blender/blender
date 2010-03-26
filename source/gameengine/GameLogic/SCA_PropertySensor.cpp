@@ -316,7 +316,33 @@ CValue* SCA_PropertySensor::FindIdentifier(const STR_String& identifiername)
 
 int SCA_PropertySensor::validValueForProperty(void *self, const PyAttributeDef*)
 {
+	/*  If someone actually do type checking please make sure the 'max' and 'min'
+		are checked as well (currently they are calling the PrecalculateRangeExpression
+		function directly	*/
+
 	/*  There is no type checking at this moment, unfortunately...           */
+	return 0;
+}
+
+int SCA_PropertySensor::validValueForIntervalProperty(void *self, const PyAttributeDef*)
+{
+	SCA_PropertySensor*	sensor = reinterpret_cast<SCA_PropertySensor*>(self);
+
+	if (sensor->m_checktype==KX_PROPSENSOR_INTERVAL)
+	{
+		sensor->PrecalculateRangeExpression();
+	}
+	return 0;
+}
+
+int SCA_PropertySensor::modeChange(void *self, const PyAttributeDef* attrdef)
+{
+	SCA_PropertySensor*	sensor = reinterpret_cast<SCA_PropertySensor*>(self);
+
+	if (sensor->m_checktype==KX_PROPSENSOR_INTERVAL)
+	{
+		sensor->PrecalculateRangeExpression();
+	}
 	return 0;
 }
 
@@ -348,9 +374,11 @@ PyMethodDef SCA_PropertySensor::Methods[] = {
 };
 
 PyAttributeDef SCA_PropertySensor::Attributes[] = {
-	KX_PYATTRIBUTE_INT_RW("mode",KX_PROPSENSOR_NODEF,KX_PROPSENSOR_MAX-1,false,SCA_PropertySensor,m_checktype),
+	KX_PYATTRIBUTE_INT_RW_CHECK("mode",KX_PROPSENSOR_NODEF,KX_PROPSENSOR_MAX-1,false,SCA_PropertySensor,m_checktype,modeChange),
 	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,100,false,SCA_PropertySensor,m_checkpropname,CheckProperty),
 	KX_PYATTRIBUTE_STRING_RW_CHECK("value",0,100,false,SCA_PropertySensor,m_checkpropval,validValueForProperty),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("min",0,100,false,SCA_PropertySensor,m_checkpropval,validValueForIntervalProperty),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("max",0,100,false,SCA_PropertySensor,m_checkpropmaxval,validValueForIntervalProperty),
 	{ NULL }	//Sentinel
 };
 

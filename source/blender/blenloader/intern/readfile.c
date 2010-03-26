@@ -3065,6 +3065,7 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 				 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
 				psys->clmd->point_cache= psys->pointcache;
 				psys->clmd->ptcaches.first= psys->clmd->ptcaches.last= NULL;
+				psys->clmd->coll_parms->group= newlibadr(fd, id->lib, psys->clmd->coll_parms->group);
 			}
 		}
 		else {
@@ -3621,6 +3622,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				if(clmd) 
 				{
 					clmd->sim_parms->effector_weights->group = newlibadr(fd, ob->id.lib, clmd->sim_parms->effector_weights->group);
+					clmd->coll_parms->group= newlibadr(fd, ob->id.lib, clmd->coll_parms->group);
 				}
 			}
 			
@@ -3651,6 +3653,8 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 
 	link_list(fd, &pose->chanbase);
 	link_list(fd, &pose->agroups);
+
+	pose->chanhash= NULL;
 
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
 		pchan->bone= NULL;
@@ -6431,6 +6435,25 @@ static void do_version_constraints_radians_degrees_250(ListBase *lb)
 	}
 }
 
+/* NOTE: this version patch is intended for versions < 2.52.2, but was initially introduced in 2.27 already */
+static void do_version_old_trackto_to_constraints(Object *ob)
+{
+	/* create new trackto constraint from the relationship */
+	if (ob->track)
+	{
+		bConstraint *con= add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_TRACKTO);
+		bTrackToConstraint *data = con->data;
+		
+		/* copy tracking settings from the object */
+		data->tar = ob->track;
+		data->reserved1 = ob->trackflag;
+		data->reserved2 = ob->upflag;
+	}
+	
+	/* clear old track setting */
+	ob->track = NULL;
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7253,36 +7276,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 
 			/* Change Ob->Track in real TrackTo constraint */
-
-			if (ob->track){
-				bConstraint *con;
-				bConstraintTypeInfo *cti;
-				bTrackToConstraint *data;
-				void *cdata;
-
-				list = &ob->constraints;
-				if (list)
-				{
-					con = MEM_callocN(sizeof(bConstraint), "constraint");
-					strcpy (con->name, "AutoTrack");
-					unique_constraint_name(con, list);
-					con->flag |= CONSTRAINT_EXPAND;
-					con->enforce=1.0F;
-					con->type = CONSTRAINT_TYPE_TRACKTO;
-					
-					cti= get_constraint_typeinfo(CONSTRAINT_TYPE_TRACKTO);
-					cdata= MEM_callocN(cti->size, cti->structName);
-					cti->new_data(cdata);
-					data = (bTrackToConstraint *)cdata;
-					
-					data->tar = ob->track;
-					data->reserved1 = ob->trackflag;
-					data->reserved2 = ob->upflag;
-					con->data= (void*) data;
-					BLI_addtail(list, con);
-				}
-				ob->track = 0;
-			}
+			do_version_old_trackto_to_constraints(ob);
 			
 			ob = ob->id.next;
 		}
@@ -9486,7 +9480,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				/* check if top parent has compound shape set and if yes, set this object
 				   to compound shaper as well (was the behaviour before, now it's optional) */
 				Object *parent= newlibadr(fd, lib, ob->parent);
-				while (parent && parent->parent != NULL) {
+				while (parent && parent != ob &&  parent->parent != NULL) {
 					parent = newlibadr(fd, lib, parent->parent);
 				}
 				if(parent) {
@@ -9753,7 +9747,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				void *olddata = ob->data;
 				ob->data = me;
 
-				if(me && me->id.lib==NULL && me->mr) /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
+				if(me && me->id.lib==NULL && me->mr && me->mr->level_count > 1) /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
 					multires_load_old(ob, me);
 
 				ob->data = olddata;
@@ -10700,8 +10694,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				node= node->next;
 			}
 		}
-
 	}
+	
+	/* old-track -> constraints (this time we're really doing it!) */
+	if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 2)) {
+		Object *ob;
+		
+		for (ob = main->object.first; ob; ob = ob->id.next)
+			do_version_old_trackto_to_constraints(ob);
+	}
+	
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
 		

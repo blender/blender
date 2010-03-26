@@ -305,7 +305,6 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 
 		obedit->mode &= ~OB_MODE_EDIT;
-		ED_object_toggle_modes(C, obedit->restore_mode);
 	}
 }
 
@@ -348,8 +347,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 	ob->restore_mode = ob->mode;
 	ED_object_toggle_modes(C, ob->mode);
-
-	ob->mode |= OB_MODE_EDIT;
+	ob->mode= OB_MODE_EDIT;
 	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;

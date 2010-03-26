@@ -261,6 +261,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 	
 	/* we didn't succeed, now try to read Blender file */
 	if (retval== 0) {
+		int G_f= G.f;
 		ListBase wmbase;
 
 		/* put aside screens to match with persistant windows later */
@@ -269,6 +270,11 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		
 		retval= BKE_read_file(C, name, NULL, reports);
 		G.save_over = 1;
+
+		/* this flag is initialized by the operator but overwritten on read.
+		 * need to re-enable it here else drivers + registered scripts wont work. */
+		if(G_f & G_SCRIPT_AUTOEXEC) G.f |= G_SCRIPT_AUTOEXEC;
+		else						G.f &= ~G_SCRIPT_AUTOEXEC;
 
 		/* match the read WM with current WM */
 		wm_window_match_do(C, &wmbase);

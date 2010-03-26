@@ -468,11 +468,6 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		
 		addtoroot = 0;
 	}
-	if (ob->track) {
-		node2 = dag_get_node(dag,ob->track);
-		dag_add_relation(dag,node2,node,DAG_RL_OB_OB, "Track To");
-		addtoroot = 0;
-	}
 	if (ob->proxy) {
 		node2 = dag_get_node(dag, ob->proxy);
 		dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA|DAG_RL_OB_OB, "Proxy");

@@ -129,6 +129,13 @@ void free_pose_channel(struct bPoseChannel *pchan);
  */
 void free_pose_channels(struct bPose *pose);
 
+/**
+ * Removes the hash for quick lookup of channels, must
+ * be done when adding/removing channels.
+ */
+void make_pose_channels_hash(struct bPose *pose);
+void free_pose_channels_hash(struct bPose *pose);
+
 /** 
  * Removes and deallocates all data from a pose, and also frees the pose.
  */

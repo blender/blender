@@ -2211,12 +2211,23 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	}
 	else {
 		char *col= (char *)(bs->rect + bs->rectx*y + x);
-		col[0]= FTOCHAR(shr.combined[0]);
-		col[1]= FTOCHAR(shr.combined[1]);
-		col[2]= FTOCHAR(shr.combined[2]);
+
+		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE) &&	(R.r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
+			float srgb[3];
+			srgb[0]= linearrgb_to_srgb(shr.combined[0]);
+			srgb[1]= linearrgb_to_srgb(shr.combined[1]);
+			srgb[2]= linearrgb_to_srgb(shr.combined[2]);
+			
+			col[0]= FTOCHAR(srgb[0]);
+			col[1]= FTOCHAR(srgb[1]);
+			col[2]= FTOCHAR(srgb[2]);
+		} else {
+			col[0]= FTOCHAR(shr.combined[0]);
+			col[1]= FTOCHAR(shr.combined[1]);
+			col[2]= FTOCHAR(shr.combined[2]);
+		}
 		
-		
-		if (bs->type==RE_BAKE_ALL || bs->type==RE_BAKE_TEXTURE) {
+		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE)) {
 			col[3]= FTOCHAR(shr.alpha);
 		} else {
 			col[3]= 255;
@@ -2643,6 +2654,8 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		ima->id.flag |= LIB_DOIT;
 		if (ibuf)
 			ibuf->userdata = NULL; /* use for masking if needed */
+		if(ibuf->rect_float)
+			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	}
 	
 	BLI_init_threads(&threads, do_bake_thread, re->r.threads);
