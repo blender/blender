@@ -507,7 +507,8 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "steps")
         col.prop(md, "render_steps")
         
-        col = split.column()
+        if wide_ui:
+            col = split.column()
         row = col.row()
         row.active = (md.object is None or md.use_object_screw_offset == False)
         row.prop(md, "screw_offset")
