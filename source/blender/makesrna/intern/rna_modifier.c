@@ -399,7 +399,7 @@ static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRN
 	Object *ob= value.data;
 
 	if(!self || ob != self)
-		if(!ob || ob->type == type)
+		if(!ob || type == OB_EMPTY || ob->type == type)
 			*ob_p= ob;
 }
 
@@ -420,7 +420,7 @@ static void rna_CurveModifier_object_set(PointerRNA *ptr, PointerRNA value)
 
 static void rna_CastModifier_object_set(PointerRNA *ptr, PointerRNA value)
 {
-	modifier_object_set(ptr->id.data, &((CastModifierData*)ptr->data)->object, OB_MESH, value);
+	modifier_object_set(ptr->id.data, &((CastModifierData*)ptr->data)->object, OB_EMPTY, value);
 }
 
 static void rna_ArmatureModifier_object_set(PointerRNA *ptr, PointerRNA value)
