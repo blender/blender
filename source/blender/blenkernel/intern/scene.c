@@ -53,6 +53,7 @@
 #include "BKE_animsys.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"

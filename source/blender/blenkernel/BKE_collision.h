@@ -49,12 +49,13 @@
 
 #include "BLI_kdopbvh.h"
 
+struct Cloth;
+struct ClothModifierData;
+struct DerivedMesh;
+struct Group;
+struct MFace;
 struct Object;
 struct Scene;
-struct Cloth;
-struct MFace;
-struct DerivedMesh;
-struct ClothModifierData;
 
 ////////////////////////////////////////
 // used for collisions in collision.c
@@ -139,7 +140,7 @@ void interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3],
 /////////////////////////////////////////////////
 // used in effect.c
 /////////////////////////////////////////////////
-Object **get_collisionobjects(struct Scene *scene, Object *self, int *numcollobj);
+struct Object **get_collisionobjects(struct Scene *scene, struct Object *self, struct Group *group, int *numcollobj);
 
 typedef struct ColliderCache {
 	struct ColliderCache *next, *prev;
@@ -147,7 +148,7 @@ typedef struct ColliderCache {
 	struct CollisionModifierData *collmd;
 } ColliderCache;
 
-struct ListBase *get_collider_cache(struct Scene *scene, Object *self);
+struct ListBase *get_collider_cache(struct Scene *scene, struct Object *self, struct Group *group);
 void free_collider_cache(struct ListBase **colliders);
 
 /////////////////////////////////////////////////

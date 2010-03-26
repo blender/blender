@@ -3065,6 +3065,7 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 				 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
 				psys->clmd->point_cache= psys->pointcache;
 				psys->clmd->ptcaches.first= psys->clmd->ptcaches.last= NULL;
+				psys->clmd->coll_parms->group= newlibadr(fd, id->lib, psys->clmd->coll_parms->group);
 			}
 		}
 		else {
@@ -3621,6 +3622,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				if(clmd) 
 				{
 					clmd->sim_parms->effector_weights->group = newlibadr(fd, ob->id.lib, clmd->sim_parms->effector_weights->group);
+					clmd->coll_parms->group= newlibadr(fd, ob->id.lib, clmd->coll_parms->group);
 				}
 			}
 			

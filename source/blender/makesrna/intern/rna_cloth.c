@@ -430,6 +430,11 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Self Collision Quality", "How many self collision iterations should be done. (higher is better quality but slower)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Collision Group", "Limit colliders to this Group");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
 }
 
 void RNA_def_cloth(BlenderRNA *brna)
