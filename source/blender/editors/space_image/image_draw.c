@@ -640,8 +640,8 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 
 	/* retrieve the image and information about it */
 	ima= ED_space_image(sima);
-	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 
 	show_viewer= (ima && ima->source == IMA_SRC_VIEWER);
 	show_render= (show_viewer && ima->type == IMA_TYPE_R_RESULT);
