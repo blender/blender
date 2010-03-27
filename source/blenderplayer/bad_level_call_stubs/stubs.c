@@ -36,6 +36,7 @@
 struct ARegion;
 struct ARegionType;
 struct Base;
+struct bNodeTree;
 struct CSG_FaceIteratorDescriptor;
 struct CSG_VertexIteratorDescriptor;
 struct ColorBand;
@@ -79,7 +80,7 @@ struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
 struct wmWindowManager;
-
+struct View3D;
 
 
 /*new render funcs */
@@ -122,6 +123,7 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 char stipple_quarttone[1]; //GLubyte stipple_quarttone[128]
 double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, char *retstr) {return 0.0f;}
 struct Render *RE_NewRender(const char *name){return (struct Render*) NULL;}
+void RE_SwapResult(struct Render *re, struct RenderResult **rr){}
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame){}
 
 /* rna */
