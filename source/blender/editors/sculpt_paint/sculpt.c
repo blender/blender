@@ -1852,13 +1852,13 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	sculpt_stroke_modifiers_check(C, ss);
 
 	viewline(vc->ar, vc->v3d, mval, ray_start, ray_end);
-	sub_v3_v3v3(ray_normal, ray_end, ray_start);
-	dist= normalize_v3(ray_normal);
 
 	invert_m4_m4(obimat, ss->ob->obmat);
 	mul_m4_v3(obimat, ray_start);
-	mul_mat3_m4_v3(obimat, ray_normal);
-	normalize_v3(ray_normal);
+	mul_m4_v3(obimat, ray_end);
+
+	sub_v3_v3v3(ray_normal, ray_end, ray_start);
+	dist= normalize_v3(ray_normal);
 
 	srd.ss = vc->obact->sculpt;
 	srd.ray_start = ray_start;
