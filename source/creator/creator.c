@@ -796,6 +796,7 @@ static int run_python(int argc, char **argv, void *data)
 		/* XXX, temp setting the WM is ugly, splash also does this :S */
 		wmWindowManager *wm= CTX_wm_manager(C);
 		wmWindow *prevwin= CTX_wm_window(C);
+		Scene *prevscene= CTX_data_scene(C);
 
 		if(wm->windows.first) {
 			CTX_wm_window_set(C, wm->windows.first);
@@ -808,6 +809,9 @@ static int run_python(int argc, char **argv, void *data)
 			fprintf(stderr, "Python script \"%s\" running with missing context data.\n", argv[1]);
 			BPY_run_python_script(C, filename, NULL, NULL); // use reports?
 		}
+
+		CTX_data_scene_set(C, prevscene);
+
 		return 1;
 	} else {
 		printf("\nError: you must specify a Python script after '-P '.\n");
