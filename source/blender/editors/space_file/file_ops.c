@@ -711,8 +711,8 @@ void FILE_OT_next(struct wmOperatorType *ot)
 int file_next_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
-		if(sfile->params) {
-			if (!sfile->folders_next)
+	if(sfile->params) {
+		if (!sfile->folders_next)
 			sfile->folders_next = folderlist_new();
 
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
@@ -777,6 +777,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 
 	/* now remember file to jump into editing */
 	BLI_strncpy(sfile->params->renamefile, name, FILE_MAXFILE);
+	ED_fileselect_clear(C, sfile);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;
