@@ -240,6 +240,11 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	
 	float size[3];
 
+	if(!tex) {
+		printf("Could not allocate 3D texture for 3D View smoke drawing.\n");
+		return;
+	}
+
 	tstart();
 
 	VECSUB(size, max, min);
@@ -365,7 +370,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		glProgramLocalParameter4fARB (GL_FRAGMENT_PROGRAM_ARB, 1, 7.0, 7.0, 7.0, 1.0);
 	}
 	else
-		printf("Your gfx card does not support 3dview smoke drawing.\n");
+		printf("Your gfx card does not support 3D View smoke drawing.\n");
 
 	GPU_texture_bind(tex, 0);
 	if(tex_shadow)
