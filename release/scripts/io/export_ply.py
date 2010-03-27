@@ -210,13 +210,10 @@ def write(filename, scene, ob, \
     file.write('property float y\n')
     file.write('property float z\n')
 
-    # XXX
-    """
     if EXPORT_NORMALS:
         file.write('property float nx\n')
         file.write('property float ny\n')
         file.write('property float nz\n')
-    """
     if EXPORT_UV:
         file.write('property float s\n')
         file.write('property float t\n')
@@ -231,10 +228,8 @@ def write(filename, scene, ob, \
 
     for i, v in enumerate(ply_verts):
         file.write('%.6f %.6f %.6f ' % tuple(mesh_verts[v[0]].co)) # co
-        """
         if EXPORT_NORMALS:
             file.write('%.6f %.6f %.6f ' % v[1]) # no
-        """
         if EXPORT_UV:
             file.write('%.6f %.6f ' % v[2]) # uv
         if EXPORT_COLORS:
