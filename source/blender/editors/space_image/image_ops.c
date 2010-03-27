@@ -1979,21 +1979,21 @@ static int cycle_render_slot_poll(bContext *C)
 
 static int cycle_render_slot_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	int a, slot, cur= RE_GetViewSlot();
+	Image *ima= CTX_data_edit_image(C);
+	int a, slot, cur= ima->render_slot;
 
-	for(a=1; a<RE_SLOT_MAX; a++) {
-		slot= (cur+a)%RE_SLOT_MAX;
+	for(a=1; a<IMA_MAX_RENDER_SLOT; a++) {
+		slot= (cur+a)%IMA_MAX_RENDER_SLOT;
 
-		if(RE_GetRender(scene->id.name, slot)) {
-			RE_SetViewSlot(slot);
+		if(ima->renders[slot] || slot == ima->last_render_slot) {
+			ima->render_slot= slot;
 			break;
 		}
 	}
 
-	if(a == RE_SLOT_MAX)
-		RE_SetViewSlot((cur == 1)? 0: 1);
-
+	if(a == IMA_MAX_RENDER_SLOT)
+		ima->render_slot= ((cur == 1)? 0: 1);
+	
 	WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 
 	return OPERATOR_FINISHED;

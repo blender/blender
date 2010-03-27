@@ -679,7 +679,7 @@ static int render_frame(int argc, char **argv, void *data)
 
 		if (argc > 1) {
 			int frame = atoi(argv[1]);
-			Render *re = RE_NewRender(scene->id.name, RE_SLOT_DEFAULT);
+			Render *re = RE_NewRender(scene->id.name);
 			ReportList reports;
 
 			BKE_reports_init(&reports, RPT_PRINT);
@@ -703,7 +703,7 @@ static int render_animation(int argc, char **argv, void *data)
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
 		Scene *scene= CTX_data_scene(C);
-		Render *re= RE_NewRender(scene->id.name, RE_SLOT_DEFAULT);
+		Render *re= RE_NewRender(scene->id.name);
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
 		RE_BlenderAnim(re, scene, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);

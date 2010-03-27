@@ -111,12 +111,9 @@
 static struct {
 	ListBase renderlist;
 
-	/* render slots */
-	int viewslot, renderingslot;
-
 	/* commandline thread override */
 	int threads;
-} RenderGlobal = {{NULL, NULL}, 0, 0, -1}; 
+} RenderGlobal = {{NULL, NULL}, -1}; 
 
 /* hardcopy of current render, used while rendering for speed */
 Render R;
@@ -191,6 +188,8 @@ void RE_FreeRenderResult(RenderResult *res)
 		MEM_freeN(res->rectz);
 	if(res->rectf)
 		MEM_freeN(res->rectf);
+	if(res->text)
+		MEM_freeN(res->text);
 	
 	MEM_freeN(res);
 }
@@ -978,38 +977,15 @@ static void read_render_result(Render *re, int sample)
 
 /* *************************************************** */
 
-void RE_SetViewSlot(int slot)
-{
-	RenderGlobal.viewslot = slot;
-}
-
-int RE_GetViewSlot(void)
-{
-	return RenderGlobal.viewslot;
-}
-
-static int re_get_slot(int slot)
-{
-	if(slot == RE_SLOT_VIEW)
-		return RenderGlobal.viewslot;
-	else if(slot == RE_SLOT_RENDERING)
-		return (G.rendering)? RenderGlobal.renderingslot: RenderGlobal.viewslot;
-
-	return slot;
-}
-
-Render *RE_GetRender(const char *name, int slot)
+Render *RE_GetRender(const char *name)
 {
 	Render *re;
 
-	slot= re_get_slot(slot);
-	
 	/* search for existing renders */
-	for(re= RenderGlobal.renderlist.first; re; re= re->next) {
-		if(strncmp(re->name, name, RE_MAXNAME)==0 && re->slot==slot) {
+	for(re= RenderGlobal.renderlist.first; re; re= re->next)
+		if(strncmp(re->name, name, RE_MAXNAME)==0)
 			break;
-		}
-	}
+
 	return re;
 }
 
@@ -1033,6 +1009,15 @@ RenderResult *RE_AcquireResultWrite(Render *re)
 
 	return NULL;
 }
+
+void RE_SwapResult(Render *re, RenderResult **rr)
+{
+	/* for keeping render buffers */
+	if(re) {
+		SWAP(RenderResult*, re->result, *rr);
+	}
+}
+
 
 void RE_ReleaseResult(Render *re)
 {
@@ -1144,21 +1129,18 @@ RenderStats *RE_GetStats(Render *re)
 	return &re->i;
 }
 
-Render *RE_NewRender(const char *name, int slot)
+Render *RE_NewRender(const char *name)
 {
 	Render *re;
 
-	slot= re_get_slot(slot);
-	
 	/* only one render per name exists */
-	re= RE_GetRender(name, slot);
+	re= RE_GetRender(name);
 	if(re==NULL) {
 		
 		/* new render data struct */
 		re= MEM_callocN(sizeof(Render), "new render");
 		BLI_addtail(&RenderGlobal.renderlist, re);
 		strncpy(re->name, name, RE_MAXNAME);
-		re->slot= slot;
 		BLI_rw_mutex_init(&re->resultmutex);
 	}
 	
@@ -2201,7 +2183,7 @@ static void do_render_fields_blur_3d(Render *re)
 */
 static void render_scene(Render *re, Scene *sce, int cfra)
 {
-	Render *resc= RE_NewRender(sce->id.name, RE_SLOT_RENDERING);
+	Render *resc= RE_NewRender(sce->id.name);
 	int winx= re->winx, winy= re->winy;
 	
 	sce->r.cfra= cfra;
@@ -2490,7 +2472,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 static void renderresult_stampinfo(Scene *scene)
 {
 	RenderResult rres;
-	Render *re= RE_GetRender(scene->id.name, RE_SLOT_RENDERING);
+	Render *re= RE_GetRender(scene->id.name);
 
 	/* this is the basic trick to get the displayed float or char rect from render result */
 	RE_AcquireResultImage(re, &rres);
@@ -2796,7 +2778,6 @@ static int render_initialize_from_scene(Render *re, Scene *scene, SceneRenderLay
 void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int frame)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
-	RenderGlobal.renderingslot= re->slot;
 	G.rendering= 1;
 	
 	scene->r.cfra= frame;
@@ -2807,7 +2788,6 @@ void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned i
 	
 	/* UGLY WARNING */
 	G.rendering= 0;
-	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
 
 static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports)
@@ -2910,7 +2890,6 @@ void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int ef
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
-	RenderGlobal.renderingslot= re->slot;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
 		if(!mh->start_movie(scene, &re->r, re->rectx, re->recty, reports))
@@ -3007,7 +2986,6 @@ void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int ef
 	
 	/* UGLY WARNING */
 	G.rendering= 0;
-	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
 
 /* note; repeated win/disprect calc... solve that nicer, also in compo */
@@ -3041,9 +3019,9 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 		scene= scenode;
 	
 	/* get render: it can be called from UI with draw callbacks */
-	re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
+	re= RE_GetRender(scene->id.name);
 	if(re==NULL)
-		re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
+		re= RE_NewRender(scene->id.name);
 	RE_InitState(re, NULL, &scene->r, NULL, winx, winy, &disprect);
 	re->scene= scene;
 	
