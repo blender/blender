@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\ikplugin;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include;..\..\..\source\blender\gpu;..\..\..\source\blender\render\extern\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\makesrna\intern;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\ikplugin;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include;..\..\..\source\blender\gpu;..\..\..\source\blender\render\extern\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;GAMEBLENDER=1"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -114,7 +114,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\ikplugin;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include;..\..\..\source\blender\gpu;..\..\..\source\blender\render\extern\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\makesrna\intern;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\ikplugin;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include;..\..\..\source\blender\gpu;..\..\..\source\blender\render\extern\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;GAMEBLENDER=1"
 				MinimalRebuild="true"
 				RuntimeLibrary="0"
@@ -171,223 +171,231 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_action_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_action_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_actuator_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_actuator_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_animation_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_animation_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_animviz_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_animviz_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_armature_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_armature_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_boid_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\RNA_blender.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_brush_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\RNA_blender_cpp.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_camera_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_boid_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_cloth_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_brush_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_color_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_camera_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_constraint_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_cloth_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_context_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_color_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_controller_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_constraint_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_curve_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_context_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_fcurve_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_controller_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_fluidsim_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_curve_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_gpencil_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_fcurve_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_group_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_fluidsim_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_ID_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_gpencil_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_image_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_group_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_key_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_ID_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_lamp_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_image_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_lattice_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_key_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_main_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_lamp_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_material_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_lattice_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_mesh_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_main_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_meta_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_material_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_modifier_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_mesh_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_nla_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_meta_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_nodetree_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_modifier_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_object_force_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_nla_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_object_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_nodetree_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_packedfile_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_object_force_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_particle_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_object_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_pose_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_packedfile_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_property_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_particle_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_render_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_pose_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_rna_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_property_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_scene_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_render_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_screen_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_rna_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sculpt_paint_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_scene_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sensor_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_screen_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sequencer_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_sculpt_paint_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_smoke_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_sensor_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sound_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_sequencer_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_space_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_smoke_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_test_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_sound_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_text_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_space_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_texture_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_test_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_timeline_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_text_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_ui_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_texture_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_userdef_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_timeline_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_vfont_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_ui_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_wm_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_userdef_gen.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_world_gen.c"
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_vfont_gen.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_wm_gen.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\build\msvc_9\source\blender\makesrna\rna_world_gen.c"
 				>
 			</File>
 		</Filter>

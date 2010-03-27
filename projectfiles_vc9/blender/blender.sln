@@ -259,6 +259,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_elbeem", "..\..\intern\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_ghost", "..\..\intern\ghost\make\msvc_9_0\ghost.vcproj", "{76D90B92-ECC7-409C-9F98-A8814B90F3C0}"
 	ProjectSection(ProjectDependencies) = postProject
+		{BAC615B0-F1AF-418B-8D23-A10FD8870D6A} = {BAC615B0-F1AF-418B-8D23-A10FD8870D6A}
 		{B789C2F3-279E-4A85-8F0A-7F7AC068E598} = {B789C2F3-279E-4A85-8F0A-7F7AC068E598}
 	EndProjectSection
 EndProject

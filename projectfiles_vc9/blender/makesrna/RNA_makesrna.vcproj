@@ -27,7 +27,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="DEL ..\..\..\source\blender\makesrna\intern\*_gen.c"
+				CommandLine="del ..\..\..\..\build\msvc_9\source\blender\makesrna\rna_*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesrna\internal"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
+				OutputFile="$(OutDir)\RNA_makesrna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
@@ -106,13 +106,13 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;$(TargetDir)\RNA_makesrna.exe ..\..\..\..\..\build\msvc_9\source\blender\makesrna&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Blender Release|Win32"
-			OutputDirectory="..\..\..\..\build\msvc_9\source\blender\makesrna"
-			IntermediateDirectory="..\..\..\..\build\msvc_9\source\blender\makesrna"
+			OutputDirectory="..\..\..\..\build\msvc_9\source\blender\makesrna\release"
+			IntermediateDirectory="..\..\..\..\build\msvc_9\source\blender\makesrna\release"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -121,7 +121,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="DEL ..\..\..\source\blender\makesrna\intern\*_gen.c"
+				CommandLine="del ..\..\..\..\build\msvc_9\source\blender\makesrna\rna_*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -140,7 +140,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesrna\internal"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE;GAMEBLENDER=1;WITH_SDL;WITH_OPENAL;WITH_JACK"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -148,9 +148,9 @@
 				DefaultCharIsUnsigned="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="..\..\..\..\build\msvc_9\source\blender\makesrna\DNA_makesrna.pch"
-				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\makesrna\"
-				ObjectFile="..\..\..\..\build\msvc_9\source\blender\makesrna\"
-				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\makesrna\"
+				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\makesrna\release\"
+				ObjectFile="..\..\..\..\build\msvc_9\source\blender\makesrna\release\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\makesrna\release\"
 				WarningLevel="2"
 				SuppressStartupBanner="true"
 				CompileAs="0"
@@ -169,7 +169,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
+				OutputFile="$(OutDir)\RNA_makesrna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
@@ -200,7 +200,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;$(TargetDir)RNA_makesrna.exe ..\..\..\..\..\build\msvc_9\source\blender\makesrna\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -215,7 +215,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="DEL ..\..\..\source\blender\makesrna\intern\*_gen.c"
+				CommandLine="del ..\..\..\..\build\msvc_9\source\blender\makesrna\rna_*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -233,7 +233,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesrna\internal"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -262,7 +262,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
+				OutputFile="$(OutDir)\RNA_makesrna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
@@ -293,7 +293,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;$(TargetDir)\RNA_makesrna.exe ..\..\..\..\..\build\msvc_9\source\blender\makesrna&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -308,7 +308,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="del ..\..\..\source\blender\makesrna\intern\rna_*_gen.c"
+				CommandLine="del ..\..\..\..\build\msvc_9\source\blender\makesrna\rna_*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -326,7 +326,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesrna\internal"
 				PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;GAMEBLENDER=1;WITH_SDL;WITH_OPENAL;WITH_JACK"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -356,7 +356,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386&#x0D;&#x0A;"
-				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
+				OutputFile="$(OutDir)\RNA_makesrna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
@@ -389,7 +389,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;$(TargetDir)\RNA_makesrna.exe ..\..\..\..\..\build\msvc_9\source\blender\makesrna\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -404,7 +404,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="DEL ..\..\..\source\blender\makesrna\intern\*_gen.c"
+				CommandLine="del ..\..\..\..\build\msvc_9\source\blender\makesrna\rna_*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -422,7 +422,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesrna\internal"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE;GAMEBLENDER=1;WITH_SDL;WITH_OPENAL;WITH_JACK"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -452,7 +452,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386&#x0D;&#x0A;"
-				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
+				OutputFile="$(OutDir)\RNA_makesrna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
@@ -485,7 +485,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;$(TargetDir)\RNA_makesrna.exe ..\..\..\..\..\build\msvc_9\source\blender\makesrna\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -500,7 +500,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				CommandLine="del ..\..\..\..\build\msvc_9\source\blender\makesrna\rna_*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -518,7 +518,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesrna\internal"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE;GAMEBLENDER=1;WITH_SDL;WITH_OPENAL;WITH_JACK"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -547,7 +547,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
+				OutputFile="$(OutDir)\RNA_makesrna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories=""
@@ -578,7 +578,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;$(TargetDir)\RNA_makesrna.exe ..\..\..\..\..\build\msvc_9\source\blender\makesrna\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
