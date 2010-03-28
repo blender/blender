@@ -590,6 +590,10 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+					image_histogram_tag_refresh(sa);
+					ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);					
+					break;
 				case ND_MODE:
 				case ND_RENDER_RESULT:
 				case ND_COMPO_RESULT:
@@ -608,8 +612,10 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_SPACE:	
-			if(wmn->data == ND_SPACE_IMAGE)
+			if(wmn->data == ND_SPACE_IMAGE) {
+				image_histogram_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
+			}
 			break;
 		case NC_GEOM:
 			switch(wmn->data) {
