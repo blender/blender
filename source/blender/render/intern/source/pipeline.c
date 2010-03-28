@@ -1456,61 +1456,6 @@ static void *do_part_thread(void *pa_v)
 	return NULL;
 }
 
-/* returns with render result filled, not threaded, used for preview now only */
-static void render_tile_processor(Render *re, int firsttile)
-{
-	RenderPart *pa;
-	
-	if(re->test_break(re->tbh))
-		return;
-
-	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
-
-	/* hrmf... exception, this is used for preview render, re-entrant, so render result has to be re-used */
-	if(re->result==NULL || re->result->layers.first==NULL) {
-		if(re->result) RE_FreeRenderResult(re->result);
-		re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
-	}
-
-	BLI_rw_mutex_unlock(&re->resultmutex);
-	
-	re->stats_draw(re->sdh, &re->i);
- 
-	if(re->result==NULL)
-		return;
-	
-	initparts(re);
-
-	/* assuming no new data gets added to dbase... */
-	R= *re;
-	
-	for(pa= re->parts.first; pa; pa= pa->next) {
-		if(firsttile) {
-			re->i.partsdone++;	/* was reset in initparts */
-			firsttile--;
-		}
-		else {
-			do_part_thread(pa);
-			
-			if(pa->result) {
-				if(!re->test_break(re->tbh)) {
-					if(render_display_draw_enabled(re))
-						re->display_draw(re->ddh, pa->result, NULL);
-					
-					re->i.partsdone++;
-					re->stats_draw(re->sdh, &re->i);
-				}
-				RE_FreeRenderResult(pa->result);
-				pa->result= NULL;
-			}		
-			if(re->test_break(re->tbh))
-				break;
-		}
-	}
-
-	freeparts(re);
-}
-
 /* calculus for how much 1 pixel rendered should rotate the 3d geometry */
 /* is not that simple, needs to be corrected for errors of larger viewplane sizes */
 /* called in initrender.c, initparts() and convertblender.c, for speedvectors */
@@ -1784,43 +1729,20 @@ static void threaded_tile_processor(Render *re)
 }
 
 /* currently only called by preview renders and envmap */
-void RE_TileProcessor(Render *re, int firsttile, int threaded)
+void RE_TileProcessor(Render *re)
 {
-	/* the partsdone variable has to be reset to firsttile, to survive esc before it was set to zero */
-	
-	re->i.partsdone= firsttile;
-
-	if(!re->sss_points)
-		re->i.starttime= PIL_check_seconds_timer();
-
-	if(threaded)
-		threaded_tile_processor(re);
-	else
-		render_tile_processor(re, firsttile);
-		
-	if(!re->sss_points)
-		re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
-	re->stats_draw(re->sdh, &re->i);
+	threaded_tile_processor(re);
 }
-
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
-static void external_render_3d(Render *re, RenderEngineType *type);
+static int external_render_3d(Render *re);
 
 static void do_render_3d(Render *re)
 {
-	RenderEngineType *type;
-
 	/* try external */
-	for(type=R_engines.first; type; type=type->next)
-		if(strcmp(type->idname, re->r.engine) == 0)
-			break;
-
-	if(type && type->render) {
-		external_render_3d(re, type);
+	if(external_render_3d(re))
 		return;
-	}
 
 	/* internal */
 	
@@ -2988,6 +2910,23 @@ void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int ef
 	G.rendering= 0;
 }
 
+void RE_PreviewRender(Render *re, Scene *sce)
+{
+	int winx, winy;
+
+	winx= (sce->r.size*sce->r.xsch)/100;
+	winy= (sce->r.size*sce->r.ysch)/100;
+
+	RE_InitState(re, NULL, &sce->r, NULL, winx, winy, NULL);
+
+	re->scene = sce;
+	re->lay = sce->lay;
+
+	RE_SetCamera(re, sce->camera);
+
+	do_render_3d(re);
+}
+
 /* note; repeated win/disprect calc... solve that nicer, also in compo */
 
 /* only the temp file! */
@@ -3193,9 +3132,19 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, char *f
 	}
 }
 
-static void external_render_3d(Render *re, RenderEngineType *type)
+static int external_render_3d(Render *re)
 {
+	RenderEngineType *type;
 	RenderEngine engine;
+
+	for(type=R_engines.first; type; type=type->next)
+		if(strcmp(type->idname, re->r.engine) == 0)
+			break;
+
+	if(!(type && type->render))
+		return 0;
+	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_DO_PREVIEW))
+		return 0;
 
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
@@ -3209,7 +3158,7 @@ static void external_render_3d(Render *re, RenderEngineType *type)
 	BLI_rw_mutex_unlock(&re->resultmutex);
 	
 	if(re->result==NULL)
-		return;
+		return 1;
 
 	/* external */
 	memset(&engine, 0, sizeof(engine));
@@ -3237,5 +3186,7 @@ static void external_render_3d(Render *re, RenderEngineType *type)
 		read_render_result(re, 0);
 	}
 	BLI_rw_mutex_unlock(&re->resultmutex);
+
+	return 1;
 }
 

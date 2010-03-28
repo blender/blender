@@ -202,11 +202,14 @@ void RE_set_max_threads(int threads);
 void RE_init_threadcount(Render *re);
 
 /* the main processor, assumes all was set OK! */
-void RE_TileProcessor(struct Render *re, int firsttile, int threaded);
+void RE_TileProcessor(struct Render *re);
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, struct SceneRenderLayer *srl, unsigned int lay, int frame);
 void RE_BlenderAnim(struct Render *re, struct Scene *scene, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
+
+/* main preview render call */
+void RE_PreviewRender(struct Render *re, struct Scene *scene);
 
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress);
@@ -252,6 +255,7 @@ struct Scene *RE_GetScene(struct Render *re);
 
 #define RE_INTERNAL		1
 #define RE_GAME			2
+#define RE_DO_PREVIEW	4
 
 extern ListBase R_engines;
 

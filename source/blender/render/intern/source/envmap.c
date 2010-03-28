@@ -447,7 +447,7 @@ static void render_envmap(Render *re, EnvMap *env)
 		env_set_imats(envre);
 				
 		if(re->test_break(re->tbh)==0) {
-			RE_TileProcessor(envre, 0, 0);
+			RE_TileProcessor(envre);
 		}
 		
 		/* rotate back */

@@ -279,6 +279,10 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
+	prop= RNA_def_property(srna, "bl_preview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_DO_PREVIEW);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
 	RNA_define_verify_sdna(1);
 }
 
