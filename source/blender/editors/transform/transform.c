@@ -1462,7 +1462,6 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		t->launch_event = LEFTMOUSE;
 	}
 
-
 	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
 	{
 		return 0;
@@ -3825,7 +3824,7 @@ void initBevelWeight(TransInfo *t)
 
 	t->num.increment = t->snap[1];
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 int BevelWeight(TransInfo *t, short mval[2])
@@ -3898,7 +3897,7 @@ void initCrease(TransInfo *t)
 
 	t->num.increment = t->snap[1];
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 int Crease(TransInfo *t, short mval[2])

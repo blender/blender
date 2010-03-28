@@ -379,6 +379,9 @@ typedef struct TransInfo {
 	/* to specificy if we save back settings at the end */
 #define	T_MODAL				(1 << 21)
 
+	/* no retopo */
+#define T_NO_PROJECT		(1 << 22)
+
 /* TransInfo->modifiers */
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02
