@@ -813,6 +813,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
 	if (!window) return GHOST_kFailure;
 
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSScreen *windowScreen = window->getScreen();
 	NSRect screenRect = [windowScreen frame];
 	
@@ -825,6 +826,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 
 	CGDisplayMoveCursorToPoint((CGDirectDisplayID)[[[windowScreen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue], CGPointMake(xf, yf));
 
+	[pool drain];
     return GHOST_kSuccess;
 }
 

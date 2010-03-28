@@ -129,6 +129,9 @@ typedef struct RenderResult {
 	
 	/* for render results in Image, verify validity for sequences */
 	int framenr;
+
+	/* render info text */
+	char *text;
 	
 } RenderResult;
 
@@ -146,21 +149,8 @@ typedef struct RenderStats {
 
 /* the name is used as identifier, so elsewhere in blender the result can retrieved */
 /* calling a new render with same name, frees automatic existing render */
-struct Render *RE_NewRender (const char *name, int slot);
-struct Render *RE_GetRender(const char *name, int slot);
-
-/* render slots. for most cases like baking or preview render this will
-   always be default, for actual render multiple slots can be used. in
-   that case 'rendering' is the slot being rendered to, and 'view' is the
-   slot being viewed. these are always the same except if the currently
-   viewed slot is changed during render, at the end they will be synced. */
-#define RE_SLOT_RENDERING	-2
-#define RE_SLOT_VIEW		-1
-#define RE_SLOT_DEFAULT		 0
-#define RE_SLOT_MAX			10
-
-void RE_SetViewSlot(int slot);
-int RE_GetViewSlot(void);
+struct Render *RE_NewRender (const char *name);
+struct Render *RE_GetRender(const char *name);
 
 /* returns 1 while render is working (or renders called from within render) */
 int RE_RenderInProgress(struct Render *re);
@@ -177,6 +167,7 @@ struct RenderResult *RE_AcquireResultWrite(struct Render *re);
 void RE_ReleaseResult(struct Render *re);
 void RE_AcquireResultImage(struct Render *re, struct RenderResult *rr);
 void RE_ReleaseResultImage(struct Render *re);
+void RE_SwapResult(struct Render *re, struct RenderResult **rr);
 struct RenderStats *RE_GetStats(struct Render *re);
 void RE_ResultGet32(struct Render *re, unsigned int *rect);
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);
@@ -211,12 +202,15 @@ void RE_set_max_threads(int threads);
 void RE_init_threadcount(Render *re);
 
 /* the main processor, assumes all was set OK! */
-void RE_TileProcessor(struct Render *re, int firsttile, int threaded);
+void RE_TileProcessor(struct Render *re);
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, struct SceneRenderLayer *srl, unsigned int lay, int frame);
 void RE_BlenderAnim(struct Render *re, struct Scene *scene, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
 void RE_RenderFreestyleStrokes(struct Render *re, struct Scene *scene);
+
+/* main preview render call */
+void RE_PreviewRender(struct Render *re, struct Scene *scene);
 
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress);
@@ -260,8 +254,10 @@ struct Scene *RE_GetScene(struct Render *re);
 
 /* External Engine */
 
-#define RE_INTERNAL		1
-#define RE_GAME			2
+#define RE_INTERNAL			1
+#define RE_GAME				2
+#define RE_DO_PREVIEW		4
+#define RE_DO_ALL			8
 
 extern ListBase R_engines;
 

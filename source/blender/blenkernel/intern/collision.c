@@ -1408,7 +1408,7 @@ ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
 	}
 	else {
 		for(base = scene->base.first; base; base = base->next)
-			if(self && (base->lay & self->lay)==0) 
+			if(!self || (base->lay & self->lay)) 
 				add_collider_cache_object(&objs, base->object, self, 0);
 	}
 

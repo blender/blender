@@ -49,6 +49,7 @@
 #include "WM_types.h"
 
 #include "ED_image.h"
+#include "ED_view3d.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 
@@ -1387,6 +1388,9 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 				while(sl) {
 					if(sl->spacetype==SPACE_VIEW3D) {
 						View3D *v3d= (View3D*) sl;
+
+						ED_view3d_scene_layers_copy(v3d, scene);
+
 						if (!v3d->camera || !object_in_scene(v3d->camera, scene)) {
 							v3d->camera= scene_find_camera(sc->scene);
 							// XXX if (sc==curscreen) handle_view3d_lock();

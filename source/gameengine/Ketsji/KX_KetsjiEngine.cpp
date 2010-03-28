@@ -285,6 +285,7 @@ void KX_KetsjiEngine::RenderDome()
 		return;
 
 	KX_SceneList::iterator sceneit;
+	KX_Scene* scene;
 
 	int n_renders=m_dome->GetNumberRenders();// usually 4 or 6
 	for (int i=0;i<n_renders;i++){
@@ -292,7 +293,7 @@ void KX_KetsjiEngine::RenderDome()
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
 		// for each scene, call the proceed functions
 		{
-			KX_Scene* scene = *sceneit;
+			scene = *sceneit;
 			KX_Camera* cam = scene->GetActiveCamera();
 
 			m_rendertools->BeginFrame(m_rasterizer);
@@ -368,6 +369,10 @@ void KX_KetsjiEngine::RenderDome()
 			);
 	}
 	m_dome->Draw();
+	// Draw Callback for the last scene
+#ifndef DISABLE_PYTHON
+	scene->RunDrawingCallbacks(scene->GetPostDrawCB());
+#endif	
 	EndFrame();
 }
 

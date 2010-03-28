@@ -186,6 +186,7 @@ def requestResult(conn, job_id, frame):
 class NetworkRenderEngine(bpy.types.RenderEngine):
     bl_idname = 'NET_RENDER'
     bl_label = "Network Render"
+    bl_postprocess = False
     def render(self, scene):
         if scene.network_render.mode == "RENDER_CLIENT":
             self.render_client(scene)
@@ -268,7 +269,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             f.close()
 
             result = self.begin_result(0, 0, x, y)
-            result.load_from_file(netsettings.path + "output.exr", 0, 0)
+            result.load_from_file(netsettings.path + "output.exr")
             self.end_result(result)
 
             conn.close()

@@ -141,6 +141,9 @@ struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct Im
 /* for multilayer images as well as for render-viewer */
 struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
+
+/* for multiple slot render, call this before render */
+void BKE_image_backup_render(struct Scene *scene, struct Image *ima);
 	
 /* goes over all textures that use images */
 void	BKE_image_free_all_textures(void);

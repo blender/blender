@@ -150,8 +150,9 @@ void blf_font_draw(FontBLF *font, char *str)
 
 void blf_font_buffer(FontBLF *font, char *str)
 {
-	unsigned char *data, *cbuf;
+	unsigned char *cbuf;
 	unsigned int c;
+	unsigned char b_col_char[3];
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
 	FT_UInt glyph_index;
@@ -159,14 +160,18 @@ void blf_font_buffer(FontBLF *font, char *str)
 	int pen_x, pen_y, y, x, yb, diff;
 	int i, has_kerning, st, chx, chy;
 
-	if (!font->glyph_cache)
+	if (!font->glyph_cache || (!font->b_fbuf && !font->b_cbuf))
 		return;
-
+	
 	i= 0;
 	pen_x= (int)font->pos[0];
 	pen_y= (int)font->pos[1];
 	has_kerning= FT_HAS_KERNING(font->face);
 	g_prev= NULL;
+	
+	b_col_char[0]= font->b_col[0] * 255;
+	b_col_char[1]= font->b_col[1] * 255;
+	b_col_char[2]= font->b_col[2] * 255;
 
 	while (str[i]) {
 		c= blf_utf8_next((unsigned char *)str, &i);
@@ -216,15 +221,19 @@ void blf_font_buffer(FontBLF *font, char *str)
 		else
 			chy= pen_y + ((int)g->pos_y);
 
-		if (font->b_fbuf) {
-			if (chx >= 0 && chx < font->bw && pen_y >= 0 && pen_y < font->bh) {
-				if (g->pitch < 0)
-					yb= 0;
-				else
-					yb= g->height-1;
+		if ((chx + g->width) >= 0 && chx < font->bw && (pen_y + g->height) >= 0 && pen_y < font->bh) {
+			/* dont draw beyond the buffer bounds */
+			int width_clip= g->width;
+			int height_clip= g->height;
 
-				for (y= 0; y < g->height; y++) {
-					for (x= 0; x < g->width; x++) {
+			if (width_clip + chx > font->bw)	width_clip  -= chx + width_clip - font->bw;
+			if (height_clip + pen_y > font->bh) height_clip -= pen_y + height_clip - font->bh;
+
+			yb= g->pitch < 0 ? 0 : g->height-1;
+			
+			if (font->b_fbuf) {
+				for (y= 0; y < height_clip; y++) {
+					for (x= 0; x < width_clip; x++) {
 						
 						a= *(g->bitmap + x + (yb * g->pitch)) / 255.0f;
 
@@ -249,22 +258,10 @@ void blf_font_buffer(FontBLF *font, char *str)
 						yb--;
 				}
 			}
-		}
 
-		if (font->b_cbuf) {
-			if (chx >= 0 && chx < font->bw && pen_y >= 0 && pen_y < font->bh) {
-				char b_col_char[3];
-				b_col_char[0]= font->b_col[0] * 255;
-				b_col_char[1]= font->b_col[1] * 255;
-				b_col_char[2]= font->b_col[2] * 255;
-
-				if (g->pitch < 0)
-					yb= 0;
-				else
-					yb= g->height-1;
-
-				for (y= 0; y < g->height; y++) {
-					for (x= 0; x < g->width; x++) {
+			if (font->b_cbuf) {
+				for (y= 0; y < height_clip; y++) {
+					for (x= 0; x < width_clip; x++) {
 						a= *(g->bitmap + x + (yb * g->pitch)) / 255.0f;
 
 						if(a > 0.0f) {

@@ -30,30 +30,24 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
-#include "BLI_dlrbTree.h"
+#include "BLI_math.h"
+#include "BLI_threads.h"
 
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
-#include "BKE_sound.h"
-#include "BKE_writeavi.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -67,7 +61,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-
 
 #include "wm_window.h"
 
@@ -136,8 +129,12 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	}
 	if(rectf==NULL) return;
 
-	if(ibuf->rect==NULL)
-		imb_addrectImBuf(ibuf);
+	if(ibuf->rect==NULL) {
+		BLI_lock_thread(LOCK_CUSTOM1);
+		if(ibuf->rect==NULL)
+			imb_addrectImBuf(ibuf);
+		BLI_unlock_thread(LOCK_CUSTOM1);
+	}
 
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
@@ -391,14 +388,19 @@ static ScrArea *find_empty_image_area(bContext *C)
 static int screen_render_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
+	Render *re= RE_GetRender(scene->id.name);
+	Image *ima;
 	View3D *v3d= CTX_wm_view3d(C);
 	int lay= (v3d)? v3d->lay|scene->lay: scene->lay;
 
 	if(re==NULL) {
-		re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
+		re= RE_NewRender(scene->id.name);
 	}
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
+
+	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
+	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+	BKE_image_backup_render(scene, ima);
 
 	if(RNA_boolean_get(op->ptr, "animation"))
 		RE_BlenderAnim(re, scene, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
@@ -434,7 +436,7 @@ static void render_freejob(void *rjv)
 	MEM_freeN(rj);
 }
 
-/* str is IMA_RW_MAXTEXT in size */
+/* str is IMA_MAX_RENDER_TEXT in size */
 static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 {
 	char info_time_str[32];	// used to be extern to header_info.c
@@ -475,7 +477,7 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 		spos+= sprintf(spos, "| %s ", rs->infostr);
 
 	/* very weak... but 512 characters is quite safe */
-	if(spos >= str+IMA_RW_MAXTEXT)
+	if(spos >= str+IMA_MAX_RENDER_TEXT)
 		if (G.f & G_DEBUG)
 			printf("WARNING! renderwin text beyond limit \n");
 
@@ -484,12 +486,16 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 {
 	RenderJob *rj= rjv;
+	RenderResult *rr;
+
+	rr= RE_AcquireResultRead(rj->re);
 
 	/* malloc OK here, stats_draw is not in tile threads */
-	if(rj->image->render_text==NULL)
-		rj->image->render_text= MEM_callocN(IMA_RW_MAXTEXT, "rendertext");
+	if(rr->text==NULL)
+		rr->text= MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext");
 
-	make_renderinfo_string(rs, rj->scene, rj->image->render_text);
+	make_renderinfo_string(rs, rj->scene, rr->text);
+	RE_ReleaseResult(rj->re);
 
 	/* make jobs timer to send notifier */
 	*(rj->do_update)= 1;
@@ -630,10 +636,11 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* get a render result image, and make sure it is empty */
 	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+	BKE_image_backup_render(rj->scene, ima);
 	rj->image= ima;
 
 	/* setup new render */
-	re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
+	re= RE_NewRender(scene->id.name);
 	RE_test_break_cb(re, rj, render_breakjob);
 	RE_display_draw_cb(re, rj, image_rect_update);
 	RE_stats_draw_cb(re, rj, image_renderinfo_cb);

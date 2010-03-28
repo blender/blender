@@ -38,6 +38,7 @@
 #include "DNA_screen_types.h"
 
 #include "PIL_time.h"
+#include "BLI_threads.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -60,6 +61,8 @@
 #include "UI_view2d.h"
 
 
+#include "RE_pipeline.h"
+
 #include "image_intern.h"
 
 #define HEADER_HEIGHT 18
@@ -73,50 +76,51 @@ static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf,
 	   NOTE: if float buffer changes, we have to manually remove the rect
 	*/
 
-	if(ibuf->rect_float) {
-		if(ibuf->rect==NULL) {
-			if (color_manage) {
-					if (ima && ima->source == IMA_SRC_VIEWER)
+	if(ibuf->rect_float && ibuf->rect==NULL) {
+		BLI_lock_thread(LOCK_CUSTOM1);
+		if(ibuf->rect_float && ibuf->rect==NULL) {
+			if(color_manage) {
+					if(ima && ima->source == IMA_SRC_VIEWER)
 						ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			} else {
-				ibuf->profile = IB_PROFILE_NONE;
 			}
+			else
+				ibuf->profile = IB_PROFILE_NONE;
+
 			IMB_rect_from_float(ibuf);
 		}
+		BLI_unlock_thread(LOCK_CUSTOM1);
 	}
 }
 
-static void draw_render_info(Image *ima, ARegion *ar)
+static void draw_render_info(Scene *scene, Image *ima, ARegion *ar)
 {
+	RenderResult *rr;
 	rcti rect;
 	float colf[3];
-	int showspare= 0; // XXX BIF_show_render_spare();
 	
-	if(ima->render_text==NULL)
-		return;
-	
-	rect= ar->winrct;
-	rect.xmin= 0;
-	rect.ymin= ar->winrct.ymax - ar->winrct.ymin - HEADER_HEIGHT;
-	rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
-	rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
-	
-	/* clear header rect */
-	UI_GetThemeColor3fv(TH_BACK, colf);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	glColor4f(colf[0]+0.1f, colf[1]+0.1f, colf[2]+0.1f, 0.5f);
-	glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax+1);
-	glDisable(GL_BLEND);
-	
-	UI_ThemeColor(TH_TEXT_HI);
+	rr= BKE_image_acquire_renderresult(scene, ima);
 
-	if(showspare) {
-		UI_DrawString(12, rect.ymin + 5, "(Previous)");
-		UI_DrawString(72, rect.ymin + 5, ima->render_text);
+	if(rr && rr->text) {
+		rect= ar->winrct;
+		rect.xmin= 0;
+		rect.ymin= ar->winrct.ymax - ar->winrct.ymin - HEADER_HEIGHT;
+		rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
+		rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
+		
+		/* clear header rect */
+		UI_GetThemeColor3fv(TH_BACK, colf);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+		glColor4f(colf[0]+0.1f, colf[1]+0.1f, colf[2]+0.1f, 0.5f);
+		glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax+1);
+		glDisable(GL_BLEND);
+		
+		UI_ThemeColor(TH_TEXT_HI);
+
+		UI_DrawString(12, rect.ymin + 5, rr->text);
 	}
-	else
-		UI_DrawString(12, rect.ymin + 5, ima->render_text);
+
+	BKE_image_release_renderresult(scene, ima);
 }
 
 void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf)
@@ -640,8 +644,8 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 
 	/* retrieve the image and information about it */
 	ima= ED_space_image(sima);
-	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 
 	show_viewer= (ima && ima->source == IMA_SRC_VIEWER);
 	show_render= (show_viewer && ima->type == IMA_TYPE_R_RESULT);
@@ -659,10 +663,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	/* paint helpers */
 	draw_image_paint_helpers(sima, ar, scene, zoomx, zoomy);
 
-	/* render info */
-	if(ima && show_render)
-		draw_render_info(ima, ar);
-	
+
 	/* XXX integrate this code */
 #if 0
 	if(ibuf) {
@@ -681,5 +682,9 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 #endif
 
 	ED_space_image_release_buffer(sima, lock);
+
+	/* render info */
+	if(ima && show_render)
+		draw_render_info(scene, ima, ar);
 }
 

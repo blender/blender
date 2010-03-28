@@ -3896,6 +3896,16 @@ class KX_Scene(PyObjectPlus):
 		@param scene: The name of the scene to replace this scene with.
 		@type scene: string
 		"""
+		
+	def suspend():
+		"""
+		Suspends this scene.
+		"""
+		
+	def resume():
+		"""
+		Resume this scene.
+		"""
 	
 	def get(key, default=None):
 		"""

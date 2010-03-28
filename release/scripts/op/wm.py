@@ -536,12 +536,12 @@ class WM_OT_doc_edit(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         props = self.properties
-        layout.label(props, text="Descriptor ID: '%s'" % props.doc_id)
+        layout.label(text="Descriptor ID: '%s'" % props.doc_id)
         layout.prop(props, "doc_new", text="")
 
     def invoke(self, context, event):
         wm = context.manager
-        return wm.invoke_props_dialog(self, event, width=600)
+        return wm.invoke_props_dialog(self, width=600)
 
 
 class WM_OT_reload_scripts(bpy.types.Operator):

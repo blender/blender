@@ -392,6 +392,9 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	void *pixels = NULL;
 	float vfBorderColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
+	if(!GLEW_VERSION_1_2)
+		return NULL;
+
 	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->w = w;
 	tex->h = h;

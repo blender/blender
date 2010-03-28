@@ -327,7 +327,7 @@ Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
 	freestyle_scene->r.planes = R_PLANES32;
 	freestyle_scene->r.imtype = R_PNG;
 	
-	Render *freestyle_render = RE_NewRender(freestyle_scene->id.name, RE_SLOT_DEFAULT);
+	Render *freestyle_render = RE_NewRender(freestyle_scene->id.name);
 
 	RE_RenderFreestyleStrokes(freestyle_render, freestyle_scene);
 	return freestyle_render;

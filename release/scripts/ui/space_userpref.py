@@ -1860,7 +1860,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
         else:
             shutil.move(self.properties.path, path)
 
-        __import__(config_name)
+        exec("import " + config_name)
 
         wm = bpy.context.manager
         wm.active_keyconfig = wm.keyconfigs[config_name]

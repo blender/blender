@@ -355,7 +355,10 @@ static int Buffer_ass_slice(PyObject *self, int begin, int end, PyObject *seq)
 	}
 
 	if (PySequence_Length(seq)!=(end-begin)) {
-		PyErr_SetString(PyExc_TypeError, "size mismatch in assignment");
+		int seq_len = PySequence_Length(seq);
+		char err_str[128];
+		sprintf(err_str, "size mismatch in assignment. Expected size: %d (size provided: %d)", seq_len, (end-begin));
+		PyErr_SetString(PyExc_TypeError, err_str);
 		return -1;
 	}
 	
@@ -476,6 +479,7 @@ BGL_Wrap(1, Color4usv,        void,     (GLushortP))
 BGL_Wrap(4, ColorMask,        void,     (GLboolean, GLboolean, GLboolean, GLboolean))
 BGL_Wrap(2, ColorMaterial,    void,     (GLenum, GLenum))
 BGL_Wrap(5, CopyPixels,       void,     (GLint, GLint, GLsizei, GLsizei, GLenum))
+BGL_Wrap(8, CopyTexImage2D,   void,     (GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei, GLint))
 BGL_Wrap(1, CullFace,         void,     (GLenum))
 BGL_Wrap(2, DeleteLists,      void,     (GLuint, GLsizei))
 BGL_Wrap(2, DeleteTextures,   void,   (GLsizei, GLuintP))
@@ -819,6 +823,7 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(ColorMask),
 	MethodDef(ColorMaterial),
 	MethodDef(CopyPixels),
+	MethodDef(CopyTexImage2D),
 	MethodDef(CullFace),
 	MethodDef(DeleteLists),
 	MethodDef(DeleteTextures),

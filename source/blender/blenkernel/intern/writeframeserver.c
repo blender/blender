@@ -1,4 +1,6 @@
 /*
+ * $Id$
+ *
  * Frameserver
  * Makes Blender accessible from TMPGenc directly using VFAPI (you can
  * use firefox too ;-)
@@ -93,7 +95,7 @@ static int select_was_interrupted_by_signal()
 	return (errno == EINTR);
 }
 
-static int closesocket(int fd) 
+static int closesocket(int fd)
 {
 	return close(fd);
 }
@@ -140,10 +142,10 @@ int start_frameserver(struct Scene *scene, RenderData *rd, int rectx, int recty,
 	return 1;
 }
 
-static char index_page[] 
-= 
-"HTTP/1.1 200 OK\n"
-"Content-Type: text/html\n\n"
+static char index_page[] =
+"HTTP/1.1 200 OK\r\n"
+"Content-Type: text/html\r\n"
+"\r\n"
 "<html><head><title>Blender Frameserver</title></head>\n"
 "<body><pre>\n"
 "<H2>Blender Frameserver</H2>\n"
@@ -156,9 +158,10 @@ static char index_page[]
 "\n"
 "</pre></body></html>\n";
 
-static char good_bye[]
-= "HTTP/1.1 200 OK\n"
-"Content-Type: text/html\n\n"
+static char good_bye[] =
+"HTTP/1.1 200 OK\r\n"
+"Content-Type: text/html\r\n"
+"\r\n"
 "<html><head><title>Blender Frameserver</title></head>\n"
 "<body><pre>\n"
 "Render stopped. Goodbye</pre></body></html>";
@@ -216,13 +219,14 @@ static int handle_request(RenderData *rd, char * req)
 	if (strcmp(path, "/info.txt") == 0) {
 		char buf[4096];
 
-		sprintf(buf, 
-			"HTTP/1.1 200 OK\n"
-			"Content-Type: text/html\n\n"
+		sprintf(buf,
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: text/html\r\n"
+			"\r\n"
 			"start %d\n"
 			"end %d\n"
 			"width %d\n"
-			"height %d\n" 
+			"height %d\n"
 			"rate %d\n"
 			"ratescale %d\n",
 			rd->sfra,
@@ -317,10 +321,11 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 	int y;
 	char header[1024];
 
-	sprintf(header, 
-		"HTTP/1.1 200 OK\n"
-		"Content-Type: image/ppm\n"
-		"Connection: close\n\n"
+	sprintf(header,
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Type: image/ppm\r\n"
+		"Connection: close\r\n"
+		"\r\n"
 		"P6\n"
 		"# Creator: blender frameserver v0.0.1\n"
 		"%d %d\n"
@@ -343,7 +348,7 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 			target += 3;
 			src += 4;
 		}
-		safe_write((char*)row, 3 * rectx); 
+		safe_write((char*)row, 3 * rectx);
 	}
 	free(row);
 	closesocket(connsock);

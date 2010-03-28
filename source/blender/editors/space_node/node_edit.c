@@ -1650,7 +1650,7 @@ void node_read_renderlayers(SpaceNode *snode)
 void node_read_fullsamplelayers(SpaceNode *snode)
 {
 	Scene *curscene= NULL; // XXX
-	Render *re= RE_NewRender(curscene->id.name, RE_SLOT_VIEW);
+	Render *re= RE_NewRender(curscene->id.name);
 
 	WM_cursor_wait(1);
 

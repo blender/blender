@@ -65,11 +65,7 @@ def fixName(name):
     else:
         return name.replace(' ', '_')
 
-# A Dict of Materials
-# (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
-MTL_DICT = {}
-
-def write_mtl(scene, filename, copy_images):
+def write_mtl(scene, filename, copy_images, mtl_dict):
 
     world = scene.world
     worldAmb = world.ambient_color
@@ -93,9 +89,9 @@ def write_mtl(scene, filename, copy_images):
     file = open(filename, "w")
     # XXX
 #	file.write('# Blender3D MTL File: %s\n' % Blender.Get('filename').split('\\')[-1].split('/')[-1])
-    file.write('# Material Count: %i\n' % len(MTL_DICT))
+    file.write('# Material Count: %i\n' % len(mtl_dict))
     # Write material/image combinations we have used.
-    for key, (mtl_mat_name, mat, img) in MTL_DICT.items():
+    for key, (mtl_mat_name, mat, img) in mtl_dict.items():
 
         # Get the Blender data for the material and the image.
         # Having an image named None will make a bug, dont do it :)
@@ -173,7 +169,7 @@ def copy_images(dest_dir):
 
     # Get unique image names
     uniqueImages = {}
-    for matname, mat, image in MTL_DICT.values(): # Only use image name
+    for matname, mat, image in mtl_dict.values(): # Only use image name
         # Get Texface images
         if image:
             uniqueImages[image] = image # Should use sets here. wait until Python 2.4 is default.
@@ -382,6 +378,10 @@ def write(filename, objects, scene,
     face_vert_index = 1
 
     globalNormals = {}
+
+    # A Dict of Materials
+    # (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
+    mtl_dict = {}
 
     # Get all meshes
     for ob_main in objects:
@@ -691,7 +691,7 @@ def write(filename, objects, scene,
                         file.write('usemtl (null)\n') # mat, image
 
                     else:
-                        mat_data= MTL_DICT.get(key)
+                        mat_data= mtl_dict.get(key)
                         if not mat_data:
                             # First add to global dict so we can export to mtl
                             # Then write mtl
@@ -701,9 +701,9 @@ def write(filename, objects, scene,
 
                             # If none image dont bother adding it to the name
                             if key[1] == None:
-                                mat_data = MTL_DICT[key] = ('%s'%fixName(key[0])), materialItems[f_mat], f_image
+                                mat_data = mtl_dict[key] = ('%s'%fixName(key[0])), materialItems[f_mat], f_image
                             else:
-                                mat_data = MTL_DICT[key] = ('%s_%s' % (fixName(key[0]), fixName(key[1]))), materialItems[f_mat], f_image
+                                mat_data = mtl_dict[key] = ('%s_%s' % (fixName(key[0]), fixName(key[1]))), materialItems[f_mat], f_image
 
                         if EXPORT_GROUP_BY_MAT:
                             file.write('g %s_%s_%s\n' % (fixName(ob.name), fixName(ob.data.name), mat_data[0]) ) # can be mat_image or (null)
@@ -782,7 +782,7 @@ def write(filename, objects, scene,
 
     # Now we have all our materials, save them
     if EXPORT_MTL:
-        write_mtl(scene, mtlfilename, EXPORT_COPY_IMAGES)
+        write_mtl(scene, mtlfilename, EXPORT_COPY_IMAGES, mtl_dict)
 # 	if EXPORT_COPY_IMAGES:
 # 		dest_dir = os.path.basename(filename)
 # # 		dest_dir = filename
@@ -790,7 +790,7 @@ def write(filename, objects, scene,
 # # 		while dest_dir and dest_dir[-1] not in '\\/':
 # # 			dest_dir = dest_dir[:-1]
 # 		if dest_dir:
-# 			copy_images(dest_dir)
+# 			copy_images(dest_dir, mtl_dict)
 # 		else:
 # 			print('\tError: "%s" could not be used as a base for an image path.' % filename)
 

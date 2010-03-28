@@ -1709,13 +1709,17 @@ Base *ED_object_add_duplicate(Scene *scene, Base *base, int dupflag)
 
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
-	
+
 	basen= object_add_duplicate_internal(scene, base, dupflag);
+	if (basen == NULL) {
+		return NULL;
+	}
+
 	ob= basen->object;
-	
+
 	DAG_scene_sort(scene);
 	ED_render_id_flush_update(G.main, ob->data);
-	
+
 	return basen;
 }
 
@@ -1735,6 +1739,10 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		/* note that this is safe to do with this context iterator,
 		   the list is made in advance */
 		ED_base_object_select(base, BA_DESELECT);
+
+		if (basen == NULL) {
+			continue;
+		}
 
 		/* new object becomes active */
 		if(BASACT==base)
@@ -1798,36 +1806,42 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	int linked= RNA_boolean_get(op->ptr, "linked");
 	int dupflag= (linked)? 0: U.dupflag;
 	char name[32];
-	
+
 	/* find object, create fake base */
 	RNA_string_get(op->ptr, "name", name);
 	ob= (Object *)find_id("OB", name);
 	if(ob==NULL) 
 		return OPERATOR_CANCELLED;
-	
+
 	base= MEM_callocN(sizeof(Base), "duplibase");
 	base->object= ob;
 	base->flag= ob->flag;
-	
+
 	/* prepare dupli */
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
-	
+
 	basen= object_add_duplicate_internal(scene, base, dupflag);
+
+	if (basen == NULL) {
+		MEM_freeN(base);
+		return OPERATOR_CANCELLED;
+	}
+
 	basen->lay= basen->object->lay= scene->lay;
-	
+
 	ED_object_location_from_view(C, basen->object->loc);
 	ED_base_object_activate(C, basen);
-	
+
 	copy_object_set_idnew(C, dupflag);
-	
+
 	DAG_scene_sort(scene);
 	DAG_ids_flush_update(0);
-	
+
 	MEM_freeN(base);
-	
+
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
-	
+
 	return OPERATOR_FINISHED;
 }
 

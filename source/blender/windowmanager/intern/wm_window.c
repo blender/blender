@@ -1057,7 +1057,9 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
 	if (win && win->ghostwin) {
 		int oldx=x, oldy=y;
 
+#if !defined(__APPLE__) || !defined(GHOST_COCOA)
 		y= win->sizey -y - 1;
+#endif
 		GHOST_ClientToScreen(win->ghostwin, x, y, &x, &y);
 		GHOST_SetCursorPosition(g_system, x, y);
 

@@ -318,6 +318,34 @@ def glCopyPixels(x, y, width, height, type):
   @type type: Enumerated constant
   @param type: Specifies whether color values, depth values, or stencil values are to be copied. 
   """
+  
+  def glCopyTexImage2D(target, level, internalformat, x, y, width, height, border):
+  """
+  Copy pixels into a 2D texture image
+  @see: U{www.opengl.org/sdk/docs/man/xhtml/glCopyTexImage2D.xml}
+
+  @type target: Enumerated constant
+  @param target: Specifies the target texture. 
+  @type level: int
+  @param level: Specifies the level-of-detail number. Level 0 is the base image level. 
+  Level n is the nth mipmap reduction image. 
+  @type internalformat: int
+  @param internalformat: Specifies the number of color components in the texture. 
+  @type width: int
+  @type x, y: int
+  @param x, y:Specify the window coordinates of the first pixel that is copied 
+  from the frame buffer. This location is the lower left corner of a rectangular
+  block of pixels.
+  @param width: Specifies the width of the texture image. Must be 2n+2(border) for 
+  some integer n. All implementations support texture images that are at least 64 
+  texels wide. 
+  @type height: int
+  @param height: Specifies the height of the texture image. Must be 2m+2(border) for 
+  some integer m. All implementations support texture images that are at least 64 
+  texels high. 
+  @type border: int
+  @param border: Specifies the width of the border. Must be either 0 or 1. 
+  """
 
 def glCullFace(mode):
   """

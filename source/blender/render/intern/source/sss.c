@@ -878,7 +878,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		re->result= NULL;
 	BLI_rw_mutex_unlock(&re->resultmutex);
 
-	RE_TileProcessor(re, 0, 1);
+	RE_TileProcessor(re);
 	
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	if(!(re->r.scemode & R_PREVIEWBUTS)) {

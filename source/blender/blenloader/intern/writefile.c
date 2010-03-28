@@ -1625,10 +1625,6 @@ static void write_images(WriteData *wd, ListBase *idbase)
 			}
 
 			write_previews(wd, ima->preview);
-
-			/* exception: render text only saved in undo files (wd->current) */
-			if (ima->render_text && wd->current)
-				writedata(wd, DATA, IMA_RW_MAXTEXT, ima->render_text);
 		}
 		ima= ima->id.next;
 	}

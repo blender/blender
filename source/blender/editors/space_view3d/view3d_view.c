@@ -66,6 +66,7 @@
 #include "ED_screen.h"
 #include "ED_armature.h"
 
+#include "GPU_draw.h"
 
 
 #include "PIL_time.h" /* smoothview */
@@ -1413,6 +1414,11 @@ static void copy_view3d_lock_space(View3D *v3d, Scene *scene)
 			}
 		}
 	}
+}
+
+void ED_view3d_scene_layers_copy(struct View3D *v3d, struct Scene *scene)
+{
+	copy_view3d_lock_space(v3d, scene);
 }
 
 void ED_view3d_scene_layers_update(Main *bmain, Scene *scene)

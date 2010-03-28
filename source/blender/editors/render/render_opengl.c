@@ -189,7 +189,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->iuser.ok= 1;
 
 	/* create render and render result */
-	oglrender->re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
+	oglrender->re= RE_NewRender(scene->id.name);
 	RE_InitState(oglrender->re, NULL, &scene->r, NULL, sizex, sizey, NULL);
 
 	rr= RE_AcquireResultWrite(oglrender->re);

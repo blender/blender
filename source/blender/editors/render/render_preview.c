@@ -299,6 +299,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			sce->r.alphamode= R_ADDSKY;
 
 		sce->r.cfra= scene->r.cfra;
+		strcpy(sce->r.engine, scene->r.engine);
 		
 		if(id_type==ID_MA) {
 			Material *mat= (Material *)id;
@@ -470,7 +471,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		}
 	}
 
-	re= RE_GetRender(name, RE_SLOT_DEFAULT);
+	re= RE_GetRender(name);
 	RE_AcquireResultImage(re, &rres);
 
 	if(rres.rectf) {
@@ -698,7 +699,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 		ri->status= 0;
 		
 		sprintf(name, "View3dPreview %p", sa);
-		re= ri->re= RE_NewRender(name, RE_SLOT_DEFAULT);
+		re= ri->re= RE_NewRender(name);
 		//RE_display_draw_cb(re, view3d_previewrender_progress);
 		//RE_stats_draw_cb(re, view3d_previewrender_stats);
 		//RE_test_break_cb(re, qtest);
@@ -780,7 +781,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 		/* OK, can we enter render code? */
 		if(ri->status==(PR_DISPRECT|PR_DBASE|PR_PROJECTED|PR_ROTATED)) {
 			//printf("curtile %d tottile %d\n", ri->curtile, ri->tottile);
-			RE_TileProcessor(ri->re, ri->curtile, 0);
+			RE_TileProcessor(ri->re); //, ri->curtile, 0);
 	
 			if(ri->rect==NULL)
 				ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "preview view3d rect");
@@ -885,11 +886,11 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	
 	if(!split || first) sprintf(name, "Preview %p", sp->owner);
 	else sprintf(name, "SecondPreview %p", sp->owner);
-	re= RE_GetRender(name, RE_SLOT_DEFAULT);
+	re= RE_GetRender(name);
 	
 	/* full refreshed render from first tile */
 	if(re==NULL)
-		re= RE_NewRender(name, RE_SLOT_DEFAULT);
+		re= RE_NewRender(name);
 		
 	/* sce->r gets copied in RE_InitState! */
 	sce->r.scemode &= ~(R_MATNODE_PREVIEW|R_TEXNODE_PREVIEW);
@@ -915,7 +916,9 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	else sizex= sp->sizex;
 
 	/* allocates or re-uses render result */
-	RE_InitState(re, NULL, &sce->r, NULL, sizex, sp->sizey, NULL);
+	sce->r.xsch= sizex;
+	sce->r.ysch= sp->sizey;
+	sce->r.size= 100;
 
 	/* callbacs are cleared on GetRender() */
 	if(sp->pr_method==PR_BUTS_RENDER) {
@@ -928,10 +931,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		((Camera *)sce->camera->data)->lens *= (float)sp->sizey/(float)sizex;
 
 	/* entire cycle for render engine */
-	RE_SetCamera(re, sce->camera);
-	RE_Database_FromScene(re, sce, sce->lay, 1);
-	RE_TileProcessor(re, 0, 1);	// actual render engine
-	RE_Database_Free(re);
+	RE_PreviewRender(re, sce);
 
 	((Camera *)sce->camera->data)->lens= oldlens;
 

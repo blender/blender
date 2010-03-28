@@ -233,7 +233,7 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 void applyProject(TransInfo *t)
 {
 	/* XXX FLICKER IN OBJECT MODE */
-	if ((t->tsnap.project) && activeSnap(t))
+	if ((t->tsnap.project) && activeSnap(t) && (t->flag & T_NO_PROJECT) == 0)
 	{
 		TransData *td = t->data;
 		float tvec[3];
