@@ -89,6 +89,7 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 	}
 	
 	out= (bPose*)MEM_dupallocN(src);
+	out->chanhash = NULL;
 	out->agroups.first= out->agroups.last= NULL;
 	out->ikdata = NULL;
 	out->ikparam = MEM_dupallocN(out->ikparam);
@@ -120,7 +121,8 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 	}
 
 	BLI_ghash_free(ghash, NULL, NULL);
-	
+	// set acceleration structure for channel lookup
+	make_pose_channels_hash(out);
 	*dst=out;
 }
 
