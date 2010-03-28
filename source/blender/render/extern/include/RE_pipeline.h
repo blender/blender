@@ -253,9 +253,10 @@ struct Scene *RE_GetScene(struct Render *re);
 
 /* External Engine */
 
-#define RE_INTERNAL		1
-#define RE_GAME			2
-#define RE_DO_PREVIEW	4
+#define RE_INTERNAL			1
+#define RE_GAME				2
+#define RE_DO_PREVIEW		4
+#define RE_DO_ALL			8
 
 extern ListBase R_engines;
 

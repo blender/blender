@@ -207,14 +207,12 @@ static int rna_RenderPass_rect_get_length(PointerRNA *ptr, int length[RNA_MAX_AR
 static void rna_RenderPass_rect_get(PointerRNA *ptr, float *values)
 {
 	RenderPass *rpass= (RenderPass*)ptr->data;
-	printf("rect get\n");
 	memcpy(values, rpass->rect, sizeof(float)*rpass->rectx*rpass->recty*rpass->channels);
 }
 
 static void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
 {
 	RenderPass *rpass= (RenderPass*)ptr->data;
-	printf("rect set\n");
 	memcpy(rpass->rect, values, sizeof(float)*rpass->rectx*rpass->recty*rpass->channels);
 }
 
@@ -281,6 +279,10 @@ static void rna_def_render_engine(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "bl_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_DO_PREVIEW);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	prop= RNA_def_property(srna, "bl_postprocess", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "type->flag", RE_DO_ALL);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	RNA_define_verify_sdna(1);

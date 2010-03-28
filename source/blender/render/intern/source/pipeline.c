@@ -1736,12 +1736,12 @@ void RE_TileProcessor(Render *re)
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
-static int external_render_3d(Render *re);
+static int external_render_3d(Render *re, int do_all);
 
 static void do_render_3d(Render *re)
 {
 	/* try external */
-	if(external_render_3d(re))
+	if(external_render_3d(re, 0))
 		return;
 
 	/* internal */
@@ -2479,8 +2479,11 @@ static void do_render_all_options(Render *re)
 
 	/* ensure no images are in memory from previous animated sequences */
 	BKE_image_all_free_anim_ibufs(re->r.cfra);
-	
-	if((re->r.scemode & R_DOSEQ) && re->scene->ed && re->scene->ed->seqbase.first) {
+
+	if(external_render_3d(re, 1)) {
+		/* in this case external render overrides all */
+	}
+	else if((re->r.scemode & R_DOSEQ) && re->scene->ed && re->scene->ed->seqbase.first) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
 		if(!re->test_break(re->tbh)) 
 			do_render_seq(re);
@@ -3132,7 +3135,7 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, char *f
 	}
 }
 
-static int external_render_3d(Render *re)
+static int external_render_3d(Render *re, int do_all)
 {
 	RenderEngineType *type;
 	RenderEngine engine;
@@ -3144,6 +3147,10 @@ static int external_render_3d(Render *re)
 	if(!(type && type->render))
 		return 0;
 	if((re->r.scemode & R_PREVIEWBUTS) && !(type->flag & RE_DO_PREVIEW))
+		return 0;
+	if(do_all && !(type->flag & RE_DO_ALL))
+		return 0;
+	if(!do_all && (type->flag & RE_DO_ALL))
 		return 0;
 
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
