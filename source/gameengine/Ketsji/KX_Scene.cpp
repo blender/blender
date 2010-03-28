@@ -1887,6 +1887,8 @@ PyMethodDef KX_Scene::Methods[] = {
 	KX_PYMETHODTABLE(KX_Scene, end),
 	KX_PYMETHODTABLE(KX_Scene, restart),
 	KX_PYMETHODTABLE(KX_Scene, replace),
+	KX_PYMETHODTABLE(KX_Scene, suspend),
+	KX_PYMETHODTABLE(KX_Scene, resume),
 	
 	/* dict style access */
 	KX_PYMETHODTABLE(KX_Scene, get),
@@ -2189,6 +2191,24 @@ KX_PYMETHODDEF_DOC(KX_Scene, replace,
 		return NULL;
 	
 	KX_GetActiveEngine()->ReplaceScene(m_sceneName, name);
+	
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, suspend,
+					"suspend()\n"
+					"Suspends this scene.\n")
+{
+	Suspend();
+	
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, resume,
+					"resume()\n"
+					"Resumes this scene.\n")
+{
+	Resume();
 	
 	Py_RETURN_NONE;
 }
