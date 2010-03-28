@@ -38,6 +38,7 @@
 #include "DNA_screen_types.h"
 
 #include "PIL_time.h"
+#include "BLI_threads.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -75,16 +76,19 @@ static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf,
 	   NOTE: if float buffer changes, we have to manually remove the rect
 	*/
 
-	if(ibuf->rect_float) {
-		if(ibuf->rect==NULL) {
-			if (color_manage) {
-					if (ima && ima->source == IMA_SRC_VIEWER)
+	if(ibuf->rect_float && ibuf->rect==NULL) {
+		BLI_lock_thread(LOCK_CUSTOM1);
+		if(ibuf->rect_float && ibuf->rect==NULL) {
+			if(color_manage) {
+					if(ima && ima->source == IMA_SRC_VIEWER)
 						ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			} else {
-				ibuf->profile = IB_PROFILE_NONE;
 			}
+			else
+				ibuf->profile = IB_PROFILE_NONE;
+
 			IMB_rect_from_float(ibuf);
 		}
+		BLI_unlock_thread(LOCK_CUSTOM1);
 	}
 }
 

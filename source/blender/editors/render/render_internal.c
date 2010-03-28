@@ -30,30 +30,24 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
-#include "BLI_dlrbTree.h"
+#include "BLI_math.h"
+#include "BLI_threads.h"
 
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
-#include "BKE_sound.h"
-#include "BKE_writeavi.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -67,7 +61,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-
 
 #include "wm_window.h"
 
@@ -136,8 +129,12 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	}
 	if(rectf==NULL) return;
 
-	if(ibuf->rect==NULL)
-		imb_addrectImBuf(ibuf);
+	if(ibuf->rect==NULL) {
+		BLI_lock_thread(LOCK_CUSTOM1);
+		if(ibuf->rect==NULL)
+			imb_addrectImBuf(ibuf);
+		BLI_unlock_thread(LOCK_CUSTOM1);
+	}
 
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);

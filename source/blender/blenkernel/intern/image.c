@@ -1948,8 +1948,11 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	ibuf->x= rres.rectx;
 	ibuf->y= rres.recty;
 	
-	if(ibuf->rect_float!=rectf || rect) /* ensure correct redraw */
+	if(ibuf->rect_float!=rectf || rect) { /* ensure correct redraw */
+		BLI_lock_thread(LOCK_CUSTOM1);
 		imb_freerectImBuf(ibuf);
+		BLI_unlock_thread(LOCK_CUSTOM1);
+	}
 	if(rect)
 		ibuf->rect= rect;
 	
