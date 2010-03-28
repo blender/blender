@@ -3717,9 +3717,10 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		/* calculate projection matrix */
 		invert_m4_m4(projectors[i].projmat, projectors[i].ob->obmat);
 
+		projectors[i].uci= NULL;
+
 		if(projectors[i].ob->type == OB_CAMERA) {
 			cam = (Camera *)projectors[i].ob->data;
-			projectors[i].uci= NULL;
 
 			if(cam->flag & CAM_PANORAMA) {
 				projectors[i].uci= project_camera_info(projectors[i].ob, NULL, aspx, aspy);
