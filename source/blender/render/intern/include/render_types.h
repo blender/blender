@@ -219,6 +219,8 @@ struct Render
 	ListBase volumes;
 	ListBase volume_precache_parts;
 
+	ListBase freestyle_renders;
+
 	/* arena for allocating data for use during render, for
 		* example dynamic TFaces to go in the VlakRen structure.
 		*/

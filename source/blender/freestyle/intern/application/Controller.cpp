@@ -676,8 +676,13 @@ void Controller::DrawStrokes()
   resetModified();
 }
 
+void Controller::ResetRenderCount()
+{
+	_render_count = 0;
+}
+
 Render* Controller::RenderStrokes(Render *re) {
-	BlenderStrokeRenderer* blenderRenderer = new BlenderStrokeRenderer(re);
+	BlenderStrokeRenderer* blenderRenderer = new BlenderStrokeRenderer(re, ++_render_count);
   	_Canvas->Render( blenderRenderer );
 	Render* freestyle_render = blenderRenderer->RenderScene(re);
 	delete blenderRenderer;

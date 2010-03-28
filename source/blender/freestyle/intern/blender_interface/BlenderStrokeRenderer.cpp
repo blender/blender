@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 
-BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re)
+BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 :StrokeRenderer(){
 	
 	// TEMPORARY - need a  texture manager
@@ -45,7 +45,9 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re)
 	objects.first = objects.last = NULL;
 	
 	ListBase lb;
-	freestyle_scene = add_scene("freestyle_strokes");
+	char name[22];
+	snprintf(name, sizeof(name), "FRS%d_%s", render_count, re->scene->id.name+2);
+	freestyle_scene = add_scene(name);
 	lb = freestyle_scene->r.layers;
 	freestyle_scene->r= old_scene->r;
 	freestyle_scene->r.layers= lb;
@@ -94,9 +96,6 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer(){
 	    delete _textureManager;
 	    _textureManager = 0;
 	  }
-
-	// release scene
-	free_libblock( &G.main->scene, freestyle_scene );
 
 	// release objects and data blocks
 	LinkData *link = (LinkData *)objects.first;

@@ -19,7 +19,10 @@ extern "C" {
 	// Rendering
 	void FRS_initialize();
 	void FRS_set_context(bContext* C);
-	void FRS_add_Freestyle( struct Render* re);
+	int FRS_is_freestyle_enabled(struct SceneRenderLayer* srl);
+	void FRS_init_stroke_rendering(struct Render* re);
+	struct Render* FRS_do_stroke_rendering(struct Render* re, struct SceneRenderLayer* srl);
+	void FRS_composite_result(struct Render* re, struct SceneRenderLayer* srl, struct Render* freestyle_render);
 	void FRS_exit();
 	
 	// Panel configuration

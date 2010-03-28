@@ -85,6 +85,7 @@ public:
   void saveSteerableViewMapImages();
   void toggleEdgeTesselationNature(Nature::EdgeNature iNature);
   void DrawStrokes();
+  void ResetRenderCount();
   Render* RenderStrokes(Render *re);
   void SwapStyleModules(unsigned i1, unsigned i2);
   void InsertStyleModule(unsigned index, const char *iFileName);
@@ -204,6 +205,7 @@ private:
   real _EPSILON;
   real _bboxDiag;
 
+  int _render_count;
 
   //AppStyleWindow *_pStyleWindow;
   //AppOptionsWindow *_pOptionsWindow;

@@ -185,7 +185,7 @@ extern "C" {
 		controller->ComputeViewMap();
 	}
 	
-	void composite_result(Render* re, SceneRenderLayer* srl, Render* freestyle_render)
+	void FRS_composite_result(Render* re, SceneRenderLayer* srl, Render* freestyle_render)
 	{
 
 		RenderLayer *rl;
@@ -230,64 +230,66 @@ extern "C" {
 		}
 		return count;
 	}
+
+	int FRS_is_freestyle_enabled(SceneRenderLayer* srl) {
+		return (!(srl->layflag & SCE_LAY_DISABLE) &&
+			 	srl->layflag & SCE_LAY_FRS &&
+				displayed_layer_count(srl) > 0);
+	}
 	
-	void FRS_add_Freestyle(Render* re) {
-		
-		SceneRenderLayer *srl;
-		Render* freestyle_render = NULL;
-		
-		// init
+	void FRS_init_stroke_rendering(Render* re) {
+
 		cout << "\n#===============================================================" << endl;
 		cout << "#  Freestyle" << endl;
 		cout << "#===============================================================" << endl;
 		
 		init_view(re);
 		init_camera(re);
-		freestyle_scene = re->scene;
+
+		controller->ResetRenderCount();
+	}
+	
+	Render* FRS_do_stroke_rendering(Render* re, SceneRenderLayer *srl) {
 		
-		for(srl= (SceneRenderLayer *)re->scene->r.layers.first; srl; srl= srl->next) {
-			if( !(srl->layflag & SCE_LAY_DISABLE) &&
-			 	srl->layflag & SCE_LAY_FRS &&
-				displayed_layer_count(srl) > 0       )
-			{
-				cout << "\n----------------------------------------------------------" << endl;
-				cout << "|  " << (re->scene->id.name+2) << "|" << srl->name << endl;
-				cout << "----------------------------------------------------------" << endl;
-				
-				// prepare Freestyle:
-				//   - clear canvas
-				//   - load mesh
-				//   - add style modules
-				//   - set parameters
-				//   - compute view map
-				prepare(re, srl);
+		Render* freestyle_render = NULL;
+		
+		cout << "\n----------------------------------------------------------" << endl;
+		cout << "|  " << (re->scene->id.name+2) << "|" << srl->name << endl;
+		cout << "----------------------------------------------------------" << endl;
+		
+		// prepare Freestyle:
+		//   - clear canvas
+		//   - load mesh
+		//   - add style modules
+		//   - set parameters
+		//   - compute view map
+		prepare(re, srl);
 
-                if( re->test_break(re->tbh) ) {
-					controller->CloseFile();
-                    break;
-                }
+        if( re->test_break(re->tbh) ) {
+			controller->CloseFile();
+            return NULL;
+        }
 
-				// render and composite Freestyle result
-				if( controller->_ViewMap ) {
-					
-					// render strokes					
-                    re->i.infostr= "Freestyle: Stroke rendering";
-		            re->stats_draw(re->sdh, &re->i);
-                	re->i.infostr= NULL;
-					controller->DrawStrokes();
-					freestyle_render = controller->RenderStrokes(re);
-					controller->CloseFile();
-					
-					// composite result
-					composite_result(re, srl, freestyle_render);
-					
-					// free resources
-					RE_FreeRender(freestyle_render);
-				}
-			}
+		// render and composite Freestyle result
+		if( controller->_ViewMap ) {
+			
+			// render strokes					
+            re->i.infostr= "Freestyle: Stroke rendering";
+            re->stats_draw(re->sdh, &re->i);
+        	re->i.infostr= NULL;
+			freestyle_scene = re->scene;
+			controller->DrawStrokes();
+			freestyle_render = controller->RenderStrokes(re);
+			controller->CloseFile();
+			freestyle_scene = NULL;
+			
+			// composite result
+			FRS_composite_result(re, srl, freestyle_render);
+			RE_FreeRenderResult(freestyle_render->result);
+			freestyle_render->result = NULL;
 		}
-		
-		freestyle_scene = NULL;
+
+		return freestyle_render;
 	}
 
 	//=======================================================

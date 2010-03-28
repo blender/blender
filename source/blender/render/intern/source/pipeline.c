@@ -1829,6 +1829,7 @@ void RE_TileProcessor(Render *re, int firsttile, int threaded)
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
 static void external_render_3d(Render *re, RenderEngineType *type);
+static void add_freestyle(Render *re);
 
 static void do_render_3d(Render *re)
 {
@@ -1864,7 +1865,7 @@ static void do_render_3d(Render *re)
 	/* Freestyle  */
 	if( re->r.mode & R_EDGE_FRS && re->r.renderer==R_INTERN)
 		if(!re->test_break(re->tbh))
-			FRS_add_Freestyle(re);
+			add_freestyle(re);
 		
 	/* free all render verts etc */
 	RE_Database_Free(re);
@@ -2316,6 +2317,64 @@ static void render_composit_stats(void *unused, char *str)
 }
 
 
+/* invokes Freestyle stroke rendering */
+static void add_freestyle(Render *re)
+{
+	SceneRenderLayer *srl;
+	LinkData *link;
+
+	FRS_init_stroke_rendering(re);
+
+	for(srl= (SceneRenderLayer *)re->scene->r.layers.first; srl; srl= srl->next) {
+
+		link = (LinkData *)MEM_callocN(sizeof(LinkData), "LinkData to Freestyle render");
+		BLI_addtail(&re->freestyle_renders, link);
+
+		if( FRS_is_freestyle_enabled(srl) ) {
+			link->data = (void *)FRS_do_stroke_rendering(re, srl);
+		}
+	}
+}
+
+/* merges the results of Freestyle stroke rendering into a given render result */
+static void composite_freestyle_renders(Render *re, int sample)
+{
+	Render *freestyle_render;
+	SceneRenderLayer *srl;
+	LinkData *link;
+
+	link = (LinkData *)re->freestyle_renders.first;
+	for(srl= (SceneRenderLayer *)re->scene->r.layers.first; srl; srl= srl->next) {
+		if( FRS_is_freestyle_enabled(srl) ) {
+			freestyle_render = (Render *)link->data;
+			read_render_result(freestyle_render, sample);
+			FRS_composite_result(re, srl, freestyle_render);
+			RE_FreeRenderResult(freestyle_render->result);
+			freestyle_render->result = NULL;
+		}
+		link = link->next;
+	}
+}
+
+/* releases temporary scenes and renders for Freestyle stroke rendering */
+static void free_all_freestyle_renders(void)
+{
+	Render *re1, *freestyle_render;
+	LinkData *link;
+
+	for(re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
+		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
+			if (link->data) {
+				freestyle_render = (Render *)link->data;
+				free_libblock(&G.main->scene, freestyle_render->scene);
+				RE_FreeRender(freestyle_render);
+			}
+		}
+		BLI_freelistN( &re1->freestyle_renders );
+	}
+}
+
+
 /* reads all buffers, calls optional composite, merges in first result->rectf */
 static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 {
@@ -2339,9 +2398,12 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			
 			tag_scenes_for_render(re);
 			for(re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
-				if(re1->scene->id.flag & LIB_DOIT)
-					if(re1->r.scemode & R_FULL_SAMPLE)
+				if(re1->scene->id.flag & LIB_DOIT) {
+					if(re1->r.scemode & R_FULL_SAMPLE) {
 						read_render_result(re1, sample);
+						composite_freestyle_renders(re1, sample);
+					}
+				}
 			}
 		}
 
@@ -2490,6 +2552,8 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		else if(re->r.scemode & R_FULL_SAMPLE)
 			do_merge_fullsample(re, NULL);
 	}
+
+	free_all_freestyle_renders();
 
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay= render_get_active_layer(re, re->result);
@@ -2824,7 +2888,7 @@ void RE_RenderFreestyleStrokes(Render *re, Scene *scene)
 	re->result_ok= 0;
 	scene->r.cfra= 1;
 	if(render_initialize_from_scene(re, scene, NULL, scene->lay, 0, 0)) {
-		do_render_all_options(re);
+		do_render_fields_blur_3d(re);
 	}
 	re->result_ok= 1;
 }
