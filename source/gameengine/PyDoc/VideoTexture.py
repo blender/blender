@@ -23,15 +23,15 @@ The principle is simple: first you identify a texture on an existing object usin
 the L{materialID} function, then you create a new texture with dynamic content
 and swap the two textures in the GPU. 
 The GE is not aware of the substitution and continues to display the object as always, 
-except that you are now in control of the texture. At the end, the new texture is
-deleted and the old texture restored. 
+except that you are now in control of the texture. When the texture object is deleted,
+the new texture is deleted and the old texture restored. 
 
 Example:
 	import VideoTexture
 	import GameLogic
 
 	contr = GameLogic.getCurrentController()
-	obj = contr.getOwner()
+	obj = contr.owner
 	
 	# the creation of the texture must be done once: save the 
 	# texture object in an attribute of GameLogic module makes it persistent
@@ -62,13 +62,20 @@ def getLastError():
 	
 	@rtype: string
 	"""
-def imageToArray(image):
+def imageToArray(image,mode):
 	"""
-	Returns a string corresponding to the current image stored in a texture source object
+	Returns a BGL.buffer corresponding to the current image stored in a texture source object
 
 	@param image: Image source object.
 	@type image: object of type L{VideoFFmpeg}, L{ImageFFmpeg}, L{ImageBuff}, L{ImageMix}, L{ImageRender}, L{ImageMirror} or L{ImageViewport}
-	@rtype: string representing the image, 4 bytes per pixel in the RGBA order, line per line, starting from the bottom of the image.
+	@param mode: optional argument representing the pixel format. 
+	             You can use the characters R, G, B for the 3 color channels, A for the alpha channel, 
+	             0 to force a fixed 0 color channel and 1 to force a fixed 255 color channel.
+	             Example: "BGR" will return 3 bytes per pixel with the Blue, Green and Red channels in that order. 
+	                      "RGB1" will return 4 bytes per pixel with the Red, Green, Blue channels in that order and the alpha channel forced to 255.
+	             The default mode is "RGBA".
+	@type mode: string
+	@rtype: BGL.buffer object representing the image as one dimensional array of bytes of size (pixel_size*width*height), line by line starting from the bottom of the image. The pixel size and format is determined by the mode parameter.
 	"""
 def materialID(object,name):
 	"""
@@ -80,7 +87,7 @@ def materialID(object,name):
 	position of the texture stack. 	name can also have MA prefix if you want to identify
 	the texture by material. In that case the material must have a texture channel in first
 	position.
-	If the object has no material that matches name, it generates a runtime error. Use try/catch to catch the exception.
+	If the object has no material that matches name, it generates a runtime error. Use try/except to catch the exception.
 	
 	Ex: VideoTexture.materialID(obj, 'IMvideo.png')
 	
@@ -90,17 +97,22 @@ def materialID(object,name):
 	@type name: string
 	@rtype: integer
 	"""
-def setLogFile():
+def setLogFile(filename):
 	"""
-	Does something
-	
-	@rtype: 
+	Sets the name of a text file in which runtime error messages will be written, in addition to the printing
+	of the messages on the Python console. Only the runtime errors specific to the VideoTexture module
+	are written in that file, ordinary runtime time errors are not written. 
+
+	@param filename: name of error log file
+	@type filename: string
+	@rtype: integer
 	"""
 def FilterBGR24():
 	"""
-	Does something
+	Returns a new input filter object to be used with L{ImageBuff} object when the image passed 
+	to the ImageBuff.load() function has the 3-bytes pixel format BGR. 
 	
-	@rtype: 
+	@rtype: object of type FilterBGR24
 	"""
 def FilterBlueScreen():
 	"""
@@ -134,15 +146,17 @@ def FilterNormal():
 	"""
 def FilterRGB24():
 	"""
-	Does something
+	Returns a new input filter object to be used with L{ImageBuff} object when the image passed 
+	to the ImageBuff.load() function has the 3-bytes pixel format RBG.
 	
-	@rtype: 
+	@rtype: object of type FilterRGB24
 	"""
 def FilterRGBA32():
 	"""
-	Does something
+	Returns a new input filter object to be used with L{ImageBuff} object when the image passed 
+	to the ImageBuff.load() function has the 4-bytes pixel format RGBA.
 	
-	@rtype: 
+	@rtype: object of type FilterRGBA32
 	"""
 def ImageBuff():
 	"""
