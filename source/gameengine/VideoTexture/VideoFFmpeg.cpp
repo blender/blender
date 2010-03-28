@@ -56,7 +56,7 @@ m_frame(NULL), m_frameDeinterlaced(NULL), m_frameRGB(NULL), m_imgConvertCtx(NULL
 m_deinterlace(false), m_preseek(0),	m_videoStream(-1), m_baseFrameRate(25.0),
 m_lastFrame(-1),  m_eof(false), m_externTime(false), m_curPosition(-1), m_startTime(0), 
 m_captWidth(0), m_captHeight(0), m_captRate(0.f), m_isImage(false),
-m_isThreaded(false), m_stopThread(false), m_cacheStarted(false)
+m_isThreaded(false), m_isStreaming(false), m_stopThread(false), m_cacheStarted(false)
 {
 	// set video format
 	m_format = RGB24;
@@ -298,6 +298,7 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
  */
 void *VideoFFmpeg::cacheThread(void *data)
 {
+	static int count=0;
 	VideoFFmpeg* video = (VideoFFmpeg*)data;
 	// holds the frame that is being decoded
 	CacheFrame *currentFrame = NULL;
@@ -306,6 +307,8 @@ void *VideoFFmpeg::cacheThread(void *data)
 	int frameFinished = 0;
 	double timeBase = av_q2d(video->m_formatCtx->streams[video->m_videoStream]->time_base);
 	int64_t startTs = video->m_formatCtx->streams[video->m_videoStream]->start_time;
+	long pts;
+
 	if (startTs == AV_NOPTS_VALUE)
 		startTs = 0;
 
@@ -396,6 +399,7 @@ void *VideoFFmpeg::cacheThread(void *data)
 						// move frame to queue, this frame is necessarily the next one
 						video->m_curPosition = (long)((cachePacket->packet.dts-startTs) * (video->m_baseFrameRate*timeBase) + 0.5);
 						currentFrame->framePosition = video->m_curPosition;
+						pts = (long)((cachePacket->packet.pts-startTs) * (video->m_baseFrameRate*timeBase) + 0.5);
 						pthread_mutex_lock(&video->m_cacheMutex);
 						BLI_addtail(&video->m_frameCacheBase, currentFrame);
 						pthread_mutex_unlock(&video->m_cacheMutex);
@@ -544,8 +548,10 @@ void VideoFFmpeg::openFile (char * filename)
 #endif
         )
 	{
-		// the file is in fact a streaming source, prevent seeking
+		// the file is in fact a streaming source, treat as cam to prevent seeking
 		m_isFile = false;
+		// but it's not handled exactly like a camera.
+		m_isStreaming = true;
 		// for streaming it is important to do non blocking read
 		m_formatCtx->flags |= AVFMT_FLAG_NONBLOCK;
 	}
@@ -811,12 +817,12 @@ void VideoFFmpeg::calcImage (unsigned int texId, double ts)
 					// close the file as we don't need it anymore
 					release();
 				}
-			} else if (!m_isFile)
+			} else if (m_isStreaming)
 			{
 				// we didn't get a frame and we are streaming, this may be due to
 				// a delay in the network or because we are getting the frame too fast.
 				// In the later case, shift time by a small amount to compensate for a drift
-				m_startTime += 0.01;
+				m_startTime += 0.001;
 			}
 		}
 	}
@@ -878,14 +884,18 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 			}
 			// for streaming, always return the next frame, 
 			// that's what grabFrame does in non cache mode anyway.
-			if (!m_isFile || frame->framePosition == position)
+			if (m_isStreaming || frame->framePosition == position)
 			{
 				return frame->frame;
 			}
-			if (frame->framePosition > position)
+			// for cam, skip old frames to keep image realtime.
+			// There should be no risk of clock drift since it all happens on the same CPU
+			if (frame->framePosition > position) 
+			{
 				// this can happen after rewind if the seek didn't find the first frame
 				// the frame in the buffer is ahead of time, just leave it there
 				return NULL;
+			}
 			// this frame is not useful, release it
 			pthread_mutex_lock(&m_cacheMutex);
 			BLI_remlink(&m_frameCacheBase, frame);
