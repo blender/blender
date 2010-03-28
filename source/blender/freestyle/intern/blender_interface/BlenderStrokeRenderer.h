@@ -9,7 +9,6 @@ extern "C" {
 #endif
 
 #include "DNA_material_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "render_types.h"
@@ -36,10 +35,7 @@ protected:
 	Scene* old_scene;
 	Scene* freestyle_scene;
 	Material* material;
-	ListBase objects;
 	float _z, _z_delta;
-
-	void store_object(Object *ob) const;
 
 	float get_stroke_vertex_z(void) const;
 };

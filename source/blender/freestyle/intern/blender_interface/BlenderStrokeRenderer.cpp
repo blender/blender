@@ -15,6 +15,7 @@ extern "C" {
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_customdata.h"
@@ -42,8 +43,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	// Scene.New("FreestyleStrokes")
 	old_scene = re->scene;
 
-	objects.first = objects.last = NULL;
-	
 	ListBase lb;
 	char name[22];
 	snprintf(name, sizeof(name), "FRS%d_%s", render_count, re->scene->id.name+2);
@@ -78,8 +77,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	object_camera->loc[2] = 1.0;
 	
 	freestyle_scene->camera = object_camera;
-
-	store_object(object_camera);
 	
 	// Material
 	material = add_material("stroke_material");
@@ -91,16 +88,16 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer(){
 	
-	  if(0 != _textureManager)
-	  {
-	    delete _textureManager;
-	    _textureManager = 0;
-	  }
+	if(0 != _textureManager)
+	{
+		delete _textureManager;
+		_textureManager = 0;
+	}
 
 	// release objects and data blocks
-	LinkData *link = (LinkData *)objects.first;
-	while(link) {
-		Object *ob = (Object *)link->data;
+	Base *b = (Base *)freestyle_scene->base.first;
+	while(b) {
+		Object *ob = b->object;
 		void *data = ob->data;
 		char name[24];
 		strcpy(name, ob->id.name);
@@ -113,25 +110,19 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer(){
 		case OB_CAMERA:
 			free_libblock( &G.main->object, ob );
 			free_libblock( &G.main->camera, data );
+			freestyle_scene->camera = NULL;
 			break;
 		default:
 			cerr << "Warning: unexpected object in the scene: " << name[0] << name[1] << ":" << (name+2) << endl;
 		}
-		link = link->next;
+		b = b->next;
 	}
-	BLI_freelistN( &objects );
+	BLI_freelistN( &freestyle_scene->base );
 
 	// release material
 	free_libblock( &G.main->mat, material );
 	
 	set_scene_bg( old_scene );
-}
-
-void BlenderStrokeRenderer::store_object(Object *ob) const {
-
-	LinkData *link = (LinkData *)MEM_callocN(sizeof(LinkData), "temporary object" );
-	link->data = ob;
-	BLI_addhead(const_cast<ListBase *>(&objects), link);
 }
 
 float BlenderStrokeRenderer::get_stroke_vertex_z(void) const {
@@ -210,8 +201,6 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 		MEM_freeN(mesh->bb);
 		mesh->bb= NULL;
 		mesh->id.us = 0;
-
-		store_object(object_mesh);
 		
 #if 1
 		// me.materials = [mat]
