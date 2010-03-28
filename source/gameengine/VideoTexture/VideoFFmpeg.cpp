@@ -298,7 +298,6 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
  */
 void *VideoFFmpeg::cacheThread(void *data)
 {
-	static int count=0;
 	VideoFFmpeg* video = (VideoFFmpeg*)data;
 	// holds the frame that is being decoded
 	CacheFrame *currentFrame = NULL;
@@ -307,7 +306,6 @@ void *VideoFFmpeg::cacheThread(void *data)
 	int frameFinished = 0;
 	double timeBase = av_q2d(video->m_formatCtx->streams[video->m_videoStream]->time_base);
 	int64_t startTs = video->m_formatCtx->streams[video->m_videoStream]->start_time;
-	long pts;
 
 	if (startTs == AV_NOPTS_VALUE)
 		startTs = 0;
@@ -399,7 +397,6 @@ void *VideoFFmpeg::cacheThread(void *data)
 						// move frame to queue, this frame is necessarily the next one
 						video->m_curPosition = (long)((cachePacket->packet.dts-startTs) * (video->m_baseFrameRate*timeBase) + 0.5);
 						currentFrame->framePosition = video->m_curPosition;
-						pts = (long)((cachePacket->packet.pts-startTs) * (video->m_baseFrameRate*timeBase) + 0.5);
 						pthread_mutex_lock(&video->m_cacheMutex);
 						BLI_addtail(&video->m_frameCacheBase, currentFrame);
 						pthread_mutex_unlock(&video->m_cacheMutex);
