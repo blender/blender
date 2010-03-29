@@ -309,6 +309,6 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_uv_map", UKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_vertex_group", GKEY, KM_PRESS, KM_CTRL, 0);
 	
-	ED_object_generic_keymap(keyconf, keymap, TRUE);
+	ED_object_generic_keymap(keyconf, keymap, 2);
 }
 
