@@ -309,6 +309,8 @@ class INFO_MT_help(bpy.types.Menu):
         layout.separator()
         layout.operator("help.python_api", icon='URL')
         layout.operator("help.operator_cheat_sheet")
+        layout.separator()
+        layout.operator("wm.splash")
 
 
 # Help operators
