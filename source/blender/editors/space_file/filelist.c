@@ -841,6 +841,8 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				file->flags |= FTFONTFILE;			
 		} else if(BLI_testextensie(file->relname, ".btx")) {
 				file->flags |= BTXFILE;
+		} else if(BLI_testextensie(file->relname, ".dae")) {
+			file->flags |= COLLADAFILE;
 		} else if (has_quicktime){
 			if(		BLI_testextensie(file->relname, ".int")
 				||  BLI_testextensie(file->relname, ".inta")

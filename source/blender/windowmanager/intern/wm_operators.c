@@ -813,6 +813,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_btx", (filter & BTXFILE), "Filter btx files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_collada", (filter & COLLADAFILE), "Filter COLLADA files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
@@ -1827,14 +1829,18 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	//char name[FILE_MAX];
-	//BLI_strncpy(name, G.sce, FILE_MAX);
-	//untitled(name);
-
+	char *path;
 	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
 	
+	if(!RNA_property_is_set(op->ptr, "path")) {
+		path = BLI_replacestr(G.sce, ".blend", ".dae");
+		RNA_string_set(op->ptr, "path", path);
+	}
+	
 	WM_event_add_fileselect(C, op);
-
+	
+	if (path) MEM_freeN(path);
+	
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -1843,18 +1849,14 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	
-	if(RNA_property_is_set(op->ptr, "path"))
-		RNA_string_get(op->ptr, "path", filename);
-	else {
-		BLI_strncpy(filename, G.sce, FILE_MAX);
-		untitled(filename);
+	if(!RNA_property_is_set(op->ptr, "path")) {
+		BKE_report(op->reports, RPT_ERROR, "No filename given");
+		return OPERATOR_CANCELLED;
 	}
 	
-	//WM_write_file(C, filename, op->reports);
+	RNA_string_get(op->ptr, "path", filename);
 	collada_export(CTX_data_scene(C), filename);
 	
-	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
-
 	return OPERATOR_FINISHED;
 }
 
@@ -1867,18 +1869,7 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->exec= wm_collada_export_exec;
 	ot->poll= WM_operator_winactive;
 	
-	ot->flag= 0;
-	
-	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
-}
-
-static int wm_collada_import_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
-	
-	WM_event_add_fileselect(C, op);
-
-	return OPERATOR_RUNNING_MODAL;
+	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_SAVE);
 }
 
 /* function used for WM_OT_save_mainfile too */
@@ -1886,18 +1877,14 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	
-	if(RNA_property_is_set(op->ptr, "path"))
-		RNA_string_get(op->ptr, "path", filename);
-	else {
-		BLI_strncpy(filename, G.sce, FILE_MAX);
-		untitled(filename);
+	if(!RNA_property_is_set(op->ptr, "path")) {
+		BKE_report(op->reports, RPT_ERROR, "No filename given");
+		return OPERATOR_CANCELLED;
 	}
-	
-	//WM_write_file(C, filename, op->reports);
+
+	RNA_string_get(op->ptr, "path", filename);
 	collada_import(C, filename);
 	
-	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
-
 	return OPERATOR_FINISHED;
 }
 
@@ -1906,13 +1893,11 @@ static void WM_OT_collada_import(wmOperatorType *ot)
 	ot->name= "Import COLLADA";
 	ot->idname= "WM_OT_collada_import";
 	
-	ot->invoke= wm_collada_import_invoke;
+	ot->invoke= WM_operator_filesel;
 	ot->exec= wm_collada_import_exec;
 	ot->poll= WM_operator_winactive;
 	
-	ot->flag= 0;
-	
-	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_OPENFILE);
 }
 
 #endif

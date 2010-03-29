@@ -669,19 +669,20 @@ enum FileSortTypeE {
 #define FILE_GROUP_INSTANCE	1024
 
 /* files in filesel list: 2=ACTIVE  */
-#define EDITING				1
-#define ACTIVE				2
-#define BLENDERFILE			4
-#define PSXFILE				8
-#define IMAGEFILE			16
-#define MOVIEFILE			32
-#define PYSCRIPTFILE		64
-#define FTFONTFILE			128
-#define SOUNDFILE			256
-#define TEXTFILE			512
-#define MOVIEFILE_ICON		1024 /* movie file that preview can't load */
-#define FOLDERFILE			2048 /* represents folders for filtering */
-#define BTXFILE				4096
+#define EDITING				(1<<0)
+#define ACTIVE				(1<<1)
+#define BLENDERFILE			(1<<2)
+#define PSXFILE				(1<<3)
+#define IMAGEFILE			(1<<4)
+#define MOVIEFILE			(1<<5)
+#define PYSCRIPTFILE		(1<<6)
+#define FTFONTFILE			(1<<7)
+#define SOUNDFILE			(1<<8)
+#define TEXTFILE			(1<<9)
+#define MOVIEFILE_ICON		(1<<10) /* movie file that preview can't load */
+#define FOLDERFILE			(1<<11) /* represents folders for filtering */
+#define BTXFILE				(1<<12)
+#define COLLADAFILE			(1<<13)
 
 /* SpaceImage->dt_uv */
 #define SI_UVDT_OUTLINE	0
