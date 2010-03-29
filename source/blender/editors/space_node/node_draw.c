@@ -394,9 +394,6 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 	rctf *rect= &gnode->totr;
 	int counter;
 	
-	/* init ui blocks for sub-nodetrees */
-	node_uiblocks_init(C, ngroup);
-	
 	/* center them, is a bit of abuse of locx and locy though */
 	for(node= ngroup->nodes.first; node; node= node->next) {
 		node->locx+= gnode->locx;
@@ -1099,7 +1096,15 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	if(snode->nodetree) {
 		bNode *node;
 		
+		/* init ui blocks for opened node group trees first 
+		 * so they're in the correct depth stack order */
+		for(node= snode->nodetree->nodes.first; node; node= node->next) {
+			if(node->flag & NODE_GROUP_EDIT)
+				node_uiblocks_init(C, (bNodeTree *)node->id);
+		}
+
 		node_uiblocks_init(C, snode->nodetree);
+		
 		
 		/* for now, we set drawing coordinates on each redraw */
 		for(node= snode->nodetree->nodes.first; node; node= node->next) {
