@@ -637,7 +637,11 @@ void recalcData(TransInfo *t)
 			if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 				Curve *cu= t->obedit->data;
 				Nurb *nu= cu->editnurb->first;
-				
+
+				if(t->state != TRANS_CANCEL) {
+					clipMirrorModifier(t, t->obedit);
+				}
+
 				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 				
 				if (t->state == TRANS_CANCEL) {
