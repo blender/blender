@@ -53,9 +53,6 @@ void ED_operatortypes_render(void)
 	
 	WM_operatortype_append(MATERIAL_OT_copy);
 	WM_operatortype_append(MATERIAL_OT_paste);
-	
-	WM_operatortype_append(MATERIAL_OT_mtex_copy);
-	WM_operatortype_append(MATERIAL_OT_mtex_paste);
 
 	WM_operatortype_append(SCENE_OT_render_layer_add);
 	WM_operatortype_append(SCENE_OT_render_layer_remove);
@@ -64,6 +61,8 @@ void ED_operatortypes_render(void)
 	WM_operatortype_append(SCENE_OT_render_data_set_quicktime_codec);
 #endif
 	
+	WM_operatortype_append(TEXTURE_OT_slot_copy);
+	WM_operatortype_append(TEXTURE_OT_slot_paste);
 	WM_operatortype_append(TEXTURE_OT_slot_move);
 	WM_operatortype_append(TEXTURE_OT_envmap_save);
 	WM_operatortype_append(TEXTURE_OT_envmap_clear);

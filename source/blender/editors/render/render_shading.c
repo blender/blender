@@ -1030,57 +1030,153 @@ void MATERIAL_OT_paste(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int copy_material_mtex_exec(bContext *C, wmOperator *op)
+
+static short mtexcopied=0; /* must be reset on file load */
+static MTex mtexcopybuf;
+
+void ED_render_clear_mtex_copybuf(void)
+{	/* use for file reload */
+	mtexcopied= 0;
+}
+
+void copy_mtex_copybuf(ID *id)
 {
-	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+	MTex **mtex= NULL;
+	
+	switch(GS(id->name)) {
+		case ID_MA:
+			mtex= &(((Material *)id)->mtex[(int)((Material *)id)->texact]);
+			break;
+		case ID_LA:
+			mtex= &(((Lamp *)id)->mtex[(int)((Lamp *)id)->texact]);
+			// la->mtex[(int)la->texact] // TODO
+			break;
+		case ID_WO:
+			mtex= &(((World *)id)->mtex[(int)((World *)id)->texact]);
+			// mtex= wrld->mtex[(int)wrld->texact]; // TODO
+			break;
+	}
+	
+	if(mtex && *mtex) {
+		memcpy(&mtexcopybuf, *mtex, sizeof(MTex));
+		mtexcopied= 1;
+	}
+	else {
+		mtexcopied= 0;
+	}
+}
 
-	if(ma==NULL)
+void paste_mtex_copybuf(ID *id)
+{
+	MTex **mtex= NULL;
+	
+	if(mtexcopied == 0 || mtexcopybuf.tex==NULL)
+		return;
+	
+	switch(GS(id->name)) {
+		case ID_MA:
+			mtex= &(((Material *)id)->mtex[(int)((Material *)id)->texact]);
+			break;
+		case ID_LA:
+			mtex= &(((Lamp *)id)->mtex[(int)((Lamp *)id)->texact]);
+			// la->mtex[(int)la->texact] // TODO
+			break;
+		case ID_WO:
+			mtex= &(((World *)id)->mtex[(int)((World *)id)->texact]);
+			// mtex= wrld->mtex[(int)wrld->texact]; // TODO
+			break;
+	}
+	
+	if(mtex) {
+		if(*mtex==NULL) {
+			*mtex= MEM_mallocN(sizeof(MTex), "mtex copy");
+		}
+		else if((*mtex)->tex) {
+			(*mtex)->tex->id.us--;
+		}
+		
+		memcpy(*mtex, &mtexcopybuf, sizeof(MTex));
+		
+		id_us_plus((ID *)mtexcopybuf.tex);
+	}
+}
+
+
+static int copy_mtex_exec(bContext *C, wmOperator *op)
+{
+	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+
+	if(id==NULL) {
+		/* copying empty slot */
+		ED_render_clear_mtex_copybuf();
 		return OPERATOR_CANCELLED;
+	}
 
-	copy_mat_mtex_copybuf(&ma->id);
+	copy_mtex_copybuf(id);
 
-	WM_event_add_notifier(C, NC_MATERIAL, ma);
+	WM_event_add_notifier(C, NC_TEXTURE, NULL);
 
 	return OPERATOR_FINISHED;
 }
 
-void MATERIAL_OT_mtex_copy(wmOperatorType *ot)
+static int copy_mtex_poll(bContext *C)
+{
+	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+	
+	return (id != NULL);
+}
+
+void TEXTURE_OT_slot_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Material Texture Settings";
-	ot->idname= "MATERIAL_OT_mtex_copy";
+	ot->name= "Copy Texture Slot Settings";
+	ot->idname= "TEXTURE_OT_slot_copy";
 	ot->description="Copy the material texture settings and nodes";
 
 	/* api callbacks */
-	ot->exec= copy_material_mtex_exec;
-
+	ot->exec= copy_mtex_exec;
+	ot->poll= copy_mtex_poll;
+	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int paste_material_mtex_exec(bContext *C, wmOperator *op)
+static int paste_mtex_exec(bContext *C, wmOperator *op)
 {
-	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
 
-	if(ma==NULL)
-		return OPERATOR_CANCELLED;
+	if(id==NULL) {
+		Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+		Lamp *la= CTX_data_pointer_get_type(C, "lamp", &RNA_Lamp).data;
+		World *wo= CTX_data_pointer_get_type(C, "world", &RNA_World).data;
+		
+		if (ma)
+			id = &ma->id;
+		else if (la)
+			id = &la->id;
+		else if (wo)
+			id = &wo->id;
+		
+		if (id==NULL)
+			return OPERATOR_CANCELLED;
+	}
 
-	paste_mat_mtex_copybuf(&ma->id);
+	paste_mtex_copybuf(id);
 
-	WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, ma);
+	WM_event_add_notifier(C, NC_TEXTURE|ND_SHADING_DRAW, NULL);
 
 	return OPERATOR_FINISHED;
 }
 
-void MATERIAL_OT_mtex_paste(wmOperatorType *ot)
+void TEXTURE_OT_slot_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Paste Material Texture Settings";
-	ot->idname= "MATERIAL_OT_mtex_paste";
-	ot->description="Copy the material texture settings and nodes";
+	ot->name= "Paste Texture Slot Settings";
+	ot->idname= "TEXTURE_OT_slot_paste";
+	ot->description="Copy the texture settings and nodes";
 
 	/* api callbacks */
-	ot->exec= paste_material_mtex_exec;
+	ot->exec= paste_mtex_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
