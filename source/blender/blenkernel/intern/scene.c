@@ -891,15 +891,18 @@ float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in objec
 	return ctime;
 }
 
-static void scene_update_newframe(Scene *sce, unsigned int lay)
+static void scene_update_newframe(Scene *scene, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
 	
-	for(base= sce->base.first; base; base= base->next) {
+	for(base= scene->base.first; base; base= base->next) {
 		ob= base->object;
 		
-		object_handle_update(sce, ob);   // bke_object.h
+		object_handle_update(scene, ob);   // bke_object.h
+
+		if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
+			group_handle_recalc_and_update(scene, ob, ob->dup_group);
 		
 		/* only update layer when an ipo */
 			// XXX old animation system
@@ -914,6 +917,7 @@ void scene_update_tagged(Scene *scene)
 {
 	Scene *sce;
 	Base *base;
+	Object *ob;
 	float ctime = frame_to_float(scene, scene->r.cfra); 
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
@@ -922,12 +926,23 @@ void scene_update_tagged(Scene *scene)
 	/* sets first, we allow per definition current scene to have
 	   dependencies on sets, but not the other way around. */
 	if(scene->set) {
-		for(SETLOOPER(scene->set, base))
-			object_handle_update(scene, base->object);
+		for(SETLOOPER(scene->set, base)) {
+			ob= base->object;
+
+			object_handle_update(scene, ob);
+
+			if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
+				group_handle_recalc_and_update(scene, ob, ob->dup_group);
+		}
 	}
 	
 	for(base= scene->base.first; base; base= base->next) {
-		object_handle_update(scene, base->object);
+		ob= base->object;
+
+		object_handle_update(scene, ob);
+
+		if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
+			group_handle_recalc_and_update(scene, ob, ob->dup_group);
 	}
 
 	/* recalc scene animation data here (for sequencer) */

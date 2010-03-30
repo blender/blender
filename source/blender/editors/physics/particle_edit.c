@@ -203,7 +203,7 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 	pset->scene = scene;
 	pset->object = ob;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob);
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 
 	/* in the case of only one editable thing, set pset->edittype accordingly */
 	if(pidlist.first && pidlist.first == pidlist.last) {

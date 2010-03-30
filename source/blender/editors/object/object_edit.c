@@ -285,7 +285,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		scene->obedit= NULL; // XXX for context
 
 		/* flag object caches as outdated */
-		BKE_ptcache_ids_from_object(&pidlist, obedit);
+		BKE_ptcache_ids_from_object(&pidlist, obedit, NULL, 0);
 		for(pid=pidlist.first; pid; pid=pid->next) {
 			if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
 				pid->cache->flag |= PTCACHE_OUTDATED;
