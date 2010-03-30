@@ -474,7 +474,7 @@ int ui_id_icon_get(struct bContext *C, struct ID *id, int preview);
 
 /* resources.c */
 void init_userdef_do_versions(void);
-void ui_theme_init_userdef(void);
+void ui_theme_init_default(void);
 void ui_resources_init(void);
 void ui_resources_free(void);
 

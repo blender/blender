@@ -3327,9 +3327,6 @@ void UI_init_userdef(void)
 {
 	/* fix saved themes */
 	init_userdef_do_versions();
-	/* set default colors in default theme */
-	ui_theme_init_userdef();
-	
 	uiStyleInit();
 }
 

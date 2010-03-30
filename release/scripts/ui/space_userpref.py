@@ -164,17 +164,19 @@ class USERPREF_HT_header(bpy.types.Header):
 
         layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.save_homefile", text="Save As Default")
-
+        
+        layout.operator_context = 'INVOKE_DEFAULT'
+        
         if userpref.active_section == 'INPUT':
-            layout.operator_context = 'INVOKE_DEFAULT'
-            op = layout.operator("wm.keyconfig_export", "Export Key Configuration...")
+            op = layout.operator("wm.keyconfig_export")
             op.path = "keymap.py"
-            op = layout.operator("wm.keyconfig_import", "Import Key Configuration...")
+            op = layout.operator("wm.keyconfig_import")
             op.path = "keymap.py"
         elif userpref.active_section == 'ADDONS':
-            layout.operator_context = 'INVOKE_DEFAULT'
-            op = layout.operator("wm.addon_install", "Install Add-On...")
+            op = layout.operator("wm.addon_install")
             op.path = "*.py"
+        elif userpref.active_section == 'THEMES':           
+            op = layout.operator("ui.reset_default_theme")
 
 
 class USERPREF_PT_tabs(bpy.types.Panel):
@@ -1593,7 +1595,7 @@ class WM_OT_addon_disable(bpy.types.Operator):
 class WM_OT_addon_install(bpy.types.Operator):
     "Install an addon"
     bl_idname = "wm.addon_install"
-    bl_label = "Install Add-On"
+    bl_label = "Install Add-On..."
 
     module = StringProperty(name="Module", description="Module name of the addon to disable")
 

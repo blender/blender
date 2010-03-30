@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
@@ -43,13 +44,16 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "BIF_gl.h"
+
+#include "UI_interface.h"
+
+#include "interface_intern.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
 
-
-#include "UI_interface.h"
 
 /* ********************************************************** */
 
@@ -190,6 +194,29 @@ void UI_OT_eyedropper(wmOperatorType *ot)
 	/* properties */
 }
 
+/* Reset Default Theme ------------------------ */
+
+static int reset_default_theme_exec(bContext *C, wmOperator *op)
+{
+	ui_theme_init_default();
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void UI_OT_reset_default_theme(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reset to Default Theme";
+	ot->idname= "UI_OT_reset_default_theme";
+	ot->description= "Reset to the default theme colors";
+	
+	/* callbacks */
+	ot->exec= reset_default_theme_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
 
 /* Copy Data Path Operator ------------------------ */
 
@@ -381,6 +408,7 @@ void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 void UI_buttons_operatortypes(void)
 {
 	WM_operatortype_append(UI_OT_eyedropper);
+	WM_operatortype_append(UI_OT_reset_default_theme);
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);
