@@ -326,6 +326,8 @@ Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
 	freestyle_scene->r.scemode &= ~( R_SINGLE_LAYER );
 	freestyle_scene->r.planes = R_PLANES32;
 	freestyle_scene->r.imtype = R_PNG;
+	if (freestyle_scene->r.mode & R_BORDER)
+		freestyle_scene->r.mode |= R_CROP;
 	
 	Render *freestyle_render = RE_NewRender(freestyle_scene->id.name);
 

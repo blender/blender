@@ -189,7 +189,7 @@ extern "C" {
 	{
 		RenderLayer *rl;
 	    float *src, *dest, *pixSrc, *pixDest;
-		int x, y, src_rectx, src_recty, dest_rectx, dest_recty, x_offset, y_offset;
+		int x, y, rectx, recty;
 		
 		if( freestyle_render == NULL || freestyle_render->result == NULL )
 			return;
@@ -197,29 +197,20 @@ extern "C" {
 		rl = render_get_active_layer( freestyle_render, freestyle_render->result );
 	    if( !rl || rl->rectf == NULL) { cout << "Cannot find Freestyle result image" << endl; return; }
 		src  = rl->rectf;
-		src_rectx = rl->rectx;
-		src_recty = rl->recty;
-		//cout << "src: " << src_rectx << " x " << src_recty << endl;
+		//cout << "src: " << rl->rectx << " x " << rl->recty << endl;
 		
 		rl = RE_GetRenderLayer(re->result, srl->name);
 	    if( !rl || rl->rectf == NULL) { cout << "No layer to composite to" << endl; return; }
 		dest  = rl->rectf;
-		dest_rectx = rl->rectx;
-		dest_recty = rl->recty;
-		//cout << "dest: " << dest_rectx << " x " << dest_recty << endl;
+		//cout << "dest: " << rl->rectx << " x " << rl->recty << endl;
 
-		if (re->r.mode & R_BORDER && !(re->r.mode & R_CROP)) {
-			x_offset = re->disprect.xmin;
-			y_offset = re->disprect.ymin;
-		} else {
-			x_offset = 0;
-			y_offset = 0;
-		}
-	    for( y = 0; y < dest_recty; y++) {
-	        for( x = 0; x < dest_rectx; x++) {
-	            pixSrc = src + 4 * (src_rectx * (y + y_offset) + (x + x_offset));
+		rectx = re->rectx;
+		recty = re->recty;
+	    for( y = 0; y < recty; y++) {
+	        for( x = 0; x < rectx; x++) {
+	            pixSrc = src + 4 * (rectx * y + x);
 	            if( pixSrc[3] > 0.0) {
-					pixDest = dest + 4 * (dest_rectx * y + x);
+					pixDest = dest + 4 * (rectx * y + x);
 					addAlphaOverFloat(pixDest, pixSrc);
 				}
 			}
