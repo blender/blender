@@ -1736,11 +1736,11 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, const char *propname)
 	uiBut *bt;
 	
 	/* HS circle */
-	bt= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, PICKER_H, PICKER_W, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, PICKER_H, PICKER_W, ptr, propname, 0, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, UI_GRAD_V_ALT, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, 0, 0.0, 0.0, UI_GRAD_V_ALT, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1751,11 +1751,11 @@ static void square_picker(uiBlock *block, PointerRNA *ptr, const char *propname,
 	int bartype = type + 3;
 	
 	/* HS square */
-	bt= uiDefButR(block, HSVCUBE, 0, "",	0, PICKER_BAR+PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, propname, -1, 0.0, 0.0, type, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "",	0, PICKER_BAR+PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, propname, 0, 0.0, 0.0, type, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, -1, 0.0, 0.0, bartype, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, 0, 0.0, 0.0, bartype, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 

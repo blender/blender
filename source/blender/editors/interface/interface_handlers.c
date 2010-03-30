@@ -2902,8 +2902,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 		float range;
 		
 		/* vertical 'value' strip */
-		hsv[2]= y; 
-		
+
 		/* exception only for value strip - use the range set in but->min/max */
 		range = but->softmax - but->softmin;
 		hsv[2] = y*range + but->softmin;
@@ -2914,7 +2913,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	}
 
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
-	ui_set_but_vectorf(but, rgb);
+	copy_v3_v3(data->vec, rgb);
 
 	data->draglastx= mx;
 	data->draglasty= my;
