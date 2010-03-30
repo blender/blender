@@ -40,6 +40,7 @@ public:
   /*! accessors */
   virtual int width() const ;
   virtual int height() const ;
+  virtual BBox<Vec2i> AppCanvas::border() const ;
 
 	AppView *_pViewer;
   inline const AppView * viewer() const {return _pViewer;}

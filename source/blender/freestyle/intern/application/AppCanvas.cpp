@@ -69,7 +69,12 @@ int AppCanvas::width() const
 
 int AppCanvas::height() const
 {
-  return _pViewer->height();;
+  return _pViewer->height();
+}
+
+BBox<Vec2i> AppCanvas::border() const
+{
+  return _pViewer->border();
 }
 
 BBox<Vec3r> AppCanvas::scene3DBBox() const 
@@ -116,18 +121,22 @@ void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) cons
 	int xsch = width();
 	int ysch = height();
 	if (_pass_diffuse.buf) {
+		int xmin = border().getMin().x();
+		int ymin = border().getMin().y();
+		int xmax = border().getMax().x();
+		int ymax = border().getMax().y();
 		int rectx = _pass_z.width;
 		int recty = _pass_z.height;
-		float xfac = ((float)rectx) / ((float)xsch);
-		float yfac = ((float)recty) / ((float)ysch);
-		//printf("readColorPixels %d x %d @ (%d, %d) in %d x %d -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, rectx, recty, (int)(xfac * 100.0f));
+		float xfac = ((float)rectx) / ((float)(xmax - xmin));
+		float yfac = ((float)recty) / ((float)(ymax - ymin));
+		//printf("readColorPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
 		int ii, jj;
 		for (int j = 0; j < h; j++) {
-			jj = (int)((y + j) * yfac);
+			jj = (int)((y - ymin + j) * yfac);
 			if (jj < 0 || jj >= recty)
 				continue;
 			for (int i = 0; i < w; i++) {
-				ii = (int)((x + i) * xfac);
+				ii = (int)((x - xmin + i) * xfac);
 				if (ii < 0 || ii >= rectx)
 					continue;
 				memcpy(rgb + (w * j + i) * 3, _pass_diffuse.buf + (rectx * jj + ii) * 3, sizeof(float) * 3);
@@ -144,18 +153,22 @@ void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) con
 	int xsch = width();
 	int ysch = height();
 	if (_pass_z.buf) {
+		int xmin = border().getMin().x();
+		int ymin = border().getMin().y();
+		int xmax = border().getMax().x();
+		int ymax = border().getMax().y();
 		int rectx = _pass_z.width;
 		int recty = _pass_z.height;
-		float xfac = ((float)rectx) / ((float)xsch);
-		float yfac = ((float)recty) / ((float)ysch);
-		//printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, rectx, recty, (int)(xfac * 100.0f));
+		float xfac = ((float)rectx) / ((float)(xmax - xmin));
+		float yfac = ((float)recty) / ((float)(ymax - ymin));
+		//printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
 		int ii, jj;
 		for (int j = 0; j < h; j++) {
-			jj = (int)((y + j) * yfac);
+			jj = (int)((y - ymin + j) * yfac);
 			if (jj < 0 || jj >= recty)
 				continue;
 			for (int i = 0; i < w; i++) {
-				ii = (int)((x + i) * xfac);
+				ii = (int)((x - xmin + i) * xfac);
 				if (ii < 0 || ii >= rectx)
 					continue;
 				z[w * j + i] = _pass_z.buf[rectx * jj + ii];

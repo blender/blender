@@ -29,11 +29,16 @@ public:
 	//inherited
 		inline unsigned int width() { return _width; }
 		inline unsigned int height() { return _height; }
+		inline BBox<Vec2i> border() { return _border; }
 		inline void setWidth( unsigned int width ) { _width = width; }
 		inline void setHeight( unsigned int height ) { _height = height; }
+		inline void setBorder( int xmin, int ymin, int xmax, int ymax ) {
+			_border = BBox<Vec2i>(Vec2i(xmin, ymin), Vec2i(xmax, ymax));
+		}
 		
 protected:
 	unsigned int _width, _height;
+	BBox<Vec2i> _border;
 
 public:
 

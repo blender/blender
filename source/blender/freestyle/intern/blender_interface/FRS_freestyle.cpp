@@ -84,6 +84,10 @@ extern "C" {
 		float ycor = ((float)re->r.yasp) / ((float)re->r.xasp);
 		int width = re->r.xsch;
 		int height = (int)(((float)re->r.ysch) * ycor);
+		int xmin = re->r.border.xmin * width;
+		int xmax = re->r.border.xmax * width;
+		int ymin = re->r.border.ymin * height;
+		int ymax = re->r.border.ymax * height;
 		
 		freestyle_viewport[0] = freestyle_viewport[1] = 0;
 		freestyle_viewport[2] = width;
@@ -91,6 +95,13 @@ extern "C" {
 		
 		view->setWidth( width );
 		view->setHeight( height );
+		view->setBorder( xmin, ymin, xmax, ymax );
+
+		cout << "\n===  Dimensions of the 2D image coordinate system  ===" << endl;
+		cout << "Width  : " << width << endl;
+		cout << "Height : " << height << endl;
+		if (re->r.mode & R_BORDER)
+			cout << "Border : (" << xmin << ", " << ymin << ") - (" << xmax << ", " << ymax << ")" << endl;
 	}
 
 	void init_camera(Render* re){
