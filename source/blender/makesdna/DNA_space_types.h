@@ -252,6 +252,7 @@ typedef struct SpaceImage {
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
 	char around;
+	float cursor[2];				/* UV editor 2d cursor */
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float zoom, pad4;				/* user defined zoom level */

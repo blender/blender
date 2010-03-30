@@ -56,7 +56,6 @@
 
 static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 {
-	View2D *v2d= &ar->v2d;
 	float zoomx, zoomy, w, h;
 	int width, height;
 
@@ -67,7 +66,7 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 	h= zoomy*height/256.0f;
 	
 	cpack(0xFFFFFF);
-	glTranslatef(v2d->cursor[0], v2d->cursor[1], 0.0f);  
+	glTranslatef(sima->cursor[0], sima->cursor[1], 0.0f);  
 	fdrawline(-0.05/w, 0, 0, 0.05/h);
 	fdrawline(0, 0.05/h, 0.05/w, 0);
 	fdrawline(0.05/w, 0, 0, -0.05/h);
@@ -95,7 +94,7 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 	fdrawline(0, -0.020/h, 0, -0.1/h);
 	fdrawline(0, 0.1/h, 0, 0.020/h);
 	
-	glTranslatef(-v2d->cursor[0], -v2d->cursor[1], 0.0f);
+	glTranslatef(-sima->cursor[0], -sima->cursor[1], 0.0f);
 	setlinestyle(0);
 }
 

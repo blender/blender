@@ -2357,17 +2357,17 @@ static void snap_uv_to_pixel(float *uvco, float w, float h)
 	uvco[1] = ((float)((int)((uvco[1]*h) + 0.5f)))/h;
 }
 
-static void snap_cursor_to_pixels(SpaceImage *sima, View2D *v2d)
+static void snap_cursor_to_pixels(SpaceImage *sima)
 {
 	int width= 0, height= 0;
 
 	ED_space_image_size(sima, &width, &height);
-	snap_uv_to_pixel(v2d->cursor, width, height);
+	snap_uv_to_pixel(sima->cursor, width, height);
 }
 
-static int snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, View2D *v2d)
+static int snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
 {
-	return uvedit_center(scene, ima, obedit, v2d->cursor, 0);
+	return uvedit_center(scene, ima, obedit, sima->cursor, 0);
 }
 
 static int snap_cursor_exec(bContext *C, wmOperator *op)
@@ -2376,23 +2376,22 @@ static int snap_cursor_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
-	ARegion *ar= CTX_wm_region(C);
 	int change= 0;
 
 	switch(RNA_boolean_get(op->ptr, "target")) {
 		case 0:
-			snap_cursor_to_pixels(sima, &ar->v2d);
+			snap_cursor_to_pixels(sima);
 			change= 1;
 			break;
 		case 1:
-			change= snap_cursor_to_selection(scene, ima, obedit, &ar->v2d);
+			change= snap_cursor_to_selection(scene, ima, obedit, sima);
 			break;
 	}
 
 	if(!change)
 		return OPERATOR_CANCELLED;
 	
-	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_IMAGE, sima);
 
 	return OPERATOR_FINISHED;
 }
@@ -2420,7 +2419,7 @@ void UV_OT_snap_cursor(wmOperatorType *ot)
 
 /* ******************** snap selection operator **************** */
 
-static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, View2D *v2d)
+static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
 {
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
@@ -2430,11 +2429,11 @@ static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, View2D *
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		if(uvedit_face_visible(scene, ima, efa, tface)) {
-			if(uvedit_uv_selected(scene, efa, tface, 0))		VECCOPY2D(tface->uv[0], v2d->cursor);
-			if(uvedit_uv_selected(scene, efa, tface, 1))		VECCOPY2D(tface->uv[1], v2d->cursor);
-			if(uvedit_uv_selected(scene, efa, tface, 2))		VECCOPY2D(tface->uv[2], v2d->cursor);
+			if(uvedit_uv_selected(scene, efa, tface, 0))		VECCOPY2D(tface->uv[0], sima->cursor);
+			if(uvedit_uv_selected(scene, efa, tface, 1))		VECCOPY2D(tface->uv[1], sima->cursor);
+			if(uvedit_uv_selected(scene, efa, tface, 2))		VECCOPY2D(tface->uv[2], sima->cursor);
 			if(efa->v4)
-				if(uvedit_uv_selected(scene, efa, tface, 3))	VECCOPY2D(tface->uv[3], v2d->cursor);
+				if(uvedit_uv_selected(scene, efa, tface, 3))	VECCOPY2D(tface->uv[3], sima->cursor);
 
 			change= 1;
 		}
@@ -2614,7 +2613,6 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
-	ARegion *ar= CTX_wm_region(C);
 	int change= 0;
 
 	switch(RNA_boolean_get(op->ptr, "target")) {
@@ -2622,7 +2620,7 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 			change= snap_uvs_to_pixels(sima, scene, obedit);
 			break;
 		case 1:
-			change= snap_uvs_to_cursor(scene, ima, obedit, &ar->v2d);
+			change= snap_uvs_to_cursor(scene, ima, obedit, sima);
 			break;
 		case 2:
 			change= snap_uvs_to_adjacent_unselected(scene, ima, obedit);
@@ -3038,14 +3036,14 @@ void UV_OT_reveal(wmOperatorType *ot)
 
 static int set_2d_cursor_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
+	SpaceImage *sima = CTX_wm_space_image(C);
 	float location[2];
 
 	RNA_float_get_array(op->ptr, "location", location);
-	ar->v2d.cursor[0]= location[0];
-	ar->v2d.cursor[1]= location[1];
+	sima->cursor[0]= location[0];
+	sima->cursor[1]= location[1];
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_IMAGE, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3096,7 +3094,7 @@ static int set_tile_exec(bContext *C, wmOperator *op)
 	RNA_int_get_array(op->ptr, "tile", tile);
 	ED_uvedit_set_tile(C, CTX_data_scene(C), CTX_data_edit_object(C), ima, tile[0] + ima->xrep*tile[1]);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	return OPERATOR_FINISHED;
 }

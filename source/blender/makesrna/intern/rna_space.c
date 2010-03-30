@@ -415,6 +415,36 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 	return item;
 }
 
+static void rna_SpaceImageEditor_cursor_location_get(PointerRNA *ptr, float *values)
+{
+	SpaceImage *sima= (SpaceImage*)ptr->data;
+	
+	if (sima->flag & SI_COORDFLOATS) {
+		copy_v2_v2(values, sima->cursor);
+	} else {
+		int w, h;
+		ED_space_image_size(sima, &w, &h);
+		
+		values[0] = sima->cursor[0] * w;
+		values[1] = sima->cursor[1] * h;
+	}
+}
+
+static void rna_SpaceImageEditor_cursor_location_set(PointerRNA *ptr, const float *values)
+{
+	SpaceImage *sima= (SpaceImage*)ptr->data;
+	
+	if (sima->flag & SI_COORDFLOATS) {
+		copy_v2_v2(sima->cursor, values);
+	} else {
+		int w, h;
+		ED_space_image_size(sima, &w, &h);
+		
+		sima->cursor[0] = values[0] / w;
+		sima->cursor[1] = values[1] / h;
+	}
+}
+
 static void rna_SpaceImageEditor_curves_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
@@ -692,6 +722,12 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "normalized_coordinates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_COORDFLOATS);
 	RNA_def_property_ui_text(prop, "Normalized Coordinates", "Display UV coordinates from 0.0 to 1.0 rather than in pixels");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
+	
+	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_SpaceImageEditor_cursor_location_get", "rna_SpaceImageEditor_cursor_location_set", NULL);
+	RNA_def_property_ui_text(prop, "2D Cursor Location", "2D cursor location for this view");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	/* todo: move edge and face drawing options here from G.f */

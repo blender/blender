@@ -459,6 +459,9 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
         if show_uvedit:
 
             col = layout.column()
+            col.prop(uvedit, "cursor_location")
+
+            col = layout.column()
             col.label(text="UVs:")
             row = col.row()
             if wide_ui:

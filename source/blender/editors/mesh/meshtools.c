@@ -1286,11 +1286,6 @@ float *editmesh_get_mirror_uv(int axis, float *uv, float *mirrCent, float *face_
 		cent_vec[1] = face_cent[1];
 	}
 
-	/*
-	G.v2d->cursor[0] = mirrCent[0];
-	G.v2d->cursor[1] = mirrCent[1];
-	*/
-
 	/* TODO - Optimize */
 	{
 		EditFace *efa;
