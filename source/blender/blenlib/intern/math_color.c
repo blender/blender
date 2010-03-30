@@ -109,7 +109,9 @@ void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb)
 	*lb=b;
 }
 
-void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr)
+/* The RGB inputs are supposed gamma corrected and in the range 0 - 1.0f */
+/* Output YCC have a range of 16-235 and 16-240 exepect with JFIF_0_255 where the range is 0-255 */
+void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, int colorspace)
 {
 	float sr,sg, sb;
 	float y, cr, cb;
@@ -118,24 +120,53 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr)
 	sg=255.0f*g;
 	sb=255.0f*b;
 	
-	
-	y=(0.257f*sr)+(0.504f*sg)+(0.098f*sb)+16.0f;
-	cb=(-0.148f*sr)-(0.291f*sg)+(0.439f*sb)+128.0f;
-	cr=(0.439f*sr)-(0.368f*sg)-(0.071f*sb)+128.0f;
+	switch (colorspace) {
+	case BLI_YCC_ITU_BT601 :
+		y=(0.257f*sr)+(0.504f*sg)+(0.098f*sb)+16.0f;
+		cb=(-0.148f*sr)-(0.291f*sg)+(0.439f*sb)+128.0f;
+		cr=(0.439f*sr)-(0.368f*sg)-(0.071f*sb)+128.0f;
+		break;
+	case BLI_YCC_ITU_BT709 :
+		y=(0.183f*sr)+(0.614f*sg)+(0.062f*sb)+16.0f;
+		cb=(-0.101f*sr)-(0.338f*sg)+(0.439f*sb)+128.0f;
+		cr=(0.439f*sr)-(0.399f*sg)-(0.040f*sb)+128.0f;
+		break;
+	case BLI_YCC_JFIF_0_255 :
+		y=(0.299f*sr)+(0.587f*sg)+(0.114f*sb)+16.0f;
+		cb=(-0.16874f*sr)-(0.33126f*sg)+(0.5f*sb)+128.0f;
+		cr=(0.5f*sr)-(0.41869f*sg)-(0.08131f*sb)+128.0f;
+		break;
+	}
 	
 	*ly=y;
 	*lcb=cb;
 	*lcr=cr;
 }
 
-void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb)
+
+/* YCC input have a range of 16-235 and 16-240 exepect with JFIF_0_255 where the range is 0-255 */
+/* RGB outputs are in the range 0 - 1.0f */
+void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, int colorspace)
 {
 	float r,g,b;
 	
-	r=1.164f*(y-16.0f)+1.596f*(cr-128.0f);
-	g=1.164f*(y-16.0f)-0.813f*(cr-128.0f)-0.392f*(cb-128.0f);
-	b=1.164f*(y-16.0f)+2.017f*(cb-128.0f);
-	
+	switch (colorspace) {
+	case BLI_YCC_ITU_BT601 :
+		r=1.164f*(y-16.0f)+1.596f*(cr-128.0f);
+		g=1.164f*(y-16.0f)-0.813f*(cr-128.0f)-0.392f*(cb-128.0f);
+		b=1.164f*(y-16.0f)+2.017f*(cb-128.0f);
+		break;
+	case BLI_YCC_ITU_BT709 :
+		r=1.164f*(y-16.0f)+1.793f*(cr-128.0f);
+		g=1.164f*(y-16.0f)-0.534f*(cr-128.0f)-0.213f*(cb-128.0f);
+		b=1.164f*(y-16.0f)+2.115f*(cb-128.0f);
+		break;
+	case BLI_YCC_JFIF_0_255 :
+		r=y+1.402f*cr - 179.456f;
+		g=y-0.34414f*cb - 0.71414f*cr + 135.45984f;
+		b=y+1.772f*cb - 226.816f;
+		break;
+	}
 	*lr=r/255.0f;
 	*lg=g/255.0f;
 	*lb=b/255.0f;
