@@ -219,10 +219,14 @@ static void rna_Curve_update_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Curve_update_taper(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	Object *obj= cu->taperobj;
+	Object *ob= cu->taperobj;
 
-	if (obj && obj->type != OB_CURVE) {
-		cu->taperobj = NULL;
+	if (ob) {
+		/* if taper object has got the save curve, as object, for which it's */
+		/* set as taperobj, there could be infinity loop in displist calculation */
+		if (ob->type != OB_CURVE || ob->data == cu) {
+			cu->taperobj = NULL;
+		}
 	}
 
 	rna_Curve_update_deps(bmain, scene, ptr);
@@ -231,10 +235,14 @@ static void rna_Curve_update_taper(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Curve_update_bevel(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	Object *obj= cu->bevobj;
+	Object *ob= cu->bevobj;
 
-	if (obj && obj->type != OB_CURVE) {
-		cu->bevobj = NULL;
+	if (ob) {
+		/* if bevel object has got the save curve, as object, for which it's */
+		/* set as bevobj, there could be infinity loop in displist calculation */
+		if (ob->type != OB_CURVE || ob->data == cu) {
+			cu->bevobj = NULL;
+		}
 	}
 
 	rna_Curve_update_deps(bmain, scene, ptr);

@@ -1424,6 +1424,10 @@ static int convert_exec(bContext *C, wmOperator *op)
 			basen= NULL;
 		}
 
+		if (!keep_original) {
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		}
+
 		/* delete original if needed */
 		if(basedel) {
 			if(!keep_original)
