@@ -241,6 +241,7 @@ struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, char *name){return (s
 void ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum, float weight, int assignmode){}
 void ED_sequencer_update_view(struct bContext *C, int view){}
 float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.0f;}
+void ED_space_image_size(struct SpaceImage *sima, int *width, int *height){}
 
 void EM_selectmode_set(struct EditMesh *em){}
 void make_editMesh(struct Scene *scene, struct Object *ob){}
