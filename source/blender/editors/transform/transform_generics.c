@@ -1221,9 +1221,8 @@ void calculateCenterCursor(TransInfo *t)
 
 void calculateCenterCursor2D(TransInfo *t)
 {
-	View2D *v2d= t->view;
 	float aspx=1.0, aspy=1.0;
-	float *cursor;
+	float *cursor= NULL;
 	
 	if(t->spacetype==SPACE_IMAGE) {
 		SpaceImage *sima= (SpaceImage *)t->sa->spacedata.first;
@@ -1232,7 +1231,7 @@ void calculateCenterCursor2D(TransInfo *t)
 		cursor = sima->cursor;
 	}
 	
-	if (v2d) {
+	if (cursor) {
 		t->center[0] = cursor[0] * aspx;
 		t->center[1] = cursor[1] * aspy;
 	}

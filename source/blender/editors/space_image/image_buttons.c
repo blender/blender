@@ -110,10 +110,10 @@ static int simaUVSel_Check() {return 0;}
 static void image_editvertex_buts(const bContext *C, uiBlock *block);
 
 
+#if 0
 static void do_image_panel_events(bContext *C, void *arg, int event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
-	ARegion *ar= CTX_wm_region(C);
 	
 	switch(event) {
 		case B_REDR:
@@ -126,6 +126,7 @@ static void do_image_panel_events(bContext *C, void *arg, int event)
 	/* all events now */
 	WM_event_add_notifier(C, NC_IMAGE, sima->image);
 }
+#endif
 
 static void image_info(Image *ima, ImBuf *ibuf, char *str)
 {
@@ -947,6 +948,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 	}
 }
 
+#if 0
 static int image_panel_uv_poll(const bContext *C, PanelType *pt)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -955,7 +957,6 @@ static int image_panel_uv_poll(const bContext *C, PanelType *pt)
 
 static void image_panel_uv(const bContext *C, Panel *pa)
 {
-	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
 	
 	block= uiLayoutAbsoluteBlock(pa->layout);
@@ -963,6 +964,7 @@ static void image_panel_uv(const bContext *C, Panel *pa)
 
 	image_editvertex_buts(C, block);
 }	
+#endif
 
 void image_buttons_register(ARegionType *art)
 {

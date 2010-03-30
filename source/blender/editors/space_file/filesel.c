@@ -425,7 +425,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 		for (i = 0; i < n; i++) {
 			file = filelist_file(sfile->files, i);
 			if (fnmatch(pattern, file->relname, 0) == 0) {
-				file->flags |= ACTIVE;
+				file->flags |= ACTIVEFILE;
 				match = 1;
 			}
 		}

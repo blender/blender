@@ -90,14 +90,8 @@
 
 #include "filelist.h"
 
-/* Elubie: VERY, really very ugly and evil! Remove asap!!! */
-/* for state of file */
-#define ACTIVE				2
-
 /* max length of library group name within filesel */
 #define GROUP_MAX 32
-
-static void *exec_loadimages(void *list_v);
 
 struct FileList;
 
@@ -977,15 +971,15 @@ void filelist_swapselect(struct FileList* filelist)
 	
 	file= filelist->filelist;
 	for(num=0; num<filelist->numfiles; num++, file++) {
-		if(file->flags & ACTIVE) {
+		if(file->flags & ACTIVEFILE) {
 			act= 1;
 			break;
 		}
 	}
 	file= filelist->filelist+2;
 	for(num=2; num<filelist->numfiles; num++, file++) {
-		if(act) file->flags &= ~ACTIVE;
-		else file->flags |= ACTIVE;
+		if(act) file->flags &= ~ACTIVEFILE;
+		else file->flags |= ACTIVEFILE;
 	}
 }
 
@@ -1223,10 +1217,10 @@ void filelist_from_main(struct FileList *filelist)
 #if 0				// XXXXX TODO show the selection status of the objects
 					if(!filelist->has_func) { /* F4 DATA BROWSE */
 						if(idcode==ID_OB) {
-							if( ((Object *)id)->flag & SELECT) files->flags |= ACTIVE;
+							if( ((Object *)id)->flag & SELECT) files->flags |= ACTIVEFILE;
 						}
 						else if(idcode==ID_SCE) {
-							if( ((Scene *)id)->r.scemode & R_BG_RENDER) files->flags |= ACTIVE;
+							if( ((Scene *)id)->r.scemode & R_BG_RENDER) files->flags |= ACTIVEFILE;
 						}					
 					}
 #endif

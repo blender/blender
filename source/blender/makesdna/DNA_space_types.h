@@ -671,7 +671,7 @@ enum FileSortTypeE {
 
 /* files in filesel list: 2=ACTIVE  */
 #define EDITING				(1<<0)
-#define ACTIVE				(1<<1)
+#define ACTIVEFILE			(1<<1)
 #define BLENDERFILE			(1<<2)
 #define PSXFILE				(1<<3)
 #define IMAGEFILE			(1<<4)
