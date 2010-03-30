@@ -816,21 +816,9 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 static void pin_cb(bContext *C, void *arg1, void *arg2)
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
-	ButsContextPath *path= sbuts->path;
-	PointerRNA *ptr;
-	int a;
 
 	if(sbuts->flag & SB_PIN_CONTEXT) {
-		if(path->len) {
-			for(a=path->len-1; a>=0; a--) {
-				ptr= &path->ptr[a];
-
-				if(ptr->id.data) {
-					sbuts->pinid= ptr->id.data;
-					break;
-				}
-			}
-		}
+		sbuts->pinid= buttons_context_id_path(C);
 	}
 	else
 		sbuts->pinid= NULL;
@@ -900,4 +888,25 @@ void buttons_context_register(ARegionType *art)
 	pt->draw= buttons_panel_context;
 	pt->flag= PNL_NO_HEADER;
 	BLI_addtail(&art->paneltypes, pt);
+}
+
+ID *buttons_context_id_path(const bContext *C)
+{
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
+	ButsContextPath *path= sbuts->path;
+	PointerRNA *ptr;
+	int a;
+
+	if(path->len) {
+		for(a=path->len-1; a>=0; a--) {
+			ptr= &path->ptr[a];
+
+			if(ptr->id.data) {
+				return ptr->id.data;
+				break;
+			}
+		}
+	}
+
+	return NULL;
 }

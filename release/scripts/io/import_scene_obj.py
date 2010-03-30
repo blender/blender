@@ -322,7 +322,7 @@ def load_image(imagepath, dirname):
 
     for path in variants:
         if os.path.exists(path):
-            return bpy.data.add_image(path)
+            return bpy.data.images.load(path)
         else:
             print(path, "doesn't exist")
 

@@ -35,12 +35,15 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        space = context.space_data
         ob = context.object
 
         row = layout.row()
         row.label(text="", icon='OBJECT_DATA')
-        row.prop(ob, "name", text="")
+        if space.use_pin_id:
+            row.template_ID(space, "pin_id")
+        else:
+            row.prop(ob, "name", text="")
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel):

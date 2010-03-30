@@ -347,7 +347,7 @@ int id_unlink(ID *id, int test)
 	if(id->us == 0) {
 		if(test) return 1;
 
-		lb= wich_libbase(mainlib, GS(id->name));
+		lb= which_libbase(mainlib, GS(id->name));
 		free_libblock(lb, id);
 
 		return 1;
@@ -356,7 +356,7 @@ int id_unlink(ID *id, int test)
 	return 0;
 }
 
-ListBase *wich_libbase(Main *mainlib, short type)
+ListBase *which_libbase(Main *mainlib, short type)
 {
 	switch( type ) {
 		case ID_SCE:
@@ -658,7 +658,7 @@ void *copy_libblock(void *rt)
 	
 	id= rt;
 
-	lb= wich_libbase(G.main, GS(id->name));
+	lb= which_libbase(G.main, GS(id->name));
 	idn= alloc_libblock(lb, GS(id->name), id->name+2);
 	
 	if(idn==NULL) {
@@ -867,7 +867,7 @@ void free_main(Main *mainvar)
 
 ID *find_id(char *type, char *name)		/* type: "OB" or "MA" etc */
 {
-	ListBase *lb= wich_libbase(G.main, GS(type));
+	ListBase *lb= which_libbase(G.main, GS(type));
 	return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
 
@@ -1175,7 +1175,7 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	if(id->lib) return 0;
 
 	/* if no libdata given, look up based on ID */
-	if(lb==NULL) lb= wich_libbase(G.main, GS(id->name));
+	if(lb==NULL) lb= which_libbase(G.main, GS(id->name));
 
 	/* if no name given, use name of current ID
 	 * else make a copy (tname args can be const) */
@@ -1348,7 +1348,7 @@ void test_idbutton(char *name)
 	ID *idtest;
 	
 
-	lb= wich_libbase(G.main, GS(name-2) );
+	lb= which_libbase(G.main, GS(name-2) );
 	if(lb==0) return;
 	
 	/* search for id */
@@ -1383,7 +1383,7 @@ void rename_id(ID *id, char *name)
 	ListBase *lb;
 
 	strncpy(id->name+2, name, 21);
-	lb= wich_libbase(G.main, GS(id->name) );
+	lb= which_libbase(G.main, GS(id->name) );
 	
 	new_id(lb, id, name);				
 }

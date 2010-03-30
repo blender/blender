@@ -2332,7 +2332,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "file_extension", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_SceneRender_file_ext_get", "rna_SceneRender_file_ext_length", NULL);
 	RNA_def_property_ui_text(prop, "Extension", "The file extension used for saving renders");
-	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "is_movie_format", PROP_BOOLEAN, PROP_NONE);

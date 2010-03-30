@@ -318,6 +318,7 @@ typedef struct UVProjectModifierData {
 	int flags;
 	int num_projectors;
 	float aspectx, aspecty;
+	float scalex, scaley;												
 	char uvlayer_name[32];
 	int uvlayer_tmp, pad;
 } UVProjectModifierData;

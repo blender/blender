@@ -1172,7 +1172,7 @@ void filelist_from_main(struct FileList *filelist)
 		/* make files */
 		idcode= groupname_to_code(filelist->dir);
 		
-		lb= wich_libbase(G.main, idcode );
+		lb= which_libbase(G.main, idcode );
 		if(lb==0) return;
 		
 		id= lb->first;

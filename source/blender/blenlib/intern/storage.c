@@ -293,10 +293,8 @@ void BLI_adddirstrings()
 	struct direntry * file;
 	struct tm *tm;
 	time_t zero= 0;
-
-	file = &files[0];
 	
-	for(num=0;num<actnum;num++){
+	for(num=0, file= files; num<actnum; num++, file++){
 #ifdef WIN32
 		mode = 0;
 		strcpy(file->mode1, types[0]);
@@ -325,43 +323,43 @@ void BLI_adddirstrings()
 #endif
 
 #ifdef WIN32
-		strcpy(files[num].owner,"user");
+		strcpy(file->owner,"user");
 #else
 		{
 			struct passwd *pwuser;
-			pwuser = getpwuid(files[num].s.st_uid);
+			pwuser = getpwuid(file->s.st_uid);
 			if ( pwuser ) {
-			strcpy(files[num].owner, pwuser->pw_name);
+				BLI_strncpy(file->owner, pwuser->pw_name, sizeof(file->owner));
 			} else {
-				sprintf(files[num].owner, "%d", files[num].s.st_uid);
+				snprintf(file->owner, sizeof(file->owner), "%d", file->s.st_uid);
 			}
 		}
 #endif
 
-		tm= localtime(&files[num].s.st_mtime);
+		tm= localtime(&file->s.st_mtime);
 		// prevent impossible dates in windows
 		if(tm==NULL) tm= localtime(&zero);
-		strftime(files[num].time, 8, "%H:%M", tm);
-		strftime(files[num].date, 16, "%d-%b-%y", tm);
+		strftime(file->time, 8, "%H:%M", tm);
+		strftime(file->date, 16, "%d-%b-%y", tm);
 
 		/*
 		 * Seems st_size is signed 32-bit value in *nix and Windows.  This
 		 * will buy us some time until files get bigger than 4GB or until
 		 * everyone starts using __USE_FILE_OFFSET64 or equivalent.
 		 */
-		st_size= files[num].s.st_size;
+		st_size= file->s.st_size;
 
 		if (st_size > 1024*1024*1024) {
-			sprintf(files[num].size, "%.2f GB", ((double)st_size)/(1024*1024*1024));	
+			sprintf(file->size, "%.2f GB", ((double)st_size)/(1024*1024*1024));	
 		}
 		else if (st_size > 1024*1024) {
-			sprintf(files[num].size, "%.1f MB", ((double)st_size)/(1024*1024));
+			sprintf(file->size, "%.1f MB", ((double)st_size)/(1024*1024));
 		}
 		else if (st_size > 1024) {
-			sprintf(files[num].size, "%d KB", (int)(st_size/1024));
+			sprintf(file->size, "%d KB", (int)(st_size/1024));
 		}
 		else {
-			sprintf(files[num].size, "%d B", (int)st_size);
+			sprintf(file->size, "%d B", (int)st_size);
 		}
 
 		strftime(datum, 32, "%d-%b-%y %H:%M", tm);
@@ -377,15 +375,13 @@ void BLI_adddirstrings()
 			sprintf(size, "%10d", (int) st_size);
 		}
 
-		sprintf(buf,"%s %s %s %7s %s %s %10s %s", file->mode1, file->mode2, file->mode3, files[num].owner, files[num].date, files[num].time, size,
-			files[num].relname);
+		sprintf(buf,"%s %s %s %7s %s %s %10s %s", file->mode1, file->mode2, file->mode3, file->owner, file->date, file->time, size,
+			file->relname);
 
-		files[num].string=MEM_mallocN(strlen(buf)+1, "filestring");
-		if (files[num].string){
-			strcpy(files[num].string,buf);
+		file->string=MEM_mallocN(strlen(buf)+1, "filestring");
+		if (file->string){
+			strcpy(file->string,buf);
 		}
-
-		file++;
 	}
 }
 

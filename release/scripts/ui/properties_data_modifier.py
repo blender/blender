@@ -689,9 +689,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
             if wide_ui:
                 col = split.column()
             sub = col.column(align=True)
-            sub.label(text="Aspect Ratio:")
-            sub.prop(md, "horizontal_aspect_ratio", text="Horizontal")
-            sub.prop(md, "vertical_aspect_ratio", text="Vertical")
+            sub.prop(md, "aspect_x", text="Aspect X")
+            sub.prop(md, "aspect_y", text="Aspect Y")
+
+            sub = col.column(align=True)
+            sub.prop(md, "scale_x", text="Scale X")
+            sub.prop(md, "scale_y", text="Scale Y")
 
     def WAVE(self, layout, ob, md, wide_ui):
         split = layout.split()

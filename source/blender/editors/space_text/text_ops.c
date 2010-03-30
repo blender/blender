@@ -215,6 +215,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	char str[FILE_MAX];
+	short internal = RNA_int_get(op->ptr, "internal");
 
 	RNA_string_get(op->ptr, "path", str);
 
@@ -243,6 +244,13 @@ static int open_exec(bContext *C, wmOperator *op)
 	else if(st) {
 		st->text= text;
 		st->top= 0;
+	}
+	
+	if (internal) {
+		if(text->name)
+			MEM_freeN(text->name);
+		
+		text->name = NULL;
 	}
 
 	WM_event_add_notifier(C, NC_TEXT|NA_ADDED, text);
@@ -282,6 +290,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE);
+	RNA_def_boolean(ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
 }
 
 /******************* reload operator *********************/

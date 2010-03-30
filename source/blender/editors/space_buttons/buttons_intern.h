@@ -35,6 +35,7 @@ struct bContextDataResult;
 struct SpaceButs;
 struct uiLayout;
 struct wmOperatorType;
+struct ID;
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1
@@ -62,6 +63,7 @@ void buttons_context_compute(const struct bContext *C, struct SpaceButs *sbuts);
 int buttons_context(const struct bContext *C, const char *member, struct bContextDataResult *result);
 void buttons_context_draw(const struct bContext *C, struct uiLayout *layout);
 void buttons_context_register(struct ARegionType *art);
+struct ID *buttons_context_id_path(const struct bContext *C);
 
 /* buttons_ops.c */
 void BUTTONS_OT_file_browse(struct wmOperatorType *ot);

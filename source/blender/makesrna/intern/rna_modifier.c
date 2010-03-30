@@ -1317,18 +1317,32 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "horizontal_aspect_ratio", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "aspect_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aspectx");
 	RNA_def_property_range(prop, 1, FLT_MAX);
-	RNA_def_property_ui_range(prop, 1, 1000, 100, 2);
+	RNA_def_property_ui_range(prop, 1, 1000, 0.2, 2);
 	RNA_def_property_ui_text(prop, "Horizontal Aspect Ratio", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "vertical_aspect_ratio", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "aspect_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aspecty");
 	RNA_def_property_range(prop, 1, FLT_MAX);
-	RNA_def_property_ui_range(prop, 1, 1000, 100, 2);
+	RNA_def_property_ui_range(prop, 1, 1000, 0.2, 2);
 	RNA_def_property_ui_text(prop, "Vertical Aspect Ratio", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
+	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "scalex");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1000, 0.2, 2);
+	RNA_def_property_ui_text(prop, "Horizontal Scale", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "scaley");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1000, 0.2, 2);
+	RNA_def_property_ui_text(prop, "Vertical Scale", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "override_image", PROP_BOOLEAN, PROP_NONE);

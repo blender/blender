@@ -3606,6 +3606,7 @@ static void uvprojectModifier_initData(ModifierData *md)
 	umd->flags = 0;
 	umd->num_projectors = 1;
 	umd->aspectx = umd->aspecty = 1.0f;
+	umd->scalex = umd->scaley = 1.0f;
 }
 
 static void uvprojectModifier_copyData(ModifierData *md, ModifierData *target)
@@ -3621,6 +3622,8 @@ static void uvprojectModifier_copyData(ModifierData *md, ModifierData *target)
 	tumd->num_projectors = umd->num_projectors;
 	tumd->aspectx = umd->aspectx;
 	tumd->aspecty = umd->aspecty;
+	tumd->scalex = umd->scalex;
+	tumd->scaley = umd->scaley;
 }
 
 static CustomDataMask uvprojectModifier_requiredDataMask(Object *ob, ModifierData *md)
@@ -3692,6 +3695,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	char uvname[32];
 	float aspx= umd->aspectx ? umd->aspectx : 1.0f;
 	float aspy= umd->aspecty ? umd->aspecty : 1.0f;
+	float scax= umd->scalex ? umd->scalex : 1.0f;
+	float scay= umd->scaley ? umd->scaley : 1.0f;
 	int free_uci= 0;
 	
 	aspect = aspx / aspy;
@@ -3829,6 +3834,22 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 						project_from_camera(tface->uv[2], coords[mf->v3], projectors[0].uci);
 						if(mf->v3)
 							project_from_camera(tface->uv[3], coords[mf->v4], projectors[0].uci);
+						
+						if(scax != 1.0f) {
+							tface->uv[0][0] = ((tface->uv[0][0] - 0.5f) * scax) + 0.5f;
+							tface->uv[1][0] = ((tface->uv[1][0] - 0.5f) * scax) + 0.5f;
+							tface->uv[2][0] = ((tface->uv[2][0] - 0.5f) * scax) + 0.5f;
+							if(mf->v3)
+								tface->uv[3][0] = ((tface->uv[3][0] - 0.5f) * scax) + 0.5f;
+						}
+						
+						if(scay != 1.0f) {
+							tface->uv[0][1] = ((tface->uv[0][1] - 0.5f) * scay) + 0.5f;
+							tface->uv[1][1] = ((tface->uv[1][1] - 0.5f) * scay) + 0.5f;
+							tface->uv[2][1] = ((tface->uv[2][1] - 0.5f) * scay) + 0.5f;
+							if(mf->v3)
+								tface->uv[3][1] = ((tface->uv[3][1] - 0.5f) * scay) + 0.5f;
+						}
 					}
 					else {
 						/* apply transformed coords as UVs */
@@ -6489,7 +6510,7 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 								ed_loop_flip= 1;
 							}
 							else {
-								/* not so simple to work out wich edge is higher */
+								/* not so simple to work out which edge is higher */
 								sub_v3_v3v3(tmp_vec1, tmpf1, vc_tmp->co);
 								sub_v3_v3v3(tmp_vec1, tmpf2, vc_tmp->co);
 								normalize_v3(tmp_vec1);

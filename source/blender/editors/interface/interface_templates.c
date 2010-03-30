@@ -497,7 +497,7 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 		flag |= UI_ID_OPEN;
 	
 	type= RNA_property_pointer_type(ptr, prop);
-	template->idlb= wich_libbase(CTX_data_main(C), RNA_type_to_ID_code(type));
+	template->idlb= which_libbase(CTX_data_main(C), RNA_type_to_ID_code(type));
 	
 	/* create UI elements for this template
 	 *	- template_ID makes a copy of the template data and assigns it to the relevant buttons

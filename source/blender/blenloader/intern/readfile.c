@@ -120,7 +120,7 @@
 #include "BKE_group.h"
 #include "BKE_image.h"
 #include "BKE_lattice.h"
-#include "BKE_library.h" // for wich_libbase
+#include "BKE_library.h" // for which_libbase
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
@@ -429,7 +429,7 @@ static void split_libdata(ListBase *lb, Main *first)
 			mainvar= first;
 			while(mainvar) {
 				if(mainvar->curlib==id->lib) {
-					lbn= wich_libbase(mainvar, GS(id->name));
+					lbn= which_libbase(mainvar, GS(id->name));
 					BLI_remlink(lb, id);
 					BLI_addtail(lbn, id);
 					break;
@@ -4684,7 +4684,7 @@ static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 {
 		
 	if(id) {
-		ListBase *lb= wich_libbase(mainp, GS(id->name));
+		ListBase *lb= which_libbase(mainp, GS(id->name));
 		
 		if(lb) {	// there's still risk of checking corrupt mem (freed Ids in oops)
 			ID *idn= lb->first;
@@ -5377,10 +5377,10 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	
 	/* do after read_struct, for dna reconstruct */
 	if(bhead->code==ID_ID) {
-		lb= wich_libbase(main, GS(id->name));
+		lb= which_libbase(main, GS(id->name));
 	}
 	else {
-		lb= wich_libbase(main, bhead->code);
+		lb= which_libbase(main, bhead->code);
 	}
 	
 	BLI_addtail(lb, id);
@@ -10959,8 +10959,8 @@ char *bhead_id_name(FileData *fd, BHead *bhead)
 static ID *is_yet_read(FileData *fd, Main *mainvar, BHead *bhead)
 {
 	const char *idname= bhead_id_name(fd, bhead);
-	/* wich_libbase can be NULL, intentionally not using idname+2 */
-	return BLI_findstring(wich_libbase(mainvar, GS(idname)), idname, offsetof(ID, name));
+	/* which_libbase can be NULL, intentionally not using idname+2 */
+	return BLI_findstring(which_libbase(mainvar, GS(idname)), idname, offsetof(ID, name));
 }
 
 static void expand_doit(FileData *fd, Main *mainvar, void *old)

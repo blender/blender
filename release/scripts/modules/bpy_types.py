@@ -490,7 +490,7 @@ class Header(StructRNA, _GenericUI):
 class Menu(StructRNA, _GenericUI):
     __slots__ = ()
 
-    def path_menu(self, searchpaths, operator):
+    def path_menu(self, searchpaths, operator, props_default={}):
         layout = self.layout
         # hard coded to set the operators 'path' to the filename.
 
@@ -511,7 +511,12 @@ class Menu(StructRNA, _GenericUI):
             if f.startswith("."):
                 continue
 
-            layout.operator(operator, text=bpy.utils.display_name(f)).path = path
+            props = layout.operator(operator, text=bpy.utils.display_name(f))
+
+            for attr, value in props_default.items():
+                setattr(props, attr, value)
+
+            props.path = path
 
     def draw_preset(self, context):
         """Define these on the subclass
