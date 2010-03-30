@@ -1948,7 +1948,7 @@ protected:
 		addSampler(sampler);
 
 		std::string target = translate_id(ob_name)
-			+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name);
+			+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
 		addChannel(COLLADABU::URI(empty, sampler_id), target);
 
 		closeAnimation();
@@ -2096,7 +2096,7 @@ protected:
 		if (axis > -1)
 			axis_name = axis_names[axis];
 		
-		std::string transform_sid = get_transform_sid(NULL, tm_type, axis_name);
+		std::string transform_sid = get_transform_sid(NULL, tm_type, axis_name, false);
 		
 		BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
 					 (char*)translate_id(bone_name).c_str(), (char*)transform_sid.c_str());
@@ -2367,24 +2367,47 @@ protected:
 		return source_id;
 	}
 
-	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name)
+	// for rotation, axis name is always appended and the value of append_axis is ignored
+	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis)
 	{
+		std::string tm_name;
+
+		// when given rna_path, determine tm_type from it
 		if (rna_path) {
 			char *name = extract_transform_name(rna_path);
 
 			if (strstr(name, "rotation"))
-				return std::string("rotation") + std::string(axis_name) + ".ANGLE";
-			else if (!strcmp(name, "location") || !strcmp(name, "scale"))
-				return std::string(name);
-		}
-		else {
-			if (tm_type == 0)
-				return std::string("rotation") + std::string(axis_name) + ".ANGLE";
+				tm_type = 0;
+			else if (!strcmp(name, "scale"))
+				tm_type = 1;
+			else if (!strcmp(name, "location"))
+				tm_type = 2;
 			else
-				return tm_type == 1 ? "scale" : "location";
+				tm_type = -1;
 		}
 
-		return NULL;
+		switch (tm_type) {
+		case 0:
+			return std::string("rotation") + std::string(axis_name) + ".ANGLE";
+		case 1:
+			tm_name = "scale";
+			break;
+		case 2:
+			tm_name = "location";
+			break;
+		default:
+			tm_name = "";
+			break;
+		}
+
+		if (tm_name.size()) {
+			if (append_axis)
+				return tm_name + std::string(".") + std::string(axis_name);
+			else
+				return tm_name;
+		}
+
+		return std::string("");
 	}
 
 	char *extract_transform_name(char *rna_path)
