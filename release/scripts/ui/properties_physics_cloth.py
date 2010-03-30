@@ -129,6 +129,11 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
                 col.prop(cloth, "goal_friction", text="Friction")
             """
 
+            key = ob.data.shape_keys
+
+            if key:
+                col.label(text="Rest Shape Key:")
+                col.prop_object(cloth, "rest_shape_key", key, "keys", text="")
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
     bl_label = "Cloth Cache"

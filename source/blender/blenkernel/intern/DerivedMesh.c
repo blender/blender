@@ -36,6 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_cloth_types.h"
 #include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -49,6 +50,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
+#include "BKE_key.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -1450,55 +1452,88 @@ static float *get_editmesh_orco_verts(EditMesh *em)
 
 /* orco custom data layer */
 
-static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, EditMesh *em)
+static void *get_orco_coords_dm(Object *ob, EditMesh *em, int layer, int *free)
+{
+	*free= 0;
+
+	if(layer == CD_ORCO) {
+		/* get original coordinates */
+		*free= 1;
+
+		if(em)
+			return (float(*)[3])get_editmesh_orco_verts(em);
+		else
+			return (float(*)[3])get_mesh_orco_verts(ob);
+	}
+	else if(layer == CD_CLOTH_ORCO) {
+		/* apply shape key for cloth, this should really be solved
+		   by a more flexible customdata system, but not simple */
+		if(!em) {
+			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+			KeyBlock *kb= key_get_keyblock(ob_get_key(ob), clmd->sim_parms->shapekey_rest);
+
+			if(kb->data)
+				return kb->data;
+		}
+
+		return NULL;
+	}
+
+	return NULL;
+}
+
+static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, EditMesh *em, int layer)
 {
 	DerivedMesh *dm;
 	float (*orco)[3];
+	int free;
 
-	if(em) {
-		dm= CDDM_from_editmesh(em, me);
-		orco= (float(*)[3])get_editmesh_orco_verts(em);
-	}
-	else {
-		dm= CDDM_from_mesh(me, ob);
-		orco= (float(*)[3])get_mesh_orco_verts(ob);
+	if(em) dm= CDDM_from_editmesh(em, me);
+	else dm= CDDM_from_mesh(me, ob);
+
+	orco= get_orco_coords_dm(ob, em, layer, &free);
+
+	if(orco) {
+		CDDM_apply_vert_coords(dm, orco);
+		if(free) MEM_freeN(orco);
 	}
 
-	CDDM_apply_vert_coords(dm, orco);
 	CDDM_calc_normals(dm);
-	MEM_freeN(orco);
 
 	return dm;
 }
 
-static void add_orco_dm(Object *ob, EditMesh *em, DerivedMesh *dm, DerivedMesh *orcodm)
+static void add_orco_dm(Object *ob, EditMesh *em, DerivedMesh *dm, DerivedMesh *orcodm, int layer)
 {
 	float (*orco)[3], (*layerorco)[3];
-	int totvert;
+	int totvert, free;
 
 	totvert= dm->getNumVerts(dm);
 
 	if(orcodm) {
 		orco= MEM_callocN(sizeof(float)*3*totvert, "dm orco");
+		free= 1;
 
 		if(orcodm->getNumVerts(orcodm) == totvert)
 			orcodm->getVertCos(orcodm, orco);
 		else
 			dm->getVertCos(dm, orco);
 	}
-	else {
-		if(em) orco= (float(*)[3])get_editmesh_orco_verts(em);
-		else orco= (float(*)[3])get_mesh_orco_verts(ob);
-	}
-
-	transform_mesh_orco_verts(ob->data, orco, totvert, 0);
-
-	if((layerorco = DM_get_vert_data_layer(dm, CD_ORCO))) {
-		memcpy(layerorco, orco, sizeof(float)*totvert);
-		MEM_freeN(orco);
-	}
 	else
-		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, orco);
+		orco= get_orco_coords_dm(ob, em, layer, &free);
+
+	if(orco) {
+		if(layer == CD_ORCO)
+			transform_mesh_orco_verts(ob->data, orco, totvert, 0);
+
+		if(!(layerorco = DM_get_vert_data_layer(dm, layer))) {
+			DM_add_vert_layer(dm, layer, CD_CALLOC, NULL);
+			layerorco = DM_get_vert_data_layer(dm, layer);
+		}
+
+		memcpy(layerorco, orco, sizeof(float)*3*totvert);
+		if(free) MEM_freeN(orco);
+	}
 }
 
 /* weight paint colors */
@@ -1604,9 +1639,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	Mesh *me = ob->data;
 	ModifierData *firstmd, *md;
 	LinkNode *datamasks, *curr;
-	CustomDataMask mask;
+	CustomDataMask mask, nextmask;
 	float (*deformedVerts)[3] = NULL;
-	DerivedMesh *dm, *orcodm, *finaldm;
+	DerivedMesh *dm, *orcodm, *clothorcodm, *finaldm;
 	int numVerts = me->totvert;
 	int required_mode;
 
@@ -1679,6 +1714,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	 */
 	dm = NULL;
 	orcodm = NULL;
+	clothorcodm = NULL;
 
 	for(;md; md = md->next, curr = curr->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1695,11 +1731,13 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
 		/* add an orco layer if needed by this modifier */
-		if(dm && mti->requiredDataMask) {
+		if(mti->requiredDataMask)
 			mask = mti->requiredDataMask(ob, md);
-			if(mask & CD_MASK_ORCO)
-				add_orco_dm(ob, NULL, dm, orcodm);
-		}
+		else
+			mask = 0;
+
+		if(dm && (mask & CD_MASK_ORCO))
+			add_orco_dm(ob, NULL, dm, orcodm, CD_ORCO);
 
 		/* How to apply modifier depends on (a) what we already have as
 		 * a result of previous modifiers (could be a DerivedMesh or just
@@ -1766,26 +1804,20 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 
-			/* create an orco derivedmesh in parallel */
-			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
-			if(mask & CD_MASK_ORCO) {
-				if(!orcodm)
-					orcodm= create_orco_dm(ob, me, NULL);
-
-				mask &= ~CD_MASK_ORCO;
-				DM_set_only_copy(orcodm, mask);
-				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, 0);
-
-				if(ndm) {
-					/* if the modifier returned a new dm, release the old one */
-					if(orcodm && orcodm != ndm) orcodm->release(orcodm);
-					orcodm = ndm;
-				}
-			}
-
+			/* determine which data layers are needed by following modifiers */
+			if(curr->next)
+				nextmask= (CustomDataMask)GET_INT_FROM_POINTER(curr->next->link);
+			else
+				nextmask= dataMask;
+			
 			/* set the DerivedMesh to only copy needed data */
+			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
 			DM_set_only_copy(dm, mask);
 			
+			/* add cloth rest shape key if need */
+			if(mask & CD_MASK_CLOTH_ORCO)
+				add_orco_dm(ob, NULL, dm, clothorcodm, CD_CLOTH_ORCO);
+
 			/* add an origspace layer if needed */
 			if(((CustomDataMask)GET_INT_FROM_POINTER(curr->link)) & CD_MASK_ORIGSPACE)
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
@@ -1806,6 +1838,38 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					deformedVerts = NULL;
 				}
 			} 
+
+			/* create an orco derivedmesh in parallel */
+			if(nextmask & CD_MASK_ORCO) {
+				if(!orcodm)
+					orcodm= create_orco_dm(ob, me, NULL, CD_ORCO);
+
+				nextmask &= ~CD_MASK_ORCO;
+				DM_set_only_copy(orcodm, nextmask);
+				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, 0);
+
+				if(ndm) {
+					/* if the modifier returned a new dm, release the old one */
+					if(orcodm && orcodm != ndm) orcodm->release(orcodm);
+					orcodm = ndm;
+				}
+			}
+
+			/* create cloth orco derivedmesh in parallel */
+			if(nextmask & CD_MASK_CLOTH_ORCO) {
+				if(!clothorcodm)
+					clothorcodm= create_orco_dm(ob, me, NULL, CD_CLOTH_ORCO);
+
+				nextmask &= ~CD_MASK_CLOTH_ORCO;
+				DM_set_only_copy(clothorcodm, nextmask);
+				ndm = mti->applyModifier(md, ob, clothorcodm, useRenderParams, 0);
+
+				if(ndm) {
+					/* if the modifier returned a new dm, release the old one */
+					if(clothorcodm && clothorcodm != ndm) clothorcodm->release(clothorcodm);
+					clothorcodm = ndm;
+				}
+			}
 		}
 		
 		/* grab modifiers until index i */
@@ -1846,16 +1910,18 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 	/* add an orco layer if needed */
 	if(dataMask & CD_MASK_ORCO) {
-		add_orco_dm(ob, NULL, finaldm, orcodm);
+		add_orco_dm(ob, NULL, finaldm, orcodm, CD_ORCO);
 
 		if(deform_r && *deform_r)
-			add_orco_dm(ob, NULL, *deform_r, NULL);
+			add_orco_dm(ob, NULL, *deform_r, NULL, CD_ORCO);
 	}
 
 	*final_r = finaldm;
 
 	if(orcodm)
 		orcodm->release(orcodm);
+	if(clothorcodm)
+		clothorcodm->release(clothorcodm);
 
 	if(deformedVerts && deformedVerts != inputVertexCos)
 		MEM_freeN(deformedVerts);
@@ -1930,7 +1996,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 		if(dm && mti->requiredDataMask) {
 			mask = mti->requiredDataMask(ob, md);
 			if(mask & CD_MASK_ORCO)
-				add_orco_dm(ob, em, dm, orcodm);
+				add_orco_dm(ob, em, dm, orcodm, CD_ORCO);
 		}
 
 		/* How to apply modifier depends on (a) what we already have as
@@ -1987,7 +2053,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
 			if(mask & CD_MASK_ORCO) {
 				if(!orcodm)
-					orcodm= create_orco_dm(ob, ob->data, em);
+					orcodm= create_orco_dm(ob, ob->data, em, CD_ORCO);
 
 				mask &= ~CD_MASK_ORCO;
 				DM_set_only_copy(orcodm, mask);
@@ -2060,7 +2126,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 
 	/* add an orco layer if needed */
 	if(dataMask & CD_MASK_ORCO)
-		add_orco_dm(ob, em, *final_r, orcodm);
+		add_orco_dm(ob, em, *final_r, orcodm, CD_ORCO);
 
 	if(orcodm)
 		orcodm->release(orcodm);
