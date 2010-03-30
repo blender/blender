@@ -1575,6 +1575,7 @@ void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 		}
 		else if(strcmp(bt->str, "Hex: ")==0) {
 			float rgb_gamma[3];
+			double intpart;
 			char col[16];
 			
 			/* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
@@ -1586,6 +1587,10 @@ void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 				linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
 			}
 			
+			if (rgb_gamma[0] > 1.0f) rgb_gamma[0] = modf(rgb_gamma[0], &intpart);
+			if (rgb_gamma[1] > 1.0f) rgb_gamma[1] = modf(rgb_gamma[1], &intpart);
+			if (rgb_gamma[2] > 1.0f) rgb_gamma[2] = modf(rgb_gamma[2], &intpart);
+
 			sprintf(col, "%02X%02X%02X", (unsigned int)(rgb_gamma[0]*255.0), (unsigned int)(rgb_gamma[1]*255.0), (unsigned int)(rgb_gamma[2]*255.0));
 			
 			strcpy(bt->poin, col);
