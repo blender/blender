@@ -629,6 +629,12 @@ static void make_edges_mdata(MVert *allvert, MFace *allface, int totvert, int to
 			medge->v2= ed->v2;
 			if(old==0 || ed->is_draw) medge->flag= ME_EDGEDRAW|ME_EDGERENDER;
 			if(ed->is_loose) medge->flag|= ME_LOOSEEDGE;
+
+			/* order is swapped so extruding this edge as a surface wont flip face normals
+			 * with cyclic curves */
+			if(ed->v1+1 != ed->v2) {
+				SWAP(int, medge->v1, medge->v2);
+			}
 			medge++;
 		}
 		else {
