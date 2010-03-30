@@ -1120,7 +1120,7 @@ class KX_CameraActuator(SCA_IActuator):
 	@ivar useXY: axis this actuator is tracking, true=X, false=Y
 	@type useXY: boolean
 	@ivar object: the object this actuator tracks.
-	@type object: KX_GameObject or None
+	@type object: L{KX_GameObject} or None
 	@author: snail
 	"""
 #{ Deprecated
@@ -1131,7 +1131,7 @@ class KX_CameraActuator(SCA_IActuator):
 		@deprecated: Use the L{object} attribute instead.
 		@type name_only: bool
 		@param name_only: optional argument, when 0 return a KX_GameObject
-		@rtype: string, KX_GameObject or None if no object is set
+		@rtype: string, L{KX_GameObject} or None if no object is set
 		"""
 	
 	def setObject(target):
@@ -2701,7 +2701,7 @@ class KX_ObjectActuator(SCA_IActuator):
 	@ivar pid: The PID coefficients of the servo controller
 	@type pid: list of floats [proportional, integral, derivate]
 	@ivar reference: The object that is used as reference to compute the velocity for the servo controller.
-	@type reference: KX_GameObject or None
+	@type reference: L{KX_GameObject} or None
 	
 	@group Deprecated: getForce, setForce, getTorque, setTorque, getDLoc, setDLoc, getDRot, setDRot, getLinearVelocity, setLinearVelocity, getAngularVelocity,
 						setAngularVelocity, getDamping, setDamping, getForceLimitX, setForceLimitX, getForceLimitY, setForceLimitY, getForceLimitZ, setForceLimitZ,
@@ -2971,7 +2971,7 @@ class KX_ParentActuator(SCA_IActuator):
 	"""
 	The parent actuator can set or remove an objects parent object.	
 	@ivar object: the object this actuator sets the parent too.
-	@type object: KX_GameObject or None
+	@type object: L{KX_GameObject} or None
 	@ivar mode: The mode of this actuator
 	@type mode: int from 0 to 1 L{GameLogic.Parent Actuator}
 	@ivar compound: Whether the object shape should be added to the parent compound shape when parenting
@@ -2998,7 +2998,7 @@ class KX_ParentActuator(SCA_IActuator):
 		@deprecated: Use the L{object} property.
 		@type name_only: bool
 		@param name_only: optional argument, when 0 return a KX_GameObject
-		@rtype: string, KX_GameObject or None if no object is set
+		@rtype: string, L{KX_GameObject} or None if no object is set
 		"""
 
 class KX_PhysicsObjectWrapper(PyObjectPlus):
@@ -3497,7 +3497,7 @@ class KX_RaySensor(SCA_ISensor):
 	@ivar useXRay: Whether or not to use XRay.
 	@type useXRay: boolean
 	@ivar hitObject: The game object that was hit by the ray. (Read-only)
-	@type hitObject: KX_GameObject
+	@type hitObject: L{KX_GameObject}
 	@ivar hitPosition: The position (in worldcoordinates) where the object was hit by the ray. (Read-only)
 	@type hitPosition: list [x, y, z]
 	@ivar hitNormal: The normal (in worldcoordinates) of the object at the location where the object was hit by the ray. (Read-only)
@@ -3515,7 +3515,7 @@ class KX_RaySensor(SCA_ISensor):
 		Returns the game object that was hit by this ray.
 		
 		@deprecated: Use the L{hitObject} attribute instead.
-		@rtype: KX_GameObject
+		@rtype: L{KX_GameObject}
 		"""
 	def getHitPosition():
 		"""
@@ -3544,9 +3544,9 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 	"""
 	Edit Object Actuator (in Add Object Mode)
 	@ivar object: the object this actuator adds.
-	@type object: KX_GameObject or None
+	@type object: L{KX_GameObject} or None
 	@ivar objectLastCreated: the last added object from this actuator (read-only).
-	@type objectLastCreated: KX_GameObject or None
+	@type objectLastCreated: L{KX_GameObject} or None
 	@ivar time: the lifetime of added objects, in frames. Set to 0 to disable automatic deletion.
 	@type time: integer
 	@ivar linearVelocity: the initial linear velocity of added objects.
@@ -3584,7 +3584,7 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 		@deprecated: use the L{object} property
 		@type name_only: bool
 		@param name_only: optional argument, when 0 return a KX_GameObject
-		@rtype: string, KX_GameObject or None if no object is set
+		@rtype: string, L{KX_GameObject} or None if no object is set
 		"""
 	def setTime(time):
 		"""
@@ -4232,7 +4232,7 @@ class KX_TrackToActuator(SCA_IActuator):
 		C{ERROR: GameObject I{Name} no object in EditObjectActuator I{ActuatorName}}
 
 	@ivar object: the object this actuator tracks.
-	@type object: KX_GameObject or None
+	@type object: L{KX_GameObject} or None
 	@ivar time: the time in frames with which to delay the tracking motion
 	@type time: integer
 	@ivar use3D: the tracking motion to use 3D
@@ -4255,7 +4255,7 @@ class KX_TrackToActuator(SCA_IActuator):
 		@deprecated: Use the L{object} attribute instead.
 		@type name_only: bool
 		@param name_only: optional argument, when 0 return a KX_GameObject
-		@rtype: string, KX_GameObject or None if no object is set
+		@rtype: string, L{KX_GameObject} or None if no object is set
 		"""
 	def setTime(time):
 		"""
