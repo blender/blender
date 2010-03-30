@@ -5779,7 +5779,8 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 #define ADD_EDGE_USER(_v1, _v2, edge_ord) \
 		eidx= GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, _v1, _v2)); \
 		if(edge_users[eidx] == INVALID_UNUSED) { \
-			edge_users[eidx]= (_v1 < _v2) ? i:(i+numFaces); \
+			ed= orig_medge + eidx; \
+			edge_users[eidx]= (_v1 < _v2) == (ed->v1 < ed->v2) ? i:(i+numFaces); \
 			edge_order[eidx]= edge_ord; \
 		} else { \
 			edge_users[eidx]= INVALID_PAIR; \
