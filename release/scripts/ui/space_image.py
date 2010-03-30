@@ -276,6 +276,7 @@ class IMAGE_HT_header(bpy.types.Header):
                 sub.menu("IMAGE_MT_uvs")
 
         layout.template_ID(sima, "image", new="image.new")
+        layout.prop(sima, "image_pin", text="")
 
         # uv editing
         if show_uvedit:

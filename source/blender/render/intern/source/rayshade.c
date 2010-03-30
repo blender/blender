@@ -1856,7 +1856,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *ao, float *env)
 	RE_RC_INIT(isec, *shi);
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
-	isec.skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK | RE_SKIP_VLR_NON_SOLID_MATERIAL;
+	isec.skip = RE_SKIP_VLR_NEIGHBOUR|RE_SKIP_VLR_NON_SOLID_MATERIAL;
 	isec.hint = 0;
 
 	isec.hit.ob   = 0;

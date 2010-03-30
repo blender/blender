@@ -618,13 +618,24 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	LaplacianSystem *sys;
 	MFace *mface;
 	float solution, weight;
-	int *vertsflipped = NULL;
+	int *vertsflipped = NULL, *mask= NULL;
 	int a, totface, j, bbone, firstsegment, lastsegment, thrownerror = 0;
 
-	/* count triangles */
+	/* count triangles and create mask */
+	if(me->editflag & ME_EDIT_PAINT_MASK)
+		mask= MEM_callocN(sizeof(int)*me->totvert, "heat_bone_weighting mask");
+
 	for(totface=0, a=0, mface=me->mface; a<me->totface; a++, mface++) {
 		totface++;
 		if(mface->v4) totface++;
+
+		if(mask && (mface->flag & ME_FACE_SEL)) {
+			mask[mface->v1]= 1;
+			mask[mface->v2]= 1;
+			mask[mface->v3]= 1;
+			if(mface->v4)
+				mask[mface->v4]= 1;
+		}
 	}
 
 	/* create laplacian */
@@ -661,6 +672,9 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 		/* clear weights */
 		if(bbone && firstsegment) {
 			for(a=0; a<me->totvert; a++) {
+				if(mask && !mask[a])
+					continue;
+
 				ED_vgroup_vert_remove(ob, dgrouplist[j], a);
 				if(vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0)
 					ED_vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
@@ -679,6 +693,9 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 		if(laplacian_system_solve(sys)) {
 			/* load solution into vertex groups */
 			for(a=0; a<me->totvert; a++) {
+				if(mask && !mask[a])
+					continue;
+
 				solution= laplacian_system_get_solution(a);
 				
 				if(bbone) {
@@ -723,6 +740,9 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 		/* remove too small vertex weights */
 		if(bbone && lastsegment) {
 			for(a=0; a<me->totvert; a++) {
+				if(mask && !mask[a])
+					continue;
+
 				weight= ED_vgroup_vert_weight(ob, dgrouplist[j], a);
 				weight= heat_limit_weight(weight);
 				if(weight <= 0.0f)
@@ -740,6 +760,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 
 	/* free */
 	if(vertsflipped) MEM_freeN(vertsflipped);
+	if(mask) MEM_freeN(mask);
 
 	heat_system_free(sys);
 

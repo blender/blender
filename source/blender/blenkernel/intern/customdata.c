@@ -848,7 +848,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 {
 	const LayerTypeInfo *typeInfo;
 	CustomDataLayer *layer, *newlayer;
-	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0;
+	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0, lastflag = 0;
 
 	for(i = 0; i < source->totlayer; ++i) {
 		layer = &source->layers[i];
@@ -863,15 +863,16 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			lastclone = layer->active_clone;
 			lastmask = layer->active_mask;
 			lasttype = type;
+			lastflag = layer->flag;
 		}
 		else
 			number++;
 
-		if(layer->flag & CD_FLAG_NOCOPY) continue;
+		if(lastflag & CD_FLAG_NOCOPY) continue;
 		else if(!((int)mask & (int)(1 << (int)type))) continue;
 		else if(number < CustomData_number_of_layers(dest, type)) continue;
 
-		if((alloctype == CD_ASSIGN) && (layer->flag & CD_FLAG_NOFREE))
+		if((alloctype == CD_ASSIGN) && (lastflag & CD_FLAG_NOFREE))
 			newlayer = customData_add_layer__internal(dest, type, CD_REFERENCE,
 				layer->data, totelem, layer->name);
 		else
@@ -883,6 +884,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			newlayer->active_rnd = lastrender;
 			newlayer->active_clone = lastclone;
 			newlayer->active_mask = lastmask;
+			newlayer->flag |= lastflag & (CD_FLAG_EXTERNAL|CD_FLAG_IN_MEMORY);
 		}
 	}
 }
@@ -891,6 +893,9 @@ void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
 					 CustomDataMask mask, int alloctype, int totelem)
 {
 	memset(dest, 0, sizeof(*dest));
+
+	if(source->external)
+		dest->external= MEM_dupallocN(source->external);
 
 	CustomData_merge(source, dest, mask, alloctype, totelem);
 }
