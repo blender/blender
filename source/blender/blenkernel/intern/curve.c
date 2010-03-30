@@ -1227,49 +1227,47 @@ void makebevelcurve(Scene *scene, Object *ob, ListBase *disp, int forRender)
 	/* if a font object is being edited, then do nothing */
 // XXX	if( ob == obedit && ob->type == OB_FONT ) return;
 
-	if(cu->bevobj && cu->bevobj!=ob) {
-		if(cu->bevobj->type==OB_CURVE) {
-			bevcu= cu->bevobj->data;
-			if(bevcu->ext1==0.0 && bevcu->ext2==0.0) {
-				ListBase bevdisp= {NULL, NULL};
-				facx= cu->bevobj->size[0];
-				facy= cu->bevobj->size[1];
+	if(cu->bevobj && cu->bevobj!=ob && cu->bevobj->type==OB_CURVE) {
+		bevcu= cu->bevobj->data;
+		if(bevcu->ext1==0.0 && bevcu->ext2==0.0) {
+			ListBase bevdisp= {NULL, NULL};
+			facx= cu->bevobj->size[0];
+			facy= cu->bevobj->size[1];
 
-				if (forRender) {
-					makeDispListCurveTypes_forRender(scene, cu->bevobj, &bevdisp, NULL, 0);
-					dl= bevdisp.first;
-				} else {
+			if (forRender) {
+				makeDispListCurveTypes_forRender(scene, cu->bevobj, &bevdisp, NULL, 0);
+				dl= bevdisp.first;
+			} else {
+				dl= bevcu->disp.first;
+				if(dl==0) {
+					makeDispListCurveTypes(scene, cu->bevobj, 0);
 					dl= bevcu->disp.first;
-					if(dl==0) {
-						makeDispListCurveTypes(scene, cu->bevobj, 0);
-						dl= bevcu->disp.first;
-					}
 				}
-
-				while(dl) {
-					if ELEM(dl->type, DL_POLY, DL_SEGM) {
-						dlnew= MEM_mallocN(sizeof(DispList), "makebevelcurve1");					
-						*dlnew= *dl;
-						dlnew->verts= MEM_mallocN(3*sizeof(float)*dl->parts*dl->nr, "makebevelcurve1");
-						memcpy(dlnew->verts, dl->verts, 3*sizeof(float)*dl->parts*dl->nr);
-						
-						if(dlnew->type==DL_SEGM) dlnew->flag |= (DL_FRONT_CURVE|DL_BACK_CURVE);
-						
-						BLI_addtail(disp, dlnew);
-						fp= dlnew->verts;
-						nr= dlnew->parts*dlnew->nr;
-						while(nr--) {
-							fp[2]= fp[1]*facy;
-							fp[1]= -fp[0]*facx;
-							fp[0]= 0.0;
-							fp+= 3;
-						}
-					}
-					dl= dl->next;
-				}
-
-				freedisplist(&bevdisp);
 			}
+
+			while(dl) {
+				if ELEM(dl->type, DL_POLY, DL_SEGM) {
+					dlnew= MEM_mallocN(sizeof(DispList), "makebevelcurve1");
+					*dlnew= *dl;
+					dlnew->verts= MEM_mallocN(3*sizeof(float)*dl->parts*dl->nr, "makebevelcurve1");
+					memcpy(dlnew->verts, dl->verts, 3*sizeof(float)*dl->parts*dl->nr);
+
+					if(dlnew->type==DL_SEGM) dlnew->flag |= (DL_FRONT_CURVE|DL_BACK_CURVE);
+
+					BLI_addtail(disp, dlnew);
+					fp= dlnew->verts;
+					nr= dlnew->parts*dlnew->nr;
+					while(nr--) {
+						fp[2]= fp[1]*facy;
+						fp[1]= -fp[0]*facx;
+						fp[0]= 0.0;
+						fp+= 3;
+					}
+				}
+				dl= dl->next;
+			}
+
+			freedisplist(&bevdisp);
 		}
 	}
 	else if(cu->ext1==0.0 && cu->ext2==0.0) {

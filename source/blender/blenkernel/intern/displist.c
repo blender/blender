@@ -1755,8 +1755,10 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							bevp= (BevPoint *)(bl+1);
 							for(a=0; a<bl->nr; a++,bevp++) {
 								float fac=1.0;
-								if (cu->taperobj==NULL) {
-									if ( (cu->bevobj!=NULL) || !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )
+								if (cu->taperobj==NULL ||
+									cu->taperobj->type != OB_CURVE || cu->taperobj == ob) {
+									if ( (cu->bevobj!=NULL && cu->bevobj->type == OB_CURVE) ||
+										!((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )
 										fac = bevp->radius;
 								} else {
 									fac = calc_taper(scene, cu->taperobj, a, bl->nr);

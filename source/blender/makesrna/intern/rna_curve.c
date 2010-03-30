@@ -216,6 +216,30 @@ static void rna_Curve_update_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 	rna_Curve_update_data(bmain, scene, ptr);
 }
 
+static void rna_Curve_update_taper(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Object *obj= cu->taperobj;
+
+	if (obj && obj->type != OB_CURVE) {
+		cu->taperobj = NULL;
+	}
+
+	rna_Curve_update_deps(bmain, scene, ptr);
+}
+
+static void rna_Curve_update_bevel(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Object *obj= cu->bevobj;
+
+	if (obj && obj->type != OB_CURVE) {
+		cu->bevobj = NULL;
+	}
+
+	rna_Curve_update_deps(bmain, scene, ptr);
+}
+
 static void rna_Curve_resolution_u_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
@@ -1036,13 +1060,13 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "bevobj");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bevel Object", "Curve object name that defines the bevel shape");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_bevel");
 	
 	prop= RNA_def_property(srna, "taper_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "taperobj");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Taper Object", "Curve object name that defines the taper (width)");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_taper");
 	
 	/* Flags */
 
