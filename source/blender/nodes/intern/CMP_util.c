@@ -122,6 +122,11 @@ void print_compbuf(char *str, CompBuf *cbuf)
 	
 }
 
+void compbuf_set_node(CompBuf *cbuf, bNode *node)
+{
+	if (cbuf) cbuf->node = node;
+}
+
 /* used for disabling node  (similar code in drawnode.c for disable line) */
 void node_compo_pass_on(bNode *node, bNodeStack **nsin, bNodeStack **nsout)
 {

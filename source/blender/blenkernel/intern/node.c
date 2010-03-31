@@ -2573,6 +2573,8 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		for(sock= node->outputs.first; sock; sock= sock->next) {
 			
 			sock->new_sock->ns.data= sock->ns.data;
+			compbuf_set_node(sock->new_sock->ns.data, node->new_node);
+			
 			sock->ns.data= NULL;
 			sock->new_sock->new_sock= sock;
 		}
