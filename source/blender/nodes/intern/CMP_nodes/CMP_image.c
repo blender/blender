@@ -231,9 +231,12 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 					/*first duplicate stackbuf->rect, since it's just a pointer
 					  to the source imbuf, and we don't want to change that.*/
 					stackbuf->rect = MEM_dupallocN(stackbuf->rect);
-				
+					
+					/* since stackbuf now has allocated memory, rather than just a pointer,
+					 * mark it as allocated so it can be freed properly */
+					stackbuf->malloc=1;
+					
 					/*premul the image*/
-				
 					pixel = stackbuf->rect;
 					for (i=0; i<stackbuf->x*stackbuf->y; i++, pixel += 4) {
 						pixel[0] *= pixel[3];
