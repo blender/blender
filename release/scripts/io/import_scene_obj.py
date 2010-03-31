@@ -1621,7 +1621,8 @@ class IMPORT_OT_obj(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)")
+def menu_func(self, context):
+    self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)")
 
 
 def register():

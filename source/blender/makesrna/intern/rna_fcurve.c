@@ -40,6 +40,9 @@
 
 #include "WM_types.h"
 
+#include "ED_keyframing.h"
+#include "ED_keyframes_edit.h"
+
 EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
 	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", 0, "Generator", ""},
@@ -458,6 +461,53 @@ static void rna_FModifierStepped_end_frame_range(PointerRNA *ptr, float *min, fl
 
 	*min= (data->flag & FCM_STEPPED_NO_BEFORE)? data->start_frame : MINAFRAMEF;
 	*max= MAXFRAMEF;
+}
+
+static BezTriple *rna_FKeyframe_points_add(FCurve *fcu, float frame, float value, int do_replace, int do_needed, int do_fast)
+{
+	int index;
+	int flag= 0;
+
+	if(do_replace) flag |= INSERTKEY_REPLACE;
+	if(do_needed) flag |= INSERTKEY_NEEDED;
+	if(do_fast) flag |= INSERTKEY_FAST;
+
+
+	index= insert_vert_fcurve(fcu, frame, value, flag);
+	return index >= 0 ? fcu->bezt + index : NULL;
+}
+
+static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTriple *bezt, int do_fast)
+{
+	int index= (int)(bezt - fcu->bezt);
+	if (index < 0 || index >= fcu->totvert) {
+		BKE_report(reports, RPT_ERROR, "bezier not in fcurve.");
+		return;
+	}
+
+	delete_fcurve_key(fcu, index, !do_fast);
+}
+
+static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
+{
+	FCurve *fcu= ptr->data;
+
+	if(value.data && (ptr->id.data != value.id.data)) {
+		return; /* id's differ, cant do this, should raise an error */
+	}
+	if(fcu->grp == value.data) {
+		return; /* nothing to do */
+	}
+
+	if(fcu->grp) {
+		BLI_remlink(&fcu->grp->channels, fcu);
+	}
+
+	fcu->grp= value.data;
+
+	if(fcu->grp) {
+		BLI_addtail(&fcu->grp->channels, fcu);
+	}
 }
 
 #else
@@ -1143,7 +1193,6 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 }
 
-
 static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	/* add modifiers */
@@ -1188,6 +1237,43 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
+/* fcurve.keyframe_points */
+static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "FCurveKeyframePoints");
+	srna= RNA_def_struct(brna, "FCurveKeyframePoints", NULL);
+	RNA_def_struct_sdna(srna, "FCurve");
+	RNA_def_struct_ui_text(srna, "Keyframe Points", "Collection of keyframe points");
+
+	func= RNA_def_function(srna, "add", "rna_FKeyframe_points_add");
+	RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve.");
+	parm= RNA_def_float(func, "frame", 0.0f, -FLT_MAX, FLT_MAX, "", "X Value of this keyframe point", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_float(func, "value", 0.0f, -FLT_MAX, FLT_MAX, "", "Y Value of this keyframe point", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* optional */
+	parm= RNA_def_boolean(func, "replace", 0, "Replace", "Replace existing keyframes");
+	parm= RNA_def_boolean(func, "needed", 0, "Needed", "Only adds keyframes that are needed");
+	parm= RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe insertion to avoid recalculating the curve each time");
+
+	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Newly created keyframe");
+	RNA_def_function_return(func, parm);
+
+
+	func= RNA_def_function(srna, "remove", "rna_FKeyframe_points_remove");
+	RNA_def_function_ui_description(func, "Remove keyframe from an fcurve.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Keyframe to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	/* optional */
+	parm= RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe removal to avoid recalculating the curve each time");
+}
+
 static void rna_def_fcurve(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1221,10 +1307,11 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "grp");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX this is not editable for now, since editing this will easily break the visible hierarchy
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Group", "Action Group that this F-Curve belongs to");
-	RNA_def_property_update(prop, NC_ANIMATION|ND_FCURVES_ORDER, NULL);
-	
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_FCurve_group_set", NULL);
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);
+
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "data_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_FCurve_RnaPath_get", "rna_FCurve_RnaPath_length", "rna_FCurve_RnaPath_set");
@@ -1282,6 +1369,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "bezt", "totvert");
 	RNA_def_property_struct_type(prop, "Keyframe");
 	RNA_def_property_ui_text(prop, "Keyframes", "User-editable keyframes");
+	rna_def_fcurve_keyframe_points(brna, prop);
 	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "FModifier");
