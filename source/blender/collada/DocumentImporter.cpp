@@ -273,6 +273,23 @@ public:
 	{
 		unit_converter->dae_matrix_to_mat4(m, ((COLLADAFW::Matrix*)tm)->getMatrix());
 	}
+
+	void dae_translate_to_v3(COLLADAFW::Transformation *tm, float v[3])
+	{
+		dae_vector3_to_v3(((COLLADAFW::Translate*)tm)->getTranslation(), v);
+	}
+
+	void dae_scale_to_v3(COLLADAFW::Transformation *tm, float v[3])
+	{
+		dae_vector3_to_v3(((COLLADAFW::Scale*)tm)->getScale(), v);
+	}
+
+	void dae_vector3_to_v3(const COLLADABU::Math::Vector3 &v3, float v[3])
+	{
+		v[0] = v3.x;
+		v[1] = v3.y;
+		v[2] = v3.z;
+	}
 };
 
 // only for ArmatureImporter to "see" MeshImporter::get_object_by_geom_uid
@@ -2398,10 +2415,7 @@ public:
 		float rest[4][4], irest[4][4];
 
 		if (is_joint) {
-			if (is_joint)
-				get_joint_rest_mat(irest_dae, root, node);
-			else
-				evaluate_transform_at_frame(irest_dae, node, 0.0f);
+			get_joint_rest_mat(irest_dae, root, node);
 			invert_m4(irest_dae);
 
 			Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
@@ -2471,11 +2485,12 @@ public:
 			float fra = *it;
 
 			float mat[4][4];
+			float matfra[4][4];
 
-			unit_m4(mat);
+			unit_m4(matfra);
 
 			// calc object-space mat
-			evaluate_transform_at_frame(mat, node, fra);
+			evaluate_transform_at_frame(matfra, node, fra);
 
 			// for joints, we need a special matrix
 			if (is_joint) {
@@ -2486,12 +2501,15 @@ public:
 
 				// calc M
 				calc_joint_parent_mat_rest(par, NULL, root, node);
-				mul_m4_m4m4(temp, mat, par);
+				mul_m4_m4m4(temp, matfra, par);
 
 				// evaluate_joint_world_transform_at_frame(temp, NULL, , node, fra);
 
 				// calc special matrix
 				mul_serie_m4(mat, irest, temp, irest_dae, rest, NULL, NULL, NULL, NULL);
+			}
+			else {
+				copy_m4_m4(mat, matfra);
 			}
 
 			float val[4];
@@ -2517,17 +2535,15 @@ public:
 
 #ifdef ARMATURE_TEST
 			if (is_joint) {
-				evaluate_transform_at_frame(mat, node, fra);
-
 				switch (tm_type) {
 				case COLLADAFW::Transformation::ROTATE:
-					mat4_to_quat(val, mat);
+					mat4_to_quat(val, matfra);
 					break;
 				case COLLADAFW::Transformation::SCALE:
-					mat4_to_size(val, mat);
+					mat4_to_size(val, matfra);
 					break;
 				case COLLADAFW::Transformation::TRANSLATE:
-					copy_v3_v3(val, mat[3]);
+					copy_v3_v3(val, matfra[3]);
 					break;
 				default:
 					break;
@@ -2611,89 +2627,100 @@ public:
 		}
 	}
 
+	// return true to indicate that mat contains a sane value
 	bool evaluate_animation(COLLADAFW::Transformation *tm, float mat[4][4], float fra)
 	{
 		const COLLADAFW::UniqueId& listid = tm->getAnimationList();
+		COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
 
-		if (animlist_map.find(listid) != animlist_map.end()) {
-			const COLLADAFW::AnimationList *animlist = animlist_map[listid];
-			const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
+		if (type != COLLADAFW::Transformation::ROTATE && type != COLLADAFW::Transformation::SCALE &&
+		    type != COLLADAFW::Transformation::TRANSLATE) {
+			fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
+			return false;
+		}
 
-			if (bindings.getCount()) {
-				for (unsigned int j = 0; j < bindings.getCount(); j++) {
-					std::vector<FCurve*>& curves = curve_map[bindings[j].animation];
-					COLLADAFW::AnimationList::AnimationClass animclass = bindings[j].animationClass;
-					COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
-					bool xyz = ((type == COLLADAFW::Transformation::TRANSLATE || type == COLLADAFW::Transformation::SCALE) && bindings[j].animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
+		if (animlist_map.find(listid) == animlist_map.end())
+			return false;
 
-					if (type == COLLADAFW::Transformation::ROTATE) {
-						if (curves.size() != 1) {
-							fprintf(stderr, "expected 1 curve, got %u\n", curves.size());
+		const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+		const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
+
+		if (bindings.getCount()) {
+			float vec[3];
+
+			bool is_scale = (type == COLLADAFW::Transformation::SCALE);
+
+			if (type == COLLADAFW::Transformation::SCALE)
+				dae_scale_to_v3(tm, vec);
+			else if (type == COLLADAFW::Transformation::TRANSLATE)
+				dae_translate_to_v3(tm, vec);
+
+			for (unsigned int j = 0; j < bindings.getCount(); j++) {
+				const COLLADAFW::AnimationList::AnimationBinding& binding = bindings[j];
+				std::vector<FCurve*>& curves = curve_map[binding.animation];
+				COLLADAFW::AnimationList::AnimationClass animclass = binding.animationClass;
+
+				if (type == COLLADAFW::Transformation::ROTATE) {
+					if (curves.size() != 1) {
+						fprintf(stderr, "expected 1 curve, got %u\n", curves.size());
+						return false;
+					}
+					else {
+						if (animclass == COLLADAFW::AnimationList::ANGLE) {
+							COLLADABU::Math::Vector3& axis = ((COLLADAFW::Rotate*)tm)->getRotationAxis();
+							float ax[3] = {axis[0], axis[1], axis[2]};
+							float angle = evaluate_fcurve(curves[0], fra);
+							axis_angle_to_mat4(mat, ax, angle);
+
+							return true;
 						}
 						else {
-							if (animclass == COLLADAFW::AnimationList::ANGLE) {
-								COLLADABU::Math::Vector3& axis = ((COLLADAFW::Rotate*)tm)->getRotationAxis();
-								float ax[3] = {axis[0], axis[1], axis[2]};
-								float angle = evaluate_fcurve(curves[0], fra);
-								axis_angle_to_mat4(mat, ax, angle);
-
-								return true;
-							}
-							else {
-								// TODO support other animclasses
-								fprintf(stderr, "<rotate> animclass %d is not supported yet\n", bindings[j].animationClass);
-							}
+							// TODO support other animclasses
+							fprintf(stderr, "<rotate> animclass %d is not supported yet\n", animclass);
+							return false;
 						}
 					}
-					else if (type == COLLADAFW::Transformation::SCALE || type == COLLADAFW::Transformation::TRANSLATE) {
-						if ((!xyz && curves.size() == 1) || (xyz && curves.size() == 3)) {
-							bool animated = true;
-							bool scale = (type == COLLADAFW::Transformation::SCALE);
+				}
+				else {
+					bool is_xyz = animclass == COLLADAFW::AnimationList::POSITION_XYZ;
 
-							float vec[3] = {0.0f, 0.0f, 0.0f};
-							if (scale)
-								vec[0] = vec[1] = vec[2] = 1.0f;
-
-							switch (animclass) {
-							case COLLADAFW::AnimationList::POSITION_X:
-								vec[0] = evaluate_fcurve(curves[0], fra);
-								break;
-							case COLLADAFW::AnimationList::POSITION_Y:
-								vec[1] = evaluate_fcurve(curves[0], fra);
-								break;
-							case COLLADAFW::AnimationList::POSITION_Z:
-								vec[2] = evaluate_fcurve(curves[0], fra);
-								break;
-							case COLLADAFW::AnimationList::POSITION_XYZ:
-								vec[0] = evaluate_fcurve(curves[0], fra);
-								vec[1] = evaluate_fcurve(curves[1], fra);
-								vec[2] = evaluate_fcurve(curves[2], fra);
-								break;
-							default:
-								fprintf(stderr, "<%s> animclass %d is not supported yet\n", scale ? "scale" : "translate", animclass);
-								animated = false;
-								break;
-							}
-
-							if (animated) {
-								if (scale)
-									size_to_mat4(mat, vec);
-								else
-									copy_v3_v3(mat[3], vec);
-							}
-
-							return animated;
-						}
-						else {
-							fprintf(stderr, "expected 1 or 3 curves, got %u, animclass is %d\n", curves.size(), animclass);
+					if ((!is_xyz && curves.size() == 1) || (is_xyz && curves.size() == 3)) {
+						switch (animclass) {
+						case COLLADAFW::AnimationList::POSITION_X:
+							vec[0] = evaluate_fcurve(curves[0], fra);
+							break;
+						case COLLADAFW::AnimationList::POSITION_Y:
+							vec[1] = evaluate_fcurve(curves[0], fra);
+							break;
+						case COLLADAFW::AnimationList::POSITION_Z:
+							vec[2] = evaluate_fcurve(curves[0], fra);
+							break;
+						case COLLADAFW::AnimationList::POSITION_XYZ:
+							vec[0] = evaluate_fcurve(curves[0], fra);
+							vec[1] = evaluate_fcurve(curves[1], fra);
+							vec[2] = evaluate_fcurve(curves[2], fra);
+							break;
+						default:
+							fprintf(stderr, "<%s> animclass %d is not supported yet\n", is_scale ? "scale" : "translate", animclass);
+							break;
 						}
 					}
 					else {
-						// not very useful for user
-						fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
+						if (is_xyz)
+							fprintf(stderr, "expected 3 curves, got %u, animclass=%d\n", curves.size(), animclass);
+						else
+							fprintf(stderr, "expected 1 curve, got %u, animclass=%d\n", curves.size(), animclass);
+						return false;
 					}
 				}
 			}
+
+			if (is_scale)
+				size_to_mat4(mat, vec);
+			else
+				copy_v3_v3(mat[3], vec);
+
+			return true;
 		}
 
 		return false;
