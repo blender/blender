@@ -1236,11 +1236,17 @@ static void image_fix_relative_path(Image *ima)
 
 #define LIBTAG(a)	if(a && a->id.lib) {a->id.flag &=~LIB_INDIRECT; a->id.flag |= LIB_EXTERN;}
 
-static void lib_indirect_test_id(ID *id)
+static void lib_indirect_test_id(ID *id, Library *lib)
 {
 	
-	if(id->lib)
+	if(id->lib) {
+		/* datablocks that were indirectly related are now direct links
+		 * without this, appending data that has a link to other data will fail to write */
+		if(lib && id->lib->parent == lib) {
+			id_lib_extern(id);
+		}
 		return;
+	}
 	
 	if(GS(id->name)==ID_OB) {		
 		Object *ob= (Object *)id;
@@ -1336,7 +1342,7 @@ void all_local(Library *lib, int untagged_only)
 	a= set_listbasepointers(G.main, lbarray);
 	while(a--) {
 		for(id= lbarray[a]->first; id; id=id->next)
-			lib_indirect_test_id(id);
+			lib_indirect_test_id(id, lib);
 	}
 }
 

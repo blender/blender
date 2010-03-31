@@ -687,7 +687,6 @@ typedef struct SolidifyModifierData {
 	float crease_outer;
 	float crease_rim;
 	int flag;
-	char pad[4];
 } SolidifyModifierData;
 
 #define MOD_SOLIDIFY_RIM			(1<<0)

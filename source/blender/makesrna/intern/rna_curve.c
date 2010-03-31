@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -216,58 +217,36 @@ static void rna_Curve_update_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 	rna_Curve_update_data(bmain, scene, ptr);
 }
 
-static PointerRNA rna_Curve_bevelObject_get(PointerRNA *ptr)
-{
-	Curve *cu= (Curve*)ptr->id.data;
-	Object *ob= cu->bevobj;
-
-	if(ob)
-		return rna_pointer_inherit_refine(ptr, &RNA_Object, ob);
-
-	return rna_pointer_inherit_refine(ptr, NULL, NULL);
-}
-
-static void rna_Curve_bevelObject_set(PointerRNA *ptr, PointerRNA value)
-{
-	Curve *cu= (Curve*)ptr->id.data;
-	Object *ob= (Object*)value.data;
-
-	if (ob) {
-		/* if bevel object has got the save curve, as object, for which it's */
-		/* set as bevobj, there could be infinity loop in displist calculation */
-		if (ob->type == OB_CURVE && ob->data != cu) {
-			cu->bevobj = ob;
-		}
-	} else {
-		cu->bevobj = NULL;
-	}
-}
-
-static PointerRNA rna_Curve_taperObject_get(PointerRNA *ptr)
+static void rna_Curve_update_taper(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
 	Object *ob= cu->taperobj;
 
-	if(ob)
-		return rna_pointer_inherit_refine(ptr, &RNA_Object, ob);
-
-	return rna_pointer_inherit_refine(ptr, NULL, NULL);
-}
-
-static void rna_Curve_taperObject_set(PointerRNA *ptr, PointerRNA value)
-{
-	Curve *cu= (Curve*)ptr->id.data;
-	Object *ob= (Object*)value.data;
-
 	if (ob) {
 		/* if taper object has got the save curve, as object, for which it's */
-		/* set as bevobj, there could be infinity loop in displist calculation */
-		if (ob->type == OB_CURVE && ob->data != cu) {
-			cu->taperobj = ob;
+		/* set as taperobj, there could be infinity loop in displist calculation */
+		if (ob->type != OB_CURVE || ob->data == cu) {
+			cu->taperobj = NULL;
 		}
-	} else {
-		cu->taperobj = NULL;
 	}
+
+	rna_Curve_update_deps(bmain, scene, ptr);
+}
+
+static void rna_Curve_update_bevel(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Object *ob= cu->bevobj;
+
+	if (ob) {
+		/* if bevel object has got the save curve, as object, for which it's */
+		/* set as bevobj, there could be infinity loop in displist calculation */
+		if (ob->type != OB_CURVE || ob->data == cu) {
+			cu->bevobj = NULL;
+		}
+	}
+
+	rna_Curve_update_deps(bmain, scene, ptr);
 }
 
 static void rna_Curve_resolution_u_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1087,21 +1066,17 @@ static void rna_def_curve(BlenderRNA *brna)
 	
 	/* pointers */
 	prop= RNA_def_property(srna, "bevel_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "bevobj");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bevel Object", "Curve object name that defines the bevel shape");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
-	RNA_def_property_pointer_funcs(prop, "rna_Curve_bevelObject_get", "rna_Curve_bevelObject_set", NULL);
-
+	RNA_def_property_update(prop, 0, "rna_Curve_update_bevel");
+	
 	prop= RNA_def_property(srna, "taper_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "taperobj");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Taper Object", "Curve object name that defines the taper (width)");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
-	RNA_def_property_pointer_funcs(prop, "rna_Curve_taperObject_get", "rna_Curve_taperObject_set", NULL);
-
+	RNA_def_property_update(prop, 0, "rna_Curve_update_taper");
+	
 	/* Flags */
 
 	prop= RNA_def_property(srna, "dimensions", PROP_ENUM, PROP_NONE); /* as an enum */

@@ -12130,8 +12130,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if(fd==NULL) {
 
 					/* printf and reports for now... its important users know this */
-					printf("read library: %s\n", mainptr->curlib->name);
-					BKE_reportf(basefd->reports, RPT_INFO, "read library: '%s'\n", mainptr->curlib->name);
+					printf("read library: '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
+					BKE_reportf(basefd->reports, RPT_INFO, "read library:  '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
 
 					fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
 
