@@ -625,11 +625,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout.label(text="See Soft Body panel.")
 
     def SOLIDIFY(self, layout, ob, md, wide_ui):
-        layout.prop(md, "offset")
 
         split = layout.split()
 
         col = split.column()
+        col.prop(md, "thickness")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+
         col.label(text="Crease:")
         col.prop(md, "edge_crease_inner", text="Inner")
         col.prop(md, "edge_crease_outer", text="Outer")
@@ -637,7 +639,15 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         if wide_ui:
             col = split.column()
-            col.label()
+
+        col.prop(md, "offset")
+        colsub = col.column()
+        colsub.active = (md.vertex_group is not "")
+        colsub.prop(md, "invert", text="Invert")
+
+        if wide_ui:
+            col.label(text="")
+
         col.prop(md, "use_rim")
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")

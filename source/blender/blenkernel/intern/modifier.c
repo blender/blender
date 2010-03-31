@@ -5718,6 +5718,7 @@ static void solidifyModifier_copyData(ModifierData *md, ModifierData *target)
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 	SolidifyModifierData *tsmd = (SolidifyModifierData*) target;
 	tsmd->offset = smd->offset;
+	tsmd->offset_fac = smd->offset_fac;
 	tsmd->crease_inner = smd->crease_inner;
 	tsmd->crease_outer = smd->crease_outer;
 	tsmd->crease_rim = smd->crease_rim;
@@ -5754,6 +5755,19 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 	char *edge_order= NULL;
 
 	float (*vert_nors)[3]= NULL;
+
+	float ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	float ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+
+	/* weights */
+	MDeformVert *dvert= NULL, *dv= NULL;
+	int defgrp_index= -1;
+	int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
+
+	defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
+
+	if (defgrp_index >= 0)
+		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 
 	orig_mface = dm->getFaceArray(dm);
 	orig_medge = dm->getEdgeArray(dm);
@@ -5888,16 +5902,38 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 
 	if((smd->flag & MOD_SOLIDIFY_EVEN) == 0) {
 		/* no even thickness, very simple */
-		float scalar_short = smd->offset / 32767.0f;
+		float scalar_short;
+		float scalar_short_vgroup;
 
-		if(smd->offset < 0.0f)	mv= mvert+numVerts;
-		else					mv= mvert;
 
-		for(i=0; i<numVerts; i++, mv++) {
-			mv->co[0] += mv->no[0] * scalar_short;
-			mv->co[1] += mv->no[1] * scalar_short;
-			mv->co[2] += mv->no[2] * scalar_short;
+		if(ofs_new != 0.0f) {
+			scalar_short= scalar_short_vgroup= ofs_new / 32767.0f;
+			mv= mvert + ((ofs_new >= ofs_orig) ? 0 : numVerts);
+			dv= dvert;
+			for(i=0; i<numVerts; i++, mv++) {
+				if(dv) {
+					if(defgrp_invert)	scalar_short_vgroup = scalar_short * (1.0f - defvert_find_weight(dv, defgrp_index));
+					else				scalar_short_vgroup = scalar_short * defvert_find_weight(dv, defgrp_index);
+					dv++;
+				}
+				VECADDFAC(mv->co, mv->co, mv->no, scalar_short_vgroup);
+			}
 		}
+
+		if(ofs_orig != 0.0f) {
+			scalar_short= scalar_short_vgroup= ofs_orig / 32767.0f;
+			mv= mvert + ((ofs_new >= ofs_orig) ? numVerts : 0); /* same as above but swapped, intentional use of 'ofs_new' */
+			dv= dvert;
+			for(i=0; i<numVerts; i++, mv++) {
+				if(dv) {
+					if(defgrp_invert)	scalar_short_vgroup = scalar_short * (1.0f - defvert_find_weight(dv, defgrp_index));
+					else				scalar_short_vgroup = scalar_short * defvert_find_weight(dv, defgrp_index);
+					dv++;
+				}
+				VECADDFAC(mv->co, mv->co, mv->no, scalar_short_vgroup);
+			}
+		}
+
 	}
 	else {
 		/* make a face normal layer if not present */
@@ -5949,12 +5985,38 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 			}
 		}
 
-		if(smd->offset < 0.0f)	mv= mvert+numVerts;
-		else					mv= mvert;
+		/* vertex group support */
+		if(dvert) {
+			dv= dvert;
+			if(defgrp_invert) {
+				for(i=0; i<numVerts; i++, dv++) {
+					vert_angles[i] *= (1.0f - defvert_find_weight(dv, defgrp_index));
+				}
+			}
+			else {
+				for(i=0; i<numVerts; i++, dv++) {
+					vert_angles[i] *= defvert_find_weight(dv, defgrp_index);
+				}
+			}
+		}
 
-		for(i=0; i<numVerts; i++, mv++) {
-			if(vert_accum[i]) { /* zero if unselected */
-				madd_v3_v3fl(mv->co, vert_nors[i], smd->offset * (vert_angles[i] / vert_accum[i]));
+		if(ofs_new) {
+			mv= mvert + ((ofs_new >= ofs_orig) ? 0 : numVerts);
+
+			for(i=0; i<numVerts; i++, mv++) {
+				if(vert_accum[i]) { /* zero if unselected */
+					madd_v3_v3fl(mv->co, vert_nors[i], ofs_new * (vert_angles[i] / vert_accum[i]));
+				}
+			}
+		}
+
+		if(ofs_orig) {
+			mv= mvert + ((ofs_new >= ofs_orig) ? numVerts : 0); /* same as above but swapped, intentional use of 'ofs_new' */
+
+			for(i=0; i<numVerts; i++, mv++) {
+				if(vert_accum[i]) { /* zero if unselected */
+					madd_v3_v3fl(mv->co, vert_nors[i], ofs_orig * (vert_angles[i] / vert_accum[i]));
+				}
 			}
 		}
 
@@ -7943,10 +8005,11 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 		float val;
 		if(dvert){
-			for(i=0; i<totvert; i++){
+			int defgrp_index= emd->vgroup-1;
+			for(i=0; i<totvert; i++, dvert++){
 				val = BLI_frand();
 				val = (1.0f-emd->protect)*val + emd->protect*0.5f;
-				if(val < defvert_find_weight(dvert+i,emd->vgroup-1))
+				if(val < defvert_find_weight(dvert, defgrp_index))
 					vertpa[i] = -1;
 			}
 		}
