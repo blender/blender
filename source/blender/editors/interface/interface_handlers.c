@@ -3999,7 +3999,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			ui_but_drop	(C, event, but, data);
 		}
 		/* handle keyframing */
-		else if(event->type == IKEY && event->val == KM_PRESS) {
+		else if(event->type == IKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_delete_keyframe(C);
 			else
@@ -4010,7 +4010,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* handle drivers */
-		else if(event->type == DKEY && event->val == KM_PRESS) {
+		else if(event->type == DKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_remove_driver(C);
 			else
@@ -4021,7 +4021,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* handle keyingsets */
-		else if(event->type == KKEY && event->val == KM_PRESS) {
+		else if(event->type == KKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_remove_keyingset(C);
 			else
