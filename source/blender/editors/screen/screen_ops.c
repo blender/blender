@@ -199,12 +199,12 @@ int ED_operator_logic_active(bContext *C)
 
 int ED_operator_object_active(bContext *C)
 {
-	return NULL != CTX_data_active_object(C);
+	return NULL != ED_object_active_context(C);
 }
 
 int ED_operator_object_active_editable(bContext *C)
 {
-	Object *ob=CTX_data_active_object(C);
+	Object *ob = ED_object_active_context(C);
 	return ((ob != NULL) && !(ob->id.lib));
 }
 

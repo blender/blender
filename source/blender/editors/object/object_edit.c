@@ -120,6 +120,16 @@ static int pupmenu(const char *msg) {return 0;}
 static bContext *C;
 static void error_libdata() {}
 
+
+/* find the correct active object per context */
+Object *ED_object_active_context(bContext *C)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	if (!ob) ob= CTX_data_active_object(C);
+	return ob;
+}
+
+
 /* ********* clear/set restrict view *********/
 static int object_restrictview_clear_exec(bContext *C, wmOperator *op)
 {

@@ -48,6 +48,9 @@ struct wmOperator;
 struct wmEvent;
 
 /* object_edit.c */
+struct Object *ED_object_active_context(struct bContext *C);
+
+/* object_ops.c */
 void ED_operatortypes_object(void);
 void ED_operatormacros_object(void);
 void ED_keymap_object(struct wmKeyConfig *keyconf);
