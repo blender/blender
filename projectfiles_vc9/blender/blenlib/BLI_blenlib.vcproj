@@ -769,6 +769,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_path_util.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_pbvh.h"
 				>
 			</File>
