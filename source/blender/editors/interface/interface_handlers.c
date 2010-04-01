@@ -2073,10 +2073,13 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 		/* first handle click on icondrag type button */
 		if(event->type==LEFTMOUSE && but->dragpoin) {
 			if(ui_but_mouse_inside_icon(but, data->region, event)) {
+				
+				/* tell the button to wait and keep checking further events to
+				 * see if it should start dragging */
 				button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 				data->dragstartx= event->x;
 				data->dragstarty= event->y;
-				return WM_UI_HANDLER_BREAK;
+				return WM_UI_HANDLER_CONTINUE;
 			}
 		}
 		
@@ -2092,14 +2095,16 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 			return WM_UI_HANDLER_BREAK;
 		}
 		
-		/* pass on release as press for other keymaps XXX hack alert! */
+		/* If the mouse has been pressed and released, getting to 
+		 * this point without triggering a drag, then clear the 
+		 * drag state for this button and continue to pass on the event */
 		if(event->type==LEFTMOUSE && event->val==KM_RELEASE) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			event->val= KM_CLICK;
 			return WM_UI_HANDLER_CONTINUE;
 		}
 		
-		/* while wait drag, always block other events to get handled */
+		/* while waiting for a drag to be triggered, always block 
+		 * other events from getting handled */
 		return WM_UI_HANDLER_BREAK;
 	}
 	

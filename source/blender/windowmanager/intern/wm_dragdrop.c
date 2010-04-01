@@ -247,10 +247,10 @@ static void wm_drop_operator_draw(char *name, int x, int y)
 {
 	int width= UI_GetStringWidth(name);
 	
-	glColor4ub(0, 0, 0, 128);
+	glColor4ub(0, 0, 0, 50);
 	
-	uiSetRoundBox(15);	
-	uiRoundBox(x, y, x + width + 8, y + 15, 7);
+	uiSetRoundBox(15+16);	
+	uiRoundBox(x, y, x + width + 8, y + 15, 4);
 	
 	glColor4ub(255, 255, 255, 255);
 	UI_DrawString(x+4, y+4, name);
