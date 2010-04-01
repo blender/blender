@@ -77,6 +77,8 @@ void BKE_nlatrack_sort_strips(struct NlaTrack *nlt);
 
 short BKE_nlatrack_add_strip(struct NlaTrack *nlt, struct NlaStrip *strip);
 
+short BKE_nlatrack_get_bounds(struct NlaTrack *nlt, float bounds[2]);
+
 /* ............ */
 
 struct NlaStrip *BKE_nlastrip_find_active(struct NlaTrack *nlt);

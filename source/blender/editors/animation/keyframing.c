@@ -176,16 +176,8 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
 			grp= action_groups_find_named(act, group);
 			
 			/* no matching groups, so add one */
-			if (grp == NULL) {
-				/* Add a new group, and make it active */
-				grp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
-				
-				grp->flag = AGRP_SELECTED;
-				strncpy(grp->name, group, sizeof(grp->name));
-
-				BLI_addtail(&act->groups, grp);
-				BLI_uniquename(&act->groups, grp, "Group", '.', offsetof(bActionGroup, name), sizeof(grp->name));
-			}
+			if (grp == NULL)
+				grp= action_groups_add_new(act, group);
 			
 			/* add F-Curve to group */
 			action_groups_add_channel(act, grp, fcu);
@@ -226,7 +218,8 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 			/* sanity check: 'i' may in rare cases exceed arraylen */
 			if ((i >= 0) && (i < fcu->totvert)) {
 				/* take care with the handletypes and other info if the replacement flags are set */
-				if (flag & INSERTKEY_REPLACE) {
+				// NOTE: for now, always do non-destructive replace... if everybody likes this, just keep it as default
+				if (1/*flag & INSERTKEY_REPLACE*/) {
 					BezTriple *dst= (fcu->bezt + i);
 					float dy= bezt->vec[1][1] - dst->vec[1][1];
 					

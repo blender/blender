@@ -321,6 +321,53 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 		fcu->rna_path= NULL;
 }
 
+static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
+{
+	AnimData *adt= BKE_animdata_from_id(ptr->id.data);
+	bAction *act= (adt) ? adt->action : NULL;
+	FCurve *fcu= ptr->data;
+
+	/* same ID? */
+	if (value.data && (ptr->id.data != value.id.data)) {
+		/* id's differ, cant do this, should raise an error */
+		return;
+	}
+	/* already belongs to group? */
+	if (fcu->grp == value.data) {
+		/* nothing to do */
+		return; 
+	}
+	
+	/* can only change group if we have info about the action the F-Curve is in 
+	 * (i.e. for drivers or random F-Curves, this cannot be done)
+	 */
+	if (act == NULL) {
+		/* can't change the grouping of F-Curve when it doesn't belong to an action */
+		return;
+	}	
+	
+	/* try to remove F-Curve from action (including from any existing groups) 
+	 *	- if after this op it is still attached to something, then it is a driver 
+	 *	  not an animation curve as we thought, and we should exit
+	 */
+	action_groups_remove_channel(act, fcu);
+	if (fcu->next) {
+		/* F-Curve is not one that exists in the action, since the above op couldn't remove it from the list */
+		return;
+	}
+	
+	/* add the F-Curve back to the action now in the right place */
+	// TODO: make the api function handle the case where there isn't any group to assign to 
+	if (value.data) {
+		/* add to its group using API function, which makes sure everything goes ok */
+		action_groups_add_channel(act, value.data, fcu);
+	}
+	else {
+		/* need to add this back, but it can only go at the end of the list (or else will corrupt groups) */
+		BLI_addtail(&act->curves, fcu);
+	}
+}
+
 DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
 {
 	/* call the API function for this */
@@ -486,28 +533,6 @@ static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTri
 	}
 
 	delete_fcurve_key(fcu, index, !do_fast);
-}
-
-static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
-{
-	FCurve *fcu= ptr->data;
-
-	if(value.data && (ptr->id.data != value.id.data)) {
-		return; /* id's differ, cant do this, should raise an error */
-	}
-	if(fcu->grp == value.data) {
-		return; /* nothing to do */
-	}
-
-	if(fcu->grp) {
-		BLI_remlink(&fcu->grp->channels, fcu);
-	}
-
-	fcu->grp= value.data;
-
-	if(fcu->grp) {
-		BLI_addtail(&fcu->grp->channels, fcu);
-	}
 }
 
 #else
@@ -1090,6 +1115,12 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", DRIVER_FLAG_SHOWDEBUG);
 	RNA_def_property_ui_text(prop, "Show Debug Info", "Show intermediate values for the driver calculations to allow debugging of drivers");
 	
+	/* State Info (for Debugging) */
+	prop= RNA_def_property(srna, "invalid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", DRIVER_FLAG_INVALID);
+	RNA_def_property_ui_text(prop, "Invalid", "Driver could not be evaluated in past, so should be skipped");
+	
+	
 	/* Functions */
 	RNA_api_drivers(srna);
 }
@@ -1358,6 +1389,12 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_VISIBLE);
 	RNA_def_property_ui_text(prop, "Visible", "F-Curve and its keyframes are shown in the Graph Editor graphs");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
+	/* State Info (for Debugging) */
+	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_DISABLED);
+	RNA_def_property_ui_text(prop, "Disabled", "F-Curve could not be evaluated in past, so should be skipped when evaluating");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	/* Collections */
 	prop= RNA_def_property(srna, "sampled_points", PROP_COLLECTION, PROP_NONE);

@@ -903,6 +903,7 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *op)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	int flag = 0;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -914,16 +915,7 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *op)
 	
 	/* for each AnimData block, bake strips to animdata... */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		AnimData *adt = (AnimData *)ale->data;
-		
-		/* if animdata currently has an action, 'push down' this onto the stack first */
-		BKE_nla_action_pushdown(adt);
-		
-		/* temporarily mute the action, and start keying to it */
-		
-		/* start keying... */
-		
-		/* unmute the action */
+		//BKE_nla_bake(ac.scene, ale->id, ale->data, flag);
 	}
 	
 	/* free temp data */

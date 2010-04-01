@@ -238,6 +238,30 @@ void set_active_action_group (bAction *act, bActionGroup *agrp, short select)
 	}
 }
 
+/* Add a new action group with the given name to the action */
+bActionGroup *action_groups_add_new (bAction *act, const char name[])
+{
+	bActionGroup *agrp;
+	
+	/* sanity check: must have action and name */
+	if (ELEM(NULL, act, name) || (name[0] == 0))
+		return NULL;
+	
+	/* allocate a new one */
+	agrp = MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+	
+	/* make it selected, with default name */
+	agrp->flag = AGRP_SELECTED;
+	strncpy(agrp->name, name, sizeof(agrp->name));
+	
+	/* add to action, and validate */
+	BLI_addtail(&act->groups, agrp);
+	BLI_uniquename(&act->groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));	
+	
+	/* return the new group */
+	return agrp;
+}
+
 /* Add given channel into (active) group 
  *	- assumes that channel is not linked to anything anymore
  *	- always adds at the end of the group 

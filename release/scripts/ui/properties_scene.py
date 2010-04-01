@@ -89,6 +89,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
         row = layout.row()
 
         col = row.column()
+		# XXX: this fails because index is not what this expects...
         col.template_list(scene, "keying_sets", scene, "active_keying_set_index", rows=2)
 
         col = row.column(align=True)
@@ -96,7 +97,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
         col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
 
         ks = scene.active_keying_set
-        if ks:
+        if ks and ks.absolute:
             row = layout.row()
 
             col = row.column()
@@ -310,8 +311,10 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
 
             # array index settings (if applicable)
-            if ksp.entire_array is False:
-                f.write(", entire_array=False, array_index=%d" % ksp.array_index)
+            if ksp.entire_array:
+                f.write(", index=-1")
+            else:
+                f.write(", index=%d" % ksp.array_index)
 
             # grouping settings (if applicable)
             # NOTE: the current default is KEYINGSET, but if this changes, change this code too

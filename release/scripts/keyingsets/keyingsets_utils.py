@@ -81,7 +81,7 @@ def get_transform_generators_base_info(data):
         path = ""
         
         # data on ID-blocks directly should get grouped by the KeyingSet
-        grouping = None;
+        grouping = None
     else:
         # get the path to the ID-block
         path = data.path_to_id()

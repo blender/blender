@@ -34,6 +34,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_action.h"
+
 #include "WM_types.h"
 
 
@@ -54,32 +56,34 @@ static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 	iter->valid= (internal->link != NULL);
 }
 
-static bActionGroup *rna_Action_groups_add(bAction *act, char *name)
+static bActionGroup *rna_Action_groups_add(bAction *act, char name[])
 {
-	bActionGroup *agrp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
-	strncpy(agrp->name, name, sizeof(agrp->name));
-	BLI_addtail(&act->groups, agrp);
-	BLI_uniquename(&act->groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));
-	return agrp;
+	return action_groups_add_new(act, name);
 }
 
 static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionGroup *agrp)
 {
-	FCurve *fcu;
-
-	if(!BLI_remlink_safe(&act->groups, agrp)) {
+	FCurve *fcu, *fcn;
+	
+	/* try to remove the F-Curve from the action */
+	if (!BLI_remlink_safe(&act->groups, agrp)) {
 		BKE_reportf(reports, RPT_ERROR, "ActionGroup '%s' not found in action '%s'", agrp->name, act->id.name);
 		return;
 	}
 
-	for(fcu= act->curves.first; fcu; fcu= fcu->next) {
-		if(fcu->grp==agrp)
-			fcu->grp= NULL;
+	/* move every one one of the group's F-Curves out into the Action again */
+	for (fcu= agrp->channels.first; (fcu) && (fcu->grp==agrp); fcu=fcn) {
+		fcn= fcu->next;
+		
+		/* remove from group */
+		action_groups_remove_channel(act, fcu);
+		
+		/* tack onto the end */
+		BLI_addtail(&act->curves, fcu);
 	}
-
-	/* XXX, can these be added to drivers??? */
-
-	MEM_freeN(agrp); /* XXX, invalidate PyObject */
+	
+	/* XXX, invalidates PyObject */
+	MEM_freeN(agrp); 
 }
 
 
@@ -243,8 +247,11 @@ static void rna_def_action_group(BlenderRNA *brna)
 	 * defined like a standard ListBase. Adding/removing channels from this list needs
 	 * extreme care, otherwise the F-Curve list running through adjacent groups does
 	 * not match up with the one stored in the Action, resulting in curves which do not
-	 * show up in animation editors. For that reason, such operations are currently 
-	 * prohibited.
+	 * show up in animation editors. In extreme cases, animation may also selectively 
+	 * fail to play back correctly. 
+	 *
+	 * If such changes are required, these MUST go through the API functions for manipulating
+	 * these F-Curve groupings. Also, note that groups only apply in actions ONLY.
 	 */
 	prop= RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "channels", NULL);

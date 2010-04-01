@@ -39,10 +39,12 @@
 #include "BLI_ghash.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_utildefines.h"
 
@@ -956,6 +958,35 @@ short BKE_nlatrack_add_strip (NlaTrack *nlt, NlaStrip *strip)
 	return BKE_nlastrips_add_strip(&nlt->strips, strip);
 }
 
+/* Get the extents of the given NLA-Track including gaps between strips,
+ * returning whether this succeeded or not
+ */
+short BKE_nlatrack_get_bounds (NlaTrack *nlt, float bounds[2])
+{
+	NlaStrip *strip;
+	
+	/* initialise bounds */
+	if (bounds)
+		bounds[0] = bounds[1] = 0.0f;
+	else
+		return 0;
+	
+	/* sanity checks */
+	if ELEM(NULL, nlt, nlt->strips.first)
+		return 0;
+		
+	/* lower bound is first strip's start frame */
+	strip = nlt->strips.first;
+	bounds[0] = strip->start;
+	
+	/* upper bound is last strip's end frame */
+	strip = nlt->strips.last;
+	bounds[1] = strip->end;
+	
+	/* done */
+	return 1;
+}
+
 /* NLA Strips -------------------------------------- */
 
 /* Find the active NLA-strip within the given track */
@@ -1474,7 +1505,10 @@ short BKE_nla_tweakmode_enter (AnimData *adt)
 		}	
 	}
 	if ELEM3(NULL, activeTrack, activeStrip, activeStrip->act) {
-		printf("NLA tweakmode enter - neither active requirement found \n");
+		if (G.f & G_DEBUG) {
+			printf("NLA tweakmode enter - neither active requirement found \n");
+			printf("\tactiveTrack = %p, activeStrip = %p \n", activeTrack, activeStrip);
+		}
 		return 0;
 	}
 		
@@ -1551,6 +1585,31 @@ void BKE_nla_tweakmode_exit (AnimData *adt)
 	adt->tmpact= NULL;
 	adt->actstrip= NULL;
 	adt->flag &= ~ADT_NLA_EDIT_ON;
+}
+
+/* Baking Tools ------------------------------------------- */
+
+void BKE_nla_bake (Scene *scene, ID *id, AnimData *adt, int flag)
+{
+
+	/* verify that data is valid 
+	 *	1) Scene and AnimData must be provided 
+	 *	2) there must be tracks to merge...
+	 */
+	if ELEM3(NULL, scene, adt, adt->nla_tracks.first)
+		return;
+	
+	/* if animdata currently has an action, 'push down' this onto the stack first */
+	if (adt->action)
+		BKE_nla_action_pushdown(adt);
+	
+	/* get range of motion to bake, and the channels involved... */
+	
+	/* temporarily mute the action, and start keying to it */
+	
+	/* start keying... */
+	
+	/* unmute the action */
 }
 
 /* *************************************************** */
