@@ -814,6 +814,29 @@ static void rna_GameSettings_auto_start_set(PointerRNA *ptr, int value)
 		G.fileflags &= ~G_FILE_AUTOPLAY;
 }
 
+
+static TimeMarker *rna_TimeLine_add(Scene *scene, char name[])
+{
+	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
+	marker->flag= SELECT;
+	marker->frame= 1;
+	BLI_strncpy(marker->name, name, sizeof(marker->name));
+	BLI_addtail(&scene->markers, marker);
+	return marker;
+}
+
+static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *marker)
+{
+	/* try to remove the F-Curve from the action */
+	if (!BLI_remlink_safe(&scene->markers, marker)) {
+		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in action '%s'", marker->name, scene->id.name+2);
+		return;
+	}
+
+	/* XXX, invalidates PyObject */
+	MEM_freeN(marker);
+}
+
 #else
 
 static void rna_def_transform_orientation(BlenderRNA *brna)
@@ -2664,6 +2687,35 @@ static void rna_def_scene_bases(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_update(prop, NC_SCENE|ND_OB_ACTIVE, NULL);
 }
 
+/* scene.timeline_markers */
+static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "TimelineMarkers");
+	srna= RNA_def_struct(brna, "TimelineMarkers", NULL);
+	RNA_def_struct_sdna(srna, "Scene");
+	RNA_def_struct_ui_text(srna, "Timeline Markers", "Collection of timeline markers");
+
+	func= RNA_def_function(srna, "add", "rna_TimeLine_add");
+	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
+	parm= RNA_def_string(func, "name", "Marker", 0, "", "New name for the marker (not unique).");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Newly created timeline marker");
+	RNA_def_function_return(func, parm);
+
+
+	func= RNA_def_function(srna, "remove", "rna_TimeLine_remove");
+	RNA_def_function_ui_description(func, "Remove a timeline marker.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+}
+
 void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2905,6 +2957,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
 	RNA_def_property_ui_text(prop, "Timeline Markers", "Markers used in all timelines for the current scene");
+	rna_def_timeline_markers(brna, prop);
 
 	/* Audio Settings */
 	prop= RNA_def_property(srna, "mute_audio", PROP_BOOLEAN, PROP_NONE);

@@ -67,7 +67,7 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionG
 	
 	/* try to remove the F-Curve from the action */
 	if (!BLI_remlink_safe(&act->groups, agrp)) {
-		BKE_reportf(reports, RPT_ERROR, "ActionGroup '%s' not found in action '%s'", agrp->name, act->id.name);
+		BKE_reportf(reports, RPT_ERROR, "ActionGroup '%s' not found in action '%s'", agrp->name, act->id.name+2);
 		return;
 	}
 
