@@ -60,7 +60,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
-			"scene", "selected_objects", "selected_bases",
+			"scene", "visible_objects", "visible_bases", "selected_objects", "selected_bases",
 			"selected_editable_objects", "selected_editable_bases",
 			"visible_bones", "editable_bones", "selected_bones", "selected_editable_bones",
 			"visible_pose_bones", "selected_pose_bones", "active_bone", "active_pose_bone",
@@ -73,6 +73,20 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if(CTX_data_equals(member, "scene")) {
 		CTX_data_id_pointer_set(result, &scene->id);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "visible_objects") || CTX_data_equals(member, "visible_bases")) {
+		int visible_objects= CTX_data_equals(member, "visible_objects");
+
+		for(base=scene->base.first; base; base=base->next) {
+			if(((base->object->restrictflag & OB_RESTRICT_VIEW) == 0) && (base->lay & scene->lay)) {
+				if(visible_objects)
+					CTX_data_id_list_add(result, &base->object->id);
+				else
+					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
+			}
+		}
+
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selected_objects") || CTX_data_equals(member, "selected_bases")) {
