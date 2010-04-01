@@ -754,11 +754,6 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 
 	if(ibuf->rect_float && ibuf->rect==NULL) {
-		if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
-		} else {
-			ibuf->profile = IB_PROFILE_NONE;
-		}
 		IMB_rect_from_float(ibuf);	
 	}
 	
