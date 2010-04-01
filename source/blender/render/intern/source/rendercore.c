@@ -2636,10 +2636,11 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		ima->id.flag |= LIB_DOIT;
-		if (ibuf)
+		if(ibuf) {
 			ibuf->userdata = NULL; /* use for masking if needed */
-		if(ibuf->rect_float)
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
+			if(ibuf->rect_float)
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
+		}
 	}
 	
 	BLI_init_threads(&threads, do_bake_thread, re->r.threads);
@@ -2686,7 +2687,11 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if((ima->id.flag & LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-			if (re->r.bake_filter) {
+
+			if(!ibuf)
+				continue;
+
+			if(re->r.bake_filter) {
 				if (usemask) {
 					/* extend the mask +2 pixels from the image,
 					 * this is so colors dont blend in from outside */
@@ -2716,6 +2721,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 					ibuf->userdata= NULL;
 				}
 			}
+
 			ibuf->userflags |= IB_BITMAPDIRTY;
 			if (ibuf->rect_float) IMB_rect_from_float(ibuf);
 		}
