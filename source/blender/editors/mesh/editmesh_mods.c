@@ -2853,6 +2853,8 @@ int select_by_number_vertices_exec(bContext *C, wmOperator *op)
 			EM_select_face(efa, (numverts==3) );
 		}
 	}
+	
+	EM_selectmode_flush(em);
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	
