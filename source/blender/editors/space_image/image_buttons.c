@@ -906,7 +906,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 					uiButSetFunc(but, set_frames_cb, ima, iuser);
 				}
 
-				uiItemR(col, userptr, "start_frame", 0, "Start", 0);
+				uiItemR(col, userptr, "frame_start", 0, "Start", 0);
 				uiItemR(col, userptr, "offset", 0, NULL, 0);
 
 				col= uiLayoutColumn(split, 0);

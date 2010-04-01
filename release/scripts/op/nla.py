@@ -73,7 +73,7 @@ def pose_info():
     return info
 
 
-def bake(start_frame, end_frame, step=1, only_selected=False):
+def bake(frame_start, frame_end, step=1, only_selected=False):
     # import nla; reload(nla); nla.bake()
 
     scene = bpy.context.scene
@@ -82,7 +82,7 @@ def bake(start_frame, end_frame, step=1, only_selected=False):
 
     info_ls = []
     
-    frame_range = range(start_frame, end_frame + 1, step)
+    frame_range = range(frame_start, frame_end + 1, step)
 
     # could spped this up by applying steps here too...
     for f in frame_range:
@@ -103,7 +103,7 @@ def bake(start_frame, end_frame, step=1, only_selected=False):
             continue
 
         for f in frame_range:
-            matrix = info_ls[int((f-start_frame) / step)][name]["matrix_key"]
+            matrix = info_ls[int((f-frame_start) / step)][name]["matrix_key"]
 
             #pbone.location = matrix.translation_part()
             #pbone.rotation_quaternion = matrix.to_quat()
@@ -149,10 +149,10 @@ class BakeAction(bpy.types.Operator):
     bl_label = "Bake Action"
     bl_options = {'REGISTER', 'UNDO'}
 
-    start_frame = IntProperty(name="Start Frame",
+    frame_start = IntProperty(name="Start Frame",
             description="Start frame for baking",
             default=1, min=1, max=300000)
-    end_frame = IntProperty(name="End Frame",
+    frame_end = IntProperty(name="End Frame",
             description="End frame for baking",
             default=250, min=1, max=300000)
     step = IntProperty(name="Frame Step",
@@ -164,7 +164,7 @@ class BakeAction(bpy.types.Operator):
     def execute(self, context):
         props = self.properties
 
-        action = bake(props.start_frame, props.end_frame, props.step, props.only_selected)
+        action = bake(props.frame_start, props.frame_end, props.step, props.only_selected)
         
         # basic cleanup, could move elsewhere
         for fcu in action.fcurves:

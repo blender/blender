@@ -572,19 +572,19 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 		
 	/* block 2: start range settings */
 	col= uiLayoutColumn(layout, 1);
-		uiItemR(col, &ptr, "use_start_frame", 0, NULL, 0);
+		uiItemR(col, &ptr, "use_frame_start", 0, NULL, 0);
 		
 		subcol = uiLayoutColumn(col, 1);
-		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_start_frame"));
-			uiItemR(subcol, &ptr, "start_frame", 0, NULL, 0);
+		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_frame_start"));
+			uiItemR(subcol, &ptr, "frame_start", 0, NULL, 0);
 			
 	/* block 3: end range settings */
 	col= uiLayoutColumn(layout, 1);
-		uiItemR(col, &ptr, "use_end_frame", 0, NULL, 0);
+		uiItemR(col, &ptr, "use_frame_end", 0, NULL, 0);
 		
 		subcol = uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_end_frame"));
-			uiItemR(subcol, &ptr, "end_frame", 0, NULL, 0);
+			uiItemR(subcol, &ptr, "frame_end", 0, NULL, 0);
 }
 
 /* --------------- */

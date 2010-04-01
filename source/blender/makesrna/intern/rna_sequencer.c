@@ -628,47 +628,47 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_Sequence_length_get", "rna_Sequence_length_set",NULL);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_start_frame_set",NULL); // overlap tests and calc_seq_disp
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "start_frame_final", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_final_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startdisp");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Start Frame", "Start frame displayed in the sequence editor after offsets are applied, setting this is equivilent to moving the handle, not the actual start frame");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_start_frame_final_set", NULL); // overlap tests and calc_seq_disp
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "end_frame_final", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_final_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "enddisp");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "End Frame", "End frame displayed in the sequence editor after offsets are applied");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_end_frame_final_set", NULL); // overlap tests and calc_seq_disp
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "start_offset", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_offset_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "Start Offset", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "end_offset", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_offset_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "End offset", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "start_still", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_still_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startstill");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Still", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "end_still", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_still_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endstill");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_range(prop, 0, MAXFRAME);

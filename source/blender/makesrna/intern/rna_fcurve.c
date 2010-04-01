@@ -871,22 +871,24 @@ static void rna_def_fmodifier_stepped(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Offset", "Reference number of frames before frames get held. Use to get hold for '1-3' vs '5-7' holding patterns");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "use_start_frame", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_frame_start", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCM_STEPPED_NO_BEFORE);
 	RNA_def_property_ui_text(prop, "Use Start Frame", "Restrict modifier to only act after its 'start' frame");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "use_end_frame", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_frame_end", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCM_STEPPED_NO_AFTER);
 	RNA_def_property_ui_text(prop, "Use End Frame", "Restrict modifier to only act before its 'end' frame");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "start_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "start_frame");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierStepped_start_frame_range");
 	RNA_def_property_ui_text(prop, "Start Frame", "Frame that modifier's influence starts (if applicable)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "end_frame");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierStepped_end_frame_range");
 	RNA_def_property_ui_text(prop, "End Frame", "Frame that modifier's influence ends (if applicable)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);

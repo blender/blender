@@ -558,8 +558,8 @@ void recalcData(TransInfo *t)
 			// TODO: do we need to write in 2 passes to make sure that no truncation goes on?
 			RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
 			
-			RNA_float_set(&strip_ptr, "start_frame", tdn->h1[0]);
-			RNA_float_set(&strip_ptr, "end_frame", tdn->h2[0]);
+			RNA_float_set(&strip_ptr, "frame_start", tdn->h1[0]);
+			RNA_float_set(&strip_ptr, "frame_end", tdn->h2[0]);
 			
 			/* flush transforms to child strips (since this should be a meta) */
 			BKE_nlameta_flush_transforms(strip);

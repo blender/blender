@@ -830,8 +830,8 @@ void BKE_nlameta_flush_transforms (NlaStrip *mstrip)
 			strip->end= nEnd;
 			
 			RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &ptr);
-			RNA_float_set(&ptr, "start_frame", nStart);
-			RNA_float_set(&ptr, "end_frame", nEnd);
+			RNA_float_set(&ptr, "frame_start", nStart);
+			RNA_float_set(&ptr, "frame_end", nEnd);
 		}
 		else {
 			/* just apply the changes in offset to both ends of the strip */

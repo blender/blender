@@ -186,8 +186,8 @@ class DATA_PT_ghost(DataButtonsPanel):
 
         sub = col.column(align=True)
         if arm.ghost_type == 'RANGE':
-            sub.prop(arm, "ghost_start_frame", text="Start")
-            sub.prop(arm, "ghost_end_frame", text="End")
+            sub.prop(arm, "ghost_frame_start", text="Start")
+            sub.prop(arm, "ghost_frame_end", text="End")
             sub.prop(arm, "ghost_size", text="Step")
         elif arm.ghost_type == 'CURRENT_FRAME':
             sub.prop(arm, "ghost_step", text="Range")

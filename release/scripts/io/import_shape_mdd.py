@@ -55,7 +55,7 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
         basis.name = "Basis"
         ob.data.update()
 
-    scene.current_frame = PREF_START_FRAME
+    scene.frame_current = PREF_START_FRAME
 
     def UpdateMesh(ob, fr):
 
@@ -82,15 +82,15 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
         # insert keyframes
         shape_keys = ob.data.shape_keys
 
-        scene.current_frame -= 1
+        scene.frame_current -= 1
         ob.data.shape_keys.keys[index].value = 0.0
         shape_keys.keys[len(ob.data.shape_keys.keys)-1].keyframe_insert("value")
 
-        scene.current_frame += 1
+        scene.frame_current += 1
         ob.data.shape_keys.keys[index].value = 1.0
         shape_keys.keys[len(ob.data.shape_keys.keys)-1].keyframe_insert("value")
 
-        scene.current_frame += 1
+        scene.frame_current += 1
         ob.data.shape_keys.keys[index].value = 0.0
         shape_keys.keys[len(ob.data.shape_keys.keys)-1].keyframe_insert("value")
 
@@ -120,7 +120,7 @@ class importMDD(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
     path = StringProperty(name="File Path", description="File path used for importing the MDD file", maxlen=1024)
     #fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
-    start_frame = IntProperty(name="Start Frame", description="Start frame for inserting animation", min=minframe, max=maxframe, default=0)
+    frame_start = IntProperty(name="Start Frame", description="Start frame for inserting animation", min=minframe, max=maxframe, default=0)
 
 
     def poll(self, context):
@@ -131,7 +131,7 @@ class importMDD(bpy.types.Operator):
         if not self.properties.path:
             raise Exception("filename not set")
 
-        mdd_import( self.properties.path, bpy.context.active_object, context.scene, self.properties.start_frame, 1)
+        mdd_import( self.properties.path, bpy.context.active_object, context.scene, self.properties.frame_start, 1)
 
         return {'FINISHED'}
 

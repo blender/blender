@@ -2041,7 +2041,7 @@ def write(filename, batch_objects = None, \
 # 				ob_base.makeDisplayList()
 
             # This causes the makeDisplayList command to effect the mesh
-            scene.set_frame(scene.current_frame)
+            scene.set_frame(scene.frame_current)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
 
@@ -2216,7 +2216,7 @@ def write(filename, batch_objects = None, \
                     ob_base.make_display_list()
 # 					ob_base.makeDisplayList()
             # This causes the makeDisplayList command to effect the mesh
-            scene.set_frame(scene.current_frame)
+            scene.set_frame(scene.frame_current)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
     del tmp_ob_type, tmp_objects
@@ -2701,9 +2701,9 @@ Connections:  {''')
         return int(0.5 + ((t/fps) * 46186158000))
 
     fps = float(render.fps)
-    start =	scene.start_frame
+    start =	scene.frame_start
 # 	start =	render.sFrame
-    end =	scene.end_frame
+    end =	scene.frame_end
 # 	end =	render.eFrame
     if end < start: start, end = end, start
     if start==end: ANIM_ENABLE = False
@@ -2713,7 +2713,7 @@ Connections:  {''')
 
     if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
 
-        frame_orig = scene.current_frame
+        frame_orig = scene.frame_current
 # 		frame_orig = Blender.Get('curframe')
 
         if ANIM_OPTIMIZE:

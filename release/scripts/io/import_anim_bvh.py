@@ -321,11 +321,11 @@ def bvh_node_dict2objects(context, bvh_nodes, IMPORT_START_FRAME=1, IMPORT_LOOP=
 
 
     # Animate the data, the last used bvh_node will do since they all have the same number of frames
-    for current_frame in range(len(bvh_node.anim_data)):
-        Blender.Set('curframe', current_frame + IMPORT_START_FRAME)
+    for frame_current in range(len(bvh_node.anim_data)):
+        Blender.Set('curframe', frame_current + IMPORT_START_FRAME)
 
         for bvh_node in bvh_nodes.values():
-            lx, ly, lz, rx, ry, rz = bvh_node.anim_data[current_frame]
+            lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current]
 
             rest_head_local = bvh_node.rest_head_local
             bvh_node.temp.loc = rest_head_local + Vector(lx, ly, lz)
@@ -508,16 +508,16 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
         prev_euler = [Euler() for i in range(len(bvh_nodes))]
 
     # Animate the data, the last used bvh_node will do since they all have the same number of frames
-    for current_frame in range(len(bvh_node.anim_data)-1): # skip the first frame (rest frame)
-        # print current_frame
+    for frame_current in range(len(bvh_node.anim_data)-1): # skip the first frame (rest frame)
+        # print frame_current
 
-        # if current_frame==40: # debugging
+        # if frame_current==40: # debugging
         # 	break
 
         # Dont neet to set the current frame
         for i, bvh_node in enumerate(bvh_nodes.values()):
             pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv = bvh_node.temp
-            lx, ly, lz, rx, ry, rz = bvh_node.anim_data[current_frame + 1]
+            lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current + 1]
 
             if bvh_node.has_rot:
                 bone_rotation_matrix = Euler(rx, ry, rz).to_matrix().resize4x4()
@@ -565,7 +565,7 @@ class BvhImporter(bpy.types.Operator):
 
     path = StringProperty(name="File Path", description="File path used for importing the OBJ file", maxlen=1024, default="")
     scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=0.1)
-    start_frame = IntProperty(name="Start Frame", description="Starting frame for the animation", default=1)
+    frame_start = IntProperty(name="Start Frame", description="Starting frame for the animation", default=1)
     loop = BoolProperty(name="Loop", description="Loop the animation playback", default=False)
     rotate_mode = EnumProperty(items=(
             ('QUATERNION', "Quaternion", "Convert rotations to quaternions"),
@@ -597,7 +597,7 @@ class BvhImporter(bpy.types.Operator):
 
         bvh_node_dict2armature(context, bvh_nodes,
                 ROT_MODE=self.properties.rotate_mode,
-                IMPORT_START_FRAME=self.properties.start_frame,
+                IMPORT_START_FRAME=self.properties.frame_start,
                 IMPORT_LOOP=self.properties.loop)
 
         print('Done in %.4f\n' % (time.time() - t1))

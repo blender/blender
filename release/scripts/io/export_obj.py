@@ -839,14 +839,14 @@ def do_export(filename, context,
     for scn in export_scenes:
         #		scn.makeCurrent() # If already current, this is not slow.
         #		context = scn.getRenderingContext()
-        orig_frame = scn.current_frame
+        orig_frame = scn.frame_current
 
         if EXPORT_ALL_SCENES: # Add scene name into the context_name
             context_name[1] = '_%s' % bpy.utils.clean_name(scn.name) # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
 
         # Export an animation?
         if EXPORT_ANIMATION:
-            scene_frames = range(scn.start_frame, context.end_frame+1) # Up to and including the end frame.
+            scene_frames = range(scn.frame_start, context.frame_end + 1) # Up to and including the end frame.
         else:
             scene_frames = [orig_frame] # Dont export an animation.
 
@@ -855,7 +855,7 @@ def do_export(filename, context,
             if EXPORT_ANIMATION: # Add frame to the filename.
                 context_name[2] = '_%.6d' % frame
 
-            scn.current_frame = frame
+            scn.frame_current = frame
             if EXPORT_SEL_ONLY:
                 export_objects = context.selected_objects
             else:
@@ -874,7 +874,7 @@ def do_export(filename, context,
                   EXPORT_POLYGROUPS, EXPORT_CURVE_AS_NURBS)
 
 
-        scn.current_frame = orig_frame
+        scn.frame_current = orig_frame
 
     # Restore old active scene.
 #	orig_scene.makeCurrent()

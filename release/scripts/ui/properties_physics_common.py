@@ -53,8 +53,8 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
         if not particles:
             row = layout.row()
             row.enabled = enabled
-            row.prop(cache, "start_frame")
-            row.prop(cache, "end_frame")
+            row.prop(cache, "frame_start")
+            row.prop(cache, "frame_end")
 
         row = layout.row()
 

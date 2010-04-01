@@ -532,8 +532,8 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
             col = split.column()
         sub = col.column(align=True)
         sub.label(text="Frame Range:")
-        sub.prop(scene, "start_frame", text="Start")
-        sub.prop(scene, "end_frame", text="End")
+        sub.prop(scene, "frame_start", text="Start")
+        sub.prop(scene, "frame_end", text="End")
         sub.prop(scene, "frame_step", text="Step")
 
         sub.label(text="Frame Rate:")

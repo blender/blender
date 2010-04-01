@@ -38,7 +38,7 @@ class Buttons_HT_header(bpy.types.Header):
 
         row = layout.row()
         row.prop(so, "buttons_context", expand=True, text="")
-        row.prop(scene, "current_frame")
+        row.prop(scene, "frame_current")
 
 
 class Buttons_MT_view(bpy.types.Menu):

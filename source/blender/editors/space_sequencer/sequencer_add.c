@@ -88,10 +88,10 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME-2, "Name", "Name of the new sequence strip");
 
 	if(flag & SEQPROP_STARTFRAME)
-		RNA_def_int(ot->srna, "start_frame", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame of the sequence strip", INT_MIN, INT_MAX);
+		RNA_def_int(ot->srna, "frame_start", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame of the sequence strip", INT_MIN, INT_MAX);
 	
 	if(flag & SEQPROP_ENDFRAME)
-		RNA_def_int(ot->srna, "end_frame", 0, INT_MIN, INT_MAX, "End Frame", "End frame for the color strip", INT_MIN, INT_MAX); /* not useual since most strips have a fixed length */
+		RNA_def_int(ot->srna, "frame_end", 0, INT_MIN, INT_MAX, "End Frame", "End frame for the color strip", INT_MIN, INT_MAX); /* not useual since most strips have a fixed length */
 	
 	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, "Channel", "Channel to place this strip into", 1, MAXSEQ);
 	
@@ -116,10 +116,10 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &mval_v2d[0], &mval_v2d[1]);
 	
 	RNA_int_set(op->ptr, "channel", (int)mval_v2d[1]+0.5f);
-	RNA_int_set(op->ptr, "start_frame", (int)mval_v2d[0]);
+	RNA_int_set(op->ptr, "frame_start", (int)mval_v2d[0]);
 	
-	if ((flag & SEQPROP_ENDFRAME) && RNA_property_is_set(op->ptr, "end_frame")==0)
-		RNA_int_set(op->ptr, "end_frame", (int)mval_v2d[0] + 25); // XXX arbitary but ok for now.
+	if ((flag & SEQPROP_ENDFRAME) && RNA_property_is_set(op->ptr, "frame_end")==0)
+		RNA_int_set(op->ptr, "frame_end", (int)mval_v2d[0] + 25); // XXX arbitary but ok for now.
 	
 }
 
@@ -127,7 +127,7 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 {
 	memset(seq_load, 0, sizeof(SeqLoadInfo));
 
-	seq_load->start_frame=	RNA_int_get(op->ptr, "start_frame");
+	seq_load->start_frame=	RNA_int_get(op->ptr, "frame_start");
 	seq_load->end_frame=	seq_load->start_frame; /* un-set */
 
 	seq_load->channel=		RNA_int_get(op->ptr, "channel");
@@ -137,8 +137,8 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 
 	RNA_string_get(op->ptr, "path", seq_load->path); /* full path, file is set by the caller */
 
-	if (RNA_struct_find_property(op->ptr, "end_frame")) {
-		seq_load->end_frame = RNA_int_get(op->ptr, "end_frame");
+	if (RNA_struct_find_property(op->ptr, "frame_end")) {
+		seq_load->end_frame = RNA_int_get(op->ptr, "frame_end");
 	}
 
 	if (RNA_struct_find_property(op->ptr, "replace_sel") && RNA_boolean_get(op->ptr, "replace_sel"))
@@ -168,7 +168,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	
 	int start_frame, channel; /* operator props */
 	
-	start_frame= RNA_int_get(op->ptr, "start_frame");
+	start_frame= RNA_int_get(op->ptr, "frame_start");
 	channel= RNA_int_get(op->ptr, "channel");
 	
 	sce_seq= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
@@ -489,8 +489,8 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	Sequence *seq1, *seq2, *seq3;
 	char *error_msg;
 
-	start_frame= RNA_int_get(op->ptr, "start_frame");
-	end_frame= RNA_int_get(op->ptr, "end_frame");
+	start_frame= RNA_int_get(op->ptr, "frame_start");
+	end_frame= RNA_int_get(op->ptr, "frame_end");
 	channel= RNA_int_get(op->ptr, "channel");
 
 	type= RNA_enum_get(op->ptr, "type");

@@ -96,10 +96,10 @@ def clientSendJob(conn, scene, anim = False):
     job = netrender.model.RenderJob()
 
     if anim:
-        for f in range(scene.start_frame, scene.end_frame + 1):
+        for f in range(scene.frame_start, scene.frame_end + 1):
             job.addFrame(f)
     else:
-        job.addFrame(scene.current_frame)
+        job.addFrame(scene.frame_current)
 
     filename = bpy.data.filename
     job.addFile(filename)
@@ -228,7 +228,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
             self.update_stats("", "Network render waiting for results")
 
-            requestResult(conn, job_id, scene.current_frame)
+            requestResult(conn, job_id, scene.frame_current)
             response = conn.getresponse()
 
             if response.status == http.client.NO_CONTENT:
@@ -236,12 +236,12 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
                 netsettings.job_id = clientSendJob(conn, scene)
                 job_id = netsettings.job_id
 
-                requestResult(conn, job_id, scene.current_frame)
+                requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
 
             while response.status == http.client.ACCEPTED and not self.test_break():
                 time.sleep(1)
-                requestResult(conn, job_id, scene.current_frame)
+                requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
 
             # cancel new jobs (animate on network) on break

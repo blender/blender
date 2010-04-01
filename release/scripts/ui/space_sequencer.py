@@ -347,20 +347,20 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col = layout.column()
         col.enabled = not strip.lock
         col.prop(strip, "channel")
-        col.prop(strip, "start_frame")
+        col.prop(strip, "frame_start")
         subrow = col.split(percentage=0.66)
         subrow.prop(strip, "length")
         subrow.label(text="%.2f sec" % (strip.length / (render.fps / render.fps_base)))
 
         col = layout.column(align=True)
         col.label(text="Offset:")
-        col.prop(strip, "start_offset", text="Start")
-        col.prop(strip, "end_offset", text="End")
+        col.prop(strip, "frame_offset_start", text="Start")
+        col.prop(strip, "frame_offset_end", text="End")
 
         col = layout.column(align=True)
         col.label(text="Still:")
-        col.prop(strip, "start_still", text="Start")
-        col.prop(strip, "end_still", text="End")
+        col.prop(strip, "frame_still_start", text="Start")
+        col.prop(strip, "frame_still_end", text="End")
 
 
 class SEQUENCER_PT_preview(bpy.types.Panel):
@@ -579,7 +579,7 @@ class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
 
         # Current element for the filename
 
-        elem = strip.getStripElem(context.scene.current_frame)
+        elem = strip.getStripElem(context.scene.frame_current)
         if elem:
             split = layout.split(percentage=0.2)
             col = split.column()

@@ -710,7 +710,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(graph, "vertex")
 
             col = split.column()
-            col.prop(graph, "current_frame")
+            col.prop(graph, "frame_current")
             col.prop(graph, "handle_vertex")
             col.prop(graph, "handle_vertex_select")
             col.separator()
@@ -757,7 +757,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(nla, "strips")
             col.prop(nla, "strips_selected")
-            col.prop(nla, "current_frame")
+            col.prop(nla, "frame_current")
 
         elif theme.theme_area == 'DOPESHEET_EDITOR':
             dope = theme.dopesheet_editor
@@ -780,7 +780,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(dope, "long_key_selected")
 
             col = split.column()
-            col.prop(dope, "current_frame")
+            col.prop(dope, "frame_current")
             col.prop(dope, "dopesheet_channel")
             col.prop(dope, "dopesheet_subchannel")
 
@@ -827,7 +827,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
             col.prop(seq, "meta_strip")
-            col.prop(seq, "current_frame")
+            col.prop(seq, "frame_current")
             col.prop(seq, "keyframe")
             col.prop(seq, "draw_action")
 
@@ -886,7 +886,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(time, "grid")
 
             col = split.column()
-            col.prop(time, "current_frame")
+            col.prop(time, "frame_current")
 
         elif theme.theme_area == 'NODE_EDITOR':
             node = theme.node_editor

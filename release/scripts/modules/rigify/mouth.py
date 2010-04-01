@@ -543,8 +543,8 @@ def control(obj, definitions, base_names, options):
     con.subtarget = jopent
     con.action = open_action
     con.transform_channel = 'SCALE_Y'
-    con.start_frame = 0
-    con.end_frame = 60
+    con.frame_start = 0
+    con.frame_end = 60
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
@@ -561,8 +561,8 @@ def control(obj, definitions, base_names, options):
     con.subtarget = jopent
     con.action = open_action
     con.transform_channel = 'SCALE_Y'
-    con.start_frame = 0
-    con.end_frame = 60
+    con.frame_start = 0
+    con.frame_end = 60
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
@@ -579,8 +579,8 @@ def control(obj, definitions, base_names, options):
     con.subtarget = jopent
     con.action = open_action
     con.transform_channel = 'SCALE_Y'
-    con.start_frame = 0
-    con.end_frame = 60
+    con.frame_start = 0
+    con.frame_end = 60
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
@@ -597,8 +597,8 @@ def control(obj, definitions, base_names, options):
     con.subtarget = jopent
     con.action = open_action
     con.transform_channel = 'SCALE_Y'
-    con.start_frame = 0
-    con.end_frame = 60
+    con.frame_start = 0
+    con.frame_end = 60
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
@@ -615,8 +615,8 @@ def control(obj, definitions, base_names, options):
     con.subtarget = jopent
     con.action = open_action
     con.transform_channel = 'SCALE_Y'
-    con.start_frame = 0
-    con.end_frame = 60
+    con.frame_start = 0
+    con.frame_end = 60
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
@@ -633,8 +633,8 @@ def control(obj, definitions, base_names, options):
     con.subtarget = jopent
     con.action = open_action
     con.transform_channel = 'SCALE_Y'
-    con.start_frame = 0
-    con.end_frame = 60
+    con.frame_start = 0
+    con.frame_end = 60
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
@@ -651,8 +651,8 @@ def control(obj, definitions, base_names, options):
     con.subtarget = jopent
     con.action = open_action
     con.transform_channel = 'SCALE_Y'
-    con.start_frame = 0
-    con.end_frame = 60
+    con.frame_start = 0
+    con.frame_end = 60
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
@@ -669,8 +669,8 @@ def control(obj, definitions, base_names, options):
     con.subtarget = jopent
     con.action = open_action
     con.transform_channel = 'SCALE_Y'
-    con.start_frame = 0
-    con.end_frame = 60
+    con.frame_start = 0
+    con.frame_end = 60
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'

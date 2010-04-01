@@ -877,7 +877,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bone Pose", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -921,7 +921,7 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 	
 	rna_def_userdef_theme_spaces_vertex(srna);
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -1288,7 +1288,7 @@ static void rna_def_userdef_theme_space_time(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Grid", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -1319,7 +1319,7 @@ static void rna_def_userdef_theme_space_sound(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Window Sliders", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -1425,7 +1425,7 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Meta Strip", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -1510,7 +1510,7 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Long Key Selected", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -1577,7 +1577,7 @@ static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Strips Selected", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");

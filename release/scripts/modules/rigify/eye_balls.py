@@ -241,8 +241,8 @@ def control(obj, definitions, base_names, options):
         con.subtarget = target_ctrl
         con.action = spread_action
         con.transform_channel = 'SCALE_X'
-        con.start_frame = -20
-        con.end_frame = 20
+        con.frame_start = -20
+        con.frame_end = 20
         con.minimum = 0.0
         con.maximum = 2.0
         con.target_space = 'LOCAL'

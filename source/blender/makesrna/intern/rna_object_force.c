@@ -677,12 +677,12 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Point Cache", "Point cache for physics simulations");
 	RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
 	
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startframe");
 	RNA_def_property_range(prop, 1, 300000);
 	RNA_def_property_ui_text(prop, "Start", "Frame on which the simulation starts");
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endframe");
 	RNA_def_property_range(prop, 1, 300000);
 	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops");
