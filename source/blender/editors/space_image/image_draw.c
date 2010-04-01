@@ -77,18 +77,14 @@ static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf,
 	*/
 
 	if(ibuf->rect_float && ibuf->rect==NULL) {
-		BLI_lock_thread(LOCK_CUSTOM1);
-		if(ibuf->rect_float && ibuf->rect==NULL) {
-			if(color_manage) {
-					if(ima && ima->source == IMA_SRC_VIEWER)
-						ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			}
-			else
-				ibuf->profile = IB_PROFILE_NONE;
-
-			IMB_rect_from_float(ibuf);
+		if(color_manage) {
+			if(ima && ima->source == IMA_SRC_VIEWER)
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 		}
-		BLI_unlock_thread(LOCK_CUSTOM1);
+		else
+			ibuf->profile = IB_PROFILE_NONE;
+
+		IMB_rect_from_float(ibuf);
 	}
 }
 

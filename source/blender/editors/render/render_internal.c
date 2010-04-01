@@ -129,12 +129,8 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	}
 	if(rectf==NULL) return;
 
-	if(ibuf->rect==NULL) {
-		BLI_lock_thread(LOCK_CUSTOM1);
-		if(ibuf->rect==NULL)
-			imb_addrectImBuf(ibuf);
-		BLI_unlock_thread(LOCK_CUSTOM1);
-	}
+	if(ibuf->rect==NULL)
+		imb_addrectImBuf(ibuf);
 
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
@@ -505,17 +501,22 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrect)
 {
 	RenderJob *rj= rjv;
+	Image *ima= rj->image;
 	ImBuf *ibuf;
 	void *lock;
 
-	ibuf= BKE_image_acquire_ibuf(rj->image, &rj->iuser, &lock);
+	/* only update if we are displaying the slot being rendered */
+	if(ima->render_slot != ima->last_render_slot)
+		return;
+
+	ibuf= BKE_image_acquire_ibuf(ima, &rj->iuser, &lock);
 	if(ibuf) {
 		image_buffer_rect_update(rj->scene, rr, ibuf, renrect);
 
 		/* make jobs timer to send notifier */
 		*(rj->do_update)= 1;
 	}
-	BKE_image_release_ibuf(rj->image, lock);
+	BKE_image_release_ibuf(ima, lock);
 }
 
 static void render_startjob(void *rjv, short *stop, short *do_update)

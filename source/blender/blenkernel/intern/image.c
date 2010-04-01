@@ -1894,13 +1894,16 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		memset(&rres, 0, sizeof(RenderResult));
 	
 	if(!(rres.rectx > 0 && rres.recty > 0)) {
-		RE_ReleaseResultImage(re);
+		if(from_render)
+			RE_ReleaseResultImage(re);
 		return NULL;
 	}
 
 	/* release is done in BKE_image_release_ibuf using lock_r */
-	if(from_render)
+	if(from_render) {
+		BLI_lock_thread(LOCK_VIEWER);
 		*lock_r= re;
+	}
 
 	/* this gives active layer, composite or seqence result */
 	rect= (unsigned int *)rres.rect32;
@@ -1909,9 +1912,9 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	dither= iuser->scene->r.dither_intensity;
 
 	/* get compo/seq result by default */
-	if(rres.rectf && layer==0);
+	if(rres.compo_seq && layer==0);
 	else if(rres.layers.first) {
-		RenderLayer *rl= BLI_findlink(&rres.layers, layer-(rres.rectf?1:0));
+		RenderLayer *rl= BLI_findlink(&rres.layers, layer-(rres.compo_seq?1:0));
 		if(rl) {
 			RenderPass *rpass;
 
@@ -1934,6 +1937,9 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		}
 	}
 
+	if(!(rectf || rect))
+		return NULL;
+
 	ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
 
 	/* make ibuf if needed, and initialize it */
@@ -1942,17 +1948,12 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 	}
 
-	if(!(rectf || rect))
-		return ibuf;
-
 	ibuf->x= rres.rectx;
 	ibuf->y= rres.recty;
 	
-	if(ibuf->rect_float!=rectf || rect) { /* ensure correct redraw */
-		BLI_lock_thread(LOCK_CUSTOM1);
+	if(ibuf->rect_float!=rectf || rect) /* ensure correct redraw */
 		imb_freerectImBuf(ibuf);
-		BLI_unlock_thread(LOCK_CUSTOM1);
-	}
+
 	if(rect)
 		ibuf->rect= rect;
 	
@@ -1991,7 +1992,7 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 			if(ima->lastframe != frame)
 				ima->tpageflag |= IMA_TPAGE_REFRESH;
 			ima->lastframe = frame;
-		}
+		}	
 		else if(ima->type==IMA_TYPE_MULTILAYER) {
 			frame= iuser?iuser->framenr:ima->lastframe;
 			index= iuser?iuser->multi_index:IMA_NO_INDEX;
@@ -2155,10 +2156,13 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 void BKE_image_release_ibuf(Image *ima, void *lock)
 {
 	/* for getting image during threaded render / compositing, need to release */
-	if(lock == ima)
+	if(lock == ima) {
 		BLI_unlock_thread(LOCK_VIEWER); /* viewer image */
-	else if(lock)
+	}
+	else if(lock) {
 		RE_ReleaseResultImage(lock); /* render result */
+		BLI_unlock_thread(LOCK_VIEWER); /* view image imbuf */
+	}
 }
 
 ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
