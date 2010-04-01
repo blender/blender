@@ -1280,8 +1280,8 @@ class USERPREF_PT_input(bpy.types.Panel):
         sub.row().prop(inputs, "view_rotation", expand=True)
 
         sub.label(text="Zoom Style:")
-        sub.row().prop(inputs, "viewport_zoom_style", expand=True)
-        if inputs.viewport_zoom_style == 'DOLLY':
+        sub.row().prop(inputs, "zoom_style", text="")
+        if inputs.zoom_style == 'DOLLY':
             sub.row().prop(inputs, "zoom_axis", expand=True)
             sub.prop(inputs, "invert_zoom_direction")
 
@@ -1294,11 +1294,12 @@ class USERPREF_PT_input(bpy.types.Panel):
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()
-
+        ''' not implemented yet
         sub = col.column()
         sub.label(text="NDOF Device:")
         sub.prop(inputs, "ndof_pan_speed", text="Pan Speed")
         sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
+        '''
 
         row.separator()
 

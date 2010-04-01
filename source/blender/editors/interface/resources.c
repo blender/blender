@@ -1407,6 +1407,11 @@ void init_userdef_do_versions(void)
 		if(U.wmdrawmethod == USER_DRAW_TRIPLE)
 			U.wmdrawmethod = USER_DRAW_AUTOMATIC;
 	}
+	
+	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 3)) {
+		if (U.flag & USER_LMOUSESELECT) 
+			U.flag &= ~USER_TWOBUTTONMOUSE;
+	}
 
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
