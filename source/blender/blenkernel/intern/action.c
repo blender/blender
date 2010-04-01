@@ -244,7 +244,7 @@ bActionGroup *action_groups_add_new (bAction *act, const char name[])
 	bActionGroup *agrp;
 	
 	/* sanity check: must have action and name */
-	if (ELEM(NULL, act, name) || (name[0] == 0))
+	if (ELEM(NULL, act, name))
 		return NULL;
 	
 	/* allocate a new one */
@@ -252,7 +252,7 @@ bActionGroup *action_groups_add_new (bAction *act, const char name[])
 	
 	/* make it selected, with default name */
 	agrp->flag = AGRP_SELECTED;
-	strncpy(agrp->name, name, sizeof(agrp->name));
+	strncpy(agrp->name, name[0] ? name : "Group", sizeof(agrp->name));
 	
 	/* add to action, and validate */
 	BLI_addtail(&act->groups, agrp);

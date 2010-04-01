@@ -38,6 +38,8 @@
 
 #include "BLI_math.h"
 
+#include "BKE_action.h"
+
 #include "WM_types.h"
 
 #include "ED_keyframing.h"
