@@ -1484,6 +1484,10 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     split = column.row().split(percentage=0.15)
                     split.label(text='Location:')
                     split.label(text=info["location"])
+                if info["description"]:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text='Description:')
+                    split.label(text=info["description"])
                 if info["url"]:
                     split = column.row().split(percentage=0.15)
                     split.label(text="Internet:")
@@ -1513,7 +1517,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "url": "", "category": "", "expanded": False}):
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "url": "", "category": "", "expanded": False}):
     addon_info = getattr(mod, "bl_addon_info", {})
 
     # avoid re-initializing
