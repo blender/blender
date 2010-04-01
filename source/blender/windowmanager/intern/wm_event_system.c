@@ -378,6 +378,9 @@ static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 
 	op->customdata= NULL;
 
+	/* add reports to the global list, otherwise they are not seen */
+	addlisttolist(&CTX_wm_reports(C)->list, &op->reports->list);
+
 	/* we don't want to do undo pushes for operators that are being
 	   called from operators that already do an undo push. usually
 	   this will happen for python operators that call C operators */
