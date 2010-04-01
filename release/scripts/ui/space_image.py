@@ -252,7 +252,7 @@ class IMAGE_HT_header(bpy.types.Header):
         iuser = sima.image_user
         toolsettings = context.tool_settings
 
-        # show_render = sima.show_render
+        show_render = sima.show_render
         # show_paint = sima.show_paint
         show_uvedit = sima.show_uvedit
 
@@ -276,7 +276,8 @@ class IMAGE_HT_header(bpy.types.Header):
                 sub.menu("IMAGE_MT_uvs")
 
         layout.template_ID(sima, "image", new="image.new")
-        layout.prop(sima, "image_pin", text="")
+        if not show_render:
+            layout.prop(sima, "image_pin", text="")
 
         # uv editing
         if show_uvedit:
