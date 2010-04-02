@@ -649,7 +649,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		else glDepthMask(0);
 		
 		for(vos= strings->first; vos; vos= vos->next) {
-
+#if 0       // too slow, reading opengl info while drawing is very bad, better to see if we cn use the zbuffer while in pixel space - campbell
 			if(v3d->zbuf && (vos->flag & V3D_CACHE_TEXT_ZBUF)) {
 				gluProject(vos->vec[0], vos->vec[1], vos->vec[2], mats.modelview, mats.projection, (GLint *)mats.viewport, &ux, &uy, &uz);
 				glReadPixels(ar->winrct.xmin+vos->mval[0]+vos->xoffs, ar->winrct.ymin+vos->mval[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
@@ -657,7 +657,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 				if(uz > depth)
 					continue;
 			}
-
+#endif
 			if(vos->mval[0]!=IS_CLIPPED) {
 				glColor3fv(vos->col);
 				BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, vos->str);
