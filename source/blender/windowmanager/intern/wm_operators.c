@@ -2070,6 +2070,8 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		case GESTURE_MODAL_SELECT:
 		case GESTURE_MODAL_DESELECT:
+		case GESTURE_MODAL_IN:
+		case GESTURE_MODAL_OUT:
 			if(border_apply(C, op, event->val)) {
 				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED;
@@ -2843,7 +2845,7 @@ void wm_operatortype_init(void)
 
 }
 
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* circleselect-like modal operators */
 static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
@@ -2896,7 +2898,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 
 }
 
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* borderselect-like modal operators */
 static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
@@ -2946,6 +2948,38 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border"); // XXX TODO: zoom border should perhaps map rightmouse to zoom out instead of in+cancel
+}
+
+/* zoom to border modal operators */
+static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+	{GESTURE_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+	{GESTURE_MODAL_IN,	"IN", 0, "In", ""},
+	{GESTURE_MODAL_OUT, "OUT", 0, "Out", ""},
+	{GESTURE_MODAL_BORDER_BEGIN, "BEGIN", 0, "Begin", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Zoom Border");
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+
+	keymap= WM_modalkeymap_add(keyconf, "Gesture Zoom Border", modal_items);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BORDER_BEGIN);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_IN); 
+
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BORDER_BEGIN);
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_OUT);
+
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -3035,6 +3069,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 
 	gesture_circle_modal_keymap(keyconf);
 	gesture_border_modal_keymap(keyconf);
+	gesture_zoom_border_modal_keymap(keyconf);
 }
 
 /* Generic itemf's for operators that take library args */

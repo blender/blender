@@ -286,7 +286,9 @@ int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 	BezTriple beztr;
 	int a;
 	
-	/* set all three points, for nicer start position */
+	/* set all three points, for nicer start position 
+	 * NOTE: +/- 1 on vec.x for left and right handles is so that 'free' handles work ok...
+	 */
 	memset(&beztr, 0, sizeof(BezTriple));
 	beztr.vec[0][0]= x-1.0f; 
 	beztr.vec[0][1]= y;

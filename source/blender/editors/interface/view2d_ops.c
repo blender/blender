@@ -1038,17 +1038,16 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
 	rctf rect;
-	int event_type;
+	int gesture_mode;
 	
 	/* convert coordinates of rect to 'tot' rect coordinates */
 	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmin"), RNA_int_get(op->ptr, "ymin"), &rect.xmin, &rect.ymin);
 	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmax"), RNA_int_get(op->ptr, "ymax"), &rect.xmax, &rect.ymax);
 	
 	/* check if zooming in/out view */
-	// XXX hardcoded for now!
-	event_type= RNA_int_get(op->ptr, "event_type");
+	gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
 	
-	if (event_type == LEFTMOUSE) {
+	if (gesture_mode == GESTURE_MODAL_IN) {
 		/* zoom in: 
 		 *	- 'cur' rect will be defined by the coordinates of the border region 
 		 *	- just set the 'cur' rect to have the same coordinates as the border region
@@ -1063,7 +1062,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 			v2d->cur.ymax= rect.ymax;
 		}
 	}
-	else {
+	else /* if (gesture_mode == GESTURE_MODAL_OUT) */ {
 		/* zoom out:
 		 *	- the current 'cur' rect coordinates are going to end upwhere the 'rect' ones are, 
 		 *	  but the 'cur' rect coordinates will need to be adjusted to take in more of the view
@@ -1116,7 +1115,7 @@ void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->poll= view_zoom_poll;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);

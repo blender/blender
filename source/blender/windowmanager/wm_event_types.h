@@ -283,6 +283,9 @@
 
 #define GESTURE_MODAL_BORDER_BEGIN	8 /* border select, activate, use release to detect which button */
 
+#define GESTURE_MODAL_IN			9
+#define GESTURE_MODAL_OUT			10
+
 
 #endif	/* WM_EVENT_TYPES_H */
 
