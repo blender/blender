@@ -1232,11 +1232,17 @@ void ED_screen_set_subwinactive(wmWindow *win, wmEvent *event)
 
 int ED_screen_area_active(const bContext *C)
 {
+	wmWindow *win= CTX_wm_window(C);
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
 
-	if(sc && sa) {
+	if(win && sc && sa) {
+		AZone *az= is_in_area_actionzone(sa, win->eventstate->x, win->eventstate->y);
 		ARegion *ar;
+		
+		if (az && az->type == AZONE_REGION)
+			return 1;
+		
 		for(ar= sa->regionbase.first; ar; ar= ar->next)
 			if(ar->swinid == sc->subwinactive)
 				return 1;
