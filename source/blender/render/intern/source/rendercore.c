@@ -739,9 +739,14 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 						if(*zrect >= 9.9e10 || rgbrect[3]==0.0f) {
 							continue;
 						}
-						
+												
 						if((lar->sunsky->effect_type & LA_SUN_EFFECT_AP)) {	
 							float tmp_rgb[3];
+							
+							/* skip if worldspace lamp vector is below horizon */
+							if(go->ob->obmat[2][2] < 0.f) {
+								continue;
+							}
 							
 							VECCOPY(tmp_rgb, rgbrect);
 							if(rgbrect[3]!=1.0f) {	/* de-premul */
