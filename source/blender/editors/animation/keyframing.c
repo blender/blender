@@ -217,28 +217,16 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 		if (replace) {			
 			/* sanity check: 'i' may in rare cases exceed arraylen */
 			if ((i >= 0) && (i < fcu->totvert)) {
-				/* take care with the handletypes and other info if the replacement flags are set */
-				// NOTE: for now, always do non-destructive replace... if everybody likes this, just keep it as default
-				if (1/*flag & INSERTKEY_REPLACE*/) {
-					BezTriple *dst= (fcu->bezt + i);
-					float dy= bezt->vec[1][1] - dst->vec[1][1];
-					
-					/* just apply delta value change to the handle values */
-					dst->vec[0][1] += dy;
-					dst->vec[1][1] += dy;
-					dst->vec[2][1] += dy;
-					
-					// TODO: perform some other operations?
-				}
-				else {
-					char oldKeyType= BEZKEYTYPE(fcu->bezt + i);
-					
-					/* just brutally replace the values */
-					*(fcu->bezt + i) = *bezt;
-					
-					/* special exception for keyframe type - copy value back so that this info isn't lost */
-					BEZKEYTYPE(fcu->bezt + i)= oldKeyType;
-				}
+				/* just change the values when replacing, so as to not overwrite handles */
+				BezTriple *dst= (fcu->bezt + i);
+				float dy= bezt->vec[1][1] - dst->vec[1][1];
+				
+				/* just apply delta value change to the handle values */
+				dst->vec[0][1] += dy;
+				dst->vec[1][1] += dy;
+				dst->vec[2][1] += dy;
+				
+				// TODO: perform some other operations?
 			}
 		}
 		/* keyframing modes allow to not replace keyframe */
@@ -246,14 +234,14 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 			/* insert new - if we're not restricted to replacing keyframes only */
 			BezTriple *newb= MEM_callocN((fcu->totvert+1)*sizeof(BezTriple), "beztriple");
 			
-			/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
+			/* add the beztriples that should occur before the beztriple to be pasted (originally in fcu) */
 			if (i > 0)
 				memcpy(newb, fcu->bezt, i*sizeof(BezTriple));
 			
 			/* add beztriple to paste at index i */
 			*(newb + i)= *bezt;
 			
-			/* add the beztriples that occur after the beztriple to be pasted (originally in icu) */
+			/* add the beztriples that occur after the beztriple to be pasted (originally in fcu) */
 			if (i < fcu->totvert) 
 				memcpy(newb+i+1, fcu->bezt+i, (fcu->totvert-i)*sizeof(BezTriple));
 			
@@ -300,15 +288,15 @@ int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 	
 	/* set all three points, for nicer start position */
 	memset(&beztr, 0, sizeof(BezTriple));
-	beztr.vec[0][0]= x; 
+	beztr.vec[0][0]= x-1.0f; 
 	beztr.vec[0][1]= y;
 	beztr.vec[1][0]= x;
 	beztr.vec[1][1]= y;
-	beztr.vec[2][0]= x;
+	beztr.vec[2][0]= x+1.0f;
 	beztr.vec[2][1]= y;
 	beztr.ipo= U.ipo_new; /* use default interpolation mode here... */
 	beztr.f1= beztr.f2= beztr.f3= SELECT;
-	beztr.h1= beztr.h2= HD_AUTO; // XXX what about when we replace an old one?
+	beztr.h1= beztr.h2= U.keyhandles_new; /* use default handle type here */
 	//BEZKEYTYPE(&beztr)= scene->keytype; /* default keyframe type */
 	
 	/* add temp beztriple to keyframes */
@@ -329,18 +317,9 @@ int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 	/* set handletype and interpolation */
 	if ((fcu->totvert > 2) && (flag & INSERTKEY_REPLACE)==0) {
 		BezTriple *bezt= (fcu->bezt + a);
-		char h1, h2;
-		
-		/* set handles (autohandles by default) */
-		h1= h2= HD_AUTO;
-		
-		if (a > 0) h1= (bezt-1)->h2;
-		if (a < fcu->totvert-1) h2= (bezt+1)->h1;
-		
-		bezt->h1= h1;
-		bezt->h2= h2;
 		
 		/* set interpolation from previous (if available) */
+		// FIXME: this doesn't work if user tweaked the interpolation specifically, and they were just overwriting some existing key in the process...
 		if (a > 0) bezt->ipo= (bezt-1)->ipo;
 		else if (a < fcu->totvert-1) bezt->ipo= (bezt+1)->ipo;
 			

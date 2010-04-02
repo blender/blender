@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -702,39 +703,41 @@ static void rna_def_userdef_theme_spaces_face(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
-static void rna_def_userdef_theme_spaces_curves(StructRNA *srna)
+static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, short incl_nurbs)
 {
 	PropertyRNA *prop;
+	
+	if (incl_nurbs) {
+		prop= RNA_def_property(srna, "nurb_uline", PROP_FLOAT, PROP_COLOR);
+		RNA_def_property_float_sdna(prop, NULL, "nurb_uline");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Nurb U-lines", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "nurb_uline", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "nurb_uline");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Nurb U-lines", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+		prop= RNA_def_property(srna, "nurb_vline", PROP_FLOAT, PROP_COLOR);
+		RNA_def_property_float_sdna(prop, NULL, "nurb_vline");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Nurb V-lines", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "nurb_vline", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "nurb_vline");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Nurb V-lines", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+		prop= RNA_def_property(srna, "nurb_sel_uline", PROP_FLOAT, PROP_COLOR);
+		RNA_def_property_float_sdna(prop, NULL, "nurb_sel_uline");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Nurb active U-lines", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "nurb_sel_uline", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "nurb_sel_uline");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Nurb active U-lines", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+		prop= RNA_def_property(srna, "nurb_sel_vline", PROP_FLOAT, PROP_COLOR);
+		RNA_def_property_float_sdna(prop, NULL, "nurb_sel_vline");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Nurb active V-lines", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "nurb_sel_vline", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "nurb_sel_vline");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Nurb active V-lines", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop= RNA_def_property(srna, "act_spline", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "act_spline");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Active spline", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+		prop= RNA_def_property(srna, "act_spline", PROP_FLOAT, PROP_COLOR);
+		RNA_def_property_float_sdna(prop, NULL, "act_spline");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Active spline", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
+	}
 
 	prop= RNA_def_property(srna, "handle_free", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "handle_free");
@@ -850,7 +853,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	rna_def_userdef_theme_spaces_vertex(srna);
 	rna_def_userdef_theme_spaces_edge(srna);
 	rna_def_userdef_theme_spaces_face(srna);
-	rna_def_userdef_theme_spaces_curves(srna);
+	rna_def_userdef_theme_spaces_curves(srna, 1);
 
 	prop= RNA_def_property(srna, "editmesh_active", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 4);
@@ -920,6 +923,7 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	rna_def_userdef_theme_spaces_vertex(srna);
+	rna_def_userdef_theme_spaces_curves(srna, 0);
 
 	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
@@ -2048,14 +2052,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add/Replace", ""},
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
 		{0, NULL, 0, NULL, NULL}};
-	
-	// XXX: we could just use the one that is defined in rna_curve.h
-	static EnumPropertyItem new_interpolation_types[] = {
-		{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", ""},
-		{BEZT_IPO_LIN, "LINEAR", 0, "Linear", ""},
-		{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
-		{0, NULL, 0, NULL, NULL}};
-
+		
 	static const EnumPropertyItem material_link_items[]= {
 		{0, "OBDATA", 0, "ObData", "Toggle whether the material is linked to object data or the object block"},
 		{USER_MAT_ON_OB, "OBJECT", 0, "Object", "Toggle whether the material is linked to object data or the object block"},
@@ -2150,10 +2147,15 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_XYZ2RGB);
 	RNA_def_property_ui_text(prop, "New F-Curve Colors - XYZ to RGB", "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis");
 	
-	prop= RNA_def_property(srna, "new_interpolation_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, new_interpolation_types);
+	prop= RNA_def_property(srna, "keyframe_new_interpolation_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, beztriple_interpolation_mode_items);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo_new");
 	RNA_def_property_ui_text(prop, "New Interpolation Type", "");
+	
+	prop= RNA_def_property(srna, "keyframe_new_handle_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
+	RNA_def_property_enum_sdna(prop, NULL, "keyhandles_new");
+	RNA_def_property_ui_text(prop, "New Handles Type", "");
 	
 	/* frame numbers */
 	prop= RNA_def_property(srna, "use_negative_frames", PROP_BOOLEAN, PROP_NONE);

@@ -371,7 +371,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.separator()
 
         col.label(text="New F-Curve Defaults:")
-        col.prop(edit, "new_interpolation_type", text="Interpolation")
+        col.prop(edit, "keyframe_new_interpolation_type", text="Interpolation")
+        col.prop(edit, "keyframe_new_handle_type", text="Handles")
         col.prop(edit, "insertkey_xyz_to_rgb", text="XYZ to RGB")
 
         col.separator()
@@ -707,14 +708,24 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(graph, "active_channels_group")
             col.prop(graph, "dopesheet_channel")
             col.prop(graph, "dopesheet_subchannel")
-            col.prop(graph, "vertex")
+            col.prop(graph, "frame_current")
 
             col = split.column()
-            col.prop(graph, "frame_current")
+            col.prop(graph, "vertex")
             col.prop(graph, "handle_vertex")
             col.prop(graph, "handle_vertex_select")
             col.separator()
             col.prop(graph, "handle_vertex_size")
+            col.separator()
+            col.separator()
+            col.prop(graph, "handle_free")
+            col.prop(graph, "handle_auto")
+            col.prop(graph, "handle_vect")
+            col.prop(graph, "handle_align")
+            col.prop(graph, "handle_sel_free")
+            col.prop(graph, "handle_sel_auto")
+            col.prop(graph, "handle_sel_vect")
+            col.prop(graph, "handle_sel_align")
 
         elif theme.theme_area == 'FILE_BROWSER':
             file_browse = theme.file_browser

@@ -355,9 +355,10 @@ typedef struct UserDef {
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
 	short ndof_pan, ndof_rotate;
-	short curssize, ipo_new;
+	short curssize;
 	short color_picker_type;
-	short pad2;
+	short ipo_new;			/* interpolation mode for newly added F-Curves */
+	short keyhandles_new;	/* handle types for newly added keyframes */
 
 	short scrcastfps;		/* frame rate for screencast to be played back */
 	short scrcastwait;		/* milliseconds between screencast snapshots */

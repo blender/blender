@@ -1412,6 +1412,35 @@ void init_userdef_do_versions(void)
 		if (U.flag & USER_LMOUSESELECT) 
 			U.flag &= ~USER_TWOBUTTONMOUSE;
 	}
+	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 4)) {
+		bTheme *btheme;
+		
+		/* default new handle type is auto handles */
+		U.keyhandles_new = HD_AUTO;
+		
+		/* init new curve colors */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* init colors used for handles in 3D-View  */
+			SETCOL(btheme->tv3d.handle_free, 0, 0, 0, 255);
+			SETCOL(btheme->tv3d.handle_auto, 0x90, 0x90, 0x00, 255);
+			SETCOL(btheme->tv3d.handle_vect, 0x40, 0x90, 0x30, 255);
+			SETCOL(btheme->tv3d.handle_align, 0x80, 0x30, 0x60, 255);
+			SETCOL(btheme->tv3d.handle_sel_free, 0, 0, 0, 255);
+			SETCOL(btheme->tv3d.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
+			SETCOL(btheme->tv3d.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
+			SETCOL(btheme->tv3d.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+			
+			/* same colors again for Graph Editor... */
+			SETCOL(btheme->tipo.handle_free, 0, 0, 0, 255);
+			SETCOL(btheme->tipo.handle_auto, 0x90, 0x90, 0x00, 255);
+			SETCOL(btheme->tipo.handle_vect, 0x40, 0x90, 0x30, 255);
+			SETCOL(btheme->tipo.handle_align, 0x80, 0x30, 0x60, 255);
+			SETCOL(btheme->tipo.handle_sel_free, 0, 0, 0, 255);
+			SETCOL(btheme->tipo.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
+			SETCOL(btheme->tipo.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
+			SETCOL(btheme->tipo.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+		}
+	}
 
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
