@@ -2601,9 +2601,9 @@ static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
 		/* call the other "toggling" operator to clean up now */
-		return screen_animation_play_invoke(C, op, event);
+		ED_screen_animation_play(C, 0, 0);
 	}
-	
+
 	return OPERATOR_PASS_THROUGH;
 }
 
