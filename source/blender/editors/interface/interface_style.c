@@ -237,9 +237,19 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, char *str)
 int UI_GetStringWidth(char *str)
 {
 	uiStyle *style= U.uistyles.first;
+	uiFontStyle *fstyle= &style->widget;
+	int width;
 	
-	uiStyleFontSet(&style->widget);
-	return BLF_width(str);	
+	if (fstyle->kerning==1)	/* for BLF_width */
+		BLF_enable(BLF_KERNING_DEFAULT);
+	
+	uiStyleFontSet(fstyle);
+	width= BLF_width(str);	
+	
+	if (fstyle->kerning==1)
+		BLF_disable(BLF_KERNING_DEFAULT);
+	
+	return width;
 }
 
 /* temporarily, does widget font */

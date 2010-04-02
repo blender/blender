@@ -1142,11 +1142,15 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
 {
 	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
+	uiFontStyle *fstyle = &style->widget;
 	int startx= but->x1;
 	char *origstr;
 
-	uiStyleFontSet(&style->widget);
+	uiStyleFontSet(fstyle);
 
+	if (fstyle->kerning==1)	/* for BLF_width */
+		BLF_enable(BLF_KERNING_DEFAULT);
+	
 	origstr= MEM_callocN(sizeof(char)*data->maxlen, "ui_textedit origstr");
 	
 	BLI_strncpy(origstr, but->drawstr, data->maxlen);
@@ -1186,6 +1190,9 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		but->pos += but->ofs;
 		if(but->pos<0) but->pos= 0;
 	}
+	
+	if (fstyle->kerning == 1)
+		BLF_disable(BLF_KERNING_DEFAULT);
 	
 	MEM_freeN(origstr);
 }
@@ -1518,6 +1525,8 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	}
 	
 	ui_check_but(but);
+	
+	WM_cursor_modal(CTX_wm_window(C), BC_TEXTEDITCURSOR);
 }
 
 static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
@@ -1534,6 +1543,8 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 		but->editstr= NULL;
 		but->pos= -1;
 	}
+	
+	WM_cursor_restore(CTX_wm_window(C));
 }
 
 static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonData *data)
