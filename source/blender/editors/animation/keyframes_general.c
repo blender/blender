@@ -500,7 +500,7 @@ short copy_animedit_keys (bAnimContext *ac, ListBase *anim_data)
 		 *	- skip if no selected keyframes found (so no need to create unnecessary copy-buffer data)
 		 *	- this check should also eliminate any problems associated with using sample-data
 		 */
-		if (ANIM_fcurve_keys_bezier_loop(NULL, fcu, NULL, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), NULL) == 0)
+		if (ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), NULL) == 0)
 			continue;
 		
 		/* init copybuf item info */

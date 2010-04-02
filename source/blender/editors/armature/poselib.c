@@ -704,8 +704,8 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	bAction *act= pld->act;
 	bActionGroup *agrp;
 	
-	BeztEditData bed;
-	BeztEditFunc group_ok_cb;
+	KeyframeEditData ked;
+	KeyframeEditFunc group_ok_cb;
 	int frame= 1;
 	
 	/* get the frame */
@@ -717,15 +717,15 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	
 	/* init settings for testing groups for keyframes */
 	group_ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
-	memset(&bed, 0, sizeof(BeztEditData)); 
-	bed.f1= ((float)frame) - 0.5f;
-	bed.f2= ((float)frame) + 0.5f;
+	memset(&ked, 0, sizeof(KeyframeEditData)); 
+	ked.f1= ((float)frame) - 0.5f;
+	ked.f2= ((float)frame) + 0.5f;
 	
 	
 	/* start applying - only those channels which have a key at this point in time! */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* check if group has any keyframes */
-		if (ANIM_animchanneldata_keys_bezier_loop(&bed, agrp, ALE_GROUP, NULL, group_ok_cb, NULL, 0)) {
+		if (ANIM_animchanneldata_keyframes_loop(&ked, agrp, ALE_GROUP, NULL, group_ok_cb, NULL, 0)) {
 			/* has keyframe on this frame, so try to get a PoseChannel with this name */
 			pchan= get_pose_channel(pose, agrp->name);
 			

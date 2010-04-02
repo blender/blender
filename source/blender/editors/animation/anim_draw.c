@@ -307,11 +307,11 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 /* ------------------- */
 
 /* helper function for ANIM_nla_mapping_apply_fcurve() -> "restore", i.e. mapping points back to action-time */
-static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
+static short bezt_nlamapping_restore(KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
-	AnimData *adt= (AnimData *)bed->data;
-	short only_keys= (short)bed->i1;
+	AnimData *adt= (AnimData *)ked->data;
+	short only_keys= (short)ked->i1;
 	
 	/* adjust BezTriple handles only if allowed to */
 	if (only_keys == 0) {
@@ -325,11 +325,11 @@ static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
 }
 
 /* helper function for ANIM_nla_mapping_apply_fcurve() -> "apply", i.e. mapping points to NLA-mapped global time */
-static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
+static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
-	AnimData *adt= (AnimData*)bed->data;
-	short only_keys= (short)bed->i1;
+	AnimData *adt= (AnimData*)ked->data;
+	short only_keys= (short)ked->i1;
 	
 	/* adjust BezTriple handles only if allowed to */
 	if (only_keys == 0) {
@@ -349,16 +349,16 @@ static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
  */
 void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, short only_keys)
 {
-	BeztEditData bed;
-	BeztEditFunc map_cb;
+	KeyframeEditData ked;
+	KeyframeEditFunc map_cb;
 	
 	/* init edit data 
 	 *	- AnimData is stored in 'data'
 	 *	- only_keys is stored in 'i1'
 	 */
-	memset(&bed, 0, sizeof(BeztEditData));
-	bed.data= (void *)adt;
-	bed.i1= (int)only_keys;
+	memset(&ked, 0, sizeof(KeyframeEditData));
+	ked.data= (void *)adt;
+	ked.i1= (int)only_keys;
 	
 	/* get editing callback */
 	if (restore)
@@ -367,7 +367,7 @@ void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, s
 		map_cb= bezt_nlamapping_apply;
 	
 	/* apply to F-Curve */
-	ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, map_cb, NULL);
+	ANIM_fcurve_keyframes_loop(&ked, fcu, NULL, map_cb, NULL);
 }
 
 /* *************************************************** */
@@ -409,12 +409,12 @@ float ANIM_unit_mapping_get_factor (Scene *scene, ID *id, FCurve *fcu, short res
 /* ----------------------- */
 
 /* helper function for ANIM_unit_mapping_apply_fcurve -> mapping callback for unit mapping */
-static short bezt_unit_mapping_apply (BeztEditData *bed, BezTriple *bezt)
+static short bezt_unit_mapping_apply (KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* mapping factor is stored in f1, flags are stored in i1 */
-	short only_keys= (bed->i1 & ANIM_UNITCONV_ONLYKEYS);
-	short sel_vs= (bed->i1 & ANIM_UNITCONV_SELVERTS);
-	float fac= bed->f1;
+	short only_keys= (ked->i1 & ANIM_UNITCONV_ONLYKEYS);
+	short sel_vs= (ked->i1 & ANIM_UNITCONV_SELVERTS);
+	float fac= ked->f1;
 	
 	/* adjust BezTriple handles only if allowed to */
 	if (only_keys == 0) {
@@ -433,8 +433,8 @@ static short bezt_unit_mapping_apply (BeztEditData *bed, BezTriple *bezt)
 /* Apply/Unapply units conversions to keyframes */
 void ANIM_unit_mapping_apply_fcurve (Scene *scene, ID *id, FCurve *fcu, short flag)
 {
-	BeztEditData bed;
-	BeztEditFunc sel_cb;
+	KeyframeEditData ked;
+	KeyframeEditFunc sel_cb;
 	float fac;
 	
 	/* calculate mapping factor, and abort if nothing to change */
@@ -446,9 +446,9 @@ void ANIM_unit_mapping_apply_fcurve (Scene *scene, ID *id, FCurve *fcu, short fl
 	 *	- mapping factor is stored in f1
 	 *	- flags are stored in 'i1'
 	 */
-	memset(&bed, 0, sizeof(BeztEditData));
-	bed.f1= (float)fac;
-	bed.i1= (int)flag;
+	memset(&ked, 0, sizeof(KeyframeEditData));
+	ked.f1= (float)fac;
+	ked.i1= (int)flag;
 	
 	/* only selected? */
 	if (flag & ANIM_UNITCONV_ONLYSEL)
@@ -457,7 +457,7 @@ void ANIM_unit_mapping_apply_fcurve (Scene *scene, ID *id, FCurve *fcu, short fl
 		sel_cb= NULL;
 	
 	/* apply to F-Curve */
-	ANIM_fcurve_keys_bezier_loop(&bed, fcu, sel_cb, bezt_unit_mapping_apply, NULL);
+	ANIM_fcurve_keyframes_loop(&ked, fcu, sel_cb, bezt_unit_mapping_apply, NULL);
 	
 	// FIXME: loop here for samples should be generalised
 	// TODO: only sel?

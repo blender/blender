@@ -1239,10 +1239,10 @@ void NLA_OT_action_sync_length (wmOperatorType *ot)
 /* Reset the scaling of the selected strips to 1.0f */
 
 /* apply scaling to keyframe */
-static short bezt_apply_nlamapping (BeztEditData *bed, BezTriple *bezt)
+static short bezt_apply_nlamapping (KeyframeEditData *ked, BezTriple *bezt)
 {
-	/* NLA-strip which has this scaling is stored in bed->data */
-	NlaStrip *strip= (NlaStrip *)bed->data;
+	/* NLA-strip which has this scaling is stored in ked->data */
+	NlaStrip *strip= (NlaStrip *)ked->data;
 	
 	/* adjust all the times */
 	bezt->vec[0][0]= nlastrip_get_frame(strip, bezt->vec[0][0], NLATIME_CONVERT_MAP);
@@ -1261,7 +1261,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditData bed;
+	KeyframeEditData ked;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1272,7 +1272,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* init the editing data */
-	memset(&bed, 0, sizeof(BeztEditData));
+	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* for each NLA-Track, apply scale of all selected strips */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1295,8 +1295,8 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 				}
 				
 				/* setup iterator, and iterate over all the keyframes in the action, applying this scaling */
-				bed.data= strip;
-				ANIM_animchanneldata_keys_bezier_loop(&bed, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, calchandles_fcurve, 0);
+				ked.data= strip;
+				ANIM_animchanneldata_keyframes_loop(&ked, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, calchandles_fcurve, 0);
 				
 				/* clear scale of strip now that it has been applied,
 				 * and recalculate the extents of the action now that it has been scaled

@@ -869,17 +869,17 @@ static void setipo_action_keys(bAnimContext *ac, short mode)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	BeztEditFunc set_cb= ANIM_editkeyframes_ipo(mode);
+	KeyframeEditFunc set_cb= ANIM_editkeyframes_ipo(mode);
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting BezTriple interpolation
-	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
+	 * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next)
-		ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
+		ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
 	
 	/* cleanup */
 	BLI_freelistN(&anim_data);
@@ -952,21 +952,21 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditFunc edit_cb= ANIM_editkeyframes_handles(mode);
-	BeztEditFunc sel_cb= ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
+	KeyframeEditFunc edit_cb= ANIM_editkeyframes_handles(mode);
+	KeyframeEditFunc sel_cb= ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting flags for handles 
-	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
+	 * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
 		
 		/* any selected keyframes for editing? */
-		if (ANIM_fcurve_keys_bezier_loop(NULL, fcu, NULL, sel_cb, NULL)) {
+		if (ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, sel_cb, NULL)) {
 			/* for auto/auto-clamped, toggle the auto-handles flag on the F-Curve */
 			if (mode == HD_AUTO_ANIM)
 				fcu->flag |= FCURVE_AUTO_HANDLES;
@@ -974,7 +974,7 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
 				fcu->flag &= ~FCURVE_AUTO_HANDLES;
 			
 			/* change type of selected handles */
-			ANIM_fcurve_keys_bezier_loop(NULL, fcu, NULL, edit_cb, calchandles_fcurve);
+			ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, edit_cb, calchandles_fcurve);
 		}
 	}
 	
@@ -1037,17 +1037,17 @@ static void setkeytype_action_keys(bAnimContext *ac, short mode)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	BeztEditFunc set_cb= ANIM_editkeyframes_keytype(mode);
+	KeyframeEditFunc set_cb= ANIM_editkeyframes_keytype(mode);
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting BezTriple interpolation
-	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
+	 * Note: we do not supply KeyframeEditData to the looper yet. Currently that's not necessary here...
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next)
-		ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, NULL);
+		ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, set_cb, NULL);
 	
 	/* cleanup */
 	BLI_freelistN(&anim_data);
@@ -1112,14 +1112,14 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *op)
 	ListBase anim_data= {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	BeztEditData bed;
+	KeyframeEditData ked;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
 	/* init edit data */
-	memset(&bed, 0, sizeof(BeztEditData));
+	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* loop over action data, averaging values */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
@@ -1129,19 +1129,19 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *op)
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, bezt_calc_average, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, bezt_calc_average, NULL);
 	}
 	
 	BLI_freelistN(&anim_data);
 	
 	/* set the new current frame value, based on the average time */
-	if (bed.i1) {
+	if (ked.i1) {
 		Scene *scene= ac.scene;
-		CFRA= (int)floor((bed.f1 / bed.i1) + 0.5f);
+		CFRA= (int)floor((ked.f1 / ked.i1) + 0.5f);
 	}
 	
 	/* set notifier that things have changed */
@@ -1183,8 +1183,8 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditData bed;
-	BeztEditFunc edit_cb;
+	KeyframeEditData ked;
+	KeyframeEditFunc edit_cb;
 	
 	/* filter data */
 	if (ac->datatype == ANIMCONT_GPENCIL)
@@ -1196,11 +1196,11 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	/* get beztriple editing callbacks */
 	edit_cb= ANIM_editkeyframes_snap(mode);
 	
-	memset(&bed, 0, sizeof(BeztEditData)); 
-	bed.scene= ac->scene;
+	memset(&ked, 0, sizeof(KeyframeEditData)); 
+	ked.scene= ac->scene;
 	if (mode == ACTKEYS_SNAP_NEAREST_MARKER) {
-		bed.list.first= (ac->markers) ? ac->markers->first : NULL;
-		bed.list.last= (ac->markers) ? ac->markers->last : NULL;
+		ked.list.first= (ac->markers) ? ac->markers->first : NULL;
+		ked.list.last= (ac->markers) ? ac->markers->last : NULL;
 	}
 	
 	/* snap keyframes */
@@ -1209,13 +1209,13 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
 		else 
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 	}
 	
 	BLI_freelistN(&anim_data);
@@ -1283,14 +1283,14 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditData bed;
-	BeztEditFunc edit_cb;
+	KeyframeEditData ked;
+	KeyframeEditFunc edit_cb;
 	
 	/* get beztriple editing callbacks */
 	edit_cb= ANIM_editkeyframes_mirror(mode);
 	
-	memset(&bed, 0, sizeof(BeztEditData)); 
-	bed.scene= ac->scene;
+	memset(&ked, 0, sizeof(KeyframeEditData)); 
+	ked.scene= ac->scene;
 	
 	/* for 'first selected marker' mode, need to find first selected marker first! */
 	// XXX should this be made into a helper func in the API?
@@ -1308,7 +1308,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 		
 		/* store marker's time (if available) */
 		if (marker)
-			bed.f1= (float)marker->frame;
+			ked.f1= (float)marker->frame;
 		else
 			return;
 	}
@@ -1326,13 +1326,13 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
 		else 
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 	}
 	
 	BLI_freelistN(&anim_data);
