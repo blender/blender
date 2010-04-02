@@ -953,7 +953,12 @@ void scene_update_tagged(Scene *scene)
 			BKE_animsys_evaluate_animdata(&scene->id, adt, ctime, 0);
 	}
 
+	/* XXX - this is called far to often, should be made apart of the depgraph */
 	BKE_ptcache_quick_cache_all(scene);
+
+	sce= scene;
+	while((sce= sce->set))
+		BKE_ptcache_quick_cache_all(sce);
 
 	/* in the future this should handle updates for all datablocks, not
 	   only objects and scenes. - brecht */
