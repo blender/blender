@@ -5048,8 +5048,8 @@ void MESH_OT_rip(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	Properties_Proportional(ot);
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+	/* XXX Transform this in a macro */
+	Transform_Properties(ot, P_CONSTRAINT|P_MIRROR);
 }
 
 

@@ -382,6 +382,8 @@ typedef struct TransInfo {
 	/* no retopo */
 #define T_NO_PROJECT		(1 << 22)
 
+#define T_RELEASE_CONFIRM	(1 << 23)
+
 /* TransInfo->modifiers */
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02

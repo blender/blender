@@ -991,6 +991,21 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->around = V3D_CENTER;
 	}
 	
+	if (op && RNA_property_is_set(op->ptr, "release_confirm"))
+	{
+		if (RNA_boolean_get(op->ptr, "release_confirm"))
+		{
+			t->flag |= T_RELEASE_CONFIRM;
+		}
+	}
+	else
+	{
+		if (U.flag & USER_DRAGIMMEDIATE)
+		{
+			t->flag |= T_RELEASE_CONFIRM;
+		}
+	}
+
 	if (op && RNA_struct_find_property(op->ptr, "mirror") && RNA_property_is_set(op->ptr, "mirror"))
 	{
 		if (RNA_boolean_get(op->ptr, "mirror"))
