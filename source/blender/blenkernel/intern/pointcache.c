@@ -560,7 +560,7 @@ static void ptcache_interpolate_cloth(int index, void *cloth_v, void **data, flo
 static int ptcache_totpoint_cloth(void *cloth_v, int cfra)
 {
 	ClothModifierData *clmd= cloth_v;
-	return clmd->clothObject->numverts;
+	return clmd->clothObject ? clmd->clothObject->numverts : 0;
 }
 
 /* Creating ID's */
@@ -2327,12 +2327,13 @@ PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old
 /* Baking */
 static int count_quick_cache(Scene *scene, int *quick_step)
 {
-	Base *base = scene->base.first;
+	Base *base;
 	PTCacheID *pid;
 	ListBase pidlist;
 	int autocache_count= 0;
+	Scene *sce; /* for macro only */
 
-	for(base = scene->base.first; base; base = base->next) {
+	for(SETLOOPER(scene, base)) {
 		if(base->object) {
 			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
@@ -2401,6 +2402,7 @@ static void *ptcache_make_cache_thread(void *ptr) {
 void BKE_ptcache_make_cache(PTCacheBaker* baker)
 {
 	Scene *scene = baker->scene;
+	Scene *sce; /* SETLOOPER macro only */
 	Base *base;
 	ListBase pidlist;
 	PTCacheID *pid = baker->pid;
@@ -2465,7 +2467,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 			cache->flag &= ~PTCACHE_BAKED;
 		}
 	}
-	else for(base=scene->base.first; base; base= base->next) {
+	for(SETLOOPER(scene, base)) {
 		/* cache/bake everything in the scene */
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
@@ -2548,7 +2550,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 				BKE_ptcache_write_cache(pid, 0);
 		}
 	}
-	else for(base=scene->base.first; base; base= base->next) {
+	else for(SETLOOPER(scene, base)) {
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 		for(pid=pidlist.first; pid; pid=pid->next) {
