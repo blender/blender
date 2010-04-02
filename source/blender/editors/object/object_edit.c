@@ -1987,7 +1987,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
-	ObjectMode restore_mode = ob->mode;
+	ObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
 	int toggle = RNA_boolean_get(op->ptr, "toggle");
 
 	if(!ob || !object_mode_set_compat(C, op, ob))
