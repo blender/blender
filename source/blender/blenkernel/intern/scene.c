@@ -1051,3 +1051,26 @@ float get_render_aosss_error(RenderData *r, float error)
 		return error;
 }
 
+/* helper function for the SETLOOPER macro */
+Base *_setlooper_base_step(Scene **sce, Base *base)
+{
+    if(base && base->next) {
+        /* common case, step to the next */
+        return base->next;
+    }
+    else if(base==NULL && (*sce)->base.first) {
+        /* first time looping, return the scenes first base */
+        return (Base *)(*sce)->base.first;
+    }
+    else {
+        /* reached the end, get the next base in the set */
+        while((*sce= (*sce)->set)) {
+            base= (Base *)(*sce)->base.first;
+            if(base) {
+                return base;
+            }
+        }
+    }
+
+    return NULL;
+}

@@ -88,7 +88,6 @@
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
-#include "BKE_scene.h"
 #include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_SkinDeformer.h"
@@ -138,6 +137,7 @@
 #include "BLI_math.h"
 
 extern "C" {
+#include "BKE_scene.h"
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
