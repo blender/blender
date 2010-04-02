@@ -1886,6 +1886,7 @@ static void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd,
 	BLI_memarena_free(mdb->memarena);
 }
 
+#if 0
 static void heat_weighting_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifierData *mmd, MeshDeformBind *mdb)
 {
 	LaplacianSystem *sys;
@@ -1953,6 +1954,7 @@ static void heat_weighting_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifie
 
 	mmd->bindweights= mdb->weights;
 }
+#endif
 
 void mesh_deform_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifierData *mmd, float *vertexcos, int totvert, float cagemat[][4])
 {
@@ -1981,10 +1983,14 @@ void mesh_deform_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifierData *mmd
 		mul_v3_m4v3(mdb.vertexcos[a], mdb.cagemat, vertexcos + a*3);
 
 	/* solve */
+#if 0
 	if(mmd->mode == MOD_MDEF_VOLUME)
 		harmonic_coordinates_bind(scene, mmd, &mdb);
 	else
 		heat_weighting_bind(scene, dm, mmd, &mdb);
+#else
+	harmonic_coordinates_bind(scene, mmd, &mdb);
+#endif
 
 	/* assign bind variables */
 	mmd->bindcos= (float*)mdb.cagecos;

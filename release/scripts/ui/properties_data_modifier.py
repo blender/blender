@@ -368,7 +368,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
         sub = col.column()
         sub.label(text="Object:")
         sub.prop(md, "object", text="")
-        sub.prop(md, "mode", text="")
         sub.active = not md.is_bound
         if wide_ui:
             col = split.column()
