@@ -315,8 +315,109 @@ static float cosval[32] ={
 	1.00000000
 };
 
+static void draw_xyz_wire(RegionView3D *rv3d, float mat[][4], float *c, float size, int axis)
+{
+	float v1[3]= {0.f, 0.f, 0.f}, v2[3] = {0.f, 0.f, 0.f};
+	float imat[4][4];
+	float dim;
+	float dx[3], dy[3];
+
+	/* hrms, really only works properly after glLoadMatrixf(rv3d->viewmat); */
+	float pixscale= rv3d->persmat[0][3]*c[0]+ rv3d->persmat[1][3]*c[1]+ rv3d->persmat[2][3]*c[2] + rv3d->persmat[3][3];
+	pixscale*= rv3d->pixsize;
+
+	/* halfway blend between fixed size in worldspace vs viewspace -
+	 * alleviates some of the weirdness due to not using viewmat for gl matrix */
+	dim = (0.05*size*0.5) + (size*10.f*pixscale*0.5);
+
+	invert_m4_m4(imat, mat);
+	normalize_v3(imat[0]);
+	normalize_v3(imat[1]);
+	
+	copy_v3_v3(dx, imat[0]);
+	copy_v3_v3(dy, imat[1]);
+	
+	mul_v3_fl(dx, dim);
+	mul_v3_fl(dy, dim);
+
+	switch(axis) {
+		case 0:		/* x axis */
+			glBegin(GL_LINES);
+			
+			/* bottom left to top right */
+			sub_v3_v3v3(v1, c, dx);
+			sub_v3_v3(v1, dy);
+			add_v3_v3v3(v2, c, dx);
+			add_v3_v3(v2, dy);
+			
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+			
+			/* top left to bottom right */
+			mul_v3_fl(dy, 2.f);
+			add_v3_v3(v1, dy);
+			sub_v3_v3(v2, dy);
+			
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+			
+			glEnd();
+			break;
+		case 1:		/* y axis */
+			glBegin(GL_LINES);
+			
+			/* bottom left to top right */
+			mul_v3_fl(dx, 0.75f);
+			sub_v3_v3v3(v1, c, dx);
+			sub_v3_v3(v1, dy);
+			add_v3_v3v3(v2, c, dx);
+			add_v3_v3(v2, dy);
+			
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+			
+			/* top left to center */
+			mul_v3_fl(dy, 2.f);
+			add_v3_v3(v1, dy);
+			copy_v3_v3(v2, c);
+			
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+			
+			glEnd();
+			break;
+		case 2:		/* z axis */
+			glBegin(GL_LINE_STRIP);
+			
+			/* start at top left */
+			sub_v3_v3v3(v1, c, dx);
+			add_v3_v3v3(v1, c, dy);
+			
+			glVertex3fv(v1);
+			
+			mul_v3_fl(dx, 2.f);
+			add_v3_v3(v1, dx);
+
+			glVertex3fv(v1);
+			
+			mul_v3_fl(dy, 2.f);
+			sub_v3_v3(v1, dx);
+			sub_v3_v3(v1, dy);
+			
+			glVertex3fv(v1);
+			
+			add_v3_v3(v1, dx);
+		
+			glVertex3fv(v1);
+			
+			glEnd();
+			break;
+	}
+	
+}
+
 /* flag is same as for draw_object */
-void drawaxes(float size, int flag, char drawtype)
+void drawaxes(RegionView3D *rv3d, float mat[][4], float size, int flag, char drawtype)
 {
 	int axis;
 	float v1[3]= {0.0, 0.0, 0.0};
@@ -402,12 +503,12 @@ void drawaxes(float size, int flag, char drawtype)
 			glVertex3fv(v1);
 			glVertex3fv(v2);
 				
-			v1[axis]= size*0.8;
-			v1[arrow_axis]= -size*0.125;
+			v1[axis]= size*0.85;
+			v1[arrow_axis]= -size*0.08;
 			glVertex3fv(v1);
 			glVertex3fv(v2);
 				
-			v1[arrow_axis]= size*0.125;
+			v1[arrow_axis]= size*0.08;
 			glVertex3fv(v1);
 			glVertex3fv(v2);
 			
@@ -415,15 +516,7 @@ void drawaxes(float size, int flag, char drawtype)
 				
 			v2[axis]+= size*0.125;
 			
-			// patch for 3d cards crashing on glSelect for text drawing (IBM)
-			if((flag & DRAW_PICKING) == 0) {
-				if (axis==0)
-					view3d_cached_text_draw_add(v2[0], v2[1], v2[2], "x", 0, V3D_CACHE_TEXT_ZBUF);
-				else if (axis==1)
-					view3d_cached_text_draw_add(v2[0], v2[1], v2[2], "y", 0, V3D_CACHE_TEXT_ZBUF);
-				else
-					view3d_cached_text_draw_add(v2[0], v2[1], v2[2], "z", 0, V3D_CACHE_TEXT_ZBUF);
-			}
+			draw_xyz_wire(rv3d, mat, v2, size, axis);
 		}
 		break;
 	}
@@ -5748,7 +5841,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		}
 		case OB_EMPTY:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
-				drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
+				drawaxes(rv3d, rv3d->viewmatob, ob->empty_drawsize, flag, ob->empty_drawtype);
 			break;
 		case OB_LAMP:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
@@ -5774,7 +5867,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		default:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
-				drawaxes(1.0, flag, OB_ARROWS);
+				drawaxes(rv3d, rv3d->viewmatob, 1.0, flag, OB_ARROWS);
 			}
 	}
 
@@ -5974,7 +6067,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if(dtx && (G.f & G_RENDER_OGL)==0) {
         
 			if(dtx & OB_AXIS) {
-				drawaxes(1.0f, flag, OB_ARROWS);
+				drawaxes(rv3d, rv3d->viewmatob, 1.0f, flag, OB_ARROWS);
 			}
 			if(dtx & OB_BOUNDBOX) draw_bounding_volume(scene, ob);
 			if(dtx & OB_TEXSPACE) drawtexspace(ob);
@@ -6345,7 +6438,7 @@ void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			draw_object_mesh_instance(scene, v3d, rv3d, ob, dt, outline);
 			break;
 		case OB_EMPTY:
-			drawaxes(ob->empty_drawsize, 0, ob->empty_drawtype);
+			drawaxes(rv3d, rv3d->viewmatob, ob->empty_drawsize, 0, ob->empty_drawtype);
 			break;
 	}
 }
