@@ -33,8 +33,23 @@
 
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_global.h"
 
 /* all the list begin functions are added manually here, Main is not in SDNA */
+static int rna_Main_debug_get(PointerRNA *ptr)
+{
+	return G.f & G_DEBUG;
+}
+
+
+static void rna_Main_debug_set(PointerRNA *ptr, const int value)
+{
+	if (value)
+		G.f |= G_DEBUG;
+	else
+		G.f &= ~G_DEBUG;
+}
+
 
 static void rna_Main_filename_get(PointerRNA *ptr, char *value)
 {
@@ -293,6 +308,11 @@ void RNA_def_main(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Main_filename_get", "rna_Main_filename_length", "rna_Main_filename_set");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "Path to the .blend file");
+
+	prop= RNA_def_property(srna, "debug", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_debug_get", "rna_Main_debug_set");
+	RNA_def_property_ui_text(prop, "Debug", "Print debugging information in console");
+
 
 	for(i=0; lists[i].name; i++)
 	{
