@@ -381,22 +381,9 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
-#define P_MIRROR		(1 << 0)
-#define P_PROPORTIONAL	(1 << 1)
-#define P_AXIS			(1 << 2)
-#define P_SNAP			(1 << 3)
-#define P_GEO_SNAP		(P_SNAP|(1 << 4))
-#define P_ALIGN_SNAP	(P_GEO_SNAP|(1 << 5))
-#define P_CONSTRAINT	(1 << 6)
-
-
 void Transform_Properties(struct wmOperatorType *ot, int flags)
 {
 	PropertyRNA *prop;
-
-	// Add confirm method all the time
-	prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "Confirm operation when releasing button");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	if (flags & P_AXIS)
 	{
@@ -440,6 +427,10 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 			}
 		}
 	}
+
+	// Add confirm method all the time. At the end because it's not really that important and should be hidden
+	prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "Always confirm operation when releasing button");
+	//RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 void TRANSFORM_OT_translate(struct wmOperatorType *ot)

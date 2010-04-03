@@ -2085,8 +2085,8 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enter Edit Mode", "Enter Edit Mode automatically after adding a new object");
 
 	prop= RNA_def_property(srna, "drag_immediately", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_DRAGIMMEDIATE);
-	RNA_def_property_ui_text(prop, "Drag Immediately", "Moving things with a mouse drag doesn't require a click to confirm (Best for tablet users)");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_RELEASECONFIRM);
+	RNA_def_property_ui_text(prop, "Release confirm", "Moving things with a mouse drag confirms when releasing the button");
 	
 	/* Undo */
 	prop= RNA_def_property(srna, "undo_steps", PROP_INT, PROP_NONE);

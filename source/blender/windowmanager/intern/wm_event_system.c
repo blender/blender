@@ -551,7 +551,7 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
-static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports)
+int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
@@ -1930,7 +1930,8 @@ void WM_event_add_mousemove(bContext *C)
 int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 {
 	/* user preset or keymap? dunno... */
-	int tweak_modal= (U.flag & USER_DRAGIMMEDIATE)==0;
+	// XXX WTH is this?
+	int tweak_modal= (U.flag & USER_RELEASECONFIRM)==0;
 	
 	switch(tweak_event) {
 		case EVT_TWEAK_L:

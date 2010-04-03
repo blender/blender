@@ -1000,7 +1000,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	}
 	else
 	{
-		if (U.flag & USER_DRAGIMMEDIATE)
+		if (U.flag & USER_RELEASECONFIRM)
 		{
 			t->flag |= T_RELEASE_CONFIRM;
 		}
