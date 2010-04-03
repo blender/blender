@@ -521,7 +521,6 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, 
     '''
     Takes vert_loc and faces, and seperates into multiple sets of
     (verts_loc, faces, unique_materials, dataname)
-    This is done so objects do not overload the 16 material limit.
     '''
 
     filename = stripExt(stripPath(filepath))
@@ -715,9 +714,8 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
     me= bpy.data.meshes.new(dataname)
 
     # make sure the list isnt too big
-    for material in materials[0:16]:
+    for material in materials:
         me.add_material(material)
-# 	me.materials= materials[0:16] # make sure the list isnt too big.
     #me.verts.extend([(0,0,0)]) # dummy vert
 
     me.add_geometry(len(verts_loc), 0, len(faces))
@@ -772,8 +770,6 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
                 if context_material:
                     if context_material_old is not context_material:
                         mat= material_mapping[context_material]
-                        if mat>15:
-                            mat= 15
                         context_material_old= context_material
 
                     blender_face.material_index= mat
@@ -1363,7 +1359,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
     'Separate objects from obj...',\
     ('Object', SPLIT_OBJECTS, 'Import OBJ Objects into Blender Objects'),\
     ('Group', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
-    ('Material', SPLIT_MATERIALS, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)'),\
+    ('Split Materials', SPLIT_MATERIALS, 'Import each material into a seperate mesh'),\
     'Options...',\
     ('Keep Vert Order', KEEP_VERT_ORDER, 'Keep vert and face order, disables some other options.'),\
     ('Clamp Scale:', CLAMP_SIZE, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)'),\
@@ -1449,7 +1445,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
             Draw.BeginAlign()
             SPLIT_OBJECTS = Draw.Toggle('Object', EVENT_REDRAW, ui_x+9, ui_y+89, 55, 21, SPLIT_OBJECTS.val, 'Import OBJ Objects into Blender Objects', do_split)
             SPLIT_GROUPS = Draw.Toggle('Group', EVENT_REDRAW, ui_x+64, ui_y+89, 55, 21, SPLIT_GROUPS.val, 'Import OBJ Groups into Blender Objects', do_split)
-            SPLIT_MATERIALS = Draw.Toggle('Material', EVENT_REDRAW, ui_x+119, ui_y+89, 60, 21, SPLIT_MATERIALS.val, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)', do_split)
+            SPLIT_MATERIALS = Draw.Toggle('Split Materials', EVENT_REDRAW, ui_x+119, ui_y+89, 60, 21, SPLIT_MATERIALS.val, 'Import each material into a seperate mesh', do_split)
             Draw.EndAlign()
 
             # Only used for user feedback
@@ -1587,7 +1583,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
     CREATE_EDGES = BoolProperty(name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default= True)
     SPLIT_OBJECTS = BoolProperty(name="Object", description="Import OBJ Objects into Blender Objects", default= True)
     SPLIT_GROUPS = BoolProperty(name="Group", description="Import OBJ Groups into Blender Objects", default= True)
-    SPLIT_MATERIALS = BoolProperty(name="Material", description="Import each material into a seperate mesh (Avoids > 16 per mesh error)", default= True)
+    SPLIT_MATERIALS = BoolProperty(name="Split Materials", description="Import each material into a seperate mesh", default= False)
     # old comment: only used for user feedback
     # disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
     # KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
