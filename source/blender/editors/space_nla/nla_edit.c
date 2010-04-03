@@ -1600,12 +1600,19 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		NlaStrip *strip;
-		int i = 1;
 		
-		for (strip= nlt->strips.first; strip; strip=strip->next, i++) {
-			/* only add F-Modifier if on active strip? */
-			if ((onlyActive) && (strip->flag & NLASTRIP_FLAG_ACTIVE)==0)
-				continue;
+		for (strip= nlt->strips.first; strip; strip=strip->next) {
+			/* can F-Modifier be added to the current strip? */
+			if (onlyActive) {
+				/* if not active, cannot add since we're only adding to active strip */
+				if ((strip->flag & NLASTRIP_FLAG_ACTIVE)==0)
+					continue;
+			}
+			else {
+				/* strip must be selected, since we're not just doing active */
+				if ((strip->flag & NLASTRIP_FLAG_SELECT)==0)
+					continue;
+			}
 			
 			/* add F-Modifier of specified type to selected, and make it the active one */
 			fcm= add_fmodifier(&strip->modifiers, type);
@@ -1613,10 +1620,9 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 			if (fcm)
 				set_active_fmodifier(&strip->modifiers, fcm);
 			else {
-				char errormsg[128];
-				sprintf(errormsg, "Modifier couldn't be added to (%s : %d). See console for details.", nlt->name, i);
-				
-				BKE_report(op->reports, RPT_ERROR, errormsg);
+				BKE_reportf(op->reports, RPT_ERROR,
+					"Modifier couldn't be added to (%s : %s). See console for details.", 
+					nlt->name, strip->name);
 			}
 		}
 	}
