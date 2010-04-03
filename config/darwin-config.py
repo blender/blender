@@ -131,8 +131,8 @@ BF_JACK_LIBPATH = '${BF_JACK}/lib'
 WITH_BF_SNDFILE = True
 BF_SNDFILE = LIBDIR + '/sndfile'
 BF_SNDFILE_INC = '${BF_SNDFILE}/include'
-BF_SNDFILE_LIB = 'sndfile'
-BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
+BF_SNDFILE_LIB = 'sndfile FLAC ogg vorbis vorbisenc'
+BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib ${BF_FFMPEG}/lib' #ogg libs are stored in ffmpeg dir
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl' #$(shell sdl-config --prefix)
