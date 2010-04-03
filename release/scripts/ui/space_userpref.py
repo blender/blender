@@ -1716,9 +1716,9 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
 
         def kmistr(kmi):
             if km.modal:
-                s = ["kmi = km.add_modal_item(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
+                s = ["kmi = km.items.add_modal(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
             else:
-                s = ["kmi = km.add_item(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
+                s = ["kmi = km.items.add(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
 
             if kmi.any:
                 s.append(", any=True")
@@ -1924,9 +1924,9 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
             f.write("km = kc.add_keymap('%s', space_type='%s', region_type='%s', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.modal))
             for kmi in km.items:
                 if km.modal:
-                    f.write("kmi = km.add_modal_item('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
+                    f.write("kmi = km.items.add_modal('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
                 else:
-                    f.write("kmi = km.add_item('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
+                    f.write("kmi = km.items.add('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
                 if kmi.any:
                     f.write(", any=True")
                 else:
@@ -2030,9 +2030,9 @@ class WM_OT_keyitem_add(bpy.types.Operator):
         kc = wm.default_keyconfig
 
         if km.modal:
-            km.add_modal_item("", 'A', 'PRESS') # kmi
+            km.items.add_modal("", 'A', 'PRESS') # kmi
         else:
-            km.add_item("none", 'A', 'PRESS') # kmi
+            km.items.add("none", 'A', 'PRESS') # kmi
 
         # clear filter and expand keymap so we can see the newly added item
         if kc.filter != '':
