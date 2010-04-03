@@ -670,6 +670,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.label(text="Options:")
+        col.prop(md, "subsurf_uv")
         col.prop(md, "optimal_display")
 
     def SURFACE(self, layout, ob, md, wide_ui):
