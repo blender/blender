@@ -66,7 +66,7 @@ def RKS_GEN_available(ksi, context, ks, data):
     # for each F-Curve, include an path to key it
     # NOTE: we don't need to set the group settings here
     for fcu in adt.action.fcurves:
-        ks.add_path(id_block, fcu.data_path, index=fcu.array_index)
+        ks.paths.add(id_block, fcu.data_path, index=fcu.array_index)
     
 # ------
 
@@ -103,9 +103,9 @@ def RKS_GEN_location(ksi, context, ks, data):
     
     # add Keying Set entry for this...
     if grouping:
-        ks.add_path(id_block, path, grouping_method='NAMED', group_name=grouping)
+        ks.paths.add(id_block, path, grouping_method='NAMED', group_name=grouping)
     else:
-        ks.add_path(id_block, path)
+        ks.paths.add(id_block, path)
 
 # Rotation 
 def RKS_GEN_rotation(ksi, context, ks, data):
@@ -123,9 +123,9 @@ def RKS_GEN_rotation(ksi, context, ks, data):
     
     # add Keying Set entry for this...
     if grouping:
-        ks.add_path(id_block, path, grouping_method='NAMED', group_name=grouping)
+        ks.paths.add(id_block, path, grouping_method='NAMED', group_name=grouping)
     else:
-        ks.add_path(id_block, path)
+        ks.paths.add(id_block, path)
 
 # Scaling 
 def RKS_GEN_scaling(ksi, context, ks, data):
@@ -137,9 +137,9 @@ def RKS_GEN_scaling(ksi, context, ks, data):
     
     # add Keying Set entry for this...
     if grouping:
-        ks.add_path(id_block, path, grouping_method='NAMED', group_name=grouping)
+        ks.paths.add(id_block, path, grouping_method='NAMED', group_name=grouping)
     else:
-        ks.add_path(id_block, path)
+        ks.paths.add(id_block, path)
 
 ###########################
 # Un-needed stuff which is here to just shut up the warnings...
