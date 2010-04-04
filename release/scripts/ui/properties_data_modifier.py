@@ -368,7 +368,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
         sub = col.column()
         sub.label(text="Object:")
         sub.prop(md, "object", text="")
-        sub.prop(md, "mode", text="")
         sub.active = not md.is_bound
         if wide_ui:
             col = split.column()
@@ -386,15 +385,14 @@ class DATA_PT_modifiers(DataButtonsPanel):
         else:
             layout.operator("object.meshdeform_bind", text="Bind")
 
-            if md.mode == 'VOLUME':
-                split = layout.split()
+            split = layout.split()
 
+            col = split.column()
+            col.prop(md, "precision")
+
+            if wide_ui:
                 col = split.column()
-                col.prop(md, "precision")
-
-                if wide_ui:
-                    col = split.column()
-                col.prop(md, "dynamic")
+            col.prop(md, "dynamic")
 
     def MIRROR(self, layout, ob, md, wide_ui):
         layout.prop(md, "merge_limit")
@@ -499,14 +497,14 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def SCREW(self, layout, ob, md, wide_ui):
         split = layout.split()
-        
+
         col = split.column()
         col.prop(md, "axis")
         col.prop(md, "object", text="AxisOb")
         col.prop(md, "angle")
         col.prop(md, "steps")
         col.prop(md, "render_steps")
-        
+
         if wide_ui:
             col = split.column()
         row = col.row()
@@ -518,7 +516,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "use_normal_calculate")
         col.prop(md, "use_normal_flip")
         col.prop(md, "iterations")
-        
 
     def SHRINKWRAP(self, layout, ob, md, wide_ui):
         split = layout.split()
@@ -625,11 +622,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout.label(text="See Soft Body panel.")
 
     def SOLIDIFY(self, layout, ob, md, wide_ui):
-        layout.prop(md, "offset")
 
         split = layout.split()
 
         col = split.column()
+        col.prop(md, "thickness")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+
         col.label(text="Crease:")
         col.prop(md, "edge_crease_inner", text="Inner")
         col.prop(md, "edge_crease_outer", text="Outer")
@@ -637,7 +636,15 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         if wide_ui:
             col = split.column()
-            col.label()
+
+        col.prop(md, "offset")
+        colsub = col.column()
+        colsub.active = (md.vertex_group is not "")
+        colsub.prop(md, "invert", text="Invert")
+
+        if wide_ui:
+            col.label(text="")
+
         col.prop(md, "use_rim")
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
@@ -661,6 +668,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.label(text="Options:")
+        col.prop(md, "subsurf_uv")
         col.prop(md, "optimal_display")
 
     def SURFACE(self, layout, ob, md, wide_ui):
@@ -689,9 +697,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
             if wide_ui:
                 col = split.column()
             sub = col.column(align=True)
-            sub.label(text="Aspect Ratio:")
-            sub.prop(md, "horizontal_aspect_ratio", text="Horizontal")
-            sub.prop(md, "vertical_aspect_ratio", text="Vertical")
+            sub.prop(md, "aspect_x", text="Aspect X")
+            sub.prop(md, "aspect_y", text="Aspect Y")
+
+            sub = col.column(align=True)
+            sub.prop(md, "scale_x", text="Scale X")
+            sub.prop(md, "scale_y", text="Scale Y")
 
     def WAVE(self, layout, ob, md, wide_ui):
         split = layout.split()

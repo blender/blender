@@ -29,8 +29,8 @@ class TEXTURE_MT_specials(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("material.mtex_copy", icon='COPYDOWN')
-        layout.operator("material.mtex_paste", icon='PASTEDOWN')
+        layout.operator("texture.slot_copy", icon='COPYDOWN')
+        layout.operator("texture.slot_paste", icon='PASTEDOWN')
 
 
 class TEXTURE_MT_envmap_specials(bpy.types.Menu):

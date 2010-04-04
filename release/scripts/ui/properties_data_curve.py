@@ -120,7 +120,6 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 
         if is_curve or is_text:
             sub = col.column()
-            sub.active = (curve.dimensions == '2D')
             sub.label(text="Caps:")
             sub.prop(curve, "front")
             sub.prop(curve, "back")

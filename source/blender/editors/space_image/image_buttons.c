@@ -81,7 +81,6 @@
 #define B_REDR				1
 #define B_IMAGECHANGED		2
 #define B_TRANS_IMAGE		3
-#define B_CURSOR_IMAGE		4
 #define B_NOP				0
 #define B_TWINANIM			5
 #define B_SIMAGETILE		6
@@ -109,22 +108,17 @@ static int simaUVSel_Check() {return 0;}
 
 /* proto */
 static void image_editvertex_buts(const bContext *C, uiBlock *block);
-static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block);
 
 
 static void do_image_panel_events(bContext *C, void *arg, int event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
-	ARegion *ar= CTX_wm_region(C);
 	
 	switch(event) {
 		case B_REDR:
 			break;
 		case B_TRANS_IMAGE:
 			image_editvertex_buts(C, NULL);
-			break;
-		case B_CURSOR_IMAGE:
-			image_editcursor_buts(C, &ar->v2d, NULL);
 			break;
 	}
 
@@ -316,41 +310,6 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 
 
 /* is used for both read and write... */
-static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block)
-{
-	SpaceImage *sima= CTX_wm_space_image(C);
-	static float ocent[2];
-	int imx= 256, imy= 256;
-	int step, digits;
-	
-	image_transform_but_attr(sima, &imx, &imy, &step, &digits);
-		
-	if(block) {	// do the buttons
-		ocent[0]= v2d->cursor[0];
-		ocent[1]= v2d->cursor[1];
-		if (sima->flag & SI_COORDFLOATS) {
-		} else {
-			ocent[0] *= imx;
-			ocent[1] *= imy;
-		}
-		
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor X:",	165, 120, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor Y:",	165, 100, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
-		uiBlockEndAlign(block);
-	}
-	else {	// apply event
-		if (sima->flag & SI_COORDFLOATS) {
-			v2d->cursor[0]= ocent[0];
-			v2d->cursor[1]= ocent[1];
-		}
-		else {
-			v2d->cursor[0]= ocent[0]/imx;
-			v2d->cursor[1]= ocent[1]/imy;
-		}
-		WM_event_add_notifier(C, NC_IMAGE, sima->image);
-	}
-}
 
 static int image_panel_poll(const bContext *C, PanelType *pt)
 {
@@ -947,7 +906,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 					uiButSetFunc(but, set_frames_cb, ima, iuser);
 				}
 
-				uiItemR(col, userptr, "start_frame", 0, "Start", 0);
+				uiItemR(col, userptr, "frame_start", 0, "Start", 0);
 				uiItemR(col, userptr, "offset", 0, NULL, 0);
 
 				col= uiLayoutColumn(split, 0);
@@ -995,26 +954,27 @@ static int image_panel_uv_poll(const bContext *C, PanelType *pt)
 
 static void image_panel_uv(const bContext *C, Panel *pa)
 {
-	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
 	
 	block= uiLayoutAbsoluteBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
 
 	image_editvertex_buts(C, block);
-	image_editcursor_buts(C, &ar->v2d, block);
 }	
 
 void image_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
-	strcpy(pt->idname, "IMAGE_PT_uv");
-	strcpy(pt->label, "UV");
-	pt->draw= image_panel_uv;
-	pt->poll= image_panel_uv_poll;
-	BLI_addtail(&art->paneltypes, pt);
+	/* editvertex_buts not working atm */
+	if(0) {
+		pt= MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
+		strcpy(pt->idname, "IMAGE_PT_uv");
+		strcpy(pt->label, "UV");
+		pt->draw= image_panel_uv;
+		pt->poll= image_panel_uv_poll;
+		BLI_addtail(&art->paneltypes, pt);
+	}
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel curves");
 	strcpy(pt->idname, "IMAGE_PT_curves");

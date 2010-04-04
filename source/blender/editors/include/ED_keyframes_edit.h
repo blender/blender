@@ -96,7 +96,7 @@ typedef enum eEditKeyframes_Mirror {
 
 /* --- Generic Properties for Bezier Edit Tools ----- */
 
-typedef struct BeztEditData {
+typedef struct KeyframeEditData {
 		/* generic properties/data access */
 	ListBase list;				/* temp list for storing custom list of data to check */
 	struct Scene *scene;		/* pointer to current scene - many tools need access to cfra/etc.  */
@@ -107,14 +107,14 @@ typedef struct BeztEditData {
 		/* current iteration data */
 	struct FCurve *fcu;			/* F-Curve that is being iterated over */
 	int curIndex;				/* index of current keyframe being iterated over */
-} BeztEditData;
+} KeyframeEditData;
 
 /* ------- Function Pointer Typedefs ---------------- */
 
 	/* callback function that refreshes the F-Curve after use */
 typedef void (*FcuEditFunc)(struct FCurve *fcu);
 	/* callback function that operates on the given BezTriple */
-typedef short (*BeztEditFunc)(BeztEditData *bed, struct BezTriple *bezt);
+typedef short (*KeyframeEditFunc)(KeyframeEditData *ked, struct BezTriple *bezt);
 
 /* ------- Custom Data Type Defines ------------------ */
 
@@ -128,15 +128,15 @@ typedef struct BeztEditCD_Remap {
 
 /* functions for looping over keyframes */
 	/* function for working with F-Curve data only (i.e. when filters have been chosen to explicitly use this) */
-short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, struct FCurve *fcu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb);
+short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, struct FCurve *fcu, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb);
 	/* function for working with any type (i.e. one of the known types) of animation channel 
 	 *	- filterflag is bDopeSheet->flag (DOPESHEET_FILTERFLAG)
 	 */
-short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, struct bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag);
+short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, struct bAnimListElem *ale, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag);
 	/* same as above, except bAnimListElem wrapper is not needed... 
 	 * 	- keytype is eAnim_KeyType
 	 */
-short ANIM_animchanneldata_keys_bezier_loop(BeztEditData *bed, void *data, int keytype, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag);
+short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, void *data, int keytype, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag);
 
 /* functions for making sure all keyframes are in good order */
 void ANIM_editkeyframes_refresh(struct bAnimContext *ac);
@@ -144,40 +144,40 @@ void ANIM_editkeyframes_refresh(struct bAnimContext *ac);
 /* ----------- BezTriple Callback Getters ---------- */
 
 /* accessories */
-BeztEditFunc ANIM_editkeyframes_ok(short mode);
+KeyframeEditFunc ANIM_editkeyframes_ok(short mode);
 
 /* edit */
-BeztEditFunc ANIM_editkeyframes_snap(short mode);
-BeztEditFunc ANIM_editkeyframes_mirror(short mode);
-BeztEditFunc ANIM_editkeyframes_select(short mode);
-BeztEditFunc ANIM_editkeyframes_handles(short mode);
-BeztEditFunc ANIM_editkeyframes_ipo(short mode);
-BeztEditFunc ANIM_editkeyframes_keytype(short mode);
+KeyframeEditFunc ANIM_editkeyframes_snap(short mode);
+KeyframeEditFunc ANIM_editkeyframes_mirror(short mode);
+KeyframeEditFunc ANIM_editkeyframes_select(short mode);
+KeyframeEditFunc ANIM_editkeyframes_handles(short mode);
+KeyframeEditFunc ANIM_editkeyframes_ipo(short mode);
+KeyframeEditFunc ANIM_editkeyframes_keytype(short mode);
 
 /* -------- BezTriple Callbacks (Selection Map) ---------- */
 
 /* Get a callback to populate the selection settings map  
- * requires: bed->custom = char[] of length fcurve->totvert 
+ * requires: ked->custom = char[] of length fcurve->totvert 
  */
-BeztEditFunc ANIM_editkeyframes_buildselmap(short mode);
+KeyframeEditFunc ANIM_editkeyframes_buildselmap(short mode);
 
 /* Change the selection status of the keyframe based on the map entry for this vert
- * requires: bed->custom = char[] of length fcurve->totvert
+ * requires: ked->custom = char[] of length fcurve->totvert
  */
-short bezt_selmap_flush(BeztEditData *bed, struct BezTriple *bezt);
+short bezt_selmap_flush(KeyframeEditData *ked, struct BezTriple *bezt);
 
 /* ----------- BezTriple Callback (Assorted Utilities) ---------- */
 
 /* used to calculate the the average location of all relevant BezTriples by summing their locations */
-short bezt_calc_average(BeztEditData *bed, struct BezTriple *bezt);
+short bezt_calc_average(KeyframeEditData *ked, struct BezTriple *bezt);
 
 /* used to extract a set of cfra-elems from the keyframes */
-short bezt_to_cfraelem(BeztEditData *bed, struct BezTriple *bezt);
+short bezt_to_cfraelem(KeyframeEditData *ked, struct BezTriple *bezt);
 
 /* used to remap times from one range to another
- * requires:  bed->custom = BeztEditCD_Remap	
+ * requires:  ked->custom = BeztEditCD_Remap	
  */
-void bezt_remap_times(BeztEditData *bed, struct BezTriple *bezt);
+void bezt_remap_times(KeyframeEditData *ked, struct BezTriple *bezt);
 
 /* ************************************************ */
 /* Destructive Editing API (keyframes_general.c) */

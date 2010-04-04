@@ -238,7 +238,8 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj, bool addToCom
 		GetSGNode() &&			// object is not zombi
 		obj->GetSGNode() &&		// object is not zombi
 		GetSGNode()->GetSGParent() != obj->GetSGNode() &&	// not already parented to same object
-		!GetSGNode()->IsAncessor(obj->GetSGNode()))			// no parenting loop
+		!GetSGNode()->IsAncessor(obj->GetSGNode()) && 		// no parenting loop
+		this != obj)										// not the object itself
 	{
 		// Make sure the objects have some scale
 		MT_Vector3 scale1 = NodeGetWorldScaling();

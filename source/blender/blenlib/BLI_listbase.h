@@ -32,9 +32,9 @@
 #ifndef BLI_LISTBASE_H
 #define BLI_LISTBASE_H
 
-//#include "DNA_listbase.h"
-struct ListBase;
-struct LinkData;
+#include "DNA_listBase.h"
+//struct ListBase;
+//struct LinkData;
 
 #ifdef __cplusplus
 extern "C" {

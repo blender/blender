@@ -252,7 +252,7 @@ class IMAGE_HT_header(bpy.types.Header):
         iuser = sima.image_user
         toolsettings = context.tool_settings
 
-        # show_render = sima.show_render
+        show_render = sima.show_render
         # show_paint = sima.show_paint
         show_uvedit = sima.show_uvedit
 
@@ -276,6 +276,8 @@ class IMAGE_HT_header(bpy.types.Header):
                 sub.menu("IMAGE_MT_uvs")
 
         layout.template_ID(sima, "image", new="image.new")
+        if not show_render:
+            layout.prop(sima, "image_pin", text="")
 
         # uv editing
         if show_uvedit:
@@ -406,6 +408,7 @@ class IMAGE_PT_view_histogram(bpy.types.Panel):
 
         layout.template_histogram(sima, "histogram")
 
+
 class IMAGE_PT_sample_line(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
@@ -420,6 +423,7 @@ class IMAGE_PT_sample_line(bpy.types.Panel):
         layout.operator("image.sample_line")
         sima = context.space_data
         layout.template_histogram(sima, "sample_histogram")
+
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -457,6 +461,9 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             col.prop(uvedit, "normalized_coordinates", text="Normalized")
 
         if show_uvedit:
+
+            col = layout.column()
+            col.prop(uvedit, "cursor_location")
 
             col = layout.column()
             col.label(text="UVs:")

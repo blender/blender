@@ -1486,6 +1486,16 @@ void RNA_def_material(BlenderRNA *brna)
 		{MA_ZTRANSP, "Z_TRANSPARENCY", 0, "Z Transparency", "Use alpha buffer for transparent faces"},
 		{MA_RAYTRANSP, "RAYTRACE", 0, "Raytrace", "Use raytracing for transparent refraction rendering"},
 		{0, NULL, 0, NULL, NULL}};
+	
+	/* Render Preview Types */
+	static EnumPropertyItem preview_type_items[] = {
+		{MA_FLAT, "FLAT", ICON_MATPLANE, "Flat", "Preview type: Flat XY plane"},
+		{MA_SPHERE, "SPHERE", ICON_MATSPHERE, "Sphere", "Preview type: Sphere"},
+		{MA_CUBE, "CUBE", ICON_MATCUBE, "Flat", "Preview type: Cube"},
+		{MA_MONKEY, "MONKEY", ICON_MONKEY, "Flat", "Preview type: Monkey"},
+		{MA_HAIR, "HAIR", ICON_HAIR, "Flat", "Preview type: Hair strands"},
+		{MA_SPHERE_A, "SPHERE_A", ICON_MAT_SPHERE_SKY, "Flat", "Preview type: Large sphere with sky"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Material", "ID");
 	RNA_def_struct_ui_text(srna, "Material", "Material datablock to defined the appearance of geometric objects for rendering");
@@ -1507,6 +1517,13 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, transparency_items);
 	RNA_def_property_ui_text(prop, "Transparency Method", "Method to use for rendering transparency");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+	
+	/* For Preview Render */
+	prop= RNA_def_property(srna, "preview_render_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "pr_type");
+	RNA_def_property_enum_items(prop, preview_type_items);
+	RNA_def_property_ui_text(prop, "Preview render type", "Type of preview render");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "ambient", PROP_FLOAT, PROP_FACTOR);

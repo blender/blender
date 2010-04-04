@@ -130,6 +130,9 @@ typedef struct RenderResult {
 	/* for render results in Image, verify validity for sequences */
 	int framenr;
 
+	/* for acquire image, to indicate if it is compo/seq result */
+	int compo_seq;
+
 	/* render info text */
 	char *text;
 	

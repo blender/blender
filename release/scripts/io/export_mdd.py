@@ -82,7 +82,7 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    orig_frame = sce.current_frame
+    orig_frame = sce.frame_current
     sce.set_frame(PREF_STARTFRAME)
     me = ob.create_mesh(True, 'PREVIEW')
 
@@ -162,8 +162,8 @@ class ExportMDD(bpy.types.Operator):
     path = StringProperty(name="File Path", description="File path used for exporting the MDD file", maxlen=1024)
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
     fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
-    start_frame = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
-    end_frame = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default=250)
+    frame_start = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
+    frame_end = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default=250)
 
     def poll(self, context):
         ob = context.active_object
@@ -173,7 +173,7 @@ class ExportMDD(bpy.types.Operator):
         if not self.properties.path:
             raise Exception("filename not set")
         write(self.properties.path, context.scene, context.active_object,
-            self.properties.start_frame, self.properties.end_frame, self.properties.fps)
+            self.properties.frame_start, self.properties.frame_end, self.properties.fps)
         return {'FINISHED'}
 
     def invoke(self, context, event):

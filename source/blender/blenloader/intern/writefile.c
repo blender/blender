@@ -652,6 +652,9 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 				for(; state; state=state->next)
 					write_boid_state(wd, state);
 			}
+			if(part->fluid && part->phystype == PART_PHYS_FLUID){
+				writestruct(wd, DATA, "SPHFluidSettings", 1, part->fluid); 
+			}
 		}
 		part= part->id.next;
 	}

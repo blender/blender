@@ -4573,19 +4573,22 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *datap)
 	 *      pointers to bDeformGroups, all with names
 	 *      of skinnable bones.
 	 */
-	bDeformGroup ***hgroup, *defgroup;
+	bDeformGroup ***hgroup, *defgroup= NULL;
 	int a, segments;
 	struct { Object *armob; void *list; int heat; } *data= datap;
+	int wpmode = (ob->mode & OB_MODE_WEIGHT_PAINT);
+	bArmature *arm= data->armob->data;
 
-	if (!(ob->mode & OB_MODE_WEIGHT_PAINT) || !(bone->flag & BONE_HIDDEN_P)) {
+	if (!wpmode || !(bone->flag & BONE_HIDDEN_P)) {
 	   if (!(bone->flag & BONE_NO_DEFORM)) {
 			if (data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
 				segments = bone->segments;
 			else
 				segments = 1;
-			
-			if (!(defgroup = defgroup_find_name(ob, bone->name)))
-				defgroup = ED_vgroup_add_name(ob, bone->name);
+
+			if(!wpmode || ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED)))
+				if (!(defgroup = defgroup_find_name(ob, bone->name)))
+					defgroup = ED_vgroup_add_name(ob, bone->name);
 			
 			if (data->list != NULL) {
 				hgroup = (bDeformGroup ***) &data->list;
@@ -4711,7 +4714,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	selected = MEM_callocN(numbones*sizeof(int), "selected");
 
 	for (j=0; j < numbones; ++j) {
-		   bone = bonelist[j];
+		bone = bonelist[j];
 		dgroup = dgrouplist[j];
 		
 		/* handle bbone */
@@ -4759,7 +4762,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 			selected[j] = 1;
 		
 		/* find flipped group */
-		if (mirror) {
+		if (dgroup && mirror) {
 			char name[32];
 			
 			BLI_strncpy(name, dgroup->name, 32);

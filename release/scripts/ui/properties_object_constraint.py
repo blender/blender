@@ -496,8 +496,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         col = split.column(align=True)
         col.label(text="Action Length:")
-        col.prop(con, "start_frame", text="Start")
-        col.prop(con, "end_frame", text="End")
+        col.prop(con, "frame_start", text="Start")
+        col.prop(con, "frame_end", text="End")
 
         if wide_ui:
             col = split.column(align=True)

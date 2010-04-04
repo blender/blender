@@ -53,7 +53,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
             row = split.row(align=True)
             row.prop(md, "render", text="")
             row.prop(md, "realtime", text="")
-            
+
             fluid = md.settings
 
         else:
@@ -75,11 +75,11 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 layout.prop(fluid, "type", text="")
                 if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
                     layout.prop(fluid, "active", text="")
-            
+
             layout = layout.column()
             if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
                 layout.active = fluid.active
-            
+
             if fluid.type == 'DOMAIN':
                 layout.operator("fluid.bake", text="Bake Fluid Simulation", icon='MOD_FLUIDSIM')
                 split = layout.split()
@@ -243,7 +243,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
         else:
             col.label(text="Gravity:")
             col.prop(fluid, "gravity", text="")
-        
+
         if scene.unit_settings.system != 'NONE':
             col.label(text="Using Scene Size Units", icon="SCENE_DATA")
             sub = col.column()

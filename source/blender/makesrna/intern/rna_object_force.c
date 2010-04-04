@@ -108,7 +108,7 @@ static void rna_Cache_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	cache->flag |= PTCACHE_OUTDATED;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob);
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
@@ -133,7 +133,7 @@ static void rna_Cache_toggle_disk_cache(Main *bmain, Scene *scene, PointerRNA *p
 	if(!ob)
 		return;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob);
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 
 	for(pid=pidlist.first; pid; pid=pid->next) {
 		if(pid->cache==cache)
@@ -160,7 +160,7 @@ static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	/* TODO: check for proper characters */
 
-	BKE_ptcache_ids_from_object(&pidlist, ob);
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 
 	if(cache->flag & PTCACHE_EXTERNAL) {
 		for(pid=pidlist.first; pid; pid=pid->next) {
@@ -219,7 +219,7 @@ static void rna_Cache_list_begin(CollectionPropertyIterator *iter, PointerRNA *p
 	PTCacheID *pid;
 	ListBase pidlist;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob);
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 
 	for(pid=pidlist.first; pid; pid=pid->next) {
 		if(pid->cache == cache) {
@@ -237,7 +237,7 @@ static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, 
 	PTCacheID *pid;
 	ListBase pidlist;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob);
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 	
 	*min= 0;
 	*max= 0;
@@ -261,7 +261,7 @@ static int rna_Cache_active_point_cache_index_get(PointerRNA *ptr)
 	ListBase pidlist;
 	int num = 0;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob);
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 	
 	for(pid=pidlist.first; pid; pid=pid->next) {
 		if(pid->cache == cache) {
@@ -282,7 +282,7 @@ static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int v
 	PTCacheID *pid;
 	ListBase pidlist;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob);
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
 	
 	for(pid=pidlist.first; pid; pid=pid->next) {
 		if(pid->cache == cache) {
@@ -677,14 +677,14 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Point Cache", "Point cache for physics simulations");
 	RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
 	
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startframe");
-	RNA_def_property_range(prop, 1, 300000);
+	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start", "Frame on which the simulation starts");
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endframe");
-	RNA_def_property_range(prop, 1, 300000);
+	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops");
 
 	prop= RNA_def_property(srna, "step", PROP_INT, PROP_NONE);

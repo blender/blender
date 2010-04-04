@@ -1551,6 +1551,8 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, short *mval, float ho
 	return 0;
 }
 
+int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports);
+
 /* return 0; nothing happened */
 int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 {
@@ -1563,6 +1565,9 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 
 	if(!(v3d->twflag & V3D_USE_MANIPULATOR)) return 0;
 	if(!(v3d->twflag & V3D_DRAW_MANIPULATOR)) return 0;
+
+	/* Force orientation */
+	RNA_enum_set(op->ptr, "constraint_orientation", v3d->twmode);
 
 	// find the hotspots first test narrow hotspot
 	val= manipulator_selectbuf(sa, ar, event->mval, 0.5f*(float)U.tw_hotspot);
@@ -1603,6 +1608,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 			WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_DEFAULT, op->ptr);
+			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_translate", 0), event, op->ptr, NULL);
 		}
 		else if (drawflags & MAN_SCALE_C) {
 			switch(drawflags) {
@@ -1633,8 +1639,10 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 			WM_operator_name_call(C, "TRANSFORM_OT_resize", WM_OP_INVOKE_DEFAULT, op->ptr);
+			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_resize", 0), event, op->ptr, NULL);
 		}
 		else if (drawflags == MAN_ROT_T) { /* trackball need special case, init is different */
+			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_trackball", 0), event, op->ptr, NULL);
 			WM_operator_name_call(C, "TRANSFORM_OT_trackball", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 		else if (drawflags & MAN_ROT_C) {
@@ -1651,6 +1659,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 			WM_operator_name_call(C, "TRANSFORM_OT_rotate", WM_OP_INVOKE_DEFAULT, op->ptr);
+			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_rotate", 0), event, op->ptr, NULL);
 		}
 	}
 	/* after transform, restore drawflags */

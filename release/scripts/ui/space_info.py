@@ -241,7 +241,7 @@ class INFO_MT_add(bpy.types.Menu):
 
         if(len(bpy.data.groups) > 10):
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("object.group_instance_add", "type", text="Group Instance...", icon='OUTLINER_OB_EMPTY')
+            layout.operator("object.group_instance_add", text="Group Instance...", icon='OUTLINER_OB_EMPTY')
         else:
             layout.operator_menu_enum("object.group_instance_add", "type", text="Group Instance", icon='OUTLINER_OB_EMPTY')
 
@@ -309,6 +309,8 @@ class INFO_MT_help(bpy.types.Menu):
         layout.separator()
         layout.operator("help.python_api", icon='URL')
         layout.operator("help.operator_cheat_sheet")
+        layout.separator()
+        layout.operator("wm.splash")
 
 
 # Help operators

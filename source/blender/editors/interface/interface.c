@@ -2693,7 +2693,7 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname)
 static void autocomplete_id(bContext *C, char *str, void *arg_v)
 {
 	int blocktype= (intptr_t)arg_v;
-	ListBase *listb= wich_libbase(CTX_data_main(C), blocktype);
+	ListBase *listb= which_libbase(CTX_data_main(C), blocktype);
 	
 	if(listb==NULL) return;
 	
@@ -3327,9 +3327,6 @@ void UI_init_userdef(void)
 {
 	/* fix saved themes */
 	init_userdef_do_versions();
-	/* set default colors in default theme */
-	ui_theme_init_userdef();
-	
 	uiStyleInit();
 }
 

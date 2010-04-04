@@ -31,6 +31,7 @@
 
 #define RNA_MAGIC ((int)~0)
 
+struct ID;
 struct IDProperty;
 struct SDNA;
 
@@ -200,6 +201,8 @@ void rna_object_vgroup_name_index_set(struct PointerRNA *ptr, const char *value,
 void rna_object_vgroup_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_uvlayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
+PointerRNA rna_object_shapekey_index_get(struct ID *id, int value);
+int rna_object_shapekey_index_set(struct ID *id, PointerRNA value, int current);
 
 void rna_Object_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_Object_update_data(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);

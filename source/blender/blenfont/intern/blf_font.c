@@ -232,8 +232,8 @@ void blf_font_buffer(FontBLF *font, char *str)
 			yb= g->pitch < 0 ? 0 : g->height-1;
 			
 			if (font->b_fbuf) {
-				for (y= 0; y < height_clip; y++) {
-					for (x= 0; x < width_clip; x++) {
+				for (y=(chy >= 0 ? 0:-chy); y < height_clip; y++) {
+					for (x=(chx >= 0 ? 0:-chx); x < width_clip; x++) {
 						
 						a= *(g->bitmap + x + (yb * g->pitch)) / 255.0f;
 

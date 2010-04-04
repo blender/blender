@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -68,8 +69,7 @@ static void rna_userdef_mipmap_update(Main *bmain, Scene *scene, PointerRNA *ptr
 	rna_userdef_update(bmain, scene, ptr);
 }
 
-#if 0
-static void rna_userdef_lmb_select_set(PointerRNA *ptr,int value)
+static void rna_userdef_select_mouse_set(PointerRNA *ptr,int value)
 {
 	UserDef *userdef = (UserDef*)ptr->data;
 
@@ -79,22 +79,6 @@ static void rna_userdef_lmb_select_set(PointerRNA *ptr,int value)
 	}
 	else
 		userdef->flag &= ~USER_LMOUSESELECT;
-}
-
-static void rna_userdef_rmb_select_set(PointerRNA *ptr,int value)
-{
-	rna_userdef_lmb_select_set(ptr, !value);
-}
-#endif
-
-static void rna_userdef_emulate_set(PointerRNA *ptr,int value)
-{
-	UserDef *userdef = (UserDef*)ptr->data;
-
-	if(userdef->flag & USER_LMOUSESELECT) 
-		userdef->flag &= ~USER_TWOBUTTONMOUSE;
-	else
-		userdef->flag ^= USER_TWOBUTTONMOUSE;
 }
 
 static int rna_userdef_autokeymode_get(PointerRNA *ptr)
@@ -719,39 +703,41 @@ static void rna_def_userdef_theme_spaces_face(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
-static void rna_def_userdef_theme_spaces_curves(StructRNA *srna)
+static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, short incl_nurbs)
 {
 	PropertyRNA *prop;
+	
+	if (incl_nurbs) {
+		prop= RNA_def_property(srna, "nurb_uline", PROP_FLOAT, PROP_COLOR);
+		RNA_def_property_float_sdna(prop, NULL, "nurb_uline");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Nurb U-lines", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "nurb_uline", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "nurb_uline");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Nurb U-lines", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+		prop= RNA_def_property(srna, "nurb_vline", PROP_FLOAT, PROP_COLOR);
+		RNA_def_property_float_sdna(prop, NULL, "nurb_vline");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Nurb V-lines", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "nurb_vline", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "nurb_vline");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Nurb V-lines", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+		prop= RNA_def_property(srna, "nurb_sel_uline", PROP_FLOAT, PROP_COLOR);
+		RNA_def_property_float_sdna(prop, NULL, "nurb_sel_uline");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Nurb active U-lines", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "nurb_sel_uline", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "nurb_sel_uline");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Nurb active U-lines", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+		prop= RNA_def_property(srna, "nurb_sel_vline", PROP_FLOAT, PROP_COLOR);
+		RNA_def_property_float_sdna(prop, NULL, "nurb_sel_vline");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Nurb active V-lines", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "nurb_sel_vline", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "nurb_sel_vline");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Nurb active V-lines", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop= RNA_def_property(srna, "act_spline", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "act_spline");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Active spline", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+		prop= RNA_def_property(srna, "act_spline", PROP_FLOAT, PROP_COLOR);
+		RNA_def_property_float_sdna(prop, NULL, "act_spline");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Active spline", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
+	}
 
 	prop= RNA_def_property(srna, "handle_free", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "handle_free");
@@ -867,7 +853,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	rna_def_userdef_theme_spaces_vertex(srna);
 	rna_def_userdef_theme_spaces_edge(srna);
 	rna_def_userdef_theme_spaces_face(srna);
-	rna_def_userdef_theme_spaces_curves(srna);
+	rna_def_userdef_theme_spaces_curves(srna, 1);
 
 	prop= RNA_def_property(srna, "editmesh_active", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 4);
@@ -894,7 +880,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bone Pose", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -937,8 +923,9 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	rna_def_userdef_theme_spaces_vertex(srna);
+	rna_def_userdef_theme_spaces_curves(srna, 0);
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -1305,7 +1292,7 @@ static void rna_def_userdef_theme_space_time(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Grid", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -1336,7 +1323,7 @@ static void rna_def_userdef_theme_space_sound(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Window Sliders", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -1442,7 +1429,7 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Meta Strip", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -1527,7 +1514,7 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Long Key Selected", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -1594,7 +1581,7 @@ static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Strips Selected", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "current_frame", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
@@ -2065,14 +2052,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add/Replace", ""},
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
 		{0, NULL, 0, NULL, NULL}};
-	
-	// XXX: we could just use the one that is defined in rna_curve.h
-	static EnumPropertyItem new_interpolation_types[] = {
-		{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", ""},
-		{BEZT_IPO_LIN, "LINEAR", 0, "Linear", ""},
-		{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
-		{0, NULL, 0, NULL, NULL}};
-
+		
 	static const EnumPropertyItem material_link_items[]= {
 		{0, "OBDATA", 0, "ObData", "Toggle whether the material is linked to object data or the object block"},
 		{USER_MAT_ON_OB, "OBJECT", 0, "Object", "Toggle whether the material is linked to object data or the object block"},
@@ -2105,8 +2085,8 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enter Edit Mode", "Enter Edit Mode automatically after adding a new object");
 
 	prop= RNA_def_property(srna, "drag_immediately", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_DRAGIMMEDIATE);
-	RNA_def_property_ui_text(prop, "Drag Immediately", "Moving things with a mouse drag doesn't require a click to confirm (Best for tablet users)");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_RELEASECONFIRM);
+	RNA_def_property_ui_text(prop, "Release confirm", "Moving things with a mouse drag confirms when releasing the button");
 	
 	/* Undo */
 	prop= RNA_def_property(srna, "undo_steps", PROP_INT, PROP_NONE);
@@ -2167,10 +2147,15 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_XYZ2RGB);
 	RNA_def_property_ui_text(prop, "New F-Curve Colors - XYZ to RGB", "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis");
 	
-	prop= RNA_def_property(srna, "new_interpolation_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, new_interpolation_types);
+	prop= RNA_def_property(srna, "keyframe_new_interpolation_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, beztriple_interpolation_mode_items);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo_new");
 	RNA_def_property_ui_text(prop, "New Interpolation Type", "");
+	
+	prop= RNA_def_property(srna, "keyframe_new_handle_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
+	RNA_def_property_enum_sdna(prop, NULL, "keyhandles_new");
+	RNA_def_property_ui_text(prop, "New Handles Type", "");
 	
 	/* frame numbers */
 	prop= RNA_def_property(srna, "use_negative_frames", PROP_BOOLEAN, PROP_NONE);
@@ -2592,12 +2577,13 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "select_mouse", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, select_mouse_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_userdef_select_mouse_set", NULL);
 	RNA_def_property_ui_text(prop, "Select Mouse", "The mouse button used for selection");
 	
-	prop= RNA_def_property(srna, "viewport_zoom_style", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "zoom_style", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "viewzoom");
 	RNA_def_property_enum_items(prop, view_zoom_styles);
-	RNA_def_property_ui_text(prop, "Viewport Zoom Style", "Which style to use for viewport scaling");
+	RNA_def_property_ui_text(prop, "Zoom Style", "Which style to use for viewport scaling");
 	
 	prop= RNA_def_property(srna, "zoom_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "uiflag");
@@ -2634,7 +2620,6 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "emulate_3_button_mouse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TWOBUTTONMOUSE);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_userdef_emulate_set");
 	RNA_def_property_ui_text(prop, "Emulate 3 Button Mouse", "Emulates Middle Mouse with Alt+LeftMouse (doesnt work with Left Mouse Select option)");
 
 	prop= RNA_def_property(srna, "emulate_numpad", PROP_BOOLEAN, PROP_NONE);

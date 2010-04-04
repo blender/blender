@@ -158,6 +158,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->filter |= RNA_boolean_get(op->ptr, "filter_folder") ? FOLDERFILE : 0;
 		if(RNA_struct_find_property(op->ptr, "filter_btx"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_btx") ? BTXFILE : 0;
+		if(RNA_struct_find_property(op->ptr, "filter_collada"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_collada") ? COLLADAFILE : 0;
 		if (params->filter != 0)
 			params->flag |= FILE_FILTER;
 
@@ -423,7 +425,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 		for (i = 0; i < n; i++) {
 			file = filelist_file(sfile->files, i);
 			if (fnmatch(pattern, file->relname, 0) == 0) {
-				file->flags |= ACTIVE;
+				file->flags |= ACTIVEFILE;
 				match = 1;
 			}
 		}

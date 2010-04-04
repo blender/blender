@@ -81,4 +81,6 @@ void ED_preview_icon_job(const struct bContext *C, void *owner, struct ID *id, u
 
 void ED_preview_draw(const struct bContext *C, void *idp, void *parentp, void *slot, rcti *rect);
 
+void ED_render_clear_mtex_copybuf(void);
+
 #endif

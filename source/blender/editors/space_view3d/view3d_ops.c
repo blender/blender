@@ -115,7 +115,8 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/* only for region 3D window */
 	keymap= WM_keymap_find(keyconf, "3D View", SPACE_VIEW3D, 0);
 	
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
+	kmi = WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
+	RNA_boolean_set(kmi->ptr, "release_confirm", 1);
 	/*
 	 * Doesn't work with KM_SHIFT, have to use KM_ANY and filter in invoke
 	 * */

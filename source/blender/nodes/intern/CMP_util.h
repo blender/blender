@@ -110,6 +110,7 @@ CompBuf *dupalloc_compbuf(CompBuf *cbuf);
 CompBuf *pass_on_compbuf(CompBuf *cbuf);
 void free_compbuf(CompBuf *cbuf);
 void print_compbuf(char *str, CompBuf *cbuf);
+void compbuf_set_node(struct CompBuf *cbuf, struct bNode *node);
 void node_compo_pass_on(struct bNode *node, struct bNodeStack **nsin, struct bNodeStack **nsout);
 
 CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, int type);

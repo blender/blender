@@ -210,11 +210,11 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 {
 	bArmature *arm= (bArmature*)ptr->id.data;
 	EditBone *ebone= (EditBone*)ptr->data;
-	char oldname[32], newname[32];
+	char oldname[sizeof(ebone->name)], newname[sizeof(ebone->name)];
 	
 	/* need to be on the stack */
-	BLI_strncpy(newname, value, 32);
-	BLI_strncpy(oldname, ebone->name, 32);
+	BLI_strncpy(newname, value, sizeof(ebone->name));
+	BLI_strncpy(oldname, ebone->name, sizeof(ebone->name));
 	
 	ED_armature_bone_rename(arm, oldname, newname);
 }
@@ -223,12 +223,12 @@ static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
 {
 	bArmature *arm= (bArmature*)ptr->id.data;
 	Bone *bone= (Bone*)ptr->data;
-	char oldname[32], newname[32];
+	char oldname[sizeof(bone->name)], newname[sizeof(bone->name)];
 	
 	/* need to be on the stack */
-	BLI_strncpy(newname, value, 32);
-	BLI_strncpy(oldname, bone->name, 32);
-	
+	BLI_strncpy(newname, value, sizeof(bone->name));
+	BLI_strncpy(oldname, bone->name, sizeof(bone->name));
+
 	ED_armature_bone_rename(arm, oldname, newname);
 }
 
@@ -888,14 +888,14 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
-	prop= RNA_def_property(srna, "ghost_start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "ghost_frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghostsf");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Ghosting Start Frame", "Starting frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
-	prop= RNA_def_property(srna, "ghost_end_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "ghost_frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghostef");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Ghosting End Frame", "End frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method)");

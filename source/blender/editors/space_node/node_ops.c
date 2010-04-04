@@ -74,12 +74,10 @@ void node_operatortypes(void)
 void ED_operatormacros_node(void)
 {
 	wmOperatorType *ot;
-	wmOperatorTypeMacro *otmacro;
 	
 	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
-	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 }
 
 void node_keymap(struct wmKeyConfig *keyconf)

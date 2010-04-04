@@ -395,6 +395,43 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             sub.prop(part, "integrator")
             sub.prop(part, "time_tweak")
 
+        elif part.physics_type == 'FLUID':
+            fluid = part.fluid
+            split = layout.split()
+            sub = split.column()
+
+            sub.label(text="Forces:")
+            sub.prop(part, "brownian_factor")
+            sub.prop(part, "drag_factor", slider=True)
+            sub.prop(part, "damp_factor", slider=True)
+            sub = split.column()
+            sub.prop(part, "size_deflect")
+            sub.prop(part, "die_on_collision")
+            sub.prop(part, "integrator")
+            sub.prop(part, "time_tweak")
+
+            split = layout.split()
+            sub = split.column()
+            sub.label(text="Fluid Interaction:")
+            sub.prop(fluid, "fluid_radius", slider=True)
+            sub.prop(fluid, "stiffness_k")
+            sub.prop(fluid, "stiffness_knear")
+            sub.prop(fluid, "rest_density")
+
+            sub.label(text="Viscosity:")
+            sub.prop(fluid, "viscosity_omega", text="Linear")
+            sub.prop(fluid, "viscosity_beta", text="Square")
+
+            sub = split.column()
+
+            sub.label(text="Springs:")
+            sub.prop(fluid, "spring_k", text="Force", slider=True)
+            sub.prop(fluid, "rest_length", slider=True)
+            layout.label(text="Multiple fluids interactions:")
+
+            sub.label(text="Buoyancy:")
+            sub.prop(fluid, "buoyancy", slider=True)
+
         elif part.physics_type == 'KEYED':
             split = layout.split()
             sub = split.column()
@@ -454,7 +491,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             col.prop(boids, "banking", slider=True)
             col.prop(boids, "height", slider=True)
 
-        if part.physics_type == 'KEYED' or part.physics_type == 'BOIDS':
+        if part.physics_type == 'KEYED' or part.physics_type == 'BOIDS' or part.physics_type == 'FLUID':
             if part.physics_type == 'BOIDS':
                 layout.label(text="Relations:")
 
@@ -484,7 +521,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
                     col.active = psys.keyed_timing
                     col.prop(key, "time")
                     col.prop(key, "duration")
-                else:
+                elif part.physics_type == 'BOIDS':
                     sub = row.row()
                     #doesn't work yet
                     #sub.red_alert = key.valid
@@ -492,6 +529,12 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
                     sub.prop(key, "system", text="System")
 
                     layout.prop(key, "mode", expand=True)
+                elif part.physics_type == 'FLUID':
+                    sub = row.row()
+                    #doesn't work yet
+                    #sub.red_alert = key.valid
+                    sub.prop(key, "object", text="")
+                    sub.prop(key, "system", text="System")
 
 
 class PARTICLE_PT_boidbrain(ParticleButtonsPanel):

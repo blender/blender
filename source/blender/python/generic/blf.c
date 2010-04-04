@@ -30,7 +30,7 @@
 static char py_blf_position_doc[] =
 ".. function:: position(x, y, z)\n"
 "\n"
-"   Set the position for drawing text.";
+"   Set the position for drawing text.\n";
 
 static PyObject *py_blf_position(PyObject *self, PyObject *args)
 {
@@ -157,16 +157,140 @@ static PyObject *py_blf_dimensions(PyObject *self, PyObject *args)
 	return ret;
 }
 
+static char py_blf_clipping_doc[] =
+".. function:: clipping(xmin, ymin, xmax, ymax)\n"
+"\n"
+"   Set the clipping, enable/disable using CLIPPING.\n";
+
+static PyObject *py_blf_clipping(PyObject *self, PyObject *args)
+{
+	float xmin, ymin, xmax, ymax;
+
+	if (!PyArg_ParseTuple(args, "ffff:BLF.clipping", &xmin, &ymin, &xmax, &ymax))
+		return NULL;
+
+	BLF_clipping(xmin, ymin, xmax, ymax);
+
+	Py_RETURN_NONE;
+}
+
+static char py_blf_disable_doc[] =
+".. function:: disable(option)\n"
+"\n"
+"   Disable option.\n"
+"\n"
+"   :arg option: One of ROTATION, CLIPPING, SHADOW or KERNING_DEFAULT.\n"
+"   :type option: int\n";
+
+static PyObject *py_blf_disable(PyObject *self, PyObject *args)
+{
+	int option;
+
+	if (!PyArg_ParseTuple(args, "i:BLF.disable", &option))
+		return NULL;
+
+	BLF_disable(option);
+
+	Py_RETURN_NONE;
+}
+
+static char py_blf_enable_doc[] =
+".. function:: enable(option)\n"
+"\n"
+"   Enable option.\n"
+"\n"
+"   :arg option: One of ROTATION, CLIPPING, SHADOW or KERNING_DEFAULT.\n"
+"   :type option: int\n";
+
+static PyObject *py_blf_enable(PyObject *self, PyObject *args)
+{
+	int option;
+
+	if (!PyArg_ParseTuple(args, "i:BLF.enable", &option))
+		return NULL;
+
+	BLF_enable(option);
+
+	Py_RETURN_NONE;
+}
+
+static char py_blf_rotation_doc[] =
+".. function:: rotation(angle)\n"
+"\n"
+"   Set the text rotation angle, enable/disable using ROTATION.\n"
+"\n"
+"   :arg angle: The angle for text drawing to use.\n"
+"   :type aspect: float\n";
+
+static PyObject *py_blf_rotation(PyObject *self, PyObject *args)
+{
+	float angle;
+
+	if (!PyArg_ParseTuple(args, "f:BLF.rotation", &angle))
+		return NULL;
+		
+	BLF_rotation(angle);
+
+	Py_RETURN_NONE;
+}
+
+static char py_blf_shadow_doc[] =
+".. function:: shadow(level, r, g, b, a)\n"
+"\n"
+"   Shadow options, enable/disable using SHADOW .\n"
+"\n"
+"   :arg level: The blur level, can be 3, 5 or 0.\n"
+"   :type level: int\n";
+
+static PyObject *py_blf_shadow(PyObject *self, PyObject *args)
+{
+	int level;
+	float r, g, b, a;
+
+	if (!PyArg_ParseTuple(args, "iffff:BLF.shadow", &level, &r, &g, &b, &a))
+		return NULL;
+
+	if (level != 0 && level != 3 && level != 5) {
+		PyErr_SetString(PyExc_TypeError, "blf.shadow expected arg to be in (0, 3, 5)");
+		return NULL;
+	}
+
+	BLF_shadow(level, r, g, b, a);
+
+	Py_RETURN_NONE;
+}
+
+static char py_blf_shadow_offset_doc[] =
+".. function:: shadow_offset(x, y)\n"
+"\n"
+"   Set the offset for shadow text.\n";
+
+static PyObject *py_blf_shadow_offset(PyObject *self, PyObject *args)
+{
+	int x, y;
+
+	if (!PyArg_ParseTuple(args, "ii:BLF.shadow_offset", &x, &y))
+		return NULL;
+
+	BLF_shadow_offset(x, y);
+
+	Py_RETURN_NONE;
+}
+
 /*----------------------------MODULE INIT-------------------------*/
 struct PyMethodDef BLF_methods[] = {
-	{"position", (PyCFunction)py_blf_position, METH_VARARGS, py_blf_position_doc},
-	{"size", (PyCFunction) py_blf_size, METH_VARARGS, py_blf_size_doc},
 	{"aspect", (PyCFunction) py_blf_aspect, METH_VARARGS, py_blf_aspect_doc},
 	{"blur", (PyCFunction) py_blf_blur, METH_VARARGS, py_blf_blur_doc},
-
-	{"draw", (PyCFunction) py_blf_draw, METH_VARARGS, py_blf_draw_doc},
-
+	{"clipping", (PyCFunction) py_blf_clipping, METH_VARARGS, py_blf_clipping_doc},
+	{"disable", (PyCFunction) py_blf_disable, METH_VARARGS, py_blf_disable_doc},
 	{"dimensions", (PyCFunction) py_blf_dimensions, METH_VARARGS, py_blf_dimensions_doc},
+	{"draw", (PyCFunction) py_blf_draw, METH_VARARGS, py_blf_draw_doc},
+	{"enable", (PyCFunction) py_blf_enable, METH_VARARGS, py_blf_enable_doc},
+	{"position", (PyCFunction)py_blf_position, METH_VARARGS, py_blf_position_doc},
+	{"rotation", (PyCFunction) py_blf_rotation, METH_VARARGS, py_blf_rotation_doc},
+	{"shadow", (PyCFunction) py_blf_shadow, METH_VARARGS, py_blf_shadow_doc},
+	{"shadow_offset", (PyCFunction) py_blf_shadow_offset, METH_VARARGS, py_blf_shadow_offset_doc},
+	{"size", (PyCFunction) py_blf_size, METH_VARARGS, py_blf_size_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -191,6 +315,11 @@ PyObject *BLF_Init(void)
 
 	submodule = PyModule_Create(&BLF_module_def);
 	PyDict_SetItemString(PySys_GetObject("modules"), BLF_module_def.m_name, submodule);
+
+	PyModule_AddIntConstant(submodule, "ROTATION", BLF_ROTATION);
+	PyModule_AddIntConstant(submodule, "CLIPPING", BLF_CLIPPING);
+	PyModule_AddIntConstant(submodule, "SHADOW", BLF_SHADOW);
+	PyModule_AddIntConstant(submodule, "KERNING_DEFAULT", BLF_KERNING_DEFAULT);
 
 	return (submodule);
 }

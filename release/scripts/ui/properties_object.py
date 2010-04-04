@@ -35,12 +35,15 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        space = context.space_data
         ob = context.object
 
         row = layout.row()
         row.label(text="", icon='OBJECT_DATA')
-        row.prop(ob, "name", text="")
+        if space.use_pin_id:
+            row.template_ID(space, "pin_id")
+        else:
+            row.prop(ob, "name", text="")
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel):
@@ -269,6 +272,8 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
                 layout.prop(ob, "dupli_group", text="")
 
 # XXX: the following options are all quite buggy, ancient hacks that should be dropped
+
+
 class OBJECT_PT_animation(ObjectButtonsPanel):
     bl_label = "Animation Hacks"
     bl_default_closed = True
@@ -294,7 +299,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.prop(ob, "slow_parent")
         row.active = (ob.parent is not None)
         col.prop(ob, "time_offset", text="Offset")
-		
+
         # XXX: these are still used for a few curve-related tracking features
         if wide_ui:
             col = split.column()

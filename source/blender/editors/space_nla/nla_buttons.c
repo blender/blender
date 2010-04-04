@@ -295,8 +295,8 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	/* strip extents */
 	column= uiLayoutColumn(layout, 1);
 		uiItemL(column, "Strip Extents:", 0);
-		uiItemR(column, &strip_ptr, "start_frame", 0, NULL, 0);
-		uiItemR(column, &strip_ptr, "end_frame", 0, NULL, 0);
+		uiItemR(column, &strip_ptr, "frame_start", 0, NULL, 0);
+		uiItemR(column, &strip_ptr, "frame_end", 0, NULL, 0);
 	
 	/* extrapolation */
 	row= uiLayoutRow(layout, 1);
@@ -351,8 +351,8 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 	// XXX custom names were used here (to avoid the prefixes)... probably not necessary in future?
 	column= uiLayoutColumn(layout, 1);
 		uiItemL(column, "Action Extents:", 0);
-		uiItemR(column, &strip_ptr, "action_start_frame", 0, "Start Frame", 0);
-		uiItemR(column, &strip_ptr, "action_end_frame", 0, "End Frame", 0);
+		uiItemR(column, &strip_ptr, "action_frame_start", 0, "Start Frame", 0);
+		uiItemR(column, &strip_ptr, "action_frame_end", 0, "End Frame", 0);
 		uiItemO(column, NULL, 0, "NLA_OT_action_sync_length");
 		
 	/* action usage */

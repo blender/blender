@@ -48,9 +48,6 @@ void WORLD_OT_new(struct wmOperatorType *ot);
 void MATERIAL_OT_copy(struct wmOperatorType *ot);
 void MATERIAL_OT_paste(struct wmOperatorType *ot);
 
-void MATERIAL_OT_mtex_copy(struct wmOperatorType *ot);
-void MATERIAL_OT_mtex_paste(struct wmOperatorType *ot);
-
 void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_add(struct wmOperatorType *ot);
@@ -58,6 +55,9 @@ void SCENE_OT_freestyle_module_remove(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_move_up(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_move_down(struct wmOperatorType *ot);
 
+
+void TEXTURE_OT_slot_copy(struct wmOperatorType *ot);
+void TEXTURE_OT_slot_paste(struct wmOperatorType *ot);
 void TEXTURE_OT_slot_move(struct wmOperatorType *ot);
 void TEXTURE_OT_envmap_save(struct wmOperatorType *ot);
 void TEXTURE_OT_envmap_clear(struct wmOperatorType *ot);

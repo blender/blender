@@ -173,8 +173,17 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		}
 		
 		/* copy passes, now just active node */
-		if(node->flag & NODE_ACTIVE_ID)
+		if(node->flag & NODE_ACTIVE_ID) {
+			float combined[4], alpha;
+
+			copy_v4_v4(combined, shcd->shr->combined);
+			alpha= shcd->shr->alpha;
+
 			*(shcd->shr)= shrnode;
+
+			copy_v4_v4(shcd->shr->combined, combined);
+			shcd->shr->alpha= alpha;
+		}
 	}
 }
 

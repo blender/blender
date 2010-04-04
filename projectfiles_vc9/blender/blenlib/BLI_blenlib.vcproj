@@ -532,10 +532,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\dynamiclist.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\dynlib.c"
 				>
 			</File>
@@ -689,10 +685,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_dynamiclist.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_edgehash.h"
 				>
 			</File>
@@ -774,6 +766,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_mempool.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_path_util.h"
 				>
 			</File>
 			<File

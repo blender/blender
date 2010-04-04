@@ -165,10 +165,10 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 {
 	bConstraint *con= ptr->data;
-	char oldname[32];
+	char oldname[sizeof(con->name)];
 	
 	/* make a copy of the old name first */
-	BLI_strncpy(oldname, con->name, sizeof(oldname));
+	BLI_strncpy(oldname, con->name, sizeof(con->name));
 	
 	/* copy the new name into the name slot */
 	BLI_strncpy(con->name, value, sizeof(con->name));
@@ -963,13 +963,13 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Frame", "First frame of the Action to use");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "end");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End Frame", "Last frame of the Action to use");

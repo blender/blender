@@ -48,6 +48,7 @@
 
 #include "WM_api.h"
 
+#include "BKE_anim.h"
 #include "BKE_blender.h"
 #include "BKE_cloth.h"
 #include "BKE_depsgraph.h"
@@ -89,6 +90,9 @@
 
 #define PTCACHE_DATA_FROM(data, type, from)		if(data[type]) { memcpy(data[type], from, ptcache_data_size[type]); }
 #define PTCACHE_DATA_TO(data, type, index, to)	if(data[type]) { memcpy(to, (char*)data[type] + (index ? index * ptcache_data_size[type] : 0), ptcache_data_size[type]); }
+
+/* could be made into a pointcache option */
+#define DURIAN_POINTCACHE_LIB_OK 1
 
 int ptcache_data_size[] = {	
 		sizeof(int), // BPHYS_DATA_INDEX
@@ -556,7 +560,7 @@ static void ptcache_interpolate_cloth(int index, void *cloth_v, void **data, flo
 static int ptcache_totpoint_cloth(void *cloth_v, int cfra)
 {
 	ClothModifierData *clmd= cloth_v;
-	return clmd->clothObject->numverts;
+	return clmd->clothObject ? clmd->clothObject->numverts : 0;
 }
 
 /* Creating ID's */
@@ -982,7 +986,7 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
 	pid->info_types= 0;
 }
 
-void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
+void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
 {
 	PTCacheID *pid;
 	ParticleSystem *psys;
@@ -1022,6 +1026,23 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
 				BKE_ptcache_id_from_smoke_turbulence(pid, ob, (SmokeModifierData*)md);
 				BLI_addtail(lb, pid);
 			}
+		}
+	}
+
+	if(scene && (duplis-- > 0) && (ob->transflag & OB_DUPLI)) {
+		ListBase *lb_dupli_ob;
+
+		if((lb_dupli_ob=object_duplilist(scene, ob))) {
+			DupliObject *dob;
+			for(dob= lb_dupli_ob->first; dob; dob= dob->next) {
+				ListBase lb_dupli_pid;
+				BKE_ptcache_ids_from_object(&lb_dupli_pid, dob->ob, scene, duplis);
+				addlisttolist(lb, &lb_dupli_pid);
+				if(lb_dupli_pid.first)
+					printf("Adding Dupli\n");
+			}
+
+			free_object_duplilist(lb_dupli_ob);	/* does restore */
 		}
 	}
 }
@@ -1132,10 +1153,11 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 	FILE *fp = NULL;
 	char filename[(FILE_MAXDIR+FILE_MAXFILE)*2];
 
+#ifndef DURIAN_POINTCACHE_LIB_OK
 	/* don't allow writing for linked objects */
 	if(pid->ob->id.lib && mode == PTCACHE_FILE_WRITE)
 		return NULL;
-
+#endif
 	if (!G.relbase_valid && (pid->cache->flag & PTCACHE_EXTERNAL)==0) return NULL; /* save blend file before using disk pointcache */
 	
 	BKE_ptcache_id_filename(pid, filename, cfra, 1, 1);
@@ -1873,9 +1895,11 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 	if(!pid->cache || pid->cache->flag & PTCACHE_BAKED)
 		return;
 
+#ifndef DURIAN_POINTCACHE_LIB_OK
 	/* don't allow clearing for linked objects */
 	if(pid->ob->id.lib)
 		return;
+#endif
 
 	/*if (!G.relbase_valid) return; *//* save blend file before using pointcache */
 	
@@ -2303,14 +2327,15 @@ PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old
 /* Baking */
 static int count_quick_cache(Scene *scene, int *quick_step)
 {
-	Base *base = scene->base.first;
+	Base *base;
 	PTCacheID *pid;
 	ListBase pidlist;
 	int autocache_count= 0;
+	Scene *sce; /* for macro only */
 
-	for(base = scene->base.first; base; base = base->next) {
+	for(SETLOOPER(scene, base)) {
 		if(base->object) {
-			BKE_ptcache_ids_from_object(&pidlist, base->object);
+			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 			for(pid=pidlist.first; pid; pid=pid->next) {
 				if((pid->cache->flag & PTCACHE_BAKED)
@@ -2377,6 +2402,7 @@ static void *ptcache_make_cache_thread(void *ptr) {
 void BKE_ptcache_make_cache(PTCacheBaker* baker)
 {
 	Scene *scene = baker->scene;
+	Scene *sce; /* SETLOOPER macro only */
 	Base *base;
 	ListBase pidlist;
 	PTCacheID *pid = baker->pid;
@@ -2408,7 +2434,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 				/* get all pids from the object and search for smoke low res */
 				ListBase pidlist2;
 				PTCacheID *pid2;
-				BKE_ptcache_ids_from_object(&pidlist2, pid->ob);
+				BKE_ptcache_ids_from_object(&pidlist2, pid->ob, scene, MAX_DUPLI_RECUR);
 				for(pid2=pidlist2.first; pid2; pid2=pid2->next) {
 					if(pid2->type == PTCACHE_TYPE_SMOKE_DOMAIN) 
 					{
@@ -2441,9 +2467,9 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 			cache->flag &= ~PTCACHE_BAKED;
 		}
 	}
-	else for(base=scene->base.first; base; base= base->next) {
+	for(SETLOOPER(scene, base)) {
 		/* cache/bake everything in the scene */
-		BKE_ptcache_ids_from_object(&pidlist, base->object);
+		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 		for(pid=pidlist.first; pid; pid=pid->next) {
 			cache = pid->cache;
@@ -2524,8 +2550,8 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 				BKE_ptcache_write_cache(pid, 0);
 		}
 	}
-	else for(base=scene->base.first; base; base= base->next) {
-		BKE_ptcache_ids_from_object(&pidlist, base->object);
+	else for(SETLOOPER(scene, base)) {
+		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 		for(pid=pidlist.first; pid; pid=pid->next) {
 			/* skip hair particles */

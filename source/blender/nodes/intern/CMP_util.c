@@ -122,6 +122,11 @@ void print_compbuf(char *str, CompBuf *cbuf)
 	
 }
 
+void compbuf_set_node(CompBuf *cbuf, bNode *node)
+{
+	if (cbuf) cbuf->node = node;
+}
+
 /* used for disabling node  (similar code in drawnode.c for disable line) */
 void node_compo_pass_on(bNode *node, bNodeStack **nsin, bNodeStack **nsout)
 {
@@ -671,7 +676,7 @@ void do_rgba_to_hsva(bNode *node, float *out, float *in)
 
 void do_rgba_to_ycca(bNode *node, float *out, float *in)
 {
-   rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+   rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
    out[3]=in[3];
 }
 
@@ -689,7 +694,7 @@ void do_hsva_to_rgba(bNode *node, float *out, float *in)
 
 void do_ycca_to_rgba(bNode *node, float *out, float *in)
 {
-   ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+   ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
    out[3]=in[3];
 }
 

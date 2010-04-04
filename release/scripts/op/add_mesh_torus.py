@@ -154,9 +154,8 @@ class AddTorus(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# Add to the menu
-menu_func = (lambda self, context: self.layout.operator(AddTorus.bl_idname,
-                                        text="Torus", icon='MESH_DONUT'))
+def menu_func(self, context):
+    self.layout.operator(AddTorus.bl_idname, text="Torus", icon='MESH_DONUT')
 
 
 def register():

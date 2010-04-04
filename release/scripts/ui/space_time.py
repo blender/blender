@@ -43,13 +43,13 @@ class TIME_HT_header(bpy.types.Header):
 
         row = layout.row(align=True)
         if not scene.use_preview_range:
-            row.prop(scene, "start_frame", text="Start")
-            row.prop(scene, "end_frame", text="End")
+            row.prop(scene, "frame_start", text="Start")
+            row.prop(scene, "frame_end", text="End")
         else:
-            row.prop(scene, "preview_range_start_frame", text="Start")
-            row.prop(scene, "preview_range_end_frame", text="End")
+            row.prop(scene, "preview_range_frame_start", text="Start")
+            row.prop(scene, "preview_range_frame_end", text="End")
 
-        layout.prop(scene, "current_frame", text="")
+        layout.prop(scene, "frame_current", text="")
 
         layout.separator()
 

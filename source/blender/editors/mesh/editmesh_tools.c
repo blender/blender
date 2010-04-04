@@ -5048,8 +5048,8 @@ void MESH_OT_rip(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	Properties_Proportional(ot);
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+	/* XXX Transform this in a macro */
+	Transform_Properties(ot, P_CONSTRAINT|P_MIRROR);
 }
 
 
@@ -5854,7 +5854,8 @@ static int merge_exec(bContext *C, wmOperator *op)
 	if(!count)
 		return OPERATOR_CANCELLED;
 
-	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices.", count);
+	
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s.", count, (count==1)?"ex":"ices");
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 

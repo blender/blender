@@ -898,15 +898,20 @@ float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in objec
 	return ctime;
 }
 
-static void scene_update_newframe(Scene *sce, unsigned int lay)
+static void scene_update_newframe(Scene *scene, int cfra, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
+	int cfra_back= scene->r.cfra;
+	scene->r.cfra= cfra;
 	
-	for(base= sce->base.first; base; base= base->next) {
+	for(base= scene->base.first; base; base= base->next) {
 		ob= base->object;
 		
-		object_handle_update(sce, ob);   // bke_object.h
+		object_handle_update(scene, ob);   // bke_object.h
+
+		if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
+			group_handle_recalc_and_update(scene, ob, ob->dup_group);
 		
 		/* only update layer when an ipo */
 			// XXX old animation system
@@ -914,6 +919,8 @@ static void scene_update_newframe(Scene *sce, unsigned int lay)
 		//	base->lay= ob->lay;
 		//}
 	}
+
+	scene->r.cfra= cfra_back;
 }
 
 /* this is called in main loop, doing tagged updates before redraw */
@@ -921,6 +928,7 @@ void scene_update_tagged(Scene *scene)
 {
 	Scene *sce;
 	Base *base;
+	Object *ob;
 	float ctime = frame_to_float(scene, scene->r.cfra); 
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
@@ -929,12 +937,23 @@ void scene_update_tagged(Scene *scene)
 	/* sets first, we allow per definition current scene to have
 	   dependencies on sets, but not the other way around. */
 	if(scene->set) {
-		for(SETLOOPER(scene->set, base))
-			object_handle_update(scene, base->object);
+		for(SETLOOPER(scene->set, base)) {
+			ob= base->object;
+
+			object_handle_update(scene, ob);
+
+			if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
+				group_handle_recalc_and_update(scene, ob, ob->dup_group);
+		}
 	}
 	
 	for(base= scene->base.first; base; base= base->next) {
-		object_handle_update(scene, base->object);
+		ob= base->object;
+
+		object_handle_update(scene, ob);
+
+		if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
+			group_handle_recalc_and_update(scene, ob, ob->dup_group);
 	}
 
 	/* recalc scene animation data here (for sequencer) */
@@ -945,6 +964,7 @@ void scene_update_tagged(Scene *scene)
 			BKE_animsys_evaluate_animdata(&scene->id, adt, ctime, 0);
 	}
 
+	/* XXX - this is called far to often, should be made apart of the depgraph */
 	BKE_ptcache_quick_cache_all(scene);
 
 	/* in the future this should handle updates for all datablocks, not
@@ -981,10 +1001,11 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 
 
 	/* sets first, we allow per definition current scene to have dependencies on sets */
-	for(sce_iter= sce->set; sce_iter; sce_iter= sce_iter->set)
-		scene_update_newframe(sce_iter, lay);
+	for(sce_iter= sce->set; sce_iter; sce_iter= sce_iter->set) {
+		scene_update_newframe(sce_iter, sce->r.cfra, lay);
+    }
 
-	scene_update_newframe(sce, lay);
+	scene_update_newframe(sce, sce->r.cfra, lay);
 }
 
 /* return default layer, also used to patch old files */
@@ -1039,3 +1060,26 @@ float get_render_aosss_error(RenderData *r, float error)
 		return error;
 }
 
+/* helper function for the SETLOOPER macro */
+Base *_setlooper_base_step(Scene **sce, Base *base)
+{
+    if(base && base->next) {
+        /* common case, step to the next */
+        return base->next;
+    }
+    else if(base==NULL && (*sce)->base.first) {
+        /* first time looping, return the scenes first base */
+        return (Base *)(*sce)->base.first;
+    }
+    else {
+        /* reached the end, get the next base in the set */
+        while((*sce= (*sce)->set)) {
+            base= (Base *)(*sce)->base.first;
+            if(base) {
+                return base;
+            }
+        }
+    }
+
+    return NULL;
+}

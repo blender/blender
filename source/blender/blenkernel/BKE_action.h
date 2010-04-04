@@ -105,6 +105,9 @@ struct bActionGroup *get_active_actiongroup(struct bAction *act);
 /* Make the given Action Group the active one */
 void set_active_action_group(struct bAction *act, struct bActionGroup *agrp, short select);
 
+/* Add a new action group with the given name to the action */
+struct bActionGroup *action_groups_add_new(struct bAction *act, const char name[]);
+
 /* Add given channel into (active) group  */
 void action_groups_add_channel(struct bAction *act, struct bActionGroup *agrp, struct FCurve *fcurve);
 

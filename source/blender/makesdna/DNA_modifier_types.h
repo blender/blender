@@ -318,6 +318,7 @@ typedef struct UVProjectModifierData {
 	int flags;
 	int num_projectors;
 	float aspectx, aspecty;
+	float scalex, scaley;												
 	char uvlayer_name[32];
 	int uvlayer_tmp, pad;
 } UVProjectModifierData;
@@ -682,16 +683,17 @@ typedef struct SolidifyModifierData {
 
 	char defgrp_name[32];		/* name of vertex group to use */
 	float offset;			/* new surface offset level*/
+	float offset_fac;		/* midpoint of the offset  */
 	float crease_inner;
 	float crease_outer;
 	float crease_rim;
 	int flag;
-	char pad[4];
 } SolidifyModifierData;
 
 #define MOD_SOLIDIFY_RIM			(1<<0)
 #define MOD_SOLIDIFY_EVEN			(1<<1)
 #define MOD_SOLIDIFY_NORMAL_CALC	(1<<2)
+#define MOD_SOLIDIFY_VGROUP_INV		(1<<3)
 
 typedef struct ScrewModifierData {
 	ModifierData modifier;

@@ -64,6 +64,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "ED_object.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"
@@ -801,7 +802,7 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 
 static int object_constraints_clear_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_active_context(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	/* do freeing */
@@ -835,7 +836,7 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
 /* get the Object and/or PoseChannel to use as target */
 static short get_new_constraint_target(bContext *C, int con_type, Object **tar_ob, bPoseChannel **tar_pchan, short add)
 {
-	Object *obact= CTX_data_active_object(C);
+	Object *obact= ED_object_active_context(C);
 	bPoseChannel *pchanact= get_active_posechannel(obact);
 	short only_curve= 0, only_mesh= 0, only_ob= 0;
 	short found= 0;
@@ -1090,16 +1091,9 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 /* dummy operator callback */
 static int object_constraint_add_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	Object *ob;
+	Object *ob=ED_object_active_context(C);
 	int type= RNA_enum_get(op->ptr, "type");
 	short with_targets= 0;
-	
-	/* get active object from context */
-	if (sa->spacetype == SPACE_BUTS)
-		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	else
-		ob= CTX_data_active_object(C);
 	
 	if (!ob) {
 		BKE_report(op->reports, RPT_ERROR, "No active object to add constraint to.");
@@ -1118,16 +1112,9 @@ static int object_constraint_add_exec(bContext *C, wmOperator *op)
 /* dummy operator callback */
 static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	Object *ob;
+	Object *ob= ED_object_active_context(C);
 	int type= RNA_enum_get(op->ptr, "type");
 	short with_targets= 0;
-	
-	/* get active object from context */
-	if (sa->spacetype == SPACE_BUTS)
-		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	else
-		ob= CTX_data_active_object(C);
 	
 	if (!ob) {
 		BKE_report(op->reports, RPT_ERROR, "No active object to add constraint to.");

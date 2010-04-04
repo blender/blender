@@ -72,6 +72,7 @@ static int view2d_poll(bContext *C)
 typedef struct v2dViewPanData {
 	bScreen *sc;			/* screen where view pan was initiated */
 	ScrArea *sa;			/* area where view pan was initiated */
+	ARegion *ar;			/* region where view pan was initiated */
 	View2D *v2d;			/* view2d we're operating in */
 	
 	float facx, facy;		/* amount to move view relative to zoom */
@@ -108,6 +109,7 @@ static int view_pan_init(bContext *C, wmOperator *op)
 	vpd->sc= CTX_wm_screen(C);
 	vpd->sa= CTX_wm_area(C);
 	vpd->v2d= v2d;
+	vpd->ar = ar;
 	
 	/* calculate translation factor - based on size of view */
 	winx= (float)(ar->winrct.xmax - ar->winrct.xmin + 1);
@@ -143,7 +145,8 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	ED_area_tag_redraw(vpd->sa);
+	ED_region_tag_redraw(vpd->ar);
+	
 	UI_view2d_sync(vpd->sc, vpd->sa, v2d, V2D_LOCK_COPY);
 	WM_event_add_mousemove(C);
 	
@@ -503,6 +506,7 @@ void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 /* temp customdata for operator */
 typedef struct v2dViewZoomData {
 	View2D *v2d;			/* view2d we're operating in */
+	ARegion *ar;
 	
 	int lastx, lasty;		/* previous x/y values of mouse in window */
 	float dx, dy;			/* running tally of previous delta values (for obtaining final zoom) */
@@ -532,6 +536,7 @@ static int view_zoomdrag_init(bContext *C, wmOperator *op)
 	
 	/* set pointers to owners */
 	vzd->v2d= v2d;
+	vzd->ar = ar;
 	
 	return 1;
 }
@@ -630,7 +635,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 
 	/* request updates to be done... */
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(vzd->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 	WM_event_add_mousemove(C);
 }
@@ -820,7 +825,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(vzd->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 	WM_event_add_mousemove(C);
 }
@@ -1033,17 +1038,16 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
 	rctf rect;
-	int event_type;
+	int gesture_mode;
 	
 	/* convert coordinates of rect to 'tot' rect coordinates */
 	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmin"), RNA_int_get(op->ptr, "ymin"), &rect.xmin, &rect.ymin);
 	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmax"), RNA_int_get(op->ptr, "ymax"), &rect.xmax, &rect.ymax);
 	
 	/* check if zooming in/out view */
-	// XXX hardcoded for now!
-	event_type= RNA_int_get(op->ptr, "event_type");
+	gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
 	
-	if (event_type == LEFTMOUSE) {
+	if (gesture_mode == GESTURE_MODAL_IN) {
 		/* zoom in: 
 		 *	- 'cur' rect will be defined by the coordinates of the border region 
 		 *	- just set the 'cur' rect to have the same coordinates as the border region
@@ -1058,7 +1062,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 			v2d->cur.ymax= rect.ymax;
 		}
 	}
-	else {
+	else /* if (gesture_mode == GESTURE_MODAL_OUT) */ {
 		/* zoom out:
 		 *	- the current 'cur' rect coordinates are going to end upwhere the 'rect' ones are, 
 		 *	  but the 'cur' rect coordinates will need to be adjusted to take in more of the view
@@ -1089,7 +1093,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 	WM_event_add_mousemove(C);
 	
@@ -1111,7 +1115,7 @@ void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->poll= view_zoom_poll;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
@@ -1133,6 +1137,7 @@ void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 /* customdata for scroller-invoke data */
 typedef struct v2dScrollerMove {
 	View2D *v2d;			/* View2D data that this operation affects */
+	ARegion *ar;			/* region that the scroller is in */
 	
 	short scroller;			/* scroller that mouse is in ('h' or 'v') */
 	short zone;				/* -1 is min zoomer, 0 is bar, 1 is max zoomer */ // XXX find some way to provide visual feedback of this (active colour?)
@@ -1224,6 +1229,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 	
 	/* set general data */
 	vsm->v2d= v2d;
+	vsm->ar= ar;
 	vsm->scroller= in_scroller;
 	
 	/* store mouse-coordinates, and convert mouse/screen coordinates to region coordinates */
@@ -1332,7 +1338,7 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(vsm->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 	WM_event_add_mousemove(C);
 }
@@ -1522,7 +1528,7 @@ static int reset_exec(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 	WM_event_add_mousemove(C);
 	

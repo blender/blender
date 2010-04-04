@@ -34,6 +34,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_action.h"
+
 #include "WM_types.h"
 
 
@@ -53,6 +55,37 @@ static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 		
 	iter->valid= (internal->link != NULL);
 }
+
+static bActionGroup *rna_Action_groups_add(bAction *act, char name[])
+{
+	return action_groups_add_new(act, name);
+}
+
+static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionGroup *agrp)
+{
+	FCurve *fcu, *fcn;
+	
+	/* try to remove the F-Curve from the action */
+	if (!BLI_remlink_safe(&act->groups, agrp)) {
+		BKE_reportf(reports, RPT_ERROR, "ActionGroup '%s' not found in action '%s'", agrp->name, act->id.name+2);
+		return;
+	}
+
+	/* move every one one of the group's F-Curves out into the Action again */
+	for (fcu= agrp->channels.first; (fcu) && (fcu->grp==agrp); fcu=fcn) {
+		fcn= fcu->next;
+		
+		/* remove from group */
+		action_groups_remove_channel(act, fcu);
+		
+		/* tack onto the end */
+		BLI_addtail(&act->curves, fcu);
+	}
+	
+	/* XXX, invalidates PyObject */
+	MEM_freeN(agrp); 
+}
+
 
 #else
 
@@ -214,8 +247,11 @@ static void rna_def_action_group(BlenderRNA *brna)
 	 * defined like a standard ListBase. Adding/removing channels from this list needs
 	 * extreme care, otherwise the F-Curve list running through adjacent groups does
 	 * not match up with the one stored in the Action, resulting in curves which do not
-	 * show up in animation editors. For that reason, such operations are currently 
-	 * prohibited.
+	 * show up in animation editors. In extreme cases, animation may also selectively 
+	 * fail to play back correctly. 
+	 *
+	 * If such changes are required, these MUST go through the API functions for manipulating
+	 * these F-Curve groupings. Also, note that groups only apply in actions ONLY.
 	 */
 	prop= RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "channels", NULL);
@@ -244,6 +280,35 @@ static void rna_def_action_group(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 }
 
+/* fcurve.keyframe_points */
+static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "ActionGroups");
+	srna= RNA_def_struct(brna, "ActionGroups", NULL);
+	RNA_def_struct_sdna(srna, "bAction");
+	RNA_def_struct_ui_text(srna, "Action Points", "Collection of action groups");
+
+	func= RNA_def_function(srna, "add", "rna_Action_groups_add");
+	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
+	parm= RNA_def_string(func, "name", "Group", 0, "", "New name for the action group.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	parm= RNA_def_pointer(func, "action_group", "ActionGroup", "", "Newly created action group");
+	RNA_def_function_return(func, parm);
+
+
+	func= RNA_def_function(srna, "remove", "rna_Action_groups_remove");
+	RNA_def_function_ui_description(func, "Remove action group.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "action_group", "ActionGroup", "", "Action group to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+}
+
 static void rna_def_action(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -263,6 +328,7 @@ static void rna_def_action(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "groups", NULL);
 	RNA_def_property_struct_type(prop, "ActionGroup");
 	RNA_def_property_ui_text(prop, "Groups", "Convenient groupings of F-Curves");
+	rna_def_action_groups(brna, prop);
 
 	prop= RNA_def_property(srna, "pose_markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);

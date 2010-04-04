@@ -996,25 +996,23 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			eve->f= 0;
 			eve= eve->next;
 		}
-		/* one segment first: the X axis */
-		phi= 1.0; 
-		phid= 2.0/((float)tot-1);
+		
+		/* one segment first: the X axis */		
+		phi = (2*dia)/(float)(tot-1);
+		phid = (2*dia)/(float)(seg-1);
 		for(a=0;a<tot;a++) {
-			vec[0]= dia*phi;
+			vec[0] = (phi*a) - dia;
 			vec[1]= - dia;
 			vec[2]= 0.0f;
-			mul_m4_v3(mat,vec);
 			eve= addvertlist(em, vec, NULL);
 			eve->f= 1+2+4;
 			if (a) {
 				addedgelist(em, eve->prev, eve, NULL);
 			}
-			phi-=phid;
 		}
 		/* extrude and translate */
 		vec[0]= vec[2]= 0.0;
-		vec[1]= dia*phid;
-		mul_mat3_m4_v3(mat, vec);
+		vec[1]= phid;
 		
 		for(a=0;a<seg-1;a++) {
 			extrudeflag_vert(obedit, em, 2, nor, 0);	// nor unused

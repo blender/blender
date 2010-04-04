@@ -160,7 +160,7 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 	char *irect, *prect, *mrect;
 	float *irectf, *prectf, *mrectf;
 	
-	/* wich buffers ? */
+	/* which buffers ? */
 				
 	if(fac>7.0) fac= 7.0;
 	if(fac<=1.0) return;

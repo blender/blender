@@ -3606,6 +3606,7 @@ static void uvprojectModifier_initData(ModifierData *md)
 	umd->flags = 0;
 	umd->num_projectors = 1;
 	umd->aspectx = umd->aspecty = 1.0f;
+	umd->scalex = umd->scaley = 1.0f;
 }
 
 static void uvprojectModifier_copyData(ModifierData *md, ModifierData *target)
@@ -3621,6 +3622,8 @@ static void uvprojectModifier_copyData(ModifierData *md, ModifierData *target)
 	tumd->num_projectors = umd->num_projectors;
 	tumd->aspectx = umd->aspectx;
 	tumd->aspecty = umd->aspecty;
+	tumd->scalex = umd->scalex;
+	tumd->scaley = umd->scaley;
 }
 
 static CustomDataMask uvprojectModifier_requiredDataMask(Object *ob, ModifierData *md)
@@ -3692,6 +3695,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	char uvname[32];
 	float aspx= umd->aspectx ? umd->aspectx : 1.0f;
 	float aspy= umd->aspecty ? umd->aspecty : 1.0f;
+	float scax= umd->scalex ? umd->scalex : 1.0f;
+	float scay= umd->scaley ? umd->scaley : 1.0f;
 	int free_uci= 0;
 	
 	aspect = aspx / aspy;
@@ -3829,6 +3834,22 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 						project_from_camera(tface->uv[2], coords[mf->v3], projectors[0].uci);
 						if(mf->v3)
 							project_from_camera(tface->uv[3], coords[mf->v4], projectors[0].uci);
+						
+						if(scax != 1.0f) {
+							tface->uv[0][0] = ((tface->uv[0][0] - 0.5f) * scax) + 0.5f;
+							tface->uv[1][0] = ((tface->uv[1][0] - 0.5f) * scax) + 0.5f;
+							tface->uv[2][0] = ((tface->uv[2][0] - 0.5f) * scax) + 0.5f;
+							if(mf->v3)
+								tface->uv[3][0] = ((tface->uv[3][0] - 0.5f) * scax) + 0.5f;
+						}
+						
+						if(scay != 1.0f) {
+							tface->uv[0][1] = ((tface->uv[0][1] - 0.5f) * scay) + 0.5f;
+							tface->uv[1][1] = ((tface->uv[1][1] - 0.5f) * scay) + 0.5f;
+							tface->uv[2][1] = ((tface->uv[2][1] - 0.5f) * scay) + 0.5f;
+							if(mf->v3)
+								tface->uv[3][1] = ((tface->uv[3][1] - 0.5f) * scay) + 0.5f;
+						}
 					}
 					else {
 						/* apply transformed coords as UVs */
@@ -5697,6 +5718,7 @@ static void solidifyModifier_copyData(ModifierData *md, ModifierData *target)
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 	SolidifyModifierData *tsmd = (SolidifyModifierData*) target;
 	tsmd->offset = smd->offset;
+	tsmd->offset_fac = smd->offset_fac;
 	tsmd->crease_inner = smd->crease_inner;
 	tsmd->crease_outer = smd->crease_outer;
 	tsmd->crease_rim = smd->crease_rim;
@@ -5734,6 +5756,19 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 
 	float (*vert_nors)[3]= NULL;
 
+	float ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	float ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+
+	/* weights */
+	MDeformVert *dvert= NULL, *dv= NULL;
+	int defgrp_index= -1;
+	int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
+
+	defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
+
+	if (defgrp_index >= 0)
+		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+
 	orig_mface = dm->getFaceArray(dm);
 	orig_medge = dm->getEdgeArray(dm);
 	orig_mvert = dm->getVertArray(dm);
@@ -5758,7 +5793,8 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 #define ADD_EDGE_USER(_v1, _v2, edge_ord) \
 		eidx= GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, _v1, _v2)); \
 		if(edge_users[eidx] == INVALID_UNUSED) { \
-			edge_users[eidx]= (_v1 < _v2) ? i:(i+numFaces); \
+			ed= orig_medge + eidx; \
+			edge_users[eidx]= (_v1 < _v2) == (ed->v1 < ed->v2) ? i:(i+numFaces); \
 			edge_order[eidx]= edge_ord; \
 		} else { \
 			edge_users[eidx]= INVALID_PAIR; \
@@ -5866,16 +5902,38 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 
 	if((smd->flag & MOD_SOLIDIFY_EVEN) == 0) {
 		/* no even thickness, very simple */
-		float scalar_short = smd->offset / 32767.0f;
+		float scalar_short;
+		float scalar_short_vgroup;
 
-		if(smd->offset < 0.0f)	mv= mvert+numVerts;
-		else					mv= mvert;
 
-		for(i=0; i<numVerts; i++, mv++) {
-			mv->co[0] += mv->no[0] * scalar_short;
-			mv->co[1] += mv->no[1] * scalar_short;
-			mv->co[2] += mv->no[2] * scalar_short;
+		if(ofs_new != 0.0f) {
+			scalar_short= scalar_short_vgroup= ofs_new / 32767.0f;
+			mv= mvert + ((ofs_new >= ofs_orig) ? 0 : numVerts);
+			dv= dvert;
+			for(i=0; i<numVerts; i++, mv++) {
+				if(dv) {
+					if(defgrp_invert)	scalar_short_vgroup = scalar_short * (1.0f - defvert_find_weight(dv, defgrp_index));
+					else				scalar_short_vgroup = scalar_short * defvert_find_weight(dv, defgrp_index);
+					dv++;
+				}
+				VECADDFAC(mv->co, mv->co, mv->no, scalar_short_vgroup);
+			}
 		}
+
+		if(ofs_orig != 0.0f) {
+			scalar_short= scalar_short_vgroup= ofs_orig / 32767.0f;
+			mv= mvert + ((ofs_new >= ofs_orig) ? numVerts : 0); /* same as above but swapped, intentional use of 'ofs_new' */
+			dv= dvert;
+			for(i=0; i<numVerts; i++, mv++) {
+				if(dv) {
+					if(defgrp_invert)	scalar_short_vgroup = scalar_short * (1.0f - defvert_find_weight(dv, defgrp_index));
+					else				scalar_short_vgroup = scalar_short * defvert_find_weight(dv, defgrp_index);
+					dv++;
+				}
+				VECADDFAC(mv->co, mv->co, mv->no, scalar_short_vgroup);
+			}
+		}
+
 	}
 	else {
 		/* make a face normal layer if not present */
@@ -5927,12 +5985,38 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 			}
 		}
 
-		if(smd->offset < 0.0f)	mv= mvert+numVerts;
-		else					mv= mvert;
+		/* vertex group support */
+		if(dvert) {
+			dv= dvert;
+			if(defgrp_invert) {
+				for(i=0; i<numVerts; i++, dv++) {
+					vert_angles[i] *= (1.0f - defvert_find_weight(dv, defgrp_index));
+				}
+			}
+			else {
+				for(i=0; i<numVerts; i++, dv++) {
+					vert_angles[i] *= defvert_find_weight(dv, defgrp_index);
+				}
+			}
+		}
 
-		for(i=0; i<numVerts; i++, mv++) {
-			if(vert_accum[i]) { /* zero if unselected */
-				madd_v3_v3fl(mv->co, vert_nors[i], smd->offset * (vert_angles[i] / vert_accum[i]));
+		if(ofs_new) {
+			mv= mvert + ((ofs_new >= ofs_orig) ? 0 : numVerts);
+
+			for(i=0; i<numVerts; i++, mv++) {
+				if(vert_accum[i]) { /* zero if unselected */
+					madd_v3_v3fl(mv->co, vert_nors[i], ofs_new * (vert_angles[i] / vert_accum[i]));
+				}
+			}
+		}
+
+		if(ofs_orig) {
+			mv= mvert + ((ofs_new >= ofs_orig) ? numVerts : 0); /* same as above but swapped, intentional use of 'ofs_new' */
+
+			for(i=0; i<numVerts; i++, mv++) {
+				if(vert_accum[i]) { /* zero if unselected */
+					madd_v3_v3fl(mv->co, vert_nors[i], ofs_orig * (vert_angles[i] / vert_accum[i]));
+				}
 			}
 		}
 
@@ -6489,7 +6573,7 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 								ed_loop_flip= 1;
 							}
 							else {
-								/* not so simple to work out wich edge is higher */
+								/* not so simple to work out which edge is higher */
 								sub_v3_v3v3(tmp_vec1, tmpf1, vc_tmp->co);
 								sub_v3_v3v3(tmp_vec1, tmpf2, vc_tmp->co);
 								normalize_v3(tmp_vec1);
@@ -6978,9 +7062,13 @@ static void clothModifier_updateDepgraph(
 static CustomDataMask clothModifier_requiredDataMask(Object *ob, ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
+	ClothModifierData *clmd = (ClothModifierData*)md;
 
-	/* ask for vertexgroups if we need them */
-	dataMask |= (1 << CD_MDEFORMVERT);
+	if(cloth_uses_vgroup(clmd))
+		dataMask |= (1 << CD_MDEFORMVERT);
+
+	if(clmd->sim_parms->shapekey_rest != 0)
+		dataMask |= (1 << CD_CLOTH_ORCO);
 
 	return dataMask;
 }
@@ -7917,10 +8005,11 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 		float val;
 		if(dvert){
-			for(i=0; i<totvert; i++){
+			int defgrp_index= emd->vgroup-1;
+			for(i=0; i<totvert; i++, dvert++){
 				val = BLI_frand();
 				val = (1.0f-emd->protect)*val + emd->protect*0.5f;
-				if(val < defvert_find_weight(dvert+i,emd->vgroup-1))
+				if(val < defvert_find_weight(dvert, defgrp_index))
 					vertpa[i] = -1;
 			}
 		}

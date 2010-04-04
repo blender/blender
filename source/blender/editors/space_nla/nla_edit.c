@@ -903,6 +903,7 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *op)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	int flag = 0;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -914,16 +915,7 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *op)
 	
 	/* for each AnimData block, bake strips to animdata... */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		AnimData *adt = (AnimData *)ale->data;
-		
-		/* if animdata currently has an action, 'push down' this onto the stack first */
-		BKE_nla_action_pushdown(adt);
-		
-		/* temporarily mute the action, and start keying to it */
-		
-		/* start keying... */
-		
-		/* unmute the action */
+		//BKE_nla_bake(ac.scene, ale->id, ale->data, flag);
 	}
 	
 	/* free temp data */
@@ -1247,10 +1239,10 @@ void NLA_OT_action_sync_length (wmOperatorType *ot)
 /* Reset the scaling of the selected strips to 1.0f */
 
 /* apply scaling to keyframe */
-static short bezt_apply_nlamapping (BeztEditData *bed, BezTriple *bezt)
+static short bezt_apply_nlamapping (KeyframeEditData *ked, BezTriple *bezt)
 {
-	/* NLA-strip which has this scaling is stored in bed->data */
-	NlaStrip *strip= (NlaStrip *)bed->data;
+	/* NLA-strip which has this scaling is stored in ked->data */
+	NlaStrip *strip= (NlaStrip *)ked->data;
 	
 	/* adjust all the times */
 	bezt->vec[0][0]= nlastrip_get_frame(strip, bezt->vec[0][0], NLATIME_CONVERT_MAP);
@@ -1269,7 +1261,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditData bed;
+	KeyframeEditData ked;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1280,7 +1272,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* init the editing data */
-	memset(&bed, 0, sizeof(BeztEditData));
+	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* for each NLA-Track, apply scale of all selected strips */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1303,8 +1295,8 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 				}
 				
 				/* setup iterator, and iterate over all the keyframes in the action, applying this scaling */
-				bed.data= strip;
-				ANIM_animchanneldata_keys_bezier_loop(&bed, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, calchandles_fcurve, 0);
+				ked.data= strip;
+				ANIM_animchanneldata_keyframes_loop(&ked, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, calchandles_fcurve, 0);
 				
 				/* clear scale of strip now that it has been applied,
 				 * and recalculate the extents of the action now that it has been scaled
@@ -1608,12 +1600,19 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		NlaStrip *strip;
-		int i = 1;
 		
-		for (strip= nlt->strips.first; strip; strip=strip->next, i++) {
-			/* only add F-Modifier if on active strip? */
-			if ((onlyActive) && (strip->flag & NLASTRIP_FLAG_ACTIVE)==0)
-				continue;
+		for (strip= nlt->strips.first; strip; strip=strip->next) {
+			/* can F-Modifier be added to the current strip? */
+			if (onlyActive) {
+				/* if not active, cannot add since we're only adding to active strip */
+				if ((strip->flag & NLASTRIP_FLAG_ACTIVE)==0)
+					continue;
+			}
+			else {
+				/* strip must be selected, since we're not just doing active */
+				if ((strip->flag & NLASTRIP_FLAG_SELECT)==0)
+					continue;
+			}
 			
 			/* add F-Modifier of specified type to selected, and make it the active one */
 			fcm= add_fmodifier(&strip->modifiers, type);
@@ -1621,10 +1620,9 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 			if (fcm)
 				set_active_fmodifier(&strip->modifiers, fcm);
 			else {
-				char errormsg[128];
-				sprintf(errormsg, "Modifier couldn't be added to (%s : %d). See console for details.", nlt->name, i);
-				
-				BKE_report(op->reports, RPT_ERROR, errormsg);
+				BKE_reportf(op->reports, RPT_ERROR,
+					"Modifier couldn't be added to (%s : %s). See console for details.", 
+					nlt->name, strip->name);
 			}
 		}
 	}

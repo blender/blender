@@ -236,7 +236,7 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothMo
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd);
 void BKE_ptcache_id_from_smoke_turbulence(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd);
 
-void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob);
+void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob, struct Scene *scene, int duplis);
 
 /***************** Global funcs ****************************/
 void BKE_ptcache_remove(void);

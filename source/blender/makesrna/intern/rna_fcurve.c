@@ -38,7 +38,12 @@
 
 #include "BLI_math.h"
 
+#include "BKE_action.h"
+
 #include "WM_types.h"
+
+#include "ED_keyframing.h"
+#include "ED_keyframes_edit.h"
 
 EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
@@ -318,6 +323,53 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 		fcu->rna_path= NULL;
 }
 
+static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
+{
+	AnimData *adt= BKE_animdata_from_id(ptr->id.data);
+	bAction *act= (adt) ? adt->action : NULL;
+	FCurve *fcu= ptr->data;
+
+	/* same ID? */
+	if (value.data && (ptr->id.data != value.id.data)) {
+		/* id's differ, cant do this, should raise an error */
+		return;
+	}
+	/* already belongs to group? */
+	if (fcu->grp == value.data) {
+		/* nothing to do */
+		return; 
+	}
+	
+	/* can only change group if we have info about the action the F-Curve is in 
+	 * (i.e. for drivers or random F-Curves, this cannot be done)
+	 */
+	if (act == NULL) {
+		/* can't change the grouping of F-Curve when it doesn't belong to an action */
+		return;
+	}	
+	
+	/* try to remove F-Curve from action (including from any existing groups) 
+	 *	- if after this op it is still attached to something, then it is a driver 
+	 *	  not an animation curve as we thought, and we should exit
+	 */
+	action_groups_remove_channel(act, fcu);
+	if (fcu->next) {
+		/* F-Curve is not one that exists in the action, since the above op couldn't remove it from the list */
+		return;
+	}
+	
+	/* add the F-Curve back to the action now in the right place */
+	// TODO: make the api function handle the case where there isn't any group to assign to 
+	if (value.data) {
+		/* add to its group using API function, which makes sure everything goes ok */
+		action_groups_add_channel(act, value.data, fcu);
+	}
+	else {
+		/* need to add this back, but it can only go at the end of the list (or else will corrupt groups) */
+		BLI_addtail(&act->curves, fcu);
+	}
+}
+
 DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
 {
 	/* call the API function for this */
@@ -458,6 +510,31 @@ static void rna_FModifierStepped_end_frame_range(PointerRNA *ptr, float *min, fl
 
 	*min= (data->flag & FCM_STEPPED_NO_BEFORE)? data->start_frame : MINAFRAMEF;
 	*max= MAXFRAMEF;
+}
+
+static BezTriple *rna_FKeyframe_points_add(FCurve *fcu, float frame, float value, int do_replace, int do_needed, int do_fast)
+{
+	int index;
+	int flag= 0;
+
+	if(do_replace) flag |= INSERTKEY_REPLACE;
+	if(do_needed) flag |= INSERTKEY_NEEDED;
+	if(do_fast) flag |= INSERTKEY_FAST;
+
+
+	index= insert_vert_fcurve(fcu, frame, value, flag);
+	return index >= 0 ? fcu->bezt + index : NULL;
+}
+
+static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTriple *bezt, int do_fast)
+{
+	int index= (int)(bezt - fcu->bezt);
+	if (index < 0 || index >= fcu->totvert) {
+		BKE_report(reports, RPT_ERROR, "bezier not in fcurve.");
+		return;
+	}
+
+	delete_fcurve_key(fcu, index, !do_fast);
 }
 
 #else
@@ -794,22 +871,24 @@ static void rna_def_fmodifier_stepped(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Offset", "Reference number of frames before frames get held. Use to get hold for '1-3' vs '5-7' holding patterns");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "use_start_frame", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_frame_start", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCM_STEPPED_NO_BEFORE);
 	RNA_def_property_ui_text(prop, "Use Start Frame", "Restrict modifier to only act after its 'start' frame");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "use_end_frame", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_frame_end", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCM_STEPPED_NO_AFTER);
 	RNA_def_property_ui_text(prop, "Use End Frame", "Restrict modifier to only act before its 'end' frame");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "start_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "start_frame");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierStepped_start_frame_range");
 	RNA_def_property_ui_text(prop, "Start Frame", "Frame that modifier's influence starts (if applicable)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "end_frame");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierStepped_end_frame_range");
 	RNA_def_property_ui_text(prop, "End Frame", "Frame that modifier's influence ends (if applicable)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
@@ -1040,6 +1119,12 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", DRIVER_FLAG_SHOWDEBUG);
 	RNA_def_property_ui_text(prop, "Show Debug Info", "Show intermediate values for the driver calculations to allow debugging of drivers");
 	
+	/* State Info (for Debugging) */
+	prop= RNA_def_property(srna, "invalid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", DRIVER_FLAG_INVALID);
+	RNA_def_property_ui_text(prop, "Invalid", "Driver could not be evaluated in past, so should be skipped");
+	
+	
 	/* Functions */
 	RNA_api_drivers(srna);
 }
@@ -1143,7 +1228,6 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 }
 
-
 static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	/* add modifiers */
@@ -1188,6 +1272,43 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
+/* fcurve.keyframe_points */
+static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "FCurveKeyframePoints");
+	srna= RNA_def_struct(brna, "FCurveKeyframePoints", NULL);
+	RNA_def_struct_sdna(srna, "FCurve");
+	RNA_def_struct_ui_text(srna, "Keyframe Points", "Collection of keyframe points");
+
+	func= RNA_def_function(srna, "add", "rna_FKeyframe_points_add");
+	RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve.");
+	parm= RNA_def_float(func, "frame", 0.0f, -FLT_MAX, FLT_MAX, "", "X Value of this keyframe point", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_float(func, "value", 0.0f, -FLT_MAX, FLT_MAX, "", "Y Value of this keyframe point", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* optional */
+	parm= RNA_def_boolean(func, "replace", 0, "Replace", "Replace existing keyframes");
+	parm= RNA_def_boolean(func, "needed", 0, "Needed", "Only adds keyframes that are needed");
+	parm= RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe insertion to avoid recalculating the curve each time");
+
+	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Newly created keyframe");
+	RNA_def_function_return(func, parm);
+
+
+	func= RNA_def_function(srna, "remove", "rna_FKeyframe_points_remove");
+	RNA_def_function_ui_description(func, "Remove keyframe from an fcurve.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Keyframe to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	/* optional */
+	parm= RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe removal to avoid recalculating the curve each time");
+}
+
 static void rna_def_fcurve(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1221,10 +1342,11 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "grp");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX this is not editable for now, since editing this will easily break the visible hierarchy
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Group", "Action Group that this F-Curve belongs to");
-	RNA_def_property_update(prop, NC_ANIMATION|ND_FCURVES_ORDER, NULL);
-	
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_FCurve_group_set", NULL);
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);
+
 	/* Path + Array Index */
 	prop= RNA_def_property(srna, "data_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_FCurve_RnaPath_get", "rna_FCurve_RnaPath_length", "rna_FCurve_RnaPath_set");
@@ -1272,6 +1394,12 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Visible", "F-Curve and its keyframes are shown in the Graph Editor graphs");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
+	/* State Info (for Debugging) */
+	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_DISABLED);
+	RNA_def_property_ui_text(prop, "Disabled", "F-Curve could not be evaluated in past, so should be skipped when evaluating");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	
 	/* Collections */
 	prop= RNA_def_property(srna, "sampled_points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fpt", "totvert");
@@ -1282,6 +1410,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "bezt", "totvert");
 	RNA_def_property_struct_type(prop, "Keyframe");
 	RNA_def_property_ui_text(prop, "Keyframes", "User-editable keyframes");
+	rna_def_fcurve_keyframe_points(brna, prop);
 	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "FModifier");

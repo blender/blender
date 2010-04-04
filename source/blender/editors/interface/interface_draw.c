@@ -694,15 +694,16 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *
 	int i;
 	int rgb;
 	float w, h;
+	float scaler_x1, scaler_x2;
 	float alpha;
 	GLint scissor[4];
 	
 	if (hist==NULL) { printf("hist is null \n"); return; }
 	
-	rect.xmin = (float)recti->xmin;
-	rect.xmax = (float)recti->xmax;
-	rect.ymin = (float)recti->ymin;
-	rect.ymax = (float)recti->ymax;
+	rect.xmin = (float)recti->xmin+1;
+	rect.xmax = (float)recti->xmax-1;
+	rect.ymin = (float)recti->ymin+SCOPE_RESIZE_PAD+2;
+	rect.ymax = (float)recti->ymax-1;
 	
 	w = rect.xmax - rect.xmin;
 	h = rect.ymax - rect.ymin;
@@ -763,14 +764,28 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *
 		glDisable(GL_LINE_SMOOTH);
 	}
 	
+
 	/* restore scissortest */
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 	
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	
+	/* height scaling widget */
+	scaler_x1 = rect.xmin + w/2 - SCOPE_RESIZE_PAD;
+	scaler_x2 = rect.xmin + w/2 + SCOPE_RESIZE_PAD;
+	
+	glColor4f(0.f, 0.f, 0.f, 0.25f);
+	fdrawline(scaler_x1, rect.ymin-4, scaler_x2, rect.ymin-4);
+	fdrawline(scaler_x1, rect.ymin-7, scaler_x2, rect.ymin-7);
+	glColor4f(1.f, 1.f, 1.f, 0.25f);
+	fdrawline(scaler_x1, rect.ymin-5, scaler_x2, rect.ymin-5);
+	fdrawline(scaler_x1, rect.ymin-8, scaler_x2, rect.ymin-8);
+
+	
 	glColor4f(0.f, 0.f, 0.f, 0.5f);
 	uiSetRoundBox(15);
-	gl_round_box(GL_LINE_LOOP, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
-	
+	gl_round_box(GL_LINE_LOOP, rect.xmin-1, rect.ymin, rect.xmax+1, rect.ymax+1, 3.0f);
+		
 	glDisable(GL_BLEND);
 }
 

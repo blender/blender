@@ -891,6 +891,66 @@ static StructRNA* rna_MacroOperator_refine(PointerRNA *opr)
 	return (op->type && op->type->ext.srna)? op->type->ext.srna: &RNA_Macro;
 }
 
+static wmKeyMapItem *rna_KeyMap_add_item(wmKeyMap *km, ReportList *reports, char *idname, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
+{
+//	wmWindowManager *wm = CTX_wm_manager(C);
+	int modifier= 0;
+
+	/* only on non-modal maps */
+	if (km->flag & KEYMAP_MODAL) {
+		BKE_report(reports, RPT_ERROR, "Not a non-modal keymap.");
+		return NULL;
+	}
+
+	if(shift) modifier |= KM_SHIFT;
+	if(ctrl) modifier |= KM_CTRL;
+	if(alt) modifier |= KM_ALT;
+	if(oskey) modifier |= KM_OSKEY;
+
+	if(any) modifier = KM_ANY;
+
+	return WM_keymap_add_item(km, idname, type, value, modifier, keymodifier);
+}
+
+static wmKeyMapItem *rna_KeyMap_add_modal_item(wmKeyMap *km, bContext *C, ReportList *reports, char* propvalue_str, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	int modifier= 0;
+	int propvalue = 0;
+
+	/* only modal maps */
+	if ((km->flag & KEYMAP_MODAL) == 0) {
+		BKE_report(reports, RPT_ERROR, "Not a modal keymap.");
+		return NULL;
+	}
+
+	if (!km->modal_items) {
+		if(!WM_keymap_user_init(wm, km)) {
+			BKE_report(reports, RPT_ERROR, "User defined keymap doesn't correspond to a system keymap.");
+			return NULL;
+		}
+	}
+
+	if (!km->modal_items) {
+		BKE_report(reports, RPT_ERROR, "No property values defined.");
+		return NULL;
+	}
+
+
+	if(RNA_enum_value_from_id(km->modal_items, propvalue_str, &propvalue)==0) {
+		BKE_report(reports, RPT_WARNING, "Property value not in enumeration.");
+	}
+
+	if(shift) modifier |= KM_SHIFT;
+	if(ctrl) modifier |= KM_CTRL;
+	if(alt) modifier |= KM_ALT;
+	if(oskey) modifier |= KM_OSKEY;
+
+	if(any) modifier = KM_ANY;
+
+	return WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, propvalue);
+}
+
 #else
 
 static void rna_def_operator(BlenderRNA *brna)
@@ -1203,6 +1263,56 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	RNA_api_wm(srna);
 }
 
+/* keyconfig.items */
+static void rna_def_keymap_items(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+//	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+	
+	RNA_def_property_srna(cprop, "KeyMapItems");
+	srna= RNA_def_struct(brna, "KeyMapItems", NULL);
+	RNA_def_struct_sdna(srna, "wmKeyMap");
+	RNA_def_struct_ui_text(srna, "KeyMap Items", "Collection of keymap items");
+
+	func= RNA_def_function(srna, "add", "rna_KeyMap_add_item");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_string(func, "idname", "", 0, "Operator Identifier", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", event_type_items, 0, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "value", event_value_items, 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "any", 0, "Any", "");
+	RNA_def_boolean(func, "shift", 0, "Shift", "");
+	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
+	RNA_def_boolean(func, "alt", 0, "Alt", "");
+	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
+	RNA_def_enum(func, "key_modifier", event_type_items, 0, "Key Modifier", "");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "add_modal", "rna_KeyMap_add_modal_item");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_string(func, "propvalue", "", 0, "Property Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", event_type_items, 0, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "value", event_value_items, 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "any", 0, "Any", "");
+	RNA_def_boolean(func, "shift", 0, "Shift", "");
+	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
+	RNA_def_boolean(func, "alt", 0, "Alt", "");
+	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
+	RNA_def_enum(func, "key_modifier", event_type_items, 0, "Key Modifier", "");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item.");
+	RNA_def_function_return(func, parm);
+	
+}
+
 static void rna_def_keyconfig(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1269,6 +1379,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "items", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyMapItem");
 	RNA_def_property_ui_text(prop, "Items", "Items in the keymap, linking an operator to an input event");
+	rna_def_keymap_items(brna, prop);
 
 	prop= RNA_def_property(srna, "user_defined", PROP_BOOLEAN, PROP_NEVER_NULL);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_USER);

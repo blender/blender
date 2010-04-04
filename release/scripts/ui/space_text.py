@@ -177,7 +177,7 @@ class TEXT_MT_templates(bpy.types.Menu):
     bl_label = "Script Templates"
 
     def draw(self, context):
-        self.path_menu(bpy.utils.script_paths("templates"), "text.open")
+        self.path_menu(bpy.utils.script_paths("templates"), "text.open", {"internal": True})
 
 
 class TEXT_MT_edit_view(bpy.types.Menu):

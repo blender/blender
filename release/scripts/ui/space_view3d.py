@@ -250,8 +250,11 @@ class VIEW3D_MT_view(bpy.types.Menu):
 
         layout.operator("view3d.viewnumpad", text="Camera").type = 'CAMERA'
         layout.operator("view3d.viewnumpad", text="Top").type = 'TOP'
+        layout.operator("view3d.viewnumpad", text="Bottom").type = 'BOTTOM'
         layout.operator("view3d.viewnumpad", text="Front").type = 'FRONT'
+        layout.operator("view3d.viewnumpad", text="Back").type = 'BACK'
         layout.operator("view3d.viewnumpad", text="Right").type = 'RIGHT'
+        layout.operator("view3d.viewnumpad", text="Left").type = 'LEFT'
 
         layout.menu("VIEW3D_MT_view_cameras", text="Cameras")
 
@@ -1919,12 +1922,12 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         col.active = display_all
         split = col.split(percentage=0.55)
         split.prop(view, "display_floor", text="Grid Floor")
-        
+
         row = split.row(align=True)
         row.prop(view, "display_x_axis", text="X", toggle=True)
         row.prop(view, "display_y_axis", text="Y", toggle=True)
         row.prop(view, "display_z_axis", text="Z", toggle=True)
-        
+
         sub = col.column(align=True)
         sub.active = (display_all and view.display_floor)
         sub.prop(view, "grid_lines", text="Lines")

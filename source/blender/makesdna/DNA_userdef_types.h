@@ -355,9 +355,10 @@ typedef struct UserDef {
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
 	short ndof_pan, ndof_rotate;
-	short curssize, ipo_new;
+	short curssize;
 	short color_picker_type;
-	short pad2;
+	short ipo_new;			/* interpolation mode for newly added F-Curves */
+	short keyhandles_new;	/* handle types for newly added keyframes */
 
 	short scrcastfps;		/* frame rate for screencast to be played back */
 	short scrcastwait;		/* milliseconds between screencast snapshots */
@@ -407,7 +408,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_ADD_EDITMODE		(1 << 18)
 #define USER_ADD_VIEWALIGNED	(1 << 19)
 #define USER_RELPATHS			(1 << 20)
-#define USER_DRAGIMMEDIATE		(1 << 21)
+#define USER_RELEASECONFIRM		(1 << 21)
 #define USER_SCRIPT_AUTOEXEC_DISABLE	(1 << 22)
 #define USER_FILENOUI			(1 << 23)
 #define USER_NONEGFRAMES		(1 << 24)

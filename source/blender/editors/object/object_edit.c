@@ -120,6 +120,16 @@ static int pupmenu(const char *msg) {return 0;}
 static bContext *C;
 static void error_libdata() {}
 
+
+/* find the correct active object per context */
+Object *ED_object_active_context(bContext *C)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	if (!ob) ob= CTX_data_active_object(C);
+	return ob;
+}
+
+
 /* ********* clear/set restrict view *********/
 static int object_restrictview_clear_exec(bContext *C, wmOperator *op)
 {
@@ -251,8 +261,10 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			me->edit_mesh= NULL;
 		}
 		
-		if(obedit->restore_mode & OB_MODE_WEIGHT_PAINT)
-			mesh_octree_table(obedit, NULL, NULL, 'e');
+		if(obedit->restore_mode & OB_MODE_WEIGHT_PAINT) {
+			mesh_octree_table(NULL, NULL, NULL, 'e');
+			mesh_mirrtopo_table(NULL, 'e');
+		}
 	}
 	else if (obedit->type==OB_ARMATURE) {	
 		ED_armature_from_edit(obedit);
@@ -285,7 +297,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		scene->obedit= NULL; // XXX for context
 
 		/* flag object caches as outdated */
-		BKE_ptcache_ids_from_object(&pidlist, obedit);
+		BKE_ptcache_ids_from_object(&pidlist, obedit, NULL, 0);
 		for(pid=pidlist.first; pid; pid=pid->next) {
 			if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
 				pid->cache->flag |= PTCACHE_OUTDATED;
@@ -1975,7 +1987,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
-	ObjectMode restore_mode = ob->mode;
+	ObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
 	int toggle = RNA_boolean_get(op->ptr, "toggle");
 
 	if(!ob || !object_mode_set_compat(C, op, ob))

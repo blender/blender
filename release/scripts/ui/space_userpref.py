@@ -165,16 +165,18 @@ class USERPREF_HT_header(bpy.types.Header):
         layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.save_homefile", text="Save As Default")
 
+        layout.operator_context = 'INVOKE_DEFAULT'
+
         if userpref.active_section == 'INPUT':
-            layout.operator_context = 'INVOKE_DEFAULT'
-            op = layout.operator("wm.keyconfig_export", "Export Key Configuration...")
+            op = layout.operator("wm.keyconfig_export")
             op.path = "keymap.py"
-            op = layout.operator("wm.keyconfig_import", "Import Key Configuration...")
+            op = layout.operator("wm.keyconfig_import")
             op.path = "keymap.py"
         elif userpref.active_section == 'ADDONS':
-            layout.operator_context = 'INVOKE_DEFAULT'
-            op = layout.operator("wm.addon_install", "Install Add-On...")
+            op = layout.operator("wm.addon_install")
             op.path = "*.py"
+        elif userpref.active_section == 'THEMES':
+            op = layout.operator("ui.reset_default_theme")
 
 
 class USERPREF_PT_tabs(bpy.types.Panel):
@@ -376,7 +378,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.separator()
 
         col.label(text="New F-Curve Defaults:")
-        col.prop(edit, "new_interpolation_type", text="Interpolation")
+        col.prop(edit, "keyframe_new_interpolation_type", text="Interpolation")
+        col.prop(edit, "keyframe_new_handle_type", text="Handles")
         col.prop(edit, "insertkey_xyz_to_rgb", text="XYZ to RGB")
 
         col.separator()
@@ -712,14 +715,24 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(graph, "active_channels_group")
             col.prop(graph, "dopesheet_channel")
             col.prop(graph, "dopesheet_subchannel")
-            col.prop(graph, "vertex")
+            col.prop(graph, "frame_current")
 
             col = split.column()
-            col.prop(graph, "current_frame")
+            col.prop(graph, "vertex")
             col.prop(graph, "handle_vertex")
             col.prop(graph, "handle_vertex_select")
             col.separator()
             col.prop(graph, "handle_vertex_size")
+            col.separator()
+            col.separator()
+            col.prop(graph, "handle_free")
+            col.prop(graph, "handle_auto")
+            col.prop(graph, "handle_vect")
+            col.prop(graph, "handle_align")
+            col.prop(graph, "handle_sel_free")
+            col.prop(graph, "handle_sel_auto")
+            col.prop(graph, "handle_sel_vect")
+            col.prop(graph, "handle_sel_align")
 
         elif theme.theme_area == 'FILE_BROWSER':
             file_browse = theme.file_browser
@@ -762,7 +775,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(nla, "strips")
             col.prop(nla, "strips_selected")
-            col.prop(nla, "current_frame")
+            col.prop(nla, "frame_current")
 
         elif theme.theme_area == 'DOPESHEET_EDITOR':
             dope = theme.dopesheet_editor
@@ -785,7 +798,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(dope, "long_key_selected")
 
             col = split.column()
-            col.prop(dope, "current_frame")
+            col.prop(dope, "frame_current")
             col.prop(dope, "dopesheet_channel")
             col.prop(dope, "dopesheet_subchannel")
 
@@ -832,7 +845,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
             col.prop(seq, "meta_strip")
-            col.prop(seq, "current_frame")
+            col.prop(seq, "frame_current")
             col.prop(seq, "keyframe")
             col.prop(seq, "draw_action")
 
@@ -891,7 +904,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(time, "grid")
 
             col = split.column()
-            col.prop(time, "current_frame")
+            col.prop(time, "frame_current")
 
         elif theme.theme_area == 'NODE_EDITOR':
             node = theme.node_editor
@@ -1285,8 +1298,8 @@ class USERPREF_PT_input(bpy.types.Panel):
         sub.row().prop(inputs, "view_rotation", expand=True)
 
         sub.label(text="Zoom Style:")
-        sub.row().prop(inputs, "viewport_zoom_style", expand=True)
-        if inputs.viewport_zoom_style == 'DOLLY':
+        sub.row().prop(inputs, "zoom_style", text="")
+        if inputs.zoom_style == 'DOLLY':
             sub.row().prop(inputs, "zoom_axis", expand=True)
             sub.prop(inputs, "invert_zoom_direction")
 
@@ -1299,11 +1312,12 @@ class USERPREF_PT_input(bpy.types.Panel):
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()
-
+        ''' not implemented yet
         sub = col.column()
         sub.label(text="NDOF Device:")
         sub.prop(inputs, "ndof_pan_speed", text="Pan Speed")
         sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
+        '''
 
         row.separator()
 
@@ -1488,6 +1502,10 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     split = column.row().split(percentage=0.15)
                     split.label(text='Location:')
                     split.label(text=info["location"])
+                if info["description"]:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text='Description:')
+                    split.label(text=info["description"])
                 if info["url"]:
                     split = column.row().split(percentage=0.15)
                     split.label(text="Internet:")
@@ -1517,7 +1535,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "url": "", "category": "", "expanded": False}):
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "url": "", "category": "", "expanded": False}):
     addon_info = getattr(mod, "bl_addon_info", {})
 
     # avoid re-initializing
@@ -1600,7 +1618,7 @@ class WM_OT_addon_disable(bpy.types.Operator):
 class WM_OT_addon_install(bpy.types.Operator):
     "Install an addon"
     bl_idname = "wm.addon_install"
-    bl_label = "Install Add-On"
+    bl_label = "Install Add-On..."
 
     module = StringProperty(name="Module", description="Module name of the addon to disable")
 
@@ -1705,9 +1723,9 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
 
         def kmistr(kmi):
             if km.modal:
-                s = ["kmi = km.add_modal_item(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
+                s = ["kmi = km.items.add_modal(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
             else:
-                s = ["kmi = km.add_item(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
+                s = ["kmi = km.items.add(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
 
             if kmi.any:
                 s.append(", any=True")
@@ -1913,9 +1931,9 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
             f.write("km = kc.add_keymap('%s', space_type='%s', region_type='%s', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.modal))
             for kmi in km.items:
                 if km.modal:
-                    f.write("kmi = km.add_modal_item('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
+                    f.write("kmi = km.items.add_modal('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
                 else:
-                    f.write("kmi = km.add_item('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
+                    f.write("kmi = km.items.add('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
                 if kmi.any:
                     f.write(", any=True")
                 else:
@@ -2019,9 +2037,9 @@ class WM_OT_keyitem_add(bpy.types.Operator):
         kc = wm.default_keyconfig
 
         if km.modal:
-            km.add_modal_item("", 'A', 'PRESS') # kmi
+            km.items.add_modal("", 'A', 'PRESS') # kmi
         else:
-            km.add_item("none", 'A', 'PRESS') # kmi
+            km.items.add("none", 'A', 'PRESS') # kmi
 
         # clear filter and expand keymap so we can see the newly added item
         if kc.filter != '':

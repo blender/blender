@@ -1886,16 +1886,16 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 						
 						/*	Draw additional axes on the bone tail  */
 						if ( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ) {
+							float mat[4][4];
 							glPushMatrix();
 							copy_m4_m4(bmat, pchan->pose_mat);
 							bone_matrix_translate_y(bmat, pchan->bone->length);
 							glMultMatrixf(bmat);
 							
-							/* do cached text draw immediate to include transform */
-							view3d_cached_text_draw_begin();
-							drawaxes(pchan->bone->length*0.25f, 0, OB_ARROWS);
-							view3d_cached_text_draw_end(v3d, ar, 1, bmat);
+							mul_m4_m4m4(mat, bmat, rv3d->viewmatob);
 							
+							drawaxes(rv3d, mat, pchan->bone->length*0.25f, 0, OB_ARROWS);
+
 							glPopMatrix();
 						}
 					}
@@ -2082,15 +2082,16 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 						}					
 						/*	Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
+							float mat[4][4];
 							glPushMatrix();
 							get_matrix_editbone(eBone, bmat);
 							bone_matrix_translate_y(bmat, eBone->length);
 							glMultMatrixf(bmat);
 							
+							mul_m4_m4m4(mat, bmat, rv3d->viewmatob);
+							
 							/* do cached text draw immediate to include transform */
-							view3d_cached_text_draw_begin();
-							drawaxes(eBone->length*0.25f, 0, OB_ARROWS);
-							view3d_cached_text_draw_end(v3d, ar, 1, bmat);
+							drawaxes(rv3d, mat, eBone->length*0.25f, 0, OB_ARROWS);
 							
 							glPopMatrix();
 						}

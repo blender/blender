@@ -61,6 +61,7 @@
 #include "ED_util.h"
 #include "ED_numinput.h"
 #include "ED_object.h"
+#include "ED_types.h"
 
 /* ************* Marker API **************** */
 

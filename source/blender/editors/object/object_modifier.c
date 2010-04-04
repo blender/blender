@@ -499,7 +499,7 @@ static int modifier_poll(bContext *C)
 static int modifier_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = ED_object_active_context(C);
 	int type= RNA_enum_get(op->ptr, "type");
 
 	if(!ED_object_modifier_add(op->reports, scene, ob, NULL, type))
@@ -512,7 +512,7 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 
 static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *ptr, int *free)
 {	
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_active_context(C);
 	EnumPropertyItem *item= NULL, *md_item;
 	ModifierTypeInfo *mti;
 	int totitem= 0, a;

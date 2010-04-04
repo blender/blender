@@ -215,6 +215,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	char str[FILE_MAX];
+	short internal = RNA_int_get(op->ptr, "internal");
 
 	RNA_string_get(op->ptr, "path", str);
 
@@ -243,6 +244,13 @@ static int open_exec(bContext *C, wmOperator *op)
 	else if(st) {
 		st->text= text;
 		st->top= 0;
+	}
+	
+	if (internal) {
+		if(text->name)
+			MEM_freeN(text->name);
+		
+		text->name = NULL;
 	}
 
 	WM_event_add_notifier(C, NC_TEXT|NA_ADDED, text);
@@ -282,6 +290,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE);
+	RNA_def_boolean(ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
 }
 
 /******************* reload operator *********************/
@@ -1586,15 +1595,23 @@ static int jump_exec(bContext *C, wmOperator *op)
 	int line= RNA_int_get(op->ptr, "line");
 	short nlines= txt_get_span(text->lines.first, text->lines.last)+1;
 
-	if(line < 1 || line > nlines)
-		return OPERATOR_CANCELLED;
-
-	txt_move_toline(text, line-1, 0);
+	if(line < 1)
+		txt_move_toline(text, 1, 0);
+	else if(line > nlines)
+		txt_move_toline(text, nlines-1, 0);
+	else
+		txt_move_toline(text, line-1, 0);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 
 	return OPERATOR_FINISHED;
+}
+
+static int jump_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return WM_operator_props_dialog_popup(C,op,200,100);
+
 }
 
 void TEXT_OT_jump(wmOperatorType *ot)
@@ -1605,7 +1622,7 @@ void TEXT_OT_jump(wmOperatorType *ot)
 	ot->description= "Jump cursor to line";
 	
 	/* api callbacks */
-	ot->invoke=  WM_operator_props_popup;
+	ot->invoke= jump_invoke;
 	ot->exec= jump_exec;
 	ot->poll= text_edit_poll;
 

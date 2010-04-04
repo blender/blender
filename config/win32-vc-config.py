@@ -187,5 +187,8 @@ PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/INCREMENTAL:NO','/N
 # BF_PROFILE_LINKFLAGS = ['-pg']
 # BF_PROFILE = False
 
+#turn off makebsc by default ( as 64 bit version does ) .. takes ages to build .. for nothing ( well some M$ addicts may disagree )
+BF_BSC=False
+
 BF_BUILDDIR = '..\\build\\win32-vc'
 BF_INSTALLDIR='..\\install\\win32-vc'

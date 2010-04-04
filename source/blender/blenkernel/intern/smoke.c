@@ -1156,10 +1156,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		framenr = scene->r.cfra;
 
-		// printf("time: %d\n", scene->r.cfra);
-
-		if(framenr == smd->time)
-			return;
+		printf("time: %d\n", scene->r.cfra);
 
 		cache = sds->point_cache[0];
 		BKE_ptcache_id_from_smoke(&pid, ob, smd);
@@ -1206,10 +1203,22 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 				if(cache_result_wt == PTCACHE_READ_EXACT) 
 				{
 					BKE_ptcache_validate(cache_wt, framenr);
+
+					return;
+				}
+				else
+				{
+					; /* don't return in the case we only got low res cache but no high res cache */
+					/* we still need to calculate the high res cache */
 				}
 			}
-			return;
+			else
+				return;
 		}
+
+		/* only calculate something when we advanced a frame */
+		if(framenr == smd->time)
+			return;
 
 		tstart();
 

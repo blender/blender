@@ -2376,8 +2376,8 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 
 	ot->poll= ED_operator_view3d_active;
 
-	/* rna later */
-	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
+	/* properties to pass to transform */
+	Transform_Properties(ot, P_CONSTRAINT);
 }
 
 static int enable_manipulator_invoke(bContext *C, wmOperator *op, wmEvent *event)

@@ -1725,6 +1725,12 @@ static void rna_def_texture(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Factor Blue", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
+	/* Alpha for preview render */
+	prop= RNA_def_property(srna, "use_preview_alpha", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_PRV_ALPHA);
+	RNA_def_property_ui_text(prop, "Show Alpha", "Show Alpha in Preview Render");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
 	/* nodetree */
 	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);

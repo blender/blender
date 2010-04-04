@@ -55,7 +55,6 @@ void IMAGE_OT_toolbox(struct wmOperatorType *ot);
 void draw_image_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene);
 void draw_image_info(struct ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf);
 void draw_image_grease_pencil(struct bContext *C, short onlyv2d);
-void draw_image_line(struct ARegion *ar, int x1, int y1, int x2, int y2);
 
 /* image_ops.c */
 int space_image_main_area_poll(struct bContext *C);

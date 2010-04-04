@@ -739,9 +739,14 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 						if(*zrect >= 9.9e10 || rgbrect[3]==0.0f) {
 							continue;
 						}
-						
+												
 						if((lar->sunsky->effect_type & LA_SUN_EFFECT_AP)) {	
 							float tmp_rgb[3];
+							
+							/* skip if worldspace lamp vector is below horizon */
+							if(go->ob->obmat[2][2] < 0.f) {
+								continue;
+							}
 							
 							VECCOPY(tmp_rgb, rgbrect);
 							if(rgbrect[3]!=1.0f) {	/* de-premul */
@@ -2266,21 +2271,8 @@ static void bake_displacement(void *handle, ShadeInput *shi, float dist, int x, 
 	}
 }
 
-#if 0
-static int bake_check_intersect(Isect *is, int ob, RayFace *face)
-{
-	BakeShade *bs = (BakeShade*)is->userdata;
-	
-	/* no direction checking for now, doesn't always improve the result
-	 * (INPR(shi->facenor, bs->dir) > 0.0f); */
-
-	return (R.objectinstance[ob & ~RE_RAY_TRANSFORM_OFFS].obr->ob != bs->actob);
-}
-#endif
-
 static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, float *dir, float sign, float *hitco, float *dist)
 {
-	//TODO, validate against blender 2.4x, results may have changed.
 	float maxdist;
 	int hit;
 
@@ -2288,7 +2280,7 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 	if(R.r.bake_maxdist > 0.0f)
 		maxdist= R.r.bake_maxdist;
 	else
-		maxdist= FLT_MAX + R.r.bake_biasdist;
+		maxdist= RE_RAYTRACE_MAXDIST + R.r.bake_biasdist;
 	
 	/* 'dir' is always normalized */
 	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);					
@@ -2299,10 +2291,6 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 
 	isect->labda = maxdist;
 
-	/* TODO, 2.4x had this...
-	hit = RE_ray_tree_intersect_check(R.raytree, isect, bake_check_intersect);
-	...the active object may NOT be ignored in some cases.
-	*/
 	hit = RE_rayobject_raycast(raytree, isect);
 	if(hit) {
 		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
@@ -2432,7 +2420,8 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 
 			isec.orig.ob   = obi;
 			isec.orig.face = vlr;
-			isec.userdata= bs;
+			isec.userdata= bs->actob;
+			isec.skip = RE_SKIP_VLR_NEIGHBOUR|RE_SKIP_VLR_BAKE_CHECK;
 			
 			if(bake_intersect_tree(R.raytree, &isec, shi->co, shi->vn, sign, co, &dist)) {
 				if(!hit || len_v3v3(shi->co, co) < len_v3v3(shi->co, minco)) {
@@ -2652,10 +2641,11 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		ima->id.flag |= LIB_DOIT;
-		if (ibuf)
+		if(ibuf) {
 			ibuf->userdata = NULL; /* use for masking if needed */
-		if(ibuf->rect_float)
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
+			if(ibuf->rect_float)
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
+		}
 	}
 	
 	BLI_init_threads(&threads, do_bake_thread, re->r.threads);
@@ -2702,7 +2692,11 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if((ima->id.flag & LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-			if (re->r.bake_filter) {
+
+			if(!ibuf)
+				continue;
+
+			if(re->r.bake_filter) {
 				if (usemask) {
 					/* extend the mask +2 pixels from the image,
 					 * this is so colors dont blend in from outside */
@@ -2732,6 +2726,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 					ibuf->userdata= NULL;
 				}
 			}
+
 			ibuf->userflags |= IB_BITMAPDIRTY;
 			if (ibuf->rect_float) IMB_rect_from_float(ibuf);
 		}

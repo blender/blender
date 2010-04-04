@@ -415,6 +415,36 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 	return item;
 }
 
+static void rna_SpaceImageEditor_cursor_location_get(PointerRNA *ptr, float *values)
+{
+	SpaceImage *sima= (SpaceImage*)ptr->data;
+	
+	if (sima->flag & SI_COORDFLOATS) {
+		copy_v2_v2(values, sima->cursor);
+	} else {
+		int w, h;
+		ED_space_image_size(sima, &w, &h);
+		
+		values[0] = sima->cursor[0] * w;
+		values[1] = sima->cursor[1] * h;
+	}
+}
+
+static void rna_SpaceImageEditor_cursor_location_set(PointerRNA *ptr, const float *values)
+{
+	SpaceImage *sima= (SpaceImage*)ptr->data;
+	
+	if (sima->flag & SI_COORDFLOATS) {
+		copy_v2_v2(sima->cursor, values);
+	} else {
+		int w, h;
+		ED_space_image_size(sima, &w, &h);
+		
+		sima->cursor[0] = values[0] / w;
+		sima->cursor[1] = values[1] / h;
+	}
+}
+
 static void rna_SpaceImageEditor_curves_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
@@ -692,6 +722,12 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "normalized_coordinates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_COORDFLOATS);
 	RNA_def_property_ui_text(prop, "Normalized Coordinates", "Display UV coordinates from 0.0 to 1.0 rather than in pixels");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
+	
+	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_SpaceImageEditor_cursor_location_get", "rna_SpaceImageEditor_cursor_location_set", NULL);
+	RNA_def_property_ui_text(prop, "2D Cursor Location", "2D cursor location for this view");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	/* todo: move edge and face drawing options here from G.f */
@@ -1147,6 +1183,10 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_SpaceProperties_pin_id_typef");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, NULL);
+
+	prop= RNA_def_property(srna, "use_pin_id", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SB_PIN_CONTEXT);
+	RNA_def_property_ui_text(prop, "Pin ID", "Use the pinned context");
 }
 
 static void rna_def_space_image(BlenderRNA *brna)
@@ -1185,6 +1225,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "image_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pin", 0);
 	RNA_def_property_ui_text(prop, "Image Pin", "Display current image regardless of object selection");
+	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	prop= RNA_def_property(srna, "sample_histogram", PROP_POINTER, PROP_NONE);
@@ -1810,15 +1851,11 @@ static void rna_def_space_console(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Error", "Display error text");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE_REPORT, NULL);
 
-	
-	
 	prop= RNA_def_property(srna, "prompt", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Prompt", "Command line prompt");
-	RNA_def_struct_name_property(srna, prop);
 	
 	prop= RNA_def_property(srna, "language", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Language", "Command line prompt language");
-	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "history", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "history", NULL);

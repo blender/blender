@@ -74,8 +74,6 @@ extern "C" {
 
 #include "BLI_listbase.h"
 
-#include "BLI_dynamiclist.h"
-
 #include "BLI_string.h"
 
 #include "BLI_path_util.h"

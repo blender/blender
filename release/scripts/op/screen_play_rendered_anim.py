@@ -89,11 +89,11 @@ class PlayRenderedAnim(bpy.types.Operator):
         if is_movie == False and preset in ('FRAMECYCLER', 'RV', 'MPLAYER'):
             # replace the number with '#'
             file_a = rd.frame_path(frame=0)
-            
+
             # TODO, make an api call for this
             frame_tmp = 9
             file_b = rd.frame_path(frame=frame_tmp)
-            
+
             while len(file_a) == len(file_b):
                 frame_tmp = (frame_tmp * 10) + 9
                 print(frame_tmp)
@@ -103,7 +103,7 @@ class PlayRenderedAnim(bpy.types.Operator):
             file = ''.join([(c if file_b[i] == c else "#") for i, c in enumerate(file_a)])
         else:
             # works for movies and images
-            file = rd.frame_path(frame=scene.start_frame)
+            file = rd.frame_path(frame=scene.frame_start)
 
         file = bpy.utils.expandpath(file) # expand '//'
 
@@ -116,7 +116,7 @@ class PlayRenderedAnim(bpy.types.Operator):
             opts = [file, "-playback_speed", str(rd.fps)]
             cmd.extend(opts)
         elif preset == 'FRAMECYCLER':
-            opts = [file, "%d-%d" % (scene.start_frame, scene.end_frame)]
+            opts = [file, "%d-%d" % (scene.frame_start, scene.frame_end)]
             cmd.extend(opts)
         elif preset == 'RV':
             opts = ["-fps", str(rd.fps), "-play", "[ %s ]" % file]

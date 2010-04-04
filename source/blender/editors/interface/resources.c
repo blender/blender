@@ -455,11 +455,11 @@ static void ui_theme_init_new(bTheme *btheme)
 #define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
 #define SETCOLF(col, r, g, b, a)  col[0]=r*255; col[1]=g*255; col[2]= b*255; col[3]= a*255;
 
-/* initialize default theme, can't be edited
+/* initialize default theme
    Note: when you add new colors, created & saved themes need initialized
    use function below, init_userdef_do_versions() 
 */
-void ui_theme_init_userdef(void)
+void ui_theme_init_default(void)
 {
 	bTheme *btheme= U.themes.first;
 	
@@ -1406,6 +1406,41 @@ void init_userdef_do_versions(void)
 	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 16)) {
 		if(U.wmdrawmethod == USER_DRAW_TRIPLE)
 			U.wmdrawmethod = USER_DRAW_AUTOMATIC;
+	}
+	
+	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 3)) {
+		if (U.flag & USER_LMOUSESELECT) 
+			U.flag &= ~USER_TWOBUTTONMOUSE;
+	}
+	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 4)) {
+		bTheme *btheme;
+		
+		/* default new handle type is auto handles */
+		U.keyhandles_new = HD_AUTO;
+		
+		/* init new curve colors */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* init colors used for handles in 3D-View  */
+			SETCOL(btheme->tv3d.handle_free, 0, 0, 0, 255);
+			SETCOL(btheme->tv3d.handle_auto, 0x90, 0x90, 0x00, 255);
+			SETCOL(btheme->tv3d.handle_vect, 0x40, 0x90, 0x30, 255);
+			SETCOL(btheme->tv3d.handle_align, 0x80, 0x30, 0x60, 255);
+			SETCOL(btheme->tv3d.handle_sel_free, 0, 0, 0, 255);
+			SETCOL(btheme->tv3d.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
+			SETCOL(btheme->tv3d.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
+			SETCOL(btheme->tv3d.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+			SETCOL(btheme->tv3d.act_spline, 0xdb, 0x25, 0x12, 255);
+			
+			/* same colors again for Graph Editor... */
+			SETCOL(btheme->tipo.handle_free, 0, 0, 0, 255);
+			SETCOL(btheme->tipo.handle_auto, 0x90, 0x90, 0x00, 255);
+			SETCOL(btheme->tipo.handle_vect, 0x40, 0x90, 0x30, 255);
+			SETCOL(btheme->tipo.handle_align, 0x80, 0x30, 0x60, 255);
+			SETCOL(btheme->tipo.handle_sel_free, 0, 0, 0, 255);
+			SETCOL(btheme->tipo.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
+			SETCOL(btheme->tipo.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
+			SETCOL(btheme->tipo.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+		}
 	}
 
 	

@@ -48,6 +48,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_constraint_types.h"
 
+#include "BKE_anim.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_blender.h"
@@ -4940,7 +4941,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				continue;
 
 			/* flag object caches as outdated */
-			BKE_ptcache_ids_from_object(&pidlist, ob);
+			BKE_ptcache_ids_from_object(&pidlist, ob, t->scene, MAX_DUPLI_RECUR);
 			for(pid=pidlist.first; pid; pid=pid->next) {
 				if(pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
 					pid->cache->flag |= PTCACHE_OUTDATED;

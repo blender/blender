@@ -101,7 +101,7 @@ EnumPropertyItem image_type_items[] = {
 	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
 	{R_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", ""},
 	//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
-	{R_HAMX, "HAMX", ICON_FILE_IMAGE, "HamX", ""},
+	//{R_HAMX, "HAMX", ICON_FILE_IMAGE, "HamX", ""}, // should remove this format, 8bits are so 80's
 	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
 	{0, "", 0, " ", NULL},
 #ifdef WITH_OPENEXR
@@ -812,6 +812,29 @@ static void rna_GameSettings_auto_start_set(PointerRNA *ptr, int value)
 		G.fileflags |= G_FILE_AUTOPLAY;
 	else
 		G.fileflags &= ~G_FILE_AUTOPLAY;
+}
+
+
+static TimeMarker *rna_TimeLine_add(Scene *scene, char name[])
+{
+	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
+	marker->flag= SELECT;
+	marker->frame= 1;
+	BLI_strncpy(marker->name, name, sizeof(marker->name));
+	BLI_addtail(&scene->markers, marker);
+	return marker;
+}
+
+static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *marker)
+{
+	/* try to remove the F-Curve from the action */
+	if (!BLI_remlink_safe(&scene->markers, marker)) {
+		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in action '%s'", marker->name, scene->id.name+2);
+		return;
+	}
+
+	/* XXX, invalidates PyObject */
+	MEM_freeN(marker);
 }
 
 #else
@@ -2410,7 +2433,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "file_extension", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_SceneRender_file_ext_get", "rna_SceneRender_file_ext_length", NULL);
 	RNA_def_property_ui_text(prop, "Extension", "The file extension used for saving renders");
-	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "is_movie_format", PROP_BOOLEAN, PROP_NONE);
@@ -2743,6 +2765,35 @@ static void rna_def_scene_bases(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_update(prop, NC_SCENE|ND_OB_ACTIVE, NULL);
 }
 
+/* scene.timeline_markers */
+static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "TimelineMarkers");
+	srna= RNA_def_struct(brna, "TimelineMarkers", NULL);
+	RNA_def_struct_sdna(srna, "Scene");
+	RNA_def_struct_ui_text(srna, "Timeline Markers", "Collection of timeline markers");
+
+	func= RNA_def_function(srna, "add", "rna_TimeLine_add");
+	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
+	parm= RNA_def_string(func, "name", "Marker", 0, "", "New name for the marker (not unique).");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Newly created timeline marker");
+	RNA_def_function_return(func, parm);
+
+
+	func= RNA_def_function(srna, "remove", "rna_TimeLine_remove");
+	RNA_def_function_ui_description(func, "Remove a timeline marker.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+}
+
 void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2819,7 +2870,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_layer_update");
 	
 	/* Frame Range Stuff */
-	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
@@ -2828,7 +2879,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.sfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
@@ -2836,7 +2887,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Start Frame", "First frame of the playback/rendering range");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, NULL);
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.efra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
@@ -2860,14 +2911,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Preview Range", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, NULL);
 	
-	prop= RNA_def_property(srna, "preview_range_start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "preview_range_frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.psfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_preview_range_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Preview Range Start Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, NULL);
 	
-	prop= RNA_def_property(srna, "preview_range_end_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "preview_range_frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.pefra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_preview_range_end_frame_set", NULL);
@@ -2984,6 +3035,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
 	RNA_def_property_ui_text(prop, "Timeline Markers", "Markers used in all timelines for the current scene");
+	rna_def_timeline_markers(brna, prop);
 
 	/* Audio Settings */
 	prop= RNA_def_property(srna, "mute_audio", PROP_BOOLEAN, PROP_NONE);

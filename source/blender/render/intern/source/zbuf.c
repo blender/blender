@@ -3312,7 +3312,10 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 			
 			if(vlr->mat!=ma) {
 				ma= vlr->mat;
-				dofill= shadow || (((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP)) && !(ma->mode & MA_ONLYCAST));
+				if(shadow)
+					dofill= (ma->mode & MA_SHADBUF);
+				else
+					dofill= (((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP)) && !(ma->mode & MA_ONLYCAST));
 			}
 			
 			if(dofill) {

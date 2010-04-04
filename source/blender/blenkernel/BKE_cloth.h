@@ -126,6 +126,7 @@ typedef struct ClothVertex
 	float 	mass;		/* mass / weight of the vertex		*/
 	float 	goal;		/* goal, from SB			*/
 	float	impulse[3];	/* used in collision.c */
+	float	*xrest;		/* temporary valid for building springs */
 	unsigned int impulse_count; /* same as above */
 	float 	avg_spring_len; /* average length of connected springs */
 	float 	struct_stiff;
@@ -240,6 +241,7 @@ void cloth_init ( ClothModifierData *clmd );
 DerivedMesh *clothModifier_do ( ClothModifierData *clmd, struct Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc );
 
 void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
+int cloth_uses_vgroup(ClothModifierData *clmd);
 
 // needed for collision.c
 void bvhtree_update_from_cloth ( ClothModifierData *clmd, int moving );

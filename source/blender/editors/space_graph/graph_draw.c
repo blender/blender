@@ -523,19 +523,20 @@ static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, SpaceIpo *
 	 *	though it is impossible to predict this from the modifiers!
 	 *
 	 *	If the automatically determined sampling frequency is likely to cause an infinite
-	 *	loop (i.e. too close to FLT_EPSILON), fall back to default of 0.001
+	 *	loop (i.e. too close to 0), then clamp it to a determined "safe" value. The value
+	 * 	chosen here is just the coarsest value which still looks reasonable...
 	 */
 		/* grid->dx is the first float in View2DGrid struct, so just cast to float pointer, and use it
 		 * It represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps
 		 */
 		// TODO: perhaps we should have 1.0 frames as upper limit so that curves don't get too distorted?
 	samplefreq= *((float *)grid) / U.v2d_min_gridsize;
-	if (IS_EQ(samplefreq, 0)) samplefreq= 0.001f;
+	if (samplefreq < 0.00001f) samplefreq= 0.00001f;
 	
 	
 	/* the start/end times are simply the horizontal extents of the 'cur' rect */
 	stime= v2d->cur.xmin;
-	etime= v2d->cur.xmax;
+	etime= v2d->cur.xmax + samplefreq; /* + samplefreq here so that last item gets included... */
 	
 	
 	/* at each sampling interval, add a new vertex 

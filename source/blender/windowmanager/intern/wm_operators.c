@@ -813,6 +813,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_btx", (filter & BTXFILE), "Filter btx files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_collada", (filter & COLLADAFILE), "Filter COLLADA files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
@@ -844,6 +846,17 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
 
 	if(extend)
 		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+}
+
+void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
+{
+	RNA_def_int(ot->srna, "xstart", 0, INT_MIN, INT_MAX, "X Start", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xend", 0, INT_MIN, INT_MAX, "X End", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ystart", 0, INT_MIN, INT_MAX, "Y Start", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "yend", 0, INT_MIN, INT_MAX, "Y End", "", INT_MIN, INT_MAX);
+	
+	if(cursor)
+		RNA_def_int(ot->srna, "cursor", cursor, 0, INT_MAX, "Cursor", "Mouse cursor style to use during the modal operator", 0, INT_MAX);
 }
 
 
@@ -1827,14 +1840,18 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	//char name[FILE_MAX];
-	//BLI_strncpy(name, G.sce, FILE_MAX);
-	//untitled(name);
-
+	char *path;
 	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
 	
+	if(!RNA_property_is_set(op->ptr, "path")) {
+		path = BLI_replacestr(G.sce, ".blend", ".dae");
+		RNA_string_set(op->ptr, "path", path);
+	}
+	
 	WM_event_add_fileselect(C, op);
-
+	
+	if (path) MEM_freeN(path);
+	
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -1843,18 +1860,14 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	
-	if(RNA_property_is_set(op->ptr, "path"))
-		RNA_string_get(op->ptr, "path", filename);
-	else {
-		BLI_strncpy(filename, G.sce, FILE_MAX);
-		untitled(filename);
+	if(!RNA_property_is_set(op->ptr, "path")) {
+		BKE_report(op->reports, RPT_ERROR, "No filename given");
+		return OPERATOR_CANCELLED;
 	}
 	
-	//WM_write_file(C, filename, op->reports);
+	RNA_string_get(op->ptr, "path", filename);
 	collada_export(CTX_data_scene(C), filename);
 	
-	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
-
 	return OPERATOR_FINISHED;
 }
 
@@ -1867,18 +1880,7 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->exec= wm_collada_export_exec;
 	ot->poll= WM_operator_winactive;
 	
-	ot->flag= 0;
-	
-	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
-}
-
-static int wm_collada_import_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
-	
-	WM_event_add_fileselect(C, op);
-
-	return OPERATOR_RUNNING_MODAL;
+	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_SAVE);
 }
 
 /* function used for WM_OT_save_mainfile too */
@@ -1886,18 +1888,14 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	
-	if(RNA_property_is_set(op->ptr, "path"))
-		RNA_string_get(op->ptr, "path", filename);
-	else {
-		BLI_strncpy(filename, G.sce, FILE_MAX);
-		untitled(filename);
+	if(!RNA_property_is_set(op->ptr, "path")) {
+		BKE_report(op->reports, RPT_ERROR, "No filename given");
+		return OPERATOR_CANCELLED;
 	}
-	
-	//WM_write_file(C, filename, op->reports);
+
+	RNA_string_get(op->ptr, "path", filename);
 	collada_import(C, filename);
 	
-	/* WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL); */
-
 	return OPERATOR_FINISHED;
 }
 
@@ -1906,13 +1904,11 @@ static void WM_OT_collada_import(wmOperatorType *ot)
 	ot->name= "Import COLLADA";
 	ot->idname= "WM_OT_collada_import";
 	
-	ot->invoke= wm_collada_import_invoke;
+	ot->invoke= WM_operator_filesel;
 	ot->exec= wm_collada_import_exec;
 	ot->poll= WM_operator_winactive;
 	
-	ot->flag= 0;
-	
-	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_OPENFILE);
 }
 
 #endif
@@ -2077,7 +2073,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else if (event->type==EVT_MODAL_MAP) {
 		switch (event->val) {
-		case GESTURE_MODAL_BORDER_BEGIN:
+		case GESTURE_MODAL_BEGIN:
 			if(gesture->type==WM_GESTURE_CROSS_RECT && gesture->mode==0) {
 				gesture->mode= 1;
 				wm_gesture_tag_redraw(C);
@@ -2085,6 +2081,8 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		case GESTURE_MODAL_SELECT:
 		case GESTURE_MODAL_DESELECT:
+		case GESTURE_MODAL_IN:
+		case GESTURE_MODAL_OUT:
 			if(border_apply(C, op, event->val)) {
 				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED;
@@ -2439,6 +2437,112 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 	
 	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+}
+#endif
+
+/* *********************** straight line gesture ****************** */
+
+static int straightline_apply(bContext *C, wmOperator *op)
+{
+	wmGesture *gesture= op->customdata;
+	rcti *rect= gesture->customdata;
+	
+	if(rect->xmin==rect->xmax && rect->ymin==rect->ymax)
+		return 0;
+	
+	/* operator arguments and storage. */
+	RNA_int_set(op->ptr, "xstart", rect->xmin);
+	RNA_int_set(op->ptr, "ystart", rect->ymin);
+	RNA_int_set(op->ptr, "xend", rect->xmax);
+	RNA_int_set(op->ptr, "yend", rect->ymax);
+
+	if(op->type->exec)
+		op->type->exec(C, op);
+	
+	return 1;
+}
+
+
+int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	op->customdata= WM_gesture_new(C, event, WM_GESTURE_STRAIGHTLINE);
+	
+	/* add modal handler */
+	WM_event_add_modal_handler(C, op);
+	
+	wm_gesture_tag_redraw(C);
+	
+	if( RNA_struct_find_property(op->ptr, "cursor") )
+		WM_cursor_modal(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+		
+	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_gesture_straightline_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmGesture *gesture= op->customdata;
+	rcti *rect= gesture->customdata;
+	int sx, sy;
+	
+	if(event->type== MOUSEMOVE) {
+		wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
+		
+		if(gesture->mode==0) {
+			rect->xmin= rect->xmax= event->x - sx;
+			rect->ymin= rect->ymax= event->y - sy;
+		}
+		else {
+			rect->xmax= event->x - sx;
+			rect->ymax= event->y - sy;
+			straightline_apply(C, op);
+		}
+		
+		wm_gesture_tag_redraw(C);
+	}
+	else if (event->type==EVT_MODAL_MAP) {
+		switch (event->val) {
+			case GESTURE_MODAL_BEGIN:
+				if(gesture->mode==0) {
+					gesture->mode= 1;
+					wm_gesture_tag_redraw(C);
+				}
+				break;
+			case GESTURE_MODAL_SELECT:
+				if(straightline_apply(C, op)) {
+					wm_gesture_end(C, op);
+					return OPERATOR_FINISHED;
+				}
+				wm_gesture_end(C, op);
+				return OPERATOR_CANCELLED;
+				break;
+				
+			case GESTURE_MODAL_CANCEL:
+				wm_gesture_end(C, op);
+				return OPERATOR_CANCELLED;
+		}
+		
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+#if 0
+/* template to copy from */
+void WM_OT_straightline_gesture(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Straight Line Gesture";
+	ot->idname= "WM_OT_straightline_gesture";
+	ot->description="Draw a straight line as you move the pointer";
+	
+	ot->invoke= WM_gesture_straightline_invoke;
+	ot->modal= WM_gesture_straightline_modal;
+	ot->exec= gesture_straightline_exec;
+	
+	ot->poll= WM_operator_winactive;
+	
+	WM_operator_properties_gesture_straightline(ot, 0);
 }
 #endif
 
@@ -2858,7 +2962,7 @@ void wm_operatortype_init(void)
 
 }
 
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* circleselect-like modal operators */
 static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
@@ -2911,14 +3015,42 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 
 }
 
-/* called in transform_ops.c, on each regeneration of keymaps  */
+/* straight line modal operators */
+static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+		{GESTURE_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
+		{GESTURE_MODAL_SELECT,	"SELECT", 0, "Select", ""},
+		{GESTURE_MODAL_BEGIN,	"BEGIN", 0, "Begin", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Straight Line");
+	
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+	
+	keymap= WM_modalkeymap_add(keyconf, "Gesture Straight Line", modal_items);
+	
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+	
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_SELECT);
+	
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "IMAGE_OT_sample_line");
+}
+
+
+/* borderselect-like modal operators */
 static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{GESTURE_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
 	{GESTURE_MODAL_SELECT,	"SELECT", 0, "Select", ""},
 	{GESTURE_MODAL_DESELECT,"DESELECT", 0, "DeSelect", ""},
-	{GESTURE_MODAL_BORDER_BEGIN,	"BEGIN", 0, "Begin", ""},
+	{GESTURE_MODAL_BEGIN,	"BEGIN", 0, "Begin", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Border");
@@ -2932,14 +3064,14 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
 
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BORDER_BEGIN);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_SELECT);
 
 #if 0 // Durian guys like this
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_SHIFT, 0, GESTURE_MODAL_BORDER_BEGIN);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_SHIFT, 0, GESTURE_MODAL_BEGIN);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_SHIFT, 0, GESTURE_MODAL_DESELECT);
 #else
-	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BORDER_BEGIN);
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_DESELECT);
 #endif
 
@@ -2961,6 +3093,38 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border"); // XXX TODO: zoom border should perhaps map rightmouse to zoom out instead of in+cancel
+}
+
+/* zoom to border modal operators */
+static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+	{GESTURE_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+	{GESTURE_MODAL_IN,	"IN", 0, "In", ""},
+	{GESTURE_MODAL_OUT, "OUT", 0, "Out", ""},
+	{GESTURE_MODAL_BEGIN, "BEGIN", 0, "Begin", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Zoom Border");
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+
+	keymap= WM_modalkeymap_add(keyconf, "Gesture Zoom Border", modal_items);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_IN); 
+
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_OUT);
+
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -3050,6 +3214,8 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 
 	gesture_circle_modal_keymap(keyconf);
 	gesture_border_modal_keymap(keyconf);
+	gesture_zoom_border_modal_keymap(keyconf);
+	gesture_straightline_modal_keymap(keyconf);
 }
 
 /* Generic itemf's for operators that take library args */

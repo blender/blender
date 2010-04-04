@@ -53,7 +53,7 @@ int id_unlink(struct ID *id, int test);
 
 int new_id(struct ListBase *lb, struct ID *id, const char *name);
 
-struct ListBase *wich_libbase(struct Main *mainlib, short type);
+struct ListBase *which_libbase(struct Main *mainlib, short type);
 
 #define MAX_LIBARRAY	40
 int set_listbasepointers(struct Main *main, struct ListBase **lb);

@@ -310,6 +310,8 @@ static int get_file_icon(struct direntry *file)
 		return ICON_FILE_FONT;
 	else if (file->flags & BTXFILE) 
 		return ICON_FILE_BLANK;
+	else if (file->flags & COLLADAFILE) 
+		return ICON_FILE_BLANK;
 	else
 		return ICON_FILE_BLANK;
 }
@@ -540,10 +542,10 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		if (!(file->flags & EDITING)) {
 			if (params->active_file == i) {
-				if (file->flags & ACTIVE) colorid= TH_HILITE;
+				if (file->flags & ACTIVEFILE) colorid= TH_HILITE;
 				else colorid = TH_BACK;
 				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
-			} else if (file->flags & ACTIVE) {
+			} else if (file->flags & ACTIVEFILE) {
 				colorid = TH_HILITE;
 				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
 			} 

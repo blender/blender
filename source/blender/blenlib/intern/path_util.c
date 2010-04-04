@@ -791,34 +791,6 @@ char *BLI_gethome(void) {
 				}
 			}
 		}
-#if 0
-		ret = getenv("USERPROFILE");
-		if (ret) {
-			if (BLI_exists(ret)) { /* from fop, also below...  */
-				sprintf(dir, "%s\\Application Data\\Blender Foundation\\Blender", ret);
-				BLI_recurdir_fileops(dir);
-				if (BLI_exists(dir)) {
-					strcat(dir,"\\.blender");
-					if(BLI_exists(dir)) return(dir);
-				}
-			}
-		}
-#endif
-
-		/* 
-		   Saving in the Windows dir is less than desirable. 
-		   Use as a last resort ONLY! (aphex)
-		*/
-		
-		ret = getenv("WINDOWS");		
-		if (ret) {
-			if(BLI_exists(ret)) return ret;
-		}
-
-		ret = getenv("WINDIR");	
-		if (ret) {
-			if(BLI_exists(ret)) return ret;
-		}
 		
 		return "C:\\Temp";	/* sheesh! bad, bad, bad! (aphex) */
 	#endif

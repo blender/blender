@@ -127,6 +127,9 @@ typedef enum {
 #define EXTEND_LEFT		1
 #define EXTEND_RIGHT	2
 
+/* for scope resize zone */
+#define SCOPE_RESIZE_PAD	9
+
 typedef struct {
 	short xim, yim;
 	unsigned int *rect;
@@ -474,7 +477,7 @@ int ui_id_icon_get(struct bContext *C, struct ID *id, int preview);
 
 /* resources.c */
 void init_userdef_do_versions(void);
-void ui_theme_init_userdef(void);
+void ui_theme_init_default(void);
 void ui_resources_init(void);
 void ui_resources_free(void);
 

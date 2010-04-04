@@ -49,8 +49,8 @@ class MotionPathButtonsPanel(bpy.types.Panel):
             sub.prop(mps, "before_current", text="Before")
             sub.prop(mps, "after_current", text="After")
         elif (mps.type == 'RANGE'):
-            sub.prop(mps, "start_frame", text="Start")
-            sub.prop(mps, "end_frame", text="End")
+            sub.prop(mps, "frame_start", text="Start")
+            sub.prop(mps, "frame_end", text="End")
 
         sub.prop(mps, "frame_step", text="Step")
         if bones:
@@ -88,8 +88,8 @@ class OnionSkinButtonsPanel(bpy.types.Panel):
 
         sub = col.column(align=True)
         if arm.ghost_type == 'RANGE':
-            sub.prop(arm, "ghost_start_frame", text="Start")
-            sub.prop(arm, "ghost_end_frame", text="End")
+            sub.prop(arm, "ghost_frame_start", text="Start")
+            sub.prop(arm, "ghost_frame_end", text="End")
             sub.prop(arm, "ghost_size", text="Step")
         elif arm.ghost_type == 'CURRENT_FRAME':
             sub.prop(arm, "ghost_step", text="Range")

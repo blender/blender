@@ -59,7 +59,7 @@
 #include <stdio.h>
 
 /* for events */
-#define NOTACTIVE			0
+#define NOTACTIVEFILE			0
 #define ACTIVATE			1
 #define INACTIVATE			2
 
@@ -86,8 +86,8 @@ static void file_deselect_all(SpaceFile* sfile)
 
 	for ( i=0; i < numfiles; ++i) {
 		struct direntry* file = filelist_file(sfile->files, i);
-		if (file && (file->flags & ACTIVE)) {
-			file->flags &= ~ACTIVE;
+		if (file && (file->flags & ACTIVEFILE)) {
+			file->flags &= ~ACTIVEFILE;
 		}
 	}
 }
@@ -135,7 +135,7 @@ static FileSelect file_select(bContext* C, const rcti* rect, short selecting, sh
 
 	int numfiles = filelist_numfiles(sfile->files);
 	
-	params->selstate = NOTACTIVE;
+	params->selstate = NOTACTIVEFILE;
 	first_file = find_file_mouse(sfile, ar, 1, rect->xmin, rect->ymax);
 	last_file = find_file_mouse(sfile, ar, 1, rect->xmax, rect->ymin);
 	
@@ -147,15 +147,15 @@ static FileSelect file_select(bContext* C, const rcti* rect, short selecting, sh
 			struct direntry* file = filelist_file(sfile->files, act_file);
 			
 			if (toggle_one) {
-				if (file->flags & ACTIVE) {
-					file->flags &= ~ACTIVE;
+				if (file->flags & ACTIVEFILE) {
+					file->flags &= ~ACTIVEFILE;
 					selecting=0;
 				} else
-					file->flags |= ACTIVE;
+					file->flags |= ACTIVEFILE;
 			} else if (selecting) 
-				file->flags |= ACTIVE;
+				file->flags |= ACTIVEFILE;
 			else
-				file->flags &= ~ACTIVE;
+				file->flags &= ~ACTIVEFILE;
 		}
 	}
 
@@ -296,8 +296,8 @@ static int file_select_all_exec(bContext *C, wmOperator *op)
 	/* if any file is selected, deselect all first */
 	for ( i=0; i < numfiles; ++i) {
 		struct direntry* file = filelist_file(sfile->files, i);
-		if (file && (file->flags & ACTIVE)) {
-			file->flags &= ~ACTIVE;
+		if (file && (file->flags & ACTIVEFILE)) {
+			file->flags &= ~ACTIVEFILE;
 			select = 0;
 			ED_area_tag_redraw(sa);
 		}
@@ -307,7 +307,7 @@ static int file_select_all_exec(bContext *C, wmOperator *op)
 		for ( i=0; i < numfiles; ++i) {
 			struct direntry* file = filelist_file(sfile->files, i);
 			if(file && !S_ISDIR(file->type)) {
-				file->flags |= ACTIVE;
+				file->flags |= ACTIVEFILE;
 				ED_area_tag_redraw(sa);
 			}
 		}
@@ -543,7 +543,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			
 			for (i=0; i<filelist_numfiles(sfile->files); i++) {
 				file = filelist_file(sfile->files, i);
-				if(file->flags & ACTIVE) {
+				if(file->flags & ACTIVEFILE) {
 					active=1;
 				}
 			}
@@ -571,7 +571,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			if(RNA_struct_find_property(op->ptr, "files")) {
 				for (i=0; i<numfiles; i++) {
 					file = filelist_file(sfile->files, i);
-					if(file->flags & ACTIVE) {
+					if(file->flags & ACTIVEFILE) {
 						if ((file->type & S_IFDIR)==0) {
 							RNA_collection_add(op->ptr, "files", &itemptr);
 							RNA_string_set(&itemptr, "name", file->relname);
@@ -583,7 +583,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			if(RNA_struct_find_property(op->ptr, "dirs")) {
 				for (i=0; i<numfiles; i++) {
 					file = filelist_file(sfile->files, i);
-					if(file->flags & ACTIVE) {
+					if(file->flags & ACTIVEFILE) {
 						if ((file->type & S_IFDIR)) {
 							RNA_collection_add(op->ptr, "dirs", &itemptr);
 							RNA_string_set(&itemptr, "name", file->relname);

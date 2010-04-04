@@ -1142,11 +1142,15 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
 {
 	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
+	uiFontStyle *fstyle = &style->widget;
 	int startx= but->x1;
 	char *origstr;
 
-	uiStyleFontSet(&style->widget);
+	uiStyleFontSet(fstyle);
 
+	if (fstyle->kerning==1)	/* for BLF_width */
+		BLF_enable(BLF_KERNING_DEFAULT);
+	
 	origstr= MEM_callocN(sizeof(char)*data->maxlen, "ui_textedit origstr");
 	
 	BLI_strncpy(origstr, but->drawstr, data->maxlen);
@@ -1186,6 +1190,9 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		but->pos += but->ofs;
 		if(but->pos<0) but->pos= 0;
 	}
+	
+	if (fstyle->kerning == 1)
+		BLF_disable(BLF_KERNING_DEFAULT);
 	
 	MEM_freeN(origstr);
 }
@@ -1518,6 +1525,8 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	}
 	
 	ui_check_but(but);
+	
+	WM_cursor_modal(CTX_wm_window(C), BC_TEXTEDITCURSOR);
 }
 
 static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
@@ -1534,6 +1543,8 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 		but->editstr= NULL;
 		but->pos= -1;
 	}
+	
+	WM_cursor_restore(CTX_wm_window(C));
 }
 
 static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonData *data)
@@ -2073,10 +2084,13 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 		/* first handle click on icondrag type button */
 		if(event->type==LEFTMOUSE && but->dragpoin) {
 			if(ui_but_mouse_inside_icon(but, data->region, event)) {
+				
+				/* tell the button to wait and keep checking further events to
+				 * see if it should start dragging */
 				button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 				data->dragstartx= event->x;
 				data->dragstarty= event->y;
-				return WM_UI_HANDLER_BREAK;
+				return WM_UI_HANDLER_CONTINUE;
 			}
 		}
 		
@@ -2092,14 +2106,16 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 			return WM_UI_HANDLER_BREAK;
 		}
 		
-		/* pass on release as press for other keymaps XXX hack alert! */
+		/* If the mouse has been pressed and released, getting to 
+		 * this point without triggering a drag, then clear the 
+		 * drag state for this button and continue to pass on the event */
 		if(event->type==LEFTMOUSE && event->val==KM_RELEASE) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			event->val= KM_CLICK;
 			return WM_UI_HANDLER_CONTINUE;
 		}
 		
-		/* while wait drag, always block other events to get handled */
+		/* while waiting for a drag to be triggered, always block 
+		 * other events from getting handled */
 		return WM_UI_HANDLER_BREAK;
 	}
 	
@@ -2902,8 +2918,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 		float range;
 		
 		/* vertical 'value' strip */
-		hsv[2]= y; 
-		
+
 		/* exception only for value strip - use the range set in but->min/max */
 		range = but->softmax - but->softmin;
 		hsv[2] = y*range + but->softmin;
@@ -2914,7 +2929,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	}
 
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
-	ui_set_but_vectorf(but, rgb);
+	copy_v3_v3(data->vec, rgb);
 
 	data->draglastx= mx;
 	data->draglasty= my;
@@ -3445,6 +3460,12 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 	return WM_UI_HANDLER_CONTINUE;
 }
 
+static int in_histogram_resize_zone(uiBut *but, int x, int y)
+{
+	// bottom corner return (x > but->x2 - SCOPE_RESIZE_PAD) && (y < but->y1 + SCOPE_RESIZE_PAD);
+	return (y < but->y1 + SCOPE_RESIZE_PAD);
+}
+
 static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx, int my)
 {
 	Histogram *hist = (Histogram *)but->poin;
@@ -3458,10 +3479,17 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 	dx = mx - data->draglastx;
 	dy = my - data->draglasty;
 	
-	yfac = MIN2(powf(hist->ymax, 2.f), 1.f) * 0.5;
-	hist->ymax += dy * yfac;
 	
-	CLAMP(hist->ymax, 1.f, 100.f);
+	if (in_histogram_resize_zone(but, data->dragstartx, data->dragstarty)) {
+		 /* resize histogram widget itself */
+		hist->height = (but->y2 - but->y1) + (data->dragstarty - my);
+	} else {
+		/* scale histogram values */
+		yfac = MIN2(powf(hist->ymax, 2.f), 1.f) * 0.5;
+		hist->ymax += dy * yfac;
+	
+		CLAMP(hist->ymax, 1.f, 100.f);
+	}
 	
 	data->draglastx= mx;
 	data->draglasty= my;
@@ -4000,7 +4028,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			ui_but_drop	(C, event, but, data);
 		}
 		/* handle keyframing */
-		else if(event->type == IKEY && event->val == KM_PRESS) {
+		else if(event->type == IKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_delete_keyframe(C);
 			else
@@ -4011,7 +4039,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* handle drivers */
-		else if(event->type == DKEY && event->val == KM_PRESS) {
+		else if(event->type == DKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_remove_driver(C);
 			else
@@ -4022,7 +4050,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* handle keyingsets */
-		else if(event->type == KKEY && event->val == KM_PRESS) {
+		else if(event->type == KKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift) && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_remove_keyingset(C);
 			else
@@ -4417,7 +4445,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		but->flag |= UI_SELECT;
 		button_timers_tooltip_remove(C, but);
 	}
-
+	
 	/* text editing */
 	if(state == BUTTON_STATE_TEXT_EDITING && data->state != BUTTON_STATE_TEXT_SELECTING)
 		ui_textedit_begin(C, but, data);

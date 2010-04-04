@@ -1750,19 +1750,15 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 
 	if(seq->flag & SEQ_MAKE_FLOAT) {
 		if (!se->ibuf->rect_float) {
-			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
-				IMB_float_from_rect(se->ibuf);
-			} else {
-				int profile = IB_PROFILE_NONE;
-				
-				/* no color management:
-				 * don't disturb the existing profiles */
-				SWAP(int, se->ibuf->profile, profile);
+			int profile = IB_PROFILE_NONE;
+			
+			/* no color management:
+			 * don't disturb the existing profiles */
+			SWAP(int, se->ibuf->profile, profile);
 
-				IMB_float_from_rect(se->ibuf);
-				
-				SWAP(int, se->ibuf->profile, profile);
-			}
+			IMB_float_from_rect(se->ibuf);
+			
+			SWAP(int, se->ibuf->profile, profile);
 		}
 		if (se->ibuf->rect) {
 			imb_freerectImBuf(se->ibuf);

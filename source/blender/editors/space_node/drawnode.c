@@ -894,8 +894,8 @@ static void node_composit_buts_file_output(uiLayout *layout, bContext *C, Pointe
 	}
 	
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "start_frame", 0, "Start", 0);
-	uiItemR(row, ptr, "end_frame", 0, "End", 0);
+	uiItemR(row, ptr, "frame_start", 0, "Start", 0);
+	uiItemR(row, ptr, "frame_end", 0, "End", 0);
 }
 
 static void node_composit_buts_scale(uiLayout *layout, bContext *C, PointerRNA *ptr)

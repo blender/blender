@@ -320,13 +320,13 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blending", "Method used for combining strip's result with accumulated result");
 	
 	/* Strip extents */
-	prop= RNA_def_property(srna, "start_frame", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "start");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update");
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "end");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "");
@@ -354,12 +354,12 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Action", "Action referenced by this strip");
 	
 	/* Action extents */
-	prop= RNA_def_property(srna, "action_start_frame", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "action_frame_start", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "actstart");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_action_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Action Start Frame", "");
 	
-	prop= RNA_def_property(srna, "action_end_frame", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "action_frame_end", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "actend");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_action_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Action End Frame", "");

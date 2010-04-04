@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -63,10 +64,10 @@ static Key *rna_ShapeKey_find_key(ID *id)
 void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 {
 	KeyBlock *kb= ptr->data;
-	char oldname[32];
+	char oldname[sizeof(kb->name)];
 	
 	/* make a copy of the old name first */
-	BLI_strncpy(oldname, kb->name, sizeof(oldname));
+	BLI_strncpy(oldname, kb->name, sizeof(kb->name));
 	
 	/* copy the new name into the name slot */
 	BLI_strncpy(kb->name, value, sizeof(kb->name));
@@ -74,7 +75,7 @@ void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 	/* make sure the name is truly unique */
 	if (ptr->id.data) {
 		Key *key= rna_ShapeKey_find_key(ptr->id.data);
-		BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), 32);
+		BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), sizeof(kb->name));
 	}
 	
 	/* fix all the animation data which may link to this */
@@ -96,30 +97,49 @@ static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max)
 	*max= data->slidermax;
 }
 
-static PointerRNA rna_ShapeKey_relative_key_get(PointerRNA *ptr)
+PointerRNA rna_object_shapekey_index_get(ID *id, int value)
 {
-	Key *key= rna_ShapeKey_find_key(ptr->id.data);
-	KeyBlock *kb= (KeyBlock*)ptr->data, *kbrel;
+	Key *key= rna_ShapeKey_find_key(id);
+	KeyBlock *kb= NULL;
+	PointerRNA ptr;
 	int a;
 
-	if(key && kb->relative < key->totkey)
-		for(a=0, kbrel=key->block.first; kbrel; kbrel=kbrel->next, a++)
-			if(a == kb->relative)
-				return rna_pointer_inherit_refine(ptr, &RNA_ShapeKey, kbrel);
+	if(key && value < key->totkey)
+		for(a=0, kb=key->block.first; kb; kb=kb->next, a++)
+			if(a == value)
+				break;
+	
+	RNA_pointer_create(id, &RNA_ShapeKey, kb, &ptr);
 
-	return rna_pointer_inherit_refine(ptr, NULL, NULL);
+	return ptr;
+}
+
+int rna_object_shapekey_index_set(ID *id, PointerRNA value, int current)
+{
+	Key *key= rna_ShapeKey_find_key(id);
+	KeyBlock *kb;
+	int a;
+
+	if(key)
+		for(a=0, kb=key->block.first; kb; kb=kb->next, a++)
+			if(kb == value.data)
+				return a;
+	
+	return current;
+}
+
+static PointerRNA rna_ShapeKey_relative_key_get(PointerRNA *ptr)
+{
+	KeyBlock *kb= (KeyBlock*)ptr->data;
+
+	return rna_object_shapekey_index_get(ptr->id.data, kb->relative);
 }
 
 static void rna_ShapeKey_relative_key_set(PointerRNA *ptr, PointerRNA value)
 {
-	Key *key= rna_ShapeKey_find_key(ptr->id.data);
-	KeyBlock *kb= (KeyBlock*)ptr->data, *kbrel;
-	int a;
+	KeyBlock *kb= (KeyBlock*)ptr->data;
 
-	if(key)
-		for(a=0, kbrel=key->block.first; kbrel; kbrel=kbrel->next, a++)
-			if(kbrel == value.data)
-				kb->relative= a;
+	kb->relative= rna_object_shapekey_index_set(ptr->id.data, value, kb->relative);
 }
 
 static void rna_ShapeKeyPoint_co_get(PointerRNA *ptr, float *values)

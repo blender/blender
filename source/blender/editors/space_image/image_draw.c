@@ -77,18 +77,14 @@ static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf,
 	*/
 
 	if(ibuf->rect_float && ibuf->rect==NULL) {
-		BLI_lock_thread(LOCK_CUSTOM1);
-		if(ibuf->rect_float && ibuf->rect==NULL) {
-			if(color_manage) {
-					if(ima && ima->source == IMA_SRC_VIEWER)
-						ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			}
-			else
-				ibuf->profile = IB_PROFILE_NONE;
-
-			IMB_rect_from_float(ibuf);
+		if(color_manage) {
+			if(ima && ima->source == IMA_SRC_VIEWER)
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 		}
-		BLI_unlock_thread(LOCK_CUSTOM1);
+		else
+			ibuf->profile = IB_PROFILE_NONE;
+
+		IMB_rect_from_float(ibuf);
 	}
 }
 
@@ -156,17 +152,6 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	glColor3ub(255, 255, 255);
 	
 	UI_DrawString(10, 10, str);
-}
-
-void draw_image_line(struct ARegion *ar, int x1, int y1, int x2, int y2)
-{
-	glColor3ub(0,0,0);
-	glBegin(GL_LINES);
-	
-	glVertex2i(x1, y1);
-	glVertex2i(x2, y2);
-	
-	glEnd();
 }
 
 /* image drawing */

@@ -186,6 +186,8 @@ int WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2){ret
 
 
 /* rna editors */
+int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag){return 0;}
+void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc){}
 struct KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[]){return (struct KeyingSetInfo *) NULL;}
 struct KeyingSet *ANIM_scene_get_active_keyingset (struct Scene *scene){return (struct KeyingSet *) NULL;}
 int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks){return 0;}
@@ -241,6 +243,7 @@ struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, char *name){return (s
 void ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum, float weight, int assignmode){}
 void ED_sequencer_update_view(struct bContext *C, int view){}
 float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.0f;}
+void ED_space_image_size(struct SpaceImage *sima, int *width, int *height){}
 
 void EM_selectmode_set(struct EditMesh *em){}
 void make_editMesh(struct Scene *scene, struct Object *ob){}

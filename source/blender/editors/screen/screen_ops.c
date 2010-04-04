@@ -199,12 +199,12 @@ int ED_operator_logic_active(bContext *C)
 
 int ED_operator_object_active(bContext *C)
 {
-	return NULL != CTX_data_active_object(C);
+	return NULL != ED_object_active_context(C);
 }
 
 int ED_operator_object_active_editable(bContext *C)
 {
-	Object *ob=CTX_data_active_object(C);
+	Object *ob = ED_object_active_context(C);
 	return ((ob != NULL) && !(ob->id.lib));
 }
 
@@ -2601,9 +2601,9 @@ static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
 		/* call the other "toggling" operator to clean up now */
-		return screen_animation_play_invoke(C, op, event);
+		ED_screen_animation_play(C, 0, 0);
 	}
-	
+
 	return OPERATOR_PASS_THROUGH;
 }
 

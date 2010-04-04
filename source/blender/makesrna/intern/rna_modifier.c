@@ -176,10 +176,10 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 {
 	ModifierData *md= ptr->data;
-	char oldname[32];
+	char oldname[sizeof(md->name)];
 	
 	/* make a copy of the old name first */
-	BLI_strncpy(oldname, md->name, sizeof(oldname));
+	BLI_strncpy(oldname, md->name, sizeof(md->name));
 	
 	/* copy the new name into the name slot */
 	BLI_strncpy(md->name, value, sizeof(md->name));
@@ -1317,18 +1317,32 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "horizontal_aspect_ratio", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "aspect_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aspectx");
 	RNA_def_property_range(prop, 1, FLT_MAX);
-	RNA_def_property_ui_range(prop, 1, 1000, 100, 2);
+	RNA_def_property_ui_range(prop, 1, 1000, 0.2, 2);
 	RNA_def_property_ui_text(prop, "Horizontal Aspect Ratio", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "vertical_aspect_ratio", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "aspect_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aspecty");
 	RNA_def_property_range(prop, 1, FLT_MAX);
-	RNA_def_property_ui_range(prop, 1, 1000, 100, 2);
+	RNA_def_property_ui_range(prop, 1, 1000, 0.2, 2);
 	RNA_def_property_ui_text(prop, "Vertical Aspect Ratio", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
+	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "scalex");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1000, 0.2, 2);
+	RNA_def_property_ui_text(prop, "Horizontal Scale", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "scaley");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1000, 0.2, 2);
+	RNA_def_property_ui_text(prop, "Vertical Scale", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "override_image", PROP_BOOLEAN, PROP_NONE);
@@ -1473,10 +1487,12 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+#if 0
 	static EnumPropertyItem prop_mode_items[] = {
 		{0, "VOLUME", 0, "Volume", "Bind to volume inside cage mesh"},
 		{1, "SURFACE", 0, "Surface", "Bind to surface of cage mesh"},
 		{0, NULL, 0, NULL, NULL}};
+#endif
 
 	srna= RNA_def_struct(brna, "MeshDeformModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "MeshDeform Modifier", "Mesh deformation modifier to deform with other meshes");
@@ -1516,10 +1532,12 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dynamic", "Recompute binding dynamically on top of other deformers (slower and more memory consuming.)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+#if 0
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Method of binding vertices are bound to cage mesh");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+#endif
 }
 
 static void rna_def_modifier_particlesystem(BlenderRNA *brna)
@@ -2026,11 +2044,18 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SolidifyModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_SOLIDIFY);
 
-	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "thickness", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of the shell");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "offset_fac");
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -1, 1, 0.1, 4);
+	RNA_def_property_ui_text(prop, "Offset", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "edge_crease_inner", PROP_FLOAT, PROP_FACTOR);
@@ -2075,6 +2100,10 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "High Quality Normals", "Calculate normals which result in more even thickness (slow, disable when not needed)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop= RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_VGROUP_INV);
+	RNA_def_property_ui_text(prop, "Vertex Group Invert", "Invert the vertex group influence");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_screw(BlenderRNA *brna)
