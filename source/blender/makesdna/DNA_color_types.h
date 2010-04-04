@@ -97,8 +97,10 @@ typedef struct Histogram {
 	float data_g[256];
 	float data_b[256];
 	float xmax, ymax;
+	int height;
 	int ok;
 	int flag;
+	int pad;
 } Histogram;
 
 #endif

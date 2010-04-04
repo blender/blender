@@ -154,17 +154,6 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	UI_DrawString(10, 10, str);
 }
 
-void draw_image_line(struct ARegion *ar, int x1, int y1, int x2, int y2)
-{
-	glColor3ub(0,0,0);
-	glBegin(GL_LINES);
-	
-	glVertex2i(x1, y1);
-	glVertex2i(x2, y2);
-	
-	glEnd();
-}
-
 /* image drawing */
 
 static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)

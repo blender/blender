@@ -3460,6 +3460,12 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 	return WM_UI_HANDLER_CONTINUE;
 }
 
+static int in_histogram_resize_zone(uiBut *but, int x, int y)
+{
+	// bottom corner return (x > but->x2 - SCOPE_RESIZE_PAD) && (y < but->y1 + SCOPE_RESIZE_PAD);
+	return (y < but->y1 + SCOPE_RESIZE_PAD);
+}
+
 static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx, int my)
 {
 	Histogram *hist = (Histogram *)but->poin;
@@ -3473,10 +3479,17 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 	dx = mx - data->draglastx;
 	dy = my - data->draglasty;
 	
-	yfac = MIN2(powf(hist->ymax, 2.f), 1.f) * 0.5;
-	hist->ymax += dy * yfac;
 	
-	CLAMP(hist->ymax, 1.f, 100.f);
+	if (in_histogram_resize_zone(but, data->dragstartx, data->dragstarty)) {
+		 /* resize histogram widget itself */
+		hist->height = (but->y2 - but->y1) + (data->dragstarty - my);
+	} else {
+		/* scale histogram values */
+		yfac = MIN2(powf(hist->ymax, 2.f), 1.f) * 0.5;
+		hist->ymax += dy * yfac;
+	
+		CLAMP(hist->ymax, 1.f, 100.f);
+	}
 	
 	data->draglastx= mx;
 	data->draglasty= my;
@@ -4432,7 +4445,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		but->flag |= UI_SELECT;
 		button_timers_tooltip_remove(C, but);
 	}
-
+	
 	/* text editing */
 	if(state == BUTTON_STATE_TEXT_EDITING && data->state != BUTTON_STATE_TEXT_SELECTING)
 		ui_textedit_begin(C, but, data);

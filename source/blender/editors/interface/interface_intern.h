@@ -127,6 +127,9 @@ typedef enum {
 #define EXTEND_LEFT		1
 #define EXTEND_RIGHT	2
 
+/* for scope resize zone */
+#define SCOPE_RESIZE_PAD	9
+
 typedef struct {
 	short xim, yim;
 	unsigned int *rect;

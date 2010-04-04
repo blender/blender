@@ -1589,7 +1589,9 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, char *propname, int 
 	
 	hist = (Histogram *)cptr.data;
 	
-	bt= uiDefBut(block, HISTOGRAM, 0, "",		rect.xmin, rect.ymin, rect.xmax-rect.xmin, 100.0f, hist, 0, 0, 0, 0, "");
+	hist->height= (hist->height==0)?100:hist->height;
+	
+	bt= uiDefBut(block, HISTOGRAM, 0, "",		rect.xmin, rect.ymin, rect.xmax-rect.xmin, hist->height, hist, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 	
 	MEM_freeN(cb);
