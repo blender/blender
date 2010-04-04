@@ -114,11 +114,20 @@ typedef struct ParticleData {
 	short alive;			/* the life state of a particle */
 } ParticleData;
 
+typedef struct SPHFluidSettings {
+	/*Particle Fluid*/
+	float spring_k, radius, rest_length;
+	float viscosity_omega, viscosity_beta;
+	float stiffness_k, stiffness_knear, rest_density;
+	float buoyancy;
+} SPHFluidSettings;
+
 typedef struct ParticleSettings {
 	ID id;
 	struct AnimData *adt;
 
 	struct BoidSettings *boids;
+	struct SPHFluidSettings *fluid;
 
 	struct EffectorWeights *effector_weights;
 
@@ -322,6 +331,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_PHYS_NEWTON	1
 #define PART_PHYS_KEYED		2
 #define PART_PHYS_BOIDS		3
+#define PART_PHYS_FLUID		4
 
 /* part->kink */
 #define PART_KINK_NO		0

@@ -355,6 +355,12 @@ int psys_uses_gravity(ParticleSimulationData *sim)
 /************************************************/
 /*			Freeing stuff						*/
 /************************************************/
+void fluid_free_settings(SPHFluidSettings *fluid)
+{
+	if(fluid)
+		MEM_freeN(fluid); 
+}
+
 void psys_free_settings(ParticleSettings *part)
 {
 	BKE_free_animdata(&part->id);
@@ -367,6 +373,7 @@ void psys_free_settings(ParticleSettings *part)
 	BLI_freelistN(&part->dupliweights);
 
 	boid_free_settings(part->boids);
+	fluid_free_settings(part->fluid);
 }
 
 void free_hair(Object *ob, ParticleSystem *psys, int dynamics)

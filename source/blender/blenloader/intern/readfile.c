@@ -3038,6 +3038,7 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	link_list(fd, &part->dupliweights);
 
 	part->boids= newdataadr(fd, part->boids);
+	part->fluid= newdataadr(fd, part->fluid);
 
 	if(part->boids) {
 		BoidState *state;

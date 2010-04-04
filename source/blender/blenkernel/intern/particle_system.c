@@ -24,7 +24,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Raul Fernandez Hernandez (Farsthary), Stephen Swhitehorn.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -2270,6 +2270,137 @@ static void psys_update_effectors(ParticleSimulationData *sim)
 	precalc_guides(sim, sim->psys->effectors);
 }
 
+/*************************************************
+                    SPH fluid physics 
+
+ In theory, there could be unlimited implementation
+                    of SPH simulators
+**************************************************/
+void particle_fluidsim(ParticleSystem *psys, ParticleData *pa, ParticleSettings *part, ParticleSimulationData *sim, float dfra, float cfra, float mass){
+/****************************************************************************************************************
+* 	This code uses in some parts adapted algorithms from the pseduo code as outlined in the Research paper
+*	Titled: Particle-based Viscoelastic Fluid Simulation.
+* 	Authors: Simon Clavet, Philippe Beaudoin and Pierre Poulin
+*
+*	Website: http://www.iro.umontreal.ca/labs/infographie/papers/Clavet-2005-PVFS/
+*	Presented at Siggraph, (2005)
+*
+*****************************************************************************************************************/
+	KDTree *tree = psys->tree;
+	KDTreeNearest *ptn = NULL;
+	
+	SPHFluidSettings *fluid = part->fluid;
+	ParticleData *second_particle;
+
+	float start[3], end[3], v[3];
+	float temp[3];
+	float q, radius, D;
+	float p, pnear, pressure_near, pressure;
+	float dtime = dfra * psys_get_timestep(sim);
+	float omega = fluid->viscosity_omega;
+	float beta = fluid->viscosity_omega;
+	float massfactor = 1.0f/mass;
+	int n, neighbours;
+
+		
+	radius 	= fluid->radius;
+
+	VECCOPY(start, pa->prev_state.co);
+	VECCOPY(end, pa->state.co);
+
+	sub_v3_v3v3(v, end, start);
+	mul_v3_fl(v, 1.f/dtime);
+
+	neighbours = BLI_kdtree_range_search(tree, radius, start, NULL, &ptn);
+
+	/* use ptn[n].co to store relative direction */
+	for(n=1; n<neighbours; n++) {
+		sub_v3_v3(ptn[n].co, start);
+		normalize_v3(ptn[n].co);
+	}
+        
+	/* Viscosity - Algorithm 5  */
+	if (omega > 0.f || beta > 0.f) {
+		float u, I;
+
+		for(n=1; n<neighbours; n++) {
+			second_particle = psys->particles + ptn[n].index;
+			q = ptn[n].dist/radius;
+			
+			sub_v3_v3v3(temp, v, second_particle->prev_state.vel);
+			
+			u = dot_v3v3(ptn[n].co, temp);
+
+			if (u > 0){
+				I = dtime * ((1-q) * (omega * u + beta * u*u)) * 0.5f;
+				madd_v3_v3fl(v, ptn[n].co, -I * massfactor);
+			} 
+		}	
+	}
+
+	/* Hooke's spring force  */
+	if (fluid->spring_k > 0.f) {
+		float D, L = fluid->rest_length;
+		for(n=1; n<neighbours; n++) {
+			/* L is a factor of radius */
+			D = dtime * 10.f * fluid->spring_k * (1.f - L) * (L - ptn[n].dist/radius);
+			madd_v3_v3fl(v, ptn[n].co, -D * massfactor);
+		}
+	}
+	/* Update particle position */	
+	VECADDFAC(end, start, v, dtime);
+
+	/* Double Density Relaxation - Algorithm 2 */
+	p = 0;
+	pnear = 0;
+	for(n=1; n<neighbours; n++) {
+		q = ptn[n].dist/radius;
+		p += ((1-q)*(1-q));
+		pnear += ((1-q)*(1-q)*(1-q));
+	}
+	p *= part->mass;
+	pnear *= part->mass;
+	pressure =  fluid->stiffness_k * (p - fluid->rest_density);
+	pressure_near = fluid->stiffness_knear * pnear;
+
+	for(n=1; n<neighbours; n++) {
+		q = ptn[n].dist/radius;
+
+		D =  dtime * dtime * (pressure*(1-q) + pressure_near*(1-q)*(1-q))* 0.5f;
+		madd_v3_v3fl(end, ptn[n].co, -D * massfactor);
+	} 	
+
+	/* Artificial buoyancy force in negative gravity direction  */
+	if (fluid->buoyancy >= 0.f && psys_uses_gravity(sim)) {
+		float B = -dtime * dtime * fluid->buoyancy * (p - fluid->rest_density) * 0.5f;
+		madd_v3_v3fl(end, sim->scene->physics_settings.gravity, -B * massfactor);
+	}
+
+	/* apply final result and recalculate velocity */
+	VECCOPY(pa->state.co, end);
+	sub_v3_v3v3(pa->state.vel, end, start);
+	mul_v3_fl(pa->state.vel, 1.f/dtime);
+
+	if(ptn){ MEM_freeN(ptn); ptn=NULL;}
+}
+
+static void apply_particle_fluidsim(ParticleSystem *psys, ParticleData *pa, ParticleSettings *part, ParticleSimulationData *sim, float dfra, float cfra){
+	ParticleTarget *pt;
+	float dtime = dfra*psys_get_timestep(sim);
+	float particle_mass = part->mass;
+
+	particle_fluidsim(psys, pa, part, sim, dfra, cfra, particle_mass);
+	
+	/*----check other SPH systems (Multifluids) , each fluid has its own parameters---*/
+	for(pt=sim->psys->targets.first; pt; pt=pt->next) {
+		ParticleSystem *epsys = psys_get_target_system(sim->ob, pt);
+
+		if(epsys)
+			particle_fluidsim(epsys, pa, epsys->part, sim, dfra, cfra, particle_mass);
+	}
+	/*----------------------------------------------------------------*/	 	 
+}
+
 /************************************************/
 /*			Newtonian physics					*/
 /************************************************/
@@ -2799,7 +2930,7 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				deflections=max_deflections;
 			}
 			else {
-				float nor_vec[3], tan_vec[3], tan_vel[3], vel[3];
+				float nor_vec[3], tan_vec[3], tan_vel[3];
 				float damp, frict;
 				float inp, inp_v;
 				
@@ -3248,6 +3379,14 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				psys_update_particle_tree(BLI_findlink(&pt->ob->particlesystem, pt->psys-1), cfra);
 		}
 	}
+	else if(part->phystype==PART_PHYS_FLUID){
+		ParticleTarget *pt = psys->targets.first;
+		psys_update_particle_tree(psys, cfra);
+		
+		for(; pt; pt=pt->next) {  /* Updating others systems particle tree for fluid-fluid interaction */
+			if(pt->ob) psys_update_particle_tree(BLI_findlink(&pt->ob->particlesystem, pt->psys-1), cfra);
+		}
+	}
 
 	/* main loop: calculate physics for all particles */
 	LOOP_SHOWN_PARTICLES {
@@ -3318,6 +3457,22 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 					}
 					break;
 				}
+				case PART_PHYS_FLUID:
+				{	
+					/* do global forces & effectors */
+					apply_particle_forces(sim, p, pa_dfra, cfra);
+
+					/* do fluid sim */
+					apply_particle_fluidsim(psys, pa, part, sim, pa_dfra, cfra);
+
+					/* deflection */
+ 					if(sim->colliders)
+						deflect_particle(sim, p, pa_dfra, cfra);
+ 					
+					/* rotations, SPH particles are not physical particles, just interpolation particles,  thus rotation has not a direct sense for them */	
+					rotate_particle(part, pa, pa_dfra, timestep);  
+ 					break;
+				} 
 			}
 
 			if(pa->alive == PARS_DYING){
@@ -3727,6 +3882,21 @@ void psys_check_boid_data(ParticleSystem *psys)
 				pa->boid = NULL;
 		}
 }
+
+static void fluid_default_settings(ParticleSettings *part){
+	SPHFluidSettings *fluid = part->fluid;
+
+	fluid->radius = 0.5f;
+	fluid->spring_k = 0.f;
+	fluid->rest_length = 0.5f;
+	fluid->viscosity_omega = 2.f;
+	fluid->viscosity_beta = 0.f;
+	fluid->stiffness_k = 0.1f;
+	fluid->stiffness_knear = 0.05f;
+	fluid->rest_density = 10.f;
+	fluid->buoyancy = 0.f;
+}
+
 static void psys_changed_physics(ParticleSimulationData *sim)
 {
 	ParticleSettings *part = sim->psys->part;
@@ -3755,6 +3925,10 @@ static void psys_changed_physics(ParticleSimulationData *sim)
 
 		state->flag |= BOIDSTATE_CURRENT;
 		BLI_addtail(&part->boids->states, state);
+	}
+	else if(part->phystype == PART_PHYS_FLUID && part->fluid == NULL) {
+		part->fluid = MEM_callocN(sizeof(SPHFluidSettings), "SPH Fluid Settings");
+		fluid_default_settings(part);
 	}
 
 	psys_check_boid_data(sim->psys);
