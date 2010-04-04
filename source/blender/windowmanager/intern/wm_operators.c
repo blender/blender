@@ -848,6 +848,17 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
 		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 }
 
+void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
+{
+	RNA_def_int(ot->srna, "xstart", 0, INT_MIN, INT_MAX, "X Start", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xend", 0, INT_MIN, INT_MAX, "X End", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ystart", 0, INT_MIN, INT_MAX, "Y Start", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "yend", 0, INT_MIN, INT_MAX, "Y End", "", INT_MIN, INT_MAX);
+	
+	if(cursor)
+		RNA_def_int(ot->srna, "cursor", cursor, 0, INT_MAX, "Cursor", "Mouse cursor style to use during the modal operator", 0, INT_MAX);
+}
+
 
 /* op->poll */
 int WM_operator_winactive(bContext *C)
@@ -2062,7 +2073,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else if (event->type==EVT_MODAL_MAP) {
 		switch (event->val) {
-		case GESTURE_MODAL_BORDER_BEGIN:
+		case GESTURE_MODAL_BEGIN:
 			if(gesture->type==WM_GESTURE_CROSS_RECT && gesture->mode==0) {
 				gesture->mode= 1;
 				wm_gesture_tag_redraw(C);
@@ -2426,6 +2437,112 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 	
 	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+}
+#endif
+
+/* *********************** straight line gesture ****************** */
+
+static int straightline_apply(bContext *C, wmOperator *op)
+{
+	wmGesture *gesture= op->customdata;
+	rcti *rect= gesture->customdata;
+	
+	if(rect->xmin==rect->xmax && rect->ymin==rect->ymax)
+		return 0;
+	
+	/* operator arguments and storage. */
+	RNA_int_set(op->ptr, "xstart", rect->xmin);
+	RNA_int_set(op->ptr, "ystart", rect->ymin);
+	RNA_int_set(op->ptr, "xend", rect->xmax);
+	RNA_int_set(op->ptr, "yend", rect->ymax);
+
+	if(op->type->exec)
+		op->type->exec(C, op);
+	
+	return 1;
+}
+
+
+int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	op->customdata= WM_gesture_new(C, event, WM_GESTURE_STRAIGHTLINE);
+	
+	/* add modal handler */
+	WM_event_add_modal_handler(C, op);
+	
+	wm_gesture_tag_redraw(C);
+	
+	if( RNA_struct_find_property(op->ptr, "cursor") )
+		WM_cursor_modal(CTX_wm_window(C), RNA_int_get(op->ptr, "cursor"));
+		
+	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_gesture_straightline_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmGesture *gesture= op->customdata;
+	rcti *rect= gesture->customdata;
+	int sx, sy;
+	
+	if(event->type== MOUSEMOVE) {
+		wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
+		
+		if(gesture->mode==0) {
+			rect->xmin= rect->xmax= event->x - sx;
+			rect->ymin= rect->ymax= event->y - sy;
+		}
+		else {
+			rect->xmax= event->x - sx;
+			rect->ymax= event->y - sy;
+			straightline_apply(C, op);
+		}
+		
+		wm_gesture_tag_redraw(C);
+	}
+	else if (event->type==EVT_MODAL_MAP) {
+		switch (event->val) {
+			case GESTURE_MODAL_BEGIN:
+				if(gesture->mode==0) {
+					gesture->mode= 1;
+					wm_gesture_tag_redraw(C);
+				}
+				break;
+			case GESTURE_MODAL_SELECT:
+				if(straightline_apply(C, op)) {
+					wm_gesture_end(C, op);
+					return OPERATOR_FINISHED;
+				}
+				wm_gesture_end(C, op);
+				return OPERATOR_CANCELLED;
+				break;
+				
+			case GESTURE_MODAL_CANCEL:
+				wm_gesture_end(C, op);
+				return OPERATOR_CANCELLED;
+		}
+		
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+#if 0
+/* template to copy from */
+void WM_OT_straightline_gesture(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Straight Line Gesture";
+	ot->idname= "WM_OT_straightline_gesture";
+	ot->description="Draw a straight line as you move the pointer";
+	
+	ot->invoke= WM_gesture_straightline_invoke;
+	ot->modal= WM_gesture_straightline_modal;
+	ot->exec= gesture_straightline_exec;
+	
+	ot->poll= WM_operator_winactive;
+	
+	WM_operator_properties_gesture_straightline(ot, 0);
 }
 #endif
 
@@ -2898,6 +3015,34 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 
 }
 
+/* straight line modal operators */
+static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+		{GESTURE_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
+		{GESTURE_MODAL_SELECT,	"SELECT", 0, "Select", ""},
+		{GESTURE_MODAL_BEGIN,	"BEGIN", 0, "Begin", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Straight Line");
+	
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+	
+	keymap= WM_modalkeymap_add(keyconf, "Gesture Straight Line", modal_items);
+	
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
+	
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_SELECT);
+	
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "IMAGE_OT_sample_line");
+}
+
+
 /* borderselect-like modal operators */
 static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -2905,7 +3050,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	{GESTURE_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
 	{GESTURE_MODAL_SELECT,	"SELECT", 0, "Select", ""},
 	{GESTURE_MODAL_DESELECT,"DESELECT", 0, "DeSelect", ""},
-	{GESTURE_MODAL_BORDER_BEGIN,	"BEGIN", 0, "Begin", ""},
+	{GESTURE_MODAL_BEGIN,	"BEGIN", 0, "Begin", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Border");
@@ -2919,14 +3064,14 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
 
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BORDER_BEGIN);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_SELECT);
 
 #if 0 // Durian guys like this
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_SHIFT, 0, GESTURE_MODAL_BORDER_BEGIN);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_SHIFT, 0, GESTURE_MODAL_BEGIN);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_SHIFT, 0, GESTURE_MODAL_DESELECT);
 #else
-	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BORDER_BEGIN);
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_DESELECT);
 #endif
 
@@ -2957,7 +3102,7 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 	{GESTURE_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 	{GESTURE_MODAL_IN,	"IN", 0, "In", ""},
 	{GESTURE_MODAL_OUT, "OUT", 0, "Out", ""},
-	{GESTURE_MODAL_BORDER_BEGIN, "BEGIN", 0, "Begin", ""},
+	{GESTURE_MODAL_BEGIN, "BEGIN", 0, "Begin", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Zoom Border");
@@ -2971,10 +3116,10 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
 
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BORDER_BEGIN);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_IN); 
 
-	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BORDER_BEGIN);
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_OUT);
 
 	/* assign map to operators */
@@ -3070,6 +3215,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	gesture_circle_modal_keymap(keyconf);
 	gesture_border_modal_keymap(keyconf);
 	gesture_zoom_border_modal_keymap(keyconf);
+	gesture_straightline_modal_keymap(keyconf);
 }
 
 /* Generic itemf's for operators that take library args */

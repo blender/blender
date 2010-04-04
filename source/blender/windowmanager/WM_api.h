@@ -225,6 +225,7 @@ void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperato
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action);
 void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int extend);
+void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 
 /* MOVE THIS SOMEWHERE ELSE */
@@ -253,6 +254,8 @@ int			WM_gesture_lines_invoke(struct bContext *C, struct wmOperator *op, struct 
 int			WM_gesture_lines_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_lasso_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_lasso_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_straightline_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_straightline_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 
 			/* default operator for arearegions, generates event */
 void		WM_OT_tweak_gesture(struct wmOperatorType *ot);
