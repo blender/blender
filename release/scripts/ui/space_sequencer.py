@@ -245,21 +245,24 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
         if strip:
             stype = strip.type
-
-            if	stype == 'EFFECT':
-                layout.separator()
-                layout.operator("sequencer.effect_change")
-                layout.operator("sequencer.effect_reassign_inputs")
+            
+            # XXX note strip.type is never equal to 'EFFECT', look at seq_type_items within rna_sequencer.c
+            if stype == 'EFFECT':
+                pass
+                # layout.separator()
+                # layout.operator("sequencer.effect_change")
+                # layout.operator("sequencer.effect_reassign_inputs")
             elif stype == 'IMAGE':
                 layout.separator()
                 # layout.operator("sequencer.image_change")
                 layout.operator("sequencer.rendersize")
             elif stype == 'SCENE':
-                layout.separator()
-                layout.operator("sequencer.scene_change", text="Change Scene")
+                pass
+                # layout.separator()
+                # layout.operator("sequencer.scene_change", text="Change Scene")
             elif stype == 'MOVIE':
                 layout.separator()
-                layout.operator("sequencer.movie_change")
+                # layout.operator("sequencer.movie_change")
                 layout.operator("sequencer.rendersize")
 
         layout.separator()
