@@ -1429,6 +1429,7 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->tv3d.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
 			SETCOL(btheme->tv3d.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
 			SETCOL(btheme->tv3d.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+			SETCOL(btheme->tv3d.act_spline, 0xdb, 0x25, 0x12, 255);
 			
 			/* same colors again for Graph Editor... */
 			SETCOL(btheme->tipo.handle_free, 0, 0, 0, 255);
