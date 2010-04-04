@@ -1286,6 +1286,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
 #define B_MATPRV 1
@@ -1304,8 +1305,11 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent, MTex *slot)
 	uiLayout *row, *col;
 	uiBlock *block;
 	Material *ma= NULL;
+	Tex *tex = (Tex*)id;
 	ID *pid, *pparent;
 	short *pr_texture= NULL;
+	PointerRNA material_ptr;
+	PointerRNA texture_ptr;
 
 	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
 		printf("uiTemplatePreview: expected ID of type material, texture, lamp or world.\n");
@@ -1348,20 +1352,20 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent, MTex *slot)
 		if(GS(pid->name) == ID_MA || (pparent && GS(pparent->name) == ID_MA)) {
 			if(GS(pid->name) == ID_MA) ma= (Material*)pid;
 			else ma= (Material*)pparent;
+			
+			/* Create RNA Pointer */
+			RNA_pointer_create(id, &RNA_Material, ma, &material_ptr);
 
-			uiLayoutColumn(row, 1);
-
-			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,  0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_FLAT, 0, 0, "Preview type: Flat XY plane");
-			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE, 0, 0, "Preview type: Sphere");
-			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,   0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_CUBE, 0, 0, "Preview type: Cube");
-			uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,    0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
-			uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,      0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
-			uiDefIconButC(block, ROW, B_MATPRV, ICON_MAT_SPHERE_SKY, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+			col = uiLayoutColumn(row, 1);
+			uiLayoutSetScaleX(col, 1.5);
+			uiItemR(col, &material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", 0);
 		}
 
 		if(pr_texture) {
+			/* Create RNA Pointer */
+			RNA_pointer_create(id, &RNA_Texture, tex, &texture_ptr);
+			
 			uiLayoutRow(layout, 1);
-
 			uiDefButS(block, ROW, B_MATPRV, "Texture",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_TEXTURE, 0, 0, "");
 			if(GS(parent->name) == ID_MA)
 				uiDefButS(block, ROW, B_MATPRV, "Material",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
@@ -1370,6 +1374,12 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent, MTex *slot)
 			else if(GS(parent->name) == ID_WO)
 				uiDefButS(block, ROW, B_MATPRV, "World",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
 			uiDefButS(block, ROW, B_MATPRV, "Both",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_BOTH, 0, 0, "");
+			
+			/* Alpha buton for texture preview */
+			if(*pr_texture!=TEX_PR_OTHER) {
+				row = uiLayoutRow(layout, 0);
+				uiItemR(row, &texture_ptr, "use_preview_alpha", 0, NULL, 0);
+			}
 		}
 	}
 }
