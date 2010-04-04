@@ -89,7 +89,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
         row = layout.row()
 
         col = row.column()
-		# XXX: this fails because index is not what this expects...
+        # XXX: this fails because index is not what this expects...
         col.template_list(scene, "keying_sets", scene, "active_keying_set_index", rows=2)
 
         col = row.column(align=True)
@@ -120,7 +120,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
     bl_label = "Active Keying Set"
 
     def poll(self, context):
-        return (context.scene.active_keying_set and context.scene.active_keying_set.absolute);
+        return (context.scene.active_keying_set and context.scene.active_keying_set.absolute)
 
     def draw(self, context):
         layout = self.layout
@@ -163,7 +163,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
             col.prop(ksp, "grouping")
             if ksp.grouping == 'NAMED':
                 col.prop(ksp, "group")
-                
+
             col.label(text="Keyframing Settings:")
             col.prop(ksp, "insertkey_needed", text="Needed")
             col.prop(ksp, "insertkey_visual", text="Visual")

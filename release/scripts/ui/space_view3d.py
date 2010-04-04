@@ -1922,12 +1922,12 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         col.active = display_all
         split = col.split(percentage=0.55)
         split.prop(view, "display_floor", text="Grid Floor")
-        
+
         row = split.row(align=True)
         row.prop(view, "display_x_axis", text="X", toggle=True)
         row.prop(view, "display_y_axis", text="Y", toggle=True)
         row.prop(view, "display_z_axis", text="Z", toggle=True)
-        
+
         sub = col.column(align=True)
         sub.active = (display_all and view.display_floor)
         sub.prop(view, "grid_lines", text="Lines")

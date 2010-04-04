@@ -234,12 +234,12 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         bone_gen = obj.pose.bones[bone.name]
 
         # Rotation mode and transform locks
-        bone_gen.rotation_mode     = bone.rotation_mode
-        bone_gen.lock_rotation     = tuple(bone.lock_rotation)
-        bone_gen.lock_rotation_w   = bone.lock_rotation_w
+        bone_gen.rotation_mode = bone.rotation_mode
+        bone_gen.lock_rotation = tuple(bone.lock_rotation)
+        bone_gen.lock_rotation_w = bone.lock_rotation_w
         bone_gen.lock_rotations_4d = bone.lock_rotations_4d
-        bone_gen.lock_location     = tuple(bone.lock_location)
-        bone_gen.lock_scale        = tuple(bone.lock_scale)
+        bone_gen.lock_location = tuple(bone.lock_location)
+        bone_gen.lock_scale = tuple(bone.lock_scale)
 
         # Custom properties
         for prop in bone.keys():

@@ -497,14 +497,14 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def SCREW(self, layout, ob, md, wide_ui):
         split = layout.split()
-        
+
         col = split.column()
         col.prop(md, "axis")
         col.prop(md, "object", text="AxisOb")
         col.prop(md, "angle")
         col.prop(md, "steps")
         col.prop(md, "render_steps")
-        
+
         if wide_ui:
             col = split.column()
         row = col.row()
@@ -516,7 +516,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "use_normal_calculate")
         col.prop(md, "use_normal_flip")
         col.prop(md, "iterations")
-        
 
     def SHRINKWRAP(self, layout, ob, md, wide_ui):
         split = layout.split()

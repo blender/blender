@@ -41,12 +41,12 @@ RIG_TYPE = "stretch"
 #    pbone = obj.pose.bones['Bone']
 #    pbone['type'] = 'copy'
 
-bool_map = {0:False, 1:True,
-            0.0:False, 1.0:True,
-            "false":False, "true":True,
-            "False":False, "True":True,
-            "no":False, "yes":True,
-            "No":False, "Yes":True}
+bool_map = {0: False, 1: True,
+            0.0: False, 1.0: True,
+            "false": False, "true": True,
+            "False": False, "True": True,
+            "no": False, "yes": True,
+            "No": False, "Yes": True}
 
 
 def metarig_definition(obj, orig_bone_name):

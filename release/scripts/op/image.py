@@ -21,6 +21,7 @@
 import bpy
 from bpy.props import StringProperty
 
+
 class EditExternally(bpy.types.Operator):
     '''Edit image in an external application'''
     bl_idname = "image.external_edit"
@@ -74,7 +75,7 @@ class EditExternally(bpy.types.Operator):
 
         self.properties.path = path
         self.execute(context)
-        
+
         return {'FINISHED'}
 
 
@@ -186,6 +187,7 @@ classes = [
     SaveDirty,
     ProjectEdit,
     ProjectApply]
+
 
 def register():
     register = bpy.types.register

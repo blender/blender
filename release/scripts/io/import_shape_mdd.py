@@ -45,11 +45,11 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
     frames, points = unpack(">2i", file.read(8))
     time = unpack((">%df" % frames), file.read(frames * 4))
 
-    print('\tpoints:%d frames:%d' % (points,frames))
+    print('\tpoints:%d frames:%d' % (points, frames))
 
     # If target object doesn't have Basis shape key, create it.
     try:
-        num_keys = len( ob.data.shape_keys.keys )
+        num_keys = len(ob.data.shape_keys.keys)
     except:
         basis = ob.add_shape_key()
         basis.name = "Basis"
@@ -68,13 +68,11 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
         index = len(ob.data.shape_keys.keys)-1
         ob.shape_key_lock = True
 
-        verts = ob.data.shape_keys.keys[ len(ob.data.shape_keys.keys)-1 ].data
+        verts = ob.data.shape_keys.keys[len(ob.data.shape_keys.keys)-1].data
 
 
-        for v in verts:
-            # 12 is the size of 3 floats
-            x,y,z= unpack('>3f', file.read(12))
-            v.co[:] = x,z,y
+        for v in verts: # 12 is the size of 3 floats
+            v.co[:] = unpack('>3f', file.read(12))
         #me.update()
         ob.shape_key_lock = False
 
@@ -122,7 +120,6 @@ class importMDD(bpy.types.Operator):
     #fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
     frame_start = IntProperty(name="Start Frame", description="Start frame for inserting animation", min=minframe, max=maxframe, default=0)
 
-
     def poll(self, context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
@@ -131,7 +128,7 @@ class importMDD(bpy.types.Operator):
         if not self.properties.path:
             raise Exception("filename not set")
 
-        mdd_import( self.properties.path, bpy.context.active_object, context.scene, self.properties.frame_start, 1)
+        mdd_import(self.properties.path, bpy.context.active_object, context.scene, self.properties.frame_start, 1)
 
         return {'FINISHED'}
 
@@ -148,6 +145,7 @@ def menu_func(self, context):
 def register():
     bpy.types.register(importMDD)
     bpy.types.INFO_MT_file_import.append(menu_func)
+
 
 def unregister():
     bpy.types.unregister(importMDD)

@@ -606,7 +606,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             col = layout.column()
             col.active = (brush.blend not in ('ERASE_ALPHA', 'ADD_ALPHA'))
             col.prop(brush, "use_alpha")
-            
+
 
         # Weight Paint Mode #
 

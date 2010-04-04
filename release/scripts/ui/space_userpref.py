@@ -164,9 +164,9 @@ class USERPREF_HT_header(bpy.types.Header):
 
         layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.save_homefile", text="Save As Default")
-        
+
         layout.operator_context = 'INVOKE_DEFAULT'
-        
+
         if userpref.active_section == 'INPUT':
             op = layout.operator("wm.keyconfig_export")
             op.path = "keymap.py"
@@ -175,7 +175,7 @@ class USERPREF_HT_header(bpy.types.Header):
         elif userpref.active_section == 'ADDONS':
             op = layout.operator("wm.addon_install")
             op.path = "*.py"
-        elif userpref.active_section == 'THEMES':           
+        elif userpref.active_section == 'THEMES':
             op = layout.operator("ui.reset_default_theme")
 
 

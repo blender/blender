@@ -408,6 +408,7 @@ class IMAGE_PT_view_histogram(bpy.types.Panel):
 
         layout.template_histogram(sima, "histogram")
 
+
 class IMAGE_PT_sample_line(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
@@ -422,6 +423,7 @@ class IMAGE_PT_sample_line(bpy.types.Panel):
         layout.operator("image.sample_line")
         sima = context.space_data
         layout.template_histogram(sima, "sample_histogram")
+
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
