@@ -679,12 +679,12 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startframe");
-	RNA_def_property_range(prop, 1, 300000);
+	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start", "Frame on which the simulation starts");
 	
 	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endframe");
-	RNA_def_property_range(prop, 1, 300000);
+	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops");
 
 	prop= RNA_def_property(srna, "step", PROP_INT, PROP_NONE);

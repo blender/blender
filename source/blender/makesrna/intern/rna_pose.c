@@ -197,12 +197,12 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob= (Object*)ptr->id.data;
 	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
-	char oldname[32], newname[32];
-	
+	char oldname[sizeof(pchan->name)], newname[sizeof(pchan->name)];
+
 	/* need to be on the stack */
-	BLI_strncpy(newname, value, 32);
-	BLI_strncpy(oldname, pchan->name, 32);
-	
+	BLI_strncpy(newname, value, sizeof(pchan->name));
+	BLI_strncpy(oldname, pchan->name, sizeof(pchan->name));
+
 	ED_armature_bone_rename(ob->data, oldname, newname);
 }
 

@@ -166,10 +166,10 @@ static void rna_Node_update_name(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 	bNode *node= (bNode*)ptr->data;
-	char oldname[32];
+	char oldname[sizeof(node->name)];
 	
 	/* make a copy of the old name first */
-	BLI_strncpy(oldname, node->name, sizeof(oldname));
+	BLI_strncpy(oldname, node->name, sizeof(node->name));
 	
 	nodeUniqueName(ntree, node);
 	node->flag |= NODE_CUSTOM_NAME;

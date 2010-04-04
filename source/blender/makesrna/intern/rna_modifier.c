@@ -176,10 +176,10 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 {
 	ModifierData *md= ptr->data;
-	char oldname[32];
+	char oldname[sizeof(md->name)];
 	
 	/* make a copy of the old name first */
-	BLI_strncpy(oldname, md->name, sizeof(oldname));
+	BLI_strncpy(oldname, md->name, sizeof(md->name));
 	
 	/* copy the new name into the name slot */
 	BLI_strncpy(md->name, value, sizeof(md->name));

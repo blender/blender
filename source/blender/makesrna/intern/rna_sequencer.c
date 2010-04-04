@@ -236,7 +236,7 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 	Sequence *seq= (Sequence*)ptr->data;
-	char oldname[32];
+	char oldname[sizeof(seq->name)];
 	
 	/* make a copy of the old name first */
 	BLI_strncpy(oldname, seq->name+2, sizeof(seq->name)-2);
