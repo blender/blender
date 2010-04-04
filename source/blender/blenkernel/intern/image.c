@@ -889,14 +889,9 @@ typedef struct StampData {
 static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 {
 	char text[256];
-	
-#ifndef WIN32
 	struct tm *tl;
 	time_t t;
-#else
-	char sdate[9];
-#endif /* WIN32 */
-	
+
 	if (scene->r.stamp & R_STAMP_FILENAME) {
 		if (G.relbase_valid) {
 			if (do_prefix)		sprintf(stamp_data->file, "File %s", G.sce);
@@ -917,14 +912,11 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 	
 	if (scene->r.stamp & R_STAMP_DATE) {
-#ifdef WIN32
-		_strdate (sdate);
-		sprintf (text, "%s", sdate);
-#else
+
 		t = time (NULL);
 		tl = localtime (&t);
-		sprintf (text, "%04d-%02d-%02d", tl->tm_year+1900, tl->tm_mon+1, tl->tm_mday);
-#endif /* WIN32 */
+		sprintf (text, "%04d/%02d/%02d %02d:%02d:%02d", tl->tm_year+1900, tl->tm_mon+1, tl->tm_mday, tl->tm_hour, tl->tm_min, tl->tm_sec);
+
 		if (do_prefix)		sprintf(stamp_data->date, "Date %s", text);
 		else				sprintf(stamp_data->date, "%s", text);
 	} else {
