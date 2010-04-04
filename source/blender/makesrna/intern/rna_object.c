@@ -485,7 +485,7 @@ static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
 	Object *ob= (Object*)ptr->id.data;
 	ob->actcol= value+1;
 
-	if((ob->mode & OB_MODE_EDIT) && ob->type==OB_MESH) {
+	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 
 		if(me->edit_mesh)

@@ -2502,7 +2502,7 @@ void object_handle_update(Scene *scene, Object *ob)
 				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
 				
 					// here was vieweditdatamask? XXX
-				if(ob->mode & OB_MODE_EDIT) {
+				if(em) {
 					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
 					BKE_mesh_end_editmesh(ob->data, em);
 				} else

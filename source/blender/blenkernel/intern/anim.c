@@ -837,7 +837,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 					/* mballs have a different dupli handling */
 					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
 
-					if(par->mode & OB_MODE_EDIT) {
+					if(me->edit_mesh) {
 						dm->foreachMappedVert(dm, vertex_dupli__mapFunc, (void*) &vdd);
 					}
 					else {
@@ -1048,7 +1048,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		else		go= go->next;		/* group loop */
 	}
 	
-	if(par->mode & OB_MODE_EDIT) {
+	if(em) {
 		MEM_freeN(mface);
 		MEM_freeN(mvert);
 	}
