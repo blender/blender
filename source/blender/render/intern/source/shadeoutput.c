@@ -1534,7 +1534,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 			accum/= ir;
 			shr->alpha= (shi->mat->alpha)*(1.0f-accum);
 		}
-		else shr->alpha= shi->mat->alpha;
+		else shr->alpha= 0.f;
 	}
 	
 	/* quite disputable this...  also note it doesn't mirror-raytrace */	
