@@ -612,6 +612,12 @@ static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 	if(!ot)
 		return;
 
+	/* update while blender is running */
+	if(C) {
+		WM_operator_stack_clear((bContext*)C);
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	}
+
 	RNA_struct_free_extension(type, &ot->ext);
 
 	idname= ot->idname;
@@ -620,10 +626,6 @@ static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 
 	/* not to be confused with the RNA_struct_free that WM_operatortype_remove calls, they are 2 different srna's */
 	RNA_struct_free(&BLENDER_RNA, type);
-
-	/* update while blender is running */
-	if(C)
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
 static int operator_poll(bContext *C, wmOperatorType *ot)
