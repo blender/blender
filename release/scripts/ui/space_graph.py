@@ -126,6 +126,9 @@ class GRAPH_MT_select(bpy.types.Menu):
         layout.separator()
         layout.operator("graph.select_more")
         layout.operator("graph.select_less")
+		
+        layout.separator()
+        layout.operator("graph.select_linked")
 
 
 class GRAPH_MT_channel(bpy.types.Menu):

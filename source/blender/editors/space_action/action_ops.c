@@ -119,6 +119,9 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "ACTION_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	
+		/* select linekd */
+	WM_keymap_add_item(keymap, "ACTION_OT_select_linked", LKEY, KM_PRESS, 0, 0);
+	
 	
 	/* action_edit.c */
 		/* snap - current frame to selected keys */

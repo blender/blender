@@ -63,6 +63,7 @@ void graph_header_buttons(const bContext *C, struct ARegion *ar);
 void GRAPH_OT_select_all_toggle(struct wmOperatorType *ot);
 void GRAPH_OT_select_border(struct wmOperatorType *ot);
 void GRAPH_OT_select_column(struct wmOperatorType *ot);
+void GRAPH_OT_select_linked(struct wmOperatorType *ot);
 void GRAPH_OT_select_more(struct wmOperatorType *ot);
 void GRAPH_OT_select_less(struct wmOperatorType *ot);
 void GRAPH_OT_clickselect(struct wmOperatorType *ot);
@@ -149,6 +150,7 @@ void GRAPH_OT_ghost_curves_clear(struct wmOperatorType *ot);
 
 /* ***************************************** */
 /* graph_buttons.c */
+
 void GRAPH_OT_properties(struct wmOperatorType *ot);
 void graph_buttons_register(struct ARegionType *art);
 
