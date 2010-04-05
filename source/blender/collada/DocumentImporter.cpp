@@ -174,6 +174,57 @@ static float get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigne
 		return array.getDoubleValues()->getData()[index];
 }
 
+#if 0
+// copied from /editors/object/object_relations.c
+static int test_parent_loop(Object *par, Object *ob)
+{
+	/* test if 'ob' is a parent somewhere in par's parents */
+	
+	if(par == NULL) return 0;
+	if(ob == par) return 1;
+	
+	return test_parent_loop(par->parent, ob);
+}
+
+// a shortened version of parent_set_exec()
+static int set_parent(Object *ob, Object *par, bContext *C)
+{
+	if (!par || test_parent_loop(par, ob))
+		return false;
+
+	Object workob;
+	Scene *sce = CTX_data_scene(C);
+
+	ob->parent = par;
+	ob->partype = PAROBJECT;
+
+	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
+	par->recalc |= OB_RECALC_OB;
+
+	ob->parsubstr[0] = 0;
+
+	where_is_object(sce, par);
+
+	// // move child obmat into world space
+	// float mat[4][4];
+	// copy_m4_m4(mat, ob->obmat);
+	// mul_m4_m4m4(ob->obmat, mat, par->obmat);
+	
+	// apply child obmat (i.e. decompose into rot/loc/size)
+	ED_object_apply_obmat(ob);
+
+	// compute parentinv
+	what_does_parent(sce, ob, &workob);
+	invert_m4_m4(ob->parentinv, workob.obmat);
+
+	DAG_scene_sort(sce);
+	DAG_ids_flush_update(0);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+
+	return true;
+}
+#endif
+
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
 
 class TransformReader : public TransformBase
@@ -341,6 +392,7 @@ private:
 	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> geom_uid_by_controller_uid;
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> joint_by_uid; // contains all joints
 	std::vector<COLLADAFW::Node*> root_joints;
+	std::map<COLLADAFW::UniqueId, Object*> joint_parent_map;
 
 	std::vector<Object*> armature_objects;
 
@@ -375,6 +427,7 @@ private:
 
 		Object *ob_arm;
 		COLLADAFW::UniqueId controller_uid;
+		Object *parent;
 
 	public:
 
@@ -384,7 +437,8 @@ private:
 										 joint_data(skin.joint_data),
 										 unit_converter(skin.unit_converter),
 										 ob_arm(skin.ob_arm),
-										 controller_uid(skin.controller_uid)
+										 controller_uid(skin.controller_uid),
+										 parent(skin.parent)
 		{
 			copy_m4_m4(bind_shape_matrix, (float (*)[4])skin.bind_shape_matrix);
 
@@ -393,7 +447,7 @@ private:
 			transfer_int_array_data_const(skin.joint_indices, joint_indices);
 		}
 
-		SkinInfo(UnitConverter *conv) : unit_converter(conv), ob_arm(NULL) {}
+		SkinInfo(UnitConverter *conv) : unit_converter(conv), ob_arm(NULL), parent(NULL) {}
 
 		// nobody owns the data after this, so it should be freed manually with releaseMemory
 		template <class T>
@@ -520,14 +574,17 @@ private:
 		void link_armature(bContext *C, Object *ob, std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& joint_by_uid,
 						   TransformReader *tm)
 		{
-			Object workob;
 			Scene *scene = CTX_data_scene(C);
 
 			ModifierData *md = ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Armature);
 			((ArmatureModifierData *)md)->object = ob_arm;
 
 			tm->decompose(bind_shape_matrix, ob->loc, ob->rot, NULL, ob->size);
-
+			
+#if 0
+			::set_parent(ob, ob_arm, C);
+#else
+			Object workob;
 			ob->parent = ob_arm;
 			ob->partype = PAROBJECT;
 
@@ -535,6 +592,11 @@ private:
 			invert_m4_m4(ob->parentinv, workob.obmat);
 
 			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
+
+			DAG_scene_sort(scene);
+			DAG_ids_flush_update(0);
+			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+#endif
 
 			((bArmature*)ob_arm->data)->deformflag = ARM_DEF_VGROUP;
 
@@ -577,16 +639,23 @@ private:
 					}
 				}
 			}
-
-			DAG_scene_sort(scene);
-			DAG_ids_flush_update(0);
-			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 		}
 
 		bPoseChannel *get_pose_channel_from_node(COLLADAFW::Node *node)
 		{
 			return get_pose_channel(ob_arm->pose, get_joint_name(node));
 		}
+
+		void set_parent(Object *_parent)
+		{
+			parent = _parent;
+		}
+
+		Object* get_parent()
+		{
+			return parent;
+		}
+
 	};
 
 	std::map<COLLADAFW::UniqueId, SkinInfo> skin_by_data_uid; // data UID = skin controller data UID
@@ -856,6 +925,9 @@ private:
 			// since root_joints may contain joints for multiple controllers, we need to filter
 			if (skin.uses_joint(*it)) {
 				create_bone(skin, *it, NULL, (*it)->getChildNodes().getCount(), NULL, (bArmature*)ob_arm->data);
+
+				if (joint_parent_map.find((*it)->getUniqueId()) != joint_parent_map.end() && !skin.get_parent())
+					skin.set_parent(joint_parent_map[(*it)->getUniqueId()]);
 			}
 		}
 
@@ -889,10 +961,15 @@ public:
 	// root - if this joint is the top joint in hierarchy, if a joint
 	// is a child of a node (not joint), root should be true since
 	// this is where we build armature bones from
-	void add_joint(COLLADAFW::Node *node, bool root)
+	void add_joint(COLLADAFW::Node *node, bool root, Object *parent)
 	{
 		joint_by_uid[node->getUniqueId()] = node;
-		if (root) root_joints.push_back(node);
+		if (root) {
+			root_joints.push_back(node);
+
+			if (parent)
+				joint_parent_map[node->getUniqueId()] = parent;
+		}
 	}
 
 #if 0
@@ -921,14 +998,19 @@ public:
 
 			create_armature_bones(skin);
 
-			// link armature with an object
+			// link armature with a mesh object
 			Object *ob = mesh_importer->get_object_by_geom_uid(*get_geometry_uid(skin.get_controller_uid()));
-			if (ob) {
+			if (ob)
 				skin.link_armature(C, ob, joint_by_uid, this);
-			}
-			else {
+			else
 				fprintf(stderr, "Cannot find object to link armature with.\n");
-			}
+
+#if 0
+			// set armature parent if any
+			Object *par = skin.get_parent();
+			if (par)
+				set_parent(skin.get_armature(), par, C);
+#endif
 
 			// free memory stolen from SkinControllerData
 			skin.free();
@@ -1901,77 +1983,50 @@ private:
 
 		std::vector<FCurve*>& fcurves = curve_map[curve->getUniqueId()];
 
-		if (dim == 1) {
-			FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
-
-			fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
-			// fcu->rna_path = BLI_strdupn(path, strlen(path));
-			fcu->array_index = 0;
-			//fcu->totvert = curve->getKeyCount();
-			
-			// create beztriple for each key
-			for (i = 0; i < curve->getKeyCount(); i++) {
-				BezTriple bez;
-				memset(&bez, 0, sizeof(BezTriple));
-
-				// intangent
-				// bez.vec[0][0] = get_float_value(intan, i + i) * fps;
-				// bez.vec[0][1] = get_float_value(intan, i + i + 1);
-
-				// input, output
-				bez.vec[1][0] = get_float_value(input, i) * fps;
-				bez.vec[1][1] = get_float_value(output, i);
-
-				// outtangent
-				// bez.vec[2][0] = get_float_value(outtan, i + i) * fps;
-				// bez.vec[2][1] = get_float_value(outtan, i + i + 1);
+		switch (dim) {
+		case 1: // X, Y, Z or angle
+		case 3: // XYZ
+		case 16: // matrix
+			{
+				for (i = 0; i < dim; i++ ) {
+					FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
 				
-				bez.ipo = U.ipo_new; /* use default interpolation mode here... */
-				bez.f1 = bez.f2 = bez.f3 = SELECT;
-				bez.h1 = bez.h2 = HD_AUTO;
-				insert_bezt_fcurve(fcu, &bez, 0);
-			}
-
-			calchandles_fcurve(fcu);
-
-			fcurves.push_back(fcu);
-		}
-		else if(dim == 3) {
-			for (i = 0; i < dim; i++ ) {
-				FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
+					fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+					// fcu->rna_path = BLI_strdupn(path, strlen(path));
+					fcu->array_index = 0;
+					//fcu->totvert = curve->getKeyCount();
 				
-				fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
-				// fcu->rna_path = BLI_strdupn(path, strlen(path));
-				fcu->array_index = 0;
-				//fcu->totvert = curve->getKeyCount();
-				
-				// create beztriple for each key
-				for (unsigned int j = 0; j < curve->getKeyCount(); j++) {
-					BezTriple bez;
-					memset(&bez, 0, sizeof(BezTriple));
+					// create beztriple for each key
+					for (unsigned int j = 0; j < curve->getKeyCount(); j++) {
+						BezTriple bez;
+						memset(&bez, 0, sizeof(BezTriple));
 
-					// intangent
-					// bez.vec[0][0] = get_float_value(intan, j * 6 + i + i) * fps;
-					// bez.vec[0][1] = get_float_value(intan, j * 6 + i + i + 1);
+						// intangent
+						// bez.vec[0][0] = get_float_value(intan, j * 6 + i + i) * fps;
+						// bez.vec[0][1] = get_float_value(intan, j * 6 + i + i + 1);
 
-					// input, output
-					bez.vec[1][0] = get_float_value(input, j) * fps; 
-					bez.vec[1][1] = get_float_value(output, j * 3 + i);
+						// input, output
+						bez.vec[1][0] = get_float_value(input, j) * fps; 
+						bez.vec[1][1] = get_float_value(output, j * dim + i);
 
-					// outtangent
-					// bez.vec[2][0] = get_float_value(outtan, j * 6 + i + i) * fps;
-					// bez.vec[2][1] = get_float_value(outtan, j * 6 + i + i + 1);
+						// outtangent
+						// bez.vec[2][0] = get_float_value(outtan, j * 6 + i + i) * fps;
+						// bez.vec[2][1] = get_float_value(outtan, j * 6 + i + i + 1);
 
-					bez.ipo = U.ipo_new; /* use default interpolation mode here... */
-					bez.f1 = bez.f2 = bez.f3 = SELECT;
-					bez.h1 = bez.h2 = HD_AUTO;
-					insert_bezt_fcurve(fcu, &bez, 0);
+						bez.ipo = U.ipo_new; /* use default interpolation mode here... */
+						bez.f1 = bez.f2 = bez.f3 = SELECT;
+						bez.h1 = bez.h2 = HD_AUTO;
+						insert_bezt_fcurve(fcu, &bez, 0);
+					}
+
+					calchandles_fcurve(fcu);
+
+					fcurves.push_back(fcu);
 				}
-
-				calchandles_fcurve(fcu);
-
-				fcurves.push_back(fcu);
 			}
+			break;
+		default:
+			fprintf(stderr, "Output dimension of %d is not yet supported (animation id = %s)\n", dim, curve->getOriginalId().c_str());
 		}
 
 		for (std::vector<FCurve*>::iterator it = fcurves.begin(); it != fcurves.end(); it++)
@@ -2242,8 +2297,10 @@ public:
 	{
 		float mat[4][4];
 		TransformReader::get_node_mat(mat, node, &uid_animated_map, ob);
-		if (ob)
-			TransformReader::decompose(mat, ob->loc, ob->rot, NULL, ob->size);
+		if (ob) {
+			copy_m4_m4(ob->obmat, mat);
+			ED_object_apply_obmat(ob);
+		}
 	}
 	
 #if 0
@@ -2349,7 +2406,9 @@ public:
 								Object *par_job = NULL)
 	{
 		bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
+		bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;
 		bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
+
 		COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
 		Object *ob = is_joint ? armature_importer->get_armature_for_joint(node) : object_map[node->getUniqueId()];
 		const char *bone_name = is_joint ? get_joint_name(node) : NULL;
@@ -2367,7 +2426,7 @@ public:
 
 		unsigned int i;
 
-		// find frames at which to sample plus convert all keys to radians
+		// find frames at which to sample plus convert all rotation keys to radians
 		for (i = 0; i < tms.getCount(); i++) {
 			COLLADAFW::Transformation *tm = tms[i];
 			COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
@@ -2384,7 +2443,7 @@ public:
 							std::vector<FCurve*>& curves = curve_map[bindings[j].animation];
 							bool xyz = ((type == COLLADAFW::Transformation::TRANSLATE || type == COLLADAFW::Transformation::SCALE) && bindings[j].animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
 
-							if ((!xyz && curves.size() == 1) || (xyz && curves.size() == 3)) {
+							if ((!xyz && curves.size() == 1) || (xyz && curves.size() == 3) || is_matrix) {
 								std::vector<FCurve*>::iterator iter;
 
 								for (iter = curves.begin(); iter != curves.end(); iter++) {
@@ -2409,8 +2468,6 @@ public:
 			}
 		}
 
-		sort(frames.begin(), frames.end());
-
 		float irest_dae[4][4];
 		float rest[4][4], irest[4][4];
 
@@ -2429,17 +2486,17 @@ public:
 			invert_m4_m4(irest, rest);
 		}
 
-		char rna_path[200];
-
 		Object *job = NULL;
 
 #ifdef ARMATURE_TEST
-		FCurve *job_curves[4];
+		FCurve *job_curves[10];
 		job = get_joint_object(root, node, par_job);
 #endif
 
 		if (frames.size() == 0)
 			return job;
+
+		std::sort(frames.begin(), frames.end());
 
 		const char *tm_str = NULL;
 		switch (tm_type) {
@@ -2452,29 +2509,51 @@ public:
 		case COLLADAFW::Transformation::TRANSLATE:
 			tm_str = "location";
 			break;
+		case COLLADAFW::Transformation::MATRIX:
+			break;
 		default:
 			return job;
 		}
 
-		if (is_joint) {
-			char joint_path[200];
+		char rna_path[200];
+		char joint_path[200];
+
+		if (is_joint)
 			armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
-			BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
-		}
-		else {
-			strcpy(rna_path, tm_str);
-		}
 
 		// new curves
-		FCurve *newcu[4];
-		unsigned int totcu = is_rotation ? 4 : 3;
+		FCurve *newcu[10]; // if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale
+		unsigned int totcu = is_matrix ? 10 : (is_rotation ? 4 : 3);
 
 		for (i = 0; i < totcu; i++) {
-			newcu[i] = create_fcurve(i, rna_path);
+
+			int axis = i;
+
+			if (is_matrix) {
+				if (i < 4) {
+					tm_str = "rotation_quaternion";
+					axis = i;
+				}
+				else if (i < 7) {
+					tm_str = "location";
+					axis = i - 4;
+				}
+				else {
+					tm_str = "scale";
+					axis = i - 7;
+				}
+			}
+
+			if (is_joint)
+				BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
+			else
+				strcpy(rna_path, tm_str);
+
+			newcu[i] = create_fcurve(axis, rna_path);
 
 #ifdef ARMATURE_TEST
 			if (is_joint)
-				job_curves[i] = create_fcurve(i, tm_str);
+				job_curves[i] = create_fcurve(axis, tm_str);
 #endif
 		}
 
@@ -2512,7 +2591,7 @@ public:
 				copy_m4_m4(mat, matfra);
 			}
 
-			float val[4];
+			float val[4], rot[4], loc[3], scale[3];
 
 			switch (tm_type) {
 			case COLLADAFW::Transformation::ROTATE:
@@ -2524,13 +2603,28 @@ public:
 			case COLLADAFW::Transformation::TRANSLATE:
 				copy_v3_v3(val, mat[3]);
 				break;
+			case COLLADAFW::Transformation::MATRIX:
+				mat4_to_quat(rot, mat);
+				copy_v3_v3(loc, mat[3]);
+				mat4_to_size(scale, mat);
+				break;
 			default:
 				break;
 			}
 
-			// add 4 or 3 keys
+			// add keys
 			for (i = 0; i < totcu; i++) {
-				add_bezt(newcu[i], fra, val[i]);
+				if (is_matrix) {
+					if (i < 4)
+						add_bezt(newcu[i], fra, rot[i]);
+					else if (i < 7)
+						add_bezt(newcu[i], fra, loc[i - 4]);
+					else
+						add_bezt(newcu[i], fra, scale[i - 7]);
+				}
+				else {
+					add_bezt(newcu[i], fra, val[i]);
+				}
 			}
 
 #ifdef ARMATURE_TEST
@@ -2545,12 +2639,28 @@ public:
 				case COLLADAFW::Transformation::TRANSLATE:
 					copy_v3_v3(val, matfra[3]);
 					break;
+				case MATRIX:
+					mat4_to_quat(rot, matfra);
+					copy_v3_v3(loc, matfra[3]);
+					mat4_to_size(scale, matfra);
+					break;
 				default:
 					break;
 				}
 
-				for (i = 0; i < totcu; i++)
-					add_bezt(job_curves[i], fra, val[i]);
+				for (i = 0; i < totcu; i++) {
+					if (is_matrix) {
+						if (i < 4)
+							add_bezt(job_curves[i], fra, rot[i]);
+						else if (i < 7)
+							add_bezt(job_curves[i], fra, loc[i - 4]);
+						else
+							add_bezt(job_curves[i], fra, scale[i - 7]);
+					}
+					else {
+						add_bezt(job_curves[i], fra, val[i]);
+					}
+				}
 			}
 #endif
 		}
@@ -2572,7 +2682,7 @@ public:
 #endif
 		}
 
-		if (is_rotation) {
+		if (is_rotation || is_matrix) {
 			if (is_joint) {
 				bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
 				chan->rotmode = ROT_MODE_QUAT;
@@ -2633,8 +2743,10 @@ public:
 		const COLLADAFW::UniqueId& listid = tm->getAnimationList();
 		COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
 
-		if (type != COLLADAFW::Transformation::ROTATE && type != COLLADAFW::Transformation::SCALE &&
-		    type != COLLADAFW::Transformation::TRANSLATE) {
+		if (type != COLLADAFW::Transformation::ROTATE &&
+		    type != COLLADAFW::Transformation::SCALE &&
+		    type != COLLADAFW::Transformation::TRANSLATE &&
+		    type != COLLADAFW::Transformation::MATRIX) {
 			fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
 			return false;
 		}
@@ -2649,6 +2761,7 @@ public:
 			float vec[3];
 
 			bool is_scale = (type == COLLADAFW::Transformation::SCALE);
+			bool is_scale_or_translate = (type == COLLADAFW::Transformation::SCALE || type == COLLADAFW::Transformation::TRANSLATE);
 
 			if (type == COLLADAFW::Transformation::SCALE)
 				dae_scale_to_v3(tm, vec);
@@ -2665,53 +2778,74 @@ public:
 						fprintf(stderr, "expected 1 curve, got %u\n", curves.size());
 						return false;
 					}
-					else {
-						if (animclass == COLLADAFW::AnimationList::ANGLE) {
-							COLLADABU::Math::Vector3& axis = ((COLLADAFW::Rotate*)tm)->getRotationAxis();
-							float ax[3] = {axis[0], axis[1], axis[2]};
-							float angle = evaluate_fcurve(curves[0], fra);
-							axis_angle_to_mat4(mat, ax, angle);
 
-							return true;
-						}
-						else {
-							// TODO support other animclasses
-							fprintf(stderr, "<rotate> animclass %d is not supported yet\n", animclass);
-							return false;
-						}
+					// TODO support other animclasses
+					if (animclass != COLLADAFW::AnimationList::ANGLE) {
+						fprintf(stderr, "<rotate> animclass %d is not supported yet\n", animclass);
+						return false;
 					}
+
+					COLLADABU::Math::Vector3& axis = ((COLLADAFW::Rotate*)tm)->getRotationAxis();
+					float ax[3] = {axis[0], axis[1], axis[2]};
+					float angle = evaluate_fcurve(curves[0], fra);
+					axis_angle_to_mat4(mat, ax, angle);
+
+					return true;
 				}
-				else {
+				else if (is_scale_or_translate) {
 					bool is_xyz = animclass == COLLADAFW::AnimationList::POSITION_XYZ;
 
-					if ((!is_xyz && curves.size() == 1) || (is_xyz && curves.size() == 3)) {
-						switch (animclass) {
-						case COLLADAFW::AnimationList::POSITION_X:
-							vec[0] = evaluate_fcurve(curves[0], fra);
-							break;
-						case COLLADAFW::AnimationList::POSITION_Y:
-							vec[1] = evaluate_fcurve(curves[0], fra);
-							break;
-						case COLLADAFW::AnimationList::POSITION_Z:
-							vec[2] = evaluate_fcurve(curves[0], fra);
-							break;
-						case COLLADAFW::AnimationList::POSITION_XYZ:
-							vec[0] = evaluate_fcurve(curves[0], fra);
-							vec[1] = evaluate_fcurve(curves[1], fra);
-							vec[2] = evaluate_fcurve(curves[2], fra);
-							break;
-						default:
-							fprintf(stderr, "<%s> animclass %d is not supported yet\n", is_scale ? "scale" : "translate", animclass);
-							break;
-						}
-					}
-					else {
+					if ((!is_xyz && curves.size() != 1) || (is_xyz && curves.size() != 3)) {
 						if (is_xyz)
 							fprintf(stderr, "expected 3 curves, got %u, animclass=%d\n", curves.size(), animclass);
 						else
 							fprintf(stderr, "expected 1 curve, got %u, animclass=%d\n", curves.size(), animclass);
 						return false;
 					}
+					
+					switch (animclass) {
+					case COLLADAFW::AnimationList::POSITION_X:
+						vec[0] = evaluate_fcurve(curves[0], fra);
+						break;
+					case COLLADAFW::AnimationList::POSITION_Y:
+						vec[1] = evaluate_fcurve(curves[0], fra);
+						break;
+					case COLLADAFW::AnimationList::POSITION_Z:
+						vec[2] = evaluate_fcurve(curves[0], fra);
+						break;
+					case COLLADAFW::AnimationList::POSITION_XYZ:
+						vec[0] = evaluate_fcurve(curves[0], fra);
+						vec[1] = evaluate_fcurve(curves[1], fra);
+						vec[2] = evaluate_fcurve(curves[2], fra);
+						break;
+					default:
+						fprintf(stderr, "<%s> animclass %d is not supported yet\n", is_scale ? "scale" : "translate", animclass);
+						break;
+					}
+				}
+				else if (type == COLLADAFW::Transformation::MATRIX) {
+					// for now, of matrix animation, support only the case when all values are packed into one animation
+					if (curves.size() != 16) {
+						fprintf(stderr, "expected 16 curves, got %u\n", curves.size());
+						return false;
+					}
+
+					COLLADABU::Math::Matrix4 matrix;
+					int i = 0, j = 0;
+
+					for (std::vector<FCurve*>::iterator it = curves.begin(); it != curves.end(); it++) {
+						matrix.setElement(i, j, evaluate_fcurve(*it, fra));
+						j++;
+						if (j == 4) {
+							i++;
+							j = 0;
+						}
+					}
+
+					COLLADAFW::Matrix tm(matrix);
+					dae_matrix_to_mat4(&tm, mat);
+
+					return true;
 				}
 			}
 
@@ -2997,13 +3131,14 @@ public:
 		COLLADAFW::Transformation::TransformationType types[] = {
 			COLLADAFW::Transformation::ROTATE,
 			COLLADAFW::Transformation::SCALE,
-			COLLADAFW::Transformation::TRANSLATE
+			COLLADAFW::Transformation::TRANSLATE,
+			COLLADAFW::Transformation::MATRIX
 		};
 
 		unsigned int i;
 		Object *ob;
 
-		for (i = 0; i < 3; i++)
+		for (i = 0; i < 4; i++)
 			ob = anim_importer.translate_animation(node, object_map, root_map, types[i]);
 
 		COLLADAFW::NodePointerArray &children = node->getChildNodes();
@@ -3068,11 +3203,7 @@ public:
 		Object *ob = NULL;
 
 		if (node->getType() == COLLADAFW::Node::JOINT) {
-
-			if (node->getType() == COLLADAFW::Node::JOINT) {
-				armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT);
-			}
-
+			armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par);
 		}
 		else {
 			COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
@@ -3106,6 +3237,7 @@ public:
 			// XXX empty node may not mean it is empty object, not sure about this
 			else {
 				ob = add_object(sce, OB_EMPTY);
+				rename_id(&ob->id, (char*)node->getOriginalId().c_str());
 			}
 			
 			// check if object is not NULL
@@ -3115,13 +3247,17 @@ public:
 			
 			// if par was given make this object child of the previous 
 			if (par && ob) {
+#if 0
+				set_parent(ob, par, mContext);
+#else
 				ob->parent = par;
 
 				// doing what 'set parent' operator does
 				par->recalc |= OB_RECALC_OB;
 				ob->parsubstr[0] = 0;
-			
+                       
 				DAG_scene_sort(sce);
+#endif
 			}
 		}
 
