@@ -910,12 +910,39 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 }
 
 
-void node_active_link_viewer(SpaceNode *snode)
+static int node_active_link_viewer(bContext *C, wmOperator *op)
 {
-	bNode *node= editnode_get_active(snode->edittree);
-	if(node)
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNode *node;
+	
+	
+	node= editnode_get_active(snode->edittree);
+	
+	if(node) {
 		node_link_viewer(snode, node);
+		snode_notify(C, snode);
+	}
+	return OPERATOR_FINISHED;
 }
+
+
+
+void NODE_OT_link_viewer(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Link to Viewer Node";
+	ot->description = "Link to Viewer Node";
+	ot->idname= "NODE_OT_link_viewer";
+	
+	/* api callbacks */
+	ot->exec= node_active_link_viewer;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 
 /* return 0, nothing done */
 /*static*/ int node_mouse_groupheader(SpaceNode *snode)
