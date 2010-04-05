@@ -427,8 +427,8 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, f
 		 *	- check if the custom data masks for derivedFinal mean that we can just use that
 		 *	  (this is more effficient + sufficient for most cases)
 		 */
-		if (ob->lastDataMask != CD_MASK_DERIVEDMESH) {
-			dm = mesh_get_derived_final(scene, ob, CD_MASK_DERIVEDMESH);
+		if (!(ob->lastDataMask & CD_MASK_MDEFORMVERT)) {
+			dm = mesh_get_derived_final(scene, ob, CD_MASK_MDEFORMVERT);
 			freeDM= 1;
 		}
 		else 

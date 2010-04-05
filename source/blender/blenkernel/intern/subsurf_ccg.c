@@ -577,6 +577,7 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
+	DMGridData *vd;
 	int i;
 
 	memset(mv, 0, sizeof(*mv));
@@ -608,19 +609,25 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 
 		offset = vertNum - ccgdm->faceMap[i].startVert;
 		if(offset < 1) {
-			copy_v3_v3(mv->co, ccgSubSurf_getFaceCenterData(f));
+			vd = ccgSubSurf_getFaceCenterData(f);
+			copy_v3_v3(mv->co, vd->co);
+			normal_float_to_short_v3(mv->no, vd->no);
 		} else if(offset < gridSideEnd) {
 			offset -= 1;
 			grid = offset / gridSideVerts;
 			x = offset % gridSideVerts + 1;
-			copy_v3_v3(mv->co, ccgSubSurf_getFaceGridEdgeData(ss, f, grid, x));
+			vd = ccgSubSurf_getFaceGridEdgeData(ss, f, grid, x);
+			copy_v3_v3(mv->co, vd->co);
+			normal_float_to_short_v3(mv->no, vd->no);
 		} else if(offset < gridInternalEnd) {
 			offset -= gridSideEnd;
 			grid = offset / gridInternalVerts;
 			offset %= gridInternalVerts;
 			y = offset / gridSideVerts + 1;
 			x = offset % gridSideVerts + 1;
-			copy_v3_v3(mv->co, ccgSubSurf_getFaceGridData(ss, f, grid, x, y));
+			vd = ccgSubSurf_getFaceGridData(ss, f, grid, x, y);
+			copy_v3_v3(mv->co, vd->co);
+			normal_float_to_short_v3(mv->no, vd->no);
 		}
 	} else if((vertNum < ccgdm->vertMap[0].startVert) && (ccgSubSurf_getNumEdges(ss) > 0)) {
 		/* this vert comes from edge data */
@@ -635,15 +642,35 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 		e = ccgdm->edgeMap[i].edge;
 
 		x = vertNum - ccgdm->edgeMap[i].startVert + 1;
-		copy_v3_v3(mv->co, ccgSubSurf_getEdgeData(ss, e, x));
+		vd = ccgSubSurf_getEdgeData(ss, e, x);
+		copy_v3_v3(mv->co, vd->co);
+		normal_float_to_short_v3(mv->no, vd->no);
 	} else {
 		/* this vert comes from vert data */
 		CCGVert *v;
 		i = vertNum - ccgdm->vertMap[0].startVert;
 
 		v = ccgdm->vertMap[i].vert;
-		copy_v3_v3(mv->co, ccgSubSurf_getVertData(ss, v));
+		vd = ccgSubSurf_getVertData(ss, v);
+		copy_v3_v3(mv->co, vd->co);
+		normal_float_to_short_v3(mv->no, vd->no);
 	}
+}
+
+static void ccgDM_getFinalVertCo(DerivedMesh *dm, int vertNum, float co_r[3])
+{
+	MVert mvert;
+
+	ccgDM_getFinalVert(dm, vertNum, &mvert);
+	VECCOPY(co_r, mvert.co);
+}
+
+static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float no_r[3])
+{
+	MVert mvert;
+
+	ccgDM_getFinalVert(dm, vertNum, &mvert);
+	normal_short_to_float_v3(no_r, mvert.no);
 }
 
 static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
@@ -2277,6 +2304,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getVert = ccgDM_getFinalVert;
 	ccgdm->dm.getEdge = ccgDM_getFinalEdge;
 	ccgdm->dm.getFace = ccgDM_getFinalFace;
+	ccgdm->dm.getVertCo = ccgDM_getFinalVertCo;
+	ccgdm->dm.getVertNo = ccgDM_getFinalVertNo;
 	ccgdm->dm.copyVertArray = ccgDM_copyFinalVertArray;
 	ccgdm->dm.copyEdgeArray = ccgDM_copyFinalEdgeArray;
 	ccgdm->dm.copyFaceArray = ccgDM_copyFinalFaceArray;
