@@ -140,6 +140,9 @@ void ED_node_generic_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *
 	for(sce=bmain->scene.first; sce; sce=sce->id.next)
 		if(sce->nodetree && sce->use_nodes && has_nodetree(sce->nodetree, ntree))
 			ED_node_changed_update(&sce->id, node);
+	
+	if(ntree->type == NTREE_TEXTURE)
+		ntreeTexCheckCyclics(ntree);
 }
 
 static void do_node_internal_buttons(bContext *C, void *node_v, int event)
