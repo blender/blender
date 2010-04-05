@@ -292,7 +292,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 			while(i--) {
 				scalar= bUnit_GetScaler(usys, i);
 
-				dx_scalar = dx * scalar * unit->scale_length;
+				dx_scalar = dx * scalar / unit->scale_length;
 				if (dx_scalar < (GRID_MIN_PX*2))
 					continue;
 
@@ -2366,7 +2366,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	if (grid_unit) { /* draw below the viewport name */
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(10,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, grid_unit);
+		BLF_draw_default(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, grid_unit);
 	}
 
 	ob= OBACT;
