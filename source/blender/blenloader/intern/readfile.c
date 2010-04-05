@@ -4610,6 +4610,11 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceImage *sima= (SpaceImage *)sl;
 
 						sima->image= newlibadr_us(fd, sc->id.lib, sima->image);
+						
+						/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+						 * so fingers crossed this works fine!
+						 */
+						sima->gpd= newlibadr_us(fd, sc->id.lib, sima->gpd);
 					}
 					else if(sl->spacetype==SPACE_NLA){
 						SpaceNla *snla= (SpaceNla *)sl;
@@ -4824,6 +4829,11 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceImage *sima= (SpaceImage *)sl;
 
 					sima->image= restore_pointer_by_name(newmain, (ID *)sima->image, 1);
+					
+					/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+					 * so assume that here we're doing for undo only...
+					 */
+					sima->gpd= restore_pointer_by_name(newmain, (ID *)sima->gpd, 1);
 				}
 				else if(sl->spacetype==SPACE_NLA){
 					SpaceNla *snla= (SpaceNla *)sl;
@@ -5086,13 +5096,18 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				SpaceImage *sima= (SpaceImage *)sl;
 				
 				sima->cumap= newdataadr(fd, sima->cumap);
-				sima->gpd= newdataadr(fd, sima->gpd);
-				if (sima->gpd)
-					direct_link_gpencil(fd, sima->gpd);
 				if(sima->cumap)
 					direct_link_curvemapping(fd, sima->cumap);
+				
 				sima->iuser.scene= NULL;
 				sima->iuser.ok= 1;
+				
+				/* WARNING: gpencil data is no longer stored directly in sima after 2.5 
+				 * so sacrifice a few old files for now to avoid crashes with new files!
+				 */
+				//sima->gpd= newdataadr(fd, sima->gpd);
+				//if (sima->gpd)
+				//	direct_link_gpencil(fd, sima->gpd);
 			}
 			else if(sl->spacetype==SPACE_NODE) {
 				SpaceNode *snode= (SpaceNode *)sl;

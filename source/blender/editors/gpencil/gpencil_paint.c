@@ -1096,7 +1096,20 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 #endif
 			case SPACE_IMAGE:
 			{
-				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
+				SpaceImage *sima= (SpaceImage *)p->sa->spacedata.first;
+				
+				/* only set these flags if the image editor doesn't have an image active,
+				 * otherwise user will be confused by strokes not appearing after they're drawn
+				 *
+				 * Admittedly, this is a bit hacky, but it works much nicer from an ergonomic standpoint!
+				 */
+				if ELEM(NULL, sima, sima->image) {
+					/* make strokes be drawn in screen space */
+					p->gpd->sbuffer_sflag &= ~GP_STROKE_2DSPACE;
+					p->gpd->flag &= ~GP_DATA_VIEWALIGN;
+				}	
+				else
+					p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
 			}
 				break;
 		}

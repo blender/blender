@@ -781,7 +781,10 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		/* nothing yet */
+		case NC_SCREEN:
+			if (wmn->data==ND_GPENCIL)
+				ED_region_tag_redraw(ar);
+		break;
 	}
 }
 
@@ -807,6 +810,10 @@ static void image_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_SCREEN:
+			if (wmn->data==ND_GPENCIL)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_BRUSH:
 			if(wmn->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
