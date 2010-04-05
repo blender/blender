@@ -197,9 +197,16 @@ extern EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short st
 #define SUBDIV_SELECT_INNER_SEL 2
 #define SUBDIV_SELECT_LOOPCUT 3
 
+/* edge subdivide corner cut types */
+#define SUBDIV_CORNER_PATH		0
+#define SUBDIV_CORNER_INNERVERT	1
+#define SUBDIV_CORNER_FAN		2
+
+extern EnumPropertyItem corner_type_items[];
+
 void join_triangles(EditMesh *em);
 int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
-void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beautify, int numcuts, int seltype);
+void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beautify, int numcuts, int corner_pattern, int seltype);
 int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
 
 void MESH_OT_merge(struct wmOperatorType *ot);

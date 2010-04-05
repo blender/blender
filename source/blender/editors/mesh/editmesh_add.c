@@ -1096,7 +1096,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			}
 
 			dia*=200;
-			for(a=1; a<subdiv; a++) esubdivideflag(obedit, em, 2, dia, 0, B_SPHERE,1,0);
+			for(a=1; a<subdiv; a++) esubdivideflag(obedit, em, 2, dia, 0, B_SPHERE,1, SUBDIV_CORNER_PATH, 0);
 			/* and now do imat */
 			eve= em->verts.first;
 			while(eve) {
