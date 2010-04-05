@@ -1493,6 +1493,9 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
+	if (!ar || ar->regiontype != RGN_TYPE_WINDOW)
+		return OPERATOR_CANCELLED;
+	
 	/* calculate range */
 	calc_viewborder(scene, ar, v3d, &vb);
 
