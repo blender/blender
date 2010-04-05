@@ -864,6 +864,7 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			km= WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);
 
 			km= WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_A, KM_ANY, 0, 0);
+			RNA_enum_set(km->ptr, "release_confirm", 1);
 			km= WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_S, KM_ANY, 0, 0);
 			RNA_enum_set(km->ptr, "release_confirm", 1);
 
