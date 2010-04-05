@@ -570,6 +570,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* new render clears all callbacks */
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl=NULL;
+	bScreen *screen= CTX_wm_screen(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	Render *re;
 	wmJob *steve;
@@ -583,6 +584,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* stop all running jobs, currently previews frustrate Render */
 	WM_jobs_stop_all(CTX_wm_manager(C));
 
+	/* cancel animation playback */
+	if (screen->animtimer)
+		ED_screen_animation_play(C, 0, 0);
+	
 	/* handle UI stuff */
 	WM_cursor_wait(1);
 
