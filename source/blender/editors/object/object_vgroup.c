@@ -284,7 +284,11 @@ void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float weight, in
 	if(dv==NULL)
 		return;
 	
-	dv+= vertnum;
+	/* check that vertnum is valid before trying to get the relevant dvert */
+	if ((vertnum < 0) || (vertnum >= tot))
+		return;
+	else
+		dv += vertnum;
 
 	/* Lets first check to see if this vert is
 	 * already in the weight group -- if so
