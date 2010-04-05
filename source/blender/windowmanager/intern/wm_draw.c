@@ -674,6 +674,8 @@ static int wm_automatic_draw_method(wmWindow *win)
 		/* Windows software driver darkens color on each redraw */
 		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
 			return USER_DRAW_OVERLAP_FLIP;
+		else if(!GPU_24bit_color_support())
+			return USER_DRAW_OVERLAP;
 		else
 			return USER_DRAW_TRIPLE;
 	}

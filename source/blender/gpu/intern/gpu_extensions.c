@@ -71,6 +71,7 @@ static struct GPUGlobal {
 	GLuint currentfb;
 	int glslsupport;
 	int extdisabled;
+	int color24bit;
 	GPUDeviceType device;
 	GPUOSType os;
 	GPUDriverType driver;
@@ -92,6 +93,7 @@ void GPU_extensions_disable()
 
 void GPU_extensions_init()
 {
+	GLint bits;
 	const char *vendor, *renderer;
 
 	glewInit();
@@ -105,6 +107,9 @@ void GPU_extensions_init()
 	if (!GLEW_ARB_multitexture) GG.glslsupport = 0;
 	if (!GLEW_ARB_vertex_shader) GG.glslsupport = 0;
 	if (!GLEW_ARB_fragment_shader) GG.glslsupport = 0;
+
+	glGetIntegerv(GL_RED_BITS, &bits);
+	GG.color24bit = (bits >= 8);
 
 	vendor = (const char*)glGetString(GL_VENDOR);
 	renderer = (const char*)glGetString(GL_RENDERER);
@@ -168,6 +173,11 @@ int GPU_non_power_of_two_support()
 		return 0;
 
 	return GLEW_ARB_texture_non_power_of_two;
+}
+
+int GPU_24bit_color_support()
+{
+	return GG.color24bit;
 }
 
 int GPU_print_error(char *str)
