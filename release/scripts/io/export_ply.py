@@ -99,6 +99,7 @@ def write(filename, scene, ob, \
 
     Window.WaitCursor(1)
     """
+    bpy.ops.object.mode_set(mode='OBJECT')
 
     #mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn) # XXX
     if EXPORT_APPLY_MODIFIERS:
@@ -202,7 +203,7 @@ def write(filename, scene, ob, \
 
     file.write('ply\n')
     file.write('format ascii 1.0\n')
-    file.write('comment Created by Blender3D %s - www.blender.org, source file: %s\n' % (bpy.app.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1]))
+    file.write('comment Created by Blender %s - www.blender.org, source file: %s\n' % (bpy.app.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1]))
 
     file.write('element vertex %d\n' % len(ply_verts))
 

@@ -349,7 +349,7 @@ class HELP_OT_blender_eshop(HelpOperator):
     '''Buy official Blender resources and merchandise online'''
     bl_idname = "help.blender_eshop"
     bl_label = "Blender e-Shop"
-    _url = 'http://www.blender3d.org/e-shop'
+    _url = 'http://www.blender.org/e-shop'
 
 
 class HELP_OT_developer_community(HelpOperator):

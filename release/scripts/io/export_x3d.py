@@ -1155,8 +1155,9 @@ def x3d_export(filename,
 
 
     scene = context.scene
-    # scene = Blender.Scene.GetCurrent()
     world = scene.world
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
 
     # XXX these are global textures while .Get() returned only scene's?
     alltextures = bpy.data.textures

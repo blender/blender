@@ -344,6 +344,8 @@ def write(filename, batch_objects = None, \
         BATCH_OWN_DIR =				False
     ):
 
+    bpy.ops.object.mode_set(mode='OBJECT')
+
     # ----------------- Batch support!
     if BATCH_ENABLE:
         if os == None:	BATCH_OWN_DIR = False
@@ -387,7 +389,6 @@ def write(filename, batch_objects = None, \
         # call this function within a loop with BATCH_ENABLE == False
         orig_sce = context.scene
 # 		orig_sce = bpy.data.scenes.active
-
 
         new_fbxpath = fbxpath # own dir option modifies, we need to keep an original
         for data in data_seq: # scene or group
@@ -651,7 +652,7 @@ def write(filename, batch_objects = None, \
 }''' % (curtime))
 
     file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
-    file.write('\nCreator: "Blender3D version %s"' % bpy.app.version_string)
+    file.write('\nCreator: "Blender version %s"' % bpy.app.version_string)
 
 
     pose_items = [] # list of (fbxName, matrix) to write pose data for, easier to collect allong the way
