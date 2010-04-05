@@ -1458,7 +1458,11 @@ static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_edit_object(C);
 
-	vgroup_remove_verts(ob, 0);
+	if(RNA_boolean_get(op->ptr, "all"))
+		vgroup_remove_verts(ob, 0);
+	else
+		vgroup_active_remove_verts(ob, 0);
+
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 
