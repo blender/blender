@@ -871,21 +871,27 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
-		/* make sure the F-Curve exists */
-		fcu= verify_fcurve(act, group, rna_path, array_index, 1);
+		/* make sure the F-Curve exists 
+		 *	- if we're replacing keyframes only, DO NOT create new F-Curves if they do not exist yet
+		 *	  but still try to get the F-Curve if it exists...
+		 */
+		fcu= verify_fcurve(act, group, rna_path, array_index, (flag & INSERTKEY_REPLACE)==0);
 		
-		/* set color mode if the F-Curve is new (i.e. without any keyframes) */
-		if ((fcu->totvert == 0) && (flag & INSERTKEY_XYZ2RGB)) {
-			/* for Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
-			 * is determined by the array index for the F-Curve
-			 */
-			if (ELEM4(RNA_property_subtype(prop), PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR)) {
-				fcu->color_mode= FCURVE_COLOR_AUTO_RGB;
+		/* we may not have a F-Curve when we're replacing only... */
+		if (fcu) {
+			/* set color mode if the F-Curve is new (i.e. without any keyframes) */
+			if ((fcu->totvert == 0) && (flag & INSERTKEY_XYZ2RGB)) {
+				/* for Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
+				 * is determined by the array index for the F-Curve
+				 */
+				if (ELEM4(RNA_property_subtype(prop), PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR)) {
+					fcu->color_mode= FCURVE_COLOR_AUTO_RGB;
+				}
 			}
+			
+			/* insert keyframe */
+			ret += insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
 		}
-		
-		/* insert keyframe */
-		ret += insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
 	}
 	
 	return ret;

@@ -58,6 +58,7 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACTION_OT_select_all_toggle);
 	WM_operatortype_append(ACTION_OT_select_border);
 	WM_operatortype_append(ACTION_OT_select_column);
+	WM_operatortype_append(ACTION_OT_select_linked);
 	WM_operatortype_append(ACTION_OT_select_more);
 	WM_operatortype_append(ACTION_OT_select_less);
 	
