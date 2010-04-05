@@ -129,7 +129,7 @@ def py_c_func2sphinx(ident, fw, identifier, py_func, is_class=True):
         fw("\n")
     else:
         fw(ident + ".. function:: %s()\n\n" % identifier)
-        fw(ident + "   Undocumented function.\n\n" % identifier)
+        fw(ident + "   Undocumented function.\n\n")
 
 
 def pyprop2sphinx(ident, fw, identifier, py_prop):
@@ -307,6 +307,7 @@ def rna2sphinx(BASEPATH):
     fw("   bpy.props.rst\n\n")
     
     fw("   Mathutils.rst\n\n")
+    fw("   Freestyle.rst\n\n")
     fw("   blf.rst\n\n")
     file.close()
 
@@ -347,6 +348,10 @@ def rna2sphinx(BASEPATH):
     
     import Mathutils as module
     pymodule2sphinx(BASEPATH, "Mathutils", module, "Math Types & Utilities (Mathutils)")
+    del module
+
+    import Freestyle as module
+    pymodule2sphinx(BASEPATH, "Freestyle", module, "Freestyle Operators & Rules (Freestyle)")
     del module
 
     import blf as module
