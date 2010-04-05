@@ -3439,7 +3439,11 @@ static void lib_link_object(FileData *fd, Main *main)
 				if(ob->proxy->id.lib==NULL) {
 					ob->proxy->proxy_from= NULL;
 					ob->proxy= NULL;
-					printf("Proxy lost from  object %s lib %s\n", ob->id.name+2, ob->id.lib->name);
+					
+					if (ob->id.lib)
+						printf("Proxy lost from  object %s lib %s\n", ob->id.name+2, ob->id.lib->name);
+					else
+						printf("Proxy lost from  object %s lib <NONE>\n", ob->id.name+2);
 				}
 				else {
 					/* this triggers object_update to always use a copy */
