@@ -1711,6 +1711,18 @@ int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *error_pre
 	return 0; /* success */
 }
 
+static char pyrna_struct_keyframe_insert_doc[] =
+".. function:: keyframe_insert(path, index=-1, frame=bpy.context.scene.frame_current)\n"
+"\n"
+"   Returns a boolean, True if the keyframe is set.\n"
+"\n"
+"   :arg path: path to the property to key, analogous to the fcurve's data path.\n"
+"   :type path: string\n"
+"   :arg index: array index of the property to key. Defaults to -1 which will key all indicies or a single channel if the property is not an array.\n"
+"   :type index: int\n"
+"   :arg frame: The frame on which the keyframe is inserted, defaulting to the current frame.\n"
+"   :type frame: float";
+
 static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args)
 {
 	PyObject *result;
@@ -1727,6 +1739,18 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *arg
 
 	return result;
 }
+
+static char pyrna_struct_keyframe_delete_doc[] =
+".. function:: keyframe_delete(path, index=-1, frame=bpy.context.scene.frame_current)\n"
+"\n"
+"   Returns a boolean, True if the keyframe is removed.\n"
+"\n"
+"   :arg path: path to the property to remove a key, analogous to the fcurve's data path.\n"
+"   :type path: string\n"
+"   :arg index: array index of the property to remove a key. Defaults to -1 removing all indicies or a single channel if the property is not an array.\n"
+"   :type index: int\n"
+"   :arg frame: The frame on which the keyframe is deleted, defaulting to the current frame.\n"
+"   :type frame: float";
 
 static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args)
 {
@@ -2714,8 +2738,8 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"as_pointer", (PyCFunction)pyrna_struct_as_pointer, METH_NOARGS, NULL},
 
 	/* maybe this become and ID function */
-	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
-	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS, NULL},
+	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, pyrna_struct_keyframe_insert_doc},
+	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS, pyrna_struct_keyframe_delete_doc},
 	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, NULL},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, NULL},
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},

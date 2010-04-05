@@ -43,6 +43,10 @@ import bpy
 import rna_info
 reload(rna_info)
 
+# lame, python wont give some access
+MethodDescriptorType = type(dict.get)
+GetSetDescriptorType = type(int.real)
+
 EXAMPLE_SET = set()
 EXAMPLE_SET_USED = set()
 
@@ -144,11 +148,6 @@ def pyprop2sphinx(ident, fw, identifier, py_prop):
 
 def pymodule2sphinx(BASEPATH, module_name, module, title):
     import types
-    # lame, python wont give some access
-    MethodDescriptorType = type(dict.get)
-    GetSetDescriptorType = type(int.real)
-    
-    
 
     filepath = os.path.join(BASEPATH, module_name + ".rst")
     
@@ -180,7 +179,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     
     classes = []
 
-    for attribute in dir(module):
+    for attribute in sorted(dir(module)):
         if not attribute.startswith("_"):
             value = getattr(module, attribute)
 
@@ -194,6 +193,14 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
                 py_c_func2sphinx("", fw, attribute, value, is_class=False)
             elif value_type == type:
                 classes.append((attribute, value))
+            elif value_type in (bool, int, float, str, tuple):
+                # constant, not much fun we can do here except to list it.
+                # TODO, figure out some way to document these!
+                fw(".. data:: %s\n\n" % attribute)
+                write_indented_lines("   ", fw, "constant value %s" % repr(value), False)
+                fw("\n")
+            else:
+                print("\tnot documenting %s.%s" % (module_name, attribute))
             # TODO, more types...
     
     # write collected classes now
@@ -471,6 +478,15 @@ def rna2sphinx(BASEPATH):
         for identifier, py_func in py_funcs:
             pyfunc2sphinx("   ", fw, identifier, py_func, is_class=True)
         del py_funcs, py_func
+
+        # c/python methods, only for the base class
+        if struct.identifier == "Struct":
+            for attribute, descr in bpy.types.Struct.__bases__[0].__dict__.items():
+                if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+                    if descr.__doc__:
+                        write_indented_lines("   ", fw, descr.__doc__, False)
+                        write_example_ref("   ", fw, struct.identifier + "." + attribute)
+                        fw("\n")
 
         if struct.references:
             # use this otherwise it gets in the index for a normal heading.
