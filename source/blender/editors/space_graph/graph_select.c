@@ -196,10 +196,11 @@ void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
  */
 
 /* Borderselect only selects keyframes now, as overshooting handles often get caught too,
- * which means that they may be inadvertantly moved as well.
- * Also, for convenience, handles should get same status as keyframe (if it was within bounds)
+ * which means that they may be inadvertantly moved as well. However, incl_handles overrides
+ * this, and allow handles to be considered independently too.
+ * Also, for convenience, handles should get same status as keyframe (if it was within bounds).
  */
-static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, short selectmode)
+static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, short selectmode, short incl_handles)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -226,6 +227,10 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 	/* init editing data */
 	memset(&ked, 0, sizeof(KeyframeEditData));
 	ked.data= &rectf;
+	
+	/* treat handles separately? */
+	if (incl_handles)
+		ked.iterflags |= KEYFRAME_ITER_INCL_HANDLES;
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -286,16 +291,23 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	bAnimContext ac;
 	rcti rect;
 	short mode=0, selectmode=0;
+	short incl_handles;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-
+	
+	/* get select mode 
+	 *	- 'gesture_mode' from the operator specifies how to select
+	 *	- 'include_handles' from the operator specifies whether to include handles in the selection
+	 */
 	if (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT)
 		selectmode= SELECT_ADD;
 	else
 		selectmode= SELECT_SUBTRACT;
-
+		
+	incl_handles = RNA_boolean_get(op->ptr, "include_handles");
+	
 	/* get settings from operator */
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
@@ -318,7 +330,7 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 		mode= BEZT_OK_REGION;
 	
 	/* apply borderselect action */
-	borderselect_graphkeys(&ac, rect, mode, selectmode);
+	borderselect_graphkeys(&ac, rect, mode, selectmode, incl_handles);
 	
 	/* send notifier that keyframe selection has changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
@@ -347,6 +359,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, FALSE);
 	
 	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+	RNA_def_boolean(ot->srna, "include_handles", 0, "Include Handles", "Are handles tested individually against the selection criteria");
 }
 
 /* ******************** Column Select Operator **************************** */
