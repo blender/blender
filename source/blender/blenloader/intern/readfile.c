@@ -4757,7 +4757,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					View3D *v3d= (View3D*) sl;
 					BGpic *bgpic;
 					
-					v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera, 1);
+					if(v3d->scenelock)
+						v3d->camera= NULL; /* always get from scene */
+					else
+						v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera, 1);
 					if(v3d->camera==NULL)
 						v3d->camera= sc->scene->camera;
 					v3d->ob_centre= restore_pointer_by_name(newmain, (ID *)v3d->ob_centre, 1);
