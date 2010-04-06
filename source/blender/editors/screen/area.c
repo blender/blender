@@ -340,9 +340,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	/* optional header info instead? */
 	if(ar->headerstr) {
-		float col[3];
-		UI_GetThemeColor3fv(TH_HEADER, col);
-		glClearColor(col[0], col[1], col[2], 0.0);
+		UI_ThemeClearColor(TH_HEADER);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		UI_ThemeColor(TH_TEXT);
@@ -1228,7 +1226,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	Panel *panel;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
-	float col[3];
 	int xco, yco, x, y, miny=0, w, em, header, triangle, open, newcontext= 0;
 
 	if(contextnr >= 0)
@@ -1334,14 +1331,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	}
 
 	/* clear */
-	if (ar->type->regionid == RGN_TYPE_PREVIEW)
-		UI_GetThemeColor3fv(TH_PREVIEW_BACK, col);
-	else
-		UI_GetThemeColor3fv(TH_BACK, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor((ar->type->regionid == RGN_TYPE_PREVIEW)?TH_PREVIEW_BACK:TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
-
+	
 	/* before setting the view */
 	if(vertical) {
 		/* only allow scrolling in vertical direction */
@@ -1418,16 +1410,10 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	uiLayout *layout;
 	HeaderType *ht;
 	Header header = {0};
-	float col[3];
 	int maxco, xco, yco;
 
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
+	/* clear */	
+	UI_ThemeClearColor((ED_screen_area_active(C))?TH_HEADER:TH_HEADERDESEL);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */

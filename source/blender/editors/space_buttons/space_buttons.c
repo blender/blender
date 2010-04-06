@@ -208,15 +208,9 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 #else
 
-	float col[3];
-	
+
 	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor(ED_screen_area_active(C)?TH_HEADER:TH_HEADERDESEL);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */

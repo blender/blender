@@ -1968,9 +1968,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 		glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
 	}
 	else {
-		float col[3];
-		UI_GetThemeColor3fv(TH_BACK, col);
-		glClearColor(col[0], col[1], col[2], 0.0); 	
+		UI_ThemeClearColor(TH_BACK);	
 	}
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -2182,7 +2180,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Scene *sce;
 	Base *base;
 	Object *ob;
-	float col[3];
 	int retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
@@ -2201,8 +2198,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	/* clear background */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0); 
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	
 	/* setup view matrices */

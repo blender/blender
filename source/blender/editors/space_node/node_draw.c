@@ -1067,14 +1067,12 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 
 void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 {
-	float col[3];
 	View2DScrollers *scrollers;
 	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *scene= CTX_data_scene(C);
 	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0);
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	UI_view2d_view_ortho(C, v2d);

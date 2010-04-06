@@ -244,11 +244,9 @@ static void logic_main_area_draw(const bContext *C, ARegion *ar)
 //	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
-	float col[3];
 	
 	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	UI_view2d_view_ortho(C, v2d);
@@ -294,15 +292,8 @@ static void logic_header_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void logic_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
 	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor(ED_screen_area_active(C)?TH_HEADER:TH_HEADERDESEL);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */

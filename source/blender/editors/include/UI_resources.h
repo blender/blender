@@ -279,6 +279,9 @@ void	UI_ColorPtrBlendShade3ubv(char *cp1, char *cp2, float fac, int offset);
 // get a 3 byte color, blended and shaded between two other char color pointers
 void	UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, int offset);
 
+// clear the openGL ClearColor using the input colorid
+void	UI_ThemeClearColor(int colorid);
+
 // internal (blender) usage only, for init and set active
 void 	UI_SetTheme(int spacetype, int regionid);
 

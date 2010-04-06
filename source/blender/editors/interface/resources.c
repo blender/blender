@@ -944,6 +944,14 @@ void UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, in
 	col[2] = b;
 }
 
+void UI_ThemeClearColor(int colorid)
+{
+	float col[3];
+	
+	UI_GetThemeColor3fv(colorid, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+}
+
 void UI_make_axis_color(char *src_col, char *dst_col, char axis)
 {
 	switch(axis)

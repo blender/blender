@@ -749,6 +749,8 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	
 	wmOrtho2(-0.01f, ar->winx-0.01f, -0.01f, ar->winy-0.01f);
 	
+	UI_ThemeClearColor(TH_BACK);
+	
 	/* back */
 	if(block->flag & UI_BLOCK_LOOP)
 		ui_draw_menu_back(&style, block, &rect);

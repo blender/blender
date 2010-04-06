@@ -156,14 +156,12 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
-	float col[3];
 	
 	if((sc->type==CONSOLE_TYPE_PYTHON) && (sc->scrollback.first==NULL))
 		WM_operator_name_call((bContext *)C, "CONSOLE_OT_banner", WM_OP_EXEC_DEFAULT, NULL);
 
 	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 1.0);
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	console_update_rect(C, ar);
