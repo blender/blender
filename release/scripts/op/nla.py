@@ -110,18 +110,18 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
             #pbone.rotation_quaternion = matrix.to_quat()
             pbone.matrix_local = [f for v in matrix for f in v]
             
-            pbone.keyframe_insert("location", -1, f, "Location")
+            pbone.keyframe_insert("location", -1, f, name)
 
             rotation_mode = pbone.rotation_mode
 
             if rotation_mode == 'QUATERNION':
-                pbone.keyframe_insert("rotation_quaternion", -1, f, "Rotation")
+                pbone.keyframe_insert("rotation_quaternion", -1, f, name)
             elif rotation_mode == 'AXIS_ANGLE':
-                pbone.keyframe_insert("rotation_axis_angle", -1, f, "Rotation")
+                pbone.keyframe_insert("rotation_axis_angle", -1, f, name)
             else: # euler, XYZ, ZXY etc
-                pbone.keyframe_insert("rotation_euler", -1, f, "Rotation")
+                pbone.keyframe_insert("rotation_euler", -1, f, name)
 
-            pbone.keyframe_insert("scale", -1, f, "Scale")
+            pbone.keyframe_insert("scale", -1, f, name)
 
     return action
 
