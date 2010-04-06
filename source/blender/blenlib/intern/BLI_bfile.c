@@ -214,7 +214,7 @@ size_t BLI_bfile_fwrite(const void *ptr, size_t size, size_t nmemb,
 	size_t ret;
 
 	if (f == NULL)
-		return 0
+		return 0;
 
 	ret = fwrite(ptr, size, nmemb, f->stream);
 	if (ret <= 0) {
