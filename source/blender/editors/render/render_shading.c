@@ -196,6 +196,19 @@ static void world_changed(Main *bmain, World *wo)
 			GPU_material_free(ma);
 }
 
+static void image_changed(Main *bmain, Image *ima)
+{
+	Tex *tex;
+
+	/* icons */
+	BKE_icon_changed(BKE_icon_getid(&ima->id));
+
+	/* textures */
+	for(tex=bmain->tex.first; tex; tex=tex->id.next)
+		if(tex->ima == ima)
+			texture_changed(bmain, tex);
+}
+
 void ED_render_id_flush_update(Main *bmain, ID *id)
 {
 	if(!id)
@@ -213,6 +226,9 @@ void ED_render_id_flush_update(Main *bmain, ID *id)
 			break;
 		case ID_LA:
 			lamp_changed(bmain, (Lamp*)id);
+			break;
+		case ID_IM:
+			image_changed(bmain, (Image*)id);
 			break;
 		default:
 			break;

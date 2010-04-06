@@ -33,6 +33,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_image.h"
 
 #include "WM_types.h"
@@ -78,6 +79,7 @@ static void rna_Image_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
+	DAG_id_flush_update(&ima->id, 0);
 }
 
 static void rna_Image_fields_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -105,6 +107,7 @@ static void rna_Image_reload_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+	DAG_id_flush_update(&ima->id, 0);
 }
 
 static void rna_Image_generated_update(Main *bmain, Scene *scene, PointerRNA *ptr)

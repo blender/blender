@@ -341,6 +341,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			sbuts->preview= 1;
 			break;
 		case NC_TEXTURE:
+		case NC_IMAGE:
 			ED_area_tag_redraw(sa);
 			sbuts->preview= 1;
 			break;
