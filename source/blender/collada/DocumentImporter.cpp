@@ -211,7 +211,7 @@ static int set_parent(Object *ob, Object *par, bContext *C)
 	// mul_m4_m4m4(ob->obmat, mat, par->obmat);
 	
 	// apply child obmat (i.e. decompose into rot/loc/size)
-	ED_object_apply_obmat(ob);
+	object_apply_mat4(ob, ob->obmat);
 
 	// compute parentinv
 	what_does_parent(sce, ob, &workob);
@@ -2299,7 +2299,7 @@ public:
 		TransformReader::get_node_mat(mat, node, &uid_animated_map, ob);
 		if (ob) {
 			copy_m4_m4(ob->obmat, mat);
-			ED_object_apply_obmat(ob);
+			object_apply_mat4(ob, ob->obmat);
 		}
 	}
 	
