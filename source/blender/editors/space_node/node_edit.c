@@ -1649,11 +1649,11 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 /* ******************************** */
 // XXX some code needing updating to operators...
 
-/* goes over all scenes, reads render layerss */
-void node_read_renderlayers(SpaceNode *snode)
+/* goes over all scenes, reads render layers */
+static int node_read_renderlayers_exec(bContext *C, wmOperator *op)
 {
-	Scene *curscene= NULL; // XXX
-	Scene *scene;
+	SpaceNode *snode= CTX_wm_space_node(C);
+	Scene *curscene= CTX_data_scene(C), *scene;
 	bNode *node;
 
 	/* first tag scenes unread */
@@ -1671,25 +1671,56 @@ void node_read_renderlayers(SpaceNode *snode)
 		}
 	}
 	
-	// XXX			snode_notify(snode);
+	snode_notify(C, snode);
+	return OPERATOR_FINISHED;
 }
 
-void node_read_fullsamplelayers(SpaceNode *snode)
+void NODE_OT_read_renderlayers(wmOperatorType *ot)
 {
-	Scene *curscene= NULL; // XXX
+	
+	ot->name= "Read Render Layers";
+	ot->idname= "NODE_OT_read_renderlayers";
+	
+	ot->exec= node_read_renderlayers_exec;
+	
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
+
+static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	Scene *curscene= CTX_data_scene(C);
 	Render *re= RE_NewRender(curscene->id.name);
 
-	WM_cursor_wait(1);
+//	WM_cursor_wait(1);
 
-	//BIF_init_render_callbacks(re, 1);
 	RE_MergeFullSample(re, curscene, snode->nodetree);
-	//BIF_end_render_callbacks();
+	snode_notify(C, snode);
 	
-	// allqueue(REDRAWNODE, 1);
-	// allqueue(REDRAWIMAGE, 1);
-	
-	WM_cursor_wait(0);
+//	WM_cursor_wait(0);
+	return OPERATOR_FINISHED;
 }
+
+
+void NODE_OT_read_fullsamplelayers(wmOperatorType *ot)
+{
+	
+	ot->name= "Read Full Sample Layers";
+	ot->idname= "NODE_OT_read_fullsamplelayers";
+	
+	ot->exec= node_read_fullsamplelayers_exec;
+	
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
+
+
+/* ************************* */
 
 void imagepaint_composite_tags(bNodeTree *ntree, Image *image, ImageUser *iuser)
 {
