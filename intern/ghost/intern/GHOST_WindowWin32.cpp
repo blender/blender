@@ -158,11 +158,16 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			width = tw;
 			left = rect.left;
 		}
+		else if(left < rect.left)
+			left = rect.left;
+
 		if(th < height)
 		{
 			height = th;
 			top = rect.top;
 		}
+		else if(top > rect.top)
+			top = rect.top;
 
 		m_hWnd = ::CreateWindow(
 			s_windowClassName,			// pointer to registered class name
