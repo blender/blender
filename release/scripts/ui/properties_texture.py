@@ -203,6 +203,12 @@ class TextureSlotPanel(TextureButtonsPanel):
 class TEXTURE_PT_mapping(TextureSlotPanel):
     bl_label = "Mapping"
 
+    def poll(self, context):
+        idblock = context_tex_datablock(context)
+        if type(idblock) == bpy.types.Brush and not context.sculpt_object:
+            return False
+        return True
+
     def draw(self, context):
         layout = self.layout
 
@@ -242,15 +248,16 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
                 split.prop(tex, "object", text="")
 
         if type(idblock) == bpy.types.Brush:
-            layout.prop(tex, "map_mode", expand=True)
-
-            row = layout.row()
-            row.active = tex.map_mode in ('FIXED', 'TILED')
-            row.prop(tex, "angle")
-
-            row = layout.row()
-            row.active = tex.map_mode in ('TILED', '3D')
-            row.column().prop(tex, "size")
+            if context.sculpt_object:
+                layout.prop(tex, "map_mode", expand=True)
+    
+                row = layout.row()
+                row.active = tex.map_mode in ('FIXED', 'TILED')
+                row.prop(tex, "angle")
+    
+                row = layout.row()
+                row.active = tex.map_mode in ('TILED', '3D')
+                row.column().prop(tex, "size")
         else:
             if type(idblock) == bpy.types.Material:
                 split = layout.split(percentage=0.3)

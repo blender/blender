@@ -668,7 +668,8 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel):
 
         col.template_ID_preview(brush, "texture", new="texture.new", rows=2, cols=4)
 
-        col.row().prop(tex_slot, "map_mode", expand=True)
+        if context.sculpt_object:
+            col.row().prop(tex_slot, "map_mode", expand=True)
 
 
 class VIEW3D_PT_tools_brush_tool(PaintPanel):
