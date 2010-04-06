@@ -614,15 +614,16 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 					
 					return area_swap_cancel(C, op);
 				}
-				ED_area_swapspace(C, sad->sa1, sad->sa2);
-				
-				area_swap_exit(C, op);
-				
+
 #ifdef WM_FAST_DRAW
 				ED_area_tag_redraw(sad->sa1);
 				ED_area_tag_redraw(sad->sa2);
 #endif
 
+				ED_area_swapspace(C, sad->sa1, sad->sa2);
+				
+				area_swap_exit(C, op);
+				
 				WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				
 				return OPERATOR_FINISHED;

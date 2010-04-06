@@ -954,6 +954,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 {
 	SpaceType *st;
 	ARegion *ar;
+	int spacetype= sa1->spacetype;
 	
 	sa1->headertype= sa2->headertype;
 	sa1->spacetype= sa2->spacetype;
@@ -981,7 +982,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	}
 	else {
 		if(swap_space<2) {
-			st= BKE_spacetype_from_id(sa1->spacetype);
+			st= BKE_spacetype_from_id(spacetype);
 			for(ar= sa1->regionbase.first; ar; ar= ar->next)
 				BKE_area_region_free(st, ar);
 			BLI_freelistN(&sa1->regionbase);
@@ -1003,10 +1004,6 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
 
 	ED_area_exit(C, sa1);
 	ED_area_exit(C, sa2);
-
-	tmp->spacetype= sa1->spacetype;
-	tmp->butspacetype= sa1->butspacetype;
-	BKE_spacedata_copyfirst(&tmp->spacedata, &sa1->spacedata);
 
 	area_copy_data(tmp, sa1, 2);
 	area_copy_data(sa1, sa2, 0);
