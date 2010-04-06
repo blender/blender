@@ -3732,7 +3732,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	oldtotpart = psys->totpart;
 
 	emit = emit_particles(sim, use_cache, cfra);
-	if(emit > 0)
+	if(use_cache && emit > 0)
 		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, cfra);
 	init = emit*emit + (psys->recalc & PSYS_RECALC_RESET);
 
