@@ -177,7 +177,7 @@ static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
 	if(cancel) {
 		sima->xof= vpd->xof;
 		sima->yof= vpd->yof;
-		ED_area_tag_redraw(CTX_wm_area(C));
+		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 
 	WM_cursor_restore(CTX_wm_window(C));
@@ -193,7 +193,7 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 	sima->xof += offset[0];
 	sima->yof += offset[1];
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(CTX_wm_region(C));
 
 	/* XXX notifier? */
 #if 0
@@ -309,7 +309,7 @@ static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 
 	if(cancel) {
 		sima->zoom= vpd->zoom;
-		ED_area_tag_redraw(CTX_wm_area(C));
+		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 
 	WM_cursor_restore(CTX_wm_window(C));
@@ -323,7 +323,7 @@ static int view_zoom_exec(bContext *C, wmOperator *op)
 
 	sima_zoom_set_factor(sima, ar, RNA_float_get(op->ptr, "factor"));
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(CTX_wm_region(C));
 
 	/* XXX notifier? */
 #if 0
@@ -347,7 +347,7 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		factor= 1.0 + (event->x-event->prevx+event->y-event->prevy)/300.0f;
 		RNA_float_set(op->ptr, "factor", factor);
 		sima_zoom_set(sima, ar, sima->zoom*factor);
-		ED_area_tag_redraw(CTX_wm_area(C));
+		ED_region_tag_redraw(CTX_wm_region(C));
 		
 		return OPERATOR_FINISHED;
 	}
@@ -369,7 +369,7 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 			factor= 1.0 + (vpd->x-event->x+vpd->y-event->y)/300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
 			sima_zoom_set(sima, ar, vpd->zoom*factor);
-			ED_area_tag_redraw(CTX_wm_area(C));
+			ED_region_tag_redraw(CTX_wm_region(C));
 			break;
 		case MIDDLEMOUSE:
 		case LEFTMOUSE:
@@ -452,7 +452,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 
 	sima->xof= sima->yof= 0.0f;
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(CTX_wm_region(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -504,7 +504,7 @@ static int view_selected_exec(bContext *C, wmOperator *op)
 	if(size<=0.01) size= 0.01;
 	sima_zoom_set(sima, ar, 0.7/size);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(CTX_wm_region(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -529,7 +529,7 @@ static int view_zoom_in_exec(bContext *C, wmOperator *op)
 
 	sima_zoom_set_factor(sima, ar, 1.25f);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(CTX_wm_region(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -552,7 +552,7 @@ static int view_zoom_out_exec(bContext *C, wmOperator *op)
 
 	sima_zoom_set_factor(sima, ar, 0.8f);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(CTX_wm_region(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -590,7 +590,7 @@ static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
 	}
 #endif
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	ED_region_tag_redraw(CTX_wm_region(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -1688,16 +1688,17 @@ static int sample_line_exec(bContext *C, wmOperator *op)
 				hist->data_r[i] = fp[0];
 				hist->data_g[i] = fp[1];
 				hist->data_b[i] = fp[2];
+				hist->data_luma[i] = (0.299f*fp[0] + 0.587f*fp[1] + 0.114f*fp[2]);
 			}
 			else if (ibuf->rect) {
 				cp= (unsigned char *)(ibuf->rect + y*ibuf->x + x);
 				hist->data_r[i] = (float)cp[0]/255.0f;
 				hist->data_g[i] = (float)cp[1]/255.0f;
 				hist->data_b[i] = (float)cp[2]/255.0f;
+				hist->data_luma[i] = (0.299f*cp[0] + 0.587f*cp[1] + 0.114f*cp[2])/255;
 			}
 		}
 	}
-	hist->ok=1;
 	
 	ED_space_image_release_buffer(sima, lock);
 	

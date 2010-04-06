@@ -218,6 +218,8 @@ typedef struct uiLayout uiLayout;
 #define HOTKEYEVT	(45<<9)
 #define BUT_IMAGE	(46<<9)
 #define HISTOGRAM	(47<<9)
+#define WAVEFORM	(48<<9)
+#define VECTORSCOPE	(49<<9)
 
 #define BUTTYPE		(63<<9)
 
@@ -676,6 +678,8 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
 void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
 void uiTemplateHistogram(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
+void uiTemplateWaveform(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
+void uiTemplateVectorscope(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *propname, int type, int levels, int brush);
 void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider, int lock);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);

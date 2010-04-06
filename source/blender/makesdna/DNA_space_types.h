@@ -44,6 +44,7 @@ struct Text;
 struct Script;
 struct ImBuf;
 struct Image;
+struct Scopes;
 struct Histogram;
 struct SpaceIpo;
 struct BlendHandle;
@@ -260,8 +261,10 @@ typedef struct SpaceImage {
 	
 	struct bGPdata *gpd;			/* grease pencil data */
 	
-	struct Histogram hist;			/* viewer histogram */
+	struct Scopes scopes;			/* histogram waveform and vectorscope */
+
 	struct Histogram sample_line_hist;	/* sample line histogram */
+	
 } SpaceImage;
 
 typedef struct SpaceNla {

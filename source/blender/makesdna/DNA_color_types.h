@@ -90,18 +90,57 @@ typedef enum CurveMappingPreset {
 	CURVE_PRESET_MID9
 } CurveMappingPreset;
 
+/* histogram->mode */
+#define HISTO_MODE_LUMA	0
+#define HISTO_MODE_RGB	1
+#define HISTO_MODE_R	2
+#define HISTO_MODE_G	3
+#define HISTO_MODE_B	4
+
 typedef struct Histogram {
 	int channels;
 	int x_resolution;
 	float data_r[256];
 	float data_g[256];
 	float data_b[256];
+	float data_luma[256];
 	float xmax, ymax;
+	int mode;
 	int height;
-	int ok;
-	int flag;
-	int pad;
 } Histogram;
+
+struct ImBuf;
+
+typedef struct Scopes {
+	int ok;
+	int sample_full;
+	int sample_lines;
+	float accuracy;
+	int wavefrm_mode;
+	float wavefrm_alpha;
+	float wavefrm_yfac;
+	int wavefrm_height;
+	float vecscope_alpha;
+	int vecscope_height;
+	float rgbminmax[3][2];
+	float yccminmax[3][2];
+	float ycc709minmax[3][2];
+	struct ImBuf *samples_ibuf;
+	struct Histogram hist;
+	float *waveform_1;
+	float *waveform_2;
+	float *waveform_3;
+	int waveform_tot;
+	int pad;
+} Scopes;
+
+/* scopes->wavefrm_mode */
+#define SCOPES_WAVEFRM_LUM		0
+#define SCOPES_WAVEFRM_RGB		1
+#define SCOPES_WAVEFRM_YCC_601	2
+#define SCOPES_WAVEFRM_YCC_709	3
+#define SCOPES_WAVEFRM_YCC_JPEG	4
+
 
 #endif
 

@@ -47,6 +47,7 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
+#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "ED_mesh.h"
@@ -98,6 +99,7 @@ void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obe
 			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 		
 		ED_area_tag_redraw(CTX_wm_area(C));
+		
 	}
 }
 
@@ -289,20 +291,20 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 }
 
 
-
-static void image_histogram_tag_refresh(ScrArea *sa)
+static void image_scopes_tag_refresh(ScrArea *sa)
 {
 	SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
 	ARegion *ar;
-	
+
 	/* only while histogram is visible */
 	for (ar=sa->regionbase.first; ar; ar=ar->next) {
 		if (ar->regiontype == RGN_TYPE_PREVIEW && ar->flag & RGN_FLAG_HIDDEN)
 			return;
 	}
-	
-	sima->hist.ok=0;
+
+	sima->scopes.ok=0;
 }
+
 
 /* ******************** manage regions ********************* */
 
@@ -356,8 +358,8 @@ ARegion *image_has_scope_region(ScrArea *sa)
 	arnew->alignment= RGN_ALIGN_RIGHT;
 	
 	arnew->flag = RGN_FLAG_HIDDEN;
-	
-	image_histogram_tag_refresh(sa);
+
+	image_scopes_tag_refresh(sa);
 	
 	return arnew;
 }
@@ -400,6 +402,13 @@ static SpaceLink *image_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_PREVIEW;
 	ar->alignment= RGN_ALIGN_RIGHT;
 	ar->flag = RGN_FLAG_HIDDEN;
+
+	simage->scopes.accuracy=30.0;
+	simage->scopes.hist.mode=HISTO_MODE_RGB;
+	simage->scopes.wavefrm_alpha=0.3;
+	simage->scopes.vecscope_alpha=0.3;
+	simage->scopes.wavefrm_height= 100;
+	simage->scopes.hist.height= 100;
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for image");
@@ -417,9 +426,7 @@ static void image_free(SpaceLink *sl)
 	
 	if(simage->cumap)
 		curvemapping_free(simage->cumap);
-//	if(simage->gpd)
-// XXX		free_gpencil_data(simage->gpd);
-	
+	scopes_free(&simage->scopes);
 }
 
 
@@ -590,7 +597,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
-					image_histogram_tag_refresh(sa);
+					image_scopes_tag_refresh(sa);
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);					
 					break;
@@ -598,7 +605,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_RENDER_RESULT:
 				case ND_COMPO_RESULT:
 					if (ED_space_image_show_render(sima))
-						image_histogram_tag_refresh(sa);
+						image_scopes_tag_refresh(sa);
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);					
 					break;
@@ -606,14 +613,14 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_IMAGE:
 			if (wmn->reference == sima->image || !wmn->reference) {
-				image_histogram_tag_refresh(sa);
+				image_scopes_tag_refresh(sa);
 				ED_area_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
 			}
 			break;
 		case NC_SPACE:	
 			if(wmn->data == ND_SPACE_IMAGE) {
-				image_histogram_tag_refresh(sa);
+				image_scopes_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
 			}
 			break;
@@ -837,10 +844,12 @@ static void image_scope_area_init(wmWindowManager *wm, ARegion *ar)
 static void image_scope_area_draw(const bContext *C, ARegion *ar)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
+	Scene *scene= CTX_data_scene(C);
 	void *lock;
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
-	if(ibuf)
-		histogram_update(&sima->hist, ibuf);
+	if(ibuf) {
+		scopes_update(&sima->scopes, ibuf, scene->r.color_mgt_flag & R_COLOR_MANAGEMENT );
+	}
 	ED_space_image_release_buffer(sima, lock);
 	
 	ED_region_panels(C, ar, 1, NULL, -1);

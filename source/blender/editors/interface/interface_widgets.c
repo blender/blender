@@ -2727,6 +2727,14 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				ui_draw_but_HISTOGRAM(ar, but, &tui->wcol_regular, rect);
 				break;
 				
+			case WAVEFORM:
+				ui_draw_but_WAVEFORM(ar, but, &tui->wcol_regular, rect);
+				break;
+				
+			case VECTORSCOPE:
+				ui_draw_but_VECTORSCOPE(ar, but, &tui->wcol_regular, rect);
+				break;
+					
 			case BUT_CURVE:
 				ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
 				break;

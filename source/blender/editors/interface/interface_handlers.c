@@ -801,6 +801,14 @@ static void ui_apply_but_HISTOGRAM(bContext *C, uiBut *but, uiHandleButtonData *
 	data->applied= 1;
 }
 
+static void ui_apply_but_WAVEFORM(bContext *C, uiBut *but, uiHandleButtonData *data)
+{
+	ui_apply_but_func(C, but);
+	data->retval= but->retval;
+	data->applied= 1;
+}
+
+
 static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, int interactive)
 {
 	char *editstr;
@@ -925,6 +933,9 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			break;
 		case HISTOGRAM:	
 			ui_apply_but_HISTOGRAM(C, but, data);
+			break;
+		case WAVEFORM:
+			ui_apply_but_WAVEFORM(C, but, data);
 			break;
 		default:
 			break;
@@ -3460,7 +3471,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int in_histogram_resize_zone(uiBut *but, int x, int y)
+static int in_scope_resize_zone(uiBut *but, int x, int y)
 {
 	// bottom corner return (x > but->x2 - SCOPE_RESIZE_PAD) && (y < but->y1 + SCOPE_RESIZE_PAD);
 	return (y < but->y1 + SCOPE_RESIZE_PAD);
@@ -3480,7 +3491,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 	dy = my - data->draglasty;
 	
 	
-	if (in_histogram_resize_zone(but, data->dragstartx, data->dragstarty)) {
+	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		 /* resize histogram widget itself */
 		hist->height = (but->y2 - but->y1) + (data->dragstarty - my);
 	} else {
@@ -3545,6 +3556,156 @@ static int ui_do_but_HISTOGRAM(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		return WM_UI_HANDLER_BREAK;
 	}
 	
+	return WM_UI_HANDLER_CONTINUE;
+}
+
+static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx, int my)
+{
+	Scopes *scopes = (Scopes *)but->poin;
+	rcti rect;
+	int changed= 1;
+	float dx, dy, yfac=1.f;
+
+	rect.xmin= but->x1; rect.xmax= but->x2;
+	rect.ymin= but->y1; rect.ymax= but->y2;
+
+	dx = mx - data->draglastx;
+	dy = my - data->draglasty;
+
+
+	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
+		 /* resize waveform widget itself */
+		scopes->wavefrm_height = (but->y2 - but->y1) + (data->dragstarty - my);
+	} else {
+		/* scale waveform values */
+		yfac = scopes->wavefrm_yfac;
+		scopes->wavefrm_yfac += dy/200.0f;
+
+		CLAMP(scopes->wavefrm_yfac, 0.5f, 2.f);
+	}
+
+	data->draglastx= mx;
+	data->draglasty= my;
+
+	return changed;
+}
+
+static int ui_do_but_WAVEFORM(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+{
+	int mx, my;
+
+	mx= event->x;
+	my= event->y;
+	ui_window_to_block(data->region, block, &mx, &my);
+
+	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		if(event->type==LEFTMOUSE && event->val==KM_PRESS) {
+			data->dragstartx= mx;
+			data->dragstarty= my;
+			data->draglastx= mx;
+			data->draglasty= my;
+			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+
+			/* also do drag the first time */
+			if(ui_numedit_but_WAVEFORM(but, data, mx, my))
+				ui_numedit_apply(C, block, but, data);
+
+			return WM_UI_HANDLER_BREAK;
+		}
+		else if (event->type == ZEROKEY && event->val == KM_PRESS) {
+			Scopes *scopes = (Scopes *)but->poin;
+			scopes->wavefrm_yfac = 1.f;
+
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	else if(data->state == BUTTON_STATE_NUM_EDITING) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == MOUSEMOVE) {
+			if(mx!=data->draglastx || my!=data->draglasty) {
+				if(ui_numedit_but_WAVEFORM(but, data, mx, my))
+					ui_numedit_apply(C, block, but, data);
+			}
+		}
+		else if(event->type==LEFTMOUSE && event->val!=KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		return WM_UI_HANDLER_BREAK;
+	}
+
+	return WM_UI_HANDLER_CONTINUE;
+}
+
+static int ui_numedit_but_VECTORSCOPE(uiBut *but, uiHandleButtonData *data, int mx, int my)
+{
+	Scopes *scopes = (Scopes *)but->poin;
+	rcti rect;
+	int changed= 1;
+	float dx, dy;
+
+	rect.xmin= but->x1; rect.xmax= but->x2;
+	rect.ymin= but->y1; rect.ymax= but->y2;
+
+	dx = mx - data->draglastx;
+	dy = my - data->draglasty;
+
+	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
+		 /* resize vectorscope widget itself */
+		scopes->vecscope_height = (but->y2 - but->y1) + (data->dragstarty - my);
+	}
+
+	data->draglastx= mx;
+	data->draglasty= my;
+
+	return changed;
+}
+
+static int ui_do_but_VECTORSCOPE(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+{
+	int mx, my;
+
+	mx= event->x;
+	my= event->y;
+	ui_window_to_block(data->region, block, &mx, &my);
+
+	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		if(event->type==LEFTMOUSE && event->val==KM_PRESS) {
+			data->dragstartx= mx;
+			data->dragstarty= my;
+			data->draglastx= mx;
+			data->draglasty= my;
+			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+
+			/* also do drag the first time */
+			if(ui_numedit_but_VECTORSCOPE(but, data, mx, my))
+				ui_numedit_apply(C, block, but, data);
+
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	else if(data->state == BUTTON_STATE_NUM_EDITING) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == MOUSEMOVE) {
+			if(mx!=data->draglastx || my!=data->draglasty) {
+				if(ui_numedit_but_VECTORSCOPE(but, data, mx, my))
+					ui_numedit_apply(C, block, but, data);
+			}
+		}
+		else if(event->type==LEFTMOUSE && event->val!=KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		return WM_UI_HANDLER_BREAK;
+	}
+
 	return WM_UI_HANDLER_CONTINUE;
 }
 
@@ -4136,6 +4297,12 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		break;
 	case HISTOGRAM:
 		retval= ui_do_but_HISTOGRAM(C, block, but, data, event);
+		break;
+	case WAVEFORM:
+		retval= ui_do_but_WAVEFORM(C, block, but, data, event);
+		break;
+	case VECTORSCOPE:
+		retval= ui_do_but_VECTORSCOPE(C, block, but, data, event);
 		break;
 	case TEX:
 	case IDPOIN:

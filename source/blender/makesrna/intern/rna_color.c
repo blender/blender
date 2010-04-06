@@ -26,6 +26,7 @@
 #include <stdio.h>
 
 #include "RNA_define.h"
+#include "rna_internal.h"
 
 #include "DNA_color_types.h"
 
@@ -269,6 +270,11 @@ static void rna_ColorRamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 }
 
+static void rna_Scopes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Scopes *s= (Scopes*)ptr->data;
+	s->ok = 0;
+}
 
 #else
 
@@ -443,11 +449,76 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 static void rna_def_histogram(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 	
+	static EnumPropertyItem prop_mode_items[] = {
+		{HISTO_MODE_LUMA, "Luma", ICON_COLOR, "Luma", ""},
+		{HISTO_MODE_RGB, "RGB", ICON_COLOR, "RGB", ""},
+		{HISTO_MODE_R, "R", ICON_COLOR, "R", ""},
+		{HISTO_MODE_G, "G", ICON_COLOR, "G", ""},
+		{HISTO_MODE_B, "B", ICON_COLOR, "B", ""},
+		{0, NULL, 0, NULL, NULL}};
+		
 	srna= RNA_def_struct(brna, "Histogram", NULL);
 	RNA_def_struct_ui_text(srna, "Histogram", "Statistical view of the levels of color in an image");
 	
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, prop_mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "Channels to display when drawing the histogram");
+	
 }
+
+static void rna_def_scopes(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_wavefrm_mode_items[] = {
+		{SCOPES_WAVEFRM_LUM, "LUMINANCE", ICON_COLOR, "Luminance", ""},
+		{SCOPES_WAVEFRM_RGB, "RGB", ICON_COLOR, "Red Green Blue", ""},
+		{SCOPES_WAVEFRM_YCC_601, "YCBCR601", ICON_COLOR, "YCbCr (ITU 601)", ""},
+		{SCOPES_WAVEFRM_YCC_709, "YCBCR709", ICON_COLOR, "YCbCr (ITU 709)", ""},
+		{SCOPES_WAVEFRM_YCC_JPEG, "YCBCRJPG", ICON_COLOR, "YCbCr (Jpeg)", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "Scopes", NULL);
+	RNA_def_struct_ui_text(srna, "Scopes", "Scopes for statistical view of an image");
+	
+	prop= RNA_def_property(srna, "use_full_resolution", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, "Scopes", "sample_full", 1);
+	RNA_def_property_ui_text(prop, "Full Sample", "Sample every pixel of the image");
+	RNA_def_property_update(prop, 0, "rna_Scopes_update");
+	
+	prop= RNA_def_property(srna, "accuracy", PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_float_sdna(prop, "Scopes", "accuracy");
+	RNA_def_property_range(prop, 0.0, 100.0);
+	RNA_def_property_ui_range(prop, 0.0, 100.0, 10, 1);
+	RNA_def_property_ui_text(prop, "Accuracy", "Proportion of original image source pixel lines to sample");
+	RNA_def_property_update(prop, 0, "rna_Scopes_update");
+
+	prop= RNA_def_property(srna, "histogram", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, "Scopes", "hist");
+	RNA_def_property_struct_type(prop, "Histogram");
+	RNA_def_property_ui_text(prop, "Histogram", "Histogram for viewing image statistics");
+
+	prop= RNA_def_property(srna, "waveform_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, "Scopes", "wavefrm_mode");
+	RNA_def_property_enum_items(prop, prop_wavefrm_mode_items);
+	RNA_def_property_ui_text(prop, "Wavefrom Mode", "");
+	RNA_def_property_update(prop, 0, "rna_Scopes_update");
+
+	prop= RNA_def_property(srna, "waveform_alpha", PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_float_sdna(prop, "Scopes", "wavefrm_alpha");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Waveform Opacity", "Opacity of the points");
+
+	prop= RNA_def_property(srna, "vectorscope_alpha", PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_float_sdna(prop, "Scopes", "vecscope_alpha");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Vectorscope Opacity", "Opacity of the points");
+}
+
 
 void RNA_def_color(BlenderRNA *brna)
 {
@@ -457,6 +528,7 @@ void RNA_def_color(BlenderRNA *brna)
 	rna_def_color_ramp_element(brna);
 	rna_def_color_ramp(brna);
 	rna_def_histogram(brna);
+	rna_def_scopes(brna);
 }
 
 #endif

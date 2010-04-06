@@ -335,6 +335,14 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_rna_common(func);
 	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	
+	func= RNA_def_function(srna, "template_waveform", "uiTemplateWaveform");
+	api_ui_item_rna_common(func);
+	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
+	
+	func= RNA_def_function(srna, "template_vectorscope", "uiTemplateVectorscope");
+	api_ui_item_rna_common(func);
+	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
+	
 	func= RNA_def_function(srna, "template_layers", "uiTemplateLayers");
 	api_ui_item_rna_common(func);
 	parm= RNA_def_pointer(func, "used_layers_data", "AnyType", "", "Data from which to take property.");
