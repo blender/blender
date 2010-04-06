@@ -207,7 +207,7 @@ def ik(obj, bone_definition, base_names, options):
     prop["min"] = 0.0
     prop["max"] = 1.0
 
-    ik_driver_path = pb[ik_chain.foot].path_to_id() + '["ik"]'
+    ik_driver_path = pb[ik_chain.foot].path_from_id() + '["ik"]'
 
     # simple constraining of orig bones
     con = mt_chain.thigh_p.constraints.new('COPY_TRANSFORMS')
@@ -369,7 +369,7 @@ def fk(obj, bone_definition, base_names, options):
     prop["min"] = 0.0
     prop["max"] = 1.0
 
-    hinge_driver_path = pb[fk_chain.thigh].path_to_id() + '["hinge"]'
+    hinge_driver_path = pb[fk_chain.thigh].path_from_id() + '["hinge"]'
 
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver

@@ -244,7 +244,7 @@ def fk(obj, definitions, base_names, options):
         driver = driver_fcurve.driver
 
 
-        controller_path = fk_chain.arm_p.path_to_id()
+        controller_path = fk_chain.arm_p.path_from_id()
         # add custom prop
         fk_chain.arm_p["hinge"] = 0.0
         prop = rna_idprop_ui_prop_get(fk_chain.arm_p, "hinge", create=True)

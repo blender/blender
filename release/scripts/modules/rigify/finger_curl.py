@@ -280,7 +280,7 @@ def main(obj, bone_definition, base_names, options):
         con.target = obj
         con.subtarget = bb[org_f1].parent.name
 
-        hinge_driver_path = pb[control].path_to_id() + '["hinge"]'
+        hinge_driver_path = pb[control].path_from_id() + '["hinge"]'
 
         fcurve = con.driver_add("influence", 0)
         driver = fcurve.driver
@@ -301,7 +301,7 @@ def main(obj, bone_definition, base_names, options):
         con.subtarget = socket
 
     # Create the drivers for the driver bones (control bone scale rotates driver bones)
-    controller_path = pb[control].path_to_id() # 'pose.bones["%s"]' % control_bone_name
+    controller_path = pb[control].path_from_id() # 'pose.bones["%s"]' % control_bone_name
 
     i = 0
     for bone in [df2, df3]:

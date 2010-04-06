@@ -448,7 +448,7 @@ def control(obj, definitions, base_names, options):
     prop["min"] = 0.0
     prop["max"] = 1.0
 
-    open_driver_path = pb[lip1].path_to_id() + '["open_action"]'
+    open_driver_path = pb[lip1].path_from_id() + '["open_action"]'
 
 
     # Constraints

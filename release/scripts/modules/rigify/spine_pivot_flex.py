@@ -301,7 +301,7 @@ def main(obj, bone_definition, base_names, options):
     var.name = "var"
     var.targets[0].id_type = 'OBJECT'
     var.targets[0].id = obj
-    var.targets[0].data_path = ex.ribcage_copy_p.path_to_id() + '["hinge"]'
+    var.targets[0].data_path = ex.ribcage_copy_p.path_from_id() + '["hinge"]'
 
     mod = fcurve.modifiers[0]
     mod.poly_order = 1
@@ -347,7 +347,7 @@ def main(obj, bone_definition, base_names, options):
 
     # Constrain 'inbetween' bones
     target_names = [("b%.2d" % (i + 1)) for i in range(spine_chain_len - 1)]
-    rib_driver_path = ex.ribcage_copy_p.path_to_id()
+    rib_driver_path = ex.ribcage_copy_p.path_from_id()
 
     ex.ribcage_copy_p["bend_tot"] = 0.0
     fcurve = ex.ribcage_copy_p.driver_add('["bend_tot"]', 0)

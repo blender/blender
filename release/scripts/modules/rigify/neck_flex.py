@@ -237,7 +237,7 @@ def main(obj, bone_definition, base_names, options):
     con.subtarget = mt.body
 
     # add driver
-    hinge_driver_path = ex.head_ctrl_p.path_to_id() + '["hinge"]'
+    hinge_driver_path = ex.head_ctrl_p.path_from_id() + '["hinge"]'
 
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver
@@ -254,7 +254,7 @@ def main(obj, bone_definition, base_names, options):
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
 
-    head_driver_path = ex.head_ctrl_p.path_to_id()
+    head_driver_path = ex.head_ctrl_p.path_from_id()
 
     target_names = [("b%.2d" % (i + 1)) for i in range(len(neck_chain))]
 

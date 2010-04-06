@@ -133,7 +133,7 @@ def main(obj, bone_definitions, base_names, options):
     con_h.subtarget = hinge1
 
     # Add drivers
-    bone_path = pb[bones[0]].path_to_id()
+    bone_path = pb[bones[0]].path_from_id()
 
     driver_fcurve = con_f.driver_add("influence", 0)
     driver = driver_fcurve.driver

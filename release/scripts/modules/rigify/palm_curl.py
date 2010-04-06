@@ -156,7 +156,7 @@ def main(obj, bone_definition, base_names, options):
     driver_fcurves = pinky_pbone.driver_add("rotation_euler")
 
 
-    controller_path = control_pbone.path_to_id()
+    controller_path = control_pbone.path_from_id()
 
     # add custom prop
     control_pbone["spread"] = 0.0

@@ -84,7 +84,7 @@ def get_transform_generators_base_info(data):
         grouping = None
     else:
         # get the path to the ID-block
-        path = data.path_to_id()
+        path = data.path_from_id()
 
         # try to use the name of the data element to group the F-Curve
         # else fallback on the KeyingSet name

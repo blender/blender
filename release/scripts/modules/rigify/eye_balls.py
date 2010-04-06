@@ -197,7 +197,7 @@ def control(obj, definitions, base_names, options):
     prop["min"] = 0.0
     prop["max"] = 1.0
 
-    free_driver_path = pb[target_ctrl].path_to_id() + '["free"]'
+    free_driver_path = pb[target_ctrl].path_from_id() + '["free"]'
 
     # Constraints
     # Mind's eye tracks eye target control

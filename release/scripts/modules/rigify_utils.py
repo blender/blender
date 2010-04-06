@@ -136,7 +136,7 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
         prop["soft_min"] = 0.0
         prop["soft_max"] = 1.0
 
-    driver_path = prop_pbone.path_to_id() + ('["%s"]' % target_prop)
+    driver_path = prop_pbone.path_from_id() + ('["%s"]' % target_prop)
 
     def blend_target(driver):
         var = driver.variables.new()

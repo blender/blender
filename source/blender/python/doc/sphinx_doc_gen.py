@@ -481,7 +481,7 @@ def rna2sphinx(BASEPATH):
 
         # c/python methods, only for the base class
         if struct.identifier == "Struct":
-            for attribute, descr in bpy.types.Struct.__bases__[0].__dict__.items():
+            for attribute, descr in sorted(bpy.types.Struct.__bases__[0].__dict__.items()):
                 if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
                     if descr.__doc__:
                         write_indented_lines("   ", fw, descr.__doc__, False)
