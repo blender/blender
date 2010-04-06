@@ -573,6 +573,7 @@ static int area_swap_init(bContext *C, wmOperator *op, wmEvent *event)
 
 static void area_swap_exit(bContext *C, wmOperator *op)
 {
+	WM_cursor_restore(CTX_wm_window(C));
 	if(op->customdata)
 		MEM_freeN(op->customdata);
 	op->customdata= NULL;
@@ -2959,7 +2960,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0)->ptr, "modifier", 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "modifier", 1);
-	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "modifier", 2);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "modifier", 2);
 	
 	/* screen tools */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE_AREA, 0, 0, 0);
