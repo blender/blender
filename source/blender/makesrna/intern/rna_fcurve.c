@@ -337,6 +337,7 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
 	/* already belongs to group? */
 	if (fcu->grp == value.data) {
 		/* nothing to do */
+		printf("ERROR: F-Curve already belongs to the group\n");
 		return; 
 	}
 	
@@ -345,6 +346,7 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
 	 */
 	if (act == NULL) {
 		/* can't change the grouping of F-Curve when it doesn't belong to an action */
+		printf("ERROR: cannot assign F-Curve to group, since F-Curve is not attached to any ID\n");
 		return;
 	}	
 	

@@ -1664,17 +1664,17 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 
 /* internal use for insert and delete */
 int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *error_prefix,
-	char **path_full, int *index, float *cfra) /* return values */
+	char **group_name, char **path_full, int *index, float *cfra) /* return values */
 {
 	char *path;
 	PropertyRNA *prop;
 	int array_len;
 
-	if (!PyArg_ParseTuple(args, "s|if", &path, index, cfra)) {
-		PyErr_Format(PyExc_TypeError, "%.200s expected a string and optionally an int and float arguments", error_prefix);
+	if (!PyArg_ParseTuple(args, "s|ifs", &path, index, cfra, group_name)) {
+		PyErr_Format(PyExc_TypeError, "%.200s expected a string and optionally an int, float, and string arguments", error_prefix);
 		return -1;
 	}
-
+	
 	if (ptr->data==NULL) {
 		PyErr_Format(PyExc_TypeError, "%.200s this struct has no data, can't be animated", error_prefix);
 		return -1;
@@ -1721,20 +1721,23 @@ static char pyrna_struct_keyframe_insert_doc[] =
 "   :arg index: array index of the property to key. Defaults to -1 which will key all indicies or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is inserted, defaulting to the current frame.\n"
-"   :type frame: float";
+"   :type frame: float\n"
+"	:arg group: The name of the group the F-Curve should be added to if it doesn't exist yet.\n"
+"	:type group: str\n";
 
 static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args)
 {
 	PyObject *result;
 	/* args, pyrna_struct_keyframe_parse handles these */
 	char *path_full= NULL;
+	char *group_name= NULL;
 	int index= -1;
 	float cfra= FLT_MAX;
 
-	if(pyrna_struct_keyframe_parse(&self->ptr, args, "bpy_struct.keyframe_insert():", &path_full, &index, &cfra) == -1)
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, "bpy_struct.keyframe_insert():", &group_name, &path_full, &index, &cfra) == -1)
 		return NULL;
 
-	result= PyBool_FromLong(insert_keyframe((ID *)self->ptr.id.data, NULL, NULL, path_full, index, cfra, 0));
+	result= PyBool_FromLong(insert_keyframe((ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0));
 	MEM_freeN(path_full);
 
 	return result;
@@ -1750,20 +1753,23 @@ static char pyrna_struct_keyframe_delete_doc[] =
 "   :arg index: array index of the property to remove a key. Defaults to -1 removing all indicies or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is deleted, defaulting to the current frame.\n"
-"   :type frame: float";
+"   :type frame: float"
+"	:arg group: The name of the group the F-Curve should be added to if it doesn't exist yet.\n"
+"	:type group: str\n";;
 
 static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args)
 {
 	PyObject *result;
 	/* args, pyrna_struct_keyframe_parse handles these */
 	char *path_full= NULL;
+	char *group_name= NULL;
 	int index= -1;
 	float cfra= FLT_MAX;
 
-	if(pyrna_struct_keyframe_parse(&self->ptr, args, "bpy_struct.keyframe_delete():", &path_full, &index, &cfra) == -1)
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, "bpy_struct.keyframe_delete():", &group_name, &path_full, &index, &cfra) == -1)
 		return NULL;
 
-	result= PyBool_FromLong(delete_keyframe((ID *)self->ptr.id.data, NULL, NULL, path_full, index, cfra, 0));
+	result= PyBool_FromLong(delete_keyframe((ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0));
 	MEM_freeN(path_full);
 
 	return result;
