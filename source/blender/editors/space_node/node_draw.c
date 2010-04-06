@@ -845,6 +845,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			node_draw_preview(node->preview, &node->prvr);
 		BLI_unlock_thread(LOCK_PREVIEW);
 	}
+	
+	UI_ThemeClearColor(color_id);
 		
 	uiEndBlock(C, node->block);
 	uiDrawBlock(C, node->block);

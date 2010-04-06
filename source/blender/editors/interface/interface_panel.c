@@ -864,6 +864,8 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 	if(firstpa)
 		firstpa->runtime_flag |= PNL_FIRST;
 
+	UI_ThemeClearColor(TH_BACK);
+	
 	/* draw panels, selected on top */
 	for(block= ar->uiblocks.first; block; block=block->next) {
 		if(block->active && block->panel && !(block->panel->flag & PNL_SELECT)) {
