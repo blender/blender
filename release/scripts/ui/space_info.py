@@ -106,7 +106,9 @@ class INFO_MT_file(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.link_append", text="Link")
-        layout.operator("wm.link_append", text="Append").link = False
+        props = layout.operator("wm.link_append", text="Append")
+        props.link = False
+        props.instance_groups = False
 
         layout.separator()
 
