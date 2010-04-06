@@ -687,6 +687,8 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "bone_solid")
             col.prop(v3d, "bone_pose")
             col.prop(v3d, "edge_seam")
+            col.prop(v3d, "edge_sharp")
+            col.prop(v3d, "edge_crease")
             #col.prop(v3d, "edge") Doesn't seem to work
 
         elif theme.theme_area == 'GRAPH_EDITOR':

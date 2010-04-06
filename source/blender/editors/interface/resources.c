@@ -275,6 +275,8 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->edge_seam; break;
 			case TH_EDGE_SHARP:
 				cp= ts->edge_sharp; break;
+			case TH_EDGE_CREASE:
+				cp= ts->edge_crease; break;
 			case TH_EDITMESH_ACTIVE:
 				cp= ts->editmesh_active; break;
 			case TH_EDGE_FACESEL:
@@ -1440,6 +1442,9 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->tipo.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
 			SETCOL(btheme->tipo.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
 			SETCOL(btheme->tipo.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+			
+			/* edge crease */
+			SETCOLF(btheme->tv3d.edge_crease, 0.8, 0, 0.6, 1.0);
 		}
 	}
 

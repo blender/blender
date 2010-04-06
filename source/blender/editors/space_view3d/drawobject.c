@@ -1885,7 +1885,7 @@ static int draw_dm_creases__setDrawOptions(void *userData, int index)
 	EditEdge *eed = EM_get_edge_for_index(index);
 
 	if (eed->h==0 && eed->crease!=0.0) {
-		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, eed->crease);
+		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_CREASE, eed->crease);
 		return 1;
 	} else {
 		return 0;

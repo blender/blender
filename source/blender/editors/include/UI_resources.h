@@ -227,6 +227,8 @@ enum {
 	TH_DOPESHEET_CHANNELSUBOB,
 	
 	TH_PREVIEW_BACK,
+	
+	TH_EDGE_CREASE,
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 
