@@ -1676,6 +1676,11 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Dead);
 	RNA_def_property_ui_text(prop, "Dead", "Show mesh when particles are dead");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "size", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_PaSize);
+	RNA_def_property_ui_text(prop, "Size", "Use particle size for the shrapnel");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_cloth(BlenderRNA *brna)

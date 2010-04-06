@@ -291,6 +291,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "unborn")
         col.prop(md, "alive")
         col.prop(md, "dead")
+        col.prop(md, "size")
 
         layout.operator("object.explode_refresh", text="Refresh")
 

@@ -8637,7 +8637,8 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 			/* apply rotation, size & location */
 			mul_qt_v3(state.rot,vertco);
-			mul_v3_fl(vertco,pa->size);
+			if(emd->flag & eExplodeFlag_PaSize)
+				mul_v3_fl(vertco,pa->size);
 			VECADD(vertco,vertco,state.co);
 
 			mul_m4_v3(imat,vertco);
