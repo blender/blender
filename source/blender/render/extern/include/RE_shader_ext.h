@@ -166,9 +166,6 @@ typedef struct ShadeInput
 	int depth;				/* 1 or larger on raytrace shading */
 	int volume_depth;		/* number of intersections through volumes */
 	
-	/* stored copy of original face normal (facenor) 
-	 * before flipping. Used in Front/back output on geometry node */
-	float orignor[3];
 	/* for strand shading, normal at the surface */
 	float surfnor[3], surfdist;
 
