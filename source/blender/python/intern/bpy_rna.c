@@ -1077,6 +1077,9 @@ static int pyrna_py_to_prop_index(BPy_PropertyRNA *self, int index, PyObject *va
 			break;
 		}
 	}
+
+	/* Run rna property functions */
+	RNA_property_update(BPy_GetContext(), ptr, prop);
 	
 	return ret;
 }
