@@ -770,6 +770,25 @@ static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, CTX_data_mode_string(C), -1);
 }
 
+static void view3d_props_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_WM:
+			if(wmn->data == ND_HISTORY)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SCENE:
+			if(wmn->data == ND_MODE)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
+			break;
+	}
+}
+
 static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	View3D *v3d= CTX_wm_view3d(C);
@@ -952,7 +971,7 @@ void ED_spacetype_view3d(void)
 	art->prefsizex= 0;
 	art->prefsizey= 120;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
-	art->listener= view3d_buttons_area_listener;
+	art->listener= view3d_props_area_listener;
 	art->init= view3d_tools_area_init;
 	art->draw= view3d_tools_area_draw;
 	BLI_addhead(&st->regiontypes, art);

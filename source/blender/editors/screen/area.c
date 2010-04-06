@@ -125,12 +125,12 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 		case NC_SCREEN:
 			if(note->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
-			/* pass on */
+			break;
 #endif
-		default:
-			if(ar->type && ar->type->listener)
-				ar->type->listener(ar, note);
 	}
+
+	if(ar->type && ar->type->listener)
+		ar->type->listener(ar, note);
 }
 
 /* only exported for WM */
