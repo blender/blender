@@ -1797,6 +1797,8 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	Scene *sce;
 	Base *base;
 	Object *ob;
+	ARegion ar;
+	RegionView3D rv3d;
 	
 	shadows.first= shadows.last= NULL;
 	
@@ -1835,7 +1837,20 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		v3d->flag2 &= ~V3D_SOLID_TEX;
 		
 		GPU_lamp_shadow_buffer_bind(shadow->lamp, viewmat, &winsize, winmat);
-// XXX		drawview3d_render(v3d, viewmat, winsize, winsize, winmat, 1);
+
+		memset(&ar, 0, sizeof(ar));
+		memset(&rv3d, 0, sizeof(rv3d));
+
+		ar.regiondata= &rv3d;
+		ar.regiontype= RGN_TYPE_WINDOW;
+		rv3d.persp= RV3D_CAMOB;
+		copy_m4_m4(rv3d.winmat, winmat);
+		copy_m4_m4(rv3d.viewmat, viewmat);
+		invert_m4_m4(rv3d.viewinv, rv3d.viewmat);
+		mul_m4_m4m4(rv3d.persmat, rv3d.viewmat, rv3d.winmat);
+		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
+
+		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
 		v3d->drawtype= drawtype;
