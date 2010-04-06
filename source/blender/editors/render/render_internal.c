@@ -380,6 +380,11 @@ static ScrArea *find_empty_image_area(bContext *C)
 }
 #endif // XXX not used
 
+static void render_error_reports(void *reports, char *str)
+{
+	BKE_report(reports, RPT_ERROR, str);
+}
+
 /* executes blocking render */
 static int screen_render_exec(bContext *C, wmOperator *op)
 {
@@ -393,6 +398,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 		re= RE_NewRender(scene->id.name);
 	}
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
+	RE_error_cb(re, op->reports, render_error_reports);
 
 	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
@@ -654,8 +660,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->re= re;
 	G.afbreek= 0;
 
-	//	BKE_report in render!
-	//	RE_error_cb(re, error_cb);
+	RE_error_cb(re, op->reports, render_error_reports);
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 
