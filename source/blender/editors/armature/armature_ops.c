@@ -256,7 +256,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 		/* special transforms: */
 		/* 	1) envelope/b-bone size */
-	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
 		/* 	2) set roll */
 	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", RKEY, KM_PRESS, KM_CTRL, 0);
@@ -277,9 +277,9 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "unselected", 1);
 	WM_keymap_add_item(keymap, "POSE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-
+	
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_apply", AKEY, KM_PRESS, KM_CTRL, 0);
-
+	
 	// TODO: clear pose
 	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
@@ -333,10 +333,10 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 		/* special transforms: */
 		/* 	1) envelope/b-bone size */
-	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
 	
-	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
+		/* keyframes management */
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert_menu", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete_v3d", IKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_keying_set_active_set", IKEY, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0);
