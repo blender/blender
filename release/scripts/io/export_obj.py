@@ -396,7 +396,7 @@ def write(filename, objects, scene,
         if ob_main.dupli_type != 'NONE':
             # XXX
             print('creating dupli_list on', ob_main.name)
-            ob_main.create_dupli_list()
+            ob_main.create_dupli_list(scene)
 
             obs = [(dob.object, dob.matrix) for dob in ob_main.dupli_list]
 
@@ -421,7 +421,7 @@ def write(filename, objects, scene,
             if ob.type != 'MESH':
                 continue
 
-            me = ob.create_mesh(EXPORT_APPLY_MODIFIERS, 'PREVIEW')
+            me = ob.create_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
 
             if EXPORT_ROTX90:
                 me.transform(mat_xrot90 * ob_mat)

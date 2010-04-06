@@ -267,7 +267,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             file.write('}\n')
 
-    def exportMeshs(sel):
+    def exportMeshs(scene, sel):
 
         ob_num = 0
 
@@ -280,7 +280,7 @@ def write_pov(filename, scene=None, info_callback=None):
             me = ob.data
             me_materials = me.materials
 
-            me = ob.create_mesh(True, 'RENDER')
+            me = ob.create_mesh(scene, True, 'RENDER')
 
             if not me:
                 continue
@@ -593,7 +593,7 @@ def write_pov(filename, scene=None, info_callback=None):
     sel = scene.objects
     exportLamps([l for l in sel if l.type == 'LAMP'])
     exportMeta([l for l in sel if l.type == 'META'])
-    exportMeshs(sel)
+    exportMeshs(scene, sel)
     exportWorld(scene.world)
     exportGlobalSettings(scene)
 

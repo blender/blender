@@ -364,7 +364,7 @@ static void rna_Nurb_update_knot_v(Main *bmain, Scene *scene, PointerRNA *ptr)
 	rna_Curve_update_data(bmain, scene, ptr);
 }
 
-static void rna_Curve_spline_points_add(ID *id, Nurb *nu, bContext *C, ReportList *reports, int number)
+static void rna_Curve_spline_points_add(ID *id, Nurb *nu, ReportList *reports, int number)
 {
 	if(nu->type == CU_BEZIER) {
 		BKE_report(reports, RPT_ERROR, "Bezier spline can't have points added");
@@ -378,11 +378,11 @@ static void rna_Curve_spline_points_add(ID *id, Nurb *nu, bContext *C, ReportLis
 		/* update */
 		makeknots(nu, 1);
 
-		rna_Curve_update_data_id(CTX_data_main(C), CTX_data_scene(C), id);
+		rna_Curve_update_data_id(NULL, NULL, id);
 	}
 }
 
-static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, bContext *C, ReportList *reports, int number)
+static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, ReportList *reports, int number)
 {
 	if(nu->type != CU_BEZIER) {
 		BKE_report(reports, RPT_ERROR, "Only bezier splines can be added");
@@ -395,7 +395,7 @@ static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, bContext *C, Report
 		/* update */
 		makeknots(nu, 1);
 
-		rna_Curve_update_data_id(CTX_data_main(C), CTX_data_scene(C), id);
+		rna_Curve_update_data_id(NULL, NULL, id);
 	}
 }
 
@@ -903,7 +903,7 @@ static void rna_def_curve_spline_points(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "rna_Curve_spline_points_add");
 	RNA_def_function_ui_description(func, "Add a number of points to this spline.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_SELF_ID|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_USE_REPORTS);
 	parm= RNA_def_int(func, "number", 1, INT_MIN, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
 	/*
@@ -930,7 +930,7 @@ static void rna_def_curve_spline_bezpoints(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "rna_Curve_spline_bezpoints_add");
 	RNA_def_function_ui_description(func, "Add a number of points to this spline.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_SELF_ID|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_USE_REPORTS);
 	parm= RNA_def_int(func, "number", 1, INT_MIN, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
 	/*

@@ -2038,7 +2038,7 @@ def write(filename, batch_objects = None, \
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
                 #if ob_base.type == 'Armature':
-                ob_base.make_display_list()
+                ob_base.make_display_list(scene)
 # 				ob_base.makeDisplayList()
 
             # This causes the makeDisplayList command to effect the mesh
@@ -2054,7 +2054,7 @@ def write(filename, batch_objects = None, \
 
         obs = [(ob_base, ob_base.matrix)]
         if ob_base.dupli_type != 'NONE':
-            ob_base.create_dupli_list()
+            ob_base.create_dupli_list(scene)
             obs = [(dob.object, dob.matrix) for dob in ob_base.dupli_list]
 
         for ob, mtx in obs:
@@ -2083,7 +2083,7 @@ def write(filename, batch_objects = None, \
                 if tmp_ob_type != 'MESH':
 # 				if tmp_ob_type != 'Mesh':
 # 					me = bpy.data.meshes.new()
-                    try:	me = ob.create_mesh(True, 'PREVIEW')
+                    try:	me = ob.create_mesh(scene, True, 'PREVIEW')
 # 					try:	me.getFromObject(ob)
                     except:	me = None
                     if me:
@@ -2094,7 +2094,7 @@ def write(filename, batch_objects = None, \
                     # Mesh Type!
                     if EXP_MESH_APPLY_MOD:
 # 						me = bpy.data.meshes.new()
-                        me = ob.create_mesh(True, 'PREVIEW')
+                        me = ob.create_mesh(scene, True, 'PREVIEW')
 # 						me.getFromObject(ob)
 
                         # so we keep the vert groups
@@ -2214,7 +2214,7 @@ def write(filename, batch_objects = None, \
             for ob_base in bpy.data.objects:
                 if ob_base.type == 'ARMATURE':
 # 				if ob_base.type == 'Armature':
-                    ob_base.make_display_list()
+                    ob_base.make_display_list(scene)
 # 					ob_base.makeDisplayList()
             # This causes the makeDisplayList command to effect the mesh
             scene.set_frame(scene.frame_current)

@@ -74,12 +74,12 @@ import bpy
 
 # also used by X3D exporter
 # return a tuple (free, object list), free is True if memory should be freed later with free_derived_objects()
-def create_derived_objects(ob):
+def create_derived_objects(scene, ob):
     if ob.parent and ob.parent.dupli_type != 'NONE':
         return False, None
 
     if ob.dupli_type != 'NONE':
-        ob.create_dupli_list()
+        ob.create_dupli_list(scene)
         return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
     else:
         return False, [(ob, ob.matrix)]
@@ -968,11 +968,12 @@ def save_3ds(filename, context):
     # each material is added once):
     materialDict = {}
     mesh_objects = []
-    for ob in [ob for ob in context.scene.objects if ob.is_visible()]:
+    scene = context.scene
+    for ob in [ob for ob in scene.objects if ob.is_visible(scene)]:
 # 	for ob in sce.objects.context:
 
         # get derived objects
-        free, derived = create_derived_objects(ob)
+        free, derived = create_derived_objects(scene, ob)
 
         if derived == None: continue
 
@@ -982,7 +983,7 @@ def save_3ds(filename, context):
             if ob.type not in ('MESH', 'CURVE', 'SURFACE', 'TEXT', 'META'):
                 continue
 
-            data = ob_derived.create_mesh(True, 'PREVIEW')
+            data = ob_derived.create_mesh(scene, True, 'PREVIEW')
 # 			data = getMeshFromObject(ob_derived, None, True, False, sce)
             if data:
                 data.transform(mat)

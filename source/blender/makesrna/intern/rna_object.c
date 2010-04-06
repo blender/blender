@@ -951,13 +951,13 @@ static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 	constraints_set_active(&ob->constraints, (bConstraint *)value.data);
 }
 
-static bConstraint *rna_Object_constraint_new(Object *object, bContext *C, int type)
+static bConstraint *rna_Object_constraint_new(Object *object, int type)
 {
 	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
 	return add_ob_constraint(object, NULL, type);
 }
 
-static int rna_Object_constraint_remove(Object *object, bContext *C, int index)
+static int rna_Object_constraint_remove(Object *object, int index)
 {
 	int ok = remove_constraint_index(&object->constraints, index);
 	if(ok) {
@@ -1275,7 +1275,6 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* Constraint collection */
 	func= RNA_def_function(srna, "new", "rna_Object_constraint_new");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a new constraint to this object");
 	/* return type */
 	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
@@ -1285,7 +1284,6 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "remove", "rna_Object_constraint_remove");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
 	/* return type */
 	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");

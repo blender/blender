@@ -852,10 +852,10 @@ class x3d_class:
         # --------------------------
 
 
-        for ob_main in [o for o in scene.objects if o.is_visible()]:
+        for ob_main in [o for o in scene.objects if o.is_visible(scene)]:
         # for ob_main in scene.objects.context:
 
-            free, derived = create_derived_objects(ob_main)
+            free, derived = create_derived_objects(scene, ob_main)
 
             if derived == None: continue
 
@@ -871,7 +871,7 @@ class x3d_class:
                 # elif objType in ("Mesh", "Curve", "Surf", "Text") :
                     if EXPORT_APPLY_MODIFIERS or objType != 'MESH':
                     # if  EXPORT_APPLY_MODIFIERS or objType != 'Mesh':
-                        me = ob.create_mesh(EXPORT_APPLY_MODIFIERS, 'PREVIEW')
+                        me = ob.create_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
                         # me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, False, scene)
                     else:
                         me = ob.data

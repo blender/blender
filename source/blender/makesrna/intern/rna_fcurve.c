@@ -396,12 +396,12 @@ static void rna_FCurve_active_modifier_set(PointerRNA *ptr, PointerRNA value)
 	set_active_fmodifier(&fcu->modifiers, (FModifier *)value.data);
 }
 
-static FModifier *rna_FCurve_modifiers_new(FCurve *fcu, bContext *C, int type)
+static FModifier *rna_FCurve_modifiers_new(FCurve *fcu, int type)
 {
 	return add_fmodifier(&fcu->modifiers, type);
 }
 
-static int rna_FCurve_modifiers_remove(FCurve *fcu, bContext *C, int index)
+static int rna_FCurve_modifiers_remove(FCurve *fcu, int index)
 {
 	return remove_fmodifier_index(&fcu->modifiers, index);
 }
@@ -1252,7 +1252,6 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* Constraint collection */
 	func= RNA_def_function(srna, "new", "rna_FCurve_modifiers_new");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a constraint to this object");
 	/* return type */
 	parm= RNA_def_pointer(func, "fmodifier", "FModifier", "", "New fmodifier.");
@@ -1262,7 +1261,6 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "remove", "rna_FCurve_modifiers_remove");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Remove a modifier from this fcurve.");
 	/* return type */
 	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
