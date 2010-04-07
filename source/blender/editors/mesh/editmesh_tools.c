@@ -3657,10 +3657,10 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 		newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
 	}
 	else if(fac1 == 4 && fac2 == 3) {
-		if(dir == DIRECTION_CW) {
+		if(dir == DIRECTION_CCW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
-		} else if (dir == DIRECTION_CCW) {
+		} else if (dir == DIRECTION_CW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][2], 4+p[1][1], p[0][0], p[0][1]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], 4+p[0][2], p[1][0], p[1][1], -1);
 
@@ -3669,10 +3669,10 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 		}
 	}
 	else if(fac1 == 3 && fac2 == 4) {
-		if(dir == DIRECTION_CW) {
+		if(dir == DIRECTION_CCW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
-		} else if (dir == DIRECTION_CCW) {
+		} else if (dir == DIRECTION_CW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][0], p[0][1], 4+p[1][2], -1);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], 4+p[0][2]);
 
@@ -3682,10 +3682,10 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 
 	}
 	else if(fac1 == 4 && fac2 == 4) {
-		if(dir == DIRECTION_CW) {
+		if(dir == DIRECTION_CCW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
-		} else if (dir == DIRECTION_CCW) {
+		} else if (dir == DIRECTION_CW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][2], p[0][3], 4+p[1][1], 4+p[1][2]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][2], p[1][3], 4+p[0][1], 4+p[0][2]);
 
@@ -3696,7 +3696,7 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 	else
 		return; /* This should never happen */
 
-	if(dir == DIRECTION_CW || (fac1 == 3 && fac2 == 3)) {
+	if(dir == DIRECTION_CCW || (fac1 == 3 && fac2 == 3)) {
 		verts[0][p[0][1]]->f |= SELECT;
 		verts[1][p[1][1]]->f |= SELECT;
 	}
