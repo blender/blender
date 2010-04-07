@@ -2127,11 +2127,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 				if(owin) {
 					wmEvent oevent= *(owin->eventstate);
 					
-					oevent.x= event.x;
-					oevent.y= event.y;
+					oevent.x=owin->eventstate->x= event.x;
+					oevent.y=owin->eventstate->y= event.y;
 					oevent.type= MOUSEMOVE;
 					
-					*(owin->eventstate)= oevent;
 					update_tablet_data(owin, &oevent);
 					wm_event_add(owin, &oevent);
 				}
