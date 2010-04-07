@@ -175,7 +175,6 @@ int minmax_verts(Object *obedit, float *min, float *max);
 
 void VIEW3D_OT_snap_selected_to_grid(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_selected_to_cursor(struct wmOperatorType *ot);
-void VIEW3D_OT_snap_selected_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_grid(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_selected(struct wmOperatorType *ot);

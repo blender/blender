@@ -93,7 +93,6 @@ void view3d_operatortypes(void)
 	
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_grid);
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_cursor);
-	WM_operatortype_append(VIEW3D_OT_snap_selected_to_center);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_grid);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_center);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_selected);
