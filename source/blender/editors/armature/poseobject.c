@@ -892,9 +892,6 @@ void POSE_OT_copy (wmOperatorType *ot)
 
 /* ---- */
 
-/* Pointers to the builtin KeyingSets that we want to use */
-static KeyingSet *posePaste_ks_locrotscale = NULL;		/* the only keyingset we'll need */
-
 static int pose_paste_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -936,6 +933,10 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					/* copy the type of rotation in use */
 					if (pchan->rotmode > 0) {
 						VECCOPY(pchan->eul, chan->eul);
+					}
+					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+						VECCOPY(pchan->rotAxis, chan->rotAxis);
+						pchan->rotAngle = chan->rotAngle;
 					}
 					else {
 						QUATCOPY(pchan->quat, chan->quat);
@@ -979,13 +980,6 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 						eul[1]*= -1;
 						eul[2]*= -1;
 						eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
-						
-						// experimental method (uncomment to test):
-#if 0
-						/* experimental method: just flip the orientation of the axis on x/y axes */
-						pchan->quat[1] *= -1;
-						pchan->quat[2] *= -1;
-#endif
 					}
 					else {
 						float eul[3];
@@ -997,25 +991,36 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					}
 				}
 				
-				/* ID property */
-				if (pchan->prop) {
-					IDP_FreeProperty(pchan->prop);
-					MEM_freeN(pchan->prop);
-					pchan->prop= NULL;
+				/* ID properties 
+				 *	- only free the existing properties if the channel we're copying from has them
+				 * 	  NOTE: this means that if the pose depends on some pchan property, the pose may not be ok,
+				 *		    but this is better than loosing all the setting you've painstakingly added...
+				 */
+				if (chan->prop) {
+					/* free the old properties since we want to replace them now */
+					if (pchan->prop) {
+						IDP_FreeProperty(pchan->prop);
+						MEM_freeN(pchan->prop);
+						pchan->prop= NULL;
+					}
+					
+					/* now copy over the new copy of the properties */
+					pchan->prop= IDP_CopyProperty(chan->prop);	
 				}
 				
-				if (chan->prop)
-					pchan->prop= IDP_CopyProperty(chan->prop);
-				
 				/* keyframing tagging */
-				if (autokeyframe_cfra_can_key(scene, &ob->id)) {	
+				if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 					ListBase dsources = {NULL, NULL};
+					KeyingSet *ks = NULL;
 					
-					/* get KeyingSet to use */
-					// TODO: for getting the KeyingSet used, we should really check which channels were affected
-					// TODO: this should get modified so that custom props are taken into account too!
-					if (posePaste_ks_locrotscale == NULL)
-						posePaste_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+					/* get KeyingSet to use 
+					 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
+					 * 	  or otherwise key transforms only
+					 */
+					if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
+						ks = ANIM_scene_get_active_keyingset(scene);
+					else 
+						ks = ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
 					/* now insert the keyframe(s) using the Keying Set
 					 *	1) add datasource override for the PoseChannel
@@ -1023,7 +1028,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					 *	3) free the extra info 
 					 */
 					ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan); 
-					ANIM_apply_keyingset(C, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
+					ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					BLI_freelistN(&dsources);
 					
 					/* clear any unkeyed tags */
