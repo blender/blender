@@ -287,10 +287,14 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	if(G.main->versionfile < 250)
 		do_versions_ipos_to_animato(G.main); // XXX fixme... complicated versionpatching
 	
-	/* in case of autosave or quit.blend, use original filename instead
-	 * use relbase_valid to make sure the file is saved, else we get <memory2> in the filename */
-	if(recover && bfd->filename[0] && G.relbase_valid)
+	if(recover && bfd->filename[0] && G.relbase_valid) {
+		/* in case of autosave or quit.blend, use original filename instead
+		 * use relbase_valid to make sure the file is saved, else we get <memory2> in the filename */
 		filename= bfd->filename;
+	} else if (!G.relbase_valid) {
+		/* otherwise, use an empty string as filename, rather than <memory2> */
+		filename="";
+	}
 	
 	/* these are the same at times, should never copy to the same location */
 	if(G.sce != filename)

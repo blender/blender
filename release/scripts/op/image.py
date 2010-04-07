@@ -133,8 +133,10 @@ class ProjectEdit(bpy.types.Operator):
         filename = os.path.splitext(filename)[0]
         # filename = bpy.utils.clean_name(filename) # fixes <memory> rubbish, needs checking
 
-        if filename.startswith("."): # TODO, have a way to check if the file is saved, assuem .B25.blend
-            filename = os.path.join(os.path.dirname(bpy.data.filename), filename)
+        if filename.startswith(".") or filename == "":
+            # TODO, have a way to check if the file is saved, assume .B25.blend
+            tmpdir = context.user_preferences.filepaths.temporary_directory
+            filename = os.path.join(tmpdir, "project_edit")
         else:
             filename = "//" + filename
 
