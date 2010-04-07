@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_UNARYFUNCTION1D_H
 #define FREESTYLE_PYTHON_UNARYFUNCTION1D_H
 
+#include <Python.h>
+
 #include "../view_map/Functions1D.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject UnaryFunction1D_Type;
 

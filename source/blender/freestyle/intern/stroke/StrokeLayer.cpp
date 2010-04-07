@@ -19,8 +19,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "StrokeLayer.h"
 #include "Stroke.h"
+#include "StrokeLayer.h"
 #include "Canvas.h"
 
 StrokeLayer::~StrokeLayer()

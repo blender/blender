@@ -1,6 +1,7 @@
 #ifndef FREESTYLE_PYTHON_ID_H
 #define FREESTYLE_PYTHON_ID_H
 
+#include <Python.h>
 #include <iostream>
 using namespace std;
 
@@ -11,8 +12,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject Id_Type;
 

@@ -18,9 +18,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "ViewMap.h"
 #include "ViewEdgeXBuilder.h"
 #include "../winged_edge/WXEdge.h"
-#include "ViewMap.h"
 #include "SilhouetteGeomEngine.h"
 #include <list>
 

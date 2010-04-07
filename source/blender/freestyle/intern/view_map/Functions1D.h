@@ -30,11 +30,11 @@
 #ifndef  FUNCTIONS1D_HPP
 # define FUNCTIONS1D_HPP
 
-# include "../system/Precision.h"
-# include "../system/TimeStamp.h"
 # include "ViewMap.h"
 # include "Functions0D.h"
 # include "Interface1D.h"
+# include "../system/Precision.h"
+# include "../system/TimeStamp.h"
 # include "../system/FreestyleConfig.h"
 
 #include "../python/Director.h"

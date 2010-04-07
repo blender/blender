@@ -30,9 +30,9 @@
 #ifndef  STROKEIO_H
 # define STROKEIO_H
 
+# include "Stroke.h"
 # include <iostream>
 # include "../system/FreestyleConfig.h"
-# include "Stroke.h"
 
 LIB_STROKE_EXPORT
 ostream& operator<<(ostream& out, const StrokeAttribute& iStrokeAttribute);

@@ -28,10 +28,10 @@
 #ifndef  CHAININGITERATORS_H
 # define CHAININGITERATORS_H
 
-# include <iostream>
 # include "../view_map/ViewMap.h"
 # include "../view_map/ViewMapIterators.h"
 # include "../view_map/ViewMapAdvancedIterators.h"
+# include <iostream>
 # include "Predicates1D.h"
 
 #include "../system/Iterator.h" //soc 

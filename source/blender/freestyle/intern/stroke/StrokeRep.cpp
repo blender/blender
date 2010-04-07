@@ -19,8 +19,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "StrokeRep.h"
 #include "Stroke.h"
+#include "StrokeRep.h"
 #include "StrokeRenderer.h"
 #include "StrokeAdvancedIterators.h"
 #include "StrokeIterators.h"

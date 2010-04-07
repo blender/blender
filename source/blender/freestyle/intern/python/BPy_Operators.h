@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_OPERATORS_H
 #define FREESTYLE_PYTHON_OPERATORS_H
 
+#include <Python.h>
+
 #include "../stroke/Operators.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject Operators_Type;
 

@@ -30,9 +30,9 @@
 #ifndef  GLSTROKERENDERER_H
 # define GLSTROKERENDERER_H
 
-# include "../system/FreestyleConfig.h"
 # include "../stroke/StrokeRenderer.h"
 # include "../stroke/StrokeRep.h"
+# include "../system/FreestyleConfig.h"
 
 #include "GLBlendEquation.h"
 

@@ -19,8 +19,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "SilhouetteGeomEngine.h"
 #include "Silhouette.h"
+#include "SilhouetteGeomEngine.h"
 #include "../geometry/GeomUtils.h"
 
 using namespace std;

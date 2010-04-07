@@ -30,11 +30,11 @@
 #ifndef  CONTROLLER_H
 # define CONTROLLER_H
 
+# include "../view_map/ViewMapBuilder.h"
 # include <string>
 //# include "ConfigIO.h"
 # include "../geometry/FastGrid.h"
 # include "../geometry/HashGrid.h"
-# include "../view_map/ViewMapBuilder.h"
 # include "../system/TimeUtils.h"
 # include "../system/ProgressBar.h"
 # include "../system/Precision.h"

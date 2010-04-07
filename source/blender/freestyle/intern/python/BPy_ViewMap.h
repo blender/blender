@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_VIEWMAP_H
 #define FREESTYLE_PYTHON_VIEWMAP_H
 
+#include <Python.h>
+
 #include "../view_map/ViewMap.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject ViewMap_Type;
 

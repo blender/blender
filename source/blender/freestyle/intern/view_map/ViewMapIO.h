@@ -30,11 +30,11 @@
 #ifndef  VIEWMAPIO_H
 # define VIEWMAPIO_H
 
+# include "ViewMap.h"
 # include <fstream>
 # include <string>
 # include "../system/FreestyleConfig.h"
 # include "../system/ProgressBar.h"
-# include "ViewMap.h"
 
 namespace ViewMapIO {
 

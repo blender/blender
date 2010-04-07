@@ -31,10 +31,10 @@
 #ifndef  GLDEBUGRENDERER_H
 # define GLDEBUGRENDERER_H
 
+# include "../view_map/Silhouette.h"
 # include <float.h>
 # include "../system/FreestyleConfig.h"
 # include "GLRenderer.h"
-# include "../view_map/Silhouette.h"
 # include "../winged_edge/Curvature.h"
 
 class WSMeshShape;

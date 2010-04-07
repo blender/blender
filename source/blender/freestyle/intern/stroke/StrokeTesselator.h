@@ -31,8 +31,8 @@
 #ifndef  STROKETESSELATOR_H
 # define STROKETESSELATOR_H
 
-# include "../scene_graph/LineRep.h"
 # include "Stroke.h"
+# include "../scene_graph/LineRep.h"
 
 class StrokeTesselator
 {

@@ -30,8 +30,8 @@
 #ifndef  PYTHON_INTERPRETER_H
 # define PYTHON_INTERPRETER_H
 
-# include <iostream>
 # include <Python.h>
+# include <iostream>
 # include "StringUtils.h"
 # include "Interpreter.h"
 

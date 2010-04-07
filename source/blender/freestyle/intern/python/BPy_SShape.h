@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_SSHAPE_H
 #define FREESTYLE_PYTHON_SSHAPE_H
 
+#include <Python.h>
+
 #include "../view_map/Silhouette.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject SShape_Type;
 

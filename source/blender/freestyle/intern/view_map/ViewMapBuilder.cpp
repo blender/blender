@@ -19,8 +19,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <algorithm>
 #include "ViewMapBuilder.h"
+#include <algorithm>
 
 using namespace std;
 

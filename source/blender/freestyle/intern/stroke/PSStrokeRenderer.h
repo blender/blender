@@ -30,8 +30,8 @@
 #ifndef  PSSTROKERENDERER_H
 # define PSSTROKERENDERER_H
 
-# include "../system/FreestyleConfig.h"
 # include "StrokeRenderer.h"
+# include "../system/FreestyleConfig.h"
 # include <fstream>
 
 /**********************************/

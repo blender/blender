@@ -31,8 +31,8 @@
 # define ADVANCED_FUNCTIONS1D_HPP
 
 
-# include "AdvancedFunctions0D.h"
 # include "../view_map/Functions1D.h"
+# include "AdvancedFunctions0D.h"
 
 //
 // Functions definitions

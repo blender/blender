@@ -30,10 +30,10 @@
 #ifndef  STROKE_H
 # define STROKE_H
 
+# include "../view_map/Silhouette.h"
 # include <vector>
 # include <map>
 # include "../system/FreestyleConfig.h"
-# include "../view_map/Silhouette.h"
 # include "Curve.h"
 # include "../view_map/Interface1D.h"
 # include "../system/StringUtils.h"

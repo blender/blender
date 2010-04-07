@@ -19,12 +19,11 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "Controller.h"
 #include "../rendering/GLBlendEquation.h"
-
 #include "AppView.h"
 #include "../image/Image.h"
 #include "../system/TimeStamp.h"
-#include "Controller.h"
 #include "../stroke/StrokeRenderer.h"
 #include "AppCanvas.h"
 #include "../rendering/GLRenderer.h"

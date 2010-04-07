@@ -1,6 +1,7 @@
 #ifndef FREESTYLE_PYTHON_STROKESHADER_H
 #define FREESTYLE_PYTHON_STROKESHADER_H
 
+#include <Python.h>
 
 #include "../system/FreestyleConfig.h"
 
@@ -13,8 +14,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject StrokeShader_Type;
 

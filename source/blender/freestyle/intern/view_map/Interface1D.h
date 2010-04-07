@@ -30,6 +30,7 @@
 #ifndef  INTERFACE1D_H
 # define INTERFACE1D_H
 
+# include <Python.h>
 # include <string>
 # include <iostream>
 # include <float.h>
@@ -37,16 +38,6 @@
 # include "../system/Precision.h"
 # include "../winged_edge/Nature.h"
 # include "Functions0D.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <Python.h>
-
-#ifdef __cplusplus
-}
-#endif
 
 using namespace std;
 /*! \file Interface1D.h

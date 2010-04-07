@@ -19,6 +19,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "../stroke/Stroke.h"
 #include "../scene_graph/IndexedFaceSet.h"
 #include "../scene_graph/NodeDrawingStyle.h"
 #include "../scene_graph/NodeLight.h"
@@ -27,7 +28,6 @@
 #include "../scene_graph/NodeShape.h"
 #include "../scene_graph/OrientedLineRep.h"
 #include "../scene_graph/VertexRep.h"
-#include "../stroke/Stroke.h"
 
 #include "../scene_graph/TriangleRep.h"
 

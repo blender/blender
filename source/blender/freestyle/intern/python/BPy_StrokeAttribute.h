@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_STROKEATTRIBUTE_H
 #define FREESTYLE_PYTHON_STROKEATTRIBUTE_H
 
+#include <Python.h>
+
 #include "../stroke/Stroke.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject StrokeAttribute_Type;
 

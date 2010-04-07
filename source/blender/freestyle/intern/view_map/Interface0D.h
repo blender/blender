@@ -30,6 +30,7 @@
 #ifndef  INTERFACE0D_H
 # define INTERFACE0D_H
 
+# include <Python.h>
 # include <string>
 # include <iostream>
 # include "../system/Id.h"
@@ -39,16 +40,6 @@
 using namespace std;
 
 #include "../system/Iterator.h" //soc 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <Python.h>
-
-#ifdef __cplusplus
-}
-#endif
 
 //
 // Interface0D

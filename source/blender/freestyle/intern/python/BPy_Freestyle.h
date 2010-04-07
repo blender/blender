@@ -1,13 +1,13 @@
 #ifndef FREESTYLE_PYTHON_FREESTYLE_H
 #define FREESTYLE_PYTHON_FREESTYLE_H
 
+#include <Python.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 /*---------------------------Python BPy_Freestyle visible prototypes-----------*/
 

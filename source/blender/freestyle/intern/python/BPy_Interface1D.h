@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_INTERFACE1D_H
 #define FREESTYLE_PYTHON_INTERFACE1D_H
 
+#include <Python.h>
+
 #include "../view_map/Interface1D.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject Interface1D_Type;
 

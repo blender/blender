@@ -19,6 +19,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "Controller.h"
+
 extern "C" {
 #include "BLI_jitter.h"
 }
@@ -27,7 +29,6 @@ extern "C" {
 #include "../stroke/Canvas.h"
 #include "AppView.h"
 #include "../scene_graph/NodeLight.h"
-#include "Controller.h"
 #include "../view_map/Silhouette.h"
 #include "../view_map/ViewMap.h"
 #include "../scene_graph/LineRep.h"

@@ -30,6 +30,8 @@
 #ifndef  SILHOUETTE_H
 # define SILHOUETTE_H
 
+# include "Interface0D.h"
+# include "Interface1D.h"
 # include <iostream>
 # include <string>
 # include <vector>
@@ -41,8 +43,6 @@
 # include "../scene_graph/FrsMaterial.h"
 # include "../geometry/Polygon.h"
 # include "../system/Exception.h"
-# include "Interface0D.h"
-# include "Interface1D.h"
 # include "../winged_edge/Curvature.h"
 
 using namespace std;

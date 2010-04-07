@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_UNARYPREDICATE0D_H
 #define FREESTYLE_PYTHON_UNARYPREDICATE0D_H
 
+#include <Python.h>
+
 #include "../stroke/Predicates0D.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject UnaryPredicate0D_Type;
 

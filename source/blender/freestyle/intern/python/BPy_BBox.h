@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_BBOX_H
 #define FREESTYLE_PYTHON_BBOX_H
 
+#include <Python.h>
+
 #include "../geometry/BBox.h"
 #include "../geometry/Geom.h"
 using namespace Geometry;
@@ -10,8 +12,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject BBox_Type;
 

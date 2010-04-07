@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_NATURE_H
 #define FREESTYLE_PYTHON_NATURE_H
 
+#include <Python.h>
+
 #include "../winged_edge/Nature.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject Nature_Type;
 

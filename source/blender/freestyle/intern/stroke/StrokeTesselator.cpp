@@ -19,10 +19,10 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "StrokeTesselator.h"
 #include "../scene_graph/OrientedLineRep.h"
 #include "../scene_graph/NodeGroup.h"
 #include "../scene_graph/NodeShape.h"
-#include "StrokeTesselator.h"
 #include "StrokeAdvancedIterators.h"
 
 LineRep* StrokeTesselator::Tesselate(Stroke *iStroke)

@@ -30,11 +30,11 @@
 #ifndef  STROKE_RENDERER_H
 # define STROKE_RENDERER_H
 
+# include "Stroke.h"
 # include <vector>
 # include <map>
 # include <utility>
 # include "../system/FreestyleConfig.h"
-# include "Stroke.h"
 # include "StrokeRep.h"
 # include <string.h>
 

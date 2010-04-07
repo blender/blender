@@ -30,12 +30,12 @@
 #ifndef  VIEWMAP_H
 # define VIEWMAP_H
 
-# include "../system/BaseIterator.h"
-# include "../system/FreestyleConfig.h"
-# include "../geometry/GeomUtils.h"
 # include "Interface0D.h"
 # include "Interface1D.h"
 # include "Silhouette.h" // defines the embedding
+# include "../system/BaseIterator.h"
+# include "../system/FreestyleConfig.h"
+# include "../geometry/GeomUtils.h"
 # include <map>
 
                   /**********************************/

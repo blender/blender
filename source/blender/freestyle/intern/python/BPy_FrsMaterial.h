@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_FRSMATERIAL_H
 #define FREESTYLE_PYTHON_FRSMATERIAL_H
 
+#include <Python.h>
+
 #include "../scene_graph/FrsMaterial.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject FrsMaterial_Type;
 

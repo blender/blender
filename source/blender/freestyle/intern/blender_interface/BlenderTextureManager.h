@@ -1,9 +1,9 @@
 #ifndef  BLENDERTEXTUREMANAGER_H
 #define BLENDERTEXTUREMANAGER_H
 
-# include "../system/FreestyleConfig.h"
 # include "../stroke/StrokeRenderer.h"
 # include "../stroke/StrokeRep.h"
+# include "../system/FreestyleConfig.h"
 
 /*! Class to load textures
  */

@@ -1,6 +1,7 @@
 #ifndef FREESTYLE_PYTHON_CONVERT_H
 #define FREESTYLE_PYTHON_CONVERT_H
 
+#include <Python.h>
 #include <typeinfo>
 
 #include "../geometry/Geom.h"
@@ -61,7 +62,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Python.h>
 #include "generic/Mathutils.h"
 
 //==============================

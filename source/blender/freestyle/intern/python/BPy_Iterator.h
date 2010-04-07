@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_ITERATOR_H
 #define FREESTYLE_PYTHON_ITERATOR_H
 
+#include <Python.h>
+
 #include "../system/Iterator.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject Iterator_Type;
 

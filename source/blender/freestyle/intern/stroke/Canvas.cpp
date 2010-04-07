@@ -19,9 +19,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "StrokeRenderer.h"
 #include <vector>
 #include "../system/FreestyleConfig.h"
-#include "StrokeRenderer.h"
 #include "../system/TimeStamp.h"
 #include "../system/PseudoNoise.h"
 #include "Canvas.h"

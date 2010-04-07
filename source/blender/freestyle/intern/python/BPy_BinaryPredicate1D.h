@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_BINARYPREDICATE1D_H
 #define FREESTYLE_PYTHON_BINARYPREDICATE1D_H
 
+#include <Python.h>
+
 #include "../stroke/Predicates1D.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject BinaryPredicate1D_Type;
 

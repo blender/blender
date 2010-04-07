@@ -19,6 +19,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "StrokeRenderer.h"
 #include <fstream>
 #include "BasicStrokeShaders.h"
 #include "../system/PseudoNoise.h"
@@ -29,7 +30,6 @@
 #include "AdvancedFunctions1D.h"
 #include "StrokeIterators.h"
 #include "../system/StringUtils.h"
-#include "StrokeRenderer.h"
 #include "StrokeIO.h"
 
 //soc #include <qimage.h>

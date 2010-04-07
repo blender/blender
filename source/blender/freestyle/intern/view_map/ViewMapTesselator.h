@@ -31,10 +31,10 @@
 #ifndef  VIEWMAPTESSELATOR_H
 # define VIEWMAPTESSELATOR_H
 
-# include "../scene_graph/NodeShape.h"
-# include "../winged_edge/WEdge.h"
 # include "Silhouette.h"
 # include "ViewMap.h"
+# include "../scene_graph/NodeShape.h"
+# include "../winged_edge/WEdge.h"
 # include "../scene_graph/NodeGroup.h"
 # include "../scene_graph/LineRep.h"
 # include "../scene_graph/OrientedLineRep.h"

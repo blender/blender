@@ -18,10 +18,10 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "Silhouette.h"
 #include "SteerableViewMap.h"
 #include "../image/ImagePyramid.h"
 #include "../image/Image.h"
-#include "Silhouette.h"
 #include <math.h>
 #include "../geometry/Geom.h"
 using namespace Geometry;

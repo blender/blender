@@ -1,5 +1,5 @@
-#include "../application/AppView.h"
 #include "../application/Controller.h"
+#include "../application/AppView.h"
 #include "../application/AppConfig.h"
 #include "../application/AppCanvas.h"
 

@@ -30,9 +30,9 @@
 #ifndef  OPERATORS_H
 # define OPERATORS_H
 
+# include "../view_map/Interface1D.h"
 # include <vector>
 # include <iostream>
-# include "../view_map/Interface1D.h"
 # include "Predicates1D.h"
 # include "Predicates0D.h"
 # include "../view_map/ViewMap.h"

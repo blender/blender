@@ -19,14 +19,14 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "GLDebugRenderer.h"
+
 #include <stdio.h>
 #include "../scene_graph/VertexRep.h"
 #include "../scene_graph/NodeShape.h"
 #include "../scene_graph/IndexedFaceSet.h"
 #include "../scene_graph/LineRep.h"
 #include "../geometry/Grid.h"
-
-#include "GLDebugRenderer.h"
 
 #ifdef __MACH__
 #include <GLUT/glut.h>

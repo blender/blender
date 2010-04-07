@@ -19,9 +19,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "Operators.h"
 #include <algorithm>
 #include <stdexcept>
-#include "Operators.h"
 #include "Canvas.h"
 #include "Stroke.h"
 

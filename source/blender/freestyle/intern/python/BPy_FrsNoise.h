@@ -1,6 +1,8 @@
 #ifndef FREESTYLE_PYTHON_FRSNOISE_H
 #define FREESTYLE_PYTHON_FRSNOISE_H
 
+#include <Python.h>
+
 #include "../geometry/Noise.h"
 
 #ifdef __cplusplus
@@ -8,8 +10,6 @@ extern "C" {
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include <Python.h>
 
 extern PyTypeObject FrsNoise_Type;
 

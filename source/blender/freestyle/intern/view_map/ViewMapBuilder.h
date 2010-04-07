@@ -31,12 +31,12 @@
 #ifndef  VIEWMAPBUILDER_H
 # define VIEWMAPBUILDER_H
 
+# include "Silhouette.h"
 # include <vector>
 # include "../system/FreestyleConfig.h"
 # include "../geometry/Geom.h"
 # include "../scene_graph/NodeGroup.h"
 # include "../winged_edge/WXEdge.h"
-# include "Silhouette.h"
 # include "../geometry/GeomUtils.h"
 # include "../geometry/Grid.h"
 # include "../system/ProgressBar.h"

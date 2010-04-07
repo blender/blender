@@ -1,8 +1,8 @@
 #ifndef  BLENDERSTROKERENDERER_H
 # define BLENDERSTROKERENDERER_H
 
-# include "../system/FreestyleConfig.h"
 # include "../stroke/StrokeRenderer.h"
+# include "../system/FreestyleConfig.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -19,9 +19,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "AdvancedStrokeShaders.h"
 #include "../system/PseudoNoise.h"
 #include "../system/RandGen.h"
-#include "AdvancedStrokeShaders.h"
 #include "StrokeIterators.h"
 
 /////////////////////////////////////////
