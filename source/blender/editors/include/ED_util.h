@@ -37,6 +37,7 @@ struct wmOperatorType;
 
 /* ed_util.c */
 
+void	ED_editors_init			(struct bContext *C);
 void	ED_editors_exit			(struct bContext *C);
 
 /* ************** Undo ************************ */

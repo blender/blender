@@ -2054,6 +2054,8 @@ void ED_object_toggle_modes(bContext *C, int mode)
 		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 	if(mode & OB_MODE_POSE)
 		WM_operator_name_call(C, "OBJECT_OT_posemode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_EDIT)
+		WM_operator_name_call(C, "OBJECT_OT_editmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 }
 
 /************************ Game Properties ***********************/

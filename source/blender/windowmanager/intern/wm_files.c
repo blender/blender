@@ -296,6 +296,9 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 //		refresh_interface_font();
 
+		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+		ED_editors_init(C);
+
 		CTX_wm_window_set(C, NULL); /* exits queues */
 #ifndef DISABLE_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
