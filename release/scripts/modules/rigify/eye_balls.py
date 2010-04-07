@@ -27,6 +27,85 @@ from rigify_utils import copy_bone_simple
 #METARIG_NAMES = ("cpy",)
 RIG_TYPE = "eye_balls"
 
+def addget_shape_key(obj, name="Key"):
+    """ Fetches a shape key, or creates it if it doesn't exist
+    """
+    # Create a shapekey set if it doesn't already exist
+    if obj.data.shape_keys is None:
+        shape = obj.add_shape_key(name="Basis", from_mix=False)
+        obj.active_shape_key_index = 0
+
+    # Get the shapekey, or create it if it doesn't already exist
+    if name in obj.data.shape_keys.keys:
+        shape_key = obj.data.shape_keys.keys[name]
+    else:
+        shape_key = obj.add_shape_key(name=name, from_mix=False)
+
+    return shape_key
+
+
+def addget_shape_key_driver(obj, name="Key"):
+    """ Fetches the driver for the shape key, or creates it if it doesn't
+        already exist.
+    """
+    driver_path = 'keys["' + name + '"].value'
+    fcurve = None
+    driver = None
+    new = False
+    if obj.data.shape_keys.animation_data is not None:
+        for driver_s in obj.data.shape_keys.animation_data.drivers:
+            if driver_s.data_path == driver_path:
+                fcurve = driver_s
+    if fcurve == None:
+        fcurve = obj.data.shape_keys.keys[name].driver_add("value", 0)
+        fcurve.driver.type = 'AVERAGE'
+        new = True
+
+    return fcurve, new
+   
+    
+def create_shape_and_driver(obj, bone, meshes, shape_name, var_name, var_path, expression):
+    """ Creates/gets a shape key and sets up a driver for it.
+
+        obj = armature object
+        bone = driving bone name
+        meshes = list of meshes to create the shapekey/driver on
+        shape_name = name of the shape key
+        var_name = name of the driving variable
+        var_path = path to the property on the bone to drive with
+        expression = python expression for the driver
+    """
+    pb = obj.pose.bones
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    for mesh_name in meshes:
+        mesh_obj = bpy.data.objects[mesh_name]
+
+        # Add/get the shape key
+        shape = addget_shape_key(mesh_obj, name=shape_name)
+
+        # Add/get the shape key driver
+        fcurve, a = addget_shape_key_driver(mesh_obj, name=shape_name)
+
+        # Set up the driver
+        driver = fcurve.driver
+        driver.type = 'SCRIPTED'
+        driver.expression = expression
+
+        # Get the variable, or create it if it doesn't already exist
+        if var_name in driver.variables:
+            var = driver.variables[var_name]
+        else:
+            var = driver.variables.new()
+            var.name = var_name
+
+        # Set up the variable
+        var.type = "SINGLE_PROP"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = 'pose.bones["' + bone + '"]' + var_path
+
+
 def mark_actions():
     for action in bpy.data.actions:
         action.tag = True
@@ -119,6 +198,12 @@ def control(obj, definitions, base_names, options):
 
     head = definitions[0]
     eye_target = definitions[1]
+
+    # Get list of pupil mesh objects
+    if "mesh" in options:
+        pupil_meshes = options["mesh"].replace(" ", "").split(",")
+    else:
+        pupil_meshes = []
 
     # Get list of eyes
     if "eyes" in options:
@@ -246,6 +331,50 @@ def control(obj, definitions, base_names, options):
         con.minimum = 0.0
         con.maximum = 2.0
         con.target_space = 'LOCAL'
+    
+    
+    # Get/create the shape keys and drivers for pupil dilation
+    shape_names = ["PUPILS-dilate_wide", "PUPILS-dilate_narrow"]
+    slider_name = "pupil_dilate"
+    
+    # Set up the custom property on the bone
+    prop = rna_idprop_ui_prop_get(pb[target_ctrl], slider_name, create=True)
+    pb[target_ctrl][slider_name] = 0.0
+    prop["min"] = 0.0
+    prop["max"] = 1.0
+    prop["soft_min"] = 0.0
+    prop["soft_max"] = 1.0
+    if len(shape_names) > 1:
+        prop["min"] = -1.0
+        prop["soft_min"] = -1.0
+
+    # Add the shape drivers
+    # Positive
+    if shape_names[0] != "":
+        # Set up the variables for creating the shape key driver
+        shape_name = shape_names[0]
+        var_name = slider_name.replace(".", "_").replace("-", "_")
+        var_path = '["' + slider_name + '"]'
+        if slider_name + "_fac" in options:
+            fac = options[slider_name + "_fac"]
+        else:
+            fac = 1.0
+        expression = var_name + " * " + str(fac)
+        # Create the shape key driver
+        create_shape_and_driver(obj, target_ctrl, pupil_meshes, shape_name, var_name, var_path, expression)
+    # Negative
+    if shape_names[0] != "" and len(shape_names) > 1:
+        # Set up the variables for creating the shape key driver
+        shape_name = shape_names[1]
+        var_name = slider_name.replace(".", "_").replace("-", "_")
+        var_path = '["' + slider_name + '"]'
+        if slider_name + "_fac" in options:
+            fac = options[slider_name + "_fac"]
+        else:
+            fac = 1.0
+        expression = var_name + " * " + str(fac) + " * -1"
+        # Create the shape key driver
+        create_shape_and_driver(obj, target_ctrl, pupil_meshes, shape_name, var_name, var_path, expression)
 
 
 

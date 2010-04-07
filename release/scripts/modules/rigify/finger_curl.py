@@ -57,31 +57,20 @@ def metarig_template():
 def metarig_definition(obj, orig_bone_name):
     '''
     The bone given is the first in a chain
-    Expects a chain of at least 2 children.
+    Expects a chain with at least 1 child of the same base name.
     eg.
-        finger -> finger_01 -> finger_02
+        finger_01 -> finger_02
     '''
-
-    bone_definition = []
 
     orig_bone = obj.data.bones[orig_bone_name]
 
-    bone_definition.append(orig_bone.name)
-
-    bone = orig_bone
-    chain = 0
-    while chain < 2: # first 2 bones only have 1 child
-        children = bone.children
-
-        if len(children) != 1:
-            raise RigifyError("expected the chain to have 2 children from bone '%s' without a fork" % orig_bone_name)
-        bone = children[0]
-        bone_definition.append(bone.name) # finger_02, finger_03
-        chain += 1
-
-    if len(bone_definition) != len(METARIG_NAMES):
-        raise RigifyError("internal problem, expected %d bones" % len(METARIG_NAMES))
-
+    bone_definition = [orig_bone.name]
+    
+    bone_definition.extend([child.name for child in orig_bone.children_recursive_basename])
+    
+    if len(bone_definition) < 2:
+        raise RigifyError("expected the chain to have at least 1 child from bone '%s' without the same base name" % orig_bone_name)
+    
     return bone_definition
 
 
@@ -89,6 +78,8 @@ def deform(obj, definitions, base_names, options):
     """ Creates the deform rig.
     """
     bpy.ops.object.mode_set(mode='EDIT')
+
+    three_digits = True if len(definitions) > 2 else False
 
     # Create base digit bones: two bones, each half of the base digit.
     f1a = copy_bone_simple(obj.data, definitions[0], "DEF-%s.01" % base_names[definitions[0]], parent=True)
@@ -102,13 +93,15 @@ def deform(obj, definitions, base_names, options):
 
     # Create the other deform bones.
     f2 = copy_bone_simple(obj.data, definitions[1], "DEF-%s" % base_names[definitions[1]], parent=True)
-    f3 = copy_bone_simple(obj.data, definitions[2], "DEF-%s" % base_names[definitions[2]], parent=True)
+    if three_digits:
+        f3 = copy_bone_simple(obj.data, definitions[2], "DEF-%s" % base_names[definitions[2]], parent=True)
 
     # Store names before leaving edit mode
     f1a_name = f1a.name
     f1b_name = f1b.name
     f2_name = f2.name
-    f3_name = f3.name
+    if three_digits:
+        f3_name = f3.name
 
     # Leave edit mode
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -117,7 +110,8 @@ def deform(obj, definitions, base_names, options):
     f1a = obj.pose.bones[f1a_name]
     f1b = obj.pose.bones[f1b_name]
     f2 = obj.pose.bones[f2_name]
-    f3 = obj.pose.bones[f3_name]
+    if three_digits:
+        f3 = obj.pose.bones[f3_name]
 
     # Constrain the base digit's bones
     con = f1a.constraints.new('DAMPED_TRACK')
@@ -141,15 +135,18 @@ def deform(obj, definitions, base_names, options):
     con.target = obj
     con.subtarget = definitions[1]
 
-    con = f3.constraints.new('COPY_TRANSFORMS')
-    con.name = "copy_transforms"
-    con.target = obj
-    con.subtarget = definitions[2]
+    if three_digits:
+        con = f3.constraints.new('COPY_TRANSFORMS')
+        con.name = "copy_transforms"
+        con.target = obj
+        con.subtarget = definitions[2]
 
 
 def main(obj, bone_definition, base_names, options):
     # *** EDITMODE
     bpy.ops.object.mode_set(mode='EDIT')
+    
+    three_digits = True if len(bone_definition) > 2 else False
 
     # get assosiated data
     arm = obj.data
@@ -159,7 +156,8 @@ def main(obj, bone_definition, base_names, options):
 
     org_f1 = bone_definition[0] # Original finger bone 01
     org_f2 = bone_definition[1] # Original finger bone 02
-    org_f3 = bone_definition[2] # Original finger bone 03
+    if three_digits:
+        org_f3 = bone_definition[2] # Original finger bone 03
 
     # Check options
     if "bend_ratio" in options:
@@ -179,7 +177,10 @@ def main(obj, bone_definition, base_names, options):
 
     # Create the control bone
     base_name = base_names[bone_definition[0]].split(".", 1)[0]
-    tot_len = eb[org_f1].length + eb[org_f2].length + eb[org_f3].length
+    if three_digits:
+        tot_len = eb[org_f1].length + eb[org_f2].length + eb[org_f3].length
+    else:
+        tot_len = eb[org_f1].length + eb[org_f2].length
     control = copy_bone_simple(arm, bone_definition[0], base_name + get_side_name(base_names[bone_definition[0]]), parent=True).name
     eb[control].connected = eb[org_f1].connected
     eb[control].parent = eb[org_f1].parent
@@ -188,26 +189,30 @@ def main(obj, bone_definition, base_names, options):
     # Create secondary control bones
     f1 = copy_bone_simple(arm, bone_definition[0], base_names[bone_definition[0]]).name
     f2 = copy_bone_simple(arm, bone_definition[1], base_names[bone_definition[1]]).name
-    f3 = copy_bone_simple(arm, bone_definition[2], base_names[bone_definition[2]]).name
+    if three_digits:
+        f3 = copy_bone_simple(arm, bone_definition[2], base_names[bone_definition[2]]).name
 
     # Create driver bones
     df1 = copy_bone_simple(arm, bone_definition[0], "MCH-" + base_names[bone_definition[0]]).name
     eb[df1].length /= 2
     df2 = copy_bone_simple(arm, bone_definition[1], "MCH-" + base_names[bone_definition[1]]).name
     eb[df2].length /= 2
-    df3 = copy_bone_simple(arm, bone_definition[2], "MCH-" + base_names[bone_definition[2]]).name
-    eb[df3].length /= 2
+    if three_digits:
+        df3 = copy_bone_simple(arm, bone_definition[2], "MCH-" + base_names[bone_definition[2]]).name
+        eb[df3].length /= 2
 
     # Set parents of the bones, interleaving the driver bones with the secondary control bones
-    eb[f3].connected = False
-    eb[df3].connected = False
+    if three_digits:
+        eb[f3].connected = False
+        eb[df3].connected = False
     eb[f2].connected = False
     eb[df2].connected = False
     eb[f1].connected = False
     eb[df1].connected = eb[org_f1].connected
 
-    eb[f3].parent = eb[df3]
-    eb[df3].parent = eb[f2]
+    if three_digits:
+        eb[f3].parent = eb[df3]
+        eb[df3].parent = eb[f2]
     eb[f2].parent = eb[df2]
     eb[df2].parent = eb[f1]
     eb[f1].parent = eb[df1]
@@ -215,8 +220,8 @@ def main(obj, bone_definition, base_names, options):
 
     # Set up bones for hinge
     if make_hinge:
-        socket = copy_bone_simple(arm, org_f1, "MCH-socket_" + control, parent=True).name
-        hinge = copy_bone_simple(arm, eb[org_f1].parent.name, "MCH-hinge_" + control).name
+        socket = copy_bone_simple(arm, org_f1, "MCH-socket_"+control, parent=True).name
+        hinge = copy_bone_simple(arm, eb[org_f1].parent.name, "MCH-hinge_"+control).name
 
         eb[control].connected = False
         eb[control].parent = eb[hinge]
@@ -234,12 +239,15 @@ def main(obj, bone_definition, base_names, options):
     pb[control].lock_scale = True, False, True
     pb[f1].rotation_mode = 'YZX'
     pb[f2].rotation_mode = 'YZX'
-    pb[f3].rotation_mode = 'YZX'
+    if three_digits:
+        pb[f3].rotation_mode = 'YZX'
     pb[f1].lock_location = True, True, True
     pb[f2].lock_location = True, True, True
-    pb[f3].lock_location = True, True, True
+    if three_digits:
+        pb[f3].lock_location = True, True, True
     pb[df2].rotation_mode = 'YZX'
-    pb[df3].rotation_mode = 'YZX'
+    if three_digits:
+        pb[df3].rotation_mode = 'YZX'
 
     # Add the bend_ratio property to the control bone
     pb[control]["bend_ratio"] = bend_ratio
@@ -271,9 +279,10 @@ def main(obj, bone_definition, base_names, options):
     con.target = obj
     con.subtarget = f2
 
-    con = pb[org_f3].constraints.new('COPY_TRANSFORMS')
-    con.target = obj
-    con.subtarget = f3
+    if three_digits:
+        con = pb[org_f3].constraints.new('COPY_TRANSFORMS')
+        con.target = obj
+        con.subtarget = f3
 
     if make_hinge:
         con = pb[hinge].constraints.new('COPY_TRANSFORMS')
@@ -303,8 +312,13 @@ def main(obj, bone_definition, base_names, options):
     # Create the drivers for the driver bones (control bone scale rotates driver bones)
     controller_path = pb[control].path_from_id() # 'pose.bones["%s"]' % control_bone_name
 
+    if three_digits:
+        finger_digits = [df2, df3]
+    else:
+        finger_digits = [df2]
+
     i = 0
-    for bone in [df2, df3]:
+    for bone in finger_digits:
 
         # XXX - todo, any number
         if i == 2:
@@ -334,23 +348,31 @@ def main(obj, bone_definition, base_names, options):
         var.targets[0].data_path = controller_path + '["bend_ratio"]'
 
         # XXX - todo, any number
-        if i == 0:
-            driver.expression = '(-scale+1.0)*pi*2.0*(1.0-br)'
-        elif i == 1:
-            driver.expression = '(-scale+1.0)*pi*2.0*br'
+        if three_digits:
+            if i == 0:
+                driver.expression = '(-scale+1.0)*pi*2.0*(1.0-br)'
+            elif i == 1:
+                driver.expression = '(-scale+1.0)*pi*2.0*br'
+        else:
+            driver.expression = driver.expression = '(-scale+1.0)*pi*2.0'
 
         i += 1
 
     # Last step setup layers
     if "ex_layer" in options:
-        layer = [n == options["ex_layer"] for n in range(0, 32)]
+        layer = [n==options["ex_layer"] for n in range(0,32)]
     else:
         layer = list(arm.bones[bone_definition[0]].layer)
-    for bone_name in [f1, f2, f3]:
-        arm.bones[bone_name].layer = layer
+    #for bone_name in [f1, f2, f3]:
+    #    arm.bones[bone_name].layer = layer
+    arm.bones[f1].layer = layer
+    arm.bones[f2].layer = layer
+    if three_digits:
+        arm.bones[f3].layer = layer
 
     layer = list(arm.bones[bone_definition[0]].layer)
     bb[control].layer = layer
 
     # no blending the result of this
     return None
+
