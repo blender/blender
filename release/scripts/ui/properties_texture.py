@@ -207,7 +207,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
         idblock = context_tex_datablock(context)
         if type(idblock) == bpy.types.Brush and not context.sculpt_object:
             return False
-        return True
+        return context.texture_slot
 
     def draw(self, context):
         layout = self.layout
