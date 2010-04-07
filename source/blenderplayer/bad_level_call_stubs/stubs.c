@@ -2,7 +2,7 @@
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
- *
+ *file://localhost/Users/tj/Desktop/rock2.blend
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -44,6 +44,7 @@ struct CurveMapping;
 struct EditBone;
 struct EditMesh;
 struct ID;
+struct FCurve;
 struct ImBuf;
 struct Image;
 struct ImageUser;
@@ -133,6 +134,7 @@ void WM_menutype_freelink(struct MenuType* mt){}
 int WM_menutype_add(struct MenuType *mt) {return 0;}
 int WM_operator_props_dialog_popup (struct bContext *C, struct wmOperator *op, int width, int height){return 0;}
 struct MenuType *WM_menutype_find(const char *idname, int quiet){return (struct MenuType *) NULL;}
+void WM_operator_stack_clear(struct bContext *C) {}
 
 void WM_autosave_init(struct bContext *C){}
 void WM_jobs_stop_all(struct wmWindowManager *wm){}
@@ -299,6 +301,8 @@ void uiTemplateDopeSheetFilter(struct uiLayout *layout, struct bContext *C, stru
 void uiTemplateColorWheel(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider){}
 void uiTemplateHistogram(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand){}
 void uiTemplateReportsBanner(struct uiLayout *layout, struct bContext *C, struct wmOperator *op){}
+void uiTemplateWaveform(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand){}
+void uiTemplateVectorscope(struct uiLayout *_self, struct PointerRNA *data, char* property, int expand){}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}
