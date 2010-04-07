@@ -291,10 +291,13 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		/* in case of autosave or quit.blend, use original filename instead
 		 * use relbase_valid to make sure the file is saved, else we get <memory2> in the filename */
 		filename= bfd->filename;
-	} else if (!G.relbase_valid) {
+	}
+#if 0
+	else if (!G.relbase_valid) {
 		/* otherwise, use an empty string as filename, rather than <memory2> */
 		filename="";
 	}
+#endif
 	
 	/* these are the same at times, should never copy to the same location */
 	if(G.sce != filename)
