@@ -61,6 +61,7 @@
 
 #include "RE_pipeline.h"
 
+#include "IMB_imbuf_types.h"
 
 #include "ED_node.h"
 #include "ED_screen.h"
@@ -73,7 +74,7 @@
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
- 
+
 #include "node_intern.h"
 
 #define SOCK_IN		1
@@ -686,68 +687,94 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 	return tnode;
 }
 
-#if 0
-static void snode_bg_viewmove(SpaceNode *snode)
+/* **************************** */
+
+typedef struct NodeViewMove {
+	short mvalo[2];
+	int xmin, ymin, xmax, ymax;
+} NodeViewMove;
+
+static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ScrArea *sa;
+	SpaceNode *snode= CTX_wm_space_node(C);
+	ARegion *ar= CTX_wm_region(C);
+	NodeViewMove *nvm= op->customdata;
+
+	switch (event->type) {
+		case MOUSEMOVE:
+			
+			snode->xof -= (nvm->mvalo[0]-event->mval[0]);
+			snode->yof -= (nvm->mvalo[1]-event->mval[1]);
+			nvm->mvalo[0]= event->mval[0];
+			nvm->mvalo[1]= event->mval[1];
+			
+			/* prevent dragging image outside of the window and losing it! */
+			CLAMP(snode->xof, nvm->xmin, nvm->xmax);
+			CLAMP(snode->yof, nvm->ymin, nvm->ymax);
+			
+			ED_region_tag_redraw(ar);
+			
+			break;
+			
+		case LEFTMOUSE:
+		case MIDDLEMOUSE:
+		case RIGHTMOUSE:
+			
+			MEM_freeN(nvm);
+			op->customdata= NULL;
+			
+			return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	NodeViewMove *nvm;
 	Image *ima;
 	ImBuf *ibuf;
-	Window *win;
-	short mval[2], mvalo[2];
-	short rectx, recty, xmin, xmax, ymin, ymax, pad;
-	int oldcursor;
+	int pad= 10;
 	
 	ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf= BKE_image_get_ibuf(ima, NULL);
 	
-	sa = snode->area;
+	if(ibuf == NULL)
+		return OPERATOR_CANCELLED;
+
+	nvm= MEM_callocN(sizeof(NodeViewMove), "NodeViewMove struct");
+	op->customdata= nvm;
+	nvm->mvalo[0]= event->mval[0];
+	nvm->mvalo[1]= event->mval[1];
+
+	nvm->xmin = -(ar->winx/2) - ibuf->x/2 + pad;
+	nvm->xmax = ar->winx/2 + ibuf->x/2 - pad;
+	nvm->ymin = -(ar->winy/2) - ibuf->y/2 + pad;
+	nvm->ymax = ar->winy/2 + ibuf->y/2 - pad;
 	
-	if(ibuf) {
-		rectx = ibuf->x;
-		recty = ibuf->y;
-	} else {
-		rectx = recty = 1;
-	}
+	/* add modal handler */
+	WM_event_add_modal_handler(C, op);
 	
-	pad = 10;
-	xmin = -(sa->winx/2) - rectx/2 + pad;
-	xmax = sa->winx/2 + rectx/2 - pad;
-	ymin = -(sa->winy/2) - recty/2 + pad;
-	ymax = sa->winy/2 + recty/2 - pad;
-	
-	getmouseco_sc(mvalo);
-	
-	/* store the old cursor to temporarily change it */
-	oldcursor=get_cursor();
-	win=winlay_get_active_window();
-	
-	SetBlenderCursor(BC_NSEW_SCROLLCURSOR);
-	
-	while(get_mbut()&(L_MOUSE|M_MOUSE)) {
-		
-		getmouseco_sc(mval);
-		
-		if(mvalo[0]!=mval[0] || mvalo[1]!=mval[1]) {
-			
-			snode->xof -= (mvalo[0]-mval[0]);
-			snode->yof -= (mvalo[1]-mval[1]);
-			
-			/* prevent dragging image outside of the window and losing it! */
-			CLAMP(snode->xof, xmin, xmax);
-			CLAMP(snode->yof, ymin, ymax);
-			
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-			
-			scrarea_do_windraw(curarea);
-			screen_swapbuffers();
-		}
-		else BIF_wait_for_statechange();
-	}
-	
-	window_set_cursor(win, oldcursor);
+	return OPERATOR_RUNNING_MODAL;
 }
-#endif
+
+
+void NODE_OT_backimage_move(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Background Image Move";
+	ot->idname= "NODE_OT_backimage_move";
+	
+	/* api callbacks */
+	ot->invoke= snode_bg_viewmove_invoke;
+	ot->modal= snode_bg_viewmove_modal;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+}
+
 
 /* ********************** size widget operator ******************** */
 
