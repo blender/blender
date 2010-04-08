@@ -1097,6 +1097,14 @@ void GPU_end_object_materials(void)
 	GMS.matbuf= NULL;
 	GMS.gmatbuf= NULL;
 	GMS.blendmode= NULL;
+
+	/* resetting the texture matrix after the glScale needed for tiled textures */
+	if(GTS.tilemode)
+	{
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+	}
 }
 
 /* Lights */
