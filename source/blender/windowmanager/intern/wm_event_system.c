@@ -1240,6 +1240,10 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 							handler->op->reports->printlevel = RPT_WARNING;
 							uiPupMenuReports(C, handler->op->reports);
 
+							/* XXX - copied from 'wm_operator_finished()' */
+							/* add reports to the global list, otherwise they are not seen */
+							addlisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
+
 							CTX_wm_window_set(C, win_prev);
 						}
 

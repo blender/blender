@@ -44,8 +44,8 @@
 
 void RNA_api_keyingset(StructRNA *srna)
 {
-	FunctionRNA *func;
-	PropertyRNA *parm;
+//	FunctionRNA *func;
+//	PropertyRNA *parm;
 }
 
 #endif

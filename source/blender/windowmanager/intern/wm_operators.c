@@ -1482,6 +1482,7 @@ static short wm_link_append_flag(wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "relative_path")) flag |= FILE_RELPATH;
 	if(RNA_boolean_get(op->ptr, "link")) flag |= FILE_LINK;
 	if(RNA_boolean_get(op->ptr, "instance_groups")) flag |= FILE_GROUP_INSTANCE;
+
 	return flag;
 }
 
@@ -1553,6 +1554,14 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	idcode = BLO_idcode_from_name(group);
 	
 	flag = wm_link_append_flag(op);
+
+	/* sanity checks for flag */
+	if(scene->id.lib && (flag & FILE_GROUP_INSTANCE)) {
+		/* TODO, user never gets this message */
+		BKE_reportf(op->reports, RPT_WARNING, "Scene '%s' is linked, group instance disabled", scene->id.name+2);
+		flag &= ~FILE_GROUP_INSTANCE;
+	}
+
 
 	/* tag everything, all untagged data can be made local
 	 * its also generally useful to know what is new
