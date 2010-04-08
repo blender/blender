@@ -659,7 +659,25 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 	int pos_found = 1;
 	int filter_y = 0;
 
+#if (LIBAVCODEC_VERSION_MAJOR >= 52) && (LIBAVCODEC_VERSION_MINOR >= 29)
+	/* The following for color space determination */
+	int srcRange, dstRange, brightness, contrast, saturation;
+	int *inv_table, *table;
+
 	if (anim == 0) return (0);
+
+	/* The magic to assert we get full range for YUV to RGB, instead of
+	   mapping into 16-235 (only supported by newer ffmpeg versions) */
+	if (!sws_getColorspaceDetails(anim->img_convert_ctx, &inv_table, &srcRange,
+		&table, &dstRange, &brightness, &contrast, &saturation)) {
+		srcRange = srcRange || anim->pCodecCtx->color_range == AVCOL_RANGE_JPEG;
+		inv_table = sws_getCoefficients(anim->pCodecCtx->colorspace);
+		sws_setColorspaceDetails(anim->img_convert_ctx, inv_table, srcRange,
+			table, dstRange, brightness, contrast, saturation);
+	}
+#else
+	if (anim == 0) return (0);
+#endif
 
 	ibuf = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect, 0);
 
