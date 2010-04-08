@@ -775,6 +775,37 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING;
 }
 
+static int backimage_zoom(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	ARegion *ar= CTX_wm_region(C);
+	float fac= RNA_float_get(op->ptr, "factor");
+
+	snode->zoom *= fac;
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void NODE_OT_backimage_zoom(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Background Image Zoom";
+	ot->idname= "NODE_OT_backimage_zoom";
+	
+	/* api callbacks */
+	ot->exec= backimage_zoom;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+
+	/* internal */
+	RNA_def_float(ot->srna, "factor", 1.2f, 0.0f, 10.0f, "Factor", "", 0.0f, 10.0f);
+}
+
 
 /* ********************** size widget operator ******************** */
 

@@ -1582,6 +1582,9 @@ void wm_event_do_handlers(bContext *C)
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
 
+			if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
+				printf("pass on evt %d val %d\n", event->type, event->val); 
+			
 			wm_eventemulation(event);
 
 			CTX_wm_window_set(C, win);

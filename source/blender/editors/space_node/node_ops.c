@@ -76,6 +76,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_read_fullsamplelayers);
 	
 	WM_operatortype_append(NODE_OT_backimage_move);
+	WM_operatortype_append(NODE_OT_backimage_zoom);
 }
 
 void ED_operatormacros_node(void)
@@ -125,6 +126,11 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_select_link_viewer", LEFTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_backimage_move", MIDDLEMOUSE, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "NODE_OT_backimage_zoom", WHEELOUTMOUSE, KM_PRESS, KM_ALT, 0);
+		RNA_float_set(kmi->ptr, "factor", 0.83333f);
+	kmi= WM_keymap_add_item(keymap, "NODE_OT_backimage_zoom", WHEELINMOUSE, KM_PRESS, KM_ALT, 0);
+		RNA_float_set(kmi->ptr, "factor", 1.2f);
+	
 	
 	WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "NODE_OT_link_make", FKEY, KM_PRESS, KM_CTRL, 0)->ptr, "replace", 1);

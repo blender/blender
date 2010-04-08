@@ -1293,14 +1293,17 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			glMatrixMode(GL_MODELVIEW);
 			glPushMatrix();
 
+			/* keep this, saves us from a version patch */
+			if(snode->zoom==0.0f) snode->zoom= 1.0f;
+			
 			/* somehow the offset has to be calculated inverse */
 			
 			glaDefine2DArea(&ar->winrct);
 			/* ortho at pixel level curarea */
 			wmOrtho2(-0.375, ar->winx-0.375, -0.375, ar->winy-0.375);
 			
-			x = (ar->winx-ibuf->x)/2 + snode->xof;
-			y = (ar->winy-ibuf->y)/2 + snode->yof;
+			x = (ar->winx-snode->zoom*ibuf->x)/2 + snode->xof;
+			y = (ar->winy-snode->zoom*ibuf->y)/2 + snode->yof;
 			
 			if(!ibuf->rect) {
 				if(color_manage)
@@ -1310,8 +1313,11 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 				IMB_rect_from_float(ibuf);
 			}
 
-			if(ibuf->rect)
+			if(ibuf->rect) {
+				glPixelZoom(snode->zoom, snode->zoom);
 				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+				glPixelZoom(1.0f, 1.0f);
+			}
 			
 			glMatrixMode(GL_PROJECTION);
 			glPopMatrix();
