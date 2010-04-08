@@ -26,7 +26,7 @@ static PyObject * UnaryFunction0D___repr__(BPy_UnaryFunction0D *self);
 /*-----------------------BPy_UnaryFunction0D type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"UnaryFunction0D",              /* tp_name */
 	sizeof(BPy_UnaryFunction0D),    /* tp_basicsize */
 	0,                              /* tp_itemsize */
