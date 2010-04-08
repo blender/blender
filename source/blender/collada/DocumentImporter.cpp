@@ -174,7 +174,6 @@ static float get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigne
 		return array.getDoubleValues()->getData()[index];
 }
 
-#if 0
 // copied from /editors/object/object_relations.c
 static int test_parent_loop(Object *par, Object *ob)
 {
@@ -187,7 +186,8 @@ static int test_parent_loop(Object *par, Object *ob)
 }
 
 // a shortened version of parent_set_exec()
-static int set_parent(Object *ob, Object *par, bContext *C)
+// if is_parent_space is true then ob->obmat will be multiplied by par->obmat before parenting
+static int set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space=true)
 {
 	if (!par || test_parent_loop(par, ob))
 		return false;
@@ -198,24 +198,27 @@ static int set_parent(Object *ob, Object *par, bContext *C)
 	ob->parent = par;
 	ob->partype = PAROBJECT;
 
-	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
-	par->recalc |= OB_RECALC_OB;
-
 	ob->parsubstr[0] = 0;
 
-	where_is_object(sce, par);
+	if (is_parent_space) {
+		// calc par->obmat
+		where_is_object(sce, par);
 
-	// // move child obmat into world space
-	// float mat[4][4];
-	// copy_m4_m4(mat, ob->obmat);
-	// mul_m4_m4m4(ob->obmat, mat, par->obmat);
+		// move child obmat into world space
+		float mat[4][4];
+		mul_m4_m4m4(mat, ob->obmat, par->obmat);
+		copy_m4_m4(ob->obmat, mat);
+	}
 	
-	// apply child obmat (i.e. decompose into rot/loc/size)
+	// apply child obmat (i.e. decompose it into rot/loc/size)
 	object_apply_mat4(ob, ob->obmat);
 
 	// compute parentinv
 	what_does_parent(sce, ob, &workob);
 	invert_m4_m4(ob->parentinv, workob.obmat);
+
+	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
+	par->recalc |= OB_RECALC_OB;
 
 	DAG_scene_sort(sce);
 	DAG_ids_flush_update(0);
@@ -223,7 +226,6 @@ static int set_parent(Object *ob, Object *par, bContext *C)
 
 	return true;
 }
-#endif
 
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
 
@@ -579,9 +581,9 @@ private:
 			ModifierData *md = ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Armature);
 			((ArmatureModifierData *)md)->object = ob_arm;
 
-			tm->decompose(bind_shape_matrix, ob->loc, ob->rot, NULL, ob->size);
-			
-#if 0
+			copy_m4_m4(ob->obmat, bind_shape_matrix);
+			object_apply_mat4(ob, ob->obmat);
+#if 1
 			::set_parent(ob, ob_arm, C);
 #else
 			Object workob;
@@ -1005,12 +1007,10 @@ public:
 			else
 				fprintf(stderr, "Cannot find object to link armature with.\n");
 
-#if 0
 			// set armature parent if any
 			Object *par = skin.get_parent();
 			if (par)
-				set_parent(skin.get_armature(), par, C);
-#endif
+				set_parent(skin.get_armature(), par, C, false);
 
 			// free memory stolen from SkinControllerData
 			skin.free();
@@ -3201,8 +3201,9 @@ public:
 	void write_node (COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par)
 	{
 		Object *ob = NULL;
+		bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 
-		if (node->getType() == COLLADAFW::Node::JOINT) {
+		if (is_joint) {
 			armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par);
 		}
 		else {
@@ -3243,25 +3244,16 @@ public:
 			// check if object is not NULL
 			if (!ob) return;
 
-			object_map[node->getUniqueId()] = ob;
-			
-			// if par was given make this object child of the previous 
-			if (par && ob) {
-#if 0
-				set_parent(ob, par, mContext);
-#else
-				ob->parent = par;
-
-				// doing what 'set parent' operator does
-				par->recalc |= OB_RECALC_OB;
-				ob->parsubstr[0] = 0;
-                       
-				DAG_scene_sort(sce);
-#endif
-			}
+			object_map[node->getUniqueId()] = ob;			
 		}
 
 		anim_importer.read_node_transform(node, ob);
+
+		if (!is_joint) {
+			// if par was given make this object child of the previous 
+			if (par && ob)
+				set_parent(ob, par, mContext);
+		}
 
 		// if node has child nodes write them
 		COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
