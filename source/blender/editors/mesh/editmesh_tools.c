@@ -6174,6 +6174,7 @@ static int region_to_loop(bContext *C, wmOperator *op)
 	}
 
 	em->selectmode = SCE_SELECT_EDGE;
+	CTX_data_tool_settings(C)->selectmode= em->selectmode;
 	EM_selectmode_set(em);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
