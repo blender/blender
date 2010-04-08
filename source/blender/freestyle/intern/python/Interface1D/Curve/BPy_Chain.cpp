@@ -26,7 +26,7 @@ static PyMethodDef BPy_Chain_methods[] = {
 /*-----------------------BPy_Chain type definition ------------------------------*/
 
 PyTypeObject Chain_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"Chain",                        /* tp_name */
 	sizeof(BPy_Chain),              /* tp_basicsize */
 	0,                              /* tp_itemsize */

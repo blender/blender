@@ -29,7 +29,7 @@ static PyMethodDef BPy_ViewVertex_methods[] = {
 /*-----------------------BPy_ViewVertex type definition ------------------------------*/
 
 PyTypeObject ViewVertex_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ViewVertex",                   /* tp_name */
 	sizeof(BPy_ViewVertex),         /* tp_basicsize */
 	0,                              /* tp_itemsize */

@@ -14,7 +14,7 @@ static int BezierCurveShader___init__( BPy_BezierCurveShader* self, PyObject *ar
 /*-----------------------BPy_BezierCurveShader type definition ------------------------------*/
 
 PyTypeObject BezierCurveShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"BezierCurveShader",            /* tp_name */
 	sizeof(BPy_BezierCurveShader),  /* tp_basicsize */
 	0,                              /* tp_itemsize */

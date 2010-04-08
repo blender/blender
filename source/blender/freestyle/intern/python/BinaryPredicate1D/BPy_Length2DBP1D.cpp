@@ -11,7 +11,7 @@ static int Length2DBP1D___init__(BPy_Length2DBP1D* self, PyObject *args);
 
 /*-----------------------BPy_Length2DBP1D type definition ------------------------------*/
 PyTypeObject Length2DBP1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"Length2DBP1D",                 /* tp_name */
 	sizeof(BPy_Length2DBP1D),       /* tp_basicsize */
 	0,                              /* tp_itemsize */

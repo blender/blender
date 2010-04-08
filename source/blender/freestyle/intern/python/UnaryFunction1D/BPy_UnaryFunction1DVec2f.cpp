@@ -34,7 +34,7 @@ static PyMethodDef BPy_UnaryFunction1DVec2f_methods[] = {
 /*-----------------------BPy_UnaryFunction1DVec2f type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1DVec2f_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"UnaryFunction1DVec2f",         /* tp_name */
 	sizeof(BPy_UnaryFunction1DVec2f), /* tp_basicsize */
 	0,                              /* tp_itemsize */

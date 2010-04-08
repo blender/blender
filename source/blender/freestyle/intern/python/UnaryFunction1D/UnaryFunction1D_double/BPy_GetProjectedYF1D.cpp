@@ -16,7 +16,7 @@ extern "C" {
 /*-----------------------BPy_GetProjectedYF1D type definition ------------------------------*/
 
 PyTypeObject GetProjectedYF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GetProjectedYF1D",             /* tp_name */
 	sizeof(BPy_GetProjectedYF1D),   /* tp_basicsize */
 	0,                              /* tp_itemsize */

@@ -49,7 +49,7 @@ static PyMethodDef BPy_StrokeVertex_methods[] = {
 /*-----------------------BPy_StrokeVertex type definition ------------------------------*/
 
 PyTypeObject StrokeVertex_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"StrokeVertex",                 /* tp_name */
 	sizeof(BPy_StrokeVertex),       /* tp_basicsize */
 	0,                              /* tp_itemsize */

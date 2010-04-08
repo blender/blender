@@ -14,7 +14,7 @@ static int PolygonalizationShader___init__( BPy_PolygonalizationShader* self, Py
 /*-----------------------BPy_PolygonalizationShader type definition ------------------------------*/
 
 PyTypeObject PolygonalizationShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"PolygonalizationShader",          /* tp_name */
 	sizeof(BPy_PolygonalizationShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

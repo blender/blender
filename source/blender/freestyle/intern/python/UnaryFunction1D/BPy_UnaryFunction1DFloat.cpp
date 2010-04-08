@@ -31,7 +31,7 @@ static PyMethodDef BPy_UnaryFunction1DFloat_methods[] = {
 /*-----------------------BPy_UnaryFunction1DFloat type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1DFloat_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"UnaryFunction1DFloat",         /* tp_name */
 	sizeof(BPy_UnaryFunction1DFloat), /* tp_basicsize */
 	0,                              /* tp_itemsize */

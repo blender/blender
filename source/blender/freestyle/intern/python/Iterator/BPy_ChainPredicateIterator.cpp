@@ -18,7 +18,7 @@ static void ChainPredicateIterator___dealloc__(BPy_ChainPredicateIterator *self)
 /*-----------------------BPy_ChainPredicateIterator type definition ------------------------------*/
 
 PyTypeObject ChainPredicateIterator_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ChainPredicateIterator",       /* tp_name */
 	sizeof(BPy_ChainPredicateIterator), /* tp_basicsize */
 	0,                              /* tp_itemsize */

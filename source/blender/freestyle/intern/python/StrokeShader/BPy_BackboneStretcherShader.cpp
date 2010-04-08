@@ -14,7 +14,7 @@ static int BackboneStretcherShader___init__( BPy_BackboneStretcherShader* self, 
 /*-----------------------BPy_BackboneStretcherShader type definition ------------------------------*/
 
 PyTypeObject BackboneStretcherShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"BackboneStretcherShader",      /* tp_name */
 	sizeof(BPy_BackboneStretcherShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

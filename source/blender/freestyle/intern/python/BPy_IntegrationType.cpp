@@ -38,7 +38,7 @@ static PyModuleDef module_definition = {
 /*-----------------------BPy_IntegrationType type definition ------------------------------*/
 
 PyTypeObject IntegrationType_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"IntegrationType",              /* tp_name */
 	sizeof(PyLongObject),           /* tp_basicsize */
 	0,                              /* tp_itemsize */

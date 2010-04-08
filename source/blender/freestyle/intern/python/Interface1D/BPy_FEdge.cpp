@@ -63,7 +63,7 @@ static PyMethodDef BPy_FEdge_methods[] = {
 /*-----------------------BPy_FEdge type definition ------------------------------*/
 
 PyTypeObject FEdge_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"FEdge",                        /* tp_name */
 	sizeof(BPy_FEdge),              /* tp_basicsize */
 	0,                              /* tp_itemsize */

@@ -33,7 +33,7 @@ static PyMethodDef BPy_ChainingIterator_methods[] = {
 /*-----------------------BPy_ChainingIterator type definition ------------------------------*/
 
 PyTypeObject ChainingIterator_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ChainingIterator",             /* tp_name */
 	sizeof(BPy_ChainingIterator),   /* tp_basicsize */
 	0,                              /* tp_itemsize */

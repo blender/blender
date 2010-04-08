@@ -12,7 +12,7 @@ static int ContourUP1D___init__(BPy_ContourUP1D* self, PyObject *args);
 /*-----------------------BPy_ContourUP1D type definition ------------------------------*/
 
 PyTypeObject ContourUP1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ContourUP1D",                    /* tp_name */
 	sizeof(BPy_ContourUP1D),          /* tp_basicsize */
 	0,                              /* tp_itemsize */

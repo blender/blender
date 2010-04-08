@@ -16,7 +16,7 @@ static int DensityF1D___init__(BPy_DensityF1D* self, PyObject *args);
 /*-----------------------BPy_DensityF1D type definition ------------------------------*/
 
 PyTypeObject DensityF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"DensityF1D",                   /* tp_name */
 	sizeof(BPy_DensityF1D),         /* tp_basicsize */
 	0,                              /* tp_itemsize */

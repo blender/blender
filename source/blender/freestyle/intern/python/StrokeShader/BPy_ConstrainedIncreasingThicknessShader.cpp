@@ -14,7 +14,7 @@ static int ConstrainedIncreasingThicknessShader___init__( BPy_ConstrainedIncreas
 /*-----------------------BPy_ConstrainedIncreasingThicknessShader type definition ------------------------------*/
 
 PyTypeObject ConstrainedIncreasingThicknessShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ConstrainedIncreasingThicknessShader", /* tp_name */
 	sizeof(BPy_ConstrainedIncreasingThicknessShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

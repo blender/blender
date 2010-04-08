@@ -29,7 +29,7 @@ static PyMethodDef BPy_CurvePointIterator_methods[] = {
 /*-----------------------BPy_CurvePointIterator type definition ------------------------------*/
 
 PyTypeObject CurvePointIterator_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"CurvePointIterator",           /* tp_name */
 	sizeof(BPy_CurvePointIterator), /* tp_basicsize */
 	0,                              /* tp_itemsize */

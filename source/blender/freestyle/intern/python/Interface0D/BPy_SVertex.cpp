@@ -39,7 +39,7 @@ static PyMethodDef BPy_SVertex_methods[] = {
 /*-----------------------BPy_SVertex type definition ------------------------------*/
 
 PyTypeObject SVertex_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"SVertex",                      /* tp_name */
 	sizeof(BPy_SVertex),            /* tp_basicsize */
 	0,                              /* tp_itemsize */

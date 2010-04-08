@@ -36,7 +36,7 @@ static PyMethodDef BPy_CurvePoint_methods[] = {
 /*-----------------------BPy_CurvePoint type definition ------------------------------*/
 
 PyTypeObject CurvePoint_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"CurvePoint",                   /* tp_name */
 	sizeof(BPy_CurvePoint),         /* tp_basicsize */
 	0,                              /* tp_itemsize */

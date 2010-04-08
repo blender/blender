@@ -14,7 +14,7 @@ static int GuidingLinesShader___init__( BPy_GuidingLinesShader* self, PyObject *
 /*-----------------------BPy_GuidingLinesShader type definition ------------------------------*/
 
 PyTypeObject GuidingLinesShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GuidingLinesShader",           /* tp_name */
 	sizeof(BPy_GuidingLinesShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

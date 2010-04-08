@@ -14,7 +14,7 @@ static int TipRemoverShader___init__( BPy_TipRemoverShader* self, PyObject *args
 /*-----------------------BPy_TipRemoverShader type definition ------------------------------*/
 
 PyTypeObject TipRemoverShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"TipRemoverShader",             /* tp_name */
 	sizeof(BPy_TipRemoverShader),   /* tp_basicsize */
 	0,                              /* tp_itemsize */

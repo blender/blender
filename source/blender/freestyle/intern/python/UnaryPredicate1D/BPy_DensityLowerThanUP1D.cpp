@@ -14,7 +14,7 @@ static int DensityLowerThanUP1D___init__(BPy_DensityLowerThanUP1D* self, PyObjec
 /*-----------------------BPy_DensityLowerThanUP1D type definition ------------------------------*/
 
 PyTypeObject DensityLowerThanUP1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"DensityLowerThanUP1D",         /* tp_name */
 	sizeof(BPy_DensityLowerThanUP1D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

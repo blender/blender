@@ -28,7 +28,7 @@ static PyMethodDef BPy_Interface0DIterator_methods[] = {
 /*-----------------------BPy_Interface0DIterator type definition ------------------------------*/
 
 PyTypeObject Interface0DIterator_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"Interface0DIterator",          /* tp_name */
 	sizeof(BPy_Interface0DIterator), /* tp_basicsize */
 	0,                              /* tp_itemsize */

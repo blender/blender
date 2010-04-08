@@ -26,7 +26,7 @@ static PyMethodDef BPy_NonTVertex_methods[] = {
 /*-----------------------BPy_NonTVertex type definition ------------------------------*/
 
 PyTypeObject NonTVertex_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"NonTVertex",                   /* tp_name */
 	sizeof(BPy_NonTVertex),         /* tp_basicsize */
 	0,                              /* tp_itemsize */

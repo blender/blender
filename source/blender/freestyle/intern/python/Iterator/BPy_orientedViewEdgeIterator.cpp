@@ -24,7 +24,7 @@ static PyMethodDef BPy_orientedViewEdgeIterator_methods[] = {
 /*-----------------------BPy_orientedViewEdgeIterator type definition ------------------------------*/
 
 PyTypeObject orientedViewEdgeIterator_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"orientedViewEdgeIterator",     /* tp_name */
 	sizeof(BPy_orientedViewEdgeIterator), /* tp_basicsize */
 	0,                              /* tp_itemsize */

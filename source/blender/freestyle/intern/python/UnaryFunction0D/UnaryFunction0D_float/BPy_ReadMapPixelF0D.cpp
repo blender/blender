@@ -14,7 +14,7 @@ static int ReadMapPixelF0D___init__(BPy_ReadMapPixelF0D* self, PyObject *args);
 /*-----------------------BPy_ReadMapPixelF0D type definition ------------------------------*/
 
 PyTypeObject ReadMapPixelF0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ReadMapPixelF0D",              /* tp_name */
 	sizeof(BPy_ReadMapPixelF0D),    /* tp_basicsize */
 	0,                              /* tp_itemsize */

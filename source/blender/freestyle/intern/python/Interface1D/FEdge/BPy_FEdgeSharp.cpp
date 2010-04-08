@@ -41,7 +41,7 @@ static PyMethodDef BPy_FEdgeSharp_methods[] = {
 /*-----------------------BPy_FEdgeSharp type definition ------------------------------*/
 
 PyTypeObject FEdgeSharp_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"FEdgeSharp",                   /* tp_name */
 	sizeof(BPy_FEdgeSharp),         /* tp_basicsize */
 	0,                              /* tp_itemsize */

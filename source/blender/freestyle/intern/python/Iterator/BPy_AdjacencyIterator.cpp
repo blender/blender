@@ -26,7 +26,7 @@ static PyMethodDef BPy_AdjacencyIterator_methods[] = {
 /*-----------------------BPy_AdjacencyIterator type definition ------------------------------*/
 
 PyTypeObject AdjacencyIterator_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"AdjacencyIterator",            /* tp_name */
 	sizeof(BPy_AdjacencyIterator),  /* tp_basicsize */
 	0,                              /* tp_itemsize */

@@ -14,7 +14,7 @@ static int TextureAssignerShader___init__( BPy_TextureAssignerShader* self, PyOb
 /*-----------------------BPy_TextureAssignerShader type definition ------------------------------*/
 
 PyTypeObject TextureAssignerShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"TextureAssignerShader",        /* tp_name */
 	sizeof(BPy_TextureAssignerShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

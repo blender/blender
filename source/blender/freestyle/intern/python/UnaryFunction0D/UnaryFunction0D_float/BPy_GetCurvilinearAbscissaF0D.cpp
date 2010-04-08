@@ -14,7 +14,7 @@ static int GetCurvilinearAbscissaF0D___init__(BPy_GetCurvilinearAbscissaF0D* sel
 /*-----------------------BPy_GetCurvilinearAbscissaF0D type definition ------------------------------*/
 
 PyTypeObject GetCurvilinearAbscissaF0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GetCurvilinearAbscissaF0D",    /* tp_name */
 	sizeof(BPy_GetCurvilinearAbscissaF0D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

@@ -16,7 +16,7 @@ static int GetXF1D___init__(BPy_GetXF1D* self, PyObject *args );
 /*-----------------------BPy_GetXF1D type definition ------------------------------*/
 
 PyTypeObject GetXF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GetXF1D",                      /* tp_name */
 	sizeof(BPy_GetXF1D),            /* tp_basicsize */
 	0,                              /* tp_itemsize */

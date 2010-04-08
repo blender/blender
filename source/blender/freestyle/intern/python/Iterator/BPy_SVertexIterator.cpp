@@ -29,7 +29,7 @@ static PyMethodDef BPy_SVertexIterator_methods[] = {
 /*-----------------------BPy_SVertexIterator type definition ------------------------------*/
 
 PyTypeObject SVertexIterator_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"SVertexIterator",              /* tp_name */
 	sizeof(BPy_SVertexIterator),    /* tp_basicsize */
 	0,                              /* tp_itemsize */

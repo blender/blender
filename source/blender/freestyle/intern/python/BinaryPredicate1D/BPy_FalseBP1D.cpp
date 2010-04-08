@@ -11,7 +11,7 @@ static int FalseBP1D___init__(BPy_FalseBP1D* self, PyObject *args);
 
 /*-----------------------BPy_FalseBP1D type definition ------------------------------*/
 PyTypeObject FalseBP1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"FalseBP1D",                    /* tp_name */
 	sizeof(BPy_FalseBP1D),          /* tp_basicsize */
 	0,                              /* tp_itemsize */

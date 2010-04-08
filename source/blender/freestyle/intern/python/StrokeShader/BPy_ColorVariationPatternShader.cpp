@@ -15,7 +15,7 @@ static int ColorVariationPatternShader___init__( BPy_ColorVariationPatternShader
 /*-----------------------BPy_ColorVariationPatternShader type definition ------------------------------*/
 
 PyTypeObject ColorVariationPatternShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ColorVariationPatternShader",  /* tp_name */
 	sizeof(BPy_ColorVariationPatternShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

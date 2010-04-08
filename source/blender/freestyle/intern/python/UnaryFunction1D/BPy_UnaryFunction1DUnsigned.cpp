@@ -33,7 +33,7 @@ static PyMethodDef BPy_UnaryFunction1DUnsigned_methods[] = {
 /*-----------------------BPy_UnaryFunction1DUnsigned type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1DUnsigned_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"UnaryFunction1DUnsigned",      /* tp_name */
 	sizeof(BPy_UnaryFunction1DUnsigned), /* tp_basicsize */
 	0,                              /* tp_itemsize */

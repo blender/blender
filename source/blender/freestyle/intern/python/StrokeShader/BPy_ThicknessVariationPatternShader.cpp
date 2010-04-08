@@ -15,7 +15,7 @@ static int ThicknessVariationPatternShader___init__( BPy_ThicknessVariationPatte
 /*-----------------------BPy_ThicknessVariationPatternShader type definition ------------------------------*/
 
 PyTypeObject ThicknessVariationPatternShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ThicknessVariationPatternShader", /* tp_name */
 	sizeof(BPy_ThicknessVariationPatternShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

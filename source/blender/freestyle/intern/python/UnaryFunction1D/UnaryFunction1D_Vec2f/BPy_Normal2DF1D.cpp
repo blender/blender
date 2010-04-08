@@ -16,7 +16,7 @@ static int Normal2DF1D___init__( BPy_Normal2DF1D* self, PyObject *args);
 /*-----------------------BPy_Normal2DF1D type definition ------------------------------*/
 
 PyTypeObject Normal2DF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"Normal2DF1D",                  /* tp_name */
 	sizeof(BPy_Normal2DF1D),        /* tp_basicsize */
 	0,                              /* tp_itemsize */

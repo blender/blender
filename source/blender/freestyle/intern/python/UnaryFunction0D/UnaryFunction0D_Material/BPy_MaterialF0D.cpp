@@ -14,7 +14,7 @@ static int MaterialF0D___init__(BPy_MaterialF0D* self, PyObject *args);
 /*-----------------------BPy_MaterialF0D type definition ------------------------------*/
 
 PyTypeObject MaterialF0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"MaterialF0D",                  /* tp_name */
 	sizeof(BPy_MaterialF0D),        /* tp_basicsize */
 	0,                              /* tp_itemsize */

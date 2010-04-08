@@ -14,7 +14,7 @@ static int ConstantThicknessShader___init__( BPy_ConstantThicknessShader* self, 
 /*-----------------------BPy_ConstantThicknessShader type definition ------------------------------*/
 
 PyTypeObject ConstantThicknessShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ConstantThicknessShader",      /* tp_name */
 	sizeof(BPy_ConstantThicknessShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

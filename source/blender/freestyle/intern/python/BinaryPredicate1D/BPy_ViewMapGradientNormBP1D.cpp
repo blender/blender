@@ -14,7 +14,7 @@ static int ViewMapGradientNormBP1D___init__(BPy_ViewMapGradientNormBP1D* self, P
 
 /*-----------------------BPy_ViewMapGradientNormBP1D type definition ------------------------------*/
 PyTypeObject ViewMapGradientNormBP1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ViewMapGradientNormBP1D",      /* tp_name */
 	sizeof(BPy_ViewMapGradientNormBP1D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

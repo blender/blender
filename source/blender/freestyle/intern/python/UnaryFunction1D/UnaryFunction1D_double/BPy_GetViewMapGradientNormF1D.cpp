@@ -16,7 +16,7 @@ static int GetViewMapGradientNormF1D___init__(BPy_GetViewMapGradientNormF1D* sel
 /*-----------------------BPy_GetViewMapGradientNormF1D type definition ------------------------------*/
 
 PyTypeObject GetViewMapGradientNormF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GetViewMapGradientNormF1D",    /* tp_name */
 	sizeof(BPy_GetViewMapGradientNormF1D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

@@ -16,7 +16,7 @@ static int TimeStampF1D___init__(BPy_TimeStampF1D* self, PyObject *args);
 /*-----------------------BPy_TimeStampF1D type definition ------------------------------*/
 
 PyTypeObject TimeStampF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"TimeStampF1D",                 /* tp_name */
 	sizeof(BPy_TimeStampF1D),       /* tp_basicsize */
 	0,                              /* tp_itemsize */

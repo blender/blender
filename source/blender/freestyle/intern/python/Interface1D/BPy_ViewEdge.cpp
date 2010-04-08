@@ -75,7 +75,7 @@ static PyMethodDef BPy_ViewEdge_methods[] = {
 /*-----------------------BPy_ViewEdge type definition ------------------------------*/
 
 PyTypeObject ViewEdge_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ViewEdge",                     /* tp_name */
 	sizeof(BPy_ViewEdge),           /* tp_basicsize */
 	0,                              /* tp_itemsize */

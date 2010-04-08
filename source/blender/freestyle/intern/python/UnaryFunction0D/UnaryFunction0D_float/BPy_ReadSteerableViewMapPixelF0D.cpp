@@ -14,7 +14,7 @@ static int ReadSteerableViewMapPixelF0D___init__(BPy_ReadSteerableViewMapPixelF0
 /*-----------------------BPy_ReadSteerableViewMapPixelF0D type definition ------------------------------*/
 
 PyTypeObject ReadSteerableViewMapPixelF0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ReadSteerableViewMapPixelF0D",    /* tp_name */
 	sizeof(BPy_ReadSteerableViewMapPixelF0D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

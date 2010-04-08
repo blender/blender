@@ -12,7 +12,7 @@ static int EqualToTimeStampUP1D___init__(BPy_EqualToTimeStampUP1D* self, PyObjec
 /*-----------------------BPy_EqualToTimeStampUP1D type definition ------------------------------*/
 
 PyTypeObject EqualToTimeStampUP1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"EqualToTimeStampUP1D",         /* tp_name */
 	sizeof(BPy_EqualToTimeStampUP1D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

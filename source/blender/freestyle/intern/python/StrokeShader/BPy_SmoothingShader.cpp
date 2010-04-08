@@ -14,7 +14,7 @@ static int SmoothingShader___init__( BPy_SmoothingShader* self, PyObject *args);
 /*-----------------------BPy_SmoothingShader type definition ------------------------------*/
 
 PyTypeObject SmoothingShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"SmoothingShader",              /* tp_name */
 	sizeof(BPy_SmoothingShader),    /* tp_basicsize */
 	0,                              /* tp_itemsize */

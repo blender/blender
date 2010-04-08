@@ -35,7 +35,7 @@ static PyMethodDef BPy_UnaryFunction1DVectorViewShape_methods[] = {
 /*-----------------------BPy_UnaryFunction1DVectorViewShape type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1DVectorViewShape_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"UnaryFunction1DVectorViewShape", /* tp_name */
 	sizeof(BPy_UnaryFunction1DVectorViewShape), /* tp_basicsize */
 	0,                              /* tp_itemsize */

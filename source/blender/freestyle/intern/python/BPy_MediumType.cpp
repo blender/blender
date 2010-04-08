@@ -11,7 +11,7 @@ extern "C" {
 /*-----------------------BPy_MediumType type definition ------------------------------*/
 
 PyTypeObject MediumType_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"MediumType",                   /* tp_name */
 	sizeof(PyLongObject),           /* tp_basicsize */
 	0,                              /* tp_itemsize */

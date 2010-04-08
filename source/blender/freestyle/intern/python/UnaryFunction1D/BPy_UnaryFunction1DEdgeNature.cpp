@@ -33,7 +33,7 @@ static PyMethodDef BPy_UnaryFunction1DEdgeNature_methods[] = {
 /*-----------------------BPy_UnaryFunction1DEdgeNature type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1DEdgeNature_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"UnaryFunction1DEdgeNature",    /* tp_name */
 	sizeof(BPy_UnaryFunction1DEdgeNature), /* tp_basicsize */
 	0,                              /* tp_itemsize */

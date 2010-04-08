@@ -14,7 +14,7 @@ static int GetYF0D___init__(BPy_GetYF0D* self, PyObject *args);
 /*-----------------------BPy_GetYF0D type definition ------------------------------*/
 
 PyTypeObject GetYF0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GetYF0D",                      /* tp_name */
 	sizeof(BPy_GetYF0D),            /* tp_basicsize */
 	0,                              /* tp_itemsize */

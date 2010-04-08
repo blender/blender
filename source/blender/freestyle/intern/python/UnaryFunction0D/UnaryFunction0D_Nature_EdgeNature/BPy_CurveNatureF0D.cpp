@@ -14,7 +14,7 @@ extern "C" {
 /*-----------------------BPy_CurveNatureF0D type definition ------------------------------*/
 
 PyTypeObject CurveNatureF0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"CurveNatureF0D",               /* tp_name */
 	sizeof(BPy_CurveNatureF0D),     /* tp_basicsize */
 	0,                              /* tp_itemsize */

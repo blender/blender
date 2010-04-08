@@ -16,7 +16,7 @@ extern "C" {
 /*-----------------------BPy_Orientation2DF1D type definition ------------------------------*/
 
 PyTypeObject Orientation2DF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"Orientation2DF1D",             /* tp_name */
 	sizeof(BPy_Orientation2DF1D),   /* tp_basicsize */
 	0,                              /* tp_itemsize */

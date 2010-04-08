@@ -14,7 +14,7 @@ static int LocalAverageDepthF0D___init__(BPy_LocalAverageDepthF0D* self, PyObjec
 /*-----------------------BPy_LocalAverageDepthF0D type definition ------------------------------*/
 
 PyTypeObject LocalAverageDepthF0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"LocalAverageDepthF0D",         /* tp_name */
 	sizeof(BPy_LocalAverageDepthF0D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

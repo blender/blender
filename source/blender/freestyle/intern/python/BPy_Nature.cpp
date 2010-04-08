@@ -55,7 +55,7 @@ PyNumberMethods nature_as_number = {
 /*-----------------------BPy_Nature type definition ------------------------------*/
 
 PyTypeObject Nature_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"Nature",                       /* tp_name */
 	sizeof(PyLongObject),           /* tp_basicsize */
 	0,                              /* tp_itemsize */

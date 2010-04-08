@@ -39,7 +39,7 @@ static PyMethodDef BPy_FrsCurve_methods[] = {
 /*-----------------------BPy_FrsCurve type definition ------------------------------*/
 
 PyTypeObject FrsCurve_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"FrsCurve",                     /* tp_name */
 	sizeof(BPy_FrsCurve),           /* tp_basicsize */
 	0,                              /* tp_itemsize */

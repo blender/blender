@@ -16,7 +16,7 @@ static int ChainingTimeStampF1D___init__(BPy_ChainingTimeStampF1D* self, PyObjec
 /*-----------------------BPy_ChainingTimeStampF1D type definition ------------------------------*/
 
 PyTypeObject ChainingTimeStampF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ChainingTimeStampF1D",         /* tp_name */
 	sizeof(BPy_ChainingTimeStampF1D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

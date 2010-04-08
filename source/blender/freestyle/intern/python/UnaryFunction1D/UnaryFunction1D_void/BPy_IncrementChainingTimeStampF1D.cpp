@@ -16,7 +16,7 @@ static int IncrementChainingTimeStampF1D___init__(BPy_IncrementChainingTimeStamp
 /*-----------------------BPy_IncrementChainingTimeStampF1D type definition ------------------------------*/
 
 PyTypeObject IncrementChainingTimeStampF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"IncrementChainingTimeStampF1D", /* tp_name */
 	sizeof(BPy_IncrementChainingTimeStampF1D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

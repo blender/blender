@@ -14,7 +14,7 @@ static int ShapeIdF0D___init__(BPy_ShapeIdF0D* self, PyObject *args);
 /*-----------------------BPy_ShapeIdF0D type definition ------------------------------*/
 
 PyTypeObject ShapeIdF0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ShapeIdF0D",                   /* tp_name */
 	sizeof(BPy_ShapeIdF0D),         /* tp_basicsize */
 	0,                              /* tp_itemsize */

@@ -40,7 +40,7 @@ static PyMethodDef BPy_ViewEdgeIterator_methods[] = {
 /*-----------------------BPy_ViewEdgeIterator type definition ------------------------------*/
 
 PyTypeObject ViewEdgeIterator_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ViewEdgeIterator",             /* tp_name */
 	sizeof(BPy_ViewEdgeIterator),   /* tp_basicsize */
 	0,                              /* tp_itemsize */

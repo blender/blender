@@ -13,7 +13,7 @@ static int FalseUP0D___init__(BPy_FalseUP0D* self, PyObject *args);
 /*-----------------------BPy_FalseUP0D type definition ------------------------------*/
 
 PyTypeObject FalseUP0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"FalseUP0D",                    /* tp_name */
 	sizeof(BPy_FalseUP0D),          /* tp_basicsize */
 	0,                              /* tp_itemsize */

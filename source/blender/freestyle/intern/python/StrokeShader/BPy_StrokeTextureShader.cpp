@@ -16,7 +16,7 @@ static int StrokeTextureShader___init__( BPy_StrokeTextureShader* self, PyObject
 /*-----------------------BPy_StrokeTextureShader type definition ------------------------------*/
 
 PyTypeObject StrokeTextureShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"StrokeTextureShader",          /* tp_name */
 	sizeof(BPy_StrokeTextureShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

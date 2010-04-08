@@ -12,7 +12,7 @@ static int TrueUP0D___init__(BPy_TrueUP0D* self, PyObject *args);
 /*-----------------------BPy_TrueUP0D type definition ------------------------------*/
 
 PyTypeObject TrueUP0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"TrueUP0D",                     /* tp_name */
 	sizeof(BPy_TrueUP0D),           /* tp_basicsize */
 	0,                              /* tp_itemsize */

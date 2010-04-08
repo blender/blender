@@ -16,7 +16,7 @@ static int ZDiscontinuityF1D___init__(BPy_ZDiscontinuityF1D* self, PyObject *arg
 /*-----------------------BPy_ZDiscontinuityF1D type definition ------------------------------*/
 
 PyTypeObject ZDiscontinuityF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ZDiscontinuityF1D",            /* tp_name */
 	sizeof(BPy_ZDiscontinuityF1D),  /* tp_basicsize */
 	0,                              /* tp_itemsize */

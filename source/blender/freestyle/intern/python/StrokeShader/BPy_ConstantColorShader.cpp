@@ -14,7 +14,7 @@ static int ConstantColorShader___init__( BPy_ConstantColorShader* self, PyObject
 /*-----------------------BPy_ConstantColorShader type definition ------------------------------*/
 
 PyTypeObject ConstantColorShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ConstantColorShader",          /* tp_name */
 	sizeof(BPy_ConstantColorShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

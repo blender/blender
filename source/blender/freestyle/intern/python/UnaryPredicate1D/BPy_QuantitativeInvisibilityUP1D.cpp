@@ -12,7 +12,7 @@ static int QuantitativeInvisibilityUP1D___init__(BPy_QuantitativeInvisibilityUP1
 /*-----------------------BPy_QuantitativeInvisibilityUP1D type definition ------------------------------*/
 
 PyTypeObject QuantitativeInvisibilityUP1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"QuantitativeInvisibilityUP1D", /* tp_name */
 	sizeof(BPy_QuantitativeInvisibilityUP1D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

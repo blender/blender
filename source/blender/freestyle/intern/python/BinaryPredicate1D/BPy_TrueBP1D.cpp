@@ -11,7 +11,7 @@ static int TrueBP1D___init__( BPy_TrueBP1D* self, PyObject *args );
 
 /*-----------------------BPy_TrueBP1D type definition ------------------------------*/
 PyTypeObject TrueBP1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"TrueBP1D",                     /* tp_name */
 	sizeof(BPy_TrueBP1D),           /* tp_basicsize */
 	0,                              /* tp_itemsize */

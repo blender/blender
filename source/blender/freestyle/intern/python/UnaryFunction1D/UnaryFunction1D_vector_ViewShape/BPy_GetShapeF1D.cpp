@@ -16,7 +16,7 @@ static int GetShapeF1D___init__(BPy_GetShapeF1D* self, PyObject *args);
 /*-----------------------BPy_GetShapeF1D type definition ------------------------------*/
 
 PyTypeObject GetShapeF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GetShapeF1D",                  /* tp_name */
 	sizeof(BPy_GetShapeF1D),        /* tp_basicsize */
 	0,                              /* tp_itemsize */

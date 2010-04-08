@@ -31,7 +31,7 @@ static PyMethodDef BPy_StrokeVertexIterator_methods[] = {
 /*-----------------------BPy_StrokeVertexIterator type definition ------------------------------*/
 
 PyTypeObject StrokeVertexIterator_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"StrokeVertexIterator",         /* tp_name */
 	sizeof(BPy_StrokeVertexIterator), /* tp_basicsize */
 	0,                              /* tp_itemsize */

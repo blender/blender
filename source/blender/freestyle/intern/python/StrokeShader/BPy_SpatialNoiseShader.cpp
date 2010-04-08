@@ -15,7 +15,7 @@ static int SpatialNoiseShader___init__( BPy_SpatialNoiseShader* self, PyObject *
 /*-----------------------BPy_SpatialNoiseShader type definition ------------------------------*/
 
 PyTypeObject SpatialNoiseShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"SpatialNoiseShader",          /* tp_name */
 	sizeof(BPy_SpatialNoiseShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */

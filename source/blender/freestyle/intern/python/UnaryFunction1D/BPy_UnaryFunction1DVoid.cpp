@@ -37,7 +37,7 @@ static PyMethodDef BPy_UnaryFunction1DVoid_methods[] = {
 /*-----------------------BPy_UnaryFunction1DVoid type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1DVoid_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"UnaryFunction1DVoid",          /* tp_name */
 	sizeof(BPy_UnaryFunction1DVoid), /* tp_basicsize */
 	0,                              /* tp_itemsize */

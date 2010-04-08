@@ -14,7 +14,7 @@ static int fstreamShader___init__( BPy_fstreamShader* self, PyObject *args);
 /*-----------------------BPy_fstreamShader type definition ------------------------------*/
 
 PyTypeObject fstreamShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"fstreamShader",                /* tp_name */
 	sizeof(BPy_fstreamShader),      /* tp_basicsize */
 	0,                              /* tp_itemsize */

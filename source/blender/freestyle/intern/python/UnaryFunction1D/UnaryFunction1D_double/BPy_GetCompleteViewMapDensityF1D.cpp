@@ -16,7 +16,7 @@ static int GetCompleteViewMapDensityF1D___init__(BPy_GetCompleteViewMapDensityF1
 /*-----------------------BPy_GetCompleteViewMapDensityF1D type definition ------------------------------*/
 
 PyTypeObject GetCompleteViewMapDensityF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GetCompleteViewMapDensityF1D", /* tp_name */
 	sizeof(BPy_GetCompleteViewMapDensityF1D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

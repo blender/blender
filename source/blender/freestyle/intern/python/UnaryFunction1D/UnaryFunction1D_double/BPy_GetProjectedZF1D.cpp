@@ -16,7 +16,7 @@ static int GetProjectedZF1D___init__(BPy_GetProjectedZF1D* self, PyObject *args 
 /*-----------------------BPy_GetProjectedZF1D type definition ------------------------------*/
 
 PyTypeObject GetProjectedZF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GetProjectedZF1D",             /* tp_name */
 	sizeof(BPy_GetProjectedZF1D),   /* tp_basicsize */
 	0,                              /* tp_itemsize */

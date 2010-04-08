@@ -15,7 +15,7 @@ static int ChainSilhouetteIterator___init__(BPy_ChainSilhouetteIterator *self, P
 /*-----------------------BPy_ChainSilhouetteIterator type definition ------------------------------*/
 
 PyTypeObject ChainSilhouetteIterator_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ChainSilhouetteIterator",      /* tp_name */
 	sizeof(BPy_ChainSilhouetteIterator), /* tp_basicsize */
 	0,                              /* tp_itemsize */

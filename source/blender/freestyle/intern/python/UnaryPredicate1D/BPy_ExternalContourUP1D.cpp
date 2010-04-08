@@ -12,7 +12,7 @@ static int ExternalContourUP1D___init__(BPy_ExternalContourUP1D* self, PyObject 
 /*-----------------------BPy_ExternalContourUP1D type definition ------------------------------*/
 
 PyTypeObject ExternalContourUP1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ExternalContourUP1D",          /* tp_name */
 	sizeof(BPy_ExternalContourUP1D), /* tp_basicsize */
 	0,                              /* tp_itemsize */

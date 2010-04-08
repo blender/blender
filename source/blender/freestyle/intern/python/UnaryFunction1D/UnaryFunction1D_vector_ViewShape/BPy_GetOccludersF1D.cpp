@@ -16,7 +16,7 @@ static int GetOccludersF1D___init__(BPy_GetOccludersF1D* self, PyObject *args);
 /*-----------------------BPy_GetOccludersF1D type definition ------------------------------*/
 
 PyTypeObject GetOccludersF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GetOccludersF1D",              /* tp_name */
 	sizeof(BPy_GetOccludersF1D),    /* tp_basicsize */
 	0,                              /* tp_itemsize */

@@ -14,7 +14,7 @@ static int GetProjectedXF0D___init__(BPy_GetProjectedXF0D* self, PyObject *args)
 /*-----------------------BPy_GetProjectedXF0D type definition ------------------------------*/
 
 PyTypeObject GetProjectedXF0D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"GetProjectedXF0D",             /* tp_name */
 	sizeof(BPy_GetProjectedXF0D),   /* tp_basicsize */
 	0,                              /* tp_itemsize */

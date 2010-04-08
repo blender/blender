@@ -16,7 +16,7 @@ static int CurveNatureF1D___init__( BPy_CurveNatureF1D* self, PyObject *args);
 /*-----------------------BPy_CurveNatureF1D type definition ------------------------------*/
 
 PyTypeObject CurveNatureF1D_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"CurveNatureF1D",               /* tp_name */
 	sizeof(BPy_CurveNatureF1D),     /* tp_basicsize */
 	0,                              /* tp_itemsize */

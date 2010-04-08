@@ -14,7 +14,7 @@ static int streamShader___init__( BPy_streamShader* self, PyObject *args);
 /*-----------------------BPy_streamShader type definition ------------------------------*/
 
 PyTypeObject streamShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"streamShader",                 /* tp_name */
 	sizeof(BPy_streamShader),       /* tp_basicsize */
 	0,                              /* tp_itemsize */

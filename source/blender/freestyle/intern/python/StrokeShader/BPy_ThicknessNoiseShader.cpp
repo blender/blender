@@ -14,7 +14,7 @@ static int ThicknessNoiseShader___init__( BPy_ThicknessNoiseShader* self, PyObje
 /*-----------------------BPy_ThicknessNoiseShader type definition ------------------------------*/
 
 PyTypeObject ThicknessNoiseShader_Type = {
-	PyObject_HEAD_INIT(NULL)
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"ThicknessNoiseShader",         /* tp_name */
 	sizeof(BPy_ThicknessNoiseShader), /* tp_basicsize */
 	0,                              /* tp_itemsize */
