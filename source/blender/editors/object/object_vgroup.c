@@ -1976,7 +1976,7 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
-		while(dvert && dvert_tot--) {
+		while(dvert_tot--) {
 			if(dvert->totweight)
 				defvert_remap(dvert, sort_map);
 			dvert++;

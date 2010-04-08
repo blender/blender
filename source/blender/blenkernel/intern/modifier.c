@@ -6028,7 +6028,11 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 
 	if(smd->flag & MOD_SOLIDIFY_RIM) {
 
-		static int edge_indices[4][4] = {
+		const unsigned char crease_rim= smd->crease_rim * 255.0f;
+		const unsigned char crease_outer= smd->crease_outer * 255.0f;
+		const unsigned char crease_inner= smd->crease_inner * 255.0f;
+
+		const int edge_indices[4][4] = {
 				{1, 0, 0, 1},
 				{2, 1, 1, 2},
 				{3, 2, 2, 3},
@@ -6041,8 +6045,8 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 			ed->v2= new_vert_arr[i] + numVerts;
 			ed->flag |= ME_EDGEDRAW;
 
-			if(smd->crease_rim)
-				ed->crease= smd->crease_rim * 255.0f;
+			if(crease_rim)
+				ed->crease= crease_rim;
 		}
 
 		/* faces */
@@ -6080,16 +6084,13 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 				mf->v2= ed->v1;
 				mf->v3= ed->v1 + numVerts;
 				mf->v4= ed->v2 + numVerts;
-
-
 			}
 
-			if(smd->crease_outer > 0.0f)
-				ed->crease= smd->crease_outer * 255.0f;
+			if(crease_outer)
+				ed->crease= crease_outer;
 
-			if(smd->crease_inner > 0.0f) {
-				ed= medge + (numEdges + eidx);
-				ed->crease= smd->crease_inner * 255.0f;
+			if(crease_inner) {
+				medge[numEdges + eidx].crease= crease_inner;
 			}
 		}
 
