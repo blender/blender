@@ -659,7 +659,8 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 	int pos_found = 1;
 	int filter_y = 0;
 
-#if (LIBAVCODEC_VERSION_MAJOR >= 52) && (LIBAVCODEC_VERSION_MINOR >= 29)
+#if (LIBAVCODEC_VERSION_MAJOR >= 52) && (LIBAVCODEC_VERSION_MINOR >= 29) && \
+	 (LIBSWSCALE_VERSION_MAJOR >= 10) && (LIBSWSCALE_VERSION_MINOR >= 0)
 	/* The following for color space determination */
 	int srcRange, dstRange, brightness, contrast, saturation;
 	int *inv_table, *table;
