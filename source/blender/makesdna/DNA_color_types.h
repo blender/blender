@@ -122,14 +122,12 @@ typedef struct Scopes {
 	int wavefrm_height;
 	float vecscope_alpha;
 	int vecscope_height;
-	float rgbminmax[3][2];
-	float yccminmax[3][2];
-	float ycc709minmax[3][2];
-	struct ImBuf *samples_ibuf;
+	float minmax[3][2];
 	struct Histogram hist;
 	float *waveform_1;
 	float *waveform_2;
 	float *waveform_3;
+	float *vecscope;
 	int waveform_tot;
 	int pad;
 } Scopes;

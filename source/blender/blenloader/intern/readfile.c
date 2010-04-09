@@ -4834,10 +4834,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 
 					sima->image= restore_pointer_by_name(newmain, (ID *)sima->image, 1);
 
-					sima->scopes.samples_ibuf = NULL;
 					sima->scopes.waveform_1 = NULL;
 					sima->scopes.waveform_2 = NULL;
 					sima->scopes.waveform_3 = NULL;
+					sima->scopes.vecscope = NULL;
 					sima->scopes.ok = 0;
 					
 					/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
@@ -5111,10 +5111,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				
 				sima->iuser.scene= NULL;
 				sima->iuser.ok= 1;
-				sima->scopes.samples_ibuf = NULL;
 				sima->scopes.waveform_1 = NULL;
 				sima->scopes.waveform_2 = NULL;
 				sima->scopes.waveform_3 = NULL;
+				sima->scopes.vecscope = NULL;
 				sima->scopes.ok = 0;
 				
 				/* WARNING: gpencil data is no longer stored directly in sima after 2.5 
@@ -10737,8 +10737,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_version_old_trackto_to_constraints(ob);
 	}
 	
-	/* put 2.50 compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 5)) {
 		bScreen *sc;
 		
 		/* Image editor scopes */
@@ -10754,11 +10753,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						sima->scopes.wavefrm_alpha=0.3;
 						sima->scopes.vecscope_alpha=0.3;
 						sima->scopes.wavefrm_height= 100;
+						sima->scopes.vecscope_height= 100;
 						sima->scopes.hist.height= 100;
 					}
 				}
 			}
 		}
+	}
+	
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

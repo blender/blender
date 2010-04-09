@@ -899,8 +899,16 @@ DO_INLINE int get_bin_float(float f)
 	return bin;
 }
 
-DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, float *rgb, float *ycc, float *ycc709)
+DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, float *rgb, float *ycc)
 {
+	float yuv[3];
+
+	/* vectorscope*/
+	rgb_to_yuv(rgb[0], rgb[1], rgb[2], &yuv[0], &yuv[1], &yuv[2]);
+	scopes->vecscope[idx + 0] = yuv[1];
+	scopes->vecscope[idx + 1] = yuv[2];
+
+	/* waveform */
 	switch (scopes->wavefrm_mode) {
 		case SCOPES_WAVEFRM_RGB:
 			scopes->waveform_1[idx + 0] = fx;
@@ -912,35 +920,17 @@ DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, f
 			break;
 		case SCOPES_WAVEFRM_LUM:
 			scopes->waveform_1[idx + 0] = fx;
-			scopes->waveform_1[idx + 1] = 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2];
+			scopes->waveform_1[idx + 1] = ycc[0];
 			break;
 		case SCOPES_WAVEFRM_YCC_JPEG:
-			scopes->waveform_1[idx + 0] = fx;
-			scopes->waveform_1[idx + 1] = ycc[0] * INV_255;
-			scopes->waveform_2[idx + 0] = fx;
-			scopes->waveform_2[idx + 1] = ycc[1] * INV_255;
-			scopes->waveform_3[idx + 0] = fx;
-			scopes->waveform_3[idx + 1] = ycc[2] * INV_255;
-			break;
 		case SCOPES_WAVEFRM_YCC_709:
-			scopes->waveform_1[idx + 0] = fx;
-			scopes->waveform_1[idx + 1] = ycc709[0] * INV_255;
-			scopes->waveform_2[idx + 0] = fx;
-			scopes->waveform_2[idx + 1] = ycc709[1] * INV_255;
-			scopes->waveform_3[idx + 0] = fx;
-			scopes->waveform_3[idx + 1] = ycc709[2] * INV_255;
-			break;
 		case SCOPES_WAVEFRM_YCC_601:
-		{
-			float ycc601[3];
-			rgb_to_ycc(rgb[0], rgb[1], rgb[2], &ycc601[0], &ycc601[1], &ycc601[2], BLI_YCC_ITU_BT601);
 			scopes->waveform_1[idx + 0] = fx;
-			scopes->waveform_1[idx + 1] = ycc601[0] * INV_255;
+			scopes->waveform_1[idx + 1] = ycc[0];
 			scopes->waveform_2[idx + 0] = fx;
-			scopes->waveform_2[idx + 1] = ycc601[1] * INV_255;
+			scopes->waveform_2[idx + 1] = ycc[1];
 			scopes->waveform_3[idx + 0] = fx;
-			scopes->waveform_3[idx + 1] = ycc601[2] * INV_255;
-		}
+			scopes->waveform_3[idx + 1] = ycc[2];
 			break;
 	}
 }
@@ -949,11 +939,12 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 {
 	int x, y, c, n, nl;
 	double div, divl;
-	float *rf, *drf;
-	unsigned char *rc, *drc;
+	float *rf;
+	unsigned char *rc;
 	unsigned int *bin_r, *bin_g, *bin_b, *bin_lum;
 	int savedlines, saveline;
-	float rgb[3], ycc[3], ycc709[3];
+	float rgb[3], ycc[3];
+	int ycc_mode;
 
 	if (scopes->ok == 1 ) return;
 
@@ -963,6 +954,22 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	if (!(ELEM(ibuf->channels, 3, 4))) return;
 	scopes->hist.channels = 3;
 	scopes->hist.x_resolution = 256;
+
+	switch (scopes->wavefrm_mode) {
+		case SCOPES_WAVEFRM_RGB:
+			ycc_mode = -1;
+			break;
+		case SCOPES_WAVEFRM_LUM:
+		case SCOPES_WAVEFRM_YCC_JPEG:
+			ycc_mode = BLI_YCC_JFIF_0_255;
+			break;
+		case SCOPES_WAVEFRM_YCC_601:
+			ycc_mode = BLI_YCC_ITU_BT601;
+			break;
+		case SCOPES_WAVEFRM_YCC_709:
+			ycc_mode = BLI_YCC_ITU_BT709;
+			break;
+	}
 
 	/* temp table to count pix value for histo */
 	bin_r = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
@@ -976,19 +983,11 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	if (scopes->sample_full)
 		scopes->sample_lines = ibuf->y;
 
-	if( scopes->samples_ibuf) {
-		IMB_freeImBuf(scopes->samples_ibuf);
-		scopes->samples_ibuf=NULL;
-	}
 	/* scan the image */
 	savedlines=0;
 	for (c=0; c<3; c++) {
-		scopes->rgbminmax[c][0]=100.0f;
-		scopes->rgbminmax[c][1]=-100.0f;
-		scopes->yccminmax[c][0]=25500.0f;
-		scopes->yccminmax[c][1]=-25500.0f;
-		scopes->ycc709minmax[c][0]=25500.0f;
-		scopes->ycc709minmax[c][1]=-25500.0f;
+		scopes->minmax[c][0]=25500.0f;
+		scopes->minmax[c][1]=-25500.0f;
 	}
 	
 	scopes->waveform_tot = ibuf->x*scopes->sample_lines;
@@ -999,114 +998,68 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 		MEM_freeN(scopes->waveform_2);
 	if (scopes->waveform_3)
 		MEM_freeN(scopes->waveform_3);
+	if (scopes->vecscope)
+		MEM_freeN(scopes->vecscope);
 	
 	scopes->waveform_1= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 1");
 	scopes->waveform_2= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 2");
 	scopes->waveform_3= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 3");
+	scopes->vecscope= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "vectorscope point channel");
 	
-	if (ibuf->rect_float) {
-		scopes->samples_ibuf = IMB_allocImBuf(ibuf->x, scopes->sample_lines, 32, IB_rectfloat, 0 );
+	if (ibuf->rect_float)
 		rf = ibuf->rect_float;
-		drf= scopes->samples_ibuf->rect_float;
-		
-		for (y = 0; y < ibuf->y; y++) {
-			if (savedlines<scopes->sample_lines && y>=((savedlines)*ibuf->y)/(scopes->sample_lines+1)) {
-				saveline=1;
-			} else saveline=0;
-			for (x = 0; x < ibuf->x; x++) {
-				
+	else if (ibuf->rect)
+		rc = (unsigned char *)ibuf->rect;
+
+	for (y = 0; y < ibuf->y; y++) {
+		if (savedlines<scopes->sample_lines && y>=((savedlines)*ibuf->y)/(scopes->sample_lines+1)) {
+			saveline=1;
+		} else saveline=0;
+		for (x = 0; x < ibuf->x; x++) {
+
+			if (ibuf->rect_float) {
 				if (use_color_management)
 					linearrgb_to_srgb_v3_v3(rgb, rf);
 				else
 					copy_v3_v3(rgb, rf);
-
-				rgb_to_ycc(rgb[0],rgb[1],rgb[2],&ycc[0],&ycc[1],&ycc[2],BLI_YCC_JFIF_0_255);
-				rgb_to_ycc(rgb[0],rgb[1],rgb[2],&ycc709[0],&ycc709[1],&ycc709[2],BLI_YCC_ITU_BT709);
-				
-				/* check for min max */
-				for (c=0; c<3; c++) {
-					if (rgb[c] < scopes->rgbminmax[c][0]) scopes->rgbminmax[c][0] = rgb[c];
-					if (rgb[c] > scopes->rgbminmax[c][1]) scopes->rgbminmax[c][1] = rgb[c];
-					if (ycc[c] < scopes->yccminmax[c][0]) scopes->yccminmax[c][0] = ycc[c];
-					if (ycc[c] > scopes->yccminmax[c][1]) scopes->yccminmax[c][1] = ycc[c];
-					if (ycc709[c] < scopes->ycc709minmax[c][0]) scopes->ycc709minmax[c][0] = ycc709[c];
-					if (ycc709[c] > scopes->ycc709minmax[c][1]) scopes->ycc709minmax[c][1] = ycc709[c];
-				}
-				/* increment count for histo*/
-				bin_r[ get_bin_float(rgb[0]) ] += 1;
-				bin_g[ get_bin_float(rgb[1]) ] += 1;
-				bin_b[ get_bin_float(rgb[2]) ] += 1;
-				bin_lum[ get_bin_float(ycc[0] * INV_255) ] += 1;
-				
-				/* save sample if needed */
-				if(saveline) {
-					const float fx = (float)x / (float)ibuf->x;
-					const int idx = 2*(ibuf->x*savedlines+x);
-					
-					save_sample_line(scopes, idx, fx, rgb, ycc, ycc709);
-					
-					drf[0]=rgb[0];
-					drf[1]=rgb[1];
-					drf[2]=rgb[2];
-					drf+= scopes->samples_ibuf->channels;
-				}
-				rf+= ibuf->channels;
 			}
-			if (saveline)
-   				savedlines +=1;
-		}
-									   
-	}
-	else if (ibuf->rect) {
-		scopes->samples_ibuf = IMB_allocImBuf(ibuf->x, scopes->sample_lines, 32, IB_rect, 0 );
-		rc = (unsigned char *)ibuf->rect;
-		drc= (unsigned char *) scopes->samples_ibuf->rect;
-
-		for (y = 0; y < ibuf->y; y++) {
-			if (savedlines<scopes->sample_lines && y>=((savedlines)*ibuf->y)/(scopes->sample_lines+1)) {
-				saveline=1;
-			} else saveline=0;
-			
-			for (x = 0; x < ibuf->x; x++) {
-				
+			else if (ibuf->rect) {
 				for (c=0; c<3; c++)
-					rgb[c] = rc[c] * INV_255;			
-				rgb_to_ycc(rgb[0],rgb[1],rgb[2],&ycc[0],&ycc[1],&ycc[2],BLI_YCC_JFIF_0_255);
-				rgb_to_ycc(rgb[0],rgb[1],rgb[2],&ycc709[0],&ycc709[1],&ycc709[2],BLI_YCC_ITU_BT709);
-				
-				/* check for min max */
-				for (c=0; c<3; c++) {
-					if (rgb[c] < scopes->rgbminmax[c][0]) scopes->rgbminmax[c][0] = rgb[c];
-					if (rgb[c] > scopes->rgbminmax[c][1]) scopes->rgbminmax[c][1] = rgb[c];
-					if (ycc[c] < scopes->yccminmax[c][0]) scopes->yccminmax[c][0] = ycc[c];
-					if (ycc[c] > scopes->yccminmax[c][1]) scopes->yccminmax[c][1] = ycc[c];
-					if (ycc709[c] < scopes->ycc709minmax[c][0]) scopes->ycc709minmax[c][0] = ycc709[c];
-					if (ycc709[c] > scopes->ycc709minmax[c][1]) scopes->ycc709minmax[c][1] = ycc709[c];
-				}
-
-				/* increment count for histo */
-				bin_r[ rc[0] ] += 1;
-				bin_g[ rc[1] ] += 1;
-				bin_b[ rc[2] ] += 1;
-				bin_lum[ get_bin_float(ycc[0] * INV_255) ] += 1;
-				
-				/* save sample if needed */
-				if(saveline) {
-					const float fx = (float)x / (float)ibuf->x;
-					const int idx = 2*(ibuf->x*savedlines+x);
-					
-					save_sample_line(scopes, idx, fx, rgb, ycc, ycc709);
-					
-					drc[0]=rc[0];
-					drc[1]=rc[1];
-					drc[2]=rc[2];
-					drc+= 4;
-				}
-				rc += ibuf->channels;
+					rgb[c] = rc[c] * INV_255;
 			}
-			if (saveline)
-   				savedlines +=1;
+			/* check for min max */
+			if(ycc_mode == -1 ) {
+				for (c=0; c<3; c++) {
+					if (rgb[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = rgb[c];
+					if (rgb[c] > scopes->minmax[c][1]) scopes->minmax[c][1] = rgb[c];
+				}
+			}
+			else {
+				rgb_to_ycc(rgb[0],rgb[1],rgb[2],&ycc[0],&ycc[1],&ycc[2], ycc_mode);
+				for (c=0; c<3; c++) {
+					ycc[c] *=INV_255;
+					if (ycc[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = ycc[c];
+					if (ycc[c] > scopes->minmax[c][1]) scopes->minmax[c][1] = ycc[c];
+				}
+			}
+			/* increment count for histo*/
+			bin_r[ get_bin_float(rgb[0]) ] += 1;
+			bin_g[ get_bin_float(rgb[1]) ] += 1;
+			bin_b[ get_bin_float(rgb[2]) ] += 1;
+			bin_lum[ get_bin_float(ycc[0]) ] += 1;
+
+			/* save sample if needed */
+			if(saveline) {
+				const float fx = (float)x / (float)ibuf->x;
+				const int idx = 2*(ibuf->x*savedlines+x);
+				save_sample_line(scopes, idx, fx, rgb, ycc);
+			}
+
+			rf+= ibuf->channels;
+			rc+= ibuf->channels;
 		}
+		if (saveline)
+			savedlines +=1;
 	}
 
 	/* convert hist data to float (proportional to max count) */
@@ -1152,9 +1105,8 @@ void scopes_free(Scopes *scopes)
 		MEM_freeN(scopes->waveform_3);
 		scopes->waveform_3 = NULL;
 	}
-	
-	if( scopes->samples_ibuf) {
-		IMB_freeImBuf(scopes->samples_ibuf);
-		scopes->samples_ibuf=NULL;
+	if (scopes->vecscope) {
+		MEM_freeN(scopes->vecscope);
+		scopes->vecscope = NULL;
 	}
 }

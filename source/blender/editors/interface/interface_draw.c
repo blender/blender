@@ -688,6 +688,32 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 #endif // INTERNATIONAL
 #endif
 
+static void draw_scope_end(rctf *rect, GLint *scissor)
+{
+	float scaler_x1, scaler_x2;
+	
+	/* restore scissortest */
+	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	
+	/* scale widget */
+	scaler_x1 = rect->xmin + (rect->xmax - rect->xmin)/2 - SCOPE_RESIZE_PAD;
+	scaler_x2 = rect->xmin + (rect->xmax - rect->xmin)/2 + SCOPE_RESIZE_PAD;
+	
+	glColor4f(0.f, 0.f, 0.f, 0.25f);
+	fdrawline(scaler_x1, rect->ymin-4, scaler_x2, rect->ymin-4);
+	fdrawline(scaler_x1, rect->ymin-7, scaler_x2, rect->ymin-7);
+	glColor4f(1.f, 1.f, 1.f, 0.25f);
+	fdrawline(scaler_x1, rect->ymin-5, scaler_x2, rect->ymin-5);
+	fdrawline(scaler_x1, rect->ymin-8, scaler_x2, rect->ymin-8);
+	
+	/* outline */
+	glColor4f(0.f, 0.f, 0.f, 0.5f);
+	uiSetRoundBox(15);
+	gl_round_box(GL_LINE_LOOP, rect->xmin-1, rect->ymin, rect->xmax+1, rect->ymax+1, 3.0f);
+}
+
 void histogram_draw_one(float r, float g, float b, float alpha, float x, float y, float w, float h, float *data, int res)
 {
 	int i;
@@ -728,7 +754,6 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *
 	rctf rect;
 	int i;
 	float w, h;
-	float scaler_x1, scaler_x2;
 	//float alpha;
 	GLint scissor[4];
 	
@@ -740,8 +765,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *
 	rect.ymax = (float)recti->ymax-1;
 	
 	w = rect.xmax - rect.xmin;
-	h = rect.ymax - rect.ymin;
-	h *= hist->ymax;
+	h = (rect.ymax - rect.ymin) * hist->ymax;
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -771,27 +795,9 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_B)
 			histogram_draw_one(0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res);
 	}
-	/* restore scissortest */
-	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 	
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
-	/* height scaling widget */
-	scaler_x1 = rect.xmin + w/2 - SCOPE_RESIZE_PAD;
-	scaler_x2 = rect.xmin + w/2 + SCOPE_RESIZE_PAD;
-
-	glColor4f(0.f, 0.f, 0.f, 0.25f);
-	fdrawline(scaler_x1, rect.ymin-4, scaler_x2, rect.ymin-4);
-	fdrawline(scaler_x1, rect.ymin-7, scaler_x2, rect.ymin-7);
-	glColor4f(1.f, 1.f, 1.f, 0.25f);
-	fdrawline(scaler_x1, rect.ymin-5, scaler_x2, rect.ymin-5);
-	fdrawline(scaler_x1, rect.ymin-8, scaler_x2, rect.ymin-8);
-
-	glColor4f(0.f, 0.f, 0.f, 0.5f);
-	uiSetRoundBox(15);
-	gl_round_box(GL_LINE_LOOP, rect.xmin-1, rect.ymin, rect.xmax+1, rect.ymax+1, 3.0f);
-	
-	glDisable(GL_BLEND);
+	/* outline, scale gripper */
+	draw_scope_end(&rect, scissor);
 }
 
 void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *recti)
@@ -805,9 +811,8 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 	float colorsycc[3][3] = {{1,0,1},{1,1,0},{0,1,1}};
 	float colors_alpha[3][3], colorsycc_alpha[3][3]; /* colors  pre multiplied by alpha for speed up */
 	float min, max;
-	float scaler_x1, scaler_x2;
 	
-	if (scopes==NULL || scopes->samples_ibuf==NULL) return;
+	if (scopes==NULL) return;
 	
 	rect.xmin = (float)recti->xmin+1;
 	rect.xmax = (float)recti->xmax-1;
@@ -815,9 +820,9 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 	rect.ymax = (float)recti->ymax-1;
 	
 	if (scopes->wavefrm_yfac < 0.5f )
-		scopes->wavefrm_yfac =1.0f;
+		scopes->wavefrm_yfac =0.98f;
 	w = rect.xmax - rect.xmin-7;
-	h = (rect.ymax - rect.ymin)/scopes->wavefrm_yfac;
+	h = (rect.ymax - rect.ymin)*scopes->wavefrm_yfac;
 	yofs= rect.ymin + (rect.ymax - rect.ymin -h)/2.0f;
 	w3=w/3.0f;
 	
@@ -839,7 +844,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 	gl_round_box(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
 	
 
-	/* need scissor test, histogram can draw outside of boundary */
+	/* need scissor test, waveform can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
 	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
 
@@ -861,6 +866,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 			fdrawline(rect.xmin+i*w3, rect.ymin, rect.xmin+i*w3, rect.ymax);
 		}
 	}
+	
 	/* separate min max zone on the right */
 	fdrawline(rect.xmin+w, rect.ymin, rect.xmin+w, rect.ymax);
 	/* 16-235-240 level in case of ITU-R BT601/709 */
@@ -871,7 +877,9 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 		fdrawline(rect.xmin+3*w3, yofs+h*235.0f/255.0f, rect.xmax+1, yofs+h*235.0f/255.0f);
 		fdrawline(rect.xmin+w3, yofs+h*240.0f/255.0f, rect.xmax+1, yofs+h*240.0f/255.0f);
 	}
-
+	/* 7.5 IRE black point level for NTSC */
+	if (scopes->wavefrm_mode== SCOPES_WAVEFRM_LUM)
+		fdrawline(rect.xmin, yofs+h*0.075f, rect.xmax+1, yofs+h*0.075f);
 	
 	/* LUMA (1 channel) */
 	glBlendFunc(GL_ONE,GL_ONE);
@@ -881,23 +889,20 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 		glBlendFunc(GL_ONE,GL_ONE);
 		
 		glPushMatrix();
-		
 		glEnableClientState(GL_VERTEX_ARRAY);
 		
 		glTranslatef(rect.xmin, yofs, 0.f);
 		glScalef(w, h, 0.f);
-		
 		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
 		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
 				
 		glDisableClientState(GL_VERTEX_ARRAY);
-		
 		glPopMatrix();
 
 		/* min max */
 		glColor3f(.5f, .5f, .5f);
-		min= yofs+scopes->yccminmax[0][0]*h/255.0f;
-		max= yofs+scopes->yccminmax[0][1]*h/255.0f;
+		min= yofs+scopes->minmax[0][0]*h;
+		max= yofs+scopes->minmax[0][1]*h;
 		CLAMP(min, rect.ymin, rect.ymax);
 		CLAMP(max, rect.ymin, rect.ymax);
 		fdrawline(rect.xmax-3,min,rect.xmax-3,max);
@@ -910,103 +915,45 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 		glBlendFunc(GL_ONE,GL_ONE);
 		
 		glPushMatrix();
-		
 		glEnableClientState(GL_VERTEX_ARRAY);
 		
 		glTranslatef(rect.xmin, yofs, 0.f);
 		glScalef(w3, h, 0.f);
 		
 		glColor3fv((rgb)?colors_alpha[0]:colorsycc_alpha[0]);
-
 		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
 		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
 
 		glTranslatef(1.f, 0.f, 0.f);
 		glColor3fv((rgb)?colors_alpha[1]:colorsycc_alpha[1]);
-		
 		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_2);
 		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
 		
 		glTranslatef(1.f, 0.f, 0.f);
 		glColor3fv((rgb)?colors_alpha[2]:colorsycc_alpha[2]);
-		
 		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_3);
 		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
 		
 		glDisableClientState(GL_VERTEX_ARRAY);
-		
 		glPopMatrix();
 
 		
 		/* min max */
-		if (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB) {
-			for (c=0; c<3; c++) {
+		for (c=0; c<3; c++) {
+			if (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB)
 				glColor3f(colors[c][0]*0.75, colors[c][1]*0.75, colors[c][2]*0.75);
-				min= yofs+scopes->rgbminmax[c][0]*h;
-				max= yofs+scopes->rgbminmax[c][1]*h;
-				CLAMP(min, rect.ymin, rect.ymax);
-				CLAMP(max, rect.ymin, rect.ymax);
-				fdrawline(rect.xmin+w+2+c*2,min,rect.xmin+w+2+c*2,max);
-			}
-		} else {
-			if (ELEM(scopes->wavefrm_mode, SCOPES_WAVEFRM_YCC_601, SCOPES_WAVEFRM_YCC_JPEG)) {
-				for (c=0; c<3; c++) {
-					glColor3f(colorsycc[c][0]*0.75, colorsycc[c][1]*0.75, colorsycc[c][2]*0.75);
-					/* we get ITU 601 min max from remapping JPEG*/
-					if (scopes->wavefrm_mode== SCOPES_WAVEFRM_YCC_601) {
-						if(c==0) {
-							min= yofs+(16+(219*scopes->yccminmax[c][0]/255))*h/255.0f;
-							max= yofs+(16+(219*scopes->yccminmax[c][1]/255))*h/255.0f;
-						}
-						else {
-							min= yofs+(16+(224*scopes->yccminmax[c][0]/255))*h/255.0f;
-							max= yofs+(16+(224*scopes->yccminmax[c][1]/255))*h/255.0f;
-						}
-					}
-					/* rescale ycc to 0-1*/
-					else {
-						min= yofs+scopes->yccminmax[c][0]*h/255.0f;
-						max= yofs+scopes->yccminmax[c][1]*h/255.0f;
-					}
-					CLAMP(min, rect.ymin, rect.ymax);
-					CLAMP(max, rect.ymin, rect.ymax);
-					fdrawline(rect.xmin+2+w+c*2,min,rect.xmin+2+w+c*2,max);
-				}
-			}
-			else if (scopes->wavefrm_mode== SCOPES_WAVEFRM_YCC_709) {
-				for (c=0; c<3; c++) {
-					glColor3f(colorsycc[c][0]*0.75, colorsycc[c][1]*0.75, colorsycc[c][2]*0.75);
-					min= yofs+scopes->ycc709minmax[c][0]*h/255.0f;
-					max= yofs+scopes->ycc709minmax[c][1]*h/255.0f;
-					CLAMP(min, rect.ymin, rect.ymax);
-					CLAMP(max, rect.ymin, rect.ymax);
-					fdrawline(rect.xmin+2+w+c*2,min,rect.xmin+2+w+c*2,max);
-				}
-			}
+			else
+				glColor3f(colorsycc[c][0]*0.75, colorsycc[c][1]*0.75, colorsycc[c][2]*0.75);
+			min= yofs+scopes->minmax[c][0]*h;
+			max= yofs+scopes->minmax[c][1]*h;
+			CLAMP(min, rect.ymin, rect.ymax);
+			CLAMP(max, rect.ymin, rect.ymax);
+			fdrawline(rect.xmin+w+2+c*2,min,rect.xmin+w+2+c*2,max);
 		}
 	}
 	
-	/* restore scissortest */
-	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
-	
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
-	/* height scaling widget */
-	scaler_x1 = rect.xmin + w/2 - SCOPE_RESIZE_PAD;
-	scaler_x2 = rect.xmin + w/2 + SCOPE_RESIZE_PAD;
-
-	glColor4f(0.f, 0.f, 0.f, 0.25f);
-	fdrawline(scaler_x1, rect.ymin-4, scaler_x2, rect.ymin-4);
-	fdrawline(scaler_x1, rect.ymin-7, scaler_x2, rect.ymin-7);
-	glColor4f(1.f, 1.f, 1.f, 0.25f);
-	fdrawline(scaler_x1, rect.ymin-5, scaler_x2, rect.ymin-5);
-	fdrawline(scaler_x1, rect.ymin-8, scaler_x2, rect.ymin-8);
-
-	glColor4f(0.f, 0.f, 0.f, 0.5f);
-	uiSetRoundBox(15);
-	gl_round_box(GL_LINE_LOOP, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
-	
-	glDisable(GL_BLEND);
+	/* outline, scale gripper */
+	draw_scope_end(&rect, scissor);
 }
 
 float polar_to_x(float center, float diam, float ampli, float angle)
@@ -1076,18 +1023,14 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti
 {
 	Scopes *scopes = (Scopes *)but->poin;
 	rctf rect;
-	int i, j, x, y;
+	int i, j;
 	int skina= 123; /* angle in degree of the skin tone line */
 	float w, h, centerx, centery, diam;
 	float alpha;
 	float colors[6][3]={{.75,0,0},{.75,.75,0},{0,.75,0},{0,.75,.75},{0,0,.75},{.75,0,.75}};
-	unsigned char *rc;
-	float *rf;
 	GLint scissor[4];
-	float u, v;
-	float scaler_x1, scaler_x2;
 	
-	if (scopes==NULL || scopes->samples_ibuf==NULL) return;
+	if (scopes==NULL) return;
 	
 	rect.xmin = (float)recti->xmin+1;
 	rect.xmax = (float)recti->xmax-1;
@@ -1098,8 +1041,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti
 	h = rect.ymax - rect.ymin;
 	centerx = rect.xmin + w/2;
 	centery = rect.ymin + h/2;
-	diam= h;
-	if (w<diam) diam=w;
+	diam= (w<h)?w:h;
 	
 	alpha = scopes->vecscope_alpha*scopes->vecscope_alpha*scopes->vecscope_alpha;
 			
@@ -1136,55 +1078,24 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti
 	/* saturation points */
 	for(i=0; i<6; i++)
 		vectorscope_draw_target(centerx, centery, diam, colors[i][0], colors[i][1], colors[i][2]);
-
+	
 	/* pixel point cloud */
 	glBlendFunc(GL_ONE,GL_ONE);
-	glBegin(GL_POINTS);
 	glColor4f(alpha, alpha, alpha, alpha);
-	if (scopes->samples_ibuf->rect_float) {
-		rf = scopes->samples_ibuf->rect_float;
-		for (y=0; y<scopes->samples_ibuf->y; y++) {
-			for (x=0; x<scopes->samples_ibuf->x; x++) {
-				u=-0.147f*rf[0] - 0.289f*rf[1] + 0.436f*rf[2];
-				v= 0.615f*rf[0] - 0.515f*rf[1] - 0.100f*rf[2];
-				glVertex2f(centerx+u*diam, centery+v*diam);
-				rf+=scopes->samples_ibuf->channels;
-			}
-		}
-	}
-	else if(scopes->samples_ibuf->rect) {
-		rc = (unsigned char *)(scopes->samples_ibuf->rect);
-		for (y=0; y<scopes->samples_ibuf->y; y++) {
-			for (x=0; x<scopes->samples_ibuf->x; x++) {
-				u=-0.147f*rc[0]/255.0f - 0.289f*rc[1]/255.0f + 0.436f*rc[2]/255.0f;
-				v= 0.615f*rc[0]/255.0f - 0.515f*rc[1]/255.0f - 0.100f*rc[2]/255.0f;
-				glVertex2f(centerx+u*diam, centery+v*diam);
-				rc+=4;
-			}
-		}
-	}
-	glEnd();
-	
 
-	/* restore scissortest */
-	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
-	
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	
-	/* height scaling widget */
-	scaler_x1 = rect.xmin + w/2 - SCOPE_RESIZE_PAD;
-	scaler_x2 = rect.xmin + w/2 + SCOPE_RESIZE_PAD;
+	glPushMatrix();
+	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glColor4f(0.f, 0.f, 0.f, 0.25f);
-	fdrawline(scaler_x1, rect.ymin-4, scaler_x2, rect.ymin-4);
-	fdrawline(scaler_x1, rect.ymin-7, scaler_x2, rect.ymin-7);
-	glColor4f(1.f, 1.f, 1.f, 0.25f);
-	fdrawline(scaler_x1, rect.ymin-5, scaler_x2, rect.ymin-5);
-	fdrawline(scaler_x1, rect.ymin-8, scaler_x2, rect.ymin-8);
+	glTranslatef(centerx, centery, 0.f);
+	glScalef(diam, diam, 0.f);
+	glVertexPointer(2, GL_FLOAT, 0, scopes->vecscope);
+	glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
 
-	glColor4f(0.f, 0.f, 0.f, 0.5f);
-	uiSetRoundBox(15);
-	gl_round_box(GL_LINE_LOOP, rect.xmin-1, rect.ymin, rect.xmax+1, rect.ymax+1, 3.0f);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glPopMatrix();
+	
+	/* outline, scale gripper */
+	draw_scope_end(&rect, scissor);
 		
 	glDisable(GL_BLEND);
 }
