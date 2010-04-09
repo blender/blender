@@ -134,7 +134,6 @@ static int space_image_file_exists_poll(bContext *C)
 	return 0;
 }
 
-
 int space_image_main_area_poll(bContext *C)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
@@ -509,6 +508,11 @@ static int view_selected_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int view_selected_poll(bContext *C)
+{
+	return (space_image_main_area_poll(C) && ED_operator_uvedit(C));
+}
+
 void IMAGE_OT_view_selected(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -517,7 +521,7 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= view_selected_exec;
-	ot->poll= ED_operator_uvedit;
+	ot->poll= view_selected_poll;
 }
 
 /********************** view zoom in/out operator *********************/
