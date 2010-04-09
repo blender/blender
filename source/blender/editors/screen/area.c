@@ -893,22 +893,22 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	rect= sa->totrct;
 	region_rect_recursive(sa, sa->regionbase.first, &rect, 0);
 	
+	/* default area handlers */
+	ed_default_handlers(wm, &sa->handlers, sa->type->keymapflag);
 	/* checks spacedata, adds own handlers */
 	if(sa->type->init)
 		sa->type->init(wm, sa);
-	/* default area handlers */
-	ed_default_handlers(wm, &sa->handlers, sa->type->keymapflag);
 	
 	/* region windows, default and own handlers */
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		region_subwindow(wm, win, ar);
 		
 		if(ar->swinid) {
+			/* default region handlers */
+			ed_default_handlers(wm, &ar->handlers, ar->type->keymapflag);
 			/* own handlers */
 			if(ar->type->init)
 				ar->type->init(wm, ar);
-			/* default region handlers */
-			ed_default_handlers(wm, &ar->handlers, ar->type->keymapflag);
 		}
 		else {
 			/* prevent uiblocks to run */
