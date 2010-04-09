@@ -385,15 +385,11 @@ static void render_error_reports(void *reports, char *str)
 	BKE_report(reports, RPT_ERROR, str);
 }
 
-static void result_nothing(void *unused, RenderResult *rr) {}
-static void result_rcti_nothing(void *unused, RenderResult *rr, volatile struct rcti *rect) {}
-static void stats_nothing(void *unused, RenderStats *rs) {}
-
 /* executes blocking render */
 static int screen_render_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Render *re= RE_GetRender(scene->id.name);
+	Render *re= RE_NewRender(scene->id.name);
 	Image *ima;
 	View3D *v3d= CTX_wm_view3d(C);
 	int lay= (v3d)? v3d->lay|scene->lay: scene->lay;
@@ -405,12 +401,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	G.afbreek= 0;
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
 	RE_error_cb(re, op->reports, render_error_reports);
-
-	/* clear other callbacks that may have previosuly been used by interactive render */
-	RE_display_init_cb(re, NULL, result_nothing);
-	RE_display_clear_cb(re, NULL, result_nothing);
-	RE_display_draw_cb(re, NULL, result_rcti_nothing);
-	RE_stats_draw_cb(re, NULL, stats_nothing);
 
 	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
