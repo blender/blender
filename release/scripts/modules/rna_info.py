@@ -31,10 +31,10 @@ def _get_direct_attr(rna_type, attr):
     base = rna_type.base
 
     if not base:
-        return props
+        return [prop for prop in props]
     else:
         props_base = getattr(base, attr).values()
-        return dict([(prop.identifier, prop) for prop in props if prop not in props_base])
+        return [prop for prop in props if prop not in props_base]
 
 
 def get_direct_properties(rna_type):
@@ -86,8 +86,8 @@ class InfoStructRNA:
     def build(self):
         rna_type = self.bl_rna
         parent_id = self.identifier
-        self.properties[:] = [GetInfoPropertyRNA(rna_prop, parent_id) for rna_id, rna_prop in get_direct_properties(rna_type).items() if rna_id != "rna_type"]
-        self.functions[:] = [GetInfoFunctionRNA(rna_prop, parent_id) for rna_prop in get_direct_functions(rna_type).values()]
+        self.properties[:] = [GetInfoPropertyRNA(rna_prop, parent_id) for rna_prop in get_direct_properties(rna_type) if rna_prop.identifier != "rna_type"]
+        self.functions[:] = [GetInfoFunctionRNA(rna_prop, parent_id) for rna_prop in get_direct_functions(rna_type)]
 
     def get_bases(self):
         bases = []
@@ -385,7 +385,7 @@ def BuildRNAInfo():
     rna_full_path_dict = {}	# store the result of full_rna_struct_path(rna_struct)
     rna_children_dict = {}	# store all rna_structs nested from here
     rna_references_dict = {}	# store a list of rna path strings that reference this type
-    rna_functions_dict = {}	# store all functions directly in this type (not inherited)
+    # rna_functions_dict = {}	# store all functions directly in this type (not inherited)
 
     def rna_id_ignore(rna_id):
         if rna_id == "rna_type":
@@ -445,7 +445,8 @@ def BuildRNAInfo():
                 rna_full_path_dict[identifier] = full_rna_struct_path(rna_struct)
 
                 # Store a list of functions, remove inherited later
-                rna_functions_dict[identifier] = get_direct_functions(rna_struct)
+                # NOT USED YET
+                ## rna_functions_dict[identifier] = get_direct_functions(rna_struct)
 
 
                 # fill in these later
@@ -494,7 +495,8 @@ def BuildRNAInfo():
         # rna_struct_path = full_rna_struct_path(rna_struct)
         rna_struct_path = rna_full_path_dict[identifier]
 
-        for rna_prop_identifier, rna_prop in get_direct_properties(rna_struct).items():
+        for rna_prop in get_direct_properties(rna_struct):
+            rna_prop_identifier = rna_prop.identifier
 
             if rna_prop_identifier == 'RNA' or rna_id_ignore(rna_prop_identifier):
                 continue
@@ -504,7 +506,7 @@ def BuildRNAInfo():
                 if rna_prop_ptr:
                     rna_references_dict[rna_prop_ptr.identifier].append("%s.%s" % (rna_struct_path, rna_prop_identifier))
 
-        for rna_func in get_direct_functions(rna_struct).values():
+        for rna_func in get_direct_functions(rna_struct):
             for rna_prop_identifier, rna_prop in rna_func.parameters.items():
 
                 if rna_prop_identifier == 'RNA' or rna_id_ignore(rna_prop_identifier):

@@ -488,6 +488,44 @@ def rna2sphinx(BASEPATH):
                         write_example_ref("   ", fw, struct.identifier + "." + attribute)
                         fw("\n")
 
+        lines = []
+
+        if struct.base:
+            bases = list(reversed(struct.get_bases()))
+            
+            # props
+            lines[:] = []
+            for base in bases:
+                for prop in base.properties:
+                    lines.append("* :class:`%s.%s`\n" % (base.identifier, prop.identifier))
+
+                for identifier, py_prop in base.get_py_properties():
+                    lines.append("* :class:`%s.%s`\n" % (base.identifier, identifier))
+            
+            if lines:
+                fw(".. rubric:: Inherited Properties\n\n")
+                for line in lines:
+                    fw(line)
+                fw("\n")
+
+
+            # funcs
+            lines[:] = []
+            for base in bases:
+                for func in base.functions:
+                    lines.append("* :class:`%s.%s`\n" % (base.identifier, func.identifier))
+                for identifier, py_func in base.get_py_functions():
+                    lines.append("* :class:`%s.%s`\n" % (base.identifier, identifier))
+
+            if lines:
+                fw(".. rubric:: Inherited Functions\n\n")
+                for line in lines:
+                    fw(line)
+                fw("\n")
+            
+            lines[:] = []
+
+
         if struct.references:
             # use this otherwise it gets in the index for a normal heading.
             fw(".. rubric:: References\n\n")
