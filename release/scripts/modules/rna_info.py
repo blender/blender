@@ -26,6 +26,25 @@ import bpy
 script_paths = bpy.utils.script_paths()
 
 
+def _get_direct_attr(rna_type, attr):
+    props = getattr(rna_type, attr)
+    base = rna_type.base
+
+    if not base:
+        return props
+    else:
+        props_base = getattr(base, attr).values()
+        return dict([(prop.identifier, prop) for prop in props if prop not in props_base])
+
+
+def get_direct_properties(rna_type):
+    return _get_direct_attr(rna_type, "properties")
+
+
+def get_direct_functions(rna_type):
+    return _get_direct_attr(rna_type, "functions")
+
+
 def range_str(val):
     if val < -10000000:
         return '-inf'
@@ -67,8 +86,8 @@ class InfoStructRNA:
     def build(self):
         rna_type = self.bl_rna
         parent_id = self.identifier
-        self.properties[:] = [GetInfoPropertyRNA(rna_prop, parent_id) for rna_id, rna_prop in rna_type.properties.items() if rna_id != "rna_type"]
-        self.functions[:] = [GetInfoFunctionRNA(rna_prop, parent_id) for rna_prop in rna_type.functions.values()]
+        self.properties[:] = [GetInfoPropertyRNA(rna_prop, parent_id) for rna_id, rna_prop in get_direct_properties(rna_type).items() if rna_id != "rna_type"]
+        self.functions[:] = [GetInfoFunctionRNA(rna_prop, parent_id) for rna_prop in get_direct_functions(rna_type).values()]
 
     def get_bases(self):
         bases = []
@@ -426,7 +445,7 @@ def BuildRNAInfo():
                 rna_full_path_dict[identifier] = full_rna_struct_path(rna_struct)
 
                 # Store a list of functions, remove inherited later
-                rna_functions_dict[identifier] = list(rna_struct.functions)
+                rna_functions_dict[identifier] = get_direct_functions(rna_struct)
 
 
                 # fill in these later
@@ -436,12 +455,6 @@ def BuildRNAInfo():
 
         else:
             print("Ignoring", rna_type_name)
-
-
-    # Sucks but we need to copy this so we can check original parent functions
-    rna_functions_dict__copy = {}
-    for key, val in rna_functions_dict.items():
-        rna_functions_dict__copy[key] = val[:]
 
 
     structs.sort() # not needed but speeds up sort below, setting items without an inheritance first
@@ -478,41 +491,26 @@ def BuildRNAInfo():
     # precalc vars to avoid a lot of looping
     for (rna_base, identifier, rna_struct) in structs:
 
-        if rna_base:
-            rna_base_prop_keys = rna_struct_dict[rna_base].properties.keys() # could cache
-            rna_base_func_keys = [f.identifier for f in rna_struct_dict[rna_base].functions]
-        else:
-            rna_base_prop_keys = []
-            rna_base_func_keys = []
-
         # rna_struct_path = full_rna_struct_path(rna_struct)
         rna_struct_path = rna_full_path_dict[identifier]
 
-        for rna_prop_identifier, rna_prop in rna_struct.properties.items():
+        for rna_prop_identifier, rna_prop in get_direct_properties(rna_struct).items():
 
-            if rna_prop_identifier == 'RNA' or \
-                    rna_id_ignore(rna_prop_identifier) or \
-                    rna_prop_identifier in rna_base_prop_keys:
+            if rna_prop_identifier == 'RNA' or rna_id_ignore(rna_prop_identifier):
                 continue
-
 
             for rna_prop_ptr in (getattr(rna_prop, "fixed_type", None), getattr(rna_prop, "srna", None)):
                 # Does this property point to me?
                 if rna_prop_ptr:
                     rna_references_dict[rna_prop_ptr.identifier].append("%s.%s" % (rna_struct_path, rna_prop_identifier))
 
-        for rna_func in rna_struct.functions:
+        for rna_func in get_direct_functions(rna_struct).values():
             for rna_prop_identifier, rna_prop in rna_func.parameters.items():
 
-                if rna_prop_identifier == 'RNA' or \
-                        rna_id_ignore(rna_prop_identifier) or \
-                        rna_prop_identifier in rna_base_func_keys:
+                if rna_prop_identifier == 'RNA' or rna_id_ignore(rna_prop_identifier):
                     continue
 
-                try:
-                    rna_prop_ptr = rna_prop.fixed_type
-                except AttributeError:
-                    rna_prop_ptr = None
+                rna_prop_ptr = getattr(rna_prop, "fixed_type", None)
 
                 # Does this property point to me?
                 if rna_prop_ptr:
@@ -524,16 +522,6 @@ def BuildRNAInfo():
         if nested:
             rna_children_dict[nested.identifier].append(rna_struct)
 
-
-        if rna_base:
-            rna_funcs = rna_functions_dict[identifier]
-            if rna_funcs:
-                # Remove inherited functions if we have any
-                rna_base_funcs = rna_functions_dict__copy[rna_base]
-                rna_funcs[:] = [f for f in rna_funcs if f not in rna_base_funcs]
-
-    rna_functions_dict__copy.clear()
-    del rna_functions_dict__copy
 
     # Sort the refs, just reads nicer
     for rna_refs in rna_references_dict.values():
