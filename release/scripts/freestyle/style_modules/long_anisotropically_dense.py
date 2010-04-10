@@ -44,7 +44,7 @@ from shaders import *
 ## custom density predicate
 class pyDensityUP1D(UnaryPredicate1D):
 	def __init__(self,wsize,threshold, integration = IntegrationType.MEAN, sampling=2.0):
- 		UnaryPredicate1D.__init__(self)
+		UnaryPredicate1D.__init__(self)
 		self._wsize = wsize
 		self._threshold = threshold
 		self._integration = integration
