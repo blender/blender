@@ -39,6 +39,7 @@
 
 #ifdef WITH_QUICKTIME
 #include "quicktime_export.h"
+#include "AUD_C-API.h"
 #endif
 
 #ifdef WITH_FFMPEG
@@ -523,14 +524,14 @@ static int rna_RenderSettings_qtcodecsettings_codecType_get(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
 	
-	return quicktime_rnatmpvalue_from_codectype(rd->qtcodecsettings.codecType);
+	return quicktime_rnatmpvalue_from_videocodectype(rd->qtcodecsettings.codecType);
 }
 
 static void rna_RenderSettings_qtcodecsettings_codecType_set(PointerRNA *ptr, int value)
 {
 	RenderData *rd= (RenderData*)ptr->data;
 
-	rd->qtcodecsettings.codecType = quicktime_codecType_from_rnatmpvalue(value);
+	rd->qtcodecsettings.codecType = quicktime_videocodecType_from_rnatmpvalue(value);
 }
 
 static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bContext *C, PointerRNA *ptr, int *free)
@@ -541,8 +542,8 @@ static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bCon
 	int i=1, totitem= 0;
 	char id[5];
 	
-	for(i=0;i<quicktime_get_num_codecs();i++) {
-		codecTypeDesc = quicktime_get_codecType_desc(i);
+	for(i=0;i<quicktime_get_num_videocodecs();i++) {
+		codecTypeDesc = quicktime_get_videocodecType_desc(i);
 		if (!codecTypeDesc) break;
 		
 		tmp.value= codecTypeDesc->rnatmpvalue;
@@ -557,7 +558,46 @@ static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bCon
 	*free= 1;
 	
 	return item;	
+}
+
+#ifdef USE_QTKIT
+static int rna_RenderSettings_qtcodecsettings_audiocodecType_get(PointerRNA *ptr)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	
+	return quicktime_rnatmpvalue_from_audiocodectype(rd->qtcodecsettings.audiocodecType);
+}
+
+static void rna_RenderSettings_qtcodecsettings_audiocodecType_set(PointerRNA *ptr, int value)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	
+	rd->qtcodecsettings.audiocodecType = quicktime_audiocodecType_from_rnatmpvalue(value);
+}
+
+static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_audiocodecType_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem *item= NULL;
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	QuicktimeCodecTypeDesc *codecTypeDesc;
+	int i=1, totitem= 0;
+	
+	for(i=0;i<quicktime_get_num_audiocodecs();i++) {
+		codecTypeDesc = quicktime_get_audiocodecType_desc(i);
+		if (!codecTypeDesc) break;
+		
+		tmp.value= codecTypeDesc->rnatmpvalue;
+		tmp.identifier= codecTypeDesc->codecName; 
+		tmp.name= codecTypeDesc->codecName;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+	
+	return item;	
 }	
+#endif
 #endif
 
 static int rna_RenderSettings_active_layer_index_get(PointerRNA *ptr)
@@ -1824,6 +1864,35 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	static EnumPropertyItem quicktime_codec_type_items[] = {
 		{0, "codec", 0, "codec", ""},
 		{0, NULL, 0, NULL, NULL}};
+	
+#ifdef USE_QTKIT
+	static EnumPropertyItem quicktime_audio_samplerate_items[] = {
+		{22050, "22050", 0, "22kHz", ""},
+		{44100, "44100", 0, "44.1kHz", ""},
+		{48000, "48000", 0, "48kHz", ""},
+		{88200, "88200", 0, "88.2kHz", ""},
+		{96000, "96000", 0, "96kHz", ""},
+		{192000, "192000", 0, "192kHz", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem quicktime_audio_bitdepth_items[] = {
+		{AUD_FORMAT_U8, "8BIT", 0, "8bit", ""},
+		{AUD_FORMAT_S16, "16BIT", 0, "16bit", ""},
+		{AUD_FORMAT_S24, "24BIT", 0, "24bit", ""},
+		{AUD_FORMAT_S32, "32BIT", 0, "32bit", ""},
+		{AUD_FORMAT_FLOAT32, "FLOAT32", 0, "float32", ""},
+		{AUD_FORMAT_FLOAT64, "FLOAT64", 0, "float64", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem quicktime_audio_bitrate_items[] = {
+		{64000, "64000", 0, "64kbps", ""},
+		{112000, "112000", 0, "112kpbs", ""},
+		{128000, "128000", 0, "128kbps", ""},
+		{192000, "192000", 0, "192kbps", ""},
+		{256000, "256000", 0, "256kbps", ""},
+		{320000, "320000", 0, "320kbps", ""},
+		{0, NULL, 0, NULL, NULL}};
+#endif
 #endif
 
 #ifdef WITH_FFMPEG
@@ -2031,7 +2100,46 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "qtcodecsettings.codecSpatialQuality");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Spatial quality", "Intra-frame spatial quality level");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+#ifdef USE_QTKIT
+	prop= RNA_def_property(srna, "quicktime_audiocodec_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.audiocodecType");
+	RNA_def_property_enum_items(prop, quicktime_codec_type_items);
+	RNA_def_property_enum_funcs(prop, "rna_RenderSettings_qtcodecsettings_audiocodecType_get",
+								"rna_RenderSettings_qtcodecsettings_audiocodecType_set",
+								"rna_RenderSettings_qtcodecsettings_audiocodecType_itemf");
+	RNA_def_property_ui_text(prop, "Audio Codec", "QuickTime audio codec type");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "quicktime_audio_samplerate", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.audioSampleRate");
+	RNA_def_property_enum_items(prop, quicktime_audio_samplerate_items);
+	RNA_def_property_ui_text(prop, "Smp Rate", "Sample Rate");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "quicktime_audio_bitdepth", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.audioBitDepth");
+	RNA_def_property_enum_items(prop, quicktime_audio_bitdepth_items);
+	RNA_def_property_ui_text(prop, "Bit Depth", "Bit Depth");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "quicktime_audio_resampling_hq", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "qtcodecsettings.audioCodecFlags", QTAUDIO_FLAG_RESAMPLE_NOHQ);
+	RNA_def_property_ui_text(prop, "HQ", "Use High Quality resampling algorithm");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "quicktime_audio_codec_isvbr", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "qtcodecsettings.audioCodecFlags", QTAUDIO_FLAG_CODEC_ISCBR);
+	RNA_def_property_ui_text(prop, "VBR", "Use Variable Bit Rate compression (improves quality at same bitrate)");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	prop= RNA_def_property(srna, "quicktime_audio_bitrate", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "qtcodecsettings.audioBitRate");
+	RNA_def_property_enum_items(prop, quicktime_audio_bitrate_items);
+	RNA_def_property_ui_text(prop, "Bitrate", "Compressed audio bitrate");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);	
+#endif
 #endif
 	
 #ifdef WITH_FFMPEG

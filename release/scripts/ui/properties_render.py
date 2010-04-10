@@ -362,13 +362,37 @@ class RENDER_PT_output(RenderButtonsPanel):
 
         elif rd.file_format == 'QUICKTIME_CARBON':
             split = layout.split()
-            split.operator("scene.render_set_quicktime_codec")
+            split.operator("scene.render_data_set_quicktime_codec")
 
         elif rd.file_format == 'QUICKTIME_QTKIT':
             split = layout.split()
             col = split.column()
-            col.prop(rd, "quicktime_codec_type")
+            col.prop(rd, "quicktime_codec_type", text="Video Codec")
             col.prop(rd, "quicktime_codec_spatial_quality", text="Quality")
+            
+            #Audio
+            col.prop(rd,"quicktime_audiocodec_type", text="Audio Codec")
+            if rd.quicktime_audiocodec_type != 'No audio':
+                split = layout.split()
+                col = split.column()
+                if rd.quicktime_audiocodec_type == 'LPCM':
+                    col.prop(rd,"quicktime_audio_bitdepth", text="")
+                if wide_ui:
+                    col = split.column()
+                col.prop(rd,"quicktime_audio_samplerate", text="")
+
+                split = layout.split()
+                col = split.column()
+                if rd.quicktime_audiocodec_type == 'AAC':
+                    col.prop(rd,"quicktime_audio_bitrate")
+                if wide_ui:
+                    subsplit = split.split()
+                    col = subsplit.column()
+                if rd.quicktime_audiocodec_type == 'AAC':
+                    col.prop(rd,"quicktime_audio_codec_isvbr")
+                if wide_ui:
+                    col = subsplit.column()
+                col.prop(rd,"quicktime_audio_resampling_hq")
 
 
 class RENDER_PT_encoding(RenderButtonsPanel):

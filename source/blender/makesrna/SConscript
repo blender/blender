@@ -6,7 +6,7 @@ objs = []
 o = SConscript('intern/SConscript')
 objs += o
 
-incs = '#/intern/guardedalloc ../blenkernel ../blenlib ../makesdna intern .'
+incs = '#/intern/guardedalloc #/intern/audaspace/intern ../blenkernel ../blenlib ../makesdna intern .'
 incs += ' ../windowmanager ../editors/include ../gpu ../imbuf ../ikplugin'
 incs += ' ../render/extern/include'
 

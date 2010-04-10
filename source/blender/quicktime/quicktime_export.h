@@ -34,6 +34,10 @@
 #define __AIFF__
 
 
+#define QTAUDIO_FLAG_RESAMPLE_NOHQ 1
+#define QTAUDIO_FLAG_CODEC_ISCBR 2
+
+
 /*Codec list*/
 typedef struct QuicktimeCodecTypeDesc {
 	int codecType;
@@ -54,10 +58,19 @@ void filepath_qt(char *string, struct RenderData *rd);
 
 /*RNA helper functions */
 void quicktime_verify_image_type(struct RenderData *rd); //used by RNA for defaults values init, if needed
-int quicktime_get_num_codecs();
-QuicktimeCodecTypeDesc* quicktime_get_codecType_desc(int indexValue);
-int quicktime_rnatmpvalue_from_codectype(int codecType);
-int quicktime_codecType_from_rnatmpvalue(int rnatmpvalue);
+/*Video codec type*/
+int quicktime_get_num_videocodecs();
+QuicktimeCodecTypeDesc* quicktime_get_videocodecType_desc(int indexValue);
+int quicktime_rnatmpvalue_from_videocodectype(int codecType);
+int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue);
+
+#ifdef USE_QTKIT
+/*Audio codec type*/
+int quicktime_get_num_audiocodecs();
+QuicktimeCodecTypeDesc* quicktime_get_audiocodecType_desc(int indexValue);
+int quicktime_rnatmpvalue_from_audiocodectype(int codecType);
+int quicktime_audiocodecType_from_rnatmpvalue(int rnatmpvalue);
+#endif
 
 #ifndef USE_QTKIT
 void SCENE_OT_render_data_set_quicktime_codec(struct wmOperatorType *ot); //Operator to raise quicktime standard dialog to request codec settings
