@@ -167,7 +167,7 @@ def pyprop2sphinx(ident, fw, identifier, py_prop):
 
 def pymodule2sphinx(BASEPATH, module_name, module, title):
     import types
-
+    attribute_set = set()
     filepath = os.path.join(BASEPATH, module_name + ".rst")
     
     file = open(filepath, "w")
@@ -193,13 +193,21 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             if descr.__doc__:
                 fw(".. data:: %s\n\n" % key)
                 write_indented_lines("   ", fw, descr.__doc__, False)
+                attribute_set.add(key)
                 fw("\n")
-    
+    del key, descr
     
     classes = []
 
     for attribute in sorted(dir(module)):
         if not attribute.startswith("_"):
+
+            if attribute in attribute_set:
+                continue
+
+            if attribute.startswith("n_"): # annoying exception, needed for bpy.app
+                continue
+            
             value = getattr(module, attribute)
 
             value_type = type(value)
@@ -220,6 +228,9 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
                 fw("\n")
             else:
                 print("\tnot documenting %s.%s" % (module_name, attribute))
+                continue
+
+            attribute_set.add(attribute)
             # TODO, more types...
 
     # write collected classes now
