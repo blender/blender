@@ -25,6 +25,7 @@ import bpy
 # use to strip python paths
 script_paths = bpy.utils.script_paths()
 
+_FAKE_STRUCT_SUBCLASS = True
 
 def _get_direct_attr(rna_type, attr):
     props = getattr(rna_type, attr)
@@ -44,6 +45,19 @@ def get_direct_properties(rna_type):
 def get_direct_functions(rna_type):
     return _get_direct_attr(rna_type, "functions")
 
+def rna_id_ignore(rna_id):
+    if rna_id == "rna_type":
+        return True
+
+    if "_OT_" in rna_id:
+        return True
+    if "_MT_" in rna_id:
+        return True
+    if "_PT_" in rna_id:
+        return True
+    if "_HT_" in rna_id:
+        return True
+    return False
 
 def range_str(val):
     if val < -10000000:
@@ -135,17 +149,17 @@ class InfoStructRNA:
 
     def __repr__(self):
 
-        txt = ''
+        txt = ""
         txt += self.identifier
         if self.base:
-            txt += '(%s)' % self.base.identifier
-        txt += ': ' + self.description + '\n'
+            txt += "(%s)" % self.base.identifier
+        txt += ": " + self.description + "\n"
 
         for prop in self.properties:
-            txt += prop.__repr__() + '\n'
+            txt += prop.__repr__() + "\n"
 
         for func in self.functions:
-            txt += func.__repr__() + '\n'
+            txt += func.__repr__() + "\n"
 
         return txt
 
@@ -377,7 +391,6 @@ def GetInfoFunctionRNA(bl_rna, parent_id):
 def GetInfoOperatorRNA(bl_rna):
     return _GetInfoRNA(bl_rna, InfoOperatorRNA)
 
-
 def BuildRNAInfo():
     # Use for faster lookups
     # use rna_struct.identifier as the key for each dict
@@ -387,19 +400,6 @@ def BuildRNAInfo():
     rna_references_dict = {}	# store a list of rna path strings that reference this type
     # rna_functions_dict = {}	# store all functions directly in this type (not inherited)
 
-    def rna_id_ignore(rna_id):
-        if rna_id == "rna_type":
-            return True
-
-        if "_OT_" in rna_id:
-            return True
-        if "_MT_" in rna_id:
-            return True
-        if "_PT_" in rna_id:
-            return True
-        if "_HT_" in rna_id:
-            return True
-        return False
 
     def full_rna_struct_path(rna_struct):
         '''

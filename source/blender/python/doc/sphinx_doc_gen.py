@@ -50,6 +50,8 @@ GetSetDescriptorType = type(int.real)
 EXAMPLE_SET = set()
 EXAMPLE_SET_USED = set()
 
+_BPY_STRUCT_FAKE = "bpy_struct"
+
 def range_str(val):
     if val < -10000000:	return '-inf'
     if val >  10000000:	return 'inf'
@@ -122,6 +124,23 @@ def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
         write_indented_lines(ident + "   ", fw, py_func.__doc__.strip())
         fw("\n")
 
+
+def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):    
+    doc = descr.__doc__
+    if not doc:
+        doc = "Undocumented"
+    
+    if type(descr) == GetSetDescriptorType:
+        fw(ident + ".. attribute:: %s\n\n" % identifier)
+        write_indented_lines(ident, fw, doc, False)
+    elif type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+        write_indented_lines(ident, fw, doc, False)
+    else:
+        raise TypeError("type was not GetSetDescriptorType or MethodDescriptorType")
+
+    write_example_ref(ident, fw, module_name + "." + type_name + "." + identifier)
+    fw("\n")
+
 def py_c_func2sphinx(ident, fw, identifier, py_func, is_class=True):
     '''
     c defined function to sphinx.
@@ -169,10 +188,10 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     
     # write members of the module
     # only tested with PyStructs which are not exactly modules
-    for attribute, descr in sorted(type(module).__dict__.items()):
+    for key, descr in sorted(type(module).__dict__.items()):
         if type(descr) == types.MemberDescriptorType:
             if descr.__doc__:
-                fw(".. data:: %s\n\n" % attribute)
+                fw(".. data:: %s\n\n" % key)
                 write_indented_lines("   ", fw, descr.__doc__, False)
                 fw("\n")
     
@@ -202,37 +221,26 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             else:
                 print("\tnot documenting %s.%s" % (module_name, attribute))
             # TODO, more types...
-    
+
     # write collected classes now
-    for (attribute, value) in classes:
+    for (type_name, value) in classes:
         # May need to be its own function
-        fw(".. class:: %s\n\n" % attribute)
+        fw(".. class:: %s\n\n" % type_name)
         if value.__doc__:
             write_indented_lines("   ", fw, value.__doc__, False)
             fw("\n")
-        write_example_ref("   ", fw, module_name + "." + attribute)
+        write_example_ref("   ", fw, module_name + "." + type_name)
 
-        for key in sorted(value.__dict__.keys()):
-            if key.startswith("__"):
-                continue
-            descr = value.__dict__[key]
-            if type(descr) == GetSetDescriptorType:
-                if descr.__doc__:
-                    fw("   .. attribute:: %s\n\n" % key)
-                    write_indented_lines("   ", fw, descr.__doc__, False)
-                    write_example_ref("   ", fw, module_name + "." + attribute + "." + key)
-                    fw("\n")
+        descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("__")]
 
-        for key in sorted(value.__dict__.keys()):
-            if key.startswith("__"):
-                continue
-            descr = value.__dict__[key]
+        for key, descr in descr_items:
             if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
-                if descr.__doc__:
-                    write_indented_lines("   ", fw, descr.__doc__, False)
-                    write_example_ref("   ", fw, module_name + "." + attribute + "." + key)
-                    fw("\n")
-            
+                py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+
+        for key, descr in descr_items:
+            if type(descr) == GetSetDescriptorType:
+                py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+
         fw("\n\n")
 
     file.close()
@@ -400,8 +408,14 @@ def rna2sphinx(BASEPATH):
         file = open(filepath, "w")
         fw = file.write
         
-        if struct.base: 
-            title = "%s(%s)" % (struct.identifier, struct.base.identifier)
+        base_id = getattr(struct.base, "identifier", "")
+
+        if _BPY_STRUCT_FAKE:
+            if not base_id:
+                base_id = _BPY_STRUCT_FAKE
+
+        if base_id:
+            title = "%s(%s)" % (struct.identifier, base_id)
         else:
             title = struct.identifier
 
@@ -409,26 +423,34 @@ def rna2sphinx(BASEPATH):
         
         fw(".. module:: bpy.types\n\n")
         
-        bases = struct.get_bases()
-        if bases:
-            if len(bases) > 1:
+        base_ids = [base.identifier for base in struct.get_bases()]
+
+        if _BPY_STRUCT_FAKE:
+            base_ids.append(_BPY_STRUCT_FAKE)
+
+        base_ids.reverse()
+            
+        if base_ids:
+            if len(base_ids) > 1:
                 fw("base classes --- ")
             else:
                 fw("base class --- ")
 
-            fw(", ".join([(":class:`%s`" % base.identifier) for base in reversed(bases)]))
+            fw(", ".join([(":class:`%s`" % base_id) for base_id in base_ids]))
             fw("\n\n")
         
-        subclasses = [s for s in structs.values() if s.base is struct]
+        subclass_ids = [s.identifier for s in structs.values() if s.base is struct if not rna_info.rna_id_ignore(s.identifier)]
+        if subclass_ids:
+            fw("subclasses --- \n" + ", ".join([(":class:`%s`" % s) for s in subclass_ids]) + "\n\n")
         
-        if subclasses:
-            fw("subclasses --- \n")
-            fw(", ".join([(":class:`%s`" % s.identifier) for s in subclasses]))
-            fw("\n\n")
+        base_id = getattr(struct.base, "identifier", "")
+        
+        if _BPY_STRUCT_FAKE:
+            if not base_id:
+                base_id = _BPY_STRUCT_FAKE
 
-
-        if struct.base:
-            fw(".. class:: %s(%s)\n\n" % (struct.identifier, struct.base.identifier))
+        if base_id:
+            fw(".. class:: %s(%s)\n\n" % (struct.identifier, base_id))
         else:
             fw(".. class:: %s\n\n" % struct.identifier)
 
@@ -479,26 +501,29 @@ def rna2sphinx(BASEPATH):
             pyfunc2sphinx("   ", fw, identifier, py_func, is_class=True)
         del py_funcs, py_func
 
-        # c/python methods, only for the base class
-        if struct.identifier == "Struct":
-            for attribute, descr in sorted(bpy.types.Struct.__bases__[0].__dict__.items()):
-                if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
-                    if descr.__doc__:
-                        write_indented_lines("   ", fw, descr.__doc__, False)
-                        write_example_ref("   ", fw, struct.identifier + "." + attribute)
-                        fw("\n")
-
         lines = []
 
-        if struct.base:
+        if struct.base or _BPY_STRUCT_FAKE:
             bases = list(reversed(struct.get_bases()))
-            
+
             # props
             lines[:] = []
+            
+            if _BPY_STRUCT_FAKE:
+                descr_items = [(key, descr) for key, descr in sorted(bpy.types.Struct.__bases__[0].__dict__.items()) if not key.startswith("__")]
+            
+            if _BPY_STRUCT_FAKE:
+                for key, descr in descr_items:
+                    if type(descr) == GetSetDescriptorType:
+                        lines.append("* :class:`%s.%s`\n" % (_BPY_STRUCT_FAKE, key))
+
             for base in bases:
                 for prop in base.properties:
                     lines.append("* :class:`%s.%s`\n" % (base.identifier, prop.identifier))
 
+                for identifier, py_prop in base.get_py_properties():
+                    lines.append("* :class:`%s.%s`\n" % (base.identifier, identifier))
+                    
                 for identifier, py_prop in base.get_py_properties():
                     lines.append("* :class:`%s.%s`\n" % (base.identifier, identifier))
             
@@ -511,6 +536,12 @@ def rna2sphinx(BASEPATH):
 
             # funcs
             lines[:] = []
+
+            if _BPY_STRUCT_FAKE:
+                for key, descr in descr_items:
+                    if type(descr) == MethodDescriptorType:
+                        lines.append("* :class:`%s.%s`\n" % (_BPY_STRUCT_FAKE, key))
+
             for base in bases:
                 for func in base.functions:
                     lines.append("* :class:`%s.%s`\n" % (base.identifier, func.identifier))
@@ -543,6 +574,38 @@ def rna2sphinx(BASEPATH):
         if "_OT_" in struct.identifier:
             continue
         write_struct(struct)
+        
+    # special case, bpy_struct
+    if _BPY_STRUCT_FAKE:
+        filepath = os.path.join(BASEPATH, "bpy.types.%s.rst" % _BPY_STRUCT_FAKE)
+        file = open(filepath, "w")
+        fw = file.write
+
+        fw("%s\n" % _BPY_STRUCT_FAKE)
+        fw("=" * len(_BPY_STRUCT_FAKE) + "\n")
+        fw("\n")
+        fw(".. module:: bpy.types\n")
+        fw("\n")
+
+        subclass_ids = [s.identifier for s in structs.values() if s.base is None if not rna_info.rna_id_ignore(s.identifier)]
+        if subclass_ids:
+            fw("subclasses --- \n" + ", ".join([(":class:`%s`" % s) for s in sorted(subclass_ids)]) + "\n\n")
+
+        fw(".. class:: %s\n" % _BPY_STRUCT_FAKE)
+        fw("\n")
+        fw("   built-in base class for all classes in bpy.types, note that bpy.types.%s is not actually available from within blender, it only exists for the purpose of documentation.\n" % _BPY_STRUCT_FAKE)
+        fw("\n")
+
+        descr_items = [(key, descr) for key, descr in sorted(bpy.types.Struct.__bases__[0].__dict__.items()) if not key.startswith("__")]
+
+        for key, descr in descr_items:
+            if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+                py_descr2sphinx("   ", fw, descr, "bpy.types", _BPY_STRUCT_FAKE, key)
+
+        for key, descr in descr_items:
+            if type(descr) == GetSetDescriptorType:
+                py_descr2sphinx("   ", fw, descr, "bpy.types", _BPY_STRUCT_FAKE, key)
+
 
     # oeprators
     def write_ops():
@@ -563,7 +626,7 @@ def rna2sphinx(BASEPATH):
                 
                 fw(".. module:: bpy.ops.%s\n\n" % op.module_name)
                 last_mod = op.module_name
-            
+
             args_str = ", ".join([prop.get_arg_default(force=True) for prop in op.args])
             fw(".. function:: %s(%s)\n\n" % (op.func_name, args_str))
             if op.description:

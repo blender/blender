@@ -1,4 +1,3 @@
-
 /**
  * $Id$
  *
@@ -84,9 +83,19 @@ static int mathutils_rna_vector_get(BPy_PropertyRNA *self, int subtype, float *v
 
 static int mathutils_rna_vector_set(BPy_PropertyRNA *self, int subtype, float *vec_to)
 {
+	float min, max;
 	if(self->prop==NULL)
 		return 0;
-	/* TODO, clamp */
+
+	RNA_property_float_range(&self->ptr, self->prop, &min, &max);
+
+	if(min != FLT_MIN || max != FLT_MAX) {
+		int i, len= RNA_property_array_length(&self->ptr, self->prop);
+		for(i=0; i<len; i++) {
+			CLAMP(vec_to[i], min, max);
+		}
+	}
+
 	RNA_property_float_set_array(&self->ptr, self->prop, vec_to);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
@@ -1613,6 +1622,16 @@ static PyMappingMethods pyrna_struct_as_mapping = {
 	( objobjargproc ) pyrna_struct_ass_subscript,	/* mp_ass_subscript */
 };
 
+static char pyrna_struct_keys_doc[] =
+".. method:: keys()\n"
+"\n"
+"   Returns the keys of this objects custom properties (matches pythons dictionary function of the same name).\n"
+"\n"
+"   :return: custom property keys.\n"
+"   :rtype: list of strings\n"
+"\n"
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n";
+
 static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 {
 	IDProperty *group;
@@ -1629,6 +1648,16 @@ static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 
 	return BPy_Wrap_GetKeys(group);
 }
+
+static char pyrna_struct_items_doc[] =
+".. method:: items()\n"
+"\n"
+"   Returns the items of this objects custom properties (matches pythons dictionary function of the same name).\n"
+"\n"
+"   :return: custom property key, value pairs.\n"
+"   :rtype: list of key, value tuples\n"
+"\n"
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n";
 
 static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 {
@@ -1647,6 +1676,15 @@ static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 	return BPy_Wrap_GetItems(self->ptr.id.data, group);
 }
 
+static char pyrna_struct_values_doc[] =
+".. method:: values()\n"
+"\n"
+"   Returns the values of this objects custom properties (matches pythons dictionary function of the same name).\n"
+"\n"
+"   :return: custom property values.\n"
+"   :rtype: list\n"
+"\n"
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n";
 
 static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 {
@@ -1671,7 +1709,6 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *er
 {
 	char *path;
 	PropertyRNA *prop;
-	int array_len;
 
 	if (!PyArg_ParseTuple(args, "s|ifs", &path, index, cfra, group_name)) {
 		PyErr_Format(PyExc_TypeError, "%.200s expected a string and optionally an int, float, and string arguments", error_prefix);
@@ -1691,20 +1728,31 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *er
 	}
 
 	if (!RNA_property_animateable(ptr, prop)) {
-		PyErr_Format( PyExc_TypeError, "%.200s property \"%s\" not animatable", error_prefix, path);
+		PyErr_Format(PyExc_TypeError, "%.200s property \"%s\" not animatable", error_prefix, path);
 		return -1;
 	}
 
+	if(RNA_property_array_check(ptr, prop) == 0) {
+		if((*index) == -1) {
+			*index= 0;
+		}
+		else {
+			PyErr_Format(PyExc_TypeError, "%.200s index %d was given while property \"%s\" is not an array", error_prefix, *index, path);
+			return -1;
+		}
+	}
+	else {
+		int array_len= RNA_property_array_length(ptr, prop);
+		if((*index) < -1 || (*index) >= array_len) {
+			PyErr_Format( PyExc_TypeError, "%.200s index out of range \"%s\", given %d, array length is %d", error_prefix, path, *index, array_len);
+			return -1;
+		}
+	}
+	
 	*path_full= RNA_path_from_ID_to_property(ptr, prop);
 
 	if (*path_full==NULL) {
 		PyErr_Format( PyExc_TypeError, "%.200s could not make path to \"%s\"", error_prefix, path);
-		return -1;
-	}
-
-	array_len= RNA_property_array_length(ptr, prop);
-	if((*index) != -1 && (*index) >= array_len) {
-		PyErr_Format( PyExc_TypeError, "%.200s index out of range \"%s\", given %d, array length is %d", error_prefix, path, *index, array_len);
 		return -1;
 	}
 
@@ -1715,9 +1763,9 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *er
 }
 
 static char pyrna_struct_keyframe_insert_doc[] =
-".. function:: keyframe_insert(path, index=-1, frame=bpy.context.scene.frame_current)\n"
+".. method:: keyframe_insert(path, index=-1, frame=bpy.context.scene.frame_current)\n"
 "\n"
-"   Returns a boolean, True if the keyframe is set.\n"
+"   Insert a keyframe on the property given, adding fcurves and animation data when necessary.\n"
 "\n"
 "   :arg path: path to the property to key, analogous to the fcurve's data path.\n"
 "   :type path: string\n"
@@ -1725,8 +1773,10 @@ static char pyrna_struct_keyframe_insert_doc[] =
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is inserted, defaulting to the current frame.\n"
 "   :type frame: float\n"
-"	:arg group: The name of the group the F-Curve should be added to if it doesn't exist yet.\n"
-"	:type group: str";
+"   :arg group: The name of the group the F-Curve should be added to if it doesn't exist yet.\n"
+"   :type group: str\n"
+"   :return: Success of keyframe insertion.\n"
+"   :rtype: boolean";
 
 static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args)
 {
@@ -1747,9 +1797,9 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *arg
 }
 
 static char pyrna_struct_keyframe_delete_doc[] =
-".. function:: keyframe_delete(path, index=-1, frame=bpy.context.scene.frame_current)\n"
+".. method:: keyframe_delete(path, index=-1, frame=bpy.context.scene.frame_current)\n"
 "\n"
-"   Returns a boolean, True if the keyframe is removed.\n"
+"   Remove a keyframe from this properties fcurve.\n"
 "\n"
 "   :arg path: path to the property to remove a key, analogous to the fcurve's data path.\n"
 "   :type path: string\n"
@@ -1757,8 +1807,10 @@ static char pyrna_struct_keyframe_delete_doc[] =
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is deleted, defaulting to the current frame.\n"
 "   :type frame: float\n"
-"	:arg group: The name of the group the F-Curve should be added to if it doesn't exist yet.\n"
-"	:type group: str";
+"   :arg group: The name of the group the F-Curve should be added to if it doesn't exist yet.\n"
+"   :type group: str\n"
+"   :return: Success of keyframe deleation.\n"
+"   :rtype: boolean";
 
 static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args)
 {
@@ -1779,19 +1831,21 @@ static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *arg
 }
 
 static char pyrna_struct_driver_add_doc[] =
-".. function:: driver_add(path, index=-1)\n"
+".. method:: driver_add(path, index=-1)\n"
 "\n"
-"   Returns the newly created driver or a list of drivers in the case of an array\n"
+"   Adds driver(s) to the given property\n"
 "\n"
 "   :arg path: path to the property to drive, analogous to the fcurve's data path.\n"
 "   :type path: string\n"
 "   :arg index: array index of the property drive. Defaults to -1 for all indicies or a single channel if the property is not an array.\n"
-"   :type index: int";
+"   :type index: int\n"
+"   :return: The driver(s) added.\n"
+"   :rtype: :class:`FCurve` or list if index is -1 with an array property.";
 
 static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 {
 	char *path, *path_full;
-	int index= -1; /* default to all */
+	int index= -1;
 	PropertyRNA *prop;
 	PyObject *ret;
 
@@ -1813,6 +1867,23 @@ static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 	if (!RNA_property_animateable(&self->ptr, prop)) {
 		PyErr_Format( PyExc_TypeError, "bpy_struct.driver_add(): property \"%s\" not animatable", path);
 		return NULL;
+	}
+	
+	if(RNA_property_array_check(&self->ptr, prop) == 0) {
+		if(index == -1) {
+			index= 0;
+		}
+		else {
+			PyErr_Format( PyExc_TypeError, "bpy_struct.driver_add(): array index %d given while property \"%s\" is not an array", index, path);
+			return NULL;
+		}
+	}
+	else {
+		int array_len= RNA_property_array_length(&self->ptr, prop);
+		if(index < -1 || index >= array_len) {
+			PyErr_Format( PyExc_TypeError, "bpy_struct.driver_add(): index out of range \"%s\", given %d, array length is %d", path, index, array_len);
+			return NULL;
+		}
 	}
 
 	path_full= RNA_path_from_ID_to_property(&self->ptr, prop);
@@ -1847,14 +1918,22 @@ static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 		}
 	}
 	else {
-		ret= Py_None;
-		Py_INCREF(ret);
+		PyErr_SetString(PyExc_TypeError, "bpy_struct.driver_add(): failed because of an internal error");
+		return NULL;
 	}
 
 	MEM_freeN(path_full);
 
 	return ret;
 }
+
+static char pyrna_struct_is_property_set_doc[] =
+".. method:: is_property_set(property)\n"
+"\n"
+"   Check if a property is set, use for testing operator properties.\n"
+"\n"
+"   :return: True when the property has been set.\n"
+"   :rtype: boolean";
 
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *args)
 {
@@ -1865,6 +1944,14 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
 
 	return PyBool_FromLong(RNA_property_is_set(&self->ptr, name));
 }
+
+static char pyrna_struct_is_property_hidden_doc[] =
+".. method:: is_property_hidden(property)\n"
+"\n"
+"   Check if a property is hidden.\n"
+"\n"
+"   :return: True when the property is hidden.\n"
+"   :rtype: boolean";
 
 static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *args)
 {
@@ -1882,12 +1969,9 @@ static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *
 }
 
 static char pyrna_struct_path_resolve_doc[] =
-".. function:: path_resolve(path)\n"
+".. method:: path_resolve(path)\n"
 "\n"
-"   Returns the property from the path given or None if the property is not found.\n"
-"\n"
-"   :arg path: path to the property.\n"
-"   :type path: string";
+"   Returns the property from the path given or None if the property is not found.";
 
 static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *value)
 {
@@ -1907,12 +1991,14 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *value)
 }
 
 static char pyrna_struct_path_from_id_doc[] =
-".. function:: path_from_id(property=\"\")\n"
+".. method:: path_from_id(property=\"\")\n"
 "\n"
 "   Returns the data path from the ID to this object (string).\n"
 "\n"
 "   :arg property: Optional property name which can be used if the path is to a property of this object.\n"
-"   :type property: string";
+"   :type property: string\n"
+"   :return: The path from :class:`bpy_struct.id_data` to this struct and property (when given).\n"
+"   :rtype: str";
 
 static PyObject *pyrna_struct_path_from_id(BPy_StructRNA *self, PyObject *args)
 {
@@ -1949,17 +2035,13 @@ static PyObject *pyrna_struct_path_from_id(BPy_StructRNA *self, PyObject *args)
 	return ret;
 }
 
-static PyObject *pyrna_struct_recast_type(BPy_StructRNA *self, PyObject *args)
-{
-	PointerRNA r_ptr;
-	RNA_pointer_recast(&self->ptr, &r_ptr);
-	return pyrna_struct_CreatePyObject(&r_ptr);
-}
-
 static char pyrna_prop_path_from_id_doc[] =
-".. function:: path_from_id()\n"
+".. method:: path_from_id()\n"
 "\n"
-"   Returns the data path from the ID to this property (string).";
+"   Returns the data path from the ID to this property (string).\n"
+"\n"
+"   :return: The path from :class:`bpy_struct.id_data` to this property.\n"
+"   :rtype: str";
 
 static PyObject *pyrna_prop_path_from_id(BPy_PropertyRNA *self)
 {
@@ -1978,6 +2060,21 @@ static PyObject *pyrna_prop_path_from_id(BPy_PropertyRNA *self)
 	MEM_freeN(path);
 
 	return ret;
+}
+
+static char pyrna_struct_recast_type_doc[] =
+".. method:: recast_type()\n"
+"\n"
+"   Return a new instance, this is needed because types such as textures can be changed at runtime.\n"
+"\n"
+"   :return: a new instance of this object with the type initialized again.\n"
+"   :rtype: subclass of :class:`bpy_struct`";
+
+static PyObject *pyrna_struct_recast_type(BPy_StructRNA *self, PyObject *args)
+{
+	PointerRNA r_ptr;
+	RNA_pointer_recast(&self->ptr, &r_ptr);
+	return pyrna_struct_CreatePyObject(&r_ptr);
 }
 
 static void pyrna_dir_members_py(PyObject *list, PyObject *self)
@@ -2348,7 +2445,7 @@ static PyGetSetDef pyrna_prop_getseters[] = {
 #endif
 
 static PyGetSetDef pyrna_struct_getseters[] = {
-	{"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, "The ID data this datablock is from, (not available for all data)", NULL},
+	{"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, "The :class:`ID` object this datablock is from or None, (not available for all data types)", NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -2425,6 +2522,18 @@ static PyObject *pyrna_prop_values(BPy_PropertyRNA *self)
 	return ret;
 }
 
+static char pyrna_struct_get_doc[] =
+".. method:: get(key, default=None)\n"
+"\n"
+"   Returns the value of the custom property assigned to key or default when not found (matches pythons dictionary function of the same name).\n"
+"\n"
+"   :arg key: The key assosiated with the custom property.\n"
+"   :type key: string\n"
+"   :arg default: Optional argument for the value to return if *key* is not found.\n"
+// "   :type default: Undefined\n"
+"\n"
+"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes support custom properties.\n";
+
 static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 {
 	IDProperty *group, *idprop;
@@ -2452,6 +2561,16 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 	Py_INCREF(def);
 	return def;
 }
+
+static char pyrna_struct_as_pointer_doc[] =
+".. method:: as_pointer()\n"
+"\n"
+"   Returns capsule which holds a pointer to blenders internal data\n"
+"\n"
+"   :return: capsule with a name set from the struct type.\n"
+"   :rtype: PyCapsule\n"
+"\n"
+"   .. note:: This is intended only for advanced script writers who need to pass blender data to their own C/Python modules.\n";
 
 static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
 {
@@ -2769,23 +2888,22 @@ PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
 static struct PyMethodDef pyrna_struct_methods[] = {
 
 	/* only for PointerRNA's with ID'props */
-	{"keys", (PyCFunction)pyrna_struct_keys, METH_NOARGS, NULL},
-	{"values", (PyCFunction)pyrna_struct_values, METH_NOARGS, NULL},
-	{"items", (PyCFunction)pyrna_struct_items, METH_NOARGS, NULL},
+	{"keys", (PyCFunction)pyrna_struct_keys, METH_NOARGS, pyrna_struct_keys_doc},
+	{"values", (PyCFunction)pyrna_struct_values, METH_NOARGS, pyrna_struct_values_doc},
+	{"items", (PyCFunction)pyrna_struct_items, METH_NOARGS, pyrna_struct_items_doc},
 
-	{"get", (PyCFunction)pyrna_struct_get, METH_VARARGS, NULL},
+	{"get", (PyCFunction)pyrna_struct_get, METH_VARARGS, pyrna_struct_get_doc},
 
-	{"as_pointer", (PyCFunction)pyrna_struct_as_pointer, METH_NOARGS, NULL},
+	{"as_pointer", (PyCFunction)pyrna_struct_as_pointer, METH_NOARGS, pyrna_struct_as_pointer_doc},
 
-	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, pyrna_struct_keyframe_insert_doc},
 	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS, pyrna_struct_keyframe_delete_doc},
 	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, pyrna_struct_driver_add_doc},
-	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, NULL},
-	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},
+	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, pyrna_struct_is_property_set_doc},
+	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, pyrna_struct_is_property_hidden_doc},
 	{"path_resolve", (PyCFunction)pyrna_struct_path_resolve, METH_O, pyrna_struct_path_resolve_doc},
 	{"path_from_id", (PyCFunction)pyrna_struct_path_from_id, METH_VARARGS, pyrna_struct_path_from_id_doc},
-	{"recast_type", (PyCFunction)pyrna_struct_recast_type, METH_NOARGS, NULL},
+	{"recast_type", (PyCFunction)pyrna_struct_recast_type, METH_NOARGS, pyrna_struct_recast_type_doc},
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
 
 	/* experemental */
