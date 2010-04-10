@@ -17,11 +17,6 @@ static PyObject * FrsCurve_push_vertex_back( BPy_FrsCurve *self, PyObject *args 
 static PyObject * FrsCurve_push_vertex_front( BPy_FrsCurve *self, PyObject *args );
 static PyObject * FrsCurve_empty( BPy_FrsCurve *self );
 static PyObject * FrsCurve_nSegments( BPy_FrsCurve *self );
-// point_iterator 	points_begin (float step=0)
-static PyObject * FrsCurve_verticesBegin( BPy_FrsCurve *self );
-static PyObject * FrsCurve_verticesEnd( BPy_FrsCurve *self );
-static PyObject * FrsCurve_pointsBegin( BPy_FrsCurve *self, PyObject *args );
-static PyObject * FrsCurve_pointsEnd( BPy_FrsCurve *self, PyObject *args );
 
 /*----------------------FrsCurve instance definitions ----------------------------*/
 static PyMethodDef BPy_FrsCurve_methods[] = {	
@@ -29,10 +24,6 @@ static PyMethodDef BPy_FrsCurve_methods[] = {
 	{"push_vertex_front", ( PyCFunction ) FrsCurve_push_vertex_front, METH_VARARGS, "(CurvePoint cp | SVertex sv) Adds a single vertex at the end of the Curve."},
 	{"empty", ( PyCFunction ) FrsCurve_empty, METH_NOARGS, "() Returns true is the Curve doesn't have any Vertex yet."},
 	{"nSegments", ( PyCFunction ) FrsCurve_nSegments, METH_NOARGS, "() Returns the number of segments in the oplyline constituing the Curve."},
-	{"verticesBegin", ( PyCFunction ) FrsCurve_verticesBegin, METH_NOARGS, "() Returns an Interface0DIterator pointing onto the first vertex of the Curve and that can iterate over the vertices of the Curve."},
-	{"verticesEnd", ( PyCFunction ) FrsCurve_verticesEnd, METH_NOARGS, "() Returns an Interface0DIterator pointing after the last vertex of the Curve and that can iterate over the vertices of the Curve."},
-	{"pointsBegin", ( PyCFunction ) FrsCurve_pointsBegin, METH_VARARGS, "(float t=0) Returns an Interface0DIterator pointing onto the first point of the Curve and that can iterate over the points of the Curve at any resolution t. At each iteration a virtual temporary CurvePoint is created."},
-	{"pointsEnd", ( PyCFunction ) FrsCurve_pointsEnd, METH_VARARGS, "(float t=0) Returns an Interface0DIterator pointing after the last point of the Curve and that can iterate over the points of the Curve at any resolution t. At each iteration a virtual temporary CurvePoint is created."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -153,43 +144,6 @@ PyObject * FrsCurve_empty( BPy_FrsCurve *self ) {
 PyObject * FrsCurve_nSegments( BPy_FrsCurve *self ) {
 	return PyLong_FromLong( self->c->nSegments() );
 }
-
-// point_iterator 	points_begin (float step=0)
-// not implemented
-
-
-PyObject * FrsCurve_verticesBegin( BPy_FrsCurve *self ) {
-	Interface0DIterator if0D_it( self->c->verticesBegin() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
-}
-
-PyObject * FrsCurve_verticesEnd( BPy_FrsCurve *self ) {
-	Interface0DIterator if0D_it( self->c->verticesEnd() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
-}
-
-
-PyObject * FrsCurve_pointsBegin( BPy_FrsCurve *self, PyObject *args ) {
-	float f = 0;
-
-	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
-		return NULL;
-	
-	Interface0DIterator if0D_it( self->c->pointsBegin(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
-}
-
-PyObject * FrsCurve_pointsEnd( BPy_FrsCurve *self, PyObject *args ) {
-	float f = 0;
-
-	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
-		return NULL;
-	
-	Interface0DIterator if0D_it( self->c->pointsEnd(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
-}
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

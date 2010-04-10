@@ -36,10 +36,6 @@ static PyObject * Stroke_setTips( BPy_Stroke *self , PyObject *args);
 static PyObject * Stroke_strokeVerticesBegin( BPy_Stroke *self , PyObject *args);
 static PyObject * Stroke_strokeVerticesEnd( BPy_Stroke *self );
 static PyObject * Stroke_strokeVerticesSize( BPy_Stroke *self );
-static PyObject * Stroke_verticesBegin( BPy_Stroke *self );
-static PyObject * Stroke_verticesEnd( BPy_Stroke *self );
-static PyObject * Stroke_pointsBegin( BPy_Stroke *self , PyObject *args);
-static PyObject * Stroke_pointsEnd( BPy_Stroke *self , PyObject *args);
 
 /*----------------------Stroke instance definitions ----------------------------*/
 static PyMethodDef BPy_Stroke_methods[] = {	
@@ -59,11 +55,6 @@ static PyMethodDef BPy_Stroke_methods[] = {
 	{"strokeVerticesBegin", ( PyCFunction ) Stroke_strokeVerticesBegin, METH_VARARGS, "(float t=0.f) Returns a StrokeVertexIterator pointing on the first StrokeVertex of the Stroke. One can specifly a sampling value t to resample the Stroke on the fly if needed. "},
 	{"strokeVerticesEnd", ( PyCFunction ) Stroke_strokeVerticesEnd, METH_NOARGS, "() Returns a StrokeVertexIterator pointing after the last StrokeVertex of the Stroke."},
 	{"strokeVerticesSize", ( PyCFunction ) Stroke_strokeVerticesSize, METH_NOARGS, "() Returns the number of StrokeVertex constituing the Stroke."},
-	{"verticesBegin", ( PyCFunction ) Stroke_verticesBegin, METH_NOARGS, "() Returns an Interface0DIterator pointing on the first StrokeVertex of the Stroke. "},
-	{"verticesEnd", ( PyCFunction ) Stroke_verticesEnd, METH_NOARGS, "() Returns an Interface0DIterator pointing after the last StrokeVertex of the Stroke. "},
-	{"pointsBegin", ( PyCFunction ) Stroke_pointsBegin, METH_VARARGS, "(float t=0.f) Returns an iterator over the Interface1D points, pointing to the first point. The difference with verticesBegin() is that here we can iterate over points of the 1D element at a any given sampling t. Indeed, for each iteration, a virtual point is created. "},
-	{"pointsEnd", ( PyCFunction ) Stroke_pointsEnd, METH_VARARGS, "(float t=0.f) Returns an iterator over the Interface1D points, pointing after the last point. The difference with verticesEnd() is that here we can iterate over points of the 1D element at a any given sampling t. Indeed, for each iteration, a virtual point is created. "},
-
 	{NULL, NULL, 0, NULL}
 };
 
@@ -333,36 +324,6 @@ PyObject * Stroke_strokeVerticesEnd( BPy_Stroke *self ) {
 
 PyObject * Stroke_strokeVerticesSize( BPy_Stroke *self ) {
 	return PyLong_FromLong( self->s->strokeVerticesSize() );
-}
-
-PyObject * Stroke_verticesBegin( BPy_Stroke *self ) {
-	Interface0DIterator if0D_it( self->s->verticesBegin() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
-}
-
-PyObject * Stroke_verticesEnd( BPy_Stroke *self ) {
-	Interface0DIterator if0D_it( self->s->verticesEnd() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );	
-}
-
-PyObject * Stroke_pointsBegin( BPy_Stroke *self , PyObject *args) {
-	float f = 0;
-
-	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
-		return NULL;
-
-	Interface0DIterator if0D_it( self->s->pointsBegin(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
-}
-
-PyObject * Stroke_pointsEnd( BPy_Stroke *self , PyObject *args) {
-	float f = 0;
-
-	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
-		return NULL;
-	
-	Interface0DIterator if0D_it( self->s->pointsEnd(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
 }
 	
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -30,10 +30,6 @@ static PyObject * FEdge_setPreviousEdge( BPy_FEdge *self , PyObject *args);
 static PyObject * FEdge_setSmooth( BPy_FEdge *self , PyObject *args); 
 static PyObject * FEdge_setNature( BPy_FEdge *self, PyObject *args );
 static PyObject * FEdge_setViewEdge( BPy_FEdge *self, PyObject *args );
-static PyObject * FEdge_verticesBegin( BPy_FEdge *self );
-static PyObject * FEdge_verticesEnd( BPy_FEdge *self );
-static PyObject * FEdge_pointsBegin( BPy_FEdge *self, PyObject *args );
-static PyObject * FEdge_pointsEnd( BPy_FEdge *self, PyObject *args );
 
 /*----------------------FEdge instance definitions ----------------------------*/
 static PyMethodDef BPy_FEdge_methods[] = {	
@@ -53,10 +49,6 @@ static PyMethodDef BPy_FEdge_methods[] = {
 	{"setSmooth", ( PyCFunction ) FEdge_setSmooth, METH_VARARGS, "(bool b) Sets the flag telling whether this FEdge is smooth or sharp. true for Smooth, false for Sharp. "},
 	{"setViewEdge", ( PyCFunction ) FEdge_setViewEdge, METH_VARARGS, "(ViewEdge ve) Sets the ViewEdge to which this FEdge belongs to."},
 	{"setNature", ( PyCFunction ) FEdge_setNature, METH_VARARGS, "(Nature n) Sets the nature of this FEdge. "},
-	{"verticesBegin", ( PyCFunction ) FEdge_verticesBegin, METH_NOARGS, "() Returns an iterator over the 2 (!) SVertex pointing to the first SVertex."},
-	{"verticesEnd", ( PyCFunction ) FEdge_verticesEnd, METH_NOARGS, "() Returns an iterator over the 2 (!) SVertex pointing after the last SVertex. "},
-	{"pointsBegin", ( PyCFunction ) FEdge_pointsBegin, METH_VARARGS, "(float t=0) Returns an iterator over the FEdge points, pointing to the first point. The difference with verticesBegin() is that here we can iterate over points of the FEdge at a any given sampling t. Indeed, for each iteration, a virtual point is created."},
-	{"pointsEnd", ( PyCFunction ) FEdge_pointsEnd, METH_VARARGS, "(float t=0) Returns an iterator over the FEdge points, pointing after the last point. The difference with verticesEnd() is that here we can iterate over points of the FEdge at a any given sampling t. Indeed, for each iteration, a virtual point is created."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -305,37 +297,6 @@ PyObject *FEdge_setSmooth( BPy_FEdge *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
-
-PyObject * FEdge_verticesBegin( BPy_FEdge *self ) {
-	Interface0DIterator if0D_it( self->fe->verticesBegin() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
-}
-
-PyObject * FEdge_verticesEnd( BPy_FEdge *self ) {
-	Interface0DIterator if0D_it( self->fe->verticesEnd() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
-}
-
-
-PyObject * FEdge_pointsBegin( BPy_FEdge *self, PyObject *args ) {
-	float f = 0;
-
-	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
-		return NULL;
-	
-	Interface0DIterator if0D_it( self->fe->pointsBegin(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
-}
-
-PyObject * FEdge_pointsEnd( BPy_FEdge *self, PyObject *args ) {
-	float f = 0;
-
-	if(!( PyArg_ParseTuple(args, "|f", &f)  ))
-		return NULL;
-	
-	Interface0DIterator if0D_it( self->fe->pointsEnd(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
-}
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
