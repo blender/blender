@@ -416,7 +416,7 @@ void DM_interp_face_data(DerivedMesh *source, DerivedMesh *dest,
 					  weights, (float*)vert_weights, count, dest_index);
 }
 
-void DM_swap_face_data(DerivedMesh *dm, int index, int *corner_indices)
+void DM_swap_face_data(DerivedMesh *dm, int index, const int *corner_indices)
 {
 	CustomData_swap(&dm->faceData, index, corner_indices);
 }

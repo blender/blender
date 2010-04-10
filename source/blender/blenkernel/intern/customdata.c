@@ -85,7 +85,7 @@ typedef struct LayerTypeInfo {
 				   int count, void *dest);
 
 	/* a function to swap the data in corners of the element */
-	void (*swap)(void *data, int *corner_indices);
+	void (*swap)(void *data, const int *corner_indices);
 
 	/* a function to set a layer's data to default values. if NULL, the
 	   default is assumed to be all zeros */
@@ -273,7 +273,7 @@ static void layerInterp_tface(void **sources, float *weights,
 	}
 }
 
-static void layerSwap_tface(void *data, int *corner_indices)
+static void layerSwap_tface(void *data, const int *corner_indices)
 {
 	MTFace *tf = data;
 	float uv[4][2];
@@ -368,7 +368,7 @@ static void layerInterp_origspace_face(void **sources, float *weights,
 	}
 }
 
-static void layerSwap_origspace_face(void *data, int *corner_indices)
+static void layerSwap_origspace_face(void *data, const int *corner_indices)
 {
 	OrigSpaceFace *osf = data;
 	float uv[4][2];
@@ -735,7 +735,7 @@ static void layerInterp_mcol(void **sources, float *weights,
 	}
 }
 
-static void layerSwap_mcol(void *data, int *corner_indices)
+static void layerSwap_mcol(void *data, const int *corner_indices)
 {
 	MCol *mcol = data;
 	MCol col[4];
@@ -1533,7 +1533,7 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 	if(count > SOURCE_BUF_SIZE) MEM_freeN(sources);
 }
 
-void CustomData_swap(struct CustomData *data, int index, int *corner_indices)
+void CustomData_swap(struct CustomData *data, int index, const int *corner_indices)
 {
 	const LayerTypeInfo *typeInfo;
 	int i;

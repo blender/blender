@@ -5900,6 +5900,7 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 		ed->v2 += numVerts;
 	}
 
+	/* note, copied vertex layers dont have flipped normals yet. do this after applying offset */
 	if((smd->flag & MOD_SOLIDIFY_EVEN) == 0) {
 		/* no even thickness, very simple */
 		float scalar_short;
@@ -6026,7 +6027,31 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 	if(vert_nors)
 		MEM_freeN(vert_nors);
 
+	/* flip vertex normals for copied verts */
+	mv= mvert + numVerts;
+	for(i=0; i<numVerts; i++, mv++) {
+		mv->no[0]= -mv->no[0];
+		mv->no[1]= -mv->no[1];
+		mv->no[2]= -mv->no[2];
+	}
+
 	if(smd->flag & MOD_SOLIDIFY_RIM) {
+
+		
+		/* bugger, need to re-calculate the normals for the new edge faces.
+		 * This could be done in many ways, but probably the quickest way is to calculate the average normals for side faces only.
+		 * Then blend them with the normals of the edge verts.
+		 * 
+		 * at the moment its easiest to allocate an entire array for every vertex, even though we only need edge verts - campbell
+		 */
+		
+#define SOLIDIFY_SIDE_NORMALS
+
+#ifdef SOLIDIFY_SIDE_NORMALS
+		/* annoying to allocate these since we only need the edge verts, */
+		float (*edge_vert_nos)[3]= MEM_callocN(sizeof(float) * numVerts * 3, "solidify_edge_nos");
+		float nor[3];
+#endif
 
 		const unsigned char crease_rim= smd->crease_rim * 255.0f;
 		const unsigned char crease_outer= smd->crease_outer * 255.0f;
@@ -6092,7 +6117,36 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 			if(crease_inner) {
 				medge[numEdges + eidx].crease= crease_inner;
 			}
+			
+#ifdef SOLIDIFY_SIDE_NORMALS
+			normal_quad_v3(nor, mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co, mvert[mf->v4].co);
+
+			add_v3_v3(edge_vert_nos[ed->v1], nor);
+			add_v3_v3(edge_vert_nos[ed->v2], nor);
+#endif
 		}
+		
+#ifdef SOLIDIFY_SIDE_NORMALS
+		ed= medge + (numEdges * 2);
+		for(i=0; i<newEdges; i++, ed++) {
+			float nor_cpy[3];
+			short *nor_short;
+			int j;
+			
+			/* note, only the first vertex (lower half of the index) is calculated */
+			normalize_v3_v3(nor_cpy, edge_vert_nos[ed->v1]);
+			
+			for(j=0; j<2; j++) { /* loop over both verts of the edge */
+				nor_short= mvert[*(&ed->v1 + j)].no;
+				normal_short_to_float_v3(nor, nor_short);
+				add_v3_v3(nor, nor_cpy);
+				normalize_v3(nor);
+				normal_float_to_short_v3(nor_short, nor);
+			}
+		}
+
+		MEM_freeN(edge_vert_nos);
+#endif
 
 		MEM_freeN(new_vert_arr);
 		MEM_freeN(new_edge_arr);
@@ -6102,6 +6156,8 @@ static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
 
 	return result;
 }
+
+#undef SOLIDIFY_SIDE_NORMALS
 
 static DerivedMesh *solidifyModifier_applyModifierEM(ModifierData *md,
 							 Object *ob,
