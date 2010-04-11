@@ -9646,6 +9646,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						BLI_path_abs(str, G.sce);
 						seq->sound = sound_new_file(main, str);
 					}
+					/* don't know, if anybody used that
+					   this way, but just in case, upgrade
+					   to new way... */
+					if((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) &&
+					   !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR))
+					{
+						
+						snprintf(seq->strip->proxy->dir, 
+							 FILE_MAXDIR, "%s/BL_proxy", 
+							 seq->strip->dir);
+					}
 				}
 			}
 		}

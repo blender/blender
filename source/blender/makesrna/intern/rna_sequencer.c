@@ -341,6 +341,35 @@ static int rna_Sequence_filepath_length(PointerRNA *ptr)
 	return strlen(path)+1;
 }
 
+static void rna_Sequence_proxy_filepath_set(PointerRNA *ptr, const char *value)
+{
+	StripProxy *proxy= (StripProxy*)(ptr->data);
+	char dir[FILE_MAX], name[FILE_MAX];
+
+	BLI_split_dirfile(value, dir, name);
+	BLI_strncpy(proxy->dir, dir, sizeof(proxy->dir));
+	BLI_strncpy(proxy->file, name, sizeof(proxy->file));
+}
+
+static void rna_Sequence_proxy_filepath_get(PointerRNA *ptr, char *value)
+{
+	StripProxy *proxy= (StripProxy*)(ptr->data);
+	char path[FILE_MAX];
+
+	BLI_join_dirfile(path, proxy->dir, proxy->file);
+	BLI_strncpy(value, path, strlen(path)+1);
+}
+
+static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
+{
+	StripProxy *proxy= (StripProxy*)(ptr->data);
+	char path[FILE_MAX];
+
+	BLI_join_dirfile(path, proxy->dir, proxy->file);
+	return strlen(path)+1;
+}
+
+
 /*static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 {
 	Sequence *seq= (Sequence*)(ptr->data);
@@ -468,12 +497,13 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "dir");
-	RNA_def_property_ui_text(prop, "Directory", "Location to story the proxy file");
+	RNA_def_property_ui_text(prop, "Directory", "Location to store the proxy files");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "file", PROP_STRING, PROP_DIRPATH);
-	RNA_def_property_string_sdna(prop, NULL, "file");
-	RNA_def_property_ui_text(prop, "File", "Proxy file name");
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_ui_text(prop, "Path", "Location of custom proxy file");
+	RNA_def_property_string_funcs(prop, "rna_Sequence_proxy_filepath_get", "rna_Sequence_proxy_filepath_length", "rna_Sequence_proxy_filepath_set");
+
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
@@ -843,6 +873,11 @@ static void rna_def_proxy(StructRNA *srna)
 	prop= RNA_def_property(srna, "proxy_custom_directory", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY_CUSTOM_DIR);
 	RNA_def_property_ui_text(prop, "Proxy Custom Directory", "Use a custom directory to store data");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "proxy_custom_file", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY_CUSTOM_FILE);
+	RNA_def_property_ui_text(prop, "Proxy Custom File", "Use a custom file to read proxy data from");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 

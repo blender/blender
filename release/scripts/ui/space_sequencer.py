@@ -727,9 +727,12 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 
         flow = layout.column_flow()
         flow.prop(strip, "proxy_custom_directory")
+        flow.prop(strip, "proxy_custom_file")
         if strip.proxy: # TODO - need to add this somehow
-            flow.prop(strip.proxy, "directory")
-            flow.prop(strip.proxy, "file")
+            if strip.proxy_custom_directory and not strip.proxy_custom_file:
+                flow.prop(strip.proxy, "directory")
+            if strip.proxy_custom_file:
+                flow.prop(strip.proxy, "filepath")
 
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
