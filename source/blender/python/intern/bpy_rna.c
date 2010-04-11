@@ -50,7 +50,7 @@
 #define USE_MATHUTILS
 
 #ifdef USE_MATHUTILS
-#include "../generic/Mathutils.h" /* so we can have mathutils callbacks */
+#include "../generic/mathutils.h" /* so we can have mathutils callbacks */
 #include "../generic/IDProp.h" /* for IDprop lookups */
 
 

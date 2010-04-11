@@ -121,7 +121,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 			)
 		);
 
-		char *rotmode, *drotmode;
+		const char *rotmode, *drotmode;
 
 		switch(blenderobject->rotmode)
 		{

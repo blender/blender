@@ -47,7 +47,7 @@
  * Moved to Geometry module: Intersect, TriangleArea, TriangleNormal, QuadNormal, LineIntersect
  */
 
-#include "Mathutils.h"
+#include "mathutils.h"
 
 #include "BLI_math.h"
 

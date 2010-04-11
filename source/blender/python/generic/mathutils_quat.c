@@ -26,7 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "Mathutils.h"
+#include "mathutils.h"
 
 #include "BLI_math.h"
 #include "BKE_utildefines.h"

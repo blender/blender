@@ -33,10 +33,10 @@
 
 #include <Python.h>
 
-#include "vector.h"
-#include "matrix.h"
-#include "quat.h"
-#include "euler.h"
+#include "mathutils_vector.h"
+#include "mathutils_matrix.h"
+#include "mathutils_quat.h"
+#include "mathutils_euler.h"
 
 /* Can cast different mathutils types to this, use for generic funcs */
 

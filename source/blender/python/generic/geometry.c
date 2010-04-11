@@ -27,7 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "Geometry.h"
+#include "geometry.h"
 
 /* Used for PolyFill */
 #include "BKE_displist.h"

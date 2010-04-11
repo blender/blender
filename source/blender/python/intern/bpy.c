@@ -35,9 +35,9 @@
 #include "BLI_path_util.h"
  
  /* external util modules */
-#include "../generic/Geometry.h"
+#include "../generic/geometry.h"
 #include "../generic/bgl.h"
-#include "../generic/blf.h"
+#include "../generic/blf_api.h"
 #include "../generic/IDProp.h"
 
 static char bpy_home_paths_doc[] =

@@ -46,7 +46,7 @@
 #ifndef DISABLE_PYTHON
 #ifdef USE_MATHUTILS
 extern "C" {
-#include "../../blender/python/generic/Mathutils.h" /* so we can have mathutils callbacks */
+#include "../../blender/python/generic/mathutils.h" /* so we can have mathutils callbacks */
 }
 #endif
 
