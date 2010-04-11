@@ -1,5 +1,5 @@
 #
-# $Id$
+# $Id:
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -22,35 +22,13 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Ben Batt
 #
 # ***** END GPL LICENSE BLOCK *****
 #
-#
+# Bounces make to subdirectories.
 
-include nan_definitions.mk
-
-DIRS = windowmanager editors blenloader readblenfile
-DIRS += avi imbuf render blenlib blenkernel blenpluginapi
-DIRS += makesdna makesrna
-DIRS += python nodes modifiers gpu
-DIRS += blenfont ikplugin
-
-ifeq ($(WITH_QUICKTIME), true)
-    DIRS += quicktime
-endif
-
-ifeq ($(WITH_OPENJPEG), true)
-    CFLAGS += -DWITH_OPENJPEG -I../../../../extern/libopenjpeg
-endif
-
-ifeq ($(WITH_OPENCOLLADA), true)
-    DIRS += collada
-endif
-
-
-DIR = $(OCGDIR)/blender
-SOURCEDIR = source/blender
-TESTDIRS = deflate streamglue
+SOURCEDIR = source/blender/modifiers
+DIRS = intern
 
 include nan_subdirs.mk

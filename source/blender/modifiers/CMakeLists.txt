@@ -1,6 +1,3 @@
-#
-# $Id$
-#
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -17,40 +14,50 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Jacques Beaurain
+#                 Ben Batt
 #
 # ***** END GPL LICENSE BLOCK *****
-#
-#
 
-include nan_definitions.mk
+FILE(GLOB SRC intern/*.c)
 
-DIRS = windowmanager editors blenloader readblenfile
-DIRS += avi imbuf render blenlib blenkernel blenpluginapi
-DIRS += makesdna makesrna
-DIRS += python nodes modifiers gpu
-DIRS += blenfont ikplugin
+SET(INC 
+	. ./intern
+	../../../intern/guardedalloc
+	../include
+	../blenlib
+	../makesdna
+	../blenkernel
+	../blenkernel/intern
+	../render/extern/include
+	../../../intern/decimation/extern
+	../../../intern/elbeem/extern
+	../../../intern/bsp/extern
+	${ZLIB_INC}
+)
 
-ifeq ($(WITH_QUICKTIME), true)
-    DIRS += quicktime
-endif
+IF(WITH_LZO)
+	SET(INC ${INC} ../../../extern/lzo/minilzo)
+	ADD_DEFINITIONS(-DWITH_LZO)
+ENDIF(WITH_LZO)
 
-ifeq ($(WITH_OPENJPEG), true)
-    CFLAGS += -DWITH_OPENJPEG -I../../../../extern/libopenjpeg
-endif
+IF(WITH_LZMA)
+	SET(INC ${INC} ../../../extern/lzma)
+	ADD_DEFINITIONS(-DWITH_LZMA)
+ENDIF(WITH_LZMA)
 
-ifeq ($(WITH_OPENCOLLADA), true)
-    DIRS += collada
-endif
+IF(WITH_OPENMP)
+		ADD_DEFINITIONS(-DPARALLEL=1)
+ENDIF(WITH_OPENMP)
 
+IF(NOT WITH_ELBEEM)
+	ADD_DEFINITIONS(-DDISABLE_ELBEEM)
+ENDIF(NOT WITH_ELBEEM)
 
-DIR = $(OCGDIR)/blender
-SOURCEDIR = source/blender
-TESTDIRS = deflate streamglue
+BLENDERLIB(bf_modifiers "${SRC}" "${INC}")
 
-include nan_subdirs.mk

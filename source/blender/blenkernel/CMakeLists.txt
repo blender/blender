@@ -27,7 +27,7 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-	. ../../../intern/guardedalloc ../../../intern/memutil ../editors/include ../blenlib ../makesdna
+	. ../../../intern/guardedalloc ../../../intern/memutil ../editors/include ../blenlib ../makesdna ../modifiers
 	../render/extern/include ../../../intern/decimation/extern
 	../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
 	../../../intern/iksolver/extern ../blenloader ../ikplugin
@@ -37,6 +37,7 @@ SET(INC
     ../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
 	${ZLIB_INC}
 )
+
 
 ADD_DEFINITIONS(-DGLEW_STATIC)
 

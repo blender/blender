@@ -1,0 +1,17 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.c')
+
+incs = '. ./intern'
+incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern'
+incs += ' ../render/extern/include'
+incs += ' ../include ../blenlib ../makesdna ../blenkernel ../blenkernel/intern'
+
+incs += ' ' + env['BF_ZLIB_INC']
+
+defs = ''
+
+env.BlenderLib ( libname = 'modifiers', sources = sources,
+                 includes = Split(incs), defines = Split(defs),
+                 libtype=['core','player'], priority = [180, 20] )

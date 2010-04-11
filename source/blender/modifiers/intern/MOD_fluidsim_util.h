@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: BKE_fluidsim.h 26841 2010-02-12 13:34:04Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) Blender Foundation.
+ * The Original Code is Copyright (C) Blender Foundation
  * All rights reserved.
  *
  * The Original Code is: all of this file.
@@ -26,8 +26,22 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BKE_BOOLEANOPS_H
-#define BKE_BOOLEANOPS_H
 
+#ifndef MOD_FLUIDSIM_UTIL_H
+#define MOD_FLUIDSIM_UTIL_H
+
+struct Object;
+struct Scene;
+struct FluidsimModifierData;
+struct DerivedMesh;
+
+/* new fluid-modifier interface */
+void fluidsim_init(struct FluidsimModifierData *fluidmd);
+void fluidsim_free(struct FluidsimModifierData *fluidmd);
+
+struct DerivedMesh *fluidsimModifier_do(struct FluidsimModifierData *fluidmd,
+	struct Scene *scene, struct Object *ob, struct DerivedMesh *dm,
+	int useRenderParams, int isFinalCalc);
+	
 #endif
 

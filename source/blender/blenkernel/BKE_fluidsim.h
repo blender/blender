@@ -30,6 +30,7 @@
 #ifndef BKE_FLUIDSIM_H
 #define BKE_FLUIDSIM_H
 
+
 struct Object;
 struct Scene;
 struct FluidsimModifierData;
@@ -37,24 +38,11 @@ struct DerivedMesh;
 struct MVert;
 
 /* old interface */
-struct FluidsimSettings *fluidsimSettingsNew(struct Object *srcob);
 
 void initElbeemMesh(struct Scene *scene, struct Object *ob,
 	int *numVertices, float **vertices,
 	int *numTriangles, int **triangles,
 	int useGlobalCoords, int modifierIndex);
-
-/* new fluid-modifier interface */
-void fluidsim_init(struct FluidsimModifierData *fluidmd);
-void fluidsim_free(struct FluidsimModifierData *fluidmd);
-
-struct DerivedMesh *fluidsim_read_cache(struct Object *ob, struct DerivedMesh *orgdm,
-	struct FluidsimModifierData *fluidmd, int framenr, int useRenderParams);
-void fluidsim_read_vel_cache(struct FluidsimModifierData *fluidmd, struct DerivedMesh *dm,
-	char *filename);
-struct DerivedMesh *fluidsimModifier_do(struct FluidsimModifierData *fluidmd,
-	struct Scene *scene, struct Object *ob, struct DerivedMesh *dm,
-	int useRenderParams, int isFinalCalc);
 
 /* bounding box & memory estimate */
 void fluid_get_bb(struct MVert *mvert, int totvert, float obmat[][4],
