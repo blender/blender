@@ -1,4 +1,5 @@
-/* $Id$
+/*
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
