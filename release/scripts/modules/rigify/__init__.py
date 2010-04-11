@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from Mathutils import Vector
+from mathutils import Vector
 
 # TODO, have these in a more general module
 from rna_prop_ui import rna_idprop_ui_prop_get

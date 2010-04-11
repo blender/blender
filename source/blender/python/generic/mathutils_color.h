@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id:
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -28,24 +28,24 @@
  *
  */
 
-#ifndef EXPP_quat_h
-#define EXPP_quat_h
+#ifndef EXPP_color_h
+#define EXPP_color_h
 
 #include <Python.h>
 
-extern PyTypeObject quaternion_Type;
-#define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)
+extern PyTypeObject color_Type;
+#define ColorObject_Check(_v) PyObject_TypeCheck((_v), &color_Type)
 
-typedef struct { /* keep aligned with BaseMathObject in mathutils.h */
-	PyObject_VAR_HEAD 
-	float *quat;				/* 1D array of data (alias) */
+typedef struct {
+	PyObject_VAR_HEAD
+	float *col;					/*1D array of data */
 	PyObject *cb_user;			/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
 	unsigned char cb_type;		/* which user funcs do we adhere to, RNA, GameObject, etc */
 	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
 	unsigned char wrapped;		/* wrapped data type? */
 	/* end BaseMathObject */
 
-} QuaternionObject;
+} ColorObject;
 
 /*struct data contains a pointer to the actual data that the
 object uses. It can use either PyMem allocated data (which will
@@ -53,7 +53,7 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *newQuaternionObject( float *quat, int type, PyTypeObject *base_type);
-PyObject *newQuaternionObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
+PyObject *newColorObject( float *col, int type, PyTypeObject *base_type);
+PyObject *newColorObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
-#endif				/* EXPP_quat_h */
+#endif				/* EXPP_color_h */

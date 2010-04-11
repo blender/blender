@@ -36,7 +36,7 @@ extern PyTypeObject matrix_Type;
 #define MatrixObject_Check(_v) PyObject_TypeCheck((_v), &matrix_Type)
 
 typedef float **ptRow;
-typedef struct _Matrix { /* keep aligned with BaseMathObject in Mathutils.h */
+typedef struct _Matrix { /* keep aligned with BaseMathObject in mathutils.h */
 	PyObject_VAR_HEAD
 	float *contigPtr;	/*1D array of data (alias)*/
 	PyObject *cb_user;	/* if this vector references another object, otherwise NULL, *Note* this owns its reference */

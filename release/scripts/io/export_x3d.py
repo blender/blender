@@ -69,7 +69,7 @@ import math
 import os
 
 import bpy
-import Mathutils
+import mathutils
 
 from export_3ds import create_derived_objects, free_derived_objects
 
@@ -81,7 +81,7 @@ from export_3ds import create_derived_objects, free_derived_objects
 
 #
 DEG2RAD=0.017453292519943295
-MATWORLD= Mathutils.RotationMatrix(-90, 4, 'X')
+MATWORLD= mathutils.RotationMatrix(-90, 4, 'X')
 
 ####################################
 # Global Variables

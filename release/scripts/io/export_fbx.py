@@ -77,7 +77,7 @@ import shutil # for file copying
 
 # import Blender
 import bpy
-import Mathutils
+import mathutils
 
 
 
@@ -135,7 +135,7 @@ def copy_images(dest_dir, textures):
 # I guess FBX uses degrees instead of radians (Arystan).
 # Call this function just before writing to FBX.
 def eulerRadToDeg(eul):
-    ret = Mathutils.Euler()
+    ret = mathutils.Euler()
 
     ret.x = 180 / math.pi * eul[0]
     ret.y = 180 / math.pi * eul[1]
@@ -143,10 +143,10 @@ def eulerRadToDeg(eul):
 
     return ret
 
-mtx4_identity = Mathutils.Matrix()
+mtx4_identity = mathutils.Matrix()
 
 # testing
-mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'X') # used
+mtx_x90		= mathutils.RotationMatrix( math.pi/2, 3, 'X') # used
 #mtx_x90n	= RotationMatrix(-90, 3, 'x')
 #mtx_y90	= RotationMatrix( 90, 3, 'y')
 #mtx_y90n	= RotationMatrix(-90, 3, 'y')
@@ -154,11 +154,11 @@ mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'X') # used
 #mtx_z90n	= RotationMatrix(-90, 3, 'z')
 
 #mtx4_x90	= RotationMatrix( 90, 4, 'x')
-mtx4_x90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'X') # used
+mtx4_x90n	= mathutils.RotationMatrix(-math.pi/2, 4, 'X') # used
 #mtx4_y90	= RotationMatrix( 90, 4, 'y')
-mtx4_y90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'Y') # used
-mtx4_z90	= Mathutils.RotationMatrix( math.pi/2, 4, 'Z') # used
-mtx4_z90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'Z') # used
+mtx4_y90n	= mathutils.RotationMatrix(-math.pi/2, 4, 'Y') # used
+mtx4_z90	= mathutils.RotationMatrix( math.pi/2, 4, 'Z') # used
+mtx4_z90n	= mathutils.RotationMatrix(-math.pi/2, 4, 'Z') # used
 
 # def strip_path(p):
 # 	return p.split('\\')[-1].split('/')[-1]
@@ -333,7 +333,7 @@ def write(filename, batch_objects = None, \
         EXP_CAMERA =				True,
         EXP_EMPTY =					True,
         EXP_IMAGE_COPY =			False,
-        GLOBAL_MATRIX =				Mathutils.Matrix(),
+        GLOBAL_MATRIX =				mathutils.Matrix(),
         ANIM_ENABLE =				True,
         ANIM_OPTIMIZE =				True,
         ANIM_OPTIMIZE_PRECISSION =	6,
@@ -600,8 +600,8 @@ def write(filename, batch_objects = None, \
                 matrix_rot = matrix_rot * mtx_x90
             elif type =='CAMERA':
 # 			elif ob and type =='Camera':
-                y = matrix_rot * Mathutils.Vector(0,1,0)
-                matrix_rot = Mathutils.RotationMatrix(math.pi/2, 3, y) * matrix_rot
+                y = matrix_rot * mathutils.Vector(0,1,0)
+                matrix_rot = mathutils.RotationMatrix(math.pi/2, 3, y) * matrix_rot
 
             return matrix_rot
 
@@ -702,8 +702,8 @@ def write(filename, batch_objects = None, \
                     matrix_rot = matrix_rot * mtx_x90
                     rot = tuple(matrix_rot.to_euler())
                 elif ob and ob.type =='Camera':
-                    y = matrix_rot * Mathutils.Vector(0,1,0)
-                    matrix_rot = Mathutils.RotationMatrix(math.pi/2, 3, y) * matrix_rot
+                    y = matrix_rot * mathutils.Vector(0,1,0)
+                    matrix_rot = mathutils.RotationMatrix(math.pi/2, 3, y) * matrix_rot
                     rot = tuple(matrix_rot.to_euler())
                 else:
                     rot = tuple(matrix_rot.to_euler())
@@ -1088,8 +1088,8 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\tTypeFlags: "Camera"')
         file.write('\n\t\tGeometryVersion: 124')
         file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
-        file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(matrix_rot * Mathutils.Vector(0,1,0)) )
-        file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(matrix_rot * Mathutils.Vector(0,0,-1)) )
+        file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(matrix_rot * mathutils.Vector(0,1,0)) )
+        file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(matrix_rot * mathutils.Vector(0,0,-1)) )
 
         #file.write('\n\t\tUp: 0,0,0' )
         #file.write('\n\t\tLookAt: 0,0,0' )

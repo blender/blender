@@ -105,7 +105,7 @@ Mathutils_Callback mathutils_matrix_vector_cb = {
 };
 /* matrix vector callbacks, this is so you can do matrix[i][j] = val  */
 
-//----------------------------------Mathutils.Matrix() -----------------
+//----------------------------------mathutils.Matrix() -----------------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 //create a new matrix type
 static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -119,7 +119,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 	argSize = PyTuple_GET_SIZE(args);
 	if(argSize > 4){	//bad arg nums
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
 		return NULL;
 	} else if (argSize == 0) { //return empty 4D matrix
 		return (PyObject *) newMatrixObject(NULL, 4, 4, Py_NEW, NULL);
@@ -141,13 +141,13 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 			if (PySequence_Check(argObject)) { //seq?
 				if(seqSize){ //0 at first
 					if(PySequence_Length(argObject) != seqSize){ //seq size not same
-						PyErr_SetString(PyExc_AttributeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
+						PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
 						return NULL;
 					}
 				}
 				seqSize = PySequence_Length(argObject);
 			}else{ //arg not a sequence
-				PyErr_SetString(PyExc_TypeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
+				PyErr_SetString(PyExc_TypeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
 				return NULL;
 			}
 		}
@@ -155,14 +155,14 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		for (i = 0; i < argSize; i++){
 			m = PyTuple_GET_ITEM(args, i);
 			if (m == NULL) { // Failed to read sequence
-				PyErr_SetString(PyExc_RuntimeError, "Mathutils.Matrix(): failed to parse arguments...\n");
+				PyErr_SetString(PyExc_RuntimeError, "mathutils.Matrix(): failed to parse arguments...\n");
 				return NULL;
 			}
 
 			for (j = 0; j < seqSize; j++) {
 				s = PySequence_GetItem(m, j);
 				if (s == NULL) { // Failed to read sequence
-					PyErr_SetString(PyExc_RuntimeError, "Mathutils.Matrix(): failed to parse arguments...\n");
+					PyErr_SetString(PyExc_RuntimeError, "mathutils.Matrix(): failed to parse arguments...\n");
 					return NULL;
 				}
 				
@@ -170,7 +170,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 				Py_DECREF(s);
 				
 				if(scalar==-1 && PyErr_Occurred()) { // parsed item is not a number
-					PyErr_SetString(PyExc_AttributeError, "Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
+					PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
 					return NULL;
 				}
 

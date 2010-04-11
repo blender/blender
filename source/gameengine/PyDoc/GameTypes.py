@@ -1670,7 +1670,7 @@ class KX_GameObject(SCA_IObject):
 		@deprecated: use L{localOrientation}
 		@type orn: 3x3 rotation matrix, or Quaternion.
 		@param orn: a rotation matrix specifying the new rotation.
-		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
+		@note: When using this matrix with Blender.mathutils.Matrix() types, it will need to be transposed.
 		"""
 	def alignAxisToVect(vect, axis, factor):
 		"""
@@ -1704,7 +1704,7 @@ class KX_GameObject(SCA_IObject):
 		@deprecated: use L{worldOrientation}
 		@rtype: 3x3 rotation matrix
 		@return: The game object's rotation matrix
-		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
+		@note: When using this matrix with Blender.mathutils.Matrix() types, it will need to be transposed.
 		"""
 	def applyMovement(movement, local = 0):
 		"""

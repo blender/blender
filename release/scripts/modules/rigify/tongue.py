@@ -128,7 +128,7 @@ def deform(obj, definitions, base_names, options):
 
 # TODO: rename all of the head/neck references to tongue
 def main(obj, bone_definition, base_names, options):
-    from Mathutils import Vector
+    from mathutils import Vector
 
     arm = obj.data
 

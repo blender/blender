@@ -279,7 +279,7 @@ def ik(obj, bone_definition, base_names, options):
 
 
 def fk(obj, bone_definition, base_names, options):
-    from Mathutils import Vector
+    from mathutils import Vector
     arm = obj.data
 
     # these account for all bones in METARIG_NAMES

@@ -318,7 +318,7 @@ def rna2sphinx(BASEPATH):
     fw("   These parts of the API are relatively stable and are unlikely to change significantly\n")
     fw("      * data API, access to attributes of blender data such as mesh verts, material color, timeline frames and scene objects\n")
     fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
-    fw("      * modules: bgl, Mathutils and Geometry\n")
+    fw("      * modules: bgl, mathutils and geometry\n")
     fw("\n")
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
@@ -332,7 +332,7 @@ def rna2sphinx(BASEPATH):
     # C modules
     fw("   bpy.props.rst\n\n")
     
-    fw("   Mathutils.rst\n\n")
+    fw("   mathutils.rst\n\n")
     fw("   blf.rst\n\n")
     file.close()
 
@@ -371,8 +371,8 @@ def rna2sphinx(BASEPATH):
     from bpy import props as module
     pymodule2sphinx(BASEPATH, "bpy.props", module, "Property Definitions (bpy.props)")
     
-    import Mathutils as module
-    pymodule2sphinx(BASEPATH, "Mathutils", module, "Math Types & Utilities (Mathutils)")
+    import mathutils as module
+    pymodule2sphinx(BASEPATH, "mathutils", module, "Math Types & Utilities (mathutils)")
     del module
 
     import blf as module

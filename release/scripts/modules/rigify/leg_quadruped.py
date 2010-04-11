@@ -23,7 +23,7 @@ from rna_prop_ui import rna_idprop_ui_prop_get
 from math import pi
 from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple, get_side_name, get_base_name
-from Mathutils import Vector
+from mathutils import Vector
 
 METARIG_NAMES = "hips", "thigh", "shin", "foot", "toe"
 

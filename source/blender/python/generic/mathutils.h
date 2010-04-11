@@ -37,6 +37,7 @@
 #include "mathutils_matrix.h"
 #include "mathutils_quat.h"
 #include "mathutils_euler.h"
+#include "mathutils_color.h"
 
 /* Can cast different mathutils types to this, use for generic funcs */
 

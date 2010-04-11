@@ -22,8 +22,8 @@ import math
 from math import radians
 
 import bpy
-import Mathutils
-from Mathutils import Vector, Euler, Matrix, RotationMatrix, TranslationMatrix
+import mathutils
+from mathutils import Vector, Euler, Matrix, RotationMatrix, TranslationMatrix
 
 
 class bvh_node_class(object):

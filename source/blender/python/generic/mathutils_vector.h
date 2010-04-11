@@ -35,7 +35,7 @@
 extern PyTypeObject vector_Type;
 #define VectorObject_Check(_v) PyObject_TypeCheck((_v), &vector_Type)
 
-typedef struct { /* keep aligned with BaseMathObject in Mathutils.h */
+typedef struct { /* keep aligned with BaseMathObject in mathutils.h */
 	PyObject_VAR_HEAD 
 	float *vec;					/*1D array of data (alias), wrapped status depends on wrapped status */
 	PyObject *cb_user;					/* if this vector references another object, otherwise NULL, *Note* this owns its reference */

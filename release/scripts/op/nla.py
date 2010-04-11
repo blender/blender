@@ -22,7 +22,7 @@ import bpy
 
 
 def pose_info():
-    from Mathutils import Matrix
+    from mathutils import Matrix
 
     info = {}
 

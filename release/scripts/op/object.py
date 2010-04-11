@@ -235,8 +235,8 @@ class ShapeTransfer(bpy.types.Operator):
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
             ob.shape_key_lock = True
 
-        from Geometry import BarycentricTransform
-        from Mathutils import Vector
+        from geometry import BarycentricTransform
+        from mathutils import Vector
 
         if use_clamp and mode == 'OFFSET':
             use_clamp = False
@@ -452,7 +452,7 @@ class MakeDupliFace(bpy.types.Operator):
         return (obj and obj.type == 'MESH')
 
     def _main(self, context):
-        from Mathutils import Vector
+        from mathutils import Vector
         from math import sqrt
 
         SCALE_FAC = 0.01

@@ -35,7 +35,7 @@
 #include "BLO_sys_types.h"
 #endif
 
-//----------------------------------Mathutils.Euler() -------------------
+//----------------------------------mathutils.Euler() -------------------
 //makes a new euler for you to play with
 static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwargs)
 {
@@ -51,7 +51,7 @@ static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwar
 		if (PySequence_Check(listObject)) {
 			size = PySequence_Length(listObject);
 		} else { // Single argument was not a sequence
-			PyErr_SetString(PyExc_TypeError, "Mathutils.Euler(): 3d numeric sequence expected\n");
+			PyErr_SetString(PyExc_TypeError, "mathutils.Euler(): 3d numeric sequence expected\n");
 			return NULL;
 		}
 	} else if (size == 0) {
@@ -62,7 +62,7 @@ static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwar
 	}
 
 	if (size != 3) { // Invalid euler size
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.Euler(): 3d numeric sequence expected\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.Euler(): 3d numeric sequence expected\n");
 		return NULL;
 	}
 
@@ -70,7 +70,7 @@ static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwar
 		e = PySequence_GetItem(listObject, i);
 		if (e == NULL) { // Failed to read sequence
 			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_RuntimeError, "Mathutils.Euler(): 3d numeric sequence expected\n");
+			PyErr_SetString(PyExc_RuntimeError, "mathutils.Euler(): 3d numeric sequence expected\n");
 			return NULL;
 		}
 
@@ -78,7 +78,7 @@ static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwar
 		Py_DECREF(e);
 		
 		if(eul[i]==-1 && PyErr_Occurred()) { // parsed item is not a number
-			PyErr_SetString(PyExc_TypeError, "Mathutils.Euler(): 3d numeric sequence expected\n");
+			PyErr_SetString(PyExc_TypeError, "mathutils.Euler(): 3d numeric sequence expected\n");
 			return NULL;
 		}
 	}
@@ -499,7 +499,7 @@ static PySequenceMethods Euler_SeqMethods = {
 
 
 /*
- * vector axis, vector.x/y/z/w
+ * euler axis, euler.x/y/z
  */
 static PyObject *Euler_getAxis( EulerObject * self, void *type )
 {

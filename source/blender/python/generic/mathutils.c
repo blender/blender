@@ -124,7 +124,7 @@ PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
 }
 
 //----------------------------------MATRIX FUNCTIONS--------------------
-//----------------------------------Mathutils.RotationMatrix() ----------
+//----------------------------------mathutils.RotationMatrix() ----------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 static char M_Mathutils_RotationMatrix_doc[] =
 ".. function:: RotationMatrix(angle, size, axis)\n"
@@ -150,14 +150,14 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
 	if(!PyArg_ParseTuple(args, "fi|O", &angle, &matSize, &vec)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.RotationMatrix(angle, size, axis): expected float int and a string or vector\n");
+		PyErr_SetString(PyExc_TypeError, "mathutils.RotationMatrix(angle, size, axis): expected float int and a string or vector\n");
 		return NULL;
 	}
 
 	if(vec && !VectorObject_Check(vec)) {
 		axis= _PyUnicode_AsString((PyObject *)vec);
 		if(axis==NULL || axis[0]=='\0' || axis[1]!='\0' || axis[0] < 'X' || axis[0] > 'Z') {
-			PyErr_SetString(PyExc_TypeError, "Mathutils.RotationMatrix(): 3rd argument axis value must be a 3D vector or a string in 'X', 'Y', 'Z'\n");
+			PyErr_SetString(PyExc_TypeError, "mathutils.RotationMatrix(): 3rd argument axis value must be a 3D vector or a string in 'X', 'Y', 'Z'\n");
 			return NULL;
 		}
 		else {
@@ -172,20 +172,20 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		angle-=(Py_PI*2);
 	
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
 	if(matSize == 2 && (vec != NULL)) {
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): cannot create a 2x2 rotation matrix around arbitrary axis\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): cannot create a 2x2 rotation matrix around arbitrary axis\n");
 		return NULL;
 	}
 	if((matSize == 3 || matSize == 4) && (axis == NULL) && (vec == NULL)) {
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): please choose an axis of rotation for 3d and 4d matrices\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): please choose an axis of rotation for 3d and 4d matrices\n");
 		return NULL;
 	}
 	if(vec) {
 		if(vec->size != 3) {
-			PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): the vector axis must be a 3D vector\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): the vector axis must be a 3D vector\n");
 			return NULL;
 		}
 		
@@ -228,7 +228,7 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 	}
 	else {
 		/* should never get here */
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): unknown error\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): unknown error\n");
 		return NULL;
 	}
 
@@ -263,11 +263,11 @@ static PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * v
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	
 	if(!VectorObject_Check(vec)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.TranslationMatrix(): expected vector\n");
+		PyErr_SetString(PyExc_TypeError, "mathutils.TranslationMatrix(): expected vector\n");
 		return NULL;
 	}
 	if(vec->size != 3 && vec->size != 4) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.TranslationMatrix(): vector must be 3D or 4D\n");
+		PyErr_SetString(PyExc_TypeError, "mathutils.TranslationMatrix(): vector must be 3D or 4D\n");
 		return NULL;
 	}
 	
@@ -282,7 +282,7 @@ static PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * v
 
 	return newMatrixObject(mat, 4, 4, Py_NEW, NULL);
 }
-//----------------------------------Mathutils.ScaleMatrix() -------------
+//----------------------------------mathutils.ScaleMatrix() -------------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 static char M_Mathutils_ScaleMatrix_doc[] =
 ".. function:: ScaleMatrix(factor, size, axis)\n"
@@ -307,16 +307,16 @@ static PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
 	if(!PyArg_ParseTuple(args, "fi|O!", &factor, &matSize, &vector_Type, &vec)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.ScaleMatrix(): expected float int and optional vector\n");
+		PyErr_SetString(PyExc_TypeError, "mathutils.ScaleMatrix(): expected float int and optional vector\n");
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.ScaleMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.ScaleMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
 	if(vec) {
 		if(vec->size > 2 && matSize == 2) {
-			PyErr_SetString(PyExc_AttributeError, "Mathutils.ScaleMatrix(): please use 2D vectors when scaling in 2D\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.ScaleMatrix(): please use 2D vectors when scaling in 2D\n");
 			return NULL;
 		}
 		
@@ -373,7 +373,7 @@ static PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
 	//pass to matrix creation
 	return newMatrixObject(mat, matSize, matSize, Py_NEW, NULL);
 }
-//----------------------------------Mathutils.OrthoProjectionMatrix() ---
+//----------------------------------mathutils.OrthoProjectionMatrix() ---
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 static char M_Mathutils_OrthoProjectionMatrix_doc[] =
 ".. function:: OrthoProjectionMatrix(plane, size, axis)\n"
@@ -398,16 +398,16 @@ static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * a
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	
 	if(!PyArg_ParseTuple(args, "si|O!", &plane, &matSize, &vector_Type, &vec)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.OrthoProjectionMatrix(): expected string and int and optional vector\n");
+		PyErr_SetString(PyExc_TypeError, "mathutils.OrthoProjectionMatrix(): expected string and int and optional vector\n");
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
-		PyErr_SetString(PyExc_AttributeError,"Mathutils.OrthoProjectionMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		PyErr_SetString(PyExc_AttributeError,"mathutils.OrthoProjectionMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
 	if(vec) {
 		if(vec->size > 2 && matSize == 2) {
-			PyErr_SetString(PyExc_AttributeError, "Mathutils.OrthoProjectionMatrix(): please use 2D vectors when scaling in 2D\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.OrthoProjectionMatrix(): please use 2D vectors when scaling in 2D\n");
 			return NULL;
 		}
 		
@@ -430,7 +430,7 @@ static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * a
 			mat[4] = 1.0f;
 			mat[8] = 1.0f;
 		} else {
-			PyErr_SetString(PyExc_AttributeError, "Mathutils.OrthoProjectionMatrix(): unknown plane - expected: X, Y, XY, XZ, YZ\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.OrthoProjectionMatrix(): unknown plane - expected: X, Y, XY, XZ, YZ\n");
 			return NULL;
 		}
 	} else { //arbitrary plane
@@ -458,7 +458,7 @@ static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * a
 			mat[7] = -(vec->vec[1] * vec->vec[2]);
 			mat[8] = 1 - (vec->vec[2] * vec->vec[2]);
 		} else {
-			PyErr_SetString(PyExc_AttributeError, "Mathutils.OrthoProjectionMatrix(): unknown plane - expected: 'r' expected for axis designation\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.OrthoProjectionMatrix(): unknown plane - expected: 'r' expected for axis designation\n");
 			return NULL;
 		}
 	}
@@ -500,11 +500,11 @@ static PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
 	if(!PyArg_ParseTuple(args, "sfi", &plane, &factor, &matSize)) {
-		PyErr_SetString(PyExc_TypeError,"Mathutils.ShearMatrix(): expected string float and int\n");
+		PyErr_SetString(PyExc_TypeError,"mathutils.ShearMatrix(): expected string float and int\n");
 		return NULL;
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
-		PyErr_SetString(PyExc_AttributeError,"Mathutils.ShearMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		PyErr_SetString(PyExc_AttributeError,"mathutils.ShearMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
 
@@ -535,7 +535,7 @@ static PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args)
 		mat[4] = 1.0f;
 		mat[8] = 1.0f;
 	} else {
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.ShearMatrix(): expected: x, y, xy, xz, yz or wrong matrix size for shearing plane\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.ShearMatrix(): expected: x, y, xy, xz, yz or wrong matrix size for shearing plane\n");
 		return NULL;
 	}
 	if(matSize == 4) {
@@ -683,7 +683,7 @@ struct PyMethodDef M_Mathutils_methods[] = {
 
 static struct PyModuleDef M_Mathutils_module_def = {
 	PyModuleDef_HEAD_INIT,
-	"Mathutils",  /* m_name */
+	"mathutils",  /* m_name */
 	M_Mathutils_doc,  /* m_doc */
 	0,  /* m_size */
 	M_Mathutils_methods,  /* m_methods */
@@ -705,7 +705,9 @@ PyObject *Mathutils_Init(void)
 		return NULL;
 	if( PyType_Ready( &quaternion_Type ) < 0 )
 		return NULL;
-	
+	if( PyType_Ready( &color_Type ) < 0 )
+		return NULL;
+
 	submodule = PyModule_Create(&M_Mathutils_module_def);
 	PyDict_SetItemString(PySys_GetObject("modules"), M_Mathutils_module_def.m_name, submodule);
 	
@@ -714,6 +716,7 @@ PyObject *Mathutils_Init(void)
 	PyModule_AddObject( submodule, "Matrix",		(PyObject *)&matrix_Type );
 	PyModule_AddObject( submodule, "Euler",			(PyObject *)&euler_Type );
 	PyModule_AddObject( submodule, "Quaternion",	(PyObject *)&quaternion_Type );
+	PyModule_AddObject( submodule, "Color",			(PyObject *)&color_Type );
 	
 	mathutils_matrix_vector_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_vector_cb);
 

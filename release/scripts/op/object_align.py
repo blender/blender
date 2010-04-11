@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from Mathutils import Vector
+from mathutils import Vector
 
 
 def align_objects(align_x, align_y, align_z, align_mode, relative_to):

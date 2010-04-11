@@ -22,7 +22,7 @@ import bpy
 from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
-from Mathutils import Vector, RotationMatrix
+from mathutils import Vector, RotationMatrix
 from math import radians, pi
 
 # not used, defined for completeness

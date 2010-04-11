@@ -26,7 +26,7 @@
 # that a generic function would need to check for.
 
 import bpy
-from Mathutils import Vector
+from mathutils import Vector
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 DELIMITER = '-._'

@@ -147,7 +147,7 @@ def deform(obj, definitions, base_names, options):
 
 
 def main(obj, bone_definition, base_names, options):
-    from Mathutils import Vector, RotationMatrix
+    from mathutils import Vector, RotationMatrix
     from math import radians, pi
 
     arm = obj.data

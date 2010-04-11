@@ -101,7 +101,7 @@ def PolyFill(polylines):
 
 	The example below creates 2 polylines and fills them in with faces, then makes a mesh in the current scene::
 		import Blender
-		Vector= Blender.Mathutils.Vector
+		Vector= Blender.mathutils.Vector
 
 		# Outline of 5 points
 		polyline1= [Vector(-2.0, 1.0, 1.0), Vector(-1.0, 2.0, 1.0), Vector(1.0, 2.0, 1.0), Vector(1.0, -1.0, 1.0), Vector(-1.0, -1.0, 1.0)]

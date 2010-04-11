@@ -41,7 +41,7 @@
 
 static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat); /* utility func */
 
-//----------------------------------Mathutils.Vector() ------------------
+//----------------------------------mathutils.Vector() ------------------
 // Supports 2D, 3D, and 4D vector objects both int and float values
 // accepted. Mixed float and int values accepted. Ints are parsed to float 
 static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -57,7 +57,7 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		if (PySequence_Check(listObject)) {
 			size = PySequence_Length(listObject);
 		} else { // Single argument was not a sequence
-			PyErr_SetString(PyExc_TypeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+			PyErr_SetString(PyExc_TypeError, "mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
 			return NULL;
 		}
 	} else if (size == 0) {
@@ -68,21 +68,21 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	}
 
 	if (size<2 || size>4) { // Invalid vector size
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+		PyErr_SetString(PyExc_AttributeError, "mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
 		return NULL;
 	}
 
 	for (i=0; i<size; i++) {
 		v=PySequence_GetItem(listObject, i);
 		if (v==NULL) { // Failed to read sequence
-			PyErr_SetString(PyExc_RuntimeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+			PyErr_SetString(PyExc_RuntimeError, "mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
 			return NULL;
 		}
 
 		f= PyFloat_AsDouble(v);
 		if(f==-1 && PyErr_Occurred()) { // parsed item not a number
 			Py_DECREF(v);
-			PyErr_SetString(PyExc_TypeError, "Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+			PyErr_SetString(PyExc_TypeError, "mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
 			return NULL;
 		}
 
@@ -643,7 +643,6 @@ static PyObject *Vector_Project(VectorObject * self, VectorObject * value)
 	return newVectorObject(vec, size, Py_NEW, NULL);
 }
 
-//----------------------------------Mathutils.MidpointVecs() -------------
 static char Vector_Lerp_doc[] =
 ".. function:: lerp(other, factor)\n"
 "\n"

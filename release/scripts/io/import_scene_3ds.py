@@ -144,7 +144,7 @@ import struct
 from import_scene_obj import unpack_face_list, load_image
 
 import bpy
-import Mathutils
+import mathutils
 
 BOUNDS_3DS = []
 
@@ -310,8 +310,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
     contextObName = None
     contextLamp = [None, None] # object, Data
     contextMaterial = None
-    contextMatrix_rot = None # Blender.Mathutils.Matrix(); contextMatrix.identity()
-    #contextMatrix_tx = None # Blender.Mathutils.Matrix(); contextMatrix.identity()
+    contextMatrix_rot = None # Blender.mathutils.Matrix(); contextMatrix.identity()
+    #contextMatrix_tx = None # Blender.mathutils.Matrix(); contextMatrix.identity()
     contextMesh_vertls = None
     contextMesh_facels = None
     contextMeshMaterials = {} # matname:[face_idxs]
@@ -722,7 +722,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             def getuv():
                 temp_data = file.read(STRUCT_SIZE_2FLOAT)
                 new_chunk.bytes_read += STRUCT_SIZE_2FLOAT #2 float x 4 bytes each
-                return Mathutils.Vector( struct.unpack('<2f', temp_data) )
+                return mathutils.Vector( struct.unpack('<2f', temp_data) )
 
             contextMeshUV = [ getuv() for i in range(num_uv) ]
 
@@ -732,7 +732,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             data = list( struct.unpack('<ffffffffffff', temp_data)  )
             new_chunk.bytes_read += STRUCT_SIZE_4x3MAT
 
-            contextMatrix_rot = Mathutils.Matrix(\
+            contextMatrix_rot = mathutils.Matrix(\
              data[:3] + [0],\
              data[3:6] + [0],\
              data[6:9] + [0],\
@@ -740,7 +740,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
 
             '''
-            contextMatrix_rot = Blender.Mathutils.Matrix(\
+            contextMatrix_rot = Blender.mathutils.Matrix(\
              data[:3] + [0],\
              data[3:6] + [0],\
              data[6:9] + [0],\
@@ -748,14 +748,14 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             '''
 
             '''
-            contextMatrix_rot = Blender.Mathutils.Matrix(\
+            contextMatrix_rot = Blender.mathutils.Matrix(\
              data[:3] ,\
              data[3:6],\
              data[6:9])
             '''
 
             '''
-            contextMatrix_rot = Blender.Mathutils.Matrix()
+            contextMatrix_rot = Blender.mathutils.Matrix()
             m = 0
             for j in xrange(4):
                 for i in xrange(3):
@@ -773,7 +773,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             #print contextMatrix_rot
             contextMatrix_rot.invert()
             #print contextMatrix_rot
-            #contextMatrix_tx = Blender.Mathutils.TranslationMatrix(0.5 * Blender.Mathutils.Vector(data[9:]))
+            #contextMatrix_tx = Blender.mathutils.TranslationMatrix(0.5 * Blender.mathutils.Vector(data[9:]))
             #contextMatrix_tx.invert()
 
             #tx.invert()
@@ -946,8 +946,8 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
                 SCALE/=10
 
             # SCALE Matrix
-            SCALE_MAT = Mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
-# 			SCALE_MAT = Blender.Mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
+            SCALE_MAT = mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
+# 			SCALE_MAT = Blender.mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
 
             for ob in importedObjects:
                 ob.setMatrix(ob.matrixWorld * SCALE_MAT)

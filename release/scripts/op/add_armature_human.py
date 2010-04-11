@@ -18,7 +18,7 @@
 
 # <pep8-80 compliant>
 import bpy
-import Mathutils
+import mathutils
 from math import cos, sin, pi
 
 # could this be stored elsewhere?

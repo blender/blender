@@ -25,7 +25,7 @@ def randomize_selected(seed, loc, rot, scale, scale_even, scale_min):
 
     import random
     from random import uniform
-    from Mathutils import Vector
+    from mathutils import Vector
 
     random.seed(seed)
 

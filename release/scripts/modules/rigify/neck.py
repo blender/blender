@@ -119,7 +119,7 @@ def deform(obj, definitions, base_names, options):
 
 
 def main(obj, bone_definition, base_names, options):
-    from Mathutils import Vector
+    from mathutils import Vector
 
     arm = obj.data
     eb = obj.data.edit_bones

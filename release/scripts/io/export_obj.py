@@ -47,7 +47,7 @@ import time
 import shutil
 
 import bpy
-import Mathutils
+import mathutils
 
 
 # Returns a tuple - path,extension.
@@ -221,7 +221,7 @@ def write_nurb(file, ob, ob_mat):
     cu = ob.data
 
     # use negative indices
-    Vector = Blender.Mathutils.Vector
+    Vector = Blender.mathutils.Vector
     for nu in cu:
 
         if nu.type==0:		DEG_ORDER_U = 1
@@ -370,7 +370,7 @@ def write(filename, objects, scene,
         file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
 
     if EXPORT_ROTX90:
-        mat_xrot90= Mathutils.RotationMatrix(-math.pi/2, 4, 'X')
+        mat_xrot90= mathutils.RotationMatrix(-math.pi/2, 4, 'X')
 
     # Initialize totals, these are updated each object
     totverts = totuvco = totno = 1

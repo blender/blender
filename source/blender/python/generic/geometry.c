@@ -44,7 +44,7 @@
 
 
 /*-------------------------DOC STRINGS ---------------------------*/
-static char M_Geometry_doc[] = "The Blender Geometry module\n\n";
+static char M_Geometry_doc[] = "The Blender geometry module\n\n";
 static char M_Geometry_Intersect_doc[] = "(v1, v2, v3, ray, orig, clip=1) - returns the intersection between a ray and a triangle, if possible, returns None otherwise";
 static char M_Geometry_TriangleArea_doc[] = "(v1, v2, v3) - returns the area size of the 2D or 3D triangle defined";
 static char M_Geometry_TriangleNormal_doc[] = "(v1, v2, v3) - returns the normal of the 3D triangle defined";
@@ -59,7 +59,7 @@ static char M_Geometry_BoxPack2D_doc[] = "";
 static char M_Geometry_BezierInterp_doc[] = "";
 
 //---------------------------------INTERSECTION FUNCTIONS--------------------
-//----------------------------------Mathutils.Intersect() -------------------
+//----------------------------------geometry.Intersect() -------------------
 static PyObject *M_Geometry_Intersect( PyObject * self, PyObject * args )
 {
 	VectorObject *ray, *ray_off, *vec1, *vec2, *vec3;
@@ -131,7 +131,7 @@ static PyObject *M_Geometry_Intersect( PyObject * self, PyObject * args )
 
 	return newVectorObject(pvec, 3, Py_NEW, NULL);
 }
-//----------------------------------Mathutils.LineIntersect() -------------------
+//----------------------------------geometry.LineIntersect() -------------------
 /* Line-Line intersection using algorithm from mathworld.wolfram.com */
 static PyObject *M_Geometry_LineIntersect( PyObject * self, PyObject * args )
 {
@@ -200,7 +200,7 @@ static PyObject *M_Geometry_LineIntersect( PyObject * self, PyObject * args )
 
 
 //---------------------------------NORMALS FUNCTIONS--------------------
-//----------------------------------Mathutils.QuadNormal() -------------------
+//----------------------------------geometry.QuadNormal() -------------------
 static PyObject *M_Geometry_QuadNormal( PyObject * self, PyObject * args )
 {
 	VectorObject *vec1;
@@ -251,7 +251,7 @@ static PyObject *M_Geometry_QuadNormal( PyObject * self, PyObject * args )
 	return newVectorObject(n1, 3, Py_NEW, NULL);
 }
 
-//----------------------------Mathutils.TriangleNormal() -------------------
+//----------------------------geometry.TriangleNormal() -------------------
 static PyObject *M_Geometry_TriangleNormal( PyObject * self, PyObject * args )
 {
 	VectorObject *vec1, *vec2, *vec3;
@@ -288,7 +288,7 @@ static PyObject *M_Geometry_TriangleNormal( PyObject * self, PyObject * args )
 }
 
 //--------------------------------- AREA FUNCTIONS--------------------
-//----------------------------------Mathutils.TriangleArea() -------------------
+//----------------------------------geometry.TriangleArea() -------------------
 static PyObject *M_Geometry_TriangleArea( PyObject * self, PyObject * args )
 {
 	VectorObject *vec1, *vec2, *vec3;
@@ -333,7 +333,7 @@ static PyObject *M_Geometry_TriangleArea( PyObject * self, PyObject * args )
 	}
 }
 
-/*----------------------------------Geometry.PolyFill() -------------------*/
+/*----------------------------------geometry.PolyFill() -------------------*/
 /* PolyFill function, uses Blenders scanfill to fill multiple poly lines */
 static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 {
@@ -363,7 +363,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 		if (!PySequence_Check(polyLine)) {
 			freedisplist(&dispbase);
 			Py_XDECREF(polyLine); /* may be null so use Py_XDECREF*/
-			PyErr_SetString( PyExc_TypeError, "One or more of the polylines is not a sequence of Mathutils.Vector's" );
+			PyErr_SetString( PyExc_TypeError, "One or more of the polylines is not a sequence of mathutils.Vector's" );
 			return NULL;
 		}
 		
@@ -373,7 +373,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 			if (EXPP_check_sequence_consistency( polyLine, &vector_Type ) != 1) {
 				freedisplist(&dispbase);
 				Py_DECREF(polyLine);
-				PyErr_SetString( PyExc_TypeError, "A point in one of the polylines is not a Mathutils.Vector type" );
+				PyErr_SetString( PyExc_TypeError, "A point in one of the polylines is not a mathutils.Vector type" );
 				return NULL;
 			}
 #endif
@@ -414,7 +414,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 	
 	if(ls_error) {
 		freedisplist(&dispbase); /* possible some dl was allocated */
-		PyErr_SetString( PyExc_TypeError, "A point in one of the polylines is not a Mathutils.Vector type" );
+		PyErr_SetString( PyExc_TypeError, "A point in one of the polylines is not a mathutils.Vector type" );
 		return NULL;
 	}
 	else if (totpoints) {
@@ -428,7 +428,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 		tri_list= PyList_New(dl->parts);
 		if( !tri_list ) {
 			freedisplist(&dispbase);
-			PyErr_SetString( PyExc_RuntimeError, "Geometry.PolyFill failed to make a new list" );
+			PyErr_SetString( PyExc_RuntimeError, "geometry.PolyFill failed to make a new list" );
 			return NULL;
 		}
 		
@@ -819,7 +819,7 @@ struct PyMethodDef M_Geometry_methods[] = {
 
 static struct PyModuleDef M_Geometry_module_def = {
 	PyModuleDef_HEAD_INIT,
-	"Geometry",  /* m_name */
+	"geometry",  /* m_name */
 	M_Geometry_doc,  /* m_doc */
 	0,  /* m_size */
 	M_Geometry_methods,  /* m_methods */

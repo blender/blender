@@ -1,9 +1,9 @@
-import Mathutils
+import mathutils
 
-vec = Mathutils.Vector(1.0, 2.0, 3.0)
+vec = mathutils.Vector(1.0, 2.0, 3.0)
 
-mat_rot = Mathutils.RotationMatrix(90, 4, 'X')
-mat_trans = Mathutils.TranslationMatrix(vec)
+mat_rot = mathutils.RotationMatrix(90, 4, 'X')
+mat_trans = mathutils.TranslationMatrix(vec)
 
 mat = mat_trans * mat_rot
 mat.invert()

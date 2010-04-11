@@ -712,7 +712,7 @@ static PyObject *Quaternion_getAxisVec( QuaternionObject * self, void *type )
 	return (PyObject *) newVectorObject(vec, 3, Py_NEW, NULL);
 }
 
-//----------------------------------Mathutils.Quaternion() --------------
+//----------------------------------mathutils.Quaternion() --------------
 static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyObject *listObject = NULL, *n, *q;
@@ -728,13 +728,13 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 			if ((size == 4 && PySequence_Length(args) !=1) ||
 				(size == 3 && PySequence_Length(args) !=2) || (size >4 || size < 3)) {
 				// invalid args/size
-				PyErr_SetString(PyExc_AttributeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+				PyErr_SetString(PyExc_AttributeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 				return NULL;
 			}
 			   if(size == 3){ //get angle in axis/angle
 				n = PySequence_GetItem(args, 1);
 				if(n == NULL) { // parsed item not a number or getItem fail
-					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+					PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 					return NULL;
 				}
 
@@ -742,7 +742,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 				Py_DECREF(n);
 
 				if (angle==-1 && PyErr_Occurred()) {
-					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+					PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 					return NULL;
 				}
 			}
@@ -752,17 +752,17 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 				size = PySequence_Length(listObject);
 				if (size != 3) {
 					// invalid args/size
-					PyErr_SetString(PyExc_AttributeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+					PyErr_SetString(PyExc_AttributeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 					return NULL;
 				}
 				angle = PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
 
 				if (angle==-1 && PyErr_Occurred()) {
-					PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+					PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 					return NULL;
 				}
 			} else { // argument was not a sequence
-				PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+				PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 				return NULL;
 			}
 		}
@@ -774,12 +774,12 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 
 	if (size == 3) { // invalid quat size
 		if(PySequence_Length(args) != 2){
-			PyErr_SetString(PyExc_AttributeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 			return NULL;
 		}
 	}else{
 		if(size != 4){
-			PyErr_SetString(PyExc_AttributeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+			PyErr_SetString(PyExc_AttributeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 			return NULL;
 		}
 	}
@@ -787,7 +787,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 	for (i=0; i<size; i++) { //parse
 		q = PySequence_GetItem(listObject, i);
 		if (q == NULL) { // Failed to read sequence
-			PyErr_SetString(PyExc_RuntimeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+			PyErr_SetString(PyExc_RuntimeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 			return NULL;
 		}
 
@@ -795,7 +795,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 		Py_DECREF(q);
 
 		if (quat[i]==-1 && PyErr_Occurred()) {
-			PyErr_SetString(PyExc_TypeError, "Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+			PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 			return NULL;
 		}
 	}

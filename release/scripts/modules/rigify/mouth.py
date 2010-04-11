@@ -21,7 +21,7 @@
 import bpy
 from rna_prop_ui import rna_idprop_ui_prop_get
 from math import acos, pi
-from Mathutils import Vector
+from mathutils import Vector
 from rigify import RigifyError
 from rigify_utils import copy_bone_simple
 

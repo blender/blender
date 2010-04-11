@@ -248,7 +248,7 @@ def main(obj, bone_definition, base_names, options):
         # NOTE: the direction of the Z rotation depends on which side the palm is on.
         # we could do a simple side-of-x test but better to work out the direction
         # the hand is facing.
-        from Mathutils import Vector
+        from mathutils import Vector
         from math import degrees
         child_pbone_01 = obj.pose.bones[children[0]].bone
         child_pbone_02 = obj.pose.bones[children[1]].bone

@@ -66,6 +66,7 @@ static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
 #define MATHUTILS_CB_SUBTYPE_EUL 0
 #define MATHUTILS_CB_SUBTYPE_VEC 1
 #define MATHUTILS_CB_SUBTYPE_QUAT 2
+#define MATHUTILS_CB_SUBTYPE_COLOR 0
 
 static int mathutils_rna_generic_check(BPy_PropertyRNA *self)
 {
@@ -246,8 +247,8 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 				}
 				else {
 					PyObject *eul_cb= newEulerObject_cb(ret, 0, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
-					Py_DECREF(ret); /* the matrix owns now */
-					ret= eul_cb; /* return the matrix instead */
+					Py_DECREF(ret); /* the euler owns now */
+					ret= eul_cb; /* return the euler instead */
 				}
 			}
 			else if (len==4) {
@@ -257,11 +258,23 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 				}
 				else {
 					PyObject *quat_cb= newQuaternionObject_cb(ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_QUAT);
-					Py_DECREF(ret); /* the matrix owns now */
-					ret= quat_cb; /* return the matrix instead */
+					Py_DECREF(ret); /* the quat owns now */
+					ret= quat_cb; /* return the quat instead */
 				}
 			}
 			break;
+		case PROP_COLOR:
+			if(len==3) { /* color */
+				if(is_thick) {
+					ret= newColorObject(NULL, Py_NEW, NULL); // TODO, get order from RNA
+					RNA_property_float_get_array(ptr, prop, ((ColorObject *)ret)->col);
+				}
+				else {
+					PyObject *col_cb= newColorObject_cb(ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_COLOR);
+					Py_DECREF(ret); /* the color owns now */
+					ret= col_cb; /* return the color instead */
+				}
+			}
 		default:
 			break;
 		}
