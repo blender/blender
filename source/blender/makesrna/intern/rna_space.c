@@ -1311,6 +1311,15 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{SEQ_DRAW_IMG_VECTORSCOPE, "VECTOR_SCOPE", ICON_SEQ_CHROMA_SCOPE, "Chroma Vectorscope", ""},
 		{SEQ_DRAW_IMG_HISTOGRAM, "HISTOGRAM", ICON_SEQ_HISTOGRAM, "Histogram", ""},
 		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem proxy_render_size_items[] = {
+		{SEQ_PROXY_RENDER_SIZE_NONE, "NONE", ICON_SEQ_PREVIEW, "No display", ""},
+		{SEQ_PROXY_RENDER_SIZE_SCENE, "SCENE", ICON_SEQ_PREVIEW, "Scene render size", ""},
+		{SEQ_PROXY_RENDER_SIZE_25, "PROXY_25", ICON_SEQ_PREVIEW, "Proxy size 25%", ""},
+		{SEQ_PROXY_RENDER_SIZE_50, "PROXY_50", ICON_SEQ_PREVIEW, "Proxy size 50%", ""},
+		{SEQ_PROXY_RENDER_SIZE_75, "PROXY_75", ICON_SEQ_PREVIEW, "Proxy size 75%", ""},
+		{SEQ_PROXY_RENDER_SIZE_FULL, "FULL", ICON_SEQ_PREVIEW, "No proxy, full render", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SpaceSequenceEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceSeq");
@@ -1379,6 +1388,12 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "zebra");
 	RNA_def_property_ui_text(prop, "Show Overexposed", "Show overexposed areas with zebra stripes");
 	RNA_def_property_range(prop, 0, 110);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
+	
+	prop= RNA_def_property(srna, "proxy_render_size", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "render_size");
+	RNA_def_property_enum_items(prop, proxy_render_size_items);
+	RNA_def_property_ui_text(prop, "Proxy render size", "Draw preview using full resolution or different proxy resolutions");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 	
 	

@@ -741,9 +741,12 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
         st = context.space_data
 
         col = layout.column()
-        col.prop(st, "draw_overexposed") # text="Zebra"
-        col.prop(st, "draw_safe_margin")
-
+        if st.display_mode == 'IMAGE':
+            col.prop(st, "draw_overexposed") # text="Zebra"
+            col.prop(st, "draw_safe_margin")
+        if st.display_mode == 'WAVEFORM':
+            col.prop(st, "separate_color_preview")
+        col.prop(st, "proxy_render_size");
 
 classes = [
     SEQUENCER_HT_header, # header/menu classes

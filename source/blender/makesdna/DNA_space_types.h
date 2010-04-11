@@ -872,6 +872,14 @@ enum {
 #define SEQ_VIEW_PREVIEW			2
 #define SEQ_VIEW_SEQUENCE_PREVIEW	3
 
+/* sseq->render_size */
+#define SEQ_PROXY_RENDER_SIZE_NONE      -1
+#define SEQ_PROXY_RENDER_SIZE_SCENE     0
+#define SEQ_PROXY_RENDER_SIZE_25        25
+#define SEQ_PROXY_RENDER_SIZE_50        50
+#define SEQ_PROXY_RENDER_SIZE_75        75
+#define SEQ_PROXY_RENDER_SIZE_FULL      100
+
 
 /* space types, moved from DNA_screen_types.h */
 enum {
