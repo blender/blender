@@ -1,5 +1,5 @@
 /**
- * $Id: booleanops.c 27655 2010-03-22 09:30:00Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

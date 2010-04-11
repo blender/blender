@@ -1,5 +1,5 @@
 /**
- * $Id: BKE_fluidsim.h 26841 2010-02-12 13:34:04Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,5 +1,5 @@
 /**
- * $Id: CMP_node.h 14061 2008-03-11 14:40:27Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
