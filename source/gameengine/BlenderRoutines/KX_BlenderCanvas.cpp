@@ -117,6 +117,11 @@ SetViewPort(
 	int x1, int y1,
 	int x2, int y2
 ){
+	/*	x1 and y1 are the min pixel coordinate (e.g. 0)
+		x2 and y2 are the max pixel coordinate
+		the width,height is calculated including both pixels
+		therefore: max - min + 1
+	*/
 	int vp_width = (x2 - x1) + 1;
 	int vp_height = (y2 - y1) + 1;
 	int minx = m_frame_rect.GetLeft();
@@ -166,7 +171,7 @@ void KX_BlenderCanvas::SetMousePosition(int x,int y)
 	int winY = m_frame_rect.GetBottom();
 	int winH = m_frame_rect.GetHeight();
 	
-	BL_warp_pointer(m_win, winX + x, winY + (winH-y-1));
+	BL_warp_pointer(m_win, winX + x, winY + (winH-y));
 }
 
 
