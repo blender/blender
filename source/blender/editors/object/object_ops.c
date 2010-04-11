@@ -143,6 +143,7 @@ void ED_operatortypes_object(void)
 	
 	WM_operatortype_append(OBJECT_OT_constraint_add);
 	WM_operatortype_append(OBJECT_OT_constraint_add_with_targets);
+	WM_operatortype_append(OBJECT_OT_constraint_copy);
 	WM_operatortype_append(POSE_OT_constraint_add);
 	WM_operatortype_append(POSE_OT_constraint_add_with_targets);
 	WM_operatortype_append(OBJECT_OT_constraints_clear);
