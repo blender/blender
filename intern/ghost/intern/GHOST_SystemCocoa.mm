@@ -807,7 +807,23 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
 /**
  * @note : expect Cocoa screen coordinates
  */
-GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const
+GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
+{
+	GHOST_TInt32 wx,wy;
+	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
+	if (!window) return GHOST_kFailure;
+
+	setMouseCursorPosition(x, y);
+	
+	//Force mouse move event (not pushed by Cocoa)
+	window->screenToClient(x, y, wx, wy);
+	pushEvent(new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, wx,wy));
+	m_outsideLoopEventProcessed = true;
+	
+	return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
 {
 	float xf=(float)x, yf=(float)y;
 	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
@@ -1517,7 +1533,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						
 						//Set new cursor position
 						window->clientToScreen(x_mouse, y_mouse, x_cur, y_cur);
-						setCursorPosition(x_cur, y_cur); /* wrap */
+						setMouseCursorPosition(x_cur, y_cur); /* wrap */
 						
 						//Post event
 						window->getCursorGrabInitPos(x_cur, y_cur);

@@ -970,7 +970,7 @@ GHOST_SystemX11::
 setCursorPosition(
 	GHOST_TInt32 x,
 	GHOST_TInt32 y
-) const {
+) {
 
 	// This is a brute force move in screen coordinates
 	// XWarpPointer does relative moves so first determine the

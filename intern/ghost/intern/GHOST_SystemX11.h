@@ -158,7 +158,7 @@ public:
 	setCursorPosition(
 		GHOST_TInt32 x,
 		GHOST_TInt32 y
-	) const;
+	);
 
 	/**
 	 * Returns the state of all modifier keys.
