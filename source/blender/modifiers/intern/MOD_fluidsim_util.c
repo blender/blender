@@ -59,7 +59,6 @@
 
 #include "BKE_action.h"
 #include "BKE_bmesh.h"
-#include "BKE_booleanops.h"
 #include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
