@@ -1703,25 +1703,19 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 	return BPy_Wrap_GetValues(self->ptr.id.data, group);
 }
 
-/* internal use for insert and delete */
-static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *error_prefix,
-	char **path_full, int *index, float *cfra, char **group_name) /* return values */
+/* for keyframes and drivers */
+static int pyrna_struct_anim_args_parse(PointerRNA *ptr, char *error_prefix, char *path,
+	char **path_full, int *index)
 {
-	char *path;
 	PropertyRNA *prop;
-
-	if (!PyArg_ParseTuple(args, "s|ifs", &path, index, cfra, group_name)) {
-		PyErr_Format(PyExc_TypeError, "%.200s expected a string and optionally an int, float, and string arguments", error_prefix);
-		return -1;
-	}
 	
 	if (ptr->data==NULL) {
 		PyErr_Format(PyExc_TypeError, "%.200s this struct has no data, can't be animated", error_prefix);
 		return -1;
 	}
-
+	
 	prop = RNA_struct_find_property(ptr, path);
-
+	
 	if (prop==NULL) {
 		PyErr_Format( PyExc_TypeError, "%.200s property \"%s\" not found", error_prefix, path);
 		return -1;
@@ -1756,6 +1750,23 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *er
 		return -1;
 	}
 
+	return 0;
+}
+
+/* internal use for insert and delete */
+static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *error_prefix,
+	char **path_full, int *index, float *cfra, char **group_name) /* return values */
+{
+	char *path;
+
+	if (!PyArg_ParseTuple(args, "s|ifs", &path, index, cfra, group_name)) {
+		PyErr_Format(PyExc_TypeError, "%.200s expected a string and optionally an int, float, and string arguments", error_prefix);
+		return -1;
+	}
+
+	if(pyrna_struct_anim_args_parse(ptr, error_prefix, path,  path_full, index) < 0) 
+		return -1;
+	
 	if(*cfra==FLT_MAX)
 		*cfra= CTX_data_scene(BPy_GetContext())->r.cfra;
 
@@ -1846,52 +1857,13 @@ static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 {
 	char *path, *path_full;
 	int index= -1;
-	PropertyRNA *prop;
 	PyObject *ret;
 
 	if (!PyArg_ParseTuple(args, "s|i:driver_add", &path, &index))
 		return NULL;
 
-	if (self->ptr.data==NULL) {
-		PyErr_Format( PyExc_TypeError, "bpy_struct.driver_add(): this struct has no data, cant be animated", path);
+	if(pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_add():", path,  &path_full, &index) < 0) 
 		return NULL;
-	}
-
-	prop = RNA_struct_find_property(&self->ptr, path);
-
-	if (prop==NULL) {
-		PyErr_Format( PyExc_TypeError, "bpy_struct.driver_add(): property \"%s\" not found", path);
-		return NULL;
-	}
-
-	if (!RNA_property_animateable(&self->ptr, prop)) {
-		PyErr_Format( PyExc_TypeError, "bpy_struct.driver_add(): property \"%s\" not animatable", path);
-		return NULL;
-	}
-	
-	if(RNA_property_array_check(&self->ptr, prop) == 0) {
-		if(index == -1) {
-			index= 0;
-		}
-		else {
-			PyErr_Format( PyExc_TypeError, "bpy_struct.driver_add(): array index %d given while property \"%s\" is not an array", index, path);
-			return NULL;
-		}
-	}
-	else {
-		int array_len= RNA_property_array_length(&self->ptr, prop);
-		if(index < -1 || index >= array_len) {
-			PyErr_Format( PyExc_TypeError, "bpy_struct.driver_add(): index out of range \"%s\", given %d, array length is %d", path, index, array_len);
-			return NULL;
-		}
-	}
-
-	path_full= RNA_path_from_ID_to_property(&self->ptr, prop);
-
-	if (path_full==NULL) {
-		PyErr_Format( PyExc_TypeError, "bpy_struct.driver_add(): could not make path to \"%s\"", path);
-		return NULL;
-	}
 
 	if(ANIM_add_driver((ID *)self->ptr.id.data, path_full, index, 0, DRIVER_TYPE_PYTHON)) {
 		ID *id= self->ptr.id.data;
@@ -1926,6 +1898,39 @@ static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 
 	return ret;
 }
+
+
+static char pyrna_struct_driver_remove_doc[] =
+".. method:: driver_remove(path, index=-1)\n"
+"\n"
+"   Remove driver(s) from the given property\n"
+"\n"
+"   :arg path: path to the property to drive, analogous to the fcurve's data path.\n"
+"   :type path: string\n"
+"   :arg index: array index of the property drive. Defaults to -1 for all indicies or a single channel if the property is not an array.\n"
+"   :type index: int\n"
+"   :return: Success of driver removal.\n"
+"   :rtype: boolean";
+
+static PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
+{
+	char *path, *path_full;
+	int index= -1;
+	PyObject *ret;
+
+	if (!PyArg_ParseTuple(args, "s|i:driver_remove", &path, &index))
+		return NULL;
+
+	if(pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_remove():", path,  &path_full, &index) < 0) 
+		return NULL;
+
+	ret= PyBool_FromLong(ANIM_remove_driver((ID *)self->ptr.id.data, path_full, index, 0));
+
+	MEM_freeN(path_full);
+
+	return ret;
+}
+
 
 static char pyrna_struct_is_property_set_doc[] =
 ".. method:: is_property_set(property)\n"
@@ -2899,6 +2904,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, pyrna_struct_keyframe_insert_doc},
 	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS, pyrna_struct_keyframe_delete_doc},
 	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, pyrna_struct_driver_add_doc},
+	{"driver_remove", (PyCFunction)pyrna_struct_driver_remove, METH_VARARGS, pyrna_struct_driver_remove_doc},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, pyrna_struct_is_property_set_doc},
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, pyrna_struct_is_property_hidden_doc},
 	{"path_resolve", (PyCFunction)pyrna_struct_path_resolve, METH_O, pyrna_struct_path_resolve_doc},
