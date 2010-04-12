@@ -30,12 +30,13 @@
 *
 */
 
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <float.h>
 #include <zlib.h>
-
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -59,10 +60,7 @@
 #include "MOD_fluidsim_util.h"
 
 // headers for fluidsim bobj meshes
-#include <stdlib.h>
 #include "LBM_fluidsim.h"
-#include <string.h>
-#include <stdio.h>
 
 void fluidsim_init(FluidsimModifierData *fluidmd)
 {
