@@ -2308,8 +2308,7 @@ void particle_fluidsim(ParticleSystem *psys, ParticleData *pa, ParticleSettings 
 	VECCOPY(start, pa->prev_state.co);
 	VECCOPY(end, pa->state.co);
 
-	sub_v3_v3v3(v, end, start);
-	mul_v3_fl(v, 1.f/dtime);
+	VECCOPY(v, pa->state.vel);
 
 	neighbours = BLI_kdtree_range_search(tree, radius, start, NULL, &ptn);
 
@@ -3790,18 +3789,23 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	}
 
 	if(psys->totpart) {
-		int dframe, totframesback = 0;
-
+		int dframe, subframe = 0, totframesback = 0, totsubframe = part->subframes+1;
+		float fraction;
+		
 		/* handle negative frame start at the first frame by doing
 		 * all the steps before the first frame */
 		if(framenr == startframe && part->sta < startframe)
 			totframesback = (startframe - (int)part->sta);
-
+		
 		for(dframe=-totframesback; dframe<=0; dframe++) {
 			/* ok now we're all set so let's go */
-			dynamics_step(sim, cfra+dframe);
-			psys->cfra = cfra+dframe;
+			for (subframe = 1; subframe <= totsubframe; subframe++) {
+				fraction = (float)subframe/(float)totsubframe;
+				dynamics_step(sim, cfra+dframe+fraction - 1.f);
+				psys->cfra = cfra+dframe+fraction - 1.f;
+			}
 		}
+		
 	}
 	
 /* 4. only write cache starting from second frame */

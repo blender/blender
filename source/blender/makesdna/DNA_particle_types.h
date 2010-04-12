@@ -136,7 +136,7 @@ typedef struct ParticleSettings {
 	/* physics modes */
 	short phystype, rotmode, avemode, reactevent;
 	short draw, draw_as, draw_size, childtype;
-	short ren_as, rt2;
+	short ren_as, subframes;
 	/* number of path segments, power of 2 except */
 	short draw_step, ren_step;
 	short hair_step, keys_step;
