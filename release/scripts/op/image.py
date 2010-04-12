@@ -50,6 +50,8 @@ class EditExternally(bpy.types.Operator):
                 # and will include a trailing backslash, so we strip it.
                 image_editor.rstrip('\\')
                 image_editor = ["open", "-a", image_editor]
+            else:
+                image_editor = [image_editor]
 
         return image_editor
 
