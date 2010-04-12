@@ -4670,7 +4670,7 @@ void initEdgeSlide(TransInfo *t)
 
 	t->num.increment = t->snap[1];
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 int doEdgeSlide(TransInfo *t, float perc)
