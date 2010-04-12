@@ -85,6 +85,9 @@ CPPFLAGS += -I../../nodes
 #path to gpu
 CPPFLAGS += -I../../gpu
 
+#modifiers got moved
+CPPFLAGS += -I../../modifiers
+
 # path to our own external headerfiles
 CPPFLAGS += -I..
 
