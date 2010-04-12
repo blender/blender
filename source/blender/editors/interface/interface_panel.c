@@ -970,6 +970,8 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 	/* check open/collapsed button */
 	if(event==RETKEY)
 		button= 1;
+	else if(event==AKEY)
+		button= 1;
 	else if(block->panel->flag & PNL_CLOSEDX) {
 		if(my >= block->maxy) button= 1;
 	}
@@ -1024,6 +1026,8 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 }
 
 /* XXX should become modal keymap */
+/* AKey is opening/closing panels, independent of button state now */
+
 int ui_handler_panel_region(bContext *C, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
@@ -1032,11 +1036,6 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 	int retval, mx, my, inside_header= 0, inside_scale= 0, inside;
 
 	retval= WM_UI_HANDLER_CONTINUE;
-
-	/* buttons get priority */
-	if(ui_button_is_active(ar))
-		return retval;
-
 	for(block=ar->uiblocks.last; block; block=block->prev) {
 		mx= event->x;
 		my= event->y;
@@ -1054,7 +1053,25 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 		if(block->minx <= mx && block->maxx >= mx)
 			if(block->miny <= my && block->maxy+PNL_HEADER >= my)
 				inside= 1;
-
+		
+		if(inside && event->val==KM_PRESS) {
+			if(event->type == AKEY) {
+				
+				if(pa->flag & PNL_CLOSEDY) {
+					if((block->maxy <= my) && (block->maxy+PNL_HEADER >= my))
+						ui_handle_panel_header(C, block, mx, my, event->type);
+				}
+				else
+					ui_handle_panel_header(C, block, mx, my, event->type);
+				
+				continue;
+			}
+		}
+		
+		/* on active button, do not handle panels */
+		if(ui_button_is_active(ar))
+			continue;
+		
 		if(inside) {
 			/* clicked at panel header? */
 			if(pa->flag & PNL_CLOSEDX) {
