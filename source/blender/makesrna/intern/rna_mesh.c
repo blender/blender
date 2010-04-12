@@ -46,6 +46,8 @@
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 
+#include "ED_mesh.h" /* XXX Bad level call */
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -456,6 +458,22 @@ static void rna_Mesh_active_uv_texture_index_range(PointerRNA *ptr, int *min, in
 	*min= 0;
 	*max= CustomData_number_of_layers(fdata, CD_MTFACE)-1;
 	*max= MAX2(0, *max);
+}
+
+static PointerRNA rna_Mesh_active_mtface_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->data;
+	EditMesh *em= BKE_mesh_get_editmesh(me);
+	MTFace *tf;
+
+	if (em && EM_texFaceCheck(em))
+	{
+		tf = EM_get_active_mtface(em, NULL, NULL, 1);
+
+		return rna_pointer_inherit_refine(ptr, &RNA_MeshTextureFace, tf);
+	}
+
+	return rna_pointer_inherit_refine(ptr, &RNA_MeshTextureFace, NULL);
 }
 
 static void rna_MeshTextureFace_uv1_get(PointerRNA *ptr, float *values)
@@ -1599,6 +1617,12 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 	prop= RNA_def_property(srna, "active", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "act_face");
 	RNA_def_property_ui_text(prop, "Active Face", "The active face for this mesh");
+
+	prop= RNA_def_property(srna, "active_tface", PROP_POINTER, PROP_UNSIGNED);
+	RNA_def_property_struct_type(prop, "MeshTextureFace");
+	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_mtface_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Texture Face", "Active Texture Face");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
 

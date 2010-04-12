@@ -248,6 +248,8 @@ float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.
 void ED_space_image_size(struct SpaceImage *sima, int *width, int *height){}
 
 void EM_selectmode_set(struct EditMesh *em){}
+int EM_texFaceCheck(struct EditMesh *em){return 0;}
+struct MTFace *EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloopy){return (struct MTFace *)NULL;}
 void make_editMesh(struct Scene *scene, struct Object *ob){}
 void load_editMesh(struct Scene *scene, struct Object *ob){}
 
