@@ -35,42 +35,17 @@
 #include "math.h"
 #include "float.h"
 
-#include "BLI_kdtree.h"
-#include "BLI_rand.h"
 #include "BLI_math.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_meshdata_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
-#include "DNA_material_types.h"
-#include "DNA_object_fluidsim.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
-#include "BKE_mesh.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_particle.h"
-#include "BKE_pointcache.h"
-#include "BKE_scene.h"
-#include "BKE_smoke.h"
-#include "BKE_softbody.h"
-#include "BKE_subsurf.h"
-#include "BKE_texture.h"
 
 #include "depsgraph_private.h"
-#include "BKE_deform.h"
-
-#include "LOD_decimation.h"
-
-
-#include "RE_shader_ext.h"
 
 #include "MOD_modifiertypes.h"
+
+#include "MEM_guardedalloc.h"
 
 /* Screw modifier: revolves the edges about an axis
 */

@@ -48,30 +48,17 @@
 #include "DNA_material_types.h"
 #include "DNA_object_fluidsim.h"
 
-
 #include "BKE_action.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_fluidsim.h"
-#include "BKE_multires.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
 #include "BKE_smoke.h"
-#include "BKE_softbody.h"
-#include "BKE_subsurf.h"
-#include "BKE_texture.h"
 
 #include "BKE_deform.h"
-
-#include "RE_shader_ext.h"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"

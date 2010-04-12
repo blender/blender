@@ -35,21 +35,19 @@
 #include "math.h"
 #include "float.h"
 
-#include "BLI_math.h"
-#include "BLI_uvproject.h"
-
-#include "DNA_object_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_customdata_types.h"
 
-#include "MEM_guardedalloc.h"
+#include "BLI_math.h"
+#include "BLI_uvproject.h"
 
 #include "BKE_DerivedMesh.h"
 #include "depsgraph_private.h"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
+
+#include "MEM_guardedalloc.h"
 
 
 /* UVProject */

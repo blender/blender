@@ -37,12 +37,10 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
-#include "BKE_DerivedMesh.h"
 
 #include "CCGSubSurf.h"
 

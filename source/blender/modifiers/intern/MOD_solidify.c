@@ -38,41 +38,17 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_meshdata_types.h"
 
-
-#include "BKE_action.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_fluidsim.h"
-#include "BKE_multires.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
-#include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_paint.h"
 #include "BKE_particle.h"
-#include "BKE_pointcache.h"
-#include "BKE_scene.h"
-#include "BKE_smoke.h"
-#include "BKE_softbody.h"
-#include "BKE_subsurf.h"
-#include "BKE_texture.h"
-
 #include "BKE_deform.h"
-
 #include "BKE_utildefines.h"
-
-#include "LOD_decimation.h"
-
-
 
 #include "MOD_modifiertypes.h"
 
+#include "MEM_guardedalloc.h"
 
 typedef struct EdgeFaceRef {
 	int f1; /* init as -1 */
