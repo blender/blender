@@ -33,6 +33,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_math.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
@@ -46,8 +48,41 @@
 static int rna_Meta_texspace_editable(PointerRNA *ptr)
 {
 	MetaBall *mb= (MetaBall*)ptr->data;
-	return (mb->texflag & AUTOSPACE)? 0: PROP_EDITABLE;
+	return (mb->texflag & MB_AUTOSPACE)? 0: PROP_EDITABLE;
 }
+
+static void rna_Meta_texspace_loc_get(PointerRNA *ptr, float *values)
+{
+	MetaBall *mb= (MetaBall*)ptr->data;
+	
+	/* tex_space_mball() needs object.. ugh */
+	
+	copy_v3_v3(values, mb->loc);
+}
+
+static void rna_Meta_texspace_loc_set(PointerRNA *ptr, const float *values)
+{
+	MetaBall *mb= (MetaBall*)ptr->data;
+	
+	copy_v3_v3(mb->loc, values);
+}
+
+static void rna_Meta_texspace_size_get(PointerRNA *ptr, float *values)
+{
+	MetaBall *mb= (MetaBall*)ptr->data;
+	
+	/* tex_space_mball() needs object.. ugh */
+	
+	copy_v3_v3(values, mb->size);
+}
+
+static void rna_Meta_texspace_size_set(PointerRNA *ptr, const float *values)
+{
+	MetaBall *mb= (MetaBall*)ptr->data;
+	
+	copy_v3_v3(mb->size, values);
+}
+
 
 static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -190,8 +225,37 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Threshold", "Influence of meta elements");
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 
-	/* materials, textures */
-	rna_def_texmat_common(srna, "rna_Meta_texspace_editable");
+	/* texture space */
+	prop= RNA_def_property(srna, "auto_texspace", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MB_AUTOSPACE);
+	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
+	
+	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
+	RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
+	RNA_def_property_float_funcs(prop, "rna_Meta_texspace_loc_get", "rna_Meta_texspace_loc_set", NULL);	
+	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	
+	prop= RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
+	RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
+	RNA_def_property_float_funcs(prop, "rna_Meta_texspace_size_get", "rna_Meta_texspace_size_set", NULL);
+	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	
+	/* not supported yet
+	 prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
+	 RNA_def_property_float(prop, NULL, "rot");
+	 RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
+	 RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
+	 RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");*/
+	
+	/* materials */
+	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_ui_text(prop, "Materials", "");
 	
 	/* anim */
 	rna_def_animdata_common(srna);

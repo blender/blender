@@ -226,6 +226,40 @@ static int rna_Mesh_texspace_editable(PointerRNA *ptr)
 	return (me->texflag & AUTOSPACE)? 0: PROP_EDITABLE;
 }
 
+static void rna_Mesh_texspace_loc_get(PointerRNA *ptr, float *values)
+{
+	Mesh *me= (Mesh *)ptr->data;
+	
+	if (!me->bb)
+		tex_space_mesh(me);
+	
+	copy_v3_v3(values, me->loc);
+}
+
+static void rna_Mesh_texspace_loc_set(PointerRNA *ptr, const float *values)
+{
+	Mesh *me= (Mesh *)ptr->data;
+	
+	copy_v3_v3(me->loc, values);
+}
+
+static void rna_Mesh_texspace_size_get(PointerRNA *ptr, float *values)
+{
+	Mesh *me= (Mesh *)ptr->data;
+	
+	if (!me->bb)
+		tex_space_mesh(me);
+	
+	copy_v3_v3(values, me->size);
+}
+
+static void rna_Mesh_texspace_size_set(PointerRNA *ptr, const float *values)
+{
+	Mesh *me= (Mesh *)ptr->data;
+	
+	copy_v3_v3(me->size, values);
+}
+
 static void rna_MeshVertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
@@ -1564,42 +1598,6 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
-void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
-{
-	PropertyRNA *prop;
-
-	/* texture space */
-	prop= RNA_def_property(srna, "auto_texspace", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "texflag", AUTOSPACE);
-	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
-
-	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "loc");
-	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
-	RNA_def_property_editable_func(prop, texspace_editable);
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-
-	prop= RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_float_sdna(prop, NULL, "size");
-	RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
-	RNA_def_property_editable_func(prop, texspace_editable);
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-
-	/* not supported yet
-	prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
-	RNA_def_property_float(prop, NULL, "rot");
-	RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
-	RNA_def_property_editable_func(prop, texspace_editable);
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");*/
-
-	/* materials */
-	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
-	RNA_def_property_struct_type(prop, "Material");
-	RNA_def_property_ui_text(prop, "Materials", "");
-}
-
-
 /* scene.objects */
 static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -1766,6 +1764,38 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "key");
 	RNA_def_property_ui_text(prop, "Shape Keys", "");
 	
+	/* texture space */
+	prop= RNA_def_property(srna, "auto_texspace", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "texflag", AUTOSPACE);
+	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
+	
+	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
+	RNA_def_property_editable_func(prop, "rna_Mesh_texspace_editable");
+	RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_loc_get", "rna_Mesh_texspace_loc_set", NULL);	
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+	
+	prop= RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
+	RNA_def_property_editable_func(prop, "rna_Mesh_texspace_editable");
+	RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_size_get", "rna_Mesh_texspace_size_set", NULL);
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+	
+	/* not supported yet
+	 prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
+	 RNA_def_property_float(prop, NULL, "rot");
+	 RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
+	 RNA_def_property_editable_func(prop, texspace_editable);
+	 RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");*/
+	
+	/* materials */
+	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_ui_text(prop, "Materials", "");
+	
 	/* Mesh Draw Options for Edit Mode*/
 	
 	prop= RNA_def_property(srna, "draw_edges", PROP_BOOLEAN, PROP_NONE);
@@ -1871,7 +1901,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	/* pointers */
 	rna_def_animdata_common(srna);
-	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
 
 	RNA_api_mesh(srna);
 }
