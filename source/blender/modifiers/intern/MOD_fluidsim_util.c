@@ -30,6 +30,8 @@
 *
 */
 
+#include <zlib.h>
+
 #include "stddef.h"
 #include "string.h"
 #include "math.h"
@@ -51,7 +53,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"	// FILE_MAX
+#include "DNA_space_types.h"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_fluidsim_util.h"
@@ -59,7 +61,6 @@
 // headers for fluidsim bobj meshes
 #include <stdlib.h>
 #include "LBM_fluidsim.h"
-#include <zlib.h>
 #include <string.h>
 #include <stdio.h>
 
