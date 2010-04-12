@@ -31,33 +31,26 @@
 */
 
 #include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
 #include <zlib.h>
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "BKE_cdderivedmesh.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_global.h"
-#include "BKE_mesh.h"
-#include "BKE_utildefines.h"
-
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_fluidsim.h"
-#include "DNA_scene_types.h"
-#include "DNA_space_types.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
+
+#include "BKE_cdderivedmesh.h"
+#include "BKE_mesh.h"
+#include "BKE_utildefines.h"
+#include "BKE_global.h" /* G.sce only */
 
 #include "MOD_modifiertypes.h"
-#include "MOD_fluidsim_util.h"
+
+#include "MEM_guardedalloc.h"
 
 // headers for fluidsim bobj meshes
 #include "LBM_fluidsim.h"

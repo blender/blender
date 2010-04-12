@@ -31,9 +31,6 @@
 */
 
 #include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -42,10 +39,9 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 
-#include "CCGSubSurf.h"
-
 #include "MOD_modifiertypes.h"
 
+#include "CCGSubSurf.h"
 
 static void initData(ModifierData *md)
 {

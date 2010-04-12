@@ -30,29 +30,21 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
+/* UV Project modifier: Generates UVs projected from an object */
 
-#include "DNA_camera_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_camera_types.h"
 
 #include "BLI_math.h"
 #include "BLI_uvproject.h"
 
 #include "BKE_DerivedMesh.h"
-#include "depsgraph_private.h"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
 #include "MEM_guardedalloc.h"
-
-
-/* UVProject */
-/* UV Project modifier: Generates UVs projected from an object
-*/
+#include "depsgraph_private.h"
 
 static void initData(ModifierData *md)
 {

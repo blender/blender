@@ -30,27 +30,18 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
-
 #include "BLI_math.h"
 
-#include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_customdata_types.h"
+
 #include "BKE_DerivedMesh.h"
-
-#include "MEM_guardedalloc.h"
-
 #include "BKE_object.h"
-
-#include "depsgraph_private.h"
 #include "BKE_deform.h"
 
+#include "depsgraph_private.h"
 
+#include "MEM_guardedalloc.h"
 #include "RE_shader_ext.h"
 
 #include "MOD_modifiertypes.h"

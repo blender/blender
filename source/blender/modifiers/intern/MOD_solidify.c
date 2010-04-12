@@ -30,15 +30,10 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
+#include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
-
-#include "DNA_meshdata_types.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"

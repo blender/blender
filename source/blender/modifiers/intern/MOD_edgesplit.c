@@ -30,55 +30,23 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
+/* EdgeSplit modifier: Splits edges in the mesh according to sharpness flag
+ * or edge angle (can be used to achieve autosmoothing) */
+
+#include "DNA_meshdata_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_memarena.h"
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_meshdata_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
-#include "DNA_material_types.h"
-#include "DNA_object_fluidsim.h"
-
-
-#include "BKE_action.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_fluidsim.h"
-#include "BKE_multires.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
-#include "BKE_material.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_paint.h"
 #include "BKE_particle.h"
 
-#include "depsgraph_private.h"
-#include "BKE_deform.h"
-#include "BKE_shrinkwrap.h"
+#include "MEM_guardedalloc.h"
 
-#include "LOD_decimation.h"
 
-#include "CCGSubSurf.h"
-
-#include "RE_shader_ext.h"
-
-#include "MOD_modifiertypes.h"
-
-/* EdgeSplit modifier: Splits edges in the mesh according to sharpness flag
- * or edge angle (can be used to achieve autosmoothing)
-*/
 #if 0
 #define EDGESPLIT_DEBUG_3
 #define EDGESPLIT_DEBUG_2

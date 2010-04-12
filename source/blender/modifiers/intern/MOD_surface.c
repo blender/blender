@@ -30,24 +30,19 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
-
-#include "BLI_math.h"
-
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "MEM_guardedalloc.h"
+#include "BLI_math.h"
+
 #include "BKE_cdderivedmesh.h"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
-/* Surface */
+#include "MEM_guardedalloc.h"
+
 
 static void initData(ModifierData *md) 
 {

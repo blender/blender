@@ -30,11 +30,6 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
-
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"

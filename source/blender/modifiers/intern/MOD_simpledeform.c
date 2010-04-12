@@ -30,11 +30,6 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
-
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
@@ -48,11 +43,8 @@
 
 #include "depsgraph_private.h"
 
-#include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
-#include <string.h>
-#include <math.h>
 
 
 /* Clamps/Limits the given coordinate to:  limits[0] <= co[axis] <= limits[1]

@@ -28,21 +28,14 @@
  * CSG operations. 
  */
 
-#include <string.h>
-#include <math.h>
-
-#include "MEM_guardedalloc.h"
-
-#include "BLI_math.h"
-#include "BLI_ghash.h"
-
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "CSG_BooleanOps.h"
+#include "BLI_math.h"
+#include "BLI_ghash.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_depsgraph.h"
@@ -50,7 +43,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 
-
+#include "CSG_BooleanOps.h"
 
 /**
  * Here's the vertex iterator structure used to walk through

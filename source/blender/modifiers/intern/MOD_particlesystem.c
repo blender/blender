@@ -31,36 +31,14 @@
 */
 
 #include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
 
-#include "BLI_kdtree.h"
-#include "BLI_rand.h"
-#include "BLI_uvproject.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
 #include "DNA_material_types.h"
-#include "DNA_object_fluidsim.h"
 
-#include "BKE_action.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
 #include "BKE_particle.h"
-#include "BKE_pointcache.h"
-#include "BKE_smoke.h"
 
-#include "BKE_deform.h"
-
-#include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
 

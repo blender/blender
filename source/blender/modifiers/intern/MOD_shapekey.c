@@ -30,15 +30,9 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
-
 #include "BLI_math.h"
 
 #include "DNA_key_types.h"
-
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_key.h"

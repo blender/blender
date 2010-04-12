@@ -30,10 +30,7 @@
 *
 */
 
-#include "stddef.h"
 #include "string.h"
-#include "math.h"
-#include "float.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
@@ -41,7 +38,6 @@
 
 #include "depsgraph_private.h"
 
-#include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
 

@@ -30,25 +30,17 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
-
-#include "BLI_math.h"
+/* Screw modifier: revolves the edges about an axis */
 
 #include "DNA_meshdata_types.h"
+
+#include "BLI_math.h"
 
 #include "BKE_cdderivedmesh.h"
 
 #include "depsgraph_private.h"
-
 #include "MOD_modifiertypes.h"
-
 #include "MEM_guardedalloc.h"
-
-/* Screw modifier: revolves the edges about an axis
-*/
 
 /* used for gathering edge connectivity */
 typedef struct ScrewVertConnect {

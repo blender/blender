@@ -28,32 +28,17 @@ FILE(GLOB SRC intern/*.c)
 
 SET(INC 
 	. ./intern
-	../../../intern/guardedalloc
-	../include
 	../blenlib
 	../makesdna
 	../blenkernel
 	../blenkernel/intern
 	../render/extern/include
+    ../../../intern/guardedalloc
 	../../../intern/decimation/extern
 	../../../intern/elbeem/extern
 	../../../intern/bsp/extern
 	${ZLIB_INC}
 )
-
-IF(WITH_LZO)
-	SET(INC ${INC} ../../../extern/lzo/minilzo)
-	ADD_DEFINITIONS(-DWITH_LZO)
-ENDIF(WITH_LZO)
-
-IF(WITH_LZMA)
-	SET(INC ${INC} ../../../extern/lzma)
-	ADD_DEFINITIONS(-DWITH_LZMA)
-ENDIF(WITH_LZMA)
-
-IF(WITH_OPENMP)
-		ADD_DEFINITIONS(-DPARALLEL=1)
-ENDIF(WITH_OPENMP)
 
 IF(NOT WITH_ELBEEM)
 	ADD_DEFINITIONS(-DDISABLE_ELBEEM)

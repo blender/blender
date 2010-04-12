@@ -30,11 +30,6 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
-
 #include "DNA_scene_types.h"
 
 #include "BKE_cdderivedmesh.h"

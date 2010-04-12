@@ -30,47 +30,20 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "stdarg.h"
-#include "math.h"
-#include "float.h"
+#include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_meshdata_types.h"
-
-#include "BKE_action.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_fluidsim.h"
-#include "BKE_multires.h"
-#include "BKE_key.h"
 #include "BKE_lattice.h"
-#include "BKE_material.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
-#include "BKE_smoke.h"
-#include "BKE_softbody.h"
-#include "BKE_subsurf.h"
-#include "BKE_texture.h"
-
-#include "depsgraph_private.h"
-#include "BKE_deform.h"
-#include "BKE_shrinkwrap.h"
 #include "BKE_utildefines.h"
 
-
-#include "MOD_modifiertypes.h"
+#include "depsgraph_private.h"
 
 
 static void initData(ModifierData *md)
