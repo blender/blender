@@ -1498,6 +1498,13 @@ private:
 		unsigned int totuvset = mesh->getUVCoords().getInputInfosArray().getCount();
 
 		for (i = 0; i < totuvset; i++) {
+			if (mesh->getUVCoords().getLength(i) == 0) {
+				totuvset = 0;
+				break;
+			}
+		}
+
+		for (i = 0; i < totuvset; i++) {
 			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface);
 			//this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
 		}
@@ -1554,9 +1561,11 @@ private:
 					indices += 3;
 
 					for (k = 0; k < totuvset; k++) {
-						// get mtface by face index and uv set index
-						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-						set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, false);
+						if (!index_list_array.empty() && index_list_array[k]) {
+							// get mtface by face index and uv set index
+							MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
+							set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, false);
+						}
 					}
 
 					test_index_face(mface, &me->fdata, face_index, 3);
@@ -1590,9 +1599,11 @@ private:
 						// it is assumed that all primitives have equal number of UV sets
 						
 						for (k = 0; k < totuvset; k++) {
-							// get mtface by face index and uv set index
-							MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-							set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, mface->v4 != 0);
+							if (!index_list_array.empty() && index_list_array[k]) {
+								// get mtface by face index and uv set index
+								MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
+								set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, mface->v4 != 0);
+							}
 						}
 
 						test_index_face(mface, &me->fdata, face_index, vcount);
@@ -1630,9 +1641,11 @@ private:
 							set_face_indices(mface, tri_indices, false);
 							
 							for (unsigned int l = 0; l < totuvset; l++) {
-								// get mtface by face index and uv set index
-								MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, l);
-								set_face_uv(&mtface[face_index], uvs, l, *index_list_array[l], uv_indices);
+								if (!index_list_array.empty() && index_list_array[l]) {
+									// get mtface by face index and uv set index
+									MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, l);
+									set_face_uv(&mtface[face_index], uvs, l, *index_list_array[l], uv_indices);
+								}
 							}
 
 							test_index_face(mface, &me->fdata, face_index, 3);
@@ -2711,7 +2724,7 @@ public:
 
 			unit_m4(m);
 
-			if (!evaluate_animation(tm, m, fra)) {
+			if (!evaluate_animation(tm, m, fra, node->getOriginalId().c_str())) {
 				switch (type) {
 				case COLLADAFW::Transformation::ROTATE:
 					dae_rotate_to_mat4(tm, m);
@@ -2738,7 +2751,7 @@ public:
 	}
 
 	// return true to indicate that mat contains a sane value
-	bool evaluate_animation(COLLADAFW::Transformation *tm, float mat[4][4], float fra)
+	bool evaluate_animation(COLLADAFW::Transformation *tm, float mat[4][4], float fra, const char *node_id)
 	{
 		const COLLADAFW::UniqueId& listid = tm->getAnimationList();
 		COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
@@ -2761,7 +2774,7 @@ public:
 			float vec[3];
 
 			bool is_scale = (type == COLLADAFW::Transformation::SCALE);
-			bool is_scale_or_translate = (type == COLLADAFW::Transformation::SCALE || type == COLLADAFW::Transformation::TRANSLATE);
+			bool is_translate = (type == COLLADAFW::Transformation::TRANSLATE);
 
 			if (type == COLLADAFW::Transformation::SCALE)
 				dae_scale_to_v3(tm, vec);
@@ -2772,6 +2785,29 @@ public:
 				const COLLADAFW::AnimationList::AnimationBinding& binding = bindings[j];
 				std::vector<FCurve*>& curves = curve_map[binding.animation];
 				COLLADAFW::AnimationList::AnimationClass animclass = binding.animationClass;
+				char path[100];
+
+				switch (type) {
+				case COLLADAFW::Transformation::ROTATE:
+					BLI_snprintf(path, sizeof(path), "%s.rotate (binding %u)", node_id, j);
+					break;
+				case COLLADAFW::Transformation::SCALE:
+					BLI_snprintf(path, sizeof(path), "%s.scale (binding %u)", node_id, j);
+					break;
+				case COLLADAFW::Transformation::TRANSLATE:
+					BLI_snprintf(path, sizeof(path), "%s.translate (binding %u)", node_id, j);
+					break;
+				case COLLADAFW::Transformation::MATRIX:
+					BLI_snprintf(path, sizeof(path), "%s.matrix (binding %u)", node_id, j);
+					break;
+				default:
+					break;
+				}
+
+				if (animclass == COLLADAFW::AnimationList::UNKNOWN_CLASS) {
+					fprintf(stderr, "%s: UNKNOWN animation class\n", path);
+					continue;
+				}
 
 				if (type == COLLADAFW::Transformation::ROTATE) {
 					if (curves.size() != 1) {
@@ -2781,7 +2817,7 @@ public:
 
 					// TODO support other animclasses
 					if (animclass != COLLADAFW::AnimationList::ANGLE) {
-						fprintf(stderr, "<rotate> animclass %d is not supported yet\n", animclass);
+						fprintf(stderr, "%s: animation class %d is not supported yet\n", path, animclass);
 						return false;
 					}
 
@@ -2792,14 +2828,14 @@ public:
 
 					return true;
 				}
-				else if (is_scale_or_translate) {
+				else if (is_scale || is_translate) {
 					bool is_xyz = animclass == COLLADAFW::AnimationList::POSITION_XYZ;
 
 					if ((!is_xyz && curves.size() != 1) || (is_xyz && curves.size() != 3)) {
 						if (is_xyz)
-							fprintf(stderr, "expected 3 curves, got %u, animclass=%d\n", curves.size(), animclass);
+							fprintf(stderr, "%s: expected 3 curves, got %u\n", path, curves.size());
 						else
-							fprintf(stderr, "expected 1 curve, got %u, animclass=%d\n", curves.size(), animclass);
+							fprintf(stderr, "%s: expected 1 curve, got %u\n", path, curves.size());
 						return false;
 					}
 					
@@ -2819,14 +2855,14 @@ public:
 						vec[2] = evaluate_fcurve(curves[2], fra);
 						break;
 					default:
-						fprintf(stderr, "<%s> animclass %d is not supported yet\n", is_scale ? "scale" : "translate", animclass);
+						fprintf(stderr, "%s: animation class %d is not supported yet\n", path, animclass);
 						break;
 					}
 				}
 				else if (type == COLLADAFW::Transformation::MATRIX) {
 					// for now, of matrix animation, support only the case when all values are packed into one animation
 					if (curves.size() != 16) {
-						fprintf(stderr, "expected 16 curves, got %u\n", curves.size());
+						fprintf(stderr, "%s: expected 16 curves, got %u\n", path, curves.size());
 						return false;
 					}
 
@@ -2854,7 +2890,7 @@ public:
 			else
 				copy_v3_v3(mat[3], vec);
 
-			return true;
+			return is_scale || is_translate;
 		}
 
 		return false;
