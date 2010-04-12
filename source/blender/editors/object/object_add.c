@@ -176,8 +176,10 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	PropertyRNA *prop;
 	RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view.");
 
-	if(do_editmode)
-		RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object.");
+	if(do_editmode) {
+		prop= RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object.");
+		RNA_def_property_flag(prop, PROP_HIDDEN);
+	}
 	
 	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object.", -FLT_MAX, FLT_MAX);
 	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", -FLT_MAX, FLT_MAX);
