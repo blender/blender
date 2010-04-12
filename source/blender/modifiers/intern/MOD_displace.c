@@ -38,12 +38,12 @@
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
@@ -51,12 +51,9 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -168,7 +165,7 @@ static int isDisabled(ModifierData *md, int useRenderParams)
 }
 
 static void updateDepgraph(
-						ModifierData *md, DagForest *forest, Scene *scene,
+						ModifierData *md, DagForest *forest, struct Scene *scene,
 	 Object *ob, DagNode *obNode)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
@@ -254,15 +251,13 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 	for(i = 0; i < numVerts; ++i, ++co, ++texco) {
 		switch(texmapping) {
 			case MOD_DISP_MAP_LOCAL:
-				VECCOPY(*texco, *co);
+				copy_v3_v3(*texco, *co);
 				break;
 			case MOD_DISP_MAP_GLOBAL:
-				VECCOPY(*texco, *co);
-				mul_m4_v3(ob->obmat, *texco);
+				mul_v3_m4v3(*texco, ob->obmat, *co);
 				break;
 			case MOD_DISP_MAP_OBJECT:
-				VECCOPY(*texco, *co);
-				mul_m4_v3(ob->obmat, *texco);
+				mul_v3_m4v3(*texco, ob->obmat, *co);
 				mul_m4_v3(mapob_imat, *texco);
 				break;
 		}
@@ -357,7 +352,7 @@ static void deformVerts(
 }
 
 static void deformVertsEM(
-					   ModifierData *md, Object *ob, EditMesh *editData,
+					   ModifierData *md, Object *ob, struct EditMesh *editData,
 	DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm= get_cddm(md->scene, ob, editData, derivedData, vertexCos);

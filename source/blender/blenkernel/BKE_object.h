@@ -46,6 +46,7 @@ struct BulletSoftBody;
 struct Group;
 struct bAction;
 struct RenderData;
+struct rctf;
 
 void clear_workob(struct Object *workob);
 void what_does_parent(struct Scene *scene, struct Object *ob, struct Object *workob);

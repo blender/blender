@@ -36,13 +36,11 @@
 #include "math.h"
 #include "float.h"
 
-#include "BLI_kdtree.h"
-#include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_armature_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -51,12 +49,9 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -76,6 +71,7 @@
 #include "depsgraph_private.h"
 #include "BKE_deform.h"
 #include "BKE_shrinkwrap.h"
+#include "BKE_utildefines.h"
 
 #include "LOD_decimation.h"
 
@@ -116,7 +112,7 @@ static void foreachObjectLink(
 	walk(userData, ob, &mmd->mirror_ob);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene,
+static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
 					  Object *ob, DagNode *obNode)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
@@ -179,7 +175,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		copy_v3_v3(co, inMV.co);
 		
 		if (mmd->mirror_ob) {
-			mul_v3_m4v3(co, mtx, co);
+			mul_m4_v3(mtx, co);
 		}
 		isShared = ABS(co[axis])<=tolerance;
 		
@@ -197,7 +193,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		if(isShared) {
 			co[axis] = 0;
 			if (mmd->mirror_ob) {
-				mul_v3_m4v3(co, imtx, co);
+				mul_m4_v3(imtx, co);
 			}
 			copy_v3_v3(mv->co, co);
 			
@@ -210,7 +206,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			
 			co[axis] = -co[axis];
 			if (mmd->mirror_ob) {
-				mul_v3_m4v3(co, imtx, co);
+				mul_m4_v3(imtx, co);
 			}
 			copy_v3_v3(mv2->co, co);
 			
@@ -356,7 +352,7 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, EditMesh *editData,
+		ModifierData *md, Object *ob, struct EditMesh *editData,
   DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

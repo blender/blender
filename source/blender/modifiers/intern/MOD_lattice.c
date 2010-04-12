@@ -51,12 +51,9 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -124,7 +121,7 @@ static void foreachObjectLink(
 	walk(userData, ob, &lmd->object);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest,  Scene *scene,
+static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
 					   Object *ob, DagNode *obNode)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
@@ -151,7 +148,7 @@ static void deformVerts(
 }
 
 static void deformVertsEM(
-					  ModifierData *md, Object *ob, EditMesh *editData,
+					  ModifierData *md, Object *ob, struct EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;

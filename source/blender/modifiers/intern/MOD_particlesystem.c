@@ -32,7 +32,6 @@
 
 #include "stddef.h"
 #include "string.h"
-#include "stdarg.h"
 #include "math.h"
 #include "float.h"
 
@@ -51,12 +50,9 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -73,7 +69,6 @@
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
 
-#include "depsgraph_private.h"
 #include "BKE_deform.h"
 
 #include "RE_shader_ext.h"

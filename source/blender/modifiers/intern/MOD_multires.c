@@ -51,12 +51,9 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"

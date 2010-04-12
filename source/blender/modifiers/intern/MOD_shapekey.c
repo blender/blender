@@ -32,13 +32,12 @@
 
 #include "stddef.h"
 #include "string.h"
-#include "stdarg.h"
 #include "math.h"
 #include "float.h"
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -51,12 +50,9 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -73,13 +69,11 @@
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
 
-#include "depsgraph_private.h"
 #include "BKE_deform.h"
 #include "BKE_shrinkwrap.h"
 
 #include "LOD_decimation.h"
 
-#include "CCGSubSurf.h"
 
 #include "RE_shader_ext.h"
 
@@ -103,7 +97,7 @@ static void deformVerts(
 }
 
 static void deformVertsEM(
-					   ModifierData *md, Object *ob, EditMesh *editData,
+					   ModifierData *md, Object *ob, struct EditMesh *editData,
 	DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	Key *key= ob_get_key(ob);
@@ -113,7 +107,7 @@ static void deformVertsEM(
 }
 
 static void deformMatricesEM(
-						  ModifierData *md, Object *ob, EditMesh *editData,
+						  ModifierData *md, Object *ob, struct EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3],
 						 float (*defMats)[3][3], int numVerts)
 {

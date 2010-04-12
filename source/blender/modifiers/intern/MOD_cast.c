@@ -36,9 +36,7 @@
 #include "math.h"
 #include "float.h"
 
-#include "BLI_kdtree.h"
-#include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -49,10 +47,13 @@
 #include "DNA_material_types.h"
 #include "DNA_object_fluidsim.h"
 
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_customdata_types.h"
+#include "BKE_DerivedMesh.h"
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
@@ -70,7 +71,7 @@
 #include "BKE_scene.h"
 #include "BKE_smoke.h"
 #include "BKE_softbody.h"
-#include "BKE_subsurf.h"
+#include "BKE_utildefines.h"
 #include "BKE_texture.h"
 
 #include "depsgraph_private.h"
@@ -143,7 +144,7 @@ static void foreachObjectLink(
 }
 
 static void updateDepgraph(
-					ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
+					ModifierData *md, DagForest *forest, struct Scene *scene, Object *ob,
 	 DagNode *obNode)
 {
 	CastModifierData *cmd = (CastModifierData*) md;
@@ -193,8 +194,7 @@ static void sphere_do(
 		}
 
 		invert_m4_m4(ob->imat, ob->obmat);
-		VECCOPY(center, ctrl_ob->obmat[3]);
-		mul_m4_v3(ob->imat, center);
+		mul_v3_m4v3(center, ob->imat, ctrl_ob->obmat[3]);
 	}
 
 	/* now we check which options the user wants */
@@ -239,7 +239,7 @@ static void sphere_do(
 			int j;
 			float tmp_co[3];
 
-			VECCOPY(tmp_co, vertexCos[i]);
+			copy_v3_v3(tmp_co, vertexCos[i]);
 			if(ctrl_ob) {
 				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 					mul_m4_v3(mat, tmp_co);
@@ -248,7 +248,7 @@ static void sphere_do(
 				}
 			}
 
-			VECCOPY(vec, tmp_co);
+			copy_v3_v3(vec, tmp_co);
 
 			if (type == MOD_CAST_TYPE_CYLINDER)
 				vec[2] = 0.0f;
@@ -285,7 +285,7 @@ static void sphere_do(
 				}
 			}
 
-			VECCOPY(vertexCos[i], tmp_co);
+			copy_v3_v3(vertexCos[i], tmp_co);
 		}
 		return;
 	}
@@ -294,7 +294,7 @@ static void sphere_do(
 	for (i = 0; i < numVerts; i++) {
 		float tmp_co[3];
 
-		VECCOPY(tmp_co, vertexCos[i]);
+		copy_v3_v3(tmp_co, vertexCos[i]);
 		if(ctrl_ob) {
 			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 				mul_m4_v3(mat, tmp_co);
@@ -303,7 +303,7 @@ static void sphere_do(
 			}
 		}
 
-		VECCOPY(vec, tmp_co);
+		copy_v3_v3(vec, tmp_co);
 
 		if (type == MOD_CAST_TYPE_CYLINDER)
 			vec[2] = 0.0f;
@@ -329,7 +329,7 @@ static void sphere_do(
 			}
 		}
 
-		VECCOPY(vertexCos[i], tmp_co);
+		copy_v3_v3(vertexCos[i], tmp_co);
 	}
 }
 
@@ -377,8 +377,7 @@ static void cuboid_do(
 		}
 
 		invert_m4_m4(ob->imat, ob->obmat);
-		VECCOPY(center, ctrl_ob->obmat[3]);
-		mul_m4_v3(ob->imat, center);
+		mul_v3_m4v3(center, ob->imat, ctrl_ob->obmat[3]);
 	}
 
 	if((flag & MOD_CAST_SIZE_FROM_RADIUS) && has_radius) {
@@ -447,7 +446,7 @@ static void cuboid_do(
 			float d[3], dmax, apex[3], fbb;
 			float tmp_co[3];
 
-			VECCOPY(tmp_co, vertexCos[i]);
+			copy_v3_v3(tmp_co, vertexCos[i]);
 			if(ctrl_ob) {
 				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 					mul_m4_v3(mat, tmp_co);
@@ -532,7 +531,7 @@ static void cuboid_do(
 				}
 			}
 
-			VECCOPY(vertexCos[i], tmp_co);
+			copy_v3_v3(vertexCos[i], tmp_co);
 		}
 		return;
 	}
@@ -543,12 +542,12 @@ static void cuboid_do(
 		float d[3], dmax, fbb, apex[3];
 		float tmp_co[3];
 
-		VECCOPY(tmp_co, vertexCos[i]);
+		copy_v3_v3(tmp_co, vertexCos[i]);
 		if(ctrl_ob) {
 			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 				mul_m4_v3(mat, tmp_co);
 			} else {
-				sub_v3_v3v3(tmp_co, tmp_co, center);
+				sub_v3_v3(tmp_co, center);
 			}
 		}
 
@@ -600,7 +599,7 @@ static void cuboid_do(
 			}
 		}
 
-		VECCOPY(vertexCos[i], tmp_co);
+		copy_v3_v3(vertexCos[i], tmp_co);
 	}
 }
 
@@ -624,7 +623,7 @@ static void deformVerts(
 }
 
 static void deformVertsEM(
-					   ModifierData *md, Object *ob, EditMesh *editData,
+					   ModifierData *md, Object *ob, struct EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = get_dm(md->scene, ob, editData, derivedData, NULL, 0);

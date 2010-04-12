@@ -1983,8 +1983,10 @@ static void pycon_id_looper (bConstraint *con, ConstraintIDFunc func, void *user
 /* Whether this approach is maintained remains to be seen (aligorith) */
 static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
 {
+#ifndef DISABLE_PYTHON
 	bPythonConstraint *data= con->data;
-	
+#endif
+
 	if (VALID_CONS_TARGET(ct)) {
 		/* special exception for curves - depsgraph issues */
 		if (ct->tar->type == OB_CURVE) {
@@ -3573,7 +3575,7 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			}
 
 			/* co is in local object coordinates, change it to global and update target position */
-			mul_v3_m4v3(co, cob->matrix, co);
+			mul_m4_v3(cob->matrix, co);
 			VECCOPY(ct->matrix[3], co);
 		}
 	}

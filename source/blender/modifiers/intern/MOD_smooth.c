@@ -32,17 +32,16 @@
 
 #include "stddef.h"
 #include "string.h"
-#include "stdarg.h"
 #include "math.h"
 #include "float.h"
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_armature_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -51,12 +50,9 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -73,13 +69,11 @@
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
 
-#include "depsgraph_private.h"
 #include "BKE_deform.h"
 #include "BKE_shrinkwrap.h"
 
 #include "LOD_decimation.h"
 
-#include "CCGSubSurf.h"
 
 #include "RE_shader_ext.h"
 
@@ -274,7 +268,7 @@ static void deformVerts(
 }
 
 static void deformVertsEM(
-					 ModifierData *md, Object *ob, EditMesh *editData,
+					 ModifierData *md, Object *ob, struct EditMesh *editData,
 	  DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm= get_dm(md->scene, ob, editData, derivedData, NULL, 0);

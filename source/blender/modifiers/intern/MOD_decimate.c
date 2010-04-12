@@ -36,13 +36,11 @@
 #include "math.h"
 #include "float.h"
 
-#include "BLI_kdtree.h"
-#include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_armature_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -51,12 +49,9 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -140,11 +135,8 @@ static DerivedMesh *applyModifier(
 		float *vbCo = &lod.vertex_buffer[a*3];
 		float *vbNo = &lod.vertex_normal_buffer[a*3];
 
-		VECCOPY(vbCo, mv->co);
-
-		vbNo[0] = mv->no[0]/32767.0f;
-		vbNo[1] = mv->no[1]/32767.0f;
-		vbNo[2] = mv->no[2]/32767.0f;
+		copy_v3_v3(vbCo, mv->co);
+		normal_short_to_float_v3(vbNo, mv->no);
 	}
 
 	numTris = 0;
@@ -184,7 +176,7 @@ static DerivedMesh *applyModifier(
 				MVert *mv = &mvert[a];
 				float *vbCo = &lod.vertex_buffer[a*3];
 				
-				VECCOPY(mv->co, vbCo);
+				copy_v3_v3(mv->co, vbCo);
 			}
 
 			if(lod.vertex_num>2) {

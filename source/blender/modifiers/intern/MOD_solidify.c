@@ -32,31 +32,21 @@
 
 #include "stddef.h"
 #include "string.h"
-#include "stdarg.h"
 #include "math.h"
 #include "float.h"
 
-#include "BLI_kdtree.h"
-#include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
+#include "BLI_edgehash.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
-#include "DNA_material_types.h"
-#include "DNA_object_fluidsim.h"
+#include "DNA_meshdata_types.h"
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -73,15 +63,13 @@
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
 
-#include "depsgraph_private.h"
 #include "BKE_deform.h"
-#include "BKE_shrinkwrap.h"
+
+#include "BKE_utildefines.h"
 
 #include "LOD_decimation.h"
 
-#include "CCGSubSurf.h"
 
-#include "RE_shader_ext.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -181,8 +169,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 				/* only one face attached to that edge */
 				/* an edge without another attached- the weight on this is
 				 * undefined, M_PI/2 is 90d in radians and that seems good enough */
-				VECCOPY(edge_normal, face_nors[edge_ref->f1])
-				mul_v3_fl(edge_normal, M_PI/2);
+				mul_v3_v3fl(edge_normal, face_nors[edge_ref->f1], M_PI/2);
 			}
 			add_v3_v3(temp_nors[ed_v1], edge_normal);
 			add_v3_v3(temp_nors[ed_v2], edge_normal);
@@ -655,7 +642,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 static DerivedMesh *applyModifierEM(ModifierData *md,
 							 Object *ob,
-							 EditMesh *editData,
+							 struct EditMesh *editData,
 							 DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

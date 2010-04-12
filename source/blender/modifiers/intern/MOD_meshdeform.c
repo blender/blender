@@ -38,11 +38,11 @@
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_armature_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -51,8 +51,6 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
@@ -143,7 +141,7 @@ static void foreachObjectLink(
 }
 
 static void updateDepgraph(
-						  ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
+						  ModifierData *md, DagForest *forest, struct Scene *scene, Object *ob,
 	   DagNode *obNode)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
@@ -204,7 +202,7 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 		}
 	}
 
-	VECCOPY(vec, co);
+	copy_v3_v3(vec, co);
 
 	return totweight;
 }
@@ -214,8 +212,8 @@ static void meshdeformModifier_do(
 	  float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
-	Mesh *me= (mmd->object)? mmd->object->data: NULL;
-	EditMesh *em = (me)? BKE_mesh_get_editmesh(me): NULL;
+	struct Mesh *me= (mmd->object)? mmd->object->data: NULL;
+	struct EditMesh *em = (me)? BKE_mesh_get_editmesh(me): NULL;
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDeformWeight *dw;
@@ -284,15 +282,15 @@ static void meshdeformModifier_do(
 	dco= MEM_callocN(sizeof(*dco)*totcagevert, "MDefDco");
 	for(a=0; a<totcagevert; a++) {
 		/* get cage vertex in world space with binding transform */
-		VECCOPY(co, cagemvert[a].co);
+		copy_v3_v3(co, cagemvert[a].co);
 
 		if(G.rt != 527) {
 			mul_m4_v3(mmd->bindmat, co);
 			/* compute difference with world space bind coord */
-			VECSUB(dco[a], co, bindcos[a]);
+			sub_v3_v3v3(dco[a], co, bindcos[a]);
 		}
 		else
-			VECCOPY(dco[a], co)
+			copy_v3_v3(dco[a], co);
 	}
 
 	defgrp_index = defgroup_name_index(ob, mmd->defgrp_name);
@@ -329,8 +327,7 @@ static void meshdeformModifier_do(
 
 		if(mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
 			/* transform coordinate into cage's local space */
-			VECCOPY(co, vertexCos[b]);
-			mul_m4_v3(cagemat, co);
+			mul_v3_m4v3(co, cagemat, vertexCos[b]);
 			totweight= meshdeform_dynamic_bind(mmd, dco, co);
 		}
 		else {
@@ -339,9 +336,7 @@ static void meshdeformModifier_do(
 
 			for(a=0; a<totcagevert; a++) {
 				weight= weights[a + b*totcagevert];
-				co[0]+= weight*dco[a][0];
-				co[1]+= weight*dco[a][1];
-				co[2]+= weight*dco[a][2];
+				madd_v3_v3fl(co, dco[a], weight);
 				totweight += weight;
 			}
 		}
@@ -350,9 +345,9 @@ static void meshdeformModifier_do(
 			mul_v3_fl(co, fac/totweight);
 			mul_m3_v3(icagemat, co);
 			if(G.rt != 527)
-				VECADD(vertexCos[b], vertexCos[b], co)
-						else
-						VECCOPY(vertexCos[b], co)
+				add_v3_v3(vertexCos[b], co);
+			else
+				copy_v3_v3(vertexCos[b], co);
 		}
 	}
 
@@ -379,7 +374,7 @@ static void deformVerts(
 }
 
 static void deformVertsEM(
-						 ModifierData *md, Object *ob, EditMesh *editData,
+						 ModifierData *md, Object *ob, struct EditMesh *editData,
 	  DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm;

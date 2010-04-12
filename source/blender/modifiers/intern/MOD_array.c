@@ -36,9 +36,10 @@
 #include "math.h"
 #include "float.h"
 
-#include "BLI_kdtree.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_ghash.h"
+#include "BLI_edgehash.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -47,12 +48,10 @@
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
-#include "DNA_object_fluidsim.h"
+#include "DNA_meshdata_types.h"
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
@@ -110,8 +109,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tamd->curve_ob = amd->curve_ob;
 	tamd->offset_ob = amd->offset_ob;
 	tamd->count = amd->count;
-	VECCOPY(tamd->offset, amd->offset);
-	VECCOPY(tamd->scale, amd->scale);
+	copy_v3_v3(tamd->offset, amd->offset);
+	copy_v3_v3(tamd->scale, amd->scale);
 	tamd->length = amd->length;
 	tamd->merge_dist = amd->merge_dist;
 	tamd->fit_type = amd->fit_type;
@@ -132,7 +131,7 @@ static void foreachObjectLink(
 	walk(userData, ob, &amd->offset_ob);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene,
+static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
 					 Object *ob, DagNode *obNode)
 {
 	ArrayModifierData *amd = (ArrayModifierData*) md;
@@ -221,7 +220,7 @@ static int calc_mapping(IndexMapEntry *indexMap, int oldIndex, int copyNum)
 }
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
-					  Scene *scene, Object *ob, DerivedMesh *dm,
+					  struct Scene *scene, Object *ob, DerivedMesh *dm,
 	   int initFlags)
 {
 	int i, j;
@@ -365,7 +364,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 			  indexMap[i].new = numVerts - 1;
 
-			  VECCOPY(co, mv->co);
+			  copy_v3_v3(co, mv->co);
 		
 		/* Attempts to merge verts from one duplicate with verts from the
 			  * next duplicate which are closer than amd->merge_dist.
@@ -375,8 +374,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		*/
 			  if((count > 1) && (amd->flags & MOD_ARR_MERGE)) {
 				  float tmp_co[3];
-				  VECCOPY(tmp_co, mv->co);
-				  mul_m4_v3(offset, tmp_co);
+				  mul_v3_m4v3(tmp_co, offset, mv->co);
 
 				  for(j = 0; j < maxVerts; j++) {
 					  /* if vertex already merged, don't use it */
@@ -389,7 +387,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 						  /* test for merging with final copy of merge target */
 						  if(amd->flags & MOD_ARR_MERGEFINAL) {
-							  VECCOPY(tmp_co, inMV->co);
+							  copy_v3_v3(tmp_co, inMV->co);
 							  inMV = &src_mvert[i];
 							  mul_m4_v3(final_offset, tmp_co);
 							  if(compare_len_v3v3(tmp_co, inMV->co, amd->merge_dist))
@@ -410,7 +408,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  numVerts++;
 
 					  mul_m4_v3(offset, co);
-					  VECCOPY(mv2->co, co);
+					  copy_v3_v3(mv2->co, co);
 				  }
 			  } else if(indexMap[i].merge != i && indexMap[i].merge_final) {
 			/* if this vert is not merging with itself, and it is merging
@@ -581,7 +579,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  MVert *in_mv;
 					  int j;
 
-					  VECCOPY(tmp_co, mv->co);
+					  copy_v3_v3(tmp_co, mv->co);
 					  mul_m4_v3(startoffset, tmp_co);
 
 					  for(j = 0; j < maxVerts; j++) {
@@ -682,7 +680,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  MVert *in_mv;
 					  int j;
 
-					  VECCOPY(tmp_co, mv->co);
+					  copy_v3_v3(tmp_co, mv->co);
 					  mul_m4_v3(offset, tmp_co);
 
 					  for(j = 0; j < maxVerts; j++) {
@@ -777,7 +775,7 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, EditMesh *editData,
+		ModifierData *md, Object *ob, struct EditMesh *editData,
   DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

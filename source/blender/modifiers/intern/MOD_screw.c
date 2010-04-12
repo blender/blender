@@ -32,39 +32,28 @@
 
 #include "stddef.h"
 #include "string.h"
-#include "stdarg.h"
 #include "math.h"
 #include "float.h"
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_armature_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_fluidsim.h"
 
-
-#include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_fluidsim.h"
-#include "BKE_global.h"
-#include "BKE_multires.h"
 #include "BKE_key.h"
-#include "BKE_lattice.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
@@ -75,11 +64,9 @@
 
 #include "depsgraph_private.h"
 #include "BKE_deform.h"
-#include "BKE_shrinkwrap.h"
 
 #include "LOD_decimation.h"
 
-#include "CCGSubSurf.h"
 
 #include "RE_shader_ext.h"
 
@@ -859,7 +846,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 static void updateDepgraph(
 									ModifierData *md, DagForest *forest,
-									Scene *scene, Object *ob, DagNode *obNode)
+									struct Scene *scene, Object *ob, DagNode *obNode)
 {
 	ScrewModifierData *ltmd= (ScrewModifierData*) md;
 
@@ -884,7 +871,7 @@ static void foreachObjectLink(
 
 /* This dosnt work with material*/
 static DerivedMesh *applyModifierEM(
-						ModifierData *md, Object *ob, EditMesh *editData,
+						ModifierData *md, Object *ob, struct EditMesh *editData,
 						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

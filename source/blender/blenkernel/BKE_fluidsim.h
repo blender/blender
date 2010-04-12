@@ -34,6 +34,7 @@
 struct Object;
 struct Scene;
 struct FluidsimModifierData;
+struct FluidsimSettings;
 struct DerivedMesh;
 struct MVert;
 

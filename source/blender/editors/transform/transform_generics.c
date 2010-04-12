@@ -189,8 +189,8 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						copy_v3_v3(iloc, td->iloc);
 						
 						if (mmd->mirror_ob) {
-							mul_v3_m4v3(loc, mtx, loc);
-							mul_v3_m4v3(iloc, mtx, iloc);
+							mul_m4_v3(mtx, loc);
+							mul_m4_v3(mtx, iloc);
 						}
 						
 						clip = 0;
@@ -218,7 +218,7 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						}
 						if (clip) {
 							if (mmd->mirror_ob) {
-								mul_v3_m4v3(loc, imtx, loc);
+								mul_m4_v3(imtx, loc);
 							}
 							copy_v3_v3(td->loc, loc);
 						}

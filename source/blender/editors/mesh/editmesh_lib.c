@@ -1316,8 +1316,8 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *n
 						copy_v3_v3(co2, eed->v2->co);
 
 						if (mmd->mirror_ob) {
-							mul_v3_m4v3(co1, mtx, co1);
-							mul_v3_m4v3(co2, mtx, co2);
+							mul_m4_v3(mtx, co1);
+							mul_m4_v3(mtx, co2);
 						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X)
@@ -1605,8 +1605,8 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 						copy_v3_v3(co2, eed->v2->co);
 
 						if (mmd->mirror_ob) {
-							mul_v3_m4v3(co1, mtx, co1);
-							mul_v3_m4v3(co2, mtx, co2);
+							mul_m4_v3(mtx, co1);
+							mul_m4_v3(mtx, co2);
 						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X)

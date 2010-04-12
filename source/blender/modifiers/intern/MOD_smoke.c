@@ -32,7 +32,6 @@
 
 #include "stddef.h"
 #include "string.h"
-#include "stdarg.h"
 #include "math.h"
 #include "float.h"
 
@@ -51,12 +50,9 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -79,7 +75,6 @@
 
 #include "LOD_decimation.h"
 
-#include "CCGSubSurf.h"
 
 #include "RE_shader_ext.h"
 
@@ -124,7 +119,7 @@ static int dependsOnTime(ModifierData *md)
 }
 
 static void updateDepgraph(
-					 ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
+					 ModifierData *md, DagForest *forest, struct Scene *scene, Object *ob,
 	  DagNode *obNode)
 {
 	/*SmokeModifierData *smd = (SmokeModifierData *) md;

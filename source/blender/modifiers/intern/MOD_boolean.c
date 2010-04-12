@@ -51,8 +51,6 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
@@ -108,7 +106,7 @@ static void foreachObjectLink(
 }
 
 static void updateDepgraph(
-					   ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
+					   ModifierData *md, DagForest *forest, struct Scene *scene, Object *ob,
 	DagNode *obNode)
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;

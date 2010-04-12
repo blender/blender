@@ -38,12 +38,13 @@
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
@@ -51,12 +52,9 @@
 
 
 #include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_multires.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -98,7 +96,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	HookModifierData *hmd = (HookModifierData*) md;
 	HookModifierData *thmd = (HookModifierData*) target;
 
-	VECCOPY(thmd->cent, hmd->cent);
+	copy_v3_v3(thmd->cent, hmd->cent);
 	thmd->falloff = hmd->falloff;
 	thmd->force = hmd->force;
 	thmd->object = hmd->object;
@@ -144,7 +142,7 @@ static void foreachObjectLink(
 	walk(userData, ob, &hmd->object);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene,
+static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
 					Object *ob, DagNode *obNode)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
@@ -282,7 +280,7 @@ static void deformVerts(
 }
 
 static void deformVertsEM(
-					   ModifierData *md, Object *ob, EditMesh *editData,
+					   ModifierData *md, Object *ob, struct EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;

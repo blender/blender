@@ -31,17 +31,12 @@
  */
 
 #include "DNA_modifier_types.h"
-#include "DNA_customdata_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 
 #include "MEM_guardedalloc.h"
 #include "MOD_util.h"
 
-#include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_displist.h"

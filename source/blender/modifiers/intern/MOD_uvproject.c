@@ -32,54 +32,21 @@
 
 #include "stddef.h"
 #include "string.h"
-#include "stdarg.h"
 #include "math.h"
 #include "float.h"
 
-#include "BLI_kdtree.h"
-#include "BLI_rand.h"
+#include "BLI_math.h"
 #include "BLI_uvproject.h"
+
+#include "DNA_object_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_customdata_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
-#include "DNA_material_types.h"
-#include "DNA_object_fluidsim.h"
-
-
-#include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
-#include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_fluidsim.h"
-#include "BKE_global.h"
-#include "BKE_multires.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
-#include "BKE_material.h"
-#include "BKE_mesh.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_paint.h"
-#include "BKE_particle.h"
-#include "BKE_pointcache.h"
-#include "BKE_scene.h"
-#include "BKE_smoke.h"
-#include "BKE_softbody.h"
-#include "BKE_subsurf.h"
-#include "BKE_texture.h"
-
+#include "BKE_DerivedMesh.h"
 #include "depsgraph_private.h"
-#include "BKE_deform.h"
-#include "BKE_shrinkwrap.h"
-
-#include "CCGSubSurf.h"
-
-#include "RE_shader_ext.h"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
@@ -152,7 +119,7 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 }
 
 static void updateDepgraph(ModifierData *md,
-						 DagForest *forest, Scene *scene, Object *ob, DagNode *obNode)
+						 DagForest *forest, struct Scene *scene, Object *ob, DagNode *obNode)
 {
 	UVProjectModifierData *umd = (UVProjectModifierData*) md;
 	int i;
@@ -368,16 +335,16 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				Projector *best_projector;
 				float best_dot;
 
-				VECCOPY(co1, coords[mf->v1]);
-				VECCOPY(co2, coords[mf->v2]);
-				VECCOPY(co3, coords[mf->v3]);
+				copy_v3_v3(co1, coords[mf->v1]);
+				copy_v3_v3(co2, coords[mf->v2]);
+				copy_v3_v3(co3, coords[mf->v3]);
 
 				/* get the untransformed face normal */
 				if(mf->v4) {
-					VECCOPY(co4, coords[mf->v4]);
-					normal_quad_v3( face_no,co1, co2, co3, co4);
+					copy_v3_v3(co4, coords[mf->v4]);
+					normal_quad_v3(face_no, co1, co2, co3, co4);
 				} else { 
-					normal_tri_v3( face_no,co1, co2, co3);
+					normal_tri_v3(face_no, co1, co2, co3);
 				}
 
 				/* find the projector which the face points at most directly
@@ -456,7 +423,7 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, EditMesh *editData,
+		ModifierData *md, Object *ob, struct EditMesh *editData,
   DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

@@ -32,52 +32,24 @@
 
 #include "stddef.h"
 #include "string.h"
-#include "stdarg.h"
 #include "math.h"
 #include "float.h"
 
-#include "BLI_kdtree.h"
-#include "BLI_rand.h"
-#include "BLI_uvproject.h"
+#include "BLI_math.h"
+
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_customdata_types.h"
+#include "BKE_DerivedMesh.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
-#include "DNA_material_types.h"
-#include "DNA_object_fluidsim.h"
-
-
-#include "BKE_action.h"
-#include "BKE_bmesh.h"
-#include "BKE_cloth.h"
-#include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_fluidsim.h"
-#include "BKE_global.h"
-#include "BKE_multires.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
-#include "BKE_material.h"
-#include "BKE_mesh.h"
-#include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
-#include "BKE_particle.h"
-#include "BKE_pointcache.h"
-#include "BKE_scene.h"
-#include "BKE_smoke.h"
-#include "BKE_softbody.h"
-#include "BKE_subsurf.h"
-#include "BKE_texture.h"
 
 #include "depsgraph_private.h"
 #include "BKE_deform.h"
-#include "BKE_shrinkwrap.h"
 
-#include "CCGSubSurf.h"
 
 #include "RE_shader_ext.h"
 
@@ -263,15 +235,13 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 	for(i = 0; i < numVerts; ++i, ++co, ++texco) {
 		switch(texmapping) {
 			case MOD_WAV_MAP_LOCAL:
-				VECCOPY(*texco, *co);
+				copy_v3_v3(*texco, *co);
 				break;
 			case MOD_WAV_MAP_GLOBAL:
-				VECCOPY(*texco, *co);
-				mul_m4_v3(ob->obmat, *texco);
+				mul_v3_m4v3(*texco, ob->obmat, *co);
 				break;
 			case MOD_WAV_MAP_OBJECT:
-				VECCOPY(*texco, *co);
-				mul_m4_v3(ob->obmat, *texco);
+				mul_v3_m4v3(*texco, ob->obmat, *co);
 				mul_m4_v3(wmd->map_object->imat, *texco);
 				break;
 		}
@@ -454,7 +424,7 @@ static void deformVerts(
 }
 
 static void deformVertsEM(
-					   ModifierData *md, Object *ob, EditMesh *editData,
+					   ModifierData *md, Object *ob, struct EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm= derivedData;
