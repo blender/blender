@@ -35,10 +35,23 @@
 #include "math.h"
 #include "float.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
 
+#include "MEM_guardedalloc.h"
+
+#include "BKE_cdderivedmesh.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_global.h"
+#include "BKE_mesh.h"
+#include "BKE_utildefines.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"	// FILE_MAX
 
 #include "MOD_modifiertypes.h"
 #include "MOD_fluidsim_util.h"
@@ -324,13 +337,13 @@ void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 		return;
 	}
 
-	VECCOPY(vec, mvert[0].co);
+	copy_v3_v3(vec, mvert[0].co);
 	mul_m4_v3(obmat, vec);
 	bbsx = vec[0]; bbsy = vec[1]; bbsz = vec[2];
 	bbex = vec[0]; bbey = vec[1]; bbez = vec[2];
 
 	for(i = 1; i < totvert; i++) {
-		VECCOPY(vec, mvert[i].co);
+		copy_v3_v3(vec, mvert[i].co);
 		mul_m4_v3(obmat, vec);
 
 		if(vec[0] < bbsx){ bbsx= vec[0]; }
