@@ -1328,7 +1328,7 @@ void BKE_ptcache_mem_incr_pointers(PTCacheMem *pm)
 			pm->cur[i] = (char*)pm->cur[i] + ptcache_data_size[i];
 	}
 }
-static int BKE_ptcache_mem_seek_pointers(int point_index, PTCacheMem *pm)
+int BKE_ptcache_mem_seek_pointers(int point_index, PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
 	int i, index = pm->index_array ? pm->index_array[point_index] - 1 : point_index;
