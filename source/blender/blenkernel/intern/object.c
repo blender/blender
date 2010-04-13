@@ -2489,6 +2489,8 @@ void object_handle_update(Scene *scene, Object *ob)
 			ID *data_id= (ID *)ob->data;
 			AnimData *adt= BKE_animdata_from_id(data_id);
 			float ctime= (float)scene->r.cfra; // XXX this is bad...
+			ListBase pidlist;
+			PTCacheID *pid;
 			
 			if (G.f & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name+2);
@@ -2577,6 +2579,24 @@ void object_handle_update(Scene *scene, Object *ob)
 						psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 				}
 			}
+
+			/* check if quick cache is needed */
+			BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
+
+			for(pid=pidlist.first; pid; pid=pid->next) {
+				if((pid->cache->flag & PTCACHE_BAKED)
+					|| (pid->cache->flag & PTCACHE_QUICK_CACHE)==0)
+					continue;
+
+				if(pid->cache->flag & PTCACHE_OUTDATED || (pid->cache->flag & PTCACHE_SIMULATION_VALID)==0) {
+					scene->physics_settings.quick_cache_step =
+						scene->physics_settings.quick_cache_step ?
+						MIN2(scene->physics_settings.quick_cache_step, pid->cache->step) :
+						pid->cache->step;
+				}
+			}
+
+			BLI_freelistN(&pidlist);
 		}
 
 		/* the no-group proxy case, we call update */

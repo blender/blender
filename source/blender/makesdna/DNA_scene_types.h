@@ -735,7 +735,7 @@ typedef struct UnitSettings {
 
 typedef struct PhysicsSettings {
 	float gravity[3];
-	int flag;
+	int flag, quick_cache_step, rt;
 } PhysicsSettings;
 
 typedef struct Scene {
