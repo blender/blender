@@ -69,6 +69,10 @@ class NODE_HT_header(bpy.types.Header):
             layout.prop(scene.render, "free_unused_nodes", text="Free Unused")
             layout.prop(snode, "backdrop")
 
+        layout.separator()
+
+        layout.template_running_jobs()
+
 
 class NODE_MT_view(bpy.types.Menu):
     bl_label = "View"
