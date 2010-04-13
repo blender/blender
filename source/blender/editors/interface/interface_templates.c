@@ -2529,6 +2529,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 #define B_STOPRENDER	1
 #define B_STOPCAST		2
 #define B_STOPANIM		3
+#define B_STOPCOMPO		4
 
 static void do_running_jobs(bContext *C, void *arg, int event)
 {
@@ -2542,6 +2543,9 @@ static void do_running_jobs(bContext *C, void *arg, int event)
 		case B_STOPANIM:
 			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
+		case B_STOPCOMPO:
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C));
+			break;
 	}
 }
 
@@ -2550,6 +2554,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	bScreen *screen= CTX_wm_screen(C);
 	Scene *scene= CTX_data_scene(C);
 	wmWindowManager *wm= CTX_wm_manager(C);
+	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
 
 	block= uiLayoutGetBlock(layout);
@@ -2557,12 +2562,18 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 
 	uiBlockSetHandleFunc(block, do_running_jobs, NULL);
 
-	if(WM_jobs_test(wm, scene))
-		uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_CANCEL, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
-	if(WM_jobs_test(wm, screen))
-		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
-	if(screen->animtimer)
-		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+	if(sa->spacetype==SPACE_NODE) {
+		if(WM_jobs_test(wm, sa))
+			uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Composite", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop composite");
+	}
+	else {
+		if(WM_jobs_test(wm, scene))
+			uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_CANCEL, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
+		if(WM_jobs_test(wm, screen))
+			uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
+		if(screen->animtimer)
+			uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+	}
 }
 
 /************************* Reports for Last Operator Template **************************/
