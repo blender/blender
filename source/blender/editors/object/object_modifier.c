@@ -389,32 +389,44 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 
 static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
 {
+	ModifierTypeInfo *mti= modifierType_getInfo(md->type);
+
+	if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md, 0))) {
+		BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
+		return 0;
+	}
+
 	if (ob->type==OB_MESH) {
 		DerivedMesh *dm;
 		Mesh *me = ob->data;
+		MultiresModifierData *mmd= find_multires_modifier(ob);
+
 		if( me->key) {
 			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
 			return 0;
 		}
-		
+
 		mesh_pmv_off(ob, me);
-		
+
 		/* Multires: ensure that recent sculpting is applied */
 		if(md->type == eModifierType_Multires)
 			multires_force_update(ob);
-		
-		dm = mesh_create_derived_for_modifier(scene, ob, md);
-		if (!dm) {
-			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
-			return 0;
+
+		if (mmd && mti->type==eModifierTypeType_OnlyDeform) {
+			multiresModifier_reshapeFromDeformMod (mmd, ob, md);
+		} else {
+			dm = mesh_create_derived_for_modifier(scene, ob, md);
+			if (!dm) {
+				BKE_report(reports, RPT_ERROR, "Modifier is returned error, skipping apply");
+				return 0;
+			}
+
+			DM_to_mesh(dm, me);
+
+			dm->release(dm);
 		}
-		
-		DM_to_mesh(dm, me);
-		
-		dm->release(dm);
 	} 
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		Curve *cu;
 		int numVerts;
 		float (*vertexCos)[3];
@@ -426,11 +438,6 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 
 		cu = ob->data;
 		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tesselated/bevel vertices");
-
-		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md, 0))) {
-			BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
-			return 0;
-		}
 
 		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
 		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
@@ -828,11 +835,6 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
 	Object *ob= ptr.id.data, *secondob= NULL;
 	MultiresModifierData *mmd= ptr.data;
-
-	if(ob->derivedFinal == NULL || ob->derivedFinal->type != DM_TYPE_CCGDM) {
-		BKE_report(op->reports, RPT_ERROR, "Active objects multires is disabled, can't reshape multires data.");
-		return OPERATOR_CANCELLED;
-	}
 
 	CTX_DATA_BEGIN(C, Object*, selob, selected_editable_objects) {
 		if(selob->type == OB_MESH && selob != ob) {

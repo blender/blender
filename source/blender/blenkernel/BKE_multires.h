@@ -35,6 +35,7 @@ struct Mesh;
 struct MFace;
 struct Multires;
 struct MultiresModifierData;
+struct ModifierData;
 struct Object;
 
 void multires_mark_as_modified(struct Object *ob);
@@ -46,11 +47,14 @@ struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*
 	int local_mmd, struct DerivedMesh*, struct Object *, int, int);
 
 struct MultiresModifierData *find_multires_modifier(struct Object *ob);
+struct DerivedMesh *get_multires_dm(struct Object *ob);
 void multiresModifier_join(struct Object *);
 void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
 void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob,
 				int updateblock, int simple);
 int multiresModifier_reshape(struct MultiresModifierData *mmd, struct Object *dst, struct Object *src);
+int multiresModifier_reshapeFromDM(struct MultiresModifierData *mmd, struct Object *ob, struct DerivedMesh *srcdm);
+int multiresModifier_reshapeFromDeformMod(struct MultiresModifierData *mmd, struct Object *ob, struct ModifierData *md);
 
 void multires_stitch_grids(struct Object *);
 
