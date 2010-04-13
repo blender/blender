@@ -7,6 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blender", "blender.vcproj",
 		{6E24BF09-9653-4166-A871-F65CC9E98A9B} = {6E24BF09-9653-4166-A871-F65CC9E98A9B}
 		{A90C4918-4B21-4277-93BD-AF65F30951D9} = {A90C4918-4B21-4277-93BD-AF65F30951D9}
 		{FB88301F-F725-401B-ACD7-D2ABBF333B71} = {FB88301F-F725-401B-ACD7-D2ABBF333B71}
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC} = {7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}
 		{76D3102B-7DD2-8BA1-034A-8B19FE2897C2} = {76D3102B-7DD2-8BA1-034A-8B19FE2897C2}
 		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE} = {BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}
 		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8} = {C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}
@@ -336,6 +337,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BRE_raytrace", "render\BRE_raytrace.vcproj", "{37DB6A34-2E91-4ADB-BC1A-02F6D0A5E2F1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BF_collada", "collada\BF_collada.vcproj", "{76D3102B-7DD2-8BA1-034A-8B19FE2897C2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BL_modifiers", "modifiers\modifiers.vcproj", "{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1594,6 +1597,26 @@ Global
 		{76D3102B-7DD2-8BA1-034A-8B19FE2897C2}.Debug|Win32.Build.0 = Blender Debug|Win32
 		{76D3102B-7DD2-8BA1-034A-8B19FE2897C2}.Release|Win32.ActiveCfg = Blender Release|Win32
 		{76D3102B-7DD2-8BA1-034A-8B19FE2897C2}.Release|Win32.Build.0 = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.3D Plugin Debug|Win32.ActiveCfg = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.3D Plugin Debug|Win32.Build.0 = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.3D Plugin Release|Win32.ActiveCfg = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.3D Plugin Release|Win32.Build.0 = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.3DPlugin Debug|Win32.ActiveCfg = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.3DPlugin Debug|Win32.Build.0 = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.3DPlugin Release|Win32.ActiveCfg = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.3DPlugin Release|Win32.Build.0 = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.Blender Debug|Win32.ActiveCfg = Blender Debug|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.Blender Debug|Win32.Build.0 = Blender Debug|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.Blender Release|Win32.ActiveCfg = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.Blender Release|Win32.Build.0 = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.BlenderPlayer Debug|Win32.ActiveCfg = BlenderPlayer Debug|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.BlenderPlayer Debug|Win32.Build.0 = BlenderPlayer Debug|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.BlenderPlayer Release|Win32.ActiveCfg = BlenderPlayer Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.BlenderPlayer Release|Win32.Build.0 = BlenderPlayer Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.Debug|Win32.ActiveCfg = Blender Debug|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.Debug|Win32.Build.0 = Blender Debug|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.Release|Win32.ActiveCfg = Blender Release|Win32
+		{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}.Release|Win32.Build.0 = Blender Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
