@@ -40,6 +40,9 @@ struct ListBase;
 
 /* Threading API */
 
+/*this is run once at startup*/
+void BLI_threadapi_init(void);
+
 void	BLI_init_threads	(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
 int		BLI_available_threads(struct ListBase *threadbase);
 int		BLI_available_thread_index(struct ListBase *threadbase);
@@ -48,6 +51,7 @@ void	BLI_remove_thread	(struct ListBase *threadbase, void *callerdata);
 void	BLI_remove_thread_index(struct ListBase *threadbase, int index);
 void	BLI_remove_threads(struct ListBase *threadbase);
 void	BLI_end_threads		(struct ListBase *threadbase);
+int BLI_thread_is_main(void);
 
 /* System Information */
 

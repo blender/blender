@@ -50,6 +50,7 @@
 #endif
 
 #include "BLI_args.h"
+#include "BLI_threads.h"
 
 #include "GEN_messaging.h"
 
@@ -963,6 +964,8 @@ int main(int argc, char **argv)
     strip_quotes(build_platform);
     strip_quotes(build_type);
 #endif
+
+	BLI_threadapi_init();
 
 	RNA_init();
 	RE_engines_init();

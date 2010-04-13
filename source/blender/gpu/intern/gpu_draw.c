@@ -62,6 +62,9 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#include "BLI_threads.h"
+#include "BLI_blenlib.h"
+
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 #include "GPU_draw.h"
@@ -781,8 +784,42 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 	smd->domain->tex_shadow = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->shadow);
 }
 
+ListBase image_free_queue = {NULL, NULL};
+static void flush_queued_free(void)
+{
+	Image *ima, *imanext;
+
+	BLI_lock_thread(LOCK_IMAGE);
+
+	ima = image_free_queue.first;
+	image_free_queue.first = image_free_queue.last = NULL;
+	for (; ima; ima=imanext) {
+		imanext = (Image*)ima->id.next;
+		GPU_free_image(ima);
+		MEM_freeN(ima);
+	}
+
+	BLI_unlock_thread(LOCK_IMAGE);
+}
+
+static void queue_image_for_free(Image *ima)
+{
+    Image *cpy = MEM_dupallocN(ima);
+
+    BLI_lock_thread(LOCK_IMAGE);
+	BLI_addtail(&image_free_queue, cpy);
+    BLI_unlock_thread(LOCK_IMAGE);
+}
+
 void GPU_free_image(Image *ima)
 {
+	if (!BLI_thread_is_main()) {
+		queue_image_for_free(ima);
+		return;
+	} else if (image_free_queue.first) {
+		flush_queued_free();
+	}
+
 	/* free regular image binding */
 	if(ima->bindcode) {
 		glDeleteTextures(1, (GLuint *)&ima->bindcode);
