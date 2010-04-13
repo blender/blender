@@ -60,7 +60,6 @@ static void do_huecorrect(bNode *node, float *out, float *in)
 	
 	CLAMP(hsv[0], 0.f, 1.f);
 	CLAMP(hsv[1], 0.f, 1.f);
-	CLAMP(hsv[2], 0.f, 1.f);
 	
 	/* convert back to rgb */
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], out, out+1, out+2);
@@ -89,7 +88,6 @@ static void do_huecorrect_fac(bNode *node, float *out, float *in, float *fac)
 	
 	CLAMP(hsv[0], 0.f, 1.f);
 	CLAMP(hsv[1], 0.f, 1.f);
-	CLAMP(hsv[2], 0.f, 1.f);
 	
 	/* convert back to rgb */
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
