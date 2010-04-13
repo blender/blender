@@ -317,10 +317,10 @@ ModifierTypeInfo modifierType_ParticleInstance = {
 	/* structName */        "ParticleInstanceModifierData",
 	/* structSize */        sizeof(ParticleInstanceModifierData),
 	/* type */              eModifierTypeType_Constructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh |
-							eModifierTypeFlag_SupportsMapping |
-							eModifierTypeFlag_SupportsEditmode |
-							eModifierTypeFlag_EnableInEditmode,
+	/* flags */             eModifierTypeFlag_AcceptsMesh
+							| eModifierTypeFlag_SupportsMapping
+							| eModifierTypeFlag_SupportsEditmode
+							| eModifierTypeFlag_EnableInEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,

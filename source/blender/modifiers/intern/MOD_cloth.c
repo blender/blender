@@ -175,9 +175,9 @@ ModifierTypeInfo modifierType_Cloth = {
 	/* structName */        "ClothModifierData",
 	/* structSize */        sizeof(ClothModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh |
-							eModifierTypeFlag_UsesPointCache |
-							eModifierTypeFlag_Single,
+	/* flags */             eModifierTypeFlag_AcceptsMesh
+							| eModifierTypeFlag_UsesPointCache
+							| eModifierTypeFlag_Single,
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,

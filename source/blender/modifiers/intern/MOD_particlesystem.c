@@ -209,11 +209,11 @@ ModifierTypeInfo modifierType_ParticleSystem = {
 	/* structName */        "ParticleSystemModifierData",
 	/* structSize */        sizeof(ParticleSystemModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsMesh |
-							eModifierTypeFlag_SupportsMapping |
-							eModifierTypeFlag_UsesPointCache /* |
-							eModifierTypeFlag_SupportsEditmode |
-							eModifierTypeFlag_EnableInEditmode */,
+	/* flags */             eModifierTypeFlag_AcceptsMesh
+							| eModifierTypeFlag_SupportsMapping
+							| eModifierTypeFlag_UsesPointCache /*
+							| eModifierTypeFlag_SupportsEditmode
+							| eModifierTypeFlag_EnableInEditmode */,
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,

@@ -271,16 +271,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		   return result;
 }
-/*
-		mti = INIT_TYPE(Build);
-		mti->type = eModifierTypeType_Nonconstructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh |
-				eModifierTypeFlag_AcceptsCVs;
-		mti->initData = buildModifier_initData;
-		mti->copyData = buildModifier_copyData;
-		mti->dependsOnTime = buildModifier_dependsOnTime;
-		mti->applyModifier = buildModifier_applyModifier;
-*/
+
 
 ModifierTypeInfo modifierType_Build = {
 	/* name */              "Build",
