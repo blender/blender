@@ -185,7 +185,7 @@ ModifierTypeInfo modifierType_Cloth = {
 	/* deformMatricesEM */  0,
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   0,
-	/* initData */          0,
+	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          freeData,
 	/* isDisabled */        0,
