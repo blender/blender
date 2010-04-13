@@ -147,6 +147,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     # lame, python wont give some access
     MethodDescriptorType = type(dict.get)
     GetSetDescriptorType = type(int.real)
+    StaticMethodType = type(staticmethod(lambda: None))
     
     
 
@@ -221,6 +222,12 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
                 continue
             descr = value.__dict__[key]
             if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+                if descr.__doc__:
+                    write_indented_lines("   ", fw, descr.__doc__, False)
+                    write_example_ref("   ", fw, module_name + "." + attribute + "." + key)
+                    fw("\n")
+            elif type(descr) == StaticMethodType:
+                descr = getattr(value, key)
                 if descr.__doc__:
                     write_indented_lines("   ", fw, descr.__doc__, False)
                     write_example_ref("   ", fw, module_name + "." + attribute + "." + key)
