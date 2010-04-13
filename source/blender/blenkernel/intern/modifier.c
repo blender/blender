@@ -83,10 +83,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		INIT_TYPE(MeshDeform);
 		INIT_TYPE(ParticleSystem);
 		INIT_TYPE(ParticleInstance);
-		INIT_TYPE(Explode);		
-		INIT_TYPE(Cloth);
-		INIT_TYPE(Collision);
-		INIT_TYPE(Bevel);
+		INIT_TYPE(Explode);
 		INIT_TYPE(Shrinkwrap);
 		INIT_TYPE(Fluidsim);
 		INIT_TYPE(Mask);
