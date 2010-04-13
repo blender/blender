@@ -785,11 +785,13 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 }
 
 ListBase image_free_queue = {NULL, NULL};
+static ThreadMutex queuelock = BLI_MUTEX_INITIALIZER;
+
 static void flush_queued_free(void)
 {
 	Image *ima, *imanext;
 
-	BLI_lock_thread(LOCK_IMAGE);
+	BLI_mutex_lock(&queuelock);
 
 	ima = image_free_queue.first;
 	image_free_queue.first = image_free_queue.last = NULL;
@@ -799,16 +801,16 @@ static void flush_queued_free(void)
 		MEM_freeN(ima);
 	}
 
-	BLI_unlock_thread(LOCK_IMAGE);
+	BLI_mutex_unlock(&queuelock);
 }
 
 static void queue_image_for_free(Image *ima)
 {
     Image *cpy = MEM_dupallocN(ima);
 
-    BLI_lock_thread(LOCK_IMAGE);
+	BLI_mutex_lock(&queuelock);
 	BLI_addtail(&image_free_queue, cpy);
-    BLI_unlock_thread(LOCK_IMAGE);
+	BLI_mutex_unlock(&queuelock);
 }
 
 void GPU_free_image(Image *ima)

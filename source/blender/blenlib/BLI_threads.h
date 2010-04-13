@@ -72,6 +72,7 @@ void	BLI_unlock_thread(int type);
 /* Mutex Lock */
 
 typedef pthread_mutex_t ThreadMutex;
+#define BLI_MUTEX_INITIALIZER	PTHREAD_MUTEX_INITIALIZER;
 
 void BLI_mutex_init(ThreadMutex *mutex);
 void BLI_mutex_lock(ThreadMutex *mutex);
