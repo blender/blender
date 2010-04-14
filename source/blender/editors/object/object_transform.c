@@ -208,7 +208,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 						VECCOPY(ob->rot, eul);
 					}
 				}
-			}						
+			}						 // Duplicated in source/blender/editors/armature/editarmature.c
 			else { 
 				if (ob->rotmode == ROT_MODE_QUAT) {
 					ob->quat[1]=ob->quat[2]=ob->quat[3]= 0.0f; 

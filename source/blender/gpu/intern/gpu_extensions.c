@@ -122,7 +122,10 @@ void GPU_extensions_init()
 		GG.device = GPU_DEVICE_NVIDIA;
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}
-	else if(strstr(vendor, "Intel") || strstr(renderer, "Mesa DRI Intel")) {
+	else if(strstr(vendor, "Intel") ||
+	        /* src/mesa/drivers/dri/intel/intel_context.c */
+	        strstr(renderer, "Mesa DRI Intel") ||
+	        strstr(renderer, "Mesa DRI Mobile Intel")) {
 		GG.device = GPU_DEVICE_INTEL;
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}

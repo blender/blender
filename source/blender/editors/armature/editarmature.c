@@ -5075,7 +5075,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 					VECCOPY(pchan->eul, eul);
 				}
 			}
-		}						
+		}						// Duplicated in source/blender/editors/object/object_transform.c
 		else { 
 			if (pchan->rotmode == ROT_MODE_QUAT) {
 				pchan->quat[1]=pchan->quat[2]=pchan->quat[3]= 0.0f; 

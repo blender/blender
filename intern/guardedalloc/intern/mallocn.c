@@ -463,12 +463,17 @@ void MEM_printmemlist_stats()
 	/* sort by length and print */
 	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
 	printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use/(double)(1024*1024));
+	printf(" ITEMS TOTAL-MiB AVERAGE-KiB TYPE\n");
 	for(a=0, pb=printblock; a<totpb; a++, pb++)
-		printf("%s items: %d, len: %.3f MB\n", pb->name, pb->items, (double)pb->len/(double)(1024*1024));
+		printf("%6d (%8.3f  %8.3f) %s\n", pb->items, (double)pb->len/(double)(1024*1024), (double)pb->len/1024.0/(double)pb->items, pb->name);
 
 	free(printblock);
 	
 	mem_unlock_thread();
+
+#if 0 /* GLIBC only */
+	malloc_stats();
+#endif
 }
 
 /* Prints in python syntax for easy */
