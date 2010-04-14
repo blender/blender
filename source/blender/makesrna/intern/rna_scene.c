@@ -179,14 +179,10 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
 }
 
-static Base *rna_Scene_object_link(Scene *scene, ReportList *reports, Object *ob)
+static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *reports, Object *ob)
 {
+	Scene *scene_act= CTX_data_scene(C);
 	Base *base;
-
-	if (ob->type != OB_EMPTY && ob->data==NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not an Empty type and has no Object Data set.", ob->id.name+2);
-		return NULL;
-	}
 
 	if (object_in_scene(ob, scene)) {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\".", ob->id.name+2, scene->id.name+2);
@@ -197,7 +193,12 @@ static Base *rna_Scene_object_link(Scene *scene, ReportList *reports, Object *ob
 	ob->id.us++;
 
 	/* this is similar to what object_add_type and add_object do */
-	ob->lay= base->lay= scene->lay;
+	base->lay= scene->lay;
+
+	/* when linking to an inactive scene dont touch the layer */
+	if(scene == scene_act)
+		ob->lay= base->lay;
+
 	ob->recalc |= OB_RECALC;
 
 	DAG_scene_sort(scene);
@@ -2750,7 +2751,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "link", "rna_Scene_object_link");
 	RNA_def_function_ui_description(func, "Link object to scene.");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add to scene.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "base", "ObjectBase", "", "The newly created base.");
