@@ -950,6 +950,15 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 		if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
 			if(node->flag & NODE_DO_OUTPUT)
 				break;
+	/* no viewer, we make one active */
+	if(node==NULL) {
+		for(node= snode->edittree->nodes.first; node; node= node->next) {
+			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+				node->flag |= NODE_DO_OUTPUT;
+				break;
+			}
+		}
+	}
 		
 	if(node) {
 		bNodeLink *link;
@@ -958,8 +967,13 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 		for(link= snode->edittree->links.first; link; link= link->next)
 			if(link->tonode==node)
 				break;
-
-		if(link) {
+		
+		if(link==NULL) {
+			nodeAddLink(snode->edittree, tonode, tonode->outputs.first, node, node->inputs.first);
+			ntreeSolveOrder(snode->edittree);
+			NodeTagChanged(snode->edittree, node);
+		}
+		else if(link) {
 			link->fromnode= tonode;
 			link->fromsock= tonode->outputs.first;
 			NodeTagChanged(snode->edittree, node);
