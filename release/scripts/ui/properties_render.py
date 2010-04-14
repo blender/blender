@@ -25,7 +25,7 @@ narrowui = 180
 class RENDER_MT_presets(bpy.types.Menu):
     bl_label = "Render Presets"
     preset_subdir = "render"
-    preset_operator = "script.python_file_run"
+    preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
 
@@ -530,8 +530,8 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 
         row = layout.row().split()
         sub = row.row(align=True).split(percentage=0.75)
-        sub.menu("RENDER_MT_presets", text="Presets")
-        sub.operator("render.preset_add", text="Add")
+        sub.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
+        sub.operator("render.preset_add", text="", icon="ZOOMIN")
 
         split = layout.split()
 

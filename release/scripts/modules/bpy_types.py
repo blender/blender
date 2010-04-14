@@ -511,12 +511,16 @@ class Menu(StructRNA, _GenericUI):
             if f.startswith("."):
                 continue
 
-            props = layout.operator(operator, text=bpy.utils.display_name(f))
+            preset_name = bpy.utils.display_name(f)
+            props = layout.operator(operator, text=preset_name)
 
             for attr, value in props_default.items():
                 setattr(props, attr, value)
 
             props.path = path
+            if operator == "script.execute_preset":
+                props.menu_idname = self.bl_idname
+                props.preset_name = preset_name      
 
     def draw_preset(self, context):
         """Define these on the subclass

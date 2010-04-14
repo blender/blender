@@ -46,7 +46,13 @@ class AddPresetBase(bpy.types.Operator):
 
         target_path = bpy.utils.preset_paths(self.preset_subdir)[0] # we need some way to tell the user and system preset path
 
-        file_preset = open(os.path.join(target_path, filename), 'w')
+        path = os.path.join(target_path, filename)
+        if getattr(self, "save_keyconfig", True):
+            bpy.ops.wm.keyconfig_export(path=path, kc_name=self.properties.name)
+            file_preset = open(path, 'a')
+            file_preset.write("wm.active_keyconfig = kc\n\n")
+        else:
+            file_preset = open(path, 'w')
 
         for rna_path in self.preset_values:
             value = eval(rna_path)
@@ -66,6 +72,24 @@ class AddPresetBase(bpy.types.Operator):
 
         wm.invoke_props_popup(self, event)
         return {'RUNNING_MODAL'}
+
+
+class ExecutePreset(bpy.types.Operator):
+    ''' Executes a preset '''
+    bl_idname = "script.execute_preset"
+    bl_label = "Execute a Python Preset"
+
+    path = bpy.props.StringProperty(name="Path", description="Path of the Python file to execute", maxlen=512, default="")
+    preset_name = bpy.props.StringProperty(name="Preset Name", description="Name of the Preset being executed", default="")
+    menu_idname = bpy.props.StringProperty(name="Menu ID Name", description="ID name of the menu this was called from", default="")
+
+    def execute(self, context):
+        # change the menu title to the most recently chosen option
+        exec("bpy.types.%s.bl_label=\'%s\'" % (self.properties.menu_idname, self.properties.preset_name))
+ 
+        # execute the preset using script.python_file_run
+        bpy.ops.script.python_file_run(path=self.properties.path)
+        return {'FINISHED'}
 
 
 class AddPresetRender(AddPresetBase):
@@ -157,12 +181,32 @@ class AddPresetSunSky(AddPresetBase):
 
     preset_subdir = "sunsky"
 
+class AddPresetInteraction(AddPresetBase):
+    '''Add an Application Interaction Preset'''
+    bl_idname = "wm.interaction_preset_add"
+    bl_label = "Add Interaction Preset"
+    name = AddPresetBase.name
+    save_keyconfig = True
+    
+    preset_values = [
+        "bpy.context.user_preferences.edit.drag_immediately",
+        "bpy.context.user_preferences.edit.insertkey_xyz_to_rgb",
+        "bpy.context.user_preferences.inputs.select_mouse",
+        "bpy.context.user_preferences.inputs.zoom_style",
+        "bpy.context.user_preferences.inputs.zoom_axis",
+        "bpy.context.user_preferences.inputs.view_rotation",
+        "bpy.context.user_preferences.inputs.invert_zoom_direction",
+    ]
+
+    preset_subdir = "interaction"
 
 classes = [
+    ExecutePreset,
     AddPresetRender,
     AddPresetSSS,
     AddPresetCloth,
-    AddPresetSunSky]
+    AddPresetSunSky,
+    AddPresetInteraction]
 
 
 def register():

@@ -531,6 +531,9 @@ typedef struct SpaceUserPref {
 	int spacetype;
 
 	int pad;
+	
+	char filter[64];		/* search term for filtering in the UI */
+
 } SpaceUserPref;
 
 /* view3d  Now in DNA_view3d_types.h */

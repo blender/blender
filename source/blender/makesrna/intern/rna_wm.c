@@ -1340,10 +1340,6 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Name of the key configuration");
 	RNA_def_struct_name_property(srna, prop);
 	
-	prop= RNA_def_property(srna, "filter", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "filter");
-	RNA_def_property_ui_text(prop, "Filter", "Search term for filtering in the UI");
-
 	prop= RNA_def_property(srna, "keymaps", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyMap");
 	RNA_def_property_ui_text(prop, "Key Maps", "Key maps configured as part of this configuration");

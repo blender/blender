@@ -2630,6 +2630,12 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "emulate_numpad", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_NONUMPAD);
 	RNA_def_property_ui_text(prop, "Emulate Numpad", "Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
+	
+	/* U.keymaps - custom keymaps that have been edited from default configs */
+	prop= RNA_def_property(srna, "edited_keymaps", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "keymaps", NULL);
+	RNA_def_property_struct_type(prop, "KeyMap");
+	RNA_def_property_ui_text(prop, "Edited Keymaps", "");
 }
 
 static void rna_def_userdef_filepaths(BlenderRNA *brna)

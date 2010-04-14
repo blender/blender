@@ -1127,6 +1127,16 @@ static void wm_block_splash_close(bContext *C, void *arg_block, void *arg_unused
 	uiPupBlockClose(C, arg_block);
 }
 
+static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unused);
+
+/* XXX: hack to refresh splash screen with updated prest menu name,
+ * since popup blocks don't get regenerated like panels do */
+void wm_block_splash_refreshmenu (bContext *C, void *arg_block, void *unused)
+{
+	uiPupBlockClose(C, arg_block);
+	uiPupBlock(C, wm_block_create_splash, NULL);
+}
+
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
@@ -1135,7 +1145,9 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiStyle *style= U.uistyles.first;
 	struct RecentFile *recent;
 	int i;
-
+	Menu menu= {0};
+	MenuType *mt= WM_menutype_find("USERPREF_MT_splash", TRUE);
+	
 #ifdef NAN_BUILDINFO
 	int ver_width, rev_width;
 	char *version_str = NULL;
@@ -1156,21 +1168,28 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 #endif //NAN_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 	
 	but= uiDefBut(block, BUT_IMAGE, 0, "", 0, 10, 501, 282, NULL, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
+	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
 	
 #ifdef NAN_BUILDINFO	
-	uiDefBut(block, LABEL, 0, version_str, 500-ver_width, 282-24, ver_width, 20, NULL, 0, 0, 0, 0, NULL);
-	uiDefBut(block, LABEL, 0, revision_str, 500-rev_width, 282-36, rev_width, 20, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, version_str, 494-ver_width, 282-24, ver_width, 20, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, revision_str, 494-rev_width, 282-36, rev_width, 20, NULL, 0, 0, 0, 0, NULL);
 #endif //NAN_BUILDINFO
 	
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, 480, 110, style);
+	
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	/* show the splash menu (containing interaction presets), using python */
+	if (mt) {
+		menu.layout= layout;
+		menu.type= mt;
+		mt->draw(C, &menu);
+	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSSP);
-	
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 10, 10, 480, 110, style);
-
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	
 	split = uiLayoutSplit(layout, 0, 0);
@@ -1185,7 +1204,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Recent", 0);
-	for(recent = G.recent_files.first, i=0; (i<6) && (recent); recent = recent->next, i++) {
+	for(recent = G.recent_files.first, i=0; (i<5) && (recent); recent = recent->next, i++) {
 		char *display_name= BLI_last_slash(recent->filename);
 		if(display_name)	display_name++; /* skip the slash */
 		else				display_name= recent->filename;
@@ -1194,7 +1213,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiItemS(col);
 	uiItemO(col, NULL, ICON_HELP, "WM_OT_recover_last_session");
 	uiItemL(col, "", 0);
-
+	
 	uiCenteredBoundsBlock(block, 0.0f);
 	uiEndBlock(C, block);
 	

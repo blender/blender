@@ -251,8 +251,6 @@ typedef struct wmKeyConfig {
 
 	char idname[64];		/* unique name */
 	char basename[64];		/* idname of configuration this is derives from, "" if none */
-
-	char filter[64];		/* search term for filtering in the UI */
 	
 	ListBase keymaps;
 	int actkeymap, flag;

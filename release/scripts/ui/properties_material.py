@@ -39,7 +39,7 @@ def active_node_mat(mat):
 class MATERIAL_MT_sss_presets(bpy.types.Menu):
     bl_label = "SSS Presets"
     preset_subdir = "sss"
-    preset_operator = "script.python_file_run"
+    preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
 
@@ -505,8 +505,8 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 
         row = layout.row().split()
         sub = row.row(align=True).split(percentage=0.75)
-        sub.menu("MATERIAL_MT_sss_presets", text="Presets")
-        sub.operator("material.sss_preset_add", text="Add")
+        sub.menu("MATERIAL_MT_sss_presets", text=bpy.types.MATERIAL_MT_sss_presets.bl_label)
+        sub.operator("material.sss_preset_add", text="", icon="ZOOMIN")
 
         split = layout.split()
 

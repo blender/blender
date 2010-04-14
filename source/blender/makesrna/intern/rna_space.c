@@ -2017,10 +2017,16 @@ static void rna_def_space_info(BlenderRNA *brna)
 static void rna_def_space_userpref(BlenderRNA *brna)
 {
 	StructRNA *srna;
-
+	PropertyRNA *prop;
+	
 	srna= RNA_def_struct(brna, "SpaceUserPreferences", "Space");
 	RNA_def_struct_sdna(srna, "SpaceUserPref");
 	RNA_def_struct_ui_text(srna, "Space User Preferences", "User preferences space data");
+	
+	prop= RNA_def_property(srna, "filter", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "filter");
+	RNA_def_property_ui_text(prop, "Filter", "Search term for filtering in the UI");
+
 }
 
 static void rna_def_space_node(BlenderRNA *brna)

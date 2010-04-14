@@ -26,7 +26,7 @@ narrowui = 180
 class LAMP_MT_sunsky_presets(bpy.types.Menu):
     bl_label = "Render Presets"
     preset_subdir = "sunsky"
-    preset_operator = "script.python_file_run"
+    preset_operator = "script.execute_preset"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     draw = bpy.types.Menu.draw_preset
 
@@ -146,8 +146,8 @@ class DATA_PT_sunsky(DataButtonsPanel):
 
         row = layout.row(align=True)
         row.prop(lamp, "use_sky")
-        row.menu("LAMP_MT_sunsky_presets", text="Presets")
-        row.operator("lamp.sunsky_preset_add", text="Add")
+        row.menu("LAMP_MT_sunsky_presets", text=bpy.types.LAMP_MT_sunsky_presets.bl_label)
+        row.operator("lamp.sunsky_preset_add", text="", icon="ZOOMIN")
 
         row = layout.row()
         row.active = lamp.use_sky or lamp.use_atmosphere
