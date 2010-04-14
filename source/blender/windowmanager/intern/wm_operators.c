@@ -1796,7 +1796,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
 
-	return 0;
+	return OPERATOR_FINISHED;
 }
 
 static void WM_OT_save_as_mainfile(wmOperatorType *ot)
