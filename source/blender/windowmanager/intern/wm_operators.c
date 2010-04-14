@@ -1792,8 +1792,9 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "relative_remap"))	fileflags |=  G_FILE_RELATIVE_REMAP;
 	else											fileflags &= ~G_FILE_RELATIVE_REMAP;
 
-	WM_write_file(C, path, fileflags, op->reports);
-	
+	if ( WM_write_file(C, path, fileflags, op->reports) != 0)
+		return OPERATOR_CANCELLED;
+
 	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
 
 	return OPERATOR_FINISHED;

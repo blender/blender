@@ -483,7 +483,7 @@ static void do_history(char *name, ReportList *reports)
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
-void WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
+int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 {
 	Library *li;
 	int len;
@@ -494,14 +494,14 @@ void WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports
 	if (len == 0) return;
 	if (len >= FILE_MAX) {
 		BKE_report(reports, RPT_ERROR, "Path too long, cannot save");
-		return;
+		return -1;
 	}
  
 	/* send the OnSave event */
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (BLI_streq(li->name, target)) {
 			BKE_report(reports, RPT_ERROR, "Cannot overwrite used library");
-			return;
+			return -1;
 		}
 	}
 	
@@ -539,9 +539,12 @@ void WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports
 		else G.fileflags &= ~G_FILE_AUTOPLAY;
 
 		writeBlog();
+	} else {
+		return -1;
 	}
 
 // XXX	waitcursor(0);
+	return 0;
 }
 
 /* operator entry */

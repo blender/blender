@@ -78,7 +78,7 @@ void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 int			WM_read_homefile	(struct bContext *C, struct wmOperator *op);
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
-void		WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports);
+int			WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports);
 void		WM_read_autosavefile(struct bContext *C);
 void		WM_autosave_init	(struct wmWindowManager *wm);
 
