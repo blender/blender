@@ -85,7 +85,9 @@ class ExecutePreset(bpy.types.Operator):
 
     def execute(self, context):
         # change the menu title to the most recently chosen option
-        exec("bpy.types.%s.bl_label=\'%s\'" % (self.properties.menu_idname, self.properties.preset_name))
+        preset_class = getattr(bpy.types, self.properties.menu_idname)
+        preset_class.bl_label = self.properties.preset_name
+        print(10)
  
         # execute the preset using script.python_file_run
         bpy.ops.script.python_file_run(path=self.properties.path)
