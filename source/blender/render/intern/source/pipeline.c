@@ -1564,7 +1564,7 @@ static void print_part_stats(Render *re, RenderPart *pa)
 {
 	char str[64];
 	
-	sprintf(str, "Part %d-%d", pa->nr, re->i.totpart);
+	sprintf(str, "%s, Part %d-%d", re->scene->id.name+2, pa->nr, re->i.totpart);
 	re->i.infostr= str;
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr= NULL;
