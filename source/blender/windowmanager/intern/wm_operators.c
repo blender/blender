@@ -1133,8 +1133,11 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
  * since popup blocks don't get regenerated like panels do */
 void wm_block_splash_refreshmenu (bContext *C, void *arg_block, void *unused)
 {
+	/* ugh, causes crashes in other buttons, disabling for now until 
+	 * a better fix
 	uiPupBlockClose(C, arg_block);
 	uiPupBlock(C, wm_block_create_splash, NULL);
+	  */
 }
 
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unused)
