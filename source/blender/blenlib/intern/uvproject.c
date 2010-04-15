@@ -135,7 +135,7 @@ UvCameraInfo *project_camera_info(Object *ob, float (*rotmat)[4], float winx, fl
 	uci.do_pano = (camera->flag & CAM_PANORAMA);
 	uci.do_persp = (camera->type==CAM_PERSP);
 
-	uci.camangle= DEG2RAD(camera->angle)/2.0f;
+	uci.camangle= DEG2RAD(camera_get_angle(camera))/2.0f;
 	uci.camsize=  uci.do_persp ?  uci.camsize= tanf(uci.camangle) : camera->ortho_scale;
 
 	if (invert_m4_m4(uci.caminv, ob->obmat)) {

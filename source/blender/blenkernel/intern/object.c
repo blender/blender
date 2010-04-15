@@ -679,7 +679,6 @@ void *add_camera(char *name)
 	cam=  alloc_libblock(&G.main->camera, ID_CA, name);
 
 	cam->lens= 35.0f;
-	cam->angle= 49.14f;
 	cam->clipsta= 0.1f;
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;
@@ -772,6 +771,17 @@ float dof_camera(Object *ob)
 		return (float)fabs(mat[3][2]);
 	}
 	return cam->YF_dofdist;
+}
+
+/* angle in radians */
+float camera_get_angle(Camera *cam)
+{
+	return 2.f * atan(16.0f/cam->lens);
+}
+
+void camera_set_angle(Camera *cam, float angle)
+{
+	cam->lens = 16.0f / tan(angle * 0.5f);
 }
 
 void *add_lamp(char *name)

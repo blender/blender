@@ -8437,10 +8437,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob= main->object.first;
 		Camera *cam = main->camera.first;
 		Material *ma;
-		
-		for(; cam; cam= cam->id.next) {
-			cam->angle= 360.0f * (float)atan(16.0f/cam->lens) / (float)M_PI;
-		}
 
 		for(ma=main->mat.first; ma; ma= ma->id.next) {
 			if(ma->sss_scale==0.0f) {

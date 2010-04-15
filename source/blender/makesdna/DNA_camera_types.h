@@ -46,10 +46,12 @@ typedef struct Camera {
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short type, flag;
-	float passepartalpha, angle;
+	float passepartalpha;
 	float clipsta, clipend;
 	float lens, ortho_scale, drawsize;
 	float shiftx, shifty;
+	
+	float pad;
 	
 	/* yafray: dof params */
 	/* qdn: yafray var 'YF_dofdist' now enabled for defocus composit node as well.
