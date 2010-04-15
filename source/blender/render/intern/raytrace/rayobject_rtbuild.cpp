@@ -386,7 +386,9 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 //				right_cost -= obj[i]->cost; if(right_cost < 0) right_cost = 0;
 			}
 			
-			assert(baxis >= 0 && baxis < 3);
+			//assert(baxis >= 0 && baxis < 3);
+			if (!(baxis >= 0 && baxis < 3))
+				baxis = 0;
 		}
 			
 		
