@@ -65,6 +65,7 @@ int		BLI_system_thread_count(void); /* gets the number of threads the system can
 #define LOCK_PREVIEW	1
 #define LOCK_VIEWER		2
 #define LOCK_CUSTOM1	3
+#define LOCK_RCACHE		2
 
 void	BLI_lock_thread(int type);
 void	BLI_unlock_thread(int type);

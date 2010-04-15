@@ -309,7 +309,8 @@ void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned
 void		WM_jobs_callbacks(struct wmJob *, 
 							  void (*startjob)(void *, short *, short *),
 							  void (*initjob)(void *),
-							  void (*update)(void *));
+							  void (*update)(void *),
+							  void (*endjob)(void *));
 
 void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner);

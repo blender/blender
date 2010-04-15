@@ -2204,7 +2204,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 	isbdata->recty= pa->recty;
 	
 	/* branches are added using memarena (32k branches) */
-	memarena = BLI_memarena_new(0x8000 * sizeof(ISBBranch));
+	memarena = BLI_memarena_new(0x8000 * sizeof(ISBBranch), "isb arena");
 	BLI_memarena_use_calloc(memarena);
 	
 	/* samplebuf is in camera view space (pixels) */
@@ -2300,7 +2300,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 			if(R.osa) {
 				ISBShadfacA **isbsa= isbdata->shadfaca= MEM_callocN(pa->rectx*pa->recty*sizeof(void *), "isb shadfacs");
 				
-				isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA));
+				isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA), "isb arena");
 				BLI_memarena_use_calloc(isbdata->memarena);
 
 				for(rd= pa->rectdaps, x=pa->rectx*pa->recty; x>0; x--, rd++, isbsa++) {
@@ -2412,7 +2412,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 	isbdata->recty= pa->recty;
 	
 	/* branches are added using memarena (32k branches) */
-	memarena = BLI_memarena_new(0x8000 * sizeof(ISBBranch));
+	memarena = BLI_memarena_new(0x8000 * sizeof(ISBBranch), "isb arena");
 	BLI_memarena_use_calloc(memarena);
 	
 	/* samplebuf is in camera view space (pixels) */
@@ -2503,7 +2503,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 			/* copy shadow samples to persistant buffer, reduce memory overhead */
 			isbsa= isbdata->shadfaca= MEM_callocN(pa->rectx*pa->recty*sizeof(void *), "isb shadfacs");
 			
-			isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA));
+			isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA), "isb arena");
 			
 			for(ap= apixbuf, x=pa->rectx*pa->recty; x>0; x--, ap++, isbsa++) {
 					

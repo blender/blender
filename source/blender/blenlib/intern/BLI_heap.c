@@ -69,7 +69,7 @@ Heap *BLI_heap_new()
 	Heap *heap = (Heap*)MEM_callocN(sizeof(Heap), "BLIHeap");
 	heap->bufsize = 1;
 	heap->tree = (HeapNode**)MEM_mallocN(sizeof(HeapNode*), "BLIHeapTree");
-	heap->arena = BLI_memarena_new(1<<16);
+	heap->arena = BLI_memarena_new(1<<16, "heap arena");
 
 	return heap;
 }

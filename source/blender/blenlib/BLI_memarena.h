@@ -51,7 +51,7 @@ struct MemArena;
 typedef struct MemArena MemArena;
 
 
-struct MemArena*	BLI_memarena_new	(int bufsize);
+struct MemArena*	BLI_memarena_new	(int bufsize, const char *name);
 void				BLI_memarena_free	(struct MemArena *ma);
 
 void				BLI_memarena_use_malloc (struct MemArena *ma);

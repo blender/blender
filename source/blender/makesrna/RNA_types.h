@@ -78,7 +78,7 @@ typedef enum PropertyUnit {
 	PROP_UNIT_AREA = (2<<16),			/* m^2 */
 	PROP_UNIT_VOLUME = (3<<16),			/* m^3 */
 	PROP_UNIT_MASS = (4<<16),			/* kg */
-	PROP_UNIT_ROTATION = (5<<16),		/* rad */
+	PROP_UNIT_ROTATION = (5<<16),		/* radians */
 	PROP_UNIT_TIME = (6<<16),			/* frame */
 	PROP_UNIT_VELOCITY = (7<<16),		/* m/s */
 	PROP_UNIT_ACCELERATION = (8<<16)	/* m/(s^2) */

@@ -263,7 +263,7 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *_eve
 		steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY);
 		WM_jobs_customdata(steve, bkr, bake_freejob);
 		WM_jobs_timer(steve, 0.2, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
-		WM_jobs_callbacks(steve, bake_startjob, NULL, bake_update);
+		WM_jobs_callbacks(steve, bake_startjob, NULL, bake_update, NULL);
 
 		G.afbreek= 0;
 

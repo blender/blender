@@ -4764,11 +4764,9 @@ static void restrictbutton_r_lay_cb(bContext *C, void *poin, void *poin2)
 
 static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 {
-	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
 	
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	object_handle_update(scene, ob);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 }

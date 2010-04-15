@@ -2489,7 +2489,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	tangent= DM_get_face_data_layer(dm, CD_TANGENT);
 	
 	/* allocate some space */
-	arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "tangent layer arena");
 	BLI_memarena_use_calloc(arena);
 	vtangents= MEM_callocN(sizeof(VertexTangent*)*totvert, "VertexTangent");
 	

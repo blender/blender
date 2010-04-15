@@ -497,12 +497,22 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 	else if(RE_rayobject_isVlakPrimitive(r))
 	{
 		VlakPrimitive *face = (VlakPrimitive*) RE_rayobject_align(r);
-		VlakRen *vlr = face->face;
+		RayFace nface;
+		RE_rayface_from_vlak(&nface, face->ob, face->face);
 
-		DO_MINMAX( vlr->v1->co, min, max );
-		DO_MINMAX( vlr->v2->co, min, max );
-		DO_MINMAX( vlr->v3->co, min, max );
-		if(vlr->v4) DO_MINMAX( vlr->v4->co, min, max );
+		if(face->ob->transform_primitives)
+		{
+			mul_m4_v3(face->ob->mat, nface.v1);
+			mul_m4_v3(face->ob->mat, nface.v2);
+			mul_m4_v3(face->ob->mat, nface.v3);
+			if(RE_rayface_isQuad(&nface))
+				mul_m4_v3(face->ob->mat, nface.v4);
+		}
+
+		DO_MINMAX( nface.v1, min, max );
+		DO_MINMAX( nface.v2, min, max );
+		DO_MINMAX( nface.v3, min, max );
+		if(RE_rayface_isQuad(&nface)) DO_MINMAX( nface.v4, min, max );
 	}
 	else if(RE_rayobject_isRayAPI(r))
 	{

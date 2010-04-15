@@ -2237,6 +2237,8 @@ void DAG_on_load_update(void)
 				for(go= group->gobject.first; go; go= go->next) {
 					if(ELEM5(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
 						go->ob->recalc |= OB_RECALC_DATA;
+					if(go->ob->proxy_from)
+						go->ob->recalc |= OB_RECALC_OB;
 				}
 				
 				group->id.flag &= ~LIB_DOIT;

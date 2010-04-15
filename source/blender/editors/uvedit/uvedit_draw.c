@@ -839,12 +839,6 @@ void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedi
 	show_uvshadow= ED_space_image_show_uvshadow(sima, obedit);
 
 	if(show_uvedit || show_uvshadow) {
-		/* this is basically the same object_handle_update as in the 3d view,
-		 * here we have to do it as well for the object we are editing if we
-		 * are displaying the final result */
-		if(obedit && (sima->flag & SI_DRAWSHADOW))
-			object_handle_update(scene, obedit);
-
 		if(show_uvshadow)
 			draw_uvs_shadow(sima, obedit);
 		else

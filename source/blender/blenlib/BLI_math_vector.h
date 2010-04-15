@@ -32,6 +32,8 @@
 extern "C" {
 #endif
 
+#include "BLI_math_inline.h"
+
 #ifdef BLI_MATH_INLINE
 #include "intern/math_vector_inline.c"
 #endif
@@ -75,6 +77,7 @@ MINLINE void madd_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], float f);
 MINLINE void madd_v3_v3v3fl(float r[3], const float a[3], const float b[3], float f);
 MINLINE void madd_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3]);
+MINLINE void madd_v4_v4fl(float r[4], const float a[4], float f);
 
 MINLINE void negate_v3(float r[3]);
 MINLINE void negate_v3_v3(float r[3], const float a[3]);
@@ -93,6 +96,7 @@ MINLINE float len_v2(const float a[2]);
 MINLINE float len_v2v2(const float a[2], const float b[2]);
 MINLINE float len_v3(const float a[3]);
 MINLINE float len_v3v3(const float a[3], const float b[3]);
+MINLINE float len_squared_v3v3(const float a[3], const float b[3]);
 
 MINLINE float normalize_v2(float r[2]);
 MINLINE float normalize_v2_v2(float r[2], const float a[2]);
@@ -107,6 +111,7 @@ void interp_v3_v3v3(float r[3], const float a[3], const float b[3], const float 
 void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3]);
 void interp_v3_v3v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float w[4]);
 void interp_v4_v4v4(float r[4], const float a[4], const float b[4], const float t);
+void interp_v4_v4v4v4(float p[4], const float v1[4], const float v2[4], const float v3[4], const float w[3]);
 
 void mid_v3_v3v3(float r[3], float a[3], float b[3]);
 

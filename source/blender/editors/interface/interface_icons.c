@@ -518,12 +518,14 @@ static void init_internal_icons()
 	else
 		icontype= ICON_TYPE_BUFFER;
 	
-	for (y=0; y<ICON_GRID_ROWS; y++) {
-		for (x=0; x<ICON_GRID_COLS; x++) {
-			def_internal_icon(bbuf, BIFICONID_FIRST + y*ICON_GRID_COLS + x,
-				x*(ICON_GRID_W+ICON_GRID_MARGIN)+ICON_GRID_MARGIN,
-				y*(ICON_GRID_H+ICON_GRID_MARGIN)+ICON_GRID_MARGIN, ICON_GRID_W,
-				icontype);
+	if(bbuf) {
+		for (y=0; y<ICON_GRID_ROWS; y++) {
+			for (x=0; x<ICON_GRID_COLS; x++) {
+				def_internal_icon(bbuf, BIFICONID_FIRST + y*ICON_GRID_COLS + x,
+					x*(ICON_GRID_W+ICON_GRID_MARGIN)+ICON_GRID_MARGIN,
+					y*(ICON_GRID_H+ICON_GRID_MARGIN)+ICON_GRID_MARGIN, ICON_GRID_W,
+					icontype);
+			}
 		}
 	}
 

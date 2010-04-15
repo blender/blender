@@ -512,7 +512,7 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int d
 	int a;
 
 	if(do_nmap_tangent) {
-		arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+		arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "nmap tangent arena");
 		BLI_memarena_use_calloc(arena);
 
 		vtangents= MEM_callocN(sizeof(VertexTangent*)*obr->totvert, "VertexTangent");
@@ -4949,7 +4949,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, unsigned int lay, int use_c
 	
 	/* XXX add test if dbase was filled already? */
 	
-	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "render db arena");
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
 	re->lampren.first= re->lampren.last= NULL;
@@ -5099,7 +5099,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	
 	/* XXX add test if dbase was filled already? */
 	
-	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "vector render db arena");
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->i.totface=re->i.totvert=re->i.totstrand=re->i.totlamp=re->i.tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
@@ -5635,7 +5635,7 @@ void RE_Database_Baking(Render *re, Scene *scene, unsigned int lay, int type, Ob
 	}
 	
 	/* setup render stuff */
-	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "bake db arena");
 	
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->lights.first= re->lights.last= NULL;

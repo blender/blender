@@ -660,7 +660,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 	tree->doindirect= (re->wrld.ao_indirect_energy > 0.0f && re->wrld.ao_indirect_bounces > 0);
 
 	/* allocation */
-	tree->arena= BLI_memarena_new(0x8000 * sizeof(OccNode));
+	tree->arena= BLI_memarena_new(0x8000 * sizeof(OccNode), "occ tree arena");
 	BLI_memarena_use_calloc(tree->arena);
 
 	if(re->wrld.aomode & WO_AOCACHE)

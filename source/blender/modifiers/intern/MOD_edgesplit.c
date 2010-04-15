@@ -862,7 +862,7 @@ static void push_propagate_stack(SmoothEdge *edge, SmoothVert *vert, SmoothMesh 
 	}
 	else {
 		if(!mesh->arena) {
-			mesh->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+			mesh->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "edgesplit arena");
 			BLI_memarena_use_calloc(mesh->arena);
 		}
 

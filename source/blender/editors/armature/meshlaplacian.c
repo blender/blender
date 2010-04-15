@@ -1764,7 +1764,7 @@ static void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd,
 	else
 		mdb->weights= MEM_callocN(sizeof(float)*mdb->totvert*mdb->totcagevert, "MDefWeights");
 
-	mdb->memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	mdb->memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "harmonic coords arena");
 	BLI_memarena_use_calloc(mdb->memarena);
 
 	/* make bounding box equal size in all directions, add padding, and compute
@@ -1804,7 +1804,7 @@ static void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd,
 
 	/* free temporary MDefBoundIsects */
 	BLI_memarena_free(mdb->memarena);
-	mdb->memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	mdb->memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "harmonic coords arena");
 
 	/* start with all cells untyped */
 	for(a=0; a<mdb->size3; a++)

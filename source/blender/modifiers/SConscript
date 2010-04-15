@@ -10,8 +10,11 @@ incs += ' ../include ../blenlib ../makesdna ../blenkernel ../blenkernel/intern'
 
 incs += ' ' + env['BF_ZLIB_INC']
 
-defs = ''
+defs = []
+
+if env['BF_NO_ELBEEM']:
+	defs.append('DISABLE_ELBEEM')
 
 env.BlenderLib ( libname = 'modifiers', sources = sources,
-                 includes = Split(incs), defines = Split(defs),
+                 includes = Split(incs), defines=defs,
                  libtype=['core','player'], priority = [180, 20] )

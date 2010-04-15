@@ -648,8 +648,7 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op, sh
 			* This shouldn't be necessary, derived queries should be
 			* automatically building this data if invalid. Or something.
 			*/
-//		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-		object_handle_update(scene, obedit);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 		/* individual faces? */
 //		BIF_TransformSetUndo("Extrude");

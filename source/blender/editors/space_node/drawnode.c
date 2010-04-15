@@ -349,11 +349,21 @@ static void node_shader_buts_vect_math(uiLayout *layout, bContext *C, PointerRNA
 
 static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+	PointerRNA obptr= CTX_data_pointer_get(C, "active_object");
 	uiLayout *col;
-	
+
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, ptr, "uv_layer", 0, "UV", 0);
-	uiItemR(col, ptr, "color_layer", 0, "VCol", 0);
+
+	if(obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+		PointerRNA dataptr= RNA_pointer_get(&obptr, "data");
+
+		uiItemPointerR(col, ptr, "uv_layer", &dataptr, "uv_textures", "", 0);
+		uiItemPointerR(col, ptr, "color_layer", &dataptr, "vertex_colors", "", 0);
+	}
+	else {
+		uiItemR(col, ptr, "uv_layer", 0, "UV", 0);
+		uiItemR(col, ptr, "color_layer", 0, "VCol", 0);
+	}
 }
 
 static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *ptr)

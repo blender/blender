@@ -779,7 +779,7 @@ void scatter_tree_build(ScatterTree *tree)
 	tmppoints= MEM_callocN(sizeof(ScatterPoint*)*totpoint, "ScatterTmpPoints");
 	tree->tmppoints= tmppoints;
 
-	tree->arena= BLI_memarena_new(0x8000 * sizeof(ScatterNode));
+	tree->arena= BLI_memarena_new(0x8000 * sizeof(ScatterNode), "sss tree arena");
 	BLI_memarena_use_calloc(tree->arena);
 
 	/* build tree */

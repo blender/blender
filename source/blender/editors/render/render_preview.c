@@ -1121,7 +1121,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
 	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
-	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL);
+	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL, NULL);
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 }
@@ -1147,7 +1147,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
 	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
-	WM_jobs_callbacks(steve, common_preview_startjob, NULL, shader_preview_updatejob);
+	WM_jobs_callbacks(steve, common_preview_startjob, NULL, shader_preview_updatejob, NULL);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
 }

@@ -176,7 +176,7 @@ void snode_composite_job(const bContext *C, ScrArea *sa)
 	/* setup job */
 	WM_jobs_customdata(steve, cj, compo_freejob);
 	WM_jobs_timer(steve, 0.1, NC_SCENE, NC_SCENE|ND_COMPO_RESULT);
-	WM_jobs_callbacks(steve, compo_startjob, compo_initjob, compo_updatejob);
+	WM_jobs_callbacks(steve, compo_startjob, compo_initjob, compo_updatejob, NULL);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
 	

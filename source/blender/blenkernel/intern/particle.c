@@ -4215,18 +4215,11 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 	ParticleSystem *psys = sim->psys;
 	ParticleSystemModifierData *psmd = sim->psmd;
 	float loc[3], nor[3], vec[3], side[3], len, obrotmat[4][4], qmat[4][4];
-	float xvec[3] = {-1.0, 0.0, 0.0}, q[4];
+	float xvec[3] = {-1.0, 0.0, 0.0}, q[4], nmat[3][3];
 
 	sub_v3_v3v3(vec, (cache+cache->steps-1)->co, cache->co);
 	len= normalize_v3(vec);
 
-	if(pa)
-		psys_particle_on_emitter(psmd,sim->psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
-	else
-		psys_particle_on_emitter(psmd,
-			(psys->part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
-			cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,nor,0,0,0,0);
-	
 	if(psys->part->rotmode) {
 		if(!pa)
 			pa= psys->particles+cpa->pa[0];
@@ -4239,6 +4232,17 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 		mul_m4_m4m4(mat, obrotmat, qmat);
 	}
 	else {
+		if(pa)
+			psys_particle_on_emitter(psmd,sim->psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
+		else
+			psys_particle_on_emitter(psmd,
+				(psys->part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
+				cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,nor,0,0,0,0);
+		
+		copy_m3_m4(nmat, ob->imat);
+		transpose_m3(nmat);
+		mul_m3_v3(nmat, nor);
+
 		/* make sure that we get a proper side vector */
 		if(fabs(dot_v3v3(nor,vec))>0.999999) {
 			if(fabs(dot_v3v3(nor,xvec))>0.999999) {

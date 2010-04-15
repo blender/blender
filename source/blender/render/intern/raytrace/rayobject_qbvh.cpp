@@ -52,10 +52,10 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 	rtbuild_done(obj->builder, &obj->rayobj.control);
 	
 	//TODO find a away to exactly calculate the needed memory
-	MemArena *arena1 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	MemArena *arena1 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "qbvh arena");
 					   BLI_memarena_use_malloc(arena1);
 
-	MemArena *arena2 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	MemArena *arena2 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "qbvh arena 2");
 					   BLI_memarena_use_malloc(arena2);
 					   BLI_memarena_use_align(arena2, 16);
 

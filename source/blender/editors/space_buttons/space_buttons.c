@@ -262,6 +262,8 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_KEYINGSET:
 					buttons_area_redraw(sa, BCONTEXT_SCENE);
 					break;
+				case ND_RENDER_RESULT:
+					break;
 				case ND_MODE:
 				case ND_LAYER:
 				default:

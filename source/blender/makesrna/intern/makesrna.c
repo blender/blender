@@ -30,7 +30,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -483,13 +485,13 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 
 					if(dp->dnaarraylength == 1) {
 						if(prop->type == PROP_BOOLEAN && dp->booleanbit)
-							fprintf(f, "		values[i]= (%s(data->%s & (%d<<i)) != 0);\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
+							fprintf(f, "		values[i]= %s((data->%s & (%d<<i)) != 0);\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
 						else
 							fprintf(f, "		values[i]= (%s)%s((&data->%s)[i]);\n", rna_type_type(prop), (dp->booleannegative)? "!": "", dp->dnaname);
 					}
 					else {
 						if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
-							fprintf(f, "		values[i]= (%s(data->%s[i] & ", (dp->booleannegative)? "!": "", dp->dnaname);
+							fprintf(f, "		values[i]= %s((data->%s[i] & ", (dp->booleannegative)? "!": "", dp->dnaname);
 							rna_int_print(f, dp->booleanbit);
 							fprintf(f, ") != 0);\n");
 						}
@@ -514,7 +516,7 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				else {
 					rna_print_data_get(f, dp);
 					if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
-						fprintf(f, "	return (%s((data->%s) & ", (dp->booleannegative)? "!": "", dp->dnaname);
+						fprintf(f, "	return %s(((data->%s) & ", (dp->booleannegative)? "!": "", dp->dnaname);
 						rna_int_print(f, dp->booleanbit);
 						fprintf(f, ") != 0);\n");
 					}
@@ -1684,7 +1686,7 @@ static const char *rna_property_subtype_unit(PropertyType type)
 		case PROP_UNIT_TIME:		return "PROP_UNIT_TIME";
 		case PROP_UNIT_VELOCITY:	return "PROP_UNIT_VELOCITY";
 		case PROP_UNIT_ACCELERATION:return "PROP_UNIT_ACCELERATION";
-		default: return "PROP_UNKNOWN";
+		default:					return "PROP_UNIT_UNKNOWN";
 	}
 }
 

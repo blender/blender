@@ -67,11 +67,11 @@ int AUD_FFMPEGReader::decode(AVPacket* packet, AUD_Buffer* buffer)
 			audio_pkg_data,
 			audio_pkg_size);
 
-		buf_pos += data_size;
-
 		// read error, next packet!
 		if(read_length < 0)
 			break;
+
+		buf_pos += data_size;
 
 		// move packet parameters
 		audio_pkg_data += read_length;

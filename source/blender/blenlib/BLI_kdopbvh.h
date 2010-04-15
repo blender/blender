@@ -32,6 +32,10 @@
 #ifndef BLI_KDOPBVH_H
 #define BLI_KDOPBVH_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include <float.h>
 
 struct BVHTree;
@@ -100,6 +104,9 @@ float BLI_bvhtree_bb_raycast(float *bv, float *light_start, float *light_end, fl
 /* range query */
 int BLI_bvhtree_range_query(BVHTree *tree, const float *co, float radius, BVHTree_RangeQuery callback, void *userdata);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BLI_KDOPBVH_H
 

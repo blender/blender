@@ -27,7 +27,7 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-	. ../blenlib ../blenkernel ../makesdna ../include
+	. ../blenlib ../blenkernel ../makesdna ../makesrna ../include
 	../../../extern/glew/include ../../../intern/guardedalloc ../../../intern/smoke/extern ../imbuf)
 
 ADD_DEFINITIONS(-DGLEW_STATIC)
