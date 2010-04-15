@@ -2434,7 +2434,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 			cache->flag &= ~PTCACHE_BAKED;
 		}
 	}
-	for(SETLOOPER(scene, base)) {
+	else for(SETLOOPER(scene, base)) {
 		/* cache/bake everything in the scene */
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
