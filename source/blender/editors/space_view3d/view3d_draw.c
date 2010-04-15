@@ -2158,15 +2158,15 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 		fps = fps / tot;
 	}
 #endif
-	
+
 	/* is this more then half a frame behind? */
 	if (fps+0.5 < FPS) {
 		UI_ThemeColor(TH_REDALERT);
-		sprintf(printable, "fps: %.2f", (float)fps);
+		snprintf(printable, sizeof(printable), "fps: %.2f", (float)fps);
 	} 
 	else {
 		UI_ThemeColor(TH_TEXT_HI);
-		sprintf(printable, "fps: %i", (int)(fps+0.5));
+		snprintf(printable, sizeof(printable), "fps: %i", (int)(fps+0.5));
 	}
 	
 	BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
