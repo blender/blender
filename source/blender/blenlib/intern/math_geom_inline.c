@@ -1,5 +1,5 @@
 /**
- * $Id: math_base_inline.c 26367 2010-01-28 16:02:26Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
