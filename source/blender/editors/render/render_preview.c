@@ -346,7 +346,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				}
 
 				
-				if(sp->pr_method==PR_ICON_RENDER) {
+				if(sp && sp->pr_method==PR_ICON_RENDER) {
 					if (mat->material_type == MA_TYPE_HALO) {
 						sce->lay= 1<<MA_FLAT;
 					} 
@@ -406,7 +406,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				}
 			}
 
-			if(tex && tex->nodetree && sp->pr_method==PR_NODE_RENDER)
+			if(tex && tex->nodetree && sp && sp->pr_method==PR_NODE_RENDER)
 				ntreeInitPreview(tex->nodetree, sp->sizex, sp->sizey);
 		}
 		else if(id_type==ID_LA) {
