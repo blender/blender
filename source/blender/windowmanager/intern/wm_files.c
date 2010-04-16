@@ -491,7 +491,11 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 	
 	len = strlen(target);
 	
-	if (len == 0) return;
+	if (len == 0) {
+		BKE_report(reports, RPT_ERROR, "Path is empty, cannot save");
+		return -1;
+	}
+
 	if (len >= FILE_MAX) {
 		BKE_report(reports, RPT_ERROR, "Path too long, cannot save");
 		return -1;
