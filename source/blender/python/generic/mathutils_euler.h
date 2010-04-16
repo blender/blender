@@ -37,14 +37,7 @@ extern PyTypeObject euler_Type;
 #define EulerObject_Check(_v) PyObject_TypeCheck((_v), &euler_Type)
 
 typedef struct {
-	PyObject_VAR_HEAD 
-	float *eul;					/*1D array of data */
-	PyObject *cb_user;			/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
-	unsigned char cb_type;		/* which user funcs do we adhere to, RNA, GameObject, etc */
-	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
-	unsigned char wrapped;		/* wrapped data type? */
-	/* end BaseMathObject */
-
+	BASE_MATH_MEMBERS(eul);
 	unsigned char order;		/* rotation order */
 
 } EulerObject;

@@ -36,15 +36,8 @@
 extern PyTypeObject quaternion_Type;
 #define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)
 
-typedef struct { /* keep aligned with BaseMathObject in mathutils.h */
-	PyObject_VAR_HEAD 
-	float *quat;				/* 1D array of data (alias) */
-	PyObject *cb_user;			/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
-	unsigned char cb_type;		/* which user funcs do we adhere to, RNA, GameObject, etc */
-	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
-	unsigned char wrapped;		/* wrapped data type? */
-	/* end BaseMathObject */
-
+typedef struct {
+	BASE_MATH_MEMBERS(quat);
 } QuaternionObject;
 
 /*struct data contains a pointer to the actual data that the

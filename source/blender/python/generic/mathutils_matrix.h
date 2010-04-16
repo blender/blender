@@ -34,21 +34,14 @@
 
 extern PyTypeObject matrix_Type;
 #define MatrixObject_Check(_v) PyObject_TypeCheck((_v), &matrix_Type)
+#define MATRIX_MAX_DIM 4
 
-typedef float **ptRow;
-typedef struct _Matrix { /* keep aligned with BaseMathObject in mathutils.h */
-	PyObject_VAR_HEAD
-	float *contigPtr;	/*1D array of data (alias)*/
-	PyObject *cb_user;	/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
-	unsigned char cb_type;	/* which user funcs do we adhere to, RNA, GameObject, etc */
-	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
-	unsigned char wrapped;	/*is wrapped data?*/
-	/* end BaseMathObject */
+typedef struct {
+	BASE_MATH_MEMBERS(contigPtr);
 
 	unsigned char rowSize;
 	unsigned int colSize;
-	ptRow			matrix;		/*ptr to the contigPtr (accessor)*/
-
+	float *matrix[MATRIX_MAX_DIM];		/* ptr to the contigPtr (accessor) */
 } MatrixObject;
 
 /*struct data contains a pointer to the actual data that the

@@ -118,7 +118,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	float scalar;
 
 	argSize = PyTuple_GET_SIZE(args);
-	if(argSize > 4){	//bad arg nums
+	if(argSize > MATRIX_MAX_DIM) {	//bad arg nums
 		PyErr_SetString(PyExc_AttributeError, "mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
 		return NULL;
 	} else if (argSize == 0) { //return empty 4D matrix
@@ -318,11 +318,6 @@ PyObject *Matrix_Resize4x4(MatrixObject * self)
 	
 	self->contigPtr = PyMem_Realloc(self->contigPtr, (sizeof(float) * 16));
 	if(self->contigPtr == NULL) {
-		PyErr_SetString(PyExc_MemoryError, "matrix.resize4x4(): problem allocating pointer space");
-		return NULL;
-	}
-	self->matrix = PyMem_Realloc(self->matrix, (sizeof(float *) * 4));
-	if(self->matrix == NULL) {
 		PyErr_SetString(PyExc_MemoryError, "matrix.resize4x4(): problem allocating pointer space");
 		return NULL;
 	}
@@ -1425,12 +1420,6 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type, PyType
 
 	if(type == Py_WRAP){
 		self->contigPtr = mat;
-		/*create pointer array*/
-		self->matrix = PyMem_Malloc(rowSize * sizeof(float *));
-		if(self->matrix == NULL) { /*allocation failure*/
-			PyErr_SetString( PyExc_MemoryError, "matrix(): problem allocating pointer space");
-			return NULL;
-		}
 		/*pointer array points to contigous memory*/
 		for(x = 0; x < rowSize; x++) {
 			self->matrix[x] = self->contigPtr + (x * colSize);
@@ -1440,13 +1429,6 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type, PyType
 		self->contigPtr = PyMem_Malloc(rowSize * colSize * sizeof(float));
 		if(self->contigPtr == NULL) { /*allocation failure*/
 			PyErr_SetString( PyExc_MemoryError, "matrix(): problem allocating pointer space\n");
-			return NULL;
-		}
-		/*create pointer array*/
-		self->matrix = PyMem_Malloc(rowSize * sizeof(float *));
-		if(self->matrix == NULL) { /*allocation failure*/
-			PyMem_Free(self->contigPtr);
-			PyErr_SetString( PyExc_MemoryError, "matrix(): problem allocating pointer space");
 			return NULL;
 		}
 		/*pointer array points to contigous memory*/

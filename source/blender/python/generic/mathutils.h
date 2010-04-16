@@ -33,25 +33,28 @@
 
 #include <Python.h>
 
-#include "mathutils_vector.h"
-#include "mathutils_matrix.h"
-#include "mathutils_quat.h"
-#include "mathutils_euler.h"
-#include "mathutils_color.h"
-
 /* Can cast different mathutils types to this, use for generic funcs */
 
 extern char BaseMathObject_Wrapped_doc[];
 extern char BaseMathObject_Owner_doc[];
 
+#define BASE_MATH_MEMBERS(_data) \
+	PyObject_VAR_HEAD \
+	float *_data;				/* array of data (alias), wrapped status depends on wrapped status */ \
+	PyObject *cb_user;			/* if this vector references another object, otherwise NULL, *Note* this owns its reference */ \
+	unsigned char cb_type;		/* which user funcs do we adhere to, RNA, GameObject, etc */ \
+	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */ \
+	unsigned char wrapped;		/* wrapped data type? */ \
+
 typedef struct {
-	PyObject_VAR_HEAD
-	float *data;					/*array of data (alias), wrapped status depends on wrapped status */
-	PyObject *cb_user;					/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
-	unsigned char cb_type;	/* which user funcs do we adhere to, RNA, GameObject, etc */
-	unsigned char cb_subtype;		/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
-	unsigned char wrapped;		/* wrapped data type? */
+	BASE_MATH_MEMBERS(data)
 } BaseMathObject;
+
+#include "mathutils_vector.h"
+#include "mathutils_matrix.h"
+#include "mathutils_quat.h"
+#include "mathutils_euler.h"
+#include "mathutils_color.h"
 
 PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );

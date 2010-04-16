@@ -37,14 +37,7 @@ extern PyTypeObject color_Type;
 #define ColorObject_Check(_v) PyObject_TypeCheck((_v), &color_Type)
 
 typedef struct {
-	PyObject_VAR_HEAD
-	float *col;					/*1D array of data */
-	PyObject *cb_user;			/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
-	unsigned char cb_type;		/* which user funcs do we adhere to, RNA, GameObject, etc */
-	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
-	unsigned char wrapped;		/* wrapped data type? */
-	/* end BaseMathObject */
-
+	BASE_MATH_MEMBERS(col);
 } ColorObject;
 
 /*struct data contains a pointer to the actual data that the
