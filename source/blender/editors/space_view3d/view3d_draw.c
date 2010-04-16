@@ -855,13 +855,15 @@ static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2
 	}
 }
 
-void calc_viewborder(Scene *scene, ARegion *ar, View3D *v3d, rctf *viewborder_r)
+void calc_viewborder(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r)
 {
-	RegionView3D *rv3d= ar->regiondata;
 	float zoomfac, size[2];
 	float dx= 0.0f, dy= 0.0f;
 	
 	view3d_get_viewborder_size(scene, ar, size);
+	
+	if (rv3d == NULL)
+		rv3d = ar->regiondata;
 	
 	/* magic zoom calculation, no idea what
 		* it signifies, if you find out, tell me! -zr
@@ -971,13 +973,14 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	float x3, y3, x4, y4;
 	rctf viewborder;
 	Camera *ca= NULL;
+	RegionView3D *rv3d= (RegionView3D *)ar->regiondata;
 	
 	if(v3d->camera==NULL)
 		return;
 	if(v3d->camera->type==OB_CAMERA)
 		ca = v3d->camera->data;
 	
-	calc_viewborder(scene, ar, v3d, &viewborder);
+	calc_viewborder(scene, ar, rv3d, v3d, &viewborder);
 	x1= viewborder.xmin;
 	y1= viewborder.ymin;
 	x2= viewborder.xmax;
@@ -1306,7 +1309,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			if(rv3d->persp==RV3D_CAMOB) {
 				rctf vb;
 
-				calc_viewborder(scene, ar, v3d, &vb);
+				calc_viewborder(scene, ar, rv3d, v3d, &vb);
 
 				x1= vb.xmin;
 				y1= vb.ymin;

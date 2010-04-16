@@ -1482,6 +1482,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar= CTX_wm_region(C);
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
 	Scene *scene= CTX_data_scene(C);
 
 	rcti rect;
@@ -1493,11 +1494,8 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
-	if (!ar || ar->regiontype != RGN_TYPE_WINDOW)
-		return OPERATOR_CANCELLED;
-	
 	/* calculate range */
-	calc_viewborder(scene, ar, v3d, &vb);
+	calc_viewborder(scene, ar, rv3d, v3d, &vb);
 
 	scene->r.border.xmin= ((float)rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
 	scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
@@ -1530,7 +1528,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 
 static int view3d_render_border_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
 
 	/* if not in camera view do not exec the operator*/
 	if (rv3d->persp == RV3D_CAMOB) return WM_border_select_invoke(C, op, event);

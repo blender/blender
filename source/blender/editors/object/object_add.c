@@ -108,7 +108,7 @@ void ED_object_location_from_view(bContext *C, float *loc)
 
 void ED_object_rotation_from_view(bContext *C, float *rot)
 {
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
 	
 	if(rv3d) {
 		rv3d->viewquat[0]= -rv3d->viewquat[0];
@@ -200,23 +200,7 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 		ED_object_location_from_view(C, loc);
 		RNA_float_set_array(op->ptr, "location", loc);
 	}
-	
-	if (!RNA_property_is_set(op->ptr, "rotation")) {
-		int view_align;
-		float rot[3] = {0.f, 0.f, 0.f};
-	
-		/* view align property is just used to set rotation property */
-		if (!RNA_property_is_set(op->ptr, "view_align"))
-			view_align = U.flag & USER_ADD_VIEWALIGNED;
-		else
-			view_align = RNA_boolean_get(op->ptr, "view_align");
-		
-		if (view_align)
-			ED_object_rotation_from_view(C, rot);
-
-		RNA_float_set_array(op->ptr, "rotation", rot);
-	}
-
+	 
 	if (!RNA_property_is_set(op->ptr, "layer")) {
 		View3D *v3d = CTX_wm_view3d(C);
 		Scene *scene = CTX_data_scene(C);
@@ -248,17 +232,28 @@ int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return op->type->exec(C, op);
 }
 
-void ED_object_add_generic_get_opts(wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer)
+void ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer)
 {
 	int a, layer_values[32];
+	int view_align;
 	
 	*enter_editmode = FALSE;
 	if(RNA_struct_find_property(op->ptr, "enter_editmode") && RNA_boolean_get(op->ptr, "enter_editmode")) {
 		*enter_editmode = TRUE;
 	}
 	
+	if (RNA_property_is_set(op->ptr, "view_align"))
+		view_align = RNA_boolean_get(op->ptr, "view_align");
+	else
+		view_align = U.flag & USER_ADD_VIEWALIGNED;
+
+	if (view_align)
+		ED_object_rotation_from_view(C, rot);
+	else
+		RNA_float_get_array(op->ptr, "rotation", rot);
+	
+
 	RNA_float_get_array(op->ptr, "location", loc);
-	RNA_float_get_array(op->ptr, "rotation", rot);
 	RNA_boolean_get_array(op->ptr, "layer", layer_values);
 	
 	for(a=0; a<32; a++)
@@ -303,7 +298,7 @@ static int object_add_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	ED_object_add_type(C, RNA_enum_get(op->ptr, "type"), loc, rot, enter_editmode, layer);
 	
 	return OPERATOR_FINISHED;
@@ -362,7 +357,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op);
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 
 	if(type==PFIELD_GUIDE) {
 		ob= ED_object_add_type(C, OB_CURVE, loc, rot, FALSE, layer);
@@ -437,7 +432,7 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
 	RNA_boolean_set(op->ptr, "view_align", 1);
 	
 	object_add_generic_invoke_options(C, op);
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 
 	ob= ED_object_add_type(C, OB_CAMERA, loc, rot, FALSE, layer);
 	
@@ -493,7 +488,7 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
 		Curve *cu;
@@ -585,7 +580,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	
 	if(obedit==NULL || obedit->type!=OB_SURF) {
 		obedit= ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
@@ -650,7 +645,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
 		obedit= ED_object_add_type(C, OB_MBALL, loc, rot, TRUE, layer);
@@ -720,7 +715,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	
 	if(obedit && obedit->type==OB_FONT)
 		return OPERATOR_CANCELLED;
@@ -760,7 +755,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
 		obedit= ED_object_add_type(C, OB_ARMATURE, loc, rot, TRUE, layer);
@@ -815,7 +810,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op);
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
 	if(ob && ob->data)
@@ -862,7 +857,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op);
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
 
 	if(group) {
 		Object *ob= ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE, layer);
