@@ -30,6 +30,10 @@ SET(INC
 	. ../blenlib ../blenkernel ../makesdna ../makesrna ../include
 	../../../extern/glew/include ../../../intern/guardedalloc ../../../intern/smoke/extern ../imbuf)
 
+IF(WIN32)
+	INCLUDE_DIRECTORIES(${PTHREADS_INC})
+ENDIF(WIN32)
+
 ADD_DEFINITIONS(-DGLEW_STATIC)
 
 BLENDERLIB(bf_gpu "${SRC}" "${INC}")
