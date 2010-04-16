@@ -37,7 +37,7 @@ extern PyTypeObject matrix_Type;
 #define MATRIX_MAX_DIM 4
 
 typedef struct {
-	BASE_MATH_MEMBERS(contigPtr);
+	BASE_MATH_MEMBERS(contigPtr)
 
 	unsigned char rowSize;
 	unsigned int colSize;

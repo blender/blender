@@ -37,7 +37,7 @@ extern PyTypeObject vector_Type;
 #define VectorObject_Check(_v) PyObject_TypeCheck((_v), &vector_Type)
 
 typedef struct {
-	BASE_MATH_MEMBERS(vec);
+	BASE_MATH_MEMBERS(vec)
 
 	unsigned char size;			/* vec size 2,3 or 4 */
 } VectorObject;

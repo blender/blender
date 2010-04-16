@@ -37,7 +37,7 @@ extern PyTypeObject euler_Type;
 #define EulerObject_Check(_v) PyObject_TypeCheck((_v), &euler_Type)
 
 typedef struct {
-	BASE_MATH_MEMBERS(eul);
+	BASE_MATH_MEMBERS(eul)
 	unsigned char order;		/* rotation order */
 
 } EulerObject;
