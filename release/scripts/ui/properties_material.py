@@ -911,6 +911,32 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
             col = split.column()
         col.label()
         col.prop(vol, "depth_cutoff")
+        
+class MATERIAL_PT_volume_options(VolumeButtonsPanel):
+    bl_label = "Options"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    bl_default_closed = True
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = active_node_mat(context.material)
+        wide_ui = context.region.width > narrowui
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(mat, "traceable")
+        col.prop(mat, "full_oversampling")
+        col.prop(mat, "exclude_mist")
+        
+        col = split.column()
+        col.label(text="Light Group:")
+        col.prop(mat, "light_group", text="")
+        row = col.row()
+        row.active = bool(mat.light_group)
+        row.prop(mat, "light_group_exclusive", text="Exclusive")
+
 
 
 classes = [
@@ -937,8 +963,8 @@ classes = [
     MATERIAL_PT_volume_shading,
     MATERIAL_PT_volume_lighting,
     MATERIAL_PT_volume_transp,
-
     MATERIAL_PT_volume_integration,
+    MATERIAL_PT_volume_options,
 
     MATERIAL_PT_custom_props]
 
