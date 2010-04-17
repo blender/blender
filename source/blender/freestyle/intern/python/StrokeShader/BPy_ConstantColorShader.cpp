@@ -8,8 +8,41 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ConstantColorShader instance  -----------*/
-static int ConstantColorShader___init__( BPy_ConstantColorShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ConstantColorShader___doc__[] =
+"[Color shader]\n"
+"\n"
+".. method:: __init__(iR, iG, iB, iAlpha=1.0)\n"
+"\n"
+"   Builds a ConstantColorShader object.\n"
+"\n"
+"   :arg iR: The red component.\n"
+"   :type iR: float\n"
+"   :arg iG: The green component.\n"
+"   :type iG: float\n"
+"   :arg iB: The blue component.\n"
+"   :type iB: float\n"
+"   :arg iAlpha: The alpha value.\n"
+"   :type iAlpha: float\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Assigns a constant color to every vertex of the Stroke.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int ConstantColorShader___init__( BPy_ConstantColorShader* self, PyObject *args)
+{
+	float f1, f2, f3, f4 = 1.0;
+
+	if(!( PyArg_ParseTuple(args, "fff|f", &f1, &f2, &f3, &f4) ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::ConstantColorShader(f1, f2, f3, f4);
+	return 0;
+}
 
 /*-----------------------BPy_ConstantColorShader type definition ------------------------------*/
 
@@ -34,7 +67,7 @@ PyTypeObject ConstantColorShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ConstantColorShader objects",  /* tp_doc */
+	ConstantColorShader___doc__,    /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +86,6 @@ PyTypeObject ConstantColorShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ConstantColorShader___init__( BPy_ConstantColorShader* self, PyObject *args)
-{
-	float f1, f2, f3, f4 = 1.0;
-
-	if(!( PyArg_ParseTuple(args, "fff|f", &f1, &f2, &f3, &f4) ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::ConstantColorShader(f1, f2, f3, f4);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

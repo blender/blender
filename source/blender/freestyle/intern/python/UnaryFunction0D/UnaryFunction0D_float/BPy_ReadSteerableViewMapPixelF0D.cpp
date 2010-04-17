@@ -8,8 +8,40 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ReadSteerableViewMapPixelF0D instance  -----------*/
-static int ReadSteerableViewMapPixelF0D___init__(BPy_ReadSteerableViewMapPixelF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ReadSteerableViewMapPixelF0D___doc__[] =
+".. method:: __init__(nOrientation, level)\n"
+"\n"
+"   Builds a ReadSteerableViewMapPixelF0D object.\n"
+"\n"
+"   :arg nOrientation: The integer belonging to [0, 4] indicating the\n"
+"      orientation (E, NE, N, NW) we are interested in.\n"
+"   :type nOrientation: int\n"
+"   :arg level: The level of the pyramid from which the pixel must be\n"
+"      read.\n"
+"   :type level: int\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Reads a pixel in one of the level of one of the steerable viewmaps.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: A pixel in one of the level of one of the steerable viewmaps.\n"
+"   :rtype: float\n";
+
+static int ReadSteerableViewMapPixelF0D___init__( BPy_ReadSteerableViewMapPixelF0D* self, PyObject *args)
+{
+	unsigned int u;
+	int i;
+
+	if( !PyArg_ParseTuple(args, "Ii", &u, &i) )
+		return -1;
+	self->py_uf0D_float.uf0D_float = new Functions0D::ReadSteerableViewMapPixelF0D(u,i);
+	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_ReadSteerableViewMapPixelF0D type definition ------------------------------*/
 
@@ -34,7 +66,7 @@ PyTypeObject ReadSteerableViewMapPixelF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ReadSteerableViewMapPixelF0D objects", /* tp_doc */
+	ReadSteerableViewMapPixelF0D___doc__, /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,20 +85,6 @@ PyTypeObject ReadSteerableViewMapPixelF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ReadSteerableViewMapPixelF0D___init__( BPy_ReadSteerableViewMapPixelF0D* self, PyObject *args)
-{
-	unsigned int u;
-	int i;
-
-	if( !PyArg_ParseTuple(args, "Ii", &u, &i) )
-		return -1;
-	self->py_uf0D_float.uf0D_float = new Functions0D::ReadSteerableViewMapPixelF0D(u,i);
-	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

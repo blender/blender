@@ -9,17 +9,110 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for BinaryPredicate0D instance  -----------*/
-static int BinaryPredicate0D___init__(BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds);
-static void BinaryPredicate0D___dealloc__(BPy_BinaryPredicate0D *self);
-static PyObject * BinaryPredicate0D___repr__(BPy_BinaryPredicate0D *self);
+//-------------------MODULE INITIALIZATION--------------------------------
+int BinaryPredicate0D_Init( PyObject *module )
+{
+	if( module == NULL )
+		return -1;
 
-static PyObject * BinaryPredicate0D_getName( BPy_BinaryPredicate0D *self, PyObject *args);
-static PyObject * BinaryPredicate0D___call__( BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds);
+	if( PyType_Ready( &BinaryPredicate0D_Type ) < 0 )
+		return -1;
+
+	Py_INCREF( &BinaryPredicate0D_Type );
+	PyModule_AddObject(module, "BinaryPredicate0D", (PyObject *)&BinaryPredicate0D_Type);
+	return 0;
+}
+
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char BinaryPredicate0D___doc__[] =
+"Base class for binary predicates working on :class:`Interface0D`\n"
+"objects.  A BinaryPredicate0D is typically an ordering relation\n"
+"between two Interface0D objects.  The predicate evaluates a relation\n"
+"between the two Interface0D instances and returns a boolean value (true\n"
+"or false).  It is used by invoking the __call__() method.\n"
+"\n"
+".. method:: __init__()\n"
+"\n"
+"   Default constructor.\n"
+"\n"
+".. method:: __call__(inter1, inter2)\n"
+"\n"
+"   Must be overload by inherited classes.  It evaluates a relation\n"
+"   between two Interface0D objects.\n"
+"\n"
+"   :arg inter1: The first Interface0D object.\n"
+"   :type inter1: :class:`Interface0D`\n"
+"   :arg inter2: The second Interface0D object.\n"
+"   :type inter2: :class:`Interface0D`\n"
+"   :return: True or false.\n"
+"   :rtype: bool\n";
+
+static int BinaryPredicate0D___init__(BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds)
+{
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
+	self->bp0D = new BinaryPredicate0D();
+	self->bp0D->py_bp0D = (PyObject *) self;
+	
+	return 0;
+}
+
+static void BinaryPredicate0D___dealloc__(BPy_BinaryPredicate0D* self)
+{
+	if (self->bp0D)
+		delete self->bp0D;
+    Py_TYPE(self)->tp_free((PyObject*)self);
+}
+
+
+static PyObject * BinaryPredicate0D___repr__(BPy_BinaryPredicate0D* self)
+{
+    return PyUnicode_FromFormat("type: %s - address: %p", self->bp0D->getName().c_str(), self->bp0D );
+}
+
+static char BinaryPredicate0D_getName___doc__[] =
+".. method:: getName()\n"
+"\n"
+"   Returns the name of the binary 0D predicate.\n"
+"\n"
+"   :return: The name of the binary 0D predicate.\n"
+"   :rtype: string\n";
+
+static PyObject * BinaryPredicate0D_getName( BPy_BinaryPredicate0D *self, PyObject *args)
+{
+	return PyUnicode_FromFormat( self->bp0D->getName().c_str() );
+}
+
+static PyObject * BinaryPredicate0D___call__( BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds)
+{
+	BPy_Interface0D *obj1, *obj2;
+
+	if( kwds != NULL ) {
+		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+		return NULL;
+	}
+	if( !PyArg_ParseTuple(args, "O!O!", &Interface0D_Type, &obj1, &Interface0D_Type, &obj2) )
+		return NULL;
+	
+	if( typeid(*(self->bp0D)) == typeid(BinaryPredicate0D) ) {
+		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
+		return NULL;
+	}
+	if (self->bp0D->operator()( *(obj1->if0D) , *(obj2->if0D) ) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->bp0D->getName() + " __call__ method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
+		return NULL;
+	}
+	return PyBool_from_bool( self->bp0D->result );
+
+}
 
 /*----------------------BinaryPredicate0D instance definitions ----------------------------*/
 static PyMethodDef BPy_BinaryPredicate0D_methods[] = {
-	{"getName", ( PyCFunction ) BinaryPredicate0D_getName, METH_NOARGS, "() Returns the string of the name of the binary predicate."},
+	{"getName", ( PyCFunction ) BinaryPredicate0D_getName, METH_NOARGS, BinaryPredicate0D_getName___doc__},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -46,7 +139,7 @@ PyTypeObject BinaryPredicate0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"BinaryPredicate0D objects",    /* tp_doc */
+	BinaryPredicate0D___doc__,      /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -65,78 +158,6 @@ PyTypeObject BinaryPredicate0D_Type = {
 	0,                              /* tp_alloc */
 	PyType_GenericNew,              /* tp_new */
 };
-
-//-------------------MODULE INITIALIZATION--------------------------------
-int BinaryPredicate0D_Init( PyObject *module )
-{
-	if( module == NULL )
-		return -1;
-
-	if( PyType_Ready( &BinaryPredicate0D_Type ) < 0 )
-		return -1;
-
-	Py_INCREF( &BinaryPredicate0D_Type );
-	PyModule_AddObject(module, "BinaryPredicate0D", (PyObject *)&BinaryPredicate0D_Type);
-	return 0;
-}
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int BinaryPredicate0D___init__(BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds)
-{
-    if ( !PyArg_ParseTuple(args, "") )
-        return -1;
-	self->bp0D = new BinaryPredicate0D();
-	self->bp0D->py_bp0D = (PyObject *) self;
-	
-	return 0;
-}
-
-void BinaryPredicate0D___dealloc__(BPy_BinaryPredicate0D* self)
-{
-	if (self->bp0D)
-		delete self->bp0D;
-    Py_TYPE(self)->tp_free((PyObject*)self);
-}
-
-
-PyObject * BinaryPredicate0D___repr__(BPy_BinaryPredicate0D* self)
-{
-    return PyUnicode_FromFormat("type: %s - address: %p", self->bp0D->getName().c_str(), self->bp0D );
-}
-
-
-PyObject * BinaryPredicate0D_getName( BPy_BinaryPredicate0D *self, PyObject *args)
-{
-	return PyUnicode_FromFormat( self->bp0D->getName().c_str() );
-}
-
-PyObject * BinaryPredicate0D___call__( BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds)
-{
-	BPy_Interface0D *obj1, *obj2;
-
-	if( kwds != NULL ) {
-		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
-		return NULL;
-	}
-	if( !PyArg_ParseTuple(args, "O!O!", &Interface0D_Type, &obj1, &Interface0D_Type, &obj2) )
-		return NULL;
-	
-	if( typeid(*(self->bp0D)) == typeid(BinaryPredicate0D) ) {
-		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
-		return NULL;
-	}
-	if (self->bp0D->operator()( *(obj1->if0D) , *(obj2->if0D) ) < 0) {
-		if (!PyErr_Occurred()) {
-			string msg(self->bp0D->getName() + " __call__ method failed");
-			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
-		}
-		return NULL;
-	}
-	return PyBool_from_bool( self->bp0D->result );
-
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

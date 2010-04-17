@@ -8,8 +8,35 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ConstantThicknessShader instance  -----------*/
-static int ConstantThicknessShader___init__( BPy_ConstantThicknessShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ConstantThicknessShader___doc__[] =
+"[Thickness shader]\n"
+"\n"
+".. method:: __init__(thickness)\n"
+"\n"
+"   Builds a ConstantThicknessShader object.\n"
+"\n"
+"   :arg thickness: The thickness that must be assigned to the stroke.\n"
+"   :type thickness: float\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Assigns an absolute constant thickness to every vertex of the Stroke.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int ConstantThicknessShader___init__( BPy_ConstantThicknessShader* self, PyObject *args)
+{
+	float f;
+
+	if(!( PyArg_ParseTuple(args, "f", &f)  ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::ConstantThicknessShader(f);
+	return 0;
+}
 
 /*-----------------------BPy_ConstantThicknessShader type definition ------------------------------*/
 
@@ -34,7 +61,7 @@ PyTypeObject ConstantThicknessShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ConstantThicknessShader objects", /* tp_doc */
+	ConstantThicknessShader___doc__, /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +80,6 @@ PyTypeObject ConstantThicknessShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ConstantThicknessShader___init__( BPy_ConstantThicknessShader* self, PyObject *args)
-{
-	float f;
-
-	if(!( PyArg_ParseTuple(args, "f", &f)  ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::ConstantThicknessShader(f);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

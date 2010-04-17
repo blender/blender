@@ -6,10 +6,31 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for Length2DBP1D instance  -----------*/
-static int Length2DBP1D___init__(BPy_Length2DBP1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char Length2DBP1D___doc__[] =
+".. method:: __call__(inter1, inter2)\n"
+"\n"
+"   Returns true if the 2D length of inter1 is less than the 2D length\n"
+"   of inter2.\n"
+"\n"
+"   :arg inter1: The first Interface1D object.\n"
+"   :type inter1: :class:`Interface1D`\n"
+"   :arg inter2: The second Interface1D object.\n"
+"   :type inter2: :class:`Interface1D`\n"
+"   :return: True or false.\n"
+"   :rtype: bool\n";
+
+static int Length2DBP1D___init__( BPy_Length2DBP1D* self, PyObject *args )
+{
+	if(!( PyArg_ParseTuple(args, "") ))
+		return -1;
+	self->py_bp1D.bp1D = new Predicates1D::Length2DBP1D();
+	return 0;
+}
 
 /*-----------------------BPy_Length2DBP1D type definition ------------------------------*/
+
 PyTypeObject Length2DBP1D_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"Length2DBP1D",                 /* tp_name */
@@ -31,7 +52,7 @@ PyTypeObject Length2DBP1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"Length2DBP1D objects",         /* tp_doc */
+	Length2DBP1D___doc__,           /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -50,16 +71,6 @@ PyTypeObject Length2DBP1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int Length2DBP1D___init__( BPy_Length2DBP1D* self, PyObject *args )
-{
-	if(!( PyArg_ParseTuple(args, "") ))
-		return -1;
-	self->py_bp1D.bp1D = new Predicates1D::Length2DBP1D();
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

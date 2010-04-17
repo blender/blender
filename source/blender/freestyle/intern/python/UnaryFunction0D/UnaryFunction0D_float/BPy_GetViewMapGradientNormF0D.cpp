@@ -8,8 +8,38 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for GetViewMapGradientNormF0D instance  -----------*/
-static int GetViewMapGradientNormF0D___init__(BPy_GetViewMapGradientNormF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char GetViewMapGradientNormF0D___doc__[] =
+".. method:: __init__(level)\n"
+"\n"
+"   Builds a GetViewMapGradientNormF0D object.\n"
+"\n"
+"   :arg level: The level of the pyramid from which the pixel must be\n"
+"      read.\n"
+"   :type level: int\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Returns the norm of the gradient of the global viewmap density\n"
+"   image.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: The norm of the gradient of the global viewmap density\n"
+"      image.\n"
+"   :rtype: float\n";
+
+static int GetViewMapGradientNormF0D___init__( BPy_GetViewMapGradientNormF0D* self, PyObject *args)
+{
+	int i;
+
+	if( !PyArg_ParseTuple(args, "i", &i) )
+		return -1;
+	self->py_uf0D_float.uf0D_float = new Functions0D::GetViewMapGradientNormF0D(i);
+	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_GetViewMapGradientNormF0D type definition ------------------------------*/
 
@@ -34,7 +64,7 @@ PyTypeObject GetViewMapGradientNormF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"GetViewMapGradientNormF0D objects", /* tp_doc */
+	GetViewMapGradientNormF0D___doc__, /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +83,6 @@ PyTypeObject GetViewMapGradientNormF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int GetViewMapGradientNormF0D___init__( BPy_GetViewMapGradientNormF0D* self, PyObject *args)
-{
-	int i;
-
-	if( !PyArg_ParseTuple(args, "i", &i) )
-		return -1;
-	self->py_uf0D_float.uf0D_float = new Functions0D::GetViewMapGradientNormF0D(i);
-	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

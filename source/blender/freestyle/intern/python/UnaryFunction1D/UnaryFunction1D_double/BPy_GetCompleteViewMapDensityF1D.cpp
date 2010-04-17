@@ -10,8 +10,53 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for GetCompleteViewMapDensityF1D instance  -----------*/
-static int GetCompleteViewMapDensityF1D___init__(BPy_GetCompleteViewMapDensityF1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char GetCompleteViewMapDensityF1D___doc__[] =
+".. method:: __init__(level, iType=IntegrationType.MEAN, sampling=2.0)\n"
+"\n"
+"   Builds a GetCompleteViewMapDensityF1D object.\n"
+"\n"
+"   :arg level: The level of the pyramid from which the pixel must be\n"
+"      read.\n"
+"   :type level: int\n"
+"   :arg iType: The integration method used to compute a single value\n"
+"      from a set of values.\n"
+"   :type iType: :class:`IntegrationType`\n"
+"   :arg sampling: The resolution used to sample the chain: the\n"
+"      corresponding 0D function is evaluated at each sample point and\n"
+"      the result is obtained by combining the resulting values into a\n"
+"      single one, following the method specified by iType.\n"
+"   :type sampling: float\n"
+"\n"
+".. method:: __call__(inter)\n"
+"\n"
+"   Returns the density evaluated for an Interface1D in the complete\n"
+"   viewmap image.  The density is evaluated for a set of points along\n"
+"   the Interface1D (using the :class:`ReadCompleteViewMapPixelF0D`\n"
+"   functor) and then integrated into a single value using a\n"
+"   user-defined integration method.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: The density evaluated for the Interface1D in the complete\n"
+"      viewmap image.\n"
+"   :rtype: float\n";
+
+static int GetCompleteViewMapDensityF1D___init__( BPy_GetCompleteViewMapDensityF1D* self, PyObject *args)
+{
+	PyObject *obj = 0;
+	unsigned i;
+	float f = 2.0;
+
+	if( !PyArg_ParseTuple(args, "i|O!f", &i, &IntegrationType_Type, &obj, &f) )
+		return -1;
+	
+	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	self->py_uf1D_double.uf1D_double = new Functions1D::GetCompleteViewMapDensityF1D(i,t,f);
+	return 0;
+
+}
 
 /*-----------------------BPy_GetCompleteViewMapDensityF1D type definition ------------------------------*/
 
@@ -36,7 +81,7 @@ PyTypeObject GetCompleteViewMapDensityF1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"GetCompleteViewMapDensityF1D objects", /* tp_doc */
+	GetCompleteViewMapDensityF1D___doc__, /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -55,23 +100,6 @@ PyTypeObject GetCompleteViewMapDensityF1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int GetCompleteViewMapDensityF1D___init__( BPy_GetCompleteViewMapDensityF1D* self, PyObject *args)
-{
-	PyObject *obj = 0;
-	unsigned i;
-	float f = 2.0;
-
-	if( !PyArg_ParseTuple(args, "i|O!f", &i, &IntegrationType_Type, &obj, &f) )
-		return -1;
-	
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
-	self->py_uf1D_double.uf1D_double = new Functions1D::GetCompleteViewMapDensityF1D(i,t,f);
-	return 0;
-
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

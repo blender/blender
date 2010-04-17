@@ -8,8 +8,37 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ShapeIdF0D instance  -----------*/
-static int ShapeIdF0D___init__(BPy_ShapeIdF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ShapeIdF0D___doc__[] =
+".. method:: __init__()\n"
+"\n"
+"   Builds a ShapeIdF0D object.\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Returns the :class:`Id` of the Shape the :class:`Interface0D`\n"
+"   pointed by the Interface0DIterator belongs to. This evaluation can\n"
+"   be ambiguous (in the case of a :class:`TVertex` for example).  This\n"
+"   functor tries to remove this ambiguity using the context offered by\n"
+"   the 1D element to which the Interface0DIterator belongs to.\n"
+"   However, there still can be problematic cases, and the user willing\n"
+"   to deal with this cases in a specific way should implement its own\n"
+"   getShapeIdF0D functor.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: The Id of the Shape the pointed Interface0D belongs to.\n"
+"   :rtype: :class:`Id`\n";
+
+static int ShapeIdF0D___init__( BPy_ShapeIdF0D* self, PyObject *args )
+{
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
+	self->py_uf0D_id.uf0D_id = new Functions0D::ShapeIdF0D();
+	self->py_uf0D_id.uf0D_id->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_ShapeIdF0D type definition ------------------------------*/
 
@@ -34,7 +63,7 @@ PyTypeObject ShapeIdF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ShapeIdF0D objects",           /* tp_doc */
+	ShapeIdF0D___doc__,             /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,17 +82,6 @@ PyTypeObject ShapeIdF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ShapeIdF0D___init__( BPy_ShapeIdF0D* self, PyObject *args )
-{
-	if( !PyArg_ParseTuple(args, "") )
-		return -1;
-	self->py_uf0D_id.uf0D_id = new Functions0D::ShapeIdF0D();
-	self->py_uf0D_id.uf0D_id->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

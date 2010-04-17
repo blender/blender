@@ -6,8 +6,26 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ContourUP1D instance  -----------*/
-static int ContourUP1D___init__(BPy_ContourUP1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ContourUP1D___doc__[] =
+".. method:: __call__(inter)\n"
+"\n"
+"   Returns true if the Interface1D is a contour.  An Interface1D is a\n"
+"   contour if it is borded by a different shape on each of its sides.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: True if the Interface1D is a contour, false otherwise.\n"
+"   :rtype: bool\n";
+
+static int ContourUP1D___init__( BPy_ContourUP1D* self, PyObject *args )
+{
+	if(!( PyArg_ParseTuple(args, "") ))
+		return -1;
+	self->py_up1D.up1D = new Predicates1D::ContourUP1D();
+	return 0;
+}
 
 /*-----------------------BPy_ContourUP1D type definition ------------------------------*/
 
@@ -32,7 +50,7 @@ PyTypeObject ContourUP1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ContourUP1D objects",            /* tp_doc */
+	ContourUP1D___doc__,            /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -51,16 +69,6 @@ PyTypeObject ContourUP1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ContourUP1D___init__( BPy_ContourUP1D* self, PyObject *args )
-{
-	if(!( PyArg_ParseTuple(args, "") ))
-		return -1;
-	self->py_up1D.up1D = new Predicates1D::ContourUP1D();
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

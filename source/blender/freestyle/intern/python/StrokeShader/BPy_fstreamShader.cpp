@@ -8,8 +8,35 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for fstreamShader instance  -----------*/
-static int fstreamShader___init__( BPy_fstreamShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char fstreamShader___doc__[] =
+"[Output shader]\n"
+"\n"
+".. method:: __init__(iFileName)\n"
+"\n"
+"   Builds a fstreamShader object.\n"
+"\n"
+"   :arg iFileName: The output file name.\n"
+"   :type iFileName: string\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Streams the Stroke in a file.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int fstreamShader___init__( BPy_fstreamShader* self, PyObject *args)
+{
+	const char *s;
+
+	if(!( PyArg_ParseTuple(args, "s", &s)  ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::fstreamShader(s);
+	return 0;
+}
 
 /*-----------------------BPy_fstreamShader type definition ------------------------------*/
 
@@ -34,7 +61,7 @@ PyTypeObject fstreamShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"fstreamShader objects",        /* tp_doc */
+	fstreamShader___doc__,          /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +80,6 @@ PyTypeObject fstreamShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int fstreamShader___init__( BPy_fstreamShader* self, PyObject *args)
-{
-	const char *s;
-
-	if(!( PyArg_ParseTuple(args, "s", &s)  ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::fstreamShader(s);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

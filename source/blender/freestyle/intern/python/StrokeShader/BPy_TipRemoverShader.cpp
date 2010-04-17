@@ -8,8 +8,36 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for TipRemoverShader instance  -----------*/
-static int TipRemoverShader___init__( BPy_TipRemoverShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char TipRemoverShader___doc__[] =
+"[Geometry shader]\n"
+"\n"
+".. method:: __init__(tipLength)\n"
+"\n"
+"   Builds a TipRemoverShader object.\n"
+"\n"
+"   :arg tipLength: The length of the piece of stroke we want to remove\n"
+"      at each extremity.\n"
+"   :type tipLength: float\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Removes the stroke's extremities.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int TipRemoverShader___init__( BPy_TipRemoverShader* self, PyObject *args)
+{
+	double d;
+
+	if(!( PyArg_ParseTuple(args, "d", &d) ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::TipRemoverShader(d);
+	return 0;
+}
 
 /*-----------------------BPy_TipRemoverShader type definition ------------------------------*/
 
@@ -34,7 +62,7 @@ PyTypeObject TipRemoverShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"streamSTipRemoverShaderhader objects", /* tp_doc */
+	TipRemoverShader___doc__,       /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +81,6 @@ PyTypeObject TipRemoverShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int TipRemoverShader___init__( BPy_TipRemoverShader* self, PyObject *args)
-{
-	double d;
-
-	if(!( PyArg_ParseTuple(args, "d", &d) ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::TipRemoverShader(d);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

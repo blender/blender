@@ -8,8 +8,34 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for Normal2DF0D instance  -----------*/
-static int Normal2DF0D___init__(BPy_Normal2DF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char Normal2DF0D___doc__[] =
+".. method:: __init__()\n"
+"\n"
+"   Builds a Normal2DF0D object.\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Returns a two-dimensional vector giving the normalized 2D normal to\n"
+"   the 1D element to which the :class:`Interface0D` pointed by the\n"
+"   Interface0DIterator belongs.  The normal is evaluated at the pointed\n"
+"   Interface0D.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: The 2D normal of the 1D element evaluated at the pointed\n"
+"      Interface0D.\n"
+"   :rtype: :class:`Mathutils.Vector`\n";
+
+static int Normal2DF0D___init__( BPy_Normal2DF0D* self, PyObject *args )
+{
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
+	self->py_uf0D_vec2f.uf0D_vec2f = new Functions0D::Normal2DF0D();
+	self->py_uf0D_vec2f.uf0D_vec2f->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_Normal2DF0D type definition ------------------------------*/
 
@@ -34,7 +60,7 @@ PyTypeObject Normal2DF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"Normal2DF0D objects",          /* tp_doc */
+	Normal2DF0D___doc__,            /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,17 +79,6 @@ PyTypeObject Normal2DF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int Normal2DF0D___init__( BPy_Normal2DF0D* self, PyObject *args )
-{
-	if( !PyArg_ParseTuple(args, "") )
-		return -1;
-	self->py_uf0D_vec2f.uf0D_vec2f = new Functions0D::Normal2DF0D();
-	self->py_uf0D_vec2f.uf0D_vec2f->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

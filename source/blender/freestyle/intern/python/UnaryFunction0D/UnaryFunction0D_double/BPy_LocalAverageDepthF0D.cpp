@@ -8,8 +8,37 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for LocalAverageDepthF0D instance  -----------*/
-static int LocalAverageDepthF0D___init__(BPy_LocalAverageDepthF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char LocalAverageDepthF0D___doc__[] =
+".. method:: __init__(maskSize=5.0)\n"
+"\n"
+"   Builds a LocalAverageDepthF0D object.\n"
+"\n"
+"   :arg maskSize: The size of the mask.\n"
+"   :type maskSize: float\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Returns the average depth around the :class:`Interface0D` pointed\n"
+"   by the Interface0DIterator.  The result is obtained by querying the\n"
+"   depth buffer on a window around that point.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: The average depth around the pointed Interface0D.\n"
+"   :rtype: float\n";
+
+static int LocalAverageDepthF0D___init__( BPy_LocalAverageDepthF0D* self, PyObject *args)
+{
+	double d = 5.0;
+
+	if( !PyArg_ParseTuple(args, "|d", &d) )
+		return -1;
+	self->py_uf0D_double.uf0D_double = new Functions0D::LocalAverageDepthF0D(d);
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_LocalAverageDepthF0D type definition ------------------------------*/
 
@@ -34,7 +63,7 @@ PyTypeObject LocalAverageDepthF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"LocalAverageDepthF0D objects", /* tp_doc */
+	LocalAverageDepthF0D___doc__,   /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +82,6 @@ PyTypeObject LocalAverageDepthF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int LocalAverageDepthF0D___init__( BPy_LocalAverageDepthF0D* self, PyObject *args)
-{
-	double d = 5.0;
-
-	if( !PyArg_ParseTuple(args, "|d", &d) )
-		return -1;
-	self->py_uf0D_double.uf0D_double = new Functions0D::LocalAverageDepthF0D(d);
-	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

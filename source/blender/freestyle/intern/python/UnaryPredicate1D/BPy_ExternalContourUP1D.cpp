@@ -6,8 +6,28 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ExternalContourUP1D instance  -----------*/
-static int ExternalContourUP1D___init__(BPy_ExternalContourUP1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ExternalContourUP1D___doc__[] =
+".. method:: __call__(inter)\n"
+"\n"
+"   Returns true if the Interface1D is an external contour.  An\n"
+"   Interface1D is an external contour if it is borded by no shape on\n"
+"   one of its sides.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: True if the Interface1D is an external contour, false\n"
+"      otherwise.\n"
+"   :rtype: bool\n";
+
+static int ExternalContourUP1D___init__( BPy_ExternalContourUP1D* self, PyObject *args )
+{
+	if(!( PyArg_ParseTuple(args, "") ))
+		return -1;
+	self->py_up1D.up1D = new Predicates1D::ExternalContourUP1D();
+	return 0;
+}
 
 /*-----------------------BPy_ExternalContourUP1D type definition ------------------------------*/
 
@@ -32,7 +52,7 @@ PyTypeObject ExternalContourUP1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ExternalContourUP1D objects",  /* tp_doc */
+	ExternalContourUP1D___doc__,    /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -51,16 +71,6 @@ PyTypeObject ExternalContourUP1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ExternalContourUP1D___init__( BPy_ExternalContourUP1D* self, PyObject *args )
-{
-	if(!( PyArg_ParseTuple(args, "") ))
-		return -1;
-	self->py_up1D.up1D = new Predicates1D::ExternalContourUP1D();
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

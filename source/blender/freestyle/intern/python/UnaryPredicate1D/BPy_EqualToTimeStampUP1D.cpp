@@ -6,8 +6,36 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for EqualToTimeStampUP1D instance  -----------*/
-static int EqualToTimeStampUP1D___init__(BPy_EqualToTimeStampUP1D* self, PyObject *args );
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char EqualToTimeStampUP1D___doc__[] =
+".. method:: __init__(ts)\n"
+"\n"
+"   Builds a EqualToTimeStampUP1D object.\n"
+"\n"
+"   :arg ts: A time stamp value.\n"
+"   :type ts: int\n"
+"\n"
+".. method:: __call__(inter)\n"
+"\n"
+"   Returns true if the Interface1D's time stamp is equal to a certain\n"
+"   user-defined value.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: True if the time stamp is equal to a user-defined value.\n"
+"   :rtype: bool\n";
+
+static int EqualToTimeStampUP1D___init__( BPy_EqualToTimeStampUP1D* self, PyObject *args )
+{
+	unsigned u;
+
+	if( !PyArg_ParseTuple(args, "I", &u) )
+		return -1;
+	
+	self->py_up1D.up1D = new Predicates1D::EqualToTimeStampUP1D(u);
+	return 0;
+}
 
 /*-----------------------BPy_EqualToTimeStampUP1D type definition ------------------------------*/
 
@@ -32,7 +60,7 @@ PyTypeObject EqualToTimeStampUP1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"EqualToTimeStampUP1D objects", /* tp_doc */
+	EqualToTimeStampUP1D___doc__,   /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -51,19 +79,6 @@ PyTypeObject EqualToTimeStampUP1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int EqualToTimeStampUP1D___init__( BPy_EqualToTimeStampUP1D* self, PyObject *args )
-{
-	unsigned u;
-
-	if( !PyArg_ParseTuple(args, "I", &u) )
-		return -1;
-	
-	self->py_up1D.up1D = new Predicates1D::EqualToTimeStampUP1D(u);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

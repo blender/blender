@@ -10,9 +10,45 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for LocalAverageDepthF1D instance  -----------*/
-static int LocalAverageDepthF1D___init__(BPy_LocalAverageDepthF1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
 
+static char LocalAverageDepthF1D___doc__[] =
+".. method:: __init__(sigma, iType=IntegrationType.MEAN)\n"
+"\n"
+"   Builds a LocalAverageDepthF1D object.\n"
+"\n"
+"   :arg sigma: The sigma used in DensityF0D and determining the window\n"
+"      size used in each density query.\n"
+"   :type sigma: float\n"
+"   :arg iType: The integration method used to compute a single value\n"
+"      from a set of values.\n"
+"   :type iType: :class:`IntegrationType`\n"
+"\n"
+".. method:: __call__(inter)\n"
+"\n"
+"   Returns the average depth evaluated for an Interface1D.  The\n"
+"   average depth is evaluated for a set of points along the\n"
+"   Interface1D (using the :class:`LocalAverageDepthF0D` functor) with\n"
+"   a user-defined sampling and then integrated into a single value\n"
+"   using a user-defined integration method.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: The average depth evaluated for the Interface1D.\n"
+"   :rtype: float\n";
+
+static int LocalAverageDepthF1D___init__( BPy_LocalAverageDepthF1D* self, PyObject *args)
+{
+	PyObject *obj = 0;
+	double d;
+
+	if( !PyArg_ParseTuple(args, "d|O!", &d, &IntegrationType_Type, &obj) )
+		return -1;
+	
+	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	self->py_uf1D_double.uf1D_double = new Functions1D::LocalAverageDepthF1D(d,t);
+	return 0;
+}
 /*-----------------------BPy_LocalAverageDepthF1D type definition ------------------------------*/
 
 PyTypeObject LocalAverageDepthF1D_Type = {
@@ -36,7 +72,7 @@ PyTypeObject LocalAverageDepthF1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"LocalAverageDepthF1D objects", /* tp_doc */
+	LocalAverageDepthF1D___doc__,   /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -56,20 +92,6 @@ PyTypeObject LocalAverageDepthF1D_Type = {
 	0,                              /* tp_new */
 };
 
-//------------------------INSTANCE METHODS ----------------------------------
-
-int LocalAverageDepthF1D___init__( BPy_LocalAverageDepthF1D* self, PyObject *args)
-{
-	PyObject *obj = 0;
-	double d;
-
-	if( !PyArg_ParseTuple(args, "d|O!", &d, &IntegrationType_Type, &obj) )
-		return -1;
-	
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
-	self->py_uf1D_double.uf1D_double = new Functions1D::LocalAverageDepthF1D(d,t);
-	return 0;
-}
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus

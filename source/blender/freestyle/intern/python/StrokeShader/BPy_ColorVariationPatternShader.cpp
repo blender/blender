@@ -9,8 +9,42 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ColorVariationPatternShader instance  -----------*/
-static int ColorVariationPatternShader___init__( BPy_ColorVariationPatternShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ColorVariationPatternShader___doc__[] =
+"[Color shader]\n"
+"\n"
+".. method:: __init__(pattern_name, stretch=True)\n"
+"\n"
+"   Builds a ColorVariationPatternShader object.\n"
+"\n"
+"   :arg pattern_name: The file name of the texture file to use as\n"
+"      pattern.\n"
+"   :type pattern_name: string\n"
+"   :arg stretch: Tells whether the texture must be strecthed or\n"
+"      repeted to fit the stroke.\n"
+"   :type stretch: bool\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Applies a pattern to vary the original color.  The new color is the\n"
+"   result of the multiplication of the pattern and the original color.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int ColorVariationPatternShader___init__( BPy_ColorVariationPatternShader* self, PyObject *args)
+{
+	const char *s;
+	PyObject *obj = 0;
+	
+	if(!( PyArg_ParseTuple(args, "s|O", &s, &obj) ))
+		return -1;
+
+	bool b = (obj) ? bool_from_PyBool(obj) : true;
+	self->py_ss.ss = new StrokeShaders::ColorVariationPatternShader(s,b);
+	return 0;
+}
 
 /*-----------------------BPy_ColorVariationPatternShader type definition ------------------------------*/
 
@@ -35,7 +69,7 @@ PyTypeObject ColorVariationPatternShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ColorVariationPatternShader objects", /* tp_doc */
+	ColorVariationPatternShader___doc__, /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -54,21 +88,6 @@ PyTypeObject ColorVariationPatternShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ColorVariationPatternShader___init__( BPy_ColorVariationPatternShader* self, PyObject *args)
-{
-	const char *s;
-	PyObject *obj = 0;
-	
-	if(!( PyArg_ParseTuple(args, "s|O", &s, &obj) ))
-		return -1;
-
-	bool b = (obj) ? bool_from_PyBool(obj) : true;
-	self->py_ss.ss = new StrokeShaders::ColorVariationPatternShader(s,b);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

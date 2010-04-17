@@ -6,8 +6,39 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ShapeUP1D instance  -----------*/
-static int ShapeUP1D___init__(BPy_ShapeUP1D* self, PyObject *args );
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ShapeUP1D___doc__[] =
+".. method:: __init__(idFirst, idSecond=0)\n"
+"\n"
+"   Builds a ShapeUP1D object.\n"
+"\n"
+"   :arg idFirst: The first Id component.\n"
+"   :type idFirst: int\n"
+"   :arg idSecond: The second Id component.\n"
+"   :type idSecond: int\n"
+"\n"
+".. method:: __call__(inter)\n"
+"\n"
+"   Returns true if the shape to which the Interface1D belongs to has\n"
+"   the same :class:`Id` as the one specified by the user.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: True if Interface1D belongs to the shape of the\n"
+"      user-specified Id.\n"
+"   :rtype: bool\n";
+
+static int ShapeUP1D___init__( BPy_ShapeUP1D* self, PyObject *args )
+{
+	unsigned u1, u2 = 0;
+
+	if( !PyArg_ParseTuple(args, "I|I", &u1, &u2) )
+		return -1;
+
+	self->py_up1D.up1D = new Predicates1D::ShapeUP1D(u1,u2);
+	return 0;
+}
 
 /*-----------------------BPy_ShapeUP1D type definition ------------------------------*/
 
@@ -32,7 +63,7 @@ PyTypeObject ShapeUP1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ShapeUP1D objects",            /* tp_doc */
+	ShapeUP1D___doc__,              /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -51,19 +82,6 @@ PyTypeObject ShapeUP1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ShapeUP1D___init__( BPy_ShapeUP1D* self, PyObject *args )
-{
-	unsigned u1, u2 = 0;
-
-	if( !PyArg_ParseTuple(args, "I|I", &u1, &u2) )
-		return -1;
-
-	self->py_up1D.up1D = new Predicates1D::ShapeUP1D(u1,u2);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

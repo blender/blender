@@ -8,8 +8,31 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for GetProjectedZF0D instance  -----------*/
-static int GetProjectedZF0D___init__(BPy_GetProjectedZF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char GetProjectedZF0D___doc__[] =
+".. method:: __init__()\n"
+"\n"
+"   Builds a GetProjectedZF0D object.\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Returns the Z 3D projected coordinate of the :class:`Interface0D`\n"
+"   pointed by the Interface0DIterator.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: The Z 3D projected coordinate of the pointed Interface0D.\n"
+"   :rtype: float\n";
+
+static int GetProjectedZF0D___init__( BPy_GetProjectedZF0D* self, PyObject *args )
+{
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
+	self->py_uf0D_double.uf0D_double = new Functions0D::GetProjectedZF0D();
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_GetProjectedZF0D type definition ------------------------------*/
 
@@ -34,7 +57,7 @@ PyTypeObject GetProjectedZF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"GetProjectedZF0D objects",     /* tp_doc */
+	GetProjectedZF0D___doc__,       /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,17 +76,6 @@ PyTypeObject GetProjectedZF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int GetProjectedZF0D___init__( BPy_GetProjectedZF0D* self, PyObject *args )
-{
-	if( !PyArg_ParseTuple(args, "") )
-		return -1;
-	self->py_uf0D_double.uf0D_double = new Functions0D::GetProjectedZF0D();
-	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -26,67 +26,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for UnaryFunction1DDouble instance  -----------*/
-static int UnaryFunction1DDouble___init__(BPy_UnaryFunction1DDouble* self, PyObject *args);
-static void UnaryFunction1DDouble___dealloc__(BPy_UnaryFunction1DDouble* self);
-static PyObject * UnaryFunction1DDouble___repr__(BPy_UnaryFunction1DDouble* self);
-
-static PyObject * UnaryFunction1DDouble_getName( BPy_UnaryFunction1DDouble *self);
-static PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyObject *args, PyObject *kwds);
-static PyObject * UnaryFunction1DDouble_setIntegrationType(BPy_UnaryFunction1DDouble* self, PyObject *args);
-static PyObject * UnaryFunction1DDouble_getIntegrationType(BPy_UnaryFunction1DDouble* self);
-
-/*----------------------UnaryFunction1DDouble instance definitions ----------------------------*/
-static PyMethodDef BPy_UnaryFunction1DDouble_methods[] = {
-	{"getName", ( PyCFunction ) UnaryFunction1DDouble_getName, METH_NOARGS, "() Returns the string of the name of the unary 1D function."},
-	{"setIntegrationType", ( PyCFunction ) UnaryFunction1DDouble_setIntegrationType, METH_VARARGS, "(IntegrationType i) Sets the integration method" },
-	{"getIntegrationType", ( PyCFunction ) UnaryFunction1DDouble_getIntegrationType, METH_NOARGS, "() Returns the integration method." },
-	{NULL, NULL, 0, NULL}
-};
-
-/*-----------------------BPy_UnaryFunction1DDouble type definition ------------------------------*/
-
-PyTypeObject UnaryFunction1DDouble_Type = {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"UnaryFunction1DDouble",        /* tp_name */
-	sizeof(BPy_UnaryFunction1DDouble), /* tp_basicsize */
-	0,                              /* tp_itemsize */
-	(destructor)UnaryFunction1DDouble___dealloc__, /* tp_dealloc */
-	0,                              /* tp_print */
-	0,                              /* tp_getattr */
-	0,                              /* tp_setattr */
-	0,                              /* tp_reserved */
-	(reprfunc)UnaryFunction1DDouble___repr__, /* tp_repr */
-	0,                              /* tp_as_number */
-	0,                              /* tp_as_sequence */
-	0,                              /* tp_as_mapping */
-	0,                              /* tp_hash  */
-	(ternaryfunc)UnaryFunction1DDouble___call__, /* tp_call */
-	0,                              /* tp_str */
-	0,                              /* tp_getattro */
-	0,                              /* tp_setattro */
-	0,                              /* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"UnaryFunction1DDouble objects", /* tp_doc */
-	0,                              /* tp_traverse */
-	0,                              /* tp_clear */
-	0,                              /* tp_richcompare */
-	0,                              /* tp_weaklistoffset */
-	0,                              /* tp_iter */
-	0,                              /* tp_iternext */
-	BPy_UnaryFunction1DDouble_methods, /* tp_methods */
-	0,                              /* tp_members */
-	0,                              /* tp_getset */
-	&UnaryFunction1D_Type,          /* tp_base */
-	0,                              /* tp_dict */
-	0,                              /* tp_descr_get */
-	0,                              /* tp_descr_set */
-	0,                              /* tp_dictoffset */
-	(initproc)UnaryFunction1DDouble___init__, /* tp_init */
-	0,                              /* tp_alloc */
-	0,                              /* tp_new */
-};
-
 //-------------------MODULE INITIALIZATION--------------------------------
 
 int UnaryFunction1DDouble_Init( PyObject *module ) {
@@ -174,7 +113,23 @@ int UnaryFunction1DDouble_Init( PyObject *module ) {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction1DDouble___init__(BPy_UnaryFunction1DDouble* self, PyObject *args)
+static char UnaryFunction1DDouble___doc__[] =
+"Base class for unary functions (functors) that work on\n"
+":class:`Interface1D` and return a float value.\n"
+"\n"
+".. method:: __init__()\n"
+"\n"
+"   Default constructor.\n"
+"\n"
+".. method:: __init__(integration)\n"
+"\n"
+"   Builds a unary 1D function using the integration method given as\n"
+"   argument.\n"
+"\n"
+"   :arg integration: An integration method.\n"
+"   :type integration: :class:`IntegrationType`\n";
+
+static int UnaryFunction1DDouble___init__(BPy_UnaryFunction1DDouble* self, PyObject *args)
 {
 	PyObject *obj = 0;
 
@@ -192,25 +147,32 @@ int UnaryFunction1DDouble___init__(BPy_UnaryFunction1DDouble* self, PyObject *ar
 	return 0;
 }
 
-void UnaryFunction1DDouble___dealloc__(BPy_UnaryFunction1DDouble* self)
+static void UnaryFunction1DDouble___dealloc__(BPy_UnaryFunction1DDouble* self)
 {
 	if (self->uf1D_double)
 		delete self->uf1D_double;
 	UnaryFunction1D_Type.tp_dealloc((PyObject*)self);
 }
 
-
-PyObject * UnaryFunction1DDouble___repr__(BPy_UnaryFunction1DDouble* self)
+static PyObject * UnaryFunction1DDouble___repr__(BPy_UnaryFunction1DDouble* self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", self->uf1D_double->getName().c_str(), self->uf1D_double );
 }
 
-PyObject * UnaryFunction1DDouble_getName( BPy_UnaryFunction1DDouble *self )
+static char UnaryFunction1DDouble_getName___doc__[] =
+".. method:: getName()\n"
+"\n"
+"   Returns the name of the unary 1D function.\n"
+"\n"
+"   :return: The name of the unary 1D function.\n"
+"   :rtype: string\n";
+
+static PyObject * UnaryFunction1DDouble_getName( BPy_UnaryFunction1DDouble *self )
 {
 	return PyUnicode_FromFormat( self->uf1D_double->getName().c_str() );
 }
 
-PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyObject *args, PyObject *kwds)
+static PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj;
 
@@ -236,7 +198,15 @@ PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyOb
 
 }
 
-PyObject * UnaryFunction1DDouble_setIntegrationType(BPy_UnaryFunction1DDouble* self, PyObject *args)
+static char UnaryFunction1DDouble_setIntegrationType___doc__[] =
+".. method:: setIntegrationType(integration)\n"
+"\n"
+"   Sets the integration method.\n"
+"\n"
+"   :arg integration: An integration method.\n"
+"   :type integration: :class:`IntegrationType`\n";
+
+static PyObject * UnaryFunction1DDouble_setIntegrationType(BPy_UnaryFunction1DDouble* self, PyObject *args)
 {
 	PyObject *obj;
 
@@ -247,10 +217,68 @@ PyObject * UnaryFunction1DDouble_setIntegrationType(BPy_UnaryFunction1DDouble* s
 	Py_RETURN_NONE;
 }
 
-PyObject * UnaryFunction1DDouble_getIntegrationType(BPy_UnaryFunction1DDouble* self) {
+static char UnaryFunction1DDouble_getIntegrationType___doc__[] =
+".. method:: getIntegrationType(integration)\n"
+"\n"
+"   Returns the integration method.\n"
+"\n"
+"   :return: The integration method.\n"
+"   :rtype: :class:`IntegrationType`\n";
+
+static PyObject * UnaryFunction1DDouble_getIntegrationType(BPy_UnaryFunction1DDouble* self) {
 	return BPy_IntegrationType_from_IntegrationType( self->uf1D_double->getIntegrationType() );
 }
 
+/*----------------------UnaryFunction1DDouble instance definitions ----------------------------*/
+static PyMethodDef BPy_UnaryFunction1DDouble_methods[] = {
+	{"getName", ( PyCFunction ) UnaryFunction1DDouble_getName, METH_NOARGS, UnaryFunction1DDouble_getName___doc__},
+	{"setIntegrationType", ( PyCFunction ) UnaryFunction1DDouble_setIntegrationType, METH_VARARGS, UnaryFunction1DDouble_setIntegrationType___doc__},
+	{"getIntegrationType", ( PyCFunction ) UnaryFunction1DDouble_getIntegrationType, METH_NOARGS, UnaryFunction1DDouble_getIntegrationType___doc__},
+	{NULL, NULL, 0, NULL}
+};
+
+/*-----------------------BPy_UnaryFunction1DDouble type definition ------------------------------*/
+
+PyTypeObject UnaryFunction1DDouble_Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"UnaryFunction1DDouble",        /* tp_name */
+	sizeof(BPy_UnaryFunction1DDouble), /* tp_basicsize */
+	0,                              /* tp_itemsize */
+	(destructor)UnaryFunction1DDouble___dealloc__, /* tp_dealloc */
+	0,                              /* tp_print */
+	0,                              /* tp_getattr */
+	0,                              /* tp_setattr */
+	0,                              /* tp_reserved */
+	(reprfunc)UnaryFunction1DDouble___repr__, /* tp_repr */
+	0,                              /* tp_as_number */
+	0,                              /* tp_as_sequence */
+	0,                              /* tp_as_mapping */
+	0,                              /* tp_hash  */
+	(ternaryfunc)UnaryFunction1DDouble___call__, /* tp_call */
+	0,                              /* tp_str */
+	0,                              /* tp_getattro */
+	0,                              /* tp_setattro */
+	0,                              /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+	UnaryFunction1DDouble___doc__,  /* tp_doc */
+	0,                              /* tp_traverse */
+	0,                              /* tp_clear */
+	0,                              /* tp_richcompare */
+	0,                              /* tp_weaklistoffset */
+	0,                              /* tp_iter */
+	0,                              /* tp_iternext */
+	BPy_UnaryFunction1DDouble_methods, /* tp_methods */
+	0,                              /* tp_members */
+	0,                              /* tp_getset */
+	&UnaryFunction1D_Type,          /* tp_base */
+	0,                              /* tp_dict */
+	0,                              /* tp_descr_get */
+	0,                              /* tp_descr_set */
+	0,                              /* tp_dictoffset */
+	(initproc)UnaryFunction1DDouble___init__, /* tp_init */
+	0,                              /* tp_alloc */
+	0,                              /* tp_new */
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

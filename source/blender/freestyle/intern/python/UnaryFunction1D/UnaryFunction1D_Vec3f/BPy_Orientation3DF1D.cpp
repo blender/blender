@@ -10,8 +10,37 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for Orientation3DF1D instance  -----------*/
-static int Orientation3DF1D___init__( BPy_Orientation3DF1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char Orientation3DF1D___doc__[] =
+".. method:: __init__(iType=IntegrationType.MEAN)\n"
+"\n"
+"   Builds an Orientation3DF1D object.\n"
+"\n"
+"   :arg iType: The integration method used to compute a single value\n"
+"      from a set of values.\n"
+"   :type iType: :class:`IntegrationType`\n"
+"\n"
+".. method:: __call__(inter)\n"
+"\n"
+"   Returns the 3D orientation of the Interface1D.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: The 3D orientation of the Interface1D.\n"
+"   :rtype: :class:`Mathutils.Vector`\n";
+
+static int Orientation3DF1D___init__( BPy_Orientation3DF1D* self, PyObject *args)
+{
+	PyObject *obj = 0;
+
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) )
+		return -1;
+
+	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	self->py_uf1D_vec3f.uf1D_vec3f = new Functions1D::Orientation3DF1D(t);
+	return 0;
+}
 
 /*-----------------------BPy_Orientation3DF1D type definition ------------------------------*/
 
@@ -36,7 +65,7 @@ PyTypeObject Orientation3DF1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"Orientation3DF1D objects",     /* tp_doc */
+	Orientation3DF1D___doc__,       /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -55,20 +84,6 @@ PyTypeObject Orientation3DF1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int Orientation3DF1D___init__( BPy_Orientation3DF1D* self, PyObject *args)
-{
-	PyObject *obj = 0;
-
-	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) )
-		return -1;
-
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
-	self->py_uf1D_vec3f.uf1D_vec3f = new Functions1D::Orientation3DF1D(t);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

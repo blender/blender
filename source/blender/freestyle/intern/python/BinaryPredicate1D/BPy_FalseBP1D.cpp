@@ -6,8 +6,27 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for FalseBP1D instance  -----------*/
-static int FalseBP1D___init__(BPy_FalseBP1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char FalseBP1D___doc__[] =
+".. method:: __call__(inter1, inter2)\n"
+"\n"
+"   Always returns false.\n"
+"\n"
+"   :arg inter1: The first Interface1D object.\n"
+"   :type inter1: :class:`Interface1D`\n"
+"   :arg inter2: The second Interface1D object.\n"
+"   :type inter2: :class:`Interface1D`\n"
+"   :return: False.\n"
+"   :rtype: bool\n";
+
+static int FalseBP1D___init__( BPy_FalseBP1D* self, PyObject *args )
+{
+	if(!( PyArg_ParseTuple(args, "") ))
+		return -1;
+	self->py_bp1D.bp1D = new Predicates1D::FalseBP1D();
+	return 0;
+}
 
 /*-----------------------BPy_FalseBP1D type definition ------------------------------*/
 PyTypeObject FalseBP1D_Type = {
@@ -31,7 +50,7 @@ PyTypeObject FalseBP1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"FalseBP1D objects",            /* tp_doc */
+	FalseBP1D___doc__,              /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -50,16 +69,6 @@ PyTypeObject FalseBP1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int FalseBP1D___init__( BPy_FalseBP1D* self, PyObject *args )
-{
-	if(!( PyArg_ParseTuple(args, "") ))
-		return -1;
-	self->py_bp1D.bp1D = new Predicates1D::FalseBP1D();
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

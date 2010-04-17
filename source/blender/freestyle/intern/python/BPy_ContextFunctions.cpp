@@ -9,16 +9,197 @@ extern "C" {
   
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*-----------------------Python API function prototypes for the ContextFunctions module--*/
+//------------------------ MODULE FUNCTIONS ----------------------------------
 
-static PyObject * ContextFunctions_GetTimeStampCF( PyObject* self );
-static PyObject * ContextFunctions_GetCanvasWidthCF( PyObject* self );
-static PyObject * ContextFunctions_GetCanvasHeightCF( PyObject* self );
-static PyObject * ContextFunctions_LoadMapCF( PyObject *self, PyObject *args );
-static PyObject * ContextFunctions_ReadMapPixelCF( PyObject *self, PyObject *args );
-static PyObject * ContextFunctions_ReadCompleteViewMapPixelCF( PyObject *self, PyObject *args );
-static PyObject * ContextFunctions_ReadDirectionalViewMapPixelCF( PyObject *self, PyObject *args );
-static PyObject * ContextFunctions_GetSelectedFEdgeCF( PyObject *self );
+static char ContextFunctions_GetTimeStampCF___doc__[] =
+".. function:: GetTimeStampCF()\n"
+"\n"
+"   Returns the system time stamp.\n"
+"\n"
+"   :return: The system time stamp.\n"
+"   :rtype: int\n";
+
+static PyObject *
+ContextFunctions_GetTimeStampCF( PyObject* self )
+{
+  return PyLong_FromLong( ContextFunctions::GetTimeStampCF() );
+}
+
+static char ContextFunctions_GetCanvasWidthCF___doc__[] =
+".. method:: GetCanvasWidthCF()\n"
+"\n"
+"   Returns the canvas width.\n"
+"\n"
+"   :return: The canvas width.\n"
+"   :rtype: int\n";
+
+static PyObject *
+ContextFunctions_GetCanvasWidthCF( PyObject* self )
+{
+  return PyLong_FromLong( ContextFunctions::GetCanvasWidthCF() );
+}
+
+static char ContextFunctions_GetCanvasHeightCF___doc__[] =
+".. method:: GetCanvasHeightCF()\n"
+"\n"
+"   Returns the canvas height.\n"
+"\n"
+"   :return: The canvas height.\n"
+"   :rtype: int\n";
+
+static PyObject *
+ContextFunctions_GetCanvasHeightCF( PyObject* self )
+{
+  return PyLong_FromLong( ContextFunctions::GetCanvasHeightCF() );
+}
+
+static char ContextFunctions_LoadMapCF___doc__[] =
+".. function:: LoadMapCF(iFileName, iMapName, iNbLevels=4, iSigma=1.0)\n"
+"\n"
+"   Loads an image map for further reading.\n"
+"\n"
+"   :arg iFileName: The name of the image file.\n"
+"   :type iFileName: string\n"
+"   :arg iMapName: The name that will be used to access this image.\n"
+"   :type iMapName: string\n"
+"   :arg iNbLevels: The number of levels in the map pyramid\n"
+"      (default = 4).  If iNbLevels == 0, the complete pyramid is\n"
+"      built.\n"
+"   :type iNbLevels: int\n"
+"   :arg iSigma: The sigma value of the gaussian function.\n"
+"   :type iSigma: float\n";
+
+static PyObject *
+ContextFunctions_LoadMapCF( PyObject *self, PyObject *args )
+{
+  char *fileName, *mapName;
+  unsigned nbLevels;
+  float sigma;
+
+  if( !PyArg_ParseTuple(args, "ssIf", &fileName, &mapName, &nbLevels, &sigma) )
+    return NULL;
+
+  ContextFunctions::LoadMapCF(fileName, mapName, nbLevels, sigma);
+
+  Py_RETURN_NONE;
+}
+
+static char ContextFunctions_ReadMapPixelCF___doc__[] =
+".. function:: ReadMapPixelCF(iMapName, level, x, y)\n"
+"\n"
+"   Reads a pixel in a user-defined map.\n"
+"\n"
+"   :arg iMapName: The name of the map.\n"
+"   :type iMapName: string\n"
+"   :arg level: The level of the pyramid in which we wish to read the\n"
+"      pixel.\n"
+"   :type level: int\n"
+"   :arg x: The x coordinate of the pixel we wish to read.  The origin\n"
+"      is in the lower-left corner.\n"
+"   :type x: int\n"
+"   :arg y: The y coordinate of the pixel we wish to read.  The origin\n"
+"      is in the lower-left corner.\n"
+"   :type y: int\n"
+"   :return: The floating-point value stored for that pixel.\n"
+"   :rtype: float\n";
+
+static PyObject *
+ContextFunctions_ReadMapPixelCF( PyObject *self, PyObject *args )
+{
+  char *mapName;
+  int level;
+  unsigned x, y;
+
+  if( !PyArg_ParseTuple(args, "siII", &mapName, &level, &x, &y) )
+    return NULL;
+
+  float f = ContextFunctions::ReadMapPixelCF(mapName, level, x, y);
+
+  return PyFloat_FromDouble( f );
+}
+
+static char ContextFunctions_ReadCompleteViewMapPixelCF___doc__[] =
+".. function:: ReadCompleteViewMapPixelCF(level, x, y)\n"
+"\n"
+"   Reads a pixel in the complete view map.\n"
+"\n"
+"   :arg level: The level of the pyramid in which we wish to read the\n"
+"      pixel.\n"
+"   :type level: int\n"
+"   :arg x: The x coordinate of the pixel we wish to read.  The origin\n"
+"      is in the lower-left corner.\n"
+"   :type x: int\n"
+"   :arg y: The y coordinate of the pixel we wish to read.  The origin\n"
+"      is in the lower-left corner.\n"
+"   :type y: int\n"
+"   :return: The floating-point value stored for that pixel.\n"
+"   :rtype: float\n";
+
+static PyObject *
+ContextFunctions_ReadCompleteViewMapPixelCF( PyObject *self, PyObject *args )
+{
+  int level;
+  unsigned x, y;
+
+  if( !PyArg_ParseTuple(args, "iII", &level, &x, &y) )
+    return NULL;
+
+  float f = ContextFunctions::ReadCompleteViewMapPixelCF(level, x, y);
+
+  return PyFloat_FromDouble( f );
+}
+
+static char ContextFunctions_ReadDirectionalViewMapPixelCF___doc__[] =
+".. function:: ReadDirectionalViewMapPixelCF(iOrientation, level, x, y)\n"
+"\n"
+"   Reads a pixel in one of the oriented view map images.\n"
+"\n"
+"   :arg iOrientation: The number telling which orientation we want to\n"
+"      check.\n"
+"   :type iOrientation: int\n"
+"   :arg level: The level of the pyramid in which we wish to read the\n"
+"      pixel.\n"
+"   :type level: int\n"
+"   :arg x: The x coordinate of the pixel we wish to read.  The origin\n"
+"      is in the lower-left corner.\n"
+"   :type x: int\n"
+"   :arg y: The y coordinate of the pixel we wish to read.  The origin\n"
+"      is in the lower-left corner.\n"
+"   :type y: int\n"
+"   :return: The floating-point value stored for that pixel.\n"
+"   :rtype: float\n";
+
+static PyObject *
+ContextFunctions_ReadDirectionalViewMapPixelCF( PyObject *self, PyObject *args )
+{
+  int orientation, level;
+  unsigned x, y;
+
+  if( !PyArg_ParseTuple(args, "iiII", &orientation, &level, &x, &y) )
+    return NULL;
+
+  float f = ContextFunctions::ReadDirectionalViewMapPixelCF(orientation, level, x, y);
+
+  return PyFloat_FromDouble( f );
+}
+
+static char ContextFunctions_GetSelectedFEdgeCF___doc__[] =
+".. function:: GetSelectedFEdgeCF()\n"
+"\n"
+"   Returns the selected FEdge.\n"
+"\n"
+"   :return: The selected FEdge.\n"
+"   :rtype: :class:`FEdge`\n";
+
+static PyObject *
+ContextFunctions_GetSelectedFEdgeCF( PyObject *self )
+{
+  FEdge *fe = ContextFunctions::GetSelectedFEdgeCF();
+  if( fe )
+    return Any_BPy_FEdge_from_FEdge( *fe );
+
+  Py_RETURN_NONE;
+}
 
 /*-----------------------ContextFunctions module docstring-------------------------------*/
 
@@ -27,14 +208,14 @@ static char module_docstring[] = "The Blender Freestyle.ContextFunctions submodu
 /*-----------------------ContextFunctions module functions definitions-------------------*/
 
 static PyMethodDef module_functions[] = {
-  {"GetTimeStampCF", (PyCFunction)ContextFunctions_GetTimeStampCF, METH_NOARGS, ""},
-  {"GetCanvasWidthCF", (PyCFunction)ContextFunctions_GetCanvasWidthCF, METH_NOARGS, ""},
-  {"GetCanvasHeightCF", (PyCFunction)ContextFunctions_GetCanvasHeightCF, METH_NOARGS, ""},
-  {"LoadMapCF", (PyCFunction)ContextFunctions_LoadMapCF, METH_VARARGS, ""},
-  {"ReadMapPixelCF", (PyCFunction)ContextFunctions_ReadMapPixelCF, METH_VARARGS, ""},
-  {"ReadCompleteViewMapPixelCF", (PyCFunction)ContextFunctions_ReadCompleteViewMapPixelCF, METH_VARARGS, ""},
-  {"ReadDirectionalViewMapPixelCF", (PyCFunction)ContextFunctions_ReadDirectionalViewMapPixelCF, METH_VARARGS, ""},
-  {"GetSelectedFEdgeCF", (PyCFunction)ContextFunctions_GetSelectedFEdgeCF, METH_NOARGS, ""},
+  {"GetTimeStampCF", (PyCFunction)ContextFunctions_GetTimeStampCF, METH_NOARGS, ContextFunctions_GetTimeStampCF___doc__},
+  {"GetCanvasWidthCF", (PyCFunction)ContextFunctions_GetCanvasWidthCF, METH_NOARGS, ContextFunctions_GetCanvasWidthCF___doc__},
+  {"GetCanvasHeightCF", (PyCFunction)ContextFunctions_GetCanvasHeightCF, METH_NOARGS, ContextFunctions_GetCanvasHeightCF___doc__},
+  {"LoadMapCF", (PyCFunction)ContextFunctions_LoadMapCF, METH_VARARGS, ContextFunctions_LoadMapCF___doc__},
+  {"ReadMapPixelCF", (PyCFunction)ContextFunctions_ReadMapPixelCF, METH_VARARGS, ContextFunctions_ReadMapPixelCF___doc__},
+  {"ReadCompleteViewMapPixelCF", (PyCFunction)ContextFunctions_ReadCompleteViewMapPixelCF, METH_VARARGS, ContextFunctions_ReadCompleteViewMapPixelCF___doc__},
+  {"ReadDirectionalViewMapPixelCF", (PyCFunction)ContextFunctions_ReadDirectionalViewMapPixelCF, METH_VARARGS, ContextFunctions_ReadDirectionalViewMapPixelCF___doc__},
+  {"GetSelectedFEdgeCF", (PyCFunction)ContextFunctions_GetSelectedFEdgeCF, METH_NOARGS, ContextFunctions_GetSelectedFEdgeCF___doc__},
   {NULL, NULL, 0, NULL}
 };
 
@@ -72,94 +253,6 @@ int ContextFunctions_Init( PyObject *module )
   }
 
   return 0;
-}
-
-//------------------------ MODULE FUNCTIONS ----------------------------------
-
-static PyObject *
-ContextFunctions_GetTimeStampCF( PyObject* self )
-{
-  return PyLong_FromLong( ContextFunctions::GetTimeStampCF() );
-}
-
-static PyObject *
-ContextFunctions_GetCanvasWidthCF( PyObject* self )
-{
-  return PyLong_FromLong( ContextFunctions::GetCanvasWidthCF() );
-}
-
-static PyObject *
-ContextFunctions_GetCanvasHeightCF( PyObject* self )
-{
-  return PyLong_FromLong( ContextFunctions::GetCanvasHeightCF() );
-}
-
-static PyObject *
-ContextFunctions_LoadMapCF( PyObject *self, PyObject *args )
-{
-  char *fileName, *mapName;
-  unsigned nbLevels;
-  float sigma;
-
-  if( !PyArg_ParseTuple(args, "ssIf", &fileName, &mapName, &nbLevels, &sigma) )
-    return NULL;
-
-  ContextFunctions::LoadMapCF(fileName, mapName, nbLevels, sigma);
-
-  Py_RETURN_NONE;
-}
-
-static PyObject *
-ContextFunctions_ReadMapPixelCF( PyObject *self, PyObject *args )
-{
-  char *mapName;
-  int level;
-  unsigned x, y;
-
-  if( !PyArg_ParseTuple(args, "siII", &mapName, &level, &x, &y) )
-    return NULL;
-
-  float f = ContextFunctions::ReadMapPixelCF(mapName, level, x, y);
-
-  return PyFloat_FromDouble( f );
-}
-
-static PyObject *
-ContextFunctions_ReadCompleteViewMapPixelCF( PyObject *self, PyObject *args )
-{
-  int level;
-  unsigned x, y;
-
-  if( !PyArg_ParseTuple(args, "iII", &level, &x, &y) )
-    return NULL;
-
-  float f = ContextFunctions::ReadCompleteViewMapPixelCF(level, x, y);
-
-  return PyFloat_FromDouble( f );
-}
-
-static PyObject *
-ContextFunctions_ReadDirectionalViewMapPixelCF( PyObject *self, PyObject *args )
-{
-  int orientation, level;
-  unsigned x, y;
-
-  if( !PyArg_ParseTuple(args, "iiII", &orientation, &level, &x, &y) )
-    return NULL;
-
-  float f = ContextFunctions::ReadDirectionalViewMapPixelCF(orientation, level, x, y);
-
-  return PyFloat_FromDouble( f );
-}
-
-static PyObject *
-ContextFunctions_GetSelectedFEdgeCF( PyObject *self )
-{
-  FEdge *fe = ContextFunctions::GetSelectedFEdgeCF();
-  if( fe )
-    return Any_BPy_FEdge_from_FEdge( *fe );
-
-  Py_RETURN_NONE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

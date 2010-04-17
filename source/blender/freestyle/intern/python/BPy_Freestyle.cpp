@@ -31,19 +31,38 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+//------------------------ MODULE FUNCTIONS ----------------------------------
 
-//static PyObject *Freestyle_testOutput( BPy_Freestyle * self );
-static PyObject *Freestyle_getCurrentScene( PyObject *self );
+#include "FRS_freestyle.h"
+#include "bpy_rna.h" /* pyrna_struct_CreatePyObject() */
 
-/*-----------------------Freestyle module doc strings--------------------------*/
+static char Freestyle_getCurrentScene___doc__[] =
+".. function:: getCurrentScene()\n"
+"\n"
+"   Returns the current scene.\n"
+"\n"
+"   :return: The current scene.\n"
+"   :rtype: :class:`bpy.types.Scene`\n";
+
+static PyObject *Freestyle_getCurrentScene( PyObject *self )
+{
+	if (!freestyle_scene) {
+		PyErr_SetString(PyExc_TypeError, "current scene not available");
+		return NULL;
+	}
+	PointerRNA ptr_scene;
+	RNA_pointer_create(NULL, &RNA_Scene, freestyle_scene, &ptr_scene);
+	return pyrna_struct_CreatePyObject(&ptr_scene);
+}
+
+/*-----------------------Freestyle module docstring----------------------------*/
 
 static char module_docstring[] = "The Blender Freestyle module\n\n";
 
 /*-----------------------Freestyle module method def---------------------------*/
 
 static PyMethodDef module_functions[] = {
-//	{"testOutput", ( PyCFunction ) Freestyle_testOutput, METH_NOARGS, "() - Return Curve Data name"},
-	{"getCurrentScene", ( PyCFunction ) Freestyle_getCurrentScene, METH_NOARGS, "() - Return the current scene."},
+	{"getCurrentScene", ( PyCFunction ) Freestyle_getCurrentScene, METH_NOARGS, Freestyle_getCurrentScene___doc__},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -100,20 +119,6 @@ PyObject *Freestyle_Init( void )
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#include "FRS_freestyle.h"
-#include "bpy_rna.h" /* pyrna_struct_CreatePyObject() */
-
-static PyObject *Freestyle_getCurrentScene( PyObject *self )
-{
-	if (!freestyle_scene) {
-		PyErr_SetString(PyExc_TypeError, "current scene not available");
-		return NULL;
-	}
-	PointerRNA ptr_scene;
-	RNA_pointer_create(NULL, &RNA_Scene, freestyle_scene, &ptr_scene);
-	return pyrna_struct_CreatePyObject(&ptr_scene);
-}
 
 #ifdef __cplusplus
 }

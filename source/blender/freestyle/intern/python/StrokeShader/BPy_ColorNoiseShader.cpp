@@ -8,8 +8,37 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ColorNoiseShader instance  -----------*/
-static int ColorNoiseShader___init__( BPy_ColorNoiseShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ColorNoiseShader___doc__[] =
+"[Color shader]\n"
+"\n"
+".. method:: __init__(iAmplitude, iPeriod)\n"
+"\n"
+"   Builds a ColorNoiseShader object.\n"
+"\n"
+"   :arg iAmplitude: The amplitude of the noise signal.\n"
+"   :type iAmplitude: float\n"
+"   :arg iPeriod: The period of the noise signal.\n"
+"   :type iPeriod: float\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Shader to add noise to the stroke colors.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int ColorNoiseShader___init__( BPy_ColorNoiseShader* self, PyObject *args)
+{
+	float f1, f2;
+
+	if(!( PyArg_ParseTuple(args, "ff", &f1, &f2) ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::ColorNoiseShader(f1, f2);
+	return 0;
+}
 
 /*-----------------------BPy_ColorNoiseShader type definition ------------------------------*/
 
@@ -34,7 +63,7 @@ PyTypeObject ColorNoiseShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ColorNoiseShader objects",     /* tp_doc */
+	ColorNoiseShader___doc__,       /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +82,6 @@ PyTypeObject ColorNoiseShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ColorNoiseShader___init__( BPy_ColorNoiseShader* self, PyObject *args)
-{
-	float f1, f2;
-
-	if(!( PyArg_ParseTuple(args, "ff", &f1, &f2) ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::ColorNoiseShader(f1, f2);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

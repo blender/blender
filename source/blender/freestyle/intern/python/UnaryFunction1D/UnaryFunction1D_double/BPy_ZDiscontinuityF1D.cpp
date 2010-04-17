@@ -10,8 +10,42 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ZDiscontinuityF1D instance  -----------*/
-static int ZDiscontinuityF1D___init__(BPy_ZDiscontinuityF1D* self, PyObject *args );
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ZDiscontinuityF1D___doc__[] =
+".. method:: __init__(iType=IntegrationType.MEAN)\n"
+"\n"
+"   Builds a ZDiscontinuityF1D object.\n"
+"\n"
+"   :arg iType: The integration method used to compute a single value\n"
+"      from a set of values.\n"
+"   :type iType: :class:`IntegrationType`\n"
+"\n"
+".. method:: __call__(inter)\n"
+"\n"
+"   Returns a real value giving the distance between an Interface1D\n"
+"   and the shape that lies behind (occludee).  This distance is\n"
+"   evaluated in the camera space and normalized between 0 and 1.\n"
+"   Therefore, if no oject is occluded by the shape to which the\n"
+"   Interface1D belongs to, 1 is returned.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: The normalized distance between the Interface1D and the occludee.\n"
+"   :rtype: float\n";
+
+static int ZDiscontinuityF1D___init__( BPy_ZDiscontinuityF1D* self, PyObject *args )
+{
+	PyObject *obj = 0;
+
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) )
+		return -1;
+	
+	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	self->py_uf1D_double.uf1D_double = new Functions1D::ZDiscontinuityF1D(t);
+	return 0;
+}
+
 
 /*-----------------------BPy_ZDiscontinuityF1D type definition ------------------------------*/
 
@@ -36,7 +70,7 @@ PyTypeObject ZDiscontinuityF1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ZDiscontinuityF1D objects", /* tp_doc */
+	ZDiscontinuityF1D___doc__,      /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -55,21 +89,6 @@ PyTypeObject ZDiscontinuityF1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ZDiscontinuityF1D___init__( BPy_ZDiscontinuityF1D* self, PyObject *args )
-{
-	PyObject *obj = 0;
-
-	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) )
-		return -1;
-	
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
-	self->py_uf1D_double.uf1D_double = new Functions1D::ZDiscontinuityF1D(t);
-	return 0;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -10,8 +10,29 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for GetOccludersF1D instance  -----------*/
-static int GetOccludersF1D___init__(BPy_GetOccludersF1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char GetOccludersF1D___doc__[] =
+".. method:: __init__()\n"
+"\n"
+"   Builds a GetOccludersF1D object.\n"
+"\n"
+".. method:: __call__(inter)\n"
+"\n"
+"   Returns a list of occluding shapes that cover this Interface1D.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: A list of occluding shapes that cover the Interface1D.\n"
+"   :rtype: list of :class:`ViewShape` objects\n";
+
+static int GetOccludersF1D___init__( BPy_GetOccludersF1D* self, PyObject *args )
+{
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
+	self->py_uf1D_vectorviewshape.uf1D_vectorviewshape = new Functions1D::GetOccludersF1D();
+	return 0;
+}
 
 /*-----------------------BPy_GetOccludersF1D type definition ------------------------------*/
 
@@ -36,7 +57,7 @@ PyTypeObject GetOccludersF1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"GetOccludersF1D objects",       /* tp_doc */
+	GetOccludersF1D___doc__,        /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -55,16 +76,6 @@ PyTypeObject GetOccludersF1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int GetOccludersF1D___init__( BPy_GetOccludersF1D* self, PyObject *args )
-{
-	if( !PyArg_ParseTuple(args, "") )
-		return -1;
-	self->py_uf1D_vectorviewshape.uf1D_vectorviewshape = new Functions1D::GetOccludersF1D();
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

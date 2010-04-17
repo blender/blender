@@ -8,8 +8,38 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for BezierCurveShader instance  -----------*/
-static int BezierCurveShader___init__( BPy_BezierCurveShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char BezierCurveShader___doc__[] =
+"[Geometry shader]\n"
+"\n"
+".. method:: __init__(error=4.0)\n"
+"\n"
+"   Builds a BezierCurveShader object.\n"
+"\n"
+"   :arg error: The error we're allowing for the approximation.  This\n"
+"     error is the max distance allowed between the new curve and the\n"
+"     original geometry.\n"
+"   :type error: float\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Transforms the stroke backbone geometry so that it corresponds to a\n"
+"   Bezier Curve approximation of the original backbone geometry.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int BezierCurveShader___init__( BPy_BezierCurveShader* self, PyObject *args)
+{
+	float f = 4.0;
+
+	if(!( PyArg_ParseTuple(args, "|f", &f) ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::BezierCurveShader(f);
+	return 0;
+}
 
 /*-----------------------BPy_BezierCurveShader type definition ------------------------------*/
 
@@ -34,7 +64,7 @@ PyTypeObject BezierCurveShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"BezierCurveShader objects",    /* tp_doc */
+	BezierCurveShader___doc__,      /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +83,6 @@ PyTypeObject BezierCurveShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int BezierCurveShader___init__( BPy_BezierCurveShader* self, PyObject *args)
-{
-	float f = 4.0;
-
-	if(!( PyArg_ParseTuple(args, "|f", &f) ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::BezierCurveShader(f);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

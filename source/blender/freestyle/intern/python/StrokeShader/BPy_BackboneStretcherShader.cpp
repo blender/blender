@@ -8,8 +8,36 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for BackboneStretcherShader instance  -----------*/
-static int BackboneStretcherShader___init__( BPy_BackboneStretcherShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char BackboneStretcherShader___doc__[] =
+"[Geometry shader]\n"
+"\n"
+".. method:: __init__(iAmount=2.0)\n"
+"\n"
+"   Builds a BackboneStretcherShader object.\n"
+"\n"
+"   :arg iAmount: The stretching amount value.\n"
+"   :type iAmount: float\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Stretches the stroke at its two extremities and following the\n"
+"   respective directions: v(1)v(0) and v(n-1)v(n).\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int BackboneStretcherShader___init__( BPy_BackboneStretcherShader* self, PyObject *args)
+{
+	float f = 2.0;
+
+	if(!( PyArg_ParseTuple(args, "|f", &f) ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::BackboneStretcherShader(f);
+	return 0;
+}
 
 /*-----------------------BPy_BackboneStretcherShader type definition ------------------------------*/
 
@@ -34,7 +62,7 @@ PyTypeObject BackboneStretcherShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"BackboneStretcherShader objects", /* tp_doc */
+	BackboneStretcherShader___doc__, /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +81,6 @@ PyTypeObject BackboneStretcherShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int BackboneStretcherShader___init__( BPy_BackboneStretcherShader* self, PyObject *args)
-{
-	float f = 2.0;
-
-	if(!( PyArg_ParseTuple(args, "|f", &f) ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::BackboneStretcherShader(f);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

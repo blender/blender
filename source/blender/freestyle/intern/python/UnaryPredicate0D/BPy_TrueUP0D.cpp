@@ -6,8 +6,25 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for TrueUP0D instance  -----------*/
-static int TrueUP0D___init__(BPy_TrueUP0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char TrueUP0D___doc__[] =
+".. method:: __call__(it)\n"
+"\n"
+"   Always returns true.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: True.\n"
+"   :rtype: bool\n";
+
+static int TrueUP0D___init__( BPy_TrueUP0D* self, PyObject *args )
+{
+	if(!( PyArg_ParseTuple(args, "") ))
+		return -1;
+	self->py_up0D.up0D = new Predicates0D::TrueUP0D();
+	return 0;
+}
 
 /*-----------------------BPy_TrueUP0D type definition ------------------------------*/
 
@@ -32,7 +49,7 @@ PyTypeObject TrueUP0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"TrueUP0D objects",             /* tp_doc */
+	TrueUP0D___doc__,               /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -51,16 +68,6 @@ PyTypeObject TrueUP0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int TrueUP0D___init__( BPy_TrueUP0D* self, PyObject *args )
-{
-	if(!( PyArg_ParseTuple(args, "") ))
-		return -1;
-	self->py_up0D.up0D = new Predicates0D::TrueUP0D();
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

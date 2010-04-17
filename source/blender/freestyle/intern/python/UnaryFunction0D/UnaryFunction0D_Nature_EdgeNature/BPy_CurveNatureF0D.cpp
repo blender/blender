@@ -8,8 +8,32 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for CurveNatureF0D instance  -----------*/
-	static int CurveNatureF0D___init__(BPy_CurveNatureF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char CurveNatureF0D___doc__[] =
+".. method:: __init__()\n"
+"\n"
+"   Builds a CurveNatureF0D object.\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Returns the :class:`Nature` of the 1D element the Interface0D pointed\n"
+"   by the Interface0DIterator belongs to.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: The nature of the 1D element to which the pointed Interface0D\n"
+"      belongs.\n"
+"   :rtype: :class:`Nature`\n";
+
+static int CurveNatureF0D___init__( BPy_CurveNatureF0D* self, PyObject *args )
+{
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
+	self->py_uf0D_edgenature.uf0D_edgenature = new Functions0D::CurveNatureF0D();
+	self->py_uf0D_edgenature.uf0D_edgenature->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_CurveNatureF0D type definition ------------------------------*/
 
@@ -34,7 +58,7 @@ PyTypeObject CurveNatureF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"CurveNatureF0D objects",       /* tp_doc */
+	CurveNatureF0D___doc__,         /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,17 +77,6 @@ PyTypeObject CurveNatureF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int CurveNatureF0D___init__( BPy_CurveNatureF0D* self, PyObject *args )
-{
-	if( !PyArg_ParseTuple(args, "") )
-		return -1;
-	self->py_uf0D_edgenature.uf0D_edgenature = new Functions0D::CurveNatureF0D();
-	self->py_uf0D_edgenature.uf0D_edgenature->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

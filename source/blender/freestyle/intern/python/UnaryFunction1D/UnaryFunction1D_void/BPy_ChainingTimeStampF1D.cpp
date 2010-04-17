@@ -10,8 +10,27 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ChainingTimeStampF1D instance  -----------*/
-static int ChainingTimeStampF1D___init__(BPy_ChainingTimeStampF1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ChainingTimeStampF1D___doc__[] =
+".. method:: __init__()\n"
+"\n"
+"   Builds a ChainingTimeStampF1D object.\n"
+"\n"
+".. method:: __call__(inter)\n"
+"\n"
+"   Sets the chaining time stamp of the Interface1D.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n";
+
+static int ChainingTimeStampF1D___init__( BPy_ChainingTimeStampF1D* self, PyObject *args )
+{
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
+	self->py_uf1D_void.uf1D_void = new Functions1D::ChainingTimeStampF1D();
+	return 0;
+}
 
 /*-----------------------BPy_ChainingTimeStampF1D type definition ------------------------------*/
 
@@ -36,7 +55,7 @@ PyTypeObject ChainingTimeStampF1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ChainingTimeStampF1D objects", /* tp_doc */
+	ChainingTimeStampF1D___doc__,   /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -55,16 +74,6 @@ PyTypeObject ChainingTimeStampF1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ChainingTimeStampF1D___init__( BPy_ChainingTimeStampF1D* self, PyObject *args )
-{
-	if( !PyArg_ParseTuple(args, "") )
-		return -1;
-	self->py_uf1D_void.uf1D_void = new Functions1D::ChainingTimeStampF1D();
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

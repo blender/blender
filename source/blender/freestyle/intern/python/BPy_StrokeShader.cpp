@@ -32,64 +32,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for StrokeShader instance  -----------*/
-static int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObject *kwds);
-static void StrokeShader___dealloc__(BPy_StrokeShader *self);
-static PyObject * StrokeShader___repr__(BPy_StrokeShader *self);
-
-static PyObject * StrokeShader_getName( BPy_StrokeShader *self, PyObject *args);
-static PyObject * StrokeShader_shade( BPy_StrokeShader *self , PyObject *args);
-
-/*----------------------StrokeShader instance definitions ----------------------------*/
-static PyMethodDef BPy_StrokeShader_methods[] = {
-	{"getName", ( PyCFunction ) StrokeShader_getName, METH_NOARGS, "() Returns the string of the name of the binary predicate."},
-	{"shade", ( PyCFunction ) StrokeShader_shade, METH_VARARGS, "(Stroke s) The shading method. This method must be overloaded by inherited classes. The shading method is designed to modify any Stroke's attribute such as Thickness, Color, Geometry, Texture, Blending mode... The basic way to achieve this operation consists in iterating over the StrokeVertices of the Stroke and to modify each one's StrokeAttribute."},
-	{NULL, NULL, 0, NULL}
-};
-
-/*-----------------------BPy_StrokeShader type definition ------------------------------*/
-
-PyTypeObject StrokeShader_Type = {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"StrokeShader",                 /* tp_name */
-	sizeof(BPy_StrokeShader),       /* tp_basicsize */
-	0,                              /* tp_itemsize */
-	(destructor)StrokeShader___dealloc__, /* tp_dealloc */
-	0,                              /* tp_print */
-	0,                              /* tp_getattr */
-	0,                              /* tp_setattr */
-	0,                              /* tp_reserved */
-	(reprfunc)StrokeShader___repr__, /* tp_repr */
-	0,                              /* tp_as_number */
-	0,                              /* tp_as_sequence */
-	0,                              /* tp_as_mapping */
-	0,                              /* tp_hash  */
-	0,                              /* tp_call */
-	0,                              /* tp_str */
-	0,                              /* tp_getattro */
-	0,                              /* tp_setattro */
-	0,                              /* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"StrokeShader objects",         /* tp_doc */
-	0,                              /* tp_traverse */
-	0,                              /* tp_clear */
-	0,                              /* tp_richcompare */
-	0,                              /* tp_weaklistoffset */
-	0,                              /* tp_iter */
-	0,                              /* tp_iternext */
-	BPy_StrokeShader_methods,       /* tp_methods */
-	0,                              /* tp_members */
-	0,                              /* tp_getset */
-	0,                              /* tp_base */
-	0,                              /* tp_dict */
-	0,                              /* tp_descr_get */
-	0,                              /* tp_descr_set */
-	0,                              /* tp_dictoffset */
-	(initproc)StrokeShader___init__, /* tp_init */
-	0,                              /* tp_alloc */
-	PyType_GenericNew,              /* tp_new */
-};
-
 //-------------------MODULE INITIALIZATION--------------------------------
 int StrokeShader_Init( PyObject *module )
 {
@@ -216,7 +158,26 @@ int StrokeShader_Init( PyObject *module )
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObject *kwds)
+static char StrokeShader___doc__[] =
+"Base class for stroke shaders.  Any stroke shader must inherit from\n"
+"this class and overload the shade() method.  A StrokeShader is\n"
+"designed to modify stroke attributes such as thickness, color,\n"
+"geometry, texture, blending mode, and so on.  The basic way for this\n"
+"operation is to iterate over the stroke vertices of the :class:`Stroke`\n"
+"and to modify the :class:`StrokeAttribute` of each vertex.  Here is a\n"
+"code example of such an iteration::\n"
+"\n"
+"  it = ioStroke.strokeVerticesBegin()\n"
+"  while it.isEnd() == 0:\n"
+"      att = it.getObject().attribute()\n"
+"      ## perform here any attribute modification\n"
+"      it.increment()\n"
+"\n"
+".. method:: __init__()\n"
+"\n"
+"   Default constructor.\n";
+
+static int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObject *kwds)
 {
     if ( !PyArg_ParseTuple(args, "") )
         return -1;
@@ -225,7 +186,7 @@ int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObject *kwds
 	return 0;
 }
 
-void StrokeShader___dealloc__(BPy_StrokeShader* self)
+static void StrokeShader___dealloc__(BPy_StrokeShader* self)
 {
 	if (self->ss)
 		delete self->ss;
@@ -233,18 +194,33 @@ void StrokeShader___dealloc__(BPy_StrokeShader* self)
 }
 
 
-PyObject * StrokeShader___repr__(BPy_StrokeShader* self)
+static PyObject * StrokeShader___repr__(BPy_StrokeShader* self)
 {
     return PyUnicode_FromFormat("type: %s - address: %p", self->ss->getName().c_str(), self->ss );
 }
 
+static char StrokeShader_getName___doc__[] =
+".. method:: getName()\n"
+"\n"
+"   Returns the name of this stroke shader.\n"
+"\n"
+"   :return: The name of this stroke shader.\n"
+"   :rtype: string\n";
 
-PyObject * StrokeShader_getName( BPy_StrokeShader *self, PyObject *args)
+static PyObject * StrokeShader_getName( BPy_StrokeShader *self, PyObject *args)
 {
 	return PyUnicode_FromFormat( self->ss->getName().c_str() );
 }
 
-PyObject *StrokeShader_shade( BPy_StrokeShader *self , PyObject *args) {
+static char StrokeShader_shade___doc__[] =
+".. method:: shade(s)\n"
+"\n"
+"   The shading method.  Must be overloaded by inherited classes.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static PyObject *StrokeShader_shade( BPy_StrokeShader *self , PyObject *args) {
 	PyObject *py_s = 0;
 
 	if(!( PyArg_ParseTuple(args, "O!", &Stroke_Type, &py_s) ))
@@ -264,7 +240,55 @@ PyObject *StrokeShader_shade( BPy_StrokeShader *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
+/*----------------------StrokeShader instance definitions ----------------------------*/
+static PyMethodDef BPy_StrokeShader_methods[] = {
+	{"getName", ( PyCFunction ) StrokeShader_getName, METH_NOARGS, StrokeShader_getName___doc__},
+	{"shade", ( PyCFunction ) StrokeShader_shade, METH_VARARGS, StrokeShader_shade___doc__},
+	{NULL, NULL, 0, NULL}
+};
 
+/*-----------------------BPy_StrokeShader type definition ------------------------------*/
+
+PyTypeObject StrokeShader_Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"StrokeShader",                 /* tp_name */
+	sizeof(BPy_StrokeShader),       /* tp_basicsize */
+	0,                              /* tp_itemsize */
+	(destructor)StrokeShader___dealloc__, /* tp_dealloc */
+	0,                              /* tp_print */
+	0,                              /* tp_getattr */
+	0,                              /* tp_setattr */
+	0,                              /* tp_reserved */
+	(reprfunc)StrokeShader___repr__, /* tp_repr */
+	0,                              /* tp_as_number */
+	0,                              /* tp_as_sequence */
+	0,                              /* tp_as_mapping */
+	0,                              /* tp_hash  */
+	0,                              /* tp_call */
+	0,                              /* tp_str */
+	0,                              /* tp_getattro */
+	0,                              /* tp_setattro */
+	0,                              /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+	StrokeShader___doc__,           /* tp_doc */
+	0,                              /* tp_traverse */
+	0,                              /* tp_clear */
+	0,                              /* tp_richcompare */
+	0,                              /* tp_weaklistoffset */
+	0,                              /* tp_iter */
+	0,                              /* tp_iternext */
+	BPy_StrokeShader_methods,       /* tp_methods */
+	0,                              /* tp_members */
+	0,                              /* tp_getset */
+	0,                              /* tp_base */
+	0,                              /* tp_dict */
+	0,                              /* tp_descr_get */
+	0,                              /* tp_descr_set */
+	0,                              /* tp_dictoffset */
+	(initproc)StrokeShader___init__, /* tp_init */
+	0,                              /* tp_alloc */
+	PyType_GenericNew,              /* tp_new */
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

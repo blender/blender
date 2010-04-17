@@ -8,8 +8,34 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for Curvature2DAngleF0D instance  -----------*/
-static int Curvature2DAngleF0D___init__(BPy_Curvature2DAngleF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char Curvature2DAngleF0D___doc__[] =
+".. method:: __init__()\n"
+"\n"
+"   Builds a Curvature2DAngleF0D object.\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Returns a real value giving the 2D curvature (as an angle) of the\n"
+"   1D element to which the :class:`Interface0D` pointed by the\n"
+"   Interface0DIterator belongs.  The 2D curvature is evaluated at the\n"
+"   Interface0D.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: The 2D curvature of the 1D element evaluated at the\n"
+"      pointed Interface0D.\n"
+"   :rtype: float\n";
+
+static int Curvature2DAngleF0D___init__( BPy_Curvature2DAngleF0D* self, PyObject *args )
+{
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
+	self->py_uf0D_double.uf0D_double = new Functions0D::Curvature2DAngleF0D();
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_Curvature2DAngleF0D type definition ------------------------------*/
 
@@ -34,7 +60,7 @@ PyTypeObject Curvature2DAngleF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"Curvature2DAngleF0D objects",  /* tp_doc */
+	Curvature2DAngleF0D___doc__,    /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,17 +79,6 @@ PyTypeObject Curvature2DAngleF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int Curvature2DAngleF0D___init__( BPy_Curvature2DAngleF0D* self, PyObject *args )
-{
-	if( !PyArg_ParseTuple(args, "") )
-		return -1;
-	self->py_uf0D_double.uf0D_double = new Functions0D::Curvature2DAngleF0D();
-	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

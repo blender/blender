@@ -52,6 +52,31 @@ PyNumberMethods nature_as_number = {
 	0,                              /* unaryfunc nb_index */
 };
 
+/*-----------------------BPy_Nature docstring ------------------------------------*/
+
+static char Nature___doc__[] =
+"Different possible natures of 0D and 1D elements of the ViewMap.\n"
+"\n"
+"Vertex natures:\n"
+"\n"
+"* Nature.POINT: True for any 0D element.\n"
+"* Nature.S_VERTEX: True for SVertex.\n"
+"* Nature.VIEW_VERTEX: True for ViewVertex.\n"
+"* Nature.NON_T_VERTEX: True for NonTVertex.\n"
+"* Nature.T_VERTEX: True for TVertex.\n"
+"* Nature.CUSP: True for CUSP.\n"
+"\n"
+"Edge natures:\n"
+"\n"
+"* Nature.NO_FEATURE: True for non feature edges (always false for 1D\n"
+"  elements of the ViewMap).\n"
+"* Nature.SILHOUETTE: True for silhouettes.\n"
+"* Nature.BORDER: True for borders.\n"
+"* Nature.CREASE: True for creases.\n"
+"* Nature.RIDGE: True for ridges.\n"
+"* Nature.VALLEY: True for valleys.\n"
+"* Nature.SUGGESTIVE_CONTOUR: True for suggestive contours.\n";
+
 /*-----------------------BPy_Nature type definition ------------------------------*/
 
 PyTypeObject Nature_Type = {
@@ -75,7 +100,7 @@ PyTypeObject Nature_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,             /* tp_flags */
-	"Nature objects",               /* tp_doc */
+	Nature___doc__,                 /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */

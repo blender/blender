@@ -11,63 +11,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for UnaryPredicate0D instance  -----------*/
-static int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds);
-static void UnaryPredicate0D___dealloc__(BPy_UnaryPredicate0D *self);
-static PyObject * UnaryPredicate0D___repr__(BPy_UnaryPredicate0D *self);
-static PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds);
-
-static PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self );
-
-/*----------------------UnaryPredicate0D instance definitions ----------------------------*/
-static PyMethodDef BPy_UnaryPredicate0D_methods[] = {
-	{"getName", ( PyCFunction ) UnaryPredicate0D_getName, METH_NOARGS, "Returns the string of the name of the UnaryPredicate0D."},
-	{NULL, NULL, 0, NULL}
-};
-
-/*-----------------------BPy_UnaryPredicate0D type definition ------------------------------*/
-
-PyTypeObject UnaryPredicate0D_Type = {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"UnaryPredicate0D",             /* tp_name */
-	sizeof(BPy_UnaryPredicate0D),   /* tp_basicsize */
-	0,                              /* tp_itemsize */
-	(destructor)UnaryPredicate0D___dealloc__, /* tp_dealloc */
-	0,                              /* tp_print */
-	0,                              /* tp_getattr */
-	0,                              /* tp_setattr */
-	0,                              /* tp_reserved */
-	(reprfunc)UnaryPredicate0D___repr__, /* tp_repr */
-	0,                              /* tp_as_number */
-	0,                              /* tp_as_sequence */
-	0,                              /* tp_as_mapping */
-	0,                              /* tp_hash  */
-	(ternaryfunc)UnaryPredicate0D___call__, /* tp_call */
-	0,                              /* tp_str */
-	0,                              /* tp_getattro */
-	0,                              /* tp_setattro */
-	0,                              /* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"UnaryPredicate0D objects",      /* tp_doc */
-	0,                              /* tp_traverse */
-	0,                              /* tp_clear */
-	0,                              /* tp_richcompare */
-	0,                              /* tp_weaklistoffset */
-	0,                              /* tp_iter */
-	0,                              /* tp_iternext */
-	BPy_UnaryPredicate0D_methods,   /* tp_methods */
-	0,                              /* tp_members */
-	0,                              /* tp_getset */
-	0,                              /* tp_base */
-	0,                              /* tp_dict */
-	0,                              /* tp_descr_get */
-	0,                              /* tp_descr_set */
-	0,                              /* tp_dictoffset */
-	(initproc)UnaryPredicate0D___init__, /* tp_init */
-	0,                              /* tp_alloc */
-	PyType_GenericNew,              /* tp_new */
-};
-
 //-------------------MODULE INITIALIZATION--------------------------------
 int UnaryPredicate0D_Init( PyObject *module )
 {
@@ -94,7 +37,29 @@ int UnaryPredicate0D_Init( PyObject *module )
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
+static char UnaryPredicate0D___doc__[] =
+"Base class for unary predicates that work on\n"
+":class:`Interface0DIterator`.  A UnaryPredicate0D is a functor that\n"
+"evaluates a condition on an Interface0DIterator and returns true or\n"
+"false depending on whether this condition is satisfied or not.  The\n"
+"UnaryPredicate0D is used by invoking its __call__() method.  Any\n"
+"inherited class must overload the __call__() method.\n"
+"\n"
+".. method:: __init__()\n"
+"\n"
+"   Default constructor.\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Must be overload by inherited classes.\n"
+"\n"
+"   :arg it: The Interface0DIterator pointing onto the Interface0D at\n"
+"      which we wish to evaluate the predicate.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: True if the condition is satisfied, false otherwise.\n"
+"   :rtype: bool\n";
+
+static int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
     if ( !PyArg_ParseTuple(args, "") )
         return -1;
@@ -103,26 +68,32 @@ int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args, PyObje
 	return 0;
 }
 
-void UnaryPredicate0D___dealloc__(BPy_UnaryPredicate0D* self)
+static void UnaryPredicate0D___dealloc__(BPy_UnaryPredicate0D* self)
 {
 	if (self->up0D)
 		delete self->up0D;
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-
-PyObject * UnaryPredicate0D___repr__(BPy_UnaryPredicate0D* self)
+static PyObject * UnaryPredicate0D___repr__(BPy_UnaryPredicate0D* self)
 {
     return PyUnicode_FromFormat("type: %s - address: %p", self->up0D->getName().c_str(), self->up0D );
 }
 
+static char UnaryPredicate0D_getName___doc__[] =
+".. method:: getName()\n"
+"\n"
+"   Returns the name of the UnaryPredicate0D.\n"
+"\n"
+"   :return: The name of the UnaryPredicate0D.\n"
+"   :rtype: string\n";
 
-PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self )
+static PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self )
 {
 	return PyUnicode_FromFormat( self->up0D->getName().c_str() );
 }
 
-PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
+static PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *py_if0D_it;
 
@@ -154,6 +125,54 @@ PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args
 	return PyBool_from_bool( self->up0D->result );
 }
 
+/*----------------------UnaryPredicate0D instance definitions ----------------------------*/
+static PyMethodDef BPy_UnaryPredicate0D_methods[] = {
+	{"getName", ( PyCFunction ) UnaryPredicate0D_getName, METH_NOARGS, UnaryPredicate0D_getName___doc__},
+	{NULL, NULL, 0, NULL}
+};
+
+/*-----------------------BPy_UnaryPredicate0D type definition ------------------------------*/
+
+PyTypeObject UnaryPredicate0D_Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"UnaryPredicate0D",             /* tp_name */
+	sizeof(BPy_UnaryPredicate0D),   /* tp_basicsize */
+	0,                              /* tp_itemsize */
+	(destructor)UnaryPredicate0D___dealloc__, /* tp_dealloc */
+	0,                              /* tp_print */
+	0,                              /* tp_getattr */
+	0,                              /* tp_setattr */
+	0,                              /* tp_reserved */
+	(reprfunc)UnaryPredicate0D___repr__, /* tp_repr */
+	0,                              /* tp_as_number */
+	0,                              /* tp_as_sequence */
+	0,                              /* tp_as_mapping */
+	0,                              /* tp_hash  */
+	(ternaryfunc)UnaryPredicate0D___call__, /* tp_call */
+	0,                              /* tp_str */
+	0,                              /* tp_getattro */
+	0,                              /* tp_setattro */
+	0,                              /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+	UnaryPredicate0D___doc__,       /* tp_doc */
+	0,                              /* tp_traverse */
+	0,                              /* tp_clear */
+	0,                              /* tp_richcompare */
+	0,                              /* tp_weaklistoffset */
+	0,                              /* tp_iter */
+	0,                              /* tp_iternext */
+	BPy_UnaryPredicate0D_methods,   /* tp_methods */
+	0,                              /* tp_members */
+	0,                              /* tp_getset */
+	0,                              /* tp_base */
+	0,                              /* tp_dict */
+	0,                              /* tp_descr_get */
+	0,                              /* tp_descr_set */
+	0,                              /* tp_dictoffset */
+	(initproc)UnaryPredicate0D___init__, /* tp_init */
+	0,                              /* tp_alloc */
+	PyType_GenericNew,              /* tp_new */
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -20,69 +20,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for Iterator instance  -----------*/
-static void Iterator___dealloc__(BPy_Iterator *self);
-static PyObject * Iterator___repr__(BPy_Iterator* self);
-
-static PyObject * Iterator_getExactTypeName(BPy_Iterator* self);
-static PyObject * Iterator_increment(BPy_Iterator* self);
-static PyObject * Iterator_decrement(BPy_Iterator* self);
-static PyObject * Iterator_isBegin(BPy_Iterator* self);
-static PyObject * Iterator_isEnd(BPy_Iterator* self);
-
-/*----------------------Iterator instance definitions ----------------------------*/
-static PyMethodDef BPy_Iterator_methods[] = {
-	{"getExactTypeName", ( PyCFunction ) Iterator_getExactTypeName, METH_NOARGS, "() Returns the string of the name of the iterator."},
-	{"increment", ( PyCFunction ) Iterator_increment, METH_NOARGS, "() Increments iterator."},
-	{"decrement", ( PyCFunction ) Iterator_decrement, METH_NOARGS, "() Decrements iterator."},
-	{"isBegin", ( PyCFunction ) Iterator_isBegin, METH_NOARGS, "() Tests if iterator points to beginning."},
-	{"isEnd", ( PyCFunction ) Iterator_isEnd, METH_NOARGS, "() Tests if iterator points to end."},
-	{NULL, NULL, 0, NULL}
-};
-
-/*-----------------------BPy_Iterator type definition ------------------------------*/
-
-PyTypeObject Iterator_Type = {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"Iterator",                     /* tp_name */
-	sizeof(BPy_Iterator),           /* tp_basicsize */
-	0,                              /* tp_itemsize */
-	(destructor)Iterator___dealloc__, /* tp_dealloc */
-	0,                              /* tp_print */
-	0,                              /* tp_getattr */
-	0,                              /* tp_setattr */
-	0,                              /* tp_reserved */
-	(reprfunc)Iterator___repr__,    /* tp_repr */
-	0,                              /* tp_as_number */
-	0,                              /* tp_as_sequence */
-	0,                              /* tp_as_mapping */
-	0,                              /* tp_hash  */
-	0,                              /* tp_call */
-	0,                              /* tp_str */
-	0,                              /* tp_getattro */
-	0,                              /* tp_setattro */
-	0,                              /* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"Iterator objects",             /* tp_doc */
-	0,                              /* tp_traverse */
-	0,                              /* tp_clear */
-	0,                              /* tp_richcompare */
-	0,                              /* tp_weaklistoffset */
-	0,                              /* tp_iter */
-	0,                              /* tp_iternext */
-	BPy_Iterator_methods,           /* tp_methods */
-	0,                              /* tp_members */
-	0,                              /* tp_getset */
-	0,                              /* tp_base */
-	0,                              /* tp_dict */
-	0,                              /* tp_descr_get */
-	0,                              /* tp_descr_set */
-	0,                              /* tp_dictoffset */
-	0,                              /* tp_init */
-	0,                              /* tp_alloc */
-	PyType_GenericNew,              /* tp_new */
-};
-
 //-------------------MODULE INITIALIZATION--------------------------------
 int Iterator_Init( PyObject *module )
 {	
@@ -149,24 +86,39 @@ int Iterator_Init( PyObject *module )
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-void Iterator___dealloc__(BPy_Iterator* self)
+static char Iterator___doc__[] =
+"Base class to define iterators.\n";
+
+static void Iterator___dealloc__(BPy_Iterator* self)
 {
 	if (self->it)
 		delete self->it;
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-PyObject * Iterator___repr__(BPy_Iterator* self)
+static PyObject * Iterator___repr__(BPy_Iterator* self)
 {
     return PyUnicode_FromFormat("type: %s - address: %p", self->it->getExactTypeName().c_str(), self->it );
 }
 
-PyObject * Iterator_getExactTypeName(BPy_Iterator* self) {
+static char Iterator_getExactTypeName___doc__[] =
+".. method:: getExactTypeName()\n"
+"\n"
+"   Returns the name of the iterator.\n"
+"\n"
+"   :return: The name of the iterator.\n"
+"   :rtype: string\n";
+
+static PyObject * Iterator_getExactTypeName(BPy_Iterator* self) {
 	return PyUnicode_FromFormat( self->it->getExactTypeName().c_str() );	
 }
 
+static char Iterator_increment___doc__[] =
+".. method:: increment()\n"
+"\n"
+"   Makes the iterator point the next element.\n";
 
-PyObject * Iterator_increment(BPy_Iterator* self) {
+static PyObject * Iterator_increment(BPy_Iterator* self) {
 	if (self->it->isEnd()) {
 		PyErr_SetString(PyExc_RuntimeError , "cannot increment any more");
 		return NULL;
@@ -176,7 +128,12 @@ PyObject * Iterator_increment(BPy_Iterator* self) {
 	Py_RETURN_NONE;
 }
 
-PyObject * Iterator_decrement(BPy_Iterator* self) {
+static char Iterator_decrement___doc__[] =
+".. method:: decrement()\n"
+"\n"
+"   Makes the iterator point the previous element.\n";
+
+static PyObject * Iterator_decrement(BPy_Iterator* self) {
 	if (self->it->isBegin()) {
 		PyErr_SetString(PyExc_RuntimeError , "cannot decrement any more");
 		return NULL;
@@ -186,14 +143,82 @@ PyObject * Iterator_decrement(BPy_Iterator* self) {
 	Py_RETURN_NONE;
 }
 
-PyObject * Iterator_isBegin(BPy_Iterator* self) {
+static char Iterator_isBegin___doc__[] =
+".. method:: isBegin()\n"
+"\n"
+"   Returns true if the interator points the first element.\n"
+"\n"
+"   :return: True if the interator points the first element.\n"
+"   :rtype: bool\n";
+
+static PyObject * Iterator_isBegin(BPy_Iterator* self) {
 	return PyBool_from_bool( self->it->isBegin() );
 }
 
-PyObject * Iterator_isEnd(BPy_Iterator* self) {
+static char Iterator_isEnd___doc__[] =
+".. method:: isEnd()\n"
+"\n"
+"   Returns true if the interator points the last element.\n"
+"\n"
+"   :return: True if the interator points the last element.\n"
+"   :rtype: bool\n";
+
+static PyObject * Iterator_isEnd(BPy_Iterator* self) {
 	return PyBool_from_bool( self->it->isEnd() );
 }
 
+/*----------------------Iterator instance definitions ----------------------------*/
+static PyMethodDef BPy_Iterator_methods[] = {
+	{"getExactTypeName", ( PyCFunction ) Iterator_getExactTypeName, METH_NOARGS, Iterator_getExactTypeName___doc__},
+	{"increment", ( PyCFunction ) Iterator_increment, METH_NOARGS, Iterator_increment___doc__},
+	{"decrement", ( PyCFunction ) Iterator_decrement, METH_NOARGS, Iterator_decrement___doc__},
+	{"isBegin", ( PyCFunction ) Iterator_isBegin, METH_NOARGS, Iterator_isBegin___doc__},
+	{"isEnd", ( PyCFunction ) Iterator_isEnd, METH_NOARGS, Iterator_isEnd___doc__},
+	{NULL, NULL, 0, NULL}
+};
+
+/*-----------------------BPy_Iterator type definition ------------------------------*/
+
+PyTypeObject Iterator_Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"Iterator",                     /* tp_name */
+	sizeof(BPy_Iterator),           /* tp_basicsize */
+	0,                              /* tp_itemsize */
+	(destructor)Iterator___dealloc__, /* tp_dealloc */
+	0,                              /* tp_print */
+	0,                              /* tp_getattr */
+	0,                              /* tp_setattr */
+	0,                              /* tp_reserved */
+	(reprfunc)Iterator___repr__,    /* tp_repr */
+	0,                              /* tp_as_number */
+	0,                              /* tp_as_sequence */
+	0,                              /* tp_as_mapping */
+	0,                              /* tp_hash  */
+	0,                              /* tp_call */
+	0,                              /* tp_str */
+	0,                              /* tp_getattro */
+	0,                              /* tp_setattro */
+	0,                              /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+	Iterator___doc__,               /* tp_doc */
+	0,                              /* tp_traverse */
+	0,                              /* tp_clear */
+	0,                              /* tp_richcompare */
+	0,                              /* tp_weaklistoffset */
+	0,                              /* tp_iter */
+	0,                              /* tp_iternext */
+	BPy_Iterator_methods,           /* tp_methods */
+	0,                              /* tp_members */
+	0,                              /* tp_getset */
+	0,                              /* tp_base */
+	0,                              /* tp_dict */
+	0,                              /* tp_descr_get */
+	0,                              /* tp_descr_set */
+	0,                              /* tp_dictoffset */
+	0,                              /* tp_init */
+	0,                              /* tp_alloc */
+	PyType_GenericNew,              /* tp_new */
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

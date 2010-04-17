@@ -8,8 +8,29 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for streamShader instance  -----------*/
-static int streamShader___init__( BPy_streamShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char streamShader___doc__[] =
+"[Output shader]\n"
+"\n"
+".. method:: __init__()\n"
+"\n"
+"   Builds a streamShader object.\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Streams the Stroke into stdout.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int streamShader___init__( BPy_streamShader* self, PyObject *args)
+{
+	if(!( PyArg_ParseTuple(args, "") ))
+		return -1;
+	self->py_ss.ss = new StrokeShaders::streamShader();
+	return 0;
+}
 
 /*-----------------------BPy_streamShader type definition ------------------------------*/
 
@@ -34,7 +55,7 @@ PyTypeObject streamShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"streamShader objects",         /* tp_doc */
+	streamShader___doc__,           /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,16 +74,6 @@ PyTypeObject streamShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int streamShader___init__( BPy_streamShader* self, PyObject *args)
-{
-	if(!( PyArg_ParseTuple(args, "") ))
-		return -1;
-	self->py_ss.ss = new StrokeShaders::streamShader();
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -6,10 +6,30 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for TrueBP1D instance  -----------*/
-static int TrueBP1D___init__( BPy_TrueBP1D* self, PyObject *args );
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char TrueBP1D___doc__[] =
+".. method:: __call__(inter1, inter2)\n"
+"\n"
+"   Always returns true.\n"
+"\n"
+"   :arg inter1: The first Interface1D object.\n"
+"   :type inter1: :class:`Interface1D`\n"
+"   :arg inter2: The second Interface1D object.\n"
+"   :type inter2: :class:`Interface1D`\n"
+"   :return: True.\n"
+"   :rtype: bool\n";
+
+static int TrueBP1D___init__( BPy_TrueBP1D* self, PyObject *args )
+{
+	if(!( PyArg_ParseTuple(args, "") ))
+		return -1;
+	self->py_bp1D.bp1D = new Predicates1D::TrueBP1D();
+	return 0;
+}
 
 /*-----------------------BPy_TrueBP1D type definition ------------------------------*/
+
 PyTypeObject TrueBP1D_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"TrueBP1D",                     /* tp_name */
@@ -31,7 +51,7 @@ PyTypeObject TrueBP1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"TrueBP1D objects",             /* tp_doc */
+	TrueBP1D___doc__,               /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -50,16 +70,6 @@ PyTypeObject TrueBP1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int TrueBP1D___init__( BPy_TrueBP1D* self, PyObject *args )
-{
-	if(!( PyArg_ParseTuple(args, "") ))
-		return -1;
-	self->py_bp1D.bp1D = new Predicates1D::TrueBP1D();
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -8,8 +8,32 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for GetCurvilinearAbscissaF0D instance  -----------*/
-static int GetCurvilinearAbscissaF0D___init__(BPy_GetCurvilinearAbscissaF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char GetCurvilinearAbscissaF0D___doc__[] =
+".. method:: __init__()\n"
+"\n"
+"   Builds a GetCurvilinearAbscissaF0D object.\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Returns the curvilinear abscissa of the :class:`Interface0D`\n"
+"   pointed by the Interface0DIterator in the context of its 1D\n"
+"   element.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: The curvilinear abscissa of the pointed Interface0D.\n"
+"   :rtype: float\n";
+
+static int GetCurvilinearAbscissaF0D___init__( BPy_GetCurvilinearAbscissaF0D* self, PyObject *args )
+{
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
+	self->py_uf0D_float.uf0D_float = new Functions0D::GetCurvilinearAbscissaF0D();
+	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_GetCurvilinearAbscissaF0D type definition ------------------------------*/
 
@@ -34,7 +58,7 @@ PyTypeObject GetCurvilinearAbscissaF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"GetCurvilinearAbscissaF0D objects", /* tp_doc */
+	GetCurvilinearAbscissaF0D___doc__, /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,17 +77,6 @@ PyTypeObject GetCurvilinearAbscissaF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int GetCurvilinearAbscissaF0D___init__( BPy_GetCurvilinearAbscissaF0D* self, PyObject *args )
-{
-	if( !PyArg_ParseTuple(args, "") )
-		return -1;
-	self->py_uf0D_float.uf0D_float = new Functions0D::GetCurvilinearAbscissaF0D();
-	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

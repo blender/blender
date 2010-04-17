@@ -8,8 +8,41 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for DensityF0D instance  -----------*/
-static int DensityF0D___init__(BPy_DensityF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char DensityF0D___doc__[] =
+".. method:: __init__(sigma=2.0)\n"
+"\n"
+"   Builds a DensityF0D object.\n"
+"\n"
+"   :arg sigma: The gaussian sigma value ndicating the X value for\n"
+"      which the gaussian function is 0.5.  It leads to the window size\n"
+"      value (the larger, the smoother).\n"
+"   :type sigma: float\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Returns the density of the (result) image evaluated at the\n"
+"   :class:`Interface0D` pointed by the Interface0DIterator.  This\n"
+"   density is evaluated using a pixels square window around the\n"
+"   evaluation point and integrating these values using a gaussian.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: The density of the image evaluated at the pointed\n"
+"      Interface0D.\n"
+"   :rtype: float\n";
+
+static int DensityF0D___init__( BPy_DensityF0D* self, PyObject *args)
+{
+	double d = 2;
+
+	if( !PyArg_ParseTuple(args, "|d", &d) )
+		return -1;
+	self->py_uf0D_double.uf0D_double = new Functions0D::DensityF0D(d);
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_DensityF0D type definition ------------------------------*/
 
@@ -34,7 +67,7 @@ PyTypeObject DensityF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"DensityF0D objects",           /* tp_doc */
+	DensityF0D___doc__,             /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +86,6 @@ PyTypeObject DensityF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int DensityF0D___init__( BPy_DensityF0D* self, PyObject *args)
-{
-	double d = 2;
-
-	if( !PyArg_ParseTuple(args, "|d", &d) )
-		return -1;
-	self->py_uf0D_double.uf0D_double = new Functions0D::DensityF0D(d);
-	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

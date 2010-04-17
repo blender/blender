@@ -8,8 +8,40 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for DensityLowerThanUP1D instance  -----------*/
-static int DensityLowerThanUP1D___init__(BPy_DensityLowerThanUP1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char DensityLowerThanUP1D___doc__[] =
+".. method:: __init__(threshold, sigma=2.0)\n"
+"\n"
+"   Builds a DensityLowerThanUP1D object.\n"
+"\n"
+"   :arg threshold: The value of the threshold density.  Any Interface1D\n"
+"      having a density lower than this threshold will match.\n"
+"   :type threshold: float\n"
+"   :arg sigma: The sigma value defining the density evaluation window\n"
+"      size used in the :class:`DensityF0D` functor.\n"
+"   :type sigma: float\n"
+"\n"
+".. method:: __call__(inter)\n"
+"\n"
+"   Returns true if the density evaluated for the Interface1D is less\n"
+"   than a user-defined density value.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: True if the density is lower than a threshold.\n"
+"   :rtype: bool\n";
+
+static int DensityLowerThanUP1D___init__( BPy_DensityLowerThanUP1D* self, PyObject *args )
+{
+	double d1, d2 = 2.0;
+
+	if( !PyArg_ParseTuple(args, "d|d", &d1, &d2) )
+		return -1;
+	
+	self->py_up1D.up1D = new Predicates1D::DensityLowerThanUP1D(d1,d2);
+	return 0;
+}
 
 /*-----------------------BPy_DensityLowerThanUP1D type definition ------------------------------*/
 
@@ -34,7 +66,7 @@ PyTypeObject DensityLowerThanUP1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"DensityLowerThanUP1D objects", /* tp_doc */
+	DensityLowerThanUP1D___doc__,   /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +85,6 @@ PyTypeObject DensityLowerThanUP1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int DensityLowerThanUP1D___init__( BPy_DensityLowerThanUP1D* self, PyObject *args )
-{
-	double d1, d2 = 2.0;
-
-	if( !PyArg_ParseTuple(args, "d|d", &d1, &d2) )
-		return -1;
-	
-	self->py_up1D.up1D = new Predicates1D::DensityLowerThanUP1D(d1,d2);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

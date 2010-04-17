@@ -8,8 +8,32 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for GetOccludersF0D instance  -----------*/
-static int GetOccludersF0D___init__(BPy_GetOccludersF0D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char GetOccludersF0D___doc__[] =
+".. method:: __init__()\n"
+"\n"
+"   Builds a GetOccludersF0D object.\n"
+"\n"
+".. method:: __call__(it)\n"
+"\n"
+"   Returns a list of :class:`ViewShape` objects occluding the\n"
+"   :class:`Interface0D` pointed by the Interface0DIterator.\n"
+"\n"
+"   :arg it: An Interface0DIterator object.\n"
+"   :type it: :class:`Interface0DIterator`\n"
+"   :return: A list of ViewShape objects occluding the pointed\n"
+"      Interface0D.\n"
+"   :rtype: list of :class:`ViewShape` objects\n";
+
+static int GetOccludersF0D___init__( BPy_GetOccludersF0D* self, PyObject *args )
+{
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
+	self->py_uf0D_vectorviewshape.uf0D_vectorviewshape = new Functions0D::GetOccludersF0D();
+	self->py_uf0D_vectorviewshape.uf0D_vectorviewshape->py_uf0D = (PyObject *)self;
+	return 0;
+}
 
 /*-----------------------BPy_GetOccludersF0D type definition ------------------------------*/
 
@@ -34,7 +58,7 @@ PyTypeObject GetOccludersF0D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"GetOccludersF0D objects",      /* tp_doc */
+	GetOccludersF0D___doc__,        /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,17 +77,6 @@ PyTypeObject GetOccludersF0D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int GetOccludersF0D___init__( BPy_GetOccludersF0D* self, PyObject *args )
-{
-	if( !PyArg_ParseTuple(args, "") )
-		return -1;
-	self->py_uf0D_vectorviewshape.uf0D_vectorviewshape = new Functions0D::GetOccludersF0D();
-	self->py_uf0D_vectorviewshape.uf0D_vectorviewshape->py_uf0D = (PyObject *)self;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

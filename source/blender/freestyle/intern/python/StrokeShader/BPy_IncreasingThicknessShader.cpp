@@ -8,8 +8,41 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for IncreasingThicknessShader instance  -----------*/
-static int IncreasingThicknessShader___init__( BPy_IncreasingThicknessShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char IncreasingThicknessShader___doc__[] =
+"[Thickness shader]\n"
+"\n"
+".. method:: __init__(iThicknessA, iThicknessB)\n"
+"\n"
+"   Builds an IncreasingThicknessShader object.\n"
+"\n"
+"   :arg iThicknessA: The first thickness value.\n"
+"   :type iThicknessA: float\n"
+"   :arg iThicknessB: The second thickness value.\n"
+"   :type iThicknessB: float\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Assigns thicknesses values such as the thickness increases from a\n"
+"   thickness value A to a thickness value B between the first vertex\n"
+"   to the midpoint vertex and then decreases from B to a A between\n"
+"   this midpoint vertex and the last vertex.  The thickness is\n"
+"   linearly interpolated from A to B.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int IncreasingThicknessShader___init__( BPy_IncreasingThicknessShader* self, PyObject *args)
+{
+	float f1, f2;
+
+	if(!( PyArg_ParseTuple(args, "ff", &f1, &f2) ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::IncreasingThicknessShader(f1, f2);
+	return 0;
+}
 
 /*-----------------------BPy_IncreasingThicknessShader type definition ------------------------------*/
 
@@ -34,7 +67,7 @@ PyTypeObject IncreasingThicknessShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"IncreasingThicknessShader objects", /* tp_doc */
+	IncreasingThicknessShader___doc__, /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +86,6 @@ PyTypeObject IncreasingThicknessShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int IncreasingThicknessShader___init__( BPy_IncreasingThicknessShader* self, PyObject *args)
-{
-	float f1, f2;
-
-	if(!( PyArg_ParseTuple(args, "ff", &f1, &f2) ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::IncreasingThicknessShader(f1, f2);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

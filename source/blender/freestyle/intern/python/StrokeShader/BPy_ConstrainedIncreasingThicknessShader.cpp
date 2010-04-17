@@ -8,8 +8,41 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ConstrainedIncreasingThicknessShader instance  -----------*/
-static int ConstrainedIncreasingThicknessShader___init__( BPy_ConstrainedIncreasingThicknessShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ConstrainedIncreasingThicknessShader___doc__[] =
+"[Thickness shader]\n"
+"\n"
+".. method:: __init__(iThicknessMin, iThicknessMax, iRatio)\n"
+"\n"
+"   Builds a ConstrainedIncreasingThicknessShader object.\n"
+"\n"
+"   :arg iThicknessMin: The minimum thickness.\n"
+"   :type iThicknessMin: float\n"
+"   :arg iThicknessMax: The maximum thickness.\n"
+"   :type iThicknessMax: float\n"
+"   :arg iRatio: The thickness/length ratio that we don't want to exceed. \n"
+"   :type iRatio: float\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Same as the :class:`IncreasingThicknessShader`, but here we allow\n"
+"   the user to control the thickness/length ratio so that we don't get\n"
+"   fat short lines.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int ConstrainedIncreasingThicknessShader___init__( BPy_ConstrainedIncreasingThicknessShader* self, PyObject *args)
+{
+	float f1, f2, f3;
+
+	if(!( PyArg_ParseTuple(args, "fff", &f1, &f2, &f3) ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::ConstrainedIncreasingThicknessShader(f1, f2, f3);
+	return 0;
+}
 
 /*-----------------------BPy_ConstrainedIncreasingThicknessShader type definition ------------------------------*/
 
@@ -34,7 +67,7 @@ PyTypeObject ConstrainedIncreasingThicknessShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ConstrainedIncreasingThicknessShader objects", /* tp_doc */
+	ConstrainedIncreasingThicknessShader___doc__, /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +86,6 @@ PyTypeObject ConstrainedIncreasingThicknessShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ConstrainedIncreasingThicknessShader___init__( BPy_ConstrainedIncreasingThicknessShader* self, PyObject *args)
-{
-	float f1, f2, f3;
-
-	if(!( PyArg_ParseTuple(args, "fff", &f1, &f2, &f3) ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::ConstrainedIncreasingThicknessShader(f1, f2, f3);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

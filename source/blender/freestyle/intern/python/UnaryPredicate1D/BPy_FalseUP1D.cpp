@@ -6,8 +6,25 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for FalseUP1D instance  -----------*/
-static int FalseUP1D___init__(BPy_FalseUP1D* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char FalseUP1D___doc__[] =
+".. method:: __call__(inter)\n"
+"\n"
+"   Always returns false.\n"
+"\n"
+"   :arg inter: An Interface1D object.\n"
+"   :type inter: :class:`Interface1D`\n"
+"   :return: False.\n"
+"   :rtype: bool\n";
+
+static int FalseUP1D___init__( BPy_FalseUP1D* self, PyObject *args )
+{
+	if(!( PyArg_ParseTuple(args, "") ))
+		return -1;
+	self->py_up1D.up1D = new Predicates1D::FalseUP1D();
+	return 0;
+}
 
 /*-----------------------BPy_FalseUP1D type definition ------------------------------*/
 
@@ -32,7 +49,7 @@ PyTypeObject FalseUP1D_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"FalseUP1D objects",            /* tp_doc */
+	FalseUP1D___doc__,              /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -51,16 +68,6 @@ PyTypeObject FalseUP1D_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int FalseUP1D___init__( BPy_FalseUP1D* self, PyObject *args )
-{
-	if(!( PyArg_ParseTuple(args, "") ))
-		return -1;
-	self->py_up1D.up1D = new Predicates1D::FalseUP1D();
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -8,8 +8,37 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ThicknessNoiseShader instance  -----------*/
-static int ThicknessNoiseShader___init__( BPy_ThicknessNoiseShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char ThicknessNoiseShader___doc__[] =
+"[Thickness shader]\n"
+"\n"
+".. method:: __init__(iAmplitude, iPeriod)\n"
+"\n"
+"   Builds a ThicknessNoiseShader object.\n"
+"\n"
+"   :arg iAmplitude: The amplitude of the noise signal.\n"
+"   :type iAmplitude: float\n"
+"   :arg iPeriod: The period of the noise signal.\n"
+"   :type iPeriod: float\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Adds some noise to the stroke thickness.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int ThicknessNoiseShader___init__( BPy_ThicknessNoiseShader* self, PyObject *args)
+{
+	float f1, f2;
+	
+	if(!( PyArg_ParseTuple(args, "ff", &f1, &f2) ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::ThicknessNoiseShader(f1, f2);
+	return 0;
+}
 
 /*-----------------------BPy_ThicknessNoiseShader type definition ------------------------------*/
 
@@ -34,7 +63,7 @@ PyTypeObject ThicknessNoiseShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"ThicknessNoiseShader objects", /* tp_doc */
+	ThicknessNoiseShader___doc__,   /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +82,6 @@ PyTypeObject ThicknessNoiseShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int ThicknessNoiseShader___init__( BPy_ThicknessNoiseShader* self, PyObject *args)
-{
-	float f1, f2;
-	
-	if(!( PyArg_ParseTuple(args, "ff", &f1, &f2) ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::ThicknessNoiseShader(f1, f2);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -8,8 +8,35 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for SamplingShader instance  -----------*/
-static int SamplingShader___init__( BPy_SamplingShader* self, PyObject *args);
+//------------------------INSTANCE METHODS ----------------------------------
+
+static char SamplingShader___doc__[] =
+"[Geometry shader]\n"
+"\n"
+".. method:: __init__(sampling)\n"
+"\n"
+"   Builds a SamplingShader object.\n"
+"\n"
+"   :arg sampling: The sampling to use for the stroke resampling.\n"
+"   :type sampling: float\n"
+"\n"
+".. method:: shade(s)\n"
+"\n"
+"   Resamples the stroke.\n"
+"\n"
+"   :arg s: A Stroke object.\n"
+"   :type s: :class:`Stroke`\n";
+
+static int SamplingShader___init__( BPy_SamplingShader* self, PyObject *args)
+{
+	float f;
+
+	if(!( PyArg_ParseTuple(args, "f", &f) ))
+		return -1;
+
+	self->py_ss.ss = new StrokeShaders::SamplingShader(f);
+	return 0;
+}
 
 /*-----------------------BPy_SamplingShader type definition ------------------------------*/
 
@@ -34,7 +61,7 @@ PyTypeObject SamplingShader_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	"SamplingShader objects",       /* tp_doc */
+	SamplingShader___doc__,         /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -53,19 +80,6 @@ PyTypeObject SamplingShader_Type = {
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int SamplingShader___init__( BPy_SamplingShader* self, PyObject *args)
-{
-	float f;
-
-	if(!( PyArg_ParseTuple(args, "f", &f) ))
-		return -1;
-
-	self->py_ss.ss = new StrokeShaders::SamplingShader(f);
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
