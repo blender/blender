@@ -79,6 +79,8 @@ void GPG_Canvas::SetMousePosition(int x, int y)
 
 void GPG_Canvas::SetMouseState(RAS_MouseState mousestate)
 {
+	m_mousestate = mousestate;
+
 	if (m_window)
 	{
 		switch (mousestate)

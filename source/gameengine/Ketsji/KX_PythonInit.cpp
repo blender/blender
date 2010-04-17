@@ -73,6 +73,8 @@ extern "C" {
 #include "SCA_PropertySensor.h"
 #include "SCA_RandomActuator.h"
 #include "SCA_KeyboardSensor.h" /* IsPrintable, ToCharacter */
+#include "SCA_PythonKeyboard.h"
+#include "SCA_PythonMouse.h"
 #include "KX_ConstraintActuator.h"
 #include "KX_IpoActuator.h"
 #include "KX_SoundActuator.h"
@@ -1280,6 +1282,13 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	
 	PyDict_SetItemString(d, "globalDict", item=PyDict_New()); Py_DECREF(item);
 
+	// Add keyboard and mouse attributes to this module
+	SCA_PythonKeyboard* pykeyb = new SCA_PythonKeyboard(gp_KetsjiEngine->GetKeyboardDevice());
+	PyDict_SetItemString(d, "keyboard", pykeyb->NewProxy(true));
+
+	SCA_PythonMouse* pymouse = new SCA_PythonMouse(gp_KetsjiEngine->GetMouseDevice(), gp_Canvas);
+	PyDict_SetItemString(d, "mouse", pymouse->NewProxy(true));
+
 	ErrorObject = PyUnicode_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
 	Py_DECREF(ErrorObject);
@@ -1978,7 +1987,7 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 #endif
 
 	/* could be done a lot more nicely, but for now a quick way to get bge.* working */
-	PyRun_SimpleString("__import__('sys').modules['bge']=[mod for mod in (type(__builtins__)('bge'), ) if mod.__dict__.update({'logic':__import__('GameLogic'), 'render':__import__('Rasterizer'), 'keys':__import__('GameKeys'), 'constraints':__import__('PhysicsConstraints'), 'types':__import__('GameTypes')}) is None][0]");
+	PyRun_SimpleString("__import__('sys').modules['bge']=[mod for mod in (type(__builtins__)('bge'), ) if mod.__dict__.update({'logic':__import__('GameLogic'), 'render':__import__('Rasterizer'), 'events':__import__('GameKeys'), 'constraints':__import__('PhysicsConstraints'), 'types':__import__('GameTypes')}) is None][0]");
 }
 
 static struct PyModuleDef Rasterizer_module_def = {
@@ -2256,6 +2265,15 @@ PyObject* initGameKeys()
 	KX_MACRO_addTypesToDict(d, PAGEUPKEY, SCA_IInputDevice::KX_PAGEUPKEY);
 	KX_MACRO_addTypesToDict(d, PAGEDOWNKEY, SCA_IInputDevice::KX_PAGEDOWNKEY);
 	KX_MACRO_addTypesToDict(d, ENDKEY, SCA_IInputDevice::KX_ENDKEY);
+
+	// MOUSE
+	KX_MACRO_addTypesToDict(d, LEFTMOUSE, SCA_IInputDevice::KX_LEFTMOUSE);
+	KX_MACRO_addTypesToDict(d, MIDDLEMOUSE, SCA_IInputDevice::KX_MIDDLEMOUSE);
+	KX_MACRO_addTypesToDict(d, RIGHTMOUSE, SCA_IInputDevice::KX_RIGHTMOUSE);
+	KX_MACRO_addTypesToDict(d, WHEELUPMOUSE, SCA_IInputDevice::KX_WHEELUPMOUSE);
+	KX_MACRO_addTypesToDict(d, WHEELDOWNMOUSE, SCA_IInputDevice::KX_WHEELDOWNMOUSE);
+	KX_MACRO_addTypesToDict(d, MOUSEX, SCA_IInputDevice::KX_MOUSEX);
+	KX_MACRO_addTypesToDict(d, MOUSEY, SCA_IInputDevice::KX_MOUSEY);
 
 	// Check for errors
 	if (PyErr_Occurred())

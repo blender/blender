@@ -139,6 +139,8 @@ SetViewPort(
 
 void KX_BlenderCanvas::SetMouseState(RAS_MouseState mousestate)
 {
+	m_mousestate = mousestate;
+
 	switch (mousestate)
 	{
 	case MOUSE_INVISIBLE:

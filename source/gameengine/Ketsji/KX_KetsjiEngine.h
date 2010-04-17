@@ -213,6 +213,8 @@ public:
 	RAS_IRasterizer*		GetRasterizer(){return m_rasterizer;};
 	RAS_ICanvas*		    GetCanvas(){return m_canvas;};
 	RAS_IRenderTools*	    GetRenderTools(){return m_rendertools;};
+	SCA_IInputDevice*		GetKeyboardDevice(){return m_keyboarddevice;};
+	SCA_IInputDevice*		GetMouseDevice(){return m_mousedevice;};
 
 	/// Dome functions
 	void			InitDome(short res, short mode, short angle, float resbuf, short tilt, struct Text* text); 
