@@ -1503,3 +1503,13 @@ void copy_dq_dq(DualQuat *dq1, DualQuat *dq2)
 	memcpy(dq1, dq2, sizeof(DualQuat));
 }
 
+/* lense/angle conversion (radians) */
+float lens_to_angle(float lens)
+{
+	return 2.0f * atan(16.0f/lens);
+}
+
+float angle_to_lens(float angle)
+{
+	return 16.0f / tan(angle * 0.5f);
+}

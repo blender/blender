@@ -8435,7 +8435,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if(main->versionfile <= 243) {
 		Object *ob= main->object.first;
-		Camera *cam = main->camera.first;
 		Material *ma;
 
 		for(ma=main->mat.first; ma; ma= ma->id.next) {

@@ -773,17 +773,6 @@ float dof_camera(Object *ob)
 	return cam->YF_dofdist;
 }
 
-/* angle in radians */
-float camera_get_angle(Camera *cam)
-{
-	return 2.f * atan(16.0f/cam->lens);
-}
-
-void camera_set_angle(Camera *cam, float angle)
-{
-	cam->lens = 16.0f / tan(angle * 0.5f);
-}
-
 void *add_lamp(char *name)
 {
 	Lamp *la;

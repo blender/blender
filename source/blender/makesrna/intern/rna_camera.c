@@ -42,14 +42,14 @@
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
 	Camera *cam= ptr->id.data;
-	
-	return camera_get_angle(cam);
+
+	return lens_to_angle(cam->lens);
 }
 
 static void rna_Camera_angle_set(PointerRNA *ptr, float value)
 {
 	Camera *cam= ptr->id.data;
-	camera_set_angle(cam, value);
+	cam->lens= angle_to_lens(value);
 }
 
 #else

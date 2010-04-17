@@ -77,8 +77,6 @@ void *add_camera(char *name);
 struct Camera *copy_camera(struct Camera *cam);
 void make_local_camera(struct Camera *cam);
 float dof_camera(struct Object *ob);
-float camera_get_angle(struct Camera *cam);
-void camera_set_angle(struct Camera *cam, float angle);
 	
 void *add_lamp(char *name);
 struct Lamp *copy_lamp(struct Lamp *la);
