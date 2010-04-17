@@ -1459,7 +1459,7 @@ void pose_activate_flipped_bone(Scene *scene)
 	
 	if(ob==NULL) return;
 
-	if(ob->mode && OB_MODE_WEIGHT_PAINT) {
+	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 		ob= modifiers_isDeformedByArmature(ob);
 	}
 	if(ob && (ob->mode & OB_MODE_POSE)) {

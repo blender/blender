@@ -730,7 +730,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	
 	/* since the raytracer doesnt recalc O structs for each ray, we have to preset them all */
 	if(r_mode & R_RAYTRACE) {
-		if((ma->mode & (MA_RAYMIRROR|MA_SHADOW_TRA)) || ((ma->mode && MA_TRANSP) && (ma->mode & MA_RAYTRANSP))) { 
+		if((ma->mode & (MA_RAYMIRROR|MA_SHADOW_TRA)) || ((ma->mode & MA_TRANSP) && (ma->mode & MA_RAYTRANSP))) {
 			ma->texco |= NEED_UV|TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM;
 			if(r_mode & R_OSA) ma->texco |= TEXCO_OSA;
 		}

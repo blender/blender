@@ -2385,7 +2385,7 @@ void particle_fluidsim(ParticleSystem *psys, ParticleData *pa, ParticleSettings 
 
 static void apply_particle_fluidsim(ParticleSystem *psys, ParticleData *pa, ParticleSettings *part, ParticleSimulationData *sim, float dfra, float cfra){
 	ParticleTarget *pt;
-	float dtime = dfra*psys_get_timestep(sim);
+//	float dtime = dfra*psys_get_timestep(sim);
 	float particle_mass = part->mass;
 
 	particle_fluidsim(psys, pa, part, sim, dfra, cfra, particle_mass);
@@ -3688,7 +3688,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	PARTICLE_P;
 	int oldtotpart;
 	float disp, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0;
-	int init= 0, emit= 0, only_children_changed= 0;
+	int init= 0, emit= 0; //, only_children_changed= 0;
 	int framenr, framedelta, startframe = 0, endframe = 100;
 
 	framenr= (int)sim->scene->r.cfra;

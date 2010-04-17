@@ -396,7 +396,7 @@ void free_hair(Object *ob, ParticleSystem *psys, int dynamics)
 		if(dynamics) {
 			BKE_ptcache_free_list(&psys->ptcaches);
 			psys->clmd->point_cache = psys->pointcache = NULL;
-			psys->clmd->ptcaches.first = psys->clmd->ptcaches.first = NULL;
+			psys->clmd->ptcaches.first = psys->clmd->ptcaches.last = NULL;
 
 			modifier_free((ModifierData*)psys->clmd);
 			

@@ -1636,7 +1636,7 @@ static const char *rna_property_typename(PropertyType type)
 	}
 }
 
-static const char *rna_property_subtypename(PropertyType type)
+static const char *rna_property_subtypename(PropertySubType type)
 {
 	switch(type) {
 		case PROP_NONE: return "PROP_NONE";

@@ -445,7 +445,7 @@ static int mdisp_corners(MDisps *s)
 	return (s->totdisp % (3*3) == 0)? 3: 4;
 }
 
-static void layerSwap_mdisps(void *data, int *ci)
+static void layerSwap_mdisps(void *data, const int *ci)
 {
 	MDisps *s = data;
 	float (*d)[3] = NULL;
