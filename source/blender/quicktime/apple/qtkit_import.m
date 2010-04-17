@@ -198,7 +198,6 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 		
 		rasterRGB = (uchar*)[blBitmapFormatImageRGB bitmapData];
 		if (rasterRGB == NULL) {
-			[bitmapImage release];
 			[blBitmapFormatImageRGB release];
 			return NULL;
 		}
@@ -220,7 +219,6 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 		
 		rasterRGBA = (uchar*)[blBitmapFormatImageRGBA bitmapData];
 		if (rasterRGBA == NULL) {
-			[bitmapImage release];
 			[blBitmapFormatImageRGB release];
 			[blBitmapFormatImageRGBA release];
 			return NULL;
@@ -390,13 +388,14 @@ int imb_is_a_quicktime (char *name)
 		BLI_testextensie(name, ".mp3")) return 0;
 
 	
-	image = [NSImage alloc];
-	if ([image initWithContentsOfFile:[NSString stringWithUTF8String:name]]) 
+	image = [[NSImage alloc] initWithContentsOfFile:[NSString stringWithUTF8String:name]];
+	if (image) {
+		[image release];
 		result = true;
+	}
 	else 
 		result = false;
 
-	[image release];
 	[pool drain];
 	return result;
 }

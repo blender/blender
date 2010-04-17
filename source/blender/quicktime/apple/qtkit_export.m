@@ -275,7 +275,7 @@ static OSStatus AudioConverterInputCallback(AudioConverterRef inAudioConverter,
 		*ioNumberDataPackets = AUDIOOUTPUTBUFFERSIZE / qtexport->audioInputFormat.mBytesPerPacket;
 	
 	if ((qtexport->audioTotalExportedFrames + *ioNumberDataPackets) > qtexport->audioLastFrame)
-		*ioNumberDataPackets += qtexport->audioLastFrame - qtexport->audioTotalExportedFrames;
+		*ioNumberDataPackets = (qtexport->audioLastFrame - qtexport->audioTotalExportedFrames) / qtexport->audioInputFormat.mFramesPerPacket;
 	
 	qtexport->audioTotalExportedFrames += *ioNumberDataPackets;
 	
@@ -379,7 +379,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 						break;
 				}
 				qtexport->audioInputFormat.mBytesPerFrame = qtexport->audioInputFormat.mChannelsPerFrame * qtexport->audioInputFormat.mBitsPerChannel / 8;
-				qtexport->audioInputFormat.mFramesPerPacket = 1;
+				qtexport->audioInputFormat.mFramesPerPacket = 1; /*If not ==1, then need to check input callback for "rounding" issues"*/
 				qtexport->audioInputFormat.mBytesPerPacket = qtexport->audioInputFormat.mBytesPerFrame;
 				qtexport->audioInputFormat.mFormatFlags |= kLinearPCMFormatFlagIsPacked;
 				
@@ -399,6 +399,9 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 				switch (rd->qtcodecsettings.audiocodecType) {
 					case kAudioFormatMPEG4AAC:
 						qtexport->audioOutputFormat.mFormatFlags = kMPEG4Object_AAC_Main;
+						/* AAC codec does not handle sample rates above 48kHz, force this limit instead of getting an error afterwards */
+						if (qtexport->audioOutputFormat.mSampleRate > 48000) qtexport->audioOutputFormat.mSampleRate = 48000;
+						break;
 					case kAudioFormatAppleLossless:
 						switch (U.audioformat) {
 							case AUD_FORMAT_S16:
@@ -531,7 +534,6 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 			[QTMovie exitQTKitOnThread];
 		} else {
 			[qtexport->movie retain];
-			[qtexport->filename retain];
 			[qtexport->movie setAttribute:[NSNumber numberWithBool:YES] forKey:QTMovieEditableAttribute];
 			[qtexport->movie setAttribute:@"Made with Blender" forKey:QTMovieCopyrightAttribute];
 			
@@ -736,6 +738,7 @@ void end_qt(void)
 			fileManager = [[NSFileManager alloc] init];
 			[fileManager removeItemAtPath:qtexport->audioFileName error:&error];
 			[fileManager removeItemAtPath:qtexport->videoTempFileName error:&error];
+			[fileManager release];
 		}
 		else {
 			/* Flush update of the movie file */
