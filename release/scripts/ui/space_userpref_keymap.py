@@ -27,12 +27,12 @@ KM_HIERARCHY = [
     ('Screen', 'EMPTY', 'WINDOW', [    # full screen, undo, screenshot
         ('Screen Editing', 'EMPTY', 'WINDOW', []),    # resizing, action corners
         ]),
-    
+
     ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)
     ('View2D Buttons List', 'EMPTY', 'WINDOW', []), # view 2d with buttons navigation
     ('Header', 'EMPTY', 'WINDOW', []),    # header stuff (per region)
     ('Grease Pencil', 'EMPTY', 'WINDOW', []), # grease pencil stuff (per region)
-    
+
     ('3D View', 'VIEW_3D', 'WINDOW', [ # view 3d navigation and generic stuff (select, transform)
         ('Object Mode', 'EMPTY', 'WINDOW', []),
         ('Mesh', 'EMPTY', 'WINDOW', []),
@@ -41,23 +41,23 @@ KM_HIERARCHY = [
         ('Metaball', 'EMPTY', 'WINDOW', []),
         ('Lattice', 'EMPTY', 'WINDOW', []),
         ('Font', 'EMPTY', 'WINDOW', []),
-    
+
         ('Pose', 'EMPTY', 'WINDOW', []),
-    
+
         ('Vertex Paint', 'EMPTY', 'WINDOW', []),
         ('Weight Paint', 'EMPTY', 'WINDOW', []),
         ('Face Mask', 'EMPTY', 'WINDOW', []),
         ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
         ('Sculpt', 'EMPTY', 'WINDOW', []),
-    
+
         ('Armature Sketch', 'EMPTY', 'WINDOW', []),
         ('Particle', 'EMPTY', 'WINDOW', []),
-    
+
         ('Object Non-modal', 'EMPTY', 'WINDOW', []), # mode change
-    
+
         ('3D View Generic', 'VIEW_3D', 'WINDOW', [])    # toolbar and properties
         ]),
-    
+
     ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
     ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
     ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
@@ -70,33 +70,33 @@ KM_HIERARCHY = [
         ('NLA Channels', 'NLA_EDITOR', 'WINDOW', []),
         ('NLA Generic', 'NLA_EDITOR', 'WINDOW', [])
         ]),
-    
+
     ('Image', 'IMAGE_EDITOR', 'WINDOW', [
         ('UV Editor', 'EMPTY', 'WINDOW', []), # image (reverse order, UVEdit before Image
         ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
         ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [])
         ]),
-    
+
     ('Timeline', 'TIMELINE', 'WINDOW', []),
     ('Outliner', 'OUTLINER', 'WINDOW', []),
-    
+
     ('Node Editor', 'NODE_EDITOR', 'WINDOW', [
         ('Node Generic', 'NODE_EDITOR', 'WINDOW', [])
         ]),
     ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', []),
     ('Logic Editor', 'LOGIC_EDITOR', 'WINDOW', []),
-    
+
     ('File Browser', 'FILE_BROWSER', 'WINDOW', [
         ('File Browser Main', 'FILE_BROWSER', 'WINDOW', []),
         ('File Browser Buttons', 'FILE_BROWSER', 'WINDOW', [])
         ]),
-    
+
     ('Property Editor', 'PROPERTIES', 'WINDOW', []), # align context menu
     
     ('Script', 'SCRIPTS_WINDOW', 'WINDOW', []),
     ('Text', 'TEXT_EDITOR', 'WINDOW', []),
     ('Console', 'CONSOLE', 'WINDOW', []),
-    
+
     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
     ('Gesture Border', 'EMPTY', 'WINDOW', []),
     ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
@@ -112,7 +112,7 @@ def _km_exists_in(km, export_keymaps):
         if km2.name == km.name:
             return True
     return False
-    
+
 # kc1 takes priority over kc2
 def _merge_keymaps(kc1, kc2):
     merged_keymaps = [(km, kc1) for km in kc1.keymaps]
@@ -121,25 +121,26 @@ def _merge_keymaps(kc1, kc2):
             
     return merged_keymaps  
 
+
 class InputKeyMapPanel(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
     bl_region_type = 'WINDOW'
     bl_show_header = False
-    
+
     def draw_entry(self, display_keymaps, entry, col, level=0):
         idname, spaceid, regionid, children = entry
 
         for km, kc in display_keymaps:
             if km.name == idname and km.space_type == spaceid and km.region_type == regionid:
                 self.draw_km(display_keymaps, kc, km, children, col, level)
-                
+
         '''
         km = kc.find_keymap(idname, space_type=spaceid, region_type=regionid)
         if not km:
             kc = defkc
             km = kc.find_keymap(idname, space_type=spaceid, region_type=regionid)
-        
+
         if km:
             self.draw_km(kc, km, children, col, level)
         '''
@@ -314,8 +315,7 @@ class InputKeyMapPanel(bpy.types.Panel):
                 if kmm:
                     self.draw_km(display_keymaps, kc, kmm, None, layout, level + 1)
                     layout.set_context_pointer("keymap", km)
-                    
-                    
+
     def draw_filtered(self, display_keymaps, filter, layout):
         for km, kc in display_keymaps:
             km = km.active()
@@ -354,13 +354,13 @@ class InputKeyMapPanel(bpy.types.Panel):
         wm = context.manager
         kc = wm.active_keyconfig
         defkc = wm.default_keyconfig
-        
-        col = layout.column()        
+
+        col = layout.column()
         sub = col.column()
 
         subsplit = sub.split()
         subcol = subsplit.column()
-        
+
         row = subcol.row()
         row.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="Key Config:")
         layout.set_context_pointer("keyconfig", wm.active_keyconfig)
@@ -559,6 +559,8 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 # This operator is also used by interaction presets saving - AddPresetBase
+
+
 class WM_OT_keyconfig_export(bpy.types.Operator):
     "Export key configuration to a python script"
     bl_idname = "wm.keyconfig_export"
@@ -597,25 +599,26 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         f.write("kc = wm.add_keyconfig('%s')\n\n" % name)
 
         # Generate a list of keymaps to export:
-        # 
+        #
         # First add all user_defined keymaps (found in inputs.edited_keymaps list),
         # then add all remaining keymaps from the currently active custom keyconfig.
         #
         # This will create a final list of keymaps that can be used as a 'diff' against
         # the default blender keyconfig, recreating the current setup from a fresh blender
         # without needing to export keymaps which haven't been edited.
+
         class FakeKeyConfig():
             keymaps = []
         edited_kc = FakeKeyConfig()
-        edited_kc.keymaps.extend(context.user_preferences.inputs.edited_keymaps)        
+        edited_kc.keymaps.extend(context.user_preferences.inputs.edited_keymaps)
         # merge edited keymaps with non-default keyconfig, if it exists
         if kc != wm.default_keyconfig:
             export_keymaps = _merge_keymaps(edited_kc, kc)
         else:
             export_keymaps = _merge_keymaps(edited_kc, edited_kc)
-        
+
         for km, kc_x in export_keymaps:
-            
+
             km = km.active()
 
             f.write("# Map %s\n" % km.name)

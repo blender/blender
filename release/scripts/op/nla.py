@@ -109,7 +109,7 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
             #pbone.location = matrix.translation_part()
             #pbone.rotation_quaternion = matrix.to_quat()
             pbone.matrix_local = [f for v in matrix for f in v]
-            
+
             pbone.keyframe_insert("location", -1, f, name)
 
             rotation_mode = pbone.rotation_mode

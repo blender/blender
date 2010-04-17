@@ -107,9 +107,9 @@ PyObject* SCA_PythonMouse::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_
 		
 		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS)
 		{
-			PyObject* keypair = PyList_New(2);
-			PyList_SET_ITEM(keypair, 0, PyLong_FromSsize_t(i));
-			PyList_SET_ITEM(keypair, 1, PyLong_FromSsize_t(inevent.m_status));
+			PyObject* keypair = PyTuple_New(2);
+			PyTuple_SET_ITEM(keypair, 0, PyLong_FromSsize_t(i));
+			PyTuple_SET_ITEM(keypair, 1, PyLong_FromSsize_t(inevent.m_status));
 			PyList_Append(resultlist, keypair);
 		}
 	}
@@ -123,13 +123,12 @@ PyObject* SCA_PythonMouse::pyattr_get_position(void *self_v, const KX_PYATTRIBUT
 	const SCA_InputEvent & xevent = self->m_mouse->GetEventValue(SCA_IInputDevice::KX_MOUSEX);
 	const SCA_InputEvent & yevent = self->m_mouse->GetEventValue(SCA_IInputDevice::KX_MOUSEY);
 
-	PyObject* resultlist = PyList_New(2);
+	PyObject* ret = PyTuple_New(2);
 
-	PyList_SET_ITEM(resultlist, 0, PyFloat_FromDouble(float(xevent.m_eventval)/self->m_canvas->GetWidth()));
-	
-	PyList_SET_ITEM(resultlist, 1, PyFloat_FromDouble(float(yevent.m_eventval)/self->m_canvas->GetHeight()));
+	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(float(xevent.m_eventval)/self->m_canvas->GetWidth()));
+	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(float(yevent.m_eventval)/self->m_canvas->GetHeight()));
 
-	return resultlist;
+	return ret;
 }
 
 int SCA_PythonMouse::pyattr_set_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)

@@ -409,6 +409,7 @@ class IMAGE_PT_view_histogram(bpy.types.Panel):
         layout.template_histogram(sima.scopes, "histogram")
         layout.prop(sima.scopes.histogram, "mode", icon_only=True)
 
+
 class IMAGE_PT_view_waveform(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
@@ -426,7 +427,7 @@ class IMAGE_PT_view_waveform(bpy.types.Panel):
         sub = layout.row().split(percentage=0.75)
         sub.prop(sima.scopes, "waveform_alpha")
         sub.prop(sima.scopes, "waveform_mode", text="", icon_only=True)
-        
+
 
 class IMAGE_PT_view_vectorscope(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -444,6 +445,7 @@ class IMAGE_PT_view_vectorscope(bpy.types.Panel):
         layout.template_vectorscope(sima, "scopes")
         layout.prop(sima.scopes, "vectorscope_alpha")
 
+
 class IMAGE_PT_sample_line(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
@@ -459,6 +461,7 @@ class IMAGE_PT_sample_line(bpy.types.Panel):
         sima = context.space_data
         layout.template_histogram(sima, "sample_histogram")
         layout.prop(sima.sample_histogram, "mode")
+
 
 class IMAGE_PT_scope_sample(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -478,6 +481,7 @@ class IMAGE_PT_scope_sample(bpy.types.Panel):
         row = split.row()
         row.active = not sima.scopes.use_full_resolution
         row.prop(sima.scopes, "accuracy")
+
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'

@@ -102,9 +102,9 @@ PyObject* SCA_PythonKeyboard::pyattr_get_events(void *self_v, const KX_PYATTRIBU
 		
 		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS)
 		{
-			PyObject* keypair = PyList_New(2);
-			PyList_SET_ITEM(keypair, 0, PyLong_FromSsize_t(i));
-			PyList_SET_ITEM(keypair, 1, PyLong_FromSsize_t(inevent.m_status));
+			PyObject* keypair = PyTuple_New(2);
+			PyTuple_SET_ITEM(keypair, 0, PyLong_FromSsize_t(i));
+			PyTuple_SET_ITEM(keypair, 1, PyLong_FromSsize_t(inevent.m_status));
 			PyList_Append(resultlist, keypair);
 		}
 	}

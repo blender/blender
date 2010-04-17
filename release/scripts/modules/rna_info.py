@@ -27,6 +27,7 @@ script_paths = bpy.utils.script_paths()
 
 _FAKE_STRUCT_SUBCLASS = True
 
+
 def _get_direct_attr(rna_type, attr):
     props = getattr(rna_type, attr)
     base = rna_type.base
@@ -45,6 +46,7 @@ def get_direct_properties(rna_type):
 def get_direct_functions(rna_type):
     return _get_direct_attr(rna_type, "functions")
 
+
 def rna_id_ignore(rna_id):
     if rna_id == "rna_type":
         return True
@@ -60,6 +62,7 @@ def rna_id_ignore(rna_id):
     if "_KSI_" in rna_id:
         return True
     return False
+
 
 def range_str(val):
     if val < -10000000:
@@ -393,6 +396,7 @@ def GetInfoFunctionRNA(bl_rna, parent_id):
 def GetInfoOperatorRNA(bl_rna):
     return _GetInfoRNA(bl_rna, InfoOperatorRNA)
 
+
 def BuildRNAInfo():
     # Use for faster lookups
     # use rna_struct.identifier as the key for each dict
@@ -401,7 +405,6 @@ def BuildRNAInfo():
     rna_children_dict = {}	# store all rna_structs nested from here
     rna_references_dict = {}	# store a list of rna path strings that reference this type
     # rna_functions_dict = {}	# store all functions directly in this type (not inherited)
-
 
     def full_rna_struct_path(rna_struct):
         '''

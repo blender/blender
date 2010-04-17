@@ -281,48 +281,48 @@ class DATA_PT_uv_texture(DataButtonsPanel):
         lay = me.active_uv_texture
         if lay:
             layout.prop(lay, "name")
-            
+
+
 class DATA_PT_texface(DataButtonsPanel):
     bl_label = "Texture Face"
 
     def poll(self, context):
         ob = context.active_object
         rd = context.scene.render
-        
-        return (context.mode =='EDIT_MESH') and (rd.engine == 'BLENDER_GAME') \
-        and ob and ob.type in ('MESH')
+
+        return (context.mode =='EDIT_MESH') and (rd.engine == 'BLENDER_GAME') and ob and ob.type == 'MESH'
 
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        
-        wide_ui = context.region.width > narrowui       
+
+        wide_ui = context.region.width > narrowui
         me = context.mesh
-        
+
         tf = me.faces.active_tface
-        
+
         if tf:
             split = layout.split()
             col = split.column()
-            
+
             col.prop(tf, "tex")
             col.prop(tf, "light")
             col.prop(tf, "invisible")
             col.prop(tf, "collision")
-            
+
             col.prop(tf, "shared")
             col.prop(tf, "twoside")
             col.prop(tf, "object_color")
-            
+
             if wide_ui:
                 col = split.column()
-            
+
             col.prop(tf, "halo")
             col.prop(tf, "billboard")
             col.prop(tf, "shadow")
             col.prop(tf, "text")
             col.prop(tf, "alpha_sort")
-            
+
             col = layout.column()
             col.prop(tf, "transp")
         else:

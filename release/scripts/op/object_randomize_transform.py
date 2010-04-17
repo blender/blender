@@ -30,7 +30,7 @@ def randomize_selected(seed, loc, rot, scale, scale_even, scale_min):
     random.seed(seed)
 
     def rand_vec(vec_range):
-        return Vector([uniform(- val, val) for val in vec_range])
+        return Vector([uniform(-val, val) for val in vec_range])
 
     for obj in bpy.context.selected_objects:
 

@@ -26,8 +26,8 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
 
     cursor = bpy.context.scene.cursor_location
 
-    Left_Up_Front_SEL = [[],[],[]]
-    Right_Down_Back_SEL = [[],[],[]]
+    Left_Up_Front_SEL = [[], [], []]
+    Right_Down_Back_SEL = [[], [], []]
 
     flag_first = True
 
@@ -43,13 +43,13 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
 
             if obj == bpy.context.active_object:
 
-                center_active_x = ( Left_Up_Front[0] + Right_Down_Back[0] ) / 2
-                center_active_y = ( Left_Up_Front[1] + Right_Down_Back[1] ) / 2
-                center_active_z = ( Left_Up_Front[2] + Right_Down_Back[2] ) / 2
+                center_active_x = (Left_Up_Front[0] + Right_Down_Back[0]) / 2
+                center_active_y = (Left_Up_Front[1] + Right_Down_Back[1]) / 2
+                center_active_z = (Left_Up_Front[2] + Right_Down_Back[2]) / 2
 
-                size_active_x = ( Right_Down_Back[0] -  Left_Up_Front[0] ) / 2
-                size_active_y = ( Right_Down_Back[1] - Left_Up_Front[1] ) / 2
-                size_active_z = ( Left_Up_Front[2] - Right_Down_Back[2] ) / 2
+                size_active_x = (Right_Down_Back[0] - Left_Up_Front[0]) / 2
+                size_active_y = (Right_Down_Back[1] - Left_Up_Front[1]) / 2
+                size_active_z = (Left_Up_Front[2] - Right_Down_Back[2]) / 2
 
             # Selection Center
 
@@ -85,9 +85,9 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
                 if Right_Down_Back[2] < Right_Down_Back_SEL[2]:
                     Right_Down_Back_SEL[2] = Right_Down_Back[2]
 
-    center_sel_x = ( Left_Up_Front_SEL[0] + Right_Down_Back_SEL[0] ) / 2
-    center_sel_y = ( Left_Up_Front_SEL[1] + Right_Down_Back_SEL[1] ) / 2
-    center_sel_z = ( Left_Up_Front_SEL[2] + Right_Down_Back_SEL[2] ) / 2
+    center_sel_x = (Left_Up_Front_SEL[0] + Right_Down_Back_SEL[0]) / 2
+    center_sel_y = (Left_Up_Front_SEL[1] + Right_Down_Back_SEL[1]) / 2
+    center_sel_z = (Left_Up_Front_SEL[2] + Right_Down_Back_SEL[2]) / 2
 
     # Main Loop
 
@@ -100,9 +100,9 @@ def align_objects(align_x, align_y, align_z, align_mode, relative_to):
             Left_Up_Front = bb_world[1]
             Right_Down_Back = bb_world[7]
 
-            center_x = ( Left_Up_Front[0] + Right_Down_Back[0] ) / 2
-            center_y = ( Left_Up_Front[1] + Right_Down_Back[1] ) / 2
-            center_z = ( Left_Up_Front[2] + Right_Down_Back[2] ) / 2
+            center_x = (Left_Up_Front[0] + Right_Down_Back[0]) / 2
+            center_y = (Left_Up_Front[1] + Right_Down_Back[1]) / 2
+            center_z = (Left_Up_Front[2] + Right_Down_Back[2]) / 2
 
             positive_x = Right_Down_Back[0]
             positive_y = Right_Down_Back[1]
@@ -240,8 +240,7 @@ class AlignObjects(bpy.types.Operator):
     align_mode = bpy.props.EnumProperty(items=(
             ('OPT_1', "Negative Sides", ""),
             ('OPT_2', "Centers", ""),
-            ('OPT_3', "Positive Sides", "")
-            ),
+            ('OPT_3', "Positive Sides", "")),
         name="Align Mode:",
         description="",
         default='OPT_2')
@@ -250,8 +249,7 @@ class AlignObjects(bpy.types.Operator):
             ('OPT_1', "Scene Origin", ""),
             ('OPT_2', "3D Cursor", ""),
             ('OPT_3', "Selection", ""),
-            ('OPT_4', "Active", "")
-            ),
+            ('OPT_4', "Active", "")),
         name="Relative To:",
         description="",
         default='OPT_4')

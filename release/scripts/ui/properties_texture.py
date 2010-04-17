@@ -250,7 +250,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
         if type(idblock) == bpy.types.Brush:
             if context.sculpt_object:
                 layout.prop(tex, "map_mode", expand=True)
-    
+
                 row = layout.row()
                 row.active = tex.map_mode in ('FIXED', 'TILED')
                 row.prop(tex, "angle")

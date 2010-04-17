@@ -245,7 +245,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
         if strip:
             stype = strip.type
-            
+
             # XXX note strip.type is never equal to 'EFFECT', look at seq_type_items within rna_sequencer.c
             if stype == 'EFFECT':
                 pass
@@ -749,7 +749,7 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
             col.prop(st, "draw_safe_margin")
         if st.display_mode == 'WAVEFORM':
             col.prop(st, "separate_color_preview")
-        col.prop(st, "proxy_render_size");
+        col.prop(st, "proxy_render_size")
 
 classes = [
     SEQUENCER_HT_header, # header/menu classes

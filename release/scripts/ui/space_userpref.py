@@ -66,6 +66,7 @@ def opengl_lamp_buttons(column, lamp):
     col.active = lamp.enabled
     col.prop(lamp, "direction", text="")
 
+
 class USERPREF_HT_header(bpy.types.Header):
     bl_space_type = 'USER_PREFERENCES'
 
@@ -91,6 +92,7 @@ class USERPREF_HT_header(bpy.types.Header):
         elif userpref.active_section == 'THEMES':
             op = layout.operator("ui.reset_default_theme")
 
+
 class USERPREF_PT_tabs(bpy.types.Panel):
     bl_label = ""
     bl_space_type = 'USER_PREFERENCES'
@@ -110,8 +112,8 @@ class USERPREF_MT_interaction_presets(bpy.types.Menu):
     preset_subdir = "interaction"
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
-    
-    
+
+
 class USERPREF_MT_splash(bpy.types.Menu):
     bl_label = "Splash"
 
@@ -123,7 +125,7 @@ class USERPREF_MT_splash(bpy.types.Menu):
         row = split.row()
         row.label("Interaction:")
         row.menu("USERPREF_MT_interaction_presets", text=bpy.types.USERPREF_MT_interaction_presets.bl_label)
-        
+
 
 class USERPREF_PT_interface(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
@@ -1008,6 +1010,7 @@ class USERPREF_PT_file(bpy.types.Panel):
 
 from space_userpref_keymap import InputKeyMapPanel
 
+
 class USERPREF_PT_input(InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
@@ -1027,7 +1030,7 @@ class USERPREF_PT_input(InputKeyMapPanel):
         subrow.menu("USERPREF_MT_interaction_presets", text=bpy.types.USERPREF_MT_interaction_presets.bl_label)
         subrow.operator("wm.interaction_preset_add", text="", icon="ZOOMIN")
         sub.separator()
-        
+
         sub.label(text="Mouse:")
         sub1 = sub.column()
         sub1.enabled = (inputs.select_mouse == 'RIGHT')
@@ -1409,7 +1412,6 @@ class WM_OT_addon_links(bpy.types.Operator):
         return {'FINISHED'}
 
 
-
 classes = [
     USERPREF_HT_header,
     USERPREF_PT_tabs,
@@ -1428,7 +1430,7 @@ classes = [
     WM_OT_addon_disable,
     WM_OT_addon_install,
     WM_OT_addon_expand,
-    WM_OT_addon_links  ]
+    WM_OT_addon_links]
 
 
 def register():

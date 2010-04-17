@@ -520,7 +520,7 @@ class Menu(StructRNA, _GenericUI):
             props.path = path
             if operator == "script.execute_preset":
                 props.menu_idname = self.bl_idname
-                props.preset_name = preset_name      
+                props.preset_name = preset_name
 
     def draw_preset(self, context):
         """Define these on the subclass

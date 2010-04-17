@@ -87,7 +87,7 @@ class ExecutePreset(bpy.types.Operator):
         # change the menu title to the most recently chosen option
         preset_class = getattr(bpy.types, self.properties.menu_idname)
         preset_class.bl_label = self.properties.preset_name
- 
+
         # execute the preset using script.python_file_run
         bpy.ops.script.python_file_run(path=self.properties.path)
         return {'FINISHED'}
@@ -182,13 +182,14 @@ class AddPresetSunSky(AddPresetBase):
 
     preset_subdir = "sunsky"
 
+
 class AddPresetInteraction(AddPresetBase):
     '''Add an Application Interaction Preset'''
     bl_idname = "wm.interaction_preset_add"
     bl_label = "Add Interaction Preset"
     name = AddPresetBase.name
     save_keyconfig = True
-    
+
     preset_values = [
         "bpy.context.user_preferences.edit.drag_immediately",
         "bpy.context.user_preferences.edit.insertkey_xyz_to_rgb",
