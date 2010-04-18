@@ -361,7 +361,7 @@ void bone_flip_name (char *name, int strip_number)
  *	axis: the axis to name on
  *	head/tail: the head/tail co-ordinate of the bone on the specified axis
  */
-void bone_autoside_name (char *name, int strip_number, short axis, float head, float tail)
+int bone_autoside_name (char *name, int strip_number, short axis, float head, float tail)
 {
 	unsigned int len;
 	char	basename[32]={""};
@@ -462,9 +462,15 @@ void bone_autoside_name (char *name, int strip_number, short axis, float head, f
 		if ((32 - len) < strlen(extension) + 1) { /* add 1 for the '.' */
 			strncpy(name, basename, len-strlen(extension));
 		}
+		
+		sprintf(name, "%s.%s", basename, extension);
+		
+		return 1;
 	}
 
-	sprintf(name, "%s.%s", basename, extension);
+	else {
+		return 0;
+	}
 }
 
 /* ************* B-Bone support ******************* */

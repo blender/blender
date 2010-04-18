@@ -364,10 +364,10 @@ void defgroup_unique_name (bDeformGroup *dg, Object *ob)
 void flip_side_name (char *name, const char *from_name, int strip_number)
 {
 	int     len;
-	char    prefix[sizeof((bDeformGroup *)NULL)->name]={""};   /* The part before the facing */
-	char    suffix[sizeof((bDeformGroup *)NULL)->name]={""};   /* The part after the facing */
-	char    replace[sizeof((bDeformGroup *)NULL)->name]={""};  /* The replacement string */
-	char    number[sizeof((bDeformGroup *)NULL)->name]={""};   /* The number extension string */
+	char    prefix[sizeof(((bDeformGroup *)NULL)->name)]= {""};   /* The part before the facing */
+	char    suffix[sizeof(((bDeformGroup *)NULL)->name)]= {""};   /* The part after the facing */
+	char    replace[sizeof(((bDeformGroup *)NULL)->name)]=  {""};  /* The replacement string */
+	char    number[sizeof(((bDeformGroup *)NULL)->name)]=  {""};   /* The number extension string */
 	char    *index=NULL;
 
 	len= strlen(from_name);

@@ -1410,8 +1410,8 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
 		BLI_strncpy(newname, pchan->name, sizeof(newname));
-		bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]);
-		ED_armature_bone_rename(arm, pchan->name, newname);
+		if(bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]))
+			ED_armature_bone_rename(arm, pchan->name, newname);
 	}
 	CTX_DATA_END;
 	

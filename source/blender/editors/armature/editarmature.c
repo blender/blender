@@ -5601,8 +5601,8 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
 	{
 		BLI_strncpy(newname, ebone->name, sizeof(newname));
-		bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]);
-		ED_armature_bone_rename(arm, ebone->name, newname);
+		if(bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]))
+			ED_armature_bone_rename(arm, ebone->name, newname);
 	}
 	CTX_DATA_END;
 	

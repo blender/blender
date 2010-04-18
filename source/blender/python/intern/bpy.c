@@ -96,12 +96,15 @@ void BPy_init_modules( void )
 	/* Needs to be first since this dir is needed for future modules */
 	char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
 	if(modpath) {
+		// printf("bpy: found module path '%s'.\n", modpath);
 		PyObject *sys_path= PySys_GetObject("path"); /* borrow */
 		PyObject *py_modpath= PyUnicode_FromString(modpath);
 		PyList_Insert(sys_path, 0, py_modpath); /* add first */
 		Py_DECREF(py_modpath);
 	}
-	
+	else {
+		printf("bpy: couldnt find 'scripts/modules', blender probably wont start.\n");
+	}
 	/* stand alone utility modules not related to blender directly */
 	Geometry_Init();
 	Mathutils_Init();
