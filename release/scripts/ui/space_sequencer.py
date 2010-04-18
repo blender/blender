@@ -50,10 +50,10 @@ class SEQUENCER_HT_header(bpy.types.Header):
                 sub.menu("SEQUENCER_MT_add")
                 sub.menu("SEQUENCER_MT_strip")
 
-        layout.prop(st, "view_type", text="")
+        layout.prop(st, "view_type", expand=True, text="")
 
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
-            layout.prop(st, "display_mode", text="")
+            layout.prop(st, "display_mode", expand=True, text="")
 
         if (st.view_type == 'SEQUENCER'):
             row = layout.row(align=True)

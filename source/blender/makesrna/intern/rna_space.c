@@ -1302,7 +1302,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	static EnumPropertyItem view_type_items[] = {
 		{SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
 		{SEQ_VIEW_PREVIEW,  "PREVIEW", ICON_SEQ_PREVIEW, "Image Preview", ""},
-		{SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SEQUENCER, "Sequencer and Image Preview", ""},
+		{SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SPLITVIEW, "Sequencer and Image Preview", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem display_mode_items[] = {
