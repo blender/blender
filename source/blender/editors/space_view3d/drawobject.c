@@ -625,14 +625,14 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	}
 
 	if(tot) {
+#if 0
 		bglMats mats; /* ZBuffer depth vars */
 		double ux, uy, uz;
 		float depth;
 
 		if(v3d->zbuf)
 			bgl_get_mats(&mats);
-
-
+#endif
 		if(rv3d->rflag & RV3D_CLIPPING)
 			for(a=0; a<6; a++)
 				glDisable(GL_CLIP_PLANE0+a);
@@ -1885,7 +1885,7 @@ static int draw_dm_creases__setDrawOptions(void *userData, int index)
 	EditEdge *eed = EM_get_edge_for_index(index);
 
 	if (eed->h==0 && eed->crease!=0.0) {
-		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, eed->crease);
+		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_CREASE, eed->crease);
 		return 1;
 	} else {
 		return 0;

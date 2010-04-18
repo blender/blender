@@ -39,7 +39,7 @@ def active_node_mat(mat):
 class MATERIAL_MT_sss_presets(bpy.types.Menu):
     bl_label = "SSS Presets"
     preset_subdir = "sss"
-    preset_operator = "script.python_file_run"
+    preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
 
@@ -505,8 +505,8 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 
         row = layout.row().split()
         sub = row.row(align=True).split(percentage=0.75)
-        sub.menu("MATERIAL_MT_sss_presets", text="Presets")
-        sub.operator("material.sss_preset_add", text="Add")
+        sub.menu("MATERIAL_MT_sss_presets", text=bpy.types.MATERIAL_MT_sss_presets.bl_label)
+        sub.operator("material.sss_preset_add", text="", icon="ZOOMIN")
 
         split = layout.split()
 
@@ -913,6 +913,32 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
         col.prop(vol, "depth_cutoff")
 
 
+class MATERIAL_PT_volume_options(VolumeButtonsPanel):
+    bl_label = "Options"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    bl_default_closed = True
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = active_node_mat(context.material)
+        wide_ui = context.region.width > narrowui
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(mat, "traceable")
+        col.prop(mat, "full_oversampling")
+        col.prop(mat, "exclude_mist")
+
+        col = split.column()
+        col.label(text="Light Group:")
+        col.prop(mat, "light_group", text="")
+        row = col.row()
+        row.active = bool(mat.light_group)
+        row.prop(mat, "light_group_exclusive", text="Exclusive")
+
+
 classes = [
     MATERIAL_PT_context_material,
     MATERIAL_PT_preview,
@@ -937,8 +963,8 @@ classes = [
     MATERIAL_PT_volume_shading,
     MATERIAL_PT_volume_lighting,
     MATERIAL_PT_volume_transp,
-
     MATERIAL_PT_volume_integration,
+    MATERIAL_PT_volume_options,
 
     MATERIAL_PT_custom_props]
 

@@ -172,12 +172,21 @@ public:
 		int y
 	)=0;
 
+	virtual
+		RAS_MouseState
+	GetMouseState()
+	{
+		return m_mousestate;
+	}
+
 	virtual 
 		void 
 	MakeScreenShot(
 		const char* filename
 	)=0;
 	
+protected:
+	RAS_MouseState m_mousestate;
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:

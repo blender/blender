@@ -1127,6 +1127,19 @@ static void wm_block_splash_close(bContext *C, void *arg_block, void *arg_unused
 	uiPupBlockClose(C, arg_block);
 }
 
+static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unused);
+
+/* XXX: hack to refresh splash screen with updated prest menu name,
+ * since popup blocks don't get regenerated like panels do */
+void wm_block_splash_refreshmenu (bContext *C, void *arg_block, void *unused)
+{
+	/* ugh, causes crashes in other buttons, disabling for now until 
+	 * a better fix
+	uiPupBlockClose(C, arg_block);
+	uiPupBlock(C, wm_block_create_splash, NULL);
+	  */
+}
+
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unused)
 {
 	uiBlock *block;
@@ -1135,7 +1148,9 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiStyle *style= U.uistyles.first;
 	struct RecentFile *recent;
 	int i;
-
+	Menu menu= {0};
+	MenuType *mt= WM_menutype_find("USERPREF_MT_splash", TRUE);
+	
 #ifdef NAN_BUILDINFO
 	int ver_width, rev_width;
 	char *version_str = NULL;
@@ -1156,21 +1171,28 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 #endif //NAN_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 	
 	but= uiDefBut(block, BUT_IMAGE, 0, "", 0, 10, 501, 282, NULL, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
+	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
 	
 #ifdef NAN_BUILDINFO	
-	uiDefBut(block, LABEL, 0, version_str, 500-ver_width, 282-24, ver_width, 20, NULL, 0, 0, 0, 0, NULL);
-	uiDefBut(block, LABEL, 0, revision_str, 500-rev_width, 282-36, rev_width, 20, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, version_str, 494-ver_width, 282-24, ver_width, 20, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, revision_str, 494-rev_width, 282-36, rev_width, 20, NULL, 0, 0, 0, 0, NULL);
 #endif //NAN_BUILDINFO
 	
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, 480, 110, style);
+	
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	/* show the splash menu (containing interaction presets), using python */
+	if (mt) {
+		menu.layout= layout;
+		menu.type= mt;
+		mt->draw(C, &menu);
+	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSSP);
-	
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 10, 10, 480, 110, style);
-
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	
 	split = uiLayoutSplit(layout, 0, 0);
@@ -1185,7 +1207,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Recent", 0);
-	for(recent = G.recent_files.first, i=0; (i<6) && (recent); recent = recent->next, i++) {
+	for(recent = G.recent_files.first, i=0; (i<5) && (recent); recent = recent->next, i++) {
 		char *display_name= BLI_last_slash(recent->filename);
 		if(display_name)	display_name++; /* skip the slash */
 		else				display_name= recent->filename;
@@ -1194,7 +1216,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiItemS(col);
 	uiItemO(col, NULL, ICON_HELP, "WM_OT_recover_last_session");
 	uiItemL(col, "", 0);
-
+	
 	uiCenteredBoundsBlock(block, 0.0f);
 	uiEndBlock(C, block);
 	
@@ -1482,6 +1504,7 @@ static short wm_link_append_flag(wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "relative_path")) flag |= FILE_RELPATH;
 	if(RNA_boolean_get(op->ptr, "link")) flag |= FILE_LINK;
 	if(RNA_boolean_get(op->ptr, "instance_groups")) flag |= FILE_GROUP_INSTANCE;
+
 	return flag;
 }
 
@@ -1553,6 +1576,14 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	idcode = BLO_idcode_from_name(group);
 	
 	flag = wm_link_append_flag(op);
+
+	/* sanity checks for flag */
+	if(scene->id.lib && (flag & FILE_GROUP_INSTANCE)) {
+		/* TODO, user never gets this message */
+		BKE_reportf(op->reports, RPT_WARNING, "Scene '%s' is linked, group instance disabled", scene->id.name+2);
+		flag &= ~FILE_GROUP_INSTANCE;
+	}
+
 
 	/* tag everything, all untagged data can be made local
 	 * its also generally useful to know what is new
@@ -1761,11 +1792,12 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "relative_remap"))	fileflags |=  G_FILE_RELATIVE_REMAP;
 	else											fileflags &= ~G_FILE_RELATIVE_REMAP;
 
-	WM_write_file(C, path, fileflags, op->reports);
-	
+	if ( WM_write_file(C, path, fileflags, op->reports) != 0)
+		return OPERATOR_CANCELLED;
+
 	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
 
-	return 0;
+	return OPERATOR_FINISHED;
 }
 
 static void WM_OT_save_as_mainfile(wmOperatorType *ot)
@@ -3065,7 +3097,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
 
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_SELECT);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, GESTURE_MODAL_SELECT);
 
 #if 0 // Durian guys like this
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_SHIFT, 0, GESTURE_MODAL_BEGIN);
@@ -3151,6 +3183,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_link_append", OKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	kmi= WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "link", FALSE);
+	RNA_boolean_set(kmi->ptr, "instance_groups", FALSE);
 
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);

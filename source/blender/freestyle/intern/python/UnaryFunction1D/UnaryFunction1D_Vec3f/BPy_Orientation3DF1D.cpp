@@ -28,7 +28,7 @@ static char Orientation3DF1D___doc__[] =
 "   :arg inter: An Interface1D object.\n"
 "   :type inter: :class:`Interface1D`\n"
 "   :return: The 3D orientation of the Interface1D.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static int Orientation3DF1D___init__( BPy_Orientation3DF1D* self, PyObject *args)
 {

@@ -396,7 +396,7 @@ bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
 		return NULL;
 	
 	if(pose->chanhash)
-		return BLI_ghash_lookup(pose->chanhash, name);
+		return BLI_ghash_lookup(pose->chanhash, (void *)name);
 	
 	return BLI_findstring(&((bPose *)pose)->chanbase, name, offsetof(bPoseChannel, name));
 }

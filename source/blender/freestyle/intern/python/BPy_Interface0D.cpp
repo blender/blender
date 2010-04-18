@@ -153,7 +153,7 @@ static char Interface0D_getPoint3D___doc__[] =
 "   Returns the location of the 0D element in the 3D space.\n"
 "\n"
 "   :return: The 3D point of the 0D element.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject *Interface0D_getPoint3D( BPy_Interface0D *self ) {
 	Vec3f v( self->if0D->getPoint3D() );
@@ -213,7 +213,7 @@ static char Interface0D_getPoint2D___doc__[] =
 "   Returns the location of the 0D element in the 2D space.\n"
 "\n"
 "   :return: The 2D point of the 0D element.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject *Interface0D_getPoint2D( BPy_Interface0D *self ) {
 	Vec2f v( self->if0D->getPoint2D() );

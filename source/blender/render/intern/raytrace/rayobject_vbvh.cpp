@@ -76,7 +76,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 	rtbuild_done(obj->builder, &obj->rayobj.control);
 	
 	//TODO find a away to exactly calculate the needed memory
-	MemArena *arena1 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	MemArena *arena1 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "vbvh arena");
 					   BLI_memarena_use_malloc(arena1);
 	
 	//Build and optimize the tree
@@ -101,7 +101,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 	{
 /*
 	TODO
-		MemArena *arena2 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+		MemArena *arena2 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "vbvh arena2");
 						   BLI_memarena_use_malloc(arena2);
 						   
 		//Finds the optimal packing of this tree using a given cost model

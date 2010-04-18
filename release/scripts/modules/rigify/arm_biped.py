@@ -23,7 +23,7 @@ from math import radians, pi
 from rigify import RigifyError, ORG_PREFIX
 from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, add_stretch_to, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
-from Mathutils import Vector
+from mathutils import Vector
 
 METARIG_NAMES = "shoulder", "arm", "forearm", "hand"
 
@@ -244,7 +244,7 @@ def fk(obj, definitions, base_names, options):
         driver = driver_fcurve.driver
 
 
-        controller_path = fk_chain.arm_p.path_to_id()
+        controller_path = fk_chain.arm_p.path_from_id()
         # add custom prop
         fk_chain.arm_p["hinge"] = 0.0
         prop = rna_idprop_ui_prop_get(fk_chain.arm_p, "hinge", create=True)

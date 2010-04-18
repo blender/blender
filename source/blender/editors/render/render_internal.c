@@ -87,11 +87,11 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 
 		/* xmin here is first subrect x coord, xmax defines subrect width */
 		xmin = renrect->xmin + rr->crop;
-		xmax = renrect->xmax - xmin - rr->crop;
+		xmax = renrect->xmax - xmin + rr->crop;
 		if (xmax<2) return;
 
 		ymin= renrect->ymin + rr->crop;
-		ymax= renrect->ymax - ymin - rr->crop;
+		ymax= renrect->ymax - ymin + rr->crop;
 		if(ymax<2)
 			return;
 		renrect->ymin= renrect->ymax;
@@ -380,11 +380,16 @@ static ScrArea *find_empty_image_area(bContext *C)
 }
 #endif // XXX not used
 
+static void render_error_reports(void *reports, char *str)
+{
+	BKE_report(reports, RPT_ERROR, str);
+}
+
 /* executes blocking render */
 static int screen_render_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Render *re= RE_GetRender(scene->id.name);
+	Render *re= RE_NewRender(scene->id.name);
 	Image *ima;
 	View3D *v3d= CTX_wm_view3d(C);
 	int lay= (v3d)? v3d->lay|scene->lay: scene->lay;
@@ -392,7 +397,10 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	if(re==NULL) {
 		re= RE_NewRender(scene->id.name);
 	}
+	
+	G.afbreek= 0;
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
+	RE_error_cb(re, op->reports, render_error_reports);
 
 	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
@@ -536,6 +544,13 @@ static void render_startjob(void *rjv, short *stop, short *do_update)
 //		free_main(mainp);
 }
 
+static void render_endjob(void *rjv)
+{
+	/* XXX render stability hack */
+	G.rendering = 0;
+	WM_main_add_notifier(NC_WINDOW, NULL);
+}
+
 /* called by render, check job 'stop' value or the global */
 static int render_breakjob(void *rjv)
 {
@@ -552,8 +567,9 @@ static int render_breakjob(void *rjv)
 static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* no running blender, remove handler and pass through */
-	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
+	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C))) {
 		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+	}
 
 	/* running render */
 	switch (event->type) {
@@ -570,6 +586,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* new render clears all callbacks */
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl=NULL;
+	bScreen *screen= CTX_wm_screen(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	Render *re;
 	wmJob *steve;
@@ -583,6 +600,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* stop all running jobs, currently previews frustrate Render */
 	WM_jobs_stop_all(CTX_wm_manager(C));
 
+	/* cancel animation playback */
+	if (screen->animtimer)
+		ED_screen_animation_play(C, 0, 0);
+	
 	/* handle UI stuff */
 	WM_cursor_wait(1);
 
@@ -632,7 +653,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY);
 	WM_jobs_customdata(steve, rj, render_freejob);
 	WM_jobs_timer(steve, 0.2, NC_SCENE|ND_RENDER_RESULT, 0);
-	WM_jobs_callbacks(steve, render_startjob, NULL, NULL);
+	WM_jobs_callbacks(steve, render_startjob, NULL, NULL, render_endjob);
 
 	/* get a render result image, and make sure it is empty */
 	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
@@ -649,13 +670,17 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->re= re;
 	G.afbreek= 0;
 
-	//	BKE_report in render!
-	//	RE_error_cb(re, error_cb);
+	RE_error_cb(re, op->reports, render_error_reports);
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 
 	WM_cursor_wait(0);
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
+
+	/* we set G.rendering here already instead of only in the job, this ensure
+	   main loop or other scene updates are disabled in time, since they may
+	   have started before the job thread */
+	G.rendering = 1;
 
 	/* add modal handler for ESC */
 	WM_event_add_modal_handler(C, op);

@@ -110,9 +110,6 @@ typedef struct CustomData {
 #define CD_MASK_WEIGHT_MCOL	(1 << CD_WEIGHT_MCOL)
 #define CD_MASK_CLOTH_ORCO	(1 << CD_CLOTH_ORCO)
 
-/* derivedmesh wants CustomDataMask for weightpaint too, is not customdata though */
-#define CD_MASK_WEIGHTPAINT	(1 << CD_WEIGHTPAINT)
-
 /* CustomData.flag */
 
 /* indicates layer should not be copied by CustomData_from_template or

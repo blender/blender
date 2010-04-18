@@ -1110,6 +1110,28 @@ static int object_constraint_add_exec(bContext *C, wmOperator *op)
 }
 
 /* dummy operator callback */
+static int object_constraint_copy_exec(bContext *C, wmOperator *op)
+{
+	Object *ob=ED_object_active_context(C);
+
+	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+		if(ob != ob_iter) {
+			if (ob->data != ob_iter->data){
+				copy_constraints(&ob_iter->constraints, &ob->constraints);
+			}
+			
+			if(ob_iter->totcol==ob->totcol) {
+				ob_iter->actcol= ob->actcol;
+				WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob_iter);
+			}
+		}
+	}
+	CTX_DATA_END;
+
+	return OPERATOR_FINISHED;
+}
+
+/* dummy operator callback */
 static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= ED_object_active_context(C);
@@ -1168,6 +1190,21 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
 	
 	/* properties */
 	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
+}
+
+void OBJECT_OT_constraint_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Constraints to Others";
+	ot->description = "Copy constraints to other selected objects.";
+	ot->idname= "OBJECT_OT_constraint_copy";
+
+	/* api callbacks */
+	ot->exec= object_constraint_copy_exec;
+	ot->poll= ED_operator_object_active_editable;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void POSE_OT_constraint_add(wmOperatorType *ot)

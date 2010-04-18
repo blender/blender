@@ -2318,6 +2318,22 @@ static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 
 }
 
+static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	uiWidgetBase wtb;
+	
+	widget_init(&wtb);
+	
+	/* half rounded */
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+	
+	widgetbase_draw(&wtb, wcol);
+	
+	/* store the box bg as gl clearcolor, to retrieve later when drawing semi-transparent rects
+	 * over the top to indicate disabled buttons */
+	glClearColor(wcol->inner[0]/255.0, wcol->inner[1]/255.0, wcol->inner[2]/255.0, 1.0);
+}
+
 static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
@@ -2384,10 +2400,11 @@ static void widget_disabled(rcti *rect)
 	/* can't use theme TH_BACK or TH_PANEL... undefined */
 	glGetFloatv(GL_COLOR_CLEAR_VALUE, col);
 	glColor4f(col[0], col[1], col[2], 0.5f);
+
 	/* need -1 and +1 to make it work right for aligned buttons,
 	 * but problem may be somewhere else? */
-	glRectf(rect->xmin-1, rect->ymin, rect->xmax, rect->ymax+1);
-
+	glRectf(rect->xmin-1, rect->ymin-1, rect->xmax, rect->ymax+1);
+	
 	glDisable(GL_BLEND);
 }
 
@@ -2504,6 +2521,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 			
 		case UI_WTYPE_BOX:
+			wt.custom= widget_box;
 			wt.wcol_theme= &btheme->tui.wcol_box;
 			break;
 			
@@ -2727,6 +2745,14 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				ui_draw_but_HISTOGRAM(ar, but, &tui->wcol_regular, rect);
 				break;
 				
+			case WAVEFORM:
+				ui_draw_but_WAVEFORM(ar, but, &tui->wcol_regular, rect);
+				break;
+				
+			case VECTORSCOPE:
+				ui_draw_but_VECTORSCOPE(ar, but, &tui->wcol_regular, rect);
+				break;
+					
 			case BUT_CURVE:
 				ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
 				break;

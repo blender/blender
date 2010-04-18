@@ -33,6 +33,7 @@ incs = '#/intern/guardedalloc ../../blenlib ../../blenkernel'
 incs += ' ../../imbuf ../../makesdna ../../makesrna ../../ikplugin'
 incs += ' ../../windowmanager ../../editors/include'
 incs += ' ../../render/extern/include'
+incs += ' #/intern/audaspace/intern'
 
 if env['WITH_BF_OPENEXR']:
 	defs.append('WITH_OPENEXR')

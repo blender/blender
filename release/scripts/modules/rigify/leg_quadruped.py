@@ -23,7 +23,7 @@ from rna_prop_ui import rna_idprop_ui_prop_get
 from math import pi
 from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple, get_side_name, get_base_name
-from Mathutils import Vector
+from mathutils import Vector
 
 METARIG_NAMES = "hips", "thigh", "shin", "foot", "toe"
 
@@ -207,7 +207,7 @@ def ik(obj, bone_definition, base_names, options):
     prop["min"] = 0.0
     prop["max"] = 1.0
 
-    ik_driver_path = pb[ik_chain.foot].path_to_id() + '["ik"]'
+    ik_driver_path = pb[ik_chain.foot].path_from_id() + '["ik"]'
 
     # simple constraining of orig bones
     con = mt_chain.thigh_p.constraints.new('COPY_TRANSFORMS')
@@ -369,7 +369,7 @@ def fk(obj, bone_definition, base_names, options):
     prop["min"] = 0.0
     prop["max"] = 1.0
 
-    hinge_driver_path = pb[fk_chain.thigh].path_to_id() + '["hinge"]'
+    hinge_driver_path = pb[fk_chain.thigh].path_from_id() + '["hinge"]'
 
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver

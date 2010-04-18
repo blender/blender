@@ -156,7 +156,7 @@ public:
 	 * @param y			The y-coordinate of the cursor.
 	 * @return			Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const;
+	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
 
 	/***************************************************************************************
 	 ** Access to mouse button and keyboard states.

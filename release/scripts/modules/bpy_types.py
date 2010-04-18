@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 from _bpy import types as bpy_types
-from Mathutils import Vector
+from mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
 # StructRNA = bpy_types.Struct
@@ -236,7 +236,7 @@ class EditBone(StructRNA, _GenericBone):
         Transform the the bones head, tail, roll and envalope (when the matrix has a scale component).
         Expects a 4x4 or 3x3 matrix.
         """
-        from Mathutils import Vector
+        from mathutils import Vector
         z_vec = self.matrix.rotation_part() * Vector(0.0, 0.0, 1.0)
         self.tail = matrix * self.tail
         self.head = matrix * self.head
@@ -511,12 +511,16 @@ class Menu(StructRNA, _GenericUI):
             if f.startswith("."):
                 continue
 
-            props = layout.operator(operator, text=bpy.utils.display_name(f))
+            preset_name = bpy.utils.display_name(f)
+            props = layout.operator(operator, text=preset_name)
 
             for attr, value in props_default.items():
                 setattr(props, attr, value)
 
             props.path = path
+            if operator == "script.execute_preset":
+                props.menu_idname = self.bl_idname
+                props.preset_name = preset_name
 
     def draw_preset(self, context):
         """Define these on the subclass

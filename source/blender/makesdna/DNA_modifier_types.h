@@ -571,7 +571,7 @@ typedef struct ParticleInstanceModifierData {
 
 typedef enum {
 	eExplodeFlag_CalcFaces =	(1<<0),
-	//eExplodeFlag_PaSize =		(1<<1),
+	eExplodeFlag_PaSize =		(1<<1),
 	eExplodeFlag_EdgeSplit =	(1<<2),
 	eExplodeFlag_Unborn =		(1<<3),
 	eExplodeFlag_Alive =		(1<<4),

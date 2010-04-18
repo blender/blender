@@ -1569,7 +1569,7 @@ static void print_part_stats(Render *re, RenderPart *pa)
 {
 	char str[64];
 	
-	sprintf(str, "Part %d-%d", pa->nr, re->i.totpart);
+	sprintf(str, "%s, Part %d-%d", re->scene->id.name+2, pa->nr, re->i.totpart);
 	re->i.infostr= str;
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr= NULL;
@@ -2477,6 +2477,24 @@ static void renderresult_stampinfo(Scene *scene)
 	RE_ReleaseResultImage(re);
 }
 
+static int seq_render_active(Render *re)
+{
+	Editing *ed;
+	Sequence *seq;
+
+	ed = re->scene->ed;
+	
+	if (!(re->r.scemode & R_DOSEQ) || !ed || !ed->seqbase.first)
+		return 0;
+	
+	for (seq= ed->seqbase.first; seq; seq= seq->next) {
+		if (seq->type != SEQ_SOUND)
+			return 1;
+	}
+	
+	return 0;
+}
+
 static void do_render_seq(Render * re)
 {
 	static int recurs_depth = 0;
@@ -2558,7 +2576,7 @@ static void do_render_all_options(Render *re)
 	if(external_render_3d(re, 1)) {
 		/* in this case external render overrides all */
 	}
-	else if((re->r.scemode & R_DOSEQ) && re->scene->ed && re->scene->ed->seqbase.first) {
+	else if(seq_render_active(re)) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
 		if(!re->test_break(re->tbh)) 
 			do_render_seq(re);

@@ -114,6 +114,7 @@ class GRAPH_MT_select(bpy.types.Menu):
         layout.separator()
         layout.operator("graph.select_border")
         layout.operator("graph.select_border", text="Border Axis Range").axis_range = True
+        layout.operator("graph.select_border", text="Border (Include Handles)").include_handles = True
 
         layout.separator()
         layout.operator("graph.select_column", text="Columns on Selected Keys").mode = 'KEYS'
@@ -125,6 +126,9 @@ class GRAPH_MT_select(bpy.types.Menu):
         layout.separator()
         layout.operator("graph.select_more")
         layout.operator("graph.select_less")
+
+        layout.separator()
+        layout.operator("graph.select_linked")
 
 
 class GRAPH_MT_channel(bpy.types.Menu):

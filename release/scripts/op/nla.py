@@ -22,7 +22,7 @@ import bpy
 
 
 def pose_info():
-    from Mathutils import Matrix
+    from mathutils import Matrix
 
     info = {}
 
@@ -109,34 +109,19 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
             #pbone.location = matrix.translation_part()
             #pbone.rotation_quaternion = matrix.to_quat()
             pbone.matrix_local = [f for v in matrix for f in v]
-            
-            pbone.keyframe_insert("location", -1, f)
+
+            pbone.keyframe_insert("location", -1, f, name)
 
             rotation_mode = pbone.rotation_mode
 
             if rotation_mode == 'QUATERNION':
-                pbone.keyframe_insert("rotation_quaternion", -1, f)
+                pbone.keyframe_insert("rotation_quaternion", -1, f, name)
             elif rotation_mode == 'AXIS_ANGLE':
-                pbone.keyframe_insert("rotation_axis_angle", -1, f)
+                pbone.keyframe_insert("rotation_axis_angle", -1, f, name)
             else: # euler, XYZ, ZXY etc
-                pbone.keyframe_insert("rotation_euler", -1, f)
+                pbone.keyframe_insert("rotation_euler", -1, f, name)
 
-            pbone.keyframe_insert("scale", -1, f)
-
-    # assign groups, could become a more generic function
-    agrp_loc = action.groups.add("Location")
-    agrp_rot = action.groups.add("Rotation")
-    agrp_sca = action.groups.add("Scale")
-
-    for fcu in action.fcurves:
-        path = fcu.data_path.rsplit(".", 1)[-1]
-
-        if path.startswith("loc"):
-            fcu.group = agrp_loc
-        if path.startswith("rot"):
-            fcu.group = agrp_rot
-        if path.startswith("sca"):
-            fcu.group = agrp_sca
+            pbone.keyframe_insert("scale", -1, f, name)
 
     return action
 

@@ -1328,7 +1328,7 @@ void BKE_ptcache_mem_incr_pointers(PTCacheMem *pm)
 			pm->cur[i] = (char*)pm->cur[i] + ptcache_data_size[i];
 	}
 }
-static int BKE_ptcache_mem_seek_pointers(int point_index, PTCacheMem *pm)
+int BKE_ptcache_mem_seek_pointers(int point_index, PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
 	int i, index = pm->index_array ? pm->index_array[point_index] - 1 : point_index;
@@ -2325,39 +2325,6 @@ PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old
 
 
 /* Baking */
-static int count_quick_cache(Scene *scene, int *quick_step)
-{
-	Base *base;
-	PTCacheID *pid;
-	ListBase pidlist;
-	int autocache_count= 0;
-	Scene *sce; /* for macro only */
-
-	for(SETLOOPER(scene, base)) {
-		if(base->object) {
-			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
-
-			for(pid=pidlist.first; pid; pid=pid->next) {
-				if((pid->cache->flag & PTCACHE_BAKED)
-					|| (pid->cache->flag & PTCACHE_QUICK_CACHE)==0)
-					continue;
-
-				if(pid->cache->flag & PTCACHE_OUTDATED || (pid->cache->flag & PTCACHE_SIMULATION_VALID)==0) {
-					if(!autocache_count)
-						*quick_step = pid->cache->step;
-					else
-						*quick_step = MIN2(*quick_step, pid->cache->step);
-
-					autocache_count++;
-				}
-			}
-
-			BLI_freelistN(&pidlist);
-		}
-	}
-
-	return autocache_count;
-}
 void BKE_ptcache_quick_cache_all(Scene *scene)
 {
 	PTCacheBaker baker;
@@ -2372,9 +2339,9 @@ void BKE_ptcache_quick_cache_all(Scene *scene)
 	baker.render=0;
 	baker.anim_init = 0;
 	baker.scene=scene;
+	baker.quick_step=scene->physics_settings.quick_cache_step;
 
-	if(count_quick_cache(scene, &baker.quick_step))
-		BKE_ptcache_make_cache(&baker);
+	BKE_ptcache_make_cache(&baker);
 }
 
 /* Simulation thread, no need for interlocks as data written in both threads
@@ -2467,7 +2434,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 			cache->flag &= ~PTCACHE_BAKED;
 		}
 	}
-	for(SETLOOPER(scene, base)) {
+	else for(SETLOOPER(scene, base)) {
 		/* cache/bake everything in the scene */
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 

@@ -456,7 +456,7 @@ void DM_interp_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
 						 float *weights, FaceVertWeight *vert_weights,
 						 int count, int dest_index);
 
-void DM_swap_face_data(struct DerivedMesh *dm, int index, int *corner_indices);
+void DM_swap_face_data(struct DerivedMesh *dm, int index, const int *corner_indices);
 
 /* Temporary? A function to give a colorband to derivedmesh for vertexcolor ranges */
 void vDM_ColorBand_store(struct ColorBand *coba);

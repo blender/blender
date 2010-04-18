@@ -308,6 +308,9 @@ Documentation for the GameLogic Module.
 					later on with the game load/save actuators.
 					note: only python built in types such as int/string/bool/float/tuples/lists
 					can be saved, GameObjects, Actuators etc will not work as expectred.
+					
+@var keyboard:		The current keyboard wrapped in an SCA_PythonKeyboard object.
+@var mouse:			The current mouse wrapped in an SCA_PythonMouse object.
 """
 
 import GameTypes

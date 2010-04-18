@@ -50,7 +50,7 @@ BME_TransData_Head *BME_init_transdata(int bufsize) {
 
 	td = MEM_callocN(sizeof(BME_TransData_Head), "BMesh transdata header");
 	td->gh = BLI_ghash_new(BLI_ghashutil_ptrhash,BLI_ghashutil_ptrcmp);
-	td->ma = BLI_memarena_new(bufsize);
+	td->ma = BLI_memarena_new(bufsize, "BME_TransData arena");
 	BLI_memarena_use_calloc(td->ma);
 
 	return td;

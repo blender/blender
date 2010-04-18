@@ -106,7 +106,9 @@ class INFO_MT_file(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.link_append", text="Link")
-        layout.operator("wm.link_append", text="Append").link = False
+        props = layout.operator("wm.link_append", text="Append")
+        props.link = False
+        props.instance_groups = False
 
         layout.separator()
 
@@ -349,7 +351,7 @@ class HELP_OT_blender_eshop(HelpOperator):
     '''Buy official Blender resources and merchandise online'''
     bl_idname = "help.blender_eshop"
     bl_label = "Blender e-Shop"
-    _url = 'http://www.blender3d.org/e-shop'
+    _url = 'http://www.blender.org/e-shop'
 
 
 class HELP_OT_developer_community(HelpOperator):

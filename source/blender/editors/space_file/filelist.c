@@ -1352,7 +1352,7 @@ void thumbnails_start(struct FileList* filelist, const struct bContext* C)
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), filelist, 0);
 	WM_jobs_customdata(steve, tj, thumbnails_free);
 	WM_jobs_timer(steve, 0.5, NC_WINDOW, NC_WINDOW);
-	WM_jobs_callbacks(steve, thumbnails_startjob, NULL, thumbnails_update);
+	WM_jobs_callbacks(steve, thumbnails_startjob, NULL, thumbnails_update, NULL);
 
 	/* start the job */
 	WM_jobs_start(CTX_wm_manager(C), steve);

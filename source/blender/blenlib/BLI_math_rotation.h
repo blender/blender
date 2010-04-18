@@ -166,6 +166,9 @@ void mul_v3m3_dq(float r[3], float R[3][3], DualQuat *dq);
 void mat4_to_dquat(DualQuat *r, float base[4][4], float M[4][4]);
 void dquat_to_mat4(float R[4][4], DualQuat *dq);
 
+float lens_to_angle(float lens);
+float angle_to_lens(float angle);
+
 #ifdef __cplusplus
 }
 #endif

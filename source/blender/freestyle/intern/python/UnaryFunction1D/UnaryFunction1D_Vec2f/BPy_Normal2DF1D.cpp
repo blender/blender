@@ -28,7 +28,7 @@ static char Normal2DF1D___doc__[] =
 "   :arg inter: An Interface1D object.\n"
 "   :type inter: :class:`Interface1D`\n"
 "   :return: The 2D normal for the Interface1D.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static int Normal2DF1D___init__( BPy_Normal2DF1D* self, PyObject *args)
 {

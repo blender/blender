@@ -903,7 +903,7 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *op)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	int flag = 0;
+//	int flag = 0;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)

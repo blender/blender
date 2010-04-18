@@ -390,10 +390,13 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             sub.prop(part, "drag_factor", slider=True)
             sub.prop(part, "damp_factor", slider=True)
             sub = split.column()
+            sub.label(text="Integration:")
+            sub.prop(part, "integrator", text="")
+            sub.prop(part, "time_tweak")
+            sub.prop(part, "subframes")
+            sub = layout.row()
             sub.prop(part, "size_deflect")
             sub.prop(part, "die_on_collision")
-            sub.prop(part, "integrator")
-            sub.prop(part, "time_tweak")
 
         elif part.physics_type == 'FLUID':
             fluid = part.fluid
@@ -405,10 +408,13 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             sub.prop(part, "drag_factor", slider=True)
             sub.prop(part, "damp_factor", slider=True)
             sub = split.column()
+            sub.label(text="Integration:")
+            sub.prop(part, "integrator", text="")
+            sub.prop(part, "time_tweak")
+            sub.prop(part, "subframes")
+            sub = layout.row()
             sub.prop(part, "size_deflect")
             sub.prop(part, "die_on_collision")
-            sub.prop(part, "integrator")
-            sub.prop(part, "time_tweak")
 
             split = layout.split()
             sub = split.column()

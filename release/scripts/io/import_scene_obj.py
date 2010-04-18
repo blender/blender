@@ -54,8 +54,8 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 import os
 import time
 import bpy
-import Mathutils
-import Geometry
+import mathutils
+from geometry import PolyFill
 
 # from Blender import Mesh, Draw, Window, Texture, Material, sys
 # # import BPyMesh
@@ -127,7 +127,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
     if not set: # Need sets for this, otherwise do a normal fill.
         PREF_FIX_LOOPS= False
 
-    Vector= Mathutils.Vector
+    Vector= mathutils.Vector
     if not indices:
         return []
 
@@ -158,7 +158,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
             if verts[i][1]==verts[i-1][0]:
                 verts.pop(i-1)
 
-        fill= Geometry.PolyFill([verts])
+        fill= PolyFill([verts])
 
     else:
         '''
@@ -266,7 +266,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
                     vert_map[i+ii]= vert[2]
                 ii+=len(verts)
 
-        fill= Geometry.PolyFill([ [v[0] for v in loop] for loop in loop_list ])
+        fill= PolyFill([ [v[0] for v in loop] for loop in loop_list ])
         #draw_loops(loop_list)
         #raise 'done loop'
         # map to original indicies

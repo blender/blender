@@ -35,6 +35,7 @@
 #include "BLI_math.h"
 
 #include "BKE_colortools.h"
+#include "BKE_global.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -43,6 +44,8 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "BLF_api.h"
 
 #include "UI_interface.h"
 
@@ -685,6 +688,64 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 #endif // INTERNATIONAL
 #endif
 
+static void draw_scope_end(rctf *rect, GLint *scissor)
+{
+	float scaler_x1, scaler_x2;
+	
+	/* restore scissortest */
+	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	
+	/* scale widget */
+	scaler_x1 = rect->xmin + (rect->xmax - rect->xmin)/2 - SCOPE_RESIZE_PAD;
+	scaler_x2 = rect->xmin + (rect->xmax - rect->xmin)/2 + SCOPE_RESIZE_PAD;
+	
+	glColor4f(0.f, 0.f, 0.f, 0.25f);
+	fdrawline(scaler_x1, rect->ymin-4, scaler_x2, rect->ymin-4);
+	fdrawline(scaler_x1, rect->ymin-7, scaler_x2, rect->ymin-7);
+	glColor4f(1.f, 1.f, 1.f, 0.25f);
+	fdrawline(scaler_x1, rect->ymin-5, scaler_x2, rect->ymin-5);
+	fdrawline(scaler_x1, rect->ymin-8, scaler_x2, rect->ymin-8);
+	
+	/* outline */
+	glColor4f(0.f, 0.f, 0.f, 0.5f);
+	uiSetRoundBox(15);
+	gl_round_box(GL_LINE_LOOP, rect->xmin-1, rect->ymin, rect->xmax+1, rect->ymax+1, 3.0f);
+}
+
+void histogram_draw_one(float r, float g, float b, float alpha, float x, float y, float w, float h, float *data, int res)
+{
+	int i;
+	
+	/* under the curve */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glColor4f(r, g, b, alpha);
+	
+	glShadeModel(GL_FLAT);
+	glBegin(GL_QUAD_STRIP);
+	glVertex2f(x, y);
+	glVertex2f(x, y + (data[0]*h));
+	for (i=1; i < res; i++) {
+		float x2 = x + i * (w/(float)res);
+		glVertex2f(x2, y + (data[i]*h));
+		glVertex2f(x2, y);
+	}
+	glEnd();
+	
+	/* curve outline */
+	glColor4f(0.f, 0.f, 0.f, 0.25f);
+	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_LINE_SMOOTH);
+	glBegin(GL_LINE_STRIP);
+	for (i=0; i < res; i++) {
+		float x2 = x + i * (w/(float)res);
+		glVertex2f(x2, y + (data[i]*h));
+	}
+	glEnd();
+	glDisable(GL_LINE_SMOOTH);
+}
 
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *recti)
 {
@@ -692,10 +753,8 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *
 	int res = hist->x_resolution;
 	rctf rect;
 	int i;
-	int rgb;
 	float w, h;
-	float scaler_x1, scaler_x2;
-	float alpha;
+	//float alpha;
 	GLint scissor[4];
 	
 	if (hist==NULL) { printf("hist is null \n"); return; }
@@ -706,8 +765,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *
 	rect.ymax = (float)recti->ymax-1;
 	
 	w = rect.xmax - rect.xmin;
-	h = rect.ymax - rect.ymin;
-	h *= hist->ymax;
+	h = (rect.ymax - rect.ymin) * hist->ymax;
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -726,69 +784,321 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *
 	/* need scissor test, histogram can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
 	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
-		
-	for (rgb=0; rgb<3; rgb++) {
-		float *data = NULL;
-		
-		if (rgb==0)			data = hist->data_r;
-		else if (rgb==1)	data = hist->data_g;
-		else if (rgb==2)	data = hist->data_b;
-		
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-		alpha = 0.75;
-		if (rgb==0)			glColor4f(1.f, 0.f, 0.f, alpha);
-		else if (rgb==1)	glColor4f(0.f, 1.f, 0.f, alpha);
-		else if (rgb==2)	glColor4f(0.f, 0.f, 1.f, alpha);
-		
-		glShadeModel(GL_FLAT);
-		glBegin(GL_QUAD_STRIP);
-		glVertex2f(rect.xmin, rect.ymin);
-		glVertex2f(rect.xmin, rect.ymin + (data[0]*h));
-		for (i=1; i < res; i++) {
-			float x = rect.xmin + i * (w/(float)res);
-			glVertex2f(x, rect.ymin + (data[i]*h));
-			glVertex2f(x, rect.ymin);
-		}
-		glEnd();
-		
-		glColor4f(0.f, 0.f, 0.f, 0.25f);
-		
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_LINE_SMOOTH);
-		glBegin(GL_LINE_STRIP);
-		for (i=0; i < res; i++) {
-			float x = rect.xmin + i * (w/(float)res);
-			glVertex2f(x, rect.ymin + (data[i]*h));
-		}
-		glEnd();
-		glDisable(GL_LINE_SMOOTH);
+	
+	if (hist->mode == HISTO_MODE_LUMA)
+		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_luma, res);
+	else {
+		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_R)
+			histogram_draw_one(1.0, 0.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_r, res);
+		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_G)
+			histogram_draw_one(0.0, 1.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_g, res);
+		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_B)
+			histogram_draw_one(0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res);
 	}
 	
+	/* outline, scale gripper */
+	draw_scope_end(&rect, scissor);
+}
 
-	/* restore scissortest */
-	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *recti)
+{
+	Scopes *scopes = (Scopes *)but->poin;
+	rctf rect;
+	int i, c;
+	float w, w3, h, alpha, yofs;
+	GLint scissor[4];
+	float colors[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
+	float colorsycc[3][3] = {{1,0,1},{1,1,0},{0,1,1}};
+	float colors_alpha[3][3], colorsycc_alpha[3][3]; /* colors  pre multiplied by alpha for speed up */
+	float min, max;
 	
+	if (scopes==NULL) return;
+	
+	rect.xmin = (float)recti->xmin+1;
+	rect.xmax = (float)recti->xmax-1;
+	rect.ymin = (float)recti->ymin+SCOPE_RESIZE_PAD+2;
+	rect.ymax = (float)recti->ymax-1;
+	
+	if (scopes->wavefrm_yfac < 0.5f )
+		scopes->wavefrm_yfac =0.98f;
+	w = rect.xmax - rect.xmin-7;
+	h = (rect.ymax - rect.ymin)*scopes->wavefrm_yfac;
+	yofs= rect.ymin + (rect.ymax - rect.ymin -h)/2.0f;
+	w3=w/3.0f;
+	
+	/* log scale for alpha */
+	alpha = scopes->wavefrm_alpha*scopes->wavefrm_alpha;
+	
+	for(c=0; c<3; c++) {
+		for(i=0; i<3; i++) {
+			colors_alpha[c][i] = colors[c][i] * alpha;
+			colorsycc_alpha[c][i] = colorsycc[c][i] * alpha;
+		}
+	}
+			
+	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
-	/* height scaling widget */
-	scaler_x1 = rect.xmin + w/2 - SCOPE_RESIZE_PAD;
-	scaler_x2 = rect.xmin + w/2 + SCOPE_RESIZE_PAD;
-	
-	glColor4f(0.f, 0.f, 0.f, 0.25f);
-	fdrawline(scaler_x1, rect.ymin-4, scaler_x2, rect.ymin-4);
-	fdrawline(scaler_x1, rect.ymin-7, scaler_x2, rect.ymin-7);
-	glColor4f(1.f, 1.f, 1.f, 0.25f);
-	fdrawline(scaler_x1, rect.ymin-5, scaler_x2, rect.ymin-5);
-	fdrawline(scaler_x1, rect.ymin-8, scaler_x2, rect.ymin-8);
-
-	
-	glColor4f(0.f, 0.f, 0.f, 0.5f);
+	glColor4f(0.f, 0.f, 0.f, 0.3f);
 	uiSetRoundBox(15);
-	gl_round_box(GL_LINE_LOOP, rect.xmin-1, rect.ymin, rect.xmax+1, rect.ymax+1, 3.0f);
+	gl_round_box(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
+	
+
+	/* need scissor test, waveform can draw outside of boundary */
+	glGetIntegerv(GL_VIEWPORT, scissor);
+	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
+
+	glColor4f(1.f, 1.f, 1.f, 0.08f);
+	/* draw grid lines here */
+	for (i=0; i<6; i++) {
+		char str[4];
+		sprintf(str,"%-3d",i*20);
+		str[3]='\0';
+		fdrawline(rect.xmin+22, yofs+(i/5.f)*h, rect.xmax+1, yofs+(i/5.f)*h);
+		BLF_draw_default(rect.xmin+1, yofs-5+(i/5.f)*h, 0, str);
+		/* in the loop because blf_draw reset it */
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	}
+	/* 3 vertical separation */
+	if (scopes->wavefrm_mode!= SCOPES_WAVEFRM_LUM) {
+		for (i=1; i<3; i++) {
+			fdrawline(rect.xmin+i*w3, rect.ymin, rect.xmin+i*w3, rect.ymax);
+		}
+	}
+	
+	/* separate min max zone on the right */
+	fdrawline(rect.xmin+w, rect.ymin, rect.xmin+w, rect.ymax);
+	/* 16-235-240 level in case of ITU-R BT601/709 */
+	glColor4f(1.f, 0.4f, 0.f, 0.2f);
+	if (ELEM(scopes->wavefrm_mode, SCOPES_WAVEFRM_YCC_601, SCOPES_WAVEFRM_YCC_709)){
+		fdrawline(rect.xmin+22, yofs+h*16.0f/255.0f, rect.xmax+1, yofs+h*16.0f/255.0f);
+		fdrawline(rect.xmin+22, yofs+h*235.0f/255.0f, rect.xmin+w3, yofs+h*235.0f/255.0f);
+		fdrawline(rect.xmin+3*w3, yofs+h*235.0f/255.0f, rect.xmax+1, yofs+h*235.0f/255.0f);
+		fdrawline(rect.xmin+w3, yofs+h*240.0f/255.0f, rect.xmax+1, yofs+h*240.0f/255.0f);
+	}
+	/* 7.5 IRE black point level for NTSC */
+	if (scopes->wavefrm_mode== SCOPES_WAVEFRM_LUM)
+		fdrawline(rect.xmin, yofs+h*0.075f, rect.xmax+1, yofs+h*0.075f);
+	
+	/* LUMA (1 channel) */
+	glBlendFunc(GL_ONE,GL_ONE);
+	glColor3f(alpha, alpha, alpha);
+	if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUM){
+
+		glBlendFunc(GL_ONE,GL_ONE);
+		
+		glPushMatrix();
+		glEnableClientState(GL_VERTEX_ARRAY);
+		
+		glTranslatef(rect.xmin, yofs, 0.f);
+		glScalef(w, h, 0.f);
+		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
+		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+				
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glPopMatrix();
+
+		/* min max */
+		glColor3f(.5f, .5f, .5f);
+		min= yofs+scopes->minmax[0][0]*h;
+		max= yofs+scopes->minmax[0][1]*h;
+		CLAMP(min, rect.ymin, rect.ymax);
+		CLAMP(max, rect.ymin, rect.ymax);
+		fdrawline(rect.xmax-3,min,rect.xmax-3,max);
+	}
+
+	/* RGB / YCC (3 channels) */
+	else if (ELEM4(scopes->wavefrm_mode, SCOPES_WAVEFRM_RGB, SCOPES_WAVEFRM_YCC_601, SCOPES_WAVEFRM_YCC_709, SCOPES_WAVEFRM_YCC_JPEG)) {
+		int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB);
+		
+		glBlendFunc(GL_ONE,GL_ONE);
+		
+		glPushMatrix();
+		glEnableClientState(GL_VERTEX_ARRAY);
+		
+		glTranslatef(rect.xmin, yofs, 0.f);
+		glScalef(w3, h, 0.f);
+		
+		glColor3fv((rgb)?colors_alpha[0]:colorsycc_alpha[0]);
+		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
+		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+
+		glTranslatef(1.f, 0.f, 0.f);
+		glColor3fv((rgb)?colors_alpha[1]:colorsycc_alpha[1]);
+		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_2);
+		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+		
+		glTranslatef(1.f, 0.f, 0.f);
+		glColor3fv((rgb)?colors_alpha[2]:colorsycc_alpha[2]);
+		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_3);
+		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+		
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glPopMatrix();
+
+		
+		/* min max */
+		for (c=0; c<3; c++) {
+			if (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB)
+				glColor3f(colors[c][0]*0.75, colors[c][1]*0.75, colors[c][2]*0.75);
+			else
+				glColor3f(colorsycc[c][0]*0.75, colorsycc[c][1]*0.75, colorsycc[c][2]*0.75);
+			min= yofs+scopes->minmax[c][0]*h;
+			max= yofs+scopes->minmax[c][1]*h;
+			CLAMP(min, rect.ymin, rect.ymax);
+			CLAMP(max, rect.ymin, rect.ymax);
+			fdrawline(rect.xmin+w+2+c*2,min,rect.xmin+w+2+c*2,max);
+		}
+	}
+	
+	/* outline, scale gripper */
+	draw_scope_end(&rect, scissor);
+}
+
+float polar_to_x(float center, float diam, float ampli, float angle)
+{
+	return center + diam * ampli * cosf(angle);
+}
+
+float polar_to_y(float center, float diam, float ampli, float angle)
+{
+	return center + diam * ampli * sinf(angle);
+}
+
+void vectorscope_draw_target(float centerx, float centery, float diam, float r, float g, float b)
+{
+	float y,u,v;
+	float tangle, tampli;
+	float dangle, dampli, dangle2, dampli2;
+
+	rgb_to_yuv(r,g,b, &y, &u, &v);
+	if (u>0 && v>=0) tangle=atanf(v/u);
+	else if (u>0 && v<0) tangle=atanf(v/u)+2*M_PI;
+	else if (u<0) tangle=atanf(v/u)+M_PI;
+	else if (u==0 && v>0) tangle=M_PI/2.0f;
+	else if (u==0 && v<0) tangle=-M_PI/2.0f;
+	tampli= sqrtf(u*u+v*v);
+
+	/* small target vary by 2.5 degree and 2.5 IRE unit */
+	glColor4f(1.0f, 1.0f, 1.0, 0.12f);
+	dangle= 2.5*M_PI/180.0f;
+	dampli= 2.5f/200.0f;
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(polar_to_x(centerx,diam,tampli+dampli,tangle+dangle), polar_to_y(centery,diam,tampli+dampli,tangle+dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli-dampli,tangle+dangle), polar_to_y(centery,diam,tampli-dampli,tangle+dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli-dampli,tangle-dangle), polar_to_y(centery,diam,tampli-dampli,tangle-dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli+dampli,tangle-dangle), polar_to_y(centery,diam,tampli+dampli,tangle-dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli+dampli,tangle+dangle), polar_to_y(centery,diam,tampli+dampli,tangle+dangle));
+	glEnd();
+	/* big target vary by 10 degree and 20% amplitude */
+	glColor4f(1.0f, 1.0f, 1.0, 0.12f);
+	dangle= 10*M_PI/180.0f;
+	dampli= 0.2*tampli;
+	dangle2= 5.0f*M_PI/180.0f;
+	dampli2= 0.5f*dampli;
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(polar_to_x(centerx,diam,tampli+dampli-dampli2,tangle+dangle), polar_to_y(centery,diam,tampli+dampli-dampli2,tangle+dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli+dampli,tangle+dangle), polar_to_y(centery,diam,tampli+dampli,tangle+dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli+dampli,tangle+dangle-dangle2), polar_to_y(centery,diam,tampli+dampli,tangle+dangle-dangle2));
+	glEnd();
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(polar_to_x(centerx,diam,tampli-dampli+dampli2,tangle+dangle), polar_to_y(centery ,diam,tampli-dampli+dampli2,tangle+dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli-dampli,tangle+dangle), polar_to_y(centery,diam,tampli-dampli,tangle+dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli-dampli,tangle+dangle-dangle2), polar_to_y(centery,diam,tampli-dampli,tangle+dangle-dangle2));
+	glEnd();
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(polar_to_x(centerx,diam,tampli-dampli+dampli2,tangle-dangle), polar_to_y(centery,diam,tampli-dampli+dampli2,tangle-dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli-dampli,tangle-dangle), polar_to_y(centery,diam,tampli-dampli,tangle-dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli-dampli,tangle-dangle+dangle2), polar_to_y(centery,diam,tampli-dampli,tangle-dangle+dangle2));
+	glEnd();
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(polar_to_x(centerx,diam,tampli+dampli-dampli2,tangle-dangle), polar_to_y(centery,diam,tampli+dampli-dampli2,tangle-dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli+dampli,tangle-dangle), polar_to_y(centery,diam,tampli+dampli,tangle-dangle));
+	glVertex2f(polar_to_x(centerx,diam,tampli+dampli,tangle-dangle+dangle2), polar_to_y(centery,diam,tampli+dampli,tangle-dangle+dangle2));
+	glEnd();
+}
+
+void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *recti)
+{
+	Scopes *scopes = (Scopes *)but->poin;
+	rctf rect;
+	int i, j;
+	int skina= 123; /* angle in degree of the skin tone line */
+	float w, h, centerx, centery, diam;
+	float alpha;
+	float colors[6][3]={{.75,0,0},{.75,.75,0},{0,.75,0},{0,.75,.75},{0,0,.75},{.75,0,.75}};
+	GLint scissor[4];
+	
+	if (scopes==NULL) return;
+	
+	rect.xmin = (float)recti->xmin+1;
+	rect.xmax = (float)recti->xmax-1;
+	rect.ymin = (float)recti->ymin+SCOPE_RESIZE_PAD+2;
+	rect.ymax = (float)recti->ymax-1;
+	
+	w = rect.xmax - rect.xmin;
+	h = rect.ymax - rect.ymin;
+	centerx = rect.xmin + w/2;
+	centery = rect.ymin + h/2;
+	diam= (w<h)?w:h;
+	
+	alpha = scopes->vecscope_alpha*scopes->vecscope_alpha*scopes->vecscope_alpha;
+			
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	
+	glColor4f(0.f, 0.f, 0.f, 0.3f);
+	uiSetRoundBox(15);
+	gl_round_box(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
+
+	/* need scissor test, hvectorscope can draw outside of boundary */
+	glGetIntegerv(GL_VIEWPORT, scissor);
+	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
+	
+	glColor4f(1.f, 1.f, 1.f, 0.08f);
+	/* draw grid elements */
+	/* cross */
+	fdrawline(centerx - (diam/2)-5, centery, centerx + (diam/2)+5, centery);
+	fdrawline(centerx, centery - (diam/2)-5, centerx, centery + (diam/2)+5);
+	/* circles */
+	for(j=0; j<5; j++) {
+		glBegin(GL_LINE_STRIP);
+		for(i=0; i<=360; i=i+15) {
+			float a= i*M_PI/180.0;
+			float r= (j+1)/10.0f;
+			glVertex2f( polar_to_x(centerx,diam,r,a), polar_to_y(centery,diam,r,a));
+		}
+		glEnd();
+	}
+	/* skin tone line */
+	glColor4f(1.f, 0.4f, 0.f, 0.2f);
+	fdrawline(	polar_to_x(centerx, diam, 0.5f, skina*M_PI/180.0), polar_to_y(centery,diam,0.5,skina*M_PI/180.0),
+				polar_to_x(centerx, diam, 0.1f, skina*M_PI/180.0), polar_to_y(centery,diam,0.1,skina*M_PI/180.0));
+	/* saturation points */
+	for(i=0; i<6; i++)
+		vectorscope_draw_target(centerx, centery, diam, colors[i][0], colors[i][1], colors[i][2]);
+	
+	/* pixel point cloud */
+	glBlendFunc(GL_ONE,GL_ONE);
+	glColor4f(alpha, alpha, alpha, alpha);
+
+	glPushMatrix();
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	glTranslatef(centerx, centery, 0.f);
+	glScalef(diam, diam, 0.f);
+	glVertexPointer(2, GL_FLOAT, 0, scopes->vecscope);
+	glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glPopMatrix();
+	
+	/* outline, scale gripper */
+	draw_scope_end(&rect, scissor);
 		
 	glDisable(GL_BLEND);
 }
-
 
 void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {

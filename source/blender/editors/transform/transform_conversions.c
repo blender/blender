@@ -4451,7 +4451,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 			/* only insert into active keyingset 
 			 * NOTE: we assume here that the active Keying Set does not need to have its iterator overridden spe
 			 */
-			ANIM_apply_keyingset(C, NULL, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+			ANIM_apply_keyingset(C, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
 		}
 		else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 			AnimData *adt= ob->adt;
@@ -4560,9 +4560,9 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 				ANIM_relative_keyingset_add_source(&dsources, id, &RNA_PoseBone, pchan); 
 				
 				/* only insert into active keyingset? */
-				// TODO: move this first case out of the loop
 				if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
-					ANIM_apply_keyingset(C, NULL, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+					/* run the active Keying Set on the current datasource */
+					ANIM_apply_keyingset(C, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
 				}
 				/* only insert into available channels? */
 				else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {

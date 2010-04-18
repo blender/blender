@@ -769,12 +769,19 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 			if (pchan) {
 				if (autokeyframe_cfra_can_key(scene, &pld->ob->id)) {
 					ListBase dsources = {NULL, NULL};
+					KeyingSet *ks = NULL;
 					
-					/* get KeyingSet to use */
-					// TODO: for getting the KeyingSet used, we should really check which channels were affected
-					// TODO: this should get modified so that custom props are taken into account too!
+					/* get KeyingSet to use 
+					 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
+					 * 	  or otherwise key transforms only
+					 */
 					if (poselib_ks_locrotscale == NULL)
 						poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+					 
+					if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
+						ks = ANIM_scene_get_active_keyingset(scene);
+					else 
+						ks = ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
 					/* now insert the keyframe(s) using the Keying Set
 					 *	1) add datasource override for the PoseChannel
@@ -782,7 +789,7 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 					 *	3) free the extra info 
 					 */
 					ANIM_relative_keyingset_add_source(&dsources, &pld->ob->id, &RNA_PoseBone, pchan); 
-					ANIM_apply_keyingset(C, &dsources, NULL, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
+					ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					BLI_freelistN(&dsources);
 					
 					/* clear any unkeyed tags */

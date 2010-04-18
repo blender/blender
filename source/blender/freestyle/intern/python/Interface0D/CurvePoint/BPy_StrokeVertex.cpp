@@ -136,7 +136,7 @@ static char StrokeVertex_getPoint___doc__[] =
 "   Returns the 2D point coordinates as a two-dimensional vector.\n"
 "\n"
 "   :return: The 2D coordinates.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject * StrokeVertex_getPoint( BPy_StrokeVertex *self ) {
 	Vec2f v( self->sv->getPoint() );
@@ -244,7 +244,7 @@ static char StrokeVertex_setPoint___doc__[] =
 "   Sets the 2D point X and Y coordinates.\n"
 "\n"
 "   :arg p: A two-dimensional vector.\n"
-"   :type p: :class:`Mathutils.Vector`, list or tuple of 2 real numbers\n";
+"   :type p: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n";
 
 static PyObject *StrokeVertex_setPoint( BPy_StrokeVertex *self , PyObject *args) {
 	PyObject *obj1 = 0, *obj2 = 0;

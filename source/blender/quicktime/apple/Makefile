@@ -59,4 +59,5 @@ CPPFLAGS += -I..
 CPPFLAGS += -I../../blenloader -I../../imbuf/intern -I../../imbuf 
 CPPFLAGS += -I../../blenlib -I../../makesdna -I../../editors/include -I../../avi 
 CPPFLAGS += -I../../blenkernel -I../../render/extern/include -I../../windowmanager -I../../makesrna
+CPPFLAGS += -I../../../intern/audaspace/intern
 

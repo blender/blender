@@ -22,10 +22,9 @@
 
 # <pep8 compliant>
 
-#from Blender import Object, Draw, Window, sys, Mesh, Geometry
-from Mathutils import Matrix, Vector, RotationMatrix
+from mathutils import Matrix, Vector, RotationMatrix
 import time
-import Geometry
+import geometry
 import bpy
 from math import cos, radians
 
@@ -227,7 +226,7 @@ def islandIntersectUvIsland(source, target, SourceOffset):
     # Edge intersect test
     for ed in edgeLoopsSource:
         for seg in edgeLoopsTarget:
-            i = Geometry.LineIntersect2D(\
+            i = geometry.LineIntersect2D(\
             seg[0], seg[1], SourceOffset+ed[0], SourceOffset+ed[1])
             if i:
                 return 1 # LINE INTERSECTION
@@ -741,7 +740,7 @@ def packIslands(islandList):
 #XXX	Window.DrawProgressBar(0.7, 'Packing %i UV Islands...' % len(packBoxes) )
 
     time1 = time.time()
-    packWidth, packHeight = Geometry.BoxPack2D(packBoxes)
+    packWidth, packHeight = geometry.BoxPack2D(packBoxes)
 
     # print 'Box Packing Time:', time.time() - time1
 
@@ -1056,7 +1055,7 @@ def main(context, island_margin, projection_limit):
             for f in faceProjectionGroupList[i]:
                 f_uv = f.uv
                 for j, v in enumerate(f.v):
-                    # XXX - note, between Mathutils in 2.4 and 2.5 the order changed.
+                    # XXX - note, between mathutils in 2.4 and 2.5 the order changed.
                     f_uv[j][:] = (v.co * MatProj)[:2]
 
 

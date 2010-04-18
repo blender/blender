@@ -1,4 +1,5 @@
-/*
+/* -*- indent-tabs-mode:t; tab-width:4; -*-
+ *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -33,33 +34,26 @@
 /**
  Defines for the bflags param.
  */
-/* Special handling: */
+/* Special handling, pick one of: */
 /* For "symmetry" of flags */
 #define BFILE_NORMAL (0)
 /* No supervision, just translate // if needed, RISKY */
 #define BFILE_RAW    (1<<0)
-/* Path is based in env vars specified by "envvars" */
-#define BFILE_CONFIG (1<<1)
 /* Path is for current session temp files */
-#define BFILE_TEMP   (1<<2)
+#define BFILE_TEMP   (1<<1)
+/* Path is based in env vars of matching name */
+#define BFILE_CONFIG_BASE      (1<<2)
+#define BFILE_CONFIG_DATAFILES (1<<3)
+#define BFILE_CONFIG_PYTHON    (1<<4)
+#define BFILE_CONFIG_PLUGINS   (1<<5)
 
 /* Config handling, special cases: */
-#define BFILE_USERONLY (1<<3)
-#define BFILE_SYSONLY  (1<<4)
+#define BFILE_USERONLY (1<<6)
+#define BFILE_SYSONLY  (1<<7)
 
 /* Compression to apply on close: */
-#define BFILE_GZIP (1<<5)
-
-/**
- For the envvars param.
- */
-typedef enum BEnvVarFamilies {
-	BENV_NONE,
-	BENV_BASE,
-	BENV_DATAFILES,
-	BENV_PYTHON,
-	BENV_PLUGINS
-} BEnvVarFam;
+#define BFILE_GZIP (1<<8)
+#define BFILE_LZMA (1<<9)
 
 /**
  File descriptor for Blender abstracted file access.
@@ -70,7 +64,6 @@ typedef struct {
 
 	/* Anything below should not be touched directly */
 	int uflags;       /* Special options requested by upper level, copy of bflags */
-	BEnvVarFam evars; /* What kind of file, describe the env vars to use */
 	char *fpath;      /* Final/requested path name */
 	char *tpath;      /* Temp path name if applicable */
 	int classf;       /* Own flags, common classification of open and fopen */
@@ -80,12 +73,12 @@ typedef struct {
 /**
  Open a BFILE* with fopen()-like syntax.
  */
-BFILE *BLI_bfile_fopen(const char *path, const char *mode, int bflags, BEnvVarFam envvars);
+BFILE *BLI_bfile_fopen(const char *path, const char *mode, int bflags, const char *relpath);
 
 /**
  Open a BFILE* with open()-like syntax.
  */
-BFILE *BLI_bfile_open(const char *pathname, int flags, int bflags, BEnvVarFam envvars);
+BFILE *BLI_bfile_open(const char *pathname, int flags, int bflags, const char *relpath);
 
 /**
  Get the FILE* associated with the BFILE*.

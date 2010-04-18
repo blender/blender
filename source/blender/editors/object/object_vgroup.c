@@ -284,7 +284,11 @@ void ED_vgroup_nr_vert_add(Object *ob, int def_nr, int vertnum, float weight, in
 	if(dv==NULL)
 		return;
 	
-	dv+= vertnum;
+	/* check that vertnum is valid before trying to get the relevant dvert */
+	if ((vertnum < 0) || (vertnum >= tot))
+		return;
+	else
+		dv += vertnum;
 
 	/* Lets first check to see if this vert is
 	 * already in the weight group -- if so
@@ -1454,7 +1458,11 @@ static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_edit_object(C);
 
-	vgroup_remove_verts(ob, 0);
+	if(RNA_boolean_get(op->ptr, "all"))
+		vgroup_remove_verts(ob, 0);
+	else
+		vgroup_active_remove_verts(ob, 0);
+
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 
@@ -1968,7 +1976,7 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
-		while(dvert && dvert_tot--) {
+		while(dvert_tot--) {
 			if(dvert->totweight)
 				defvert_remap(dvert, sort_map);
 			dvert++;

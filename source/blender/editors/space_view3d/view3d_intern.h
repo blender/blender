@@ -125,7 +125,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void view3d_clr_clipping(void);
 void view3d_set_clipping(RegionView3D *rv3d);
 void add_view3d_after(View3D *v3d, Base *base, int type, int flag);
-void calc_viewborder(Scene *scene, struct ARegion *ar, View3D *v3d, rctf *viewborder_r);
+void calc_viewborder(Scene *scene, struct ARegion *ar, struct RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
@@ -175,7 +175,6 @@ int minmax_verts(Object *obedit, float *min, float *max);
 
 void VIEW3D_OT_snap_selected_to_grid(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_selected_to_cursor(struct wmOperatorType *ot);
-void VIEW3D_OT_snap_selected_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_grid(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_selected(struct wmOperatorType *ot);

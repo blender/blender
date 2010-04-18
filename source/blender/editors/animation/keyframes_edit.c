@@ -84,9 +84,11 @@
 /* This function is used to loop over BezTriples in the given F-Curve, applying a given 
  * operation on them, and optionally applies an F-Curve validation function afterwards.
  */
-short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb) 
+// TODO: make this function work on samples too...
+short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb) 
 {
 	BezTriple *bezt;
+	short ok = 0;
 	int i;
 
 	/* sanity check */
@@ -97,23 +99,30 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEdi
 	if (ked) {
 		ked->fcu= fcu;
 		ked->curIndex= 0;
+		ked->curflags= ok;
 	}
 
 	/* if function to apply to bezier curves is set, then loop through executing it on beztriples */
-	if (bezt_cb) {
+	if (key_cb) {
 		/* if there's a validation func, include that check in the loop 
 		 * (this is should be more efficient than checking for it in every loop)
 		 */
-		if (bezt_ok) {
+		if (key_ok) {
 			for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
-				if (ked) ked->curIndex= i;
+				if (ked) {
+					/* advance the index, and reset the ok flags (to not influence the result) */
+					ked->curIndex= i;
+					ked->curflags= 0;
+				}
 				
 				/* Only operate on this BezTriple if it fullfills the criteria of the validation func */
-				if (bezt_ok(ked, bezt)) {
+				if ( (ok = key_ok(ked, bezt)) ) {
+					if (ked) ked->curflags= ok;
+					
 					/* Exit with return-code '1' if function returns positive
 					 * This is useful if finding if some BezTriple satisfies a condition.
 					 */
-					if (bezt_cb(ked, bezt)) return 1;
+					if (key_cb(ked, bezt)) return 1;
 				}
 			}
 		}
@@ -124,7 +133,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEdi
 				/* Exit with return-code '1' if function returns positive
 				* This is useful if finding if some BezTriple satisfies a condition.
 				*/
-				if (bezt_cb(ked, bezt)) return 1;
+				if (key_cb(ked, bezt)) return 1;
 			}
 		}
 	}
@@ -133,6 +142,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEdi
 	if (ked) {
 		ked->fcu= NULL;
 		ked->curIndex= 0;
+		ked->curflags= 0;
 	}
 
 	/* if fcu_cb (F-Curve post-editing callback) has been specified then execute it */
@@ -146,7 +156,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEdi
 /* -------------------------------- Further Abstracted (Not Exposed Directly) ----------------------------- */
 
 /* This function is used to loop over the keyframe data in an Action Group */
-static short agrp_keyframes_loop(KeyframeEditData *ked, bActionGroup *agrp, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb)
+static short agrp_keyframes_loop(KeyframeEditData *ked, bActionGroup *agrp, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb)
 {
 	FCurve *fcu;
 	
@@ -156,7 +166,7 @@ static short agrp_keyframes_loop(KeyframeEditData *ked, bActionGroup *agrp, Keyf
 	
 	/* only iterate over the F-Curves that are in this group */
 	for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next) {
-		if (ANIM_fcurve_keyframes_loop(ked, fcu, bezt_ok, bezt_cb, fcu_cb))
+		if (ANIM_fcurve_keyframes_loop(ked, fcu, key_ok, key_cb, fcu_cb))
 			return 1;
 	}
 	
@@ -164,7 +174,7 @@ static short agrp_keyframes_loop(KeyframeEditData *ked, bActionGroup *agrp, Keyf
 }
 
 /* This function is used to loop over the keyframe data in an Action */
-static short act_keyframes_loop(KeyframeEditData *ked, bAction *act, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb)
+static short act_keyframes_loop(KeyframeEditData *ked, bAction *act, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb)
 {
 	FCurve *fcu;
 	
@@ -174,7 +184,7 @@ static short act_keyframes_loop(KeyframeEditData *ked, bAction *act, KeyframeEdi
 	
 	/* just loop through all F-Curves */
 	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
-		if (ANIM_fcurve_keyframes_loop(ked, fcu, bezt_ok, bezt_cb, fcu_cb))
+		if (ANIM_fcurve_keyframes_loop(ked, fcu, key_ok, key_cb, fcu_cb))
 			return 1;
 	}
 	
@@ -182,7 +192,7 @@ static short act_keyframes_loop(KeyframeEditData *ked, bAction *act, KeyframeEdi
 }
 
 /* This function is used to loop over the keyframe data of an AnimData block */
-static short adt_keyframes_loop(KeyframeEditData *ked, AnimData *adt, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+static short adt_keyframes_loop(KeyframeEditData *ked, AnimData *adt, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
 {
 	/* sanity check */
 	if (adt == NULL)
@@ -194,13 +204,13 @@ static short adt_keyframes_loop(KeyframeEditData *ked, AnimData *adt, KeyframeEd
 		
 		/* just loop through all F-Curves acting as Drivers */
 		for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
-			if (ANIM_fcurve_keyframes_loop(ked, fcu, bezt_ok, bezt_cb, fcu_cb))
+			if (ANIM_fcurve_keyframes_loop(ked, fcu, key_ok, key_cb, fcu_cb))
 				return 1;
 		}
 	}
 	else if (adt->action) {
 		/* call the function for actions */
-		if (act_keyframes_loop(ked, adt->action, bezt_ok, bezt_cb, fcu_cb))
+		if (act_keyframes_loop(ked, adt->action, key_ok, key_cb, fcu_cb))
 			return 1;
 	}
 	
@@ -208,7 +218,7 @@ static short adt_keyframes_loop(KeyframeEditData *ked, AnimData *adt, KeyframeEd
 }
 
 /* This function is used to loop over the keyframe data in an Object */
-static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
 {
 	Key *key= ob_get_key(ob);
 	
@@ -218,13 +228,13 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 	
 	/* firstly, Object's own AnimData */
 	if (ob->adt) {
-		if (adt_keyframes_loop(ked, ob->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+		if (adt_keyframes_loop(ked, ob->adt, key_ok, key_cb, fcu_cb, filterflag))
 			return 1;
 	}
 	
 	/* shapekeys */
 	if ((key && key->adt) && !(filterflag & ADS_FILTER_NOSHAPEKEYS)) {
-		if (adt_keyframes_loop(ked, key->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+		if (adt_keyframes_loop(ked, key->adt, key_ok, key_cb, fcu_cb, filterflag))
 			return 1;
 	}
 		
@@ -240,7 +250,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 				continue;
 			
 			/* add material's data */
-			if (adt_keyframes_loop(ked, ma->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			if (adt_keyframes_loop(ked, ma->adt, key_ok, key_cb, fcu_cb, filterflag))
 				return 1;
 		}
 	}
@@ -252,7 +262,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 			Camera *ca= (Camera *)ob->data;
 			
 			if ((ca->adt) && !(filterflag & ADS_FILTER_NOCAM)) {
-				if (adt_keyframes_loop(ked, ca->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+				if (adt_keyframes_loop(ked, ca->adt, key_ok, key_cb, fcu_cb, filterflag))
 					return 1;
 			}
 		}
@@ -262,7 +272,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 			Lamp *la= (Lamp *)ob->data;
 			
 			if ((la->adt) && !(filterflag & ADS_FILTER_NOLAM)) {
-				if (adt_keyframes_loop(ked, la->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+				if (adt_keyframes_loop(ked, la->adt, key_ok, key_cb, fcu_cb, filterflag))
 					return 1;
 			}
 		}
@@ -274,7 +284,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 			Curve *cu= (Curve *)ob->data;
 			
 			if ((cu->adt) && !(filterflag & ADS_FILTER_NOCUR)) {
-				if (adt_keyframes_loop(ked, cu->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+				if (adt_keyframes_loop(ked, cu->adt, key_ok, key_cb, fcu_cb, filterflag))
 					return 1;
 			}
 		}
@@ -284,7 +294,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 			MetaBall *mb= (MetaBall *)ob->data;
 			
 			if ((mb->adt) && !(filterflag & ADS_FILTER_NOMBA)) {
-				if (adt_keyframes_loop(ked, mb->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+				if (adt_keyframes_loop(ked, mb->adt, key_ok, key_cb, fcu_cb, filterflag))
 					return 1;
 			}
 		}
@@ -294,7 +304,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 			bArmature *arm= (bArmature *)ob->data;
 			
 			if ((arm->adt) && !(filterflag & ADS_FILTER_NOARM)) {
-				if (adt_keyframes_loop(ked, arm->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+				if (adt_keyframes_loop(ked, arm->adt, key_ok, key_cb, fcu_cb, filterflag))
 					return 1;
 			}
 		}
@@ -304,7 +314,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 			Mesh *me= (Mesh *)ob->data;
 			
 			if ((me->adt) && !(filterflag & ADS_FILTER_NOMESH)) {
-				if (adt_keyframes_loop(ked, me->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+				if (adt_keyframes_loop(ked, me->adt, key_ok, key_cb, fcu_cb, filterflag))
 					return 1;
 			}
 		}
@@ -319,7 +329,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 			if (ELEM(NULL, psys->part, psys->part->adt))
 				continue;
 				
-			if (adt_keyframes_loop(ked, psys->part->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+			if (adt_keyframes_loop(ked, psys->part->adt, key_ok, key_cb, fcu_cb, filterflag))
 				return 1;
 		}
 	}
@@ -328,7 +338,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFu
 }
 
 /* This function is used to loop over the keyframe data in a Scene */
-static short scene_keyframes_loop(KeyframeEditData *ked, Scene *sce, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+static short scene_keyframes_loop(KeyframeEditData *ked, Scene *sce, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
 {
 	World *wo= (sce) ? sce->world : NULL;
 	bNodeTree *ntree= (sce) ? sce->nodetree : NULL;
@@ -339,19 +349,19 @@ static short scene_keyframes_loop(KeyframeEditData *ked, Scene *sce, KeyframeEdi
 	
 	/* Scene's own animation */
 	if (sce->adt) {
-		if (adt_keyframes_loop(ked, sce->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+		if (adt_keyframes_loop(ked, sce->adt, key_ok, key_cb, fcu_cb, filterflag))
 			return 1;
 	}
 	
 	/* World */
 	if (wo && wo->adt) {
-		if (adt_keyframes_loop(ked, wo->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+		if (adt_keyframes_loop(ked, wo->adt, key_ok, key_cb, fcu_cb, filterflag))
 			return 1;
 	}
 	
 	/* NodeTree */
 	if (ntree && ntree->adt) {
-		if (adt_keyframes_loop(ked, ntree->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+		if (adt_keyframes_loop(ked, ntree->adt, key_ok, key_cb, fcu_cb, filterflag))
 			return 1;
 	}
 	
@@ -360,7 +370,7 @@ static short scene_keyframes_loop(KeyframeEditData *ked, Scene *sce, KeyframeEdi
 }
 
 /* This function is used to loop over the keyframe data in a DopeSheet summary */
-static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -376,7 +386,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, Key
 	
 	/* loop through each F-Curve, working on the keyframes until the first curve aborts */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		ret_code= ANIM_fcurve_keyframes_loop(ked, ale->data, bezt_ok, bezt_cb, fcu_cb);
+		ret_code= ANIM_fcurve_keyframes_loop(ked, ale->data, key_ok, key_cb, fcu_cb);
 		
 		if (ret_code)
 			break;
@@ -390,7 +400,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, Key
 /* --- */
 
 /* This function is used to apply operation to all keyframes, regardless of the type */
-short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, bAnimListElem *ale, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, bAnimListElem *ale, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
 {
 	/* sanity checks */
 	if (ale == NULL)
@@ -400,29 +410,29 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, bAnimListElem *ale,
 	switch (ale->datatype) {
 		/* direct keyframe data (these loops are exposed) */
 		case ALE_FCURVE: /* F-Curve */
-			return ANIM_fcurve_keyframes_loop(ked, ale->key_data, bezt_ok, bezt_cb, fcu_cb);
+			return ANIM_fcurve_keyframes_loop(ked, ale->key_data, key_ok, key_cb, fcu_cb);
 		
 		/* indirect 'summaries' (these are not exposed directly) 
 		 * NOTE: must keep this code in sync with the drawing code and also the filtering code!
 		 */
 		case ALE_GROUP: /* action group */
-			return agrp_keyframes_loop(ked, (bActionGroup *)ale->data, bezt_ok, bezt_cb, fcu_cb);
+			return agrp_keyframes_loop(ked, (bActionGroup *)ale->data, key_ok, key_cb, fcu_cb);
 		case ALE_ACT: /* action */
-			return act_keyframes_loop(ked, (bAction *)ale->key_data, bezt_ok, bezt_cb, fcu_cb);
+			return act_keyframes_loop(ked, (bAction *)ale->key_data, key_ok, key_cb, fcu_cb);
 			
 		case ALE_OB: /* object */
-			return ob_keyframes_loop(ked, (Object *)ale->key_data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+			return ob_keyframes_loop(ked, (Object *)ale->key_data, key_ok, key_cb, fcu_cb, filterflag);
 		case ALE_SCE: /* scene */
-			return scene_keyframes_loop(ked, (Scene *)ale->data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+			return scene_keyframes_loop(ked, (Scene *)ale->data, key_ok, key_cb, fcu_cb, filterflag);
 		case ALE_ALL: /* 'all' (DopeSheet summary) */
-			return summary_keyframes_loop(ked, (bAnimContext *)ale->data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+			return summary_keyframes_loop(ked, (bAnimContext *)ale->data, key_ok, key_cb, fcu_cb, filterflag);
 	}
 	
 	return 0;
 }
 
 /* This function is used to apply operation to all keyframes, regardless of the type without needed an AnimListElem wrapper */
-short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, void *data, int keytype, KeyframeEditFunc bezt_ok, KeyframeEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
+short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, void *data, int keytype, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
 {
 	/* sanity checks */
 	if (data == NULL)
@@ -432,22 +442,22 @@ short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, void *data, int
 	switch (keytype) {
 		/* direct keyframe data (these loops are exposed) */
 		case ALE_FCURVE: /* F-Curve */
-			return ANIM_fcurve_keyframes_loop(ked, data, bezt_ok, bezt_cb, fcu_cb);
+			return ANIM_fcurve_keyframes_loop(ked, data, key_ok, key_cb, fcu_cb);
 		
 		/* indirect 'summaries' (these are not exposed directly) 
 		 * NOTE: must keep this code in sync with the drawing code and also the filtering code!
 		 */
 		case ALE_GROUP: /* action group */
-			return agrp_keyframes_loop(ked, (bActionGroup *)data, bezt_ok, bezt_cb, fcu_cb);
+			return agrp_keyframes_loop(ked, (bActionGroup *)data, key_ok, key_cb, fcu_cb);
 		case ALE_ACT: /* action */
-			return act_keyframes_loop(ked, (bAction *)data, bezt_ok, bezt_cb, fcu_cb);
+			return act_keyframes_loop(ked, (bAction *)data, key_ok, key_cb, fcu_cb);
 			
 		case ALE_OB: /* object */
-			return ob_keyframes_loop(ked, (Object *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+			return ob_keyframes_loop(ked, (Object *)data, key_ok, key_cb, fcu_cb, filterflag);
 		case ALE_SCE: /* scene */
-			return scene_keyframes_loop(ked, (Scene *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+			return scene_keyframes_loop(ked, (Scene *)data, key_ok, key_cb, fcu_cb, filterflag);
 		case ALE_ALL: /* 'all' (DopeSheet summary) */
-			return summary_keyframes_loop(ked, (bAnimContext *)data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+			return summary_keyframes_loop(ked, (bAnimContext *)data, key_ok, key_cb, fcu_cb, filterflag);
 	}
 	
 	return 0;
@@ -484,44 +494,107 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 /* ************************************************************************** */
 /* BezTriple Validation Callbacks */
 
+/* ------------------------ */
+/* Some macros to make this easier... */
+
+/* run the given check on the 3 handles 
+ *	- check should be a macro, which takes the handle index as its single arg, which it substitutes later
+ *	- requires that a var, of type short, is named 'ok', and has been initialised ot 0
+ */
+#define KEYFRAME_OK_CHECKS(check) \
+	{ \
+		if (check(1)) \
+			ok |= KEYFRAME_OK_KEY; \
+		 \
+		if (ked && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES)) { \
+			if (check(0)) \
+				ok |= KEYFRAME_OK_H1; \
+			if (check(2)) \
+				ok |= KEYFRAME_OK_H2; \
+		} \
+	}	
+ 
+/* ------------------------ */
+ 
 static short ok_bezier_frame(KeyframeEditData *ked, BezTriple *bezt)
 {
+	short ok = 0;
+	
 	/* frame is stored in f1 property (this float accuracy check may need to be dropped?) */
-	return IS_EQ(bezt->vec[1][0], ked->f1);
+	#define KEY_CHECK_OK(_index) IS_EQ(bezt->vec[_index][0], ked->f1)
+		KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
+	#undef KEY_CHECK_OK
+	
+	/* return ok flags */
+	return ok;
 }
 
 static short ok_bezier_framerange(KeyframeEditData *ked, BezTriple *bezt)
 {
+	short ok = 0;
+	
 	/* frame range is stored in float properties */
-	return ((bezt->vec[1][0] > ked->f1) && (bezt->vec[1][0] < ked->f2));
+	#define KEY_CHECK_OK(_index) ((bezt->vec[_index][0] > ked->f1) && (bezt->vec[_index][0] < ked->f2))
+		KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
+	#undef KEY_CHECK_OK
+	
+	/* return ok flags */
+	return ok;
 }
 
 static short ok_bezier_selected(KeyframeEditData *ked, BezTriple *bezt)
 {
-	/* this macro checks all beztriple handles for selection... */
-	return BEZSELECTED(bezt);
+	/* this macro checks all beztriple handles for selection... 
+	 * 	only one of the verts has to be selected for this to be ok...
+	 */
+	if (BEZSELECTED(bezt))
+		return KEYFRAME_OK_ALL;
+	else
+		return 0;
 }
 
 static short ok_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
-{
+{	
+	short ok = 0;
+	
 	/* value is stored in f1 property 
 	 *	- this float accuracy check may need to be dropped?
 	 *	- should value be stored in f2 instead so that we won't have conflicts when using f1 for frames too?
 	 */
-	return IS_EQ(bezt->vec[1][1], ked->f1);
+	#define KEY_CHECK_OK(_index) IS_EQ(bezt->vec[_index][1], ked->f1)
+		KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
+	#undef KEY_CHECK_OK
+	
+	/* return ok flags */
+	return ok;
 }
 
 static short ok_bezier_valuerange(KeyframeEditData *ked, BezTriple *bezt)
 {
+	short ok = 0;
+	
 	/* value range is stored in float properties */
-	return ((bezt->vec[1][1] > ked->f1) && (bezt->vec[1][1] < ked->f2));
+	#define KEY_CHECK_OK(_index) ((bezt->vec[_index][1] > ked->f1) && (bezt->vec[_index][1] < ked->f2))
+		KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
+	#undef KEY_CHECK_OK
+	
+	/* return ok flags */
+	return ok;
 }
 
 static short ok_bezier_region(KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* rect is stored in data property (it's of type rectf, but may not be set) */
-	if (ked->data)
-		return BLI_in_rctf(ked->data, bezt->vec[1][0], bezt->vec[1][1]);
+	if (ked->data) {
+		short ok = 0;
+		
+		#define KEY_CHECK_OK(_index) BLI_in_rctf(ked->data, bezt->vec[_index][0], bezt->vec[_index][1])
+			KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
+		#undef KEY_CHECK_OK
+		
+		/* return ok flags */
+		return ok;
+	}
 	else 
 		return 0;
 }
@@ -586,11 +659,11 @@ short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
 }
 
 /* used to remap times from one range to another
- * requires:  ked->data = BeztEditCD_Remap	
+ * requires:  ked->data = KeyframeEditCD_Remap	
  */
 void bezt_remap_times(KeyframeEditData *ked, BezTriple *bezt)
 {
-	BeztEditCD_Remap *rmap= (BeztEditCD_Remap*)ked->data;
+	KeyframeEditCD_Remap *rmap= (KeyframeEditCD_Remap*)ked->data;
 	const float scale = (rmap->newMax - rmap->newMin) / (rmap->oldMax - rmap->oldMin);
 	
 	/* perform transform on all three handles unless indicated otherwise */
@@ -932,21 +1005,43 @@ KeyframeEditFunc ANIM_editkeyframes_keytype(short code)
 
 static short select_bezier_add(KeyframeEditData *ked, BezTriple *bezt) 
 {
-	/* Select the bezier triple */
-	BEZ_SEL(bezt);
+	/* if we've got info on what to select, use it, otherwise select all */
+	if ((ked) && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES)) {
+		if (ked->curflags & KEYFRAME_OK_KEY)
+			bezt->f2 |= SELECT;
+		if (ked->curflags & KEYFRAME_OK_H1)
+			bezt->f1 |= SELECT;
+		if (ked->curflags & KEYFRAME_OK_H2)
+			bezt->f3 |= SELECT;
+	}
+	else {
+		BEZ_SEL(bezt);
+	}
+	
 	return 0;
 }
 
 static short select_bezier_subtract(KeyframeEditData *ked, BezTriple *bezt) 
 {
-	/* Deselect the bezier triple */
-	BEZ_DESEL(bezt);
+	/* if we've got info on what to deselect, use it, otherwise deselect all */
+	if ((ked) && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES)) {
+		if (ked->curflags & KEYFRAME_OK_KEY)
+			bezt->f2 &= ~SELECT;
+		if (ked->curflags & KEYFRAME_OK_H1)
+			bezt->f1 &= ~SELECT;
+		if (ked->curflags & KEYFRAME_OK_H2)
+			bezt->f3 &= ~SELECT;
+	}
+	else {
+		BEZ_DESEL(bezt);
+	}
+	
 	return 0;
 }
 
 static short select_bezier_invert(KeyframeEditData *ked, BezTriple *bezt) 
 {
-	/* Invert the selection for the bezier triple */
+	/* Invert the selection for the whole bezier triple */
 	bezt->f2 ^= SELECT;
 	if (bezt->f2 & SELECT) {
 		bezt->f1 |= SELECT;

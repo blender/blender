@@ -279,7 +279,7 @@ def ik(obj, bone_definition, base_names, options):
 
 
 def fk(obj, bone_definition, base_names, options):
-    from Mathutils import Vector
+    from mathutils import Vector
     arm = obj.data
 
     # these account for all bones in METARIG_NAMES
@@ -349,7 +349,7 @@ def fk(obj, bone_definition, base_names, options):
     con.subtarget = mt.hips
 
     # add driver
-    hinge_driver_path = fk_chain.thigh_p.path_to_id() + '["hinge"]'
+    hinge_driver_path = fk_chain.thigh_p.path_from_id() + '["hinge"]'
 
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver

@@ -124,6 +124,9 @@ class DOPESHEET_MT_select(bpy.types.Menu):
         layout.operator("action.select_more")
         layout.operator("action.select_less")
 
+        layout.separator()
+        layout.operator("action.select_linked")
+
 
 class DOPESHEET_MT_channel(bpy.types.Menu):
     bl_label = "Channel"

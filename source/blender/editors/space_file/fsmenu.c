@@ -266,7 +266,7 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 		
 		for (i=2; i < 26; i++) {
 			if ((tmp>>i) & 1) {
-				tmps[0]='a'+i;
+				tmps[0]='A'+i;
 				tmps[1]=':';
 				tmps[2]='\\';
 				tmps[3]=0;

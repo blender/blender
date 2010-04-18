@@ -24,7 +24,7 @@ static char CalligraphicShader___doc__[] =
 "   :arg iMaxThickness: The maximum thickness in the main direction.\n"
 "   :type iMaxThickness: float\n"
 "   :arg iOrientation: The 2D vector giving the main direction.\n"
-"   :type iOrientation: :class:`Mathutils.Vector`\n"
+"   :type iOrientation: :class:`mathutils.Vector`\n"
 "   :arg iClamp: If true, the strokes are drawn in black when the stroke\n"
 "      direction is between -90 and 90 degrees with respect to the main\n"
 "      direction and drawn in white otherwise.  If false, the strokes\n"

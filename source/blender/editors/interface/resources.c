@@ -275,6 +275,8 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->edge_seam; break;
 			case TH_EDGE_SHARP:
 				cp= ts->edge_sharp; break;
+			case TH_EDGE_CREASE:
+				cp= ts->edge_crease; break;
 			case TH_EDITMESH_ACTIVE:
 				cp= ts->editmesh_active; break;
 			case TH_EDGE_FACESEL:
@@ -942,6 +944,14 @@ void UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, in
 	col[2] = b;
 }
 
+void UI_ThemeClearColor(int colorid)
+{
+	float col[3];
+	
+	UI_GetThemeColor3fv(colorid, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+}
+
 void UI_make_axis_color(char *src_col, char *dst_col, char axis)
 {
 	switch(axis)
@@ -1440,6 +1450,9 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->tipo.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
 			SETCOL(btheme->tipo.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
 			SETCOL(btheme->tipo.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+			
+			/* edge crease */
+			SETCOLF(btheme->tv3d.edge_crease, 0.8, 0, 0.6, 1.0);
 		}
 	}
 

@@ -1,2 +1,2 @@
 from Freestyle import *
-from Mathutils import Vector
+from mathutils import Vector

@@ -33,7 +33,7 @@ include nan_definitions.mk
 DIRS = windowmanager editors blenloader readblenfile
 DIRS += avi imbuf render blenlib blenkernel blenpluginapi
 DIRS += makesdna makesrna
-DIRS += python nodes gpu
+DIRS += python nodes modifiers gpu
 DIRS += blenfont ikplugin
 
 ifeq ($(WITH_QUICKTIME), true)

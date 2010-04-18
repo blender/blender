@@ -48,7 +48,7 @@ Be sure not to use modifiers that change the number or order of verts in the mes
 # ***** END GPL LICENCE BLOCK *****
 
 import bpy
-import Mathutils
+import mathutils
 from struct import pack
 
 
@@ -84,10 +84,10 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 
     orig_frame = sce.frame_current
     sce.set_frame(PREF_STARTFRAME)
-    me = ob.create_mesh(True, 'PREVIEW')
+    me = ob.create_mesh(sce, True, 'PREVIEW')
 
     #Flip y and z
-    mat_flip = Mathutils.Matrix(\
+    mat_flip = mathutils.Matrix(\
     [1.0, 0.0, 0.0, 0.0],\
     [0.0, 0.0, 1.0, 0.0],\
     [0.0, 1.0, 0.0, 0.0],\
@@ -123,7 +123,7 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
         """
 
         sce.set_frame(frame)
-        me = ob.create_mesh(True, 'PREVIEW')
+        me = ob.create_mesh(sce, True, 'PREVIEW')
         check_vertcount(me, numverts)
         me.transform(mat_flip * ob.matrix)
 

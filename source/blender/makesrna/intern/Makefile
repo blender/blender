@@ -46,6 +46,7 @@ endif
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I../../../../intern/audaspace/intern
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../imbuf

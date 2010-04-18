@@ -42,7 +42,7 @@ Remove the CMakeCache.txt file and try again from another folder, e.g.:
 ")
 ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(Blender)
 
 #-----------------------------------------------------------------------------

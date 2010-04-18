@@ -4027,7 +4027,7 @@ static void p_smooth(PChart *chart)
 	MEM_freeN(nodesx);
 	MEM_freeN(nodesy);
 
-	arena = BLI_memarena_new(1<<16);
+	arena = BLI_memarena_new(1<<16, "param smooth arena");
 	root = p_node_new(arena, tri, esize*2, minv, maxv, 0);
 
 	for (v=chart->verts; v; v=v->nextlink)
@@ -4047,7 +4047,7 @@ ParamHandle *param_construct_begin()
 	PHandle *handle = MEM_callocN(sizeof*handle, "PHandle");
 	handle->construction_chart = p_chart_new(handle);
 	handle->state = PHANDLE_STATE_ALLOCATED;
-	handle->arena = BLI_memarena_new((1<<16));
+	handle->arena = BLI_memarena_new((1<<16), "param construct arena");
 	handle->aspx = 1.0f;
 	handle->aspy = 1.0f;
 

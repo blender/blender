@@ -140,6 +140,9 @@ void ED_node_generic_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *
 	for(sce=bmain->scene.first; sce; sce=sce->id.next)
 		if(sce->nodetree && sce->use_nodes && has_nodetree(sce->nodetree, ntree))
 			ED_node_changed_update(&sce->id, node);
+	
+	if(ntree->type == NTREE_TEXTURE)
+		ntreeTexCheckCyclics(ntree);
 }
 
 static void do_node_internal_buttons(bContext *C, void *node_v, int event)
@@ -842,6 +845,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			node_draw_preview(node->preview, &node->prvr);
 		BLI_unlock_thread(LOCK_PREVIEW);
 	}
+	
+	UI_ThemeClearColor(color_id);
 		
 	uiEndBlock(C, node->block);
 	uiDrawBlock(C, node->block);
@@ -1064,14 +1069,12 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 
 void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 {
-	float col[3];
 	View2DScrollers *scrollers;
 	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *scene= CTX_data_scene(C);
 	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0);
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	UI_view2d_view_ortho(C, v2d);

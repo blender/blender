@@ -61,6 +61,7 @@ char OP_RESIZE[] = "TRANSFORM_OT_resize";
 char OP_SHEAR[] = "TRANSFORM_OT_shear";
 char OP_WARP[] = "TRANSFORM_OT_warp";
 char OP_SHRINK_FATTEN[] = "TRANSFORM_OT_shrink_fatten";
+char OP_PUSH_PULL[] = "TRANSFORM_OT_push_pull";
 char OP_TILT[] = "TRANSFORM_OT_tilt";
 char OP_TRACKBALL[] = "TRANSFORM_OT_trackball";
 char OP_MIRROR[] = "TRANSFORM_OT_mirror";
@@ -75,6 +76,7 @@ void TRANSFORM_OT_resize(struct wmOperatorType *ot);
 void TRANSFORM_OT_shear(struct wmOperatorType *ot);
 void TRANSFORM_OT_warp(struct wmOperatorType *ot);
 void TRANSFORM_OT_shrink_fatten(struct wmOperatorType *ot);
+void TRANSFORM_OT_push_pull(struct wmOperatorType *ot);
 void TRANSFORM_OT_tilt(struct wmOperatorType *ot);
 void TRANSFORM_OT_trackball(struct wmOperatorType *ot);
 void TRANSFORM_OT_mirror(struct wmOperatorType *ot);
@@ -91,6 +93,7 @@ TransformModeItem transform_modes[] =
 	{OP_SHEAR, TFM_SHEAR, TRANSFORM_OT_shear},
 	{OP_WARP, TFM_WARP, TRANSFORM_OT_warp},
 	{OP_SHRINK_FATTEN, TFM_SHRINKFATTEN, TRANSFORM_OT_shrink_fatten},
+	{OP_PUSH_PULL, TFM_PUSHPULL, TRANSFORM_OT_push_pull},
 	{OP_TILT, TFM_TILT, TRANSFORM_OT_tilt},
 	{OP_TRACKBALL, TFM_TRACKBALL, TRANSFORM_OT_trackball},
 	{OP_MIRROR, TFM_MIRROR, TRANSFORM_OT_mirror},
@@ -579,6 +582,26 @@ void TRANSFORM_OT_shear(struct wmOperatorType *ot)
 	// XXX Shear axis?
 }
 
+void TRANSFORM_OT_push_pull(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Push/Pull";
+	ot->description= "Push/Pull selected items";
+	ot->idname = OP_PUSH_PULL;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+
+	/* api callbacks */
+	ot->invoke = transform_invoke;
+	ot->exec   = transform_exec;
+	ot->modal  = transform_modal;
+	ot->cancel  = transform_cancel;
+	ot->poll   = ED_operator_areaactive;
+
+	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Distance", "", -FLT_MAX, FLT_MAX);
+
+	Transform_Properties(ot, P_PROPORTIONAL|P_MIRROR|P_SNAP);
+}
+
 void TRANSFORM_OT_shrink_fatten(struct wmOperatorType *ot)
 {
 	/* identifiers */
@@ -864,6 +887,7 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			km= WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);
 
 			km= WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_A, KM_ANY, 0, 0);
+			RNA_enum_set(km->ptr, "release_confirm", 1);
 			km= WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_S, KM_ANY, 0, 0);
 			RNA_enum_set(km->ptr, "release_confirm", 1);
 

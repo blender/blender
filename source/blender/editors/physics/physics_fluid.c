@@ -1005,7 +1005,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	/* setup job */
 	WM_jobs_customdata(steve, fb, fluidbake_free);
 	WM_jobs_timer(steve, 0.1, NC_SCENE|ND_FRAME, NC_SCENE|ND_FRAME);
-	WM_jobs_callbacks(steve, fluidbake_startjob, NULL, NULL);
+	WM_jobs_callbacks(steve, fluidbake_startjob, NULL, NULL, NULL);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
 

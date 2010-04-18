@@ -44,6 +44,7 @@ struct Text;
 struct Script;
 struct ImBuf;
 struct Image;
+struct Scopes;
 struct Histogram;
 struct SpaceIpo;
 struct BlendHandle;
@@ -260,8 +261,10 @@ typedef struct SpaceImage {
 	
 	struct bGPdata *gpd;			/* grease pencil data */
 	
-	struct Histogram hist;			/* viewer histogram */
+	struct Scopes scopes;			/* histogram waveform and vectorscope */
+
 	struct Histogram sample_line_hist;	/* sample line histogram */
+	
 } SpaceImage;
 
 typedef struct SpaceNla {
@@ -370,8 +373,9 @@ typedef struct SpaceNode {
 	float aspect;
 	void *curfont;
 	
-	float xof, yof;	/* offset for drawing the backdrop */
-	float mx, my;	/* mousepos for drawing socketless link */
+	float xof, yof;		/* offset for drawing the backdrop */
+	float zoom, padf;	/* zoom for backdrop */
+	float mx, my;		/* mousepos for drawing socketless link */
 	
 	struct bNodeTree *nodetree, *edittree;
 	int treetype;			/* treetype: as same nodetree->type */
@@ -527,6 +531,9 @@ typedef struct SpaceUserPref {
 	int spacetype;
 
 	int pad;
+	
+	char filter[64];		/* search term for filtering in the UI */
+
 } SpaceUserPref;
 
 /* view3d  Now in DNA_view3d_types.h */
@@ -867,6 +874,14 @@ enum {
 #define SEQ_VIEW_SEQUENCE			1
 #define SEQ_VIEW_PREVIEW			2
 #define SEQ_VIEW_SEQUENCE_PREVIEW	3
+
+/* sseq->render_size */
+#define SEQ_PROXY_RENDER_SIZE_NONE      -1
+#define SEQ_PROXY_RENDER_SIZE_SCENE     0
+#define SEQ_PROXY_RENDER_SIZE_25        25
+#define SEQ_PROXY_RENDER_SIZE_50        50
+#define SEQ_PROXY_RENDER_SIZE_75        75
+#define SEQ_PROXY_RENDER_SIZE_FULL      100
 
 
 /* space types, moved from DNA_screen_types.h */

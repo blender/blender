@@ -59,6 +59,8 @@ EnumPropertyItem curve_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_math.h"
+
 #include "DNA_object_types.h"
 
 #include "BKE_curve.h"
@@ -137,6 +139,40 @@ static int rna_Curve_texspace_editable(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->data;
 	return (cu->texflag & CU_AUTOSPACE)? 0: PROP_EDITABLE;
+}
+
+static void rna_Curve_texspace_loc_get(PointerRNA *ptr, float *values)
+{
+	Curve *cu= (Curve *)ptr->data;
+	
+	if (!cu->bb)
+		tex_space_curve(cu);
+	
+	copy_v3_v3(values, cu->loc);
+}
+
+static void rna_Curve_texspace_loc_set(PointerRNA *ptr, const float *values)
+{
+	Curve *cu= (Curve *)ptr->data;
+	
+	copy_v3_v3(cu->loc, values);
+}
+
+static void rna_Curve_texspace_size_get(PointerRNA *ptr, float *values)
+{
+	Curve *cu= (Curve *)ptr->data;
+	
+	if (!cu->bb)
+		tex_space_curve(cu);
+	
+	copy_v3_v3(values, cu->size);
+}
+
+static void rna_Curve_texspace_size_set(PointerRNA *ptr, const float *values)
+{
+	Curve *cu= (Curve *)ptr->data;
+	
+	copy_v3_v3(cu->size, values);
 }
 
 static void rna_Curve_material_index_range(PointerRNA *ptr, int *min, int *max)
@@ -364,7 +400,7 @@ static void rna_Nurb_update_knot_v(Main *bmain, Scene *scene, PointerRNA *ptr)
 	rna_Curve_update_data(bmain, scene, ptr);
 }
 
-static void rna_Curve_spline_points_add(ID *id, Nurb *nu, bContext *C, ReportList *reports, int number)
+static void rna_Curve_spline_points_add(ID *id, Nurb *nu, ReportList *reports, int number)
 {
 	if(nu->type == CU_BEZIER) {
 		BKE_report(reports, RPT_ERROR, "Bezier spline can't have points added");
@@ -378,11 +414,11 @@ static void rna_Curve_spline_points_add(ID *id, Nurb *nu, bContext *C, ReportLis
 		/* update */
 		makeknots(nu, 1);
 
-		rna_Curve_update_data_id(CTX_data_main(C), CTX_data_scene(C), id);
+		rna_Curve_update_data_id(NULL, NULL, id);
 	}
 }
 
-static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, bContext *C, ReportList *reports, int number)
+static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, ReportList *reports, int number)
 {
 	if(nu->type != CU_BEZIER) {
 		BKE_report(reports, RPT_ERROR, "Only bezier splines can be added");
@@ -395,7 +431,7 @@ static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, bContext *C, Report
 		/* update */
 		makeknots(nu, 1);
 
-		rna_Curve_update_data_id(CTX_data_main(C), CTX_data_scene(C), id);
+		rna_Curve_update_data_id(NULL, NULL, id);
 	}
 }
 
@@ -903,7 +939,7 @@ static void rna_def_curve_spline_points(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "rna_Curve_spline_points_add");
 	RNA_def_function_ui_description(func, "Add a number of points to this spline.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_SELF_ID|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_USE_REPORTS);
 	parm= RNA_def_int(func, "number", 1, INT_MIN, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
 	/*
@@ -930,7 +966,7 @@ static void rna_def_curve_spline_bezpoints(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "rna_Curve_spline_bezpoints_add");
 	RNA_def_function_ui_description(func, "Add a number of points to this spline.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_SELF_ID|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_USE_REPORTS);
 	parm= RNA_def_int(func, "number", 1, INT_MIN, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
 	/*
@@ -1002,7 +1038,6 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_Curve_refine");
 	
 	rna_def_animdata_common(srna);
-	rna_def_texmat_common(srna, "rna_Curve_texspace_editable");
 
 	prop= RNA_def_property(srna, "shape_keys", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "key");
@@ -1138,6 +1173,38 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_DEFORM_FILL);
 	RNA_def_property_ui_text(prop, "Fill deformed", "Fill curve after applying deformation");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	
+	/* texture space */
+	prop= RNA_def_property(srna, "auto_texspace", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "texflag", CU_AUTOSPACE);
+	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
+	
+	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
+	RNA_def_property_editable_func(prop, "rna_Curve_texspace_editable");
+	RNA_def_property_float_funcs(prop, "rna_Curve_texspace_loc_get", "rna_Curve_texspace_loc_set", NULL);	
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	
+	prop= RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
+	RNA_def_property_editable_func(prop, "rna_Curve_texspace_editable");
+	RNA_def_property_float_funcs(prop, "rna_Curve_texspace_size_get", "rna_Curve_texspace_size_set", NULL);
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	
+	/* not supported yet
+	 prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
+	 RNA_def_property_float(prop, NULL, "rot");
+	 RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
+	 RNA_def_property_editable_func(prop, texspace_editable);
+	 RNA_def_property_update(prop, 0, "rna_Curve_update_data");*/
+	
+	/* materials */
+	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_ui_text(prop, "Materials", "");
 }
 
 static void rna_def_curve_nurb(BlenderRNA *brna)

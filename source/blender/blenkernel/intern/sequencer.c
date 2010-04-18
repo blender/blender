@@ -1231,7 +1231,8 @@ static int seq_proxy_get_fname(Scene *scene, Sequence * seq, int cfra, char * na
 		return FALSE;
 	}
 
-	if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
+	if ((seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)
+	    || (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE)) {
 		strcpy(dir, seq->strip->proxy->dir);
 	} else {
 		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {

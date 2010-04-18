@@ -1123,8 +1123,6 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 /* for switching to/from mode */
 static int paint_poll_test(bContext *C)
 {
-	if(ED_operator_view3d_active(C)==0)
-		return 0;
 	if(CTX_data_edit_object(C))
 		return 0;
 	if(CTX_data_active_object(C)==NULL)

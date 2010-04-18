@@ -3726,7 +3726,7 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 static int select_linked_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
 	ViewContext vc;
 	Nurb *nu;
 	BezTriple *bezt;

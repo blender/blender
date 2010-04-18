@@ -7,7 +7,7 @@
 # import GameKeys
 
 # support for Vector(), Matrix() types and advanced functions like ScaleMatrix(...) and RotationMatrix(...)
-# import Mathutils
+# import mathutils
 
 # for functions like getWindowWidth(), getWindowHeight()
 # import Rasterizer

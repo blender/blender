@@ -32,6 +32,12 @@
 extern "C" {
 #endif
 
+#include "BLI_math_inline.h"
+
+#ifdef BLI_MATH_INLINE
+#include "intern/math_geom_inline.c"
+#endif
+
 /********************************** Polygons *********************************/
 
 void cent_tri_v3(float r[3], float a[3], float b[3], float c[3]);
@@ -146,6 +152,8 @@ void orthographic_m4(float mat[4][4], float left, float right,
 
 int box_clip_bounds_m4(float boundbox[2][3],
 	float bounds[4], float winmat[4][4]);
+void box_minmax_bounds_m4(float min[3], float max[3],
+	float boundbox[2][3], float mat[4][4]);
 
 /********************************** Mapping **********************************/
 
@@ -165,11 +173,33 @@ void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang,
 void tangent_from_uv(float *uv1, float *uv2, float *uv3,
 	float *co1, float *co2, float *co3, float *n, float *tang);
 
-/********************************* vector clouds******************************/
+/******************************** Vector Clouds ******************************/
 
+void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,
+	float (*rpos)[3], float *rweight,
+	float lloc[3],float rloc[3],float lrot[3][3],float lscale[3][3]);
 
-void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,float (*rpos)[3], float *rweight,
-							float lloc[3],float rloc[3],float lrot[3][3],float lscale[3][3]);
+/****************************** Spherical Harmonics *************************/
+
+/* Uses 2nd order SH => 9 coefficients, stored in this order:
+   0 = (0,0),
+   1 = (1,-1), 2 = (1,0), 3 = (1,1),
+   4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
+
+MINLINE void zero_sh(float r[9]);
+MINLINE void copy_sh_sh(float r[9], float a[9]);
+MINLINE void mul_sh_fl(float r[9], float f);
+MINLINE void add_sh_shsh(float r[9], float a[9], float b[9]);
+
+MINLINE float eval_shv3(float r[9], float v[3]);
+MINLINE float diffuse_shv3(float r[9], float v[3]);
+MINLINE void vec_fac_to_sh(float r[9], float v[3], float f);
+MINLINE void madd_sh_shfl(float r[9], float sh[3], float f);
+
+/********************************* Form Factor *******************************/
+
+float form_factor_hemi_poly(float p[3], float n[3],
+	float v1[3], float v2[3], float v3[3], float v4[3]);
 
 #ifdef __cplusplus
 }

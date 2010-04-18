@@ -441,38 +441,60 @@ static void gp_stroke_to_bezier (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, C
 	bGPDspoint *pt;
 	Nurb *nu;
 	BezTriple *bezt;
-	int i;
-	
+	int i, tot;
+	float p3d_cur[3], p3d_prev[3], p3d_next[3];
+
 	/* create new 'nurb' within the curve */
 	nu = (Nurb *)MEM_callocN(sizeof(Nurb), "gpstroke_to_bezier(nurb)");
-	
+
 	nu->pntsu= gps->totpoints;
 	nu->resolu= 12;
 	nu->resolv= 12;
 	nu->type= CU_BEZIER;
 	nu->bezt = (BezTriple *)MEM_callocN(gps->totpoints*sizeof(BezTriple), "bezts");
-	
+
+	tot= gps->totpoints;
+
+	/* get initial coordinates */
+	pt=gps->points;
+	if (tot) {
+		gp_strokepoint_convertcoords(C, gps, pt, p3d_cur);
+		if (tot > 1) {
+			gp_strokepoint_convertcoords(C, gps, pt+1, p3d_next);
+		}
+	}
+
 	/* add points */
-	for (i=0, pt=gps->points, bezt=nu->bezt; i < gps->totpoints; i++, pt++, bezt++) {
-		float p3d[3];
-		
-		/* get coordinates to add at */
-		gp_strokepoint_convertcoords(C, gps, pt, p3d);
-		
-		/* TODO: maybe in future the handles shouldn't be in same place */
-		copy_v3_v3(bezt->vec[0], p3d);
-		copy_v3_v3(bezt->vec[1], p3d);
-		copy_v3_v3(bezt->vec[2], p3d);
-		
+	for (i=0, bezt=nu->bezt; i < tot; i++, pt++, bezt++) {
+		float h1[3], h2[3];
+
+		if (i) interp_v3_v3v3(h1, p3d_cur, p3d_prev, 0.3);
+		else interp_v3_v3v3(h1, p3d_cur, p3d_next, -0.3);
+
+		if (i < tot-1) interp_v3_v3v3(h2, p3d_cur, p3d_next, 0.3);
+		else interp_v3_v3v3(h2, p3d_cur, p3d_prev, -0.3);
+
+		copy_v3_v3(bezt->vec[0], h1);
+		copy_v3_v3(bezt->vec[1], p3d_cur);
+		copy_v3_v3(bezt->vec[2], h2);
+
 		/* set settings */
 		bezt->h1= bezt->h2= HD_FREE;
 		bezt->f1= bezt->f2= bezt->f3= SELECT;
 		bezt->radius = bezt->weight = pt->pressure * gpl->thickness * 0.1f;
+
+		/* shift coord vects */
+		copy_v3_v3(p3d_prev, p3d_cur);
+		copy_v3_v3(p3d_cur, p3d_next);
+
+		if (i < tot) {
+			gp_strokepoint_convertcoords(C, gps, pt+1, p3d_next);
+		}
 	}
-	
+
 	/* must calculate handles or else we crash */
 	calchandlesNurb(nu);
-	
+
 	/* add nurb to curve */
 	BLI_addtail(&cu->nurb, nu);
 }
@@ -493,7 +515,7 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 	/* only convert if there are any strokes on this layer's frame to convert */
 	if (gpf->strokes.first == NULL)
 		return;
-	
+
 	/* init the curve object (remove rotation and get curve data from it)
 	 *	- must clear transforms set on object, as those skew our results
 	 */
@@ -539,16 +561,16 @@ static int gp_convert_layer_exec (bContext *C, wmOperator *op)
 	View3D *v3d= CTX_wm_view3d(C);
 	float *fp= give_cursor(scene, v3d);
 	int mode= RNA_enum_get(op->ptr, "type");
-	
+
 	/* check if there's data to work with */
 	if (gpd == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data to work on.");
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	/* initialise 3d-cursor correction globals */
 	initgrabz(CTX_wm_region_view3d(C), fp[0], fp[1], fp[2]);
-	
+
 	/* handle conversion modes */
 	switch (mode) {
 		case GP_STROKECONVERT_PATH:
@@ -560,10 +582,11 @@ static int gp_convert_layer_exec (bContext *C, wmOperator *op)
 			BKE_report(op->reports, RPT_ERROR, "Unknown conversion option.");
 			return OPERATOR_CANCELLED;
 	}
-		
+
 	/* notifiers */
 	WM_event_add_notifier(C, NC_OBJECT|NA_ADDED, NULL);
-	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
+
 	/* done */
 	return OPERATOR_FINISHED;
 }

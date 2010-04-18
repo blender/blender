@@ -160,8 +160,13 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->filter |= RNA_boolean_get(op->ptr, "filter_btx") ? BTXFILE : 0;
 		if(RNA_struct_find_property(op->ptr, "filter_collada"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_collada") ? COLLADAFILE : 0;
-		if (params->filter != 0)
-			params->flag |= FILE_FILTER;
+		if (params->filter != 0) {
+			if (U.uiflag & USER_FILTERFILEEXTS) {
+				params->flag |= FILE_FILTER;
+			} else {
+				params->flag &= ~FILE_FILTER;
+			}
+		}
 
 		if (U.uiflag & USER_HIDE_DOT) {
 			params->flag |= FILE_HIDE_DOT;

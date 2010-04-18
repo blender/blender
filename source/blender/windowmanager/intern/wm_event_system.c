@@ -1240,6 +1240,10 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 							handler->op->reports->printlevel = RPT_WARNING;
 							uiPupMenuReports(C, handler->op->reports);
 
+							/* XXX - copied from 'wm_operator_finished()' */
+							/* add reports to the global list, otherwise they are not seen */
+							addlisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
+
 							CTX_wm_window_set(C, win_prev);
 						}
 
@@ -1544,31 +1548,30 @@ void wm_event_do_handlers(bContext *C)
 		
 		if( win->screen==NULL )
 			wm_event_free_all(win);
-		else
-		{
+		else {
 			Scene* scene = win->screen->scene;
-			if(scene)
-			{
+			
+			if(scene) {
 				int playing = sound_scene_playing(win->screen->scene);
-				if(playing != -1)
-				{
+				
+				if(playing != -1) {
 					CTX_wm_window_set(C, win);
 					CTX_wm_screen_set(C, win->screen);
 					CTX_data_scene_set(C, scene);
-					if(((playing == 1) && (!win->screen->animtimer)) || ((playing == 0) && (win->screen->animtimer)))
-					{
+					
+					if(((playing == 1) && (!win->screen->animtimer)) || ((playing == 0) && (win->screen->animtimer))){
 						ED_screen_animation_play(C, -1, 1);
 					}
-					if(playing == 0)
-					{
+					
+					if(playing == 0) {
 						int ncfra = floor(sound_sync_scene(scene) * FPS);
-						if(ncfra != scene->r.cfra)
-						{
+						if(ncfra != scene->r.cfra)	{
 							scene->r.cfra = ncfra;
 							ED_update_for_newframe(C, 1);
 							WM_event_add_notifier(C, NC_WINDOW, NULL);
 						}
 					}
+					
 					CTX_data_scene_set(C, NULL);
 					CTX_wm_screen_set(C, NULL);
 					CTX_wm_window_set(C, NULL);
@@ -1579,6 +1582,9 @@ void wm_event_do_handlers(bContext *C)
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
 
+			if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
+				printf("pass on evt %d val %d\n", event->type, event->val); 
+			
 			wm_eventemulation(event);
 
 			CTX_wm_window_set(C, win);
@@ -2127,11 +2133,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 				if(owin) {
 					wmEvent oevent= *(owin->eventstate);
 					
-					oevent.x= event.x;
-					oevent.y= event.y;
+					oevent.x=owin->eventstate->x= event.x;
+					oevent.y=owin->eventstate->y= event.y;
 					oevent.type= MOUSEMOVE;
 					
-					*(owin->eventstate)= oevent;
 					update_tablet_data(owin, &oevent);
 					wm_event_add(owin, &oevent);
 				}

@@ -123,7 +123,7 @@ static int	sframe;
 
 /* RNA functions */
 
-static QuicktimeCodecTypeDesc qtCodecList[] = {
+static QuicktimeCodecTypeDesc qtVideoCodecList[] = {
 	{kRawCodecType, 1, "Uncompressed"},
 	{kJPEGCodecType, 2, "JPEG"},
 	{kMotionJPEGACodecType, 3, "M-JPEG A"},
@@ -138,34 +138,34 @@ static QuicktimeCodecTypeDesc qtCodecList[] = {
 	{kH264CodecType, 12, "H.264"},
 	{0,0,NULL}};
 
-static int qtCodecCount = 12;
+static int qtVideoCodecCount = 12;
 
-int quicktime_get_num_codecs() {
-	return qtCodecCount;
+int quicktime_get_num_videocodecs() {
+	return qtVideoCodecCount;
 }
 
-QuicktimeCodecTypeDesc* quicktime_get_codecType_desc(int indexValue) {
-	if ((indexValue>=0) && (indexValue < qtCodecCount))
-		return &qtCodecList[indexValue];
+QuicktimeCodecTypeDesc* quicktime_get_videocodecType_desc(int indexValue) {
+	if ((indexValue>=0) && (indexValue < qtVideoCodecCount))
+		return &qtVideoCodecList[indexValue];
 	else
 		return NULL;
 }
 
-int quicktime_rnatmpvalue_from_codectype(int codecType) {
+int quicktime_rnatmpvalue_from_videocodectype(int codecType) {
 	int i;
-	for (i=0;i<qtCodecCount;i++) {
-		if (qtCodecList[i].codecType == codecType)
-			return qtCodecList[i].rnatmpvalue;
+	for (i=0;i<qtVideoCodecCount;i++) {
+		if (qtVideoCodecList[i].codecType == codecType)
+			return qtVideoCodecList[i].rnatmpvalue;
 	}
 	
 	return 0;
 }
 
-int quicktime_codecType_from_rnatmpvalue(int rnatmpvalue) {
+int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue) {
 	int i;
-	for (i=0;i<qtCodecCount;i++) {
-		if (qtCodecList[i].rnatmpvalue == rnatmpvalue)
-			return qtCodecList[i].codecType;
+	for (i=0;i<qtVideoCodecCount;i++) {
+		if (qtVideoCodecList[i].rnatmpvalue == rnatmpvalue)
+			return qtVideoCodecList[i].codecType;
 	}
 	
 	return 0;	

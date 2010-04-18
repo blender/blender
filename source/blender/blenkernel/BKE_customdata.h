@@ -174,7 +174,7 @@ void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks,
 /* swaps the data in the element corners, to new corners with indices as
    specified in corner_indices. for edges this is an array of length 2, for
    faces an array of length 4 */
-void CustomData_swap(struct CustomData *data, int index, int *corner_indices);
+void CustomData_swap(struct CustomData *data, int index, const int *corner_indices);
 
 /* gets a pointer to the data element at index from the first layer of type
  * returns NULL if there is no layer of type

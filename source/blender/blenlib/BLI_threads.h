@@ -40,6 +40,9 @@ struct ListBase;
 
 /* Threading API */
 
+/*this is run once at startup*/
+void BLI_threadapi_init(void);
+
 void	BLI_init_threads	(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
 int		BLI_available_threads(struct ListBase *threadbase);
 int		BLI_available_thread_index(struct ListBase *threadbase);
@@ -48,6 +51,7 @@ void	BLI_remove_thread	(struct ListBase *threadbase, void *callerdata);
 void	BLI_remove_thread_index(struct ListBase *threadbase, int index);
 void	BLI_remove_threads(struct ListBase *threadbase);
 void	BLI_end_threads		(struct ListBase *threadbase);
+int BLI_thread_is_main(void);
 
 /* System Information */
 
@@ -61,6 +65,7 @@ int		BLI_system_thread_count(void); /* gets the number of threads the system can
 #define LOCK_PREVIEW	1
 #define LOCK_VIEWER		2
 #define LOCK_CUSTOM1	3
+#define LOCK_RCACHE		2
 
 void	BLI_lock_thread(int type);
 void	BLI_unlock_thread(int type);
@@ -68,6 +73,7 @@ void	BLI_unlock_thread(int type);
 /* Mutex Lock */
 
 typedef pthread_mutex_t ThreadMutex;
+#define BLI_MUTEX_INITIALIZER	PTHREAD_MUTEX_INITIALIZER;
 
 void BLI_mutex_init(ThreadMutex *mutex);
 void BLI_mutex_lock(ThreadMutex *mutex);

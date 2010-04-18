@@ -292,7 +292,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 			while(i--) {
 				scalar= bUnit_GetScaler(usys, i);
 
-				dx_scalar = dx * scalar * unit->scale_length;
+				dx_scalar = dx * scalar / unit->scale_length;
 				if (dx_scalar < (GRID_MIN_PX*2))
 					continue;
 
@@ -855,13 +855,15 @@ static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2
 	}
 }
 
-void calc_viewborder(Scene *scene, ARegion *ar, View3D *v3d, rctf *viewborder_r)
+void calc_viewborder(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r)
 {
-	RegionView3D *rv3d= ar->regiondata;
 	float zoomfac, size[2];
 	float dx= 0.0f, dy= 0.0f;
 	
 	view3d_get_viewborder_size(scene, ar, size);
+	
+	if (rv3d == NULL)
+		rv3d = ar->regiondata;
 	
 	/* magic zoom calculation, no idea what
 		* it signifies, if you find out, tell me! -zr
@@ -971,13 +973,14 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	float x3, y3, x4, y4;
 	rctf viewborder;
 	Camera *ca= NULL;
+	RegionView3D *rv3d= (RegionView3D *)ar->regiondata;
 	
 	if(v3d->camera==NULL)
 		return;
 	if(v3d->camera->type==OB_CAMERA)
 		ca = v3d->camera->data;
 	
-	calc_viewborder(scene, ar, v3d, &viewborder);
+	calc_viewborder(scene, ar, rv3d, v3d, &viewborder);
 	x1= viewborder.xmin;
 	y1= viewborder.ymin;
 	x2= viewborder.xmax;
@@ -1306,7 +1309,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			if(rv3d->persp==RV3D_CAMOB) {
 				rctf vb;
 
-				calc_viewborder(scene, ar, v3d, &vb);
+				calc_viewborder(scene, ar, rv3d, v3d, &vb);
 
 				x1= vb.xmin;
 				y1= vb.ymin;
@@ -1797,6 +1800,8 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	Scene *sce;
 	Base *base;
 	Object *ob;
+	ARegion ar;
+	RegionView3D rv3d;
 	
 	shadows.first= shadows.last= NULL;
 	
@@ -1835,7 +1840,20 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		v3d->flag2 &= ~V3D_SOLID_TEX;
 		
 		GPU_lamp_shadow_buffer_bind(shadow->lamp, viewmat, &winsize, winmat);
-// XXX		drawview3d_render(v3d, viewmat, winsize, winsize, winmat, 1);
+
+		memset(&ar, 0, sizeof(ar));
+		memset(&rv3d, 0, sizeof(rv3d));
+
+		ar.regiondata= &rv3d;
+		ar.regiontype= RGN_TYPE_WINDOW;
+		rv3d.persp= RV3D_CAMOB;
+		copy_m4_m4(rv3d.winmat, winmat);
+		copy_m4_m4(rv3d.viewmat, viewmat);
+		invert_m4_m4(rv3d.viewinv, rv3d.viewmat);
+		mul_m4_m4m4(rv3d.persmat, rv3d.viewmat, rv3d.winmat);
+		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
+
+		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
 		v3d->drawtype= drawtype;
@@ -1953,9 +1971,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 		glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
 	}
 	else {
-		float col[3];
-		UI_GetThemeColor3fv(TH_BACK, col);
-		glClearColor(col[0], col[1], col[2], 0.0); 	
+		UI_ThemeClearColor(TH_BACK);	
 	}
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -2145,15 +2161,15 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 		fps = fps / tot;
 	}
 #endif
-	
+
 	/* is this more then half a frame behind? */
 	if (fps+0.5 < FPS) {
 		UI_ThemeColor(TH_REDALERT);
-		sprintf(printable, "fps: %.2f", (float)fps);
+		BLI_snprintf(printable, sizeof(printable), "fps: %.2f", (float)fps);
 	} 
 	else {
 		UI_ThemeColor(TH_TEXT_HI);
-		sprintf(printable, "fps: %i", (int)(fps+0.5));
+		BLI_snprintf(printable, sizeof(printable), "fps: %i", (int)(fps+0.5));
 	}
 	
 	BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
@@ -2167,7 +2183,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Scene *sce;
 	Base *base;
 	Object *ob;
-	float col[3];
 	int retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
@@ -2186,8 +2201,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	/* clear background */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0); 
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	
 	/* setup view matrices */
@@ -2366,7 +2380,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	if (grid_unit) { /* draw below the viewport name */
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(10,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, grid_unit);
+		BLF_draw_default(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, grid_unit);
 	}
 
 	ob= OBACT;

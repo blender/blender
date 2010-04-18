@@ -90,6 +90,15 @@ static void waitcursor(int val) {}
 
 /* XXX */
 
+/* RNA corner cut enum property - used in multiple files for tools
+ * that need this property for esubdivideflag() */
+EnumPropertyItem corner_type_items[] = {
+	{SUBDIV_CORNER_PATH,  "PATH", 0, "Path", ""},
+	{SUBDIV_CORNER_INNERVERT,  "INNER_VERTEX", 0, "Inner Vertex", ""},
+	{SUBDIV_CORNER_FAN,  "FAN",  0, "Fan", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+
 /* local prototypes ---------------*/
 static void free_tagged_edges_faces(EditMesh *em, EditEdge *eed, EditFace *efa);
 int EdgeLoopDelete(EditMesh *em, wmOperator *op);
@@ -639,8 +648,7 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op, sh
 			* This shouldn't be necessary, derived queries should be
 			* automatically building this data if invalid. Or something.
 			*/
-//		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-		object_handle_update(scene, obedit);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 		/* individual faces? */
 //		BIF_TransformSetUndo("Extrude");
@@ -2586,7 +2594,7 @@ static EditVert *subdivideedgenum(EditMesh *em, EditEdge *edge, int curpoint, in
 	return ev;
 }
 
-void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beauty, int numcuts, int seltype)
+void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beauty, int numcuts, int corner_pattern, int seltype)
 {
 	EditFace *ef;
 	EditEdge *eed, *cedge, *sort[4];
@@ -2830,7 +2838,7 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float 
 					   (ef->e2->f & flag && ef->e4->f & flag)) {
 						fill_quad_double_op(em, ef, gh, numcuts);
 					}else{
-						switch(0) { // XXX scene->toolsettings->cornertype) {
+						switch(corner_pattern) {
 							case 0:	fill_quad_double_adj_path(em, ef, gh, numcuts); break;
 							case 1:	fill_quad_double_adj_inner(em, ef, gh, numcuts); break;
 							case 2:	fill_quad_double_adj_fan(em, ef, gh, numcuts); break;
@@ -3648,10 +3656,10 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 		newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
 	}
 	else if(fac1 == 4 && fac2 == 3) {
-		if(dir == DIRECTION_CW) {
+		if(dir == DIRECTION_CCW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
-		} else if (dir == DIRECTION_CCW) {
+		} else if (dir == DIRECTION_CW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][2], 4+p[1][1], p[0][0], p[0][1]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], 4+p[0][2], p[1][0], p[1][1], -1);
 
@@ -3660,10 +3668,10 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 		}
 	}
 	else if(fac1 == 3 && fac2 == 4) {
-		if(dir == DIRECTION_CW) {
+		if(dir == DIRECTION_CCW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
-		} else if (dir == DIRECTION_CCW) {
+		} else if (dir == DIRECTION_CW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][0], p[0][1], 4+p[1][2], -1);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], 4+p[0][1], 4+p[0][2]);
 
@@ -3673,10 +3681,10 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 
 	}
 	else if(fac1 == 4 && fac2 == 4) {
-		if(dir == DIRECTION_CW) {
+		if(dir == DIRECTION_CCW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
-		} else if (dir == DIRECTION_CCW) {
+		} else if (dir == DIRECTION_CW) {
 			newFace[0]= EM_face_from_faces(em, face[0], face[1], p[0][2], p[0][3], 4+p[1][1], 4+p[1][2]);
 			newFace[1]= EM_face_from_faces(em, face[1], face[0], p[1][2], p[1][3], 4+p[0][1], 4+p[0][2]);
 
@@ -3687,7 +3695,7 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 	else
 		return; /* This should never happen */
 
-	if(dir == DIRECTION_CW || (fac1 == 3 && fac2 == 3)) {
+	if(dir == DIRECTION_CCW || (fac1 == 3 && fac2 == 3)) {
 		verts[0][p[0][1]]->f |= SELECT;
 		verts[1][p[1][1]]->f |= SELECT;
 	}
@@ -6165,6 +6173,7 @@ static int region_to_loop(bContext *C, wmOperator *op)
 	}
 
 	em->selectmode = SCE_SELECT_EDGE;
+	CTX_data_tool_settings(C)->selectmode= em->selectmode;
 	EM_selectmode_set(em);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -6727,6 +6736,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	int cuts= RNA_int_get(op->ptr,"number_cuts");
 	float smooth= 0.292f*RNA_float_get(op->ptr, "smoothness");
 	float fractal= RNA_float_get(op->ptr, "fractal")/100;
+	int corner_cut_pattern= RNA_enum_get(op->ptr,"corner_cut_pattern");
 	int flag= 0;
 
 	if(smooth != 0.0f)
@@ -6734,7 +6744,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	if(fractal != 0.0f)
 		flag |= B_FRACTAL;
 
-	esubdivideflag(obedit, em, 1, smooth, fractal, ts->editbutflag|flag, cuts, 0);
+	esubdivideflag(obedit, em, 1, smooth, fractal, ts->editbutflag|flag, cuts, corner_cut_pattern, 0);
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -6743,7 +6753,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 }
 
 void MESH_OT_subdivide(wmOperatorType *ot)
-{
+{	
 	/* identifiers */
 	ot->name= "Subdivide";
 	ot->description= "Subdivide selected edges";
@@ -6760,6 +6770,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
 	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor.", 0.0f, 1000.0f);
 	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor.", 0.0f, 1000.0f);
+	RNA_def_enum(ot->srna, "corner_cut_pattern", corner_type_items, SUBDIV_CORNER_INNERVERT, "Corner Cut Pattern", "Topology pattern to use to fill a face after cutting across its corner");
 }
 
 /********************** Fill Operators *************************/

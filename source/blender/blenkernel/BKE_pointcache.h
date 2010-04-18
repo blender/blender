@@ -258,6 +258,7 @@ int		BKE_ptcache_data_size(int data_type);
 /* Memory cache read/write helpers. */
 void BKE_ptcache_mem_init_pointers(struct PTCacheMem *pm);
 void BKE_ptcache_mem_incr_pointers(struct PTCacheMem *pm);
+int BKE_ptcache_mem_seek_pointers(int point_index, struct PTCacheMem *pm);
 
 /* Copy a specific data type from cache data to point data. */
 void	BKE_ptcache_data_get(void **data, int type, int index, void *to);

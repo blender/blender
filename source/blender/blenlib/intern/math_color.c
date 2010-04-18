@@ -110,7 +110,7 @@ void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb)
 }
 
 /* The RGB inputs are supposed gamma corrected and in the range 0 - 1.0f */
-/* Output YCC have a range of 16-235 and 16-240 exepect with JFIF_0_255 where the range is 0-255 */
+/* Output YCC have a range of 16-235 and 16-240 except with JFIF_0_255 where the range is 0-255 */
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, int colorspace)
 {
 	float sr,sg, sb;
@@ -132,7 +132,7 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, in
 		cr=(0.439f*sr)-(0.399f*sg)-(0.040f*sb)+128.0f;
 		break;
 	case BLI_YCC_JFIF_0_255 :
-		y=(0.299f*sr)+(0.587f*sg)+(0.114f*sb)+16.0f;
+		y=(0.299f*sr)+(0.587f*sg)+(0.114f*sb);
 		cb=(-0.16874f*sr)-(0.33126f*sg)+(0.5f*sb)+128.0f;
 		cr=(0.5f*sr)-(0.41869f*sg)-(0.08131f*sb)+128.0f;
 		break;

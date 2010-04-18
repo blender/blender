@@ -1710,21 +1710,21 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
 	clear_id_newpoins();
 	
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 		if(ob->id.lib)
 			id_make_local(&ob->id, 0);
 	}
 	CTX_DATA_END;
 	
 	/* maybe object pointers */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 		if(ob->id.lib==NULL) {
 			ID_NEW(ob->parent);
 		}
 	}
 	CTX_DATA_END;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 		id= ob->data;
 			
 		if(id && mode>1) {
@@ -1742,7 +1742,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if(mode>1) {
-		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 			if(ob->type==OB_LAMP) {
 				la= ob->data;
 

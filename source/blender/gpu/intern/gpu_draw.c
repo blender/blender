@@ -62,6 +62,9 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#include "BLI_threads.h"
+#include "BLI_blenlib.h"
+
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 #include "GPU_draw.h"
@@ -781,8 +784,44 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 	smd->domain->tex_shadow = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->shadow);
 }
 
+ListBase image_free_queue = {NULL, NULL};
+static ThreadMutex queuelock = BLI_MUTEX_INITIALIZER;
+
+static void flush_queued_free(void)
+{
+	Image *ima, *imanext;
+
+	BLI_mutex_lock(&queuelock);
+
+	ima = image_free_queue.first;
+	image_free_queue.first = image_free_queue.last = NULL;
+	for (; ima; ima=imanext) {
+		imanext = (Image*)ima->id.next;
+		GPU_free_image(ima);
+		MEM_freeN(ima);
+	}
+
+	BLI_mutex_unlock(&queuelock);
+}
+
+static void queue_image_for_free(Image *ima)
+{
+    Image *cpy = MEM_dupallocN(ima);
+
+	BLI_mutex_lock(&queuelock);
+	BLI_addtail(&image_free_queue, cpy);
+	BLI_mutex_unlock(&queuelock);
+}
+
 void GPU_free_image(Image *ima)
 {
+	if (!BLI_thread_is_main()) {
+		queue_image_for_free(ima);
+		return;
+	} else if (image_free_queue.first) {
+		flush_queued_free();
+	}
+
 	/* free regular image binding */
 	if(ima->bindcode) {
 		glDeleteTextures(1, (GLuint *)&ima->bindcode);
@@ -1097,6 +1136,14 @@ void GPU_end_object_materials(void)
 	GMS.matbuf= NULL;
 	GMS.gmatbuf= NULL;
 	GMS.blendmode= NULL;
+
+	/* resetting the texture matrix after the glScale needed for tiled textures */
+	if(GTS.tilemode)
+	{
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+	}
 }
 
 /* Lights */

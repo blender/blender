@@ -296,11 +296,14 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 //		refresh_interface_font();
 
-		CTX_wm_window_set(C, NULL); /* exits queues */
+		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+		ED_editors_init(C);
+
 #ifndef DISABLE_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_load_user_modules(C);
 #endif
+		CTX_wm_window_set(C, NULL); /* exits queues */
 	}
 	else if(retval==1)
 		BKE_write_undo(C, "Import file");
@@ -480,7 +483,7 @@ static void do_history(char *name, ReportList *reports)
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
-void WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
+int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 {
 	Library *li;
 	int len;
@@ -488,17 +491,21 @@ void WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports
 	
 	len = strlen(target);
 	
-	if (len == 0) return;
+	if (len == 0) {
+		BKE_report(reports, RPT_ERROR, "Path is empty, cannot save");
+		return -1;
+	}
+
 	if (len >= FILE_MAX) {
 		BKE_report(reports, RPT_ERROR, "Path too long, cannot save");
-		return;
+		return -1;
 	}
  
 	/* send the OnSave event */
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (BLI_streq(li->name, target)) {
 			BKE_report(reports, RPT_ERROR, "Cannot overwrite used library");
-			return;
+			return -1;
 		}
 	}
 	
@@ -536,9 +543,12 @@ void WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports
 		else G.fileflags &= ~G_FILE_AUTOPLAY;
 
 		writeBlog();
+	} else {
+		return -1;
 	}
 
 // XXX	waitcursor(0);
+	return 0;
 }
 
 /* operator entry */

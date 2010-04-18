@@ -323,7 +323,7 @@ static int screencast_exec(bContext *C, wmOperator *op)
 	/* setup job */
 	WM_jobs_customdata(steve, sj, screenshot_freejob);
 	WM_jobs_timer(steve, 0.1, 0, NC_SCREEN|ND_SCREENCAST);
-	WM_jobs_callbacks(steve, screenshot_startjob, NULL, screenshot_updatejob);
+	WM_jobs_callbacks(steve, screenshot_startjob, NULL, screenshot_updatejob, NULL);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
 	

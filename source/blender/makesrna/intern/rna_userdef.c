@@ -671,6 +671,11 @@ static void rna_def_userdef_theme_spaces_edge(StructRNA *srna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Edge Sharp", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop= RNA_def_property(srna, "edge_crease", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Edge Crease", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "edge_facesel", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
@@ -2059,8 +2064,8 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 		
 	static const EnumPropertyItem object_align_items[]= {
-		{0, "WORLD", 0, "World", "Align newly added objects facing the 3D View direction"},
-		{USER_ADD_VIEWALIGNED, "VIEW", 0, "View", "Align newly added objects to the world coordinates"},
+		{0, "WORLD", 0, "World", "Align newly added objects to the world coordinates"},
+		{USER_ADD_VIEWALIGNED, "VIEW", 0, "View", "Align newly added objects facing the active 3D View direction"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesEdit", NULL);
@@ -2078,7 +2083,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "object_align", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, object_align_items);
-	RNA_def_property_ui_text(prop, "Align Object To", "Align newly added objects facing the 3D View direction or the world coordinates");
+	RNA_def_property_ui_text(prop, "Align Object To", "When adding objects from a 3D View menu, either align them to that view's direction or the world coordinates");
 
 	prop= RNA_def_property(srna, "enter_edit_mode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_ADD_EDITMODE);
@@ -2625,6 +2630,12 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "emulate_numpad", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_NONUMPAD);
 	RNA_def_property_ui_text(prop, "Emulate Numpad", "Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
+	
+	/* U.keymaps - custom keymaps that have been edited from default configs */
+	prop= RNA_def_property(srna, "edited_keymaps", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "keymaps", NULL);
+	RNA_def_property_struct_type(prop, "KeyMap");
+	RNA_def_property_ui_text(prop, "Edited Keymaps", "");
 }
 
 static void rna_def_userdef_filepaths(BlenderRNA *brna)

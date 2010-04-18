@@ -1,6 +1,6 @@
 from math import *
 import bpy
-from Mathutils import *
+from mathutils import *
 
 def main(context):
     def cleanupEulCurve(fcv):

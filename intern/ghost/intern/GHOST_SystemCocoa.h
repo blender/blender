@@ -179,8 +179,8 @@ public:
 	 * @param y			The y-coordinate of the cursor.
 	 * @return			Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const;
-
+	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
+	
 	/***************************************************************************************
 	 ** Access to mouse button and keyboard states.
 	 ***************************************************************************************/
@@ -272,6 +272,14 @@ protected:
      */
     GHOST_TSuccess handleKeyEvent(void *eventPtr);
     
+	/**
+	 * Performs the actual cursor position update (location in screen coordinates).
+	 * @param x			The x-coordinate of the cursor.
+	 * @param y			The y-coordinate of the cursor.
+	 * @return			Indication of success.
+	 */
+	GHOST_TSuccess setMouseCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
+
 	/** Start time at initialization. */
 	GHOST_TUns64 m_start_time;
 	

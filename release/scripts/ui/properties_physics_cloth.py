@@ -36,7 +36,7 @@ class CLOTH_MT_presets(bpy.types.Menu):
     '''
     bl_label = "Cloth Presets"
     preset_subdir = "cloth"
-    preset_operator = "script.python_file_run"
+    preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
 
@@ -91,8 +91,8 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 
             col.label(text="Presets:")
             sub = col.row(align=True).split(percentage=0.75)
-            sub.menu("CLOTH_MT_presets", text="Presets")
-            sub.operator("cloth.preset_add", text="Add")
+            sub.menu("CLOTH_MT_presets", text=bpy.types.CLOTH_MT_presets.bl_label)
+            sub.operator("cloth.preset_add", text="", icon="ZOOMIN")
 
             col.label(text="Quality:")
             col.prop(cloth, "quality", text="Steps", slider=True)

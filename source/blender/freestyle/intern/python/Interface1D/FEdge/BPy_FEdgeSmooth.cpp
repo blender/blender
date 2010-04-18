@@ -70,7 +70,7 @@ static char FEdgeSmooth_normal___doc__[] =
 "   Returns the normal to the Face it is running accross.\n"
 "\n"
 "   :return: The normal to the Face it is running accross.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject * FEdgeSmooth_normal( BPy_FEdgeSmooth *self ) {
 	Vec3r v( self->fes->normal() );
@@ -108,7 +108,7 @@ static char FEdgeSmooth_setNormal___doc__[] =
 "   Sets the normal to the Face it is running accross.\n"
 "\n"
 "   :arg iNormal: A three-dimensional vector.\n"
-"   :type iNormal: :class:`Mathutils.Vector`, list or tuple of 3 real numbers\n";
+"   :type iNormal: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
 
 static PyObject * FEdgeSmooth_setNormal( BPy_FEdgeSmooth *self, PyObject *args ) {
 	PyObject *obj = 0;

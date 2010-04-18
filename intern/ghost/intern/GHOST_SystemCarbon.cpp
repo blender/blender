@@ -531,7 +531,7 @@ GHOST_TSuccess GHOST_SystemCarbon::getCursorPosition(GHOST_TInt32& x, GHOST_TInt
 }
 
 
-GHOST_TSuccess GHOST_SystemCarbon::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const
+GHOST_TSuccess GHOST_SystemCarbon::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
 {
 	float xf=(float)x, yf=(float)y;
 

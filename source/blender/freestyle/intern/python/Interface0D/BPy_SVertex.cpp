@@ -29,7 +29,7 @@ static char SVertex___doc__[] =
 "   Builds a SVertex from 3D coordinates and an Id.\n"
 "\n"
 "   :arg iPoint3D: A three-dimensional vector.\n"
-"   :type iPoint3D: :class:`Mathutils.Vector`\n"
+"   :type iPoint3D: :class:`mathutils.Vector`\n"
 "   :arg id: An Id object.\n"
 "   :type id: :class:`Id`\n";
 
@@ -90,7 +90,7 @@ static char SVertex_normals___doc__[] =
 "   have any number of normals.\n"
 "\n"
 "   :return: A list of normals.\n"
-"   :rtype: List of :class:`Mathutils.Vector` objects\n";
+"   :rtype: List of :class:`mathutils.Vector` objects\n";
 
 static PyObject * SVertex_normals( BPy_SVertex *self ) {
 	PyObject *py_normals; 
@@ -142,7 +142,7 @@ static char SVertex_setPoint3D___doc__[] =
 "   Sets the 3D coordinates of the SVertex.\n"
 "\n"
 "   :arg p: A three-dimensional vector.\n"
-"   :type p: :class:`Mathutils.Vector`, list or tuple of 3 real numbers\n";
+"   :type p: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
 
 static PyObject *SVertex_setPoint3D( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_point;
@@ -166,7 +166,7 @@ static char SVertex_setPoint2D___doc__[] =
 "   Sets the 2D projected coordinates of the SVertex.\n"
 "\n"
 "   :arg p: A three-dimensional vector.\n"
-"   :type p: :class:`Mathutils.Vector`, list or tuple of 3 real numbers\n";
+"   :type p: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
 
 static PyObject *SVertex_setPoint2D( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_point;
@@ -191,7 +191,7 @@ static char SVertex_AddNormal___doc__[] =
 "   is already in the set, nothing changes.\n"
 "\n"
 "   :arg n: A three-dimensional vector.\n"
-"   :type n: :class:`Mathutils.Vector`, list or tuple of 3 real numbers\n";
+"   :type n: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
 
 static PyObject *SVertex_AddNormal( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_normal;

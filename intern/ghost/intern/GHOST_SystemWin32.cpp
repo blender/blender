@@ -273,7 +273,7 @@ GHOST_TSuccess GHOST_SystemWin32::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
 }
 
 
-GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const
+GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
 {
 	return ::SetCursorPos(x, y) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }

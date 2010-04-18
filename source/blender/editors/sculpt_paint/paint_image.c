@@ -3083,7 +3083,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		ps->thread_tot = BLI_system_thread_count();
 	}
 	for (a=0; a<ps->thread_tot; a++) {
-		ps->arena_mt[a] = BLI_memarena_new(1<<16);
+		ps->arena_mt[a] = BLI_memarena_new(1<<16, "project paint arena");
 	}
 	
 	arena = ps->arena_mt[0]; 
@@ -3706,7 +3706,7 @@ static void *do_projectpaint_thread(void *ph_v)
 		pos_ofs[0] = pos[0] - lastpos[0];
 		pos_ofs[1] = pos[1] - lastpos[1];
 		
-		smearArena = BLI_memarena_new(1<<16);
+		smearArena = BLI_memarena_new(1<<16, "paint smear arena");
 	}
 	
 	/* avoid a square root with every dist comparison */

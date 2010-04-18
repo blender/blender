@@ -60,6 +60,22 @@ static const int multires_side_tot[] = {0, 2, 3, 5,  9,  17,  33,   65,   129,  
 static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert);
 static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, int invert, int add, DMGridData **oldGridData, int totlvl);
 
+DerivedMesh *get_multires_dm(Object *ob)
+{
+	Mesh *me= ob->data;
+	ModifierData *md= (ModifierData *)find_multires_modifier(ob);
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	DerivedMesh *tdm = CDDM_from_mesh(me, ob);
+	DerivedMesh *dm;
+
+	CDDM_calc_normals(tdm);
+	dm = mti->applyModifier(md, ob, tdm, 0, 1);
+
+	if(tdm != dm) tdm->release(tdm);
+
+	return dm;
+}
+
 MultiresModifierData *find_multires_modifier(Object *ob)
 {
 	ModifierData *md;
@@ -191,23 +207,63 @@ void multiresModifier_join(Object *ob)
 }
 #endif
 
-/* Returns 1 on success, 0 if the src's totvert doesn't match */
-int multiresModifier_reshape(MultiresModifierData *mmd, Object *dst, Object *src)
+int multiresModifier_reshapeFromDM(MultiresModifierData *mmd, Object *ob, DerivedMesh *srcdm)
 {
-	DerivedMesh *srcdm = src->derivedFinal;
-	DerivedMesh *mrdm = dst->derivedFinal;
+	DerivedMesh *mrdm = get_multires_dm (ob);
 
 	if(mrdm && srcdm && mrdm->getNumVerts(mrdm) == srcdm->getNumVerts(srcdm)) {
 		multires_mvert_to_ss(mrdm, srcdm->getVertArray(srcdm));
 
 		multires_dm_mark_as_modified(mrdm);
-		multires_force_update(dst);
+		multires_force_update(ob);
+
+		mrdm->release(mrdm);
 
 		return 1;
 	}
 
+	mrdm->release(mrdm);
+
 	return 0;
 }
+
+/* Returns 1 on success, 0 if the src's totvert doesn't match */
+int multiresModifier_reshape(MultiresModifierData *mmd, Object *dst, Object *src)
+{
+	DerivedMesh *srcdm = src->derivedFinal;
+	return multiresModifier_reshapeFromDM(mmd, dst, srcdm);
+}
+
+int multiresModifier_reshapeFromDeformMod(MultiresModifierData *mmd, Object *ob, ModifierData *md)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	DerivedMesh *dm, *ndm;
+	int numVerts, result;
+	float (*deformedVerts)[3];
+
+	/* Create DerivedMesh for deformation modifier */
+	dm = get_multires_dm(ob);
+	numVerts= dm->getNumVerts(dm);
+	deformedVerts= MEM_callocN(sizeof(float)*numVerts*3, "multiresReshape_deformVerts");
+
+	dm->getVertCos(dm, deformedVerts);
+	mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0, 0);
+
+	ndm= CDDM_copy(dm);
+	CDDM_apply_vert_coords(ndm, deformedVerts);
+
+	MEM_freeN(deformedVerts);
+	dm->release(dm);
+
+	/* Reshaping */
+	result= multiresModifier_reshapeFromDM(mmd, ob, ndm);
+
+	/* Cleanup */
+	ndm->release(ndm);
+
+	return result;
+}
+
 
 static void column_vectors_to_mat3(float mat[][3], float v1[3], float v2[3], float v3[3])
 {

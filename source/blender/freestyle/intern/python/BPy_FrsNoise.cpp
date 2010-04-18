@@ -84,7 +84,7 @@ static char FrsNoise_turbulence2___doc__[] =
 "   Returns a noise value for a 2D element.\n"
 "\n"
 "   :arg v: Two-dimensional sample point.\n"
-"   :type v: :class:`Mathutils.Vector`, list or tuple of 2 real numbers\n"
+"   :type v: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n"
 "   :arg freq: Noise frequency.\n"
 "   :type freq: float\n"
 "   :arg amp: Amplitude.\n"
@@ -117,7 +117,7 @@ static char FrsNoise_turbulence3___doc__[] =
 "   Returns a noise value for a 3D element.\n"
 "\n"
 "   :arg v: Three-dimensional sample point.\n"
-"   :type v: :class:`Mathutils.Vector`, list or tuple of 3 real numbers\n"
+"   :type v: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n"
 "   :arg freq: Noise frequency.\n"
 "   :type freq: float\n"
 "   :arg amp: Amplitude.\n"
@@ -169,7 +169,7 @@ static char FrsNoise_smoothNoise2___doc__[] =
 "   Returns a smooth noise value for a 2D element.\n"
 "\n"
 "   :arg v: Two-dimensional sample point.\n"
-"   :type v: :class:`Mathutils.Vector`, list or tuple of 2 real numbers\n"
+"   :type v: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n"
 "   :return: A smooth noise value.\n"
 "   :rtype: float\n";
 
@@ -194,7 +194,7 @@ static char FrsNoise_smoothNoise3___doc__[] =
 "   Returns a smooth noise value for a 3D element.\n"
 "\n"
 "   :arg v: Three-dimensional sample point.\n"
-"   :type v: :class:`Mathutils.Vector`, list or tuple of 3 real numbers\n"
+"   :type v: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n"
 "   :return: A smooth noise value.\n"
 "   :rtype: float\n";
 

@@ -21,7 +21,7 @@
 import bpy
 from rna_prop_ui import rna_idprop_ui_prop_get
 from math import acos, pi
-from Mathutils import Vector
+from mathutils import Vector
 from rigify import RigifyError
 from rigify_utils import copy_bone_simple
 
@@ -448,7 +448,7 @@ def control(obj, definitions, base_names, options):
     prop["min"] = 0.0
     prop["max"] = 1.0
 
-    open_driver_path = pb[lip1].path_to_id() + '["open_action"]'
+    open_driver_path = pb[lip1].path_from_id() + '["open_action"]'
 
 
     # Constraints

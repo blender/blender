@@ -125,12 +125,12 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 		case NC_SCREEN:
 			if(note->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
-			/* pass on */
+			break;
 #endif
-		default:
-			if(ar->type && ar->type->listener)
-				ar->type->listener(ar, note);
 	}
+
+	if(ar->type && ar->type->listener)
+		ar->type->listener(ar, note);
 }
 
 /* only exported for WM */
@@ -340,9 +340,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	/* optional header info instead? */
 	if(ar->headerstr) {
-		float col[3];
-		UI_GetThemeColor3fv(TH_HEADER, col);
-		glClearColor(col[0], col[1], col[2], 0.0);
+		UI_ThemeClearColor(TH_HEADER);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		UI_ThemeColor(TH_TEXT);
@@ -908,7 +906,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 		if(ar->swinid) {
 			/* default region handlers */
 			ed_default_handlers(wm, &ar->handlers, ar->type->keymapflag);
-
+			/* own handlers */
 			if(ar->type->init)
 				ar->type->init(wm, ar);
 		}
@@ -956,6 +954,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 {
 	SpaceType *st;
 	ARegion *ar;
+	int spacetype= sa1->spacetype;
 	
 	sa1->headertype= sa2->headertype;
 	sa1->spacetype= sa2->spacetype;
@@ -983,7 +982,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	}
 	else {
 		if(swap_space<2) {
-			st= BKE_spacetype_from_id(sa1->spacetype);
+			st= BKE_spacetype_from_id(spacetype);
 			for(ar= sa1->regionbase.first; ar; ar= ar->next)
 				BKE_area_region_free(st, ar);
 			BLI_freelistN(&sa1->regionbase);
@@ -1005,10 +1004,6 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
 
 	ED_area_exit(C, sa1);
 	ED_area_exit(C, sa2);
-
-	tmp->spacetype= sa1->spacetype;
-	tmp->butspacetype= sa1->butspacetype;
-	BKE_spacedata_copyfirst(&tmp->spacedata, &sa1->spacedata);
 
 	area_copy_data(tmp, sa1, 2);
 	area_copy_data(sa1, sa2, 0);
@@ -1228,7 +1223,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	Panel *panel;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
-	float col[3];
 	int xco, yco, x, y, miny=0, w, em, header, triangle, open, newcontext= 0;
 
 	if(contextnr >= 0)
@@ -1334,14 +1328,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	}
 
 	/* clear */
-	if (ar->type->regionid == RGN_TYPE_PREVIEW)
-		UI_GetThemeColor3fv(TH_PREVIEW_BACK, col);
-	else
-		UI_GetThemeColor3fv(TH_BACK, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor((ar->type->regionid == RGN_TYPE_PREVIEW)?TH_PREVIEW_BACK:TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
-
+	
 	/* before setting the view */
 	if(vertical) {
 		/* only allow scrolling in vertical direction */
@@ -1418,16 +1407,10 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	uiLayout *layout;
 	HeaderType *ht;
 	Header header = {0};
-	float col[3];
 	int maxco, xco, yco;
 
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
+	/* clear */	
+	UI_ThemeClearColor((ED_screen_area_active(C))?TH_HEADER:TH_HEADERDESEL);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */

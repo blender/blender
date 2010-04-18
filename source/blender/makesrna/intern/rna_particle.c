@@ -1476,6 +1476,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 10, 1, 3);
 	RNA_def_property_ui_text(prop, "Tweak", "A multiplier for physics timestep (1.0 means one frame = 1/25 seconds)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+	
+	prop= RNA_def_property(srna, "subframes", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 1000);	
+	RNA_def_property_ui_text(prop, "Subframes", "Subframes to simulate for improved stability and finer granularity simulations");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "jitter_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

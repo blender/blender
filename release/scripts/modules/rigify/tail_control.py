@@ -22,7 +22,7 @@ import bpy
 from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
-from Mathutils import Vector, RotationMatrix
+from mathutils import Vector, RotationMatrix
 from math import radians, pi
 
 # not used, defined for completeness
@@ -133,7 +133,7 @@ def main(obj, bone_definitions, base_names, options):
     con_h.subtarget = hinge1
 
     # Add drivers
-    bone_path = pb[bones[0]].path_to_id()
+    bone_path = pb[bones[0]].path_from_id()
 
     driver_fcurve = con_f.driver_add("influence", 0)
     driver = driver_fcurve.driver

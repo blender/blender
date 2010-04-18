@@ -105,6 +105,15 @@ typedef struct QuicktimeCodecSettings {
 	int	minTemporalQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
 	int	keyFrameRate;
 	int	bitRate;	/* bitrate in bps */
+	
+	/* Audio Codec settings */
+	int audiocodecType;
+	int audioSampleRate;
+	short audioBitDepth;
+	short audioChannels;
+	int audioCodecFlags;
+	int audioBitRate;
+	int pad1;
 } QuicktimeCodecSettings;
 
 typedef struct FFMpegCodecData {
@@ -731,7 +740,7 @@ typedef struct UnitSettings {
 
 typedef struct PhysicsSettings {
 	float gravity[3];
-	int flag;
+	int flag, quick_cache_step, rt;
 } PhysicsSettings;
 
 typedef struct Scene {

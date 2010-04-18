@@ -34,7 +34,7 @@ import bpy
 import math
 import time
 
-from Mathutils import Vector
+from mathutils import Vector
 from bpy.props import *
 
 

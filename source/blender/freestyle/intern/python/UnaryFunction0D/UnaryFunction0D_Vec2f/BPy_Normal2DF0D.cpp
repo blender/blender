@@ -26,7 +26,7 @@ static char Normal2DF0D___doc__[] =
 "   :type it: :class:`Interface0DIterator`\n"
 "   :return: The 2D normal of the 1D element evaluated at the pointed\n"
 "      Interface0D.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static int Normal2DF0D___init__( BPy_Normal2DF0D* self, PyObject *args )
 {

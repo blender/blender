@@ -128,7 +128,7 @@ void ImageBuff::clear (short width, short height, unsigned char color)
 	memset(m_image, color, size*4);
 	// and change the alpha channel
 	p = &((unsigned char*)m_image)[3];
-	for (size; size>0; size--)
+	for (; size>0; size--)
 	{
 		*p = 0xFF;
 		p += 4;

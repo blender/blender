@@ -346,7 +346,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				}
 
 				
-				if(sp->pr_method==PR_ICON_RENDER) {
+				if(sp && sp->pr_method==PR_ICON_RENDER) {
 					if (mat->material_type == MA_TYPE_HALO) {
 						sce->lay= 1<<MA_FLAT;
 					} 
@@ -406,7 +406,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				}
 			}
 
-			if(tex && tex->nodetree && sp->pr_method==PR_NODE_RENDER)
+			if(tex && tex->nodetree && sp && sp->pr_method==PR_NODE_RENDER)
 				ntreeInitPreview(tex->nodetree, sp->sizex, sp->sizey);
 		}
 		else if(id_type==ID_LA) {
@@ -1121,7 +1121,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
 	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
-	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL);
+	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL, NULL);
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 }
@@ -1147,7 +1147,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
 	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
-	WM_jobs_callbacks(steve, common_preview_startjob, NULL, shader_preview_updatejob);
+	WM_jobs_callbacks(steve, common_preview_startjob, NULL, shader_preview_updatejob, NULL);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
 }

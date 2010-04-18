@@ -1,4 +1,4 @@
-# Blender.Mathutils module and its subtypes
+# Blender.mathutils module and its subtypes
 
 
 

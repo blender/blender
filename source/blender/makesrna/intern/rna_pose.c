@@ -431,7 +431,7 @@ static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr, PointerRNA va
 	constraints_set_active(&pchan->constraints, (bConstraint *)value.data);
 }
 
-static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, bContext *C, int type)
+static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, int type)
 {
 	//WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
 	// TODO, pass object also
@@ -439,7 +439,7 @@ static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, bContex
 	return add_pose_constraint(NULL, pchan, NULL, type);
 }
 
-static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, bContext *C, int index)
+static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, int index)
 {
 	// TODO
 	//ED_object_constraint_set_active(object, NULL);
@@ -639,7 +639,6 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 
 	/* Constraint collection */
 	func= RNA_def_function(srna, "new", "rna_PoseChannel_constraints_new");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a constraint to this object");
 	/* return type */
 	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
@@ -649,7 +648,6 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "remove", "rna_PoseChannel_constraints_remove");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
 	/* return type */
 	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");

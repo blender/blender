@@ -61,6 +61,7 @@
 
 #include "RE_pipeline.h"
 
+#include "IMB_imbuf_types.h"
 
 #include "ED_node.h"
 #include "ED_screen.h"
@@ -73,7 +74,7 @@
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
- 
+
 #include "node_intern.h"
 
 #define SOCK_IN		1
@@ -175,7 +176,7 @@ void snode_composite_job(const bContext *C, ScrArea *sa)
 	/* setup job */
 	WM_jobs_customdata(steve, cj, compo_freejob);
 	WM_jobs_timer(steve, 0.1, NC_SCENE, NC_SCENE|ND_COMPO_RESULT);
-	WM_jobs_callbacks(steve, compo_startjob, compo_initjob, compo_updatejob);
+	WM_jobs_callbacks(steve, compo_startjob, compo_initjob, compo_updatejob, NULL);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
 	
@@ -686,68 +687,125 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 	return tnode;
 }
 
-#if 0
-static void snode_bg_viewmove(SpaceNode *snode)
+/* **************************** */
+
+typedef struct NodeViewMove {
+	short mvalo[2];
+	int xmin, ymin, xmax, ymax;
+} NodeViewMove;
+
+static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ScrArea *sa;
+	SpaceNode *snode= CTX_wm_space_node(C);
+	ARegion *ar= CTX_wm_region(C);
+	NodeViewMove *nvm= op->customdata;
+
+	switch (event->type) {
+		case MOUSEMOVE:
+			
+			snode->xof -= (nvm->mvalo[0]-event->mval[0]);
+			snode->yof -= (nvm->mvalo[1]-event->mval[1]);
+			nvm->mvalo[0]= event->mval[0];
+			nvm->mvalo[1]= event->mval[1];
+			
+			/* prevent dragging image outside of the window and losing it! */
+			CLAMP(snode->xof, nvm->xmin, nvm->xmax);
+			CLAMP(snode->yof, nvm->ymin, nvm->ymax);
+			
+			ED_region_tag_redraw(ar);
+			
+			break;
+			
+		case LEFTMOUSE:
+		case MIDDLEMOUSE:
+		case RIGHTMOUSE:
+			
+			MEM_freeN(nvm);
+			op->customdata= NULL;
+			
+			return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	NodeViewMove *nvm;
 	Image *ima;
 	ImBuf *ibuf;
-	Window *win;
-	short mval[2], mvalo[2];
-	short rectx, recty, xmin, xmax, ymin, ymax, pad;
-	int oldcursor;
+	int pad= 10;
 	
 	ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf= BKE_image_get_ibuf(ima, NULL);
 	
-	sa = snode->area;
+	if(ibuf == NULL)
+		return OPERATOR_CANCELLED;
+
+	nvm= MEM_callocN(sizeof(NodeViewMove), "NodeViewMove struct");
+	op->customdata= nvm;
+	nvm->mvalo[0]= event->mval[0];
+	nvm->mvalo[1]= event->mval[1];
+
+	nvm->xmin = -(ar->winx/2) - ibuf->x/2 + pad;
+	nvm->xmax = ar->winx/2 + ibuf->x/2 - pad;
+	nvm->ymin = -(ar->winy/2) - ibuf->y/2 + pad;
+	nvm->ymax = ar->winy/2 + ibuf->y/2 - pad;
 	
-	if(ibuf) {
-		rectx = ibuf->x;
-		recty = ibuf->y;
-	} else {
-		rectx = recty = 1;
-	}
+	/* add modal handler */
+	WM_event_add_modal_handler(C, op);
 	
-	pad = 10;
-	xmin = -(sa->winx/2) - rectx/2 + pad;
-	xmax = sa->winx/2 + rectx/2 - pad;
-	ymin = -(sa->winy/2) - recty/2 + pad;
-	ymax = sa->winy/2 + recty/2 - pad;
-	
-	getmouseco_sc(mvalo);
-	
-	/* store the old cursor to temporarily change it */
-	oldcursor=get_cursor();
-	win=winlay_get_active_window();
-	
-	SetBlenderCursor(BC_NSEW_SCROLLCURSOR);
-	
-	while(get_mbut()&(L_MOUSE|M_MOUSE)) {
-		
-		getmouseco_sc(mval);
-		
-		if(mvalo[0]!=mval[0] || mvalo[1]!=mval[1]) {
-			
-			snode->xof -= (mvalo[0]-mval[0]);
-			snode->yof -= (mvalo[1]-mval[1]);
-			
-			/* prevent dragging image outside of the window and losing it! */
-			CLAMP(snode->xof, xmin, xmax);
-			CLAMP(snode->yof, ymin, ymax);
-			
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-			
-			scrarea_do_windraw(curarea);
-			screen_swapbuffers();
-		}
-		else BIF_wait_for_statechange();
-	}
-	
-	window_set_cursor(win, oldcursor);
+	return OPERATOR_RUNNING_MODAL;
 }
-#endif
+
+
+void NODE_OT_backimage_move(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Background Image Move";
+	ot->idname= "NODE_OT_backimage_move";
+	
+	/* api callbacks */
+	ot->invoke= snode_bg_viewmove_invoke;
+	ot->modal= snode_bg_viewmove_modal;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+}
+
+static int backimage_zoom(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	ARegion *ar= CTX_wm_region(C);
+	float fac= RNA_float_get(op->ptr, "factor");
+
+	snode->zoom *= fac;
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void NODE_OT_backimage_zoom(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Background Image Zoom";
+	ot->idname= "NODE_OT_backimage_zoom";
+	
+	/* api callbacks */
+	ot->exec= backimage_zoom;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+
+	/* internal */
+	RNA_def_float(ot->srna, "factor", 1.2f, 0.0f, 10.0f, "Factor", "", 0.0f, 10.0f);
+}
+
 
 /* ********************** size widget operator ******************** */
 
@@ -892,6 +950,15 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 		if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
 			if(node->flag & NODE_DO_OUTPUT)
 				break;
+	/* no viewer, we make one active */
+	if(node==NULL) {
+		for(node= snode->edittree->nodes.first; node; node= node->next) {
+			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+				node->flag |= NODE_DO_OUTPUT;
+				break;
+			}
+		}
+	}
 		
 	if(node) {
 		bNodeLink *link;
@@ -900,8 +967,13 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 		for(link= snode->edittree->links.first; link; link= link->next)
 			if(link->tonode==node)
 				break;
-
-		if(link) {
+		
+		if(link==NULL) {
+			nodeAddLink(snode->edittree, tonode, tonode->outputs.first, node, node->inputs.first);
+			ntreeSolveOrder(snode->edittree);
+			NodeTagChanged(snode->edittree, node);
+		}
+		else if(link) {
 			link->fromnode= tonode;
 			link->fromsock= tonode->outputs.first;
 			NodeTagChanged(snode->edittree, node);
@@ -910,12 +982,39 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 }
 
 
-void node_active_link_viewer(SpaceNode *snode)
+static int node_active_link_viewer(bContext *C, wmOperator *op)
 {
-	bNode *node= editnode_get_active(snode->edittree);
-	if(node)
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNode *node;
+	
+	
+	node= editnode_get_active(snode->edittree);
+	
+	if(node) {
 		node_link_viewer(snode, node);
+		snode_notify(C, snode);
+	}
+	return OPERATOR_FINISHED;
 }
+
+
+
+void NODE_OT_link_viewer(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Link to Viewer Node";
+	ot->description = "Link to Viewer Node";
+	ot->idname= "NODE_OT_link_viewer";
+	
+	/* api callbacks */
+	ot->exec= node_active_link_viewer;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 
 /* return 0, nothing done */
 /*static*/ int node_mouse_groupheader(SpaceNode *snode)
@@ -1622,11 +1721,11 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 /* ******************************** */
 // XXX some code needing updating to operators...
 
-/* goes over all scenes, reads render layerss */
-void node_read_renderlayers(SpaceNode *snode)
+/* goes over all scenes, reads render layers */
+static int node_read_renderlayers_exec(bContext *C, wmOperator *op)
 {
-	Scene *curscene= NULL; // XXX
-	Scene *scene;
+	SpaceNode *snode= CTX_wm_space_node(C);
+	Scene *curscene= CTX_data_scene(C), *scene;
 	bNode *node;
 
 	/* first tag scenes unread */
@@ -1644,25 +1743,56 @@ void node_read_renderlayers(SpaceNode *snode)
 		}
 	}
 	
-	// XXX			snode_notify(snode);
+	snode_notify(C, snode);
+	return OPERATOR_FINISHED;
 }
 
-void node_read_fullsamplelayers(SpaceNode *snode)
+void NODE_OT_read_renderlayers(wmOperatorType *ot)
 {
-	Scene *curscene= NULL; // XXX
+	
+	ot->name= "Read Render Layers";
+	ot->idname= "NODE_OT_read_renderlayers";
+	
+	ot->exec= node_read_renderlayers_exec;
+	
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
+
+static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	Scene *curscene= CTX_data_scene(C);
 	Render *re= RE_NewRender(curscene->id.name);
 
-	WM_cursor_wait(1);
+//	WM_cursor_wait(1);
 
-	//BIF_init_render_callbacks(re, 1);
 	RE_MergeFullSample(re, curscene, snode->nodetree);
-	//BIF_end_render_callbacks();
+	snode_notify(C, snode);
 	
-	// allqueue(REDRAWNODE, 1);
-	// allqueue(REDRAWIMAGE, 1);
-	
-	WM_cursor_wait(0);
+//	WM_cursor_wait(0);
+	return OPERATOR_FINISHED;
 }
+
+
+void NODE_OT_read_fullsamplelayers(wmOperatorType *ot)
+{
+	
+	ot->name= "Read Full Sample Layers";
+	ot->idname= "NODE_OT_read_fullsamplelayers";
+	
+	ot->exec= node_read_fullsamplelayers_exec;
+	
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
+
+
+/* ************************* */
 
 void imagepaint_composite_tags(bNodeTree *ntree, Image *image, ImageUser *iuser)
 {

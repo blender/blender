@@ -26,7 +26,7 @@ static char VertexOrientation2DF0D___doc__[] =
 "   :type it: :class:`Interface0DIterator`\n"
 "   :return: The 2D oriented tangent to the 1D element evaluated at the\n"
 "      pointed Interface0D.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static int VertexOrientation2DF0D___init__( BPy_VertexOrientation2DF0D* self, PyObject *args )
 {

@@ -931,6 +931,8 @@ void scene_update_tagged(Scene *scene)
 	Object *ob;
 	float ctime = frame_to_float(scene, scene->r.cfra); 
 
+	scene->physics_settings.quick_cache_step= 0;
+
 	/* update all objects: drivers, matrices, displists, etc. flags set
 	   by depgraph or manual, no layer check here, gets correct flushed */
 
@@ -964,8 +966,8 @@ void scene_update_tagged(Scene *scene)
 			BKE_animsys_evaluate_animdata(&scene->id, adt, ctime, 0);
 	}
 
-	/* XXX - this is called far to often, should be made apart of the depgraph */
-	BKE_ptcache_quick_cache_all(scene);
+	if(scene->physics_settings.quick_cache_step)
+		BKE_ptcache_quick_cache_all(scene);
 
 	/* in the future this should handle updates for all datablocks, not
 	   only objects and scenes. - brecht */

@@ -234,6 +234,27 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	return NULL;
 }
 
+/* quick way to loop over all fcurves of a given 'path' */
+FCurve *iter_step_fcurve (FCurve *fcu_iter, const char rna_path[])
+{
+	FCurve *fcu;
+	
+	/* sanity checks */
+	if (ELEM(NULL, fcu_iter, rna_path))
+		return NULL;
+
+	/* check paths of curves, then array indices... */
+	for (fcu= fcu_iter; fcu; fcu= fcu->next) {
+		/* simple string-compare (this assumes that they have the same root...) */
+		if (fcu->rna_path && !strcmp(fcu->rna_path, rna_path)) {
+			return fcu;
+		}
+	}
+
+	/* return */
+	return NULL;
+}
+
 /* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated 
  * Lists...
  *	- dst: list of LinkData's matching the criteria returned. 

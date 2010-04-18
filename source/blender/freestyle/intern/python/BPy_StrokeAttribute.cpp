@@ -171,7 +171,7 @@ static char StrokeAttribute_getColorRGB___doc__[] =
 "   Returns the RGB components of the stroke color.\n"
 "\n"
 "   :return: RGB components of the stroke color.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject *StrokeAttribute_getColorRGB( BPy_StrokeAttribute *self ) {
 	Vec3f v( self->sa->getColorRGB() );
@@ -225,7 +225,7 @@ static char StrokeAttribute_getThicknessRL___doc__[] =
 "   :return: A two-dimensional vector.  The first value is the\n"
 "      thickness on the right of the vertex when following the stroke,\n"
 "      and the second one is the thickness on the left.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject *StrokeAttribute_getThicknessRL( BPy_StrokeAttribute *self ) {
 	Vec2f v( self->sa->getThicknessRL() );
@@ -272,7 +272,7 @@ static char StrokeAttribute_getAttributeVec2f___doc__[] =
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: string\n"
 "   :return: The attribute value.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject *StrokeAttribute_getAttributeVec2f( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
@@ -292,7 +292,7 @@ static char StrokeAttribute_getAttributeVec3f___doc__[] =
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: string\n"
 "   :return: The attribute value.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject *StrokeAttribute_getAttributeVec3f( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
@@ -381,7 +381,7 @@ static char StrokeAttribute_setColor___doc__[] =
 "   Sets the stroke color.\n"
 "\n"
 "   :arg iRGB: The new RGB values.\n"
-"   :type iRGB: :class:`Mathutils.Vector`, list or tuple of 3 real numbers\n";
+"   :type iRGB: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
 
 static PyObject * StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0 ;
@@ -449,7 +449,7 @@ static char StrokeAttribute_setThickness___doc__[] =
 "\n"
 "   :arg tRL: The thickness on the right and on the left of the vertex\n"
 "      when following the stroke.\n"
-"   :type tRL: :class:`Mathutils.Vector`, list or tuple of 2 real numbers\n";
+"   :type tRL: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n";
 
 static PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *args )  {
 	PyObject *obj1 = 0, *obj2 = 0;
@@ -532,7 +532,7 @@ static char StrokeAttribute_setAttributeVec2f___doc__[] =
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: string\n"
 "   :arg att: The attribute value.\n"
-"   :type att: :class:`Mathutils.Vector`, list or tuple of 2 real numbers\n";
+"   :type att: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n";
 
 static PyObject * StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *s;
@@ -561,7 +561,7 @@ static char StrokeAttribute_setAttributeVec3f___doc__[] =
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: string\n"
 "   :arg att: The attribute value.\n"
-"   :type att: :class:`Mathutils.Vector`, list or tuple of 3 real numbers\n";
+"   :type att: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
 
 static PyObject * StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *s;

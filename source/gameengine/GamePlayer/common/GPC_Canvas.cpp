@@ -100,6 +100,12 @@ void GPC_Canvas::ClearColor(float r, float g, float b, float a)
 
 void GPC_Canvas::SetViewPort(int x1, int y1, int x2, int y2)
 {
+		/*	x1 and y1 are the min pixel coordinate (e.g. 0)
+			x2 and y2 are the max pixel coordinate
+			the width,height is calculated including both pixels
+			therefore: max - min + 1
+		*/
+		
 		/* XXX, nasty, this needs to go somewhere else,
 		 * but where... definitly need to clean up this
 		 * whole canvas/rendertools mess.

@@ -46,7 +46,7 @@
 
 
 
-static void rna_Scene_set_frame(Scene *scene, bContext *C, int frame)
+static void rna_Scene_set_frame(Scene *scene, int frame)
 {
 	scene->r.cfra= frame;
 	CLAMP(scene->r.cfra, MINAFRAME, MAXFRAME);
@@ -98,7 +98,6 @@ void RNA_api_scene(StructRNA *srna)
 	PropertyRNA *parm;
 
 	func= RNA_def_function(srna, "set_frame", "rna_Scene_set_frame");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately.");
 	parm= RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set.", MINAFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);

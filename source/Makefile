@@ -97,6 +97,7 @@ COMLIB += $(OCGDIR)/blender/nodes_tex/$(DEBUG_DIR)libnodes_tex.a
 COMLIB += $(OCGDIR)/blender/nodes/$(DEBUG_DIR)libnodes.a
 COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
 COMLIB += $(OCGDIR)/blender/ikplugin/$(DEBUG_DIR)libikplugin.a
+COMLIB += $(OCGDIR)/blender/modifiers/$(DEBUG_DIR)libmodifiers.a
 COMLIB += $(NAN_IKSOLVER)/lib/$(DEBUG_DIR)libiksolver.a
 COMLIB += $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc.a
 COMLIB += $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc_kdl.a

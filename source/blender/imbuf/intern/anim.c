@@ -94,7 +94,12 @@
 #define FFMPEG_CODEC_IS_POINTER 1
 #endif
 
+#if (LIBAVCODEC_VERSION_MAJOR >= 52) && (LIBAVCODEC_VERSION_MINOR >= 29) && \
+	 (LIBSWSCALE_VERSION_MAJOR >= 0) && (LIBSWSCALE_VERSION_MINOR >= 10)
+#define FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
 #endif
+
+#endif //WITH_FFMPEG
 
 #ifdef WITH_REDCODE
 #ifdef _WIN32 /* on windows we use the ones in extern instead */
@@ -520,6 +525,13 @@ static int startffmpeg(struct anim * anim) {
 	AVFormatContext *pFormatCtx;
 	AVCodecContext *pCodecCtx;
 
+#ifdef FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
+	/* The following for color space determination */
+	int srcRange, dstRange, brightness, contrast, saturation;
+	int *table;
+	const int *inv_table;
+#endif
+
 	if (anim == 0) return(-1);
 
 	do_init_ffmpeg();
@@ -647,6 +659,25 @@ static int startffmpeg(struct anim * anim) {
 		anim->pCodecCtx = NULL;
 		return -1;
 	}
+
+#ifdef FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
+	/* Try do detect if input has 0-255 YCbCR range (JFIF Jpeg MotionJpeg) */
+	if (!sws_getColorspaceDetails(anim->img_convert_ctx, (int**)&inv_table, &srcRange,
+		&table, &dstRange, &brightness, &contrast, &saturation)) {
+
+		srcRange = srcRange || anim->pCodecCtx->color_range == AVCOL_RANGE_JPEG;
+		inv_table = sws_getCoefficients(anim->pCodecCtx->colorspace);
+
+		if(sws_setColorspaceDetails(anim->img_convert_ctx, (int *)inv_table, srcRange,
+			table, dstRange, brightness, contrast, saturation)) {
+
+			printf("Warning: Could not set libswscale colorspace details.\n");
+			}
+	}
+	else {
+		printf("Warning: Could not set libswscale colorspace details.\n");
+	}
+#endif
 		
 	return (0);
 }
@@ -782,7 +813,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 					unsigned char* top;
 
 					sws_scale(anim->img_convert_ctx,
-						  input->data,
+						  (const uint8_t * const *)input->data,
 						  input->linesize,
 						  0,
 						  anim->pCodecCtx->height,
@@ -841,7 +872,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 					unsigned char* r;
 	
 					sws_scale(anim->img_convert_ctx,
-						  input->data,
+						  (const uint8_t * const *)input->data,
 						  input->linesize,
 						  0,
 						  anim->pCodecCtx->height,

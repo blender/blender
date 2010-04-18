@@ -50,6 +50,7 @@
 #endif
 
 #include "BLI_args.h"
+#include "BLI_threads.h"
 
 #include "GEN_messaging.h"
 
@@ -840,9 +841,11 @@ static int load_file(int argc, char **argv, void *data)
 		/*we successfully loaded a blend file, get sure that
 		pointcache works */
 		if (retval!=0) {
+			wmWindowManager *wm= CTX_wm_manager(C);
 			CTX_wm_manager_set(C, NULL); /* remove wm to force check */
 			WM_check(C);
 			G.relbase_valid = 1;
+			if (CTX_wm_manager(C) == NULL) CTX_wm_manager_set(C, wm); /* reset wm */
 		}
 
 		/* happens for the UI on file reading too (huh? (ton))*/
@@ -963,6 +966,8 @@ int main(int argc, char **argv)
     strip_quotes(build_platform);
     strip_quotes(build_type);
 #endif
+
+	BLI_threadapi_init();
 
 	RNA_init();
 	RE_engines_init();

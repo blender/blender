@@ -578,9 +578,9 @@ CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel)
 	valbuf->yof= cbuf->yof;
 	
 	valf= valbuf->rect;
-	
+
 	/* defaults to returning alpha channel */
-	if ((channel < CHAN_R) && (channel > CHAN_A)) channel = CHAN_A;
+	if ((channel < CHAN_R) || (channel > CHAN_A)) channel = CHAN_A;
 
 	rectf= cbuf->rect + channel;
 	

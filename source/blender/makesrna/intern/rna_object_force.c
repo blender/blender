@@ -869,8 +869,6 @@ static void rna_def_effector_weight(BlenderRNA *brna)
 	
 	/* General */
 	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "group");
-	RNA_def_property_struct_type(prop, "Group");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Effector Group", "Limit effectors to this Group");
 	RNA_def_property_update(prop, 0, "rna_EffectorWeight_dependency_update");

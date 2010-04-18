@@ -416,7 +416,7 @@ void DM_interp_face_data(DerivedMesh *source, DerivedMesh *dest,
 					  weights, (float*)vert_weights, count, dest_index);
 }
 
-void DM_swap_face_data(DerivedMesh *dm, int index, int *corner_indices)
+void DM_swap_face_data(DerivedMesh *dm, int index, const int *corner_indices)
 {
 	CustomData_swap(&dm->faceData, index, corner_indices);
 }
@@ -2489,7 +2489,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	tangent= DM_get_face_data_layer(dm, CD_TANGENT);
 	
 	/* allocate some space */
-	arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "tangent layer arena");
 	BLI_memarena_use_calloc(arena);
 	vtangents= MEM_callocN(sizeof(VertexTangent*)*totvert, "VertexTangent");
 	

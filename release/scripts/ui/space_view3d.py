@@ -145,7 +145,7 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         layout.operator("transform.tosphere", text="To Sphere")
         layout.operator("transform.shear", text="Shear")
         layout.operator("transform.warp", text="Warp")
-        layout.operator("transform.transform", text="Push/Pull").mode = 'PUSHPULL'
+        layout.operator("transform.push_pull", text="Push/Pull")
         if context.edit_object and context.edit_object.type == 'ARMATURE':
             layout.operator("armature.align")
         else:
@@ -207,7 +207,6 @@ class VIEW3D_MT_snap(bpy.types.Menu):
 
         layout.operator("view3d.snap_selected_to_grid", text="Selection to Grid")
         layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor")
-        layout.operator("view3d.snap_selected_to_center", text="Selection to Origin")
 
         layout.separator()
 

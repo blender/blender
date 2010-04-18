@@ -26,7 +26,7 @@ The Blender Game Engine Python API Reference
 	
 		These modules have no GameEngine specific functionality but are useful in many cases.
 		
-			- L{Mathutils}
+			- L{mathutils}
 			- L{Geometry}
 			- L{BGL}
 

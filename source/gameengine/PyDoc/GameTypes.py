@@ -108,6 +108,43 @@ class SCA_ILogicBrick(CValue):
 		"""
 #}
 
+class SCA_PythonKeyboard(PyObjectPlus)
+	"""
+	The current keyboard.	
+	@ivar events: a list of pressed keys that have either been pressed, or just released, or are active this frame. (read-only).
+
+			- 'keycode' matches the values in L{GameKeys}.
+			- 'status' uses...
+				- L{GameLogic.KX_INPUT_NONE}
+				- L{GameLogic.KX_INPUT_JUST_ACTIVATED}
+				- L{GameLogic.KX_INPUT_ACTIVE}
+				- L{GameLogic.KX_INPUT_JUST_RELEASED}
+			
+	@type events: list [[keycode, status], ...]
+	"""
+	pass
+	
+class SCA_PythonMouse(PyObjectPlus)
+	"""
+	The current mouse.
+	
+	@ivar events: a list of pressed buttons that have either been pressed, or just released, or are active this frame. (read-only).
+
+			- 'keycode' matches the values in L{GameKeys}.
+			- 'status' uses...
+				- L{GameLogic.KX_INPUT_NONE}
+				- L{GameLogic.KX_INPUT_JUST_ACTIVATED}
+				- L{GameLogic.KX_INPUT_ACTIVE}
+				- L{GameLogic.KX_INPUT_JUST_RELEASED}
+			
+	@type events: list [[keycode, status], ...]
+	@ivar position: The normalized x and y position of the mouse cursor.
+	@type position: list [x, y]
+	@ivar visible: The visibility of the mouse cursor
+	@type visible: boolean
+	"""
+	pass
+
 class SCA_IObject(CValue):
 	"""
 	This class has no python functions
@@ -1670,7 +1707,7 @@ class KX_GameObject(SCA_IObject):
 		@deprecated: use L{localOrientation}
 		@type orn: 3x3 rotation matrix, or Quaternion.
 		@param orn: a rotation matrix specifying the new rotation.
-		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
+		@note: When using this matrix with Blender.mathutils.Matrix() types, it will need to be transposed.
 		"""
 	def alignAxisToVect(vect, axis, factor):
 		"""
@@ -1704,7 +1741,7 @@ class KX_GameObject(SCA_IObject):
 		@deprecated: use L{worldOrientation}
 		@rtype: 3x3 rotation matrix
 		@return: The game object's rotation matrix
-		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
+		@note: When using this matrix with Blender.mathutils.Matrix() types, it will need to be transposed.
 		"""
 	def applyMovement(movement, local = 0):
 		"""

@@ -458,7 +458,7 @@ static void rna_SpaceImageEditor_curves_update(Main *bmain, Scene *scene, Pointe
 	WM_main_add_notifier(NC_IMAGE, sima->image);
 }
 
-static void rna_SpaceImageEditor_histogram_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_SpaceImageEditor_scopes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
 	ImBuf *ibuf;
@@ -466,12 +466,11 @@ static void rna_SpaceImageEditor_histogram_update(Main *bmain, Scene *scene, Poi
 	
 	ibuf= ED_space_image_acquire_buffer(sima, &lock);
 	if(ibuf) {
-		histogram_update(&sima->hist, ibuf);
+		scopes_update(&sima->scopes, ibuf, scene->r.color_mgt_flag & R_COLOR_MANAGEMENT);
 		WM_main_add_notifier(NC_IMAGE, sima->image);
 	}
 	ED_space_image_release_buffer(sima, lock);
 }
-
 
 /* Space Text Editor */
 
@@ -1215,12 +1214,12 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "cumap");
 	RNA_def_property_ui_text(prop, "Curves", "Color curve mapping to use for displaying the image");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_curves_update");
-	
-	prop= RNA_def_property(srna, "histogram", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "hist");
-	RNA_def_property_struct_type(prop, "Histogram");
-	RNA_def_property_ui_text(prop, "Histogram", "Histogram for viewing image statistics");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_histogram_update");
+
+	prop= RNA_def_property(srna, "scopes", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "scopes");
+	RNA_def_property_struct_type(prop, "Scopes");
+	RNA_def_property_ui_text(prop, "Scopes", "Scopes to visualize image statistics.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_scopes_update");
 
 	prop= RNA_def_property(srna, "image_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pin", 0);
@@ -1263,7 +1262,8 @@ static void rna_def_space_image(BlenderRNA *brna)
 	/* grease pencil */
 	prop= RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
-	RNA_def_property_struct_type(prop, "UnknownType");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
 
 	prop= RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
@@ -1310,6 +1310,15 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{SEQ_DRAW_IMG_WAVEFORM, "WAVEFORM", ICON_SEQ_LUMA_WAVEFORM, "Luma Waveform", ""},
 		{SEQ_DRAW_IMG_VECTORSCOPE, "VECTOR_SCOPE", ICON_SEQ_CHROMA_SCOPE, "Chroma Vectorscope", ""},
 		{SEQ_DRAW_IMG_HISTOGRAM, "HISTOGRAM", ICON_SEQ_HISTOGRAM, "Histogram", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem proxy_render_size_items[] = {
+		{SEQ_PROXY_RENDER_SIZE_NONE, "NONE", ICON_SEQ_PREVIEW, "No display", ""},
+		{SEQ_PROXY_RENDER_SIZE_SCENE, "SCENE", ICON_SEQ_PREVIEW, "Scene render size", ""},
+		{SEQ_PROXY_RENDER_SIZE_25, "PROXY_25", ICON_SEQ_PREVIEW, "Proxy size 25%", ""},
+		{SEQ_PROXY_RENDER_SIZE_50, "PROXY_50", ICON_SEQ_PREVIEW, "Proxy size 50%", ""},
+		{SEQ_PROXY_RENDER_SIZE_75, "PROXY_75", ICON_SEQ_PREVIEW, "Proxy size 75%", ""},
+		{SEQ_PROXY_RENDER_SIZE_FULL, "FULL", ICON_SEQ_PREVIEW, "No proxy, full render", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SpaceSequenceEditor", "Space");
@@ -1379,6 +1388,12 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "zebra");
 	RNA_def_property_ui_text(prop, "Show Overexposed", "Show overexposed areas with zebra stripes");
 	RNA_def_property_range(prop, 0, 110);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
+	
+	prop= RNA_def_property(srna, "proxy_render_size", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "render_size");
+	RNA_def_property_enum_items(prop, proxy_render_size_items);
+	RNA_def_property_ui_text(prop, "Proxy render size", "Draw preview using full resolution or different proxy resolutions");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 	
 	
@@ -2002,10 +2017,16 @@ static void rna_def_space_info(BlenderRNA *brna)
 static void rna_def_space_userpref(BlenderRNA *brna)
 {
 	StructRNA *srna;
-
+	PropertyRNA *prop;
+	
 	srna= RNA_def_struct(brna, "SpaceUserPreferences", "Space");
 	RNA_def_struct_sdna(srna, "SpaceUserPref");
 	RNA_def_struct_ui_text(srna, "Space User Preferences", "User preferences space data");
+	
+	prop= RNA_def_property(srna, "filter", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "filter");
+	RNA_def_property_ui_text(prop, "Filter", "Search term for filtering in the UI");
+
 }
 
 static void rna_def_space_node(BlenderRNA *brna)

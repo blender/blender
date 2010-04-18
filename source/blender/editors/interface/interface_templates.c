@@ -1596,12 +1596,85 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, char *propname, int 
 	
 	block= uiLayoutAbsoluteBlock(layout);
 	//colorband_buttons_layout(layout, block, cptr.data, &rect, !expand, cb);
-	
+
 	hist = (Histogram *)cptr.data;
+
+	hist->height= (hist->height<=0)?100:hist->height;
+
+	bt= uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, hist->height, hist, 0, 0, 0, 0, "");
+	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+
+	MEM_freeN(cb);
+}
+
+/********************* Waveform Template ************************/
+
+void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, char *propname, int expand)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
+	PointerRNA cptr;
+	RNAUpdateCb *cb;
+	uiBlock *block;
+	uiBut *bt;
+	Scopes *scopes;
+	rctf rect;
 	
-	hist->height= (hist->height==0)?100:hist->height;
+	if(!prop || RNA_property_type(prop) != PROP_POINTER)
+		return;
 	
-	bt= uiDefBut(block, HISTOGRAM, 0, "",		rect.xmin, rect.ymin, rect.xmax-rect.xmin, hist->height, hist, 0, 0, 0, 0, "");
+	cptr= RNA_property_pointer_get(ptr, prop);
+	if(!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Scopes))
+		return;
+	scopes = (Scopes *)cptr.data;
+	
+	cb= MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
+	cb->ptr= *ptr;
+	cb->prop= prop;
+	
+	rect.xmin= 0; rect.xmax= 200;
+	rect.ymin= 0; rect.ymax= 190;
+	
+	block= uiLayoutAbsoluteBlock(layout);
+	
+	scopes->wavefrm_height= (scopes->wavefrm_height<=0)?100:scopes->wavefrm_height;
+
+	bt= uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->wavefrm_height, scopes, 0, 0, 0, 0, "");
+	
+	MEM_freeN(cb);
+}
+
+/********************* Vectorscope Template ************************/
+
+void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, char *propname, int expand)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
+	PointerRNA cptr;
+	RNAUpdateCb *cb;
+	uiBlock *block;
+	uiBut *bt;
+	Scopes *scopes;
+	rctf rect;
+	
+	if(!prop || RNA_property_type(prop) != PROP_POINTER)
+		return;
+	
+	cptr= RNA_property_pointer_get(ptr, prop);
+	if(!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Scopes))
+		return;
+	scopes = (Scopes *)cptr.data;
+
+	cb= MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
+	cb->ptr= *ptr;
+	cb->prop= prop;
+	
+	rect.xmin= 0; rect.xmax= 200;
+	rect.ymin= 0; rect.ymax= 190;
+	
+	block= uiLayoutAbsoluteBlock(layout);
+
+	scopes->vecscope_height= (scopes->vecscope_height<=0)?100:scopes->vecscope_height;
+	
+	bt= uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 	
 	MEM_freeN(cb);
@@ -2456,6 +2529,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 #define B_STOPRENDER	1
 #define B_STOPCAST		2
 #define B_STOPANIM		3
+#define B_STOPCOMPO		4
 
 static void do_running_jobs(bContext *C, void *arg, int event)
 {
@@ -2469,6 +2543,9 @@ static void do_running_jobs(bContext *C, void *arg, int event)
 		case B_STOPANIM:
 			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
+		case B_STOPCOMPO:
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C));
+			break;
 	}
 }
 
@@ -2477,6 +2554,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	bScreen *screen= CTX_wm_screen(C);
 	Scene *scene= CTX_data_scene(C);
 	wmWindowManager *wm= CTX_wm_manager(C);
+	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
 
 	block= uiLayoutGetBlock(layout);
@@ -2484,12 +2562,18 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 
 	uiBlockSetHandleFunc(block, do_running_jobs, NULL);
 
-	if(WM_jobs_test(wm, scene))
-		uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_CANCEL, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
-	if(WM_jobs_test(wm, screen))
-		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
-	if(screen->animtimer)
-		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+	if(sa->spacetype==SPACE_NODE) {
+		if(WM_jobs_test(wm, sa))
+			uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Composite", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop composite");
+	}
+	else {
+		if(WM_jobs_test(wm, scene))
+			uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_CANCEL, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
+		if(WM_jobs_test(wm, screen))
+			uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
+		if(screen->animtimer)
+			uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+	}
 }
 
 /************************* Reports for Last Operator Template **************************/

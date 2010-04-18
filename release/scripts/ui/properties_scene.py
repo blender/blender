@@ -300,7 +300,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         # write paths
         f.write("# Path Definitions\n")
         for ksp in ks.paths:
-            f.write("ksp = ks.add_path(")
+            f.write("ksp = ks.paths.add(")
 
             # id-block + RNA-path
             if ksp.id:

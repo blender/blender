@@ -168,21 +168,20 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     traceback.print_exc()
         _loaded[:] = []
 
-    for base_path in script_paths(user=False):
-        for path_subdir in ("ui", "op", "io", "cfg", "keyingsets"):
+    user_path = user_script_path()
+
+    for base_path in script_paths():
+        for path_subdir in ("", "ui", "op", "io", "cfg", "keyingsets", "modules"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
                 sys_path_ensure(path)
 
-                for mod in modules_from_path(path, loaded_modules):
-                    test_register(mod)
+                # only add this to sys.modules, dont run
+                if path_subdir == "modules":
+                    continue
 
-    user_path = user_script_path()
-    if user_path:
-        for path_subdir in ("", "ui", "op", "io", "cfg", "keyingsets"):
-            path = _os.path.join(user_path, path_subdir)
-            if _os.path.isdir(path):
-                sys_path_ensure(path)
+                if user_path != base_path and path_subdir == "":
+                    continue # avoid loading 2.4x scripts
 
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)

@@ -4058,7 +4058,7 @@ static void editmesh_calc_selvert_center(EditMesh *em, float cent_r[3])
 	EditVert *eve;
 	int nsel= 0;
 
-	cent_r[0]= cent_r[1]= cent_r[0]= 0.0;
+	zero_v3(cent_r);
 
 	for (eve= em->verts.first; eve; eve= eve->next) {
 		if (eve->f & SELECT) {

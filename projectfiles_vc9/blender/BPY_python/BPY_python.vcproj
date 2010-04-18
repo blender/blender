@@ -392,7 +392,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\blf.c"
+					RelativePath="..\..\..\source\blender\python\generic\blf_api.c"
 					>
 				</File>
 				<File
@@ -400,11 +400,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\euler.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\source\blender\python\generic\Geometry.c"
+					RelativePath="..\..\..\source\blender\python\generic\geometry.c"
 					>
 				</File>
 				<File
@@ -412,19 +408,27 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\Mathutils.c"
+					RelativePath="..\..\..\source\blender\python\generic\mathutils.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\matrix.c"
+					RelativePath="..\..\..\source\blender\python\generic\mathutils_color.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\quat.c"
+					RelativePath="..\..\..\source\blender\python\generic\mathutils_euler.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\vector.c"
+					RelativePath="..\..\..\source\blender\python\generic\mathutils_matrix.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\mathutils_quat.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\mathutils_vector.c"
 					>
 				</File>
 			</Filter>
@@ -489,7 +493,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\blf.h"
+					RelativePath="..\..\..\source\blender\python\generic\blf_api.h"
 					>
 				</File>
 				<File
@@ -497,11 +501,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\euler.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\source\blender\python\generic\Geometry.h"
+					RelativePath="..\..\..\source\blender\python\generic\geometry.h"
 					>
 				</File>
 				<File
@@ -509,19 +509,27 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\Mathutils.h"
+					RelativePath="..\..\..\source\blender\python\generic\mathutils.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\matrix.h"
+					RelativePath="..\..\..\source\blender\python\generic\mathutils_color.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\quat.h"
+					RelativePath="..\..\..\source\blender\python\generic\mathutils_euler.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\vector.h"
+					RelativePath="..\..\..\source\blender\python\generic\mathutils_matrix.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\mathutils_quat.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\mathutils_vector.h"
 					>
 				</File>
 			</Filter>

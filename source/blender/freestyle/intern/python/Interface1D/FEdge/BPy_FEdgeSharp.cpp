@@ -75,7 +75,7 @@ static char FEdgeSharp_normalA___doc__[] =
 "   normal.\n"
 "\n"
 "   :return: The normal to the face lying on the right of the FEdge.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject * FEdgeSharp_normalA( BPy_FEdgeSharp *self ) {
 	Vec3r v( self->fes->normalA() );
@@ -88,7 +88,7 @@ static char FEdgeSharp_normalB___doc__[] =
 "   Returns the normal to the face lying on the left of the FEdge.\n"
 "\n"
 "   :return: The normal to the face lying on the left of the FEdge.\n"
-"   :rtype: :class:`Mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject * FEdgeSharp_normalB( BPy_FEdgeSharp *self ) {
 	Vec3r v( self->fes->normalB() );
@@ -158,7 +158,7 @@ static char FEdgeSharp_setNormalA___doc__[] =
 "   Sets the normal to the face lying on the right of the FEdge.\n"
 "\n"
 "   :arg iNormal: A three-dimensional vector.\n"
-"   :type iNormal: :class:`Mathutils.Vector`, list or tuple of 3 real numbers\n";
+"   :type iNormal: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
 
 static PyObject * FEdgeSharp_setNormalA( BPy_FEdgeSharp *self, PyObject *args ) {
 	PyObject *obj = 0;
@@ -182,7 +182,7 @@ static char FEdgeSharp_setNormalB___doc__[] =
 "   Sets the normal to the face lying on the left of the FEdge.\n"
 "\n"
 "   :arg iNormal: A three-dimensional vector.\n"
-"   :type iNormal: :class:`Mathutils.Vector`, list or tuple of 3 real numbers\n";
+"   :type iNormal: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
 
 static PyObject * FEdgeSharp_setNormalB( BPy_FEdgeSharp *self, PyObject *args ) {
 	PyObject *obj = 0;
