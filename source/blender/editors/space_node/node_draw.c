@@ -736,10 +736,10 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColor(TH_TEXT);
 	
 	if(node->flag & NODE_CUSTOM_NAME)
-		BLI_strncpy(showname, node->name, 32);
+		BLI_strncpy(showname, node->name, sizeof(showname));
 	else
 		/* todo: auto name display for node types */
-		BLI_strncpy(showname, node->name, 32);
+		BLI_strncpy(showname, node->name, sizeof(showname));
 
 	//if(node->flag & NODE_MUTED)
 	//	sprintf(showname, "[%s]", showname);
@@ -900,10 +900,10 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 
 
 		if(node->flag & NODE_CUSTOM_NAME)
-			BLI_strncpy(showname, node->name, 128);
+			BLI_strncpy(showname, node->name, sizeof(showname));
 		else
 			/* todo: auto name display */
-			BLI_strncpy(showname, node->name, 128);
+			BLI_strncpy(showname, node->name, sizeof(showname));
 	
 		//if(node->flag & NODE_MUTED)
 		//	sprintf(showname, "[%s]", showname);
@@ -1045,9 +1045,9 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	UI_ThemeColor(TH_TEXT_HI);
 
 	if (gnode->flag & NODE_CUSTOM_NAME)
-		strcat(showname, gnode->name);
+		BLI_strncpy(showname, gnode->name, sizeof(showname));
 	else
-		strcpy(showname, ngroup->id.name+2);
+		BLI_strncpy(showname, ngroup->id.name+2, sizeof(showname));
 
 	// XXX this shows some scaling artifacts
 	UI_DrawString(rect.xmin+8.0f, rect.ymax+5.0f, showname);
