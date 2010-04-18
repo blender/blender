@@ -1150,6 +1150,7 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 	return change;
 }
 
+/* note, but->block->aspect is used here, when drawing button style is getting scaled too */
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
 {
 	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
@@ -1190,10 +1191,12 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	}
 	/* mouse inside the widget */
 	else if (x >= startx) {
+		float aspect= sqrt(but->block->aspect);
+		
 		but->pos= strlen(origstr)-but->ofs;
 		
 		/* XXX does not take zoom level into account */
-		while (startx + BLF_width(origstr+but->ofs) > x) {
+		while (aspect*startx + aspect*BLF_width(origstr+but->ofs) > x) {
 			if (but->pos <= 0) break;
 			but->pos--;
 			origstr[but->pos+but->ofs] = 0;
