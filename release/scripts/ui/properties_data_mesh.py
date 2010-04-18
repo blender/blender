@@ -25,6 +25,7 @@ narrowui = 180
 
 class MESH_MT_vertex_group_specials(bpy.types.Menu):
     bl_label = "Vertex Group Specials"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -38,6 +39,7 @@ class MESH_MT_vertex_group_specials(bpy.types.Menu):
 
 class MESH_MT_shape_key_specials(bpy.types.Menu):
     bl_label = "Shape Key Specials"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -51,14 +53,17 @@ class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
-        return context.mesh
+        engine = context.scene.render.engine
+        return context.mesh and (engine in self.COMPAT_ENGINES)
 
 
 class DATA_PT_context_mesh(DataButtonsPanel):
     bl_label = ""
     bl_show_header = False
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -85,10 +90,12 @@ class DATA_PT_context_mesh(DataButtonsPanel):
 
 class DATA_PT_custom_props_mesh(DataButtonsPanel, PropertyPanel):
     _context_path = "object.data"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
 
 class DATA_PT_normals(DataButtonsPanel):
     bl_label = "Normals"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -114,6 +121,7 @@ class DATA_PT_normals(DataButtonsPanel):
 
 class DATA_PT_settings(DataButtonsPanel):
     bl_label = "Settings"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -125,9 +133,11 @@ class DATA_PT_settings(DataButtonsPanel):
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
     bl_label = "Vertex Groups"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
-        return (context.object and context.object.type in ('MESH', 'LATTICE'))
+        engine = context.scene.render.engine
+        return (context.object and context.object.type in ('MESH', 'LATTICE') and (engine in self.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -167,9 +177,11 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 
 class DATA_PT_shape_keys(DataButtonsPanel):
     bl_label = "Shape Keys"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
-        return (context.object and context.object.type in ('MESH', 'LATTICE', 'CURVE', 'SURFACE'))
+        engine = context.scene.render.engine
+        return (context.object and context.object.type in ('MESH', 'LATTICE', 'CURVE', 'SURFACE') and (engine in self.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -263,6 +275,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
 class DATA_PT_uv_texture(DataButtonsPanel):
     bl_label = "UV Texture"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -285,6 +298,7 @@ class DATA_PT_uv_texture(DataButtonsPanel):
 
 class DATA_PT_texface(DataButtonsPanel):
     bl_label = "Texture Face"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
         ob = context.active_object
@@ -331,6 +345,7 @@ class DATA_PT_texface(DataButtonsPanel):
 
 class DATA_PT_vertex_colors(DataButtonsPanel):
     bl_label = "Vertex Colors"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
