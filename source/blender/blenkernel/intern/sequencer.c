@@ -1024,7 +1024,7 @@ static int give_stripelem_index(Sequence *seq, int cfra)
 		/*reverse frame in this sequence */
 		if(cfra <= seq->start) nr= seq->len-1;
 		else if(cfra >= seq->start+seq->len-1) nr= 0;
-		else nr= (seq->start + seq->len) - cfra;
+		else nr= (seq->start + seq->len - 1) - cfra;
 	} else {
 		if(cfra <= seq->start) nr= 0;
 		else if(cfra >= seq->start+seq->len-1) nr= seq->len-1;
