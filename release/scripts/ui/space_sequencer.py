@@ -497,7 +497,11 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE')
+        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META',
+                              'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+                              'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+                              'PLUGIN',
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
 
     def draw_filename(self, context):
         pass
@@ -590,6 +594,21 @@ class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
             col = split.column()
             col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
 
+class SEQUENCER_PT_input_secondary(SEQUENCER_PT_input):
+    bl_label = "Strip Input"
+
+    def poll(self, context):
+        if not self.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
+        return strip.type in ('SCENE', 'META')
+
+    def draw_filename(self, context):
+        pass
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel):
     bl_label = "Sound"
@@ -660,7 +679,11 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META')
+        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META',
+                              'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+                              'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+                              'PLUGIN',
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
 
     def draw(self, context):
         layout = self.layout
@@ -670,6 +693,14 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
         col = layout.column()
         col.label(text="Video:")
         col.prop(strip, "strobe")
+
+        row = layout.row()
+        row.label(text="Flip:")
+        row.prop(strip, "flip_x", text="X")
+        row.prop(strip, "flip_y", text="Y")
+
+        col = layout.column()
+        col.prop(strip, "reverse_frames", text="Backwards")
         col.prop(strip, "de_interlace")
 
         col = layout.column()
@@ -677,12 +708,6 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
         col.prop(strip, "multiply_colors", text="Multiply")
         col.prop(strip, "premultiply")
         col.prop(strip, "convert_float")
-
-        col = layout.column()
-        col.label(text="Flip:")
-        col.prop(strip, "flip_x", text="X")
-        col.prop(strip, "flip_y", text="Y")
-        col.prop(strip, "reverse_frames", text="Backwards")
 
         layout.prop(strip, "use_color_balance")
         if strip.color_balance: # TODO - need to add this somehow
@@ -766,6 +791,7 @@ classes = [
     SEQUENCER_PT_effect,
     SEQUENCER_PT_input_movie,
     SEQUENCER_PT_input_image,
+    SEQUENCER_PT_input_secondary,
     SEQUENCER_PT_sound,
     SEQUENCER_PT_scene,
     SEQUENCER_PT_filter,

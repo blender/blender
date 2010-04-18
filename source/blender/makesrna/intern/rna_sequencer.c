@@ -1028,6 +1028,7 @@ static void rna_def_effect(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Effect Sequence", "Sequence strip applying an effect on the images created by other strips");
 	RNA_def_struct_sdna(srna, "Sequence");
 
+	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
 }
 
