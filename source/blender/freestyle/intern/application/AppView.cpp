@@ -19,12 +19,11 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "Controller.h"
-
 extern "C" {
 #include "BLI_jitter.h"
 }
 
+#include "Controller.h"
 #include <iostream>
 #include "../stroke/Canvas.h"
 #include "AppView.h"
