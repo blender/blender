@@ -1318,19 +1318,19 @@ void text_update_cursor_moved(bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= st->text;
+	Text *text;
 	ARegion *ar;
 	int i, x, winx= 0;
 
-	if(!st) return;
+	if(!st || !st->text || st->text->curl) return;
+
+	text= st->text;
 
 	for(ar=sa->regionbase.first; ar; ar= ar->next)
 		if(ar->regiontype==RGN_TYPE_WINDOW)
 			winx= ar->winx;
 	
 	winx -= TXT_SCROLL_WIDTH;
-
-	if(!text || !text->curl) return;
 
 	text_update_character_width(st);
 

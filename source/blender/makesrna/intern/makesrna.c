@@ -82,6 +82,7 @@ static int replace_if_different(char *tmpfile)
 	if(fp_new==NULL) {
 		/* shouldn't happen, just to be safe */
 		fprintf(stderr, "%s:%d, open error: \"%s\"\n", __FILE__, __LINE__, tmpfile);
+		fclose(fp_org);
 		return -1;
 	}
 

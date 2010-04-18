@@ -48,7 +48,8 @@ bool KX_WorldIpoController::Update(double currentTime)
 		for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 			(*i)->Execute(m_ipotime);//currentTime);
 		}
-		
+
+		/* TODO, this will crash! */
 		KX_WorldInfo *world = NULL;
 
 		if (m_modify_mist_start) {

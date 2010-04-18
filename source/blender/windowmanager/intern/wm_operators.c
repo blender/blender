@@ -1871,19 +1871,15 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 #include "../../collada/collada.h"
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	char *path;
-	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
-	
+{	
 	if(!RNA_property_is_set(op->ptr, "path")) {
-		path = BLI_replacestr(G.sce, ".blend", ".dae");
+		char *path = BLI_replacestr(G.sce, ".blend", ".dae");
 		RNA_string_set(op->ptr, "path", path);
+		MEM_freeN(path);
 	}
-	
+
 	WM_event_add_fileselect(C, op);
-	
-	if (path) MEM_freeN(path);
-	
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
