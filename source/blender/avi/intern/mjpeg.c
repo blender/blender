@@ -40,10 +40,6 @@
 
 #include "mjpeg.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define PADUP(num, amt)	((num+(amt-1))&~(amt-1))
 
 static void jpegmemdestmgr_build (j_compress_ptr cinfo, unsigned char *buffer, int bufsize);

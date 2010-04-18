@@ -27,10 +27,6 @@
  */
 
 // implementation of external c api
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "../extern/LOD_decimation.h"
 #include "LOD_DecimationClass.h"
 

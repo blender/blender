@@ -28,10 +28,6 @@
  */
 #include "PHY_IPhysicsController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 PHY_IPhysicsController::~PHY_IPhysicsController()
 {
 

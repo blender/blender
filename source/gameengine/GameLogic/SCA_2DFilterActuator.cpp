@@ -26,9 +26,6 @@
 #include "SCA_IActuator.h"
 #include "SCA_2DFilterActuator.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 #include <iostream>
 
 SCA_2DFilterActuator::~SCA_2DFilterActuator()

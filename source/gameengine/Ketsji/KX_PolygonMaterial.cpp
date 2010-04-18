@@ -25,10 +25,6 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "KX_PolygonMaterial.h"
 
 #include "BKE_mesh.h"

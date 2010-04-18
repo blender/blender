@@ -29,10 +29,6 @@
 
 #include "GPW_KeyboardDevice.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 // Key code values not found in winuser.h
 #ifndef VK_MINUS
 #define VK_MINUS 0xBD

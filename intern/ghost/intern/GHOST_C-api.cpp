@@ -37,10 +37,6 @@
 
 #include <stdlib.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "intern/GHOST_Debug.h"
 #include "GHOST_C-api.h"
 #include "GHOST_ISystem.h"

@@ -35,10 +35,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* callbacks for errors and interrupts and some goo */
 static void (*BLI_localErrorCallBack)(char*) = NULL;
 static int (*BLI_localInterruptCallBack)(void) = NULL;

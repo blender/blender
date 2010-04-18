@@ -56,10 +56,6 @@ extern "C" {
 	#include "BKE_animsys.h"
 }
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 BL_ShapeActionActuator::~BL_ShapeActionActuator()
 {
 }

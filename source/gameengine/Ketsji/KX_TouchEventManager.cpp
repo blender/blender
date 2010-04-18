@@ -33,10 +33,6 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 KX_TouchEventManager::KX_TouchEventManager(class SCA_LogicManager* logicmgr,
 	PHY_IPhysicsEnvironment* physEnv)

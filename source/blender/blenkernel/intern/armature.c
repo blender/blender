@@ -65,10 +65,6 @@
 #include "BIK_api.h"
 #include "BKE_sketch.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /*	**************** Generic Functions, data level *************** */
 
 bArmature *add_armature(char *name)

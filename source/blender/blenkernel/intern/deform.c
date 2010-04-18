@@ -45,10 +45,6 @@
 
 #include "BLI_blenlib.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 void defgroup_copy_list (ListBase *outbase, ListBase *inbase)
 {

@@ -29,10 +29,6 @@
  */
 #include "NG_NetworkObject.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 NG_NetworkObject::NG_NetworkObject()
 {
 }

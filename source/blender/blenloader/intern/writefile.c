@@ -68,10 +68,6 @@ Any case: direct data is ALWAYS after the lib block
 */
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <math.h>
 #include <fcntl.h>
 #include <stdio.h>

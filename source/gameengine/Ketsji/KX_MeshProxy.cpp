@@ -28,10 +28,6 @@
 
 #ifndef DISABLE_PYTHON
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "KX_MeshProxy.h"
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_MeshObject.h"

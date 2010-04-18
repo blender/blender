@@ -34,10 +34,6 @@
 #include "KX_PyMath.h" // For PyVecTo - should this include be put in PyObjectPlus?
 #include "KX_IPhysicsController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */

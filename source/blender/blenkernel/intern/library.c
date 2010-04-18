@@ -40,10 +40,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 /* all types are needed here, in order to do memory operations */

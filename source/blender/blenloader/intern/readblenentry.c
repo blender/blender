@@ -28,10 +28,6 @@
  * .blend file reading entry point
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 
 #include <stdlib.h>

@@ -28,10 +28,6 @@
 
 #include "KX_ConvertProperties.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"

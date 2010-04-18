@@ -64,10 +64,6 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 // XXX bad level call...
 
 /* --------------------- */

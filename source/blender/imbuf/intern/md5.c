@@ -18,10 +18,6 @@
 
 /* Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>.  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-
 #include <sys/types.h>
 
 # include <stdlib.h>

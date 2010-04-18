@@ -43,10 +43,6 @@
 #include <stdlib.h>
 #include "MEM_guardedalloc.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 static void mem_error_cb(const char *errorStr)
 {
 	fprintf(stderr, "%s", errorStr);

@@ -69,10 +69,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 extern void do_init_ffmpeg();
 
 static int ffmpeg_type = 0;

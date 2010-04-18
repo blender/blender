@@ -31,10 +31,6 @@
 * $Id$
 * Copyright (C) 2001 NaN Technologies B.V.
 */
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #if defined(WIN32) || defined(__APPLE__)
 #	ifdef WIN32
 #		include <windows.h>

@@ -52,10 +52,6 @@
 #include "nla_private.h"
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 /* *************************************************** */
 /* Data Management */

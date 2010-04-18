@@ -31,10 +31,6 @@
 #include "NG_NetworkScene.h"
 #include "KX_NetworkMessageActuator.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_NetworkMessageActuator::KX_NetworkMessageActuator(
 	SCA_IObject* gameobj,		// the actuator controlling object
 	NG_NetworkScene* networkscene,	// needed for replication

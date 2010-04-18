@@ -29,10 +29,6 @@
 #include "KX_MotionState.h"
 #include "SG_Spatial.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_MotionState::KX_MotionState(SG_Spatial* node) : m_node(node)
 {
 

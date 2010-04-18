@@ -30,10 +30,6 @@
 #include "BKE_animsys.h"
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 static int force_device = -1;
 
 #ifdef WITH_JACK

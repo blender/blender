@@ -36,10 +36,6 @@
 
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* local */
 static float noise3_perlin(float vec[3]);
 //static float turbulence_perlin(float *point, float lofreq, float hifreq);

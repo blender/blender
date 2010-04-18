@@ -9,10 +9,6 @@
 #include "KX_GameObject.h"
 #include "KX_MotionState.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_VehicleWrapper::KX_VehicleWrapper(
 						PHY_IVehicle* vehicle,
 						PHY_IPhysicsEnvironment* physenv) :

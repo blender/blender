@@ -32,10 +32,6 @@
 #include "DNA_image_types.h"
 #include "DNA_meshdata_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void  RAS_IPolyMaterial::Initialize( 
 				const STR_String& texname,
 				const STR_String& matname,

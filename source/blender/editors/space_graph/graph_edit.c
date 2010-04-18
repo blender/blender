@@ -32,10 +32,6 @@
 #include <string.h>
 #include <float.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "AUD_C-API.h"
 
 #include "MEM_guardedalloc.h"

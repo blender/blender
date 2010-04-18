@@ -31,10 +31,6 @@
 #include "KX_Light.h"
 #include "RAS_LightObject.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #if defined(_WIN64)
 typedef unsigned __int64 uint_ptr;
 #else

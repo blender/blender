@@ -53,10 +53,6 @@
 
 #include "MT_Matrix4x4.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /** 
  * Move here pose function for game engine so that we can mix with GE objects
  * Principle is as follow:

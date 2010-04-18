@@ -36,10 +36,6 @@
 #ifndef EXPP_BGL_H
 #define EXPP_BGL_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <Python.h>
 
 PyObject *BGL_Init(void);

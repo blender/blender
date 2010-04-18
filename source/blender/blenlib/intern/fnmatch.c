@@ -16,10 +16,6 @@
 
 #ifdef WIN32
 
-#if HAVE_CONFIG_H
-# include <config.h>
-#endif
-
 /* Enable GNU extensions in fnmatch.h.  */
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE	1

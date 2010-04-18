@@ -28,10 +28,6 @@
  */
 #include "KX_EmptyObject.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_EmptyObject::~KX_EmptyObject()
 {
 

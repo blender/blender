@@ -38,10 +38,6 @@ using namespace std;
 #include <iostream>
 #include <stdio.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void KX_RayEventManager::NextFrame()
 {
 	SG_DList::iterator<SCA_ISensor> it(m_sensors);

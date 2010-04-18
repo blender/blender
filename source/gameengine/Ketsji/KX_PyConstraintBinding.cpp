@@ -37,10 +37,6 @@
 
 #include "PyObjectPlus.h" 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef DISABLE_PYTHON
 
 // nasty glob variable to connect scripting language

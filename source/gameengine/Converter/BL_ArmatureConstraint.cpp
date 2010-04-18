@@ -26,10 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "DNA_constraint_types.h"
 #include "DNA_action_types.h"
 #include "BL_ArmatureConstraint.h"

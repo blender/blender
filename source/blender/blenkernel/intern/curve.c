@@ -34,10 +34,6 @@
 #include <string.h>
 #include <stdlib.h>  
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"  
 #include "BLI_math.h"  

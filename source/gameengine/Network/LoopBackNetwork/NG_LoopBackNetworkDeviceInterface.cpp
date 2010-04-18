@@ -31,10 +31,6 @@
 #include "NG_LoopBackNetworkDeviceInterface.h"
 #include "NG_NetworkMessage.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 // temporary debugging printf's
 #ifdef NAN_NET_DEBUG
   #include <stdio.h>

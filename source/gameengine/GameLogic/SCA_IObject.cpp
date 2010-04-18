@@ -35,10 +35,6 @@
 #include "MT_Point3.h"
 #include "ListValue.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
 SG_QList SCA_IObject::m_activeBookmarkedControllers;
 

@@ -62,10 +62,6 @@
 #include "BKE_mball.h"
 #include "BKE_object.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* Global variables */
 
 static float thresh= 0.6f;

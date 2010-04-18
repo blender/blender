@@ -38,10 +38,6 @@
 #include <algorithm>
 #include "GHOST_Debug.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 GHOST_EventManager::GHOST_EventManager()
 {

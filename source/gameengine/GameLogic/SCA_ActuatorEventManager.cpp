@@ -30,10 +30,6 @@
 #include "SCA_ActuatorEventManager.h"
 #include "SCA_ActuatorSensor.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 SCA_ActuatorEventManager::SCA_ActuatorEventManager(class SCA_LogicManager* logicmgr)
 	: SCA_EventManager(logicmgr, ACTUATOR_EVENTMGR)

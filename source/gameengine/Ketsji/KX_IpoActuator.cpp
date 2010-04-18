@@ -39,10 +39,6 @@
 #include "KX_GameObject.h"
 #include "FloatValue.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "KX_KetsjiEngine.h"
 
 /* ------------------------------------------------------------------------- */

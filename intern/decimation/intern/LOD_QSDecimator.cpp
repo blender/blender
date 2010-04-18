@@ -26,10 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "LOD_QSDecimator.h"
 
 #include "LOD_ExternBufferEditor.h"

@@ -36,10 +36,6 @@
 #include <iostream>
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 SCA_JoystickSensor::SCA_JoystickSensor(class SCA_JoystickManager* eventmgr,
 									   SCA_IObject* gameobj,
