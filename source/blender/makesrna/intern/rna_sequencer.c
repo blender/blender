@@ -130,6 +130,28 @@ static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
 	rna_Sequence_frame_change_update(scene, seq);
 }
 
+static void rna_Sequence_anim_startofs_final_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *scene= (Scene*)ptr->id.data;
+
+	seq->anim_startofs = MIN2(value, seq->len + seq->anim_startofs);
+
+	reload_sequence_new_file(scene, seq);
+	rna_Sequence_frame_change_update(scene, seq);
+}
+
+static void rna_Sequence_anim_endofs_final_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *scene= (Scene*)ptr->id.data;
+
+	seq->anim_endofs = MIN2(value, seq->len + seq->anim_endofs);
+
+	reload_sequence_new_file(scene, seq);
+	rna_Sequence_frame_change_update(scene, seq);
+}
+
 static void rna_Sequence_length_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
@@ -887,13 +909,16 @@ static void rna_def_input(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "animation_start_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "anim_startofs");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_anim_startofs_final_set", NULL); // overlap tests
+
 	RNA_def_property_ui_text(prop, "Animation Start Offset", "Animation start offset (trim start)");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "animation_end_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "anim_endofs");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_anim_endofs_final_set", NULL); // overlap tests
 	RNA_def_property_ui_text(prop, "Animation End Offset", "Animation end offset (trim end)");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
