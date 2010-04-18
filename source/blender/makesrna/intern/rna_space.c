@@ -1313,12 +1313,12 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem proxy_render_size_items[] = {
-		{SEQ_PROXY_RENDER_SIZE_NONE, "NONE", ICON_SEQ_PREVIEW, "No display", ""},
-		{SEQ_PROXY_RENDER_SIZE_SCENE, "SCENE", ICON_SEQ_PREVIEW, "Scene render size", ""},
-		{SEQ_PROXY_RENDER_SIZE_25, "PROXY_25", ICON_SEQ_PREVIEW, "Proxy size 25%", ""},
-		{SEQ_PROXY_RENDER_SIZE_50, "PROXY_50", ICON_SEQ_PREVIEW, "Proxy size 50%", ""},
-		{SEQ_PROXY_RENDER_SIZE_75, "PROXY_75", ICON_SEQ_PREVIEW, "Proxy size 75%", ""},
-		{SEQ_PROXY_RENDER_SIZE_FULL, "FULL", ICON_SEQ_PREVIEW, "No proxy, full render", ""},
+		{SEQ_PROXY_RENDER_SIZE_NONE, "NONE", 0, "No display", ""},
+		{SEQ_PROXY_RENDER_SIZE_SCENE, "SCENE", 0, "Scene render size", ""},
+		{SEQ_PROXY_RENDER_SIZE_25, "PROXY_25", 0, "Proxy size 25%", ""},
+		{SEQ_PROXY_RENDER_SIZE_50, "PROXY_50", 0, "Proxy size 50%", ""},
+		{SEQ_PROXY_RENDER_SIZE_75, "PROXY_75", 0, "Proxy size 75%", ""},
+		{SEQ_PROXY_RENDER_SIZE_FULL, "FULL", 0, "No proxy, full render", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SpaceSequenceEditor", "Space");
