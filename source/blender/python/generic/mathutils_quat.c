@@ -351,13 +351,24 @@ static PyObject *Quaternion_copy(QuaternionObject * self)
 //print the object to screen
 static PyObject *Quaternion_repr(QuaternionObject * self)
 {
-	char str[64];
+	PyObject *w, *x, *y, *z, *ret;
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	sprintf(str, "[%.6f, %.6f, %.6f, %.6f](quaternion)", self->quat[0], self->quat[1], self->quat[2], self->quat[3]);
-	return PyUnicode_FromString(str);
+	w= PyFloat_FromDouble(self->quat[0]);
+	x= PyFloat_FromDouble(self->quat[1]);
+	y= PyFloat_FromDouble(self->quat[2]);
+	z= PyFloat_FromDouble(self->quat[3]);
+
+	ret= PyUnicode_FromFormat("Quaternion(%R, %R, %R, %R)", w, x, y, z);
+
+	Py_DECREF(w);
+	Py_DECREF(x);
+	Py_DECREF(y);
+	Py_DECREF(z);
+
+	return ret;
 }
 //------------------------tp_richcmpr
 //returns -1 execption, 0 false, 1 true

@@ -104,13 +104,22 @@ static PyObject *Color_copy(ColorObject * self, PyObject *args)
 //print the object to screen
 static PyObject *Color_repr(ColorObject * self)
 {
-	char str[64];
+	PyObject *r, *g, *b, *ret;
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	sprintf(str, "[%.6f, %.6f, %.6f](color)", self->col[0], self->col[1], self->col[2]);
-	return PyUnicode_FromString(str);
+	r= PyFloat_FromDouble(self->col[0]);
+	g= PyFloat_FromDouble(self->col[1]);
+	b= PyFloat_FromDouble(self->col[2]);
+
+	ret= PyUnicode_FromFormat("Color(%R, %R, %R)", r, g, b);
+
+	Py_DECREF(r);
+	Py_DECREF(g);
+	Py_DECREF(b);
+
+	return ret;
 }
 //------------------------tp_richcmpr
 //returns -1 execption, 0 false, 1 true

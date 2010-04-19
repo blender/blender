@@ -1346,7 +1346,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, in
 		return -1;
 	}
 
-	if(!(value=PySequence_Fast(value_orig, "bpy_prop_array[slice] = value: type is not a sequence"))) {
+	if(!(value=PySequence_Fast(value_orig, "bpy_prop_array[slice] = value: assignment is not a sequence type"))) {
 		return -1;
 	}
 

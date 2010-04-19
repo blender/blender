@@ -314,13 +314,22 @@ static PyObject *Euler_copy(EulerObject * self, PyObject *args)
 //print the object to screen
 static PyObject *Euler_repr(EulerObject * self)
 {
-	char str[64];
+	PyObject *x, *y, *z, *ret;
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	sprintf(str, "[%.6f, %.6f, %.6f](euler)", self->eul[0], self->eul[1], self->eul[2]);
-	return PyUnicode_FromString(str);
+	x= PyFloat_FromDouble(self->eul[0]);
+	y= PyFloat_FromDouble(self->eul[1]);
+	z= PyFloat_FromDouble(self->eul[2]);
+
+	ret= PyUnicode_FromFormat("Euler(%R, %R, %R)", x, y, z);
+
+	Py_DECREF(x);
+	Py_DECREF(y);
+	Py_DECREF(z);
+
+	return ret;
 }
 //------------------------tp_richcmpr
 //returns -1 execption, 0 false, 1 true

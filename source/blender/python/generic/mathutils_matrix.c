@@ -723,27 +723,25 @@ PyObject *Matrix_copy(MatrixObject * self)
 static PyObject *Matrix_repr(MatrixObject * self)
 {
 	int x, y;
-	char buffer[48], str[1024];
+	char str[1024]="Matrix((", *str_p;
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
-	BLI_strncpy(str,"",1024);
+
+	str_p= &str[8];
+
 	for(x = 0; x < self->colSize; x++){
-		sprintf(buffer, "[");
-		strcat(str,buffer);
 		for(y = 0; y < (self->rowSize - 1); y++) {
-			sprintf(buffer, "%.6f, ", self->matrix[y][x]);
-			strcat(str,buffer);
+			str_p += sprintf(str_p, "%f, ", self->matrix[y][x]);
 		}
 		if(x < (self->colSize-1)){
-			sprintf(buffer, "%.6f](matrix [row %d])\n", self->matrix[y][x], x);
-			strcat(str,buffer);
-		}else{
-			sprintf(buffer, "%.6f](matrix [row %d])", self->matrix[y][x], x);
-			strcat(str,buffer);
+			str_p += sprintf(str_p, "%f), (", self->matrix[y][x]);
+		}
+		else{
+			str_p += sprintf(str_p, "%f)", self->matrix[y][x]);
 		}
 	}
+	strcat(str_p, ")");
 
 	return PyUnicode_FromString(str);
 }

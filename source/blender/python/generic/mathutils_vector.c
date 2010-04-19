@@ -704,26 +704,33 @@ static PyObject *Vector_copy(VectorObject * self)
   print the object to screen */
 static PyObject *Vector_repr(VectorObject * self)
 {
+	PyObject *axis[4], *ret;
 	int i;
-	char buffer[48], str[1024];
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
-	BLI_strncpy(str,"[",1024);
-	for(i = 0; i < self->size; i++){
-		if(i < (self->size - 1)){
-			sprintf(buffer, "%.6f, ", self->vec[i]);
-			strcat(str,buffer);
-		}else{
-			sprintf(buffer, "%.6f", self->vec[i]);
-			strcat(str,buffer);
-		}
-	}
-	strcat(str, "](vector)");
 
-	return PyUnicode_FromString(str);
+	for(i = 0; i < self->size; i++)
+		axis[i] = PyFloat_FromDouble(self->vec[i]);
+
+	switch(self->size) {
+	case 2:
+		ret= PyUnicode_FromFormat("Vector(%R, %R)", axis[0], axis[1]);
+		break;
+	case 3:
+		ret= PyUnicode_FromFormat("Vector(%R, %R, %R)", axis[0], axis[1], axis[2]);
+		break;
+	case 4:
+		ret= PyUnicode_FromFormat("Vector(%R, %R, %R, %R)", axis[0], axis[1], axis[2], axis[3]);
+		break;
+	}
+
+	for(i = 0; i < self->size; i++)
+		Py_DECREF(axis[i]);
+
+	return ret;
 }
+
 /*---------------------SEQUENCE PROTOCOLS------------------------
   ----------------------------len(object)------------------------
   sequence length*/
