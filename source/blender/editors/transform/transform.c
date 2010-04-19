@@ -1921,39 +1921,50 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 	}
 }
 
+static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
+{
+	/* Make a temporary bConstraintOb for use by limit constraints
+	 * 	- they only care that cob->matrix is correctly set ;-)
+	 *	- current space should be local
+	 */
+	memset(cob, 0, sizeof(bConstraintOb));
+	if (td->rotOrder == ROT_MODE_QUAT) {
+		/* quats */
+		if (td->ext) {
+			/* objects and bones do normalization first too, otherwise
+			   we don't necessarily end up with a rotation matrix, and
+			   then conversion back to quat gives a different result */
+			float quat[4];
+			copy_qt_qt(quat, td->ext->quat);
+			normalize_qt(quat);
+			quat_to_mat4(cob->matrix, quat);
+		}
+		else
+			return;
+	}
+	else if (td->rotOrder == ROT_MODE_AXISANGLE) {
+		/* axis angle */
+		if (td->ext)
+			axis_angle_to_mat4(cob->matrix, &td->ext->quat[1], td->ext->quat[0]);
+		else
+			return;
+	}
+	else {
+		/* eulers */
+		if (td->ext)
+			eulO_to_mat4(cob->matrix, td->ext->rot, td->rotOrder);
+		else
+			return;
+	}
+}
+
 static void constraintRotLim(TransInfo *t, TransData *td)
 {
 	if (td->con) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_ROTLIMIT);
 		bConstraintOb cob;
 		bConstraint *con;
-
-		/* Make a temporary bConstraintOb for using these limit constraints
-		 * 	- they only care that cob->matrix is correctly set ;-)
-		 *	- current space should be local
-		 */
-		memset(&cob, 0, sizeof(bConstraintOb));
-		if (td->rotOrder == ROT_MODE_QUAT) {
-			/* quats */
-			if (td->ext)
-				quat_to_mat4( cob.matrix,td->ext->quat);
-			else
-				return;
-		}
-		else if (td->rotOrder == ROT_MODE_AXISANGLE) {
-			/* axis angle */
-			if (td->ext)
-				axis_angle_to_mat4( cob.matrix,&td->ext->quat[1], td->ext->quat[0]);
-			else
-				return;
-		}
-		else {
-			/* eulers */
-			if (td->ext)
-				eulO_to_mat4( cob.matrix,td->ext->rot, td->rotOrder);
-			else
-				return;
-		}
+		int dolimit = 0;
 		
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
@@ -1969,16 +1980,22 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 				/* only use it if it's tagged for this purpose */
 				if ((data->flag2 & LIMIT_TRANSFORM)==0)
 					continue;
+
+				/* skip incompatable spacetypes */
+				if (!ELEM(con->ownspace, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL))
+					continue;
+
+				/* only do conversion if necessary, to preserve quats and eulers */
+				if(!dolimit) {
+					constraintob_from_transdata(&cob, td);
+					dolimit= 1;
+				}
 				
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
 					copy_m4_m4(tmat, cob.matrix);
 					mul_m4_m3m4(cob.matrix, td->mtx, tmat);
-				}
-				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
-					/* skip... incompatable spacetype */
-					continue;
 				}
 				
 				/* do constraint */
@@ -1993,18 +2010,20 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 			}
 		}
 		
-		/* copy results from cob->matrix */
-		if (td->rotOrder == ROT_MODE_QUAT) {
-			/* quats */
-			mat4_to_quat( td->ext->quat,cob.matrix);
-		}
-		else if (td->rotOrder == ROT_MODE_AXISANGLE) {
-			/* axis angle */
-			mat4_to_axis_angle( &td->ext->quat[1], &td->ext->quat[0],cob.matrix);
-		}
-		else {
-			/* eulers */
-			mat4_to_eulO( td->ext->rot, td->rotOrder,cob.matrix);
+		if(dolimit) {
+			/* copy results from cob->matrix */
+			if (td->rotOrder == ROT_MODE_QUAT) {
+				/* quats */
+				mat4_to_quat( td->ext->quat,cob.matrix);
+			}
+			else if (td->rotOrder == ROT_MODE_AXISANGLE) {
+				/* axis angle */
+				mat4_to_axis_angle( &td->ext->quat[1], &td->ext->quat[0],cob.matrix);
+			}
+			else {
+				/* eulers */
+				mat4_to_eulO( td->ext->rot, td->rotOrder,cob.matrix);
+			}
 		}
 	}
 }
