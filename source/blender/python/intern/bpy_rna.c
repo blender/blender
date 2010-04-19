@@ -1452,43 +1452,50 @@ static int prop_subscript_ass_array_int(BPy_PropertyRNA *self, Py_ssize_t keynum
 static int pyrna_prop_array_ass_subscript( BPy_PropertyRNA *self, PyObject *key, PyObject *value )
 {
 	/* char *keyname = NULL; */ /* not supported yet */
-	
+	int ret= -1;
+
 	if (!RNA_property_editable_flag(&self->ptr, self->prop)) {
 		PyErr_Format(PyExc_AttributeError, "bpy_prop_collection: attribute \"%.200s\" from \"%.200s\" is read-only", RNA_property_identifier(self->prop), RNA_struct_identifier(self->ptr.type) );
-		return -1;
+		ret= -1;
 	}
 
-	if (PyIndex_Check(key)) {
+	else if (PyIndex_Check(key)) {
 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
-		if (i == -1 && PyErr_Occurred())
-			return -1;
-
-		return prop_subscript_ass_array_int(self, i, value);
+		if (i == -1 && PyErr_Occurred()) {
+			ret= -1;
+		}
+		else {
+			ret= prop_subscript_ass_array_int(self, i, value);
+		}
 	}
 	else if (PySlice_Check(key)) {
 		int len= RNA_property_array_length(&self->ptr, self->prop);
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0)
-			return -1;
-
-		if (slicelength <= 0) {
-			return 0;
+		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0) {
+			ret= -1;
+		}
+		else if (slicelength <= 0) {
+			ret= 0; /* do nothing */
 		}
 		else if (step == 1) {
-			return prop_subscript_ass_array_slice(&self->ptr, self->prop, start, stop, len, value);
+			ret= prop_subscript_ass_array_slice(&self->ptr, self->prop, start, stop, len, value);
 		}
 		else {
 			PyErr_SetString(PyExc_TypeError, "slice steps not supported with rna");
-			return -1;
+			ret= -1;
 		}
 	}
 	else {
 		PyErr_SetString(PyExc_AttributeError, "invalid key, key must be an int");
-		return -1;
+		ret= -1;
 	}
 
-	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+	if(ret != -1) {
+		RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+	}
+
+	return ret;
 }
 
 /* for slice only */
