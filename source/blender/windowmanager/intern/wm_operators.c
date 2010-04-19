@@ -1840,7 +1840,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if (check_existing)
 			uiPupMenuSaveOver(C, op, name);
 		else {
-			WM_operator_call(C, op);
+			wm_save_as_mainfile_exec(C, op);
 		}
 	} else {
 		WM_event_add_fileselect(C, op);
