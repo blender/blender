@@ -78,10 +78,6 @@
 
 /* button events */
 enum {
-	B_REDR 	= 0,
-	B_FS_EXEC,
-	B_FS_CANCEL,
-	B_FS_PARENT,
 	B_FS_DIRNAME,
 	B_FS_FILENAME
 } eFile_ButEvents;
@@ -90,9 +86,6 @@ enum {
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
-		case B_FS_PARENT:
-			file_parent_exec(C, NULL); /* file_ops.c */
-			break;
 		case B_FS_FILENAME:
 			file_filename_exec(C, NULL);
 			break;
