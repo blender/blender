@@ -896,6 +896,14 @@ for member in dir(properties_texture):
     except:
         pass
 del properties_texture
+import properties_data_camera
+for member in dir(properties_data_camera):
+    subclass = getattr(properties_data_camera, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_data_camera
 
 
 class RenderButtonsPanel(bpy.types.Panel):
