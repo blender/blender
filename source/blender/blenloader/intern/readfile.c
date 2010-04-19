@@ -4283,8 +4283,12 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->plugin= newdataadr(fd, seq->plugin);
 			seq->effectdata= newdataadr(fd, seq->effectdata);
 			
-			if (seq->type & SEQ_EFFECT) {
+			if(seq->type & SEQ_EFFECT)
 				seq->flag |= SEQ_EFFECT_NOT_LOADED;
+
+			if(seq->type == SEQ_SPEED) {
+				SpeedControlVars *s= seq->effectdata;
+				s->frameMap= NULL;
 			}
 
 			seq->strip= newdataadr(fd, seq->strip);
