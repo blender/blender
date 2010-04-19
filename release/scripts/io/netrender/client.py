@@ -285,3 +285,4 @@ def compatible(module):
 compatible("properties_world")
 compatible("properties_material")
 compatible("properties_data_mesh")
+compatible("properties_texture")
