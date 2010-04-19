@@ -103,12 +103,14 @@ static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac)
 	sima_zoom_set(sima, ar, sima->zoom*zoomfac);
 }
 
+#if 0 // currently unused
 static int image_poll(bContext *C)
 {
 	return (CTX_data_edit_image(C) != NULL);
 }
+#endif
 
-static int space_image_poll(bContext *C)
+static int space_image_buffer_exists_poll(bContext *C)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	if(sima && sima->spacetype==SPACE_IMAGE)
@@ -119,7 +121,7 @@ static int space_image_poll(bContext *C)
 
 static int space_image_file_exists_poll(bContext *C)
 {
-	if(space_image_poll(C)) {
+	if(space_image_buffer_exists_poll(C)) {
 		SpaceImage *sima= CTX_wm_space_image(C);
 		ImBuf *ibuf;
 		void *lock;
@@ -131,6 +133,14 @@ static int space_image_file_exists_poll(bContext *C)
 
 		return poll;
 	}
+	return 0;
+}
+
+static int space_image_poll(bContext *C)
+{
+	SpaceImage *sima= CTX_wm_space_image(C);
+	if(sima && sima->spacetype==SPACE_IMAGE && sima->image)
+		return 1;
 	return 0;
 }
 
@@ -971,7 +981,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= save_as_exec;
 	ot->invoke= save_as_invoke;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1113,7 +1123,7 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= save_sequence_exec;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1146,7 +1156,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= reload_exec;
-	ot->poll= image_poll;
+	ot->poll= space_image_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1305,7 +1315,7 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= pack_exec;
 	ot->invoke= pack_invoke;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1421,7 +1431,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= unpack_exec;
 	ot->invoke= unpack_invoke;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1911,7 +1921,7 @@ void IMAGE_OT_record_composite(wmOperatorType *ot)
 	ot->invoke= record_composite_invoke;
 	ot->modal= record_composite_modal;
 	ot->cancel= record_composite_cancel;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_buffer_exists_poll;
 }
 
 /********************* cycle render slot operator *********************/
