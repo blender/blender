@@ -1963,7 +1963,7 @@ static int convert_key(GHOST_TKey key)
 		return (ZEROKEY + ((int) key - GHOST_kKey0));
 	} else if (key>=GHOST_kKeyNumpad0 && key<=GHOST_kKeyNumpad9) {
 		return (PAD0 + ((int) key - GHOST_kKeyNumpad0));
-	} else if (key>=GHOST_kKeyF1 && key<=GHOST_kKeyF12) {
+	} else if (key>=GHOST_kKeyF1 && key<=GHOST_kKeyF19) {
 		return (F1KEY + ((int) key - GHOST_kKeyF1));
 	} else {
 		switch (key) {
