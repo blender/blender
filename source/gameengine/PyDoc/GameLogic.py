@@ -361,8 +361,8 @@ def addScene(name, overlay=1):
 	
 	@param name: The name of the scene
 	@type name: string
-	@param body: Overlay or underlay (optional)
-	@type body: int
+	@param overlay: Overlay or underlay (optional)
+	@type overlay: int
 	"""
 def sendMessage(subject, body="", to="", message_from=""):
 	"""
@@ -402,7 +402,7 @@ def getMaxLogicFrame():
 	Gets the maximum number of logic frame per render frame.
 	
 	@return: The maximum number of logic frame per render frame
-	@rtype: interger
+	@rtype: integer
 	"""
 def setMaxLogicFrame(maxlogic):
 	"""
@@ -417,7 +417,7 @@ def getMaxPhysicsFrame():
 	Gets the maximum number of physics frame per render frame.
 	
 	@return: The maximum number of physics frame per render frame
-	@rtype: interger
+	@rtype: integer
 	"""
 def setMaxPhysicsFrame(maxphysics):
 	"""
