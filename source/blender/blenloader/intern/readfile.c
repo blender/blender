@@ -12199,6 +12199,28 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					BKE_reportf(basefd->reports, RPT_INFO, "read library:  '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
 
 					fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
+					
+					/* allow typing in a new lib path */
+					if(G.rt==-666) {
+						while(fd==NULL) {
+							char newlib_path[240] = { 0 };
+							printf("Missing library: '%s', '%s'\n", mainptr->name, G.sce);
+							printf("	abs: %s\n", mainptr->curlib->filename);
+							printf("	rel: %s\n", mainptr->curlib->name);
+							printf("  enter a new path:\n");
+							scanf("%s", newlib_path);
+
+							strcpy(mainptr->curlib->name, newlib_path);
+							strcpy(mainptr->curlib->filename, newlib_path);
+							cleanup_path(G.sce, mainptr->curlib->filename);
+							
+							fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
+
+							if(fd) {
+								printf("found: '%s', party on macuno!\n");
+							}
+						}
+					}
 
 					if (fd) {
 						fd->reports= basefd->reports;
