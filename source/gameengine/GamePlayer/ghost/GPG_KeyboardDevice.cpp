@@ -97,7 +97,15 @@ GPG_KeyboardDevice::GPG_KeyboardDevice(void)
 	m_reverseKeyTranslateTable[GHOST_kKeyF9                    ] = KX_F9KEY                   ;                  
 	m_reverseKeyTranslateTable[GHOST_kKeyF10                   ] = KX_F10KEY                  ;                  
 	m_reverseKeyTranslateTable[GHOST_kKeyF11                   ] = KX_F11KEY                  ;                  
-	m_reverseKeyTranslateTable[GHOST_kKeyF12                   ] = KX_F12KEY                  ;                  
+	m_reverseKeyTranslateTable[GHOST_kKeyF12                   ] = KX_F12KEY                  ;
+	m_reverseKeyTranslateTable[GHOST_kKeyF13                   ] = KX_F13KEY                  ;
+	m_reverseKeyTranslateTable[GHOST_kKeyF14                   ] = KX_F14KEY                  ;
+	m_reverseKeyTranslateTable[GHOST_kKeyF15                   ] = KX_F15KEY                  ;
+	m_reverseKeyTranslateTable[GHOST_kKeyF16                   ] = KX_F16KEY                  ;
+	m_reverseKeyTranslateTable[GHOST_kKeyF17                   ] = KX_F17KEY                  ;
+	m_reverseKeyTranslateTable[GHOST_kKeyF18                   ] = KX_F18KEY                  ;
+	m_reverseKeyTranslateTable[GHOST_kKeyF19                   ] = KX_F19KEY                  ;
+	
 
 	// Numpad keys
 	m_reverseKeyTranslateTable[GHOST_kKeyNumpad0	           ] = KX_PAD0	                   ;                  

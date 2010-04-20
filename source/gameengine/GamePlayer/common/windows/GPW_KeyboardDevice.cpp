@@ -136,7 +136,14 @@ GPW_KeyboardDevice::GPW_KeyboardDevice(void)
 	m_reverseKeyTranslateTable[VK_F9                           ] = KX_F9KEY                   ;                  
 	m_reverseKeyTranslateTable[VK_F10                          ] = KX_F10KEY                  ;                  
 	m_reverseKeyTranslateTable[VK_F11                          ] = KX_F11KEY                  ;                  
-	m_reverseKeyTranslateTable[VK_F12                          ] = KX_F12KEY                  ;                  
+	m_reverseKeyTranslateTable[VK_F12                          ] = KX_F12KEY                  ;
+	m_reverseKeyTranslateTable[VK_F13                          ] = KX_F13KEY                  ;
+	m_reverseKeyTranslateTable[VK_F14                          ] = KX_F14KEY                  ;
+	m_reverseKeyTranslateTable[VK_F15                          ] = KX_F15KEY                  ;
+	m_reverseKeyTranslateTable[VK_F16                          ] = KX_F16KEY                  ;
+	m_reverseKeyTranslateTable[VK_F17                          ] = KX_F17KEY                  ;
+	m_reverseKeyTranslateTable[VK_F18                          ] = KX_F18KEY                  ;
+	m_reverseKeyTranslateTable[VK_F19                          ] = KX_F19KEY                  ;
 
 	// Numpad keys
 	m_reverseKeyTranslateTable[VK_NUMPAD0	                   ] = KX_PAD0	                   ;                  
