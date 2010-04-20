@@ -420,7 +420,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 
 		retval= op->type->exec(C, op);
 
-		if(op->type->flag & OPTYPE_UNDO)
+		if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 			wm->op_undo_depth--;
 	}
 	
@@ -570,7 +570,7 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 
 			retval= op->type->invoke(C, op, event);
 
-			if(op->type->flag & OPTYPE_UNDO)
+			if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 				wm->op_undo_depth--;
 		}
 		else if(op->type->exec) {
@@ -579,7 +579,7 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 
 			retval= op->type->exec(C, op);
 
-			if(op->type->flag & OPTYPE_UNDO)
+			if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 				wm->op_undo_depth--;
 		}
 		else
@@ -782,7 +782,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 
 		retval= op->type->exec(C, op);
 
-		if(op->type->flag & OPTYPE_UNDO)
+		if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 			wm->op_undo_depth--;
 	}
 	else
@@ -1072,7 +1072,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 			retval= ot->modal(C, op, event);
 
-			if(ot->flag & OPTYPE_UNDO)
+			if(ot->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 				wm->op_undo_depth--;
 
 			/* putting back screen context, reval can pass trough after modal failures! */
@@ -1217,7 +1217,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 
 						retval= handler->op->type->exec(C, handler->op);
 
-						if(handler->op->type->flag & OPTYPE_UNDO)
+						if(handler->op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 							wm->op_undo_depth--;
 						
 						if (retval & OPERATOR_FINISHED)
