@@ -28,9 +28,6 @@
  */
 
 #include "IK_QSegment.h"
-#ifdef WIN32
-#define _USE_MATH_DEFINES
-#endif
 #include <cmath>
 
 // Utility functions
@@ -372,8 +369,8 @@ void IK_QSphericalSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 		return;
 	
 	if (axis == 1) {
-		lmin = MT_clamp(lmin, -M_PI, M_PI);
-		lmax = MT_clamp(lmax, -M_PI, M_PI);
+		lmin = MT_clamp(lmin, -MT_PI, MT_PI);
+		lmax = MT_clamp(lmax, -MT_PI, MT_PI);
 
 		m_min_y = lmin;
 		m_max_y = lmax;
@@ -382,8 +379,8 @@ void IK_QSphericalSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	}
 	else {
 		// clamp and convert to axis angle parameters
-		lmin = MT_clamp(lmin, -M_PI, M_PI);
-		lmax = MT_clamp(lmax, -M_PI, M_PI);
+		lmin = MT_clamp(lmin, -MT_PI, MT_PI);
+		lmax = MT_clamp(lmax, -MT_PI, MT_PI);
 
 		lmin = sin(lmin*0.5);
 		lmax = sin(lmax*0.5);
@@ -615,8 +612,8 @@ void IK_QRevoluteSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 		return;
 	
 	// clamp and convert to axis angle parameters
-	lmin = MT_clamp(lmin, -M_PI, M_PI);
-	lmax = MT_clamp(lmax, -M_PI, M_PI);
+	lmin = MT_clamp(lmin, -MT_PI, MT_PI);
+	lmax = MT_clamp(lmax, -MT_PI, MT_PI);
 
 	m_min = lmin;
 	m_max = lmax;
@@ -754,8 +751,8 @@ void IK_QSwingSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 		return;
 	
 	// clamp and convert to axis angle parameters
-	lmin = MT_clamp(lmin, -M_PI, M_PI);
-	lmax = MT_clamp(lmax, -M_PI, M_PI);
+	lmin = MT_clamp(lmin, -MT_PI, MT_PI);
+	lmax = MT_clamp(lmax, -MT_PI, MT_PI);
 
 	lmin = sin(lmin*0.5);
 	lmax = sin(lmax*0.5);
@@ -900,8 +897,8 @@ void IK_QElbowSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 		return;
 
 	// clamp and convert to axis angle parameters
-	lmin = MT_clamp(lmin, -M_PI, M_PI);
-	lmax = MT_clamp(lmax, -M_PI, M_PI);
+	lmin = MT_clamp(lmin, -MT_PI, MT_PI);
+	lmax = MT_clamp(lmax, -MT_PI, MT_PI);
 
 	lmin = lmin;
 	lmax = lmax;
