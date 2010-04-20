@@ -102,9 +102,9 @@ ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 
-#   cmake -D PYTHON_LIB=/usr/local/lib/python2.3/config/libpython2.3.so -D PYTHON_INC=/usr/local/include/python2.3 -D PYTHON_BINARY=/usr/local/bin/python2.3 -G "Unix Makefiles" ../blender
+#   cmake -D PYTHON_LIB=/usr/local/lib/python3.1/config/libpython3.1.so -D PYTHON_INC=/usr/local/include/python3.1 -G "Unix Makefiles" ../blender
 # On Macs: 
-#   cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/2.5/include/python2.5 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/config -D PYTHON_BINARY=/System/Library/Frameworks/Python.framework/Versions/2.5/bin/python2.5 -G Xcode ../blender
+#   cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.1/lib/python3.1/config -G Xcode ../blender
 #
 # When changing any of this remember to update the notes in doc/blender-cmake.txt
 
@@ -479,7 +479,7 @@ IF(APPLE)
 		# otherwise, use custom system framework
 
 		SET(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
-		SET(PYTHON_VERSION 2.5)
+		SET(PYTHON_VERSION 3.1)
 		SET(PYTHON_INC "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}")
 		# SET(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
 		SET(PYTHON_LIB "")

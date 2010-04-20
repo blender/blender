@@ -207,8 +207,8 @@ ifndef CONFIG_GUESS
     else
       export PY_FRAMEWORK ?= 1
       ifdef PY_FRAMEWORK
-        export NAN_PYTHON ?= /System/Library/Frameworks/Python.framework/Versions/2.5
-        export NAN_PYTHON_VERSION ?= 2.5
+        export NAN_PYTHON_VERSION ?= 3.1
+        export NAN_PYTHON ?= /System/Library/Frameworks/Python.framework/Versions/$(NAN_PYTHON_VERSION)
         export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
         export NAN_PYTHON_LIB ?= -framework Python
       else
@@ -538,7 +538,7 @@ ifndef CONFIG_GUESS
     ifeq ($(FREE_WINDOWS), true)
       export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/freegettext.a $(NAN_ICONV)/lib/freeiconv.a
       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/lib25_vs2005/libpython25.a
+      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/lib25_vs2005/libpython31.a # NOT TESTED, PROBABLY BROKEN
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
       export NAN_SDL ?= $(LCGDIR)/gcc/sdl
       export NAN_OPENEXR ?= $(LCGDIR)/gcc/openexr
@@ -548,7 +548,7 @@ ifndef CONFIG_GUESS
     else
       export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/gnu_gettext.lib $(NAN_ICONV)/lib/iconv.lib
       export NAN_PYTHON_BINARY ?= python
-      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python23.lib
+      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python31.lib # NOT TESTED, PROBABLY BROKEN
       export NAN_FREETYPE ?= $(LCGDIR)/freetype
       export NAN_SDL ?= $(LCGDIR)/sdl
       export NAN_OPENEXR ?= $(LCGDIR)/openexr

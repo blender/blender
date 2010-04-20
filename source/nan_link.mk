@@ -155,7 +155,7 @@ ifeq ($(OS),windows)
         LOPTS += /NODEFAULTLIB:"libcd" 
         LOPTS += /NODEFAULTLIB:"libcp" 
         LOPTS += /NODEFAULTLIB:"libcpd" 
-        LOPTS += /NODEFAULTLIB:"python20" 
+        LOPTS += /NODEFAULTLIB:"python31" 
         LOPTS += /NODEFAULTLIB:"msvcrt" 
         LOPTS += /SUBSYSTEM:CONSOLE
         LDFLAGS += /MT
