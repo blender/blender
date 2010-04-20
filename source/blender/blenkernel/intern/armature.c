@@ -54,6 +54,7 @@
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -368,7 +369,7 @@ int bone_autoside_name (char *name, int strip_number, short axis, float head, fl
 	char 	extension[5]={""};
 
 	len= strlen(name);
-	if (len == 0) return;
+	if (len == 0) return 0;
 	strcpy(basename, name);
 	
 	/* Figure out extension to append: 
@@ -924,7 +925,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	int numGroups = 0;		/* safety for vertexgroup index overflow */
 	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
 	int use_dverts = 0;
-	int armature_def_nr = -1;
+	int armature_def_nr;
 	int totchan;
 
 	if(arm->edbo) return;
@@ -956,9 +957,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	}
 
 	/* get the def_nr for the overall armature vertex group if present */
-	for(i = 0, dg = target->defbase.first; dg; i++, dg = dg->next)
-		if(defgrp_name && strcmp(defgrp_name, dg->name) == 0)
-			armature_def_nr = i;
+	armature_def_nr= defgroup_name_index(target, defgrp_name);
 
 	/* get a vertex-deform-index to posechannel array */
 	if(deformflag & ARM_DEF_VGROUP) {

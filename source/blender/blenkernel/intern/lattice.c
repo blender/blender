@@ -59,6 +59,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_utildefines.h"
+#include "BKE_deform.h"
 
 //XXX #include "BIF_editdeform.h"
 
@@ -338,19 +339,29 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 {
 	Lattice *lt= ob->data;
 	float u, v, w, tu[4], tv[4], tw[4];
-	float *fpw, *fpv, *fpu, vec[3];
+	float vec[3];
+	int idx_w, idx_v, idx_u;
 	int ui, vi, wi, uu, vv, ww;
-	
+
+	/* vgroup influence */
+	int defgroup_nr= -1;
+	float co_prev[3], weight_blend= 0.0f;
+	MDeformVert *dvert= lattice_get_deform_verts(ob);
+
+
 	if(lt->editlatt) lt= lt->editlatt;
 	if(lt->latticedata==NULL) return;
-	
+
+	if(lt->vgroup[0] && dvert) {
+		defgroup_nr= defgroup_name_index(ob, lt->vgroup);
+		copy_v3_v3(co_prev, co);
+	}
+
 	/* co is in local coords, treat with latmat */
-	
-	VECCOPY(vec, co);
-	mul_m4_v3(lt->latmat, vec);
-	
+	mul_v3_m4v3(vec, lt->latmat, co);
+
 	/* u v w coords */
-	
+
 	if(lt->pntsu>1) {
 		u= (vec[0]-lt->fu)/lt->du;
 		ui= (int)floor(u);
@@ -361,7 +372,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 		tu[0]= tu[2]= tu[3]= 0.0; tu[1]= 1.0;
 		ui= 0;
 	}
-	
+
 	if(lt->pntsv>1) {
 		v= (vec[1]-lt->fv)/lt->dv;
 		vi= (int)floor(v);
@@ -372,7 +383,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 		tv[0]= tv[2]= tv[3]= 0.0; tv[1]= 1.0;
 		vi= 0;
 	}
-	
+
 	if(lt->pntsw>1) {
 		w= (vec[2]-lt->fw)/lt->dw;
 		wi= (int)floor(w);
@@ -383,46 +394,51 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 		tw[0]= tw[2]= tw[3]= 0.0; tw[1]= 1.0;
 		wi= 0;
 	}
-	
+
 	for(ww= wi-1; ww<=wi+2; ww++) {
 		w= tw[ww-wi+1];
-		
+
 		if(w!=0.0) {
 			if(ww>0) {
-				if(ww<lt->pntsw) fpw= lt->latticedata + 3*ww*lt->pntsu*lt->pntsv;
-				else fpw= lt->latticedata + 3*(lt->pntsw-1)*lt->pntsu*lt->pntsv;
+				if(ww<lt->pntsw) idx_w= ww*lt->pntsu*lt->pntsv;
+				else idx_w= (lt->pntsw-1)*lt->pntsu*lt->pntsv;
 			}
-			else fpw= lt->latticedata;
-			
+			else idx_w= 0;
+
 			for(vv= vi-1; vv<=vi+2; vv++) {
 				v= w*tv[vv-vi+1];
-				
+
 				if(v!=0.0) {
 					if(vv>0) {
-						if(vv<lt->pntsv) fpv= fpw + 3*vv*lt->pntsu;
-						else fpv= fpw + 3*(lt->pntsv-1)*lt->pntsu;
+						if(vv<lt->pntsv) idx_v= idx_w + vv*lt->pntsu;
+						else idx_v= idx_w + (lt->pntsv-1)*lt->pntsu;
 					}
-					else fpv= fpw;
-					
+					else idx_v= idx_w;
+
 					for(uu= ui-1; uu<=ui+2; uu++) {
 						u= weight*v*tu[uu-ui+1];
-						
+
 						if(u!=0.0) {
 							if(uu>0) {
-								if(uu<lt->pntsu) fpu= fpv + 3*uu;
-								else fpu= fpv + 3*(lt->pntsu-1);
+								if(uu<lt->pntsu) idx_u= idx_v + uu;
+								else idx_u= idx_v + (lt->pntsu-1);
 							}
-							else fpu= fpv;
-							
-							co[0]+= u*fpu[0];
-							co[1]+= u*fpu[1];
-							co[2]+= u*fpu[2];
+							else idx_u= idx_v;
+
+							madd_v3_v3fl(co, &lt->latticedata[idx_u * 3], u);
+
+							if(defgroup_nr != -1)
+								weight_blend += (u * defvert_find_weight(dvert + idx_u, defgroup_nr));
 						}
 					}
 				}
 			}
 		}
 	}
+
+	if(defgroup_nr != -1)
+		interp_v3_v3v3(co, co_prev, co, weight_blend);
+
 }
 
 void end_latt_deform(Object *ob)

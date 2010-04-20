@@ -213,10 +213,8 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 	/* weights */
 	MDeformVert *dvert= NULL, *dv= NULL;
-	int defgrp_index= -1;
 	int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
-
-	defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
+	int defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
 
 	if (defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);

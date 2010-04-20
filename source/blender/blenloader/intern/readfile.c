@@ -12204,9 +12204,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					if(G.rt==-666) {
 						while(fd==NULL) {
 							char newlib_path[240] = { 0 };
-							printf("Missing library: '%s', '%s'\n", mainptr->name, G.sce);
-							printf("	abs: %s\n", mainptr->curlib->filename);
-							printf("	rel: %s\n", mainptr->curlib->name);
+							printf("Missing library...'\n");
+							printf("	current file: %s\n", G.sce);
+							printf("	absolute lib: %s\n", mainptr->curlib->filename);
+							printf("	relative lib: %s\n", mainptr->curlib->name);
 							printf("  enter a new path:\n");
 							scanf("%s", newlib_path);
 
@@ -12217,7 +12218,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 							fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
 
 							if(fd) {
-								printf("found: '%s', party on macuno!\n");
+								printf("found: '%s', party on macuno!\n", mainptr->curlib->filename);
 							}
 						}
 					}
