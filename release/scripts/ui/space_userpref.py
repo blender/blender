@@ -1137,7 +1137,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         cats = ['All', 'Disabled', 'Enabled'] + sorted(cats)
 
-        bpy.types.Scene.EnumProperty(items=[(cats[i], cats[i], str(i)) for i in range(len(cats))],
+        bpy.types.Scene.EnumProperty(items=[(cat, cat, str(i)) for i, cat in enumerate(cats)],
             name="Category", attr="addon_filter", description="Filter add-ons by category")
         bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
             description="Search within the selected filter")
@@ -1153,64 +1153,66 @@ class USERPREF_PT_addons(bpy.types.Panel):
         for mod, info in addons:
             module_name = mod.__name__
 
+            is_enabled = module_name in used_ext
+
             # check if add-on should be visible with current filters
-            if filter != "All" and \
-                    filter != info["category"] and \
-                    not (module_name not in used_ext and filter == "Disabled"):
+            if (filter == "All") or \
+                    (filter == info["category"]) or \
+                    (filter == "Enabled" and is_enabled) or \
+                    (filter == "Disabled" and not is_enabled):
 
-                continue
 
-            if search and search not in info["name"].lower():
-                if info["author"]:
-                    if search not in info["author"].lower():
+                if search and search not in info["name"].lower():
+                    if info["author"]:
+                        if search not in info["author"].lower():
+                            continue
+                    else:
                         continue
+
+                # Addon UI Code
+                box = layout.column().box()
+                column = box.column()
+                row = column.row()
+
+                # Arrow #
+                # If there are Infos or UI is expanded
+                if info["expanded"]:
+                    row.operator("wm.addon_expand", icon="TRIA_DOWN").module = module_name
+                elif info["author"] or info["version"] or info["url"] or info["location"]:
+                    row.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
                 else:
-                    continue
+                    # Else, block UI
+                    arrow = row.column()
+                    arrow.enabled = False
+                    arrow.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
 
-            # Addon UI Code
-            box = layout.column().box()
-            column = box.column()
-            row = column.row()
+                row.label(text=info["name"])
+                row.operator("wm.addon_disable" if is_enabled else "wm.addon_enable").module = module_name
 
-            # Arrow #
-            # If there are Infos or UI is expanded
-            if info["expanded"]:
-                row.operator("wm.addon_expand", icon="TRIA_DOWN").module = module_name
-            elif info["author"] or info["version"] or info["url"] or info["location"]:
-                row.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
-            else:
-                # Else, block UI
-                arrow = row.column()
-                arrow.enabled = False
-                arrow.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
-
-            row.label(text=info["name"])
-            row.operator("wm.addon_disable" if module_name in used_ext else "wm.addon_enable").module = module_name
-
-            # Expanded UI (only if additional infos are available)
-            if info["expanded"]:
-                if info["author"]:
-                    split = column.row().split(percentage=0.15)
-                    split.label(text='Author:')
-                    split.label(text=info["author"])
-                if info["version"]:
-                    split = column.row().split(percentage=0.15)
-                    split.label(text='Version:')
-                    split.label(text=info["version"])
-                if info["location"]:
-                    split = column.row().split(percentage=0.15)
-                    split.label(text='Location:')
-                    split.label(text=info["location"])
-                if info["description"]:
-                    split = column.row().split(percentage=0.15)
-                    split.label(text='Description:')
-                    split.label(text=info["description"])
-                if info["url"]:
-                    split = column.row().split(percentage=0.15)
-                    split.label(text="Internet:")
-                    split.operator("wm.addon_links", text="Link to the Wiki").link = info["url"]
-                    split.separator()
-                    split.separator()
+                # Expanded UI (only if additional infos are available)
+                if info["expanded"]:
+                    if info["author"]:
+                        split = column.row().split(percentage=0.15)
+                        split.label(text='Author:')
+                        split.label(text=info["author"])
+                    if info["version"]:
+                        split = column.row().split(percentage=0.15)
+                        split.label(text='Version:')
+                        split.label(text=info["version"])
+                    if info["location"]:
+                        split = column.row().split(percentage=0.15)
+                        split.label(text='Location:')
+                        split.label(text=info["location"])
+                    if info["description"]:
+                        split = column.row().split(percentage=0.15)
+                        split.label(text='Description:')
+                        split.label(text=info["description"])
+                    if info["url"]:
+                        split = column.row().split(percentage=0.15)
+                        split.label(text="Internet:")
+                        split.operator("wm.addon_links", text="Link to the Wiki").link = info["url"]
+                        split.separator()
+                        split.separator()
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.
