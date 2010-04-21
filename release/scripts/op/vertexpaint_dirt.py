@@ -58,17 +58,22 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
         con[e.verts[0]].append(e.verts[1])
         con[e.verts[1]].append(e.verts[0])
 
-    for v in me.verts:
+    for i, v in enumerate(me.verts):
         vec = Vector()
         no = v.normal
         co = v.co
 
         # get the direction of the vectors between the vertex and it's connected vertices
-        for c in con[v.index]:
+        for c in con[i]:
             vec += Vector(me.verts[c].co - co).normalize()
 
         # normalize the vector by dividing by the number of connected verts
-        vec /= len(con[v.index])
+        tot_con = len(con[i])
+        
+        if tot_con == 0:
+            continue
+        
+        vec /= tot_con
 
         # angle is the acos of the dot product between vert and connected verts normals
         ang = math.acos(no.dot(vec))
@@ -79,7 +84,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
         if not dirt_only:
             ang = min(clamp_clean, ang)
 
-        vert_tone[v.index] = ang
+        vert_tone[i] = ang
 
     # blur tones
     for i in range(blur_iterations):
@@ -146,7 +151,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
 class VertexPaintDirt(bpy.types.Operator):
 
-    bl_idname = "mesh.vertex_paint_dirt"
+    bl_idname = "paint.vertex_color_dirt"
     bl_label = "Dirty Vertex Colors"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -171,7 +176,7 @@ class VertexPaintDirt(bpy.types.Operator):
 
         print('Dirt calculated in %.6f' % (time.time() - t))
 
-        return('FINISHED',)
+        return {'FINISHED'}
 
 
 def register():

@@ -850,6 +850,7 @@ class VIEW3D_MT_paint_vertex(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("paint.vertex_color_set")
+        layout.operator("paint.vertex_color_dirt")
 
 
 class VIEW3D_MT_hook(bpy.types.Menu):
