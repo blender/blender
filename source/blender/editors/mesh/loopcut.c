@@ -413,7 +413,7 @@ static int ringcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 	switch (event->type) {
 		case LEFTMOUSE: /* confirm */ // XXX hardcoded
-			if (event->val == KM_RELEASE) {
+			if (event->val == KM_PRESS) {
 				/* finish */
 				ED_region_tag_redraw(lcd->ar);
 				
