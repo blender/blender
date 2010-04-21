@@ -1004,7 +1004,11 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		
 		if(but->poin==NULL && but->rnapoin.data==NULL);
 		else if(mode=='c') {
-			sprintf(buf, "%f", ui_get_but_val(but));
+			if(ui_is_but_float(but))
+				sprintf(buf, "%f", ui_get_but_val(but));
+			else
+				sprintf(buf, "%d", (int)ui_get_but_val(but));
+
 			WM_clipboard_text_set(buf, 0);
 		}
 		else {
