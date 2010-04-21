@@ -1405,14 +1405,16 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 	Lattice *lt= ob->data;
 	DispList *dl;
 	int u, v, w;
-	int use_wcol= 0;
+	int use_wcol= 0, is_edit= (lt->editlatt != NULL);
 
 	/* now we default make displist, this will modifiers work for non animated case */
 	if(ob->disp.first==NULL)
 		lattice_calc_modifiers(scene, ob);
 	dl= find_displist(&ob->disp, DL_VERTS);
 	
-	if(lt->editlatt) {
+	if(is_edit) {
+		lt= lt->editlatt;
+
 		cpack(0x004000);
 		
 		if(ob->defbase.first && lt->dvert) {
@@ -1420,8 +1422,6 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 			glShadeModel(GL_SMOOTH);
 		}
 	}
-	
-	if(lt->editlatt) lt= lt->editlatt;
 	
 	glBegin(GL_LINES);
 	for(w=0; w<lt->pntsw; w++) {
@@ -1452,7 +1452,7 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 	if(use_wcol)
 		glShadeModel(GL_FLAT);
 
-	if( ((Lattice *)ob->data)->editlatt ) {
+	if(is_edit) {
 		if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 		
 		lattice_draw_verts(lt, dl, 0);
