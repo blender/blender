@@ -1985,7 +1985,7 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 
 	float effect[3] = {0.0f, 0.0f, 0.0f}, veffect[3] = {0.0f, 0.0f, 0.0f};
 	float guidevec[4], guidedir[3], rot2[4], temp[3];
-	float guidetime, radius, angle, totstrength = 0.0f;
+	float guidetime, radius, weight, angle, totstrength = 0.0f;
 	float vec_to_point[3];
 
 	if(effectors) for(eff = effectors->first; eff; eff=eff->next) {
@@ -2007,11 +2007,11 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 		cu = (Curve*)eff->ob->data;
 
 		if(pd->flag & PFIELD_GUIDE_PATH_ADD) {
-			if(where_on_path(eff->ob, data->strength * guidetime, guidevec, guidedir, NULL, &radius)==0)
+			if(where_on_path(eff->ob, data->strength * guidetime, guidevec, guidedir, NULL, &radius, &weight)==0)
 				return 0;
 		}
 		else {
-			if(where_on_path(eff->ob, guidetime, guidevec, guidedir, NULL, &radius)==0)
+			if(where_on_path(eff->ob, guidetime, guidevec, guidedir, NULL, &radius, &weight)==0)
 				return 0;
 		}
 
@@ -2051,10 +2051,14 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 		VECCOPY(vec_to_point, key.co);
 
 		VECADD(vec_to_point, vec_to_point, guidevec);
+
 		//VECSUB(pa_loc,pa_loc,pa_zero);
 		VECADDFAC(effect, effect, vec_to_point, data->strength);
 		VECADDFAC(veffect, veffect, guidedir, data->strength);
 		totstrength += data->strength;
+
+		if(pd->flag & PFIELD_GUIDE_PATH_WEIGHT)
+			totstrength *= weight;
 	}
 
 	if(totstrength != 0.0){

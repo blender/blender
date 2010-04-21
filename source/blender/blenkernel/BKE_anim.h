@@ -63,7 +63,7 @@ void animviz_calc_motionpaths(struct Scene *scene, ListBase *targets);
 void free_path(struct Path *path);
 void calc_curvepath(struct Object *ob);
 int interval_test(int min, int max, int p1, int cycl);
-int where_on_path(struct Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius);
+int where_on_path(struct Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius, float *weight);
 
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */

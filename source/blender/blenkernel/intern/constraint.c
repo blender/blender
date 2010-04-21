@@ -1242,7 +1242,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				curvetime= data->offset_fac;
 			}
 			
-			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, &radius) ) {
+			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, &radius, NULL) ) {
 				if (data->followflag & FOLLOWPATH_FOLLOW) {
 					vec_to_quat(quat, dir, (short)data->trackflag, (short)data->upflag);
 					
@@ -3261,7 +3261,7 @@ static void clampto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			}
 			
 			/* 3. position on curve */
-			if (where_on_path(ct->tar, curvetime, vec, dir, NULL, NULL) ) {
+			if (where_on_path(ct->tar, curvetime, vec, dir, NULL, NULL, NULL) ) {
 				unit_m4(totmat);
 				VECCOPY(totmat[3], vec);
 				

@@ -1262,6 +1262,11 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_GUIDE_PATH_ADD);
 	RNA_def_property_ui_text(prop, "Additive", "Based on distance/falloff it adds a portion of the entire path");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "use_guide_path_weight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_GUIDE_PATH_WEIGHT);
+	RNA_def_property_ui_text(prop, "Weights", "Use curve weights to influence the particle influence along the curve");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	/* Clump Settings */
 	

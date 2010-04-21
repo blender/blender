@@ -895,7 +895,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				data= dl->verts;
 				if(nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
-				makeNurbcurve(nu, data, NULL, NULL, resolu, 3*sizeof(float));
+				makeNurbcurve(nu, data, NULL, NULL, NULL, resolu, 3*sizeof(float));
 			}
 			else if(nu->type == CU_POLY) {
 				len= nu->pntsu;
@@ -1598,7 +1598,7 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 				if(nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 
-				makeNurbcurve(nu, data, NULL, NULL, nu->resolu, 3*sizeof(float));
+				makeNurbcurve(nu, data, NULL, NULL, NULL, nu->resolu, 3*sizeof(float));
 			}
 			else {
 				len= (nu->pntsu*nu->resolu) * (nu->pntsv*nu->resolv);

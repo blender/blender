@@ -222,7 +222,7 @@ static void precalculate_effector(EffectorCache *eff)
 				makeDispListCurveTypes(eff->scene, eff->ob, 0);
 
 			if(cu->path && cu->path->data) {
-				where_on_path(eff->ob, 0.0, eff->guide_loc, eff->guide_dir, NULL, &eff->guide_radius);
+				where_on_path(eff->ob, 0.0, eff->guide_loc, eff->guide_dir, NULL, &eff->guide_radius, NULL);
 				mul_m4_v3(eff->ob->obmat, eff->guide_loc);
 				mul_mat3_m4_v3(eff->ob->obmat, eff->guide_dir);
 			}

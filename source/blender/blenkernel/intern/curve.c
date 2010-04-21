@@ -887,14 +887,14 @@ void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride)
 	MEM_freeN(jend);
 }
 
-void makeNurbcurve(Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu, int stride)
+void makeNurbcurve(Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, float *weight_array, int resolu, int stride)
 /* coord_array has to be 3*4*pntsu*resolu in size and zero-ed
  * tilt_array and radius_array will be written to if valid */
 {
 	BPoint *bp;
 	float u, ustart, uend, ustep, sumdiv;
 	float *basisu, *sum, *fp;
-	float *coord_fp= coord_array, *tilt_fp= tilt_array, *radius_fp= radius_array;
+	float *coord_fp= coord_array, *tilt_fp= tilt_array, *radius_fp= radius_array, *weight_fp= weight_array;
 	int i, len, istart, iend, cycl;
 
 	if(nu->knotsu==NULL) return;
@@ -967,6 +967,9 @@ void makeNurbcurve(Nurb *nu, float *coord_array, float *tilt_array, float *radiu
 				
 				if (radius_fp)
 					(*radius_fp) += (*fp) * bp->radius;
+
+				if (weight_fp)
+					(*weight_fp) += (*fp) * bp->weight;
 				
 			}
 		}
@@ -975,6 +978,7 @@ void makeNurbcurve(Nurb *nu, float *coord_array, float *tilt_array, float *radiu
 		
 		if (tilt_fp)	tilt_fp = (float *)(((char *)tilt_fp) + stride);
 		if (radius_fp)	radius_fp = (float *)(((char *)radius_fp) + stride);
+		if (weight_fp)	weight_fp = (float *)(((char *)weight_fp) + stride);
 		
 		u+= ustep;
 	}
@@ -1538,7 +1542,7 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *si
 
 }
 
-static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *tilt_array, float *radius_array, int resolu, int stride)
+static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *tilt_array, float *radius_array, float *weight_array, int resolu, int stride)
 {
 	BezTriple *pprev, *next, *last;
 	float fac, dfac, t[4];
@@ -1594,6 +1598,13 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 			}
 			
 			radius_array = (float *)(((char *)radius_array) + stride); 
+		}
+
+		if(weight_array) {
+			/* basic interpolation for now, could copy tilt interp too  */
+			*weight_array = prevbezt->weight + (bezt->weight - prevbezt->weight)*(3.0f*fac*fac - 2.0f*fac*fac*fac);
+
+			weight_array = (float *)(((char *)weight_array) + stride);
 		}
 	}
 }
@@ -1980,7 +1991,7 @@ void makeBevelList(Object *ob)
 	float min, inp, x1, x2, y1, y2;
 	struct bevelsort *sortdata, *sd, *sd1;
 	int a, b, nr, poly, resolu = 0, len = 0;
-	int do_tilt, do_radius;
+	int do_tilt, do_radius, do_weight;
 	
 	/* this function needs an object, because of tflag and upflag */
 	cu= ob->data;
@@ -1999,6 +2010,7 @@ void makeBevelList(Object *ob)
 		/* check if we will calculate tilt data */
 		do_tilt = CU_DO_TILT(cu, nu);
 		do_radius = CU_DO_RADIUS(cu, nu); /* normal display uses the radius, better just to calculate them */
+		do_weight = 1;
 		
 		/* check we are a single point? also check we are not a surface and that the orderu is sane,
 		 * enforced in the UI but can go wrong possibly */
@@ -2028,6 +2040,7 @@ void makeBevelList(Object *ob)
 					VECCOPY(bevp->vec, bp->vec);
 					bevp->alfa= bp->alfa;
 					bevp->radius= bp->radius;
+					bevp->weight= bp->weight;
 					bevp->split_tag= TRUE;
 					bevp++;
 					bp++;
@@ -2060,6 +2073,7 @@ void makeBevelList(Object *ob)
 						VECCOPY(bevp->vec, prevbezt->vec[1]);
 						bevp->alfa= prevbezt->alfa;
 						bevp->radius= prevbezt->radius;
+						bevp->weight= prevbezt->weight;
 						bevp->split_tag= TRUE;
 						bevp->dupe_tag= FALSE;
 						bevp++;
@@ -2081,6 +2095,7 @@ void makeBevelList(Object *ob)
 						alfa_bezpart(	prevbezt, bezt, nu,
 										 do_tilt	? &bevp->alfa : NULL,
 										 do_radius	? &bevp->radius : NULL,
+										 do_weight	? &bevp->weight : NULL,
 										 resolu, sizeof(BevPoint));
 
 						
@@ -2110,6 +2125,7 @@ void makeBevelList(Object *ob)
 					VECCOPY(bevp->vec, prevbezt->vec[1]);
 					bevp->alfa= prevbezt->alfa;
 					bevp->radius= prevbezt->radius;
+					bevp->weight= prevbezt->weight;
 					bl->nr++;
 				}
 			}
@@ -2128,6 +2144,7 @@ void makeBevelList(Object *ob)
 					makeNurbcurve(	nu, &bevp->vec[0],
 									do_tilt		? &bevp->alfa : NULL,
 									do_radius	? &bevp->radius : NULL,
+									do_weight	? &bevp->weight : NULL,
 									resolu, sizeof(BevPoint));
 				}
 			}

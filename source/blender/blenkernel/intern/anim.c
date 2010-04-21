@@ -460,6 +460,7 @@ void calc_curvepath(Object *ob)
 		interp_v3_v3v3(pp->vec, bevp->vec, bevpn->vec, fac2);
 		pp->vec[3]= fac1*bevp->alfa + fac2*bevpn->alfa;
 		pp->radius= fac1*bevp->radius + fac2*bevpn->radius;
+		pp->weight= fac1*bevp->weight + fac2*bevpn->weight;
 		interp_qt_qtqt(pp->quat, bevp->quat, bevpn->quat, fac2);
 		normalize_qt(pp->quat);
 		
@@ -491,7 +492,7 @@ int interval_test(int min, int max, int p1, int cycl)
  * 	- *vec needs FOUR items!
  *	- ctime is normalized range <0-1>
  */
-int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius)	/* returns OK */
+int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius, float *weight)	/* returns OK */
 {
 	Curve *cu;
 	Nurb *nu;
@@ -586,6 +587,9 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 
 	if(radius)
 		*radius= data[0]*p0->radius + data[1]*p1->radius + data[2]*p2->radius + data[3]*p3->radius;
+
+	if(weight)
+		*weight= data[0]*p0->weight + data[1]*p1->weight + data[2]*p2->weight + data[3]*p3->weight;
 
 	return 1;
 }

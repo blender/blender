@@ -497,7 +497,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 	else ctime1= ctime;
 	
 	/* vec needs 4 items */
-	if(where_on_path(ob, ctime1, vec, dir, quat, radius)) {
+	if(where_on_path(ob, ctime1, vec, dir, quat, radius, NULL)) {
 		
 		if(cycl==0) {
 			Path *path= cu->path;
@@ -516,6 +516,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 				VECADD(vec, vec, dvec);
 				if(quat) QUATCOPY(quat, path->data[path->len-1].quat);
 				if(radius) *radius= path->data[path->len-1].radius;
+				/* weight - not used but could be added */
 			}
 		}
 		return 1;

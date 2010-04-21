@@ -55,7 +55,7 @@ struct EditFont;
 typedef struct PathPoint {
 	float vec[4]; /* grr, cant get rid of tilt yet */
 	float quat[4];
-	float radius;
+	float radius, weight;
 } PathPoint;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
@@ -80,7 +80,7 @@ typedef struct BevList {
 #
 #
 typedef struct BevPoint {
-	float vec[3], alfa, radius;
+	float vec[3], alfa, radius, weight;
 	float sina, cosa;				/* 2D Only */
 	float dir[3], tan[3], quat[4];	/* 3D Only */
 	short split_tag, dupe_tag;

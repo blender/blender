@@ -5098,13 +5098,13 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 
 			/*path end*/
 			setlinestyle(3);
-			where_on_path(ob, 1.0f, guidevec1, guidevec2, NULL, NULL);
+			where_on_path(ob, 1.0f, guidevec1, guidevec2, NULL, NULL, NULL);
 			UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
 			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
 
 			/*path beginning*/
 			setlinestyle(0);
-			where_on_path(ob, 0.0f, guidevec1, guidevec2, NULL, NULL);
+			where_on_path(ob, 0.0f, guidevec1, guidevec2, NULL, NULL, NULL);
 			UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
 			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
 			

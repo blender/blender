@@ -72,6 +72,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.prop(field, "guide_free")
             col.prop(field, "falloff_power")
             col.prop(field, "guide_path_add")
+            col.prop(field, "use_guide_path_weight")
 
             if wide_ui:
                 col = split.column()

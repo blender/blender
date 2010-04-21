@@ -802,10 +802,12 @@ static int ptcache_compress_read(PTCacheFile *pf, unsigned char *result, unsigne
 	int r = 0;
 	unsigned char compressed = 0;
 	unsigned int in_len;
+#ifdef WITH_LZO
 	unsigned int out_len = len;
+	size_t sizeOfIt = 5;
+#endif
 	unsigned char *in;
 	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
-	size_t sizeOfIt = 5;
 
 	ptcache_file_read(pf, &compressed, 1, sizeof(unsigned char));
 	if(compressed) {

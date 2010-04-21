@@ -1941,7 +1941,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		}
 		
 		/* tail endpoint */
-		if ( where_on_path(ikData->tar, tree->points[index], vec, dir, NULL, &rad) ) {
+		if ( where_on_path(ikData->tar, tree->points[index], vec, dir, NULL, &rad, NULL) ) {
 			/* apply curve's object-mode transforms to the position 
 			 * unless the option to allow curve to be positioned elsewhere is activated (i.e. no root)
 			 */
@@ -1957,7 +1957,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		}
 		
 		/* head endpoint */
-		if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad) ) {
+		if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad, NULL) ) {
 			/* apply curve's object-mode transforms to the position 
 			 * unless the option to allow curve to be positioned elsewhere is activated (i.e. no root)
 			 */

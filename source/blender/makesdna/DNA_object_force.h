@@ -330,6 +330,7 @@ typedef struct SoftBody {
 #define PFIELD_VISIBILITY		(1<<13)
 #define PFIELD_DO_LOCATION		(1<<14)
 #define PFIELD_DO_ROTATION		(1<<15)
+#define PFIELD_GUIDE_PATH_WEIGHT (1<<16)	/* apply curve weights */
 
 /* pd->falloff */
 #define PFIELD_FALL_SPHERE		0
