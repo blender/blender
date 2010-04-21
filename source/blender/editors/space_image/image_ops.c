@@ -823,6 +823,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 
 	if (ibuf) {
 		int relative= RNA_boolean_get(op->ptr, "relative_path");
+		int save_copy= (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
+
 		BLI_path_abs(path, G.sce);
 		
 		if(scene->r.scemode & R_EXTENSION)  {
@@ -845,13 +847,14 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 				if(relative)
 					BLI_path_rel(path, G.sce); /* only after saving */
 
-				BLI_strncpy(ima->name, path, sizeof(ima->name));
-				BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
-				
-				/* should be function? nevertheless, saving only happens here */
-				for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
-					ibuf->userflags &= ~IB_BITMAPDIRTY;
-				
+				if(!save_copy) {
+					BLI_strncpy(ima->name, path, sizeof(ima->name));
+					BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
+
+					/* should be function? nevertheless, saving only happens here */
+					for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
+						ibuf->userflags &= ~IB_BITMAPDIRTY;
+				}
 			}
 			else
 				BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
@@ -863,36 +866,39 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 			if(relative)
 				BLI_path_rel(path, G.sce); /* only after saving */
 
-			BLI_strncpy(ima->name, path, sizeof(ima->name));
-			BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
-			
-			ibuf->userflags &= ~IB_BITMAPDIRTY;
-			
-			/* change type? */
-			if(ima->type==IMA_TYPE_R_RESULT) {
-				ima->type= IMA_TYPE_IMAGE;
+			if(!save_copy) {
 
-				/* workaround to ensure the render result buffer is no longer used
-				 * by this image, otherwise can crash when a new render result is
-				 * created. */
-				if(ibuf->rect && !(ibuf->mall & IB_rect))
-					imb_freerectImBuf(ibuf);
-				if(ibuf->rect_float && !(ibuf->mall & IB_rectfloat))
-					imb_freerectfloatImBuf(ibuf);
-				if(ibuf->zbuf && !(ibuf->mall & IB_zbuf))
-					IMB_freezbufImBuf(ibuf);
-				if(ibuf->zbuf_float && !(ibuf->mall & IB_zbuffloat))
-					IMB_freezbuffloatImBuf(ibuf);
-			}
-			if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
-				ima->source= IMA_SRC_FILE;
-				ima->type= IMA_TYPE_IMAGE;
-			}
-			
-			name = BLI_last_slash(path);
+				BLI_strncpy(ima->name, path, sizeof(ima->name));
+				BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
 
-			/* name image as how we saved it */
-			rename_id(&ima->id, name ? name + 1 : path);
+				ibuf->userflags &= ~IB_BITMAPDIRTY;
+
+				/* change type? */
+				if(ima->type==IMA_TYPE_R_RESULT) {
+					ima->type= IMA_TYPE_IMAGE;
+
+					/* workaround to ensure the render result buffer is no longer used
+					 * by this image, otherwise can crash when a new render result is
+					 * created. */
+					if(ibuf->rect && !(ibuf->mall & IB_rect))
+						imb_freerectImBuf(ibuf);
+					if(ibuf->rect_float && !(ibuf->mall & IB_rectfloat))
+						imb_freerectfloatImBuf(ibuf);
+					if(ibuf->zbuf && !(ibuf->mall & IB_zbuf))
+						IMB_freezbufImBuf(ibuf);
+					if(ibuf->zbuf_float && !(ibuf->mall & IB_zbuffloat))
+						IMB_freezbuffloatImBuf(ibuf);
+				}
+				if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
+					ima->source= IMA_SRC_FILE;
+					ima->type= IMA_TYPE_IMAGE;
+				}
+
+				name = BLI_last_slash(path);
+
+				/* name image as how we saved it */
+				rename_id(&ima->id, name ? name + 1 : path);
+			}
 		} 
 		else
 			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", path);
@@ -991,6 +997,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE);
 
 	RNA_def_boolean(ot->srna, "relative_path", 0, "Relative Path", "Save image with relative path to current .blend file");
+	RNA_def_boolean(ot->srna, "copy", 0, "Copy", "Create a new image file without modifying the current image in blender");
 }
 
 /******************** save image operator ********************/

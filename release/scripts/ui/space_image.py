@@ -111,6 +111,7 @@ class IMAGE_MT_image(bpy.types.Menu):
 
             layout.operator("image.save")
             layout.operator("image.save_as")
+            layout.operator("image.save_as", text="Save a Copy").copy = True
 
             if ima.source == 'SEQUENCE':
                 layout.operator("image.save_sequence")
