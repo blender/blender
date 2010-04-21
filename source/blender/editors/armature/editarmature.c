@@ -3839,7 +3839,7 @@ static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBo
 		VECCOPY(selbone->head, actbone->tail);
 		selbone->rad_head= actbone->rad_tail;
 		
-		add_v3_v3v3(selbone->tail, selbone->tail, offset);
+		add_v3_v3(selbone->tail, offset);
 		
 		/* offset for all its children */
 		for (ebone = edbo->first; ebone; ebone=ebone->next) {
@@ -3847,8 +3847,8 @@ static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBo
 			
 			for (par= ebone->parent; par; par= par->parent) {
 				if (par==selbone) {
-					add_v3_v3v3(ebone->head, ebone->head, offset);
-					add_v3_v3v3(ebone->tail, ebone->tail, offset);
+					add_v3_v3(ebone->head, offset);
+					add_v3_v3(ebone->tail, offset);
 					break;
 				}
 			}
@@ -4218,8 +4218,8 @@ static void fix_connected_bone(EditBone *ebone)
 	
 	/* if the parent has moved we translate child's head and tail accordingly*/
 	sub_v3_v3v3(diff, ebone->parent->tail, ebone->head);
-	add_v3_v3v3(ebone->head, ebone->head, diff);
-	add_v3_v3v3(ebone->tail, ebone->tail, diff);
+	add_v3_v3(ebone->head, diff);
+	add_v3_v3(ebone->tail, diff);
 	return;
 }
 

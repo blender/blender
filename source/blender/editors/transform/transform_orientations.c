@@ -725,7 +725,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					for (eve = em->verts.first; eve; eve = eve->next)
 					{
 						if ( eve->f & SELECT ) {
-							add_v3_v3v3(normal, normal, eve->no);
+							add_v3_v3(normal, eve->no);
 						}
 					}
 					normalize_v3(normal);
@@ -832,10 +832,10 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 						float vec[3];
 						sub_v3_v3v3(vec, ebone->tail, ebone->head);
 						normalize_v3(vec);
-						add_v3_v3v3(normal, normal, vec);
+						add_v3_v3(normal, vec);
 						
 						vec_roll_to_mat3(vec, ebone->roll, mat);
-						add_v3_v3v3(plane, plane, mat[2]);
+						add_v3_v3(plane, mat[2]);
 					}
 				}
 			}
@@ -875,8 +875,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			/* use channels to get stats */
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				if (pchan->bone && pchan->bone->flag & BONE_TRANSFORM) {
-					add_v3_v3v3(normal, normal, pchan->pose_mat[2]);
-					add_v3_v3v3(plane, plane, pchan->pose_mat[1]);
+					add_v3_v3(normal, pchan->pose_mat[2]);
+					add_v3_v3(plane, pchan->pose_mat[1]);
 				}
 			}
 			negate_v3(plane);

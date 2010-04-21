@@ -243,7 +243,7 @@ static void sphere_do(
 				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 					mul_m4_v3(imat, tmp_co);
 				} else {
-					add_v3_v3v3(tmp_co, tmp_co, center);
+					add_v3_v3(tmp_co, center);
 				}
 			}
 
@@ -287,7 +287,7 @@ static void sphere_do(
 			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 				mul_m4_v3(imat, tmp_co);
 			} else {
-				add_v3_v3v3(tmp_co, tmp_co, center);
+				add_v3_v3(tmp_co, center);
 			}
 		}
 
@@ -489,7 +489,7 @@ static void cuboid_do(
 				if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 					mul_m4_v3(imat, tmp_co);
 				} else {
-					add_v3_v3v3(tmp_co, tmp_co, center);
+					add_v3_v3(tmp_co, center);
 				}
 			}
 
@@ -557,7 +557,7 @@ static void cuboid_do(
 			if(flag & MOD_CAST_USE_OB_TRANSFORM) {
 				mul_m4_v3(imat, tmp_co);
 			} else {
-				add_v3_v3v3(tmp_co, tmp_co, center);
+				add_v3_v3(tmp_co, center);
 			}
 		}
 

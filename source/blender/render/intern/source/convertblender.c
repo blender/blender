@@ -1041,7 +1041,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		vlr->v4= RE_findOrAddVert(obr, obr->totvert++);
 		
 		VECCOPY(vlr->v1->co, vec);
-		add_v3_v3v3(vlr->v1->co, vlr->v1->co, cross);
+		add_v3_v3(vlr->v1->co, cross);
 		VECCOPY(vlr->v1->n, nor);
 		vlr->v1->orco= sd->orco;
 		vlr->v1->accum= -1.0f;	// accum abuse for strand texco
@@ -1053,7 +1053,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		vlr->v2->accum= vlr->v1->accum;
 
 		VECCOPY(vlr->v4->co, vec1);
-		add_v3_v3v3(vlr->v4->co, vlr->v4->co, cross);
+		add_v3_v3(vlr->v4->co, cross);
 		VECCOPY(vlr->v4->n, nor);
 		vlr->v4->orco= sd->orco;
 		vlr->v4->accum= 1.0f;	// accum abuse for strand texco
@@ -1115,7 +1115,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		v2= RE_findOrAddVert(obr, obr->totvert++);
 		
 		VECCOPY(v1->co, vec);
-		add_v3_v3v3(v1->co, v1->co, cross);
+		add_v3_v3(v1->co, cross);
 		VECCOPY(v1->n, nor);
 		v1->orco= sd->orco;
 		v1->accum= -1.0f;	// accum abuse for strand texco
@@ -1177,7 +1177,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		}
 	
 		VECCOPY(vlr->v4->co, vec);
-		add_v3_v3v3(vlr->v4->co, vlr->v4->co, cross);
+		add_v3_v3(vlr->v4->co, cross);
 		VECCOPY(vlr->v4->n, nor);
 		vlr->v4->orco= sd->orco;
 		vlr->v4->accum= -1.0f + 2.0f*sd->time;	// accum abuse for strand texco
@@ -2544,10 +2544,10 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 				vlr->flag |= R_NOPUNOFLIP;
 			}
 			
-			add_v3_v3v3(v1->n, v1->n, n1);
-			add_v3_v3v3(v2->n, v2->n, n1);
-			add_v3_v3v3(v3->n, v3->n, n1);
-			add_v3_v3v3(v4->n, v4->n, n1);
+			add_v3_v3(v1->n, n1);
+			add_v3_v3(v2->n, n1);
+			add_v3_v3(v3->n, n1);
+			add_v3_v3(v4->n, n1);
 			
 			p1++; p2++; p3++; p4++;
 		}
@@ -2561,10 +2561,10 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			/* optimize! :*/
 			vlr= RE_findOrAddVlak(obr, UVTOINDEX(sizeu - 1, v));
 			vlr1= RE_findOrAddVlak(obr, UVTOINDEX(0, v));
-			add_v3_v3v3(vlr1->v1->n, vlr1->v1->n, vlr->n);
-			add_v3_v3v3(vlr1->v2->n, vlr1->v2->n, vlr->n);
-			add_v3_v3v3(vlr->v3->n, vlr->v3->n, vlr1->n);
-			add_v3_v3v3(vlr->v4->n, vlr->v4->n, vlr1->n);
+			add_v3_v3(vlr1->v1->n, vlr->n);
+			add_v3_v3(vlr1->v2->n, vlr->n);
+			add_v3_v3(vlr->v3->n, vlr1->n);
+			add_v3_v3(vlr->v4->n, vlr1->n);
 		}
 	}
 	if (dl->flag & DL_CYCL_U) {
@@ -2574,10 +2574,10 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			/* optimize! :*/
 			vlr= RE_findOrAddVlak(obr, UVTOINDEX(u, 0));
 			vlr1= RE_findOrAddVlak(obr, UVTOINDEX(u, sizev-1));
-			add_v3_v3v3(vlr1->v2->n, vlr1->v2->n, vlr->n);
-			add_v3_v3v3(vlr1->v3->n, vlr1->v3->n, vlr->n);
-			add_v3_v3v3(vlr->v1->n, vlr->v1->n, vlr1->n);
-			add_v3_v3v3(vlr->v4->n, vlr->v4->n, vlr1->n);
+			add_v3_v3(vlr1->v2->n, vlr->n);
+			add_v3_v3(vlr1->v3->n, vlr->n);
+			add_v3_v3(vlr->v1->n, vlr1->n);
+			add_v3_v3(vlr->v4->n, vlr1->n);
 		}
 	}
 	/* last vertex is an extra case: 
@@ -2603,9 +2603,9 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 		vlr1= RE_findOrAddVlak(obr, UVTOINDEX(0,0));  /* (0,0) */
 		add_v3_v3v3(n1, vlr->n, vlr1->n);
 		vlr2= RE_findOrAddVlak(obr, UVTOINDEX(0, sizev-1)); /* (0,n) */
-		add_v3_v3v3(n1, n1, vlr2->n);
+		add_v3_v3(n1, vlr2->n);
 		vlr3= RE_findOrAddVlak(obr, UVTOINDEX(sizeu-1, 0)); /* (m,0) */
-		add_v3_v3v3(n1, n1, vlr3->n);
+		add_v3_v3(n1, vlr3->n);
 		VECCOPY(vlr->v3->n, n1);
 		VECCOPY(vlr1->v1->n, n1);
 		VECCOPY(vlr2->v2->n, n1);
@@ -2986,10 +2986,10 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						for(a= startvlak; a<obr->totvlak; a++) {
 							vlr= RE_findOrAddVlak(obr, a);
 
-							add_v3_v3v3(vlr->v1->n, vlr->v1->n, vlr->n);
-							add_v3_v3v3(vlr->v3->n, vlr->v3->n, vlr->n);
-							add_v3_v3v3(vlr->v2->n, vlr->v2->n, vlr->n);
-							add_v3_v3v3(vlr->v4->n, vlr->v4->n, vlr->n);
+							add_v3_v3(vlr->v1->n, vlr->n);
+							add_v3_v3(vlr->v3->n, vlr->n);
+							add_v3_v3(vlr->v2->n, vlr->n);
+							add_v3_v3(vlr->v4->n, vlr->n);
 						}
 						for(a=startvert; a<obr->totvert; a++) {
 							ver= RE_findOrAddVert(obr, a);

@@ -852,7 +852,7 @@ static float dist_bone_deform(bPoseChannel *pchan, float *vec, DualQuat *dq, flo
 				//	Make this a delta from the base position
 				sub_v3_v3v3(cop, cop, co);
 				cop[0]*=fac; cop[1]*=fac; cop[2]*=fac;
-				add_v3_v3v3(vec, vec, cop);
+				add_v3_v3(vec, cop);
 
 				if(mat)
 					pchan_deform_mat_add(pchan, fac, bbonemat, mat);
@@ -1108,7 +1108,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 					mul_v3m3_dq( dco, (defMats)? summat: NULL,dq);
 					sub_v3_v3v3(dco, dco, co);
 					mul_v3_fl(dco, armature_weight);
-					add_v3_v3v3(co, co, dco);
+					add_v3_v3(co, dco);
 				}
 				else
 					mul_v3m3_dq( co, (defMats)? summat: NULL,dq);
@@ -2262,7 +2262,7 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 							nor[0] = BLI_gNoise(amod->noisesize, size[0]+ofs, size[1], size[2], 0, 0) - ofs;
 							nor[1] = BLI_gNoise(amod->noisesize, size[0], size[1]+ofs, size[2], 0, 0) - ofs;	
 							nor[2] = BLI_gNoise(amod->noisesize, size[0], size[1], size[2]+ofs, 0, 0) - ofs;
-							add_v3_v3v3(size, size, nor);
+							add_v3_v3(size, nor);
 							
 							if (sizeo[0] != 0)
 								mul_v3_fl(pchan->pose_mat[0], size[0] / sizeo[0]);
@@ -2278,7 +2278,7 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 							nor[2] = BLI_gNoise(amod->noisesize, eul[0], eul[1], eul[2]+ofs, 0, 0) - ofs;
 							
 							compatible_eul(nor, eulo);
-							add_v3_v3v3(eul, eul, nor);
+							add_v3_v3(eul, nor);
 							compatible_eul(eul, eulo);
 							
 							loc_eul_size_to_mat4(pchan->pose_mat, loc, eul, size);
@@ -2381,7 +2381,7 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 		
 		/* only rootbones get the cyclic offset (unless user doesn't want that) */
 		if ((bone->flag & BONE_NO_CYCLICOFFSET) == 0)
-			add_v3_v3v3(pchan->pose_mat[3], pchan->pose_mat[3], ob->pose->cyclic_offset);
+			add_v3_v3(pchan->pose_mat[3], ob->pose->cyclic_offset);
 	}
 	
 	if(do_extra) {

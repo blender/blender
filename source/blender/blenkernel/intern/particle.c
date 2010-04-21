@@ -2126,7 +2126,7 @@ static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheK
 
 	mul_v3_fl(force, effector*pow((float)k / (float)steps, 100.0f * sim->psys->part->eff_hair) / (float)steps);
 
-	add_v3_v3v3(force, force, vec);
+	add_v3_v3(force, vec);
 
 	normalize_v3(force);
 

@@ -4301,11 +4301,11 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 			
 			if((eed->v1->f & SELECT) && eed->v1->f1<255) {
 				eed->v1->f1++;
-				add_v3_v3v3(eed->v1->tmp.p, eed->v1->tmp.p, fvec);
+				add_v3_v3(eed->v1->tmp.p, fvec);
 			}
 			if((eed->v2->f & SELECT) && eed->v2->f1<255) {
 				eed->v2->f1++;
-				add_v3_v3v3(eed->v2->tmp.p, eed->v2->tmp.p, fvec);
+				add_v3_v3(eed->v2->tmp.p, fvec);
 			}
 		}
 		eed= eed->next;
@@ -4426,7 +4426,7 @@ void vertexnoise(Object *obedit, EditMesh *em)
 				vec[1]= 0.2*(b2-BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1]+ofs, eve->co[2]));
 				vec[2]= 0.2*(b2-BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]+ofs));
 				
-				add_v3_v3v3(eve->co, eve->co, vec);
+				add_v3_v3(eve->co, vec);
 			}
 			else {
 				float tin, dum;

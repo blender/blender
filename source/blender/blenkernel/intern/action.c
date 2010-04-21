@@ -1251,12 +1251,12 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 				/* if blending, we only add with factor scrweight */
 				mul_v3_fl(vec, srcweight);
 				
-				add_v3_v3v3(dst->cyclic_offset, dst->cyclic_offset, vec);
+				add_v3_v3(dst->cyclic_offset, vec);
 			}
 		}
 	}
 	
-	add_v3_v3v3(dst->cyclic_offset, dst->cyclic_offset, src->cyclic_offset);
+	add_v3_v3(dst->cyclic_offset, src->cyclic_offset);
 }
 
 /* added "sizecorr" here, to allow armatures to be scaled and still have striding.
@@ -1616,7 +1616,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 	}
 	else if(blocktype==ID_AR) {
 		/* apply stride offset to object */
-		add_v3_v3v3(ob->obmat[3], ob->obmat[3], ob->pose->stride_offset);
+		add_v3_v3(ob->obmat[3], ob->pose->stride_offset);
 	}
 	
 	/* free */

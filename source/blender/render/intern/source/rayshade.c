@@ -1310,7 +1310,7 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 				
 			/* and perturb the refraction vector in it */
 			add_v3_v3v3(v_refract_new, v_refract, orthx);
-			add_v3_v3v3(v_refract_new, v_refract_new, orthy);
+			add_v3_v3(v_refract_new, orthy);
 			
 			normalize_v3(v_refract_new);
 		} else {
@@ -1405,7 +1405,7 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 
 			/* and perturb the normal in it */
 			add_v3_v3v3(v_nor_new, shi->vn, orthx);
-			add_v3_v3v3(v_nor_new, v_nor_new, orthy);
+			add_v3_v3(v_nor_new, orthy);
 			normalize_v3(v_nor_new);
 		} else {
 			/* no blurriness, use the original normal */
@@ -1728,7 +1728,7 @@ static void DS_energy(float *sphere, int tot, float *vec)
 	}
 
 	mul_v3_fl(res, 0.5);
-	add_v3_v3v3(vec, vec, res);
+	add_v3_v3(vec, res);
 	normalize_v3(vec);
 	
 }

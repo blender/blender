@@ -2679,7 +2679,7 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 		}
 		for (i=0; i<numFaces; i++) {
 			CCGFace *f = ccgSubSurf_getVertFace(v, i);
-			add_v3_v3v3(face_sum, face_sum, ccgSubSurf_getFaceCenterData(f));
+			add_v3_v3(face_sum, ccgSubSurf_getFaceCenterData(f));
 		}
 
 		/* ad-hoc correction for boundary vertices, to at least avoid them

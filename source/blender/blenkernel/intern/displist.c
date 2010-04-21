@@ -196,10 +196,10 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 	
 						normal_quad_v3( nor,v1, v3, v4, v2);
 	
-						add_v3_v3v3(n1, n1, nor);
-						add_v3_v3v3(n2, n2, nor);
-						add_v3_v3v3(n3, n3, nor);
-						add_v3_v3v3(n4, n4, nor);
+						add_v3_v3(n1, nor);
+						add_v3_v3(n2, nor);
+						add_v3_v3(n3, nor);
+						add_v3_v3(n4, nor);
 	
 						v2= v1; v1+= 3;
 						v4= v3; v3+= 3;

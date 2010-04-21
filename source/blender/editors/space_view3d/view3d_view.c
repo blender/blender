@@ -2174,7 +2174,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		upvec[2]= fly->dist_backup; /*x and y are 0*/
 		copy_m3_m4(mat, rv3d->viewinv);
 		mul_m3_v3(mat, upvec);
-		add_v3_v3v3(rv3d->ofs, rv3d->ofs, upvec);
+		add_v3_v3(rv3d->ofs, upvec);
 		/*Done with correcting for the dist */
 	}
 
@@ -2544,7 +2544,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				if (lock_ob->protectflag & OB_LOCK_LOCZ) dvec[2] = 0.0;
 			}
 
-			add_v3_v3v3(rv3d->ofs, rv3d->ofs, dvec);
+			add_v3_v3(rv3d->ofs, dvec);
 
 			/* todo, dynamic keys */
 #if 0

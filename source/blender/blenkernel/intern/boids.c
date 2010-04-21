@@ -141,7 +141,7 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 			get_effector_data(eff, &efd, &epoint, 1);
 
 			mul_v3_fl(efd.vel, efd.distance / (val->max_speed * bbd->timestep));
-			add_v3_v3v3(efd.loc, efd.loc, efd.vel);
+			add_v3_v3(efd.loc, efd.vel);
 			sub_v3_v3v3(efd.vec_to_point, pa->prev_state.co, efd.loc);
 			efd.distance = len_v3(efd.vec_to_point);
 		}
@@ -355,7 +355,7 @@ static int rule_separate(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Pa
 	if(neighbors > 1 && ptn[1].dist!=0.0f) {
 		sub_v3_v3v3(vec, pa->prev_state.co, bbd->sim->psys->particles[ptn[1].index].state.co);
 		mul_v3_fl(vec, (2.0f * val->personal_space * pa->size - ptn[1].dist) / ptn[1].dist);
-		add_v3_v3v3(bbd->wanted_co, bbd->wanted_co, vec);
+		add_v3_v3(bbd->wanted_co, vec);
 		bbd->wanted_speed = val->max_speed;
 		len = ptn[1].dist;
 		ret = 1;
@@ -372,7 +372,7 @@ static int rule_separate(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Pa
 			if(neighbors > 0 && ptn[0].dist < len) {
 				sub_v3_v3v3(vec, pa->prev_state.co, ptn[0].co);
 				mul_v3_fl(vec, (2.0f * val->personal_space * pa->size - ptn[0].dist) / ptn[1].dist);
-				add_v3_v3v3(bbd->wanted_co, bbd->wanted_co, vec);
+				add_v3_v3(bbd->wanted_co, vec);
 				bbd->wanted_speed = val->max_speed;
 				len = ptn[0].dist;
 				ret = 1;
@@ -393,8 +393,8 @@ static int rule_flock(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 
 	if(neighbors > 1) {
 		for(n=1; n<neighbors; n++) {
-			add_v3_v3v3(loc, loc, bbd->sim->psys->particles[ptn[n].index].prev_state.co);
-			add_v3_v3v3(vec, vec, bbd->sim->psys->particles[ptn[n].index].prev_state.vel);
+			add_v3_v3(loc, bbd->sim->psys->particles[ptn[n].index].prev_state.co);
+			add_v3_v3(vec, bbd->sim->psys->particles[ptn[n].index].prev_state.vel);
 		}
 
 		mul_v3_fl(loc, 1.0f/((float)neighbors - 1.0f));
@@ -403,8 +403,8 @@ static int rule_flock(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 		sub_v3_v3v3(loc, loc, pa->prev_state.co);
 		sub_v3_v3v3(vec, vec, pa->prev_state.vel);
 
-		add_v3_v3v3(bbd->wanted_co, bbd->wanted_co, vec);
-		add_v3_v3v3(bbd->wanted_co, bbd->wanted_co, loc);
+		add_v3_v3(bbd->wanted_co, vec);
+		add_v3_v3(bbd->wanted_co, loc);
 		bbd->wanted_speed = len_v3(bbd->wanted_co);
 
 		ret = 1;
@@ -567,7 +567,7 @@ static int rule_average_speed(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 
 		mul_v3_fl(bbd->wanted_co, 1.1f);
 
-		add_v3_v3v3(bbd->wanted_co, bbd->wanted_co, vec);
+		add_v3_v3(bbd->wanted_co, vec);
 
 		/* leveling */
 		if(asbr->level > 0.0f && psys_uses_gravity(bbd->sim)) {
@@ -748,7 +748,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 
 		/* take surface velocity into account */
 		closest_point_on_surface(surmd, pa->state.co, x, NULL, v);
-		add_v3_v3v3(x, x, v);
+		add_v3_v3(x, v);
 
 		/* get actual position on surface */
 		closest_point_on_surface(surmd, x, ground_co, ground_nor, NULL);
@@ -767,7 +767,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 
 		VECCOPY(col.co1, pa->state.co);
 		VECCOPY(col.co2, pa->state.co);
-		add_v3_v3v3(col.co1, col.co1, zvec);
+		add_v3_v3(col.co1, zvec);
 		sub_v3_v3v3(col.co2, col.co2, zvec);
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		col.t = 0.0f;
@@ -956,7 +956,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 			int n = 0;
 			for(rule = state->rules.first; rule; rule=rule->next) {
 				if(apply_boid_rule(bbd, rule, &val, pa, -1.0f)) {
-					add_v3_v3v3(wanted_co, wanted_co, bbd->wanted_co);
+					add_v3_v3(wanted_co, bbd->wanted_co);
 					wanted_speed += bbd->wanted_speed;
 					n++;
 					bbd->wanted_co[0]=bbd->wanted_co[1]=bbd->wanted_co[2]=bbd->wanted_speed=0.0f;
@@ -1205,7 +1205,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		mul_v3_fl(force, length);
 	}
 	
-	add_v3_v3v3(acc, acc, force);
+	add_v3_v3(acc, force);
 
 	/* store smoothed acceleration for nice banking etc. */
 	VECADDFAC(bpa->data.acc, bpa->data.acc, acc, dtime);
@@ -1222,8 +1222,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	
 	VECCOPY(bvec, pa->prev_state.vel);
 	mul_v3_fl(bvec, dtime);
-	add_v3_v3v3(dvec, dvec, bvec);
-	add_v3_v3v3(pa->state.co, pa->state.co, dvec);
+	add_v3_v3(dvec, bvec);
+	add_v3_v3(pa->state.co, dvec);
 
 	VECADDFAC(pa->state.vel, pa->state.vel, acc, dtime);
 

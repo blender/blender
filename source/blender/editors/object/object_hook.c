@@ -85,7 +85,7 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->f & SELECT) {
 			*index= nr; index++;
-			add_v3_v3v3(cent, cent, eve->co);
+			add_v3_v3(cent, eve->co);
 		}
 		nr++;
 	}
@@ -113,7 +113,7 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 				for(i=0; i<dvert->totweight; i++){
 					if(dvert->dw[i].def_nr == (obedit->actdef-1)) {
 						totvert++;
-						add_v3_v3v3(cent, cent, eve->co);
+						add_v3_v3(cent, eve->co);
 					}
 				}
 			}
@@ -178,7 +178,7 @@ static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar
 		if(bp->f1 & SELECT) {
 			if(bp->hide==0) {
 				*index= nr; index++;
-				add_v3_v3v3(cent, cent, bp->vec);
+				add_v3_v3(cent, bp->vec);
 			}
 		}
 		bp++;
@@ -251,17 +251,17 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 			while(a--) {
 				if(bezt->f1 & SELECT) {
 					*index= nr; index++;
-					add_v3_v3v3(cent, cent, bezt->vec[0]);
+					add_v3_v3(cent, bezt->vec[0]);
 				}
 				nr++;
 				if(bezt->f2 & SELECT) {
 					*index= nr; index++;
-					add_v3_v3v3(cent, cent, bezt->vec[1]);
+					add_v3_v3(cent, bezt->vec[1]);
 				}
 				nr++;
 				if(bezt->f3 & SELECT) {
 					*index= nr; index++;
-					add_v3_v3v3(cent, cent, bezt->vec[2]);
+					add_v3_v3(cent, bezt->vec[2]);
 				}
 				nr++;
 				bezt++;
@@ -273,7 +273,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 			while(a--) {
 				if(bp->f1 & SELECT) {
 					*index= nr; index++;
-					add_v3_v3v3(cent, cent, bp->vec);
+					add_v3_v3(cent, bp->vec);
 				}
 				nr++;
 				bp++;

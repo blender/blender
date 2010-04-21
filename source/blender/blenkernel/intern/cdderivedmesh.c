@@ -1347,12 +1347,12 @@ static void cdDM_foreachMappedFaceCenter(
 			orig = i;
 
 		VECCOPY(cent, mv[mf->v1].co);
-		add_v3_v3v3(cent, cent, mv[mf->v2].co);
-		add_v3_v3v3(cent, cent, mv[mf->v3].co);
+		add_v3_v3(cent, mv[mf->v2].co);
+		add_v3_v3(cent, mv[mf->v3].co);
 
 		if (mf->v4) {
 			normal_quad_v3( no,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
-			add_v3_v3v3(cent, cent, mv[mf->v4].co);
+			add_v3_v3(cent, mv[mf->v4].co);
 			mul_v3_fl(cent, 0.25f);
 		} else {
 			normal_tri_v3( no,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
@@ -1750,11 +1750,11 @@ void CDDM_calc_normals(DerivedMesh *dm)
 		else
 			normal_tri_v3( f_no,mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
 		
-		add_v3_v3v3(temp_nors[mf->v1], temp_nors[mf->v1], f_no);
-		add_v3_v3v3(temp_nors[mf->v2], temp_nors[mf->v2], f_no);
-		add_v3_v3v3(temp_nors[mf->v3], temp_nors[mf->v3], f_no);
+		add_v3_v3(temp_nors[mf->v1], f_no);
+		add_v3_v3(temp_nors[mf->v2], f_no);
+		add_v3_v3(temp_nors[mf->v3], f_no);
 		if(mf->v4)
-			add_v3_v3v3(temp_nors[mf->v4], temp_nors[mf->v4], f_no);
+			add_v3_v3(temp_nors[mf->v4], f_no);
 	}
 
 	/* normalize vertex normals and assign */

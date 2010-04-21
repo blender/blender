@@ -998,7 +998,7 @@ static void add_normal_aligned(float *nor, float *add)
 	if( INPR(nor, add) < -0.9999f)
 		sub_v3_v3v3(nor, nor, add);
 	else
-		add_v3_v3v3(nor, nor, add);
+		add_v3_v3(nor, add);
 }
 
 static void set_edge_directions_f2(EditMesh *em, int val)
@@ -2006,15 +2006,15 @@ void recalc_editnormals(EditMesh *em)
 		if(efa->v4) {
 			normal_quad_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
 			cent_quad_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
-			add_v3_v3v3(efa->v4->no, efa->v4->no, efa->n);
+			add_v3_v3(efa->v4->no, efa->n);
 		}
 		else {
 			normal_tri_v3( efa->n,efa->v1->co, efa->v2->co, efa->v3->co);
 			cent_tri_v3(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
 		}
-		add_v3_v3v3(efa->v1->no, efa->v1->no, efa->n);
-		add_v3_v3v3(efa->v2->no, efa->v2->no, efa->n);
-		add_v3_v3v3(efa->v3->no, efa->v3->no, efa->n);
+		add_v3_v3(efa->v1->no, efa->n);
+		add_v3_v3(efa->v2->no, efa->n);
+		add_v3_v3(efa->v3->no, efa->n);
 	}
 
 	/* following Mesh convention; we use vertex coordinate itself for normal in this case */

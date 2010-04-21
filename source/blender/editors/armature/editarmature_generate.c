@@ -249,7 +249,7 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 				{
 					VECCOPY(p, dv);
 					mul_v3_fl(p, f);
-					add_v3_v3v3(p, p, vec0);
+					add_v3_v3(p, vec0);
 				}
 				else
 				{
@@ -265,7 +265,7 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 				 
 				VECCOPY(p, dv);
 				mul_v3_fl(p, lengthLimit);
-				add_v3_v3v3(p, p, head);
+				add_v3_v3(p, head);
 			}
 			
 			return i - 1; /* restart at lower bound */

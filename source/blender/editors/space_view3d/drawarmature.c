@@ -1547,7 +1547,7 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 
 	VECCOPY(trans, mat[1]);
 	mul_v3_fl(trans, y);
-	add_v3_v3v3(mat[3], mat[3], trans);
+	add_v3_v3(mat[3], trans);
 }
 
 /* assumes object is Armature with pose */
@@ -1917,7 +1917,7 @@ static void get_matrix_editbone(EditBone *eBone, float bmat[][4])
 	vec_roll_to_mat3(delta, eBone->roll, mat);
 	copy_m4_m3(bmat, mat);
 
-	add_v3_v3v3(bmat[3], bmat[3], eBone->head);
+	add_v3_v3(bmat[3], eBone->head);
 }
 
 static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)

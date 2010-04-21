@@ -730,7 +730,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	VECCOPY(vec, co);
 	mul_m4_v3(vdd->pmat, vec);
 	sub_v3_v3v3(vec, vec, vdd->pmat[3]);
-	add_v3_v3v3(vec, vec, vdd->obmat[3]);
+	add_v3_v3(vec, vdd->obmat[3]);
 	
 	copy_m4_m4(obmat, vdd->obmat);
 	VECCOPY(obmat[3], vec);
@@ -990,7 +990,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						mul_m4_v3(pmat, cent);
 						
 						sub_v3_v3v3(cent, cent, pmat[3]);
-						add_v3_v3v3(cent, cent, ob__obmat[3]);
+						add_v3_v3(cent, ob__obmat[3]);
 						
 						copy_m4_m4(obmat, ob__obmat);
 						

@@ -149,9 +149,9 @@ static void createFacepa(ExplodeModifierData *emd,
 	/* set face-particle-indexes to nearest particle to face center */
 	for(i=0,fa=mface; i<totface; i++,fa++){
 		add_v3_v3v3(center,mvert[fa->v1].co,mvert[fa->v2].co);
-		add_v3_v3v3(center,center,mvert[fa->v3].co);
+		add_v3_v3(center, mvert[fa->v3].co);
 		if(fa->v4){
-			add_v3_v3v3(center,center,mvert[fa->v4].co);
+			add_v3_v3(center, mvert[fa->v4].co);
 			mul_v3_fl(center,0.25);
 		}
 		else

@@ -447,8 +447,8 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, f
 					if (dvert[i].dw[j].def_nr == dgroup) {
 						dm->getVertCo(dm, i, co);
 						dm->getVertNo(dm, i, nor);
-						add_v3_v3v3(vec, vec, co);
-						add_v3_v3v3(normal, normal, nor);
+						add_v3_v3(vec, co);
+						add_v3_v3(normal, nor);
 						count++;
 						break;
 					}
@@ -535,7 +535,7 @@ static void contarget_get_lattice_mat (Object *ob, char *substring, float mat[][
 				else
 					memcpy(tvec, bp->vec, 3*sizeof(float));
 					
-				add_v3_v3v3(vec, vec, tvec);
+				add_v3_v3(vec, tvec);
 				grouped++;
 				
 				break;

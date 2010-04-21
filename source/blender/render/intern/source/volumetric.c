@@ -455,7 +455,7 @@ static void vol_get_transmittance(ShadeInput *shi, float *tr, float *co, float *
 		tau[1] += stepd * sigma_t[1];
 		tau[2] += stepd * sigma_t[2];
 		
-		add_v3_v3v3(p, p, step_vec);
+		add_v3_v3(p, step_vec);
 	}
 	
 	/* return transmittance */
@@ -561,7 +561,7 @@ void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co)
 		
 		if (lar) {
 			vol_shade_one_lamp(shi, co, lar, lacol);
-			add_v3_v3v3(scatter_col, scatter_col, lacol);
+			add_v3_v3(scatter_col, lacol);
 		}
 	}
 }
@@ -631,12 +631,12 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			radiance[1] += stepd * tr[1] * (emit_col[1] + scatter_col[1]);
 			radiance[2] += stepd * tr[2] * (emit_col[2] + scatter_col[2]);
 		}
-		add_v3_v3v3(p, p, step_vec);
+		add_v3_v3(p, step_vec);
 	}
 	
 	/* multiply original color (from behind volume) with transmittance over entire distance */
 	mul_v3_v3v3(col, tr, col);
-	add_v3_v3v3(col, col, radiance);
+	add_v3_v3(col, radiance);
 	
 	/* alpha <-- transmission luminance */
 	col[3] = 1.0f - luminance(tr);

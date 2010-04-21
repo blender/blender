@@ -897,13 +897,13 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 					if(dot<dist_1st) {
 						normalize_v3(dvec);
 						mul_v3_fl(dvec,dist_1st-dot);
-						add_v3_v3v3(key->co,key->co,dvec);
+						add_v3_v3(key->co, dvec);
 					}
 				}
 				else {
 					normalize_v3(dvec);
 					mul_v3_fl(dvec,dist_1st-dot);
-					add_v3_v3v3(key->co,key->co,dvec);
+					add_v3_v3(key->co, dvec);
 				}
 				if(k==1)
 					dist_1st*=1.3333f;
@@ -989,7 +989,7 @@ static void pe_iterate_lengths(Scene *scene, PTCacheEdit *edit)
 				}
 
 				if(k) {
-					add_v3_v3v3((key-1)->co,(key-1)->co,dv1);
+					add_v3_v3((key-1)->co, dv1);
 				}
 
 				VECADD(dv1,dv0,dv2);

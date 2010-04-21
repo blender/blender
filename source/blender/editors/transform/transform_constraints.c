@@ -620,7 +620,7 @@ void drawConstraint(const struct bContext *C, TransInfo *t)
 			float vec[3];
 			char col2[3] = {255,255,255};
 			convertViewVec(t, vec, (short)(t->mval[0] - t->con.imval[0]), (short)(t->mval[1] - t->con.imval[1]));
-			add_v3_v3v3(vec, vec, tc->center);
+			add_v3_v3(vec, tc->center);
 
 			drawLine(t, tc->center, tc->mtx[0], 'x', 0);
 			drawLine(t, tc->center, tc->mtx[1], 'y', 0);
@@ -852,7 +852,7 @@ static void setNearestAxis3d(TransInfo *t)
 
 		mul_v3_fl(axis, zfac);
 		/* now we can project to get window coordinate */
-		add_v3_v3v3(axis, axis, t->con.center);
+		add_v3_v3(axis, t->con.center);
 		projectIntView(t, axis, icoord);
 
 		axis[0] = (float)(icoord[0] - t->center2d[0]);

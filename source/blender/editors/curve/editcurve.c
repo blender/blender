@@ -602,9 +602,9 @@ static void translateflagNurb(ListBase *editnurb, short flag, float *vec)
 			a= nu->pntsu;
 			bezt= nu->bezt;
 			while(a--) {
-				if(bezt->f1 & flag) add_v3_v3v3(bezt->vec[0], bezt->vec[0], vec);
-				if(bezt->f2 & flag) add_v3_v3v3(bezt->vec[1], bezt->vec[1], vec);
-				if(bezt->f3 & flag) add_v3_v3v3(bezt->vec[2], bezt->vec[2], vec);
+				if(bezt->f1 & flag) add_v3_v3(bezt->vec[0], vec);
+				if(bezt->f2 & flag) add_v3_v3(bezt->vec[1], vec);
+				if(bezt->f3 & flag) add_v3_v3(bezt->vec[2], vec);
 				bezt++;
 			}
 		}
@@ -612,7 +612,7 @@ static void translateflagNurb(ListBase *editnurb, short flag, float *vec)
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
 			while(a--) {
-				if(bp->f1 & flag) add_v3_v3v3(bp->vec, bp->vec, vec);
+				if(bp->f1 & flag) add_v3_v3(bp->vec, vec);
 				bp++;
 			}
 		}
@@ -2759,7 +2759,7 @@ static void make_selection_list_nurb(ListBase *editnurb)
 			bp= nu->bp;
 			a= nu->pntsu;
 			while(a--) {
-				add_v3_v3v3(nus->vec, nus->vec, bp->vec);
+				add_v3_v3(nus->vec, bp->vec);
 				bp++;
 			}
 			mul_v3_fl(nus->vec, 1.0/(float)nu->pntsu);

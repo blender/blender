@@ -546,9 +546,9 @@ void heat_calc_vnormals(LaplacianSystem *sys)
 
 		normal_tri_v3( fnor,sys->verts[v1], sys->verts[v2], sys->verts[v3]);
 		
-		add_v3_v3v3(sys->heat.vnors[v1], sys->heat.vnors[v1], fnor);
-		add_v3_v3v3(sys->heat.vnors[v2], sys->heat.vnors[v2], fnor);
-		add_v3_v3v3(sys->heat.vnors[v3], sys->heat.vnors[v3], fnor);
+		add_v3_v3(sys->heat.vnors[v1], fnor);
+		add_v3_v3(sys->heat.vnors[v2], fnor);
+		add_v3_v3(sys->heat.vnors[v3], fnor);
 	}
 
 	for(a=0; a<sys->totvert; a++)
@@ -825,7 +825,7 @@ static void rigid_add_half_edge_to_rhs(LaplacianSystem *sys, EditVert *v1, EditV
 	mul_v3_fl(rhs, 0.5f);
 	mul_v3_fl(rhs, w);
 
-	add_v3_v3v3(sys->rigid.rhs[v1->tmp.l], sys->rigid.rhs[v1->tmp.l], rhs);
+	add_v3_v3(sys->rigid.rhs[v1->tmp.l], rhs);
 }
 
 static void rigid_add_edge_to_rhs(LaplacianSystem *sys, EditVert *v1, EditVert *v2, float w)

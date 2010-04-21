@@ -3190,11 +3190,11 @@ static float p_face_stretch(PFace *f)
 
 	copy_v3_v3(tmp, v2->co);
 	mul_v3_fl(tmp, (v3->uv[1] - v1->uv[1]));
-	add_v3_v3v3(Ps, Ps, tmp);
+	add_v3_v3(Ps, tmp);
 
 	copy_v3_v3(tmp, v3->co);
 	mul_v3_fl(tmp, (v1->uv[1] - v2->uv[1]));
-	add_v3_v3v3(Ps, Ps, tmp);
+	add_v3_v3(Ps, tmp);
 
 	mul_v3_fl(Ps, w);
 
@@ -3203,11 +3203,11 @@ static float p_face_stretch(PFace *f)
 
 	copy_v3_v3(tmp, v2->co);
 	mul_v3_fl(tmp, (v1->uv[0] - v3->uv[0]));
-	add_v3_v3v3(Pt, Pt, tmp);
+	add_v3_v3(Pt, tmp);
 
 	copy_v3_v3(tmp, v3->co);
 	mul_v3_fl(tmp, (v2->uv[0] - v1->uv[0]));
-	add_v3_v3v3(Pt, Pt, tmp);
+	add_v3_v3(Pt, tmp);
 
 	mul_v3_fl(Pt, w);
 

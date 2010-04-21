@@ -122,7 +122,7 @@ static void calc_tw_center(Scene *scene, float *co)
 	float *max= scene->twmax;
 
 	DO_MINMAX(co, min, max);
-	add_v3_v3v3(twcent, twcent, co);
+	add_v3_v3(twcent, co);
 }
 
 static void protectflag_to_drawflags(short protectflag, short *drawflags)

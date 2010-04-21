@@ -1233,11 +1233,11 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 		else
 			normal_tri_v3( f_no,mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co);
 		
-		add_v3_v3v3(tnorms[mf->v1], tnorms[mf->v1], f_no);
-		add_v3_v3v3(tnorms[mf->v2], tnorms[mf->v2], f_no);
-		add_v3_v3v3(tnorms[mf->v3], tnorms[mf->v3], f_no);
+		add_v3_v3(tnorms[mf->v1], f_no);
+		add_v3_v3(tnorms[mf->v2], f_no);
+		add_v3_v3(tnorms[mf->v3], f_no);
 		if (mf->v4)
-			add_v3_v3v3(tnorms[mf->v4], tnorms[mf->v4], f_no);
+			add_v3_v3(tnorms[mf->v4], f_no);
 	}
 	for (i=0; i<numVerts; i++) {
 		MVert *mv= &mverts[i];

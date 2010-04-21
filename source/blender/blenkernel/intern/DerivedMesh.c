@@ -583,14 +583,14 @@ static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[
 {
 	if (vertexCos) {
 		VECCOPY(cent, vertexCos[(int) efa->v1->tmp.l]);
-		add_v3_v3v3(cent, cent, vertexCos[(int) efa->v2->tmp.l]);
-		add_v3_v3v3(cent, cent, vertexCos[(int) efa->v3->tmp.l]);
-		if (efa->v4) add_v3_v3v3(cent, cent, vertexCos[(int) efa->v4->tmp.l]);
+		add_v3_v3(cent, vertexCos[(int) efa->v2->tmp.l]);
+		add_v3_v3(cent, vertexCos[(int) efa->v3->tmp.l]);
+		if (efa->v4) add_v3_v3(cent, vertexCos[(int) efa->v4->tmp.l]);
 	} else {
 		VECCOPY(cent, efa->v1->co);
-		add_v3_v3v3(cent, cent, efa->v2->co);
-		add_v3_v3v3(cent, cent, efa->v3->co);
-		if (efa->v4) add_v3_v3v3(cent, cent, efa->v4->co);
+		add_v3_v3(cent, efa->v2->co);
+		add_v3_v3(cent, efa->v3->co);
+		if (efa->v4) add_v3_v3(cent, efa->v4->co);
 	}
 
 	if (efa->v4) {
@@ -1369,15 +1369,15 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 				float *v4 = vertexCos[(int) efa->v4->tmp.l];
 
 				normal_quad_v3( no,v1, v2, v3, v4);
-				add_v3_v3v3(emdm->vertexNos[(int) efa->v4->tmp.l], emdm->vertexNos[(int) efa->v4->tmp.l], no);
+				add_v3_v3(emdm->vertexNos[(int) efa->v4->tmp.l], no);
 			}
 			else {
 				normal_tri_v3( no,v1, v2, v3);
 			}
 
-			add_v3_v3v3(emdm->vertexNos[(int) efa->v1->tmp.l], emdm->vertexNos[(int) efa->v1->tmp.l], no);
-			add_v3_v3v3(emdm->vertexNos[(int) efa->v2->tmp.l], emdm->vertexNos[(int) efa->v2->tmp.l], no);
-			add_v3_v3v3(emdm->vertexNos[(int) efa->v3->tmp.l], emdm->vertexNos[(int) efa->v3->tmp.l], no);
+			add_v3_v3(emdm->vertexNos[(int) efa->v1->tmp.l], no);
+			add_v3_v3(emdm->vertexNos[(int) efa->v2->tmp.l], no);
+			add_v3_v3(emdm->vertexNos[(int) efa->v3->tmp.l], no);
 		}
 
 		for(i=0, eve= em->verts.first; eve; i++, eve=eve->next) {

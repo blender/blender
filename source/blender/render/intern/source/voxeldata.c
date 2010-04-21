@@ -339,7 +339,7 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 	 * to the range 0.0, 1.0, before looking up in the voxel structure. */
 	copy_v3_v3(co, texvec);
 	mul_v3_fl(co, 0.5f);
-	add_v3_v3v3(co, co, offset);
+	add_v3_v3(co, offset);
 
 	/* co is now in the range 0.0, 1.0 */
 	switch (tex->extend) {

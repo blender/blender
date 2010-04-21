@@ -2389,7 +2389,7 @@ int Shear(TransInfo *t, short mval[2])
 		
 		mul_m3_v3(tmat, vec);
 		
-		add_v3_v3v3(vec, vec, t->center);
+		add_v3_v3(vec, t->center);
 		sub_v3_v3v3(vec, vec, td->center);
 		
 		mul_v3_fl(vec, td->factor);
@@ -2569,7 +2569,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	
 	mul_m3_v3(tmat, vec);
 	
-	add_v3_v3v3(vec, vec, center);
+	add_v3_v3(vec, center);
 	if (t->flag & T_POINTS)
 		sub_v3_v3v3(vec, vec, td->iloc);
 	else
@@ -2861,7 +2861,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			mul_m3_v3(mat, vec);		// Applying rotation
 			mul_m3_v3(imtx, vec);	// To Local space
 			
-			add_v3_v3v3(vec, vec, center);
+			add_v3_v3(vec, center);
 			/* vec now is the location where the object has to be */
 			
 			sub_v3_v3v3(vec, vec, td->center); // Translation needed from the initial location
@@ -2933,7 +2933,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			/* translation */
 			sub_v3_v3v3(vec, td->center, center);
 			mul_m3_v3(mat, vec);
-			add_v3_v3v3(vec, vec, center);
+			add_v3_v3(vec, center);
 			/* vec now is the location where the object has to be */
 			sub_v3_v3v3(vec, vec, td->center);
 			mul_m3_v3(td->smtx, vec);
@@ -4482,7 +4482,7 @@ static int createSlideVerts(TransInfo *t)
 					sub_v3_v3v3(vec, co2, co);
 				}
 
-				add_v3_v3v3(start, start, vec);
+				add_v3_v3(start, vec);
 
 				if (v3d) {
 					view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
@@ -4495,7 +4495,7 @@ static int createSlideVerts(TransInfo *t)
 					sub_v3_v3v3(vec, co, co2);
 				}
 
-				add_v3_v3v3(end, end, vec);
+				add_v3_v3(end, vec);
 
 				totvec += 1.0f;
 				nearest = (EditVert*)look->link;
@@ -4507,7 +4507,7 @@ static int createSlideVerts(TransInfo *t)
 		look = look->next;
 	}
 
-	add_v3_v3v3(start, start, end);
+	add_v3_v3(start, end);
 	mul_v3_fl(start, 0.5*(1.0/totvec));
 	VECCOPY(vec, start);
 	start[0] = t->mval[0];

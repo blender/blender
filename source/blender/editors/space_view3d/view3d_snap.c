@@ -122,7 +122,7 @@ static void special_transvert_update(Scene *scene, Object *obedit)
 						float diffvec[3];
 						
 						sub_v3_v3v3(diffvec, tv->loc, tv->oldloc);
-						add_v3_v3v3(ebo->tail, ebo->tail, diffvec);
+						add_v3_v3(ebo->tail, diffvec);
 						
 						a++;
 						if (a<tottrans) tv++;
@@ -448,7 +448,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 			
 			VECCOPY(vec, tv->loc);
 			mul_m3_v3(bmat, vec);
-			add_v3_v3v3(vec, vec, obedit->obmat[3]);
+			add_v3_v3(vec, obedit->obmat[3]);
 			vec[0]= gridf*floor(.5+ vec[0]/gridf);
 			vec[1]= gridf*floor(.5+ vec[1]/gridf);
 			vec[2]= gridf*floor(.5+ vec[2]/gridf);
@@ -744,8 +744,8 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 		for(a=0; a<tottrans; a++, tv++) {
 			VECCOPY(vec, tv->loc);
 			mul_m3_v3(bmat, vec);
-			add_v3_v3v3(vec, vec, obedit->obmat[3]);
-			add_v3_v3v3(centroid, centroid, vec);
+			add_v3_v3(vec, obedit->obmat[3]);
+			add_v3_v3(centroid, vec);
 			DO_MINMAX(vec, min, max);
 		}
 		
@@ -772,7 +772,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 					if(pchan->bone->flag & BONE_SELECTED) {
 						VECCOPY(vec, pchan->pose_head);
 						mul_m4_v3(ob->obmat, vec);
-						add_v3_v3v3(centroid, centroid, vec);
+						add_v3_v3(centroid, vec);
 						DO_MINMAX(vec, min, max);
 						count++;
 					}
@@ -782,7 +782,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 		else {
 			CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 				VECCOPY(vec, ob->obmat[3]);
-				add_v3_v3v3(centroid, centroid, vec);
+				add_v3_v3(centroid, vec);
 				DO_MINMAX(vec, min, max);
 				count++;
 			}
@@ -927,8 +927,8 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	for(a=0; a<tottrans; a++, tv++) {		
 		VECCOPY(vec, tv->loc);
 		mul_m3_v3(bmat, vec);
-		add_v3_v3v3(vec, vec, obedit->obmat[3]);
-		add_v3_v3v3(centroid, centroid, vec);
+		add_v3_v3(vec, obedit->obmat[3]);
+		add_v3_v3(centroid, vec);
 		DO_MINMAX(vec, min, max);		
 	}
 	

@@ -157,7 +157,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 			if(eve->f & SELECT) {
 				evedef= eve;
 				tot++;
-				add_v3_v3v3(median, median, eve->co);
+				add_v3_v3(median, eve->co);
 			}
 			eve= eve->next;
 		}
@@ -213,7 +213,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 				a= nu->pntsu;
 				while(a--) {
 					if(bezt->f2 & SELECT) {
-						add_v3_v3v3(median, median, bezt->vec[1]);
+						add_v3_v3(median, bezt->vec[1]);
 						tot++;
 						median[4]+= bezt->weight;
 						totweight++;
@@ -222,11 +222,11 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 					}
 					else {
 						if(bezt->f1 & SELECT) {
-							add_v3_v3v3(median, median, bezt->vec[0]);
+							add_v3_v3(median, bezt->vec[0]);
 							tot++;
 						}
 						if(bezt->f3 & SELECT) {
-							add_v3_v3v3(median, median, bezt->vec[2]);
+							add_v3_v3(median, bezt->vec[2]);
 							tot++;
 						}
 					}
@@ -238,7 +238,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 				a= nu->pntsu*nu->pntsv;
 				while(a--) {
 					if(bp->f1 & SELECT) {
-						add_v3_v3v3(median, median, bp->vec);
+						add_v3_v3(median, bp->vec);
 						median[3]+= bp->vec[3];
 						totw++;
 						tot++;
@@ -262,7 +262,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 		bp= lt->editlatt->def;
 		while(a--) {
 			if(bp->f1 & SELECT) {
-				add_v3_v3v3(median, median, bp->vec);
+				add_v3_v3(median, bp->vec);
 				tot++;
 				median[4]+= bp->weight;
 				totweight++;
@@ -383,7 +383,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 			eve= em->verts.first;
 			while(eve) {
 				if(eve->f & SELECT) {
-					add_v3_v3v3(eve->co, eve->co, median);
+					add_v3_v3(eve->co, median);
 				}
 				eve= eve->next;
 			}
@@ -418,18 +418,18 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 					a= nu->pntsu;
 					while(a--) {
 						if(bezt->f2 & SELECT) {
-							add_v3_v3v3(bezt->vec[0], bezt->vec[0], median);
-							add_v3_v3v3(bezt->vec[1], bezt->vec[1], median);
-							add_v3_v3v3(bezt->vec[2], bezt->vec[2], median);
+							add_v3_v3(bezt->vec[0], median);
+							add_v3_v3(bezt->vec[1], median);
+							add_v3_v3(bezt->vec[2], median);
 							bezt->weight+= median[4];
 							bezt->radius+= median[5];
 						}
 						else {
 							if(bezt->f1 & SELECT) {
-								add_v3_v3v3(bezt->vec[0], bezt->vec[0], median);
+								add_v3_v3(bezt->vec[0], median);
 							}
 							if(bezt->f3 & SELECT) {
-								add_v3_v3v3(bezt->vec[2], bezt->vec[2], median);
+								add_v3_v3(bezt->vec[2], median);
 							}
 						}
 						bezt++;
@@ -440,7 +440,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 					a= nu->pntsu*nu->pntsv;
 					while(a--) {
 						if(bp->f1 & SELECT) {
-							add_v3_v3v3(bp->vec, bp->vec, median);
+							add_v3_v3(bp->vec, median);
 							bp->vec[3]+= median[3];
 							bp->weight+= median[4];
 							bp->radius+= median[5];
@@ -463,7 +463,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 			bp= lt->editlatt->def;
 			while(a--) {
 				if(bp->f1 & SELECT) {
-					add_v3_v3v3(bp->vec, bp->vec, median);
+					add_v3_v3(bp->vec, median);
 					bp->weight+= median[4];
 				}
 				bp++;

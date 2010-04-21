@@ -719,7 +719,7 @@ int isect_sweeping_sphere_tri_v3(float p1[3], float p2[3], float radius, float v
 			*lambda = newLambda;
 			copy_v3_v3(ipoint,e1);
 			mul_v3_fl(ipoint,e);
-			add_v3_v3v3(ipoint,ipoint,v0);
+			add_v3_v3(ipoint, v0);
 			found_by_sweep=1;
 		}
 	}
@@ -743,7 +743,7 @@ int isect_sweeping_sphere_tri_v3(float p1[3], float p2[3], float radius, float v
 			*lambda = newLambda;
 			copy_v3_v3(ipoint,e2);
 			mul_v3_fl(ipoint,e);
-			add_v3_v3v3(ipoint,ipoint,v0);
+			add_v3_v3(ipoint, v0);
 			found_by_sweep=1;
 		}
 	}
@@ -772,7 +772,7 @@ int isect_sweeping_sphere_tri_v3(float p1[3], float p2[3], float radius, float v
 			*lambda = newLambda;
 			copy_v3_v3(ipoint,e3);
 			mul_v3_fl(ipoint,e);
-			add_v3_v3v3(ipoint,ipoint,v1);
+			add_v3_v3(ipoint, v1);
 			found_by_sweep=1;
 		}
 	}
@@ -1832,7 +1832,7 @@ void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, float *tang, 
 	/* find a tangent with connected uvs */
 	for(vt= *vtang; vt; vt=vt->next) {
 		if(fabs(uv[0]-vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabs(uv[1]-vt->uv[1]) < STD_UV_CONNECT_LIMIT) {
-			add_v3_v3v3(vt->tang, vt->tang, tang);
+			add_v3_v3(vt->tang, tang);
 			return;
 		}
 	}
@@ -1952,19 +1952,19 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 				float v[3];
 				copy_v3_v3(v,pos[a]);
 				mul_v3_fl(v,weight[a]);
-				add_v3_v3v3(accu_com,accu_com,v);
+				add_v3_v3(accu_com, v);
 				accu_weight +=weight[a]; 
 			}
-			else add_v3_v3v3(accu_com,accu_com,pos[a]);
+			else add_v3_v3(accu_com, pos[a]);
 
 			if (rweight){
 				float v[3];
 				copy_v3_v3(v,rpos[a]);
 				mul_v3_fl(v,rweight[a]);
-				add_v3_v3v3(accu_rcom,accu_rcom,v);
+				add_v3_v3(accu_rcom, v);
 				accu_rweight +=rweight[a]; 
 			}
-			else add_v3_v3v3(accu_rcom,accu_rcom,rpos[a]);
+			else add_v3_v3(accu_rcom, rpos[a]);
 
 		}
 		if (!weight || !rweight){

@@ -607,7 +607,7 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int end)
 
 			glPopMatrix();
 
-			add_v3_v3v3(rgb, rgb, d_rgb);
+			add_v3_v3(rgb, d_rgb);
 		}
 	}
 
@@ -1005,7 +1005,7 @@ void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end, float 
 		viewray(ar, v3d, pval, ray_start, ray_normal);
 
 		mul_v3_fl(ray_normal, distance * progress / length);
-		add_v3_v3v3(stk->points[i].p, stk->points[i].p, ray_normal);
+		add_v3_v3(stk->points[i].p, ray_normal);
 
 		progress += delta ;
 	}
@@ -1628,7 +1628,7 @@ int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gesture)
 
 				sub_v3_v3v3(isect->p, gesture->points[s_i + 1].p, gesture->points[s_i].p);
 				mul_v3_fl(isect->p, lambda);
-				add_v3_v3v3(isect->p, isect->p, gesture->points[s_i].p);
+				add_v3_v3(isect->p, gesture->points[s_i].p);
 
 				BLI_addtail(list, isect);
 

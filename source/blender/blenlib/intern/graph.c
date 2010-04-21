@@ -529,7 +529,7 @@ void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3])
 	sub_v3_v3v3(dv, v, center);
 	project_v3_v3v3(pv, dv, axis);
 	mul_v3_fl(pv, -2);
-	add_v3_v3v3(v, v, pv);
+	add_v3_v3(v, pv);
 }
 
 static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring, int total, float axis[3], float limit, int group)
@@ -801,7 +801,7 @@ static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNo
 
 	sub_v3_v3v3(p, root_node->p, node2->p);
 	cross_v3_v3v3(vec, p, axis);
-	add_v3_v3v3(vec, vec, nor);
+	add_v3_v3(vec, nor);
 	
 	cross_v3_v3v3(nor, vec, axis);
 	
@@ -905,7 +905,7 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 		/* If arc is on the axis */
 		else if (connectedArc->symmetry_level == level)
 		{
-			add_v3_v3v3(axis, axis, connectedArc->head->p);
+			add_v3_v3(axis, connectedArc->head->p);
 			sub_v3_v3v3(axis, axis, connectedArc->tail->p);
 		}
 	}

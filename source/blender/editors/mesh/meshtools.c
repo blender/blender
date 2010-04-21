@@ -715,11 +715,11 @@ void sort_faces(Scene *scene, View3D *v3d)
 				/* find the faces center */
 				add_v3_v3v3(vec, (me->mvert+mf->v1)->co, (me->mvert+mf->v2)->co);
 				if (mf->v4) {
-					add_v3_v3v3(vec, vec, (me->mvert+mf->v3)->co);
-					add_v3_v3v3(vec, vec, (me->mvert+mf->v4)->co);
+					add_v3_v3(vec, (me->mvert+mf->v3)->co);
+					add_v3_v3(vec, (me->mvert+mf->v4)->co);
 					mul_v3_fl(vec, 0.25f);
 				} else {
-					add_v3_v3v3(vec, vec, (me->mvert+mf->v3)->co);
+					add_v3_v3(vec, (me->mvert+mf->v3)->co);
 					mul_v3_fl(vec, 1.0f/3.0f);
 				} /* done */
 				
