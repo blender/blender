@@ -119,11 +119,15 @@ static bContext *C;
 static void error_libdata() {}
 
 
-/* find the correct active object per context */
+/* find the correct active object per context
+ * note: context can be NULL when called from a enum with PROP_ENUM_NO_CONTEXT */
 Object *ED_object_active_context(bContext *C)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	if (!ob) ob= CTX_data_active_object(C);
+	Object *ob= NULL;
+	if(C) {
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+		if (!ob) ob= CTX_data_active_object(C);
+	}
 	return ob;
 }
 
