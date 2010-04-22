@@ -83,10 +83,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
         layout = self.layout
 
         tex = context.texture
-        try:
-            slot = context.texture_slot
-        except:
-            slot = None
+        slot = getattr(context, "texture_slot", None)
         idblock = context_tex_datablock(context)
 
         if idblock:
@@ -102,8 +99,8 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 
     def poll(self, context):
         engine = context.scene.render.engine
-        try: getattr(context, "texture_slot")
-        except: return False
+        if not hasattr(context, "texture_slot"):
+            return False
         return ((context.material or context.world or context.lamp or context.brush or context.texture) 
             and (engine in self.COMPAT_ENGINES))
 
@@ -212,8 +209,8 @@ class TextureSlotPanel(TextureButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
-        try: getattr(context, "texture_slot")
-        except: return False
+        if not hasattr(context, "texture_slot"):
+            return False
         
         engine = context.scene.render.engine
         return TextureButtonsPanel.poll(self, context) and (engine in self.COMPAT_ENGINES)
@@ -227,11 +224,12 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
         idblock = context_tex_datablock(context)
         if type(idblock) == bpy.types.Brush and not context.sculpt_object:
             return False
-        try: getattr(context, "texture_slot")
-        except: return False
+
+        if not getattr(context, "texture_slot", None):
+            return False
         
         engine = context.scene.render.engine
-        return context.texture_slot and (engine in self.COMPAT_ENGINES)
+        return (engine in self.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -324,11 +322,12 @@ class TEXTURE_PT_influence(TextureSlotPanel):
         idblock = context_tex_datablock(context)
         if type(idblock) == bpy.types.Brush:
             return False
-        try: getattr(context, "texture_slot")
-        except: return False
+
+        if getattr(context, "texture_slot", None):
+            return False
 
         engine = context.scene.render.engine
-        return context.texture_slot and (engine in self.COMPAT_ENGINES)
+        return (engine in self.COMPAT_ENGINES)
 
     def draw(self, context):
 
