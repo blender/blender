@@ -41,6 +41,8 @@ class OUTLINER_HT_header(bpy.types.Header):
 
         layout.prop(space, "display_mode", text="")
 
+        layout.prop(space, "display_filter", text="")
+
         layout.separator()
 
         if space.display_mode == 'DATABLOCKS':
