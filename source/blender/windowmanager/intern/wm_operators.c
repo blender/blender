@@ -1016,8 +1016,12 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int retval= OPERATOR_CANCELLED;
 	
-	if(op->type->exec)
+	if(op->type->exec) {
 		retval= op->type->exec(C, op);
+		
+		if(op->type->flag & OPTYPE_UNDO)
+			ED_undo_push_op(C, op);
+	}
 
 	if(retval != OPERATOR_CANCELLED)
 		uiPupBlock(C, wm_block_create_redo, op);
