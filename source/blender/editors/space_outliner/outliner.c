@@ -1235,6 +1235,46 @@ void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
 	}
 }
 
+static int outliner_filter_has_name(TreeElement *te, char *name, int flags)
+{
+	int found= 0;
+	
+	/* determine if match */
+	if(flags==OL_FIND)
+		found= BLI_strcasestr(te->name, name)!=NULL;
+	else if(flags==OL_FIND_CASE)
+		found= strstr(te->name, name)!=NULL;
+	else if(flags==OL_FIND_COMPLETE)
+		found= BLI_strcasecmp(te->name, name)==0;
+	else
+		found= strcmp(te->name, name)==0;
+	
+	return found;
+}
+
+static void outliner_filter_tree(SpaceOops *soops, ListBase *lb)
+{
+	TreeElement *te, *ten;
+	
+	if(soops->search_string[0]==0) return;
+
+	for (te= lb->first; te; te= ten) {
+		ten= te->next;
+		
+		if(0==outliner_filter_has_name(te, soops->search_string, OL_FIND)) {
+			
+			outliner_free_tree(&te->subtree);
+			BLI_remlink(lb, te);
+			
+			if(te->flag & TE_FREE_NAME) MEM_freeN(te->name);
+			MEM_freeN(te);
+		}
+		else
+			outliner_filter_tree(soops, &te->subtree);
+	}
+}
+
+
 static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 {
 	Base *base;
@@ -1416,6 +1456,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	}
 
 	outliner_sort(soops, &soops->tree);
+	outliner_filter_tree(soops, &soops->tree);
 }
 
 /* **************** INTERACTIVE ************* */
