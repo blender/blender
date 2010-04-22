@@ -60,18 +60,15 @@
 #include "text_intern.h"
 
 /******************** text font drawing ******************/
+static int mono= -1; // XXX needs proper storage and change all the BLF_* here
 
 static void text_font_begin(SpaceText *st)
 {
-	static int mono= -1; // XXX needs proper storage
-
 	if(mono == -1)
 		mono= BLF_load_mem("monospace", (unsigned char*)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 
-	BLF_set(mono);
-	BLF_aspect(1.0);
-
-	BLF_size(st->lheight, 72);
+	BLF_aspect(mono, 1.0);
+	BLF_size(mono, st->lheight, 72);
 }
 
 static void text_font_end(SpaceText *st)
@@ -80,10 +77,10 @@ static void text_font_end(SpaceText *st)
 
 static int text_font_draw(SpaceText *st, int x, int y, char *str)
 {
-	BLF_position(x, y, 0);
-	BLF_draw(str);
+	BLF_position(mono, x, y, 0);
+	BLF_draw(mono, str);
 
-	return BLF_width(str);
+	return BLF_width(mono, str);
 }
 
 static int text_font_draw_character(SpaceText *st, int x, int y, char c)
@@ -93,15 +90,15 @@ static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 	str[0]= c;
 	str[1]= '\0';
 
-	BLF_position(x, y, 0);
-	BLF_draw(str);
+	BLF_position(mono, x, y, 0);
+	BLF_draw(mono, str);
 
 	return st->cwidth;
 }
 
 int text_font_width(SpaceText *st, char *str)
 {
-	return BLF_width(str);
+	return BLF_width(mono, str);
 }
 
 /****************** flatten string **********************/
@@ -1237,7 +1234,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	}
 
 	text_font_begin(st);
-	st->cwidth= BLF_fixed_width();
+	st->cwidth= BLF_fixed_width(mono);
 	st->cwidth= MAX2(st->cwidth, 1);
 
 	/* draw line numbers background */
@@ -1307,7 +1304,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 void text_update_character_width(SpaceText *st)
 {
 	text_font_begin(st);
-	st->cwidth= BLF_fixed_width();
+	st->cwidth= BLF_fixed_width(mono);
 	st->cwidth= MAX2(st->cwidth, 1);
 	text_font_end(st);
 }

@@ -260,7 +260,7 @@ float file_string_width(const char* str)
 {
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	return BLF_width((char *)str);
+	return BLF_width(style->widget.uifont_id, (char *)str);
 }
 
 float file_font_pointsize()
@@ -269,7 +269,7 @@ float file_font_pointsize()
 	char tmp[2] = "X";
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	s = BLF_height(tmp);
+	s = BLF_height(style->widget.uifont_id, tmp);
 	return style->widget.points;
 }
 

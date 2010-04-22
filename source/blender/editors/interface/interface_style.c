@@ -147,34 +147,34 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 	
 	uiStyleFontSet(fs);
 	
-	height= BLF_height("2");	/* correct offset is on baseline, the j is below that */
+	height= BLF_height(fs->uifont_id, "2"); /* correct offset is on baseline, the j is below that */
 	yofs= floor( 0.5f*(rect->ymax - rect->ymin - height));
 
 	if(fs->align==UI_STYLE_TEXT_CENTER)
-		xofs= floor( 0.5f*(rect->xmax - rect->xmin - BLF_width(str)));
+		xofs= floor( 0.5f*(rect->xmax - rect->xmin - BLF_width(fs->uifont_id, str)));
 	else if(fs->align==UI_STYLE_TEXT_RIGHT)
-		xofs= rect->xmax - rect->xmin - BLF_width(str) - 1;
+		xofs= rect->xmax - rect->xmin - BLF_width(fs->uifont_id, str) - 1;
 	
 	/* clip is very strict, so we give it some space */
-	BLF_clipping(rect->xmin-1, rect->ymin-4, rect->xmax+1, rect->ymax+4);
-	BLF_enable(BLF_CLIPPING);
-	BLF_position(rect->xmin+xofs, rect->ymin+yofs, 0.0f);
+	BLF_clipping(fs->uifont_id, rect->xmin-1, rect->ymin-4, rect->xmax+1, rect->ymax+4);
+	BLF_enable(fs->uifont_id, BLF_CLIPPING);
+	BLF_position(fs->uifont_id, rect->xmin+xofs, rect->ymin+yofs, 0.0f);
 
 	if (fs->shadow) {
-		BLF_enable(BLF_SHADOW);
-		BLF_shadow(fs->shadow, fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha);
-		BLF_shadow_offset(fs->shadx, fs->shady);
+		BLF_enable(fs->uifont_id, BLF_SHADOW);
+		BLF_shadow(fs->uifont_id, fs->shadow, fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha);
+		BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
 	}
 
 	if (fs->kerning == 1)
-		BLF_enable(BLF_KERNING_DEFAULT);
+		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
 
-	BLF_draw(str);
-	BLF_disable(BLF_CLIPPING);
+	BLF_draw(fs->uifont_id, str);
+	BLF_disable(fs->uifont_id, BLF_CLIPPING);
 	if (fs->shadow)
-		BLF_disable(BLF_SHADOW);
+		BLF_disable(fs->uifont_id, BLF_SHADOW);
 	if (fs->kerning == 1)
-		BLF_disable(BLF_KERNING_DEFAULT);
+		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
 }
 
 /* drawn same as above, but at 90 degree angle */
@@ -187,7 +187,7 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, char *str)
 
 	uiStyleFontSet(fs);
 
-	height= BLF_height("2");	/* correct offset is on baseline, the j is below that */
+	height= BLF_height(fs->uifont_id, "2");	/* correct offset is on baseline, the j is below that */
 	/* becomes x-offset when rotated */
 	xofs= floor( 0.5f*(rect->ymax - rect->ymin - height)) + 1;
 
@@ -195,7 +195,7 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, char *str)
 
 	/* rotate counter-clockwise for now (assumes left-to-right language)*/
 	xofs+= height;
-	yofs= BLF_width(str) + 5;
+	yofs= BLF_width(fs->uifont_id, str) + 5;
 	angle= 90.0f;
 
 	/* translate rect to vertical */
@@ -206,29 +206,29 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, char *str)
 
 	/* clip is very strict, so we give it some space */
 	/* clipping is done without rotation, so make rect big enough to contain both positions */
-	BLF_clipping(txtrect.xmin-1, txtrect.ymin-yofs-xofs-4, rect->xmax+1, rect->ymax+4);
-	BLF_enable(BLF_CLIPPING);
-	BLF_position(txtrect.xmin+xofs, txtrect.ymax-yofs, 0.0f);
+	BLF_clipping(fs->uifont_id, txtrect.xmin-1, txtrect.ymin-yofs-xofs-4, rect->xmax+1, rect->ymax+4);
+	BLF_enable(fs->uifont_id, BLF_CLIPPING);
+	BLF_position(fs->uifont_id, txtrect.xmin+xofs, txtrect.ymax-yofs, 0.0f);
 
-	BLF_enable(BLF_ROTATION);
-	BLF_rotation(angle);
+	BLF_enable(fs->uifont_id, BLF_ROTATION);
+	BLF_rotation(fs->uifont_id, angle);
 
 	if (fs->shadow) {
-		BLF_enable(BLF_SHADOW);
-		BLF_shadow(fs->shadow, fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha);
-		BLF_shadow_offset(fs->shadx, fs->shady);
+		BLF_enable(fs->uifont_id, BLF_SHADOW);
+		BLF_shadow(fs->uifont_id, fs->shadow, fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha);
+		BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
 	}
 
 	if (fs->kerning == 1)
-		BLF_enable(BLF_KERNING_DEFAULT);
+		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
 
-	BLF_draw(str);
-	BLF_disable(BLF_ROTATION);
-	BLF_disable(BLF_CLIPPING);
+	BLF_draw(fs->uifont_id, str);
+	BLF_disable(fs->uifont_id, BLF_ROTATION);
+	BLF_disable(fs->uifont_id, BLF_CLIPPING);
 	if (fs->shadow)
-		BLF_disable(BLF_SHADOW);
+		BLF_disable(fs->uifont_id, BLF_SHADOW);
 	if (fs->kerning == 1)
-		BLF_disable(BLF_KERNING_DEFAULT);
+		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
 }
 
 /* ************** helpers ************************ */
@@ -241,13 +241,13 @@ int UI_GetStringWidth(char *str)
 	int width;
 	
 	if (fstyle->kerning==1)	/* for BLF_width */
-		BLF_enable(BLF_KERNING_DEFAULT);
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
 	uiStyleFontSet(fstyle);
-	width= BLF_width(str);	
+	width= BLF_width(fstyle->uifont_id, str);	
 	
 	if (fstyle->kerning==1)
-		BLF_disable(BLF_KERNING_DEFAULT);
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
 	return width;
 }
@@ -258,8 +258,8 @@ void UI_DrawString(float x, float y, char *str)
 	uiStyle *style= U.uistyles.first;
 	
 	uiStyleFontSet(&style->widget);
-	BLF_position(x, y, 0.0f);
-	BLF_draw(str);
+	BLF_position(style->widget.uifont_id, x, y, 0.0f);
+	BLF_draw(style->widget.uifont_id, str);
 }
 
 /* ************** init exit ************************ */
@@ -299,14 +299,13 @@ void uiStyleInit(void)
 				printf("uiStyleInit error, no fonts available\n");
 		}
 		else {
-			BLF_set(font->blf_id);
 			/* ? just for speed to initialize?
 			 * Yes, this build the glyph cache and create
 			 * the texture.
 			 */
-			BLF_size(11, U.dpi);
-			BLF_size(12, U.dpi);
-			BLF_size(14, U.dpi);
+			BLF_size(font->blf_id, 11, U.dpi);
+			BLF_size(font->blf_id, 12, U.dpi);
+			BLF_size(font->blf_id, 14, U.dpi);
 		}
 	}
 	
@@ -319,7 +318,6 @@ void uiStyleFontSet(uiFontStyle *fs)
 {
 	uiFont *font= uifont_to_blfont(fs->uifont_id);
 	
-	BLF_set(font->blf_id);
-	BLF_size(fs->points, U.dpi);
+	BLF_size(font->blf_id, fs->points, U.dpi);
 }
 

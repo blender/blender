@@ -24,6 +24,7 @@
  */
 
 #include <math.h>
+#include <stdlib.h>
 #include "BLI_math_color.h"
 #include "BLF_api.h"
 
@@ -297,17 +298,17 @@ static void checker_board_grid_fill(unsigned char *rect, float *rect_float, int 
 }
 
 /* defined in image.c */
-extern void stamp_font_begin(int size);
+extern int stamp_font_begin(int size);
 
 static void checker_board_text(unsigned char *rect, float *rect_float, int width, int height, int step, int outline)
 {
-	int x, y;
+	int x, y, mono;
 	int pen_x, pen_y;
 	char text[3]= {'A', '1', '\0'};
 
 	/* hard coded size! */
-	stamp_font_begin(54);
-	BLF_buffer(rect_float, rect, width, height, 4);
+	mono= stamp_font_begin(54);
+	BLF_buffer(mono, rect_float, rect, width, height, 4);
     
 	for(y= 0; y < height; y+=step)
 	{
@@ -320,29 +321,29 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 			pen_y = y + 44;
             
 			/* terribly crappy outline font! */
-			BLF_buffer_col(1.0, 1.0, 1.0, 1.0);
+			BLF_buffer_col(mono, 1.0, 1.0, 1.0, 1.0);
 
-			BLF_position(pen_x-outline, pen_y, 0.0);
-			BLF_draw_buffer(text);
-			BLF_position(pen_x+outline, pen_y, 0.0);
-			BLF_draw_buffer(text);
-			BLF_position(pen_x, pen_y-outline, 0.0);
-			BLF_draw_buffer(text);
-			BLF_position(pen_x, pen_y+outline, 0.0);
-			BLF_draw_buffer(text);
+			BLF_position(mono, pen_x-outline, pen_y, 0.0);
+			BLF_draw_buffer(mono, text);
+			BLF_position(mono, pen_x+outline, pen_y, 0.0);
+			BLF_draw_buffer(mono, text);
+			BLF_position(mono, pen_x, pen_y-outline, 0.0);
+			BLF_draw_buffer(mono, text);
+			BLF_position(mono, pen_x, pen_y+outline, 0.0);
+			BLF_draw_buffer(mono, text);
             
-			BLF_position(pen_x-outline, pen_y-outline, 0.0);
-			BLF_draw_buffer(text);
-			BLF_position(pen_x+outline, pen_y+outline, 0.0);
-			BLF_draw_buffer(text);
-			BLF_position(pen_x-outline, pen_y+outline, 0.0);
-			BLF_draw_buffer(text);
-			BLF_position(pen_x+outline, pen_y-outline, 0.0);
-			BLF_draw_buffer(text);
+			BLF_position(mono, pen_x-outline, pen_y-outline, 0.0);
+			BLF_draw_buffer(mono, text);
+			BLF_position(mono, pen_x+outline, pen_y+outline, 0.0);
+			BLF_draw_buffer(mono, text);
+			BLF_position(mono, pen_x-outline, pen_y+outline, 0.0);
+			BLF_draw_buffer(mono, text);
+			BLF_position(mono, pen_x+outline, pen_y-outline, 0.0);
+			BLF_draw_buffer(mono, text);
 
-			BLF_buffer_col(0.0, 0.0, 0.0, 1.0);
-			BLF_position(pen_x, pen_y, 0.0);
-			BLF_draw_buffer(text);
+			BLF_buffer_col(mono, 0.0, 0.0, 0.0, 1.0);
+			BLF_position(mono, pen_x, pen_y, 0.0);
+			BLF_draw_buffer(mono, text);
             
 			text[1]++;
 		}
@@ -350,8 +351,7 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 	}
     
 	/* cleanup the buffer. */
-	BLF_buffer(0, 0, 0, 0, 0);
-    
+	BLF_buffer(mono, NULL, NULL, 0, 0, 0);
 }
 
 void BKE_image_buf_fill_checker_color(unsigned char *rect, float *rect_float, int width, int height)

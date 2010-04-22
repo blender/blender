@@ -1165,7 +1165,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	uiStyleFontSet(fstyle);
 
 	if (fstyle->kerning==1)	/* for BLF_width */
-		BLF_enable(BLF_KERNING_DEFAULT);
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
 	origstr= MEM_callocN(sizeof(char)*data->maxlen, "ui_textedit origstr");
 	
@@ -1188,7 +1188,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		
 		while (i > 0) {
 			i--;
-			if (BLF_width(origstr+i) > (startx - x)*0.25) break;	// 0.25 == scale factor for less sensitivity
+			if (BLF_width(fstyle->uifont_id, origstr+i) > (startx - x)*0.25) break;	// 0.25 == scale factor for less sensitivity
 		}
 		but->ofs = i;
 		but->pos = but->ofs;
@@ -1200,7 +1200,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		but->pos= strlen(origstr)-but->ofs;
 		
 		/* XXX does not take zoom level into account */
-		while (aspect*startx + aspect*BLF_width(origstr+but->ofs) > x) {
+		while (aspect*startx + aspect*BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
 			if (but->pos <= 0) break;
 			but->pos--;
 			origstr[but->pos+but->ofs] = 0;
@@ -1210,7 +1210,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	}
 	
 	if (fstyle->kerning == 1)
-		BLF_disable(BLF_KERNING_DEFAULT);
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
 	MEM_freeN(origstr);
 }

@@ -1702,8 +1702,9 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			/* draw vertical steps */
 			if (dfac > 0.0f) {
 				
-				BLF_default_rotation(90.0f);
-				
+				BLF_rotation_default(90.0f);
+				BLF_enable_default(BLF_ROTATION);
+
 				for (; fac < vert.ymax-10; fac+= dfac, val += grid->dy) {
 					
 					/* make prints look nicer for scrollers */
@@ -1713,7 +1714,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 					scroll_printstr(vs, scene, (float)(vert.xmax)-2.0f, fac, val, grid->powery, vs->yunits, 'v');
 				}
 				
-				BLF_default_rotation(0.0f);
+				BLF_disable_default(BLF_ROTATION);
 			}
 		}	
 	}
@@ -2053,12 +2054,10 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 			yofs= ceil( 0.5f*(v2s->rect.ymax - v2s->rect.ymin - BLF_height_default("28")));
 			if(yofs<1) yofs= 1;
 			
-			BLF_clipping(v2s->rect.xmin-4, v2s->rect.ymin-4, v2s->rect.xmax+4, v2s->rect.ymax+4);
-			BLF_enable(BLF_CLIPPING);
-			
+			BLF_clipping_default(v2s->rect.xmin-4, v2s->rect.ymin-4, v2s->rect.xmax+4, v2s->rect.ymax+4);
+			BLF_enable_default(BLF_CLIPPING);
 			BLF_draw_default(v2s->rect.xmin+xofs, v2s->rect.ymin+yofs, 0.0f, v2s->str);
-
-			BLF_disable(BLF_CLIPPING);
+			BLF_disable_default(BLF_CLIPPING);
 		}
 	}
 	

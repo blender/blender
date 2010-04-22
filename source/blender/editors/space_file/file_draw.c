@@ -46,12 +46,11 @@
 
 #include "BLF_api.h"
 
-
-
 #include "IMB_imbuf_types.h"
  
 #include "MEM_guardedalloc.h"
 
+#include "DNA_userdef_types.h"
 
 #include "RNA_access.h"
 
@@ -329,10 +328,12 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 
 static void file_draw_string(int sx, int sy, const char* string, float width, int height, int flag)
 {
+	uiStyle *style= U.uistyles.first;
 	int soffs;
 	char fname[FILE_MAXFILE];
 	float sw;
 	float x,y;
+
 
 	BLI_strncpy(fname,string, FILE_MAXFILE);
 	sw = shorten_string(fname, width, flag );
@@ -341,8 +342,9 @@ static void file_draw_string(int sx, int sy, const char* string, float width, in
 	x = (float)(sx);
 	y = (float)(sy-height);
 
-	BLF_position(x, y, 0);
-	BLF_draw(fname);
+	uiStyleFontSet(&style->widget);
+	BLF_position(style->widget.uifont_id, x, y, 0);
+	BLF_draw(style->widget.uifont_id, fname);
 }
 
 void file_calc_previews(const bContext *C, ARegion *ar)
