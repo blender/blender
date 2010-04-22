@@ -160,8 +160,8 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
             split = layout.split()
 
             col = split.column(align=True)
-            col.prop(part, "start")
-            col.prop(part, "end")
+            col.prop(part, "frame_start")
+            col.prop(part, "frame_end")
 
             col = split.column(align=True)
             col.prop(part, "lifetime")

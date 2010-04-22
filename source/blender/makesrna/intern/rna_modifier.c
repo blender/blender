@@ -685,7 +685,8 @@ static void rna_def_modifier_build(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "BuildModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_BUILD);
 
-	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_TIME);
+	RNA_def_property_float_sdna(prop, NULL, "start");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start", "Specify the start frame of the effect");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
