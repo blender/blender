@@ -363,9 +363,6 @@ void BLF_blur(int fontid, int size)
 
 void BLF_draw_default(float x, float y, float z, char *str)
 {
-	FontBLF *font;
-	int old_font=0, old_point=0, old_dpi=0;
-
 	if (!str)
 		return;
 
@@ -460,9 +457,7 @@ float BLF_fixed_width(int fontid)
 
 float BLF_width_default(char *str)
 {
-	FontBLF *font;
 	float width;
-	int old_font=0, old_point=0, old_dpi=0;
 
 	if (global_font_default == -1)
 		global_font_default= blf_search("default");
@@ -474,7 +469,6 @@ float BLF_width_default(char *str)
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 	width= BLF_width(global_font_default, str);
-
 	return(width);
 }
 
@@ -490,9 +484,7 @@ float BLF_height(int fontid, char *str)
 
 float BLF_height_default(char *str)
 {
-	FontBLF *font;
 	float height;
-	int old_font=0, old_point=0, old_dpi=0;
 
 	if (global_font_default == -1)
 		global_font_default= blf_search("default");
@@ -504,7 +496,6 @@ float BLF_height_default(char *str)
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 	height= BLF_height(global_font_default, str);
-
 	return(height);
 }
 
