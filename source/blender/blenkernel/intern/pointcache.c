@@ -2397,8 +2397,13 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		/* cache/bake a single object */
 		cache = pid->cache;
 		if((cache->flag & PTCACHE_BAKED)==0) {
-			if(pid->type==PTCACHE_TYPE_PARTICLES)
-				psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
+			if(pid->type==PTCACHE_TYPE_PARTICLES) {
+				ParticleSystem *psys= pid->calldata;
+
+				/* a bit confusing, could make this work better in the UI */
+				if(psys->part->type == PART_EMITTER)
+					psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
+			}
 			else if(pid->type == PTCACHE_TYPE_SMOKE_HIGHRES) {
 				/* get all pids from the object and search for smoke low res */
 				ListBase pidlist2;
