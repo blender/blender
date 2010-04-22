@@ -879,9 +879,15 @@ Tex *give_current_material_texture(Material *ma)
 		}
 		else {
 			node= nodeGetActiveID(ma->nodetree, ID_MA);
-			if(node)
+			if(node) {
 				ma= (Material*)node->id;
+				if(ma) {
+					mtex= ma->mtex[(int)(ma->texact)];
+					if(mtex) tex= mtex->tex;
+				}
+			}
 		}
+		return tex;
 	}
 
 	if(ma) {

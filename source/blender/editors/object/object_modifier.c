@@ -573,7 +573,7 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
-/************************ poll function for operators using mod names and data context *********************/
+/************************ generic functions for operators using mod names and data context *********************/
 
 static int edit_modifier_poll_generic(bContext *C, StructRNA *rna_type)
 {
@@ -593,7 +593,7 @@ static int edit_modifier_poll(bContext *C)
 
 static void edit_modifier_properties(wmOperatorType *ot)
 {
-	RNA_def_string(ot->srna, "modifier", "", 32, "Modifier", "Name of the modifier to apply");
+	RNA_def_string(ot->srna, "modifier", "", 32, "Modifier", "Name of the modifier to edit");
 }
 
 static int edit_modifier_invoke_properties(bContext *C, wmOperator *op)

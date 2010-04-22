@@ -70,8 +70,9 @@ class TextureButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         tex = context.texture
+        if not tex or tex == None: return False
         engine = context.scene.render.engine
-        return (tex and (tex.type != 'NONE' or tex.use_nodes) and (engine in self.COMPAT_ENGINES))
+        return (tex.type != 'NONE' or tex.use_nodes) and (engine in self.COMPAT_ENGINES)
 
 
 class TEXTURE_PT_preview(TextureButtonsPanel):
@@ -82,8 +83,10 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
         layout = self.layout
 
         tex = context.texture
-        slot = context.texture_slot
-
+        try:
+            slot = context.texture_slot
+        except:
+            slot = None
         idblock = context_tex_datablock(context)
 
         if idblock:
@@ -99,7 +102,10 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 
     def poll(self, context):
         engine = context.scene.render.engine
-        return ((context.material or context.world or context.lamp or context.brush or context.texture) and (engine in self.COMPAT_ENGINES))
+        try: getattr(context, "texture_slot")
+        except: return False
+        return ((context.material or context.world or context.lamp or context.brush or context.texture) 
+            and (engine in self.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -206,9 +212,11 @@ class TextureSlotPanel(TextureButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
+        try: getattr(context, "texture_slot")
+        except: return False
+        
         engine = context.scene.render.engine
-        return (context.texture_slot and
-                TextureButtonsPanel.poll(self, context) and (engine in self.COMPAT_ENGINES))
+        return TextureButtonsPanel.poll(self, context) and (engine in self.COMPAT_ENGINES)
 
 
 class TEXTURE_PT_mapping(TextureSlotPanel):
@@ -219,6 +227,9 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
         idblock = context_tex_datablock(context)
         if type(idblock) == bpy.types.Brush and not context.sculpt_object:
             return False
+        try: getattr(context, "texture_slot")
+        except: return False
+        
         engine = context.scene.render.engine
         return context.texture_slot and (engine in self.COMPAT_ENGINES)
 
@@ -313,6 +324,8 @@ class TEXTURE_PT_influence(TextureSlotPanel):
         idblock = context_tex_datablock(context)
         if type(idblock) == bpy.types.Brush:
             return False
+        try: getattr(context, "texture_slot")
+        except: return False
 
         engine = context.scene.render.engine
         return context.texture_slot and (engine in self.COMPAT_ENGINES)

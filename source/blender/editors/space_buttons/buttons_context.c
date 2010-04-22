@@ -699,11 +699,20 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			Material *ma= ptr->data;
 
 			/* if we have a node material, get slot from material in material node */
-			if(ma && ma->use_nodes && ma->nodetree)
+			if(ma && ma->use_nodes && ma->nodetree) {
+				/* if there's an active texture node in the node tree,
+				 * then that texture is in context directly, without a texture slot */
+				if (give_current_material_texture_node(ma))
+					return 0;
+				
 				ma= give_node_material(ma);
-
-			if(ma)
+				if (ma)
+					CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);
+				else
+					return 0;
+			} else if(ma) {
 				CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);
+			}
 		}
 		else if((ptr=get_pointer_type(path, &RNA_Lamp))) {
 			Lamp *la= ptr->data;
