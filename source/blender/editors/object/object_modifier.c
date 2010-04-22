@@ -493,14 +493,6 @@ int ED_object_modifier_copy(ReportList *reports, Object *ob, ModifierData *md)
 	return 1;
 }
 
-/***************************** OPERATORS ****************************/
-
-static int modifier_poll(bContext *C)
-{
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
-	return (ptr.data != NULL && !((ID*)ptr.id.data)->lib);
-}
-
 /************************ add modifier operator *********************/
 
 static int modifier_add_exec(bContext *C, wmOperator *op)
