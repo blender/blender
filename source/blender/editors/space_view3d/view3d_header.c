@@ -523,9 +523,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		
 		/* Layers */
 		if (v3d->scenelock)
-			uiTemplateLayers(layout, &sceneptr, "visible_layers", &v3dptr, "used_layers", ob_lay);
+			uiTemplateLayers(layout, &sceneptr, "layers", &v3dptr, "used_layers", ob_lay);
 		else
-			uiTemplateLayers(layout, &v3dptr, "visible_layers", &v3dptr, "used_layers", ob_lay);
+			uiTemplateLayers(layout, &v3dptr, "layers", &v3dptr, "used_layers", ob_lay);
 
 		/* Scene lock */
 		uiItemR(layout, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY, "", 0);

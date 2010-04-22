@@ -2897,11 +2897,11 @@ void RNA_def_scene(BlenderRNA *brna)
 	rna_def_scene_objects(brna, prop);
 
 	/* Layers */
-	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
-	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene");
+	RNA_def_property_ui_text(prop, "Layers", "Layers visible when rendering the scene");
 	RNA_def_property_update(prop, NC_SCENE|ND_LAYER, "rna_Scene_view3d_update");
 	
 	/* Frame Range Stuff */

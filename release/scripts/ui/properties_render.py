@@ -96,7 +96,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.prop(scene, "visible_layers", text="Scene")
+        col.prop(scene, "layers", text="Scene")
         if wide_ui:
             col = split.column()
         col.prop(rl, "visible_layers", text="Layer")
