@@ -1312,7 +1312,7 @@ void BLI_where_am_i(char *fullname, const char *name)
 	/* linux uses binreloc since argv[0] is not relyable, call br_init( NULL ) first */
 	path = br_find_exe( NULL );
 	if (path) {
-		BLI_strncpy(fullname, path, sizeof(fullname));
+		BLI_strncpy(fullname, path, FILE_MAXDIR+FILE_MAXFILE);
 		free(path);
 		return;
 	}
