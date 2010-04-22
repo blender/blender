@@ -815,6 +815,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 				}
 			}
 			else {
+				uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
 				uiItemEnumO(row, "OBJECT_OT_modifier_apply", "Apply", 0, "apply_as", MODIFIER_APPLY_DATA);
 				
 				if (modifier_sameTopology(md))

@@ -176,6 +176,17 @@ ModifierData *modifiers_findByType(Object *ob, ModifierType type)
 	return md;
 }
 
+ModifierData *modifiers_findByName(Object *ob, const char *name)
+{
+	ModifierData *md = ob->modifiers.first;
+	
+	for (; md; md=md->next)
+		if (strcmp(md->name, name)==0)
+			break;
+	
+	return md;
+}
+
 void modifiers_clearErrors(Object *ob)
 {
 	ModifierData *md = ob->modifiers.first;
