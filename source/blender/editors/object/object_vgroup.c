@@ -93,7 +93,7 @@ bDeformGroup *ED_vgroup_add_name(Object *ob, char *name)
 	
 	defgroup = MEM_callocN(sizeof(bDeformGroup), "add deformGroup");
 
-	BLI_strncpy(defgroup->name, name, 32);
+	BLI_strncpy(defgroup->name, name, sizeof(defgroup->name));
 
 	BLI_addtail(&ob->defbase, defgroup);
 	defgroup_unique_name(defgroup, ob);
