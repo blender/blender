@@ -235,6 +235,11 @@ void	BKE_screen_area_free(struct ScrArea *sa);
 
 struct ARegion *BKE_area_find_region_type(struct ScrArea *sa, int type);
 
+void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene);
+void BKE_screen_view3d_scene_sync(struct bScreen *sc);
+void BKE_screen_view3d_main_sync(ListBase *screen_lb, struct Scene *scene);
+
+
 /* screen */
 void free_screen(struct bScreen *sc); 
 unsigned int BKE_screen_visible_layers(struct bScreen *screen, struct Scene *scene);

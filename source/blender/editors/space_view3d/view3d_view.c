@@ -1385,60 +1385,6 @@ static unsigned int free_localbit(void)
 	return 0;
 }
 
-static void copy_view3d_lock_space(View3D *v3d, Scene *scene)
-{
-	int bit;
-	
-	if(v3d->scenelock && v3d->localvd==NULL) {
-		v3d->lay= scene->lay;
-		v3d->camera= scene->camera;
-		
-		if(v3d->camera==NULL) {
-			ARegion *ar;
-			
-			for(ar=v3d->regionbase.first; ar; ar= ar->next) {
-				if(ar->regiontype == RGN_TYPE_WINDOW) {
-					RegionView3D *rv3d= ar->regiondata;
-					if(rv3d->persp==RV3D_CAMOB)
-						rv3d->persp= RV3D_PERSP;
-				}
-			}
-		}
-		
-		if((v3d->lay & v3d->layact) == 0) {
-			for(bit= 0; bit<32; bit++) {
-				if(v3d->lay & (1<<bit)) {
-					v3d->layact= 1<<bit;
-					break;
-				}
-			}
-		}
-	}
-}
-
-void ED_view3d_scene_layers_copy(struct View3D *v3d, struct Scene *scene)
-{
-	copy_view3d_lock_space(v3d, scene);
-}
-
-void ED_view3d_scene_layers_update(Main *bmain, Scene *scene)
-{
-	bScreen *sc;
-	ScrArea *sa;
-	SpaceLink *sl;
-	
-	/* from scene copy to the other views */
-	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
-		if(sc->scene!=scene)
-			continue;
-		
-		for(sa=sc->areabase.first; sa; sa=sa->next)
-			for(sl=sa->spacedata.first; sl; sl=sl->next)
-				if(sl->spacetype==SPACE_VIEW3D)
-					copy_view3d_lock_space((View3D*)sl, scene);
-	}
-}
-
 int ED_view3d_scene_layer_set(int lay, const int *values)
 {
 	int i, tot= 0;

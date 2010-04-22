@@ -141,7 +141,7 @@ static void handle_view3d_lock(bContext *C)
 
 			/* not through notifiery, listener don't have context
 			   and non-open screens or spaces need to be updated too */
-			ED_view3d_scene_layers_update(bmain, scene);
+			BKE_screen_view3d_main_sync(&bmain->screen, scene);
 			
 			/* notifiers for scene update */
 			WM_event_add_notifier(C, NC_SCENE|ND_LAYER, scene);
