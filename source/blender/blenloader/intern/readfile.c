@@ -12096,7 +12096,10 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(scene) {
-		if(idcode==ID_GR) {
+		if(idcode==ID_SCE) {
+			/* dont instance anything when linking in scenes, assume the scene its self instances the data */
+		}
+		else if(idcode==ID_GR) {
 			if (flag & FILE_LINK) {
 				give_base_to_objects(mainvar, scene, NULL, 0);
 			} else {
