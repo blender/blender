@@ -178,6 +178,12 @@ void ED_space_image_size(SpaceImage *sima, int *width, int *height)
 		/* not very important, just nice */
 		*width= (scene->r.xsch*scene->r.size)/100;
 		*height= (scene->r.ysch*scene->r.size)/100;
+
+		if((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
+			*width *= (scene->r.border.xmax - scene->r.border.xmin);
+			*height *= (scene->r.border.ymax - scene->r.border.ymin);
+		}
+
 	}
 	/* I know a bit weak... but preview uses not actual image size */
 	// XXX else if(image_preview_active(sima, width, height));

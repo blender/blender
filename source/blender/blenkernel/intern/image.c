@@ -1928,9 +1928,6 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		}
 	}
 
-	if(!(rectf || rect))
-		return NULL;
-
 	ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
 
 	/* make ibuf if needed, and initialize it */
@@ -1948,11 +1945,17 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	if(rect)
 		ibuf->rect= rect;
 	
-	ibuf->rect_float= rectf;
-	ibuf->flags |= IB_rectfloat;
-	ibuf->channels= channels;
-	ibuf->zbuf_float= rectz;
-	ibuf->flags |= IB_zbuffloat;
+	if(rectf) {
+		ibuf->rect_float= rectf;
+		ibuf->flags |= IB_rectfloat;
+		ibuf->channels= channels;
+	}
+
+	if(rectz) {
+		ibuf->zbuf_float= rectz;
+		ibuf->flags |= IB_zbuffloat;
+	}
+
 	ibuf->dither= dither;
 
 	ima->ok= IMA_OK_LOADED;
