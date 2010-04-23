@@ -2944,6 +2944,8 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 		if (color_profile)
 			hsv[2] = srgb_to_linearrgb(hsv[2]);
 		
+		if (hsv[2] > but->softmax)
+			hsv[2] = but->softmax;
 	}
 
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
