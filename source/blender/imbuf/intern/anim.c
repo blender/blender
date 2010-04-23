@@ -225,7 +225,13 @@ static void free_anim_movie(struct anim * anim) { ; }
 
 #endif
 
-static int an_stringdec(char *string, char* kop, char *staart,unsigned short *numlen) {
+#if defined(_WIN32)
+# define PATHSEPERATOR '\\'
+#else
+# define PATHSEPERATOR '/'
+#endif
+
+static int an_stringdec(const char *string, char* head, char *tail, unsigned short *numlen) {
 	unsigned short len,nume,nums=0;
 	short i,found=FALSE;
 
@@ -233,7 +239,7 @@ static int an_stringdec(char *string, char* kop, char *staart,unsigned short *nu
 	nume = len;
 
 	for(i=len-1;i>=0;i--){
-		if (string[i]=='/') break;
+		if (string[i]==PATHSEPERATOR) break;
 		if (isdigit(string[i])) {
 			if (found){
 				nums=i;
@@ -247,21 +253,21 @@ static int an_stringdec(char *string, char* kop, char *staart,unsigned short *nu
 		}
 	}
 	if (found){
-		strcpy(staart,&string[nume+1]);
-		strcpy(kop,string);
-		kop[nums]=0;
+		strcpy(tail ,&string[nume+1]);
+		strcpy(head, string);
+		head[nums]= '\0';
 		*numlen=nume-nums+1;
 		return ((int)atoi(&(string[nums])));
 	}
-	staart[0]=0;
-	strcpy(kop,string);
+	tail[0]= '\0';
+	strcpy(head, string);
 	*numlen=0;
-	return (1);
+	return TRUE;
 }
 
 
-static void an_stringenc(char *string, char *head, char *start, unsigned short numlen, int pic) {
-	BLI_stringenc(string, head, start, numlen, pic);
+static void an_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic) {
+	BLI_stringenc(string, head, tail, numlen, pic);
 }
 
 static void free_anim_avi (struct anim *anim) {
