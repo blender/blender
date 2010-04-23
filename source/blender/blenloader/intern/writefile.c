@@ -2108,7 +2108,15 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceLogic", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_CONSOLE) {
+					SpaceConsole *con = (SpaceConsole*)sl;
+					ConsoleLine *cl;
+
+					for (cl=con->history.first; cl; cl=cl->next) {
+						writestruct(wd, DATA, "ConsoleLine", 1, cl);
+						writedata(wd, DATA, cl->len+1, cl->line);
+					}
 					writestruct(wd, DATA, "SpaceConsole", 1, sl);
+
 				}
 				else if(sl->spacetype==SPACE_USERPREF) {
 					writestruct(wd, DATA, "SpaceUserPref", 1, sl);
