@@ -62,7 +62,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
-        split.operator_context = 'EXEC_DEFAULT'
 
         if md:
             # remove modifier + settings
@@ -77,8 +76,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             split.operator("object.modifier_add", text="Add").type = 'CLOTH'
             if wide_ui:
                 split.column()
-
-        split.operator_context = 'INVOKE_DEFAULT'
 
         if md:
             cloth = md.settings
