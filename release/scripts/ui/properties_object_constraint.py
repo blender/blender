@@ -37,7 +37,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
             # match enum type to our functions, avoids a lookup table.
             getattr(self, con.type)(context, box, con, wide_ui)
 
-            if con.type not in ('RIGID_BODY_JOINT', 'SPLINE_IK', 'NULL'):
+            if con.type not in ('RIGID_BODY_JOINT', 'NULL'):
                 box.prop(con, "influence")
 
     def space_template(self, layout, con, wide_ui, target=True, owner=True):

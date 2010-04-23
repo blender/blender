@@ -2006,6 +2006,11 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		rangle= dot_v3v3(rmat[1], splineVec);
 		rangle= acos( MAX2(-1.0f, MIN2(1.0f, rangle)) );
 		
+		/* multiply the magnitude of the angle by the influence of the constraint to 
+		 * control the influence of the SplineIK effect 
+		 */
+		rangle *= tree->con->enforce;
+		
 		/* construct rotation matrix from the axis-angle rotation found above 
 		 *	- this call takes care to make sure that the axis provided is a unit vector first
 		 */
@@ -2073,12 +2078,25 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		}
 	}
 	
-	/* step 5: set the location of the bone in the matrix 
-	 *	- when the 'no-root' option is affected, the chain can retain
-	 *	  the shape but be moved elsewhere
-	 */
+	/* step 5: set the location of the bone in the matrix */
 	if (ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) {
+		/* when the 'no-root' option is affected, the chain can retain
+		 * the shape but be moved elsewhere
+		 */
 		VECCOPY(poseHead, pchan->pose_head);
+	}
+	else if (tree->con->enforce < 1.0f) {
+		/* when the influence is too low
+		 *	- blend the positions for the 'root' bone
+		 *	- stick to the parent for any other
+		 */
+		if (pchan->parent) {
+			VECCOPY(poseHead, pchan->pose_head);
+		}
+		else {
+			// FIXME: this introduces popping artifacts when we reach 0.0
+			interp_v3_v3v3(poseHead, pchan->pose_head, poseHead, tree->con->enforce);
+		}
 	}
 	VECCOPY(poseMat[3], poseHead);
 	
