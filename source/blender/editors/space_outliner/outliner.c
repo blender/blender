@@ -50,6 +50,13 @@
 
 #include "BLI_blenlib.h"
 
+#if defined WIN32 && !defined _LIBC
+# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
+#else
+# define _GNU_SOURCE
+# include <fnmatch.h>
+#endif
+
 #include "IMB_imbuf_types.h"
 
 #include "BKE_animsys.h"
@@ -1237,6 +1244,7 @@ void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
 
 static int outliner_filter_has_name(TreeElement *te, char *name, int flags)
 {
+#if 0
 	int found= 0;
 	
 	/* determine if match */
@@ -1252,8 +1260,24 @@ static int outliner_filter_has_name(TreeElement *te, char *name, int flags)
 		else
 			found= BLI_strcasestr(te->name, name) != NULL;
 	}
+#else
 	
+	int fn_flag= 0;
+	int found= 0;
+	
+	if(flags & SO_FIND_CASE_SENSITIVE)
+		fn_flag |= FNM_CASEFOLD;
+
+	if(flags & SO_FIND_COMPLETE) {
+		found= fnmatch(name, te->name, fn_flag)==0;
+	}
+	else {
+		char fn_name[sizeof(((struct SpaceOops *)NULL)->search_string) + 2];
+		sprintf(fn_name, "*%s*", name);
+		found= fnmatch(fn_name, te->name, fn_flag)==0;
+	}
 	return found;
+#endif
 }
 
 static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)

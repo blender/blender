@@ -104,6 +104,7 @@ void BLF_disable_default(int option);
  */
 void BLF_rotation(int fontid, float angle);
 void BLF_clipping(int fontid, float xmin, float ymin, float xmax, float ymax);
+void BLF_clipping_default(float xmin, float ymin, float xmax, float ymax);
 void BLF_blur(int fontid, int size);
 
 void BLF_enable(int fontid, int option);
