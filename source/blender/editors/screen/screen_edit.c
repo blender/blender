@@ -1724,16 +1724,12 @@ void ED_update_for_newframe(const bContext *C, int mute)
 #ifdef DURIAN_CAMERA_SWITCH
 	void *camera= scene_camera_switch_find(scene);
 	if(camera && scene->camera != camera) {
-
-		if(camera && scene->camera && (camera != scene->camera)) {
-			bScreen *sc;
-			/* are there cameras in the views that are not in the scene? */
-			for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
-				BKE_screen_view3d_scene_sync(sc);
-			}
-		}
-
+		bScreen *sc;
 		scene->camera= camera;
+		/* are there cameras in the views that are not in the scene? */
+		for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
+			BKE_screen_view3d_scene_sync(sc);
+		}
 	}
 #endif
 
