@@ -4272,7 +4272,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			case TSE_R_LAYER_BASE:
 				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
 			case TSE_R_LAYER:
-				UI_icon_draw(x, y, ICON_RENDER_RESULT); break;
+				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
 			case TSE_LINKED_LAMP:
 				UI_icon_draw(x, y, ICON_LAMP_DATA); break;
 			case TSE_LINKED_MAT:

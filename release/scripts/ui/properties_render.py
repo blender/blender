@@ -97,12 +97,16 @@ class RENDER_PT_layers(RenderButtonsPanel):
 
         col = split.column()
         col.prop(scene, "layers", text="Scene")
+        col.label(text="")
+        col.prop(rl, "light_override", text="Light")
+        col.prop(rl, "material_override", text="Material")
         if wide_ui:
             col = split.column()
         col.prop(rl, "visible_layers", text="Layer")
+        col.label(text="Mask Layers:")
+        col.prop(rl, "zmask_layers", text="")
 
-        layout.prop(rl, "light_override", text="Light")
-        layout.prop(rl, "material_override", text="Material")
+        
 
         layout.separator()
         layout.label(text="Include:")
@@ -126,11 +130,6 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.prop(rl, "edge")
         col.prop(rl, "strand")
 
-        if rl.zmask:
-            split = layout.split()
-            split.label(text="Zmask Layers:")
-            split.column().prop(rl, "zmask_layers", text="")
-
         layout.separator()
 
         split = layout.split()
@@ -152,28 +151,28 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.prop(rl, "pass_diffuse")
         row = col.row()
         row.prop(rl, "pass_specular")
-        row.prop(rl, "pass_specular_exclude", text="", icon='X')
+        row.prop(rl, "pass_specular_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_shadow")
-        row.prop(rl, "pass_shadow_exclude", text="", icon='X')
+        row.prop(rl, "pass_shadow_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_emit")
-        row.prop(rl, "pass_emit_exclude", text="", icon='X')
+        row.prop(rl, "pass_emit_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_ao")
-        row.prop(rl, "pass_ao_exclude", text="", icon='X')
+        row.prop(rl, "pass_ao_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_environment")
-        row.prop(rl, "pass_environment_exclude", text="", icon='X')
+        row.prop(rl, "pass_environment_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_indirect")
-        row.prop(rl, "pass_indirect_exclude", text="", icon='X')
+        row.prop(rl, "pass_indirect_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_reflection")
-        row.prop(rl, "pass_reflection_exclude", text="", icon='X')
+        row.prop(rl, "pass_reflection_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_refraction")
-        row.prop(rl, "pass_refraction_exclude", text="", icon='X')
+        row.prop(rl, "pass_refraction_exclude", text="")
 
 
 class RENDER_PT_shading(RenderButtonsPanel):
