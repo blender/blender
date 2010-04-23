@@ -44,6 +44,7 @@
 #include "BLI_memarena.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_modifier.h"
 #include "BKE_utildefines.h"
 
 #ifdef RIGID_DEFORM
@@ -1991,18 +1992,21 @@ void mesh_deform_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifierData *mmd
 #endif
 
 	/* assign bind variables */
-	mmd->bindcos= (float*)mdb.cagecos;
+	mmd->bindcagecos= (float*)mdb.cagecos;
 	mmd->totvert= mdb.totvert;
 	mmd->totcagevert= mdb.totcagevert;
 	copy_m4_m4(mmd->bindmat, mmd->object->obmat);
 
-	/* transform bindcos to world space */
+	/* transform bindcagecos to world space */
 	for(a=0; a<mdb.totcagevert; a++)
-		mul_m4_v3(mmd->object->obmat, mmd->bindcos+a*3);
+		mul_m4_v3(mmd->object->obmat, mmd->bindcagecos+a*3);
 
 	/* free */
 	mdb.cagedm->release(mdb.cagedm);
 	MEM_freeN(mdb.vertexcos);
+
+	/* compact weights */
+	modifier_mdef_compact_influences((ModifierData*)mmd);
 
 	end_progress_bar();
 	waitcursor(0);

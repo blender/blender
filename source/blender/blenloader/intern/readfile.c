@@ -3852,14 +3852,28 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type==eModifierType_MeshDeform) {
 			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 
-			mmd->bindweights= newdataadr(fd, mmd->bindweights);
-			mmd->bindcos= newdataadr(fd, mmd->bindcos);
+			mmd->bindinfluences= newdataadr(fd, mmd->bindinfluences);
+			mmd->bindoffsets= newdataadr(fd, mmd->bindoffsets);
+			mmd->bindcagecos= newdataadr(fd, mmd->bindcagecos);
 			mmd->dyngrid= newdataadr(fd, mmd->dyngrid);
 			mmd->dyninfluences= newdataadr(fd, mmd->dyninfluences);
 			mmd->dynverts= newdataadr(fd, mmd->dynverts);
 
+			mmd->bindweights= newdataadr(fd, mmd->bindweights);
+			mmd->bindcos= newdataadr(fd, mmd->bindcos);
+
 			if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 				int a;
+
+				if(mmd->bindoffsets)
+					for(a=0; a<mmd->totvert+1; a++)
+						SWITCH_INT(mmd->bindoffsets[a])
+				if(mmd->bindcagecos)
+					for(a=0; a<mmd->totcagevert*3; a++)
+						SWITCH_INT(mmd->bindcagecos[a])
+				if(mmd->dynverts)
+					for(a=0; a<mmd->totvert; a++)
+						SWITCH_INT(mmd->dynverts[a])
 
 				if(mmd->bindweights)
 					for(a=0; a<mmd->totcagevert*mmd->totvert; a++)
@@ -3867,9 +3881,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				if(mmd->bindcos)
 					for(a=0; a<mmd->totcagevert*3; a++)
 						SWITCH_INT(mmd->bindcos[a])
-				if(mmd->dynverts)
-					for(a=0; a<mmd->totvert; a++)
-						SWITCH_INT(mmd->dynverts[a])
 			}
 		}
 	}
@@ -5169,7 +5180,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				/*comma expressions, (e.g. expr1, expr2, expr3) evalutate each expression,
 				  from left to right.  the right-most expression sets the result of the comma
 				  expression as a whole*/
-				for(cl= sconsole->history.first; cl && (clnext=cl->next), cl; cl= clnext) {
+				for(cl= sconsole->history.first; cl && (clnext=cl->next); cl= clnext) {
 					cl->line= newdataadr(fd, cl->line);
 					if (!cl->line) {
 						BLI_remlink(&sconsole->history, cl);
@@ -6447,6 +6458,30 @@ static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
 				mtex->colfac= (neg & LAMAP_COL)? -colfac: colfac;
 			else if(idtype == ID_WO)
 				mtex->colfac= (neg & WOMAP_HORIZ)? -colfac: colfac;
+		}
+	}
+}
+
+static void do_version_mdef_250(FileData *fd, Library *lib, Main *main)
+{
+	Object *ob;
+	ModifierData *md;
+	MeshDeformModifierData *mmd;
+
+	for(ob= main->object.first; ob; ob=ob->id.next) {
+		for(md=ob->modifiers.first; md; md=md->next) {
+			if(md->type == eModifierType_MeshDeform) {
+				mmd= (MeshDeformModifierData*)md;
+
+				if(mmd->bindcos) {
+					/* make bindcos NULL in order to trick older versions
+					   into thinking that the mesh was not bound yet */
+					mmd->bindcagecos= mmd->bindcos;
+					mmd->bindcos= NULL;
+
+					modifier_mdef_compact_influences(md);
+				}
+			}
 		}
 	}
 }
@@ -10780,7 +10815,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
-		
+		do_version_mdef_250(fd, lib, main);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -12219,16 +12254,17 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 							printf("	absolute lib: %s\n", mainptr->curlib->filename);
 							printf("	relative lib: %s\n", mainptr->curlib->name);
 							printf("  enter a new path:\n");
-							scanf("%s", newlib_path);
 
-							strcpy(mainptr->curlib->name, newlib_path);
-							strcpy(mainptr->curlib->filename, newlib_path);
-							cleanup_path(G.sce, mainptr->curlib->filename);
-							
-							fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
+							if(scanf("%s", newlib_path) > 0) {
+								strcpy(mainptr->curlib->name, newlib_path);
+								strcpy(mainptr->curlib->filename, newlib_path);
+								cleanup_path(G.sce, mainptr->curlib->filename);
+								
+								fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
 
-							if(fd) {
-								printf("found: '%s', party on macuno!\n", mainptr->curlib->filename);
+								if(fd) {
+									printf("found: '%s', party on macuno!\n", mainptr->curlib->filename);
+								}
 							}
 						}
 					}

@@ -516,9 +516,13 @@ typedef struct MeshDeformModifierData {
 
 	short gridsize, flag, mode, pad;
 
-	/* variables filled in when bound */
-	float *bindweights, *bindcos;	/* computed binding weights */
+	/* result of static binding */
+	MDefInfluence *bindinfluences;	/* influences */
+	int *bindoffsets;				/* offsets into influences array */
+	float *bindcagecos;				/* coordinates that cage was bound with */
 	int totvert, totcagevert;		/* total vertices in mesh and cage */
+
+	/* result of dynamic binding */
 	MDefCell *dyngrid;				/* grid with dynamic binding cell points */
 	MDefInfluence *dyninfluences;	/* dynamic binding vertex influences */
 	int *dynverts, *pad2;			/* is this vertex bound or not? */
@@ -527,6 +531,10 @@ typedef struct MeshDeformModifierData {
 	float dyncellmin[3];			/* offset of the dynamic bind grid */
 	float dyncellwidth;				/* width of dynamic bind cell */
 	float bindmat[4][4];			/* matrix of cage at binding time */
+
+	/* deprecated storage */
+	float *bindweights;				/* deprecated inefficient storage */
+	float *bindcos;					/* deprecated storage of cage coords */
 
 	/* runtime */
 	void (*bindfunc)(struct Scene *scene, struct DerivedMesh *dm,
