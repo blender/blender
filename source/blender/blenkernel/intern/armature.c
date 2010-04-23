@@ -958,23 +958,26 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 
 	/* get the def_nr for the overall armature vertex group if present */
 	armature_def_nr= defgroup_name_index(target, defgrp_name);
-
+	
+	if(ELEM(target->type, OB_MESH, OB_LATTICE)) {
+		numGroups = BLI_countlist(&target->defbase);
+		
+		if(target->type==OB_MESH) {
+			Mesh *me= target->data;
+			dverts = me->dvert;
+			target_totvert = me->totvert;
+		}
+		else {
+			Lattice *lt= target->data;
+			dverts = lt->dvert;
+			if(dverts)
+				target_totvert = lt->pntsu*lt->pntsv*lt->pntsw;
+		}
+	}
+	
 	/* get a vertex-deform-index to posechannel array */
 	if(deformflag & ARM_DEF_VGROUP) {
 		if(ELEM(target->type, OB_MESH, OB_LATTICE)) {
-			numGroups = BLI_countlist(&target->defbase);
-			
-			if(target->type==OB_MESH) {
-				Mesh *me= target->data;
-				dverts = me->dvert;
-				target_totvert = me->totvert;
-			}
-			else {
-				Lattice *lt= target->data;
-				dverts = lt->dvert;
-				if(dverts)
-					target_totvert = lt->pntsu*lt->pntsv*lt->pntsw;
-			}
 			/* if we have a DerivedMesh, only use dverts if it has them */
 			if(dm)
 				if(dm->getVertData(dm, 0, CD_MDEFORMVERT))
