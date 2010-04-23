@@ -99,12 +99,6 @@ typedef struct TreeElement {
 #define TSE_KEYMAP			34
 #define TSE_KEYMAP_ITEM		35
 
-/* outliner search flags */
-#define OL_FIND					0
-#define OL_FIND_CASE			1
-#define OL_FIND_COMPLETE		2
-#define OL_FIND_COMPLETE_CASE	3
-
 /* button events */
 #define OL_NAMEBUTTON		1
 

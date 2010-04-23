@@ -36,12 +36,13 @@ class OUTLINER_HT_header(bpy.types.Header):
         if context.area.show_menus:
             sub = row.row(align=True)
             sub.menu("OUTLINER_MT_view")
+            sub.menu("OUTLINER_MT_search")
             if space.display_mode == 'DATABLOCKS':
                 sub.menu("OUTLINER_MT_edit_datablocks")
 
         layout.prop(space, "display_mode", text="")
 
-        layout.prop(space, "display_filter", text="")
+        layout.prop(space, "display_filter", icon='VIEWZOOM', text="")
 
         layout.separator()
 
@@ -84,6 +85,18 @@ class OUTLINER_MT_view(bpy.types.Menu):
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 
+class OUTLINER_MT_search(bpy.types.Menu):
+    bl_label = "Search"
+
+    def draw(self, context):
+        layout = self.layout
+
+        space = context.space_data
+
+        col = layout.column()
+
+        col.prop(space, "match_case_sensitive")
+        col.prop(space, "match_complete")
 
 class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
     bl_label = "Edit"
@@ -105,6 +118,7 @@ class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
 classes = [
     OUTLINER_HT_header,
     OUTLINER_MT_view,
+	OUTLINER_MT_search,
     OUTLINER_MT_edit_datablocks]
 
 

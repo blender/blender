@@ -1240,14 +1240,18 @@ static int outliner_filter_has_name(TreeElement *te, char *name, int flags)
 	int found= 0;
 	
 	/* determine if match */
-	if(flags==OL_FIND)
-		found= BLI_strcasestr(te->name, name)!=NULL;
-	else if(flags==OL_FIND_CASE)
-		found= strstr(te->name, name)!=NULL;
-	else if(flags==OL_FIND_COMPLETE)
-		found= BLI_strcasecmp(te->name, name)==0;
-	else
-		found= strcmp(te->name, name)==0;
+	if (flags & SO_FIND_CASE_SENSITIVE) {
+		if (flags & SO_FIND_COMPLETE)
+			found= strcmp(te->name, name) == 0;
+		else
+			found= strstr(te->name, name) != NULL;
+	}
+	else {
+		if (flags & SO_FIND_COMPLETE)
+			found= BLI_strcasecmp(te->name, name) == 0;
+		else
+			found= BLI_strcasestr(te->name, name) != NULL;
+	}
 	
 	return found;
 }
@@ -1261,8 +1265,10 @@ static void outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 	for (te= lb->first; te; te= ten) {
 		ten= te->next;
 		
-		if(0==outliner_filter_has_name(te, soops->search_string, OL_FIND)) {
-			
+		if(0==outliner_filter_has_name(te, soops->search_string, soops->search_flags)) {
+			/* FIXME: users probably expect to be able to matches nested inside these non-matches... 
+			 *	i.e. searching for "Cu" under the default scene, users want the Cube, but scene fails so nothing appears
+			 */
 			outliner_free_tree(&te->subtree);
 			BLI_remlink(lb, te);
 			
@@ -2686,17 +2692,7 @@ static TreeElement *outliner_find_named(SpaceOops *soops, ListBase *lb, char *na
 	TreeElement *te, *tes;
 	
 	for (te= lb->first; te; te= te->next) {
-		int found;
-		
-		/* determine if match */
-		if(flags==OL_FIND)
-			found= BLI_strcasestr(te->name, name)!=NULL;
-		else if(flags==OL_FIND_CASE)
-			found= strstr(te->name, name)!=NULL;
-		else if(flags==OL_FIND_COMPLETE)
-			found= BLI_strcasecmp(te->name, name)==0;
-		else
-			found= strcmp(te->name, name)==0;
+		int found = outliner_filter_has_name(te, name, flags);
 		
 		if(found) {
 			/* name is right, but is element the previous one? */
@@ -2752,7 +2748,7 @@ void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again,
 	TreeElement *last_find;
 	TreeStoreElem *tselem;
 	int ytop, xdelta, prevFound=0;
-	char name[33];
+	char name[32];
 	
 	/* get last found tree-element based on stored search_tse */
 	last_find= outliner_find_tse(soops, &soops->search_tse);
@@ -2760,7 +2756,7 @@ void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again,
 	/* determine which type of search to do */
 	if (again && last_find) {
 		/* no popup panel - previous + user wanted to search for next after previous */		
-		BLI_strncpy(name, soops->search_string, 33);
+		BLI_strncpy(name, soops->search_string, sizeof(name));
 		flags= soops->search_flags;
 		
 		/* try to find matching element */

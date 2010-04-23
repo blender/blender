@@ -759,20 +759,20 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem display_mode_items[] = {
-		{0, "ALL_SCENES", 0, "All Scenes", ""},
-		{1, "CURRENT_SCENE", 0, "Current Scene", ""},
-		{2, "VISIBLE_LAYERS", 0, "Visible Layers", ""},
-		{3, "SELECTED", 0, "Selected", ""},
-		{4, "ACTIVE", 0, "Active", ""},
-		{5, "SAME_TYPES", 0, "Same Types", ""},
-		{6, "GROUPS", 0, "Groups", ""},
-		{7, "LIBRARIES", 0, "Libraries", ""},
-		{10, "SEQUENCE", 0, "Sequence", ""},
-		{11, "DATABLOCKS", 0, "Datablocks", ""},
-		{12, "USER_PREFERENCES", 0, "User Preferences", ""},
-		{13, "KEYMAPS", 0, "Key Maps", ""},
+		{SO_ALL_SCENES, "ALL_SCENES", 0, "All Scenes", ""},
+		{SO_CUR_SCENE, "CURRENT_SCENE", 0, "Current Scene", ""},
+		{SO_VISIBLE, "VISIBLE_LAYERS", 0, "Visible Layers", ""},
+		{SO_SELECTED, "SELECTED", 0, "Selected", ""},
+		{SO_ACTIVE, "ACTIVE", 0, "Active", ""},
+		{SO_SAME_TYPE, "SAME_TYPES", 0, "Same Types", ""},
+		{SO_GROUPS, "GROUPS", 0, "Groups", ""},
+		{SO_LIBRARIES, "LIBRARIES", 0, "Libraries", ""},
+		{SO_SEQUENCE, "SEQUENCE", 0, "Sequence", ""},
+		{SO_DATABLOCKS, "DATABLOCKS", 0, "Datablocks", ""},
+		{SO_USERDEF, "USER_PREFERENCES", 0, "User Preferences", ""},
+		{SO_KEYMAP, "KEYMAPS", 0, "Key Maps", ""},
 		{0, NULL, 0, NULL, NULL}};
-
+	
 	srna= RNA_def_struct(brna, "SpaceOutliner", "Space");
 	RNA_def_struct_sdna(srna, "SpaceOops");
 	RNA_def_struct_ui_text(srna, "Space Outliner", "Outliner space data");
@@ -782,12 +782,26 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, display_mode_items);
 	RNA_def_property_ui_text(prop, "Display Mode", "Type of information to display");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_OUTLINER, NULL);
-
+	
+	prop= RNA_def_property(srna, "display_filter", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "search_string");
+	RNA_def_property_ui_text(prop, "Display Filter", "Live search filtering string");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_OUTLINER, NULL);
+	
+	prop= RNA_def_property(srna, "match_case_sensitive", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "search_flags", SO_FIND_CASE_SENSITIVE);
+	RNA_def_property_ui_text(prop, "Case Sensitive Matches Only", "Only use case sensitive matches of search string");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_OUTLINER, NULL);
+	
+	prop= RNA_def_property(srna, "match_complete", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "search_flags", SO_FIND_COMPLETE);
+	RNA_def_property_ui_text(prop, "Complete Matches Only", "Only use complete matches of search string");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_OUTLINER, NULL);
+	
 	prop= RNA_def_property(srna, "show_restriction_columns", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SO_HIDE_RESTRICTCOLS);
-	RNA_def_property_ui_text(prop, "Show Restriction Columns", "Show colum");
+	RNA_def_property_ui_text(prop, "Show Restriction Columns", "Show column");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_OUTLINER, NULL);
-
 }
 
 static void rna_def_background_image(BlenderRNA *brna)
