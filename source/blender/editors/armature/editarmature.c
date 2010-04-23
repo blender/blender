@@ -457,8 +457,8 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 	
 	/* Do the adjustments */
 	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
-		sub_v3_v3v3(ebone->head, ebone->head, cent);
-		sub_v3_v3v3(ebone->tail, ebone->tail, cent);
+		sub_v3_v3(ebone->head, cent);
+		sub_v3_v3(ebone->tail, cent);
 	}
 	
 	/* Turn the list into an armature */
@@ -469,9 +469,7 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 		copy_m3_m4(omat, ob->obmat);
 		
 		mul_m3_v3(omat, cent);
-		ob->loc[0] += cent[0];
-		ob->loc[1] += cent[1];
-		ob->loc[2] += cent[2];
+		add_v3_v3(ob->loc, cent);
 	}
 	else 
 		ED_armature_edit_free(ob);

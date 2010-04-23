@@ -850,9 +850,8 @@ static float dist_bone_deform(bPoseChannel *pchan, float *vec, DualQuat *dq, flo
 					mul_m4_v3(pchan->chan_mat, cop);
 
 				//	Make this a delta from the base position
-				sub_v3_v3v3(cop, cop, co);
-				cop[0]*=fac; cop[1]*=fac; cop[2]*=fac;
-				add_v3_v3(vec, cop);
+				sub_v3_v3(cop, co);
+				madd_v3_v3fl(vec, cop, fac);
 
 				if(mat)
 					pchan_deform_mat_add(pchan, fac, bbonemat, mat);
@@ -1110,7 +1109,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 				if(armature_weight != 1.0f) {
 					VECCOPY(dco, co);
 					mul_v3m3_dq( dco, (defMats)? summat: NULL,dq);
-					sub_v3_v3v3(dco, dco, co);
+					sub_v3_v3(dco, co);
 					mul_v3_fl(dco, armature_weight);
 					add_v3_v3(co, dco);
 				}

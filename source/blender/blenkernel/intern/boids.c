@@ -400,8 +400,8 @@ static int rule_flock(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 		mul_v3_fl(loc, 1.0f/((float)neighbors - 1.0f));
 		mul_v3_fl(vec, 1.0f/((float)neighbors - 1.0f));
 
-		sub_v3_v3v3(loc, loc, pa->prev_state.co);
-		sub_v3_v3v3(vec, vec, pa->prev_state.vel);
+		sub_v3_v3(loc, pa->prev_state.co);
+		sub_v3_v3(vec, pa->prev_state.vel);
 
 		add_v3_v3(bbd->wanted_co, vec);
 		add_v3_v3(bbd->wanted_co, loc);
@@ -573,7 +573,7 @@ static int rule_average_speed(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 		if(asbr->level > 0.0f && psys_uses_gravity(bbd->sim)) {
 			project_v3_v3v3(vec, bbd->wanted_co, bbd->sim->scene->physics_settings.gravity);
 			mul_v3_fl(vec, asbr->level);
-			sub_v3_v3v3(bbd->wanted_co, bbd->wanted_co, vec);
+			sub_v3_v3(bbd->wanted_co, vec);
 		}
 	}
 	else {
@@ -590,7 +590,7 @@ static int rule_average_speed(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 		if(asbr->level > 0.0f && psys_uses_gravity(bbd->sim)) {
 			project_v3_v3v3(vec, bbd->wanted_co, bbd->sim->scene->physics_settings.gravity);
 			mul_v3_fl(vec, asbr->level);
-			sub_v3_v3v3(bbd->wanted_co, bbd->wanted_co, vec);
+			sub_v3_v3(bbd->wanted_co, vec);
 		}
 
 	}
@@ -765,10 +765,10 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		if(!bbd->sim->colliders)
 			return NULL;
 
-		VECCOPY(col.co1, pa->state.co);
-		VECCOPY(col.co2, pa->state.co);
+		copy_v3_v3(col.co1, pa->state.co);
+		copy_v3_v3(col.co2, pa->state.co);
 		add_v3_v3(col.co1, zvec);
-		sub_v3_v3v3(col.co2, col.co2, zvec);
+		sub_v3_v3(col.co2, zvec);
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		col.t = 0.0f;
 		hit.index = -1;

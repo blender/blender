@@ -2341,12 +2341,12 @@ void minmax_object(Object *ob, float *min, float *max)
 	default:
 		DO_MINMAX(ob->obmat[3], min, max);
 
-		VECCOPY(vec, ob->obmat[3]);
+		copy_v3_v3(vec, ob->obmat[3]);
 		add_v3_v3(vec, ob->size);
 		DO_MINMAX(vec, min, max);
 
-		VECCOPY(vec, ob->obmat[3]);
-		sub_v3_v3v3(vec, vec, ob->size);
+		copy_v3_v3(vec, ob->obmat[3]);
+		sub_v3_v3(vec, ob->size);
 		DO_MINMAX(vec, min, max);
 		break;
 	}

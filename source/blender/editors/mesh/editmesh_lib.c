@@ -996,7 +996,7 @@ void EM_free_data_layer(EditMesh *em, CustomData *data, int type)
 static void add_normal_aligned(float *nor, float *add)
 {
 	if( INPR(nor, add) < -0.9999f)
-		sub_v3_v3v3(nor, nor, add);
+		sub_v3_v3(nor, add);
 	else
 		add_v3_v3(nor, add);
 }

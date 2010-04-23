@@ -2145,7 +2145,7 @@ void initWarp(TransInfo *t)
 		VECCOPY(center, t->data[i].center);
 		mul_m3_v3(t->data[i].mtx, center);
 		mul_m4_v3(t->viewmat, center);
-		sub_v3_v3v3(center, center, t->viewmat[3]);
+		sub_v3_v3(center, t->viewmat[3]);
 		if (i)
 			minmax_v3_v3v3(min, max, center);
 		else {
@@ -2201,12 +2201,12 @@ int Warp(TransInfo *t, short mval[2])
 	VECCOPY(cursor, curs);
 	VECCOPY(gcursor, cursor);
 	if (t->flag & T_EDIT) {
-		sub_v3_v3v3(cursor, cursor, t->obedit->obmat[3]);
-		sub_v3_v3v3(gcursor, gcursor, t->obedit->obmat[3]);
+		sub_v3_v3(cursor, t->obedit->obmat[3]);
+		sub_v3_v3(gcursor, t->obedit->obmat[3]);
 		mul_m3_v3(t->data->smtx, gcursor);
 	}
 	mul_m4_v3(t->viewmat, cursor);
-	sub_v3_v3v3(cursor, cursor, t->viewmat[3]);
+	sub_v3_v3(cursor, t->viewmat[3]);
 	
 	/* amount of radians for warp */
 	circumfac = t->values[0];
@@ -2245,7 +2245,7 @@ int Warp(TransInfo *t, short mval[2])
 		VECCOPY(vec, td->iloc);
 		mul_m3_v3(td->mtx, vec);
 		mul_m4_v3(t->viewmat, vec);
-		sub_v3_v3v3(vec, vec, t->viewmat[3]);
+		sub_v3_v3(vec, t->viewmat[3]);
 		
 		dist= vec[0]-cursor[0];
 		
@@ -2261,10 +2261,10 @@ int Warp(TransInfo *t, short mval[2])
 		loc[2]= vec[2];
 		
 		mul_m4_v3(t->viewinv, loc);
-		sub_v3_v3v3(loc, loc, t->viewinv[3]);
+		sub_v3_v3(loc, t->viewinv[3]);
 		mul_m3_v3(td->smtx, loc);
 		
-		sub_v3_v3v3(loc, loc, td->iloc);
+		sub_v3_v3(loc, td->iloc);
 		mul_v3_fl(loc, td->factor);
 		add_v3_v3v3(td->loc, td->iloc, loc);
 	}
@@ -2390,7 +2390,7 @@ int Shear(TransInfo *t, short mval[2])
 		mul_m3_v3(tmat, vec);
 		
 		add_v3_v3(vec, t->center);
-		sub_v3_v3v3(vec, vec, td->center);
+		sub_v3_v3(vec, td->center);
 		
 		mul_v3_fl(vec, td->factor);
 		
@@ -2571,9 +2571,9 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	
 	add_v3_v3(vec, center);
 	if (t->flag & T_POINTS)
-		sub_v3_v3v3(vec, vec, td->iloc);
+		sub_v3_v3(vec, td->iloc);
 	else
-		sub_v3_v3v3(vec, vec, td->center);
+		sub_v3_v3(vec, td->center);
 	
 	mul_v3_fl(vec, td->factor);
 	
@@ -2935,7 +2935,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			mul_m3_v3(mat, vec);
 			add_v3_v3(vec, center);
 			/* vec now is the location where the object has to be */
-			sub_v3_v3v3(vec, vec, td->center);
+			sub_v3_v3(vec, td->center);
 			mul_m3_v3(td->smtx, vec);
 			
 			protectedTransBits(td->protectflag, vec);
@@ -3687,7 +3687,7 @@ int PushPull(TransInfo *t, short mval[2])
 			if (isLockConstraint(t)) {
 				float dvec[3];
 				project_v3_v3v3(dvec, vec, axis);
-				sub_v3_v3v3(vec, vec, dvec);
+				sub_v3_v3(vec, dvec);
 			}
 			else {
 				project_v3_v3v3(vec, vec, axis);

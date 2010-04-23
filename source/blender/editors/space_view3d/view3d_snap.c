@@ -452,7 +452,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 			vec[0]= gridf*floor(.5+ vec[0]/gridf);
 			vec[1]= gridf*floor(.5+ vec[1]/gridf);
 			vec[2]= gridf*floor(.5+ vec[2]/gridf);
-			sub_v3_v3v3(vec, vec, obedit->obmat[3]);
+			sub_v3_v3(vec, obedit->obmat[3]);
 			
 			mul_m3_v3(imat, vec);
 			VECCOPY(tv->loc, vec);

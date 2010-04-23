@@ -568,8 +568,8 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int end)
 	{
 		float d_rgb[3] = {1, 1, 1};
 
-		VECCOPY(rgb, color);
-		sub_v3_v3v3(d_rgb, d_rgb, rgb);
+		copy_v3_v3(rgb, color);
+		sub_v3_v3(d_rgb, rgb);
 		mul_v3_fl(d_rgb, 1.0f / (float)stk->nb_points);
 
 		for (i = 0; i < stk->nb_points; i++)

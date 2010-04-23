@@ -605,7 +605,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						 * Use the edge order to make the subtraction, flip the normal the right way
 						 * edge should be there but check just in case... */
 						if (vc->e && vc->e[0]->v1 == i) {
-							sub_v3_v3v3(tmp_vec1, tmp_vec1, tmp_vec2);
+							sub_v3_v3(tmp_vec1, tmp_vec2);
 						}
 						else {
 							sub_v3_v3v3(tmp_vec1, tmp_vec2, tmp_vec1);

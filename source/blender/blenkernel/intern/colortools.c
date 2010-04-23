@@ -467,7 +467,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 			if(vec[0] < bezt[0].vec[1][0])
 				vec[0]= bezt[0].vec[1][0];
 			
-			sub_v3_v3v3(vec, vec, bezt[0].vec[1]);
+			sub_v3_v3(vec, bezt[0].vec[1]);
 			nlen= len_v3(vec);
 			if(nlen>FLT_EPSILON) {
 				mul_v3_fl(vec, hlen/nlen);
@@ -484,7 +484,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 			if(vec[0] > bezt[a].vec[1][0])
 				vec[0]= bezt[a].vec[1][0];
 			
-			sub_v3_v3v3(vec, vec, bezt[a].vec[1]);
+			sub_v3_v3(vec, bezt[a].vec[1]);
 			nlen= len_v3(vec);
 			if(nlen>FLT_EPSILON) {
 				mul_v3_fl(vec, hlen/nlen);

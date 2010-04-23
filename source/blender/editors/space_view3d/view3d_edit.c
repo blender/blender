@@ -542,7 +542,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 			conjugate_qt(q1); /* conj == inv for unit quat */
 			VECCOPY(rv3d->ofs, vod->ofs);
-			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->dyn_ofs);
+			sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
 			mul_qt_v3(q1, rv3d->ofs);
 			add_v3_v3(rv3d->ofs, vod->dyn_ofs);
 		}
@@ -575,7 +575,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		if (vod->use_dyn_ofs) {
 			conjugate_qt(q1); /* conj == inv for unit quat */
-			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->dyn_ofs);
+			sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
 			mul_qt_v3(q1, rv3d->ofs);
 			add_v3_v3(rv3d->ofs, vod->dyn_ofs);
 		}
@@ -589,7 +589,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		if (vod->use_dyn_ofs) {
 			conjugate_qt(q1);
-			sub_v3_v3v3(rv3d->ofs, rv3d->ofs, vod->dyn_ofs);
+			sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
 			mul_qt_v3(q1, rv3d->ofs);
 			add_v3_v3(rv3d->ofs, vod->dyn_ofs);
 		}
@@ -1675,7 +1675,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
 			window_to_3d_delta(ar, dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
 			/* center the view to the center of the rectangle */
-			sub_v3_v3v3(new_ofs, new_ofs, dvec);
+			sub_v3_v3(new_ofs, dvec);
 		}
 
 		/* work out the ratios, so that everything selected fits when we zoom */
@@ -2298,7 +2298,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		if(depth_used==0) {
 			window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
-			sub_v3_v3v3(fp, fp, dvec);
+			sub_v3_v3(fp, dvec);
 		}
 	}
 	else {
@@ -2706,7 +2706,7 @@ void viewmoveNDOFfly(ARegion *ar, View3D *v3d, int mode)
 		upvec[2] = rv3d->dist;
 		copy_m3_m4(mat, rv3d->viewinv);
 		mul_m3_v3(mat, upvec);
-		sub_v3_v3v3(rv3d->ofs, rv3d->ofs, upvec);
+		sub_v3_v3(rv3d->ofs, upvec);
 		rv3d->dist = 0.0;
 	}
 
@@ -2748,7 +2748,7 @@ void viewmoveNDOFfly(ARegion *ar, View3D *v3d, int mode)
 
 	// translate the view
 
-	sub_v3_v3v3(rv3d->ofs, rv3d->ofs, tvec);
+	sub_v3_v3(rv3d->ofs, tvec);
 
 
 	/*----------------------------------------------------
@@ -2929,7 +2929,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 
 	if (use_sel) {
 		conjugate_qt(q1); /* conj == inv for unit quat */
-		sub_v3_v3v3(rv3d->ofs, rv3d->ofs, obofs);
+		sub_v3_v3(rv3d->ofs, obofs);
 		mul_qt_v3(q1, rv3d->ofs);
 		add_v3_v3(rv3d->ofs, obofs);
 	}
@@ -2954,7 +2954,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 
 	if (use_sel) {
 		conjugate_qt(q1);
-		sub_v3_v3v3(rv3d->ofs, rv3d->ofs, obofs);
+		sub_v3_v3(rv3d->ofs, obofs);
 		mul_qt_v3(q1, rv3d->ofs);
 		add_v3_v3(rv3d->ofs, obofs);
 	}

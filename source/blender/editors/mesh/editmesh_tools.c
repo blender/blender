@@ -660,7 +660,7 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op, sh
 //			initTransform(TFM_TRANSLATION, CTX_NO_PET|CTX_NO_MIRROR);
 			if(transmode=='n') {
 				mul_m4_v3(obedit->obmat, nor);
-				sub_v3_v3v3(nor, nor, obedit->obmat[3]);
+				sub_v3_v3(nor, obedit->obmat[3]);
 //				BIF_setSingleAxisConstraint(nor, "along normal");
 			}
 //			Transform();

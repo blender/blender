@@ -632,7 +632,7 @@ void addVertToBucket(EmbedBucket *b, float co[3])
 void removeVertFromBucket(EmbedBucket *b, float co[3])
 {
 	mul_v3_fl(b->p, (float)b->nv);
-	sub_v3_v3v3(b->p, b->p, co);
+	sub_v3_v3(b->p, co);
 	b->nv--;
 	mul_v3_fl(b->p, 1.0f / (float)b->nv);
 }

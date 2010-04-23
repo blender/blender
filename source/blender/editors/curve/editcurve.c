@@ -3423,13 +3423,13 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			nu->pntsu++;
 			
 			if(mode=='e') {
-				VECCOPY(newbezt->vec[0], bezt->vec[0]);
-				VECCOPY(newbezt->vec[1], bezt->vec[1]);
-				VECCOPY(newbezt->vec[2], bezt->vec[2]);
+				copy_v3_v3(newbezt->vec[0], bezt->vec[0]);
+				copy_v3_v3(newbezt->vec[1], bezt->vec[1]);
+				copy_v3_v3(newbezt->vec[2], bezt->vec[2]);
 			}
 			else {
-				VECCOPY(newbezt->vec[1], location);
-				sub_v3_v3v3(newbezt->vec[1],newbezt->vec[1], obedit->obmat[3]);
+				copy_v3_v3(newbezt->vec[1], location);
+				sub_v3_v3(newbezt->vec[1], obedit->obmat[3]);
 				mul_m3_v3(imat,newbezt->vec[1]);
 				sub_v3_v3v3(temp, newbezt->vec[1],temp);
 				add_v3_v3v3(newbezt->vec[0], bezt->vec[0],temp);
@@ -3471,11 +3471,11 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			makeknots(nu, 1);
 			
 			if(mode=='e') {
-				VECCOPY(newbp->vec, bp->vec);
+				copy_v3_v3(newbp->vec, bp->vec);
 			}
 			else {
-				VECCOPY(newbp->vec, location);
-				sub_v3_v3v3(newbp->vec, newbp->vec, obedit->obmat[3]);
+				copy_v3_v3(newbp->vec, location);
+				sub_v3_v3(newbp->vec, obedit->obmat[3]);
 				mul_m3_v3(imat,newbp->vec);
 				newbp->vec[3]= 1.0;
 			}

@@ -166,7 +166,7 @@ static void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *di
 		vec[0]= vec[1] = 0.0;
 		vec[2]= -(*dist);
 		mul_m3_v3(tmat, vec);
-		sub_v3_v3v3(ofs, ofs, vec);
+		sub_v3_v3(ofs, vec);
 	}
 	
 	/* Lens */
@@ -536,7 +536,7 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 		mul_v3_fl(vec, 1.0f / vec[3]);
 		
 		copy_v3_v3(ray_start, rv3d->viewinv[3]);
-		sub_v3_v3v3(vec, vec, ray_start);
+		sub_v3_v3(vec, ray_start);
 		normalize_v3(vec);
 		
 		VECADDFAC(ray_start, rv3d->viewinv[3], vec, v3d->near);
@@ -2044,12 +2044,12 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 		if (fly->rv3d->persp==RV3D_ORTHO)
 			fly->rv3d->persp= RV3D_PERSP; /*if ortho projection, make perspective */
 		QUATCOPY(fly->rot_backup, fly->rv3d->viewquat);
-		VECCOPY(fly->ofs_backup, fly->rv3d->ofs);
-		fly->rv3d->dist= 0.0;
+		copy_v3_v3(fly->ofs_backup, fly->rv3d->ofs);
+		fly->rv3d->dist= 0.0f;
 
 		upvec[2]= fly->dist_backup; /*x and y are 0*/
 		mul_m3_v3(mat, upvec);
-		sub_v3_v3v3(fly->rv3d->ofs, fly->rv3d->ofs, upvec);
+		sub_v3_v3(fly->rv3d->ofs, upvec);
 		/*Done with correcting for the dist*/
 	}
 

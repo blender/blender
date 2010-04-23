@@ -727,9 +727,8 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	vertexDupliData *vdd= userData;
 	float vec[3], q2[4], mat[3][3], tmat[4][4], obmat[4][4];
 	
-	VECCOPY(vec, co);
-	mul_m4_v3(vdd->pmat, vec);
-	sub_v3_v3v3(vec, vec, vdd->pmat[3]);
+	mul_v3_m4v3(vec, vdd->pmat, co);
+	sub_v3_v3(vec, vdd->pmat[3]);
 	add_v3_v3(vec, vdd->obmat[3]);
 	
 	copy_m4_m4(obmat, vdd->obmat);

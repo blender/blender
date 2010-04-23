@@ -138,7 +138,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		if(node->custom1 & SH_NODE_MAT_DIFF) {
 			VECCOPY(col, shrnode.combined);
 			if(!(node->custom1 & SH_NODE_MAT_SPEC)) {
-				sub_v3_v3v3(col, col, shrnode.spec);
+				sub_v3_v3(col, shrnode.spec);
 			}
 		}
 		else if(node->custom1 & SH_NODE_MAT_SPEC) {

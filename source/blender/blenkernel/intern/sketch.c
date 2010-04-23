@@ -336,7 +336,7 @@ void sk_flattenStroke(SK_Stroke *stk, int start, int end)
 		VECCOPY(offset, normal);
 		mul_v3_fl(offset, d);
 
-		sub_v3_v3v3(p, p, distance);
+		sub_v3_v3(p, distance);
 		add_v3_v3(p, offset);
 	}
 }

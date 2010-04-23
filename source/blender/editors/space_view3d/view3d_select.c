@@ -105,7 +105,7 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 	
 	if(mval[0]!=IS_CLIPPED) {
 		window_to_3d_delta(vc->ar, dvec, mval[0]-mx, mval[1]-my);
-		sub_v3_v3v3(fp, fp, dvec);
+		sub_v3_v3(fp, dvec);
 	}
 }
 
