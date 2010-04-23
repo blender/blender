@@ -1256,28 +1256,45 @@ static int outliner_filter_has_name(TreeElement *te, char *name, int flags)
 	return found;
 }
 
-static void outliner_filter_tree(SpaceOops *soops, ListBase *lb)
+static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 {
 	TreeElement *te, *ten;
+	TreeStoreElem *tselem;
 	
-	if(soops->search_string[0]==0) return;
+	/* although we don't have any search string, we return TRUE 
+	 * since the entire tree is ok then...
+	 */
+	if (soops->search_string[0]==0) 
+		return 1;
 
 	for (te= lb->first; te; te= ten) {
 		ten= te->next;
 		
-		if(0==outliner_filter_has_name(te, soops->search_string, soops->search_flags)) {
-			/* FIXME: users probably expect to be able to matches nested inside these non-matches... 
-			 *	i.e. searching for "Cu" under the default scene, users want the Cube, but scene fails so nothing appears
+		if (0==outliner_filter_has_name(te, soops->search_string, soops->search_flags)) {
+			/* item isn't something we're looking for, but...
+			 * 	- if the subtree is expanded, check if there are any matches that can be easily found
+			 *		so that searching for "cu" in the default scene will still match the Cube
+			 *	- otherwise, we can't see within the subtree and the item doesn't match,
+			 *		so these can be safely ignored (i.e. the subtree can get freed)
 			 */
-			outliner_free_tree(&te->subtree);
-			BLI_remlink(lb, te);
+			tselem= TREESTORE(te);
 			
-			if(te->flag & TE_FREE_NAME) MEM_freeN(te->name);
-			MEM_freeN(te);
+			if ((tselem->flag & TSE_CLOSED) || outliner_filter_tree(soops, &te->subtree)==0) { 
+				outliner_free_tree(&te->subtree);
+				BLI_remlink(lb, te);
+				
+				if(te->flag & TE_FREE_NAME) MEM_freeN(te->name);
+				MEM_freeN(te);
+			}
 		}
-		else
+		else {
+			/* filter subtree too */
 			outliner_filter_tree(soops, &te->subtree);
+		}
 	}
+	
+	/* if there are still items in the list, that means that there were still some matches */
+	return (lb->first != NULL);
 }
 
 

@@ -141,21 +141,5 @@ void OUTLINER_OT_keyingset_remove_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_drivers_add_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_drivers_delete_selected(struct wmOperatorType *ot);
 
-#if 0
-extern void outliner_mouse_event(Scene *scene, ARegion *ar, SpaceOops *soops, short event);
-extern void outliner_toggle_visible(SpaceOops *soops);
-extern void outliner_show_active(ARegion *ar, SpaceOops *soops);
-extern void outliner_show_hierarchy(Scene *scene, SpaceOops *soops);
-extern void outliner_one_level(SpaceOops *soops, int add);
-extern void outliner_select(Scene *scene, SpaceOops *soops);
-extern void outliner_toggle_selected(Scene *scene, SpaceOops *soops);
-extern void outliner_toggle_visibility(Scene *scene, SpaceOops *soops);
-extern void outliner_toggle_selectability(Scene *scene, SpaceOops *soops);
-extern void outliner_toggle_renderability(Scene *scene, SpaceOops *soops);
-extern void outliner_del(Scene *scene, SpaceOops *soops);
-extern void outliner_page_up_down(Scene *scene, ARegion *ar, SpaceOops *soops, int up);
-extern void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again, int flags);
-#endif
-
 #endif /* ED_OUTLINER_INTERN_H */
 
