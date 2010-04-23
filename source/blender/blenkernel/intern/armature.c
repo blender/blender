@@ -965,7 +965,8 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		if(target->type==OB_MESH) {
 			Mesh *me= target->data;
 			dverts = me->dvert;
-			target_totvert = me->totvert;
+			if(dverts)
+				target_totvert = me->totvert;
 		}
 		else {
 			Lattice *lt= target->data;
