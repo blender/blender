@@ -323,7 +323,7 @@ class TEXTURE_PT_influence(TextureSlotPanel):
         if type(idblock) == bpy.types.Brush:
             return False
 
-        if getattr(context, "texture_slot", None):
+        if not getattr(context, "texture_slot", None):
             return False
 
         engine = context.scene.render.engine
