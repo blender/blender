@@ -31,10 +31,13 @@
 #include "stdio.h"
 
 
-KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, RAS_Rect &rect) :
+KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, RAS_Rect &rect, struct ARegion *ar) :
 m_win(win),
 m_frame_rect(rect)
 {
+	// area boundaries needed for mouse coordinates in Letterbox framing mode
+	m_area_left = ar->winrct.xmin;
+	m_area_top = ar->winrct.ymax;
 }
 
 KX_BlenderCanvas::~KX_BlenderCanvas()
@@ -98,6 +101,30 @@ int KX_BlenderCanvas::GetWidth(
 int KX_BlenderCanvas::GetHeight(
 ) const {
 	return m_frame_rect.GetHeight();
+}
+
+int KX_BlenderCanvas::GetMouseX(int x)
+{
+	float left = GetWindowArea().GetLeft();
+	return float(x - (left - m_area_left));
+}
+
+int KX_BlenderCanvas::GetMouseY(int y)
+{
+	float top = GetWindowArea().GetTop();
+	return float(y - (m_area_top - top));
+}
+
+float KX_BlenderCanvas::GetMouseNormalizedX(int x)
+{
+	int can_x = GetMouseX(x);
+	return float(can_x)/this->GetWidth();
+}
+
+float KX_BlenderCanvas::GetMouseNormalizedY(int y)
+{
+	int can_y = GetMouseY(y);
+	return float(can_y)/this->GetHeight();
 }
 
 RAS_Rect &

@@ -40,12 +40,15 @@
 #include "SCA_MouseManager.h"
 #include "SCA_MouseSensor.h"
 #include "IntValue.h"
+#include "RAS_ICanvas.h"
 
 
 SCA_MouseManager::SCA_MouseManager(SCA_LogicManager* logicmgr,
-								   SCA_IInputDevice* mousedev)
+								   SCA_IInputDevice* mousedev,
+								   RAS_ICanvas* canvas)
 	:	SCA_EventManager(logicmgr, MOUSE_EVENTMGR),
-		m_mousedevice (mousedev)
+		m_mousedevice (mousedev),
+		m_canvas(canvas)
 {
 	m_xpos = 0;
 	m_ypos = 0;
@@ -78,12 +81,13 @@ void SCA_MouseManager::NextFrame()
 			// coordinates
 			if (!mousesensor->IsSuspended())
 			{
-				const SCA_InputEvent& event = 
+				const SCA_InputEvent& event1 = 
 					m_mousedevice->GetEventValue(SCA_IInputDevice::KX_MOUSEX);
-				int mx = event.m_eventval;
 				const SCA_InputEvent& event2 = 
 					m_mousedevice->GetEventValue(SCA_IInputDevice::KX_MOUSEY);
-				int my = event2.m_eventval;
+
+				int mx = this->m_canvas->GetMouseX(event1.m_eventval);
+				int my = this->m_canvas->GetMouseY(event2.m_eventval);
 				
 				mousesensor->setX(mx);
 				mousesensor->setY(my);

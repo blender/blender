@@ -104,3 +104,13 @@ void GPG_Canvas::SwapBuffers()
 		m_window->swapBuffers();
 	}
 }
+
+float GPG_Canvas::GetMouseNormalizedX(int x)
+{
+	return float(x)/this->GetWidth();
+}
+
+float GPG_Canvas::GetMouseNormalizedY(int y)
+{
+	return float(y)/this->GetHeight();
+}

@@ -112,10 +112,15 @@ PyObject* SCA_PythonMouse::pyattr_get_position(void *self_v, const KX_PYATTRIBUT
 	const SCA_InputEvent & xevent = self->m_mouse->GetEventValue(SCA_IInputDevice::KX_MOUSEX);
 	const SCA_InputEvent & yevent = self->m_mouse->GetEventValue(SCA_IInputDevice::KX_MOUSEY);
 
+	float x_coord, y_coord;
+
+	x_coord = self->m_canvas->GetMouseNormalizedX(xevent.m_eventval);
+	y_coord = self->m_canvas->GetMouseNormalizedY(yevent.m_eventval);
+
 	PyObject* ret = PyTuple_New(2);
 
-	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(float(xevent.m_eventval)/self->m_canvas->GetWidth()));
-	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(float(yevent.m_eventval)/self->m_canvas->GetHeight()));
+	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(x_coord));
+	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(y_coord));
 
 	return ret;
 }

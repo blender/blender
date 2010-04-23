@@ -673,7 +673,8 @@ bool GPG_Application::startEngine(void)
 			m_mouse,
 			m_networkdevice,
 			startscenename,
-			m_startScene);
+			m_startScene,
+			m_canvas);
 		
 #ifndef DISABLE_PYTHON
 			// some python things

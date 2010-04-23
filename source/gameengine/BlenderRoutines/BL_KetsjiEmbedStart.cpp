@@ -171,7 +171,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		if(animation_record) usefixed= true; /* override since you's always want fixed time for sim recording */
 
 		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, area_rect);
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, area_rect, ar);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
@@ -371,7 +371,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				mousedevice,
 				networkdevice,
 				startscenename,
-				blscene);
+				blscene,
+				canvas);
 
 #ifndef DISABLE_PYTHON
 			// some python things

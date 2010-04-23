@@ -53,6 +53,10 @@ public:
 	virtual void SetMousePosition(int x, int y);
 	virtual void SetMouseState(RAS_MouseState mousestate);
 	virtual void SwapBuffers();
+	virtual int GetMouseX(int x){return x;};
+	virtual int GetMouseY(int y){return y;};
+	virtual float GetMouseNormalizedX(int x);
+	virtual float GetMouseNormalizedY(int y);
 
 	bool BeginDraw() { return true;};
 	void EndDraw() {};

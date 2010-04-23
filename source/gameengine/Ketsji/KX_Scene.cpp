@@ -139,7 +139,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 				   class SCA_IInputDevice* mousedevice,
 				   class NG_NetworkDeviceInterface *ndi,
 				   const STR_String& sceneName,
-				   Scene *scene): 
+				   Scene *scene,
+				   class RAS_ICanvas* canvas): 
 	PyObjectPlus(),
 	m_keyboardmgr(NULL),
 	m_mousemgr(NULL),
@@ -170,7 +171,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	
 	m_timemgr = new SCA_TimeEventManager(m_logicmgr);
 	m_keyboardmgr = new SCA_KeyboardManager(m_logicmgr,keyboarddevice);
-	m_mousemgr = new SCA_MouseManager(m_logicmgr,mousedevice);
+	m_mousemgr = new SCA_MouseManager(m_logicmgr,mousedevice, canvas);
 	
 	//SCA_AlwaysEventManager* alwaysmgr = new SCA_AlwaysEventManager(m_logicmgr);
 	//SCA_PropertyEventManager* propmgr = new SCA_PropertyEventManager(m_logicmgr);

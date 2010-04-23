@@ -45,6 +45,7 @@
 #include "RAS_FramingManager.h"
 #include "RAS_Rect.h"
 
+
 #include "PyObjectPlus.h"
 #include "RAS_2DFilterManager.h"
 
@@ -280,7 +281,8 @@ public:
 		class SCA_IInputDevice* mousedevice,
 		class NG_NetworkDeviceInterface* ndi,
 		const STR_String& scenename,
-		struct Scene* scene);
+		struct Scene* scene,
+		class RAS_ICanvas* canvas);
 
 	virtual	
 	~KX_Scene();
