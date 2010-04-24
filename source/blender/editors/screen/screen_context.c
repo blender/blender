@@ -86,7 +86,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 			}
 		}
-
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selected_objects") || CTX_data_equals(member, "selected_bases")) {
@@ -100,7 +100,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 			}
 		}
-
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selected_editable_objects") || CTX_data_equals(member, "selected_editable_bases")) {
@@ -118,7 +118,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				}
 			}
 		}
-
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "visible_bones") || CTX_data_equals(member, "editable_bones")) {
@@ -159,7 +159,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					}
 				}
 			}	
-			
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
 	}
@@ -201,7 +201,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					}
 				}
 			}	
-			
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
 	}
@@ -216,7 +216,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
 				}
 			}
-			
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
 	}
@@ -232,7 +232,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 						CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
 				}
 			}
-			
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
 	}

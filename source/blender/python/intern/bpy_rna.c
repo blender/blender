@@ -2236,28 +2236,29 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 		else {
 			PointerRNA newptr;
 			ListBase newlb;
+			short newtype;
 
-			int done= CTX_data_get(C, name, &newptr, &newlb);
+			int done= CTX_data_get(C, name, &newptr, &newlb, &newtype);
 
 			if(done==1) { /* found */
-				if (newptr.data) {
-					ret = pyrna_struct_CreatePyObject(&newptr);
-				}
-				else if (newlb.first) {
-					CollectionPointerLink *link;
-					PyObject *linkptr;
-
-					ret = PyList_New(0);
-
-					for(link=newlb.first; link; link=link->next) {
-						linkptr= pyrna_struct_CreatePyObject(&link->ptr);
-						PyList_Append(ret, linkptr);
-						Py_DECREF(linkptr);
+				switch(newtype) {
+				case CTX_DATA_TYPE_POINTER:
+					ret = pyrna_struct_CreatePyObject(&newptr); /* can return a bpy_struct or None */
+					break;
+				case CTX_DATA_TYPE_COLLECTION:
+					{
+						CollectionPointerLink *link;
+						PyObject *linkptr;
+	
+						ret = PyList_New(0);
+	
+						for(link=newlb.first; link; link=link->next) {
+							linkptr= pyrna_struct_CreatePyObject(&link->ptr);
+							PyList_Append(ret, linkptr);
+							Py_DECREF(linkptr);
+						}
 					}
-				}
-				else {
-					ret = Py_None;
-					Py_INCREF(ret);
+					break;
 				}
 			}
 			else if (done==-1) { /* found but not set */

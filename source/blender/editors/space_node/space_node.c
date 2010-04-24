@@ -340,6 +340,7 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
 				CTX_data_list_add(result, &snode->edittree->id, &RNA_Node, node);
 			}
 		}
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	
