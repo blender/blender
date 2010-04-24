@@ -5169,7 +5169,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if(sl->spacetype==SPACE_CONSOLE) {
 				SpaceConsole *sconsole= (SpaceConsole *)sl;
-				ConsoleLine *cl, *clnext;
+				ConsoleLine *cl, *cl_next;
 				
 				link_list(fd, &sconsole->scrollback);
 				link_list(fd, &sconsole->history);
@@ -5180,9 +5180,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				/*comma expressions, (e.g. expr1, expr2, expr3) evalutate each expression,
 				  from left to right.  the right-most expression sets the result of the comma
 				  expression as a whole*/
-				for(cl= sconsole->history.first; cl && (clnext=cl->next); cl= clnext) {
+				for(cl= sconsole->history.first; cl; cl= cl_next) {
+					cl_next= cl->next;
 					cl->line= newdataadr(fd, cl->line);
-					if (!cl->line) {
+					if (cl->line == NULL) {
 						BLI_remlink(&sconsole->history, cl);
 						MEM_freeN(cl);
 					}
