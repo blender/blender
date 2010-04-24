@@ -1001,6 +1001,10 @@ int main(int argc, char **argv)
 	
 	/* background render uses this font too */
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
+
+	/* Initialiaze ffmpeg if built in, also needed for bg mode if videos are
+	   rendered via ffmpeg */
+	sound_init_once();
 	
 	init_def_material();
 
@@ -1015,11 +1019,13 @@ int main(int argc, char **argv)
 
 #ifndef DISABLE_SDL
 	BLI_setenv("SDL_VIDEODRIVER", "dummy");
+/* I think this is not necessary anymore (04-24-2010 neXyon)
 #ifdef __linux__
-	/* On linux the default SDL driver dma often would not play
-	 * use alsa if none is set */
+	// On linux the default SDL driver dma often would not play
+	// use alsa if none is set
 	setenv("SDL_AUDIODRIVER", "alsa", 0);
 #endif
+*/
 #endif
 	}
 	else {

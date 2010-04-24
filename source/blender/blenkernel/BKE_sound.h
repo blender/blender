@@ -38,6 +38,8 @@ struct ListBase;
 struct Main;
 struct Sequence;
 
+void sound_init_once();
+
 void sound_init(struct Main *main);
 
 void sound_exit();
