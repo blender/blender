@@ -797,6 +797,7 @@ void MESH_OT_extrude(wmOperatorType *ot)
 
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", extrude_items, 0, "Type", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	RNA_def_enum_funcs(prop, extrude_itemf);
 	ot->prop= prop;
 }
