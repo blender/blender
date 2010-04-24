@@ -52,7 +52,7 @@
 #include "RNA_access.h"
 
 /* **** XXX **** */
-static void error() {}
+static void error(const char *error, ...) {}
 
 #define INT	96
 #define FLO	128

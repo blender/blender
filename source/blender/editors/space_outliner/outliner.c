@@ -122,7 +122,7 @@
 
 /* ************* XXX **************** */
 
-static void error() {}
+static void error(const char *dummy, ...) {}
 
 /* ********************************** */
 

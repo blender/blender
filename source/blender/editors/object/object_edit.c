@@ -110,7 +110,7 @@
 #include "object_intern.h"	// own include
 
 /* ************* XXX **************** */
-static void error() {}
+static void error(const char *dummy) {}
 static void waitcursor(int val) {}
 static int pupmenu(const char *msg) {return 0;}
 

@@ -76,7 +76,7 @@ void undo_editmode_menu(void)				// history menu
 /* ********************************************************************* */
 
 /* ****** XXX ***** */
-void error() {}
+void error(const char *dummy) {}
 /* ****** XXX ***** */
 
 

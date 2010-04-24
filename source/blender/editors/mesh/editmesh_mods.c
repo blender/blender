@@ -90,7 +90,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 /* XXX */
 static void waitcursor(int val) {}
-static int pupmenu() {return 0;}
+static int pupmenu(const char *dummy) {return 0;}
 
 /* ****************************** MIRROR **************** */
 

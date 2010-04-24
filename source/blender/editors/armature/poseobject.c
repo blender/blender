@@ -78,9 +78,9 @@
 #include "armature_intern.h"
 
 /* ************* XXX *************** */
-static int pupmenu() {return 0;}
-static void error() {};
-static void BIF_undo_push() {}
+static int pupmenu(const char *dummy) {return 0;}
+static void error(const char *dummy) {};
+static void BIF_undo_push(const char *dummy) {}
 /* ************* XXX *************** */
 
 /* This function is used to indicate that a bone is selected and needs keyframes inserted */

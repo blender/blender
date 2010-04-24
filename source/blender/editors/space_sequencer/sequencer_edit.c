@@ -79,11 +79,11 @@
 //static Sequence *_last_seq=0;
 //static int _last_seq_init=0;
 /* XXX */
-static void error() {}
+static void error(const char *dummy) {}
 static void waitcursor(int val) {}
-static void activate_fileselect() {}
-static int pupmenu() {return 0;}
-static int okee() {return 0;}
+static void activate_fileselect(int d1, char *d2, char *d3, void *d4) {}
+static int pupmenu(const char *dummy) {return 0;}
+static int okee(const char *dummy) {return 0;}
 
 
 /* XXX */

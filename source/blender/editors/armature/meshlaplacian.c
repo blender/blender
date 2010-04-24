@@ -65,7 +65,7 @@
 
 /* ************* XXX *************** */
 static void waitcursor(int val) {}
-static void progress_bar() {}
+static void progress_bar(int dummy_val, const char *dummy) {}
 static void start_progress_bar() {}
 static void end_progress_bar() {}
 static void error(char *str) { printf("error: %s\n", str); }

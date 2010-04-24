@@ -30,12 +30,7 @@
 
 #include "BKE_utildefines.h"
 
-
-#if defined( _MSC_VER ) && !defined( __cplusplus )
-# define inline __inline
-#endif // defined( _MSC_VER ) && !defined( __cplusplus )
-
-static inline float D(float *data,  int *res, int x, int y, int z)
+BM_INLINE float D(float *data,  int *res, int x, int y, int z)
 {
 	CLAMP(x, 0, res[0]-1);
 	CLAMP(y, 0, res[1]-1);
@@ -57,7 +52,7 @@ float voxel_sample_nearest(float *data, int *res, float *co)
 }
 
 // returns highest integer <= x as integer (slightly faster than floor())
-inline int FLOORI(float x)
+BM_INLINE int FLOORI(float x)
 {
 	const int r = (int)x;
 	return ((x >= 0.f) || (float)r == x) ? r : (r - 1);
@@ -65,7 +60,7 @@ inline int FLOORI(float x)
 
 // clamp function, cannot use the CLAMPIS macro, it sometimes returns unwanted results apparently related to gcc optimization flag -fstrict-overflow which is enabled at -O2
 // this causes the test (x + 2) < 0 with int x == 2147483647 to return false (x being an integer, x + 2 should wrap around to -2147483647 so the test < 0 should return true, which it doesn't)
-inline int _clamp(int a, int b, int c)
+BM_INLINE int _clamp(int a, int b, int c)
 {
 	return (a < b) ? b : ((a > c) ? c : a);
 }

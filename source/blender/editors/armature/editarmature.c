@@ -88,7 +88,7 @@
 #endif
 
 /* ************* XXX *************** */
-static int okee() {return 0;}
+static int okee(const char *dummy) {return 0;}
 static void BIF_undo_push(const char *msg) {}
 /* ************* XXX *************** */
 

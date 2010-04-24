@@ -264,7 +264,7 @@ int writePackedFile(ReportList *reports, char *filename, PackedFile *pf, int gui
 	char tempname[FILE_MAXDIR + FILE_MAXFILE];
 /*  	void *data; */
 	
-	if (guimode); //XXX  waitcursor(1);
+	if (guimode) {} //XXX  waitcursor(1);
 	
 	strcpy(name, filename);
 	BLI_path_abs(name, G.sce);
@@ -308,7 +308,7 @@ int writePackedFile(ReportList *reports, char *filename, PackedFile *pf, int gui
 		}
 	}
 	
-	if(guimode); //XXX waitcursor(0);
+	if(guimode) {} //XXX waitcursor(0);
 
 	return (ret_value);
 }

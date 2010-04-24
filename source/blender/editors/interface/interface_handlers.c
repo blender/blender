@@ -962,7 +962,7 @@ static void ui_but_drop(bContext *C, wmEvent *event, uiBut *but, uiHandleButtonD
 			if(ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 				ID *id= (ID *)wmd->poin;
 				
-				if(but->poin==NULL && but->rnapoin.data==NULL);
+				if(but->poin==NULL && but->rnapoin.data==NULL) {}
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				BLI_strncpy(data->str, id->name+2, data->maxlen);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);

@@ -1515,8 +1515,9 @@ void GPU_buffer_unbind()
 		else
 			break;
 	}
-	if( GLStates != 0 )
+	if( GLStates != 0 ) {
 		DEBUG_VBO( "Some weird OpenGL state is still set. Why?" );
+	}
 	if( useVBOs )
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
 }

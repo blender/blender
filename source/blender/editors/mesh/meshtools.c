@@ -83,7 +83,7 @@
 #include "mesh_intern.h"
 
 /* XXX */
-static int pupmenu() {return 0;}
+static int pupmenu(const char *dummy) {return 0;}
 /* XXX */
 
 

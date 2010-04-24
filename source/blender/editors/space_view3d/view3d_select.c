@@ -528,7 +528,7 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 	} else { /* Vert Sel*/
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (simaFaceDraw_Check(efa, tf)) {		
+			if (uvedit_face_visible(scene, ima, efa, tf)) {		
 				nverts= efa->v4? 4: 3;
 				for(i=0; i<nverts; i++) {
 					if ((select) != (simaUVSel_Check(efa, tf, i))) {
