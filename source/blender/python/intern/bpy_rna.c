@@ -431,7 +431,27 @@ static PyObject *pyrna_prop_repr( BPy_PropertyRNA *self )
 
 static long pyrna_struct_hash( BPy_StructRNA *self )
 {
-	return (long)self->ptr.data;
+	return _Py_HashPointer(self->ptr.data);
+}
+
+/* from python's meth_hash v3.1.2 */
+static long pyrna_prop_hash(BPy_PropertyRNA *self)
+{	
+	long x,y;
+	if (self->ptr.data == NULL)
+		x = 0;
+	else {
+		x = _Py_HashPointer(self->ptr.data);
+		if (x == -1)
+			return -1;
+	}
+	y = _Py_HashPointer((void*)(self->prop));
+	if (y == -1)
+		return -1;
+	x ^= y;
+	if (x == -1)
+		x = -2;
+	return x;
 }
 
 /* use our own dealloc so we can free a property if we use one */
@@ -3490,7 +3510,7 @@ PyTypeObject pyrna_prop_Type = {
 
 	/* More standard operations (here for binary compatibility) */
 
-	NULL,						/* hashfunc tp_hash; */
+	( hashfunc ) pyrna_prop_hash,	/* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 
