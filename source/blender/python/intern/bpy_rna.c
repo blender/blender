@@ -2243,7 +2243,13 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 			if(done==1) { /* found */
 				switch(newtype) {
 				case CTX_DATA_TYPE_POINTER:
-					ret = pyrna_struct_CreatePyObject(&newptr); /* can return a bpy_struct or None */
+					if(newptr.data == NULL) {
+						ret= Py_None;
+						Py_INCREF(ret);
+					}
+					else {
+						ret= pyrna_struct_CreatePyObject(&newptr);
+					}
 					break;
 				case CTX_DATA_TYPE_COLLECTION:
 					{
@@ -3906,7 +3912,8 @@ static PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 {
 	BPy_StructRNA *pyrna= NULL;
-	
+
+	/* note: don't rely on this to return None since NULL data with a valid type can often crash */
 	if (ptr->data==NULL && ptr->type==NULL) { /* Operator RNA has NULL data */
 		Py_RETURN_NONE;
 	}
