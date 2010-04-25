@@ -607,7 +607,7 @@ typedef enum {
 typedef struct FluidsimModifierData {
 	ModifierData modifier;
 	
-	struct FluidsimSettings *fss; /* definition is is DNA_object_fluidsim.h */
+	struct FluidsimSettings *fss; /* definition is in DNA_object_fluidsim.h */
 	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
 } FluidsimModifierData;
 

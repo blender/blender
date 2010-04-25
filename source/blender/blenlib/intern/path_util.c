@@ -621,7 +621,7 @@ int BLI_path_abs(char *path, const char *basepath)
 		char *lslash= BLI_last_slash(base);
 		if (lslash) {
 			int baselen= (int) (lslash-base) + 1;
-			/* use path for for temp storage here, we copy back over it right away */
+			/* use path for temp storage here, we copy back over it right away */
 			BLI_strncpy(path, tmp+2, FILE_MAX);
 			
 			memcpy(tmp, base, baselen);

@@ -530,7 +530,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 // replica of the hierarchy in order to make cross-links work properly
 // !
 // It is VERY important that the order of sensors and actuators in
-// the replicated object is preserved: it is is used to reconnect the logic.
+// the replicated object is preserved: it is used to reconnect the logic.
 // This method is more robust then using the bricks name in case of complex 
 // group replication. The replication of logic bricks is done in 
 // SCA_IObject::ReParentLogic(), make sure it preserves the order of the bricks.

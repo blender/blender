@@ -3119,7 +3119,7 @@ public:
 	}
 
 	/** This method will be called if an error in the loading process occurred and the loader cannot
-		continue to to load. The writer should undo all operations that have been performed.
+		continue to load. The writer should undo all operations that have been performed.
 		@param errorMessage A message containing informations about the error that occurred.
 	*/
 	virtual void cancel(const COLLADAFW::String& errorMessage)

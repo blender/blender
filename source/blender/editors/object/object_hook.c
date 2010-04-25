@@ -656,7 +656,7 @@ void OBJECT_OT_hook_reset(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Reset Hook";
-	ot->description= "Recalculate and and clear offset transformation";
+	ot->description= "Recalculate and clear offset transformation";
 	ot->idname= "OBJECT_OT_hook_reset";
 	
 	/* callbacks */

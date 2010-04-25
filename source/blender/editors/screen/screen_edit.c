@@ -1492,7 +1492,7 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 	wmWindow *win= CTX_wm_window(C);
 	SpaceLink *sl = sa->spacedata.first;
 	
-	/* if fullscreen area has a secondary space (such as as file browser or fullscreen render 
+	/* if fullscreen area has a secondary space (such as a file browser or fullscreen render 
 	 * overlaid on top of a existing setup) then return to the previous space */
 	
 	if (sl->next) {
