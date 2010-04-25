@@ -103,6 +103,7 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 	{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
 	{SEQ_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
 	{SEQ_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
+	{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

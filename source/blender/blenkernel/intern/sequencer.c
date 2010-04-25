@@ -886,7 +886,8 @@ static void multibuf(ImBuf *ibuf, float fmul)
 	}
 }
 
-static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
+static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se,
+		      int render_size)
 {
 	TStripElem *se1, *se2, *se3;
 	float fac, facf;
@@ -920,7 +921,7 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 
 	if (early_out == -1) { /* no input needed */
 		sh.execute(scene, seq, cfra, fac, facf, 
-			   se->ibuf->x, se->ibuf->y, 
+			   se->ibuf->x, se->ibuf->y, render_size,
 			   0, 0, 0, se->ibuf);
 		return;
 	}
@@ -1008,7 +1009,8 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 		IMB_rect_from_float(se3->ibuf);
 	}
 
-	sh.execute(scene, seq, cfra, fac, facf, x, y, se1->ibuf, se2->ibuf, se3->ibuf,
+	sh.execute(scene, seq, cfra, fac, facf, x, y, render_size,
+		   se1->ibuf, se2->ibuf, se3->ibuf,
 		   se->ibuf);
 }
 
@@ -2023,7 +2025,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			else
 				se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
 			
-			do_effect(scene, cfra, seq, se);
+			do_effect(scene, cfra, seq, se, render_size);
 			if (input_have_to_preprocess(scene, seq, se, cfra,
 						     seqrectx, seqrecty) &&
 				!build_proxy_run) {
@@ -2362,7 +2364,7 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 		test_and_auto_discard_ibuf(se, seqrectx, seqrecty);
 
 		if (se->ibuf == NULL) {
-			se1 = do_build_seq_recursively_impl(scene, seq->seq1, cfra_left, render_size, seqrectx, seqrecty);
+			se1 = do_build_seq_recursively(scene, seq->seq1, cfra_left, render_size, seqrectx, seqrecty);
 
 			if((se1 && se1->ibuf && se1->ibuf->rect_float))
 				se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rectfloat, 0);
@@ -2394,8 +2396,8 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 		}
 
 		if (se->ibuf == NULL) {
-			se1 = do_build_seq_recursively_impl(scene, seq->seq1, cfra_left, render_size, seqrectx, seqrecty);
-			se2 = do_build_seq_recursively_impl(scene, seq->seq1, cfra_right, render_size, seqrectx, seqrecty);
+			se1 = do_build_seq_recursively(scene, seq->seq1, cfra_left, render_size, seqrectx, seqrecty);
+			se2 = do_build_seq_recursively(scene, seq->seq1, cfra_right, render_size, seqrectx, seqrecty);
 
 			if((se1 && se1->ibuf && se1->ibuf->rect_float))
 				se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rectfloat, 0);
@@ -2411,6 +2413,7 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 					   f_cfra - (float) cfra_left, 
 					   f_cfra - (float) cfra_left, 
 					   se->ibuf->x, se->ibuf->y, 
+					   render_size,
 					   se1->ibuf, se2->ibuf, 0, se->ibuf);
 			}
 		}
@@ -2450,6 +2453,11 @@ static TStripElem* do_handle_speed_effect(Scene *scene, Sequence * seq, int cfra
 static TStripElem* do_build_seq_recursively(Scene *scene, Sequence * seq, int cfra, int render_size, int seqrectx, int seqrecty)
 {
 	TStripElem *se;
+
+	/* BAD HACK! Seperate handling for speed effects needed, since
+	   a) you can't just fetch a different cfra within an effect strip
+	   b) we have to blend two frames, and CFRA is not float...
+	*/
 	if (seq->type == SEQ_SPEED) {
 		se = do_handle_speed_effect(scene, seq, cfra, render_size, seqrectx, seqrecty);
 	} else {
@@ -2679,12 +2687,12 @@ static TStripElem* do_build_seq_array_recursively(
 			
 			if (swap_input) {
 				sh.execute(scene, seq, cfra, 
-					   facf, facf, x, y, 
+					   facf, facf, x, y, render_size,
 					   se2->ibuf, se1->ibuf_comp, 0,
 					   se2->ibuf_comp);
 			} else {
 				sh.execute(scene, seq, cfra, 
-					   facf, facf, x, y, 
+					   facf, facf, x, y, render_size,
 					   se1->ibuf_comp, se2->ibuf, 0,
 					   se2->ibuf_comp);
 			}
@@ -2745,6 +2753,26 @@ static ImBuf *give_ibuf_seq_impl(Scene *scene, int rectx, int recty, int cfra, i
 
 	return se->ibuf_comp;
 }
+
+ImBuf *give_ibuf_seqbase(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size, ListBase *seqbasep)
+{
+	TStripElem *se;
+
+	se = do_build_seq_array_recursively(scene, seqbasep, cfra, chanshown, render_size, rectx, recty);
+
+	if(!se) { 
+		return 0;
+	}
+
+	check_limiter_refcount_comp("give_ibuf_seqbase", se);
+
+	if (se->ibuf_comp) {
+		IMB_cache_limiter_unref(se->ibuf_comp);
+	}
+
+	return se->ibuf_comp;
+}
+
 
 ImBuf *give_ibuf_seq_direct(Scene *scene, int rectx, int recty, int cfra, int render_size, Sequence *seq)
 {

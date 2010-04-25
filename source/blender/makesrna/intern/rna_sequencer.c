@@ -297,6 +297,8 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 		case SEQ_MUL:
 		case SEQ_OVERDROP:
 			return &RNA_EffectSequence;
+                case SEQ_MULTICAM:
+                        return &RNA_MulticamSequence;
 		case SEQ_PLUGIN:
 			return &RNA_PluginSequence;
 		case SEQ_WIPE:
@@ -603,6 +605,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", ""}, 
 		{SEQ_COLOR, "COLOR", 0, "Color", ""}, 
 		{SEQ_SPEED, "SPEED", 0, "Speed", ""}, 
+		{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static const EnumPropertyItem blend_mode_items[]= {
@@ -1057,6 +1060,26 @@ static void rna_def_effect(BlenderRNA *brna)
 	rna_def_proxy(srna);
 }
 
+static void rna_def_multicam(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "MulticamSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Multicam Select Sequence", "Sequence strip to perform multicam editing: select channel from below");
+	RNA_def_struct_sdna(srna, "Sequence");
+
+	prop= RNA_def_property(srna, "multicam_source", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "multicam_source");
+	RNA_def_property_range(prop, 0, MAXSEQ-1);
+	RNA_def_property_ui_text(prop, "Multicam Source Channel", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	rna_def_filter_video(srna);
+	rna_def_proxy(srna);
+	rna_def_input(srna);
+}
+
 static void rna_def_plugin(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1305,6 +1328,7 @@ void RNA_def_sequencer(BlenderRNA *brna)
 	rna_def_movie(brna);
 	rna_def_sound(brna);
 	rna_def_effect(brna);
+	rna_def_multicam(brna);
 	rna_def_plugin(brna);
 	rna_def_wipe(brna);
 	rna_def_glow(brna);

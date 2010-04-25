@@ -316,6 +316,7 @@ extern StructRNA RNA_MotionPath;
 extern StructRNA RNA_MotionPathVert;
 extern StructRNA RNA_MouseSensor;
 extern StructRNA RNA_MovieSequence;
+extern StructRNA RNA_MulticamSequence;
 extern StructRNA RNA_MultiresModifier;
 extern StructRNA RNA_MusgraveTexture;
 extern StructRNA RNA_NandController;

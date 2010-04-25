@@ -164,10 +164,11 @@ typedef struct Sequence {
 
 	struct bSound *sound;	/* the linked "bSound" object */
 	void *scene_sound;
-	float volume, pad;
+	float volume;
 
 	float level, pan;	/* level in dB (0=full), pan -1..1 */
 	int scenenr;          /* for scene selection */
+	int multicam_source;  /* for multicam source selection */
 	float strobe;
 
 	void *effectdata;	/* Struct pointer for effect settings */
@@ -306,7 +307,8 @@ typedef struct SpeedControlVars {
 #define SEQ_TRANSFORM		27
 #define SEQ_COLOR               28
 #define SEQ_SPEED               29
-#define SEQ_EFFECT_MAX          29
+#define SEQ_MULTICAM            30
+#define SEQ_EFFECT_MAX          30
 
 #define STRIPELEM_FAILED       0
 #define STRIPELEM_OK           1
