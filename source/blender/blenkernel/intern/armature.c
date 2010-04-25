@@ -1773,20 +1773,13 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *ob, bPoseChannel
 	/* find the root bone and the chain of bones from the root to the tip 
 	 * NOTE: this assumes that the bones are connected, but that may not be true...
 	 */
-	for (pchan= pchan_tip; pchan; pchan= pchan->parent) {
+	for (pchan= pchan_tip; pchan && (segcount < ikData->chainlen); pchan= pchan->parent, segcount++) {
 		/* store this segment in the chain */
 		pchanChain[segcount]= pchan;
 		
 		/* if performing rebinding, calculate the length of the bone */
 		boneLengths[segcount]= pchan->bone->length;
 		totLength += boneLengths[segcount];
-		
-		/* check if we've gotten the number of bones required yet (after incrementing the count first)
-		 * NOTE: the 255 limit here is rather ugly, but the standard IK does this too!
-		 */
-		segcount++;
-		if ((segcount == ikData->chainlen) || (segcount > 255))
-			break;
 	}
 	
 	if (segcount == 0)

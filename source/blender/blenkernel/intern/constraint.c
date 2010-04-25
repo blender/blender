@@ -3750,6 +3750,17 @@ static void splineik_copy (bConstraint *con, bConstraint *srccon)
 	
 	/* copy the binding array */
 	dst->points= MEM_dupallocN(src->points);
+	dst->numpoints= src->numpoints;
+	dst->chainlen= src->chainlen;
+	dst->flag= src->flag;
+	dst->xzScaleMode= src->xzScaleMode;
+}
+
+static void splineik_new_data (void *cdata)
+{
+	bSplineIKConstraint *data= (bSplineIKConstraint *)cdata;
+
+	data->chainlen= 1;
 }
 
 static void splineik_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
@@ -3816,7 +3827,7 @@ static bConstraintTypeInfo CTI_SPLINEIK = {
 	NULL, /* relink data */
 	splineik_id_looper, /* id looper */
 	splineik_copy, /* copy data */
-	NULL, /* new data */
+	splineik_new_data, /* new data */
 	splineik_get_tars, /* get constraint targets */
 	splineik_flush_tars, /* flush constraint targets */
 	splineik_get_tarmat, /* get target matrix */
