@@ -465,7 +465,7 @@ static void rna_ArrayModifier_curve_set(PointerRNA *ptr, PointerRNA value)
 
 static int rna_MeshDeformModifier_is_bound_get(PointerRNA *ptr)
 {
-	return (((MeshDeformModifierData*)ptr->data)->bindcos != NULL);
+	return (((MeshDeformModifierData*)ptr->data)->bindcagecos != NULL);
 }
 
 static PointerRNA rna_SoftBodyModifier_settings_get(PointerRNA *ptr)
