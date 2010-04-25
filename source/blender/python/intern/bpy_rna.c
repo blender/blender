@@ -241,12 +241,22 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		case PROP_EULER:
 		case PROP_QUATERNION:
 			if(len==3) { /* euler */
+				/* attempt to get order */
+				/* TODO, keep order in sync */
+				short order= ROT_MODE_XYZ;
+				PropertyRNA *prop_eul_order= RNA_struct_find_property(ptr, "rotation_mode");
+				if(prop_eul_order) {
+					order = RNA_property_enum_get(ptr, prop_eul_order);
+					if (order < ROT_MODE_XYZ || order > ROT_MODE_ZYX) /* could be quat or axisangle */
+						order= ROT_MODE_XYZ;
+				}
+
 				if(is_thick) {
-					ret= newEulerObject(NULL, 0, Py_NEW, NULL); // TODO, get order from RNA
+					ret= newEulerObject(NULL, order, Py_NEW, NULL); // TODO, get order from RNA
 					RNA_property_float_get_array(ptr, prop, ((EulerObject *)ret)->eul);
 				}
 				else {
-					PyObject *eul_cb= newEulerObject_cb(ret, 0, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
+					PyObject *eul_cb= newEulerObject_cb(ret, order, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
 					Py_DECREF(ret); /* the euler owns now */
 					ret= eul_cb; /* return the euler instead */
 				}

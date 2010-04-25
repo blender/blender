@@ -27,6 +27,8 @@
 #include "BLI_math.h"
 #include "BKE_utildefines.h"
 
+#define COLOR_SIZE 3
+
 //----------------------------------mathutils.Color() -------------------
 //makes a new color for you to play with
 static PyObject *Color_new(PyTypeObject * type, PyObject * args, PyObject * kwargs)
@@ -37,7 +39,7 @@ static PyObject *Color_new(PyTypeObject * type, PyObject * args, PyObject * kwar
 	case 0:
 		break;
 	case 1:
-		if((mathutils_array_parse(col, 3, 3, PyTuple_GET_ITEM(args, 0), "mathutils.Color()")) == -1)
+		if((mathutils_array_parse(col, COLOR_SIZE, COLOR_SIZE, PyTuple_GET_ITEM(args, 0), "mathutils.Color()")) == -1)
 			return NULL;
 		break;
 	default:
@@ -55,15 +57,15 @@ static PyObject *Color_ToTupleExt(ColorObject *self, int ndigits)
 	PyObject *ret;
 	int i;
 
-	ret= PyTuple_New(3);
+	ret= PyTuple_New(COLOR_SIZE);
 
 	if(ndigits >= 0) {
-		for(i= 0; i < 3; i++) {
+		for(i= 0; i < COLOR_SIZE; i++) {
 			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->col[i], ndigits)));
 		}
 	}
 	else {
-		for(i= 0; i < 3; i++) {
+		for(i= 0; i < COLOR_SIZE; i++) {
 			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(self->col[i]));
 		}
 	}
@@ -137,10 +139,10 @@ static PyObject* Color_richcmpr(PyObject *objectA, PyObject *objectB, int compar
 
 	switch (comparison_type){
 		case Py_EQ:
-			result = EXPP_VectorsAreEqual(colA->col, colB->col, 3, 1);
+			result = EXPP_VectorsAreEqual(colA->col, colB->col, COLOR_SIZE, 1);
 			break;
 		case Py_NE:
-			result = !EXPP_VectorsAreEqual(colA->col, colB->col, 3, 1);
+			result = !EXPP_VectorsAreEqual(colA->col, colB->col, COLOR_SIZE, 1);
 			break;
 		default:
 			printf("The result of the comparison could not be evaluated");
@@ -158,15 +160,15 @@ static PyObject* Color_richcmpr(PyObject *objectA, PyObject *objectB, int compar
 //sequence length
 static int Color_len(ColorObject * self)
 {
-	return 3;
+	return COLOR_SIZE;
 }
 //----------------------------object[]---------------------------
 //sequence accessor (get)
 static PyObject *Color_item(ColorObject * self, int i)
 {
-	if(i<0) i= 3-i;
+	if(i<0) i= COLOR_SIZE-i;
 
-	if(i < 0 || i >= 3) {
+	if(i < 0 || i >= COLOR_SIZE) {
 		PyErr_SetString(PyExc_IndexError, "color[attribute]: array index out of range");
 		return NULL;
 	}
@@ -188,9 +190,9 @@ static int Color_ass_item(ColorObject * self, int i, PyObject * value)
 		return -1;
 	}
 
-	if(i<0) i= 3-i;
+	if(i<0) i= COLOR_SIZE-i;
 
-	if(i < 0 || i >= 3){
+	if(i < 0 || i >= COLOR_SIZE){
 		PyErr_SetString(PyExc_IndexError, "color[attribute] = x: array assignment index out of range\n");
 		return -1;
 	}
@@ -212,9 +214,9 @@ static PyObject *Color_slice(ColorObject * self, int begin, int end)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	CLAMP(begin, 0, 3);
-	if (end<0) end= 4+end;
-	CLAMP(end, 0, 3);
+	CLAMP(begin, 0, COLOR_SIZE);
+	if (end<0) end= (COLOR_SIZE + 1) + end;
+	CLAMP(end, 0, COLOR_SIZE);
 	begin = MIN2(begin,end);
 
 	list = PyList_New(end - begin);
@@ -227,61 +229,116 @@ static PyObject *Color_slice(ColorObject * self, int begin, int end)
 }
 //----------------------------object[z:y]------------------------
 //sequence slice (set)
-static int Color_ass_slice(ColorObject * self, int begin, int end,
-				 PyObject * seq)
+static int Color_ass_slice(ColorObject * self, int begin, int end, PyObject * seq)
 {
-	int i, y, size = 0;
-	float col[3];
-	PyObject *e;
+	int i, size;
+	float col[COLOR_SIZE];
 
 	if(!BaseMath_ReadCallback(self))
 		return -1;
 
-	CLAMP(begin, 0, 3);
-	if (end<0) end= 4+end;
-	CLAMP(end, 0, 3);
+	CLAMP(begin, 0, COLOR_SIZE);
+	if (end<0) end= (COLOR_SIZE + 1) + end;
+	CLAMP(end, 0, COLOR_SIZE);
 	begin = MIN2(begin,end);
 
-	size = PySequence_Length(seq);
+	if((size=mathutils_array_parse(col, 0, COLOR_SIZE, seq, "mathutils.Color[begin:end] = []")) == -1)
+		return -1;
+
 	if(size != (end - begin)){
 		PyErr_SetString(PyExc_TypeError, "color[begin:end] = []: size mismatch in slice assignment");
 		return -1;
 	}
 
-	for (i = 0; i < size; i++) {
-		e = PySequence_GetItem(seq, i);
-		if (e == NULL) { // Failed to read sequence
-			PyErr_SetString(PyExc_RuntimeError, "color[begin:end] = []: unable to read sequence");
-			return -1;
-		}
-
-		col[i] = (float)PyFloat_AsDouble(e);
-		Py_DECREF(e);
-
-		if(col[i]==-1 && PyErr_Occurred()) { // parsed item not a number
-			PyErr_SetString(PyExc_TypeError, "color[begin:end] = []: sequence argument not a number");
-			return -1;
-		}
-	}
-	//parsed well - now set in vector
-	for(y = 0; y < 3; y++){
-		self->col[begin + y] = col[y];
-	}
+	for(i= 0; i < COLOR_SIZE; i++)
+		self->col[begin + i] = col[i];
 
 	BaseMath_WriteCallback(self);
 	return 0;
 }
+
+static PyObject *Color_subscript(ColorObject *self, PyObject *item)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i;
+		i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+		if (i < 0)
+			i += COLOR_SIZE;
+		return Color_item(self, i);
+	} else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, COLOR_SIZE, &start, &stop, &step, &slicelength) < 0)
+			return NULL;
+
+		if (slicelength <= 0) {
+			return PyList_New(0);
+		}
+		else if (step == 1) {
+			return Color_slice(self, start, stop);
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with eulers");
+			return NULL;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+				 "euler indices must be integers, not %.200s",
+				 item->ob_type->tp_name);
+		return NULL;
+	}
+}
+
+static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *value)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return -1;
+		if (i < 0)
+			i += COLOR_SIZE;
+		return Color_ass_item(self, i, value);
+	}
+	else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, COLOR_SIZE, &start, &stop, &step, &slicelength) < 0)
+			return -1;
+
+		if (step == 1)
+			return Color_ass_slice(self, start, stop, value);
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with euler");
+			return -1;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+				 "euler indices must be integers, not %.200s",
+				 item->ob_type->tp_name);
+		return -1;
+	}
+}
+
 //-----------------PROTCOL DECLARATIONS--------------------------
 static PySequenceMethods Color_SeqMethods = {
-	(lenfunc) Color_len,						/* sq_length */
-	(binaryfunc) 0,								/* sq_concat */
-	(ssizeargfunc) 0,								/* sq_repeat */
-	(ssizeargfunc) Color_item,					/* sq_item */
-	(ssizessizeargfunc) Color_slice,				/* sq_slice */
-	(ssizeobjargproc) Color_ass_item,				/* sq_ass_item */
-	(ssizessizeobjargproc) Color_ass_slice,			/* sq_ass_slice */
+	(lenfunc) Color_len,					/* sq_length */
+	(binaryfunc) 0,							/* sq_concat */
+	(ssizeargfunc) 0,						/* sq_repeat */
+	(ssizeargfunc) Color_item,				/* sq_item */
+	(ssizessizeargfunc) NULL,				/* sq_slice, deprecated */
+	(ssizeobjargproc) Color_ass_item,		/* sq_ass_item */
+	(ssizessizeobjargproc) NULL,			/* sq_ass_slice, deprecated */
 };
 
+static PyMappingMethods Color_AsMapping = {
+	(lenfunc)Color_len,
+	(binaryfunc)Color_subscript,
+	(objobjargproc)Color_ass_subscript
+};
 
 /* color channel, vector.r/g/b */
 static PyObject *Color_getChannel( ColorObject * self, void *type )
@@ -414,7 +471,7 @@ PyTypeObject color_Type = {
 	(reprfunc) Color_repr,			//tp_repr
 	0,				//tp_as_number
 	&Color_SeqMethods,				//tp_as_sequence
-	0,								//tp_as_mapping
+	&Color_AsMapping,				//tp_as_mapping
 	0,								//tp_hash
 	0,								//tp_call
 	0,								//tp_str
@@ -458,7 +515,6 @@ PyTypeObject color_Type = {
 PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 {
 	ColorObject *self;
-	int x;
 
 	if(base_type)	self = (ColorObject *)base_type->tp_alloc(base_type, 0);
 	else			self = PyObject_NEW(ColorObject, &color_Type);
@@ -470,17 +526,17 @@ PyObject *newColorObject(float *col, int type, PyTypeObject *base_type)
 	if(type == Py_WRAP){
 		self->col = col;
 		self->wrapped = Py_WRAP;
-	}else if (type == Py_NEW){
-		self->col = PyMem_Malloc(3 * sizeof(float));
-		if(!col) { //new empty
-			for(x = 0; x < 3; x++) {
-				self->col[x] = 0.0f;
-			}
-		}else{
-			VECCOPY(self->col, col);
-		}
+	}
+	else if (type == Py_NEW){
+		self->col = PyMem_Malloc(COLOR_SIZE * sizeof(float));
+		if(col)
+			copy_v3_v3(self->col, col);
+		else
+			zero_v3(self->col);
+
 		self->wrapped = Py_NEW;
-	}else{ //bad type
+	}
+	else {
 		return NULL;
 	}
 

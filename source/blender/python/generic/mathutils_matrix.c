@@ -245,7 +245,7 @@ static char Matrix_toEuler_doc[] =
 PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 {
 	char *order_str= NULL;
-	short order= 0;
+	short order= EULER_ORDER_XYZ;
 	float eul[3], eul_compatf[3];
 	EulerObject *eul_compat = NULL;
 
@@ -262,7 +262,7 @@ PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 		if(!BaseMath_ReadCallback(eul_compat))
 			return NULL;
 
-		VECCOPY(eul_compatf, eul_compat->eul);
+		copy_v3_v3(eul_compatf, eul_compat->eul);
 	}
 	
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
@@ -279,16 +279,16 @@ PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 	if(order_str) {
 		order= euler_order_from_string(order_str, "Matrix.to_euler()");
 
-		if(order < 0)
+		if(order == -1)
 			return NULL;
 	}
 
 	if(eul_compat) {
-		if(order == 0)	mat3_to_compatible_eul( eul, eul_compatf, mat);
+		if(order == 1)	mat3_to_compatible_eul( eul, eul_compatf, mat);
 		else			mat3_to_compatible_eulO(eul, eul_compatf, order, mat);
 	}
 	else {
-		if(order == 0)	mat3_to_eul(eul, mat);
+		if(order == 1)	mat3_to_eul(eul, mat);
 		else			mat3_to_eulO(eul, order, mat);
 	}
 

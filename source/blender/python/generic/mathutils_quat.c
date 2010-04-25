@@ -31,6 +31,8 @@
 #include "BLI_math.h"
 #include "BKE_utildefines.h"
 
+#define QUAT_SIZE 4
+
 //-----------------------------METHODS------------------------------
 
 /* note: BaseMath_ReadCallback must be called beforehand */
@@ -39,15 +41,15 @@ static PyObject *Quaternion_ToTupleExt(QuaternionObject *self, int ndigits)
 	PyObject *ret;
 	int i;
 
-	ret= PyTuple_New(4);
+	ret= PyTuple_New(QUAT_SIZE);
 
 	if(ndigits >= 0) {
-		for(i= 0; i < 4; i++) {
+		for(i= 0; i < QUAT_SIZE; i++) {
 			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->quat[i], ndigits)));
 		}
 	}
 	else {
-		for(i= 0; i < 4; i++) {
+		for(i= 0; i < QUAT_SIZE; i++) {
 			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(self->quat[i]));
 		}
 	}
@@ -71,7 +73,7 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 {
 	float eul[3];
 	char *order_str= NULL;
-	short order= 0;
+	short order= EULER_ORDER_XYZ;
 	EulerObject *eul_compat = NULL;
 	
 	if(!PyArg_ParseTuple(args, "|sO!:to_euler", &order_str, &euler_Type, &eul_compat))
@@ -83,7 +85,7 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 	if(order_str) {
 		order= euler_order_from_string(order_str, "Matrix.to_euler()");
 
-		if(order < 0)
+		if(order == -1)
 			return NULL;
 	}
 
@@ -95,12 +97,12 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 		
 		quat_to_mat3(mat, self->quat);
 
-		if(order == 0)	mat3_to_compatible_eul(eul, eul_compat->eul, mat);
-		else			mat3_to_compatible_eulO(eul, eul_compat->eul, order, mat);
+		if(order == EULER_ORDER_XYZ)	mat3_to_compatible_eul(eul, eul_compat->eul, mat);
+		else							mat3_to_compatible_eulO(eul, eul_compat->eul, order, mat);
 	}
 	else {
-		if(order == 0)	quat_to_eul(eul, self->quat);
-		else			quat_to_eulO(eul, order, self->quat);
+		if(order == EULER_ORDER_XYZ)	quat_to_eul(eul, self->quat);
+		else							quat_to_eulO(eul, order, self->quat);
 	}
 	
 	return newEulerObject(eul, order, Py_NEW, NULL);
@@ -138,7 +140,7 @@ static char Quaternion_Cross_doc[] =
 
 static PyObject *Quaternion_Cross(QuaternionObject * self, QuaternionObject * value)
 {
-	float quat[4];
+	float quat[QUAT_SIZE];
 	
 	if (!QuaternionObject_Check(value)) {
 		PyErr_SetString( PyExc_TypeError, "quat.cross(value): expected a quaternion argument" );
@@ -188,7 +190,7 @@ static char Quaternion_Difference_doc[] =
 
 static PyObject *Quaternion_Difference(QuaternionObject * self, QuaternionObject * value)
 {
-	float quat[4], tempQuat[4];
+	float quat[QUAT_SIZE], tempQuat[QUAT_SIZE];
 	double dot = 0.0f;
 	int x;
 
@@ -200,15 +202,11 @@ static PyObject *Quaternion_Difference(QuaternionObject * self, QuaternionObject
 	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 
-	tempQuat[0] = self->quat[0];
-	tempQuat[1] = - self->quat[1];
-	tempQuat[2] = - self->quat[2];
-	tempQuat[3] = - self->quat[3];
+	copy_qt_qt(tempQuat, self->quat);
+	conjugate_qt(tempQuat);
+	dot = sqrt(dot_qtqt(tempQuat, tempQuat));
 
-	dot = sqrt(tempQuat[0] * tempQuat[0] + tempQuat[1] *  tempQuat[1] +
-				   tempQuat[2] * tempQuat[2] + tempQuat[3] * tempQuat[3]);
-
-	for(x = 0; x < 4; x++) {
+	for(x = 0; x < QUAT_SIZE; x++) {
 		tempQuat[x] /= (float)(dot * dot);
 	}
 	mul_qt_qtqt(quat, tempQuat, value->quat);
@@ -230,7 +228,7 @@ static char Quaternion_Slerp_doc[] =
 static PyObject *Quaternion_Slerp(QuaternionObject *self, PyObject *args)
 {
 	QuaternionObject *value;
-	float quat[4], fac;
+	float quat[QUAT_SIZE], fac;
 
 	if(!PyArg_ParseTuple(args, "O!f:slerp", &quaternion_Type, &value, &fac)) {
 		PyErr_SetString(PyExc_TypeError, "quat.slerp(): expected Quaternion types and float");
@@ -415,10 +413,10 @@ static PyObject* Quaternion_richcmpr(PyObject *objectA, PyObject *objectB, int c
 
 	switch (comparison_type){
 		case Py_EQ:
-			result = EXPP_VectorsAreEqual(quatA->quat, quatB->quat, 4, 1);
+			result = EXPP_VectorsAreEqual(quatA->quat, quatB->quat, QUAT_SIZE, 1);
 			break;
 		case Py_NE:
-			result = EXPP_VectorsAreEqual(quatA->quat, quatB->quat, 4, 1);
+			result = EXPP_VectorsAreEqual(quatA->quat, quatB->quat, QUAT_SIZE, 1);
 			if (result == 0){
 				result = 1;
 			}else{
@@ -441,15 +439,15 @@ static PyObject* Quaternion_richcmpr(PyObject *objectA, PyObject *objectB, int c
 //sequence length
 static int Quaternion_len(QuaternionObject * self)
 {
-	return 4;
+	return QUAT_SIZE;
 }
 //----------------------------object[]---------------------------
 //sequence accessor (get)
 static PyObject *Quaternion_item(QuaternionObject * self, int i)
 {
-	if(i<0)	i= 4-i;
+	if(i<0)	i= QUAT_SIZE-i;
 
-	if(i < 0 || i >= 4) {
+	if(i < 0 || i >= QUAT_SIZE) {
 		PyErr_SetString(PyExc_IndexError, "quaternion[attribute]: array index out of range\n");
 		return NULL;
 	}
@@ -470,9 +468,9 @@ static int Quaternion_ass_item(QuaternionObject * self, int i, PyObject * ob)
 		return -1;
 	}
 
-	if(i<0)	i= 4-i;
+	if(i<0)	i= QUAT_SIZE-i;
 
-	if(i < 0 || i >= 4){
+	if(i < 0 || i >= QUAT_SIZE){
 		PyErr_SetString(PyExc_IndexError, "quaternion[attribute] = x: array assignment index out of range\n");
 		return -1;
 	}
@@ -493,9 +491,9 @@ static PyObject *Quaternion_slice(QuaternionObject * self, int begin, int end)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	CLAMP(begin, 0, 4);
-	if (end<0) end= 5+end;
-	CLAMP(end, 0, 4);
+	CLAMP(begin, 0, QUAT_SIZE);
+	if (end<0) end= (QUAT_SIZE + 1) + end;
+	CLAMP(end, 0, QUAT_SIZE);
 	begin = MIN2(begin,end);
 
 	list = PyList_New(end - begin);
@@ -510,52 +508,107 @@ static PyObject *Quaternion_slice(QuaternionObject * self, int begin, int end)
 //sequence slice (set)
 static int Quaternion_ass_slice(QuaternionObject * self, int begin, int end, PyObject * seq)
 {
-	int i, y, size = 0;
-	float quat[4];
-	PyObject *q;
+	int i, size;
+	float quat[QUAT_SIZE];
 
 	if(!BaseMath_ReadCallback(self))
 		return -1;
 
-	CLAMP(begin, 0, 4);
-	if (end<0) end= 5+end;
-	CLAMP(end, 0, 4);
+	CLAMP(begin, 0, QUAT_SIZE);
+	if (end<0) end= (QUAT_SIZE + 1) + end;
+	CLAMP(end, 0, QUAT_SIZE);
 	begin = MIN2(begin,end);
 
-	size = PySequence_Length(seq);
+	if((size=mathutils_array_parse(quat, 0, QUAT_SIZE, seq, "mathutils.Quaternion[begin:end] = []")) == -1)
+		return -1;
+	
 	if(size != (end - begin)){
-		PyErr_SetString(PyExc_TypeError, "quaternion[begin:end] = []: size mismatch in slice assignment\n");
+		PyErr_SetString(PyExc_TypeError, "quaternion[begin:end] = []: size mismatch in slice assignment");
 		return -1;
 	}
 
-	for (i = 0; i < size; i++) {
-		q = PySequence_GetItem(seq, i);
-		if (q == NULL) { // Failed to read sequence
-			PyErr_SetString(PyExc_RuntimeError, "quaternion[begin:end] = []: unable to read sequence\n");
-			return -1;
-		}
-
-		quat[i]= (float)PyFloat_AsDouble(q);
-		Py_DECREF(q);
-
-		if(quat[i]==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
-			PyErr_SetString(PyExc_TypeError, "quaternion[begin:end] = []: sequence argument not a number\n");
-			return -1;
-		}
-	}
-	//parsed well - now set in vector
-	for(y = 0; y < size; y++)
-		self->quat[begin + y] = quat[y];
+	/* parsed well - now set in vector */
+	for(i= 0; i < size; i++)
+		self->quat[begin + i] = quat[i];
 
 	BaseMath_WriteCallback(self);
 	return 0;
 }
+
+
+static PyObject *Quaternion_subscript(QuaternionObject *self, PyObject *item)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i;
+		i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+		if (i < 0)
+			i += QUAT_SIZE;
+		return Quaternion_item(self, i);
+	} else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, QUAT_SIZE, &start, &stop, &step, &slicelength) < 0)
+			return NULL;
+
+		if (slicelength <= 0) {
+			return PyList_New(0);
+		}
+		else if (step == 1) {
+			return Quaternion_slice(self, start, stop);
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with quaternions");
+			return NULL;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+				 "quaternion indices must be integers, not %.200s",
+				 item->ob_type->tp_name);
+		return NULL;
+	}
+}
+
+
+static int Quaternion_ass_subscript(QuaternionObject *self, PyObject *item, PyObject *value)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return -1;
+		if (i < 0)
+			i += QUAT_SIZE;
+		return Quaternion_ass_item(self, i, value);
+	}
+	else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, QUAT_SIZE, &start, &stop, &step, &slicelength) < 0)
+			return -1;
+
+		if (step == 1)
+			return Quaternion_ass_slice(self, start, stop, value);
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with quaternion");
+			return -1;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+				 "quaternion indices must be integers, not %.200s",
+				 item->ob_type->tp_name);
+		return -1;
+	}
+}
+
 //------------------------NUMERIC PROTOCOLS----------------------
 //------------------------obj + obj------------------------------
 //addition
 static PyObject *Quaternion_add(PyObject * q1, PyObject * q2)
 {
-	float quat[4];
+	float quat[QUAT_SIZE];
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
 	if(!QuaternionObject_Check(q1) || !QuaternionObject_Check(q2)) {
@@ -576,7 +629,7 @@ static PyObject *Quaternion_add(PyObject * q1, PyObject * q2)
 static PyObject *Quaternion_sub(PyObject * q1, PyObject * q2)
 {
 	int x;
-	float quat[4];
+	float quat[QUAT_SIZE];
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
 	if(!QuaternionObject_Check(q1) || !QuaternionObject_Check(q2)) {
@@ -590,7 +643,7 @@ static PyObject *Quaternion_sub(PyObject * q1, PyObject * q2)
 	if(!BaseMath_ReadCallback(quat1) || !BaseMath_ReadCallback(quat2))
 		return NULL;
 
-	for(x = 0; x < 4; x++) {
+	for(x = 0; x < QUAT_SIZE; x++) {
 		quat[x] = quat1->quat[x] - quat2->quat[x];
 	}
 
@@ -600,7 +653,7 @@ static PyObject *Quaternion_sub(PyObject * q1, PyObject * q2)
 //mulplication
 static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 {
-	float quat[4], scalar;
+	float quat[QUAT_SIZE], scalar;
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 	VectorObject *vec = NULL;
 
@@ -658,46 +711,52 @@ static PySequenceMethods Quaternion_SeqMethods = {
 	(binaryfunc) 0,								/* sq_concat */
 	(ssizeargfunc) 0,								/* sq_repeat */
 	(ssizeargfunc) Quaternion_item,				/* sq_item */
-	(ssizessizeargfunc) Quaternion_slice,			/* sq_slice */
+	(ssizessizeargfunc) NULL,			/* sq_slice, deprecated */
 	(ssizeobjargproc) Quaternion_ass_item,		/* sq_ass_item */
-	(ssizessizeobjargproc) Quaternion_ass_slice,	/* sq_ass_slice */
+	(ssizessizeobjargproc) NULL,	/* sq_ass_slice, deprecated */
+};
+
+static PyMappingMethods Quaternion_AsMapping = {
+	(lenfunc)Quaternion_len,
+	(binaryfunc)Quaternion_subscript,
+	(objobjargproc)Quaternion_ass_subscript
 };
 
 static PyNumberMethods Quaternion_NumMethods = {
-		(binaryfunc)	Quaternion_add,	/*nb_add*/
-		(binaryfunc)	Quaternion_sub,	/*nb_subtract*/
-		(binaryfunc)	Quaternion_mul,	/*nb_multiply*/
-		0,							/*nb_remainder*/
-		0,							/*nb_divmod*/
-		0,							/*nb_power*/
-		(unaryfunc) 	0,	/*nb_negative*/
-		(unaryfunc) 	0,	/*tp_positive*/
-		(unaryfunc) 	0,	/*tp_absolute*/
-		(inquiry)	0,	/*tp_bool*/
-		(unaryfunc)	0,	/*nb_invert*/
-		0,				/*nb_lshift*/
-		(binaryfunc)0,	/*nb_rshift*/
-		0,				/*nb_and*/
-		0,				/*nb_xor*/
-		0,				/*nb_or*/
-		0,				/*nb_int*/
-		0,				/*nb_reserved*/
-		0,				/*nb_float*/
-		0,				/* nb_inplace_add */
-		0,				/* nb_inplace_subtract */
-		0,				/* nb_inplace_multiply */
-		0,				/* nb_inplace_remainder */
-		0,				/* nb_inplace_power */
-		0,				/* nb_inplace_lshift */
-		0,				/* nb_inplace_rshift */
-		0,				/* nb_inplace_and */
-		0,				/* nb_inplace_xor */
-		0,				/* nb_inplace_or */
-		0,				/* nb_floor_divide */
-		0,				/* nb_true_divide */
-		0,				/* nb_inplace_floor_divide */
-		0,				/* nb_inplace_true_divide */
-		0,				/* nb_index */
+	(binaryfunc)	Quaternion_add,	/*nb_add*/
+	(binaryfunc)	Quaternion_sub,	/*nb_subtract*/
+	(binaryfunc)	Quaternion_mul,	/*nb_multiply*/
+	0,							/*nb_remainder*/
+	0,							/*nb_divmod*/
+	0,							/*nb_power*/
+	(unaryfunc) 	0,	/*nb_negative*/
+	(unaryfunc) 	0,	/*tp_positive*/
+	(unaryfunc) 	0,	/*tp_absolute*/
+	(inquiry)	0,	/*tp_bool*/
+	(unaryfunc)	0,	/*nb_invert*/
+	0,				/*nb_lshift*/
+	(binaryfunc)0,	/*nb_rshift*/
+	0,				/*nb_and*/
+	0,				/*nb_xor*/
+	0,				/*nb_or*/
+	0,				/*nb_int*/
+	0,				/*nb_reserved*/
+	0,				/*nb_float*/
+	0,				/* nb_inplace_add */
+	0,				/* nb_inplace_subtract */
+	0,				/* nb_inplace_multiply */
+	0,				/* nb_inplace_remainder */
+	0,				/* nb_inplace_power */
+	0,				/* nb_inplace_lshift */
+	0,				/* nb_inplace_rshift */
+	0,				/* nb_inplace_and */
+	0,				/* nb_inplace_xor */
+	0,				/* nb_inplace_or */
+	0,				/* nb_floor_divide */
+	0,				/* nb_true_divide */
+	0,				/* nb_inplace_floor_divide */
+	0,				/* nb_inplace_true_divide */
+	0,				/* nb_index */
 };
 
 static PyObject *Quaternion_getAxis( QuaternionObject * self, void *type )
@@ -722,16 +781,11 @@ static PyObject *Quaternion_getAngle( QuaternionObject * self, void *type )
 
 static PyObject *Quaternion_getAxisVec( QuaternionObject * self, void *type )
 {
-	int i;
 	float vec[3];
-	double mag = self->quat[0] * (Py_PI / 180);
-	mag = 2 * (saacos(mag));
-	mag = sin(mag / 2);
-	for(i = 0; i < 3; i++)
-		vec[i] = (float)(self->quat[i + 1] / mag);
-	
-	normalize_v3(vec);
-	//If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations
+
+	normalize_v3_v3(vec, self->quat+1);
+
+	/* If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations */
 	if( EXPP_FloatsAreEqual(vec[0], 0.0f, 10) &&
 		EXPP_FloatsAreEqual(vec[1], 0.0f, 10) &&
 		EXPP_FloatsAreEqual(vec[2], 0.0f, 10) ){
@@ -745,7 +799,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 {
 	PyObject *seq= NULL;
 	double angle = 0.0f;
-	float quat[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	float quat[QUAT_SIZE]= {0.0f, 0.0f, 0.0f, 0.0f};
 
 	if(!PyArg_ParseTuple(args, "|Of:mathutils.Quaternion", &seq, &angle))
 		return NULL;
@@ -754,7 +808,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 	case 0:
 		break;
 	case 1:
-		if (mathutils_array_parse(quat, 4, 4, seq, "mathutils.Quaternion()") == -1)
+		if (mathutils_array_parse(quat, QUAT_SIZE, QUAT_SIZE, seq, "mathutils.Quaternion()") == -1)
 			return NULL;
 		break;
 	case 2:
@@ -816,10 +870,10 @@ PyTypeObject quaternion_Type = {
 	0,								//tp_getattr
 	0,								//tp_setattr
 	0,								//tp_compare
-	(reprfunc) Quaternion_repr,			//tp_repr
-	&Quaternion_NumMethods,				//tp_as_number
-	&Quaternion_SeqMethods,				//tp_as_sequence
-	0,								//tp_as_mapping
+	(reprfunc) Quaternion_repr,		//tp_repr
+	&Quaternion_NumMethods,			//tp_as_number
+	&Quaternion_SeqMethods,			//tp_as_sequence
+	&Quaternion_AsMapping,			//tp_as_mapping
 	0,								//tp_hash
 	0,								//tp_call
 	0,								//tp_str
@@ -875,7 +929,7 @@ PyObject *newQuaternionObject(float *quat, int type, PyTypeObject *base_type)
 		self->quat = quat;
 		self->wrapped = Py_WRAP;
 	}else if (type == Py_NEW){
-		self->quat = PyMem_Malloc(4 * sizeof(float));
+		self->quat = PyMem_Malloc(QUAT_SIZE * sizeof(float));
 		if(!quat) { //new empty
 			unit_qt(self->quat);
 		}else{
