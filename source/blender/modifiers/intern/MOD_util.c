@@ -40,8 +40,10 @@
 #include "BKE_mesh.h"
 #include "BKE_displist.h"
 #include "BKE_utildefines.h"
+#include "BKE_modifier.h"
 
 #include "MOD_util.h"
+#include "MOD_modifiertypes.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -164,4 +166,47 @@ DerivedMesh *get_dm(struct Scene *scene, Object *ob, struct EditMesh *em, Derive
 	}
 
 	return dm;
+}
+
+/* only called by BKE_modifier.h/modifier.c */
+void modifier_type_init(ModifierTypeInfo *types[], ModifierType type)
+{
+	memset(types, 0, sizeof(types));
+#define INIT_TYPE(typeName) (types[eModifierType_##typeName] = &modifierType_##typeName)
+	INIT_TYPE(None);
+	INIT_TYPE(Curve);
+	INIT_TYPE(Lattice);
+	INIT_TYPE(Subsurf);
+	INIT_TYPE(Build);
+	INIT_TYPE(Array);
+	INIT_TYPE(Mirror);
+	INIT_TYPE(EdgeSplit);
+	INIT_TYPE(Bevel);
+	INIT_TYPE(Displace);
+	INIT_TYPE(UVProject);
+	INIT_TYPE(Decimate);
+	INIT_TYPE(Smooth);
+	INIT_TYPE(Cast);
+	INIT_TYPE(Wave);
+	INIT_TYPE(Armature);
+	INIT_TYPE(Hook);
+	INIT_TYPE(Softbody);
+	INIT_TYPE(Cloth);
+	INIT_TYPE(Collision);
+	INIT_TYPE(Boolean);
+	INIT_TYPE(MeshDeform);
+	INIT_TYPE(ParticleSystem);
+	INIT_TYPE(ParticleInstance);
+	INIT_TYPE(Explode);
+	INIT_TYPE(Shrinkwrap);
+	INIT_TYPE(Fluidsim);
+	INIT_TYPE(Mask);
+	INIT_TYPE(SimpleDeform);
+	INIT_TYPE(Multires);
+	INIT_TYPE(Surface);
+	INIT_TYPE(Smoke);
+	INIT_TYPE(ShapeKey);
+	INIT_TYPE(Solidify);
+	INIT_TYPE(Screw);
+#undef INIT_TYPE
 }

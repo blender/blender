@@ -369,8 +369,8 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_python 
 		bf_gen_python 
 		bf_ikplugin
-		bf_blenkernel
 		bf_modifiers
+		bf_blenkernel
 		bf_nodes
 		bf_gpu
 		bf_blenloader
