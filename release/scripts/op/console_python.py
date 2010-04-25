@@ -55,6 +55,13 @@ def get_console(console_id):
 
     try:
         console, stdout, stderr = consoles[console_id]
+        
+        # XXX, bug in python 3.1.2 ?
+        # seems there is no way to clear StringIO objects for writing, have to make new ones each time.
+        import io
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        
     except:
         namespace = {'__builtins__': __builtins__, 'bpy': bpy}
         console = InteractiveConsole(namespace)
@@ -190,7 +197,7 @@ def banner(context):
     add_scrollback("Execute:          Enter", 'OUTPUT')
     add_scrollback("Autocomplete:     Ctrl+Space", 'OUTPUT')
     add_scrollback("Ctrl +/-  Wheel:  Zoom", 'OUTPUT')
-    add_scrollback("Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, bgl, blf, mathutils, Geometry", 'OUTPUT')
+    add_scrollback("Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, bgl, blf, mathutils, geometry", 'OUTPUT')
     add_scrollback("", 'OUTPUT')
     add_scrollback("  WARNING!!! Blender 2.5 API is subject to change, see API reference for more info.", 'ERROR')
     add_scrollback("", 'OUTPUT')
