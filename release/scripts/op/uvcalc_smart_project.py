@@ -199,7 +199,7 @@ def pointInEdges(pt, edges):
 """
 
 def pointInIsland(pt, island):
-    vec1 = Vector(); vec2 = Vector(); vec3 = Vector()
+    vec1, vec2, vec3 = Vector(), Vector(), Vector()
     for f in island:
         vec1.x, vec1.y = f.uv[0]
         vec2.x, vec2.y = f.uv[1]
@@ -389,7 +389,7 @@ def mergeUvIslands(islandList):
         w, h = maxx-minx, maxy-miny
 
         totFaceArea = 0
-        offset= Vector(minx, miny)
+        offset= Vector((minx, miny))
         for f in islandList[islandIdx]:
             for uv in f.uv:
                 uv -= offset
@@ -513,7 +513,7 @@ def mergeUvIslands(islandList):
 
                             ##testcount+=1
                             #print 'Testing intersect'
-                            Intersect = islandIntersectUvIsland(sourceIsland, targetIsland, Vector(boxLeft, boxBottom))
+                            Intersect = islandIntersectUvIsland(sourceIsland, targetIsland, Vector((boxLeft, boxBottom)))
                             #print 'Done', Intersect
                             if Intersect == 1:  # Line intersect, dont bother with this any more
                                 pass
@@ -539,7 +539,7 @@ def mergeUvIslands(islandList):
 
                                 # Move faces into new island and offset
                                 targetIsland[0].extend(sourceIsland[0])
-                                offset= Vector(boxLeft, boxBottom)
+                                offset= Vector((boxLeft, boxBottom))
 
                                 for f in sourceIsland[0]:
                                     for uv in f.uv:
@@ -564,7 +564,7 @@ def mergeUvIslands(islandList):
 
 
                                 targetIsland[7].extend(sourceIsland[7])
-                                offset= Vector(boxLeft, boxBottom, 0)
+                                offset= Vector((boxLeft, boxBottom, 0.0))
                                 for p in sourceIsland[7]:
                                     p+= offset
 
@@ -780,9 +780,9 @@ def packIslands(islandList):
 def VectoMat(vec):
     a3 = vec.__copy__().normalize()
 
-    up = Vector(0,0,1)
+    up = Vector((0.0, 0.0, 1.0))
     if abs(a3.dot(up)) == 1.0:
-        up = Vector(0,1,0)
+        up = Vector((0.0, 1.0, 0.0))
 
     a1 = a3.cross(up).normalize()
     a2 = a3.cross(a1)
@@ -963,7 +963,7 @@ def main(context, island_margin, projection_limit):
                     newProjectMeshFaces.append(tempMeshFaces.pop(fIdx))
 
             # Add the average of all these faces normals as a projectionVec
-            averageVec = Vector(0,0,0)
+            averageVec = Vector(0.0, 0.0, 0.0)
             if USER_AREA_WEIGHT:
                 for fprop in newProjectMeshFaces:
                     averageVec += (fprop.no * fprop.area)

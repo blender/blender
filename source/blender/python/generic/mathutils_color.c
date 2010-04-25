@@ -31,50 +31,20 @@
 //makes a new color for you to play with
 static PyObject *Color_new(PyTypeObject * type, PyObject * args, PyObject * kwargs)
 {
-	PyObject *listObject = NULL;
-	int size, i;
-	float col[3];
-	PyObject *e;
+	float col[3]= {0.0f, 0.0f, 0.0f};
 
-
-	size = PyTuple_GET_SIZE(args);
-	if (size == 1) {
-		listObject = PyTuple_GET_ITEM(args, 0);
-		if (PySequence_Check(listObject)) {
-			size = PySequence_Length(listObject);
-		} else { // Single argument was not a sequence
-			PyErr_SetString(PyExc_TypeError, "mathutils.Color(): 3d numeric sequence expected\n");
+	switch(PyTuple_GET_SIZE(args)) {
+	case 0:
+		break;
+	case 1:
+		if((mathutils_array_parse(col, 3, 3, PyTuple_GET_ITEM(args, 0), "mathutils.Color()")) == -1)
 			return NULL;
-		}
-	} else if (size == 0) {
-		//returns a new empty 3d color
-		return newColorObject(NULL, Py_NEW, NULL);
-	} else {
-		listObject = args;
-	}
-
-	if (size != 3) { // Invalid color size
-		PyErr_SetString(PyExc_AttributeError, "mathutils.Color(): 3d numeric sequence expected\n");
+		break;
+	default:
+		PyErr_SetString(PyExc_TypeError, "mathutils.Color(): more then a single arg given");
 		return NULL;
 	}
-
-	for (i=0; i<size; i++) {
-		e = PySequence_GetItem(listObject, i);
-		if (e == NULL) { // Failed to read sequence
-			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_RuntimeError, "mathutils.Color(): 3d numeric sequence expected\n");
-			return NULL;
-		}
-
-		col[i]= (float)PyFloat_AsDouble(e);
-		Py_DECREF(e);
-
-		if(col[i]==-1 && PyErr_Occurred()) { // parsed item is not a number
-			PyErr_SetString(PyExc_TypeError, "mathutils.Color(): 3d numeric sequence expected\n");
-			return NULL;
-		}
-	}
-	return newColorObject(col, Py_NEW, NULL);
+	return newColorObject(col, Py_NEW, type);
 }
 
 //-----------------------------METHODS----------------------------
@@ -131,7 +101,7 @@ static PyObject *Color_repr(ColorObject * self)
 
 	tuple= Color_ToTupleExt(self, -1);
 
-	ret= PyUnicode_FromFormat("Color%R", tuple);
+	ret= PyUnicode_FromFormat("Color(%R)", tuple);
 
 	Py_DECREF(tuple);
 	return ret;
@@ -363,6 +333,43 @@ static int Color_setChannelHSV(ColorObject * self, PyObject * value, void * type
 	return 0;
 }
 
+/* color channel (HSV), color.h/s/v */
+static PyObject *Color_getHSV(ColorObject * self, void *type)
+{
+	float hsv[3];
+	PyObject *ret;
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	rgb_to_hsv(self->col[0], self->col[1], self->col[2], &(hsv[0]), &(hsv[1]), &(hsv[2]));
+
+	ret= PyTuple_New(3);
+	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(hsv[0]));
+	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(hsv[1]));
+	PyTuple_SET_ITEM(ret, 2, PyFloat_FromDouble(hsv[2]));
+	return ret;
+}
+
+static int Color_setHSV(ColorObject * self, PyObject * value, void * type)
+{
+	float hsv[3];
+
+	if(mathutils_array_parse(hsv, 3, 3, value, "mathutils.Color.hsv = value") == -1)
+		return -1;
+
+	CLAMP(hsv[0], 0.0f, 1.0f);
+	CLAMP(hsv[1], 0.0f, 1.0f);
+	CLAMP(hsv[2], 0.0f, 1.0f);
+
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &(self->col[0]), &(self->col[1]), &(self->col[2]));
+
+	if(!BaseMath_WriteCallback(self))
+		return -1;
+
+	return 0;
+}
+
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
@@ -374,6 +381,8 @@ static PyGetSetDef Color_getseters[] = {
 	{"h", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Hue component in [0, 1]. **type** float", (void *)0},
 	{"s", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Saturation component in [0, 1]. **type** float", (void *)1},
 	{"v", (getter)Color_getChannelHSV, (setter)Color_setChannelHSV, "HSV Value component in [0, 1]. **type** float", (void *)2},
+
+	{"hsv", (getter)Color_getHSV, (setter)Color_setHSV, "HSV Values in [0, 1]. **type** float triplet", (void *)0},
 
 	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
 	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},

@@ -381,7 +381,7 @@ static PyObject *Quaternion_repr(QuaternionObject * self)
 
 	tuple= Quaternion_ToTupleExt(self, -1);
 
-	ret= PyUnicode_FromFormat("Quaternion%R", tuple);
+	ret= PyUnicode_FromFormat("Quaternion(%R)", tuple);
 
 	Py_DECREF(tuple);
 	return ret;
@@ -743,94 +743,27 @@ static PyObject *Quaternion_getAxisVec( QuaternionObject * self, void *type )
 //----------------------------------mathutils.Quaternion() --------------
 static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-	PyObject *listObject = NULL, *n, *q;
-	int size, i;
-	float quat[4];
+	PyObject *seq= NULL;
 	double angle = 0.0f;
+	float quat[4]= {0.0f, 0.0f, 0.0f, 0.0f};
 
-	size = PyTuple_GET_SIZE(args);
-	if (size == 1 || size == 2) { //seq?
-		listObject = PyTuple_GET_ITEM(args, 0);
-		if (PySequence_Check(listObject)) {
-			size = PySequence_Length(listObject);
-			if ((size == 4 && PySequence_Length(args) !=1) ||
-				(size == 3 && PySequence_Length(args) !=2) || (size >4 || size < 3)) {
-				// invalid args/size
-				PyErr_SetString(PyExc_AttributeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-				return NULL;
-			}
-			   if(size == 3){ //get angle in axis/angle
-				n = PySequence_GetItem(args, 1);
-				if(n == NULL) { // parsed item not a number or getItem fail
-					PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-					return NULL;
-				}
+	if(!PyArg_ParseTuple(args, "|Of:mathutils.Quaternion", &seq, &angle))
+		return NULL;
 
-				angle = PyFloat_AsDouble(n);
-				Py_DECREF(n);
-
-				if (angle==-1 && PyErr_Occurred()) {
-					PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-					return NULL;
-				}
-			}
-		}else{
-			listObject = PyTuple_GET_ITEM(args, 1);
-			if (size>1 && PySequence_Check(listObject)) {
-				size = PySequence_Length(listObject);
-				if (size != 3) {
-					// invalid args/size
-					PyErr_SetString(PyExc_AttributeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-					return NULL;
-				}
-				angle = PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
-
-				if (angle==-1 && PyErr_Occurred()) {
-					PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-					return NULL;
-				}
-			} else { // argument was not a sequence
-				PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-				return NULL;
-			}
-		}
-	} else if (size == 0) { //returns a new empty quat
-		return newQuaternionObject(NULL, Py_NEW, NULL);
-	} else {
-		listObject = args;
-	}
-
-	if (size == 3) { // invalid quat size
-		if(PySequence_Length(args) != 2){
-			PyErr_SetString(PyExc_AttributeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+	switch(PyTuple_GET_SIZE(args)) {
+	case 0:
+		break;
+	case 1:
+		if (mathutils_array_parse(quat, 4, 4, seq, "mathutils.Quaternion()") == -1)
 			return NULL;
-		}
-	}else{
-		if(size != 4){
-			PyErr_SetString(PyExc_AttributeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
+		break;
+	case 2:
+		if (mathutils_array_parse(quat, 3, 3, seq, "mathutils.Quaternion()") == -1)
 			return NULL;
-		}
-	}
-
-	for (i=0; i<size; i++) { //parse
-		q = PySequence_GetItem(listObject, i);
-		if (q == NULL) { // Failed to read sequence
-			PyErr_SetString(PyExc_RuntimeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-			return NULL;
-		}
-
-		quat[i] = PyFloat_AsDouble(q);
-		Py_DECREF(q);
-
-		if (quat[i]==-1 && PyErr_Occurred()) {
-			PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
-			return NULL;
-		}
-	}
-
-	if(size == 3) //calculate the quat based on axis/angle
 		axis_angle_to_quat(quat, quat, angle);
-
+		break;
+	/* PyArg_ParseTuple assures no more then 2 */
+	}
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 

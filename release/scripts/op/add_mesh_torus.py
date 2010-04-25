@@ -39,8 +39,8 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
         for minor_index in range(minor_seg):
             angle = 2 * pi * minor_index / minor_seg
 
-            vec = Vector(major_rad + (cos(angle) * minor_rad), 0.0,
-                        (sin(angle) * minor_rad)) * quat
+            vec = Vector((major_rad + (cos(angle) * minor_rad), 0.0,
+                        (sin(angle) * minor_rad))) * quat
 
             verts.extend([vec.x, vec.y, vec.z])
 

@@ -115,4 +115,7 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
 #define BaseMath_ReadIndexCallback(_self, _index) (((_self)->cb_user ?	_BaseMathObject_ReadIndexCallback((BaseMathObject *)_self, _index):1))
 #define BaseMath_WriteIndexCallback(_self, _index) (((_self)->cb_user ?	_BaseMathObject_WriteIndexCallback((BaseMathObject *)_self, _index):1))
 
+/* utility func */
+int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix);
+
 #endif				/* EXPP_Mathutils_H */

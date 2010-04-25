@@ -39,48 +39,26 @@
 //makes a new euler for you to play with
 static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwargs)
 {
-	PyObject *listObject = NULL;
-	int size, i;
-	float eul[3];
-	PyObject *e;
-	short order= 0;  // TODO, add order option
+	PyObject *seq= NULL;
+	char *order_str= NULL;
 
-	size = PyTuple_GET_SIZE(args);
-	if (size == 1) {
-		listObject = PyTuple_GET_ITEM(args, 0);
-		if (PySequence_Check(listObject)) {
-			size = PySequence_Length(listObject);
-		} else { // Single argument was not a sequence
-			PyErr_SetString(PyExc_TypeError, "mathutils.Euler(): 3d numeric sequence expected\n");
-			return NULL;
-		}
-	} else if (size == 0) {
-		//returns a new empty 3d euler
-		return newEulerObject(NULL, order, Py_NEW, NULL);
-	} else {
-		listObject = args;
-	}
+	float eul[3]= {0.0f, 0.0f, 0.0f};
+	short order= 0;
 
-	if (size != 3) { // Invalid euler size
-		PyErr_SetString(PyExc_AttributeError, "mathutils.Euler(): 3d numeric sequence expected\n");
+	if(!PyArg_ParseTuple(args, "|Os:mathutils.Euler", &seq, &order_str))
 		return NULL;
-	}
 
-	for (i=0; i<size; i++) {
-		e = PySequence_GetItem(listObject, i);
-		if (e == NULL) { // Failed to read sequence
-			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_RuntimeError, "mathutils.Euler(): 3d numeric sequence expected\n");
+	switch(PyTuple_GET_SIZE(args)) {
+	case 0:
+		break;
+	case 2:
+		if((order=euler_order_from_string(order_str, "mathutils.Euler()")) == -1)
 			return NULL;
-		}
-
-		eul[i]= (float)PyFloat_AsDouble(e);
-		Py_DECREF(e);
-		
-		if(eul[i]==-1 && PyErr_Occurred()) { // parsed item is not a number
-			PyErr_SetString(PyExc_TypeError, "mathutils.Euler(): 3d numeric sequence expected\n");
+		/* intentionally pass through */
+	case 1:
+		if (mathutils_array_parse(eul, 3, 3, seq, "mathutils.Euler()") == -1)
 			return NULL;
-		}
+		break;
 	}
 	return newEulerObject(eul, order, Py_NEW, NULL);
 }
@@ -353,7 +331,7 @@ static PyObject *Euler_repr(EulerObject * self)
 
 	tuple= Euler_ToTupleExt(self, -1);
 
-	ret= PyUnicode_FromFormat("Euler%R", tuple);
+	ret= PyUnicode_FromFormat("Euler(%R)", tuple);
 
 	Py_DECREF(tuple);
 	return ret;

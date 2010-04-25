@@ -65,7 +65,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
         # get the direction of the vectors between the vertex and it's connected vertices
         for c in con[i]:
-            vec += Vector(me.verts[c].co - co).normalize()
+            vec += (me.verts[c].co - co).normalize()
 
         # normalize the vector by dividing by the number of connected verts
         tot_con = len(con[i])

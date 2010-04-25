@@ -47,47 +47,19 @@ static PyObject *Vector_ToTupleExt(VectorObject *self, int ndigits);
 // accepted. Mixed float and int values accepted. Ints are parsed to float 
 static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-	PyObject *listObject = NULL;
-	int size, i;
-	float vec[4], f;
-	PyObject *v;
+	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	int size= 3; /* default to a 3D vector */
 
-	size = PyTuple_GET_SIZE(args); /* we know its a tuple because its an arg */
-	if (size == 1) {
-		listObject = PyTuple_GET_ITEM(args, 0);
-		if (PySequence_Check(listObject)) {
-			size = PySequence_Length(listObject);
-		} else { // Single argument was not a sequence
-			PyErr_SetString(PyExc_TypeError, "mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+	switch(PyTuple_GET_SIZE(args)) {
+	case 0:
+		break;
+	case 1:
+		if((size=mathutils_array_parse(vec, 2, 4, PyTuple_GET_ITEM(args, 0), "mathutils.Vector()")) == -1)
 			return NULL;
-		}
-	} else if (size == 0) {
-		//returns a new empty 3d vector
-		return newVectorObject(NULL, 3, Py_NEW, type);
-	} else {
-		listObject = args;
-	}
-
-	if (size<2 || size>4) { // Invalid vector size
-		PyErr_SetString(PyExc_AttributeError, "mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
+		break;
+	default:
+		PyErr_SetString(PyExc_TypeError, "mathutils.Vector(): more then a single arg given");
 		return NULL;
-	}
-
-	for (i=0; i<size; i++) {
-		v=PySequence_GetItem(listObject, i);
-		if (v==NULL) { // Failed to read sequence
-			PyErr_SetString(PyExc_RuntimeError, "mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
-			return NULL;
-		}
-
-		if((f=PyFloat_AsDouble(v)) == -1 && PyErr_Occurred()) { // parsed item not a number
-			Py_DECREF(v);
-			PyErr_SetString(PyExc_TypeError, "mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
-			return NULL;
-		}
-
-		vec[i]= f;
-		Py_DECREF(v);
 	}
 	return newVectorObject(vec, size, Py_NEW, type);
 }
@@ -726,7 +698,7 @@ static PyObject *Vector_repr(VectorObject *self)
 		return NULL;
 
 	tuple= Vector_ToTupleExt(self, -1);
-	ret= PyUnicode_FromFormat("Vector%R", tuple);
+	ret= PyUnicode_FromFormat("Vector(%R)", tuple);
 	Py_DECREF(tuple);
 	return ret;
 }
@@ -1488,8 +1460,8 @@ static int Vector_setLength(VectorObject *self, PyObject * value )
    in Vector_createSwizzleGetSeter. */
 static PyObject *Vector_getSwizzle(VectorObject *self, void *closure)
 {
-	size_t axisA;
-	size_t axisB;
+	size_t axis_to;
+	size_t axis_from;
 	float vec[MAX_DIMENSIONS];
 	unsigned int swizzleClosure;
 	
@@ -1497,22 +1469,22 @@ static PyObject *Vector_getSwizzle(VectorObject *self, void *closure)
 		return NULL;
 	
 	/* Unpack the axes from the closure into an array. */
-	axisA = 0;
+	axis_to = 0;
 	swizzleClosure = GET_INT_FROM_POINTER(closure);
 	while (swizzleClosure & SWIZZLE_VALID_AXIS)
 	{
-		axisB = swizzleClosure & SWIZZLE_AXIS;
-		if(axisB >= self->size) {
+		axis_from = swizzleClosure & SWIZZLE_AXIS;
+		if(axis_from >= self->size) {
 			PyErr_SetString(PyExc_AttributeError, "Error: vector does not have specified axis.");
 			return NULL;
 		}
 
-		vec[axisA] = self->vec[axisB];
+		vec[axis_to] = self->vec[axis_from];
 		swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
-		axisA++;
+		axis_to++;
 	}
 	
-	return newVectorObject(vec, axisA, Py_NEW, Py_TYPE(self));
+	return newVectorObject(vec, axis_to, Py_NEW, Py_TYPE(self));
 }
 
 /* Set the items of this vector using a swizzle.
@@ -1527,16 +1499,16 @@ static PyObject *Vector_getSwizzle(VectorObject *self, void *closure)
    unchanged. */
 static int Vector_setSwizzle(VectorObject *self, PyObject * value, void *closure)
 {
-	VectorObject *vecVal = NULL;
-	PyObject *item;
-	size_t listLen;
+	size_t size_from;
 	float scalarVal;
 
-	size_t axisB;
-	size_t axisA;
+	size_t axis_from;
+	size_t axis_to;
+
 	unsigned int swizzleClosure;
 	
-	float vecTemp[MAX_DIMENSIONS];
+	float tvec[MAX_DIMENSIONS];
+	float vec_assign[MAX_DIMENSIONS];
 	
 	if(!BaseMath_ReadCallback(self))
 		return -1;
@@ -1544,94 +1516,48 @@ static int Vector_setSwizzle(VectorObject *self, PyObject * value, void *closure
 	/* Check that the closure can be used with this vector: even 2D vectors have
 	   swizzles defined for axes z and w, but they would be invalid. */
 	swizzleClosure = GET_INT_FROM_POINTER(closure);
+	axis_from= 0;
 	while (swizzleClosure & SWIZZLE_VALID_AXIS)
 	{
-		axisA = swizzleClosure & SWIZZLE_AXIS;
-		if (axisA >= self->size)
+		axis_to = swizzleClosure & SWIZZLE_AXIS;
+		if (axis_to >= self->size)
 		{
 			PyErr_SetString(PyExc_AttributeError, "Error: vector does not have specified axis.\n");
 			return -1;
 		}
 		swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
+		axis_from++;
 	}
-	
-	if (VectorObject_Check(value))
-	{
-		/* Copy vector contents onto swizzled axes. */
-		vecVal = (VectorObject*) value;
-		axisB = 0;
-		swizzleClosure = GET_INT_FROM_POINTER(closure);
-		while (swizzleClosure & SWIZZLE_VALID_AXIS && axisB < vecVal->size)
-		{
-			axisA = swizzleClosure & SWIZZLE_AXIS;
 
-			if(axisB >= vecVal->size) {
-				PyErr_SetString(PyExc_AttributeError, "Error: vector does not have specified axis.");
-				return -1;
-			}
+	if (((scalarVal=PyFloat_AsDouble(value)) == -1 && PyErr_Occurred())==0) {
+		int i;
+		for(i=0; i < MAX_DIMENSIONS; i++)
+			vec_assign[i]= scalarVal;
 
-			vecTemp[axisA] = vecVal->vec[axisB];
-			
-			swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
-			axisB++;
-		}
-
-		if(axisB != vecVal->size) {
-			PyErr_SetString(PyExc_AttributeError, "Error: vector size does not match swizzle.\n");
-			return -1;
-		}
-
-		memcpy(self->vec, vecTemp, axisB * sizeof(float));
-		/* continue with BaseMathObject_WriteCallback at the end */
+		size_from= axis_from;
 	}
-	else if (PyList_Check(value))
-	{
-		/* Copy list contents onto swizzled axes. */
-		listLen = PyList_GET_SIZE(value);
-		swizzleClosure = GET_INT_FROM_POINTER(closure);
-		axisB = 0;
-		while (swizzleClosure & SWIZZLE_VALID_AXIS && axisB < listLen)
-		{
-			item = PyList_GET_ITEM(value, axisB);
-
-			if((scalarVal=PyFloat_AsDouble(item))==-1.0 && PyErr_Occurred()) {
-				PyErr_SetString(PyExc_AttributeError, "Error: list item could not be used as a float.\n");
-				return -1;
-			}
-			
-			
-			axisA= swizzleClosure & SWIZZLE_AXIS;
-			vecTemp[axisA] = scalarVal;
-			
-			swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
-			axisB++;
-		}
-
-		if(axisB != listLen) {
-			PyErr_SetString(PyExc_AttributeError, "Error: list size does not match swizzle.\n");
-			return -1;
-		}
-
-		memcpy(self->vec, vecTemp, axisB * sizeof(float));
-		/* continue with BaseMathObject_WriteCallback at the end */
-	}
-	else if (((scalarVal=PyFloat_AsDouble(value)) == -1 && PyErr_Occurred())==0)
-	{
-		/* Assign the same value to each axis. */
-		swizzleClosure = GET_INT_FROM_POINTER(closure);
-		while (swizzleClosure & SWIZZLE_VALID_AXIS)
-		{
-			axisA = swizzleClosure & SWIZZLE_AXIS;
-			self->vec[axisA] = scalarVal;
-			
-			swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
-		}
-		/* continue with BaseMathObject_WriteCallback at the end */
-	}
-	else {
-		PyErr_SetString( PyExc_TypeError, "Expected a Vector, list or scalar value." );
+	else if((size_from=mathutils_array_parse(vec_assign, 2, 4, value, "mathutils.Vector.**** = swizzle assignment")) == -1) {
 		return -1;
 	}
+
+	if(axis_from != size_from) {
+		PyErr_SetString(PyExc_AttributeError, "Error: vector size does not match swizzle.\n");
+		return -1;
+	}
+
+	/* Copy vector contents onto swizzled axes. */
+	axis_from = 0;
+	swizzleClosure = GET_INT_FROM_POINTER(closure);
+	while (swizzleClosure & SWIZZLE_VALID_AXIS)
+	{
+		axis_to = swizzleClosure & SWIZZLE_AXIS;
+		tvec[axis_to] = vec_assign[axis_from];
+		swizzleClosure = swizzleClosure >> SWIZZLE_BITS_PER_AXIS;
+		axis_from++;
+	}
+
+	memcpy(self->vec, tvec, axis_from * sizeof(float));
+	/* continue with BaseMathObject_WriteCallback at the end */
 	
 	if(!BaseMath_WriteCallback(self))
 		return -1;
