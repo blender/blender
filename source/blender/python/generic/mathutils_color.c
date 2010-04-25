@@ -79,8 +79,27 @@ static PyObject *Color_new(PyTypeObject * type, PyObject * args, PyObject * kwar
 
 //-----------------------------METHODS----------------------------
 
-//----------------------------Color.rotate()-----------------------
-// return a copy of the color
+/* note: BaseMath_ReadCallback must be called beforehand */
+static PyObject *Color_ToTupleExt(ColorObject *self, int ndigits)
+{
+	PyObject *ret;
+	int i;
+
+	ret= PyTuple_New(3);
+
+	if(ndigits >= 0) {
+		for(i= 0; i < 3; i++) {
+			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->col[i], ndigits)));
+		}
+	}
+	else {
+		for(i= 0; i < 3; i++) {
+			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(self->col[i]));
+		}
+	}
+
+	return ret;
+}
 
 static char Color_copy_doc[] =
 ".. function:: copy()\n"
@@ -102,25 +121,22 @@ static PyObject *Color_copy(ColorObject * self, PyObject *args)
 
 //----------------------------print object (internal)--------------
 //print the object to screen
+
 static PyObject *Color_repr(ColorObject * self)
 {
-	PyObject *r, *g, *b, *ret;
-
+	PyObject *ret, *tuple;
+	
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	r= PyFloat_FromDouble(self->col[0]);
-	g= PyFloat_FromDouble(self->col[1]);
-	b= PyFloat_FromDouble(self->col[2]);
+	tuple= Color_ToTupleExt(self, -1);
 
-	ret= PyUnicode_FromFormat("Color(%R, %R, %R)", r, g, b);
+	ret= PyUnicode_FromFormat("Color%R", tuple);
 
-	Py_DECREF(r);
-	Py_DECREF(g);
-	Py_DECREF(b);
-
+	Py_DECREF(tuple);
 	return ret;
 }
+
 //------------------------tp_richcmpr
 //returns -1 execption, 0 false, 1 true
 static PyObject* Color_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)

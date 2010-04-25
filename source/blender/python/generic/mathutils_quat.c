@@ -32,6 +32,29 @@
 #include "BKE_utildefines.h"
 
 //-----------------------------METHODS------------------------------
+
+/* note: BaseMath_ReadCallback must be called beforehand */
+static PyObject *Quaternion_ToTupleExt(QuaternionObject *self, int ndigits)
+{
+	PyObject *ret;
+	int i;
+
+	ret= PyTuple_New(4);
+
+	if(ndigits >= 0) {
+		for(i= 0; i < 4; i++) {
+			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->quat[i], ndigits)));
+		}
+	}
+	else {
+		for(i= 0; i < 4; i++) {
+			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(self->quat[i]));
+		}
+	}
+
+	return ret;
+}
+
 static char Quaternion_ToEuler_doc[] =
 ".. method:: to_euler(order, euler_compat)\n"
 "\n"
@@ -351,25 +374,19 @@ static PyObject *Quaternion_copy(QuaternionObject * self)
 //print the object to screen
 static PyObject *Quaternion_repr(QuaternionObject * self)
 {
-	PyObject *w, *x, *y, *z, *ret;
-
+	PyObject *ret, *tuple;
+	
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	w= PyFloat_FromDouble(self->quat[0]);
-	x= PyFloat_FromDouble(self->quat[1]);
-	y= PyFloat_FromDouble(self->quat[2]);
-	z= PyFloat_FromDouble(self->quat[3]);
+	tuple= Quaternion_ToTupleExt(self, -1);
 
-	ret= PyUnicode_FromFormat("Quaternion(%R, %R, %R, %R)", w, x, y, z);
+	ret= PyUnicode_FromFormat("Quaternion%R", tuple);
 
-	Py_DECREF(w);
-	Py_DECREF(x);
-	Py_DECREF(y);
-	Py_DECREF(z);
-
+	Py_DECREF(tuple);
 	return ret;
 }
+
 //------------------------tp_richcmpr
 //returns -1 execption, 0 false, 1 true
 static PyObject* Quaternion_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)

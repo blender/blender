@@ -1647,7 +1647,7 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			eul[0] = obeul[0];
 		else {
 			if (data->flag & ROTLIKE_OFFSET)
-				rotate_eulO(eul, cob->rotOrder, 'x', obeul[0]);
+				rotate_eulO(eul, cob->rotOrder, 'X', obeul[0]);
 			
 			if (data->flag & ROTLIKE_X_INVERT)
 				eul[0] *= -1;
@@ -1657,7 +1657,7 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			eul[1] = obeul[1];
 		else {
 			if (data->flag & ROTLIKE_OFFSET)
-				rotate_eulO(eul, cob->rotOrder, 'y', obeul[1]);
+				rotate_eulO(eul, cob->rotOrder, 'Y', obeul[1]);
 			
 			if (data->flag & ROTLIKE_Y_INVERT)
 				eul[1] *= -1;
@@ -1667,7 +1667,7 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			eul[2] = obeul[2];
 		else {
 			if (data->flag & ROTLIKE_OFFSET)
-				rotate_eulO(eul, cob->rotOrder, 'z', obeul[2]);
+				rotate_eulO(eul, cob->rotOrder, 'Z', obeul[2]);
 			
 			if (data->flag & ROTLIKE_Z_INVERT)
 				eul[2] *= -1;
