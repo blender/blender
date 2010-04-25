@@ -48,6 +48,7 @@
 
 #include "ED_screen.h"
 
+#include "GPU_draw.h"
 #include "GPU_extensions.h"
 
 #include "WM_api.h"
@@ -695,6 +696,8 @@ void wm_draw_update(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
 	int drawmethod;
+
+	GPU_free_unused_buffers();
 	
 	for(win= wm->windows.first; win; win= win->next) {
 		if(win->drawmethod != U.wmdrawmethod) {

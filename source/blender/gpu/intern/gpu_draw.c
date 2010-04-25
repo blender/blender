@@ -784,42 +784,36 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 	smd->domain->tex_shadow = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->shadow);
 }
 
-ListBase image_free_queue = {NULL, NULL};
-static ThreadMutex queuelock = BLI_MUTEX_INITIALIZER;
+static ListBase image_free_queue = {NULL, NULL};
 
-static void flush_queued_free(void)
-{
-	Image *ima, *imanext;
-
-	BLI_mutex_lock(&queuelock);
-
-	ima = image_free_queue.first;
-	image_free_queue.first = image_free_queue.last = NULL;
-	for (; ima; ima=imanext) {
-		imanext = (Image*)ima->id.next;
-		GPU_free_image(ima);
-		MEM_freeN(ima);
-	}
-
-	BLI_mutex_unlock(&queuelock);
-}
-
-static void queue_image_for_free(Image *ima)
+static void gpu_queue_image_for_free(Image *ima)
 {
     Image *cpy = MEM_dupallocN(ima);
 
-	BLI_mutex_lock(&queuelock);
+	BLI_lock_thread(LOCK_OPENGL);
 	BLI_addtail(&image_free_queue, cpy);
-	BLI_mutex_unlock(&queuelock);
+	BLI_unlock_thread(LOCK_OPENGL);
+}
+
+void GPU_free_unused_buffers(void)
+{
+	Image *ima;
+
+	BLI_lock_thread(LOCK_OPENGL);
+
+	for(ima=image_free_queue.first; ima; ima=ima->id.next)
+		GPU_free_image(ima);
+
+	BLI_freelistN(&image_free_queue);
+
+	BLI_unlock_thread(LOCK_OPENGL);
 }
 
 void GPU_free_image(Image *ima)
 {
-	if (!BLI_thread_is_main()) {
-		queue_image_for_free(ima);
+	if(!BLI_thread_is_main()) {
+		gpu_queue_image_for_free(ima);
 		return;
-	} else if (image_free_queue.first) {
-		flush_queued_free();
 	}
 
 	/* free regular image binding */

@@ -312,6 +312,7 @@ void WM_exit(bContext *C)
 	}
 	
 	GPU_buffer_pool_free(0);
+	GPU_free_unused_buffers();
 	GPU_extensions_exit();
 	
 //	if (copybuf) MEM_freeN(copybuf);
