@@ -205,8 +205,8 @@ typedef struct PreviewImage {
 #define LIB_EXTERN		1
 #define LIB_INDIRECT	2
 #define LIB_TEST		8
-#define LIB_TESTEXT		9
-#define LIB_TESTIND		10
+#define LIB_TESTEXT		(LIB_TEST | LIB_EXTERN)
+#define LIB_TESTIND		(LIB_TEST | LIB_INDIRECT)
 #define LIB_READ		16
 #define LIB_NEEDLINK	32
 

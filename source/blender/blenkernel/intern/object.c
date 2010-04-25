@@ -1469,10 +1469,16 @@ void object_copy_proxy_drivers(Object *ob, Object *target)
 				/* all drivers */
 				DRIVER_TARGETS_LOOPER(dvar) 
 				{
-					if ((Object *)dtar->id == target)
-						dtar->id= (ID *)ob;
-					else
-						id_lib_extern((ID *)dtar->id);
+					if(dtar->id) {
+						if ((Object *)dtar->id == target)
+							dtar->id= (ID *)ob;
+						else {
+							/* only on local objects because this causes indirect links a -> b -> c,blend to point directly to a.blend
+							 * when a.blend has a proxy thats linked into c.blend  */
+							if(ob->id.lib==NULL)
+								id_lib_extern((ID *)dtar->id);
+						}
+					}
 				}
 				DRIVER_TARGETS_LOOPER_END
 			}
