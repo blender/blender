@@ -217,6 +217,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
         layout.operator("sequencer.effect_strip_add", text="Transform").type = 'TRANSFORM'
         layout.operator("sequencer.effect_strip_add", text="Color").type = 'COLOR'
         layout.operator("sequencer.effect_strip_add", text="Speed Control").type = 'SPEED'
+        layout.operator("sequencer.effect_strip_add", text="Multicam Selector").type = 'MULTICAM'
 
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
@@ -402,7 +403,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         return strip.type in ('ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
-                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
+                              'MULTICAM')
 
     def draw(self, context):
         layout = self.layout
@@ -445,7 +447,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 
         elif strip.type == 'TRANSFORM':
             self.draw_panel_transform(strip)
-
+            
+        elif strip.type == "MULTICAM":
+            layout.prop(strip, "multicam_source")
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':
@@ -501,7 +505,8 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
                               'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
-                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+                              'MULTICAM','SPEED')
 
     def draw_filename(self, context):
         pass
@@ -683,7 +688,8 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
                               'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
-                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+                              'MULTICAM', 'SPEED')
 
     def draw(self, context):
         layout = self.layout
@@ -738,7 +744,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META')
+        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META', 'MULTICAM')
 
     def draw_header(self, context):
         strip = act_strip(context)

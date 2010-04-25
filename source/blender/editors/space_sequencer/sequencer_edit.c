@@ -2539,9 +2539,9 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 	if(seq) {
 		
 		/* disallow effect strips */
-		if ((seq->type!=SEQ_COLOR) && (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
+		if (get_sequence_effect_num_inputs(seq->type) >= 1 && (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
 			return OPERATOR_CANCELLED;
-		if ((active_seq->type!=SEQ_COLOR) && (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
+		if ((get_sequence_effect_num_inputs(active_seq->type) >= 1) && (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
 			return OPERATOR_CANCELLED;
 
 		switch (side) {

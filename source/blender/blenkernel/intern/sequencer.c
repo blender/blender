@@ -795,6 +795,7 @@ static char *give_seqname_by_type(int type)
 	case SEQ_GLOW:       return "Glow";
 	case SEQ_TRANSFORM:  return "Transform";
 	case SEQ_COLOR:      return "Color";
+	case SEQ_MULTICAM:   return "Multicam";
 	case SEQ_SPEED:      return "Speed";
 	default:
 		return 0;
@@ -3449,7 +3450,8 @@ void seq_tx_set_final_right(Sequence *seq, int val)
    since they work a bit differently to normal image seq's (during transform) */
 int seq_single_check(Sequence *seq)
 {
-	if ( seq->len==1 && (seq->type == SEQ_IMAGE || seq->type == SEQ_COLOR))
+	if ( seq->len==1 && (seq->type == SEQ_IMAGE || seq->type == SEQ_COLOR
+			     || seq->type == SEQ_MULTICAM))
 		return 1;
 	else
 		return 0;
