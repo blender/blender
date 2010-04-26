@@ -798,7 +798,7 @@ static PyObject *Quaternion_getAxisVec( QuaternionObject * self, void *type )
 static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyObject *seq= NULL;
-	double angle = 0.0f;
+	float angle = 0.0f;
 	float quat[QUAT_SIZE]= {0.0f, 0.0f, 0.0f, 0.0f};
 
 	if(!PyArg_ParseTuple(args, "|Of:mathutils.Quaternion", &seq, &angle))
@@ -814,6 +814,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 	case 2:
 		if (mathutils_array_parse(quat, 3, 3, seq, "mathutils.Quaternion()") == -1)
 			return NULL;
+
 		axis_angle_to_quat(quat, quat, angle);
 		break;
 	/* PyArg_ParseTuple assures no more then 2 */
