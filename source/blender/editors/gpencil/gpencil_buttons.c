@@ -221,13 +221,20 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 	}
 } 
 
+/* stroke drawing options available */
+typedef enum eGP_Stroke_Ops {
+	STROKE_OPTS_NORMAL = 0, 
+	STROKE_OPTS_V3D_OFF, 
+	STROKE_OPTS_V3D_ON,
+} eGP_Stroke_Ops;
+
 /* Draw the contents for a grease-pencil panel*/
 static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, PointerRNA *ctx_ptr)
 {
 	PointerRNA gpd_ptr;
 	bGPDlayer *gpl;
 	uiLayout *col, *row;
-	short v3d_stroke_opts_on = 0;
+	short v3d_stroke_opts = STROKE_OPTS_NORMAL;
 	
 	/* make new PointerRNA for Grease Pencil block */
 	RNA_id_pointer_create((ID *)gpd, &gpd_ptr);
@@ -259,7 +266,9 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 		/* check whether advanced 3D-View drawing space options can be used */
 		if (CTX_wm_view3d(C)) {
 			if (gpd->flag & (GP_DATA_DEPTH_STROKE|GP_DATA_DEPTH_VIEW))
-				v3d_stroke_opts_on = 1;
+				v3d_stroke_opts = STROKE_OPTS_V3D_ON;
+			else
+				v3d_stroke_opts = STROKE_OPTS_V3D_OFF;
 		}
 		
 		/* drawing space options */
@@ -267,11 +276,12 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "VIEW", NULL, 0);
 			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "CURSOR", NULL, 0);
 		row= uiLayoutRow(col, 1);
+			uiLayoutSetActive(row, v3d_stroke_opts);
 			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "SURFACE", NULL, 0);
 			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "STROKE", NULL, 0);
 		
 		row= uiLayoutRow(col, 0);
-			uiLayoutSetActive(row, v3d_stroke_opts_on);
+			uiLayoutSetActive(row, v3d_stroke_opts==STROKE_OPTS_V3D_ON);
 			uiItemR(row, &gpd_ptr, "use_stroke_endpoints", 0, NULL, 0);
 }	
 
