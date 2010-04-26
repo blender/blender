@@ -930,7 +930,7 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 				co[2]= 0.0f;
 				
 				/* This is copied from displace modifier code */
-				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 1, &texres);
+				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres);
 			
 				/* if the texture gave an RGB value, we assume it didn't give a valid
 				 * intensity, so calculate one (formula from do_material_tex).
