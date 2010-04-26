@@ -1252,18 +1252,18 @@ void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
 
 static int mathutils_kxgameob_vector_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_kxgameob_generic_check(PyObject *self_v)
+static int mathutils_kxgameob_generic_check(BaseMathObject *bmo)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 	
 	return 1;
 }
 
-static int mathutils_kxgameob_vector_get(PyObject *self_v, int subtype, float *vec_from)
+static int mathutils_kxgameob_vector_get(BaseMathObject *bmo, int subtype, float *vec_from)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 	
@@ -1309,9 +1309,9 @@ static int mathutils_kxgameob_vector_get(PyObject *self_v, int subtype, float *v
 	return 1;
 }
 
-static int mathutils_kxgameob_vector_set(PyObject *self_v, int subtype, float *vec_to)
+static int mathutils_kxgameob_vector_set(BaseMathObject *bmo, int subtype, float *vec_to)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 	
@@ -1353,27 +1353,27 @@ static int mathutils_kxgameob_vector_set(PyObject *self_v, int subtype, float *v
 	return 1;
 }
 
-static int mathutils_kxgameob_vector_get_index(PyObject *self_v, int subtype, float *vec_from, int index)
+static int mathutils_kxgameob_vector_get_index(BaseMathObject *bmo, int subtype, float *vec_from, int index)
 {
 	float f[4];
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_kxgameob_vector_get(self_v, subtype, f))
+	if(!mathutils_kxgameob_vector_get(bmo, subtype, f))
 		return 0;
 	
 	vec_from[index]= f[index];
 	return 1;
 }
 
-static int mathutils_kxgameob_vector_set_index(PyObject *self_v, int subtype, float *vec_to, int index)
+static int mathutils_kxgameob_vector_set_index(BaseMathObject *bmo, int subtype, float *vec_to, int index)
 {
 	float f= vec_to[index];
 	
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_kxgameob_vector_get(self_v, subtype, vec_to))
+	if(!mathutils_kxgameob_vector_get(bmo, subtype, vec_to))
 		return 0;
 	
 	vec_to[index]= f;
-	mathutils_kxgameob_vector_set(self_v, subtype, vec_to);
+	mathutils_kxgameob_vector_set(bmo, subtype, vec_to);
 	
 	return 1;
 }
@@ -1392,9 +1392,9 @@ Mathutils_Callback mathutils_kxgameob_vector_cb = {
 
 static int mathutils_kxgameob_matrix_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_kxgameob_matrix_get(PyObject *self_v, int subtype, float *mat_from)
+static int mathutils_kxgameob_matrix_get(BaseMathObject *bmo, int subtype, float *mat_from)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 	
@@ -1411,9 +1411,9 @@ static int mathutils_kxgameob_matrix_get(PyObject *self_v, int subtype, float *m
 }
 
 
-static int mathutils_kxgameob_matrix_set(PyObject *self_v, int subtype, float *mat_to)
+static int mathutils_kxgameob_matrix_set(BaseMathObject *bmo, int subtype, float *mat_to)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 	

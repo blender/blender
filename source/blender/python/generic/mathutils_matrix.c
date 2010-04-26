@@ -37,15 +37,15 @@ static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* 
 /* matrix vector callbacks */
 int mathutils_matrix_vector_cb_index= -1;
 
-static int mathutils_matrix_vector_check(PyObject *self_p)
+static int mathutils_matrix_vector_check(BaseMathObject *self_p)
 {
-	MatrixObject *self= (MatrixObject*)self_p;
+	MatrixObject *self= (MatrixObject *)self_p;
 	return BaseMath_ReadCallback(self);
 }
 
-static int mathutils_matrix_vector_get(PyObject *self_p, int subtype, float *vec_from)
+static int mathutils_matrix_vector_get(BaseMathObject *self_p, int subtype, float *vec_from)
 {
-	MatrixObject *self= (MatrixObject*)self_p;
+	MatrixObject *self= (MatrixObject *)self_p;
 	int i;
 
 	if(!BaseMath_ReadCallback(self))
@@ -57,9 +57,9 @@ static int mathutils_matrix_vector_get(PyObject *self_p, int subtype, float *vec
 	return 1;
 }
 
-static int mathutils_matrix_vector_set(PyObject *self_p, int subtype, float *vec_to)
+static int mathutils_matrix_vector_set(BaseMathObject *self_p, int subtype, float *vec_to)
 {
-	MatrixObject *self= (MatrixObject*)self_p;
+	MatrixObject *self= (MatrixObject *)self_p;
 	int i;
 
 	if(!BaseMath_ReadCallback(self))
@@ -72,9 +72,9 @@ static int mathutils_matrix_vector_set(PyObject *self_p, int subtype, float *vec
 	return 1;
 }
 
-static int mathutils_matrix_vector_get_index(PyObject *self_p, int subtype, float *vec_from, int index)
+static int mathutils_matrix_vector_get_index(BaseMathObject *self_p, int subtype, float *vec_from, int index)
 {
-	MatrixObject *self= (MatrixObject*)self_p;
+	MatrixObject *self= (MatrixObject *)self_p;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
@@ -83,7 +83,7 @@ static int mathutils_matrix_vector_get_index(PyObject *self_p, int subtype, floa
 	return 1;
 }
 
-static int mathutils_matrix_vector_set_index(PyObject *self_p, int subtype, float *vec_to, int index)
+static int mathutils_matrix_vector_set_index(BaseMathObject *self_p, int subtype, float *vec_to, int index)
 {
 	MatrixObject *self= (MatrixObject*)self_p;
 

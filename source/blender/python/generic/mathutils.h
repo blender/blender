@@ -88,18 +88,18 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 
 typedef struct Mathutils_Callback Mathutils_Callback;
 
-typedef int (*BaseMathCheckFunc)(PyObject *);
-typedef int (*BaseMathGetFunc)(PyObject *, int, float *);
-typedef int (*BaseMathSetFunc)(PyObject *, int, float *);
-typedef int (*BaseMathGetIndexFunc)(PyObject *, int, float *, int);
-typedef int (*BaseMathSetIndexFunc)(PyObject *, int, float *, int);
+typedef int (*BaseMathCheckFunc)(BaseMathObject *);							/* checks the user is still valid */
+typedef int (*BaseMathGetFunc)(BaseMathObject *, int, float *);				/* gets the vector from the user */
+typedef int (*BaseMathSetFunc)(BaseMathObject *, int, float *);				/* sets the users vector values once the vector is modified */
+typedef int (*BaseMathGetIndexFunc)(BaseMathObject *, int, float *, int);	/* same as above but only for an index */
+typedef int (*BaseMathSetIndexFunc)(BaseMathObject *, int, float *, int);	/* same as above but only for an index */
 
 struct Mathutils_Callback {
-	int		(*check)(PyObject *user);					/* checks the user is still valid */
-	int		(*get)(PyObject *user, int subtype, float *from);	/* gets the vector from the user */
-	int		(*set)(PyObject *user, int subtype, float *to);	/* sets the users vector values once the vector is modified */
-	int		(*get_index)(PyObject *user, int subtype, float *from,int index);	/* same as above but only for an index */
-	int		(*set_index)(PyObject *user, int subtype, float *to,	int index);	/* same as above but only for an index */
+	BaseMathCheckFunc		check;
+	BaseMathGetFunc			get;
+	BaseMathSetFunc			set;
+	BaseMathGetIndexFunc	get_index;
+	BaseMathSetIndexFunc	set_index;
 };
 
 int Mathutils_RegisterCallback(Mathutils_Callback *cb);

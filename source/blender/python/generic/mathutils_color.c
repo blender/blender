@@ -280,13 +280,13 @@ static PyObject *Color_subscript(ColorObject *self, PyObject *item)
 			return Color_slice(self, start, stop);
 		}
 		else {
-			PyErr_SetString(PyExc_TypeError, "slice steps not supported with eulers");
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with color");
 			return NULL;
 		}
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-				 "euler indices must be integers, not %.200s",
+				 "color indices must be integers, not %.200s",
 				 item->ob_type->tp_name);
 		return NULL;
 	}
@@ -311,13 +311,13 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
 		if (step == 1)
 			return Color_ass_slice(self, start, stop, value);
 		else {
-			PyErr_SetString(PyExc_TypeError, "slice steps not supported with euler");
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with color");
 			return -1;
 		}
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-				 "euler indices must be integers, not %.200s",
+				 "color indices must be integers, not %.200s",
 				 item->ob_type->tp_name);
 		return -1;
 	}

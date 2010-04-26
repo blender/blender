@@ -587,7 +587,11 @@ static int Euler_setAxis( EulerObject * self, PyObject * value, void * type )
 /* rotation order */
 static PyObject *Euler_getOrder(EulerObject *self, void *type)
 {
-	static char order[][4] = {"XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};
+	const char order[][4] = {"XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};
+
+	if(!BaseMath_ReadCallback(self)) /* can read order too */
+		return NULL;
+
 	return PyUnicode_FromString(order[self->order-EULER_ORDER_XYZ]);
 }
 
@@ -599,12 +603,8 @@ static int Euler_setOrder( EulerObject * self, PyObject * value, void * type )
 	if(order == -1)
 		return -1;
 
-	if(self->cb_user) {
-		PyErr_SetString(PyExc_TypeError, "euler.order: assignment is not allowed on eulers with an owner");
-		return -1;
-	}
-
 	self->order= order;
+	BaseMath_WriteCallback(self); /* order can be written back */
 	return 0;
 }
 

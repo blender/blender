@@ -68,22 +68,34 @@ static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
 #define MATHUTILS_CB_SUBTYPE_QUAT 2
 #define MATHUTILS_CB_SUBTYPE_COLOR 0
 
-static int mathutils_rna_generic_check(BPy_PropertyRNA *self)
+static int mathutils_rna_generic_check(BaseMathObject *bmo)
 {
-	return self->prop?1:0;
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
+	return self->prop ? 1:0;
 }
 
-static int mathutils_rna_vector_get(BPy_PropertyRNA *self, int subtype, float *vec_from)
+static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype, float *vec_from)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	if(self->prop==NULL)
 		return 0;
 	
 	RNA_property_float_get_array(&self->ptr, self->prop, vec_from);
+	
+	/* Euler order exception */
+	if(subtype==MATHUTILS_CB_SUBTYPE_EUL) {
+		PropertyRNA *prop_eul_order= RNA_struct_find_property(&self->ptr, "rotation_mode");
+		if(prop_eul_order) {
+			((EulerObject *)bmo)->order= RNA_property_enum_get(&self->ptr, prop_eul_order);
+		}		
+	}
+	
 	return 1;
 }
 
-static int mathutils_rna_vector_set(BPy_PropertyRNA *self, int subtype, float *vec_to)
+static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype, float *vec_to)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	float min, max;
 	if(self->prop==NULL)
 		return 0;
@@ -98,12 +110,24 @@ static int mathutils_rna_vector_set(BPy_PropertyRNA *self, int subtype, float *v
 	}
 
 	RNA_property_float_set_array(&self->ptr, self->prop, vec_to);
+	
+	/* Euler order exception */
+	if(subtype==MATHUTILS_CB_SUBTYPE_EUL) {
+		PropertyRNA *prop_eul_order= RNA_struct_find_property(&self->ptr, "rotation_mode");
+		if(prop_eul_order) {
+			RNA_property_enum_set(&self->ptr, prop_eul_order, ((EulerObject *)bmo)->order);
+			RNA_property_update(BPy_GetContext(), &self->ptr, prop_eul_order);
+		}		
+	}
+
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
 
-static int mathutils_rna_vector_get_index(BPy_PropertyRNA *self, int subtype, float *vec_from, int index)
+static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int subtype, float *vec_from, int index)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
+
 	if(self->prop==NULL)
 		return 0;
 	
@@ -111,8 +135,10 @@ static int mathutils_rna_vector_get_index(BPy_PropertyRNA *self, int subtype, fl
 	return 1;
 }
 
-static int mathutils_rna_vector_set_index(BPy_PropertyRNA *self, int subtype, float *vec_to, int index)
+static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int subtype, float *vec_to, int index)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
+
 	if(self->prop==NULL)
 		return 0;
 
@@ -134,8 +160,10 @@ Mathutils_Callback mathutils_rna_array_cb = {
 /* bpyrna matrix callbacks */
 static int mathutils_rna_matrix_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_rna_matrix_get(BPy_PropertyRNA *self, int subtype, float *mat_from)
+static int mathutils_rna_matrix_get(BaseMathObject *bmo, int subtype, float *mat_from)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
+
 	if(self->prop==NULL)
 		return 0;
 
@@ -143,8 +171,10 @@ static int mathutils_rna_matrix_get(BPy_PropertyRNA *self, int subtype, float *m
 	return 1;
 }
 
-static int mathutils_rna_matrix_set(BPy_PropertyRNA *self, int subtype, float *mat_to)
+static int mathutils_rna_matrix_set(BaseMathObject *bmo, int subtype, float *mat_to)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
+	
 	if(self->prop==NULL)
 		return 0;
 	/* can ignore clamping here */
