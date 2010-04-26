@@ -88,7 +88,6 @@
 #endif
 
 /* ************* XXX *************** */
-static int okee(const char *dummy) {return 0;}
 static void BIF_undo_push(const char *msg) {}
 /* ************* XXX *************** */
 
@@ -140,7 +139,7 @@ static void bone_free(bArmature *arm, EditBone *bone)
 	BLI_freelinkN(arm->edbo, bone);
 }
 
-void ED_armature_edit_bone_remove(bArmature *arm, EditBone* exBone)
+void ED_armature_edit_bone_remove(bArmature *arm, EditBone *exBone)
 {
 	EditBone *curBone;
 
@@ -477,9 +476,10 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 
 /* ---------------------- */
 
-static EditBone *editbone_name_exists (ListBase *edbo, char *name)
+/* checks if an EditBone with a matching name already, returning the matching bone if it exists */
+static EditBone *editbone_name_exists (ListBase *edbo, const char *name)
 {
-	EditBone	*eBone;
+	EditBone *eBone;
 	
 	for (eBone=edbo->first; eBone; eBone=eBone->next) {
 		if (!strcmp(name, eBone->name))
@@ -492,9 +492,9 @@ static EditBone *editbone_name_exists (ListBase *edbo, char *name)
 void unique_editbone_name (ListBase *edbo, char *name, EditBone *bone)
 {
 	EditBone *dupli;
-	char		tempname[64];
-	int			number;
-	char		*dot;
+	char	tempname[64];
+	int		number;
+	char	*dot;
 
 	dupli = editbone_name_exists(edbo, name);
 	
@@ -1925,10 +1925,6 @@ void ED_armature_deselectall(Object *obedit, int toggle, int doundo)
 	}
 	
 	ED_armature_sync_selection(arm->edbo);
-	if (doundo) {
-		if (sel==1) BIF_undo_push("Select All");
-		else BIF_undo_push("Deselect All");
-	}
 }
 
 
@@ -2031,15 +2027,6 @@ void ED_armature_edit_free(struct Object *ob)
 		MEM_freeN(arm->edbo);
 		arm->edbo= NULL;
 	}
-}
-
-void ED_armature_edit_remake(Object *obedit)
-{
-	if(okee("Reload original data")==0) return;
-	
-	ED_armature_to_edit(obedit);
-	
-//	BIF_undo_push("Delete bone");
 }
 
 /* Put armature in EditMode */

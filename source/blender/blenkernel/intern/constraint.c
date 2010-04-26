@@ -3751,10 +3751,6 @@ static void splineik_copy (bConstraint *con, bConstraint *srccon)
 	
 	/* copy the binding array */
 	dst->points= MEM_dupallocN(src->points);
-	dst->numpoints= src->numpoints;
-	dst->chainlen= src->chainlen;
-	dst->flag= src->flag;
-	dst->xzScaleMode= src->xzScaleMode;
 }
 
 static void splineik_new_data (void *cdata)
