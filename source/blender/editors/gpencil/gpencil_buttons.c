@@ -267,7 +267,6 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "VIEW", NULL, 0);
 			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "CURSOR", NULL, 0);
 		row= uiLayoutRow(col, 1);
-			uiLayoutSetActive(row, v3d_stroke_opts_on);
 			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "SURFACE", NULL, 0);
 			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "STROKE", NULL, 0);
 		
