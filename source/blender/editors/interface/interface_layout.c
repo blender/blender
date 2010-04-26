@@ -1105,9 +1105,11 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 		if(flag & PROP_ID_SELF_CHECK)
 			if(itemptr.data == but->rnapoin.id.data)
 				continue;
-		
-		if(RNA_struct_is_ID(itemptr.type))
+
+		if(itemptr.type && RNA_struct_is_ID(itemptr.type))
 			iconid= ui_id_icon_get((bContext*)C, itemptr.data, 0);
+        else
+            iconid = 0;
 		
 		name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 		
@@ -1119,8 +1121,8 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 				cis->iconid = iconid;
 				BLI_addtail(items_list, cis);
 			}
+    		MEM_freeN(name);
 		}
-		MEM_freeN(name);
 		
 		i++;
 	}
