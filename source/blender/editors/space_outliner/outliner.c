@@ -1265,10 +1265,10 @@ static int outliner_filter_has_name(TreeElement *te, char *name, int flags)
 	int fn_flag= 0;
 	int found= 0;
 	
-	if(flags & SO_FIND_CASE_SENSITIVE)
+	if ((flags & SO_FIND_CASE_SENSITIVE) == 0)
 		fn_flag |= FNM_CASEFOLD;
 
-	if(flags & SO_FIND_COMPLETE) {
+	if (flags & SO_FIND_COMPLETE) {
 		found= fnmatch(name, te->name, fn_flag)==0;
 	}
 	else {
