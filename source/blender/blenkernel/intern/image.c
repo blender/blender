@@ -1950,10 +1950,18 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		ibuf->flags |= IB_rectfloat;
 		ibuf->channels= channels;
 	}
+	else {
+		ibuf->rect_float= NULL;
+		ibuf->flags &= ~IB_rectfloat;
+	}
 
 	if(rectz) {
 		ibuf->zbuf_float= rectz;
 		ibuf->flags |= IB_zbuffloat;
+	}
+	else {
+		ibuf->zbuf_float= NULL;
+		ibuf->flags &= ~IB_zbuffloat;
 	}
 
 	ibuf->dither= dither;

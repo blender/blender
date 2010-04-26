@@ -359,6 +359,8 @@ void BLI_unlock_thread(int type)
 		pthread_mutex_unlock(&_viewer_lock);
 	else if(type==LOCK_CUSTOM1)
 		pthread_mutex_unlock(&_custom1_lock);
+	else if(type==LOCK_RCACHE)
+		pthread_mutex_unlock(&_rcache_lock);
 	else if(type==LOCK_OPENGL)
 		pthread_mutex_unlock(&_opengl_lock);
 }
