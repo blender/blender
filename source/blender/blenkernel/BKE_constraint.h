@@ -130,7 +130,8 @@ void free_constraint_data(struct bConstraint *con);
 /* Constraint API function prototypes */
 struct bConstraint *constraints_get_active(struct ListBase *list);
 void constraints_set_active(ListBase *list, struct bConstraint *con);
-
+struct bConstraint *constraints_findByName(struct ListBase *list, const char *name);
+	
 struct bConstraint *add_ob_constraint(struct Object *ob, const char *name, short type);
 struct bConstraint *add_pose_constraint(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);
 

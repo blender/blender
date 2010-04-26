@@ -36,6 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 
@@ -4161,6 +4162,11 @@ void copy_constraints (ListBase *dst, const ListBase *src)
 }
 
 /* ......... */
+
+bConstraint *constraints_findByName(ListBase *list, const char *name)
+{
+	return BLI_findstring(list, name, offsetof(bConstraint, name));
+}
 
 /* finds the 'active' constraint in a constraint stack */
 bConstraint *constraints_get_active (ListBase *list)
