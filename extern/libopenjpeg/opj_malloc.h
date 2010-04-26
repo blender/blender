@@ -76,7 +76,7 @@ Allocate memory aligned to a 16 byte boundry
 	#if defined(__sun)
 			#define HAVE_MEMALIGN
 		#elif defined(__GNUC__)
-                        #ifndef __APPLE__
+                        #if !defined(__APPLE__) && !defined(__FreeBSD__)
 			    #define HAVE_MEMALIGN
 			    #include <malloc.h>
                         #endif
