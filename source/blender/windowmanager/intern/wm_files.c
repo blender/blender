@@ -369,6 +369,8 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 //	undo_editmode_clear();
 	BKE_reset_undo();
 	BKE_write_undo(C, "original");	/* save current state */
+
+	ED_editors_init(C);
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 	CTX_wm_window_set(C, NULL); /* exits queues */

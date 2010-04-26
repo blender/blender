@@ -3897,6 +3897,11 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	/* weak weak... this was only meant as draw flag, now is used in give_base too */
 	ob->flag &= ~OB_FROMGROUP;
+
+	/* loading saved files with editmode enabled works, but for undo we like
+	   to stay in object mode during undo presses so keep editmode disabled */
+	if(fd->memfile)
+		ob->mode &= ~(OB_MODE_EDIT|OB_MODE_PARTICLE_EDIT);
 	
 	ob->disp.first=ob->disp.last= NULL;
 	
