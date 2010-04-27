@@ -1848,8 +1848,6 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         scene = context.scene
 
         col = layout.column()
-        col.label(text="Camera:")
-        col.prop(view, "camera", text="")
         col.prop(view, "lens")
         col.label(text="Lock to Object:")
         col.prop(view, "lock_object", text="")
@@ -1860,6 +1858,11 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         col.label(text="Clip:")
         col.prop(view, "clip_start", text="Start")
         col.prop(view, "clip_end", text="End")
+
+        subcol = col.column()
+        subcol.enabled = not view.lock_camera_and_layers
+        subcol.label(text="Local Camera:")
+        subcol.prop(view, "camera", text="")
 
         layout.column().prop(view, "cursor_location")
 
