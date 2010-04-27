@@ -846,6 +846,12 @@ static int load_file(int argc, char **argv, void *data)
 			if (CTX_wm_manager(C) == NULL) CTX_wm_manager_set(C, wm); /* reset wm */
 		}
 
+		/* WM_read_file() runs normally but since we're in background mode do here */
+#ifndef DISABLE_PYTHON
+		/* run any texts that were loaded in and flagged as modules */
+		BPY_load_user_modules(C);
+#endif
+
 		/* happens for the UI on file reading too (huh? (ton))*/
 	// XXX			BKE_reset_undo();
 	//				BKE_write_undo("original");	/* save current state */
