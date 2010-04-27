@@ -2376,11 +2376,10 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 	HairKey *hkey;
 	float weight;
 	ParticleBrushData *brush= &pset->brush[pset->brushtype];
-	edit= psys->edit;
-    
     float factor= RNA_float_get(op->ptr, "factor");
 
 	weight= brush->strength;
+	edit= psys->edit;
 
 	LOOP_SELECTED_POINTS {
 		ParticleData *pa= psys->particles + p;
