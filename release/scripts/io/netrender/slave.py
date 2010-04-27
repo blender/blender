@@ -105,6 +105,8 @@ def render_slave(engine, netsettings, threads):
         if not os.path.exists(NODE_PREFIX):
             os.mkdir(NODE_PREFIX)
 
+        engine.update_stats("", "Network render connected to master, waiting for jobs")
+
         while not engine.test_break():
             conn.request("GET", "/job", headers={"slave-id":slave_id})
             response = conn.getresponse()
@@ -113,6 +115,7 @@ def render_slave(engine, netsettings, threads):
                 timeout = 1 # reset timeout on new job
 
                 job = netrender.model.RenderJob.materialize(eval(str(response.read(), encoding='utf8')))
+                engine.update_stats("", "Network render processing job from master")
 
                 JOB_PREFIX = NODE_PREFIX + "job_" + job.id + os.sep
                 if not os.path.exists(JOB_PREFIX):
@@ -245,6 +248,8 @@ def render_slave(engine, netsettings, threads):
                         conn.request("PUT", "/render", headers=headers)
                         if conn.getresponse().status == http.client.NO_CONTENT:
                             continue
+
+                engine.update_stats("", "Network render connected to master, waiting for jobs")
             else:
                 if timeout < MAX_TIMEOUT:
                     timeout += INCREMENT_TIMEOUT

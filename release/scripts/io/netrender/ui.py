@@ -213,9 +213,10 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
     def poll(self, context):
         scene = context.scene
         netsettings = scene.network_render
+        if netsettings.mode != "RENDER_CLIENT":
+            return False
         verify_address(netsettings)
         return (super().poll(context)
-                and netsettings.mode == "RENDER_CLIENT"
                 and netsettings.server_address != "[default]")
 
     def draw(self, context):
@@ -251,9 +252,10 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
     def poll(self, context):
         scene = context.scene
         netsettings = scene.network_render
+        if netsettings.mode != "RENDER_CLIENT":
+            return False
         verify_address(netsettings)
         return (super().poll(context)
-                and netsettings.mode == "RENDER_CLIENT"
                 and netsettings.server_address != "[default]")
 
     def draw(self, context):
@@ -288,9 +290,10 @@ class RENDER_PT_network_jobs(RenderButtonsPanel):
     def poll(self, context):
         scene = context.scene
         netsettings = scene.network_render
+        if netsettings.mode != "RENDER_CLIENT":
+            return False
         verify_address(netsettings)
         return (super().poll(context)
-                and netsettings.mode == "RENDER_CLIENT"
                 and netsettings.server_address != "[default]")
 
     def draw(self, context):

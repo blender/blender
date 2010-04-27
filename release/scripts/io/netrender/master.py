@@ -190,6 +190,11 @@ pause_pattern = re.compile("/pause_([a-zA-Z0-9]+)")
 edit_pattern = re.compile("/edit_([a-zA-Z0-9]+)")
 
 class RenderHandler(http.server.BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        # override because the original calls self.address_string(), which
+        # is extremely slow due to some timeout..
+        sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(), format%args))
+
     def send_head(self, code = http.client.OK, headers = {}, content = "application/octet-stream"):
         self.send_response(code)
         self.send_header("Content-type", content)
@@ -1010,7 +1015,7 @@ def runMaster(address, broadcast, clear, path, update_stats, test_break):
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-        start_time = time.time()
+        start_time = time.time() - 2
 
         while not test_break():
             try:
@@ -1018,7 +1023,7 @@ def runMaster(address, broadcast, clear, path, update_stats, test_break):
             except select.error:
                 pass
 
-            if time.time() - start_time >= 10: # need constant here
+            if time.time() - start_time >= 2: # need constant here
                 httpd.timeoutSlaves()
 
                 httpd.updateUsage()
@@ -1031,3 +1036,4 @@ def runMaster(address, broadcast, clear, path, update_stats, test_break):
         httpd.server_close()
         if clear:
             clearMaster(httpd.path)
+

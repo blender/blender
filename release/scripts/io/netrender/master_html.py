@@ -29,6 +29,7 @@ def get(handler):
 
     def head(title):
         output("<html><head>")
+        output("<meta http-equiv='refresh' content=5>")
         output("<script src='/html/netrender.js' type='text/javascript'></script>")
 #		output("<script src='/html/json2.js' type='text/javascript'></script>")
         output("<title>")
