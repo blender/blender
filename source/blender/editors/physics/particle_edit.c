@@ -2377,6 +2377,8 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 	float weight;
 	ParticleBrushData *brush= &pset->brush[pset->brushtype];
 	edit= psys->edit;
+    
+    float factor= RNA_float_get(op->ptr, "factor");
 
 	weight= brush->strength;
 
@@ -2385,7 +2387,7 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 
 		LOOP_SELECTED_KEYS {
 			hkey= pa->hair + k;
-			hkey->weight= weight;
+			hkey->weight= interpf(weight, hkey->weight, factor);
 		}
 	}
 
@@ -2407,6 +2409,8 @@ void PARTICLE_OT_weight_set(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+    
+    RNA_def_float(ot->srna, "factor", 1, 0, 1, "Factor", "", 0, 1);
 }
 
 /************************ cursor drawing *******************************/
