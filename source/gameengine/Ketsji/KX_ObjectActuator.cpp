@@ -392,7 +392,7 @@ static int mathutils_obactu_generic_check(BaseMathObject *bmo)
 	return 1;
 }
 
-static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype, float *vec_from)
+static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
@@ -400,17 +400,17 @@ static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype, float *
 
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_LINV:
-			self->m_linear_velocity.getValue(vec_from);
+			self->m_linear_velocity.getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_ANGV:
-			self->m_angular_velocity.getValue(vec_from);
+			self->m_angular_velocity.getValue(bmo->data);
 			break;
 	}
 
 	return 1;
 }
 
-static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype, float *vec_to)
+static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype)
 {
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
@@ -418,37 +418,37 @@ static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype, float *
 
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_LINV:
-			self->m_linear_velocity.setValue(vec_to);
+			self->m_linear_velocity.setValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_ANGV:
-			self->m_angular_velocity.setValue(vec_to);
+			self->m_angular_velocity.setValue(bmo->data);
 			break;
 	}
 
 	return 1;
 }
 
-static int mathutils_obactu_vector_get_index(BaseMathObject *bmo, int subtype, float *vec_from, int index)
+static int mathutils_obactu_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	float f[4];
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_obactu_vector_get(bmo, subtype, f))
+	if(!mathutils_obactu_vector_get(bmo, subtype))
 		return 0;
 
-	vec_from[index]= f[index];
+	bmo->data[index]= f[index];
 	return 1;
 }
 
-static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, float *vec_to, int index)
+static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, int index)
 {
-	float f= vec_to[index];
+	float f= bmo->data[index];
 
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_obactu_vector_get(bmo, subtype, vec_to))
+	if(!mathutils_obactu_vector_get(bmo, subtype))
 		return 0;
 
-	vec_to[index]= f;
-	mathutils_obactu_vector_set(bmo, subtype, vec_to);
+	bmo->data[index]= f;
+	mathutils_obactu_vector_set(bmo, subtype);
 
 	return 1;
 }

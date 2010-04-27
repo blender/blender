@@ -646,7 +646,7 @@ int Mathutils_RegisterCallback(Mathutils_Callback *cb)
 int _BaseMathObject_ReadCallback(BaseMathObject *self)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get(self, self->cb_subtype, self->data))
+	if(cb->get(self, self->cb_subtype))
 		return 1;
 
 	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
@@ -656,7 +656,7 @@ int _BaseMathObject_ReadCallback(BaseMathObject *self)
 int _BaseMathObject_WriteCallback(BaseMathObject *self)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set(self, self->cb_subtype, self->data))
+	if(cb->set(self, self->cb_subtype))
 		return 1;
 
 	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
@@ -666,7 +666,7 @@ int _BaseMathObject_WriteCallback(BaseMathObject *self)
 int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get_index(self, self->cb_subtype, self->data, index))
+	if(cb->get_index(self, self->cb_subtype, index))
 		return 1;
 
 	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
@@ -676,7 +676,7 @@ int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set_index(self, self->cb_subtype, self->data, index))
+	if(cb->set_index(self, self->cb_subtype, index))
 		return 1;
 
 	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);

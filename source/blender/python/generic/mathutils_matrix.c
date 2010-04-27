@@ -43,7 +43,7 @@ static int mathutils_matrix_vector_check(BaseMathObject *bmo)
 	return BaseMath_ReadCallback(self);
 }
 
-static int mathutils_matrix_vector_get(BaseMathObject *bmo, int subtype, float *vec_from)
+static int mathutils_matrix_vector_get(BaseMathObject *bmo, int subtype)
 {
 	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 	int i;
@@ -52,12 +52,12 @@ static int mathutils_matrix_vector_get(BaseMathObject *bmo, int subtype, float *
 		return 0;
 
 	for(i=0; i < self->colSize; i++)
-		vec_from[i]= self->matrix[subtype][i];
+		bmo->data[i]= self->matrix[subtype][i];
 
 	return 1;
 }
 
-static int mathutils_matrix_vector_set(BaseMathObject *bmo, int subtype, float *vec_to)
+static int mathutils_matrix_vector_set(BaseMathObject *bmo, int subtype)
 {
 	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 	int i;
@@ -66,31 +66,31 @@ static int mathutils_matrix_vector_set(BaseMathObject *bmo, int subtype, float *
 		return 0;
 
 	for(i=0; i < self->colSize; i++)
-		self->matrix[subtype][i]= vec_to[i];
+		self->matrix[subtype][i]= bmo->data[i];
 
 	BaseMath_WriteCallback(self);
 	return 1;
 }
 
-static int mathutils_matrix_vector_get_index(BaseMathObject *bmo, int subtype, float *vec_from, int index)
+static int mathutils_matrix_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
-	vec_from[index]= self->matrix[subtype][index];
+	bmo->data[index]= self->matrix[subtype][index];
 	return 1;
 }
 
-static int mathutils_matrix_vector_set_index(BaseMathObject *bmo, int subtype, float *vec_to, int index)
+static int mathutils_matrix_vector_set_index(BaseMathObject *bmo, int subtype, int index)
 {
 	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
-	self->matrix[subtype][index]= vec_to[index];
+	self->matrix[subtype][index]= bmo->data[index];
 
 	BaseMath_WriteCallback(self);
 	return 1;

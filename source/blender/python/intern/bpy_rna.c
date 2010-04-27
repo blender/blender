@@ -74,13 +74,13 @@ static int mathutils_rna_generic_check(BaseMathObject *bmo)
 	return self->prop ? 1:0;
 }
 
-static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype, float *vec_from)
+static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	if(self->prop==NULL)
 		return 0;
 	
-	RNA_property_float_get_array(&self->ptr, self->prop, vec_from);
+	RNA_property_float_get_array(&self->ptr, self->prop, bmo->data);
 	
 	/* Euler order exception */
 	if(subtype==MATHUTILS_CB_SUBTYPE_EUL) {
@@ -92,7 +92,7 @@ static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype, float *vec
 	return 1;
 }
 
-static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype, float *vec_to)
+static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	float min, max;
@@ -104,11 +104,11 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype, float *vec
 	if(min != FLT_MIN || max != FLT_MAX) {
 		int i, len= RNA_property_array_length(&self->ptr, self->prop);
 		for(i=0; i<len; i++) {
-			CLAMP(vec_to[i], min, max);
+			CLAMP(bmo->data[i], min, max);
 		}
 	}
 
-	RNA_property_float_set_array(&self->ptr, self->prop, vec_to);
+	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 
 	/* Euler order exception */
@@ -124,26 +124,26 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype, float *vec
 	return 1;
 }
 
-static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int subtype, float *vec_from, int index)
+static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
 		return 0;
 	
-	vec_from[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
+	bmo->data[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
 	return 1;
 }
 
-static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int subtype, float *vec_to, int index)
+static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int subtype, int index)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
 		return 0;
 
-	RNA_property_float_clamp(&self->ptr, self->prop, &vec_to[index]);
-	RNA_property_float_set_index(&self->ptr, self->prop, index, vec_to[index]);
+	RNA_property_float_clamp(&self->ptr, self->prop, &bmo->data[index]);
+	RNA_property_float_set_index(&self->ptr, self->prop, index, bmo->data[index]);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
@@ -160,35 +160,35 @@ Mathutils_Callback mathutils_rna_array_cb = {
 /* bpyrna matrix callbacks */
 static int mathutils_rna_matrix_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_rna_matrix_get(BaseMathObject *bmo, int subtype, float *mat_from)
+static int mathutils_rna_matrix_get(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
 		return 0;
 
-	RNA_property_float_get_array(&self->ptr, self->prop, mat_from);
+	RNA_property_float_get_array(&self->ptr, self->prop, bmo->data);
 	return 1;
 }
 
-static int mathutils_rna_matrix_set(BaseMathObject *bmo, int subtype, float *mat_to)
+static int mathutils_rna_matrix_set(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	
 	if(self->prop==NULL)
 		return 0;
 	/* can ignore clamping here */
-	RNA_property_float_set_array(&self->ptr, self->prop, mat_to);
+	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
 
 Mathutils_Callback mathutils_rna_matrix_cb = {
-	(BaseMathCheckFunc)		mathutils_rna_generic_check,
-	(BaseMathGetFunc)		mathutils_rna_matrix_get,
-	(BaseMathSetFunc)		mathutils_rna_matrix_set,
-	(BaseMathGetIndexFunc)	NULL,
-	(BaseMathSetIndexFunc)	NULL
+	mathutils_rna_generic_check,
+	mathutils_rna_matrix_get,
+	mathutils_rna_matrix_set,
+	NULL,
+	NULL
 };
 
 /* same as RNA_enum_value_from_id but raises an exception  */
