@@ -1758,7 +1758,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		if(event->ascii && (retval == WM_UI_HANDLER_CONTINUE)) {
 			changed= ui_textedit_type_ascii(but, data, event->ascii);
 			retval= WM_UI_HANDLER_BREAK;
+			
 		}
+		/* textbutton with magnifier icon: do live update for search button */
+		if(but->icon==ICON_VIEWZOOM)
+			update= 1;
 	}
 
 	if(changed) {
