@@ -492,6 +492,13 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 
 /* Space Properties */
 
+/* note: this function exists only to avoid id refcounting */
+static void rna_SpaceProperties_pin_id_set(PointerRNA *ptr, PointerRNA value)
+{
+    SpaceButs *sbuts= (SpaceButs*)(ptr->data);
+    sbuts->pinid= value.data;
+}
+
 static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
@@ -1193,7 +1200,8 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pinid");
 	RNA_def_property_struct_type(prop, "ID");
-	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_SpaceProperties_pin_id_typef");
+    /* note: custom set function is ONLY to avoid rna setting a user for this. */
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceProperties_pin_id_set", "rna_SpaceProperties_pin_id_typef");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, NULL);
 
