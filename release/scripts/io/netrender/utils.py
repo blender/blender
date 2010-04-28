@@ -19,7 +19,7 @@
 import sys, os
 import re
 import http, http.client, http.server, urllib, socket
-import subprocess, shutil, time, hashlib
+import subprocess, shutil, time, hashlib, zlib
 
 import netrender.model
 
@@ -153,6 +153,18 @@ def renderURL(job_id, frame_number):
 
 def cancelURL(job_id):
     return "/cancel_%s" % (job_id)
+
+def hashFile(path):
+    f = open(path, "rb")
+    value = hashData(f.read())
+    f.close()
+    return value
+    
+def hashData(data):
+    m = hashlib.md5()
+    m.update(data)
+    return m.hexdigest()
+    
 
 def prefixPath(prefix_directory, file_path, prefix_path):
     if os.path.isabs(file_path):

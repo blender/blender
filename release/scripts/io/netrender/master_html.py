@@ -106,53 +106,6 @@ def get(handler):
         handler.send_head(content = "text/html")
         head("NetRender")
 
-        output("<h2>Master</h2>")
-
-        output("""<button title="remove all jobs" onclick="clear_jobs();">CLEAR JOB LIST</button>""")
-
-        startTable(caption = "Rules", class_style = "rules")
-
-        headerTable("type", "enabled", "description", "limit")
-
-        for rule in handler.server.balancer.rules:
-            rowTable(
-                        "rating",
-                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
-                        rule,
-                        rule.str_limit() +
-                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
-                    )
-
-        for rule in handler.server.balancer.priorities:
-            rowTable(
-                        "priority",
-                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
-                        rule,
-                        rule.str_limit() +
-                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
-                    )
-
-        for rule in handler.server.balancer.exceptions:
-            rowTable(
-                        "exception",
-                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
-                        rule,
-                        rule.str_limit() +
-                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
-                    )
-
-        endTable()
-
-        output("<h2>Slaves</h2>")
-
-        startTable()
-        headerTable("name", "address", "last seen", "stats", "job")
-
-        for slave in handler.server.slaves:
-            rowTable(slave.name, slave.address[0], time.ctime(slave.last_seen), slave.stats, link(slave.job.name, "/html/job" + slave.job.id) if slave.job else "None")
-
-        endTable()
-
         output("<h2>Jobs</h2>")
 
         startTable()
@@ -204,6 +157,53 @@ def get(handler):
                     )
 
         endTable()
+        
+        output("<h2>Slaves</h2>")
+
+        startTable()
+        headerTable("name", "address", "last seen", "stats", "job")
+
+        for slave in handler.server.slaves:
+            rowTable(slave.name, slave.address[0], time.ctime(slave.last_seen), slave.stats, link(slave.job.name, "/html/job" + slave.job.id) if slave.job else "None")
+
+        endTable()
+
+        output("<h2>Configuration</h2>")
+
+        output("""<button title="remove all jobs" onclick="clear_jobs();">CLEAR JOB LIST</button>""")
+
+        startTable(caption = "Rules", class_style = "rules")
+
+        headerTable("type", "enabled", "description", "limit")
+
+        for rule in handler.server.balancer.rules:
+            rowTable(
+                        "rating",
+                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
+                        rule,
+                        rule.str_limit() +
+                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
+                    )
+
+        for rule in handler.server.balancer.priorities:
+            rowTable(
+                        "priority",
+                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
+                        rule,
+                        rule.str_limit() +
+                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
+                    )
+
+        for rule in handler.server.balancer.exceptions:
+            rowTable(
+                        "exception",
+                        checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
+                        rule,
+                        rule.str_limit() +
+                        """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
+                    )
+
+        endTable()
 
         output("</body></html>")
 
@@ -235,13 +235,17 @@ def get(handler):
             tot_cache = 0
             tot_fluid = 0
 
+            rowTable(job.files[0].filepath)
+            rowTable("Other Files", class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.other&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
+
             for file in job.files:
                 if file.filepath.endswith(".bphys"):
                     tot_cache += 1
                 elif file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
                     tot_fluid += 1
                 else:
-                    rowTable(file.filepath)
+                    if file != job.files[0]:
+                        rowTable(file.filepath, class_style = "other")
 
             if tot_cache > 0:
                 rowTable("%i physic cache files" % tot_cache, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.cache&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
@@ -257,9 +261,9 @@ def get(handler):
 
             endTable()
 
-            output("<h2>Blacklist</h2>")
-
             if job.blacklist:
+                output("<h2>Blacklist</h2>")
+
                 startTable()
                 headerTable("name", "address")
 
@@ -268,8 +272,6 @@ def get(handler):
                     rowTable(slave.name, slave.address[0])
 
                 endTable()
-            else:
-                output("<i>Empty</i>")
 
             output("<h2>Frames</h2>")
 

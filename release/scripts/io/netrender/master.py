@@ -27,12 +27,16 @@ import netrender.balancing
 import netrender.master_html
 
 class MRenderFile(netrender.model.RenderFile):
-    def __init__(self, filepath, index, start, end):
-        super().__init__(filepath, index, start, end)
+    def __init__(self, filepath, index, start, end, signature):
+        super().__init__(filepath, index, start, end, signature)
         self.found = False
 
     def test(self):
         self.found = os.path.exists(self.filepath)
+        if self.found:
+            found_signature = hashFile(self.filepath)
+            self.found = self.signature == found_signature
+            
         return self.found
 
 
@@ -74,7 +78,7 @@ class MRenderJob(netrender.model.RenderJob):
         # special server properties
         self.last_update = 0
         self.save_path = ""
-        self.files = [MRenderFile(rfile.filepath, rfile.index, rfile.start, rfile.end) for rfile in job_info.files]
+        self.files = [MRenderFile(rfile.filepath, rfile.index, rfile.start, rfile.end, rfile.signature) for rfile in job_info.files]
 
         self.resolution = None
 
@@ -716,7 +720,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         buf = self.rfile.read(length)
 
                         # add same temp file + renames as slave
-
+                        
                         f = open(file_path, "wb")
                         f.write(buf)
                         f.close()
@@ -875,7 +879,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         self.job_id = 0
         self.path = path + "master_" + str(os.getpid()) + os.sep
 
-        self.slave_timeout = 30 # 30 mins: need a parameter for that
+        self.slave_timeout = 5 # 5 mins: need a parameter for that
 
         self.balancer = netrender.balancing.Balancer()
         self.balancer.addRule(netrender.balancing.RatingUsageByCategory(self.getJobs))
