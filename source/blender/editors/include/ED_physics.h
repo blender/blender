@@ -35,7 +35,7 @@ struct wmKeyConfig;
 /* particle_edit.c */
 int PE_poll(struct bContext *C);
 int PE_hair_poll(struct bContext *C);
-int PE_poll_3dview(struct bContext *C);
+int PE_poll_view3d(struct bContext *C);
 
 /* operators */
 void ED_operatortypes_physics(void);

@@ -124,7 +124,7 @@ int PE_hair_poll(bContext *C)
 	return (edit && edit->psys);
 }
 
-int PE_poll_3dview(bContext *C)
+int PE_poll_view3d(bContext *C)
 {
 	return PE_poll(C) && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
 		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
@@ -1494,7 +1494,7 @@ void PARTICLE_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_linked_exec;
 	ot->invoke= select_linked_invoke;
-	ot->poll= PE_poll_3dview;
+	ot->poll= PE_poll_view3d;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2449,7 +2449,7 @@ static void toggle_particle_cursor(bContext *C, int enable)
 		pset->paintcursor = NULL;
 	}
 	else if(enable)
-		pset->paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), PE_poll_3dview, brush_drawcursor, NULL);
+		pset->paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), PE_poll_view3d, brush_drawcursor, NULL);
 }
 
 /********************* radial control operator *********************/
@@ -3609,7 +3609,7 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 	ot->invoke= brush_edit_invoke;
 	ot->modal= brush_edit_modal;
 	ot->cancel= brush_edit_cancel;
-	ot->poll= PE_poll_3dview;
+	ot->poll= PE_poll_view3d;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;

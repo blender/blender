@@ -709,7 +709,7 @@ void draw_gpencil_2dimage (bContext *C, ImBuf *ibuf)
 /* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly 
  * Note: this gets called twice - first time with onlyv2d=1 to draw 'canvas' strokes, second time with onlyv2d=0 for screen-aligned strokes
  */
-void draw_gpencil_2dview (bContext *C, short onlyv2d)
+void draw_gpencil_view2d (bContext *C, short onlyv2d)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -735,7 +735,7 @@ void draw_gpencil_2dview (bContext *C, short onlyv2d)
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly 
  * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes, second time with only3d=0 for screen-aligned strokes
  */
-void draw_gpencil_3dview_ext (Scene *scene, ARegion *ar, short only3d)
+void draw_gpencil_view3d_ext (Scene *scene, ARegion *ar, short only3d)
 {
 	bGPdata *gpd;
 	int dflag = 0;
@@ -749,11 +749,11 @@ void draw_gpencil_3dview_ext (Scene *scene, ARegion *ar, short only3d)
 	gp_draw_data(gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag);
 }
 
-void draw_gpencil_3dview (bContext *C, short only3d)
+void draw_gpencil_view3d (bContext *C, short only3d)
 {
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
-	draw_gpencil_3dview_ext(scene, ar, only3d);
+	draw_gpencil_view3d_ext(scene, ar, only3d);
 }
 
 /* ************************************************** */

@@ -125,7 +125,7 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 
 	switch(space->spacetype) {
 		case SPACE_VIEW3D:
-			return &RNA_Space3DView;
+			return &RNA_SpaceView3D;
 		case SPACE_IPO:
 			return &RNA_SpaceGraphEditor;
 		case SPACE_OUTLINER:
@@ -227,7 +227,7 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, i
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_LOCAL);
 	RNA_enum_items_add_value(&item, &totitem, transform_orientation_items, V3D_MANIP_VIEW);
 
-	if (ptr->type == &RNA_Space3DView)
+	if (ptr->type == &RNA_SpaceView3D)
 		scene = ((bScreen*)ptr->id.data)->scene;
 	else
 		scene = CTX_data_scene(C); /* can't use scene from ptr->id.data because that enum is also used by operators */
@@ -256,7 +256,7 @@ EnumPropertyItem *rna_TransformOrientation_itemf(bContext *C, PointerRNA *ptr, i
 }
 
 /* Space 3D View */
-static void rna_Space3DView_lock_camera_and_layers_set(PointerRNA *ptr, int value)
+static void rna_SpaceView3D_lock_camera_and_layers_set(PointerRNA *ptr, int value)
 {
 	View3D *v3d= (View3D*)(ptr->data);
 	bScreen *sc= (bScreen*)ptr->id.data;
@@ -299,7 +299,7 @@ static void rna_View3D_CursorLocation_set(PointerRNA *ptr, const float *values)
 	copy_v3_v3(cursor, values);
 }
 
-static void rna_Space3DView_layer_set(PointerRNA *ptr, const int *values)
+static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const int *values)
 {
 	View3D *v3d= (View3D*)(ptr->data);
 	
@@ -313,7 +313,7 @@ static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
 	ListBase *regionbase= (sa->spacedata.first == v3d)? &sa->regionbase: &v3d->regionbase;
 	ARegion *ar= regionbase->last; /* always last in list, weak .. */
 
-	return rna_pointer_inherit_refine(ptr, &RNA_Region3DView, ar->regiondata);
+	return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, ar->regiondata);
 }
 
 static PointerRNA rna_SpaceView3D_region_quadview_get(PointerRNA *ptr)
@@ -325,10 +325,10 @@ static PointerRNA rna_SpaceView3D_region_quadview_get(PointerRNA *ptr)
 
 	ar= (ar->alignment == RGN_ALIGN_QSPLIT)? ar->prev: NULL;
 
-	return rna_pointer_inherit_refine(ptr, &RNA_Region3DView, (ar)? ar->regiondata: NULL);
+	return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, (ar)? ar->regiondata: NULL);
 }
 
-static void rna_Region3DView_quadview_update(Main *main, Scene *scene, PointerRNA *ptr)
+static void rna_RegionView3D_quadview_update(Main *main, Scene *scene, PointerRNA *ptr)
 {
 	ScrArea *sa;
 	ARegion *ar;
@@ -879,7 +879,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 
 }
 
-static void rna_def_space_3dview(BlenderRNA *brna)
+static void rna_def_space_view3d(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -893,7 +893,7 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 		{V3D_ACTIVE, "ACTIVE_ELEMENT", ICON_ROTACTIVE, "Active Element", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
-	srna= RNA_def_struct(brna, "Space3DView", "Space");
+	srna= RNA_def_struct(brna, "SpaceView3D", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
 	
@@ -1079,7 +1079,7 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "lock_camera_and_layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scenelock", 1);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Space3DView_lock_camera_and_layers_set");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceView3D_lock_camera_and_layers_set");
 	RNA_def_property_ui_text(prop, "Lock Camera and Layers", "Use the scene's active camera and layers in this view, rather than local layers");
 	RNA_def_property_ui_icon(prop, ICON_LOCKVIEW_OFF, 1);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
@@ -1087,7 +1087,7 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Space3DView_layer_set");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceView3D_layer_set");
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible in this 3D View");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
@@ -1098,35 +1098,35 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Used Layers", "Layers that contain something");
 
 	prop= RNA_def_property(srna, "region_3d", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Region3DView");
+	RNA_def_property_struct_type(prop, "RegionView3D");
 	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_region_3d_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "3D Region", "3D region in this space, in case of quad view the camera region");
 
 	prop= RNA_def_property(srna, "region_quadview", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Region3DView");
+	RNA_def_property_struct_type(prop, "RegionView3D");
 	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_region_quadview_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Quad View Region", "3D region that defines the quad view settings");
 
 	/* region */
 
-	srna= RNA_def_struct(brna, "Region3DView", "Region");
+	srna= RNA_def_struct(brna, "RegionView3D", "Region");
 	RNA_def_struct_sdna(srna, "RegionView3D");
 	RNA_def_struct_ui_text(srna, "3D View Region", "3D View region data");
 
 	prop= RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_LOCKED);
 	RNA_def_property_ui_text(prop, "Lock", "Lock view rotation in side views");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_Region3DView_quadview_update");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");
 	
 	prop= RNA_def_property(srna, "box_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_BOXVIEW);
 	RNA_def_property_ui_text(prop, "Box", "Sync view position between side views");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_Region3DView_quadview_update");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");
 	
 	prop= RNA_def_property(srna, "box_clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_BOXCLIP);
 	RNA_def_property_ui_text(prop, "Clip", "Clip objects based on what's visible in other side views");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_Region3DView_quadview_update");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");
 	
 	prop= RNA_def_property(srna, "perspective_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "persmat");
@@ -2114,7 +2114,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space_filebrowser(brna);
 	rna_def_space_outliner(brna);
 	rna_def_background_image(brna);
-	rna_def_space_3dview(brna);
+	rna_def_space_view3d(brna);
 	rna_def_space_buttons(brna);
 	rna_def_space_dopesheet(brna);
 	rna_def_space_graph(brna);

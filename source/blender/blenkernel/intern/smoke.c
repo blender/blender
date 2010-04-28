@@ -717,7 +717,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->strength = 2.0;
 			smd->domain->noise = MOD_SMOKE_NOISEWAVE;
 			smd->domain->diss_speed = 5;
-			// init 3dview buffer
+			// init view3d buffer
 			smd->domain->viewsettings = 0;
 			smd->domain->effector_weights = BKE_add_effector_weights(NULL);
 		}

@@ -822,7 +822,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	
 	/* draw grease-pencil (screen aligned) */
 //	if (sseq->flag & SEQ_DRAW_GPENCIL)
-// XXX		draw_gpencil_2dview(sa, 0);
+// XXX		draw_gpencil_view2d(sa, 0);
 	
 	/* ortho at pixel level */
 	UI_view2d_view_restore(C);

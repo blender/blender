@@ -1832,7 +1832,7 @@ class VIEW3D_MT_edit_armature_roll(bpy.types.Menu):
 # ********** Panel **********
 
 
-class VIEW3D_PT_3dview_properties(bpy.types.Panel):
+class VIEW3D_PT_view3d_properties(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "View"
@@ -1867,7 +1867,7 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         layout.column().prop(view, "cursor_location")
 
 
-class VIEW3D_PT_3dview_name(bpy.types.Panel):
+class VIEW3D_PT_view3d_name(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Item"
@@ -1891,7 +1891,7 @@ class VIEW3D_PT_3dview_name(bpy.types.Panel):
                 row.prop(bone, "name", text="")
 
 
-class VIEW3D_PT_3dview_display(bpy.types.Panel):
+class VIEW3D_PT_view3d_display(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Display"
@@ -1959,7 +1959,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
             row.prop(region, "box_clip")
 
 
-class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
+class VIEW3D_PT_view3d_meshdisplay(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Mesh Display"
@@ -1995,7 +1995,7 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
         col.prop(mesh, "draw_face_area")
 
 
-class VIEW3D_PT_3dview_curvedisplay(bpy.types.Panel):
+class VIEW3D_PT_view3d_curvedisplay(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Curve Display"
@@ -2263,11 +2263,11 @@ classes = [
     VIEW3D_MT_armature_specials, # Only as a menu for keybindings
 
    # Panels
-    VIEW3D_PT_3dview_properties,
-    VIEW3D_PT_3dview_display,
-    VIEW3D_PT_3dview_name,
-    VIEW3D_PT_3dview_meshdisplay,
-    VIEW3D_PT_3dview_curvedisplay,
+    VIEW3D_PT_view3d_properties,
+    VIEW3D_PT_view3d_display,
+    VIEW3D_PT_view3d_name,
+    VIEW3D_PT_view3d_meshdisplay,
+    VIEW3D_PT_view3d_curvedisplay,
     VIEW3D_PT_background_image,
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_etch_a_ton,
