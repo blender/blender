@@ -82,11 +82,7 @@ typedef struct localListBase
 	/* note: keep this struct aligned (e.g., irix/gcc) - Hos */
 typedef struct MemHead {
 	int tag1;
-#if defined(WIN64)
-	unsigned long long len;
-#else
-	unsigned long len;
-#endif
+	unsigned int len;
 	struct MemHead *next,*prev;
 	const char * name;
 	const char * nextname;
