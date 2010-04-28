@@ -254,6 +254,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("    \tNULL SDL OPENAL JACK\n");
 	printf ("  -h\t\tPrint this help text\n");
 	printf ("  -y\t\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)\n");
+	printf ("  -Y\t\tEnable automatic python script execution\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
 #ifdef WIN32
 	printf ("  -R\t\tRegister .blend extension\n");
@@ -316,29 +317,15 @@ static int end_arguments(int argc, char **argv, void *data)
 	return -1;
 }
 
-static int disable_python(int argc, char **argv, void *data)
+static int enable_python(int argc, char **argv, void *data)
 {
-	G.f &= ~G_SCRIPT_AUTOEXEC;
+	G.f |= G_SCRIPT_AUTOEXEC;
 	return 0;
 }
 
-
-static int forked_tongue(int argc, char **argv, void *data)
+static int disable_python(int argc, char **argv, void *data)
 {
-	printf ("-y was used to disable script links because,\n");
-	printf ("\t-p being taken, Ton was of the opinion that Y\n");
-	printf ("\tlooked like a split (disabled) snake, and also\n");
-	printf ("\twas similar to a python's tongue (unproven).\n\n");
-
-	printf ("\tZr agreed because it gave him a reason to add a\n");
-	printf ("\tcompletely useless text into Blender.\n\n");
-
-	printf ("\tADDENDUM! Ton, in defense, found this picture of\n");
-	printf ("\tan Australian python, exhibiting her (his/its) forked\n");
-	printf ("\tY tongue. It could be part of an H Zr retorted!\n\n");
-	printf ("\thttp://www.users.bigpond.com/snake.man/\n");
-
-	exit(252);
+	G.f &= ~G_SCRIPT_AUTOEXEC;
 	return 0;
 }
 
@@ -881,7 +868,7 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, "--version", 1, print_version, NULL);
 	BLI_argsAdd(ba, "-v", 1, print_version, NULL);
 
-	BLI_argsAdd(ba, "-Y", 1, forked_tongue, NULL);
+	BLI_argsAdd(ba, "-Y", 1, enable_python, NULL);
 	BLI_argsAdd(ba, "-y", 1, disable_python, NULL);
 
 	BLI_argsAdd(ba, "-fpe", 1, set_fpe, NULL);
@@ -989,9 +976,6 @@ int main(int argc, char **argv)
 	GEN_init_messaging_system();
 
 	/* first test for background */
-
-	G.f |= G_SCRIPT_AUTOEXEC; /* script links enabled by default */
-
 	ba = BLI_argsInit(argc, argv); /* skip binary path */
 	setupArguments(C, ba, &syshandle);
 

@@ -276,6 +276,8 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	else bfd->globalf &= ~G_DEBUG;
 	if (G.f & G_SWAP_EXCHANGE) bfd->globalf |= G_SWAP_EXCHANGE;
 	else bfd->globalf &= ~G_SWAP_EXCHANGE;
+	if (G.f & G_SCRIPT_AUTOEXEC) bfd->globalf |= G_SCRIPT_AUTOEXEC;
+	else bfd->globalf &= ~G_SCRIPT_AUTOEXEC;
 
 	G.f= bfd->globalf;
 
