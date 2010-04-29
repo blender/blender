@@ -650,7 +650,7 @@ void *copy_libblock(void *rt)
 	ID *idn, *id;
 	ListBase *lb;
 	char *cp, *cpn;
-	int idn_len;
+	size_t idn_len;
 	
 	id= rt;
 

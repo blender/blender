@@ -220,7 +220,7 @@ void MEM_set_memory_debug(void)
 	malloc_debug_memset= 1;
 }
 
-int MEM_allocN_len(void *vmemh)
+size_t MEM_allocN_len(void *vmemh)
 {
 	if (vmemh) {
 		MemHead *memh= vmemh;

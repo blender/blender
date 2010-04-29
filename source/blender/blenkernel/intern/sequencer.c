@@ -586,7 +586,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 
 	if (seq->type == SEQ_IMAGE) {
 		/* Hack? */
-		int olen = MEM_allocN_len(seq->strip->stripdata)/sizeof(struct StripElem);
+		size_t olen = MEM_allocN_len(seq->strip->stripdata)/sizeof(struct StripElem);
 		seq->len = olen;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;

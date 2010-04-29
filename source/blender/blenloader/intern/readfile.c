@@ -1357,7 +1357,8 @@ static void test_pointer_array(FileData *fd, void **mat)
 #else
 	long long *lpoin, *lmat;
 #endif
-	int len, *ipoin, *imat;
+	int *ipoin, *imat;
+	size_t len;
 
 		/* manually convert the pointer array in
 		 * the old dna format to a pointer array in
