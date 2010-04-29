@@ -105,7 +105,7 @@ extern "C" {
 	/** Same as callocN, clears memory and uses mmap (disk cached) if supported.
 		Can be free'd with MEM_freeN as usual.
 		* */
-	void *MEM_mapallocN(unsigned int len, const char * str);
+	void *MEM_mapallocN(size_t len, const char * str);
 
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. as a python dict for easy investigation */ 
