@@ -1,5 +1,5 @@
 /**
- * $Id: logic_header.c 27676 2010-03-23 14:09:09Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

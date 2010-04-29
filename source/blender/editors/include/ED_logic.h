@@ -1,5 +1,5 @@
 /**
- * $Id: ED_armature.h 28425 2010-04-26 06:35:25Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
