@@ -122,7 +122,7 @@ bConstraintTypeInfo *get_constraint_typeinfo(int type);
 void unique_constraint_name(struct bConstraint *con, struct ListBase *list);
 
 void free_constraints(struct ListBase *list);
-void copy_constraints(struct ListBase *dst, const struct ListBase *src);
+void copy_constraints(struct ListBase *dst, const struct ListBase *src, int do_extern);
 void relink_constraints(struct ListBase *list);
 void id_loop_constraints(struct ListBase *list, ConstraintIDFunc func, void *userdata);
 void free_constraint_data(struct bConstraint *con);

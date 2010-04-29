@@ -493,7 +493,7 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 	for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
 		// TODO: rename this argument...
 		if (copycon) {
-			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
+			copy_constraints(&listb, &pchan->constraints, TRUE);  // copy_constraints NULLs listb
 			pchan->constraints= listb;
 			pchan->path= NULL; // XXX remove this line when the new motionpaths are ready... (depreceated code)
 			pchan->mpath= NULL; /* motion paths should not get copied yet... */
@@ -667,7 +667,7 @@ void duplicate_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *pchan_
 	pchan->iklinweight= pchan_from->iklinweight;
 
 	/* constraints */
-	copy_constraints(&pchan->constraints, &pchan_from->constraints);
+	copy_constraints(&pchan->constraints, &pchan_from->constraints, TRUE);
 
 	/* id-properties */
 	if(pchan->prop) {
