@@ -55,6 +55,7 @@
 #include "ED_sound.h"
 #include "ED_uvedit.h"
 #include "ED_mball.h"
+#include "ED_logic.h"
 
 /* only call once on startup, storage is global in BKE kernel listbase */
 void ED_spacetypes_init(void)
