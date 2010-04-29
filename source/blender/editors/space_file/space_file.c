@@ -195,13 +195,24 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
 	if (filelist_empty(sfile->files))
 	{
+		thumbnails_stop(sfile->files, C);
 		filelist_readdir(sfile->files);
-		thumbnails_start(sfile->files, C);
+		if(params->sort!=FILE_SORT_NONE) {
+			filelist_sort(sfile->files, params->sort);
+		}
 		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
+		thumbnails_start(sfile->files, C);
 	} else {
 		filelist_filter(sfile->files);
+		if(params->sort!=FILE_SORT_NONE) {
+			thumbnails_stop(sfile->files, C);
+			filelist_sort(sfile->files, params->sort);
+			thumbnails_start(sfile->files, C);
+		} else {
+			filelist_filter(sfile->files);
+		}
+
 	}
-	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
 	
 	if (params->renamefile[0] != '\0') {
 		int idx = filelist_find(sfile->files, params->renamefile);
