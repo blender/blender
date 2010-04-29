@@ -777,6 +777,8 @@ static void ui_apply_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data)
 			break;
 	}
 	if(bt && bt!=but) {
+		if (!ELEM(bt->type, LINK, INLINK) || !ELEM(but->type, LINK, INLINK))
+			return;
 		
 		if(but->type==LINK) ui_add_link(but, bt);
 		else ui_add_link(bt, but);

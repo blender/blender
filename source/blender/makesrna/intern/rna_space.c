@@ -2106,10 +2106,32 @@ static void rna_def_space_node(BlenderRNA *brna)
 static void rna_def_space_logic(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "SpaceLogicEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceLogic");
 	RNA_def_struct_ui_text(srna, "Space Logic Editor", "Logic editor space data");
+	
+	prop= RNA_def_property(srna, "sensors_show_selected_objects", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_SENS_SEL);
+	RNA_def_property_ui_text(prop, "Show Selected Object", "Show sensors of all selected objects");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	
+	prop= RNA_def_property(srna, "sensors_show_active_objects", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_SENS_ACT);
+	RNA_def_property_ui_text(prop, "Show Active Object", "Show sensors of active object");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	
+	prop= RNA_def_property(srna, "sensors_show_linked_controller", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_SENS_LINK);
+	RNA_def_property_ui_text(prop, "Show Linked to Controller", "Show linked objects to the controller");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	
+	prop= RNA_def_property(srna, "sensors_show_active_states", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_SENS_STATE);
+	RNA_def_property_ui_text(prop, "Show Active States", "Show only sensors connected to active states");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	
 }
 
 void RNA_def_space(BlenderRNA *brna)

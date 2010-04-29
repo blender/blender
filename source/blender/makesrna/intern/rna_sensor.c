@@ -30,7 +30,27 @@
 
 #include "DNA_sensor_types.h"
 
+EnumPropertyItem sensor_type_items[] ={
+	{SENS_ALWAYS, "ALWAYS", 0, "Always", ""},
+	{SENS_TOUCH, "TOUCH", 0, "Touch", ""},
+	{SENS_NEAR, "NEAR", 0, "Near", ""},
+	{SENS_KEYBOARD, "KEYBOARD", 0, "Keyboard", ""},
+	{SENS_PROPERTY, "PROPERTY", 0, "Property", ""},
+	{SENS_MOUSE, "MOUSE", 0, "Mouse", ""},
+	{SENS_COLLISION, "COLLISION", 0, "Collision", ""},
+	{SENS_RADAR, "RADAR", 0, "Radar", ""},
+	{SENS_RANDOM, "RANDOM", 0, "Random", ""},
+	{SENS_RAY, "RAY", 0, "Ray", ""},
+	{SENS_MESSAGE, "MESSAGE", 0, "Message", ""},
+	{SENS_JOYSTICK, "JOYSTICK", 0, "joystick", ""},
+	{SENS_ACTUATOR, "ACTUATOR", 0, "Actuator", ""},
+	{SENS_DELAY, "DELAY", 0, "Delay", ""},
+	{SENS_ARMATURE, "ARMATURE", 0, "Armature", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
+
+#include "BKE_sca.h"
 
 static StructRNA* rna_Sensor_refine(struct PointerRNA *ptr)
 {
@@ -72,29 +92,19 @@ static StructRNA* rna_Sensor_refine(struct PointerRNA *ptr)
 	}
 }
 
+static void rna_Sensor_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bSensor *sens= (bSensor *)ptr->data;
+	
+	init_sensor(sens);
+}
+
 #else
 
 static void rna_def_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem sensor_type_items[] ={
-		{SENS_ALWAYS, "ALWAYS", 0, "Always", ""},
-		{SENS_TOUCH, "TOUCH", 0, "Touch", ""},
-		{SENS_NEAR, "NEAR", 0, "Near", ""},
-		{SENS_KEYBOARD, "KEYBOARD", 0, "Keyboard", ""},
-		{SENS_PROPERTY, "PROPERTY", 0, "Property", ""},
-		{SENS_MOUSE, "MOUSE", 0, "Mouse", ""},
-		{SENS_COLLISION, "COLLISION", 0, "Collision", ""},
-		{SENS_RADAR, "RADAR", 0, "Radar", ""},
-		{SENS_RANDOM, "RANDOM", 0, "Random", ""},
-		{SENS_RAY, "RAY", 0, "Ray", ""},
-		{SENS_MESSAGE, "MESSAGE", 0, "Message", ""},
-		{SENS_JOYSTICK, "JOYSTICK", 0, "joystick", ""},
-		{SENS_ACTUATOR, "ACTUATOR", 0, "Actuator", ""},
-		{SENS_DELAY, "DELAY", 0, "Delay", ""},
-		{SENS_ARMATURE, "ARMATURE", 0, "Armature", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Sensor", NULL);
 	RNA_def_struct_ui_text(srna, "Sensor", "Game engine logic brick to detect events");
@@ -105,12 +115,17 @@ static void rna_def_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Sensor name");
 	RNA_def_struct_name_property(srna, prop);
 
-	/* type is not editable, would need to do proper data free/alloc */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, sensor_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
-
+	RNA_def_property_update(prop, 0, "rna_Sensor_type_update");
+	
+	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_SHOW);
+	RNA_def_property_ui_text(prop, "Expanded", "Set sensor expanded in the user interface");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
+	
 	prop= RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Invert Output", "Invert the level(output) of this sensor");
 

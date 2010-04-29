@@ -100,6 +100,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_metaball();
 	ED_operatortypes_sound();
 	ED_operatortypes_render();
+	ED_operatortypes_logic();
 	
 	UI_view2d_operatortypes();
 	UI_buttons_operatortypes();

@@ -445,6 +445,7 @@ extern StructRNA RNA_SpaceGraphEditor;
 extern StructRNA RNA_SpaceImageEditor;
 extern StructRNA RNA_SpaceInfo;
 extern StructRNA RNA_SpaceLogicEditor;
+extern StructRNA RNA_SpaceLogicEditorSensorSettings;
 extern StructRNA RNA_SpaceNLA;
 extern StructRNA RNA_SpaceNodeEditor;
 extern StructRNA RNA_SpaceOutliner;
