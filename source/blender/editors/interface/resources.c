@@ -309,6 +309,8 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->nurb_sel_vline; break;
 			case TH_ACTIVE_SPLINE:
 				cp= ts->act_spline; break;
+			case TH_LASTSEL_POINT:
+				cp= ts->lastsel_point; break;
 			case TH_HANDLE_FREE:
 				cp= ts->handle_free; break;
 			case TH_HANDLE_AUTO:
@@ -530,6 +532,7 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tv3d.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
 
 	SETCOL(btheme->tv3d.act_spline, 0xdb, 0x25, 0x12, 255);
+	SETCOL(btheme->tv3d.lastsel_point,  0xff, 0xff, 0xff, 255);
 
 	SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
 	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);               // alpha 80 is not meant editable, used for wire+action draw
@@ -1451,7 +1454,15 @@ void init_userdef_do_versions(void)
 			SETCOLF(btheme->tv3d.edge_crease, 0.8, 0, 0.6, 1.0);
 		}
 	}
+	if (G.main->versionfile <= 252) {
+		bTheme *btheme;
 
+		/* init new curve colors */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			if (btheme->tv3d.lastsel_point[3] == 0)
+				SETCOL(btheme->tv3d.lastsel_point, 0xff, 0xff, 0xff, 255);
+		}
+	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {

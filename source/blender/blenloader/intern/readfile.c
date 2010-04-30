@@ -2754,7 +2754,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->bev.first=cu->bev.last= NULL;
 	cu->disp.first=cu->disp.last= NULL;
 	cu->editnurb= NULL;
-	cu->lastselbp= NULL;
+	cu->lastsel= NULL;
 	cu->path= NULL;
 	cu->editfont= NULL;
 	

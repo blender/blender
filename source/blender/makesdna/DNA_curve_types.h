@@ -189,8 +189,8 @@ typedef struct Curve {
 
 	/* edit, index in nurb list */
 	int actnu;
-	/* edit, last selected bpoint */
-	BPoint *lastselbp;
+	/* edit, last selected point */
+	void *lastsel;
 	
 	/* font part */
 	short len, lines, pos, spacemode;
