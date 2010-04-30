@@ -1596,6 +1596,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		unsigned int *vbuffer=NULL; /* selection buffer	*/
 		unsigned int *col;			/* color in buffer	*/
 		int bone_only;
+		int bone_selected=0;
 		int totobj= MAXPICKBUF;	// XXX solve later
 		
 		if((ob) && (ob->mode & OB_MODE_POSE))
@@ -1651,6 +1652,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 							if(bone) {
 								if(selecting) {
 									bone->flag |= BONE_SELECTED;
+									bone_selected=1;
 // XXX									select_actionchannel_by_name(base->object->action, bone->name, 1);
 								}
 								else {
@@ -1675,6 +1677,8 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 						if(hits==0) break;
 					}
 				}
+				
+				if (bone_selected)	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, base->object);
 				
 				base= next;
 			}
