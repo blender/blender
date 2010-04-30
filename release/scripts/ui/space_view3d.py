@@ -453,8 +453,8 @@ class VIEW3D_MT_select_particle(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("particle.select_first", text="Roots")
-        layout.operator("particle.select_last", text="Tips")
+        layout.operator("particle.select_roots", text="Roots")
+        layout.operator("particle.select_tips", text="Tips")
 
 
 class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
