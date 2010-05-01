@@ -161,11 +161,13 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 
 static EnumPropertyItem prop_select_linked_types[] = {
 	//{1, "IPO", 0, "Object IPO", ""}, // XXX depreceated animation system stuff...
-	{2, "OBDATA", 0, "Ob Data", ""},
+	{2, "OBDATA", 0, "Object Data", ""},
 	{3, "MATERIAL", 0, "Material", ""},
 	{4, "TEXTURE", 0, "Texture", ""},
 	{5, "DUPGROUP", 0, "Dupligroup", ""},
 	{6, "PARTICLE", 0, "Particle System", ""},
+	{7, "LIBRARY", 0, "Library", ""},
+	{8, "LIBRARY_OBDATA", 0, "Library (Object Data)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -198,7 +200,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	}
 	
 	ob= OBACT;
-	if(ob==0){ 
+	if(ob==NULL){ 
 		BKE_report(op->reports, RPT_ERROR, "No Active Object");
 		return OPERATOR_CANCELLED;
 	}
@@ -227,7 +229,14 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	else if(nr==6) {
 		if(ob->particlesystem.first==NULL) return OPERATOR_CANCELLED;
 	}
-	else return OPERATOR_CANCELLED;
+	else if(nr==7) {
+		/* do nothing */
+	}
+	else if(nr==8) {
+		if(ob->data==NULL) return OPERATOR_CANCELLED;
+	}
+	else
+		return OPERATOR_CANCELLED;
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(nr==1) {
@@ -284,6 +293,18 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 				if (base->flag & SELECT) {
 					break;
 				}
+			}
+		}
+		else if(nr==7) {
+			if(ob->id.lib == base->object->id.lib) {
+				base->flag |= SELECT;
+				changed= 1;
+			}
+		}
+		else if(nr==8) {
+			if(base->object->data && ((ID *)ob->data)->lib == ((ID *)base->object->data)->lib) {
+				base->flag |= SELECT;
+				changed= 1;
 			}
 		}
 		base->object->flag= base->flag;

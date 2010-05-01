@@ -56,8 +56,8 @@
 
 static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyRNA *self, PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length);
 static Py_ssize_t pyrna_prop_array_length(BPy_PropertyRNA *self);
-static Py_ssize_t pyrna_prop_collection_length( BPy_PropertyRNA *self );
-
+static Py_ssize_t pyrna_prop_collection_length(BPy_PropertyRNA *self);
+static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback);
 
 /* bpyrna vector/euler/quat callbacks */
 static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
@@ -74,26 +74,25 @@ static int mathutils_rna_generic_check(BaseMathObject *bmo)
 	return self->prop ? 1:0;
 }
 
-static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype, float *vec_from)
+static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	if(self->prop==NULL)
 		return 0;
 	
-	RNA_property_float_get_array(&self->ptr, self->prop, vec_from);
+	RNA_property_float_get_array(&self->ptr, self->prop, bmo->data);
 	
 	/* Euler order exception */
 	if(subtype==MATHUTILS_CB_SUBTYPE_EUL) {
-		PropertyRNA *prop_eul_order= RNA_struct_find_property(&self->ptr, "rotation_mode");
-		if(prop_eul_order) {
-			((EulerObject *)bmo)->order= RNA_property_enum_get(&self->ptr, prop_eul_order);
-		}		
+		EulerObject *eul= (EulerObject *)bmo;
+		PropertyRNA *prop_eul_order= NULL;
+		eul->order= pyrna_rotation_euler_order_get(&self->ptr, &prop_eul_order, eul->order);
 	}
 	
 	return 1;
 }
 
-static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype, float *vec_to)
+static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	float min, max;
@@ -105,45 +104,46 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype, float *vec
 	if(min != FLT_MIN || max != FLT_MAX) {
 		int i, len= RNA_property_array_length(&self->ptr, self->prop);
 		for(i=0; i<len; i++) {
-			CLAMP(vec_to[i], min, max);
+			CLAMP(bmo->data[i], min, max);
 		}
 	}
 
-	RNA_property_float_set_array(&self->ptr, self->prop, vec_to);
-	
+	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
+	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+
 	/* Euler order exception */
 	if(subtype==MATHUTILS_CB_SUBTYPE_EUL) {
-		PropertyRNA *prop_eul_order= RNA_struct_find_property(&self->ptr, "rotation_mode");
-		if(prop_eul_order) {
-			RNA_property_enum_set(&self->ptr, prop_eul_order, ((EulerObject *)bmo)->order);
+		EulerObject *eul= (EulerObject *)bmo;
+		PropertyRNA *prop_eul_order= NULL;
+		short order= pyrna_rotation_euler_order_get(&self->ptr, &prop_eul_order, eul->order);
+		if(order != eul->order) {
+			RNA_property_enum_set(&self->ptr, prop_eul_order, eul->order);
 			RNA_property_update(BPy_GetContext(), &self->ptr, prop_eul_order);
-		}		
+		}
 	}
-
-	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
 
-static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int subtype, float *vec_from, int index)
+static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
 		return 0;
 	
-	vec_from[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
+	bmo->data[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
 	return 1;
 }
 
-static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int subtype, float *vec_to, int index)
+static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int subtype, int index)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
 		return 0;
 
-	RNA_property_float_clamp(&self->ptr, self->prop, &vec_to[index]);
-	RNA_property_float_set_index(&self->ptr, self->prop, index, vec_to[index]);
+	RNA_property_float_clamp(&self->ptr, self->prop, &bmo->data[index]);
+	RNA_property_float_set_index(&self->ptr, self->prop, index, bmo->data[index]);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
@@ -160,35 +160,35 @@ Mathutils_Callback mathutils_rna_array_cb = {
 /* bpyrna matrix callbacks */
 static int mathutils_rna_matrix_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_rna_matrix_get(BaseMathObject *bmo, int subtype, float *mat_from)
+static int mathutils_rna_matrix_get(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
 		return 0;
 
-	RNA_property_float_get_array(&self->ptr, self->prop, mat_from);
+	RNA_property_float_get_array(&self->ptr, self->prop, bmo->data);
 	return 1;
 }
 
-static int mathutils_rna_matrix_set(BaseMathObject *bmo, int subtype, float *mat_to)
+static int mathutils_rna_matrix_set(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	
 	if(self->prop==NULL)
 		return 0;
 	/* can ignore clamping here */
-	RNA_property_float_set_array(&self->ptr, self->prop, mat_to);
+	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
 
 Mathutils_Callback mathutils_rna_matrix_cb = {
-	(BaseMathCheckFunc)		mathutils_rna_generic_check,
-	(BaseMathGetFunc)		mathutils_rna_matrix_get,
-	(BaseMathSetFunc)		mathutils_rna_matrix_set,
-	(BaseMathGetIndexFunc)	NULL,
-	(BaseMathSetIndexFunc)	NULL
+	mathutils_rna_generic_check,
+	mathutils_rna_matrix_get,
+	mathutils_rna_matrix_set,
+	NULL,
+	NULL
 };
 
 /* same as RNA_enum_value_from_id but raises an exception  */
@@ -271,22 +271,17 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		case PROP_EULER:
 		case PROP_QUATERNION:
 			if(len==3) { /* euler */
-				/* attempt to get order */
-				/* TODO, keep order in sync */
-				short order= ROT_MODE_XYZ;
-				PropertyRNA *prop_eul_order= RNA_struct_find_property(ptr, "rotation_mode");
-				if(prop_eul_order) {
-					order = RNA_property_enum_get(ptr, prop_eul_order);
-					if (order < ROT_MODE_XYZ || order > ROT_MODE_ZYX) /* could be quat or axisangle */
-						order= ROT_MODE_XYZ;
-				}
-
 				if(is_thick) {
+					/* attempt to get order, only needed for thixk types since wrapped with update via callbacks */
+					PropertyRNA *prop_eul_order= NULL;
+					short order= pyrna_rotation_euler_order_get(ptr, &prop_eul_order, ROT_MODE_XYZ);
+
 					ret= newEulerObject(NULL, order, Py_NEW, NULL); // TODO, get order from RNA
 					RNA_property_float_get_array(ptr, prop, ((EulerObject *)ret)->eul);
 				}
 				else {
-					PyObject *eul_cb= newEulerObject_cb(ret, order, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
+					/* order will be updated from callback on use */
+					PyObject *eul_cb= newEulerObject_cb(ret, ROT_MODE_XYZ, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
 					Py_DECREF(ret); /* the euler owns now */
 					ret= eul_cb; /* return the euler instead */
 				}
@@ -336,6 +331,21 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 }
 
 #endif
+
+static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback)
+{
+	/* attempt to get order */
+	if(*prop_eul_order==NULL)
+		*prop_eul_order= RNA_struct_find_property(ptr, "rotation_mode");
+
+	if(*prop_eul_order) {
+		short order= RNA_property_enum_get(ptr, *prop_eul_order);
+		if (order >= ROT_MODE_XYZ && order <= ROT_MODE_ZYX) /* could be quat or axisangle */
+			return order;
+	}
+
+	return order_fallback;
+}
 
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
 {

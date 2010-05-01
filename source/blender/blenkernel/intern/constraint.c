@@ -4131,7 +4131,7 @@ static void con_extern_cb(bConstraint *con, ID **idpoin, void *userdata)
 }
 
 /* duplicate all of the constraints in a constraint stack */
-void copy_constraints (ListBase *dst, const ListBase *src)
+void copy_constraints (ListBase *dst, const ListBase *src, int do_extern)
 {
 	bConstraint *con, *srccon;
 	
@@ -4149,10 +4149,13 @@ void copy_constraints (ListBase *dst, const ListBase *src)
 			/* perform custom copying operations if needed */
 			if (cti->copy_data)
 				cti->copy_data(con, srccon);
-			
-			/* go over used ID-links for this constraint to ensure that they are valid for proxies */
-			if (cti->id_looper)
-				cti->id_looper(con, con_extern_cb, NULL);
+
+			/* for proxies we dont want to make extern */
+			if(do_extern) {
+				/* go over used ID-links for this constraint to ensure that they are valid for proxies */
+				if (cti->id_looper)
+					cti->id_looper(con, con_extern_cb, NULL);
+			}
 		}
 	}
 }

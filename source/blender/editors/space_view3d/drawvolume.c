@@ -212,7 +212,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		{{-1.0f, 1.0f, -1.0f}, {2.0f, 0.0f, 0.0f}}
 	};
 
-	/* Fragment program to calculate the 3dview of smoke */
+	/* Fragment program to calculate the view3d of smoke */
 	/* using 2 textures, density and shadow */
 	const char *text = "!!ARBfp1.0\n"
 					"PARAM dx = program.local[0];\n"

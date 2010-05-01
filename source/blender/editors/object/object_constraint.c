@@ -1256,7 +1256,7 @@ static int object_constraint_copy_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
 		if(ob != ob_iter) {
 			if (ob->data != ob_iter->data){
-				copy_constraints(&ob_iter->constraints, &ob->constraints);
+				copy_constraints(&ob_iter->constraints, &ob->constraints, TRUE);
 			}
 			
 			if(ob_iter->totcol==ob->totcol) {

@@ -235,6 +235,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_logic.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_markers.h"
 				>
 			</File>
@@ -1473,6 +1477,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_logic\logic_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_logic\logic_ops.c"
 				>
 			</File>
 			<File

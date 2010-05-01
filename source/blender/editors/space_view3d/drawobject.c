@@ -4405,17 +4405,19 @@ static void tekenhandlesN_active(Nurb *nu)
 	glLineWidth(1);
 }
 
-static void tekenvertsN(Nurb *nu, short sel, short hide_handles)
+static void tekenvertsN(Nurb *nu, short sel, short hide_handles, void *lastsel)
 {
 	BezTriple *bezt;
 	BPoint *bp;
 	float size;
-	int a;
+	int a, color;
 
 	if(nu->hide) return;
 
-	if(sel) UI_ThemeColor(TH_VERTEX_SELECT);
-	else UI_ThemeColor(TH_VERTEX);
+	if(sel) color= TH_VERTEX_SELECT;
+	else color= TH_VERTEX;
+
+	UI_ThemeColor(color);
 
 	size= UI_GetThemeValuef(TH_VERTEX_SIZE);
 	glPointSize(size);
@@ -4428,7 +4430,17 @@ static void tekenvertsN(Nurb *nu, short sel, short hide_handles)
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if (hide_handles) {
+				if (bezt == lastsel) {
+					UI_ThemeColor(TH_LASTSEL_POINT);
+					bglVertex3fv(bezt->vec[1]);
+
+					if (!hide_handles) {
+						bglVertex3fv(bezt->vec[0]);
+						bglVertex3fv(bezt->vec[2]);
+					}
+
+					UI_ThemeColor(color);
+				} else if (hide_handles) {
 					if((bezt->f2 & SELECT)==sel) bglVertex3fv(bezt->vec[1]);
 				} else {
 					if((bezt->f1 & SELECT)==sel) bglVertex3fv(bezt->vec[0]);
@@ -4444,7 +4456,13 @@ static void tekenvertsN(Nurb *nu, short sel, short hide_handles)
 		a= nu->pntsu*nu->pntsv;
 		while(a--) {
 			if(bp->hide==0) {
-				if((bp->f1 & SELECT)==sel) bglVertex3fv(bp->vec);
+				if (bp == lastsel) {
+					UI_ThemeColor(TH_LASTSEL_POINT);
+					bglVertex3fv(bp->vec);
+					UI_ThemeColor(color);
+				} else {
+					if((bp->f1 & SELECT)==sel) bglVertex3fv(bp->vec);
+				}
 			}
 			bp++;
 		}
@@ -4669,7 +4687,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	for(nu=nurb; nu; nu=nu->next) {
 		if(nu->type == CU_BEZIER && (cu->drawflag & CU_HIDE_HANDLES)==0)
 			tekenhandlesN(nu, 1, hide_handles);
-		tekenvertsN(nu, 0, hide_handles);
+		tekenvertsN(nu, 0, hide_handles, NULL);
 	}
 	
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -4712,7 +4730,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	for(nu=nurb; nu; nu=nu->next) {
-		tekenvertsN(nu, 1, hide_handles);
+		tekenvertsN(nu, 1, hide_handles, cu->lastsel);
 	}
 	
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST); 

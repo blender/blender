@@ -245,7 +245,7 @@ void init_colorband(ColorBand *coba, int rangetype)
 		coba->data[0].b= 0.0;
 		coba->data[0].a= 0.0;
 		
-		coba->data[1].r= 0.0;
+		coba->data[1].r= 1.0;
 		coba->data[1].g= 1.0;
 		coba->data[1].b= 1.0;
 		coba->data[1].a= 1.0;

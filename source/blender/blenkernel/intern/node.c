@@ -114,7 +114,8 @@ void ntreeInitTypes(bNodeTree *ntree)
 				}
 			}
 			node->typeinfo= stype;
-			node->typeinfo->initfunc(node);
+			if(node->typeinfo)
+				node->typeinfo->initfunc(node);
 		} else {
 			node->typeinfo= node_get_type(ntree, node->type, (bNodeTree *)node->id, NULL);
 		}

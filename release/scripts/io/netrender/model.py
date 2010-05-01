@@ -103,8 +103,9 @@ JOB_TYPES = {
                         }
 
 class RenderFile:
-    def __init__(self, filepath = "", index = 0, start = -1, end = -1):
+    def __init__(self, filepath = "", index = 0, start = -1, end = -1, signature=0):
         self.filepath = filepath
+        self.signature = signature
         self.index = index
         self.start = start
         self.end = end
@@ -114,7 +115,8 @@ class RenderFile:
                     "filepath": self.filepath,
                     "index": self.index,
                     "start": self.start,
-                    "end": self.end
+                    "end": self.end,
+                    "signature": self.signature
                 }
 
     @staticmethod
@@ -122,7 +124,7 @@ class RenderFile:
         if not data:
             return None
 
-        rfile = RenderFile(data["filepath"], data["index"], data["start"], data["end"])
+        rfile = RenderFile(data["filepath"], data["index"], data["start"], data["end"], data["signature"])
 
         return rfile
 
@@ -153,7 +155,8 @@ class RenderJob:
             self.blacklist = job_info.blacklist
 
     def addFile(self, file_path, start=-1, end=-1):
-        self.files.append(RenderFile(file_path, len(self.files), start, end))
+        signature = hashFile(file_path)
+        self.files.append(RenderFile(file_path, len(self.files), start, end, signature))
 
     def addFrame(self, frame_number, command = ""):
         frame = RenderFrame(frame_number, command)

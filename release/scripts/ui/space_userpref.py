@@ -612,6 +612,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "handle_sel_vect")
             col.prop(v3d, "handle_sel_align")
             col.prop(v3d, "act_spline")
+            col.prop(v3d, "lastsel_point")
 
             col = split.column()
             col.prop(v3d, "vertex")

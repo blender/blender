@@ -155,6 +155,13 @@ static void rna_DriverTarget_update_name(Main *bmain, Scene *scene, PointerRNA *
 
 /* ----------- */
 
+/* note: this function exists only to avoid id refcounting */
+static void rna_DriverTarget_id_set(PointerRNA *ptr, PointerRNA value)
+{
+    DriverTarget *dtar= (DriverTarget*)ptr->data;
+    dtar->id= value.data;
+}
+
 static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
 {
 	DriverTarget *dtar= (DriverTarget*)ptr->data;
@@ -976,7 +983,8 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_editable");
-	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_DriverTarget_id_typef");
+    /* note: custom set function is ONLY to avoid rna setting a user for this. */
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_DriverTarget_id_set", "rna_DriverTarget_id_typef");
 	RNA_def_property_ui_text(prop, "ID", "ID-block that the specific property used can be found from (id_type property must be set first)");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	

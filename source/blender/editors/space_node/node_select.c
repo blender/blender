@@ -112,9 +112,6 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	/* perform the select */
 	node= node_mouse_select(snode, ar, mval, extend);
 
-	/* need refresh/a notifier vs compo notifier */
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
-
 	/* WATCH THIS, there are a few other ways to change the active material */
 	if(node) {
 		if (node->id && ELEM(GS(node->id->name), ID_MA, ID_TE)) {
@@ -191,7 +188,7 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -267,7 +264,7 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
 			node->flag |= NODE_SELECT;
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -307,7 +304,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *op)
 			node->flag |= NODE_SELECT;
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -347,7 +344,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *op)
 			node->flag |= NODE_SELECT;
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
 	return OPERATOR_FINISHED;
 }
 

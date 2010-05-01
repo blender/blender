@@ -37,60 +37,60 @@ static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* 
 /* matrix vector callbacks */
 int mathutils_matrix_vector_cb_index= -1;
 
-static int mathutils_matrix_vector_check(BaseMathObject *self_p)
+static int mathutils_matrix_vector_check(BaseMathObject *bmo)
 {
-	MatrixObject *self= (MatrixObject *)self_p;
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 	return BaseMath_ReadCallback(self);
 }
 
-static int mathutils_matrix_vector_get(BaseMathObject *self_p, int subtype, float *vec_from)
+static int mathutils_matrix_vector_get(BaseMathObject *bmo, int subtype)
 {
-	MatrixObject *self= (MatrixObject *)self_p;
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 	int i;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
-	for(i=0; i<self->colSize; i++)
-		vec_from[i]= self->matrix[subtype][i];
+	for(i=0; i < self->colSize; i++)
+		bmo->data[i]= self->matrix[subtype][i];
 
 	return 1;
 }
 
-static int mathutils_matrix_vector_set(BaseMathObject *self_p, int subtype, float *vec_to)
+static int mathutils_matrix_vector_set(BaseMathObject *bmo, int subtype)
 {
-	MatrixObject *self= (MatrixObject *)self_p;
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 	int i;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
-	for(i=0; i<self->colSize; i++)
-		self->matrix[subtype][i]= vec_to[i];
+	for(i=0; i < self->colSize; i++)
+		self->matrix[subtype][i]= bmo->data[i];
 
 	BaseMath_WriteCallback(self);
 	return 1;
 }
 
-static int mathutils_matrix_vector_get_index(BaseMathObject *self_p, int subtype, float *vec_from, int index)
+static int mathutils_matrix_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
-	MatrixObject *self= (MatrixObject *)self_p;
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
-	vec_from[index]= self->matrix[subtype][index];
+	bmo->data[index]= self->matrix[subtype][index];
 	return 1;
 }
 
-static int mathutils_matrix_vector_set_index(BaseMathObject *self_p, int subtype, float *vec_to, int index)
+static int mathutils_matrix_vector_set_index(BaseMathObject *bmo, int subtype, int index)
 {
-	MatrixObject *self= (MatrixObject*)self_p;
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
-	self->matrix[subtype][index]= vec_to[index];
+	self->matrix[subtype][index]= bmo->data[index];
 
 	BaseMath_WriteCallback(self);
 	return 1;

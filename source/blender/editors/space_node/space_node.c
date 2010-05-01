@@ -199,7 +199,8 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_NODE:
-			ED_area_tag_refresh(sa);
+			if (wmn->action == NA_EDITED)
+				ED_area_tag_refresh(sa);
 			break;
 	}
 }

@@ -39,6 +39,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "ED_screen.h"
@@ -1437,6 +1438,33 @@ static void colorband_pos_cb(bContext *C, void *cb_v, void *coba_v)
 static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
 {
 	ColorBand *coba= coba_v;
+
+	if(coba->tot > 0) {
+		CBData *xnew, *x1, *x2;
+		float col[4];
+
+		xnew= &coba->data[coba->tot];
+
+		if(coba->tot > 1) {
+			if(coba->cur > 0) {
+				x1= &coba->data[coba->cur-1];
+				x2= &coba->data[coba->cur];
+			}
+			else {
+				x1= &coba->data[coba->cur];
+				x2= &coba->data[coba->cur+1];
+			}
+
+			xnew->pos = x1->pos + ((x2->pos - x1->pos) / 2);
+		}
+
+		do_colorband(coba, xnew->pos, col);
+
+		xnew->r= col[0];
+		xnew->g= col[1];
+		xnew->b= col[2];
+		xnew->a= col[3];
+	}
 
 	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
 	coba->cur= coba->tot-1;

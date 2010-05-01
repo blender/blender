@@ -1,4 +1,4 @@
-/* 
+/**
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -17,29 +17,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2007 by Janne Karhu.
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef ED_LOGIC_H
+#define ED_LOGIC_H
 
-#ifndef ED_PHYSICS_H
-#define ED_PHYSICS_H
+/* logic_ops.c */
+void ED_operatortypes_logic(void);
 
-struct wmKeyConfig;
+#endif /* ED_LOGIC_H */
 
-/* particle_edit.c */
-int PE_poll(struct bContext *C);
-int PE_hair_poll(struct bContext *C);
-int PE_poll_view3d(struct bContext *C);
 
-/* operators */
-void ED_operatortypes_physics(void);
-void ED_keymap_physics(struct wmKeyConfig *keyconf);
-
-#endif /* ED_PHYSICS_H */
 

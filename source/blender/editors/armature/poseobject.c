@@ -691,7 +691,7 @@ void pose_copy_menu(Scene *scene)
 						/* copy constraints to tmpbase and apply 'local' tags before 
 						 * appending to list of constraints for this channel
 						 */
-						copy_constraints(&tmp_constraints, &pchanact->constraints);
+						copy_constraints(&tmp_constraints, &pchanact->constraints, TRUE);
 						if ((ob->proxy) && (pchan->bone->layer & arm->layer_protected)) {
 							bConstraint *con;
 							
@@ -800,7 +800,7 @@ void pose_copy_menu(Scene *scene)
 				/* copy constraints to tmpbase and apply 'local' tags before 
 				 * appending to list of constraints for this channel
 				 */
-				copy_constraints(&tmp_constraints, &const_copy);
+				copy_constraints(&tmp_constraints, &const_copy, TRUE);
 				if ((ob->proxy) && (pchan->bone->layer & arm->layer_protected)) {
 					bConstraint *con;
 					

@@ -496,7 +496,7 @@ void draw_image_grease_pencil(bContext *C, short onlyv2d)
 		
 		/* draw grease-pencil ('screen' strokes) */
 		//if (sima->flag & SI_DISPGP)
-			draw_gpencil_2dview(C, 0);
+			draw_gpencil_view2d(C, 0);
 	}
 }
 

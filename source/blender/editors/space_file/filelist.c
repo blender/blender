@@ -613,9 +613,7 @@ struct ImBuf * filelist_loadimage(struct FileList* filelist, int index)
 	if (!imb)
 	{
 		if ( (filelist->filelist[fidx].flags & IMAGEFILE) || (filelist->filelist[fidx].flags & MOVIEFILE) ) {
-			char path[FILE_MAX];
-			BLI_join_dirfile(path, filelist->dir, filelist->filelist[fidx].relname);
-			imb = IMB_thumb_read(path, THB_NORMAL);
+			imb = IMB_thumb_read(filelist->filelist[fidx].path, THB_NORMAL);
 		} 
 		if (imb) {
 			filelist->filelist[fidx].image = imb;
@@ -1336,7 +1334,7 @@ void thumbnails_start(struct FileList* filelist, const struct bContext* C)
 		if (!filelist->filelist[idx].image) {
 			if ( (filelist->filelist[idx].flags & IMAGEFILE) || (filelist->filelist[idx].flags & MOVIEFILE) ) {
 				FileImage* limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
-				BLI_join_dirfile(limg->path, filelist->dir, filelist->filelist[idx].relname);
+				BLI_strncpy(limg->path, filelist->filelist[idx].path, FILE_MAX);
 				limg->index= idx;
 				limg->flags= filelist->filelist[idx].flags;
 				BLI_addtail(&tj->loadimages, limg);

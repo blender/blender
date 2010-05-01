@@ -1568,9 +1568,11 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			 *	1. extract constraints not from proxy (CONSTRAINT_PROXY_LOCAL) from pchan's constraints
 			 *	2. copy proxy-pchan's constraints on-to new
 			 *	3. add extracted local constraints back on top 
+			 *
+			 *  note for copy_constraints: when copying constraints, disable 'do_extern' otherwise we get the libs direct linked in this blend.
 			 */
 			extract_proxylocal_constraints(&proxylocal_constraints, &pchan->constraints);
-			copy_constraints(&pchanw.constraints, &pchanp->constraints);
+			copy_constraints(&pchanw.constraints, &pchanp->constraints, FALSE);
 			addlisttolist(&pchanw.constraints, &proxylocal_constraints);
 			
 			/* constraints - set target ob pointer to own object */
