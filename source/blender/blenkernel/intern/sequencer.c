@@ -2160,7 +2160,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			   and since G.rendering is uhm, gone... (Peter)
 			*/
 
-			int rendering = 1;
+			int rendering = G.rendering;
 			int doseq;
 			int doseq_gl= G.rendering ? (scene->r.seq_flag & R_SEQ_GL_REND) : (scene->r.seq_flag & R_SEQ_GL_PREV);
 
