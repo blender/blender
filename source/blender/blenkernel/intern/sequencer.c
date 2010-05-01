@@ -2832,7 +2832,7 @@ static pthread_cond_t  wakeup_cond         = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t frame_done_lock     = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  frame_done_cond     = PTHREAD_COND_INITIALIZER;
 
-static volatile int seq_thread_shutdown = FALSE;
+static volatile int seq_thread_shutdown = TRUE; 
 static volatile int seq_last_given_monoton_cfra = 0;
 static int monoton_cfra = 0;
 
