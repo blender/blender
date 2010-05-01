@@ -67,7 +67,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
-
+#include "BKE_sequencer.h"
 
 
 /* *************************************************** */
@@ -792,12 +792,12 @@ static char *particle_adrcodes_to_paths (int adrcode, int *array_index)
 /* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
  *	Input:
  *		- blocktype, adrcode	- determines setting to get
- *		- actname, constname	- used to build path
+ *		- actname, constname,seqname - used to build path
  *	Output:
  *		- array_index			- index in property's array (if applicable) to use
  *		- return				- the allocated path...
  */
-static char *get_rna_access (int blocktype, int adrcode, char actname[], char constname[], int *array_index)
+static char *get_rna_access (int blocktype, int adrcode, char actname[], char constname[], char seqname[], int *array_index)
 {
 	DynStr *path= BLI_dynstr_new();
 	char *propname=NULL, *rpath=NULL;
@@ -918,6 +918,10 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 	else if (constname && constname[0]) {
 		/* Constraint in Object */
 		sprintf(buf, "constraints[\"%s\"]", constname);
+	}
+	else if (seqname && seqname[0]) {
+		/* Sequence names in Scene */
+		sprintf(buf, "sequence_editor.sequences_all[\"%s\"]", seqname);
 	}
 	else
 		strcpy(buf, ""); /* empty string */
@@ -1111,8 +1115,9 @@ static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, c
  * is not relevant, BUT do not free the IPO-Curve itself...
  *	actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to
  *	constname: name of Constraint-Channel (if applicable) that IPO-Curve's IPO-block belonged to
+ *      seqname: name of sequencer-strip (if applicable) that IPO-Curve's IPO-block belonged to
  */
-static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *icu, char *actname, char *constname, int muteipo)
+static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *icu, char *actname, char *constname, char * seqname, int muteipo)
 {
 	AdrBit2Path *abp;
 	FCurve *fcu;
@@ -1235,7 +1240,7 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 		/* get rna-path
 		 *	- we will need to set the 'disabled' flag if no path is able to be made (for now)
 		 */
-		fcu->rna_path= get_rna_access(icu->blocktype, icu->adrcode, actname, constname, &fcu->array_index);
+		fcu->rna_path= get_rna_access(icu->blocktype, icu->adrcode, actname, constname, seqname, &fcu->array_index);
 		if (fcu->rna_path == NULL)
 			fcu->flag |= FCURVE_DISABLED;
 		
@@ -1326,7 +1331,7 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
  * This does not assume that any ID or AnimData uses it, but does assume that
  * it is given two lists, which it will perform driver/animation-data separation.
  */
-static void ipo_to_animato (ID *id, Ipo *ipo, char actname[], char constname[], ListBase *animgroups, ListBase *anim, ListBase *drivers)
+static void ipo_to_animato (ID *id, Ipo *ipo, char actname[], char constname[], char seqname[], ListBase *animgroups, ListBase *anim, ListBase *drivers)
 {
 	IpoCurve *icu;
 	
@@ -1357,7 +1362,7 @@ static void ipo_to_animato (ID *id, Ipo *ipo, char actname[], char constname[], 
 		if (icu->driver) {
 			/* Blender 2.4x allowed empty drivers, but we don't now, since they cause more trouble than they're worth */
 			if ((icu->driver->ob) || (icu->driver->type == IPO_DRIVER_TYPE_PYTHON)) {
-				icu_to_fcurves(id, NULL, drivers, icu, actname, constname, ipo->muteipo);
+				icu_to_fcurves(id, NULL, drivers, icu, actname, constname, seqname, ipo->muteipo);
 			}
 			else {
 				MEM_freeN(icu->driver);
@@ -1365,7 +1370,7 @@ static void ipo_to_animato (ID *id, Ipo *ipo, char actname[], char constname[], 
 			}
 		}
 		else
-			icu_to_fcurves(id, animgroups, anim, icu, actname, constname, ipo->muteipo);
+			icu_to_fcurves(id, animgroups, anim, icu, actname, constname, seqname, ipo->muteipo);
 	}
 	
 	/* if this IPO block doesn't have any users after this one, free... */
@@ -1417,7 +1422,7 @@ static void action_to_animato (ID *id, bAction *act, ListBase *groups, ListBase 
 		
 		/* convert Action Channel's IPO data */
 		if (achan->ipo) {
-			ipo_to_animato(id, achan->ipo, achan->name, NULL, groups, curves, drivers);
+			ipo_to_animato(id, achan->ipo, achan->name, NULL, NULL, groups, curves, drivers);
 			achan->ipo->id.us--;
 			achan->ipo= NULL;
 		}
@@ -1429,7 +1434,7 @@ static void action_to_animato (ID *id, bAction *act, ListBase *groups, ListBase 
 			
 			/* convert Constraint Channel's IPO data */
 			if (conchan->ipo) {
-				ipo_to_animato(id, conchan->ipo, achan->name, conchan->name, groups, curves, drivers);
+				ipo_to_animato(id, conchan->ipo, achan->name, conchan->name, NULL, groups, curves, drivers);
 				conchan->ipo->id.us--;
 				conchan->ipo= NULL;
 			}
@@ -1450,7 +1455,7 @@ static void action_to_animato (ID *id, bAction *act, ListBase *groups, ListBase 
  * This assumes that AnimData has been added already. Separation of drivers
  * from animation data is accomplished here too...
  */
-static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[])
+static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[], char seqname[])
 {
 	AnimData *adt= BKE_animdata_from_id(id);
 	ListBase anim = {NULL, NULL};
@@ -1465,8 +1470,8 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[])
 	}
 	
 	if (G.f & G_DEBUG) {
-		printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s  curves:%d \n", 
-			id->name+2, ipo->id.name+2, (actname)?actname:"<None>", (constname)?constname:"<None>", 
+		printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s seqname:%s  curves:%d \n", 
+		       id->name+2, ipo->id.name+2, (actname)?actname:"<None>", (constname)?constname:"<None>", (seqname)?seqname:"<None>",
 			BLI_countlist(&ipo->curve));
 	}
 	
@@ -1474,7 +1479,7 @@ static void ipo_to_animdata (ID *id, Ipo *ipo, char actname[], char constname[])
 	 * and the try to put these lists in the right places, but do not free the lists here
 	 */
 	// XXX there shouldn't be any need for the groups, so don't supply pointer for that now... 
-	ipo_to_animato(id, ipo, actname, constname, NULL, &anim, &drivers);
+	ipo_to_animato(id, ipo, actname, constname, seqname, NULL, &anim, &drivers);
 	
 	/* deal with animation first */
 	if (anim.first) {
@@ -1651,7 +1656,7 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* IPO first to take into any non-NLA'd Object Animation */
 			if (ob->ipo) {
-				ipo_to_animdata(id, ob->ipo, NULL, NULL);
+				ipo_to_animdata(id, ob->ipo, NULL, NULL, NULL);
 				
 				ob->ipo->id.us--;
 				ob->ipo= NULL;
@@ -1685,7 +1690,7 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* IPO second... */
 			if (ob->ipo) {
-				ipo_to_animdata(id, ob->ipo, NULL, NULL);
+				ipo_to_animdata(id, ob->ipo, NULL, NULL, NULL);
 				ob->ipo->id.us--;
 				ob->ipo= NULL;
 			}
@@ -1705,7 +1710,7 @@ void do_versions_ipos_to_animato(Main *main)
 						/* although this was the constraint's local IPO, we still need to provide pchan + con 
 						 * so that drivers can be added properly...
 						 */
-						ipo_to_animdata(id, con->ipo, pchan->name, con->name);
+						ipo_to_animdata(id, con->ipo, pchan->name, con->name, NULL);
 						con->ipo->id.us--;
 						con->ipo= NULL;
 					}
@@ -1725,7 +1730,7 @@ void do_versions_ipos_to_animato(Main *main)
 				/* although this was the constraint's local IPO, we still need to provide con 
 				 * so that drivers can be added properly...
 				 */
-				ipo_to_animdata(id, con->ipo, NULL, con->name);
+				ipo_to_animdata(id, con->ipo, NULL, con->name, NULL);
 				con->ipo->id.us--;
 				con->ipo= NULL;
 			}
@@ -1745,7 +1750,7 @@ void do_versions_ipos_to_animato(Main *main)
 				
 				/* convert Constraint Channel's IPO data */
 				if (conchan->ipo) {
-					ipo_to_animdata(id, conchan->ipo, NULL, conchan->name);
+					ipo_to_animdata(id, conchan->ipo, NULL, conchan->name, NULL);
 					conchan->ipo->id.us--;
 					conchan->ipo= NULL;
 				}
@@ -1771,7 +1776,7 @@ void do_versions_ipos_to_animato(Main *main)
 			adt= BKE_id_add_animdata(id);
 			
 			/* Convert Shapekey data... */
-			ipo_to_animdata(id, key->ipo, NULL, NULL);
+			ipo_to_animdata(id, key->ipo, NULL, NULL, NULL);
 			key->ipo->id.us--;
 			key->ipo= NULL;
 		}
@@ -1789,7 +1794,7 @@ void do_versions_ipos_to_animato(Main *main)
 			adt= BKE_id_add_animdata(id);
 			
 			/* Convert Material data... */
-			ipo_to_animdata(id, ma->ipo, NULL, NULL);
+			ipo_to_animdata(id, ma->ipo, NULL, NULL, NULL);
 			ma->ipo->id.us--;
 			ma->ipo= NULL;
 		}
@@ -1807,7 +1812,7 @@ void do_versions_ipos_to_animato(Main *main)
 			adt= BKE_id_add_animdata(id);
 			
 			/* Convert World data... */
-			ipo_to_animdata(id, wo->ipo, NULL, NULL);
+			ipo_to_animdata(id, wo->ipo, NULL, NULL, NULL);
 			wo->ipo->id.us--;
 			wo->ipo= NULL;
 		}
@@ -1816,10 +1821,13 @@ void do_versions_ipos_to_animato(Main *main)
 	/* sequence strips */
 	for (id= main->scene.first; id; id= id->next) {
 		Scene *scene = (Scene *)id;
-		if (scene->ed && scene->ed->seqbasep) {
+		Editing * ed = scene->ed;
+		if (ed && ed->seqbasep) {
 			Sequence * seq;
-			
-			for(seq = scene->ed->seqbasep->first; seq; seq = seq->next) {
+
+			adt= BKE_id_add_animdata(id);
+
+			SEQ_BEGIN(ed, seq) {
 				IpoCurve *icu = (seq->ipo) ? seq->ipo->curve.first : NULL;
 				short adrcode = SEQ_FAC1;
 				
@@ -1850,10 +1858,12 @@ void do_versions_ipos_to_animato(Main *main)
 				icu->adrcode = adrcode;
 				
 				/* convert IPO */
-				ipo_to_animdata((ID *)seq, seq->ipo, NULL, NULL);
+				ipo_to_animdata((ID *)scene, seq->ipo, 
+						NULL, NULL, seq->name+2);
 				seq->ipo->id.us--;
 				seq->ipo = NULL;
 			}
+			SEQ_END
 		}
 	}
 
@@ -1870,7 +1880,7 @@ void do_versions_ipos_to_animato(Main *main)
 			adt= BKE_id_add_animdata(id);
 			
 			/* Convert Texture data... */
-			ipo_to_animdata(id, te->ipo, NULL, NULL);
+			ipo_to_animdata(id, te->ipo, NULL, NULL, NULL);
 			te->ipo->id.us--;
 			te->ipo= NULL;
 		}
@@ -1888,7 +1898,7 @@ void do_versions_ipos_to_animato(Main *main)
 			adt= BKE_id_add_animdata(id);
 			
 			/* Convert Camera data... */
-			ipo_to_animdata(id, ca->ipo, NULL, NULL);
+			ipo_to_animdata(id, ca->ipo, NULL, NULL, NULL);
 			ca->ipo->id.us--;
 			ca->ipo= NULL;
 		}
@@ -1906,7 +1916,7 @@ void do_versions_ipos_to_animato(Main *main)
 			adt= BKE_id_add_animdata(id);
 			
 			/* Convert Lamp data... */
-			ipo_to_animdata(id, la->ipo, NULL, NULL);
+			ipo_to_animdata(id, la->ipo, NULL, NULL, NULL);
 			la->ipo->id.us--;
 			la->ipo= NULL;
 		}
@@ -1924,7 +1934,7 @@ void do_versions_ipos_to_animato(Main *main)
 			adt= BKE_id_add_animdata(id);
 			
 			/* Convert Curve data... */
-			ipo_to_animdata(id, cu->ipo, NULL, NULL);
+			ipo_to_animdata(id, cu->ipo, NULL, NULL, NULL);
 			cu->ipo->id.us--;
 			cu->ipo= NULL;
 		}
@@ -1963,7 +1973,7 @@ void do_versions_ipos_to_animato(Main *main)
 			
 			/* add a new action for this, and convert all data into that action */
 			new_act= add_empty_action("ConvIPO_Action"); // XXX need a better name...
-			ipo_to_animato(NULL, ipo, NULL, NULL, NULL, &new_act->curves, &drivers);
+			ipo_to_animato(NULL, ipo, NULL, NULL, NULL, NULL, &new_act->curves, &drivers);
 		}
 		
 		/* clear fake-users, and set user-count to zero to make sure it is cleared on file-save */
