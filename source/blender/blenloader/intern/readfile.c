@@ -6540,6 +6540,21 @@ static void do_version_old_trackto_to_constraints(Object *ob)
 	ob->track = NULL;
 }
 
+static void do_versions_seq_unique_name_all_strips(
+	Scene * sce, ListBase *seqbasep)
+{
+	Sequence * seq = seqbasep->first;
+
+	while(seq) {
+		seqbase_unique_name_recursive(&sce->ed->seqbase, seq);
+		if (seq->seqbase.first) {
+			do_versions_seq_unique_name_all_strips(
+				sce, &seq->seqbase);
+		}
+		seq=seq->next;
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -10209,22 +10224,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		{
 			Scene *sce= main->scene.first;
 			while(sce) {
-				Sequence *seq;
-				
 				if(sce->r.frame_step==0)
 					sce->r.frame_step= 1;
 				if (sce->r.mblur_samples==0)
 					sce->r.mblur_samples = sce->r.osa;
 				
-				if(sce->ed && sce->ed->seqbasep)
-				{
-					seq=sce->ed->seqbasep->first;
-					while(seq) {
-						seqbase_unique_name_recursive(&sce->ed->seqbase, seq);
-						seq=seq->next;
-					}
+				if (sce->ed && sce->ed->seqbase.first) {
+					do_versions_seq_unique_name_all_strips(
+						sce, &sce->ed->seqbase);
 				}
-				
+			
 				sce= sce->id.next;
 			}
 		}
