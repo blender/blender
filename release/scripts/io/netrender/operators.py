@@ -159,6 +159,36 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
         return self.execute(context)
 
 @rnaType
+class RENDER_OT_netclientsendframe(bpy.types.Operator):
+    '''Send Render Job with current frame to the Network'''
+    bl_idname = "render.netclientsendframe"
+    bl_label = "Send current frame job"
+
+    def poll(self, context):
+        return True
+
+    def execute(self, context):
+        scene = context.scene
+        netsettings = scene.network_render
+
+        try:
+            conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+
+            if conn:
+                # Sending file
+                scene.network_render.job_id = client.clientSendJob(conn, scene, False)
+                conn.close()
+                self.report('INFO', "Job sent to master")
+        except Exception as err:
+            self.report('ERROR', str(err))
+
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
+@rnaType
 class RENDER_OT_netclientstatus(bpy.types.Operator):
     '''Refresh the status of the current jobs'''
     bl_idname = "render.netclientstatus"

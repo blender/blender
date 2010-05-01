@@ -187,6 +187,7 @@ class RENDER_PT_network_job(bpy.types.Panel, RenderButtonsPanel):
         if netsettings.server_address != "[default]":
             layout.operator("render.netclientanim", icon='RENDER_ANIMATION')
             layout.operator("render.netclientsend", icon='FILE_BLEND')
+            layout.operator("render.netclientsendframe", icon='RENDER_STILL')
             if netsettings.job_id:
                 row = layout.row()
                 row.operator("render.render", text="Get Image", icon='RENDER_STILL')
