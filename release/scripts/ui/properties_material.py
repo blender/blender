@@ -570,10 +570,11 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
 
         col = split.column()
         col.separator()
-        col.prop(raym, "distance", text="Max Dist")
         col.prop(raym, "depth")
+        col.prop(raym, "distance", text="Max Dist")
         col.separator()
         sub = col.split(percentage=0.4)
+        sub.active = raym.distance > 0.0
         sub.label(text="Fade To:")
         sub.prop(raym, "fade_to", text="")
 
