@@ -1846,6 +1846,10 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "DupliObject");
 	RNA_def_property_ui_text(prop, "Dupli list", "Object duplis");
 
+	prop= RNA_def_property(srna, "duplis_used", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLI);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	/* time offset */
 	prop= RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "sf");
