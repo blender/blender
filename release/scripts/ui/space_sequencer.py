@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-
 def act_strip(context):
     try:
         return context.scene.sequence_editor.active_strip
@@ -450,6 +449,19 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             
         elif strip.type == "MULTICAM":
             layout.prop(strip, "multicam_source")
+
+            row = layout.row(align=True)
+            sub = row.row()
+            sub.scale_x = 2.0
+            if not context.screen.animation_playing:
+                sub.operator("screen.animation_play", text="", icon='PLAY')
+            else:
+                sub.operator("screen.animation_play", text="", icon='PAUSE')
+
+            row.label("Cut To")
+            for i in range(1, strip.channel):
+                row.operator("sequencer.cut_multicam", text=str(i)).camera = i
+
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':
