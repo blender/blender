@@ -34,10 +34,6 @@
 #include "KX_PyMath.h" // For PyVecTo - should this include be put in PyObjectPlus?
 #include "KX_IPhysicsController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -387,72 +383,72 @@ PyAttributeDef KX_ObjectActuator::Attributes[] = {
 
 static int mathutils_kxobactu_vector_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_obactu_generic_check(PyObject *self_v)
+static int mathutils_obactu_generic_check(BaseMathObject *bmo)
 {
-	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(self_v);
+	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 
 	return 1;
 }
 
-static int mathutils_obactu_vector_get(PyObject *self_v, int subtype, float *vec_from)
+static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype)
 {
-	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(self_v);
+	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_LINV:
-			self->m_linear_velocity.getValue(vec_from);
+			self->m_linear_velocity.getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_ANGV:
-			self->m_angular_velocity.getValue(vec_from);
+			self->m_angular_velocity.getValue(bmo->data);
 			break;
 	}
 
 	return 1;
 }
 
-static int mathutils_obactu_vector_set(PyObject *self_v, int subtype, float *vec_to)
+static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype)
 {
-	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(self_v);
+	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_LINV:
-			self->m_linear_velocity.setValue(vec_to);
+			self->m_linear_velocity.setValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_ANGV:
-			self->m_angular_velocity.setValue(vec_to);
+			self->m_angular_velocity.setValue(bmo->data);
 			break;
 	}
 
 	return 1;
 }
 
-static int mathutils_obactu_vector_get_index(PyObject *self_v, int subtype, float *vec_from, int index)
+static int mathutils_obactu_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	float f[4];
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_obactu_vector_get(self_v, subtype, f))
+	if(!mathutils_obactu_vector_get(bmo, subtype))
 		return 0;
 
-	vec_from[index]= f[index];
+	bmo->data[index]= f[index];
 	return 1;
 }
 
-static int mathutils_obactu_vector_set_index(PyObject *self_v, int subtype, float *vec_to, int index)
+static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, int index)
 {
-	float f= vec_to[index];
+	float f= bmo->data[index];
 
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_obactu_vector_get(self_v, subtype, vec_to))
+	if(!mathutils_obactu_vector_get(bmo, subtype))
 		return 0;
 
-	vec_to[index]= f;
-	mathutils_obactu_vector_set(self_v, subtype, vec_to);
+	bmo->data[index]= f;
+	mathutils_obactu_vector_set(bmo, subtype);
 
 	return 1;
 }

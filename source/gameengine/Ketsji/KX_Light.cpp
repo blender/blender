@@ -26,10 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 
 #pragma warning (disable : 4786)
@@ -352,6 +348,11 @@ PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUT
 	} else if (!strcmp(type, "NORMAL")) {
 		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_NORMAL);
 	}
+    else {
+        /* should never happen */
+        PyErr_SetString(PyExc_TypeError, "light.type: internal error, invalid light type");
+        retvalue = NULL;
+    }
 
 	return retvalue;
 }

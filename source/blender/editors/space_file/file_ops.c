@@ -121,7 +121,7 @@ static void clamp_to_filelist(int numfiles, int *first_file, int *last_file)
 	}
 }
 
-static FileSelect file_select(bContext* C, const rcti* rect, short selecting, short toggle_one)
+static FileSelect file_select(bContext* C, const rcti* rect, short selecting, short toggle_one, short fill)
 {
 	ARegion *ar= CTX_wm_region(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
@@ -140,6 +140,19 @@ static FileSelect file_select(bContext* C, const rcti* rect, short selecting, sh
 	last_file = find_file_mouse(sfile, ar, 1, rect->xmax, rect->ymin);
 	
 	clamp_to_filelist(numfiles, &first_file, &last_file);
+
+	if (fill && (last_file >= 0) && (last_file < numfiles) ) {
+		int f= last_file;
+		while (f >= 0) {
+			struct direntry* file = filelist_file(sfile->files, f);
+			if (file->flags & ACTIVEFILE)
+				break;
+			f--;
+		}
+		if (f >= 0) {
+			first_file = f+1;
+		}
+	}
 
 	/* select all valid files between first and last indicated */
 	if ( (first_file >= 0) && (first_file < numfiles) && (last_file >= 0) && (last_file < numfiles) ) {
@@ -213,7 +226,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 
 	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
 	
-	if (FILE_SELECT_DIR == file_select(C, &rect, selecting, 0)) {
+	if (FILE_SELECT_DIR == file_select(C, &rect, selecting, 0, 0)) {
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	} else {
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
@@ -245,6 +258,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short val;
 	rcti rect;
 	int extend = RNA_boolean_get(op->ptr, "extend");
+	int fill = RNA_boolean_get(op->ptr, "fill");
 
 	if(ar->regiontype != RGN_TYPE_WINDOW)
 		return OPERATOR_CANCELLED;
@@ -259,7 +273,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* single select, deselect all selected first */
 	if (!extend) file_deselect_all(sfile);
 
-	if (FILE_SELECT_DIR == file_select(C, &rect, 1, extend ))
+	if (FILE_SELECT_DIR == file_select(C, &rect, 1, extend, fill ))
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	else
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
@@ -283,6 +297,7 @@ void FILE_OT_select(wmOperatorType *ot)
 
 	/* rna */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "Select everything beginning with the last selection.");
 }
 
 static int file_select_all_exec(bContext *C, wmOperator *op)
@@ -657,7 +672,9 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 
 int file_refresh_exec(bContext *C, wmOperator *unused)
 {
-	file_change_dir(C, 1);
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
+	ED_fileselect_clear(C, sfile);
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 

@@ -38,10 +38,6 @@
 #include "mjpeg.h"
 #include "rgb32.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void *avi_format_convert (AviMovie *movie, int stream, void *buffer, AviFormat from, AviFormat to, int *size) {
   if (from == to)
 	return buffer;

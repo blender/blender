@@ -31,6 +31,7 @@
 #include "BLI_dynstr.h"
 
 #include "BKE_report.h"
+#include "BKE_global.h" /* G.background only */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -92,6 +93,10 @@ void BKE_report(ReportList *reports, ReportType type, const char *message)
 {
 	Report *report;
 	int len;
+
+    /* exception, print and return in background, no reason to store a list */
+    if(G.background)
+        reports= NULL;
 
 	if(!reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
 		printf("%s: %s\n", report_type_str(type), message);

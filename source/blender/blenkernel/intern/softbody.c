@@ -1580,7 +1580,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 				if (ob->softflag & OB_SB_EDGECOLL){
 					if ( sb_detect_edge_collisionCached (sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos,
 						&damp,feedback,ob->lay,ob,timenow)){
-							add_v3_v3v3(bs->ext_force,bs->ext_force,feedback);
+							add_v3_v3(bs->ext_force, feedback);
 							bs->flag |= BSF_INTERSECT;
 							//bs->cf=damp;
 							bs->cf=sb->choke*0.01f;
@@ -1605,7 +1605,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 						pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
 
 						mul_v3_fl(speed,windfactor); 
-						add_v3_v3v3(vel,vel,speed);
+						add_v3_v3(vel, speed);
 					}
 					/* media in rest */
 					else{
@@ -2291,7 +2291,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 				float gravity[3];
 				VECCOPY(gravity, scene->physics_settings.gravity);
 				mul_v3_fl(gravity, sb_grav_force_scale(ob)*_final_mass(ob,bp)*sb->effector_weights->global_gravity); /* individual mass of node here */
-				add_v3_v3v3(bp->force, bp->force, gravity);
+				add_v3_v3(bp->force, gravity);
 			}
 			
 			/* particle field & vortex */
@@ -2358,7 +2358,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 					for(b=bp->nofsprings;b>0;b--){
 						bs = sb->bspring + bp->springs[b-1];
 						if (do_springcollision || do_aero){
-							add_v3_v3v3(bp->force,bp->force,bs->ext_force);
+							add_v3_v3(bp->force, bs->ext_force);
 							if (bs->flag & BSF_INTERSECT)
 								bp->choke = bs->cf; 
 
@@ -2799,7 +2799,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 						for(b=bp->nofsprings;b>0;b--){
 							bs = sb->bspring + bp->springs[b-1];
 							if (do_springcollision || do_aero){
-								add_v3_v3v3(bp->force,bp->force,bs->ext_force);
+								add_v3_v3(bp->force, bs->ext_force);
 								if (bs->flag & BSF_INTERSECT)
 									bp->choke = bs->cf; 
 

@@ -34,10 +34,6 @@
 #include "BLI_memarena.h"
 #include "BLI_linklist.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct MemArena {
 	unsigned char *curbuf;
 	int bufsize, cursize;

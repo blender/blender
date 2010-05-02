@@ -36,10 +36,6 @@
 #include "avi_intern.h"
 #include "endian.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* avi_set_compress_options gets its own file... now don't WE feel important? */
 
 AviError AVI_set_compress_option (AviMovie *movie, int option_type, int stream, AviOption option, void *opt_data) {

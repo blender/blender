@@ -31,10 +31,6 @@
 #include "KX_VisibilityActuator.h"
 #include "KX_GameObject.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_VisibilityActuator::KX_VisibilityActuator(
 	SCA_IObject* gameobj,
 	bool visible,

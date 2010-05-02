@@ -1626,7 +1626,8 @@ KX_Scene* KX_KetsjiEngine::CreateScene(Scene *scene)
 									  m_mousedevice,
 									  m_networkdevice,
 									  scene->id.name+2,
-									  scene);
+									  scene,
+									  m_canvas);
 
 	m_sceneconverter->ConvertScene(tmpscene,
 							  m_rendertools,

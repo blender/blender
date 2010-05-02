@@ -56,10 +56,6 @@
 
 #include "BKE_bmfont_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void printfGlyph(bmGlyph * glyph)
 {
 	printf("unicode: %d '%c'\n", glyph->unicode, glyph->unicode);

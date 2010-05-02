@@ -69,7 +69,10 @@ class DATA_PT_skeleton(DataButtonsPanel):
         arm = context.armature
         wide_ui = context.region.width > narrowui
 
-        layout.prop(arm, "pose_position", expand=True)
+        if wide_ui:
+            layout.prop(arm, "pose_position", expand=True)
+        else:
+            layout.prop(arm, "pose_position", text="")
 
         split = layout.split()
 
@@ -79,11 +82,16 @@ class DATA_PT_skeleton(DataButtonsPanel):
         col.label(text="Protected Layers:")
         col.prop(arm, "layer_protection", text="")
 
-        if wide_ui:
-            col = split.column()
         col.label(text="Deform:")
+
+        split = layout.split()
+
+        col = split.column()
         col.prop(arm, "deform_vertexgroups", text="Vertex Groups")
         col.prop(arm, "deform_envelope", text="Envelopes")
+
+        if wide_ui:
+            col = split.column()
         col.prop(arm, "deform_quaternion", text="Quaternion")
         col.prop(arm, "deform_bbone_rest", text="B-Bones Rest")
 

@@ -491,11 +491,11 @@ void repositionNodes(ReebGraph *rg)
 			
 			VECCOPY(p, ((ReebArc*)arc)->buckets[0].p);
 			mul_v3_fl(p, 1.0f / arc->head->degree);
-			add_v3_v3v3(arc->head->p, arc->head->p, p);
+			add_v3_v3(arc->head->p, p);
 			
 			VECCOPY(p, ((ReebArc*)arc)->buckets[((ReebArc*)arc)->bcount - 1].p);
 			mul_v3_fl(p, 1.0f / arc->tail->degree);
-			add_v3_v3v3(arc->tail->p, arc->tail->p, p);
+			add_v3_v3(arc->tail->p, p);
 		}
 	}
 }
@@ -632,7 +632,7 @@ void addVertToBucket(EmbedBucket *b, float co[3])
 void removeVertFromBucket(EmbedBucket *b, float co[3])
 {
 	mul_v3_fl(b->p, (float)b->nv);
-	sub_v3_v3v3(b->p, b->p, co);
+	sub_v3_v3(b->p, co);
 	b->nv--;
 	mul_v3_fl(b->p, 1.0f / (float)b->nv);
 }
@@ -1103,7 +1103,7 @@ void REEB_AxialSymmetry(BNode* root_node, BNode* node1, BNode* node2, struct BAr
 	BLI_mirrorAlongAxis(p, root_node->p, nor);
 
 	/* average with node1 */
-	add_v3_v3v3(node1->p, node1->p, p);
+	add_v3_v3(node1->p, p);
 	mul_v3_fl(node1->p, 0.5f);
 	
 	/* mirror back on node2 */
@@ -1821,7 +1821,7 @@ int filterSmartReebGraph(ReebGraph *rg, float threshold)
 				efa->tmp.fp = saacos(fabs(angle));
 #endif
 #else
-				add_v3_v3v3(avg_vec, avg_vec, efa->n);		
+				add_v3_v3(avg_vec, efa->n);		
 #endif
 			}
 

@@ -35,10 +35,6 @@
 #include "KX_PyMath.h" // needed for PyObjectFrom()
 #include <iostream>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */

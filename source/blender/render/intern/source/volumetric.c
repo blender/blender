@@ -56,10 +56,6 @@
 #include "volumetric.h"
 #include "volume_precache.h"
 
-#if defined( _MSC_VER ) && !defined( __cplusplus )
-# define inline __inline
-#endif // defined( _MSC_VER ) && !defined( __cplusplus )
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
 /* only to be used here in this file, it's for speed */
@@ -67,7 +63,7 @@ extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* luminance rec. 709 */
-inline float luminance(float* col)
+BM_INLINE float luminance(float* col)
 {
 	return (0.212671f*col[0] + 0.71516f*col[1] + 0.072169f*col[2]);
 }
@@ -455,7 +451,7 @@ static void vol_get_transmittance(ShadeInput *shi, float *tr, float *co, float *
 		tau[1] += stepd * sigma_t[1];
 		tau[2] += stepd * sigma_t[2];
 		
-		add_v3_v3v3(p, p, step_vec);
+		add_v3_v3(p, step_vec);
 	}
 	
 	/* return transmittance */
@@ -561,7 +557,7 @@ void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co)
 		
 		if (lar) {
 			vol_shade_one_lamp(shi, co, lar, lacol);
-			add_v3_v3v3(scatter_col, scatter_col, lacol);
+			add_v3_v3(scatter_col, lacol);
 		}
 	}
 }
@@ -631,12 +627,12 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			radiance[1] += stepd * tr[1] * (emit_col[1] + scatter_col[1]);
 			radiance[2] += stepd * tr[2] * (emit_col[2] + scatter_col[2]);
 		}
-		add_v3_v3v3(p, p, step_vec);
+		add_v3_v3(p, step_vec);
 	}
 	
 	/* multiply original color (from behind volume) with transmittance over entire distance */
 	mul_v3_v3v3(col, tr, col);
-	add_v3_v3v3(col, col, radiance);
+	add_v3_v3(col, radiance);
 	
 	/* alpha <-- transmission luminance */
 	col[3] = 1.0f - luminance(tr);

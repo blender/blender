@@ -33,10 +33,6 @@
 #include <math.h>
 #include <stdio.h>			
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
@@ -1286,7 +1282,7 @@ Object *copy_object(Object *ob)
 			armature_rebuild_pose(obn, obn->data);
 	}
 	defgroup_copy_list(&obn->defbase, &ob->defbase);
-	copy_constraints(&obn->constraints, &ob->constraints);
+	copy_constraints(&obn->constraints, &ob->constraints, TRUE);
 
 	obn->mode = 0;
 	obn->sculpt = NULL;
@@ -1473,10 +1469,16 @@ void object_copy_proxy_drivers(Object *ob, Object *target)
 				/* all drivers */
 				DRIVER_TARGETS_LOOPER(dvar) 
 				{
-					if ((Object *)dtar->id == target)
-						dtar->id= (ID *)ob;
-					else
-						id_lib_extern((ID *)dtar->id);
+					if(dtar->id) {
+						if ((Object *)dtar->id == target)
+							dtar->id= (ID *)ob;
+						else {
+							/* only on local objects because this causes indirect links a -> b -> c,blend to point directly to a.blend
+							 * when a.blend has a proxy thats linked into c.blend  */
+							if(ob->id.lib==NULL)
+								id_lib_extern((ID *)dtar->id);
+						}
+					}
 				}
 				DRIVER_TARGETS_LOOPER_END
 			}
@@ -1764,7 +1766,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	
 	
 	/* vec: 4 items! */
-	 if( where_on_path(par, ctime, vec, dir, NULL, &radius) ) {
+	 if( where_on_path(par, ctime, vec, dir, NULL, &radius, NULL) ) {
 
 		if(cu->flag & CU_FOLLOW) {
 			vec_to_quat( quat,dir, ob->trackflag, ob->upflag);
@@ -1817,7 +1819,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 	/* but for backwards compatibility, the child has to move to the tail */
 	VECCOPY(vec, mat[1]);
 	mul_v3_fl(vec, pchan->bone->length);
-	add_v3_v3v3(mat[3], mat[3], vec);
+	add_v3_v3(mat[3], vec);
 }
 
 static void give_parvert(Object *par, int nr, float *vec)
@@ -1855,7 +1857,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 					vindex= (index)? index[i]: i;
 
 					if(vindex == nr) {
-						add_v3_v3v3(vec, vec, mvert[i].co);
+						add_v3_v3(vec, mvert[i].co);
 						count++;
 					}
 				}
@@ -1964,7 +1966,7 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 		}
 		else {
 			add_v3_v3v3(mat[3], v1, v2);
-			add_v3_v3v3(mat[3], mat[3], v3);
+			add_v3_v3(mat[3], v3);
 			mul_v3_fl(mat[3], 0.3333333f);
 		}
 	}
@@ -2345,12 +2347,12 @@ void minmax_object(Object *ob, float *min, float *max)
 	default:
 		DO_MINMAX(ob->obmat[3], min, max);
 
-		VECCOPY(vec, ob->obmat[3]);
-		add_v3_v3v3(vec, vec, ob->size);
+		copy_v3_v3(vec, ob->obmat[3]);
+		add_v3_v3(vec, ob->size);
 		DO_MINMAX(vec, min, max);
 
-		VECCOPY(vec, ob->obmat[3]);
-		sub_v3_v3v3(vec, vec, ob->size);
+		copy_v3_v3(vec, ob->obmat[3]);
+		sub_v3_v3(vec, ob->size);
 		DO_MINMAX(vec, min, max);
 		break;
 	}

@@ -105,7 +105,7 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 	
 	if(mval[0]!=IS_CLIPPED) {
 		window_to_3d_delta(vc->ar, dvec, mval[0]-mx, mval[1]-my);
-		sub_v3_v3v3(fp, fp, dvec);
+		sub_v3_v3(fp, dvec);
 	}
 }
 
@@ -528,7 +528,7 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 	} else { /* Vert Sel*/
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (simaFaceDraw_Check(efa, tf)) {		
+			if (uvedit_face_visible(scene, ima, efa, tf)) {		
 				nverts= efa->v4? 4: 3;
 				for(i=0; i<nverts; i++) {
 					if ((select) != (simaUVSel_Check(efa, tf, i))) {
@@ -554,14 +554,15 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 
 static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	struct { ViewContext vc; short (*mcords)[2]; short moves; short select; } *data = userData;
-	
+	struct { ViewContext *vc; short (*mcords)[2]; short moves; short select; } *data = userData;
+	Object *obedit= data->vc->obedit;
+	Curve *cu= (Curve*)obedit->data;
+
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
+			if (bp == cu->lastsel && !(bp->f1 & 1)) cu->lastsel = NULL;
 		} else {
-			Curve *cu= data->vc.obedit->data;
-			
 			if (cu->drawflag & CU_HIDE_HANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
@@ -574,16 +575,18 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp
 					bezt->f3 = data->select?(bezt->f3|SELECT):(bezt->f3&~SELECT);
 				}
 			}
+
+			if (bezt == cu->lastsel && !(bezt->f2 & 1)) cu->lastsel = NULL;
 		}
 	}
 }
 
 static void do_lasso_select_curve(ViewContext *vc, short mcords[][2], short moves, short select)
 {
-	struct { ViewContext vc; short (*mcords)[2]; short moves; short select; } data;
+	struct { ViewContext *vc; short (*mcords)[2]; short moves; short select; } data;
 
 	/* set vc->editnurb */
-	data.vc = *vc;
+	data.vc = vc;
 	data.mcords = mcords;
 	data.moves = moves;
 	data.select = select;
@@ -1274,14 +1277,15 @@ int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, 
 
 static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	struct { ViewContext vc; rcti *rect; int select; } *data = userData;
+	struct { ViewContext *vc; rcti *rect; int select; } *data = userData;
+	Object *obedit= data->vc->obedit;
+	Curve *cu= (Curve*)obedit->data;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
+			if (bp == cu->lastsel && !(bp->f1 & 1)) cu->lastsel = NULL;
 		} else {
-			Curve *cu= data->vc.obedit->data;
-			
 			if (cu->drawflag & CU_HIDE_HANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
@@ -1294,14 +1298,16 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, 
 					bezt->f3 = data->select?(bezt->f3|SELECT):(bezt->f3&~SELECT);
 				}
 			}
+
+			if (bezt == cu->lastsel && !(bezt->f2 & 1)) cu->lastsel = NULL;
 		}
 	}
 }
 static void do_nurbs_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
-	struct { ViewContext vc; rcti *rect; int select; } data;
+	struct { ViewContext *vc; rcti *rect; int select; } data;
 	
-	data.vc = *vc;
+	data.vc = vc;
 	data.rect = rect;
 	data.select = select;
 
@@ -1590,6 +1596,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		unsigned int *vbuffer=NULL; /* selection buffer	*/
 		unsigned int *col;			/* color in buffer	*/
 		int bone_only;
+		int bone_selected=0;
 		int totobj= MAXPICKBUF;	// XXX solve later
 		
 		if((ob) && (ob->mode & OB_MODE_POSE))
@@ -1645,6 +1652,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 							if(bone) {
 								if(selecting) {
 									bone->flag |= BONE_SELECTED;
+									bone_selected=1;
 // XXX									select_actionchannel_by_name(base->object->action, bone->name, 1);
 								}
 								else {
@@ -1669,6 +1677,8 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 						if(hits==0) break;
 					}
 				}
+				
+				if (bone_selected)	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, base->object);
 				
 				base= next;
 			}
@@ -1871,18 +1881,29 @@ static void nurbscurve_circle_doSelect(void *userData, Nurb *nu, BPoint *bp, Bez
 	struct {ViewContext *vc; short select, mval[2]; float radius; } *data = userData;
 	int mx = x - data->mval[0], my = y - data->mval[1];
 	float r = sqrt(mx*mx + my*my);
+	Object *obedit= data->vc->obedit;
+	Curve *cu= (Curve*)obedit->data;
 
 	if (r<=data->radius) {
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
+
+			if (bp == cu->lastsel && !(bp->f1 & 1)) cu->lastsel = NULL;
 		} else {
-			if (beztindex==0) {
-				bezt->f1 = data->select?(bezt->f1|SELECT):(bezt->f1&~SELECT);
-			} else if (beztindex==1) {
-				bezt->f2 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
+			if (cu->drawflag & CU_HIDE_HANDLES) {
+				/* can only be beztindex==0 here since handles are hidden */
+				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
-				bezt->f3 = data->select?(bezt->f3|SELECT):(bezt->f3&~SELECT);
+				if (beztindex==0) {
+					bezt->f1 = data->select?(bezt->f1|SELECT):(bezt->f1&~SELECT);
+				} else if (beztindex==1) {
+					bezt->f2 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
+				} else {
+					bezt->f3 = data->select?(bezt->f3|SELECT):(bezt->f3&~SELECT);
+				}
 			}
+
+			if (bezt == cu->lastsel && !(bezt->f2 & 1)) cu->lastsel = NULL;
 		}
 	}
 }
@@ -1896,6 +1917,7 @@ static void nurbscurve_circle_select(ViewContext *vc, int selecting, short *mval
 	data.mval[0] = mval[0];
 	data.mval[1] = mval[1];
 	data.radius = rad;
+	data.vc = vc;
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, nurbscurve_circle_doSelect, &data);

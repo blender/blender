@@ -56,6 +56,11 @@ typedef struct
 #endif
 
 /**
+ * Initializes FFMPEG if it is enabled.
+ */
+extern void AUD_initOnce();
+
+/**
  * Initializes an audio device.
  * \param device The device type that should be used.
  * \param specs The audio specification to be used.

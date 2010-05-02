@@ -29,10 +29,6 @@
 #include <string.h>    // strlen
 #include "BLO_readblenfile.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 struct streamGlueControlStruct *Global_streamGlueControl;
 
 		int

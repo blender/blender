@@ -64,7 +64,7 @@ public:
 	 * 
 	 * @param area The Blender ARegion to run the game within.
 	 */
-	KX_BlenderCanvas(struct wmWindow* win, class RAS_Rect &rect);
+	KX_BlenderCanvas(struct wmWindow* win, class RAS_Rect &rect, struct ARegion* ar);
 	~KX_BlenderCanvas();
 
 		void 
@@ -108,6 +108,22 @@ public:
 		int 
 	GetHeight(
 	) const ;
+
+		int
+	GetMouseX(int x
+	);
+
+		int
+	GetMouseY(int y
+	);
+
+		float
+	GetMouseNormalizedX(int x
+	);
+
+		float
+	GetMouseNormalizedY(int y
+	);
 
 	const
 		RAS_Rect &
@@ -170,6 +186,8 @@ private:
 	struct wmWindow* m_win;
 	RAS_Rect	m_frame_rect;
 	RAS_Rect 	m_area_rect;
+	short		m_area_left;
+	short		m_area_top;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

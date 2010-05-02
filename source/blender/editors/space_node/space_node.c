@@ -199,7 +199,8 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_NODE:
-			ED_area_tag_refresh(sa);
+			if (wmn->action == NA_EDITED)
+				ED_area_tag_refresh(sa);
 			break;
 	}
 }
@@ -340,6 +341,7 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
 				CTX_data_list_add(result, &snode->edittree->id, &RNA_Node, node);
 			}
 		}
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	

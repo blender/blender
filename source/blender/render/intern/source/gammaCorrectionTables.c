@@ -33,10 +33,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* WARNING; optimized, cannot be used to do gamma(invgamma()) and expect    */
 /* result remain identical (ton)                                            */   
 

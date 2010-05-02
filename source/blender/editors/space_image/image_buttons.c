@@ -101,11 +101,6 @@
 #define B_SIMACLONEBROWSE	25
 #define B_SIMACLONEDELETE	26
 
-/* XXX */
-static int simaFaceDraw_Check() {return 0;}
-static int simaUVSel_Check() {return 0;}
-/* XXX */
-
 /* proto */
 static void image_editvertex_buts(const bContext *C, uiBlock *block);
 
@@ -203,7 +198,9 @@ static void image_transform_but_attr(SpaceImage *sima, int *imx, int *imy, int *
 /* is used for both read and write... */
 static void image_editvertex_buts(const bContext *C, uiBlock *block)
 {
+	Scene *scene= CTX_data_scene(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
+	Image *ima= sima->image;
 	Object *obedit= CTX_data_edit_object(C);
 	static float ocent[2];
 	float cent[2]= {0.0, 0.0};
@@ -218,24 +215,24 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 	em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (simaFaceDraw_Check(efa, tf)) {
+		if (uvedit_face_visible(scene, ima, efa, tf)) {
 			
-			if (simaUVSel_Check(efa, tf, 0)) {
+			if (uvedit_uv_selected(scene, efa, tf, 0)) {
 				cent[0]+= tf->uv[0][0];
 				cent[1]+= tf->uv[0][1];
 				nactive++;
 			}
-			if (simaUVSel_Check(efa, tf, 1)) {
+			if (uvedit_uv_selected(scene, efa, tf, 1)) {
 				cent[0]+= tf->uv[1][0];
 				cent[1]+= tf->uv[1][1];
 				nactive++;
 			}
-			if (simaUVSel_Check(efa, tf, 2)) {
+			if (uvedit_uv_selected(scene, efa, tf, 2)) {
 				cent[0]+= tf->uv[2][0];
 				cent[1]+= tf->uv[2][1];
 				nactive++;
 			}
-			if (efa->v4 && simaUVSel_Check(efa, tf, 3)) {
+			if (efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) {
 				cent[0]+= tf->uv[3][0];
 				cent[1]+= tf->uv[3][1];
 				nactive++;
@@ -282,20 +279,20 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (simaFaceDraw_Check(efa, tf)) {
-				if (simaUVSel_Check(efa, tf, 0)) {
+			if (uvedit_face_visible(scene, ima, efa, tf)) {
+				if (uvedit_uv_selected(scene, efa, tf, 0)) {
 					tf->uv[0][0]+= delta[0];
 					tf->uv[0][1]+= delta[1];
 				}
-				if (simaUVSel_Check(efa, tf, 1)) {
+				if (uvedit_uv_selected(scene, efa, tf, 1)) {
 					tf->uv[1][0]+= delta[0];
 					tf->uv[1][1]+= delta[1];
 				}
-				if (simaUVSel_Check(efa, tf, 2)) {
+				if (uvedit_uv_selected(scene, efa, tf, 2)) {
 					tf->uv[2][0]+= delta[0];
 					tf->uv[2][1]+= delta[1];
 				}
-				if (efa->v4 && simaUVSel_Check(efa, tf, 3)) {
+				if (efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) {
 					tf->uv[3][0]+= delta[0];
 					tf->uv[3][1]+= delta[1];
 				}

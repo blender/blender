@@ -29,6 +29,7 @@
 
 /* Note: Changes to Mathutils since 2.4x
  * use radians rather then degrees
+ * - Mathutils.Vector/Euler/Quaternion(), now only take single sequence arguments.
  * - Mathutils.MidpointVecs --> vector.lerp(other, fac)
  * - Mathutils.AngleBetweenVecs --> vector.angle(other)
  * - Mathutils.ProjectVecs --> vector.project(other)
@@ -54,6 +55,42 @@
 //-------------------------DOC STRINGS ---------------------------
 static char M_Mathutils_doc[] =
 "This module provides access to matrices, eulers, quaternions and vectors.";
+
+/* helper functionm returns length of the 'value', -1 on error */
+int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
+{
+	PyObject *value_fast= NULL;
+
+	int i, size;
+
+	/* non list/tuple cases */
+	if(!(value_fast=PySequence_Fast(value, error_prefix))) {
+		/* PySequence_Fast sets the error */
+		return -1;
+	}
+
+	size= PySequence_Fast_GET_SIZE(value_fast);
+
+	if(size > array_max || size < array_min) {
+		if (array_max == array_min)	PyErr_Format(PyExc_ValueError, "%.200s: sequence size is %d, expected %d", error_prefix, size, array_max);
+		else						PyErr_Format(PyExc_ValueError, "%.200s: sequence size is %d, expected [%d - %d]", error_prefix, size, array_min, array_max);
+		Py_DECREF(value_fast);
+		return -1;
+	}
+
+	i= size;
+	do {
+		i--;
+		if(((array[i]= PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i))) == -1.0) && PyErr_Occurred()) {
+			PyErr_Format(PyExc_ValueError, "%.200s: sequence index %d is not a float", error_prefix, i);
+			Py_DECREF(value_fast);
+			return -1;
+		}
+	} while(i);
+
+	Py_XDECREF(value_fast);
+	return size;
+}
 
 //-----------------------------METHODS----------------------------
 //-----------------quat_rotation (internal)-----------
@@ -609,7 +646,7 @@ int Mathutils_RegisterCallback(Mathutils_Callback *cb)
 int _BaseMathObject_ReadCallback(BaseMathObject *self)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get(self->cb_user, self->cb_subtype, self->data))
+	if(cb->get(self, self->cb_subtype))
 		return 1;
 
 	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
@@ -619,7 +656,7 @@ int _BaseMathObject_ReadCallback(BaseMathObject *self)
 int _BaseMathObject_WriteCallback(BaseMathObject *self)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set(self->cb_user, self->cb_subtype, self->data))
+	if(cb->set(self, self->cb_subtype))
 		return 1;
 
 	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
@@ -629,7 +666,7 @@ int _BaseMathObject_WriteCallback(BaseMathObject *self)
 int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->get_index(self->cb_user, self->cb_subtype, self->data, index))
+	if(cb->get_index(self, self->cb_subtype, index))
 		return 1;
 
 	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
@@ -639,7 +676,7 @@ int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 {
 	Mathutils_Callback *cb= mathutils_callbacks[self->cb_type];
-	if(cb->set_index(self->cb_user, self->cb_subtype, self->data, index))
+	if(cb->set_index(self, self->cb_subtype, index))
 		return 1;
 
 	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);

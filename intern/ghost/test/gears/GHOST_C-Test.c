@@ -45,10 +45,6 @@
 
 #define FALSE 0
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_C-api.h"
 
 #if defined(WIN32) || defined(__APPLE__)

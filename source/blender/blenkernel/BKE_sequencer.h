@@ -112,22 +112,22 @@ struct SeqEffectHandle {
 	
 	/* stores the y-range of the effect IPO */
 	void (*store_icu_yrange)(struct Sequence * seq,
-							 short adrcode, float *ymin, float *ymax);
+                                 short adrcode, float *ymin, float *ymax);
 	
 	/* stores the default facf0 and facf1 if no IPO is present */
 	void (*get_default_fac)(struct Sequence *seq, int cfra,
-							float * facf0, float * facf1);
+                                float * facf0, float * facf1);
 	
 	/* execute the effect
-		sequence effects are only required to either support
-		float-rects or byte-rects 
-		(mixed cases are handled one layer up...) */
+           sequence effects are only required to either support
+           float-rects or byte-rects 
+           (mixed cases are handled one layer up...) */
 	
 	void (*execute)(struct Scene *scene, struct Sequence *seq, int cfra,
-					float facf0, float facf1,
-					int x, int y,
-					struct ImBuf *ibuf1, struct ImBuf *ibuf2,
-					struct ImBuf *ibuf3, struct ImBuf *out);
+                        float facf0, float facf1,
+                        int x, int y, int preview_render_size,
+                        struct ImBuf *ibuf1, struct ImBuf *ibuf2,
+                        struct ImBuf *ibuf3, struct ImBuf *out);
 };
 
 /* ********************* prototypes *************** */
@@ -149,6 +149,7 @@ char *give_seqname(struct Sequence *seq);
 struct ImBuf *give_ibuf_seq(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
 struct ImBuf *give_ibuf_seq_threaded(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
 struct ImBuf *give_ibuf_seq_direct(struct Scene *scene, int rectx, int recty, int cfra, int render_size, struct Sequence *seq);
+struct ImBuf *give_ibuf_seqbase(struct Scene *scene, int rectx, int recty, int cfra, int chan_shown, int render_size, struct ListBase *seqbasep);
 void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, int render_size);
 void calc_sequence(struct Scene *scene, struct Sequence *seq);
 void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);

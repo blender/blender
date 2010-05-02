@@ -802,10 +802,12 @@ static int ptcache_compress_read(PTCacheFile *pf, unsigned char *result, unsigne
 	int r = 0;
 	unsigned char compressed = 0;
 	unsigned int in_len;
+#ifdef WITH_LZO
 	unsigned int out_len = len;
+	size_t sizeOfIt = 5;
+#endif
 	unsigned char *in;
 	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
-	size_t sizeOfIt = 5;
 
 	ptcache_file_read(pf, &compressed, 1, sizeof(unsigned char));
 	if(compressed) {
@@ -1377,7 +1379,9 @@ static void ptcache_copy_data(void *from[], void *to[])
 {
 	int i;
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
-		if(from[i])
+        /* note, durian file 03.4b_comp crashes if to[i] is not tested
+         * its NULL, not sure if this should be fixed elsewhere but for now its needed */
+		if(from[i] && to[i])
 			memcpy(to[i], from[i], ptcache_data_size[i]);
 	}
 }
@@ -2395,8 +2399,13 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		/* cache/bake a single object */
 		cache = pid->cache;
 		if((cache->flag & PTCACHE_BAKED)==0) {
-			if(pid->type==PTCACHE_TYPE_PARTICLES)
-				psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
+			if(pid->type==PTCACHE_TYPE_PARTICLES) {
+				ParticleSystem *psys= pid->calldata;
+
+				/* a bit confusing, could make this work better in the UI */
+				if(psys->part->type == PART_EMITTER)
+					psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
+			}
 			else if(pid->type == PTCACHE_TYPE_SMOKE_HIGHRES) {
 				/* get all pids from the object and search for smoke low res */
 				ListBase pidlist2;

@@ -26,10 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
@@ -497,7 +493,7 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 	for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
 		// TODO: rename this argument...
 		if (copycon) {
-			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
+			copy_constraints(&listb, &pchan->constraints, TRUE);  // copy_constraints NULLs listb
 			pchan->constraints= listb;
 			pchan->path= NULL; // XXX remove this line when the new motionpaths are ready... (depreceated code)
 			pchan->mpath= NULL; /* motion paths should not get copied yet... */
@@ -671,7 +667,7 @@ void duplicate_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *pchan_
 	pchan->iklinweight= pchan_from->iklinweight;
 
 	/* constraints */
-	copy_constraints(&pchan->constraints, &pchan_from->constraints);
+	copy_constraints(&pchan->constraints, &pchan_from->constraints, TRUE);
 
 	/* id-properties */
 	if(pchan->prop) {
@@ -1255,12 +1251,12 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 				/* if blending, we only add with factor scrweight */
 				mul_v3_fl(vec, srcweight);
 				
-				add_v3_v3v3(dst->cyclic_offset, dst->cyclic_offset, vec);
+				add_v3_v3(dst->cyclic_offset, vec);
 			}
 		}
 	}
 	
-	add_v3_v3v3(dst->cyclic_offset, dst->cyclic_offset, src->cyclic_offset);
+	add_v3_v3(dst->cyclic_offset, src->cyclic_offset);
 }
 
 /* added "sizecorr" here, to allow armatures to be scaled and still have striding.
@@ -1620,7 +1616,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 	}
 	else if(blocktype==ID_AR) {
 		/* apply stride offset to object */
-		add_v3_v3v3(ob->obmat[3], ob->obmat[3], ob->pose->stride_offset);
+		add_v3_v3(ob->obmat[3], ob->pose->stride_offset);
 	}
 	
 	/* free */

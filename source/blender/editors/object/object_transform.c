@@ -760,7 +760,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			}
 			
 			for(eve= em->verts.first; eve; eve= eve->next) {
-				sub_v3_v3v3(eve->co, eve->co, cent);			
+				sub_v3_v3(eve->co, cent);			
 			}
 			
 			recalc_editnormals(em);
@@ -806,7 +806,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					mvert= me->mvert;
 					for(a=0; a<me->totvert; a++, mvert++) {
-						sub_v3_v3v3(mvert->co, mvert->co, cent);
+						sub_v3_v3(mvert->co, cent);
 					}
 					
 					if (me->key) {
@@ -815,7 +815,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 							float *fp= kb->data;
 							
 							for (a=0; a<kb->totelem; a++, fp+=3) {
-								sub_v3_v3v3(fp, fp, cent);
+								sub_v3_v3(fp, cent);
 							}
 						}
 					}
@@ -857,7 +857,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 									if(tme && (tme->flag & ME_ISDONE)==0) {
 										mvert= tme->mvert;
 										for(a=0; a<tme->totvert; a++, mvert++) {
-											sub_v3_v3v3(mvert->co, mvert->co, cent);
+											sub_v3_v3(mvert->co, cent);
 										}
 										
 										if (tme->key) {
@@ -866,7 +866,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 												float *fp= kb->data;
 												
 												for (a=0; a<kb->totelem; a++, fp+=3) {
-													sub_v3_v3v3(fp, fp, cent);
+													sub_v3_v3(fp, cent);
 												}
 											}
 										}
@@ -926,15 +926,15 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						if(nu->type == CU_BEZIER) {
 							a= nu->pntsu;
 							while (a--) {
-								sub_v3_v3v3(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
-								sub_v3_v3v3(nu->bezt[a].vec[1], nu->bezt[a].vec[1], cent);
-								sub_v3_v3v3(nu->bezt[a].vec[2], nu->bezt[a].vec[2], cent);
+								sub_v3_v3(nu->bezt[a].vec[0], cent);
+								sub_v3_v3(nu->bezt[a].vec[1], cent);
+								sub_v3_v3(nu->bezt[a].vec[2], cent);
 							}
 						}
 						else {
 							a= nu->pntsu*nu->pntsv;
 							while (a--)
-								sub_v3_v3v3(nu->bp[a].vec, nu->bp[a].vec, cent);
+								sub_v3_v3(nu->bp[a].vec, cent);
 						}
 						nu= nu->next;
 					}

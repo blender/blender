@@ -164,7 +164,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.prop(md, "start")
+        col.prop(md, "frame_start")
         col.prop(md, "length")
 
         if wide_ui:

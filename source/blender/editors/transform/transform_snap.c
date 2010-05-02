@@ -279,7 +279,7 @@ void applyProject(TransInfo *t)
 				
 				mul_m3_v3(td->smtx, tvec);
 				
-				add_v3_v3v3(td->loc, td->loc, tvec);
+				add_v3_v3(td->loc, tvec);
 			}
 			
 			//XXX constraintTransLim(t, td);
@@ -912,7 +912,7 @@ void TargetSnapMedian(TransInfo *t)
 		
 		for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 		{
-			add_v3_v3v3(t->tsnap.snapTarget, t->tsnap.snapTarget, td->center);
+			add_v3_v3(t->tsnap.snapTarget, td->center);
 		}
 		
 		mul_v3_fl(t->tsnap.snapTarget, 1.0 / i);
@@ -1030,7 +1030,7 @@ int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], float *v4
 		
 		VECCOPY(intersect, ray_normal_local);
 		mul_v3_fl(intersect, lambda);
-		add_v3_v3v3(intersect, intersect, ray_start_local);
+		add_v3_v3(intersect, ray_start_local);
 		
 		VECCOPY(location, intersect);
 		
@@ -1730,7 +1730,7 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 					
 					VECCOPY(intersect, ray_normal_local);
 					mul_v3_fl(intersect, lambda);
-					add_v3_v3v3(intersect, intersect, ray_start_local);
+					add_v3_v3(intersect, ray_start_local);
 					
 					VECCOPY(location, intersect);
 					
@@ -1760,7 +1760,7 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 						
 						VECCOPY(intersect, ray_normal_local);
 						mul_v3_fl(intersect, lambda);
-						add_v3_v3v3(intersect, intersect, ray_start_local);
+						add_v3_v3(intersect, ray_start_local);
 						
 						VECCOPY(location, intersect);
 						

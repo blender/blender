@@ -33,6 +33,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_threads.h"
+#include "BLI_rand.h"
 
 #include "DNA_scene_types.h"
 
@@ -131,23 +132,25 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 
 	if(ibuf->rect==NULL)
 		imb_addrectImBuf(ibuf);
-
+	
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
-
+	
 	/* XXX make nice consistent functions for this */
 	if (scene && (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
 		for(y1= 0; y1<ymax; y1++) {
 			float *rf= rectf;
 			float srgb[3];
 			char *rc= rectc;
+			const float dither = ibuf->dither / 255.0;
 
 			/* XXX temp. because crop offset */
 			if( rectc >= (char *)(ibuf->rect)) {
 				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
-					srgb[0]= linearrgb_to_srgb(rf[0]);
-					srgb[1]= linearrgb_to_srgb(rf[1]);
-					srgb[2]= linearrgb_to_srgb(rf[2]);
+					const float d = (BLI_frand()-0.5)*dither;
+					srgb[0]= d + linearrgb_to_srgb(rf[0]);
+					srgb[1]= d + linearrgb_to_srgb(rf[1]);
+					srgb[2]= d + linearrgb_to_srgb(rf[2]);
 
 					rc[0]= FTOCHAR(srgb[0]);
 					rc[1]= FTOCHAR(srgb[1]);
@@ -162,20 +165,28 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 		for(y1= 0; y1<ymax; y1++) {
 			float *rf= rectf;
 			char *rc= rectc;
+			float rgb[3];
+			const float dither = ibuf->dither / 255.0;
 
 			/* XXX temp. because crop offset */
 			if( rectc >= (char *)(ibuf->rect)) {
 				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
-					rc[0]= FTOCHAR(rf[0]);
-					rc[1]= FTOCHAR(rf[1]);
-					rc[2]= FTOCHAR(rf[2]);
+					const float d = (BLI_frand()-0.5)*dither;
+					
+					rgb[0] = d + rf[0];
+					rgb[1] = d + rf[1];
+					rgb[2] = d + rf[2];
+					
+					rc[0]= FTOCHAR(rgb[0]);
+					rc[1]= FTOCHAR(rgb[1]);
+					rc[2]= FTOCHAR(rgb[2]);
 					rc[3]= FTOCHAR(rf[3]);
 				}
 			}
 			rectf += 4*rr->rectx;
 			rectc += 4*ibuf->x;
 		}
-	}
+	}	
 }
 
 /* new window uses x,y to set position */

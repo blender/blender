@@ -31,10 +31,6 @@
 #include "KX_StateActuator.h"
 #include "KX_GameObject.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_StateActuator::KX_StateActuator(
 	SCA_IObject* gameobj,
 	int operation,

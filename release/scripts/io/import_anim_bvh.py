@@ -83,7 +83,7 @@ def eulerRotate(x, y, z, rot_order):
 
     # Should work but doesnt!
     '''
-    eul = Euler(x,y,z)
+    eul = Euler((x, y, z))
     eul.order = "XYZ"[rot_order[0]] + "XYZ"[rot_order[1]] + "XYZ"[rot_order[2]]
     return tuple(eul.to_matrix().to_euler())
     '''
@@ -136,7 +136,7 @@ def read_bvh(context, file_path, ROT_MODE='XYZ', GLOBAL_SCALE=1.0):
             #print '%snode: %s, parent: %s' % (len(bvh_nodes_serial) * '  ', name,  bvh_nodes_serial[-1])
 
             lineIdx += 2 # Incriment to the next line (Offset)
-            rest_head_local = Vector(float(file_lines[lineIdx][1]), float(file_lines[lineIdx][2]), float(file_lines[lineIdx][3])) * GLOBAL_SCALE
+            rest_head_local = Vector((float(file_lines[lineIdx][1]), float(file_lines[lineIdx][2]), float(file_lines[lineIdx][3]))) * GLOBAL_SCALE
             lineIdx += 1 # Incriment to the next line (Channels)
 
             # newChannel[Xposition, Yposition, Zposition, Xrotation, Yrotation, Zrotation]
@@ -188,7 +188,7 @@ def read_bvh(context, file_path, ROT_MODE='XYZ', GLOBAL_SCALE=1.0):
         # Account for an end node
         if file_lines[lineIdx][0].lower() == 'end' and file_lines[lineIdx][1].lower() == 'site': # There is somtimes a name after 'End Site' but we will ignore it.
             lineIdx += 2 # Incriment to the next line (Offset)
-            rest_tail = Vector(float(file_lines[lineIdx][1]), float(file_lines[lineIdx][2]), float(file_lines[lineIdx][3])) * GLOBAL_SCALE
+            rest_tail = Vector((float(file_lines[lineIdx][1]), float(file_lines[lineIdx][2]), float(file_lines[lineIdx][3]))) * GLOBAL_SCALE
 
             bvh_nodes_serial[-1].rest_tail_world = bvh_nodes_serial[-1].rest_head_world + rest_tail
             bvh_nodes_serial[-1].rest_tail_local = bvh_nodes_serial[-1].rest_head_local + rest_tail
@@ -267,8 +267,8 @@ def read_bvh(context, file_path, ROT_MODE='XYZ', GLOBAL_SCALE=1.0):
                 #	raise 'error, bvh node has no end and no children. bad file'
 
                 # Removed temp for now
-                rest_tail_world = Vector(0.0, 0.0, 0.0)
-                rest_tail_local = Vector(0.0, 0.0, 0.0)
+                rest_tail_world = Vector((0.0, 0.0, 0.0))
+                rest_tail_local = Vector((0.0, 0.0, 0.0))
                 for bvh_node_child in bvh_node.children:
                     rest_tail_world += bvh_node_child.rest_head_world
                     rest_tail_local += bvh_node_child.rest_head_local
@@ -328,7 +328,7 @@ def bvh_node_dict2objects(context, bvh_nodes, IMPORT_START_FRAME=1, IMPORT_LOOP=
             lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current]
 
             rest_head_local = bvh_node.rest_head_local
-            bvh_node.temp.loc = rest_head_local + Vector(lx, ly, lz)
+            bvh_node.temp.loc = rest_head_local + Vector((lx, ly, lz))
 
             bvh_node.temp.rot = rx, ry, rz
 
@@ -531,7 +531,7 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
                     prev_euler[i] = euler
 
             if bvh_node.has_loc:
-                pose_bone.location = (bone_rest_matrix_inv * TranslationMatrix(Vector(lx, ly, lz) - bvh_node.rest_head_local)).translation_part()
+                pose_bone.location = (bone_rest_matrix_inv * TranslationMatrix(Vector((lx, ly, lz)) - bvh_node.rest_head_local)).translation_part()
 
             if bvh_node.has_loc:
                 pose_bone.keyframe_insert("location")

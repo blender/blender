@@ -279,8 +279,9 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		if(stroke->stroke_started) {
 			if(paint_smooth_stroke(stroke, mouse, event)) {
 				if(paint_space_stroke_enabled(stroke->brush)) {
-					if(!paint_space_stroke(C, op, event, mouse))
-						;//ED_region_tag_redraw(ar);
+					if(!paint_space_stroke(C, op, event, mouse)) {
+						//ED_region_tag_redraw(ar);
+					}
 				}
 				else
 					paint_brush_stroke_add_step(C, op, event, mouse);

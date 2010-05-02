@@ -59,17 +59,16 @@
 
 #include "console_intern.h"
 
+
+static int mono= -1; // XXX needs proper storage and change all the BLF_* here!
+
 static void console_font_begin(SpaceConsole *sc)
 {
-	static int mono= -1; // XXX needs proper storage
-
 	if(mono == -1)
 		mono= BLF_load_mem("monospace", (unsigned char*)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 
-	BLF_set(mono);
-	BLF_aspect(1.0);
-
-	BLF_size(sc->lheight-2, 72);
+	BLF_aspect(mono, 1.0);
+	BLF_size(mono, sc->lheight-2, 72);
 }
 
 static void console_line_color(unsigned char *fg, int type)
@@ -224,8 +223,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 		glColor3ub(fg[0], fg[1], fg[2]);
 
 		/* last part needs no clipping */
-		BLF_position(cdc->xy[0], cdc->xy[1], 0);
-		BLF_draw(line_stride);
+		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
+		BLF_draw(mono, line_stride);
 
 		if(cdc->sel[0] != cdc->sel[1]) {
 			cdc->sel[0] += str_len - (cdc->console_width % str_len);
@@ -242,8 +241,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 			eol = line_stride[cdc->console_width];
 			line_stride[cdc->console_width]= '\0';
 			
-			BLF_position(cdc->xy[0], cdc->xy[1], 0);
-			BLF_draw(line_stride);
+			BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
+			BLF_draw(mono, line_stride);
 			
 			if(cdc->sel[0] != cdc->sel[1]) {
 				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->console_width, cdc->lheight);
@@ -268,8 +267,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 
 		glColor3ub(fg[0], fg[1], fg[2]);
 
-		BLF_position(cdc->xy[0], cdc->xy[1], 0);
-		BLF_draw(str);
+		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
+		BLF_draw(mono, str);
 		
 		if(cdc->sel[0] != cdc->sel[1])
 			console_draw_sel(cdc->sel, cdc->xy, str_len, cdc->cwidth, cdc->console_width, cdc->lheight);
@@ -301,7 +300,7 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 	unsigned char fg[3];
 
 	console_font_begin(sc);
-	cwidth = BLF_fixed_width();
+	cwidth = BLF_fixed_width(mono);
 	
 	console_width= (ar->winx - (CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN*2) )/cwidth;
 	if (console_width < 8) console_width= 8;
@@ -344,11 +343,11 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 
 			/* command line */
 			if(prompt_len) {
-				BLF_position(xy[0], xy[1], 0); xy[0] += cwidth * prompt_len;
-				BLF_draw(sc->prompt);
+				BLF_position(mono, xy[0], xy[1], 0); xy[0] += cwidth * prompt_len;
+				BLF_draw(mono, sc->prompt);
 			}
-			BLF_position(xy[0], xy[1], 0);
-			BLF_draw(cl->line);
+			BLF_position(mono, xy[0], xy[1], 0);
+			BLF_draw(mono, cl->line);
 
 			/* cursor */
 			UI_GetThemeColor3ubv(TH_CONSOLE_CURSOR, (char *)fg);

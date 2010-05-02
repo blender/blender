@@ -31,10 +31,6 @@
 #include <assert.h>
 #include "GHOST_ISystem.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 GPG_Canvas::GPG_Canvas(GHOST_IWindow* window)
 : GPC_Canvas(0, 0), m_window(window)
 {
@@ -107,4 +103,14 @@ void GPG_Canvas::SwapBuffers()
 	{
 		m_window->swapBuffers();
 	}
+}
+
+float GPG_Canvas::GetMouseNormalizedX(int x)
+{
+	return float(x)/this->GetWidth();
+}
+
+float GPG_Canvas::GetMouseNormalizedY(int y)
+{
+	return float(y)/this->GetHeight();
 }

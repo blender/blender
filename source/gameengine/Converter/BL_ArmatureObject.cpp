@@ -53,10 +53,6 @@
 
 #include "MT_Matrix4x4.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /** 
  * Move here pose function for game engine so that we can mix with GE objects
  * Principle is as follow:
@@ -112,7 +108,7 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 		if (copy_constraint) {
 			ListBase listb;
 			// copy all constraint for backward compatibility
-			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
+			copy_constraints(&listb, &pchan->constraints, FALSE);  // copy_constraints NULLs listb, no need to make extern for this operation.
 			pchan->constraints= listb;
 		} else {
 			pchan->constraints.first = NULL;

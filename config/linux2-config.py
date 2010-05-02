@@ -175,10 +175,10 @@ CXX = 'g++'
 ##ifeq ($CPU),alpha)
 ##   CFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -mieee
 
-CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
+CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64']
 
 CPPFLAGS = []
-CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
+CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64']
 REL_CFLAGS = ['-O2']
 REL_CCFLAGS = ['-O2']
 ##BF_DEPEND = True

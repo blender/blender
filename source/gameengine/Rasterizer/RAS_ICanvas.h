@@ -130,6 +130,26 @@ public:
 	GetHeight(
 	) const = 0;
 
+	virtual
+		int
+	GetMouseX( int x
+	)=0;
+
+	virtual
+		int
+	GetMouseY( int y
+	)= 0;
+
+	virtual
+		float
+	GetMouseNormalizedX( int x
+	)=0;
+
+	virtual
+		float
+	GetMouseNormalizedY( int y
+	)= 0;
+
 	virtual 
 		const RAS_Rect &
 	GetDisplayArea(

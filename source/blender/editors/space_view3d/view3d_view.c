@@ -166,7 +166,7 @@ static void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *di
 		vec[0]= vec[1] = 0.0;
 		vec[2]= -(*dist);
 		mul_m3_v3(tmat, vec);
-		sub_v3_v3v3(ofs, ofs, vec);
+		sub_v3_v3(ofs, vec);
 	}
 	
 	/* Lens */
@@ -536,7 +536,7 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 		mul_v3_fl(vec, 1.0f / vec[3]);
 		
 		copy_v3_v3(ray_start, rv3d->viewinv[3]);
-		sub_v3_v3v3(vec, vec, ray_start);
+		sub_v3_v3(vec, ray_start);
 		normalize_v3(vec);
 		
 		VECADDFAC(ray_start, rv3d->viewinv[3], vec, v3d->near);
@@ -1385,60 +1385,6 @@ static unsigned int free_localbit(void)
 	return 0;
 }
 
-static void copy_view3d_lock_space(View3D *v3d, Scene *scene)
-{
-	int bit;
-	
-	if(v3d->scenelock && v3d->localvd==NULL) {
-		v3d->lay= scene->lay;
-		v3d->camera= scene->camera;
-		
-		if(v3d->camera==NULL) {
-			ARegion *ar;
-			
-			for(ar=v3d->regionbase.first; ar; ar= ar->next) {
-				if(ar->regiontype == RGN_TYPE_WINDOW) {
-					RegionView3D *rv3d= ar->regiondata;
-					if(rv3d->persp==RV3D_CAMOB)
-						rv3d->persp= RV3D_PERSP;
-				}
-			}
-		}
-		
-		if((v3d->lay & v3d->layact) == 0) {
-			for(bit= 0; bit<32; bit++) {
-				if(v3d->lay & (1<<bit)) {
-					v3d->layact= 1<<bit;
-					break;
-				}
-			}
-		}
-	}
-}
-
-void ED_view3d_scene_layers_copy(struct View3D *v3d, struct Scene *scene)
-{
-	copy_view3d_lock_space(v3d, scene);
-}
-
-void ED_view3d_scene_layers_update(Main *bmain, Scene *scene)
-{
-	bScreen *sc;
-	ScrArea *sa;
-	SpaceLink *sl;
-	
-	/* from scene copy to the other views */
-	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
-		if(sc->scene!=scene)
-			continue;
-		
-		for(sa=sc->areabase.first; sa; sa=sa->next)
-			for(sl=sa->spacedata.first; sl; sl=sl->next)
-				if(sl->spacetype==SPACE_VIEW3D)
-					copy_view3d_lock_space((View3D*)sl, scene);
-	}
-}
-
 int ED_view3d_scene_layer_set(int lay, const int *values)
 {
 	int i, tot= 0;
@@ -2098,12 +2044,12 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 		if (fly->rv3d->persp==RV3D_ORTHO)
 			fly->rv3d->persp= RV3D_PERSP; /*if ortho projection, make perspective */
 		QUATCOPY(fly->rot_backup, fly->rv3d->viewquat);
-		VECCOPY(fly->ofs_backup, fly->rv3d->ofs);
-		fly->rv3d->dist= 0.0;
+		copy_v3_v3(fly->ofs_backup, fly->rv3d->ofs);
+		fly->rv3d->dist= 0.0f;
 
 		upvec[2]= fly->dist_backup; /*x and y are 0*/
 		mul_m3_v3(mat, upvec);
-		sub_v3_v3v3(fly->rv3d->ofs, fly->rv3d->ofs, upvec);
+		sub_v3_v3(fly->rv3d->ofs, upvec);
 		/*Done with correcting for the dist*/
 	}
 
@@ -2174,7 +2120,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		upvec[2]= fly->dist_backup; /*x and y are 0*/
 		copy_m3_m4(mat, rv3d->viewinv);
 		mul_m3_v3(mat, upvec);
-		add_v3_v3v3(rv3d->ofs, rv3d->ofs, upvec);
+		add_v3_v3(rv3d->ofs, upvec);
 		/*Done with correcting for the dist */
 	}
 
@@ -2544,7 +2490,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				if (lock_ob->protectflag & OB_LOCK_LOCZ) dvec[2] = 0.0;
 			}
 
-			add_v3_v3v3(rv3d->ofs, rv3d->ofs, dvec);
+			add_v3_v3(rv3d->ofs, dvec);
 
 			/* todo, dynamic keys */
 #if 0

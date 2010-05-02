@@ -35,10 +35,6 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
@@ -1041,8 +1037,8 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 				/* calc the right loc AND the right rot separately */
 				/* vec, tvec need 4 items */
-				where_on_path(cu->textoncurve, ctime, vec, tvec, NULL, NULL);
-				where_on_path(cu->textoncurve, ctime+dtime, tvec, rotvec, NULL, NULL);
+				where_on_path(cu->textoncurve, ctime, vec, tvec, NULL, NULL, NULL);
+				where_on_path(cu->textoncurve, ctime+dtime, tvec, rotvec, NULL, NULL, NULL);
 				
 				mul_v3_fl(vec, sizefac);
 				

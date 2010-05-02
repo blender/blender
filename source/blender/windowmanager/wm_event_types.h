@@ -187,6 +187,13 @@
 #define	F10KEY		309
 #define	F11KEY		310
 #define	F12KEY		311
+#define	F13KEY		312
+#define	F14KEY		313
+#define	F15KEY		314
+#define	F16KEY		315
+#define	F17KEY		316
+#define	F18KEY		317
+#define	F19KEY		318
 
 #define	PAUSEKEY	165
 #define	INSERTKEY	166

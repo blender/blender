@@ -29,10 +29,6 @@
 #include "SCA_ILogicBrick.h"
 #include "PyObjectPlus.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 SCA_LogicManager* SCA_ILogicBrick::m_sCurrentLogicManager = NULL;
 
 SCA_ILogicBrick::SCA_ILogicBrick(SCA_IObject* gameobj)

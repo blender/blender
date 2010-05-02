@@ -170,11 +170,17 @@ void CTX_wm_menu_set(bContext *C, struct ARegion *menu);
 	 freed with BLI_freelistN!
    - the dir listbase consits of LinkData items */
 
+/* data type, needed so we can tell between a NULL pointer and an empty list */
+enum {
+	CTX_DATA_TYPE_POINTER = 0,
+	CTX_DATA_TYPE_COLLECTION
+};
+
 PointerRNA CTX_data_pointer_get(const bContext *C, const char *member);
 PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, StructRNA *type);
 ListBase CTX_data_collection_get(const bContext *C, const char *member);
 ListBase CTX_data_dir_get(const bContext *C);
-int CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb);
+int CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, short *r_type);
 
 void CTX_data_id_pointer_set(bContextDataResult *result, struct ID *id);
 void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
@@ -183,6 +189,9 @@ void CTX_data_id_list_add(bContextDataResult *result, struct ID *id);
 void CTX_data_list_add(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
 
 void CTX_data_dir_set(bContextDataResult *result, const char **member);
+
+void CTX_data_type_set(struct bContextDataResult *result, short type);
+short CTX_data_type_get(struct bContextDataResult *result);
 
 int CTX_data_equals(const char *member, const char *str);
 int CTX_data_dir(const char *member);

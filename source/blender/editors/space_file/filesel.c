@@ -77,16 +77,10 @@
 #include "file_intern.h"
 #include "filelist.h"
 
-#if defined __BeOS
-static int fnmatch(const char *pattern, const char *string, int flags)
-{
-	return 0;
-}
-#elif defined WIN32 && !defined _LIBC
-	/* use fnmatch included in blenlib */
-	#include "BLI_fnmatch.h"
+#if defined WIN32 && !defined _LIBC
+# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
 #else
-	#include <fnmatch.h>
+# include <fnmatch.h>
 #endif
 
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
@@ -260,7 +254,7 @@ float file_string_width(const char* str)
 {
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	return BLF_width((char *)str);
+	return BLF_width(style->widget.uifont_id, (char *)str);
 }
 
 float file_font_pointsize()
@@ -269,7 +263,7 @@ float file_font_pointsize()
 	char tmp[2] = "X";
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	s = BLF_height(tmp);
+	s = BLF_height(style->widget.uifont_id, tmp);
 	return style->widget.points;
 }
 

@@ -28,25 +28,26 @@
 #include "../../blenfont/BLF_api.h"
 
 static char py_blf_position_doc[] =
-".. function:: position(x, y, z)\n"
+".. function:: position(fontid, x, y, z)\n"
 "\n"
 "   Set the position for drawing text.\n";
 
 static PyObject *py_blf_position(PyObject *self, PyObject *args)
 {
+	int fontid;
 	float x, y, z;
 
-	if (!PyArg_ParseTuple(args, "fff:BLF.position", &x, &y, &z))
+	if (!PyArg_ParseTuple(args, "ifff:BLF.position", &fontid, &x, &y, &z))
 		return NULL;
 
-	BLF_position(x, y, z);
+	BLF_position(fontid, x, y, z);
 
 	Py_RETURN_NONE;
 }
 
 
 static char py_blf_size_doc[] =
-".. function:: size(size, dpi)\n"
+".. function:: size(fontid, size, dpi)\n"
 "\n"
 "   Set the size and dpi for drawing text.\n"
 "\n"
@@ -57,19 +58,19 @@ static char py_blf_size_doc[] =
 
 static PyObject *py_blf_size(PyObject *self, PyObject *args)
 {
-	int size, dpi;
+	int fontid, size, dpi;
 
-	if (!PyArg_ParseTuple(args, "ii:BLF.size", &size, &dpi))
+	if (!PyArg_ParseTuple(args, "iii:BLF.size", &fontid, &size, &dpi))
 		return NULL;
 
-	BLF_size(size, dpi);
+	BLF_size(fontid, size, dpi);
 
 	Py_RETURN_NONE;
 }
 
 
 static char py_blf_aspect_doc[] =
-".. function:: aspect(aspect)\n"
+".. function:: aspect(fontid, aspect)\n"
 "\n"
 "   Set the aspect for drawing text.\n"
 "\n"
@@ -79,18 +80,19 @@ static char py_blf_aspect_doc[] =
 static PyObject *py_blf_aspect(PyObject *self, PyObject *args)
 {
 	float aspect;
+	int fontid;
 
-	if (!PyArg_ParseTuple(args, "f:BLF.aspect", &aspect))
+	if (!PyArg_ParseTuple(args, "if:BLF.aspect", &fontid, &aspect))
 		return NULL;
 
-	BLF_aspect(aspect);
+	BLF_aspect(fontid, aspect);
 
 	Py_RETURN_NONE;
 }
 
 
 static char py_blf_blur_doc[] =
-".. function:: blur(radius)\n"
+".. function:: blur(fontid, radius)\n"
 "\n"
 "   Set the blur radius for drawing text.\n"
 "\n"
@@ -99,19 +101,19 @@ static char py_blf_blur_doc[] =
 
 static PyObject *py_blf_blur(PyObject *self, PyObject *args)
 {
-	int blur;
+	int blur, fontid;
 
-	if (!PyArg_ParseTuple(args, "i:BLF.blur", &blur))
+	if (!PyArg_ParseTuple(args, "ii:BLF.blur", &fontid, &blur))
 		return NULL;
 
-	BLF_blur(blur);
+	BLF_blur(fontid, blur);
 
 	Py_RETURN_NONE;
 }
 
 
 static char py_blf_draw_doc[] =
-".. function:: draw(text)\n"
+".. function:: draw(fontid, text)\n"
 "\n"
 "   Draw text in the current context.\n"
 "\n"
@@ -121,17 +123,18 @@ static char py_blf_draw_doc[] =
 static PyObject *py_blf_draw(PyObject *self, PyObject *args)
 {
 	char *text;
+	int fontid;
 
-	if (!PyArg_ParseTuple(args, "s:BLF.draw", &text))
+	if (!PyArg_ParseTuple(args, "is:BLF.draw", &fontid, &text))
 		return NULL;
 
-	BLF_draw(text);
+	BLF_draw(fontid, text);
 
 	Py_RETURN_NONE;
 }
 
 static char py_blf_dimensions_doc[] =
-".. function:: dimensions(text)\n"
+".. function:: dimensions(fontid, text)\n"
 "\n"
 "   Return the width and hight of the text.\n"
 "\n"
@@ -145,11 +148,12 @@ static PyObject *py_blf_dimensions(PyObject *self, PyObject *args)
 	char *text;
 	float r_width, r_height;
 	PyObject *ret;
+	int fontid;
 
-	if (!PyArg_ParseTuple(args, "s:BLF.dimensions", &text))
+	if (!PyArg_ParseTuple(args, "is:BLF.dimensions", &fontid, &text))
 		return NULL;
 
-	BLF_width_and_height(text, &r_width, &r_height);
+	BLF_width_and_height(fontid, text, &r_width, &r_height);
 
 	ret= PyTuple_New(2);
 	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(r_width));
@@ -158,24 +162,25 @@ static PyObject *py_blf_dimensions(PyObject *self, PyObject *args)
 }
 
 static char py_blf_clipping_doc[] =
-".. function:: clipping(xmin, ymin, xmax, ymax)\n"
+".. function:: clipping(fontid, xmin, ymin, xmax, ymax)\n"
 "\n"
 "   Set the clipping, enable/disable using CLIPPING.\n";
 
 static PyObject *py_blf_clipping(PyObject *self, PyObject *args)
 {
 	float xmin, ymin, xmax, ymax;
+	int fontid;
 
-	if (!PyArg_ParseTuple(args, "ffff:BLF.clipping", &xmin, &ymin, &xmax, &ymax))
+	if (!PyArg_ParseTuple(args, "iffff:BLF.clipping", &fontid, &xmin, &ymin, &xmax, &ymax))
 		return NULL;
 
-	BLF_clipping(xmin, ymin, xmax, ymax);
+	BLF_clipping(fontid, xmin, ymin, xmax, ymax);
 
 	Py_RETURN_NONE;
 }
 
 static char py_blf_disable_doc[] =
-".. function:: disable(option)\n"
+".. function:: disable(fontid, option)\n"
 "\n"
 "   Disable option.\n"
 "\n"
@@ -184,18 +189,18 @@ static char py_blf_disable_doc[] =
 
 static PyObject *py_blf_disable(PyObject *self, PyObject *args)
 {
-	int option;
+	int option, fontid;
 
-	if (!PyArg_ParseTuple(args, "i:BLF.disable", &option))
+	if (!PyArg_ParseTuple(args, "ii:BLF.disable", &fontid, &option))
 		return NULL;
 
-	BLF_disable(option);
+	BLF_disable(fontid, option);
 
 	Py_RETURN_NONE;
 }
 
 static char py_blf_enable_doc[] =
-".. function:: enable(option)\n"
+".. function:: enable(fontid, option)\n"
 "\n"
 "   Enable option.\n"
 "\n"
@@ -204,18 +209,18 @@ static char py_blf_enable_doc[] =
 
 static PyObject *py_blf_enable(PyObject *self, PyObject *args)
 {
-	int option;
+	int option, fontid;
 
-	if (!PyArg_ParseTuple(args, "i:BLF.enable", &option))
+	if (!PyArg_ParseTuple(args, "ii:BLF.enable", &fontid, &option))
 		return NULL;
 
-	BLF_enable(option);
+	BLF_enable(fontid, option);
 
 	Py_RETURN_NONE;
 }
 
 static char py_blf_rotation_doc[] =
-".. function:: rotation(angle)\n"
+".. function:: rotation(fontid, angle)\n"
 "\n"
 "   Set the text rotation angle, enable/disable using ROTATION.\n"
 "\n"
@@ -225,17 +230,18 @@ static char py_blf_rotation_doc[] =
 static PyObject *py_blf_rotation(PyObject *self, PyObject *args)
 {
 	float angle;
+	int fontid;
 
-	if (!PyArg_ParseTuple(args, "f:BLF.rotation", &angle))
+	if (!PyArg_ParseTuple(args, "if:BLF.rotation", &fontid, &angle))
 		return NULL;
 		
-	BLF_rotation(angle);
+	BLF_rotation(fontid, angle);
 
 	Py_RETURN_NONE;
 }
 
 static char py_blf_shadow_doc[] =
-".. function:: shadow(level, r, g, b, a)\n"
+".. function:: shadow(fontid, level, r, g, b, a)\n"
 "\n"
 "   Shadow options, enable/disable using SHADOW .\n"
 "\n"
@@ -244,10 +250,10 @@ static char py_blf_shadow_doc[] =
 
 static PyObject *py_blf_shadow(PyObject *self, PyObject *args)
 {
-	int level;
+	int level, fontid;
 	float r, g, b, a;
 
-	if (!PyArg_ParseTuple(args, "iffff:BLF.shadow", &level, &r, &g, &b, &a))
+	if (!PyArg_ParseTuple(args, "iiffff:BLF.shadow", &fontid, &level, &r, &g, &b, &a))
 		return NULL;
 
 	if (level != 0 && level != 3 && level != 5) {
@@ -255,24 +261,24 @@ static PyObject *py_blf_shadow(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	BLF_shadow(level, r, g, b, a);
+	BLF_shadow(fontid, level, r, g, b, a);
 
 	Py_RETURN_NONE;
 }
 
 static char py_blf_shadow_offset_doc[] =
-".. function:: shadow_offset(x, y)\n"
+".. function:: shadow_offset(fontid, x, y)\n"
 "\n"
 "   Set the offset for shadow text.\n";
 
 static PyObject *py_blf_shadow_offset(PyObject *self, PyObject *args)
 {
-	int x, y;
+	int x, y, fontid;
 
-	if (!PyArg_ParseTuple(args, "ii:BLF.shadow_offset", &x, &y))
+	if (!PyArg_ParseTuple(args, "iii:BLF.shadow_offset", &fontid, &x, &y))
 		return NULL;
 
-	BLF_shadow_offset(x, y);
+	BLF_shadow_offset(fontid, x, y);
 
 	Py_RETURN_NONE;
 }

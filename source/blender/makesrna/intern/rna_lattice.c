@@ -41,6 +41,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
+#include "BKE_deform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -157,6 +158,16 @@ static void rna_Lattice_points_w_set(PointerRNA *ptr, int value)
 	((Lattice*)ptr->data)->opntsw= CLAMPIS(value, 1, 64);
 }
 
+static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)
+{
+	Lattice *lt= ptr->data;
+	strcpy(lt->vgroup, value);
+
+	if(lt->editlatt)
+		strcpy(lt->editlatt->vgroup, value);
+}
+
+
 #else
 
 static void rna_def_latticepoint(BlenderRNA *brna)
@@ -244,6 +255,12 @@ static void rna_def_lattice(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LT_OUTSIDE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Lattice_outside_set");
 	RNA_def_property_ui_text(prop, "Outside", "Only draw, and take into account, the outer vertices");
+	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
+	
+	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "vgroup");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group to apply the influence of the lattice");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Lattice_vg_name_set");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
 
 	prop= RNA_def_property(srna, "shape_keys", PROP_POINTER, PROP_NONE);

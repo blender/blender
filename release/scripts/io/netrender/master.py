@@ -27,12 +27,16 @@ import netrender.balancing
 import netrender.master_html
 
 class MRenderFile(netrender.model.RenderFile):
-    def __init__(self, filepath, index, start, end):
-        super().__init__(filepath, index, start, end)
+    def __init__(self, filepath, index, start, end, signature):
+        super().__init__(filepath, index, start, end, signature)
         self.found = False
 
     def test(self):
         self.found = os.path.exists(self.filepath)
+        if self.found:
+            found_signature = hashFile(self.filepath)
+            self.found = self.signature == found_signature
+            
         return self.found
 
 
@@ -74,7 +78,7 @@ class MRenderJob(netrender.model.RenderJob):
         # special server properties
         self.last_update = 0
         self.save_path = ""
-        self.files = [MRenderFile(rfile.filepath, rfile.index, rfile.start, rfile.end) for rfile in job_info.files]
+        self.files = [MRenderFile(rfile.filepath, rfile.index, rfile.start, rfile.end, rfile.signature) for rfile in job_info.files]
 
         self.resolution = None
 
@@ -190,6 +194,11 @@ pause_pattern = re.compile("/pause_([a-zA-Z0-9]+)")
 edit_pattern = re.compile("/edit_([a-zA-Z0-9]+)")
 
 class RenderHandler(http.server.BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        # override because the original calls self.address_string(), which
+        # is extremely slow due to some timeout..
+        sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(), format%args))
+
     def send_head(self, code = http.client.OK, headers = {}, content = "application/octet-stream"):
         self.send_response(code)
         self.send_header("Content-type", content)
@@ -711,7 +720,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         buf = self.rfile.read(length)
 
                         # add same temp file + renames as slave
-
+                        
                         f = open(file_path, "wb")
                         f.write(buf)
                         f.close()
@@ -870,7 +879,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         self.job_id = 0
         self.path = path + "master_" + str(os.getpid()) + os.sep
 
-        self.slave_timeout = 30 # 30 mins: need a parameter for that
+        self.slave_timeout = 5 # 5 mins: need a parameter for that
 
         self.balancer = netrender.balancing.Balancer()
         self.balancer.addRule(netrender.balancing.RatingUsageByCategory(self.getJobs))
@@ -1010,7 +1019,7 @@ def runMaster(address, broadcast, clear, path, update_stats, test_break):
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-        start_time = time.time()
+        start_time = time.time() - 2
 
         while not test_break():
             try:
@@ -1018,7 +1027,7 @@ def runMaster(address, broadcast, clear, path, update_stats, test_break):
             except select.error:
                 pass
 
-            if time.time() - start_time >= 10: # need constant here
+            if time.time() - start_time >= 2: # need constant here
                 httpd.timeoutSlaves()
 
                 httpd.updateUsage()
@@ -1031,3 +1040,4 @@ def runMaster(address, broadcast, clear, path, update_stats, test_break):
         httpd.server_close()
         if clear:
             clearMaster(httpd.path)
+

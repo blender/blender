@@ -60,7 +60,7 @@ void setBoneRollFromNormal(EditBone *bone, float *no, float invmat[][4], float t
 
 		sub_v3_v3v3(tangent, bone->tail, bone->head);
 		project_v3_v3v3(vec, tangent, normal);
-		sub_v3_v3v3(normal, normal, vec);
+		sub_v3_v3(normal, vec);
 		
 		normalize_v3(normal);
 		
@@ -102,7 +102,7 @@ float calcArcCorrelation(BArcIterator *iter, int start, int end, float v0[3], fl
 			IT_peek(iter, i);
 			sub_v3_v3v3(v, iter->p, v0);
 			project_v3_v3v3(d, v, n);
-			sub_v3_v3v3(v, v, d);
+			sub_v3_v3(v, d);
 			
 			dt = len_v3(d) - avg_t;
 			
@@ -249,7 +249,7 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 				{
 					VECCOPY(p, dv);
 					mul_v3_fl(p, f);
-					add_v3_v3v3(p, p, vec0);
+					add_v3_v3(p, vec0);
 				}
 				else
 				{
@@ -265,7 +265,7 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 				 
 				VECCOPY(p, dv);
 				mul_v3_fl(p, lengthLimit);
-				add_v3_v3v3(p, p, head);
+				add_v3_v3(p, head);
 			}
 			
 			return i - 1; /* restart at lower bound */

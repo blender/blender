@@ -24,6 +24,8 @@
 /* ****************************************** */
 /* Drivers - PyExpression Evaluation */
 
+#include <Python.h>
+
 #include "DNA_anim_types.h"
 
 #include "BLI_listbase.h"
@@ -31,8 +33,6 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-
-#include <Python.h>
 
 /* for pydrivers (drivers using one-line Python expressions to express relationships between targets) */
 PyObject *bpy_pydriver_Dict = NULL;

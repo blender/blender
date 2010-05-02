@@ -34,10 +34,6 @@
 #include "BL_ArmatureObject.h"
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * Implementation of classes defined in KX_SG_BoneParentNodeRelationship.h
  */

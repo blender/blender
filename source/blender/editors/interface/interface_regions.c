@@ -453,10 +453,10 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->fstyle.align= UI_STYLE_TEXT_CENTER;
 	uiStyleFontSet(&data->fstyle);
 
-	h= BLF_height(data->lines[0]);
+	h= BLF_height(data->fstyle.uifont_id, data->lines[0]);
 
 	for(a=0, fontw=0, fonth=0; a<data->totline; a++) {
-		w= BLF_width(data->lines[a]);
+		w= BLF_width(data->fstyle.uifont_id, data->lines[a]);
 		fontw= MAX2(fontw, w);
 		fonth += (a == 0)? h: h+5;
 	}

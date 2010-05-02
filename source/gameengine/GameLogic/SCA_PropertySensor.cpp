@@ -41,10 +41,6 @@
 #include "FloatValue.h"
 #include <stdio.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 									 SCA_IObject* gameobj,
 									 const STR_String& propname,

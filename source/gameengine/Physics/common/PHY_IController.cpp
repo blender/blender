@@ -28,10 +28,6 @@
  */
 #include "PHY_IController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 PHY_IController::~PHY_IController()
 {
 

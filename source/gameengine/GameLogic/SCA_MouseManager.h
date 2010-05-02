@@ -47,12 +47,13 @@ class SCA_MouseManager : public SCA_EventManager
 {
 
 	class 	SCA_IInputDevice*				m_mousedevice;
+	class	RAS_ICanvas*						m_canvas;
 	
 	unsigned short m_xpos; // Cached location of the mouse pointer
 	unsigned short m_ypos;
 	
 public:
-	SCA_MouseManager(class SCA_LogicManager* logicmgr,class SCA_IInputDevice* mousedev);
+	SCA_MouseManager(class SCA_LogicManager* logicmgr,class SCA_IInputDevice* mousedev, class RAS_ICanvas* canvas);
 	virtual ~SCA_MouseManager();
 
 	/**

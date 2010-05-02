@@ -32,6 +32,7 @@ DIR = $(OCGDIR)/blender/blenfont
 include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
+#CFLAGS += -O2 -Wall -Wno-char-subscripts
 
 # OpenGL and Freetype2
 CPPFLAGS += -I$(NAN_GLEW)/include

@@ -225,7 +225,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	maxVerts = dm->getNumVerts(dm);
 
 	if(amd->offset_type & MOD_ARR_OFF_CONST)
-		add_v3_v3v3(offset[3], offset[3], amd->offset);
+		add_v3_v3(offset[3], amd->offset);
 	if(amd->offset_type & MOD_ARR_OFF_RELATIVE) {
 		for(j = 0; j < 3; j++)
 			offset[3][j] += amd->scale[j] * vertarray_size(src_mvert,

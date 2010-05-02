@@ -54,10 +54,6 @@
 
 #include "DNA_scene_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 static int sock;
 static int connsock;
 static int write_ppm;

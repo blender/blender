@@ -28,10 +28,6 @@
 
 #include "GHOST_Buttons.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 
 GHOST_Buttons::GHOST_Buttons()

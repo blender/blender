@@ -453,8 +453,8 @@ class VIEW3D_MT_select_particle(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("particle.select_first", text="Roots")
-        layout.operator("particle.select_last", text="Tips")
+        layout.operator("particle.select_roots", text="Roots")
+        layout.operator("particle.select_tips", text="Tips")
 
 
 class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
@@ -850,6 +850,7 @@ class VIEW3D_MT_paint_vertex(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("paint.vertex_color_set")
+        layout.operator("paint.vertex_color_dirt")
 
 
 class VIEW3D_MT_hook(bpy.types.Menu):
@@ -1831,7 +1832,7 @@ class VIEW3D_MT_edit_armature_roll(bpy.types.Menu):
 # ********** Panel **********
 
 
-class VIEW3D_PT_3dview_properties(bpy.types.Panel):
+class VIEW3D_PT_view3d_properties(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "View"
@@ -1847,8 +1848,6 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         scene = context.scene
 
         col = layout.column()
-        col.label(text="Camera:")
-        col.prop(view, "camera", text="")
         col.prop(view, "lens")
         col.label(text="Lock to Object:")
         col.prop(view, "lock_object", text="")
@@ -1860,10 +1859,15 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         col.prop(view, "clip_start", text="Start")
         col.prop(view, "clip_end", text="End")
 
+        subcol = col.column()
+        subcol.enabled = not view.lock_camera_and_layers
+        subcol.label(text="Local Camera:")
+        subcol.prop(view, "camera", text="")
+
         layout.column().prop(view, "cursor_location")
 
 
-class VIEW3D_PT_3dview_name(bpy.types.Panel):
+class VIEW3D_PT_view3d_name(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Item"
@@ -1887,7 +1891,7 @@ class VIEW3D_PT_3dview_name(bpy.types.Panel):
                 row.prop(bone, "name", text="")
 
 
-class VIEW3D_PT_3dview_display(bpy.types.Panel):
+class VIEW3D_PT_view3d_display(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Display"
@@ -1955,7 +1959,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
             row.prop(region, "box_clip")
 
 
-class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
+class VIEW3D_PT_view3d_meshdisplay(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Mesh Display"
@@ -1991,7 +1995,7 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
         col.prop(mesh, "draw_face_area")
 
 
-class VIEW3D_PT_3dview_curvedisplay(bpy.types.Panel):
+class VIEW3D_PT_view3d_curvedisplay(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Curve Display"
@@ -2259,11 +2263,11 @@ classes = [
     VIEW3D_MT_armature_specials, # Only as a menu for keybindings
 
    # Panels
-    VIEW3D_PT_3dview_properties,
-    VIEW3D_PT_3dview_display,
-    VIEW3D_PT_3dview_name,
-    VIEW3D_PT_3dview_meshdisplay,
-    VIEW3D_PT_3dview_curvedisplay,
+    VIEW3D_PT_view3d_properties,
+    VIEW3D_PT_view3d_display,
+    VIEW3D_PT_view3d_name,
+    VIEW3D_PT_view3d_meshdisplay,
+    VIEW3D_PT_view3d_curvedisplay,
     VIEW3D_PT_background_image,
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_etch_a_ton,

@@ -736,10 +736,10 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColor(TH_TEXT);
 	
 	if(node->flag & NODE_CUSTOM_NAME)
-		BLI_strncpy(showname, node->name, 32);
+		BLI_strncpy(showname, node->name, sizeof(showname));
 	else
 		/* todo: auto name display for node types */
-		BLI_strncpy(showname, node->name, 32);
+		BLI_strncpy(showname, node->name, sizeof(showname));
 
 	//if(node->flag & NODE_MUTED)
 	//	sprintf(showname, "[%s]", showname);
@@ -900,10 +900,10 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 
 
 		if(node->flag & NODE_CUSTOM_NAME)
-			BLI_strncpy(showname, node->name, 128);
+			BLI_strncpy(showname, node->name, sizeof(showname));
 		else
 			/* todo: auto name display */
-			BLI_strncpy(showname, node->name, 128);
+			BLI_strncpy(showname, node->name, sizeof(showname));
 	
 		//if(node->flag & NODE_MUTED)
 		//	sprintf(showname, "[%s]", showname);
@@ -1045,9 +1045,9 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	UI_ThemeColor(TH_TEXT_HI);
 
 	if (gnode->flag & NODE_CUSTOM_NAME)
-		strcat(showname, gnode->name);
+		BLI_strncpy(showname, gnode->name, sizeof(showname));
 	else
-		strcpy(showname, ngroup->id.name+2);
+		BLI_strncpy(showname, ngroup->id.name+2, sizeof(showname));
 
 	// XXX this shows some scaling artifacts
 	UI_DrawString(rect.xmin+8.0f, rect.ymax+5.0f, showname);
@@ -1130,14 +1130,14 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	
 	/* draw grease-pencil ('canvas' strokes) */
 	if (/*(snode->flag & SNODE_DISPGP) &&*/ (snode->nodetree))
-		draw_gpencil_2dview((bContext*)C, 1);
+		draw_gpencil_view2d((bContext*)C, 1);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 	
 	/* draw grease-pencil (screen strokes, and also paintbuffer) */
 	if (/*(snode->flag & SNODE_DISPGP) && */(snode->nodetree))
-		draw_gpencil_2dview((bContext*)C, 0);
+		draw_gpencil_view2d((bContext*)C, 0);
 	
 	/* scrollers */
 	scrollers= UI_view2d_scrollers_calc(C, v2d, 10, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);

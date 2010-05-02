@@ -34,10 +34,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
 #include <unistd.h>
 #else
@@ -165,7 +161,7 @@ static int compare_name(const void *a1, const void *a2)
 {
 	const struct direntry *entry1=a1, *entry2=a2;
 
-	/* type is is equal to stat.st_mode */
+	/* type is equal to stat.st_mode */
 
 	if (S_ISDIR(entry1->type)){
 		if (S_ISDIR(entry2->type)==0) return (-1);
@@ -262,7 +258,7 @@ static int compare_extension(const void *a1, const void *a2) {
 	if (!sufix1) sufix1= nil;
 	if (!sufix2) sufix2= nil;
 
-	/* type is is equal to stat.st_mode */
+	/* type is equal to stat.st_mode */
 
 	if (S_ISDIR(entry1->type)){
 		if (S_ISDIR(entry2->type)==0) return (-1);
@@ -617,9 +613,7 @@ struct ImBuf * filelist_loadimage(struct FileList* filelist, int index)
 	if (!imb)
 	{
 		if ( (filelist->filelist[fidx].flags & IMAGEFILE) || (filelist->filelist[fidx].flags & MOVIEFILE) ) {
-			char path[FILE_MAX];
-			BLI_join_dirfile(path, filelist->dir, filelist->filelist[fidx].relname);
-			imb = IMB_thumb_read(path, THB_NORMAL);
+			imb = IMB_thumb_read(filelist->filelist[fidx].path, THB_NORMAL);
 		} 
 		if (imb) {
 			filelist->filelist[fidx].image = imb;
@@ -743,7 +737,7 @@ static void filelist_read_dir(struct FileList* filelist)
 	BLI_cleanup_dir(G.sce, filelist->dir);
 	filelist->numfiles = BLI_getdir(filelist->dir, &(filelist->filelist));
 
-	if(!chdir(wdir)) /* fix warning about not checking return value */;
+	if(!chdir(wdir)) {} /* fix warning about not checking return value */
 	filelist_setfiletypes(filelist, G.have_quicktime);
 	filelist_filter(filelist);
 }
@@ -881,6 +875,7 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".wmv")
 				||	BLI_testextensie(file->relname, ".ogv")
 				||	BLI_testextensie(file->relname, ".mpeg")
+				||	BLI_testextensie(file->relname, ".dv")
 				||	BLI_testextensie(file->relname, ".mpg")
 				||	BLI_testextensie(file->relname, ".mpg2")
 				||	BLI_testextensie(file->relname, ".vob")
@@ -938,6 +933,7 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".mv")
 				||	BLI_testextensie(file->relname, ".wmv")
 				||	BLI_testextensie(file->relname, ".ogv")
+				||	BLI_testextensie(file->relname, ".dv")
 				||	BLI_testextensie(file->relname, ".mpeg")
 				||	BLI_testextensie(file->relname, ".mpg")
 				||	BLI_testextensie(file->relname, ".mpg2")
@@ -1338,7 +1334,7 @@ void thumbnails_start(struct FileList* filelist, const struct bContext* C)
 		if (!filelist->filelist[idx].image) {
 			if ( (filelist->filelist[idx].flags & IMAGEFILE) || (filelist->filelist[idx].flags & MOVIEFILE) ) {
 				FileImage* limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
-				BLI_join_dirfile(limg->path, filelist->dir, filelist->filelist[idx].relname);
+				BLI_strncpy(limg->path, filelist->filelist[idx].path, FILE_MAX);
 				limg->index= idx;
 				limg->flags= filelist->filelist[idx].flags;
 				BLI_addtail(&tj->loadimages, limg);

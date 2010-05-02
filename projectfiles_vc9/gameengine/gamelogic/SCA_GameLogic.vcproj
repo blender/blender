@@ -607,6 +607,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_PythonKeyboard.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_PythonMouse.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_RandomActuator.cpp"
 				>
 			</File>
@@ -773,6 +781,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_PythonController.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_PythonKeyboard.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_PythonMouse.h"
 				>
 			</File>
 			<File

@@ -56,8 +56,8 @@
 
 static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyRNA *self, PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length);
 static Py_ssize_t pyrna_prop_array_length(BPy_PropertyRNA *self);
-static Py_ssize_t pyrna_prop_collection_length( BPy_PropertyRNA *self );
-
+static Py_ssize_t pyrna_prop_collection_length(BPy_PropertyRNA *self);
+static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback);
 
 /* bpyrna vector/euler/quat callbacks */
 static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
@@ -68,22 +68,33 @@ static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
 #define MATHUTILS_CB_SUBTYPE_QUAT 2
 #define MATHUTILS_CB_SUBTYPE_COLOR 0
 
-static int mathutils_rna_generic_check(BPy_PropertyRNA *self)
+static int mathutils_rna_generic_check(BaseMathObject *bmo)
 {
-	return self->prop?1:0;
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
+	return self->prop ? 1:0;
 }
 
-static int mathutils_rna_vector_get(BPy_PropertyRNA *self, int subtype, float *vec_from)
+static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	if(self->prop==NULL)
 		return 0;
 	
-	RNA_property_float_get_array(&self->ptr, self->prop, vec_from);
+	RNA_property_float_get_array(&self->ptr, self->prop, bmo->data);
+	
+	/* Euler order exception */
+	if(subtype==MATHUTILS_CB_SUBTYPE_EUL) {
+		EulerObject *eul= (EulerObject *)bmo;
+		PropertyRNA *prop_eul_order= NULL;
+		eul->order= pyrna_rotation_euler_order_get(&self->ptr, &prop_eul_order, eul->order);
+	}
+	
 	return 1;
 }
 
-static int mathutils_rna_vector_set(BPy_PropertyRNA *self, int subtype, float *vec_to)
+static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	float min, max;
 	if(self->prop==NULL)
 		return 0;
@@ -93,31 +104,46 @@ static int mathutils_rna_vector_set(BPy_PropertyRNA *self, int subtype, float *v
 	if(min != FLT_MIN || max != FLT_MAX) {
 		int i, len= RNA_property_array_length(&self->ptr, self->prop);
 		for(i=0; i<len; i++) {
-			CLAMP(vec_to[i], min, max);
+			CLAMP(bmo->data[i], min, max);
 		}
 	}
 
-	RNA_property_float_set_array(&self->ptr, self->prop, vec_to);
+	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+
+	/* Euler order exception */
+	if(subtype==MATHUTILS_CB_SUBTYPE_EUL) {
+		EulerObject *eul= (EulerObject *)bmo;
+		PropertyRNA *prop_eul_order= NULL;
+		short order= pyrna_rotation_euler_order_get(&self->ptr, &prop_eul_order, eul->order);
+		if(order != eul->order) {
+			RNA_property_enum_set(&self->ptr, prop_eul_order, eul->order);
+			RNA_property_update(BPy_GetContext(), &self->ptr, prop_eul_order);
+		}
+	}
 	return 1;
 }
 
-static int mathutils_rna_vector_get_index(BPy_PropertyRNA *self, int subtype, float *vec_from, int index)
+static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
+
 	if(self->prop==NULL)
 		return 0;
 	
-	vec_from[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
+	bmo->data[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
 	return 1;
 }
 
-static int mathutils_rna_vector_set_index(BPy_PropertyRNA *self, int subtype, float *vec_to, int index)
+static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int subtype, int index)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
+
 	if(self->prop==NULL)
 		return 0;
 
-	RNA_property_float_clamp(&self->ptr, self->prop, &vec_to[index]);
-	RNA_property_float_set_index(&self->ptr, self->prop, index, vec_to[index]);
+	RNA_property_float_clamp(&self->ptr, self->prop, &bmo->data[index]);
+	RNA_property_float_set_index(&self->ptr, self->prop, index, bmo->data[index]);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
@@ -134,31 +160,35 @@ Mathutils_Callback mathutils_rna_array_cb = {
 /* bpyrna matrix callbacks */
 static int mathutils_rna_matrix_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_rna_matrix_get(BPy_PropertyRNA *self, int subtype, float *mat_from)
+static int mathutils_rna_matrix_get(BaseMathObject *bmo, int subtype)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
+
 	if(self->prop==NULL)
 		return 0;
 
-	RNA_property_float_get_array(&self->ptr, self->prop, mat_from);
+	RNA_property_float_get_array(&self->ptr, self->prop, bmo->data);
 	return 1;
 }
 
-static int mathutils_rna_matrix_set(BPy_PropertyRNA *self, int subtype, float *mat_to)
+static int mathutils_rna_matrix_set(BaseMathObject *bmo, int subtype)
 {
+	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
+	
 	if(self->prop==NULL)
 		return 0;
 	/* can ignore clamping here */
-	RNA_property_float_set_array(&self->ptr, self->prop, mat_to);
+	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
 
 Mathutils_Callback mathutils_rna_matrix_cb = {
-	(BaseMathCheckFunc)		mathutils_rna_generic_check,
-	(BaseMathGetFunc)		mathutils_rna_matrix_get,
-	(BaseMathSetFunc)		mathutils_rna_matrix_set,
-	(BaseMathGetIndexFunc)	NULL,
-	(BaseMathSetIndexFunc)	NULL
+	mathutils_rna_generic_check,
+	mathutils_rna_matrix_get,
+	mathutils_rna_matrix_set,
+	NULL,
+	NULL
 };
 
 /* same as RNA_enum_value_from_id but raises an exception  */
@@ -242,11 +272,16 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		case PROP_QUATERNION:
 			if(len==3) { /* euler */
 				if(is_thick) {
-					ret= newEulerObject(NULL, 0, Py_NEW, NULL); // TODO, get order from RNA
+					/* attempt to get order, only needed for thixk types since wrapped with update via callbacks */
+					PropertyRNA *prop_eul_order= NULL;
+					short order= pyrna_rotation_euler_order_get(ptr, &prop_eul_order, ROT_MODE_XYZ);
+
+					ret= newEulerObject(NULL, order, Py_NEW, NULL); // TODO, get order from RNA
 					RNA_property_float_get_array(ptr, prop, ((EulerObject *)ret)->eul);
 				}
 				else {
-					PyObject *eul_cb= newEulerObject_cb(ret, 0, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
+					/* order will be updated from callback on use */
+					PyObject *eul_cb= newEulerObject_cb(ret, ROT_MODE_XYZ, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
 					Py_DECREF(ret); /* the euler owns now */
 					ret= eul_cb; /* return the euler instead */
 				}
@@ -296,6 +331,21 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 }
 
 #endif
+
+static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback)
+{
+	/* attempt to get order */
+	if(*prop_eul_order==NULL)
+		*prop_eul_order= RNA_struct_find_property(ptr, "rotation_mode");
+
+	if(*prop_eul_order) {
+		short order= RNA_property_enum_get(ptr, *prop_eul_order);
+		if (order >= ROT_MODE_XYZ && order <= ROT_MODE_ZYX) /* could be quat or axisangle */
+			return order;
+	}
+
+	return order_fallback;
+}
 
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
 {
@@ -431,7 +481,27 @@ static PyObject *pyrna_prop_repr( BPy_PropertyRNA *self )
 
 static long pyrna_struct_hash( BPy_StructRNA *self )
 {
-	return (long)self->ptr.data;
+	return _Py_HashPointer(self->ptr.data);
+}
+
+/* from python's meth_hash v3.1.2 */
+static long pyrna_prop_hash(BPy_PropertyRNA *self)
+{	
+	long x,y;
+	if (self->ptr.data == NULL)
+		x = 0;
+	else {
+		x = _Py_HashPointer(self->ptr.data);
+		if (x == -1)
+			return -1;
+	}
+	y = _Py_HashPointer((void*)(self->prop));
+	if (y == -1)
+		return -1;
+	x ^= y;
+	if (x == -1)
+		x = -2;
+	return x;
 }
 
 /* use our own dealloc so we can free a property if we use one */
@@ -1346,7 +1416,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, in
 		return -1;
 	}
 
-	if(!(value=PySequence_Fast(value_orig, "bpy_prop_array[slice] = value: type is not a sequence"))) {
+	if(!(value=PySequence_Fast(value_orig, "bpy_prop_array[slice] = value: assignment is not a sequence type"))) {
 		return -1;
 	}
 
@@ -1452,43 +1522,50 @@ static int prop_subscript_ass_array_int(BPy_PropertyRNA *self, Py_ssize_t keynum
 static int pyrna_prop_array_ass_subscript( BPy_PropertyRNA *self, PyObject *key, PyObject *value )
 {
 	/* char *keyname = NULL; */ /* not supported yet */
-	
+	int ret= -1;
+
 	if (!RNA_property_editable_flag(&self->ptr, self->prop)) {
 		PyErr_Format(PyExc_AttributeError, "bpy_prop_collection: attribute \"%.200s\" from \"%.200s\" is read-only", RNA_property_identifier(self->prop), RNA_struct_identifier(self->ptr.type) );
-		return -1;
+		ret= -1;
 	}
 
-	if (PyIndex_Check(key)) {
+	else if (PyIndex_Check(key)) {
 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
-		if (i == -1 && PyErr_Occurred())
-			return -1;
-
-		return prop_subscript_ass_array_int(self, i, value);
+		if (i == -1 && PyErr_Occurred()) {
+			ret= -1;
+		}
+		else {
+			ret= prop_subscript_ass_array_int(self, i, value);
+		}
 	}
 	else if (PySlice_Check(key)) {
 		int len= RNA_property_array_length(&self->ptr, self->prop);
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0)
-			return -1;
-
-		if (slicelength <= 0) {
-			return 0;
+		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0) {
+			ret= -1;
+		}
+		else if (slicelength <= 0) {
+			ret= 0; /* do nothing */
 		}
 		else if (step == 1) {
-			return prop_subscript_ass_array_slice(&self->ptr, self->prop, start, stop, len, value);
+			ret= prop_subscript_ass_array_slice(&self->ptr, self->prop, start, stop, len, value);
 		}
 		else {
 			PyErr_SetString(PyExc_TypeError, "slice steps not supported with rna");
-			return -1;
+			ret= -1;
 		}
 	}
 	else {
 		PyErr_SetString(PyExc_AttributeError, "invalid key, key must be an int");
-		return -1;
+		ret= -1;
 	}
 
-	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+	if(ret != -1) {
+		RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+	}
+
+	return ret;
 }
 
 /* for slice only */
@@ -2229,28 +2306,35 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 		else {
 			PointerRNA newptr;
 			ListBase newlb;
+			short newtype;
 
-			int done= CTX_data_get(C, name, &newptr, &newlb);
+			int done= CTX_data_get(C, name, &newptr, &newlb, &newtype);
 
 			if(done==1) { /* found */
-				if (newptr.data) {
-					ret = pyrna_struct_CreatePyObject(&newptr);
-				}
-				else if (newlb.first) {
-					CollectionPointerLink *link;
-					PyObject *linkptr;
-
-					ret = PyList_New(0);
-
-					for(link=newlb.first; link; link=link->next) {
-						linkptr= pyrna_struct_CreatePyObject(&link->ptr);
-						PyList_Append(ret, linkptr);
-						Py_DECREF(linkptr);
+				switch(newtype) {
+				case CTX_DATA_TYPE_POINTER:
+					if(newptr.data == NULL) {
+						ret= Py_None;
+						Py_INCREF(ret);
 					}
-				}
-				else {
-					ret = Py_None;
-					Py_INCREF(ret);
+					else {
+						ret= pyrna_struct_CreatePyObject(&newptr);
+					}
+					break;
+				case CTX_DATA_TYPE_COLLECTION:
+					{
+						CollectionPointerLink *link;
+						PyObject *linkptr;
+	
+						ret = PyList_New(0);
+	
+						for(link=newlb.first; link; link=link->next) {
+							linkptr= pyrna_struct_CreatePyObject(&link->ptr);
+							PyList_Append(ret, linkptr);
+							Py_DECREF(linkptr);
+						}
+					}
+					break;
 				}
 			}
 			else if (done==-1) { /* found but not set */
@@ -3476,7 +3560,7 @@ PyTypeObject pyrna_prop_Type = {
 
 	/* More standard operations (here for binary compatibility) */
 
-	NULL,						/* hashfunc tp_hash; */
+	( hashfunc ) pyrna_prop_hash,	/* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 
@@ -3898,7 +3982,8 @@ static PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 {
 	BPy_StructRNA *pyrna= NULL;
-	
+
+	/* note: don't rely on this to return None since NULL data with a valid type can often crash */
 	if (ptr->data==NULL && ptr->type==NULL) { /* Operator RNA has NULL data */
 		Py_RETURN_NONE;
 	}

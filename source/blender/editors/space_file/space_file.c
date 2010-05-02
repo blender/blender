@@ -195,13 +195,24 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
 	if (filelist_empty(sfile->files))
 	{
+		thumbnails_stop(sfile->files, C);
 		filelist_readdir(sfile->files);
-		thumbnails_start(sfile->files, C);
+		if(params->sort!=FILE_SORT_NONE) {
+			filelist_sort(sfile->files, params->sort);
+		}
 		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
+		thumbnails_start(sfile->files, C);
 	} else {
 		filelist_filter(sfile->files);
+		if(params->sort!=FILE_SORT_NONE) {
+			thumbnails_stop(sfile->files, C);
+			filelist_sort(sfile->files, params->sort);
+			thumbnails_start(sfile->files, C);
+		} else {
+			filelist_filter(sfile->files);
+		}
+
 	}
-	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
 	
 	if (params->renamefile[0] != '\0') {
 		int idx = filelist_find(sfile->files, params->renamefile);
@@ -377,6 +388,9 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
+	RNA_boolean_set(kmi->ptr, "fill", 1);
 	WM_keymap_add_item(keymap, "FILE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", EVT_TWEAK_L, KM_ANY, 0, 0);

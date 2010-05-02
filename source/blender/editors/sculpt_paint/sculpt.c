@@ -752,9 +752,9 @@ static void sculpt_clip(Sculpt *sd, SculptSession *ss, float *co, const float va
 static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], float fno[3])
 {
 	if((dot_v3v3(view_vec, fno)) > 0) {
-		add_v3_v3v3(out, out, fno);
+		add_v3_v3(out, fno);
 	} else {
-		add_v3_v3v3(out_flip, out_flip, fno); /* out_flip is used when out is {0,0,0} */
+		add_v3_v3(out_flip, fno); /* out_flip is used when out is {0,0,0} */
 	}
 }
 
@@ -812,8 +812,8 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3]
 		#pragma omp critical
 		{
 			/* we sum per node and add together later for threads */
-			add_v3_v3v3(out, out, nout);
-			add_v3_v3v3(out_flip, out_flip, nout_flip);
+			add_v3_v3(out, nout);
+			add_v3_v3(out_flip, nout_flip);
 		}
 	}
 
@@ -903,7 +903,7 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 
 		for(i=0; i<(f->v4?4:3); ++i) {
 			if(i != skip && (ncount!=2 || BLI_countlist(&ss->fmap[(&f->v1)[i]]) <= 2)) {
-				add_v3_v3v3(avg, avg, ss->mvert[(&f->v1)[i]].co);
+				add_v3_v3(avg, ss->mvert[(&f->v1)[i]].co);
 				++total;
 			}
 		}
@@ -1206,7 +1206,7 @@ static void do_inflate_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, in
 				add[0]*= ss->cache->scale[0];
 				add[1]*= ss->cache->scale[1];
 				add[2]*= ss->cache->scale[2];
-				add_v3_v3v3(add, add, vd.co);
+				add_v3_v3(add, vd.co);
 				
 				sculpt_clip(sd, ss, vd.co, add);
 				if(vd.mvert) vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -1257,7 +1257,7 @@ static void calc_flatten_center(Sculpt *sd, SculptSession *ss, PBVHNode **nodes,
 	co[0] = co[1] = co[2] = 0.0f;
 	for(i = 0; i < FLATTEN_SAMPLE_SIZE; ++i)
 		if(outer_dist[i] >= 0.0f)
-			add_v3_v3v3(co, co, outer_co[i]);
+			add_v3_v3(co, outer_co[i]);
 	mul_v3_fl(co, 1.0f / FLATTEN_SAMPLE_SIZE);
 }
 
@@ -1272,7 +1272,7 @@ static void point_plane_project(float intr[3], float co[3], float plane_normal[3
 	sub_v3_v3v3(sub2, co, p1);
 	sub_v3_v3v3(intr, co, p1);
 	mul_v3_fl(intr, dot_v3v3(plane_normal, sub1) / dot_v3v3(plane_normal, sub2));
-	add_v3_v3v3(intr, intr, p1);
+	add_v3_v3(intr, p1);
 }
 
 static int plane_point_side(float co[3], float plane_normal[3], float plane_center[3], int flip)
@@ -1343,7 +1343,7 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, PBVHNode **node
 					else
 						mul_v3_fl(val, fabs(fade));
 
-					add_v3_v3v3(val, val, vd.co);
+					add_v3_v3(val, vd.co);
 
 					sculpt_clip(sd, ss, vd.co, val);
 					if(vd.mvert) vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -1871,7 +1871,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	
 	copy_v3_v3(out, ray_normal);
 	mul_v3_fl(out, srd.dist);
-	add_v3_v3v3(out, out, ray_start);
+	add_v3_v3(out, ray_start);
 
 	return srd.hit;
 }

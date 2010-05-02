@@ -817,7 +817,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 				}
 			}
 		}
-
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selected_editable_objects") || CTX_data_equals(member, "selected_editable_bases")) {
@@ -835,7 +835,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 				}
 			}
 		}
-		
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "visible_objects") || CTX_data_equals(member, "visible_bases")) {
@@ -851,7 +851,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 				}
 			}
 		}
-		
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selectable_objects") || CTX_data_equals(member, "selectable_bases")) {
@@ -867,7 +867,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 				}
 			}
 		}
-		
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "active_base")) {

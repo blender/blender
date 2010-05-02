@@ -87,8 +87,8 @@ editmesh.c:
 */
 
 /* XXX */
-static void BIF_undo_push() {}
-static void error() {}
+static void BIF_undo_push(const char *dummy) {}
+static void error(const char *dummy) {}
 
 
 /* ***************** HASH ********************* */

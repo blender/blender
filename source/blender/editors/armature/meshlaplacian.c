@@ -44,6 +44,7 @@
 #include "BLI_memarena.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_modifier.h"
 #include "BKE_utildefines.h"
 
 #ifdef RIGID_DEFORM
@@ -64,7 +65,7 @@
 
 /* ************* XXX *************** */
 static void waitcursor(int val) {}
-static void progress_bar() {}
+static void progress_bar(int dummy_val, const char *dummy) {}
 static void start_progress_bar() {}
 static void end_progress_bar() {}
 static void error(char *str) { printf("error: %s\n", str); }
@@ -546,9 +547,9 @@ void heat_calc_vnormals(LaplacianSystem *sys)
 
 		normal_tri_v3( fnor,sys->verts[v1], sys->verts[v2], sys->verts[v3]);
 		
-		add_v3_v3v3(sys->heat.vnors[v1], sys->heat.vnors[v1], fnor);
-		add_v3_v3v3(sys->heat.vnors[v2], sys->heat.vnors[v2], fnor);
-		add_v3_v3v3(sys->heat.vnors[v3], sys->heat.vnors[v3], fnor);
+		add_v3_v3(sys->heat.vnors[v1], fnor);
+		add_v3_v3(sys->heat.vnors[v2], fnor);
+		add_v3_v3(sys->heat.vnors[v3], fnor);
 	}
 
 	for(a=0; a<sys->totvert; a++)
@@ -825,7 +826,7 @@ static void rigid_add_half_edge_to_rhs(LaplacianSystem *sys, EditVert *v1, EditV
 	mul_v3_fl(rhs, 0.5f);
 	mul_v3_fl(rhs, w);
 
-	add_v3_v3v3(sys->rigid.rhs[v1->tmp.l], sys->rigid.rhs[v1->tmp.l], rhs);
+	add_v3_v3(sys->rigid.rhs[v1->tmp.l], rhs);
 }
 
 static void rigid_add_edge_to_rhs(LaplacianSystem *sys, EditVert *v1, EditVert *v2, float w)
@@ -1991,18 +1992,21 @@ void mesh_deform_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifierData *mmd
 #endif
 
 	/* assign bind variables */
-	mmd->bindcos= (float*)mdb.cagecos;
+	mmd->bindcagecos= (float*)mdb.cagecos;
 	mmd->totvert= mdb.totvert;
 	mmd->totcagevert= mdb.totcagevert;
 	copy_m4_m4(mmd->bindmat, mmd->object->obmat);
 
-	/* transform bindcos to world space */
+	/* transform bindcagecos to world space */
 	for(a=0; a<mdb.totcagevert; a++)
-		mul_m4_v3(mmd->object->obmat, mmd->bindcos+a*3);
+		mul_m4_v3(mmd->object->obmat, mmd->bindcagecos+a*3);
 
 	/* free */
 	mdb.cagedm->release(mdb.cagedm);
 	MEM_freeN(mdb.vertexcos);
+
+	/* compact weights */
+	modifier_mdef_compact_influences((ModifierData*)mmd);
 
 	end_progress_bar();
 	waitcursor(0);

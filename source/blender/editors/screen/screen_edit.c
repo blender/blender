@@ -1395,7 +1395,7 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 					if(sl->spacetype==SPACE_VIEW3D) {
 						View3D *v3d= (View3D*) sl;
 
-						ED_view3d_scene_layers_copy(v3d, scene);
+						BKE_screen_view3d_sync(v3d, scene);
 
 						if (!v3d->camera || !object_in_scene(v3d->camera, scene)) {
 							v3d->camera= scene_find_camera(sc->scene);
@@ -1492,7 +1492,7 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 	wmWindow *win= CTX_wm_window(C);
 	SpaceLink *sl = sa->spacedata.first;
 	
-	/* if fullscreen area has a secondary space (such as as file browser or fullscreen render 
+	/* if fullscreen area has a secondary space (such as a file browser or fullscreen render 
 	 * overlaid on top of a existing setup) then return to the previous space */
 	
 	if (sl->next) {
@@ -1724,29 +1724,12 @@ void ED_update_for_newframe(const bContext *C, int mute)
 #ifdef DURIAN_CAMERA_SWITCH
 	void *camera= scene_camera_switch_find(scene);
 	if(camera && scene->camera != camera) {
-
-		if(camera && scene->camera && (camera != scene->camera)) {
-			bScreen *sc;
-			/* are there cameras in the views that are not in the scene? */
-			for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
-				ScrArea *sa= sc->areabase.first;
-				while(sa) {
-					SpaceLink *sl= sa->spacedata.first;
-					while(sl) {
-						if(sl->spacetype==SPACE_VIEW3D) {
-							View3D *v3d= (View3D*) sl;
-							if (v3d->scenelock) {
-								v3d->camera= camera;
-							}
-						}
-						sl= sl->next;
-					}
-					sa= sa->next;
-				}
-			}
-		}
-
+		bScreen *sc;
 		scene->camera= camera;
+		/* are there cameras in the views that are not in the scene? */
+		for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
+			BKE_screen_view3d_scene_sync(sc);
+		}
 	}
 #endif
 

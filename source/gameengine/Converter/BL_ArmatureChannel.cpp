@@ -26,10 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "DNA_armature_types.h"
 #include "BL_ArmatureChannel.h"
 #include "BL_ArmatureObject.h"

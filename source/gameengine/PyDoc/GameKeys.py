@@ -13,7 +13,7 @@ Example::
 	
 	co = GameLogic.getCurrentController()
 	# 'Keyboard' is a keyboard sensor
-	sensor = co.getSensor('Keyboard')
+	sensor = co.sensors["Keyboard"]
 	sensor.key = GameKeys.F1KEY
 
 Example::
@@ -23,18 +23,18 @@ Example::
 	
 	co = GameLogic.getCurrentController()
 	# 'Keyboard' is a keyboard sensor
-	sensor = co.getSensor('Keyboard')
-	keylist = sensor.events
-	for key in keylist:
+	sensor = co.sensors["Keyboard"]
+
+	for key,status in sensor.events:
 		# key[0] == GameKeys.keycode, key[1] = status
-		if key[1] == GameLogic.KX_INPUT_JUST_ACTIVATED:
-			if key[0] == GameKeys.WKEY:
+		if status == GameLogic.KX_INPUT_JUST_ACTIVATED:
+			if key == GameKeys.WKEY:
 				# Activate Forward!
-			if key[0] == GameKeys.SKEY:
+			if key == GameKeys.SKEY:
 				# Activate Backward!
-			if key[0] == GameKeys.AKEY:
+			if key == GameKeys.AKEY:
 				# Activate Left!
-			if key[0] == GameKeys.DKEY:
+			if key == GameKeys.DKEY:
 				# Activate Right!
 
 @group Alphabet keys: AKEY, BKEY, CKEY, DKEY, EKEY, FKEY, GKEY, HKEY, IKEY, JKEY, KKEY, LKEY, MKEY, NKEY, OKEY, PKEY, QKEY, RKEY, SKEY, TKEY, UKEY, VKEY, WKEY, XKEY, YKEY, ZKEY
@@ -110,7 +110,7 @@ Example::
 @var PADENTER:
 @var PADPLUSKEY:
 
-@group Function Keys: F1KEY, F2KEY, F3KEY, F4KEY, F5KEY, F6KEY, F7KEY, F8KEY, F9KEY, F10KEY, F11KEY, F12KEY
+@group Function Keys: F1KEY, F2KEY, F3KEY, F4KEY, F5KEY, F6KEY, F7KEY, F8KEY, F9KEY, F10KEY, F11KEY, F12KEY, F13KEY, F14KEY, F15KEY, F16KEY, F17KEY, F18KEY, F19KEY
 @var F1KEY:
 @var F2KEY:
 @var F3KEY:
@@ -123,6 +123,13 @@ Example::
 @var F10KEY:
 @var F11KEY:
 @var F12KEY:
+@var F13KEY:
+@var F14KEY:
+@var F15KEY:
+@var F16KEY:
+@var F17KEY:
+@var F18KEY:
+@var F19KEY:
 
 @group Other Keys: ACCENTGRAVEKEY, BACKSLASHKEY, BACKSPACEKEY, COMMAKEY, DELKEY, ENDKEY, EQUALKEY, ESCKEY, HOMEKEY, INSERTKEY, LEFTBRACKETKEY, LINEFEEDKEY, MINUSKEY, PAGEDOWNKEY, PAGEUPKEY, PAUSEKEY, PERIODKEY, QUOTEKEY, RIGHTBRACKETKEY, RETKEY, SEMICOLONKEY, SLASHKEY, SPACEKEY, TABKEY
 @var ACCENTGRAVEKEY:

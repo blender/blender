@@ -34,13 +34,12 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
     col.operator("ptcache.remove", icon='ZOOMOUT', text="")
 
     row = layout.row()
-    row.label(text="File Name:")
     if particles:
         row.prop(cache, "external")
 
     if cache.external:
         split = layout.split(percentage=0.80)
-        split.prop(cache, "name", text="")
+        split.prop(cache, "name", text="File Name")
         split.prop(cache, "index", text="")
 
         layout.label(text="File Path:")
@@ -48,46 +47,56 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
 
         layout.label(text=cache.info)
     else:
-        layout.prop(cache, "name", text="")
-
+        layout.prop(cache, "name", text="File Name")
+        
+        split = layout.split()
+        col = split.column(align=True)
+        
         if not particles:
-            row = layout.row()
-            row.enabled = enabled
-            row.prop(cache, "frame_start")
-            row.prop(cache, "frame_end")
-
-        row = layout.row()
-
-        if cache.baked == True:
-            row.operator("ptcache.free_bake", text="Free Bake")
-        else:
-            row.operator("ptcache.bake", text="Bake").bake = True
-
-        sub = row.row()
-        sub.enabled = (cache.frames_skipped or cache.outdated) and enabled
-        sub.operator("ptcache.bake", text="Calculate to Current Frame").bake = False
-
-        row = layout.row()
-        row.enabled = enabled
-        row.operator("ptcache.bake_from_cache", text="Current Cache to Bake")
+            
+            col.enabled = enabled
+            col.prop(cache, "frame_start")
+            col.prop(cache, "frame_end")
         if not smoke:
-            row.prop(cache, "step")
+            col.prop(cache, "step")
+
+        if wide_ui:
+            col = split.column()
 
         if not smoke:
-            row = layout.row()
-            sub = row.row()
+            sub = col.column()
             sub.enabled = enabled
             sub.prop(cache, "quick_cache")
-            row.prop(cache, "disk_cache")
+            col.prop(cache, "disk_cache")
+            col.label(text=cache.info)
 
-        layout.label(text=cache.info)
+        
 
         layout.separator()
+        
+        split = layout.split()
+        
+        col = split.column()
+        
+        if cache.baked == True:
+            col.operator("ptcache.free_bake", text="Free Bake")
+        else:
+            col.operator("ptcache.bake", text="Bake").bake = True
+        
+        sub = col.row()
+        sub.enabled = (cache.frames_skipped or cache.outdated) and enabled
+        sub.operator("ptcache.bake", text="Calculate To Frame").bake = False
 
-        row = layout.row()
-        row.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
-        row.operator("ptcache.free_bake_all", text="Free All Bakes")
-        layout.operator("ptcache.bake_all", text="Update All Dynamics to current frame").bake = False
+        sub = col.column()
+        sub.enabled = enabled
+        sub.operator("ptcache.bake_from_cache", text="Current Cache to Bake")
+        
+        
+        if wide_ui:
+            col = split.column()
+        col.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
+        col.operator("ptcache.free_bake_all", text="Free All Bakes")
+        col.operator("ptcache.bake_all", text="Update All To Frame").bake = False
 
 
 def effector_weights_ui(self, context, weights):

@@ -50,6 +50,13 @@
 
 #include "BLI_blenlib.h"
 
+#if defined WIN32 && !defined _LIBC
+# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
+#else
+# define _GNU_SOURCE
+# include <fnmatch.h>
+#endif
+
 #include "IMB_imbuf_types.h"
 
 #include "BKE_animsys.h"
@@ -115,7 +122,7 @@
 
 /* ************* XXX **************** */
 
-static void error() {}
+static void error(const char *dummy, ...) {}
 
 /* ********************************** */
 
@@ -1235,6 +1242,86 @@ void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
 	}
 }
 
+static int outliner_filter_has_name(TreeElement *te, char *name, int flags)
+{
+#if 0
+	int found= 0;
+	
+	/* determine if match */
+	if (flags & SO_FIND_CASE_SENSITIVE) {
+		if (flags & SO_FIND_COMPLETE)
+			found= strcmp(te->name, name) == 0;
+		else
+			found= strstr(te->name, name) != NULL;
+	}
+	else {
+		if (flags & SO_FIND_COMPLETE)
+			found= BLI_strcasecmp(te->name, name) == 0;
+		else
+			found= BLI_strcasestr(te->name, name) != NULL;
+	}
+#else
+	
+	int fn_flag= 0;
+	int found= 0;
+	
+	if ((flags & SO_FIND_CASE_SENSITIVE) == 0)
+		fn_flag |= FNM_CASEFOLD;
+
+	if (flags & SO_FIND_COMPLETE) {
+		found= fnmatch(name, te->name, fn_flag)==0;
+	}
+	else {
+		char fn_name[sizeof(((struct SpaceOops *)NULL)->search_string) + 2];
+		sprintf(fn_name, "*%s*", name);
+		found= fnmatch(fn_name, te->name, fn_flag)==0;
+	}
+	return found;
+#endif
+}
+
+static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
+{
+	TreeElement *te, *ten;
+	TreeStoreElem *tselem;
+	
+	/* although we don't have any search string, we return TRUE 
+	 * since the entire tree is ok then...
+	 */
+	if (soops->search_string[0]==0) 
+		return 1;
+
+	for (te= lb->first; te; te= ten) {
+		ten= te->next;
+		
+		if (0==outliner_filter_has_name(te, soops->search_string, soops->search_flags)) {
+			/* item isn't something we're looking for, but...
+			 * 	- if the subtree is expanded, check if there are any matches that can be easily found
+			 *		so that searching for "cu" in the default scene will still match the Cube
+			 *	- otherwise, we can't see within the subtree and the item doesn't match,
+			 *		so these can be safely ignored (i.e. the subtree can get freed)
+			 */
+			tselem= TREESTORE(te);
+			
+			if ((tselem->flag & TSE_CLOSED) || outliner_filter_tree(soops, &te->subtree)==0) { 
+				outliner_free_tree(&te->subtree);
+				BLI_remlink(lb, te);
+				
+				if(te->flag & TE_FREE_NAME) MEM_freeN(te->name);
+				MEM_freeN(te);
+			}
+		}
+		else {
+			/* filter subtree too */
+			outliner_filter_tree(soops, &te->subtree);
+		}
+	}
+	
+	/* if there are still items in the list, that means that there were still some matches */
+	return (lb->first != NULL);
+}
+
+
 static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 {
 	Base *base;
@@ -1416,6 +1503,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	}
 
 	outliner_sort(soops, &soops->tree);
+	outliner_filter_tree(soops, &soops->tree);
 }
 
 /* **************** INTERACTIVE ************* */
@@ -2645,17 +2733,7 @@ static TreeElement *outliner_find_named(SpaceOops *soops, ListBase *lb, char *na
 	TreeElement *te, *tes;
 	
 	for (te= lb->first; te; te= te->next) {
-		int found;
-		
-		/* determine if match */
-		if(flags==OL_FIND)
-			found= BLI_strcasestr(te->name, name)!=NULL;
-		else if(flags==OL_FIND_CASE)
-			found= strstr(te->name, name)!=NULL;
-		else if(flags==OL_FIND_COMPLETE)
-			found= BLI_strcasecmp(te->name, name)==0;
-		else
-			found= strcmp(te->name, name)==0;
+		int found = outliner_filter_has_name(te, name, flags);
 		
 		if(found) {
 			/* name is right, but is element the previous one? */
@@ -2711,7 +2789,7 @@ void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again,
 	TreeElement *last_find;
 	TreeStoreElem *tselem;
 	int ytop, xdelta, prevFound=0;
-	char name[33];
+	char name[32];
 	
 	/* get last found tree-element based on stored search_tse */
 	last_find= outliner_find_tse(soops, &soops->search_tse);
@@ -2719,7 +2797,7 @@ void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again,
 	/* determine which type of search to do */
 	if (again && last_find) {
 		/* no popup panel - previous + user wanted to search for next after previous */		
-		BLI_strncpy(name, soops->search_string, 33);
+		BLI_strncpy(name, soops->search_string, sizeof(name));
 		flags= soops->search_flags;
 		
 		/* try to find matching element */
@@ -4218,7 +4296,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			case TSE_R_LAYER_BASE:
 				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
 			case TSE_R_LAYER:
-				UI_icon_draw(x, y, ICON_RENDER_RESULT); break;
+				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
 			case TSE_LINKED_LAMP:
 				UI_icon_draw(x, y, ICON_LAMP_DATA); break;
 			case TSE_LINKED_MAT:

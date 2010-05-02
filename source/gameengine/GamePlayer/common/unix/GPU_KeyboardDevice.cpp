@@ -67,7 +67,7 @@ GPU_KeyboardDevice::GPU_KeyboardDevice(void)
 			(((int)SCA_IInputDevice::KX_ZEROKEY) + i - XK_0);
 	}
 
-	for (i = XK_F1; i< XK_F12; i++) {
+	for (i = XK_F1; i< XK_F19; i++) {
 		m_reverseKeyTranslateTable[i] 
 			= (SCA_IInputDevice::KX_EnumInputs)
 			(((int)SCA_IInputDevice::KX_F1KEY) + i - XK_F1);

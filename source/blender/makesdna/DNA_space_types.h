@@ -814,6 +814,10 @@ enum {
 		/* if set, it allows redraws. gets set for some allqueue events */
 #define SO_TREESTORE_REDRAW		2
 
+/* outliner search flags (SpaceOops->search_flags) */
+#define SO_FIND_CASE_SENSITIVE		(1<<0)
+#define SO_FIND_COMPLETE			(1<<1)
+
 /* headerbuttons: 450-499 */
 
 #define B_IMASELHOME		451

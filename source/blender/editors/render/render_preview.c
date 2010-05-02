@@ -898,6 +898,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
 	if(sp->pr_method==PR_ICON_RENDER) {
 		sce->r.scemode |= R_NO_IMAGE_LOAD;
+		sce->r.mode |= R_OSA;
 	}
 	else if(sp->pr_method==PR_NODE_RENDER) {
 		if(idtype == ID_MA) sce->r.scemode |= R_MATNODE_PREVIEW;

@@ -31,10 +31,6 @@
 
 #include "../PIL_dynlib.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #if !defined(CHAR_MAX)
 #define CHAR_MAX 255
 #endif

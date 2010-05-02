@@ -230,7 +230,7 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 			//int transopts= ui_translate_buttons();
 			//if(bt->type==TEX || bt->type==IDPOIN) transopts= 0;
 			
-			j= BLF_width(bt->drawstr);
+			j= BLF_width(style->widget.uifont_id, bt->drawstr);
 
 			if(j > i) i = j;
 		}

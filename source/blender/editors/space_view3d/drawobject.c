@@ -28,10 +28,6 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 
@@ -1409,14 +1405,16 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 	Lattice *lt= ob->data;
 	DispList *dl;
 	int u, v, w;
-	int use_wcol= 0;
+	int use_wcol= 0, is_edit= (lt->editlatt != NULL);
 
 	/* now we default make displist, this will modifiers work for non animated case */
 	if(ob->disp.first==NULL)
 		lattice_calc_modifiers(scene, ob);
 	dl= find_displist(&ob->disp, DL_VERTS);
 	
-	if(lt->editlatt) {
+	if(is_edit) {
+		lt= lt->editlatt;
+
 		cpack(0x004000);
 		
 		if(ob->defbase.first && lt->dvert) {
@@ -1424,8 +1422,6 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 			glShadeModel(GL_SMOOTH);
 		}
 	}
-	
-	if(lt->editlatt) lt= lt->editlatt;
 	
 	glBegin(GL_LINES);
 	for(w=0; w<lt->pntsw; w++) {
@@ -1456,7 +1452,7 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 	if(use_wcol)
 		glShadeModel(GL_FLAT);
 
-	if( ((Lattice *)ob->data)->editlatt ) {
+	if(is_edit) {
 		if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 		
 		lattice_draw_verts(lt, dl, 0);
@@ -4409,17 +4405,19 @@ static void tekenhandlesN_active(Nurb *nu)
 	glLineWidth(1);
 }
 
-static void tekenvertsN(Nurb *nu, short sel, short hide_handles)
+static void tekenvertsN(Nurb *nu, short sel, short hide_handles, void *lastsel)
 {
 	BezTriple *bezt;
 	BPoint *bp;
 	float size;
-	int a;
+	int a, color;
 
 	if(nu->hide) return;
 
-	if(sel) UI_ThemeColor(TH_VERTEX_SELECT);
-	else UI_ThemeColor(TH_VERTEX);
+	if(sel) color= TH_VERTEX_SELECT;
+	else color= TH_VERTEX;
+
+	UI_ThemeColor(color);
 
 	size= UI_GetThemeValuef(TH_VERTEX_SIZE);
 	glPointSize(size);
@@ -4432,7 +4430,17 @@ static void tekenvertsN(Nurb *nu, short sel, short hide_handles)
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if (hide_handles) {
+				if (bezt == lastsel) {
+					UI_ThemeColor(TH_LASTSEL_POINT);
+					bglVertex3fv(bezt->vec[1]);
+
+					if (!hide_handles) {
+						bglVertex3fv(bezt->vec[0]);
+						bglVertex3fv(bezt->vec[2]);
+					}
+
+					UI_ThemeColor(color);
+				} else if (hide_handles) {
 					if((bezt->f2 & SELECT)==sel) bglVertex3fv(bezt->vec[1]);
 				} else {
 					if((bezt->f1 & SELECT)==sel) bglVertex3fv(bezt->vec[0]);
@@ -4448,7 +4456,13 @@ static void tekenvertsN(Nurb *nu, short sel, short hide_handles)
 		a= nu->pntsu*nu->pntsv;
 		while(a--) {
 			if(bp->hide==0) {
-				if((bp->f1 & SELECT)==sel) bglVertex3fv(bp->vec);
+				if (bp == lastsel) {
+					UI_ThemeColor(TH_LASTSEL_POINT);
+					bglVertex3fv(bp->vec);
+					UI_ThemeColor(color);
+				} else {
+					if((bp->f1 & SELECT)==sel) bglVertex3fv(bp->vec);
+				}
 			}
 			bp++;
 		}
@@ -4673,7 +4687,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	for(nu=nurb; nu; nu=nu->next) {
 		if(nu->type == CU_BEZIER && (cu->drawflag & CU_HIDE_HANDLES)==0)
 			tekenhandlesN(nu, 1, hide_handles);
-		tekenvertsN(nu, 0, hide_handles);
+		tekenvertsN(nu, 0, hide_handles, NULL);
 	}
 	
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -4695,8 +4709,8 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 
 				mul_qt_v3(bevp->quat, vec_a);
 				mul_qt_v3(bevp->quat, vec_b);
-				add_v3_v3v3(vec_a, vec_a, bevp->vec);
-				add_v3_v3v3(vec_b, vec_b, bevp->vec);
+				add_v3_v3(vec_a, bevp->vec);
+				add_v3_v3(vec_b, bevp->vec);
 				
 				VECSUBFAC(vec_a, vec_a, bevp->dir, fac);
 				VECSUBFAC(vec_b, vec_b, bevp->dir, fac);
@@ -4716,7 +4730,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	for(nu=nurb; nu; nu=nu->next) {
-		tekenvertsN(nu, 1, hide_handles);
+		tekenvertsN(nu, 1, hide_handles, cu->lastsel);
 	}
 	
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST); 
@@ -5102,13 +5116,13 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 
 			/*path end*/
 			setlinestyle(3);
-			where_on_path(ob, 1.0f, guidevec1, guidevec2, NULL, NULL);
+			where_on_path(ob, 1.0f, guidevec1, guidevec2, NULL, NULL, NULL);
 			UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
 			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
 
 			/*path beginning*/
 			setlinestyle(0);
-			where_on_path(ob, 0.0f, guidevec1, guidevec2, NULL, NULL);
+			where_on_path(ob, 0.0f, guidevec1, guidevec2, NULL, NULL, NULL);
 			UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
 			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
 			

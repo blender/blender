@@ -108,7 +108,7 @@ class SCA_ILogicBrick(CValue):
 		"""
 #}
 
-class SCA_PythonKeyboard(PyObjectPlus)
+class SCA_PythonKeyboard(PyObjectPlus):
 	"""
 	The current keyboard.	
 	@ivar events: a list of pressed keys that have either been pressed, or just released, or are active this frame. (read-only).
@@ -124,7 +124,7 @@ class SCA_PythonKeyboard(PyObjectPlus)
 	"""
 	pass
 	
-class SCA_PythonMouse(PyObjectPlus)
+class SCA_PythonMouse(PyObjectPlus):
 	"""
 	The current mouse.
 	

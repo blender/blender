@@ -1443,7 +1443,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rate", "Speed of Simplification");
 
 	/* general values */
-	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sta");//optional if prop names are the same
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1451,7 +1451,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Start", "Frame # to start emitting particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "end", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "end");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

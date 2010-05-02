@@ -292,6 +292,7 @@ void          modifiers_foreachIDLink(struct Object *ob,
 									  IDWalkFunc walk,
 									  void *userData);
 struct ModifierData  *modifiers_findByType(struct Object *ob, ModifierType type);
+struct ModifierData  *modifiers_findByName(struct Object *ob, const char *name);
 void          modifiers_clearErrors(struct Object *ob);
 int           modifiers_getCageIndex(struct Scene *scene, struct Object *ob,
 									 int *lastPossibleCageIndex_r, int virtual_);
@@ -319,6 +320,9 @@ struct LinkNode *modifiers_calcDataMasks(struct Scene *scene,
 										 CustomDataMask dataMask,
 										 int required_mode);
 struct ModifierData  *modifiers_getVirtualModifierList(struct Object *ob);
+
+/* here for do_versions */
+void modifier_mdef_compact_influences(struct ModifierData *md);
 
 #endif
 

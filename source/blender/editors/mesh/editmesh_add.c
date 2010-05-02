@@ -140,7 +140,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 			if( (eed->v1->f & SELECT)+(eed->v2->f & SELECT) == SELECT ) {
 				if(eed->v1->f & SELECT) sub_v3_v3v3(vec, eed->v1->co, eed->v2->co);
 				else sub_v3_v3v3(vec, eed->v2->co, eed->v1->co);
-				add_v3_v3v3(nor, nor, vec);
+				add_v3_v3(nor, vec);
 				done= 1;
 			}
 		}

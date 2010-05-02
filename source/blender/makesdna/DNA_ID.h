@@ -116,10 +116,10 @@ typedef struct Library {
 	ID id;
 	ID *idblock;
 	struct FileData *filedata;
-	char name[240];			/* revealed in the UI, can store relative path */
-	char filename[240];		/* expanded name, not relative, used while reading */
+	char name[240];			/* path name used for reading, can be relative and edited in the outliner */
+	char filename[240];		/* temp. absolute filepath, only used while reading */
 	int tot, pad;			/* tot, idblock and filedata are only fo read and write */
-	struct Library *parent;	/* for outliner, showing dependency */
+	struct Library *parent;	/* set for indirectly linked libs, used in the outliner and while reading */
 } Library;
 
 #define PREVIEW_MIPMAPS 2
@@ -205,8 +205,8 @@ typedef struct PreviewImage {
 #define LIB_EXTERN		1
 #define LIB_INDIRECT	2
 #define LIB_TEST		8
-#define LIB_TESTEXT		9
-#define LIB_TESTIND		10
+#define LIB_TESTEXT		(LIB_TEST | LIB_EXTERN)
+#define LIB_TESTIND		(LIB_TEST | LIB_INDIRECT)
 #define LIB_READ		16
 #define LIB_NEEDLINK	32
 

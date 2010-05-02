@@ -30,10 +30,6 @@
  * Implementation of external api for CSG part of BSP lib interface.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "../extern/CSG_BooleanOps.h"
 #include "BSP_CSGMesh_CFIterator.h"
 #include "MEM_RefCountPtr.h"

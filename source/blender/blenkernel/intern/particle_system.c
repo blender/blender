@@ -3687,7 +3687,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	PTCacheID pid, *use_cache = NULL;
 	PARTICLE_P;
 	int oldtotpart;
-	float disp, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0;
+	float disp; /*, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0; */
 	int init= 0, emit= 0; //, only_children_changed= 0;
 	int framenr, framedelta, startframe = 0, endframe = 100;
 

@@ -37,10 +37,6 @@
 
 #include "DNA_vec_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 int BLI_rcti_is_empty(rcti * rect)
 {
 	return ((rect->xmax<=rect->xmin) ||

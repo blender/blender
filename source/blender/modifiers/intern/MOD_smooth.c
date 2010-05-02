@@ -144,11 +144,11 @@ static void smoothModifier_do(
 
 			if (uctmp[idx1] < 255) {
 				uctmp[idx1]++;
-				add_v3_v3v3(v1, v1, fvec);
+				add_v3_v3(v1, fvec);
 			}
 			if (uctmp[idx2] < 255) {
 				uctmp[idx2]++;
-				add_v3_v3v3(v2, v2, fvec);
+				add_v3_v3(v2, fvec);
 			}
 		}
 

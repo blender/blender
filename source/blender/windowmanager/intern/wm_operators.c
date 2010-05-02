@@ -1016,8 +1016,12 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int retval= OPERATOR_CANCELLED;
 	
-	if(op->type->exec)
+	if(op->type->exec) {
 		retval= op->type->exec(C, op);
+		
+		if(op->type->flag & OPTYPE_UNDO)
+			ED_undo_push_op(C, op);
+	}
 
 	if(retval != OPERATOR_CANCELLED)
 		uiPupBlock(C, wm_block_create_redo, op);
@@ -1165,9 +1169,9 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	sprintf(version_str, "%d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 	sprintf(revision_str, "r%s", build_rev);
 	
-	BLF_size(style->widgetlabel.points, U.dpi);
-	ver_width = BLF_width(version_str)+5;
-	rev_width = BLF_width(revision_str)+5;
+	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.dpi);
+	ver_width = BLF_width(style->widgetlabel.uifont_id, version_str)+5;
+	rev_width = BLF_width(style->widgetlabel.uifont_id, revision_str)+5;
 #endif //NAN_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
@@ -1840,7 +1844,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		if (check_existing)
 			uiPupMenuSaveOver(C, op, name);
 		else {
-			WM_operator_call(C, op);
+			wm_save_as_mainfile_exec(C, op);
 		}
 	} else {
 		WM_event_add_fileselect(C, op);
@@ -1871,19 +1875,15 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 #include "../../collada/collada.h"
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	char *path;
-	/* RNA_string_set(op->ptr, "path", "/tmp/test.dae"); */
-	
+{	
 	if(!RNA_property_is_set(op->ptr, "path")) {
-		path = BLI_replacestr(G.sce, ".blend", ".dae");
+		char *path = BLI_replacestr(G.sce, ".blend", ".dae");
 		RNA_string_set(op->ptr, "path", path);
+		MEM_freeN(path);
 	}
-	
+
 	WM_event_add_fileselect(C, op);
-	
-	if (path) MEM_freeN(path);
-	
+
 	return OPERATOR_RUNNING_MODAL;
 }
 

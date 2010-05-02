@@ -126,6 +126,7 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 	case SEQ_ALPHAUNDER:
 	case SEQ_OVERDROP:
 	case SEQ_GLOW:
+	case SEQ_MULTICAM:
 		/* slightly offset hue to distinguish different effects */
 		UI_GetThemeColor3ubv(TH_SEQ_EFFECT, col);
 		
@@ -451,7 +452,9 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 		else {
 			sprintf(str, "%d | %s", seq->len, name);
 		}
-
+	}
+	else if(seq->type == SEQ_MULTICAM) {
+		sprintf(str, "Cam: %d", seq->multicam_source);
 	}
 	else if(seq->type == SEQ_IMAGE) {
 		sprintf(str, "%d | %s%s", seq->len, seq->strip->dir, seq->strip->stripdata->name);
@@ -819,7 +822,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	
 	/* draw grease-pencil (screen aligned) */
 //	if (sseq->flag & SEQ_DRAW_GPENCIL)
-// XXX		draw_gpencil_2dview(sa, 0);
+// XXX		draw_gpencil_view2d(sa, 0);
 	
 	/* ortho at pixel level */
 	UI_view2d_view_restore(C);

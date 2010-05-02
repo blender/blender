@@ -130,6 +130,28 @@ static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
 	rna_Sequence_frame_change_update(scene, seq);
 }
 
+static void rna_Sequence_anim_startofs_final_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *scene= (Scene*)ptr->id.data;
+
+	seq->anim_startofs = MIN2(value, seq->len + seq->anim_startofs);
+
+	reload_sequence_new_file(scene, seq);
+	rna_Sequence_frame_change_update(scene, seq);
+}
+
+static void rna_Sequence_anim_endofs_final_set(PointerRNA *ptr, int value)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	Scene *scene= (Scene*)ptr->id.data;
+
+	seq->anim_endofs = MIN2(value, seq->len + seq->anim_endofs);
+
+	reload_sequence_new_file(scene, seq);
+	rna_Sequence_frame_change_update(scene, seq);
+}
+
 static void rna_Sequence_length_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
@@ -275,6 +297,8 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 		case SEQ_MUL:
 		case SEQ_OVERDROP:
 			return &RNA_EffectSequence;
+                case SEQ_MULTICAM:
+                        return &RNA_MulticamSequence;
 		case SEQ_PLUGIN:
 			return &RNA_PluginSequence;
 		case SEQ_WIPE:
@@ -581,6 +605,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", ""}, 
 		{SEQ_COLOR, "COLOR", 0, "Color", ""}, 
 		{SEQ_SPEED, "SPEED", 0, "Speed", ""}, 
+		{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static const EnumPropertyItem blend_mode_items[]= {
@@ -779,6 +804,8 @@ static void rna_def_editor(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+
 	RNA_def_property_ui_text(prop, "Active Strip", "Sequencers active strip");
 }
 
@@ -887,13 +914,16 @@ static void rna_def_input(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "animation_start_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "anim_startofs");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_anim_startofs_final_set", NULL); // overlap tests
+
 	RNA_def_property_ui_text(prop, "Animation Start Offset", "Animation start offset (trim start)");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "animation_end_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "anim_endofs");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_anim_endofs_final_set", NULL); // overlap tests
 	RNA_def_property_ui_text(prop, "Animation End Offset", "Animation end offset (trim end)");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
@@ -1028,7 +1058,28 @@ static void rna_def_effect(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Effect Sequence", "Sequence strip applying an effect on the images created by other strips");
 	RNA_def_struct_sdna(srna, "Sequence");
 
+	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
+}
+
+static void rna_def_multicam(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "MulticamSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Multicam Select Sequence", "Sequence strip to perform multicam editing: select channel from below");
+	RNA_def_struct_sdna(srna, "Sequence");
+
+	prop= RNA_def_property(srna, "multicam_source", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "multicam_source");
+	RNA_def_property_range(prop, 0, MAXSEQ-1);
+	RNA_def_property_ui_text(prop, "Multicam Source Channel", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	rna_def_filter_video(srna);
+	rna_def_proxy(srna);
+	rna_def_input(srna);
 }
 
 static void rna_def_plugin(BlenderRNA *brna)
@@ -1279,6 +1330,7 @@ void RNA_def_sequencer(BlenderRNA *brna)
 	rna_def_movie(brna);
 	rna_def_sound(brna);
 	rna_def_effect(brna);
+	rna_def_multicam(brna);
 	rna_def_plugin(brna);
 	rna_def_wipe(brna);
 	rna_def_glow(brna);

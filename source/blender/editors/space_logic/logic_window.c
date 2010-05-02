@@ -63,6 +63,8 @@
 
 #include "UI_interface.h"
 
+#include "RNA_access.h"
+
 /* XXX BAD BAD */
 #include "../interface/interface_intern.h"
 
@@ -3168,6 +3170,52 @@ static int is_sensor_linked(uiBlock *block, bSensor *sens)
 /* never used, see CVS 1.120 for the code */
 /*  static uiBlock *freecamera_menu(void) */
 
+static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *box, *row;
+	
+	box= uiLayoutBox(layout);
+	row= uiLayoutRow(box, 0);
+	
+	uiItemR(row, ptr, "expanded", UI_ITEM_R_NO_BG, "", 0);
+	uiItemR(row, ptr, "type", 0, "", 0);
+	uiItemR(row, ptr, "name", 0, "", 0);
+	uiItemO(row, "", ICON_X, "LOGIC_OT_sensor_remove");
+}
+
+
+static void draw_sensor_touch(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "material", 0, NULL, 0);
+}
+
+static void draw_sensor_delay(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "delay", 0, NULL, 0);
+	uiItemR(layout, ptr, "duration", 0, NULL, 0);
+	uiItemR(layout, ptr, "repeat", 0, NULL, 0);
+}
+
+void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *box;
+	
+	if (!RNA_boolean_get(ptr, "expanded"))
+		return;
+	
+	box = uiLayoutBox(layout);
+	
+	switch (RNA_enum_get(ptr, "type")) {
+		case SENS_ALWAYS:
+			break;
+		case SENS_TOUCH:
+			draw_sensor_touch(box, ptr);
+			break;
+		case SENS_DELAY:
+			draw_sensor_delay(box, ptr);
+			break;
+	}
+}
 
 void logic_buttons(bContext *C, ARegion *ar)
 {
@@ -3179,8 +3227,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 	bActuator *act;
 	uiBlock *block;
 	uiBut *but;
+	uiLayout *layout, *row;
+	PointerRNA logic_ptr;
 	int a, iact, stbit, offset;
-	short xco, yco, count, width, ycoo;
+	int xco, yco, width, ycoo;
+	short count;
 	char name[32];
 	/* pin is a bool used for actuator and sensor drawing with states
 	 * pin so changing states dosnt hide the logic brick */
@@ -3193,6 +3244,8 @@ void logic_buttons(bContext *C, ARegion *ar)
 	block= uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 
+	RNA_pointer_create(NULL, &RNA_SpaceLogicEditor, slogic, &logic_ptr);
+	
 	idar= get_selected_and_linked_obs(C, &count, slogic->scaflag);
 
 	/* clean ACT_LINKED and ACT_VISIBLE of all potentially visible actuators so that 
@@ -3354,8 +3407,66 @@ void logic_buttons(bContext *C, ARegion *ar)
 	}
 	
 	/* ******************************* */
-	xco= 10; yco= 170; width= 300;
+	xco= 10; yco= 205; width= 320;
 
+#if 0
+	
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
+	row = uiLayoutRow(layout, 1);
+	
+	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco, 70, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	
+	uiItemR(row, &logic_ptr, "sensors_show_selected_objects", 0, "Sel", 0);
+	uiItemR(row, &logic_ptr, "sensors_show_active_objects", 0, "Act", 0);
+	uiItemR(row, &logic_ptr, "sensors_show_linked_controller", 0, "Link", 0);
+	uiItemR(row, &logic_ptr, "sensors_show_active_states", 0, "State", 0);
+	
+	row = uiLayoutRow(layout, 1);
+	uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
+	uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", 0);
+	
+	for(a=0; a<count; a++) {
+		PointerRNA ptr;
+
+		ob= (Object *)idar[a];
+		
+		if (!(ob->scavisflag & OB_VIS_SENS) || !(ob->scaflag & OB_SHOWSENS)) continue;
+		
+		uiItemS(layout);
+		
+		for(sens= ob->sensors.first; sens; sens=sens->next) {
+			RNA_pointer_create(&ob->id, &RNA_Sensor, sens, &ptr);
+			
+			if ((slogic->scaflag & BUTS_SENS_STATE) ||
+				 (sens->totlinks == 0) ||											/* always display sensor without links so that is can be edited */
+				 (sens->flag & SENS_PIN && slogic->scaflag & BUTS_SENS_STATE) ||	/* states can hide some sensors, pinned sensors ignore the visible state */
+				 (is_sensor_linked(block, sens))
+				)
+			{	
+				uiLayout *split, *col;
+				
+				split = uiLayoutSplit(layout, 0.95, 0);
+				col = uiLayoutColumn(split, 1);
+				uiLayoutSetContextPointer(col, "sensor", &ptr);
+				
+				/* should make UI template for sensor header.. function will do for now */
+				draw_sensor_header(col, &ptr);
+				
+				/* draw the brick contents */
+				draw_brick_sensor(col, &ptr);
+				
+				/* put link button to the right */
+				col = uiLayoutColumn(split, 0);
+				/* use oldskool uiButtons for links for now */
+				but= uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width+UI_UNIT_X), yco, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+				uiSetButLink(but, NULL, (void ***)&(sens->links), &sens->totlinks, LINK_SENSOR, LINK_CONTROLLER);
+			}
+		}
+	}
+	uiBlockLayoutResolve(block, NULL, &yco);	/* stores final height in yco */
+#endif	
+
+#if 1
 	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco+35, 70, UI_UNIT_Y, "");
 	
 	uiBlockBeginAlign(block);
@@ -3437,6 +3548,8 @@ void logic_buttons(bContext *C, ARegion *ar)
 			yco-= 6;
 		}
 	}
+#endif
+
 
 	/* ******************************* */
 	xco= 800; yco= 170; width= 300;

@@ -68,10 +68,6 @@ Any case: direct data is ALWAYS after the lib block
 */
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <math.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -1235,10 +1231,10 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 			int size = mmd->dyngridsize;
 
-			writedata(wd, DATA, sizeof(float)*mmd->totvert*mmd->totcagevert,
-				mmd->bindweights);
+			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->bindinfluences);
+			writedata(wd, DATA, sizeof(int)*(mmd->totvert+1), mmd->bindoffsets);
 			writedata(wd, DATA, sizeof(float)*3*mmd->totcagevert,
-				mmd->bindcos);
+				mmd->bindcagecos);
 			writestruct(wd, DATA, "MDefCell", size*size*size, mmd->dyngrid);
 			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->dyninfluences);
 			writedata(wd, DATA, sizeof(int)*mmd->totvert, mmd->dynverts);
@@ -2119,7 +2115,15 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceLogic", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_CONSOLE) {
+					SpaceConsole *con = (SpaceConsole*)sl;
+					ConsoleLine *cl;
+
+					for (cl=con->history.first; cl; cl=cl->next) {
+						writestruct(wd, DATA, "ConsoleLine", 1, cl);
+						writedata(wd, DATA, cl->len+1, cl->line);
+					}
 					writestruct(wd, DATA, "SpaceConsole", 1, sl);
+
 				}
 				else if(sl->spacetype==SPACE_USERPREF) {
 					writestruct(wd, DATA, "SpaceUserPref", 1, sl);

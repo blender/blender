@@ -401,8 +401,12 @@ static void rna_def_library(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "Path to the library .blend file");
+	/* TODO - lib->filename isnt updated, however the outliner also skips this, probably only needed on read. */
+	
+	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Parent", "");	
 }
 void RNA_def_ID(BlenderRNA *brna)
 {

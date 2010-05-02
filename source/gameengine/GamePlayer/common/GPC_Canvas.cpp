@@ -27,10 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef NOPNG
 #ifdef WIN32
 #include "png.h"

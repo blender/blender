@@ -29,12 +29,14 @@ class DataButtonsPanel(bpy.types.Panel):
     bl_context = "data"
 
     def poll(self, context):
-        return context.camera
+        engine = context.scene.render.engine
+        return context.camera and (engine in self.COMPAT_ENGINES)
 
 
 class DATA_PT_context_camera(DataButtonsPanel):
     bl_label = ""
     bl_show_header = False
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -61,10 +63,12 @@ class DATA_PT_context_camera(DataButtonsPanel):
 
 class DATA_PT_custom_props_camera(DataButtonsPanel, PropertyPanel):
     _context_path = "object.data"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
 
 class DATA_PT_camera(DataButtonsPanel):
     bl_label = "Lens"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
@@ -125,6 +129,7 @@ class DATA_PT_camera(DataButtonsPanel):
 
 class DATA_PT_camera_display(DataButtonsPanel):
     bl_label = "Display"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout

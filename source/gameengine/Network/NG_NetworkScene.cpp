@@ -36,10 +36,6 @@
 #include "NG_NetworkMessage.h"
 #include "NG_NetworkObject.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 NG_NetworkScene::NG_NetworkScene(NG_NetworkDeviceInterface* nic)
 {
 	m_networkdevice = nic;

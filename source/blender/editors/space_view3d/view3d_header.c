@@ -141,7 +141,7 @@ static void handle_view3d_lock(bContext *C)
 
 			/* not through notifiery, listener don't have context
 			   and non-open screens or spaces need to be updated too */
-			ED_view3d_scene_layers_update(bmain, scene);
+			BKE_screen_view3d_main_sync(&bmain->screen, scene);
 			
 			/* notifiers for scene update */
 			WM_event_add_notifier(C, NC_SCENE|ND_LAYER, scene);
@@ -439,7 +439,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlock *block;
 	uiLayout *row;
 	
-	RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);	
+	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);	
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
 	RNA_pointer_create(&scene->id, &RNA_Scene, scene, &sceneptr);
 
@@ -523,9 +523,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		
 		/* Layers */
 		if (v3d->scenelock)
-			uiTemplateLayers(layout, &sceneptr, "visible_layers", &v3dptr, "used_layers", ob_lay);
+			uiTemplateLayers(layout, &sceneptr, "layers", &v3dptr, "used_layers", ob_lay);
 		else
-			uiTemplateLayers(layout, &v3dptr, "visible_layers", &v3dptr, "used_layers", ob_lay);
+			uiTemplateLayers(layout, &v3dptr, "layers", &v3dptr, "used_layers", ob_lay);
 
 		/* Scene lock */
 		uiItemR(layout, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY, "", 0);

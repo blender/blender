@@ -154,6 +154,7 @@ kmi.properties.center = True
 kmi.properties.enumerate = True
 kmi.properties.extend = True
 kmi = km.items.add('view3d.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi.properties.extend = False
 kmi = km.items.add('view3d.select_lasso', 'EVT_TWEAK_A', 'ANY', ctrl=True)
 kmi = km.items.add('view3d.select_lasso', 'EVT_TWEAK_A', 'ANY', shift=True, ctrl=True)
 kmi.properties.deselect = True
@@ -204,89 +205,8 @@ kmi = km.items.add('view3d.enable_manipulator', 'E', 'PRESS')
 kmi.properties.rotate = True
 kmi = km.items.add('view3d.enable_manipulator', 'R', 'PRESS')
 kmi.properties.scale = True
-
-# Map Mesh
-km = kc.add_keymap('Mesh', space_type='EMPTY', region_type='WINDOW', modal=False)
-
-kmi = km.items.add('mesh.loopcut_slide', 'R', 'PRESS', ctrl=True)
-kmi = km.items.add('mesh.loop_select', 'SELECTMOUSE', 'PRESS', alt=True)
-kmi = km.items.add('mesh.loop_select', 'SELECTMOUSE', 'PRESS', shift=True, alt=True)
+kmi = km.items.add('view3d.select_border', 'EVT_TWEAK_S', 'ANY', shift=True)
 kmi.properties.extend = True
-kmi = km.items.add('mesh.edgering_select', 'SELECTMOUSE', 'PRESS', ctrl=True, alt=True)
-kmi = km.items.add('mesh.edgering_select', 'SELECTMOUSE', 'PRESS', shift=True, ctrl=True, alt=True)
-kmi.properties.extend = True
-kmi = km.items.add('mesh.select_shortest_path', 'SELECTMOUSE', 'PRESS', ctrl=True)
-kmi = km.items.add('mesh.select_all', 'A', 'PRESS')
-kmi = km.items.add('mesh.select_more', 'NUMPAD_PLUS', 'PRESS', ctrl=True)
-kmi = km.items.add('mesh.select_less', 'NUMPAD_MINUS', 'PRESS', ctrl=True)
-kmi = km.items.add('mesh.select_inverse', 'I', 'PRESS', ctrl=True)
-kmi = km.items.add('mesh.select_non_manifold', 'M', 'PRESS', shift=True, ctrl=True, alt=True)
-kmi = km.items.add('mesh.select_linked', 'L', 'PRESS', ctrl=True)
-kmi = km.items.add('mesh.select_linked_pick', 'L', 'PRESS')
-kmi = km.items.add('mesh.select_linked_pick', 'L', 'PRESS', shift=True)
-kmi.properties.deselect = True
-kmi = km.items.add('mesh.faces_select_linked_flat', 'F', 'PRESS', shift=True, ctrl=True, alt=True)
-kmi.properties.sharpness = 135.0
-kmi = km.items.add('mesh.select_similar', 'G', 'PRESS', shift=True)
-kmi = km.items.add('wm.call_menu', 'TAB', 'PRESS', ctrl=True)
-kmi.properties.name = 'VIEW3D_MT_edit_mesh_selection_mode'
-kmi = km.items.add('mesh.hide', 'H', 'PRESS')
-kmi = km.items.add('mesh.hide', 'H', 'PRESS', shift=True)
-kmi.properties.unselected = True
-kmi = km.items.add('mesh.reveal', 'H', 'PRESS', alt=True)
-kmi = km.items.add('mesh.normals_make_consistent', 'N', 'PRESS', ctrl=True)
-kmi = km.items.add('mesh.normals_make_consistent', 'N', 'PRESS', shift=True, ctrl=True)
-kmi.properties.inside = True
-kmi = km.items.add('view3d.edit_mesh_extrude_move_normal', 'E', 'PRESS', ctrl=True)
-kmi = km.items.add('view3d.edit_mesh_extrude_individual_move', 'E', 'PRESS', shift=True)
-kmi = km.items.add('wm.call_menu', 'E', 'PRESS', alt=True)
-kmi.properties.name = 'VIEW3D_MT_edit_mesh_extrude'
-kmi = km.items.add('mesh.spin', 'R', 'PRESS', alt=True)
-kmi = km.items.add('mesh.fill', 'F', 'PRESS', alt=True)
-kmi = km.items.add('mesh.beautify_fill', 'F', 'PRESS', shift=True, alt=True)
-kmi = km.items.add('mesh.quads_convert_to_tris', 'T', 'PRESS', ctrl=True)
-kmi = km.items.add('mesh.tris_convert_to_quads', 'J', 'PRESS', alt=True)
-kmi = km.items.add('mesh.edge_flip', 'F', 'PRESS', shift=True, ctrl=True)
-kmi = km.items.add('mesh.rip_move', 'V', 'PRESS')
-kmi = km.items.add('mesh.merge', 'M', 'PRESS', alt=True)
-kmi = km.items.add('transform.shrink_fatten', 'S', 'PRESS', ctrl=True, alt=True)
-kmi = km.items.add('mesh.edge_face_add', 'F', 'PRESS')
-kmi = km.items.add('mesh.duplicate_move', 'D', 'PRESS', shift=True)
-kmi = km.items.add('wm.call_menu', 'A', 'PRESS', shift=True)
-kmi.properties.name = 'INFO_MT_mesh_add'
-kmi = km.items.add('mesh.separate', 'P', 'PRESS')
-kmi = km.items.add('mesh.split', 'Y', 'PRESS')
-kmi = km.items.add('mesh.dupli_extrude_cursor', 'ACTIONMOUSE', 'CLICK', ctrl=True)
-kmi = km.items.add('mesh.delete', 'X', 'PRESS')
-kmi = km.items.add('mesh.delete', 'DEL', 'PRESS')
-kmi = km.items.add('mesh.knife_cut', 'LEFTMOUSE', 'PRESS', key_modifier='K')
-kmi = km.items.add('mesh.knife_cut', 'LEFTMOUSE', 'PRESS', shift=True, key_modifier='K')
-kmi.properties.type = 'MIDPOINTS'
-kmi = km.items.add('object.vertex_parent_set', 'P', 'PRESS', ctrl=True)
-kmi = km.items.add('wm.call_menu', 'W', 'PRESS', ctrl=True)
-kmi.properties.name = 'VIEW3D_MT_edit_mesh_specials'
-kmi = km.items.add('wm.call_menu', 'F', 'PRESS', ctrl=True)
-kmi.properties.name = 'VIEW3D_MT_edit_mesh_faces'
-kmi = km.items.add('wm.call_menu', 'E', 'PRESS', ctrl=True)
-kmi.properties.name = 'VIEW3D_MT_edit_mesh_edges'
-kmi = km.items.add('wm.call_menu', 'V', 'PRESS', ctrl=True)
-kmi.properties.name = 'VIEW3D_MT_edit_mesh_vertices'
-kmi = km.items.add('wm.call_menu', 'H', 'PRESS', ctrl=True)
-kmi.properties.name = 'VIEW3D_MT_hook'
-kmi = km.items.add('wm.call_menu', 'U', 'PRESS')
-kmi.properties.name = 'VIEW3D_MT_uv_map'
-kmi = km.items.add('wm.call_menu', 'G', 'PRESS', ctrl=True)
-kmi.properties.name = 'VIEW3D_MT_vertex_group'
-kmi = km.items.add('wm.context_cycle_enum', 'O', 'PRESS', shift=True)
-kmi.properties.path = 'tool_settings.proportional_editing_falloff'
-kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS')
-kmi.properties.path = 'tool_settings.proportional_editing'
-kmi.properties.value_1 = 'DISABLED'
-kmi.properties.value_2 = 'ENABLED'
-kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS', alt=True)
-kmi.properties.path = 'tool_settings.proportional_editing'
-kmi.properties.value_1 = 'DISABLED'
-kmi.properties.value_2 = 'CONNECTED'
 
 # Map Object Mode
 km = kc.add_keymap('Object Mode', space_type='EMPTY', region_type='WINDOW', modal=False)
@@ -367,12 +287,96 @@ kmi = km.items.add('object.subdivision_set', 'FOUR', 'PRESS', ctrl=True)
 kmi.properties.level = 4
 kmi = km.items.add('object.subdivision_set', 'FIVE', 'PRESS', ctrl=True)
 kmi.properties.level = 5
+kmi = km.items.add('object.select_all', 'SELECTMOUSE', 'CLICK')
+kmi.properties.action = 'DESELECT'
+
+# Map Mesh
+km = kc.add_keymap('Mesh', space_type='EMPTY', region_type='WINDOW', modal=False)
+
+kmi = km.items.add('mesh.loopcut_slide', 'R', 'PRESS', ctrl=True)
+kmi = km.items.add('mesh.loop_select', 'SELECTMOUSE', 'PRESS', ctrl=True, alt=True)
+kmi = km.items.add('mesh.loop_select', 'SELECTMOUSE', 'PRESS', shift=True, alt=True)
+kmi.properties.extend = True
+kmi = km.items.add('mesh.edgering_select', 'SELECTMOUSE', 'PRESS', ctrl=True, alt=True)
+kmi = km.items.add('mesh.edgering_select', 'SELECTMOUSE', 'PRESS', shift=True, ctrl=True, alt=True)
+kmi.properties.extend = True
+kmi = km.items.add('mesh.select_shortest_path', 'SELECTMOUSE', 'PRESS', ctrl=True)
+kmi = km.items.add('mesh.select_all', 'A', 'PRESS')
+kmi = km.items.add('mesh.select_more', 'NUMPAD_PLUS', 'PRESS', ctrl=True)
+kmi = km.items.add('mesh.select_less', 'NUMPAD_MINUS', 'PRESS', ctrl=True)
+kmi = km.items.add('mesh.select_inverse', 'I', 'PRESS', ctrl=True)
+kmi = km.items.add('mesh.select_non_manifold', 'M', 'PRESS', shift=True, ctrl=True, alt=True)
+kmi = km.items.add('mesh.select_linked', 'L', 'PRESS', ctrl=True)
+kmi = km.items.add('mesh.select_linked_pick', 'L', 'PRESS')
+kmi = km.items.add('mesh.select_linked_pick', 'L', 'PRESS', shift=True)
+kmi.properties.deselect = True
+kmi = km.items.add('mesh.faces_select_linked_flat', 'F', 'PRESS', shift=True, ctrl=True, alt=True)
+kmi.properties.sharpness = 135.0
+kmi = km.items.add('mesh.select_similar', 'G', 'PRESS', shift=True)
+kmi = km.items.add('wm.call_menu', 'TAB', 'PRESS', ctrl=True)
+kmi.properties.name = 'VIEW3D_MT_edit_mesh_selection_mode'
+kmi = km.items.add('mesh.hide', 'H', 'PRESS')
+kmi = km.items.add('mesh.hide', 'H', 'PRESS', shift=True)
+kmi.properties.unselected = True
+kmi = km.items.add('mesh.reveal', 'H', 'PRESS', alt=True)
+kmi = km.items.add('mesh.normals_make_consistent', 'N', 'PRESS', ctrl=True)
+kmi = km.items.add('mesh.normals_make_consistent', 'N', 'PRESS', shift=True, ctrl=True)
+kmi.properties.inside = True
+kmi = km.items.add('view3d.edit_mesh_extrude_move_normal', 'E', 'PRESS', ctrl=True)
+kmi = km.items.add('view3d.edit_mesh_extrude_individual_move', 'E', 'PRESS', shift=True)
+kmi = km.items.add('wm.call_menu', 'E', 'PRESS', alt=True)
+kmi.properties.name = 'VIEW3D_MT_edit_mesh_extrude'
+kmi = km.items.add('mesh.spin', 'R', 'PRESS', alt=True)
+kmi = km.items.add('mesh.fill', 'F', 'PRESS', alt=True)
+kmi = km.items.add('mesh.beautify_fill', 'F', 'PRESS', shift=True, alt=True)
+kmi = km.items.add('mesh.quads_convert_to_tris', 'T', 'PRESS', ctrl=True)
+kmi = km.items.add('mesh.tris_convert_to_quads', 'J', 'PRESS', alt=True)
+kmi = km.items.add('mesh.edge_flip', 'F', 'PRESS', shift=True, ctrl=True)
+kmi = km.items.add('mesh.rip_move', 'V', 'PRESS')
+kmi = km.items.add('mesh.merge', 'M', 'PRESS', alt=True)
+kmi = km.items.add('transform.shrink_fatten', 'S', 'PRESS', ctrl=True, alt=True)
+kmi = km.items.add('mesh.edge_face_add', 'F', 'PRESS')
+kmi = km.items.add('mesh.duplicate_move', 'D', 'PRESS', shift=True)
+kmi = km.items.add('wm.call_menu', 'A', 'PRESS', shift=True)
+kmi.properties.name = 'INFO_MT_mesh_add'
+kmi = km.items.add('mesh.separate', 'P', 'PRESS')
+kmi = km.items.add('mesh.split', 'Y', 'PRESS')
+kmi = km.items.add('mesh.dupli_extrude_cursor', 'ACTIONMOUSE', 'CLICK', ctrl=True)
+kmi = km.items.add('mesh.delete', 'X', 'PRESS')
+kmi = km.items.add('mesh.delete', 'DEL', 'PRESS')
+kmi = km.items.add('mesh.knife_cut', 'LEFTMOUSE', 'PRESS', key_modifier='K')
+kmi = km.items.add('mesh.knife_cut', 'LEFTMOUSE', 'PRESS', shift=True, key_modifier='K')
+kmi.properties.type = 'MIDPOINTS'
+kmi = km.items.add('object.vertex_parent_set', 'P', 'PRESS', ctrl=True)
+kmi = km.items.add('wm.call_menu', 'W', 'PRESS', ctrl=True)
+kmi.properties.name = 'VIEW3D_MT_edit_mesh_specials'
+kmi = km.items.add('wm.call_menu', 'F', 'PRESS', ctrl=True)
+kmi.properties.name = 'VIEW3D_MT_edit_mesh_faces'
+kmi = km.items.add('wm.call_menu', 'E', 'PRESS', ctrl=True)
+kmi.properties.name = 'VIEW3D_MT_edit_mesh_edges'
+kmi = km.items.add('wm.call_menu', 'V', 'PRESS', ctrl=True)
+kmi.properties.name = 'VIEW3D_MT_edit_mesh_vertices'
+kmi = km.items.add('wm.call_menu', 'H', 'PRESS', ctrl=True)
+kmi.properties.name = 'VIEW3D_MT_hook'
+kmi = km.items.add('wm.call_menu', 'U', 'PRESS')
+kmi.properties.name = 'VIEW3D_MT_uv_map'
+kmi = km.items.add('wm.call_menu', 'G', 'PRESS', ctrl=True)
+kmi.properties.name = 'VIEW3D_MT_vertex_group'
+kmi = km.items.add('wm.context_cycle_enum', 'O', 'PRESS', shift=True)
+kmi.properties.path = 'tool_settings.proportional_editing_falloff'
+kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS')
+kmi.properties.path = 'tool_settings.proportional_editing'
+kmi.properties.value_1 = 'DISABLED'
+kmi.properties.value_2 = 'ENABLED'
+kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS', alt=True)
+kmi.properties.path = 'tool_settings.proportional_editing'
+kmi.properties.value_1 = 'DISABLED'
+kmi.properties.value_2 = 'CONNECTED'
+kmi = km.items.add('mesh.select_all', 'SELECTMOUSE', 'CLICK')
+kmi.properties.action = 'DESELECT'
 
 wm.active_keyconfig = kc
 
-bpy.context.user_preferences.view.auto_depth = False
-bpy.context.user_preferences.view.zoom_to_mouse = False
-bpy.context.user_preferences.view.rotate_around_selection = False
 bpy.context.user_preferences.edit.drag_immediately = True
 bpy.context.user_preferences.edit.insertkey_xyz_to_rgb = False
 bpy.context.user_preferences.inputs.select_mouse = 'LEFT'

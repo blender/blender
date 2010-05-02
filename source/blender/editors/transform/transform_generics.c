@@ -1276,7 +1276,7 @@ void calculateCenterMedian(TransInfo *t)
 		if (t->data[i].flag & TD_SELECTED) {
 			if (!(t->data[i].flag & TD_NOCENTER))
 			{
-				add_v3_v3v3(partial, partial, t->data[i].center);
+				add_v3_v3(partial, t->data[i].center);
 				total++;
 			}
 		}

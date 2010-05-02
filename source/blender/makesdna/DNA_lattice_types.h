@@ -52,6 +52,7 @@ typedef struct Lattice {
 	struct Key *key;
 	
 	struct MDeformVert *dvert;
+	char vgroup[32]; /* multiply the influence */
 	
 	/* used while deforming, always free and NULL after use */
 	float *latticedata;

@@ -78,9 +78,9 @@
 #include "armature_intern.h"
 
 /* ************* XXX *************** */
-static int pupmenu() {return 0;}
-static void error() {};
-static void BIF_undo_push() {}
+static int pupmenu(const char *dummy) {return 0;}
+static void error(const char *dummy) {};
+static void BIF_undo_push(const char *dummy) {}
 /* ************* XXX *************** */
 
 /* This function is used to indicate that a bone is selected and needs keyframes inserted */
@@ -691,7 +691,7 @@ void pose_copy_menu(Scene *scene)
 						/* copy constraints to tmpbase and apply 'local' tags before 
 						 * appending to list of constraints for this channel
 						 */
-						copy_constraints(&tmp_constraints, &pchanact->constraints);
+						copy_constraints(&tmp_constraints, &pchanact->constraints, TRUE);
 						if ((ob->proxy) && (pchan->bone->layer & arm->layer_protected)) {
 							bConstraint *con;
 							
@@ -800,7 +800,7 @@ void pose_copy_menu(Scene *scene)
 				/* copy constraints to tmpbase and apply 'local' tags before 
 				 * appending to list of constraints for this channel
 				 */
-				copy_constraints(&tmp_constraints, &const_copy);
+				copy_constraints(&tmp_constraints, &const_copy, TRUE);
 				if ((ob->proxy) && (pchan->bone->layer & arm->layer_protected)) {
 					bConstraint *con;
 					
@@ -1410,8 +1410,8 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
 		BLI_strncpy(newname, pchan->name, sizeof(newname));
-		bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]);
-		ED_armature_bone_rename(arm, pchan->name, newname);
+		if(bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]))
+			ED_armature_bone_rename(arm, pchan->name, newname);
 	}
 	CTX_DATA_END;
 	

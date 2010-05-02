@@ -38,10 +38,6 @@
 #include "KX_SCA_EndObjectActuator.h"
 #include "SCA_IScene.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_SCA_EndObjectActuator::KX_SCA_EndObjectActuator(SCA_IObject *gameobj,
 												   SCA_IScene* scene):
 	SCA_IActuator(gameobj, KX_ACT_END_OBJECT),

@@ -66,7 +66,7 @@ extern "C" {
 	/** Returns the lenght of the allocated memory segment pointed at
 	 * by vmemh. If the pointer was not previously allocated by this
 	 * module, the result is undefined.*/
-	int MEM_allocN_len(void *vmemh);
+	size_t MEM_allocN_len(void *vmemh);
 
 	/**
 	 * Release memory previously allocatred by this module. 
@@ -89,23 +89,23 @@ extern "C" {
 	  * allocated block, the old one is freed. this is not as optimized
 	  * as a system realloc but just makes a new allocation and copies
 	  * over from existing memory. */
-	void *MEM_reallocN(void *vmemh, unsigned int len);
+	void *MEM_reallocN(void *vmemh, size_t len);
 
 	/**
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */
-	void *MEM_callocN(unsigned int len, const char * str);
+	void *MEM_callocN(size_t len, const char * str);
 	
 	/** Allocate a block of memory of size len, with tag name str. The
 		* name must be a static, because only a pointer to it is stored !
 		* */
-	void *MEM_mallocN(unsigned int len, const char * str);
+	void *MEM_mallocN(size_t len, const char * str);
 	
 	/** Same as callocN, clears memory and uses mmap (disk cached) if supported.
 		Can be free'd with MEM_freeN as usual.
 		* */
-	void *MEM_mapallocN(unsigned int len, const char * str);
+	void *MEM_mapallocN(size_t len, const char * str);
 
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. as a python dict for easy investigation */ 

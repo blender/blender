@@ -1066,7 +1066,6 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr)
 			rr->rectf= re->result->rectf;
 			rr->rectz= re->result->rectz;
 			rr->rect32= re->result->rect32;
-			rr->compo_seq= (rr->rectf != NULL);
 			
 			/* active layer */
 			rl= render_get_active_layer(re, re->result);
@@ -1078,6 +1077,7 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr)
 					rr->rectz= RE_RenderLayerGetPass(rl, SCE_PASS_Z);	
 			}
 
+			rr->compo_seq= (rr->rectf != NULL);
 			rr->layers= re->result->layers;
 		}
 	}

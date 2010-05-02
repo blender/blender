@@ -33,10 +33,6 @@
 #include "GPC_RawImage.h"
 #include "GPC_RawLogoArrays.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 GPC_RawImage::GPC_RawImage()
 		: m_data(0), m_dataSize(0), m_width(0), m_height(0)

@@ -45,10 +45,6 @@
 
 #include "BLI_blenlib.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 void defgroup_copy_list (ListBase *outbase, ListBase *inbase)
 {
@@ -205,7 +201,7 @@ int defgroup_name_index (Object *ob, const char *name)
 	bDeformGroup *curdef;
 	int def_nr;
 	
-	if(name[0] != '\0') {
+	if(name && name[0] != '\0') {
 		for (curdef=ob->defbase.first, def_nr=0; curdef; curdef=curdef->next, def_nr++) {
 			if (!strcmp(curdef->name, name))
 				return def_nr;
@@ -368,10 +364,10 @@ void defgroup_unique_name (bDeformGroup *dg, Object *ob)
 void flip_side_name (char *name, const char *from_name, int strip_number)
 {
 	int     len;
-	char    prefix[sizeof((bDeformGroup *)NULL)->name]={""};   /* The part before the facing */
-	char    suffix[sizeof((bDeformGroup *)NULL)->name]={""};   /* The part after the facing */
-	char    replace[sizeof((bDeformGroup *)NULL)->name]={""};  /* The replacement string */
-	char    number[sizeof((bDeformGroup *)NULL)->name]={""};   /* The number extension string */
+	char    prefix[sizeof(((bDeformGroup *)NULL)->name)]= {""};   /* The part before the facing */
+	char    suffix[sizeof(((bDeformGroup *)NULL)->name)]= {""};   /* The part after the facing */
+	char    replace[sizeof(((bDeformGroup *)NULL)->name)]=  {""};  /* The replacement string */
+	char    number[sizeof(((bDeformGroup *)NULL)->name)]=  {""};   /* The number extension string */
 	char    *index=NULL;
 
 	len= strlen(from_name);

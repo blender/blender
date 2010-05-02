@@ -50,10 +50,10 @@
 #include "file_intern.h"
 
 /* XXX */
-static void error() {}
+static void error(const char *dummy) {}
 static void waitcursor(int val) {}
-static void activate_fileselect() {}
-static int saveover() {return 0;}
+static void activate_fileselect(int d1, char *d2, char *d3, void *d4) {}
+static int saveover(const char *dummy) {return 0;}
 /* XXX */
 
 

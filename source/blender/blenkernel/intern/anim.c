@@ -64,10 +64,6 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 // XXX bad level call...
 
 /* --------------------- */
@@ -464,6 +460,7 @@ void calc_curvepath(Object *ob)
 		interp_v3_v3v3(pp->vec, bevp->vec, bevpn->vec, fac2);
 		pp->vec[3]= fac1*bevp->alfa + fac2*bevpn->alfa;
 		pp->radius= fac1*bevp->radius + fac2*bevpn->radius;
+		pp->weight= fac1*bevp->weight + fac2*bevpn->weight;
 		interp_qt_qtqt(pp->quat, bevp->quat, bevpn->quat, fac2);
 		normalize_qt(pp->quat);
 		
@@ -495,7 +492,7 @@ int interval_test(int min, int max, int p1, int cycl)
  * 	- *vec needs FOUR items!
  *	- ctime is normalized range <0-1>
  */
-int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius)	/* returns OK */
+int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius, float *weight)	/* returns OK */
 {
 	Curve *cu;
 	Nurb *nu;
@@ -590,6 +587,9 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 
 	if(radius)
 		*radius= data[0]*p0->radius + data[1]*p1->radius + data[2]*p2->radius + data[3]*p3->radius;
+
+	if(weight)
+		*weight= data[0]*p0->weight + data[1]*p1->weight + data[2]*p2->weight + data[3]*p3->weight;
 
 	return 1;
 }
@@ -727,10 +727,9 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	vertexDupliData *vdd= userData;
 	float vec[3], q2[4], mat[3][3], tmat[4][4], obmat[4][4];
 	
-	VECCOPY(vec, co);
-	mul_m4_v3(vdd->pmat, vec);
-	sub_v3_v3v3(vec, vec, vdd->pmat[3]);
-	add_v3_v3v3(vec, vec, vdd->obmat[3]);
+	mul_v3_m4v3(vec, vdd->pmat, co);
+	sub_v3_v3(vec, vdd->pmat[3]);
+	add_v3_v3(vec, vdd->obmat[3]);
 	
 	copy_m4_m4(obmat, vdd->obmat);
 	VECCOPY(obmat[3], vec);
@@ -990,7 +989,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						mul_m4_v3(pmat, cent);
 						
 						sub_v3_v3v3(cent, cent, pmat[3]);
-						add_v3_v3v3(cent, cent, ob__obmat[3]);
+						add_v3_v3(cent, ob__obmat[3]);
 						
 						copy_m4_m4(obmat, ob__obmat);
 						

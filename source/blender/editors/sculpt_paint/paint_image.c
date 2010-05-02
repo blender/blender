@@ -1642,10 +1642,10 @@ static void scale_quad(float insetCos[4][3], float *origCos[4], const float inse
 	mul_v3_fl(insetCos[2], inset);
 	mul_v3_fl(insetCos[3], inset);
 	
-	add_v3_v3v3(insetCos[0], insetCos[0], cent);
-	add_v3_v3v3(insetCos[1], insetCos[1], cent);
-	add_v3_v3v3(insetCos[2], insetCos[2], cent);
-	add_v3_v3v3(insetCos[3], insetCos[3], cent);
+	add_v3_v3(insetCos[0], cent);
+	add_v3_v3(insetCos[1], cent);
+	add_v3_v3(insetCos[2], cent);
+	add_v3_v3(insetCos[3], cent);
 }
 
 
@@ -1664,9 +1664,9 @@ static void scale_tri(float insetCos[4][3], float *origCos[4], const float inset
 	mul_v3_fl(insetCos[1], inset);
 	mul_v3_fl(insetCos[2], inset);
 	
-	add_v3_v3v3(insetCos[0], insetCos[0], cent);
-	add_v3_v3v3(insetCos[1], insetCos[1], cent);
-	add_v3_v3v3(insetCos[2], insetCos[2], cent);
+	add_v3_v3(insetCos[0], cent);
+	add_v3_v3(insetCos[1], cent);
+	add_v3_v3(insetCos[2], cent);
 }
 
 
@@ -2973,7 +2973,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		VECCOPY(ps->viewPos, viewinv[3]);
 		copy_m3_m4(mat, ps->ob->imat);
 		mul_m3_v3(mat, ps->viewPos);
-		add_v3_v3v3(ps->viewPos, ps->viewPos, ps->ob->imat[3]);
+		add_v3_v3(ps->viewPos, ps->ob->imat[3]);
 	}
 	
 	/* calculate vert screen coords

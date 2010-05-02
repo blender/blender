@@ -142,9 +142,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 			if (pd->psys_cache_space == TEX_PD_OBJECTSPACE)
 				mul_m4_v3(ob->imat, partco);
 			else if (pd->psys_cache_space == TEX_PD_OBJECTLOC) {
-				float obloc[3];
-				VECCOPY(obloc, ob->loc);
-				sub_v3_v3v3(partco, partco, obloc);
+				sub_v3_v3(partco, ob->loc);
 			} else {
 				/* TEX_PD_WORLDSPACE */
 			}
@@ -209,7 +207,7 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 				break;
 			case TEX_PD_OBJECTLOC:
 				mul_m4_v3(ob->obmat, co);
-				sub_v3_v3v3(co, co, ob->loc);
+				sub_v3_v3(co, ob->loc);
 				break;
 			case TEX_PD_WORLDSPACE:
 			default:

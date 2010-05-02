@@ -919,8 +919,8 @@ void rotate_eul(float *beul, char axis, float ang)
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 	
 	eul[0]= eul[1]= eul[2]= 0.0f;
-	if(axis=='x') eul[0]= ang;
-	else if(axis=='y') eul[1]= ang;
+	if(axis=='X') eul[0]= ang;
+	else if(axis=='Y') eul[1]= ang;
 	else eul[2]= ang;
 	
 	eul_to_mat3(mat1,eul);
@@ -1238,9 +1238,9 @@ void rotate_eulO(float beul[3], short order, char axis, float ang)
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 	
 	eul[0]= eul[1]= eul[2]= 0.0f;
-	if (axis=='x') 
+	if (axis=='X') 
 		eul[0]= ang;
-	else if (axis=='y') 
+	else if (axis=='Y')
 		eul[1]= ang;
 	else 
 		eul[2]= ang;

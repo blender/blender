@@ -22,10 +22,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "SCA_PythonKeyboard.h"
 #include "SCA_IInputDevice.h"
 

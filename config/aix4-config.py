@@ -14,7 +14,7 @@ BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}' #BF_PYTHON+'/lib/python'+BF_PYTHON_VERSION+'/config/libpython'+BF_PYTHON_VERSION+'.a'
 BF_PYTHON_LINKFLAGS = ['-Xlinker', '-export-dynamic']
-BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/python2.5/config/libpython${BF_PYTHON_VERSION}.a'
+BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}/config/libpython${BF_PYTHON_VERSION}.a'
 
 WITH_BF_OPENAL = 'false'
 WITH_BF_STATICOPENAL = 'false'

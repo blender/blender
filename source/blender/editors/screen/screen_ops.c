@@ -2561,7 +2561,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 	return OPERATOR_FINISHED;
 }
 
-static int screen_animation_play_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int screen_animation_play_exec(bContext *C, wmOperator *op)
 {
 	int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
 	int sync= -1;
@@ -2580,7 +2580,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_animation_play";
 	
 	/* api callbacks */
-	ot->invoke= screen_animation_play_invoke;
+	ot->exec= screen_animation_play_exec;
 	
 	ot->poll= ED_operator_screenactive;
 	
@@ -2588,7 +2588,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");
 }
 
-static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
+static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	
@@ -2617,7 +2617,7 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_animation_cancel";
 	
 	/* api callbacks */
-	ot->invoke= screen_animation_cancel;
+	ot->exec= screen_animation_cancel_exec;
 	
 	ot->poll= ED_operator_screenactive;
 }

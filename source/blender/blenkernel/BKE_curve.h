@@ -72,7 +72,7 @@ void minmaxNurb( struct Nurb *nu, float *min, float *max);
 void makeknots( struct Nurb *nu, short uv);
 
 void makeNurbfaces(struct Nurb *nu, float *coord_array, int rowstride);
-void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu, int stride);
+void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, float *weight_array, int resolu, int stride);
 void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
 float *make_orco_curve(struct Scene *scene, struct Object *ob);
 float *make_orco_surf( struct Object *ob);

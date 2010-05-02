@@ -201,7 +201,7 @@ typedef struct ThemeSpace {
 	char strip[4], strip_select[4];
 	char cframe[4];
 	char nurb_uline[4], nurb_vline[4];
-	char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4];
+	char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4], lastsel_point[4];
 	char handle_free[4], handle_auto[4], handle_vect[4], handle_align[4];
 	char handle_sel_free[4], handle_sel_auto[4], handle_sel_vect[4], handle_sel_align[4];
 	char ds_channel[4], ds_subchannel[4]; // dopesheet
@@ -223,7 +223,7 @@ typedef struct ThemeSpace {
 	char handle_vertex_select[4];
 	
 	char handle_vertex_size;
-	char hpad[3];
+	char hpad[7];
 	
 	char preview_back[4];
 	

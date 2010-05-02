@@ -55,10 +55,6 @@
 /* When you use this, send an email to: matumoto@math.keio.ac.jp   */
 /* with an appropriate reference to your work.                     */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MT_random.h"
 
 /* Period parameters */  

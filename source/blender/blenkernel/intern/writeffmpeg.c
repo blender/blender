@@ -69,10 +69,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 extern void do_init_ffmpeg();
 
 static int ffmpeg_type = 0;
@@ -382,7 +378,7 @@ static void set_ffmpeg_property_option(AVCodecContext* c, IDProperty * prop)
 
 	fprintf(stderr, "FFMPEG expert option: %s: ", prop->name);
 
-	strncpy(name, prop->name, 128);
+	BLI_strncpy(name, prop->name, sizeof(name));
 
 	param = strchr(name, ':');
 
@@ -1078,7 +1074,7 @@ int ffmpeg_property_add_string(RenderData *rd, const char * type, const char * s
 	
 	avcodec_get_context_defaults(&c);
 
-	strncpy(name_, str, 128);
+	strncpy(name_, str, sizeof(name_));
 
 	name = name_;
 	while (*name == ' ') name++;

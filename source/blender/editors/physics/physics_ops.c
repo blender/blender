@@ -43,8 +43,8 @@
 static void operatortypes_particle(void)
 {
 	WM_operatortype_append(PARTICLE_OT_select_all);
-	WM_operatortype_append(PARTICLE_OT_select_first);
-	WM_operatortype_append(PARTICLE_OT_select_last);
+	WM_operatortype_append(PARTICLE_OT_select_roots);
+	WM_operatortype_append(PARTICLE_OT_select_tips);
 	WM_operatortype_append(PARTICLE_OT_select_linked);
 	WM_operatortype_append(PARTICLE_OT_select_less);
 	WM_operatortype_append(PARTICLE_OT_select_more);

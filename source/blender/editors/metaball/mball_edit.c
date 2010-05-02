@@ -30,10 +30,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -84,7 +80,7 @@ void make_editMball(Object *obedit)
 
 /* This function is called, when MetaBall Object switched from
  * edit mode to object mode. List od MetaElements is copied
- * from object->data->edit_elems to to object->data->elems. */
+ * from object->data->edit_elems to object->data->elems. */
 void load_editMball(Object *obedit)
 {
 	MetaBall *mb = (MetaBall*)obedit->data;

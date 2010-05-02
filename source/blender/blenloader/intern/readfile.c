@@ -1357,7 +1357,8 @@ static void test_pointer_array(FileData *fd, void **mat)
 #else
 	long long *lpoin, *lmat;
 #endif
-	int len, *ipoin, *imat;
+	int *ipoin, *imat;
+	size_t len;
 
 		/* manually convert the pointer array in
 		 * the old dna format to a pointer array in
@@ -2753,7 +2754,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->bev.first=cu->bev.last= NULL;
 	cu->disp.first=cu->disp.last= NULL;
 	cu->editnurb= NULL;
-	cu->lastselbp= NULL;
+	cu->lastsel= NULL;
 	cu->path= NULL;
 	cu->editfont= NULL;
 	
@@ -3852,14 +3853,28 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type==eModifierType_MeshDeform) {
 			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 
-			mmd->bindweights= newdataadr(fd, mmd->bindweights);
-			mmd->bindcos= newdataadr(fd, mmd->bindcos);
+			mmd->bindinfluences= newdataadr(fd, mmd->bindinfluences);
+			mmd->bindoffsets= newdataadr(fd, mmd->bindoffsets);
+			mmd->bindcagecos= newdataadr(fd, mmd->bindcagecos);
 			mmd->dyngrid= newdataadr(fd, mmd->dyngrid);
 			mmd->dyninfluences= newdataadr(fd, mmd->dyninfluences);
 			mmd->dynverts= newdataadr(fd, mmd->dynverts);
 
+			mmd->bindweights= newdataadr(fd, mmd->bindweights);
+			mmd->bindcos= newdataadr(fd, mmd->bindcos);
+
 			if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 				int a;
+
+				if(mmd->bindoffsets)
+					for(a=0; a<mmd->totvert+1; a++)
+						SWITCH_INT(mmd->bindoffsets[a])
+				if(mmd->bindcagecos)
+					for(a=0; a<mmd->totcagevert*3; a++)
+						SWITCH_INT(mmd->bindcagecos[a])
+				if(mmd->dynverts)
+					for(a=0; a<mmd->totvert; a++)
+						SWITCH_INT(mmd->dynverts[a])
 
 				if(mmd->bindweights)
 					for(a=0; a<mmd->totcagevert*mmd->totvert; a++)
@@ -3867,9 +3882,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				if(mmd->bindcos)
 					for(a=0; a<mmd->totcagevert*3; a++)
 						SWITCH_INT(mmd->bindcos[a])
-				if(mmd->dynverts)
-					for(a=0; a<mmd->totvert; a++)
-						SWITCH_INT(mmd->dynverts[a])
 			}
 		}
 	}
@@ -3886,6 +3898,11 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	/* weak weak... this was only meant as draw flag, now is used in give_base too */
 	ob->flag &= ~OB_FROMGROUP;
+
+	/* loading saved files with editmode enabled works, but for undo we like
+	   to stay in object mode during undo presses so keep editmode disabled */
+	if(fd->memfile)
+		ob->mode &= ~(OB_MODE_EDIT|OB_MODE_PARTICLE_EDIT);
 	
 	ob->disp.first=ob->disp.last= NULL;
 	
@@ -4284,8 +4301,12 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->plugin= newdataadr(fd, seq->plugin);
 			seq->effectdata= newdataadr(fd, seq->effectdata);
 			
-			if (seq->type & SEQ_EFFECT) {
+			if(seq->type & SEQ_EFFECT)
 				seq->flag |= SEQ_EFFECT_NOT_LOADED;
+
+			if(seq->type == SEQ_SPEED) {
+				SpeedControlVars *s= seq->effectdata;
+				s->frameMap= NULL;
 			}
 
 			seq->strip= newdataadr(fd, seq->strip);
@@ -5159,7 +5180,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if(sl->spacetype==SPACE_CONSOLE) {
 				SpaceConsole *sconsole= (SpaceConsole *)sl;
-				//ConsoleLine *cl;
+				ConsoleLine *cl, *cl_next;
 				
 				link_list(fd, &sconsole->scrollback);
 				link_list(fd, &sconsole->history);
@@ -5167,9 +5188,17 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				//for(cl= sconsole->scrollback.first; cl; cl= cl->next)
 				//	cl->line= newdataadr(fd, cl->line);
 				
-				//for(cl= sconsole->history.first; cl; cl= cl->next)
-				//	cl->line= newdataadr(fd, cl->line);
-				
+				/*comma expressions, (e.g. expr1, expr2, expr3) evalutate each expression,
+				  from left to right.  the right-most expression sets the result of the comma
+				  expression as a whole*/
+				for(cl= sconsole->history.first; cl; cl= cl_next) {
+					cl_next= cl->next;
+					cl->line= newdataadr(fd, cl->line);
+					if (cl->line == NULL) {
+						BLI_remlink(&sconsole->history, cl);
+						MEM_freeN(cl);
+					}
+				}
 			}
 			else if(sl->spacetype==SPACE_FILE) {
 				SpaceFile *sfile= (SpaceFile *)sl;
@@ -6445,6 +6474,30 @@ static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
 	}
 }
 
+static void do_version_mdef_250(FileData *fd, Library *lib, Main *main)
+{
+	Object *ob;
+	ModifierData *md;
+	MeshDeformModifierData *mmd;
+
+	for(ob= main->object.first; ob; ob=ob->id.next) {
+		for(md=ob->modifiers.first; md; md=md->next) {
+			if(md->type == eModifierType_MeshDeform) {
+				mmd= (MeshDeformModifierData*)md;
+
+				if(mmd->bindcos) {
+					/* make bindcos NULL in order to trick older versions
+					   into thinking that the mesh was not bound yet */
+					mmd->bindcagecos= mmd->bindcos;
+					mmd->bindcos= NULL;
+
+					modifier_mdef_compact_influences(md);
+				}
+			}
+		}
+	}
+}
+
 static void do_version_constraints_radians_degrees_250(ListBase *lb)
 {
 	bConstraint *con;
@@ -6490,6 +6543,21 @@ static void do_version_old_trackto_to_constraints(Object *ob)
 	
 	/* clear old track setting */
 	ob->track = NULL;
+}
+
+static void do_versions_seq_unique_name_all_strips(
+	Scene * sce, ListBase *seqbasep)
+{
+	Sequence * seq = seqbasep->first;
+
+	while(seq) {
+		seqbase_unique_name_recursive(&sce->ed->seqbase, seq);
+		if (seq->seqbase.first) {
+			do_versions_seq_unique_name_all_strips(
+				sce, &seq->seqbase);
+		}
+		seq=seq->next;
+	}
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -10161,22 +10229,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		{
 			Scene *sce= main->scene.first;
 			while(sce) {
-				Sequence *seq;
-				
 				if(sce->r.frame_step==0)
 					sce->r.frame_step= 1;
 				if (sce->r.mblur_samples==0)
 					sce->r.mblur_samples = sce->r.osa;
 				
-				if(sce->ed && sce->ed->seqbasep)
-				{
-					seq=sce->ed->seqbasep->first;
-					while(seq) {
-						seqbase_unique_name_recursive(&sce->ed->seqbase, seq);
-						seq=seq->next;
-					}
+				if (sce->ed && sce->ed->seqbase.first) {
+					do_versions_seq_unique_name_all_strips(
+						sce, &sce->ed->seqbase);
 				}
-				
+			
 				sce= sce->id.next;
 			}
 		}
@@ -10774,7 +10836,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
-		
+		do_version_mdef_250(fd, lib, main);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -12097,7 +12159,10 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(scene) {
-		if(idcode==ID_GR) {
+		if(idcode==ID_SCE) {
+			/* dont instance anything when linking in scenes, assume the scene its self instances the data */
+		}
+		else if(idcode==ID_GR) {
 			if (flag & FILE_LINK) {
 				give_base_to_objects(mainvar, scene, NULL, 0);
 			} else {
@@ -12200,6 +12265,30 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					BKE_reportf(basefd->reports, RPT_INFO, "read library:  '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
 
 					fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
+					
+					/* allow typing in a new lib path */
+					if(G.rt==-666) {
+						while(fd==NULL) {
+							char newlib_path[240] = { 0 };
+							printf("Missing library...'\n");
+							printf("	current file: %s\n", G.sce);
+							printf("	absolute lib: %s\n", mainptr->curlib->filename);
+							printf("	relative lib: %s\n", mainptr->curlib->name);
+							printf("  enter a new path:\n");
+
+							if(scanf("%s", newlib_path) > 0) {
+								strcpy(mainptr->curlib->name, newlib_path);
+								strcpy(mainptr->curlib->filename, newlib_path);
+								cleanup_path(G.sce, mainptr->curlib->filename);
+								
+								fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
+
+								if(fd) {
+									printf("found: '%s', party on macuno!\n", mainptr->curlib->filename);
+								}
+							}
+						}
+					}
 
 					if (fd) {
 						fd->reports= basefd->reports;
@@ -12236,7 +12325,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
-									printf("LIB ERROR: can't find %s\n", id->name);
+									printf("LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 								}
 								
@@ -12272,9 +12361,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				ID *idn= id->next;
 				if(id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
-
-					printf("LIB ERROR: can't find %s\n", id->name);
-					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
+					printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
+					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);

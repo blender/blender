@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-
 def act_strip(context):
     try:
         return context.scene.sequence_editor.active_strip
@@ -50,10 +49,10 @@ class SEQUENCER_HT_header(bpy.types.Header):
                 sub.menu("SEQUENCER_MT_add")
                 sub.menu("SEQUENCER_MT_strip")
 
-        layout.prop(st, "view_type", text="")
+        layout.prop(st, "view_type", expand=True, text="")
 
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
-            layout.prop(st, "display_mode", text="")
+            layout.prop(st, "display_mode", expand=True, text="")
 
         if (st.view_type == 'SEQUENCER'):
             row = layout.row(align=True)
@@ -217,6 +216,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
         layout.operator("sequencer.effect_strip_add", text="Transform").type = 'TRANSFORM'
         layout.operator("sequencer.effect_strip_add", text="Color").type = 'COLOR'
         layout.operator("sequencer.effect_strip_add", text="Speed Control").type = 'SPEED'
+        layout.operator("sequencer.effect_strip_add", text="Multicam Selector").type = 'MULTICAM'
 
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
@@ -402,7 +402,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         return strip.type in ('ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
-                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
+                              'MULTICAM')
 
     def draw(self, context):
         layout = self.layout
@@ -445,6 +446,21 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 
         elif strip.type == 'TRANSFORM':
             self.draw_panel_transform(strip)
+            
+        elif strip.type == "MULTICAM":
+            layout.prop(strip, "multicam_source")
+
+            row = layout.row(align=True)
+            sub = row.row()
+            sub.scale_x = 2.0
+            if not context.screen.animation_playing:
+                sub.operator("screen.animation_play", text="", icon='PLAY')
+            else:
+                sub.operator("screen.animation_play", text="", icon='PAUSE')
+
+            row.label("Cut To")
+            for i in range(1, strip.channel):
+                row.operator("sequencer.cut_multicam", text=str(i)).camera = i
 
 
         col = layout.column(align=True)
@@ -497,7 +513,12 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE')
+        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META',
+                              'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+                              'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+                              'PLUGIN',
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+                              'MULTICAM','SPEED')
 
     def draw_filename(self, context):
         pass
@@ -590,6 +611,21 @@ class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
             col = split.column()
             col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
 
+class SEQUENCER_PT_input_secondary(SEQUENCER_PT_input):
+    bl_label = "Strip Input"
+
+    def poll(self, context):
+        if not self.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
+        return strip.type in ('SCENE', 'META')
+
+    def draw_filename(self, context):
+        pass
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel):
     bl_label = "Sound"
@@ -660,7 +696,12 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META')
+        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META',
+                              'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+                              'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+                              'PLUGIN',
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+                              'MULTICAM', 'SPEED')
 
     def draw(self, context):
         layout = self.layout
@@ -670,6 +711,14 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
         col = layout.column()
         col.label(text="Video:")
         col.prop(strip, "strobe")
+
+        row = layout.row()
+        row.label(text="Flip:")
+        row.prop(strip, "flip_x", text="X")
+        row.prop(strip, "flip_y", text="Y")
+
+        col = layout.column()
+        col.prop(strip, "reverse_frames", text="Backwards")
         col.prop(strip, "de_interlace")
 
         col = layout.column()
@@ -677,12 +726,6 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
         col.prop(strip, "multiply_colors", text="Multiply")
         col.prop(strip, "premultiply")
         col.prop(strip, "convert_float")
-
-        col = layout.column()
-        col.label(text="Flip:")
-        col.prop(strip, "flip_x", text="X")
-        col.prop(strip, "flip_y", text="Y")
-        col.prop(strip, "reverse_frames", text="Backwards")
 
         layout.prop(strip, "use_color_balance")
         if strip.color_balance: # TODO - need to add this somehow
@@ -713,7 +756,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META')
+        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META', 'MULTICAM')
 
     def draw_header(self, context):
         strip = act_strip(context)
@@ -766,6 +809,7 @@ classes = [
     SEQUENCER_PT_effect,
     SEQUENCER_PT_input_movie,
     SEQUENCER_PT_input_image,
+    SEQUENCER_PT_input_secondary,
     SEQUENCER_PT_sound,
     SEQUENCER_PT_scene,
     SEQUENCER_PT_filter,

@@ -190,6 +190,9 @@ void TEXT_OT_new(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= new_exec;
 	ot->poll= text_new_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
 }
 
 /******************* open operator *********************/
@@ -288,6 +291,9 @@ void TEXT_OT_open(wmOperatorType *ot)
 	ot->cancel= open_cancel;
 	ot->poll= text_new_poll;
 
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
+	
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE);
 	RNA_def_boolean(ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
@@ -369,6 +375,9 @@ void TEXT_OT_unlink(wmOperatorType *ot)
 	ot->exec= unlink_exec;
 	ot->invoke= WM_operator_confirm;
 	ot->poll= text_edit_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
 }
 
 /******************* make internal operator *********************/
@@ -400,6 +409,9 @@ void TEXT_OT_make_internal(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= make_internal_exec;
 	ot->poll= text_edit_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
 }
 
 /******************* save operator *********************/
@@ -749,7 +761,7 @@ void TEXT_OT_paste(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= paste_exec;
 	ot->poll= text_edit_poll;
-
+	
 	/* properties */
 	RNA_def_boolean(ot->srna, "selection", 0, "Selection", "Paste text selected elsewhere rather than copied, X11 only.");
 }

@@ -75,7 +75,7 @@ Brush *add_brush(const char *name)
 	brush->rgb[2]= 1.0f;
 	brush->alpha= 0.2f;
 	brush->size= 25;
-	brush->spacing= 7.5f;
+	brush->spacing= 3.5f;
 	brush->smooth_stroke_radius= 75;
 	brush->smooth_stroke_factor= 0.9;
 	brush->rate= 0.1f;
@@ -930,7 +930,7 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 				co[2]= 0.0f;
 				
 				/* This is copied from displace modifier code */
-				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 1, &texres);
+				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres);
 			
 				/* if the texture gave an RGB value, we assume it didn't give a valid
 				 * intensity, so calculate one (formula from do_material_tex).

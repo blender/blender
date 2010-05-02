@@ -75,6 +75,12 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+/* Undo stuff */
+typedef struct {
+	ListBase nubase;
+	void *lastsel;
+} UndoCurve;
+
 void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatus);
 static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short selstatus);
 
@@ -324,7 +330,7 @@ void make_editNurb(Object *obedit)
 			editnurb= cu->editnurb= MEM_callocN(sizeof(ListBase), "editnurb");
 		
 		nu= cu->nurb.first;
-		cu->lastselbp= NULL;   /* for select row */
+		cu->lastsel= NULL;   /* for select row */
 		
 		while(nu) {
 			newnu= duplicateNurb(nu);
@@ -388,6 +394,8 @@ void CU_select_swap(Object *obedit)
 		BPoint *bp;
 		BezTriple *bezt;
 		int a;
+
+		cu->lastsel= NULL;
 
 		for(nu= editnurb->first; nu; nu= nu->next) {
 			if(nu->type == CU_BEZIER) {
@@ -602,9 +610,9 @@ static void translateflagNurb(ListBase *editnurb, short flag, float *vec)
 			a= nu->pntsu;
 			bezt= nu->bezt;
 			while(a--) {
-				if(bezt->f1 & flag) add_v3_v3v3(bezt->vec[0], bezt->vec[0], vec);
-				if(bezt->f2 & flag) add_v3_v3v3(bezt->vec[1], bezt->vec[1], vec);
-				if(bezt->f3 & flag) add_v3_v3v3(bezt->vec[2], bezt->vec[2], vec);
+				if(bezt->f1 & flag) add_v3_v3(bezt->vec[0], vec);
+				if(bezt->f2 & flag) add_v3_v3(bezt->vec[1], vec);
+				if(bezt->f3 & flag) add_v3_v3(bezt->vec[2], vec);
 				bezt++;
 			}
 		}
@@ -612,7 +620,7 @@ static void translateflagNurb(ListBase *editnurb, short flag, float *vec)
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
 			while(a--) {
-				if(bp->f1 & flag) add_v3_v3v3(bp->vec, bp->vec, vec);
+				if(bp->f1 & flag) add_v3_v3(bp->vec, vec);
 				bp++;
 			}
 		}
@@ -654,7 +662,7 @@ static int deleteflagNurb(bContext *C, wmOperator *op, int flag)
 	if(obedit && obedit->type==OB_SURF);
 	else return OPERATOR_CANCELLED;
 
-	cu->lastselbp= NULL;
+	cu->lastsel= NULL;
 
 	nu= editnurb->first;
 	while(nu) {
@@ -887,8 +895,11 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 	Nurb *nu, *newnu;
 	BezTriple *bezt, *bezt1;
 	BPoint *bp, *bp1;
+	Curve *cu= (Curve*)obedit->data;
 	int a, b, starta, enda, newu, newv;
 	char *usel;
+
+	cu->lastsel= NULL;
 
 	nu= editnurb->last;
 	while(nu) {
@@ -1499,11 +1510,15 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
+	Curve *cu;
 	int a;
 	short sel;
-	
+
 	if(obedit==0) return;
-	
+
+	cu= (Curve*)obedit->data;
+	cu->lastsel= NULL;
+
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		sel= 0;
 		if(nu->type == CU_BEZIER) {
@@ -1818,6 +1833,8 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 	BPoint *bp;
 	BezTriple *bezt;
 	int a;
+
+	cu->lastsel= NULL;
 
 	for(nu= editnurb->first; nu; nu= nu->next) {
 		if(nu->type == CU_BEZIER) {
@@ -2759,7 +2776,7 @@ static void make_selection_list_nurb(ListBase *editnurb)
 			bp= nu->bp;
 			a= nu->pntsu;
 			while(a--) {
-				add_v3_v3v3(nus->vec, nus->vec, bp->vec);
+				add_v3_v3(nus->vec, bp->vec);
 				bp++;
 			}
 			mul_v3_fl(nus->vec, 1.0/(float)nu->pntsu);
@@ -3183,12 +3200,18 @@ int mouse_nurb(bContext *C, short mval[2], int extend)
 
 			if(bezt) {
 
-				if(hand==1) select_beztriple(bezt, SELECT, 1, HIDDEN);
-				else if(hand==0) bezt->f1|= SELECT;
-				else bezt->f3|= SELECT;
+				if(hand==1) {
+					select_beztriple(bezt, SELECT, 1, HIDDEN);
+					cu->lastsel= bezt;
+				} else {
+					if(hand==0) bezt->f1|= SELECT;
+					else bezt->f3|= SELECT;
+
+					cu->lastsel= NULL;
+				}
 			}
 			else {
-				cu->lastselbp= bp;
+				cu->lastsel= bp;
 				select_bpoint(bp, SELECT, 1, HIDDEN);
 			}
 
@@ -3196,8 +3219,13 @@ int mouse_nurb(bContext *C, short mval[2], int extend)
 		else {
 			if(bezt) {
 				if(hand==1) {
-					if(bezt->f2 & SELECT) select_beztriple(bezt, DESELECT, 1, HIDDEN);
-					else select_beztriple(bezt, SELECT, 1, HIDDEN);
+					if(bezt->f2 & SELECT) {
+						select_beztriple(bezt, DESELECT, 1, HIDDEN);
+						if (bezt == cu->lastsel) cu->lastsel = NULL;
+					} else {
+						select_beztriple(bezt, SELECT, 1, HIDDEN);
+						cu->lastsel= bezt;
+					}
 				} else if(hand==0) {
 					bezt->f1 ^= SELECT;
 				} else {
@@ -3205,10 +3233,12 @@ int mouse_nurb(bContext *C, short mval[2], int extend)
 				}
 			}
 			else {
-				if(bp->f1 & SELECT) select_bpoint(bp, DESELECT, 1, HIDDEN);
-				else {
+				if(bp->f1 & SELECT) {
+					select_bpoint(bp, DESELECT, 1, HIDDEN);
+					if (cu->lastsel == bp) cu->lastsel = NULL;
+				} else {
 					select_bpoint(bp, SELECT, 1, HIDDEN);
-					cu->lastselbp= bp;
+					cu->lastsel= bp;
 				}
 			}
 
@@ -3423,13 +3453,13 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			nu->pntsu++;
 			
 			if(mode=='e') {
-				VECCOPY(newbezt->vec[0], bezt->vec[0]);
-				VECCOPY(newbezt->vec[1], bezt->vec[1]);
-				VECCOPY(newbezt->vec[2], bezt->vec[2]);
+				copy_v3_v3(newbezt->vec[0], bezt->vec[0]);
+				copy_v3_v3(newbezt->vec[1], bezt->vec[1]);
+				copy_v3_v3(newbezt->vec[2], bezt->vec[2]);
 			}
 			else {
-				VECCOPY(newbezt->vec[1], location);
-				sub_v3_v3v3(newbezt->vec[1],newbezt->vec[1], obedit->obmat[3]);
+				copy_v3_v3(newbezt->vec[1], location);
+				sub_v3_v3(newbezt->vec[1], obedit->obmat[3]);
 				mul_m3_v3(imat,newbezt->vec[1]);
 				sub_v3_v3v3(temp, newbezt->vec[1],temp);
 				add_v3_v3v3(newbezt->vec[0], bezt->vec[0],temp);
@@ -3471,11 +3501,11 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			makeknots(nu, 1);
 			
 			if(mode=='e') {
-				VECCOPY(newbp->vec, bp->vec);
+				copy_v3_v3(newbp->vec, bp->vec);
 			}
 			else {
-				VECCOPY(newbp->vec, location);
-				sub_v3_v3v3(newbp->vec, newbp->vec, obedit->obmat[3]);
+				copy_v3_v3(newbp->vec, location);
+				sub_v3_v3(newbp->vec, obedit->obmat[3]);
 				mul_m3_v3(imat,newbp->vec);
 				newbp->vec[3]= 1.0;
 			}
@@ -3813,7 +3843,7 @@ static int select_row_exec(bContext *C, wmOperator *op)
 
 	if(editnurb->first==0)
 		return OPERATOR_CANCELLED;
-	if(cu->lastselbp==NULL)
+	if(cu->lastsel==NULL)
 		return OPERATOR_CANCELLED;
 
 	/* find the correct nurb and toggle with u of v */
@@ -3821,7 +3851,7 @@ static int select_row_exec(bContext *C, wmOperator *op)
 		bp= nu->bp;
 		for(v=0; v<nu->pntsv; v++) {
 			for(u=0; u<nu->pntsu; u++, bp++) {
-				if(bp==cu->lastselbp) {
+				if(bp==cu->lastsel) {
 					if(bp->f1 & SELECT) {
 						ok= 1;
 						break;
@@ -3832,11 +3862,11 @@ static int select_row_exec(bContext *C, wmOperator *op)
 		}
 
 		if(ok) {
-			if(last==cu->lastselbp) {
+			if(last==cu->lastsel) {
 				direction= 1-direction;
 				setflagsNurb(editnurb, 0);
 			}
-			last= cu->lastselbp;
+			last= cu->lastsel;
 
 			bp= nu->bp;
 			for(a=0; a<nu->pntsv; a++) {
@@ -5190,49 +5220,87 @@ void CURVE_OT_tilt_clear(wmOperatorType *ot)
 
 /****************** undo for curves ****************/
 
-static void undoCurve_to_editCurve(void *lbu, void *lbe)
+static void *undo_check_lastsel(void *lastsel, Nurb *nu, Nurb *newnu)
 {
-	ListBase *lb= lbu;
-	ListBase *editnurb= lbe;
-	Nurb *nu, *newnu;
-	
-	freeNurblist(editnurb);
-
-	/* copy  */
-	for(nu= lb->first; nu; nu= nu->next) {
-		newnu= duplicateNurb(nu);
-		BLI_addtail(editnurb, newnu);
+	if (nu->bezt) {
+		BezTriple *lastbezt= (BezTriple*)lastsel;
+		if (lastbezt >= nu->bezt && lastbezt < nu->bezt + nu->pntsu) {
+			return newnu->bezt + (lastbezt - nu->bezt);
+		}
+	} else {
+		BPoint *lastbp= (BPoint*)lastsel;
+		if (lastbp >= nu->bp && lastbp < nu->bp + nu->pntsu*nu->pntsv) {
+			return newnu->bp + (lastbp - nu->bp);
+		}
 	}
+
+	return NULL;
 }
 
-static void *editCurve_to_undoCurve(void *lbe)
+static void undoCurve_to_editCurve(void *ucu, void *cue)
 {
-	ListBase *editnurb= lbe;
-	ListBase *lb;
+	Curve *cu= cue;
+	UndoCurve *undoCurve= ucu;
+	ListBase *undobase= &undoCurve->nubase;
+	ListBase *editbase= cu->editnurb;
 	Nurb *nu, *newnu;
+	void *lastsel= NULL;
 
-	lb= MEM_callocN(sizeof(ListBase), "listbase undo");
-	
+	freeNurblist(editbase);
+
 	/* copy  */
-	for(nu= editnurb->first; nu; nu= nu->next) {
+	for(nu= undobase->first; nu; nu= nu->next) {
 		newnu= duplicateNurb(nu);
-		BLI_addtail(lb, newnu);
+
+		if (lastsel == NULL) {
+			lastsel= undo_check_lastsel(undoCurve->lastsel, nu, newnu);
+		}
+
+		BLI_addtail(editbase, newnu);
 	}
-	return lb;
+
+	cu->lastsel= lastsel;
 }
 
-static void free_undoCurve(void *lbv)
+static void *editCurve_to_undoCurve(void *cue)
 {
-	ListBase *lb= lbv;
-	
-	freeNurblist(lb);
-	MEM_freeN(lb);
+	Curve *cu= cue;
+	ListBase *nubase= cu->editnurb;
+	UndoCurve *undoCurve;
+	Nurb *nu, *newnu;
+	void *lastsel= NULL;
+
+	undoCurve= MEM_callocN(sizeof(UndoCurve), "undoCurve");
+
+	/* copy  */
+	for(nu= nubase->first; nu; nu= nu->next) {
+		newnu= duplicateNurb(nu);
+
+		if (lastsel == NULL) {
+			lastsel= undo_check_lastsel(cu->lastsel, nu, newnu);
+		}
+
+		BLI_addtail(&undoCurve->nubase, newnu);
+	}
+
+	undoCurve->lastsel= lastsel;
+
+	return undoCurve;
+}
+
+static void free_undoCurve(void *ucv)
+{
+	UndoCurve *undoCurve= ucv;
+
+	freeNurblist(&undoCurve->nubase);
+
+	MEM_freeN(undoCurve);
 }
 
 static void *get_data(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	return curve_get_editcurve(obedit);
+	return obedit->data;
 }
 
 /* and this is all the undo system needs to know */

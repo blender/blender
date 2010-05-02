@@ -79,11 +79,11 @@
 //static Sequence *_last_seq=0;
 //static int _last_seq_init=0;
 /* XXX */
-static void error() {}
+static void error(const char *dummy) {}
 static void waitcursor(int val) {}
-static void activate_fileselect() {}
-static int pupmenu() {return 0;}
-static int okee() {return 0;}
+static void activate_fileselect(int d1, char *d2, char *d3, void *d4) {}
+static int pupmenu(const char *dummy) {return 0;}
+static int okee(const char *dummy) {return 0;}
 
 
 /* XXX */
@@ -103,6 +103,7 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 	{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
 	{SEQ_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
 	{SEQ_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
+	{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -2538,9 +2539,9 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 	if(seq) {
 		
 		/* disallow effect strips */
-		if ((seq->type!=SEQ_COLOR) && (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
+		if (get_sequence_effect_num_inputs(seq->type) >= 1 && (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
 			return OPERATOR_CANCELLED;
-		if ((active_seq->type!=SEQ_COLOR) && (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
+		if ((get_sequence_effect_num_inputs(active_seq->type) >= 1) && (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
 			return OPERATOR_CANCELLED;
 
 		switch (side) {

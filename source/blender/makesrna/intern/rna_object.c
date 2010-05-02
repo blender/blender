@@ -1703,8 +1703,8 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "empty_draw_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "empty_drawsize");
-	RNA_def_property_range(prop, 0.1f, 1000.0f);
-	RNA_def_property_ui_range(prop, 0.01, 100, 1, 1);
+	RNA_def_property_range(prop, 0.0001f, 1000.0f);
+	RNA_def_property_ui_range(prop, 0.01, 100, 1, 2);
 	RNA_def_property_ui_text(prop, "Empty Display Size", "Size of display for empties in the viewport");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
@@ -1845,6 +1845,10 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "duplilist", NULL);
 	RNA_def_property_struct_type(prop, "DupliObject");
 	RNA_def_property_ui_text(prop, "Dupli list", "Object duplis");
+
+	prop= RNA_def_property(srna, "duplis_used", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLI);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	/* time offset */
 	prop= RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE|PROP_UNIT_TIME);

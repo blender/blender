@@ -34,7 +34,7 @@
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 
-#define Object DNA_Object  // tricky stuff !!! but without it it doesn't compile...
+#define Object DNA_Object  // tricky stuff !!! but without it, it doesn't compile...
 
 #include "GPC_Engine.h"
 

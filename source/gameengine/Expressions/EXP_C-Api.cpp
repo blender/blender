@@ -33,10 +33,6 @@
 #include "ErrorValue.h"
 #include "InputParser.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 EXP_ValueHandle EXP_CreateInt(int innie)
 {
 	return (EXP_ValueHandle) new CIntValue(innie);

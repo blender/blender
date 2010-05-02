@@ -20,6 +20,7 @@
 
 import bpy
 
+from bpy.props import *
 
 class SequencerCrossfadeSounds(bpy.types.Operator):
     '''Do crossfading volume animation of two selected sound strips.'''
@@ -71,12 +72,52 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
             return {'CANCELLED'}
 
 
+class SequencerCutMulticam(bpy.types.Operator):
+    '''Cut multicam strip and select camera.'''
+
+    bl_idname = "sequencer.cut_multicam"
+    bl_label = "Cut multicam"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    camera = IntProperty(name="Camera",
+            default=1, min=1, max=32, soft_min=1, soft_max=32)
+
+    def poll(self, context):
+        if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
+            return context.scene.sequence_editor.active_strip.type == 'MULTICAM'
+        else:
+            return False
+
+    def execute(self, context):
+        camera = self.properties.camera
+
+        s = context.scene.sequence_editor.active_strip
+
+        if not s.selected:
+            s.selected = True
+            
+        cfra = context.scene.frame_current
+        bpy.ops.sequencer.cut(frame=cfra,type='HARD',side='RIGHT')
+        for s in context.scene.sequence_editor.sequences:
+            if s.selected and s.type == 'MULTICAM' and s.frame_final_start <= cfra and cfra < s.frame_final_end:
+                context.scene.sequence_editor.active_strip = s
+                
+        context.scene.sequence_editor.active_strip.multicam_source = camera
+        return {'FINISHED'}
+
+
 def register():
-    bpy.types.register(SequencerCrossfadeSounds)
+    register = bpy.types.register
+    
+    register(SequencerCrossfadeSounds)
+    register(SequencerCutMulticam)
 
 
 def unregister():
-    bpy.types.unregister(SequencerCrossfadeSounds)
+    unregister = bpy.types.unregister
+    
+    unregister(SequencerCrossfadeSounds)
+    unregister(SequencerCutMulticam)
 
 if __name__ == "__main__":
     register()

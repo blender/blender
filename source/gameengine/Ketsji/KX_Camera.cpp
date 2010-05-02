@@ -34,10 +34,6 @@
 #include "KX_PythonInit.h"
 #include "KX_Python.h"
 #include "KX_PyMath.h"
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_Camera::KX_Camera(void* sgReplicationInfo,
 					 SG_Callbacks callbacks,
 					 const RAS_CameraData& camdata,

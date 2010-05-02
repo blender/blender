@@ -813,15 +813,15 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	uiStyleFontSet(fstyle);
 	
 	if (fstyle->kerning==1)	/* for BLF_width */
-		BLF_enable(BLF_KERNING_DEFAULT);
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 
-	but->strwidth= BLF_width(but->drawstr);
+	but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr);
 	but->ofs= 0;
 	
 	while(but->strwidth > okwidth ) {
 		
 		but->ofs++;
-		but->strwidth= BLF_width(but->drawstr+but->ofs);
+		but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 		
 		/* textbut exception */
 		if(but->editstr && but->pos != -1) {
@@ -842,7 +842,7 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	}
 	
 	if (fstyle->kerning==1)
-		BLF_disable(BLF_KERNING_DEFAULT);
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 }
 
 static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
@@ -856,9 +856,9 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	uiStyleFontSet(fstyle);
 	
 	if (fstyle->kerning==1)	/* for BLF_width */
-		BLF_enable(BLF_KERNING_DEFAULT);
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
-	but->strwidth= BLF_width(but->drawstr);
+	but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr);
 	but->ofs= 0;
 	
 	/* find the space after ':' separator */
@@ -873,7 +873,7 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 			memmove(cp2-1, cp2, strlen(cp2)+1);
 			cp2--;
 			
-			but->strwidth= BLF_width(but->drawstr+but->ofs);
+			but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 			if(but->strwidth < 10) break;
 		}
 	
@@ -882,7 +882,7 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		while ((but->strwidth > okwidth) && (but->ofs < 2))
 		{
 			but->ofs++;
-			but->strwidth= BLF_width(but->drawstr+but->ofs);
+			but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 			if(but->strwidth < 10) break;
 		}
 		
@@ -895,12 +895,12 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		but->drawstr[ pos-1 ] = 0;
 		pos--;
 		
-		but->strwidth= BLF_width(but->drawstr+but->ofs);
+		but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 		if(but->strwidth < 10) break;
 	}
 	
 	if (fstyle->kerning==1)
-		BLF_disable(BLF_KERNING_DEFAULT);
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 }
 
 
@@ -917,7 +917,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		fstyle->align= UI_STYLE_TEXT_CENTER;			
 	
 	if (fstyle->kerning==1)	/* for BLF_width */
-		BLF_enable(BLF_KERNING_DEFAULT);
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
 	/* text button selection and cursor */
 	if(but->editstr && but->pos != -1) {
@@ -935,7 +935,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 					ch= but->drawstr[selsta_tmp];
 					but->drawstr[selsta_tmp]= 0;
 					
-					selsta_draw = BLF_width(but->drawstr+but->ofs);
+					selsta_draw = BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 					
 					but->drawstr[selsta_tmp]= ch;
 				} else
@@ -944,7 +944,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 				ch= but->drawstr[selend_tmp];
 				but->drawstr[selend_tmp]= 0;
 				
-				selwidth_draw = BLF_width(but->drawstr+but->ofs);
+				selwidth_draw = BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 				
 				but->drawstr[selend_tmp]= ch;
 
@@ -959,7 +959,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 					ch= but->drawstr[pos];
 					but->drawstr[pos]= 0;
 					
-					t= BLF_width(but->drawstr+but->ofs) / but->aspect;
+					t= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs) / but->aspect;
 					
 					but->drawstr[pos]= ch;
 				}
@@ -971,7 +971,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	}
 	
 	if (fstyle->kerning == 1)
-		BLF_disable(BLF_KERNING_DEFAULT);
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
 	//	ui_rasterpos_safe(x, y, but->aspect);
 //	if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
@@ -2839,7 +2839,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, 
 	cpoin= strchr(name, '|');
 	if(cpoin) {
 		*cpoin= 0;
-		rect->xmax -= BLF_width(cpoin+1) + 10;
+		rect->xmax -= BLF_width(fstyle->uifont_id, cpoin+1) + 10;
 	}
 	
 	glColor3ubv((unsigned char*)wt->wcol.text);
@@ -2882,8 +2882,8 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconi
 		glColor3ubv((unsigned char*)wt->wcol.text_sel);
 	
 	trect.xmin += 0;
-	trect.xmax = trect.xmin + BLF_width(name) + 10;
+	trect.xmax = trect.xmin + BLF_width(fstyle->uifont_id, name) + 10;
 	trect.ymin += 10;
-	trect.ymax = trect.ymin + BLF_height(name);
+	trect.ymax = trect.ymin + BLF_height(fstyle->uifont_id, name);
 	uiStyleFontDraw(fstyle, &trect, name);
 }

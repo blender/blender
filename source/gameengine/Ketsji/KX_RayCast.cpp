@@ -86,7 +86,7 @@ bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_
 			break;
 		}
 		
-		// The biggest danger to to endless loop, prevent this by checking that the
+		// The biggest danger to endless loop, prevent this by checking that the
 		// hit point always progresses along the ray direction..
 		prevpoint -= callback.m_hitPoint;
 		if (prevpoint.length2() < MT_EPSILON)

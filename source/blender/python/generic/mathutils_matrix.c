@@ -37,60 +37,60 @@ static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* 
 /* matrix vector callbacks */
 int mathutils_matrix_vector_cb_index= -1;
 
-static int mathutils_matrix_vector_check(PyObject *self_p)
+static int mathutils_matrix_vector_check(BaseMathObject *bmo)
 {
-	MatrixObject *self= (MatrixObject*)self_p;
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 	return BaseMath_ReadCallback(self);
 }
 
-static int mathutils_matrix_vector_get(PyObject *self_p, int subtype, float *vec_from)
+static int mathutils_matrix_vector_get(BaseMathObject *bmo, int subtype)
 {
-	MatrixObject *self= (MatrixObject*)self_p;
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 	int i;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
-	for(i=0; i<self->colSize; i++)
-		vec_from[i]= self->matrix[subtype][i];
+	for(i=0; i < self->colSize; i++)
+		bmo->data[i]= self->matrix[subtype][i];
 
 	return 1;
 }
 
-static int mathutils_matrix_vector_set(PyObject *self_p, int subtype, float *vec_to)
+static int mathutils_matrix_vector_set(BaseMathObject *bmo, int subtype)
 {
-	MatrixObject *self= (MatrixObject*)self_p;
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 	int i;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
-	for(i=0; i<self->colSize; i++)
-		self->matrix[subtype][i]= vec_to[i];
+	for(i=0; i < self->colSize; i++)
+		self->matrix[subtype][i]= bmo->data[i];
 
 	BaseMath_WriteCallback(self);
 	return 1;
 }
 
-static int mathutils_matrix_vector_get_index(PyObject *self_p, int subtype, float *vec_from, int index)
+static int mathutils_matrix_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
-	MatrixObject *self= (MatrixObject*)self_p;
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
-	vec_from[index]= self->matrix[subtype][index];
+	bmo->data[index]= self->matrix[subtype][index];
 	return 1;
 }
 
-static int mathutils_matrix_vector_set_index(PyObject *self_p, int subtype, float *vec_to, int index)
+static int mathutils_matrix_vector_set_index(BaseMathObject *bmo, int subtype, int index)
 {
-	MatrixObject *self= (MatrixObject*)self_p;
+	MatrixObject *self= (MatrixObject *)bmo->cb_user;
 
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
-	self->matrix[subtype][index]= vec_to[index];
+	self->matrix[subtype][index]= bmo->data[index];
 
 	BaseMath_WriteCallback(self);
 	return 1;
@@ -245,7 +245,7 @@ static char Matrix_toEuler_doc[] =
 PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 {
 	char *order_str= NULL;
-	short order= 0;
+	short order= EULER_ORDER_XYZ;
 	float eul[3], eul_compatf[3];
 	EulerObject *eul_compat = NULL;
 
@@ -262,7 +262,7 @@ PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 		if(!BaseMath_ReadCallback(eul_compat))
 			return NULL;
 
-		VECCOPY(eul_compatf, eul_compat->eul);
+		copy_v3_v3(eul_compatf, eul_compat->eul);
 	}
 	
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
@@ -279,16 +279,16 @@ PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 	if(order_str) {
 		order= euler_order_from_string(order_str, "Matrix.to_euler()");
 
-		if(order < 0)
+		if(order == -1)
 			return NULL;
 	}
 
 	if(eul_compat) {
-		if(order == 0)	mat3_to_compatible_eul( eul, eul_compatf, mat);
+		if(order == 1)	mat3_to_compatible_eul( eul, eul_compatf, mat);
 		else			mat3_to_compatible_eulO(eul, eul_compatf, order, mat);
 	}
 	else {
-		if(order == 0)	mat3_to_eul(eul, mat);
+		if(order == 1)	mat3_to_eul(eul, mat);
 		else			mat3_to_eulO(eul, order, mat);
 	}
 
@@ -723,27 +723,25 @@ PyObject *Matrix_copy(MatrixObject * self)
 static PyObject *Matrix_repr(MatrixObject * self)
 {
 	int x, y;
-	char buffer[48], str[1024];
+	char str[1024]="Matrix((", *str_p;
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
-	
-	BLI_strncpy(str,"",1024);
+
+	str_p= &str[8];
+
 	for(x = 0; x < self->colSize; x++){
-		sprintf(buffer, "[");
-		strcat(str,buffer);
 		for(y = 0; y < (self->rowSize - 1); y++) {
-			sprintf(buffer, "%.6f, ", self->matrix[y][x]);
-			strcat(str,buffer);
+			str_p += sprintf(str_p, "%f, ", self->matrix[y][x]);
 		}
 		if(x < (self->colSize-1)){
-			sprintf(buffer, "%.6f](matrix [row %d])\n", self->matrix[y][x], x);
-			strcat(str,buffer);
-		}else{
-			sprintf(buffer, "%.6f](matrix [row %d])", self->matrix[y][x], x);
-			strcat(str,buffer);
+			str_p += sprintf(str_p, "%f), (", self->matrix[y][x]);
+		}
+		else{
+			str_p += sprintf(str_p, "%f)", self->matrix[y][x]);
 		}
 	}
+	strcat(str_p, ")");
 
 	return PyUnicode_FromString(str);
 }

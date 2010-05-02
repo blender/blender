@@ -92,8 +92,6 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 {
 	struct ImBuf *ibuf = 0;
 	int use_float = 0; /* for precision higher then 8 use float */
-	unsigned char *rect= NULL;
-	float *rect_float= NULL;
 	
 	long signed_offsets[4] = {0,0,0,0};
 	int float_divs[4];
@@ -159,7 +157,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 		return NULL;
 	}
 	
-	w = image->comps[0].w;	    
+	w = image->comps[0].w;
 	h = image->comps[0].h;
 	
 	switch (image->numcomps) {
@@ -189,13 +187,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 		float_divs[i]= (1<<image->comps[i].prec)-1;
 	}
 	
-	if (use_float) {
-		ibuf= IMB_allocImBuf(w, h, depth, IB_rectfloat, 0);
-		rect_float = ibuf->rect_float;
-	} else {
-		ibuf= IMB_allocImBuf(w, h, depth, IB_rect, 0);
-		rect = (unsigned char *) ibuf->rect;
-	}
+	ibuf= IMB_allocImBuf(w, h, depth, use_float ? IB_rectfloat : IB_rect, 0);
 	
 	if (ibuf==NULL) {
 		if(dinfo)
@@ -206,8 +198,8 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 	ibuf->ftype = JP2;
 	
 	if (use_float) {
-		rect_float = ibuf->rect_float;
-		
+		float *rect_float= ibuf->rect_float;
+
 		if (image->numcomps < 3) {
 			/* greyscale 12bits+ */
 			for (i = 0; i < w * h; i++, rect_float+=4) {
@@ -237,13 +229,14 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 		}
 		
 	} else {
-		
+		unsigned char *rect= (unsigned char *)ibuf->rect;
+
 		if (image->numcomps < 3) {
 			/* greyscale */
 			for (i = 0; i < w * h; i++, rect+=4) {
 				index = w * h - ((i) / (w) + 1) * w + (i) % (w);
 				
-				rect_float[0]= rect_float[1]= rect_float[2]= (image->comps[0].data[index] + signed_offsets[0]);
+				rect[0]= rect[1]= rect[2]= (image->comps[0].data[index] + signed_offsets[0]);
 				
 				if (image->numcomps == 2)
 					rect[3]= image->comps[1].data[index] + signed_offsets[1];

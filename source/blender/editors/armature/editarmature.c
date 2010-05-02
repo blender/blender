@@ -88,7 +88,6 @@
 #endif
 
 /* ************* XXX *************** */
-static int okee() {return 0;}
 static void BIF_undo_push(const char *msg) {}
 /* ************* XXX *************** */
 
@@ -140,7 +139,7 @@ static void bone_free(bArmature *arm, EditBone *bone)
 	BLI_freelinkN(arm->edbo, bone);
 }
 
-void ED_armature_edit_bone_remove(bArmature *arm, EditBone* exBone)
+void ED_armature_edit_bone_remove(bArmature *arm, EditBone *exBone)
 {
 	EditBone *curBone;
 
@@ -457,8 +456,8 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 	
 	/* Do the adjustments */
 	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
-		sub_v3_v3v3(ebone->head, ebone->head, cent);
-		sub_v3_v3v3(ebone->tail, ebone->tail, cent);
+		sub_v3_v3(ebone->head, cent);
+		sub_v3_v3(ebone->tail, cent);
 	}
 	
 	/* Turn the list into an armature */
@@ -469,9 +468,7 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 		copy_m3_m4(omat, ob->obmat);
 		
 		mul_m3_v3(omat, cent);
-		ob->loc[0] += cent[0];
-		ob->loc[1] += cent[1];
-		ob->loc[2] += cent[2];
+		add_v3_v3(ob->loc, cent);
 	}
 	else 
 		ED_armature_edit_free(ob);
@@ -479,9 +476,10 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 
 /* ---------------------- */
 
-static EditBone *editbone_name_exists (ListBase *edbo, char *name)
+/* checks if an EditBone with a matching name already, returning the matching bone if it exists */
+static EditBone *editbone_name_exists (ListBase *edbo, const char *name)
 {
-	EditBone	*eBone;
+	EditBone *eBone;
 	
 	for (eBone=edbo->first; eBone; eBone=eBone->next) {
 		if (!strcmp(name, eBone->name))
@@ -494,9 +492,9 @@ static EditBone *editbone_name_exists (ListBase *edbo, char *name)
 void unique_editbone_name (ListBase *edbo, char *name, EditBone *bone)
 {
 	EditBone *dupli;
-	char		tempname[64];
-	int			number;
-	char		*dot;
+	char	tempname[64];
+	int		number;
+	char	*dot;
 
 	dupli = editbone_name_exists(edbo, name);
 	
@@ -1927,10 +1925,6 @@ void ED_armature_deselectall(Object *obedit, int toggle, int doundo)
 	}
 	
 	ED_armature_sync_selection(arm->edbo);
-	if (doundo) {
-		if (sel==1) BIF_undo_push("Select All");
-		else BIF_undo_push("Deselect All");
-	}
 }
 
 
@@ -2033,15 +2027,6 @@ void ED_armature_edit_free(struct Object *ob)
 		MEM_freeN(arm->edbo);
 		arm->edbo= NULL;
 	}
-}
-
-void ED_armature_edit_remake(Object *obedit)
-{
-	if(okee("Reload original data")==0) return;
-	
-	ED_armature_to_edit(obedit);
-	
-//	BIF_undo_push("Delete bone");
 }
 
 /* Put armature in EditMode */
@@ -3839,7 +3824,7 @@ static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBo
 		VECCOPY(selbone->head, actbone->tail);
 		selbone->rad_head= actbone->rad_tail;
 		
-		add_v3_v3v3(selbone->tail, selbone->tail, offset);
+		add_v3_v3(selbone->tail, offset);
 		
 		/* offset for all its children */
 		for (ebone = edbo->first; ebone; ebone=ebone->next) {
@@ -3847,8 +3832,8 @@ static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBo
 			
 			for (par= ebone->parent; par; par= par->parent) {
 				if (par==selbone) {
-					add_v3_v3v3(ebone->head, ebone->head, offset);
-					add_v3_v3v3(ebone->tail, ebone->tail, offset);
+					add_v3_v3(ebone->head, offset);
+					add_v3_v3(ebone->tail, offset);
 					break;
 				}
 			}
@@ -4218,8 +4203,8 @@ static void fix_connected_bone(EditBone *ebone)
 	
 	/* if the parent has moved we translate child's head and tail accordingly*/
 	sub_v3_v3v3(diff, ebone->parent->tail, ebone->head);
-	add_v3_v3v3(ebone->head, ebone->head, diff);
-	add_v3_v3v3(ebone->tail, ebone->tail, diff);
+	add_v3_v3(ebone->head, diff);
+	add_v3_v3(ebone->tail, diff);
 	return;
 }
 
@@ -5601,8 +5586,8 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
 	{
 		BLI_strncpy(newname, ebone->name, sizeof(newname));
-		bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]);
-		ED_armature_bone_rename(arm, ebone->name, newname);
+		if(bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]))
+			ED_armature_bone_rename(arm, ebone->name, newname);
 	}
 	CTX_DATA_END;
 	

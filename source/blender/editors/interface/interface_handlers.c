@@ -777,6 +777,8 @@ static void ui_apply_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data)
 			break;
 	}
 	if(bt && bt!=but) {
+		if (!ELEM(bt->type, LINK, INLINK) || !ELEM(but->type, LINK, INLINK))
+			return;
 		
 		if(but->type==LINK) ui_add_link(but, bt);
 		else ui_add_link(bt, but);
@@ -962,7 +964,7 @@ static void ui_but_drop(bContext *C, wmEvent *event, uiBut *but, uiHandleButtonD
 			if(ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 				ID *id= (ID *)wmd->poin;
 				
-				if(but->poin==NULL && but->rnapoin.data==NULL);
+				if(but->poin==NULL && but->rnapoin.data==NULL) {}
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				BLI_strncpy(data->str, id->name+2, data->maxlen);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -1004,7 +1006,11 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		
 		if(but->poin==NULL && but->rnapoin.data==NULL);
 		else if(mode=='c') {
-			sprintf(buf, "%f", ui_get_but_val(but));
+			if(ui_is_but_float(but))
+				sprintf(buf, "%f", ui_get_but_val(but));
+			else
+				sprintf(buf, "%d", (int)ui_get_but_val(but));
+
 			WM_clipboard_text_set(buf, 0);
 		}
 		else {
@@ -1150,6 +1156,7 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 	return change;
 }
 
+/* note, but->block->aspect is used here, when drawing button style is getting scaled too */
 static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
 {
 	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
@@ -1160,7 +1167,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	uiStyleFontSet(fstyle);
 
 	if (fstyle->kerning==1)	/* for BLF_width */
-		BLF_enable(BLF_KERNING_DEFAULT);
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
 	origstr= MEM_callocN(sizeof(char)*data->maxlen, "ui_textedit origstr");
 	
@@ -1183,17 +1190,19 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		
 		while (i > 0) {
 			i--;
-			if (BLF_width(origstr+i) > (startx - x)*0.25) break;	// 0.25 == scale factor for less sensitivity
+			if (BLF_width(fstyle->uifont_id, origstr+i) > (startx - x)*0.25) break;	// 0.25 == scale factor for less sensitivity
 		}
 		but->ofs = i;
 		but->pos = but->ofs;
 	}
 	/* mouse inside the widget */
 	else if (x >= startx) {
+		float aspect= sqrt(but->block->aspect);
+		
 		but->pos= strlen(origstr)-but->ofs;
 		
 		/* XXX does not take zoom level into account */
-		while (startx + BLF_width(origstr+but->ofs) > x) {
+		while (aspect*startx + aspect*BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
 			if (but->pos <= 0) break;
 			but->pos--;
 			origstr[but->pos+but->ofs] = 0;
@@ -1203,7 +1212,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	}
 	
 	if (fstyle->kerning == 1)
-		BLF_disable(BLF_KERNING_DEFAULT);
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
 	MEM_freeN(origstr);
 }
@@ -1751,7 +1760,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		if(event->ascii && (retval == WM_UI_HANDLER_CONTINUE)) {
 			changed= ui_textedit_type_ascii(but, data, event->ascii);
 			retval= WM_UI_HANDLER_BREAK;
+			
 		}
+		/* textbutton with magnifier icon: do live update for search button */
+		if(but->icon==ICON_VIEWZOOM)
+			update= 1;
 	}
 
 	if(changed) {
@@ -2937,6 +2950,8 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 		if (color_profile)
 			hsv[2] = srgb_to_linearrgb(hsv[2]);
 		
+		if (hsv[2] > but->softmax)
+			hsv[2] = but->softmax;
 	}
 
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);

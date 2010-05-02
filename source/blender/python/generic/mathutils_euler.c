@@ -35,52 +35,32 @@
 #include "BLO_sys_types.h"
 #endif
 
+#define EULER_SIZE 3
+
 //----------------------------------mathutils.Euler() -------------------
 //makes a new euler for you to play with
 static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwargs)
 {
-	PyObject *listObject = NULL;
-	int size, i;
-	float eul[3];
-	PyObject *e;
-	short order= 0;  // TODO, add order option
+	PyObject *seq= NULL;
+	char *order_str= NULL;
 
-	size = PyTuple_GET_SIZE(args);
-	if (size == 1) {
-		listObject = PyTuple_GET_ITEM(args, 0);
-		if (PySequence_Check(listObject)) {
-			size = PySequence_Length(listObject);
-		} else { // Single argument was not a sequence
-			PyErr_SetString(PyExc_TypeError, "mathutils.Euler(): 3d numeric sequence expected\n");
-			return NULL;
-		}
-	} else if (size == 0) {
-		//returns a new empty 3d euler
-		return newEulerObject(NULL, order, Py_NEW, NULL);
-	} else {
-		listObject = args;
-	}
+	float eul[EULER_SIZE]= {0.0f, 0.0f, 0.0f};
+	short order= EULER_ORDER_XYZ;
 
-	if (size != 3) { // Invalid euler size
-		PyErr_SetString(PyExc_AttributeError, "mathutils.Euler(): 3d numeric sequence expected\n");
+	if(!PyArg_ParseTuple(args, "|Os:mathutils.Euler", &seq, &order_str))
 		return NULL;
-	}
 
-	for (i=0; i<size; i++) {
-		e = PySequence_GetItem(listObject, i);
-		if (e == NULL) { // Failed to read sequence
-			Py_DECREF(listObject);
-			PyErr_SetString(PyExc_RuntimeError, "mathutils.Euler(): 3d numeric sequence expected\n");
+	switch(PyTuple_GET_SIZE(args)) {
+	case 0:
+		break;
+	case 2:
+		if((order=euler_order_from_string(order_str, "mathutils.Euler()")) == -1)
 			return NULL;
-		}
-
-		eul[i]= (float)PyFloat_AsDouble(e);
-		Py_DECREF(e);
-		
-		if(eul[i]==-1 && PyErr_Occurred()) { // parsed item is not a number
-			PyErr_SetString(PyExc_TypeError, "mathutils.Euler(): 3d numeric sequence expected\n");
+		/* intentionally pass through */
+	case 1:
+		if (mathutils_array_parse(eul, EULER_SIZE, EULER_SIZE, seq, "mathutils.Euler()") == -1)
 			return NULL;
-		}
+		break;
 	}
 	return newEulerObject(eul, order, Py_NEW, NULL);
 }
@@ -89,12 +69,12 @@ short euler_order_from_string(const char *str, const char *error_prefix)
 {
 	if((str[0] && str[1] && str[2] && str[3]=='\0')) {
 		switch(*((int32_t *)str)) {
-			case 'X'|'Y'<<8|'Z'<<16:	return 0;
-			case 'X'|'Z'<<8|'Y'<<16:	return 1;
-			case 'Y'|'X'<<8|'Z'<<16:	return 2;
-			case 'Y'|'Z'<<8|'X'<<16:	return 3;
-			case 'Z'|'X'<<8|'Y'<<16:	return 4;
-			case 'Z'|'Y'<<8|'X'<<16:	return 5;
+			case 'X'|'Y'<<8|'Z'<<16:	return EULER_ORDER_XYZ;
+			case 'X'|'Z'<<8|'Y'<<16:	return EULER_ORDER_XZY;
+			case 'Y'|'X'<<8|'Z'<<16:	return EULER_ORDER_YXZ;
+			case 'Y'|'Z'<<8|'X'<<16:	return EULER_ORDER_YZX;
+			case 'Z'|'X'<<8|'Y'<<16:	return EULER_ORDER_ZXY;
+			case 'Z'|'Y'<<8|'X'<<16:	return EULER_ORDER_ZYX;
 		}
 	}
 
@@ -102,8 +82,29 @@ short euler_order_from_string(const char *str, const char *error_prefix)
 	return -1;
 }
 
+/* note: BaseMath_ReadCallback must be called beforehand */
+static PyObject *Euler_ToTupleExt(EulerObject *self, int ndigits)
+{
+	PyObject *ret;
+	int i;
+
+	ret= PyTuple_New(EULER_SIZE);
+
+	if(ndigits >= 0) {
+		for(i= 0; i < EULER_SIZE; i++) {
+			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->eul[i], ndigits)));
+		}
+	}
+	else {
+		for(i= 0; i < EULER_SIZE; i++) {
+			PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(self->eul[i]));
+		}
+	}
+
+	return ret;
+}
+
 //-----------------------------METHODS----------------------------
-//----------------------------Euler.toQuat()----------------------
 //return a quaternion representation of the euler
 
 static char Euler_ToQuat_doc[] =
@@ -121,12 +122,12 @@ static PyObject *Euler_ToQuat(EulerObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->order==0)	eul_to_quat(quat, self->eul);
-	else				eulO_to_quat(quat, self->eul, self->order);
+	if(self->order==EULER_ORDER_XYZ)	eul_to_quat(quat, self->eul);
+	else								eulO_to_quat(quat, self->eul, self->order);
 
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
-//----------------------------Euler.toMatrix()---------------------
+
 //return a matrix representation of the euler
 static char Euler_ToMatrix_doc[] =
 ".. method:: to_matrix()\n"
@@ -143,12 +144,12 @@ static PyObject *Euler_ToMatrix(EulerObject * self)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->order==0)	eul_to_mat3((float (*)[3])mat, self->eul);
-	else				eulO_to_mat3((float (*)[3])mat, self->eul, self->order);
+	if(self->order==EULER_ORDER_XYZ)	eul_to_mat3((float (*)[3])mat, self->eul);
+	else								eulO_to_mat3((float (*)[3])mat, self->eul, self->order);
 
 	return newMatrixObject(mat, 3, 3 , Py_NEW, NULL);
 }
-//----------------------------Euler.unique()-----------------------
+
 //sets the x,y,z values to a unique euler rotation
 // TODO, check if this works with rotation order!!!
 static char Euler_Unique_doc[] =
@@ -207,7 +208,7 @@ static PyObject *Euler_Unique(EulerObject * self)
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
-//----------------------------Euler.zero()-------------------------
+
 //sets the euler to 0,0,0
 static char Euler_Zero_doc[] =
 ".. method:: zero()\n"
@@ -227,28 +228,38 @@ static PyObject *Euler_Zero(EulerObject * self)
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
-//----------------------------Euler.rotate()-----------------------
-//rotates a euler a certain amount and returns the result
-//should return a unique euler rotation (i.e. no 720 degree pitches :)
+
+static char Euler_Rotate_doc[] =
+".. method:: rotate(angle, axis)\n"
+"\n"
+"   Rotates the euler a certain amount and returning a unique euler rotation (no 720 degree pitches).\n"
+"\n"
+"   :arg angle: angle in radians.\n"
+"   :type angle: float\n"
+"   :arg axis: single character in ['X, 'Y', 'Z'].\n"
+"   :type axis: string\n"
+"   :return: an instance of itself\n"
+"   :rtype: :class:`Euler`";
+
 static PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 {
 	float angle = 0.0f;
 	char *axis;
 
-	if(!PyArg_ParseTuple(args, "fs", &angle, &axis)){
-		PyErr_SetString(PyExc_TypeError, "euler.rotate():expected angle (float) and axis (x,y,z)");
+	if(!PyArg_ParseTuple(args, "fs:rotate", &angle, &axis)){
+		PyErr_SetString(PyExc_TypeError, "euler.rotate(): expected angle (float) and axis (x,y,z)");
 		return NULL;
 	}
-	if(ELEM3(*axis, 'x', 'y', 'z') && axis[1]=='\0'){
-		PyErr_SetString(PyExc_TypeError, "euler.rotate(): expected axis to be 'x', 'y' or 'z'");
+	if(ELEM3(*axis, 'X', 'Y', 'Z') && axis[1]=='\0'){
+		PyErr_SetString(PyExc_TypeError, "euler.rotate(): expected axis to be 'X', 'Y' or 'Z'");
 		return NULL;
 	}
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	if(self->order == 0)	rotate_eul(self->eul, *axis, angle);
-	else					rotate_eulO(self->eul, self->order, *axis, angle);
+	if(self->order == EULER_ORDER_XYZ)	rotate_eul(self->eul, *axis, angle);
+	else								rotate_eulO(self->eul, self->order, *axis, angle);
 
 	BaseMath_WriteCallback(self);
 	Py_INCREF(self);
@@ -312,16 +323,22 @@ static PyObject *Euler_copy(EulerObject * self, PyObject *args)
 
 //----------------------------print object (internal)--------------
 //print the object to screen
+
 static PyObject *Euler_repr(EulerObject * self)
 {
-	char str[64];
-
+	PyObject *ret, *tuple;
+	
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	sprintf(str, "[%.6f, %.6f, %.6f](euler)", self->eul[0], self->eul[1], self->eul[2]);
-	return PyUnicode_FromString(str);
+	tuple= Euler_ToTupleExt(self, -1);
+
+	ret= PyUnicode_FromFormat("Euler(%R)", tuple);
+
+	Py_DECREF(tuple);
+	return ret;
 }
+
 //------------------------tp_richcmpr
 //returns -1 execption, 0 false, 1 true
 static PyObject* Euler_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
@@ -352,10 +369,10 @@ static PyObject* Euler_richcmpr(PyObject *objectA, PyObject *objectB, int compar
 
 	switch (comparison_type){
 		case Py_EQ:
-			result = EXPP_VectorsAreEqual(eulA->eul, eulB->eul, 3, 1);
+			result = EXPP_VectorsAreEqual(eulA->eul, eulB->eul, EULER_SIZE, 1);
 			break;
 		case Py_NE:
-			result = !EXPP_VectorsAreEqual(eulA->eul, eulB->eul, 3, 1);
+			result = !EXPP_VectorsAreEqual(eulA->eul, eulB->eul, EULER_SIZE, 1);
 			break;
 		default:
 			printf("The result of the comparison could not be evaluated");
@@ -373,15 +390,15 @@ static PyObject* Euler_richcmpr(PyObject *objectA, PyObject *objectB, int compar
 //sequence length
 static int Euler_len(EulerObject * self)
 {
-	return 3;
+	return EULER_SIZE;
 }
 //----------------------------object[]---------------------------
 //sequence accessor (get)
 static PyObject *Euler_item(EulerObject * self, int i)
 {
-	if(i<0) i= 3-i;
+	if(i<0) i= EULER_SIZE-i;
 	
-	if(i < 0 || i >= 3) {
+	if(i < 0 || i >= EULER_SIZE) {
 		PyErr_SetString(PyExc_IndexError, "euler[attribute]: array index out of range");
 		return NULL;
 	}
@@ -403,9 +420,9 @@ static int Euler_ass_item(EulerObject * self, int i, PyObject * value)
 		return -1;
 	}
 
-	if(i<0) i= 3-i;
+	if(i<0) i= EULER_SIZE-i;
 	
-	if(i < 0 || i >= 3){
+	if(i < 0 || i >= EULER_SIZE){
 		PyErr_SetString(PyExc_IndexError, "euler[attribute] = x: array assignment index out of range\n");
 		return -1;
 	}
@@ -427,9 +444,9 @@ static PyObject *Euler_slice(EulerObject * self, int begin, int end)
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	CLAMP(begin, 0, 3);
-	if (end<0) end= 4+end;
-	CLAMP(end, 0, 3);
+	CLAMP(begin, 0, EULER_SIZE);
+	if (end<0) end= (EULER_SIZE + 1) + end;
+	CLAMP(end, 0, EULER_SIZE);
 	begin = MIN2(begin,end);
 
 	list = PyList_New(end - begin);
@@ -442,61 +459,117 @@ static PyObject *Euler_slice(EulerObject * self, int begin, int end)
 }
 //----------------------------object[z:y]------------------------
 //sequence slice (set)
-static int Euler_ass_slice(EulerObject * self, int begin, int end,
-				 PyObject * seq)
+static int Euler_ass_slice(EulerObject * self, int begin, int end, PyObject * seq)
 {
-	int i, y, size = 0;
-	float eul[3];
-	PyObject *e;
+	int i, size;
+	float eul[EULER_SIZE];
 
 	if(!BaseMath_ReadCallback(self))
 		return -1;
 
-	CLAMP(begin, 0, 3);
-	if (end<0) end= 4+end;
-	CLAMP(end, 0, 3);
+	CLAMP(begin, 0, EULER_SIZE);
+	if (end<0) end= (EULER_SIZE + 1) + end;
+	CLAMP(end, 0, EULER_SIZE);
 	begin = MIN2(begin,end);
 
-	size = PySequence_Length(seq);
+	if((size=mathutils_array_parse(eul, 0, EULER_SIZE, seq, "mathutils.Euler[begin:end] = []")) == -1)
+		return -1;
+
 	if(size != (end - begin)){
 		PyErr_SetString(PyExc_TypeError, "euler[begin:end] = []: size mismatch in slice assignment");
 		return -1;
 	}
 
-	for (i = 0; i < size; i++) {
-		e = PySequence_GetItem(seq, i);
-		if (e == NULL) { // Failed to read sequence
-			PyErr_SetString(PyExc_RuntimeError, "euler[begin:end] = []: unable to read sequence");
-			return -1;
-		}
-
-		eul[i] = (float)PyFloat_AsDouble(e);
-		Py_DECREF(e);
-
-		if(eul[i]==-1 && PyErr_Occurred()) { // parsed item not a number
-			PyErr_SetString(PyExc_TypeError, "euler[begin:end] = []: sequence argument not a number");
-			return -1;
-		}
-	}
-	//parsed well - now set in vector
-	for(y = 0; y < 3; y++){
-		self->eul[begin + y] = eul[y];
-	}
+	for(i= 0; i < EULER_SIZE; i++)
+		self->eul[begin + i] = eul[i];
 
 	BaseMath_WriteCallback(self);
 	return 0;
 }
+
+static PyObject *Euler_subscript(EulerObject *self, PyObject *item)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i;
+		i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+		if (i < 0)
+			i += EULER_SIZE;
+		return Euler_item(self, i);
+	} else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, EULER_SIZE, &start, &stop, &step, &slicelength) < 0)
+			return NULL;
+
+		if (slicelength <= 0) {
+			return PyList_New(0);
+		}
+		else if (step == 1) {
+			return Euler_slice(self, start, stop);
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with eulers");
+			return NULL;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+				 "euler indices must be integers, not %.200s",
+				 item->ob_type->tp_name);
+		return NULL;
+	}
+}
+
+
+static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *value)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return -1;
+		if (i < 0)
+			i += EULER_SIZE;
+		return Euler_ass_item(self, i, value);
+	}
+	else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, EULER_SIZE, &start, &stop, &step, &slicelength) < 0)
+			return -1;
+
+		if (step == 1)
+			return Euler_ass_slice(self, start, stop, value);
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with euler");
+			return -1;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+				 "euler indices must be integers, not %.200s",
+				 item->ob_type->tp_name);
+		return -1;
+	}
+}
+
 //-----------------PROTCOL DECLARATIONS--------------------------
 static PySequenceMethods Euler_SeqMethods = {
-	(lenfunc) Euler_len,						/* sq_length */
-	(binaryfunc) 0,								/* sq_concat */
-	(ssizeargfunc) 0,								/* sq_repeat */
-	(ssizeargfunc) Euler_item,					/* sq_item */
-	(ssizessizeargfunc) Euler_slice,				/* sq_slice */
-	(ssizeobjargproc) Euler_ass_item,				/* sq_ass_item */
-	(ssizessizeobjargproc) Euler_ass_slice,			/* sq_ass_slice */
+	(lenfunc) Euler_len,					/* sq_length */
+	(binaryfunc) 0,							/* sq_concat */
+	(ssizeargfunc) 0,						/* sq_repeat */
+	(ssizeargfunc) Euler_item,				/* sq_item */
+	(ssizessizeargfunc) NULL,				/* sq_slice, deprecated  */
+	(ssizeobjargproc) Euler_ass_item,		/* sq_ass_item */
+	(ssizessizeobjargproc) NULL,			/* sq_ass_slice, deprecated */
 };
 
+static PyMappingMethods Euler_AsMapping = {
+	(lenfunc)Euler_len,
+	(binaryfunc)Euler_subscript,
+	(objobjargproc)Euler_ass_subscript
+};
 
 /*
  * euler axis, euler.x/y/z
@@ -514,8 +587,12 @@ static int Euler_setAxis( EulerObject * self, PyObject * value, void * type )
 /* rotation order */
 static PyObject *Euler_getOrder(EulerObject *self, void *type)
 {
-	static char order[][4] = {"XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};
-	return PyUnicode_FromString(order[self->order]);
+	const char order[][4] = {"XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};
+
+	if(!BaseMath_ReadCallback(self)) /* can read order too */
+		return NULL;
+
+	return PyUnicode_FromString(order[self->order-EULER_ORDER_XYZ]);
 }
 
 static int Euler_setOrder( EulerObject * self, PyObject * value, void * type )
@@ -523,15 +600,11 @@ static int Euler_setOrder( EulerObject * self, PyObject * value, void * type )
 	char *order_str= _PyUnicode_AsString(value);
 	short order= euler_order_from_string(order_str, "euler.order");
 
-	if(order < 0)
+	if(order == -1)
 		return -1;
-
-	if(self->cb_user) {
-		PyErr_SetString(PyExc_TypeError, "euler.order: assignment is not allowed on eulers with an owner");
-		return -1;
-	}
 
 	self->order= order;
+	BaseMath_WriteCallback(self); /* order can be written back */
 	return 0;
 }
 
@@ -556,7 +629,7 @@ static struct PyMethodDef Euler_methods[] = {
 	{"unique", (PyCFunction) Euler_Unique, METH_NOARGS, Euler_Unique_doc},
 	{"to_matrix", (PyCFunction) Euler_ToMatrix, METH_NOARGS, Euler_ToMatrix_doc},
 	{"to_quat", (PyCFunction) Euler_ToQuat, METH_NOARGS, Euler_ToQuat_doc},
-	{"rotate", (PyCFunction) Euler_Rotate, METH_VARARGS, NULL},
+	{"rotate", (PyCFunction) Euler_Rotate, METH_VARARGS, Euler_Rotate_doc},
 	{"make_compatible", (PyCFunction) Euler_MakeCompatible, METH_O, Euler_MakeCompatible_doc},
 	{"__copy__", (PyCFunction) Euler_copy, METH_VARARGS, Euler_copy_doc},
 	{"copy", (PyCFunction) Euler_copy, METH_VARARGS, Euler_copy_doc},
@@ -580,7 +653,7 @@ PyTypeObject euler_Type = {
 	(reprfunc) Euler_repr,			//tp_repr
 	0,				//tp_as_number
 	&Euler_SeqMethods,				//tp_as_sequence
-	0,								//tp_as_mapping
+	&Euler_AsMapping,				//tp_as_mapping
 	0,								//tp_hash
 	0,								//tp_call
 	0,								//tp_str
@@ -624,7 +697,6 @@ PyTypeObject euler_Type = {
 PyObject *newEulerObject(float *eul, short order, int type, PyTypeObject *base_type)
 {
 	EulerObject *self;
-	int x;
 
 	if(base_type)	self = (EulerObject *)base_type->tp_alloc(base_type, 0);
 	else			self = PyObject_NEW(EulerObject, &euler_Type);
@@ -633,20 +705,20 @@ PyObject *newEulerObject(float *eul, short order, int type, PyTypeObject *base_t
 	self->cb_user= NULL;
 	self->cb_type= self->cb_subtype= 0;
 
-	if(type == Py_WRAP){
+	if(type == Py_WRAP) {
 		self->eul = eul;
 		self->wrapped = Py_WRAP;
-	}else if (type == Py_NEW){
-		self->eul = PyMem_Malloc(3 * sizeof(float));
-		if(!eul) { //new empty
-			for(x = 0; x < 3; x++) {
-				self->eul[x] = 0.0f;
-			}
-		}else{
-			VECCOPY(self->eul, eul);
-		}
+	}
+	else if (type == Py_NEW){
+		self->eul = PyMem_Malloc(EULER_SIZE * sizeof(float));
+		if(eul)
+			copy_v3_v3(self->eul, eul);
+		else
+			zero_v3(self->eul);
+
 		self->wrapped = Py_NEW;
-	}else{ //bad type
+	}
+	else{
 		return NULL;
 	}
 

@@ -30,10 +30,6 @@
 #include "BKE_animsys.h"
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 static int force_device = -1;
 
 #ifdef WITH_JACK
@@ -75,6 +71,11 @@ int sound_define_from_str(char *str)
 void sound_force_device(int device)
 {
 	force_device = device;
+}
+
+void sound_init_once()
+{
+	AUD_initOnce();
 }
 
 void sound_init(struct Main *bmain)

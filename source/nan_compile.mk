@@ -82,10 +82,10 @@ ifeq ($(OS),darwin)
         endif
     endif
     ifeq ($(CPU),powerpc)
-        CFLAGS  += -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing
-        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing
+        CFLAGS  += -pipe -fPIC -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing
+        CCFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing
     else
-        CFLAGS  += -pipe -fPIC -ffast-math -funsigned-char
+        CFLAGS  += -pipe -fPIC -funsigned-char
         CCFLAGS += -pipe -fPIC -funsigned-char
     endif
 
@@ -100,7 +100,7 @@ ifeq ($(OS),darwin)
         REL_CFLAGS += -O2
         REL_CCFLAGS += -O2
     endif
-    
+
     CPPFLAGS += -D_THREAD_SAFE -fpascal-strings
 
     ifeq ($(WITH_COCOA), true)
@@ -172,8 +172,8 @@ ifeq ($(OS),linux)
     CCC ?= g++
 #    CFLAGS += -pipe
 #    CCFLAGS += -pipe
-    CFLAGS  += -pipe -fPIC -funsigned-char -fno-strict-aliasing
-    CCFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    CFLAGS  += -pipe -fPIC -funsigned-char -fno-strict-aliasing -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+    CCFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
     REL_CFLAGS  += -O2
     REL_CCFLAGS += -O2
     NAN_DEPEND = true
@@ -212,7 +212,7 @@ ifeq ($(OS),solaris)
         #CC  ?= cc
         #CCC ?= CC
     endif
-    
+
     JAVAC = javac
     JAVAH = javah
     CFLAGS  += -pipe -fPIC -funsigned-char -fno-strict-aliasing

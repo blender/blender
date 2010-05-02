@@ -970,14 +970,13 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 		
 		if(link==NULL) {
 			nodeAddLink(snode->edittree, tonode, tonode->outputs.first, node, node->inputs.first);
-			ntreeSolveOrder(snode->edittree);
-			NodeTagChanged(snode->edittree, node);
 		}
-		else if(link) {
+		else {
 			link->fromnode= tonode;
 			link->fromsock= tonode->outputs.first;
-			NodeTagChanged(snode->edittree, node);
 		}
+		ntreeSolveOrder(snode->edittree);
+		NodeTagChanged(snode->edittree, node);
 	}
 }
 

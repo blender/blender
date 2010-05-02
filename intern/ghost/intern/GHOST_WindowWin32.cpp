@@ -34,10 +34,6 @@
  * @date	May 10, 2001
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <string.h>
 #include "GHOST_WindowWin32.h"
 #include "GHOST_SystemWin32.h"

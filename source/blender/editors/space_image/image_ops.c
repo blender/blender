@@ -103,12 +103,14 @@ static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac)
 	sima_zoom_set(sima, ar, sima->zoom*zoomfac);
 }
 
+#if 0 // currently unused
 static int image_poll(bContext *C)
 {
 	return (CTX_data_edit_image(C) != NULL);
 }
+#endif
 
-static int space_image_poll(bContext *C)
+static int space_image_buffer_exists_poll(bContext *C)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	if(sima && sima->spacetype==SPACE_IMAGE)
@@ -119,7 +121,7 @@ static int space_image_poll(bContext *C)
 
 static int space_image_file_exists_poll(bContext *C)
 {
-	if(space_image_poll(C)) {
+	if(space_image_buffer_exists_poll(C)) {
 		SpaceImage *sima= CTX_wm_space_image(C);
 		ImBuf *ibuf;
 		void *lock;
@@ -131,6 +133,14 @@ static int space_image_file_exists_poll(bContext *C)
 
 		return poll;
 	}
+	return 0;
+}
+
+static int space_image_poll(bContext *C)
+{
+	SpaceImage *sima= CTX_wm_space_image(C);
+	if(sima && sima->spacetype==SPACE_IMAGE && sima->image)
+		return 1;
 	return 0;
 }
 
@@ -813,6 +823,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 
 	if (ibuf) {
 		int relative= RNA_boolean_get(op->ptr, "relative_path");
+		int save_copy= (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
+
 		BLI_path_abs(path, G.sce);
 		
 		if(scene->r.scemode & R_EXTENSION)  {
@@ -835,13 +847,14 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 				if(relative)
 					BLI_path_rel(path, G.sce); /* only after saving */
 
-				BLI_strncpy(ima->name, path, sizeof(ima->name));
-				BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
-				
-				/* should be function? nevertheless, saving only happens here */
-				for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
-					ibuf->userflags &= ~IB_BITMAPDIRTY;
-				
+				if(!save_copy) {
+					BLI_strncpy(ima->name, path, sizeof(ima->name));
+					BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
+
+					/* should be function? nevertheless, saving only happens here */
+					for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
+						ibuf->userflags &= ~IB_BITMAPDIRTY;
+				}
 			}
 			else
 				BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
@@ -853,36 +866,39 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 			if(relative)
 				BLI_path_rel(path, G.sce); /* only after saving */
 
-			BLI_strncpy(ima->name, path, sizeof(ima->name));
-			BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
-			
-			ibuf->userflags &= ~IB_BITMAPDIRTY;
-			
-			/* change type? */
-			if(ima->type==IMA_TYPE_R_RESULT) {
-				ima->type= IMA_TYPE_IMAGE;
+			if(!save_copy) {
 
-				/* workaround to ensure the render result buffer is no longer used
-				 * by this image, otherwise can crash when a new render result is
-				 * created. */
-				if(ibuf->rect && !(ibuf->mall & IB_rect))
-					imb_freerectImBuf(ibuf);
-				if(ibuf->rect_float && !(ibuf->mall & IB_rectfloat))
-					imb_freerectfloatImBuf(ibuf);
-				if(ibuf->zbuf && !(ibuf->mall & IB_zbuf))
-					IMB_freezbufImBuf(ibuf);
-				if(ibuf->zbuf_float && !(ibuf->mall & IB_zbuffloat))
-					IMB_freezbuffloatImBuf(ibuf);
-			}
-			if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
-				ima->source= IMA_SRC_FILE;
-				ima->type= IMA_TYPE_IMAGE;
-			}
-			
-			name = BLI_last_slash(path);
+				BLI_strncpy(ima->name, path, sizeof(ima->name));
+				BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
 
-			/* name image as how we saved it */
-			rename_id(&ima->id, name ? name + 1 : path);
+				ibuf->userflags &= ~IB_BITMAPDIRTY;
+
+				/* change type? */
+				if(ima->type==IMA_TYPE_R_RESULT) {
+					ima->type= IMA_TYPE_IMAGE;
+
+					/* workaround to ensure the render result buffer is no longer used
+					 * by this image, otherwise can crash when a new render result is
+					 * created. */
+					if(ibuf->rect && !(ibuf->mall & IB_rect))
+						imb_freerectImBuf(ibuf);
+					if(ibuf->rect_float && !(ibuf->mall & IB_rectfloat))
+						imb_freerectfloatImBuf(ibuf);
+					if(ibuf->zbuf && !(ibuf->mall & IB_zbuf))
+						IMB_freezbufImBuf(ibuf);
+					if(ibuf->zbuf_float && !(ibuf->mall & IB_zbuffloat))
+						IMB_freezbuffloatImBuf(ibuf);
+				}
+				if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
+					ima->source= IMA_SRC_FILE;
+					ima->type= IMA_TYPE_IMAGE;
+				}
+
+				name = BLI_last_slash(path);
+
+				/* name image as how we saved it */
+				rename_id(&ima->id, name ? name + 1 : path);
+			}
 		} 
 		else
 			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", path);
@@ -971,7 +987,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= save_as_exec;
 	ot->invoke= save_as_invoke;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -981,6 +997,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE);
 
 	RNA_def_boolean(ot->srna, "relative_path", 0, "Relative Path", "Save image with relative path to current .blend file");
+	RNA_def_boolean(ot->srna, "copy", 0, "Copy", "Create a new image file without modifying the current image in blender");
 }
 
 /******************** save image operator ********************/
@@ -1113,7 +1130,7 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= save_sequence_exec;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1146,7 +1163,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= reload_exec;
-	ot->poll= image_poll;
+	ot->poll= space_image_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1305,7 +1322,7 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= pack_exec;
 	ot->invoke= pack_invoke;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1421,7 +1438,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= unpack_exec;
 	ot->invoke= unpack_invoke;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1911,7 +1928,7 @@ void IMAGE_OT_record_composite(wmOperatorType *ot)
 	ot->invoke= record_composite_invoke;
 	ot->modal= record_composite_modal;
 	ot->cancel= record_composite_cancel;
-	ot->poll= space_image_poll;
+	ot->poll= space_image_buffer_exists_poll;
 }
 
 /********************* cycle render slot operator *********************/

@@ -198,6 +198,9 @@ class AddPresetInteraction(AddPresetBase):
         "bpy.context.user_preferences.inputs.zoom_axis",
         "bpy.context.user_preferences.inputs.view_rotation",
         "bpy.context.user_preferences.inputs.invert_zoom_direction",
+        "bpy.context.user_preferences.inputs.emulate_numpad",
+        "bpy.context.user_preferences.inputs.emulate_3_button_mouse",
+        "bpy.context.user_preferences.inputs.continuous_mouse",
     ]
 
     preset_subdir = "interaction"

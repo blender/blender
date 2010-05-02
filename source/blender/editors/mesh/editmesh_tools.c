@@ -660,7 +660,7 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op, sh
 //			initTransform(TFM_TRANSLATION, CTX_NO_PET|CTX_NO_MIRROR);
 			if(transmode=='n') {
 				mul_m4_v3(obedit->obmat, nor);
-				sub_v3_v3v3(nor, nor, obedit->obmat[3]);
+				sub_v3_v3(nor, obedit->obmat[3]);
 //				BIF_setSingleAxisConstraint(nor, "along normal");
 			}
 //			Transform();
@@ -797,6 +797,7 @@ void MESH_OT_extrude(wmOperatorType *ot)
 
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", extrude_items, 0, "Type", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	RNA_def_enum_funcs(prop, extrude_itemf);
 	ot->prop= prop;
 }
@@ -1446,7 +1447,7 @@ static void alter_co(float *co, EditEdge *edge, float smooth, float fractal, int
 		vec1[0]= fac*(float)(0.5-BLI_drand());
 		vec1[1]= fac*(float)(0.5-BLI_drand());
 		vec1[2]= fac*(float)(0.5-BLI_drand());
-		add_v3_v3v3(co, co, vec1);
+		add_v3_v3(co, vec1);
 	}
 }
 
@@ -5161,7 +5162,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 
 					if(add) {
 						mul_v3_fl(co, blend);
-						add_v3_v3v3(eve->co, eve->co, co);
+						add_v3_v3(eve->co, co);
 					}
 					else
 						interp_v3_v3v3(eve->co, eve->co, co, blend);
@@ -5777,7 +5778,7 @@ static void em_snap_to_center(EditMesh *em)
 
 	for (eve=em->verts.first; eve; eve=eve->next) {
 		if (eve->f & SELECT) {
-			add_v3_v3v3(cent, cent, eve->co);
+			add_v3_v3(cent, eve->co);
 			i++;
 		}
 	}

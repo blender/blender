@@ -43,7 +43,6 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         split = layout.split(percentage=0.5)
-        split.operator_context = 'EXEC_DEFAULT'
 
         if md:
             # remove modifier + settings
