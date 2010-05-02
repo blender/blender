@@ -27,6 +27,7 @@ from netrender import master_html
 from netrender import utils
 from netrender import balancing
 from netrender import ui
+from netrender import repath
 
 jobs = []
 slaves = []

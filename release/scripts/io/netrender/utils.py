@@ -28,7 +28,7 @@ try:
 except:
   bpy = None
 
-VERSION = bytes("0.8", encoding='utf8')
+VERSION = bytes("0.9", encoding='utf8')
 
 # Jobs status
 JOB_WAITING = 0 # before all data has been entered
@@ -166,18 +166,21 @@ def hashData(data):
     return m.hexdigest()
     
 
-def prefixPath(prefix_directory, file_path, prefix_path):
+def prefixPath(prefix_directory, file_path, prefix_path, force = False):
     if os.path.isabs(file_path):
         # if an absolute path, make sure path exists, if it doesn't, use relative local path
         full_path = file_path
-        if not os.path.exists(full_path):
+        if force or not os.path.exists(full_path):
             p, n = os.path.split(full_path)
 
             if prefix_path and p.startswith(prefix_path):
-                directory = prefix_directory + p[len(prefix_path):]
-                full_path = directory + os.sep + n
-                if not os.path.exists(directory):
-                    os.mkdir(directory)
+                if len(prefix_path) < len(p):
+                    directory = prefix_directory + p[len(prefix_path)+1:] + os.sep # +1 to remove separator
+                    if not os.path.exists(directory):
+                        os.mkdir(directory)
+                else:
+                    directory = prefix_directory
+                full_path = directory + n
             else:
                 full_path = prefix_directory + n
     else:
