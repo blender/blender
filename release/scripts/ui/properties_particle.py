@@ -389,7 +389,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             row.prop(part, "physics_type", expand=True)
         else:
             row.prop(part, "physics_type", text="")
-            
+
         if part.physics_type != 'NO':
             row = layout.row()
             col = row.column(align=True)

@@ -303,7 +303,7 @@ class DATA_PT_texface(DataButtonsPanel):
         ob = context.active_object
         rd = context.scene.render
 
-        return (context.mode =='EDIT_MESH') and (rd.engine == 'BLENDER_GAME') and ob and ob.type == 'MESH'
+        return (context.mode == 'EDIT_MESH') and (rd.engine == 'BLENDER_GAME') and ob and ob.type == 'MESH'
 
     def draw(self, context):
         layout = self.layout

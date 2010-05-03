@@ -65,7 +65,7 @@ static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 		case ACT_VISIBILITY:
 			return &RNA_VisibilityActuator;
 		case ACT_2DFILTER:
-			return &RNA_TwoDFilterActuator;
+			return &RNA_Filter2DActuator;
 		case ACT_PARENT:
 			return &RNA_ParentActuator;
 		case ACT_SHAPEACTION:
@@ -969,7 +969,7 @@ static void rna_def_twodfilter_actuator(BlenderRNA *brna)
 //		{ACT_2DFILTER_NUMBER_OF_FILTERS, "", 0, "Do not use it. Sentinel", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "TwoDFilterActuator", "Actuator");
+	srna= RNA_def_struct(brna, "Filter2DActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "2D Filter Actuator", "Actuator to ..");
 	RNA_def_struct_sdna_from(srna, "bTwoDFilterActuator", "data");
 

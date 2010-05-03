@@ -49,12 +49,11 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
         layout.label(text=cache.info)
     else:
         layout.prop(cache, "name", text="File Name")
-        
+
         split = layout.split()
         col = split.column(align=True)
-        
+
         if not particles:
-            
             col.enabled = enabled
             col.prop(cache, "frame_start")
             col.prop(cache, "frame_end")
@@ -74,19 +73,18 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
             sub.prop(cache, "disk_cache")
             col.label(text=cache.info)
 
-        
 
         layout.separator()
-        
+
         split = layout.split()
-        
+
         col = split.column()
-        
+
         if cache.baked == True:
             col.operator("ptcache.free_bake", text="Free Bake")
         else:
             col.operator("ptcache.bake", text="Bake").bake = True
-        
+
         sub = col.row()
         sub.enabled = (cache.frames_skipped or cache.outdated) and enabled
         sub.operator("ptcache.bake", text="Calculate To Frame").bake = False
@@ -94,8 +92,8 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
         sub = col.column()
         sub.enabled = enabled
         sub.operator("ptcache.bake_from_cache", text="Current Cache to Bake")
-        
-        
+
+
         if wide_ui:
             col = split.column()
         col.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True

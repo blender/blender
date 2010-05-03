@@ -28,7 +28,7 @@ class EditExternally(bpy.types.Operator):
     bl_label = "Image Edit Externally"
     bl_options = {'REGISTER'}
 
-    path = StringProperty(name="File Path", description="Path to an image file", maxlen= 1024, default= "")
+    path = StringProperty(name="File Path", description="Path to an image file", maxlen=1024, default="")
 
     def _editor_guess(self, context):
         import platform
