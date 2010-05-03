@@ -709,7 +709,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "disk_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_DISK_CACHE);
-	RNA_def_property_ui_text(prop, "Disk Cache", "Save cache files to disk");
+	RNA_def_property_ui_text(prop, "Disk Cache", "Save cache files to disk (.blend file must be saved first)");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_toggle_disk_cache");
 
 	prop= RNA_def_property(srna, "outdated", PROP_BOOLEAN, PROP_NONE);

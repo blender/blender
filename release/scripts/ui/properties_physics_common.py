@@ -20,6 +20,7 @@
 
 narrowui = 180
 
+import bpy
 
 def point_cache_ui(self, context, cache, enabled, particles, smoke):
     layout = self.layout
@@ -67,7 +68,10 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
             sub = col.column()
             sub.enabled = enabled
             sub.prop(cache, "quick_cache")
-            col.prop(cache, "disk_cache")
+            
+            sub = col.column()
+            sub.enabled = bpy.data.file_is_saved
+            sub.prop(cache, "disk_cache")
             col.label(text=cache.info)
 
         
