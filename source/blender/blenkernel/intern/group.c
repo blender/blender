@@ -333,7 +333,7 @@ void group_handle_recalc_and_update(Scene *scene, Object *parent, Group *group)
 		
 		/* switch to local time */
 		cfrao= scene->r.cfra;
-		scene->r.cfra -= (int)give_timeoffset(parent);
+		scene->r.cfra -= (int)floor(give_timeoffset(parent) + 0.5f);
 		
 		/* we need a DAG per group... */
 		for(go= group->gobject.first; go; go= go->next) {
