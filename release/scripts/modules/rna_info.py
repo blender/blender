@@ -245,11 +245,18 @@ class InfoPropertyRNA:
             type_str += self.type
             if self.array_length:
                 type_str += " array of %d items" % (self.array_length)
-
+                
             if self.type in ("float", "int"):
                 type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))
             elif self.type == "enum":
                 type_str += " in [%s]" % ', '.join([("'%s'" % s) for s in self.enum_items])
+
+            if not (as_arg or as_ret):
+                # write default property, ignore function args for this
+                default_str = self.get_default_string()
+                if default_str:
+                    type_str += ", default %s" % default_str
+
         else:
             if self.type == "collection":
                 if self.collection_type:
@@ -261,17 +268,22 @@ class InfoPropertyRNA:
 
             type_str += collection_str + (class_fmt % self.fixed_type.identifier)
 
+        # setup qualifiers for this value.
+        type_info = []
         if as_ret:
             pass
         elif as_arg:
             if not self.is_required:
-                type_str += ", (optional)"
+                type_info.append("optional")
         else: # readonly is only useful for selfs, not args
             if self.is_readonly:
-                type_str += ", (readonly)"
+                type_info.append("readonly")
 
         if self.is_never_none:
-            type_str += ", (never None)"
+            type_info.append("never None")
+
+        if type_info:
+            type_str += (", (%s)" % ", ".join(type_info))
 
         return type_str
 

@@ -51,6 +51,7 @@ EXAMPLE_SET = set()
 EXAMPLE_SET_USED = set()
 
 _BPY_STRUCT_FAKE = "bpy_struct"
+_BPY_FULL_REBUILD = False
 
 def range_str(val):
     if val < -10000000:	return '-inf'
@@ -663,22 +664,56 @@ if __name__ == '__main__':
         import shutil
 
         path_in = 'source/blender/python/doc/sphinx-in'
-        path_out = 'source/blender/python/doc/sphinx-in'
+        path_out = 'source/blender/python/doc/sphinx-out'
         path_examples = 'source/blender/python/doc/examples'
+        # only for partial updates
+        path_in_tmp = path_in + "-tmp"
 
-        shutil.rmtree(path_in, True)
-        shutil.rmtree(path_out, True)
-        
         for f in os.listdir(path_examples):
             if f.endswith(".py"):
                 EXAMPLE_SET.add(os.path.splitext(f)[0])
-        
-        rna2sphinx(path_in)
 
-        # for fast module testing
-        # os.system("rm source/blender/python/doc/sphinx-in/bpy.types.*.rst")
-        # os.system("rm source/blender/python/doc/sphinx-in/bpy.ops.*.rst")
-        
+
+        # only for full updates
+        if _BPY_FULL_REBUILD:
+            shutil.rmtree(path_in, True)
+            shutil.rmtree(path_out, True)
+        else:
+            # write here, then move
+            shutil.rmtree(path_in_tmp, True)
+
+        rna2sphinx(path_in_tmp)
+
+        if not _BPY_FULL_REBUILD:
+            import filecmp
+
+            # now move changed files from 'path_in_tmp' --> 'path_in'
+            file_list_path_in = set(os.listdir(path_in))
+            file_list_path_in_tmp = set(os.listdir(path_in_tmp))
+            
+            # remove deprecated files that have been removed.
+            for f in sorted(file_list_path_in):
+                if f not in file_list_path_in_tmp:
+                    print("\tdeprecated: %s" % f)
+                    os.remove(os.path.join(path_in, f))
+
+            # freshen with new files.
+            for f in sorted(file_list_path_in_tmp):
+                f_from = os.path.join(path_in_tmp, f)
+                f_to = os.path.join(path_in, f)
+
+                do_copy = True
+                if f in file_list_path_in:
+                    if filecmp.cmp(f_from, f_to):
+                        do_copy = False
+                
+                if do_copy:
+                    print("\tupdating: %s" % f)
+                    shutil.copy(f_from, f_to)
+                '''else:
+                    print("\tkeeping: %s" % f) # eh, not that useful'''
+
+
         EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED
         if EXAMPLE_SET_UNUSED:
             print("\nUnused examples found in '%s'..." % path_examples)
