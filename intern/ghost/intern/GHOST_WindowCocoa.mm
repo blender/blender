@@ -167,7 +167,7 @@ extern "C" {
 	else if ([[draggingPBoard types] containsObject:NSStringPboardType]) m_draggedObjectType = GHOST_kDragnDropTypeString;
 	else return NSDragOperationNone;
 	
-	associatedWindow->setAcceptDragOperation(FALSE); //Drag operation needs to be accepted explicitly by the event manager
+	associatedWindow->setAcceptDragOperation(TRUE); //Drag operation is accepted by default
 	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingEntered, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
 	return NSDragOperationCopy;
 }
