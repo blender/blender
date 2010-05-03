@@ -2017,7 +2017,9 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 				}
 			}
 
-			mti->deformVertsEM(md, ob, em, dm, deformedVerts, numVerts);
+			if (mti->deformVertsEM)
+				mti->deformVertsEM(md, ob, em, dm, deformedVerts, numVerts);
+			else mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0, 0);
 		} else {
 			DerivedMesh *ndm;
 
@@ -2053,7 +2055,11 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 
 				mask &= ~CD_MASK_ORCO;
 				DM_set_only_copy(orcodm, mask);
-				ndm = mti->applyModifierEM(md, ob, em, orcodm);
+
+				if (mti->applyModifierEM)
+					ndm = mti->applyModifierEM(md, ob, em, orcodm);
+				else
+					ndm = mti->applyModifier(md, ob, orcodm, 0, 0);
 
 				if(ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -2069,7 +2075,10 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
 					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
 			
-			ndm = mti->applyModifierEM(md, ob, em, dm);
+			if (mti->applyModifierEM)
+				ndm = mti->applyModifierEM(md, ob, em, dm);
+			else
+				ndm = mti->applyModifier(md, ob, dm, 0, 0);
 
 			if (ndm) {
 				if(dm && dm != ndm)
