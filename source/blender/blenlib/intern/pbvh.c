@@ -1214,6 +1214,8 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 
 		for(i = 0; i < totgrid; ++i) {
 			DMGridData *grid= bvh->grids[node->prim_indices[i]];
+			if (!grid)
+				continue;
 
 			for(y = 0; y < gridsize-1; ++y) {
 				for(x = 0; x < gridsize-1; ++x) {

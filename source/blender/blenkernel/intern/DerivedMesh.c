@@ -1741,7 +1741,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		 */
 
 		if(mti->type == eModifierTypeType_OnlyDeform) {
-			
 			/* No existing verts to deform, need to build them. */
 			if(!deformedVerts) {
 				if(dm) {
@@ -1867,9 +1866,13 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 		}
-		
+
 		/* grab modifiers until index i */
 		if((index >= 0) && (modifiers_indexInObject(ob, md) >= index))
+			break;
+
+		/*don't allow other modifiers past multires if in sculpt mode*/
+		if (!useRenderParams && ((ob->mode & OB_MODE_SCULPT) && ob->sculpt))
 			break;
 	}
 
