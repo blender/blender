@@ -85,7 +85,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
         layout.menu("INFO_MT_file_open_recent")
-        layout.operator("wm.recover_last_session")
+        layout.operator("wm.recover_last_session", icon='RECOVER_LAST')
         layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
 
         layout.separator()

@@ -1218,7 +1218,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 		uiItemStringO(col, display_name, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
 	}
 	uiItemS(col);
-	uiItemO(col, NULL, ICON_HELP, "WM_OT_recover_last_session");
+	uiItemO(col, NULL, ICON_RECOVER_LAST, "WM_OT_recover_last_session");
 	uiItemL(col, "", 0);
 	
 	uiCenteredBoundsBlock(block, 0.0f);

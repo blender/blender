@@ -1032,6 +1032,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "use_auto_keying", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);
 	RNA_def_property_ui_text(prop, "Auto Keying", "Automatic keyframe insertion for Objects and Bones");
+	RNA_def_property_ui_icon(prop, ICON_REC, 0);
 	
 	prop= RNA_def_property(srna, "autokey_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "autokey_mode");
@@ -2952,21 +2953,22 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "r.flag", SCER_PRV_RANGE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_use_preview_range_set");
-	RNA_def_property_ui_text(prop, "Use Preview Range", "");
+	RNA_def_property_ui_text(prop, "Use Preview Range", "Use an alternative start/end frame for UI playback, rather than the scene start/end frame");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, NULL);
+	RNA_def_property_ui_icon(prop, ICON_PREVIEW_RANGE, 0);
 	
 	prop= RNA_def_property(srna, "preview_range_frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.psfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_preview_range_start_frame_set", NULL);
-	RNA_def_property_ui_text(prop, "Preview Range Start Frame", "");
+	RNA_def_property_ui_text(prop, "Preview Range Start Frame", "Alternative start frame for UI playback");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, NULL);
 	
 	prop= RNA_def_property(srna, "preview_range_frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.pefra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_preview_range_end_frame_set", NULL);
-	RNA_def_property_ui_text(prop, "Preview Range End Frame", "");
+	RNA_def_property_ui_text(prop, "Preview Range End Frame", "Alternative end frame for UI playback");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, NULL);
 	
 	/* Stamp */
