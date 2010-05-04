@@ -601,13 +601,13 @@ void CONSTRAINT_OT_limitdistance_reset (wmOperatorType *ot)
 }
 
 /* ------------- Child-Of Constraint ------------------ */
-
+#if 0 // unused
 static int childof_poll(bContext *C)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_ChildOfConstraint);
 	return (ptr.id.data && ptr.data);
 }
-
+#endif
 /* ChildOf Constraint - set inverse callback */
 static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 {

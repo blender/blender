@@ -164,9 +164,7 @@ static bController *edit_controller_property_get(bContext *C, wmOperator *op, Ob
 	cont = BLI_findstring(&(ob->controllers), controller_name, offsetof(bController, name));	
 	return cont;
 }
- */
 
-/*
 static void edit_actuator_properties(wmOperatorType *ot)
 {
 	RNA_def_string(ot->srna, "actuator", "", 32, "Actuator", "Name of the actuator to edit");
@@ -208,7 +206,7 @@ static bController *edit_actuator_property_get(bContext *C, wmOperator *op, Obje
 	cont = BLI_findstring(&(ob->actuators), actuator_name, offsetof(bActuator, name));	
 	return act;
 }
-
+*/
 
 /* ************* Add/Remove Sensor Operator ************* */
 
