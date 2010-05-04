@@ -730,7 +730,7 @@ static void rna_def_scene_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_struct_type(prop, "Camera");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Camera Object", "Set this Camera. Leave empty to refer to self object");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -741,7 +741,7 @@ static void rna_def_scene_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scene", "Set the Scene to be added/removed/paused/resumed");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	/* XXX
+	/* XXX no need for those tooltips. to remove soon
 	Originally we had different 'scene' tooltips for different values of 'type'.
 	They were:
 	ACT_SCENE_RESTART	""
@@ -954,9 +954,10 @@ static void rna_def_game_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* ACT_GAME_LOAD */
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_DIRPATH);
+	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_ui_text(prop, "File", "Load this blend file, use the \"//\" prefix for a path relative to the current blend file");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	//XXX to do: an operator that calls file_browse with relative_path on and blender filtering active
 }
 
 static void rna_def_visibility_actuator(BlenderRNA *brna)

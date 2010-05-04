@@ -3720,8 +3720,17 @@ static void draw_actuator_random(uiLayout *layout, PointerRNA *ptr)
 static void draw_actuator_scene(uiLayout *layout, PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
-	uiItemR(layout, ptr, "camera", 0, NULL, 0);
-	uiItemR(layout, ptr, "scene", 0, NULL, 0);
+
+	switch (RNA_enum_get(ptr, "mode")) {
+		case ACT_SCENE_CAMERA:
+			uiItemR(layout, ptr, "camera", 0, NULL, 0);
+			break;
+		case ACT_SCENE_RESTART:
+			break;
+		default: // ACT_SCENE_SET|ACT_SCENE_ADD_FRONT|ACT_SCENE_ADD_BACK|ACT_SCENE_REMOVE|ACT_SCENE_SUSPEND|ACT_SCENE_RESUME
+			uiItemR(layout, ptr, "scene", 0, NULL, 0);
+			break;
+	}
 }
 
 static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
