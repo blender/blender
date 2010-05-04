@@ -362,7 +362,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels, ReportList *reports)
 	}
 
 	if (c->pix_fmt != PIX_FMT_BGR32) {
-		sws_scale(img_convert_ctx, rgb_frame->data,
+		sws_scale(img_convert_ctx, (const uint8_t * const*) rgb_frame->data,
 			  rgb_frame->linesize, 0, c->height, 
 			  current_frame->data, current_frame->linesize);
 		delete_picture(rgb_frame);
@@ -515,6 +515,12 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	if (codec_id == CODEC_ID_XVID) {
 		/* arghhhh ... */
 		c->pix_fmt = PIX_FMT_YUV420P;
+	}
+
+	if (codec_id == CODEC_ID_H264) {
+		/* correct wrong default ffmpeg param which crash x264 */
+		c->qmin=10;
+		c->qmax=51;
 	}
 	
 	if ((of->oformat->flags & AVFMT_GLOBALHEADER)
