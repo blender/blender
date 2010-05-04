@@ -77,6 +77,8 @@ void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_posemode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_restrictview_set(struct wmOperatorType *ot);
 void OBJECT_OT_restrictview_clear(struct wmOperatorType *ot);
+void OBJECT_OT_restrictrender_set(struct wmOperatorType *ot);
+void OBJECT_OT_restrictrender_clear(struct wmOperatorType *ot);
 void OBJECT_OT_proxy_make(struct wmOperatorType *ot);
 void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
