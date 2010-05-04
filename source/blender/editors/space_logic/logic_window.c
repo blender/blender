@@ -3170,6 +3170,8 @@ static int is_sensor_linked(uiBlock *block, bSensor *sens)
 /* never used, see CVS 1.120 for the code */
 /*  static uiBlock *freecamera_menu(void) */
 
+/* Sensors code */
+
 static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *box, *row;
@@ -3183,17 +3185,154 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr)
 	uiItemO(row, "", ICON_X, "LOGIC_OT_sensor_remove");
 }
 
-
-static void draw_sensor_touch(uiLayout *layout, PointerRNA *ptr)
+static void draw_sensor_internal_header(uiLayout *layout, PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "material", 0, NULL, 0);
+	uiLayout *box, *row;
+
+	box= uiLayoutBox(layout);
+	row= uiLayoutRow(box, 0);
+
+	if (!RNA_boolean_get(ptr, "expanded"))
+		return;
+
+	row= uiLayoutRow(box, 0);
+	uiItemR(row, ptr, "pulse_true_level", 0, "", ICON_DOTSUP);
+	uiItemR(row, ptr, "pulse_false_level", 0, "", ICON_DOTSDOWN);
+	uiItemR(row, ptr, "frequency", 0, "", 0);
+	uiItemR(row, ptr, "level", 0, "", 0);
+	uiItemR(row, ptr, "tap", 0, "", 0);
+	uiItemR(row, ptr, "invert", 0, "", 0);
+}
+/* sensors in alphabetical order */
+
+static void draw_sensor_actuator(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "actuator", 0, NULL, 0);
+}
+
+static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "armature_type", 0, NULL, 0);
+	uiItemR(layout, ptr, "channel_name", 0, NULL, 0);
+	uiItemR(layout, ptr, "constraint_name", 0, NULL, 0);
+	uiItemR(layout, ptr, "value", 0, NULL, 0);
+}
+
+static void draw_sensor_collision(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXSENSOR
+	/* // need to solve problems in rna_sensor.c
+	uiItemR(layout, ptr, "pulse", 0, NULL, 0);
+	uiItemR(layout, ptr, "collision_type", 0, NULL, 0);
+
+	switch (RNA_enum_get(ptr, "collision_type")) {
+		case SENS_COLLISION_PROPERTY:
+			uiItemR(layout, ptr, "property", 0, NULL, 0);
+			break;
+		case SENS_COLLISION_MATERIAL:
+			uiItemR(layout, ptr, "material", 0, NULL, 0);
+			break;
+	}
+	*/
 }
 
 static void draw_sensor_delay(uiLayout *layout, PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "delay", 0, NULL, 0);
-	uiItemR(layout, ptr, "duration", 0, NULL, 0);
-	uiItemR(layout, ptr, "repeat", 0, NULL, 0);
+	uiLayout *row;
+	
+	row= uiLayoutRow(layout, 0);
+
+	uiItemR(row, ptr, "delay", 0, NULL, 0);
+	uiItemR(row, ptr, "duration", 0, NULL, 0);
+	uiItemR(row, ptr, "repeat", 0, NULL, 0);
+}
+
+static void draw_sensor_joystick(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXSENSOR
+}
+
+static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "key", 0, NULL, 0);
+	uiItemR(layout, ptr, "all_keys", 0, NULL, 0);
+	uiItemR(layout, ptr, "modifier_key", 0, NULL, 0);
+	uiItemR(layout, ptr, "second_modifier_key", 0, NULL, 0);
+	uiItemR(layout, ptr, "target", 0, NULL, 0);
+	uiItemR(layout, ptr, "log", 0, NULL, 0);
+
+	//XXXSENSOR
+}
+
+static void draw_sensor_message(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "subject", 0, NULL, 0);
+}
+
+static void draw_sensor_mouse(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "mouse_event", 0, NULL, 0);
+}
+
+static void draw_sensor_near(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *row;
+
+	uiItemR(layout, ptr, "property", 0, NULL, 0);
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "distance", 0, NULL, 0);
+	uiItemR(row, ptr, "reset_distance", 0, NULL, 0);
+}
+
+static void draw_sensor_property(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *row;
+	uiItemR(layout, ptr, "evaluation_type", 0, NULL, 0);
+	uiItemR(layout, ptr, "property", 0, NULL, 0);
+
+	switch (RNA_enum_get(ptr, "evaluation_type")) {
+		case SENS_PROP_INTERVAL:
+			row = uiLayoutRow(layout, 0);
+			uiItemR(row, ptr, "min_value", 0, NULL, 0);
+			uiItemR(row, ptr, "max_value", 0, NULL, 0);
+			break;
+		case SENS_PROP_EQUAL:
+			uiItemR(layout, ptr, "value", 0, NULL, 0);
+			break;
+		case SENS_PROP_NEQUAL:
+			uiItemR(layout, ptr, "value", 0, NULL, 0);
+			break;
+		case SENS_PROP_CHANGED:
+			break;
+	}
+}
+
+static void draw_sensor_radar(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *row;
+
+	uiItemR(layout, ptr, "property", 0, NULL, 0);
+	uiItemR(layout, ptr, "axis", 0, NULL, 0);
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(layout, ptr, "angle", 0, NULL, 0);
+	uiItemR(layout, ptr, "distance", 0, NULL, 0);
+}
+
+static void draw_sensor_random(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "seed", 0, NULL, 0);
+}
+
+static void draw_sensor_ray(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXSENSOR
+}
+
+static void draw_sensor_touch(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "material", 0, NULL, 0);
 }
 
 void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr)
@@ -3204,15 +3343,175 @@ void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr)
 		return;
 	
 	box = uiLayoutBox(layout);
+
+	draw_sensor_internal_header(box, ptr);
 	
 	switch (RNA_enum_get(ptr, "type")) {
+
+		case SENS_ACTUATOR:
+			draw_sensor_actuator(box, ptr);
+			break;
 		case SENS_ALWAYS:
+			break;
+		case SENS_ARMATURE:
+			draw_sensor_armature(box, ptr);
+			break;
+		case SENS_COLLISION:
+			draw_sensor_collision(box, ptr);
+			break;
+		case SENS_DELAY:
+			draw_sensor_delay(box, ptr);
+			break;
+		case SENS_JOYSTICK:
+			draw_sensor_joystick(box, ptr);
+			break;
+		case SENS_KEYBOARD:
+			draw_sensor_keyboard(box, ptr);
+			break;
+		case SENS_MESSAGE:
+			draw_sensor_message(box, ptr);
+			break;
+		case SENS_MOUSE:
+			draw_sensor_mouse(box, ptr);
+			break;
+		case SENS_NEAR:
+			draw_sensor_near(box, ptr);
+			break;
+		case SENS_PROPERTY:
+			draw_sensor_property(box, ptr);
+			break;
+		case SENS_RADAR:
+			draw_sensor_radar(box, ptr);
+			break;
+		case SENS_RANDOM:
+			draw_sensor_random(box, ptr);
+			break;
+		case SENS_RAY:
+			draw_sensor_ray(box, ptr);
 			break;
 		case SENS_TOUCH:
 			draw_sensor_touch(box, ptr);
 			break;
-		case SENS_DELAY:
-			draw_sensor_delay(box, ptr);
+	}
+}
+
+/* Controller code */
+static void draw_controller_header(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *box, *row;
+	
+	box= uiLayoutBox(layout);
+	row= uiLayoutRow(box, 0);
+	
+	uiItemR(row, ptr, "expanded", UI_ITEM_R_NO_BG, "", 0);
+	uiItemR(row, ptr, "type", 0, "", 0);
+	uiItemR(row, ptr, "name", 0, "", 0);
+	uiItemR(row, ptr, "priority", 0, "", 0);
+	uiItemO(row, "", ICON_X, "LOGIC_OT_controller_remove");
+}
+
+static void draw_controller_expression(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "expression", 0, NULL, 0);
+}
+
+static void draw_controller_python(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *row;
+
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	if (RNA_enum_get(ptr, "mode") == CONT_PY_SCRIPT) {
+		uiItemR(layout, ptr, "text", 0, NULL, 0);
+	}
+	else {
+		row= uiLayoutRow(layout, 0);
+		uiItemR(row, ptr, "module", 0, NULL, 0);
+		uiItemR(row, ptr, "debug", 0, NULL, 0);
+	}
+}
+
+static void draw_controller_state(uiLayout *layout, PointerRNA *ptr)
+{
+
+}
+
+void draw_brick_controller(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *box;
+	
+	if (!RNA_boolean_get(ptr, "expanded"))
+		return;
+	
+	box = uiLayoutBox(layout);
+
+	draw_controller_state(box, ptr);
+	
+	switch (RNA_enum_get(ptr, "type")) {
+		case CONT_LOGIC_AND:
+			break;
+		case CONT_LOGIC_OR:
+			break;
+		case CONT_EXPRESSION:
+			draw_controller_expression(box, ptr);
+			break;
+		case CONT_PYTHON:
+			draw_controller_python(box, ptr);
+			break;
+		case CONT_LOGIC_NAND:
+			break;
+		case CONT_LOGIC_NOR:
+			break;
+		case CONT_LOGIC_XOR:
+			break;
+		case CONT_LOGIC_XNOR:
+			break;
+	}
+}
+
+/* Actuator code */
+static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *box, *row;
+	
+	box= uiLayoutBox(layout);
+	row= uiLayoutRow(box, 0);
+	
+	uiItemR(row, ptr, "expanded", UI_ITEM_R_NO_BG, "", 0);
+	uiItemR(row, ptr, "type", 0, "", 0);
+	uiItemR(row, ptr, "name", 0, "", 0);
+	uiItemO(row, "", ICON_X, "LOGIC_OT_actuator_remove");
+}
+
+static void draw_actuator_scene(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	uiItemR(layout, ptr, "camera", 0, NULL, 0);
+	uiItemR(layout, ptr, "scene", 0, NULL, 0);
+}
+
+static void draw_actuator_parent(uiLayout *layout, PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	uiItemR(layout, ptr, "object", 0, NULL, 0);
+	uiItemR(layout, ptr, "compound", 0, NULL, 0);
+	uiItemR(layout, ptr, "ghost", 0, NULL, 0);
+}
+
+void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *box;
+	
+	if (!RNA_boolean_get(ptr, "expanded"))
+		return;
+	
+	box = uiLayoutBox(layout);
+	
+	switch (RNA_enum_get(ptr, "type")) {
+		case ACT_PARENT:
+			draw_actuator_parent(box, ptr);
+			break;
+		case ACT_SCENE:
+			draw_actuator_scene(box, ptr);
 			break;
 	}
 }
@@ -3269,6 +3568,112 @@ void logic_buttons(bContext *C, ARegion *ar)
 	/* ******************************* */
 	xco= 400; yco= 170; width= 300;
 
+
+	if (G.rt >0) { // new UI code to replace old one
+	
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
+	row = uiLayoutRow(layout, 1);
+	
+	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco, 70, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	
+	uiItemR(row, &logic_ptr, "controllers_show_selected_objects", 0, "Sel", 0);
+	uiItemR(row, &logic_ptr, "controllers_show_active_objects", 0, "Act", 0);
+	uiItemR(row, &logic_ptr, "controllers_show_linked_controller", 0, "Link", 0);
+
+
+
+	/* State part - ugly */
+	if(ob->scaflag & OB_SHOWCONT) {
+		unsigned int controller_state_mask = 0; /* store a bitmask for states that are used */
+
+		/* first show the state */
+		uiDefBlockBut(block, object_state_mask_menu, ob, "State", (short)(xco-10), (short)(yco-10), 36, UI_UNIT_Y, "Object state menu: store and retrieve initial state");
+
+		if (!ob->state)
+			ob->state = 1;
+		for (offset=0; offset<15; offset+=5) {
+			uiBlockBeginAlign(block);
+			for (stbit=0; stbit<5; stbit++) {
+				but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset), stbit+offset, "",	(short)(xco+31+12*stbit+13*offset), yco, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset)));
+				uiButSetFunc(but, check_state_mask, but, &(ob->state));
+			}
+			for (stbit=0; stbit<5; stbit++) {
+				but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset+15)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset+15), stbit+offset+15, "",	(short)(xco+31+12*stbit+13*offset), yco-12, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset+15)));
+				uiButSetFunc(but, check_state_mask, but, &(ob->state));
+			}
+		}
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, OB_SETSTBIT, B_SET_STATE_BIT, "All",(short)(xco+226), yco-10, 22, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Set all state bits");
+		uiDefButBitS(block, TOG, OB_INITSTBIT, B_INIT_STATE_BIT, "Ini",(short)(xco+248), yco-10, 22, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Set the initial state");
+		uiDefButBitS(block, TOG, OB_DEBUGSTATE, 0, "D",(short)(xco+270), yco-10, 15, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Print state debug info");
+		uiBlockEndAlign(block);
+
+		yco-=35;
+	
+		/* display only the controllers that match the current state */
+		offset = 0;
+		for (stbit=0; stbit<32; stbit++) {
+			if (!(ob->state & (1<<stbit)))
+				continue;
+			/* add a separation between controllers of different states */
+			if (offset) {
+				offset = 0;
+				yco -= 6;
+			}
+
+			//draw controller
+		}
+	}
+//			cont= ob->controllers.first;
+	/* draw individual controllers*/
+
+	row = uiLayoutRow(layout, 1);
+	uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide controllers");
+	uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", 0);
+	
+	for(a=0; a<count; a++) {
+		PointerRNA ptr;
+		uiLayout *split, *col;
+		ob= (Object *)idar[a];
+		
+		if (!(ob->scavisflag & OB_VIS_CONT) || !(ob->scaflag & OB_SHOWCONT)) continue;
+		
+		uiItemS(layout);
+		
+		for(cont= ob->controllers.first; cont; cont=cont->next) {
+			RNA_pointer_create(&ob->id, &RNA_Controller, cont, &ptr);
+
+//			if (!(cont->state_mask & (1<<stbit))) 
+//				continue;
+
+			/* this controller is visible, mark all its actuator */
+			for (iact=0; iact<cont->totlinks; iact++) {
+				act = cont->links[iact];
+				if (act)
+					act->flag |= ACT_VISIBLE;
+			}
+			
+			split = uiLayoutSplit(layout, 0.95, 0);
+			col = uiLayoutColumn(split, 1);
+			uiLayoutSetContextPointer(col, "controller", &ptr);
+			
+			/* should make UI template for controller header.. function will do for now */
+			draw_controller_header(col, &ptr);
+			
+			/* draw the brick contents */
+			draw_brick_controller(col, &ptr);
+			
+			/* put link button to the right */
+			col = uiLayoutColumn(split, 0);
+			/* use oldskool uiButtons for links for now */
+			but= uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width+UI_UNIT_X), yco, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			uiSetButLink(but, NULL, (void ***)&(cont->links), &cont->totlinks, LINK_CONTROLLER, LINK_ACTUATOR);
+		}
+	}
+	uiBlockLayoutResolve(block, NULL, &yco);	/* stores final height in yco */
+
+
+	} else { 	//G.rt == 0 // to be removed ... old code
 	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco+35, 100, UI_UNIT_Y, "");
 	
 	uiBlockBeginAlign(block);
@@ -3405,12 +3810,12 @@ void logic_buttons(bContext *C, ARegion *ar)
 			yco-= 6;
 		}
 	}
-	
-	/* ******************************* */
-	xco= 10; yco= 205; width= 320;
+	} //XXX	endif G.rt  == 0 // new UI code to replace old one
 
-#if 0
-	
+	/* ******************************* */
+	xco= 10; yco= 170; width= 300;
+
+	if (G.rt >0) { //XXX new UI code to replace old one
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
 	row = uiLayoutRow(layout, 1);
 	
@@ -3442,7 +3847,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 				 (sens->flag & SENS_PIN && slogic->scaflag & BUTS_SENS_STATE) ||	/* states can hide some sensors, pinned sensors ignore the visible state */
 				 (is_sensor_linked(block, sens))
 				)
-			{	
+			{	// gotta check if the current state is visible or not
 				uiLayout *split, *col;
 				
 				split = uiLayoutSplit(layout, 0.95, 0);
@@ -3464,9 +3869,8 @@ void logic_buttons(bContext *C, ARegion *ar)
 		}
 	}
 	uiBlockLayoutResolve(block, NULL, &yco);	/* stores final height in yco */
-#endif	
+	} else { //XXX G.rt  == 0 { // to be removed == new UI code to replace old one
 
-#if 1
 	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco+35, 70, UI_UNIT_Y, "");
 	
 	uiBlockBeginAlign(block);
@@ -3548,12 +3952,71 @@ void logic_buttons(bContext *C, ARegion *ar)
 			yco-= 6;
 		}
 	}
-#endif
 
+	} //XXX endif G.rt  == 0 // new UI code to replace old one
 
 	/* ******************************* */
 	xco= 800; yco= 170; width= 300;
+
+	if (G.rt >0) { //XXX new UI code to replace old one
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
+	row = uiLayoutRow(layout, 1);
 	
+	uiDefBlockBut(block, sensor_menu, NULL, "Actuators", xco-10, yco, 70, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	
+	uiItemR(row, &logic_ptr, "actuators_show_selected_objects", 0, "Sel", 0);
+	uiItemR(row, &logic_ptr, "actuators_show_active_objects", 0, "Act", 0);
+	uiItemR(row, &logic_ptr, "actuators_show_linked_controller", 0, "Link", 0);
+	uiItemR(row, &logic_ptr, "actuators_show_active_states", 0, "State", 0);
+	
+	row = uiLayoutRow(layout, 1);
+	uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
+	uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", 0);
+	
+	for(a=0; a<count; a++) {
+		PointerRNA ptr;
+
+		ob= (Object *)idar[a];
+		
+		if (!(ob->scavisflag & OB_VIS_ACT) || !(ob->scaflag & OB_SHOWACT)) continue;
+		
+		uiItemS(layout);
+		
+		for(act= ob->actuators.first; act; act=act->next) {
+
+			RNA_pointer_create(&ob->id, &RNA_Actuator, act, &ptr);
+			
+			if ((slogic->scaflag & BUTS_ACT_STATE) ||
+				!(act->flag & ACT_LINKED) ||		/* always display actuators without links so that is can be edited */
+				(act->flag & ACT_VISIBLE) ||		/* this actuator has visible connection, display it */
+				(act->flag & ACT_PIN && slogic->scaflag & BUTS_ACT_STATE)	/* states can hide some sensors, pinned sensors ignore the visible state */
+				)
+			{	// gotta check if the current state is visible or not
+				uiLayout *split, *col;
+				
+				split = uiLayoutSplit(layout, 0.95, 0);
+				col = uiLayoutColumn(split, 1);
+				uiLayoutSetContextPointer(col, "actuator", &ptr);
+				
+				/* should make UI template for actuator header.. function will do for now */
+				draw_actuator_header(col, &ptr);
+				
+				/* draw the brick contents */
+				draw_brick_actuator(col, &ptr);
+				
+				/* put link button to the right */
+				col = uiLayoutColumn(split, 0);
+				/* use oldskool uiButtons for links for now */
+
+				uiDefIconBut(block, INLINK, 0, ICON_INLINK,(short)(xco-19), ycoo, UI_UNIT_X, UI_UNIT_Y, act, LINK_ACTUATOR, 0, 0, 0, "");
+			}
+		}
+	}
+	uiBlockLayoutResolve(block, NULL, &yco);	/* stores final height in yco */
+
+	} else { //XXX G.rt  == 0 { // to be removed == new UI code to replace old one
+
+		
 	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco+35, 90, UI_UNIT_Y, "");
 
 	uiBlockBeginAlign(block);
@@ -3631,6 +4094,8 @@ void logic_buttons(bContext *C, ARegion *ar)
 			yco-= 6;
 		}
 	}
+
+	} //XXX endif G.rt  == 0 // new UI code to replace old one
 
 	uiComposeLinks(block);
 	

@@ -33,7 +33,30 @@
 
 #include "WM_types.h"
 
+EnumPropertyItem actuator_type_items[] ={
+	{ACT_ACTION, "ACTION", 0, "Action", ""},
+	{ACT_ARMATURE, "ARMATURE", 0, "Armature", ""},
+	{ACT_CAMERA, "CAMERA", 0, "Camera", ""},
+	{ACT_CONSTRAINT, "CONSTRAINT", 0, "Constraint", ""},
+	{ACT_EDIT_OBJECT, "EDIT_OBJECT", 0, "Edit Object", ""},
+	{ACT_2DFILTER, "FILTER_2D", 0, "2D Filter", ""},
+	{ACT_GAME, "GAME", 0, "Game", ""},
+	{ACT_IPO, "IPO", 0, "IPO", ""},
+	{ACT_MESSAGE, "MESSAGE", 0, "Message", ""},
+	{ACT_OBJECT, "OBJECT", 0, "Motion", ""},
+	{ACT_PARENT, "PARENT", 0, "Parent", ""},
+	{ACT_PROPERTY, "PROPERTY", 0, "Property", ""},
+	{ACT_RANDOM, "RANDOM", 0, "Random", ""},
+	{ACT_SCENE, "SCENE", 0, "Scene", ""},
+	{ACT_SHAPEACTION, "SHAPE_ACTION", 0, "Shape Action", ""},
+	{ACT_SOUND, "SOUND", 0, "Sound", ""},
+	{ACT_STATE, "STATE", 0, "State", ""},
+	{ACT_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
+
+#include "BKE_sca.h"
 
 static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 {
@@ -79,33 +102,19 @@ static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 	}
 }
 
+static void rna_Actuator_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bActuator *act= (bActuator *)ptr->data;
+	
+	init_actuator(act);
+}
+
 #else
 
 void rna_def_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem actuator_type_items[] ={
-		{ACT_OBJECT, "OBJECT", 0, "Motion", ""},
-		{ACT_IPO, "IPO", 0, "IPO", ""},
-		{ACT_CAMERA, "CAMERA", 0, "Camera", ""},
-		{ACT_SOUND, "SOUND", 0, "Sound", ""},
-		{ACT_PROPERTY, "PROPERTY", 0, "Property", ""},
-		{ACT_CONSTRAINT, "CONSTRAINT", 0, "Constraint", ""},
-		{ACT_EDIT_OBJECT, "EDIT_OBJECT", 0, "Edit Object", ""},
-		{ACT_SCENE, "SCENE", 0, "Scene", ""},
-		{ACT_RANDOM, "RANDOM", 0, "Random", ""},
-		{ACT_MESSAGE, "MESSAGE", 0, "Message", ""},
-		{ACT_ACTION, "ACTION", 0, "Action", ""},
-		{ACT_GAME, "GAME", 0, "Game", ""},
-		{ACT_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
-		{ACT_2DFILTER, "FILTER_2D", 0, "2D Filter", ""},
-		{ACT_PARENT, "PARENT", 0, "Parent", ""},
-		{ACT_SHAPEACTION, "SHAPE_ACTION", 0, "Shape Action", ""},
-		{ACT_STATE, "STATE", 0, "State", ""},
-		{ACT_ARMATURE, "ARMATURE", 0, "Armature", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Actuator", NULL);
 	RNA_def_struct_ui_text(srna, "Actuator", "Actuator to apply actions in the game engine");
@@ -115,11 +124,17 @@ void rna_def_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
 
-	/* type is not editable, would need to do proper data free/alloc */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, actuator_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
+
+	RNA_def_property_update(prop, 0, "rna_Actuator_type_update");
+
+	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_SHOW);
+	RNA_def_property_ui_text(prop, "Expanded", "Set actuator expanded in the user interface");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
 }
 
@@ -688,7 +703,8 @@ static void rna_def_scene_actuator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Scene Actuator", "Actuator to ..");
 	RNA_def_struct_sdna_from(srna, "bSceneActuator", "data");
 
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Scene", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -1021,7 +1037,8 @@ static void rna_def_parent_actuator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Parent Actuator", "");
 	RNA_def_struct_sdna_from(srna, "bParentActuator", "data");
 
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Scene", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);

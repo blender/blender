@@ -31,21 +31,21 @@
 #include "DNA_sensor_types.h"
 
 EnumPropertyItem sensor_type_items[] ={
+	{SENS_ACTUATOR, "ACTUATOR", 0, "Actuator", ""},
 	{SENS_ALWAYS, "ALWAYS", 0, "Always", ""},
-	{SENS_TOUCH, "TOUCH", 0, "Touch", ""},
-	{SENS_NEAR, "NEAR", 0, "Near", ""},
-	{SENS_KEYBOARD, "KEYBOARD", 0, "Keyboard", ""},
-	{SENS_PROPERTY, "PROPERTY", 0, "Property", ""},
-	{SENS_MOUSE, "MOUSE", 0, "Mouse", ""},
+	{SENS_ARMATURE, "ARMATURE", 0, "Armature", ""},
 	{SENS_COLLISION, "COLLISION", 0, "Collision", ""},
+	{SENS_DELAY, "DELAY", 0, "Delay", ""},
+	{SENS_JOYSTICK, "JOYSTICK", 0, "Joystick", ""},
+	{SENS_KEYBOARD, "KEYBOARD", 0, "Keyboard", ""},
+	{SENS_MESSAGE, "MESSAGE", 0, "Message", ""},
+	{SENS_MOUSE, "MOUSE", 0, "Mouse", ""},
+	{SENS_NEAR, "NEAR", 0, "Near", ""},
+	{SENS_PROPERTY, "PROPERTY", 0, "Property", ""},
 	{SENS_RADAR, "RADAR", 0, "Radar", ""},
 	{SENS_RANDOM, "RANDOM", 0, "Random", ""},
 	{SENS_RAY, "RAY", 0, "Ray", ""},
-	{SENS_MESSAGE, "MESSAGE", 0, "Message", ""},
-	{SENS_JOYSTICK, "JOYSTICK", 0, "joystick", ""},
-	{SENS_ACTUATOR, "ACTUATOR", 0, "Actuator", ""},
-	{SENS_DELAY, "DELAY", 0, "Delay", ""},
-	{SENS_ARMATURE, "ARMATURE", 0, "Armature", ""},
+	{SENS_TOUCH, "TOUCH", 0, "Touch", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -140,10 +140,14 @@ static void rna_def_sensor(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "pulse", SENS_NEG_PULSE_MODE);
 	RNA_def_property_ui_text(prop, "Pulse False Level", "Activate FALSE level triggering (pulse mode)");
 	
-	prop= RNA_def_property(srna, "frequence", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "frequency", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "freq");
 	RNA_def_property_ui_text(prop, "Frequency", "Delay between repeated pulses(in logic tics, 0=no delay)");
 	RNA_def_property_range(prop, 0, 10000);
+
+	prop= RNA_def_property(srna, "tap", PROP_BOOLEAN, PROP_NONE);\
+	RNA_def_property_boolean_sdna(prop, NULL, "tap", 1);
+	RNA_def_property_ui_text(prop, "Tap", "Trigger controllers only for an instant, even while the sensor remains true");
 }
 
 static void rna_def_always_sensor(BlenderRNA *brna)
@@ -228,7 +232,7 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Keyboard Sensor", "Sensor to detect keyboard events");
 	RNA_def_struct_sdna_from(srna, "bKeyboardSensor", "data");
 
-	prop= RNA_def_property(srna, "key", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "key", PROP_INT, PROP_NONE);//XXX need to use another input template
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* need better range or enum check */
 	RNA_def_property_ui_text(prop, "Key", "Input key code");
 	RNA_def_property_range(prop, 0, 255);
@@ -251,7 +255,7 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "log", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "toggleName");
-	RNA_def_property_ui_text(prop, "Log", "Property that receive the keystrokes in case a string is logged");
+	RNA_def_property_ui_text(prop, "Log Toggle", "Property that receive the keystrokes in case a string is logged");
 
 	prop= RNA_def_property(srna, "all_keys", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type", 1);
@@ -312,7 +316,7 @@ static void rna_def_armature_sensor(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Armature Sensor", "Sensor to detect values and changes in values of IK solver");
 	RNA_def_struct_sdna_from(srna, "bArmatureSensor", "data");
 
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "armature_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Test Type", "Type of value and test");
@@ -372,18 +376,33 @@ static void rna_def_collision_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_type_items[] ={
-		{0, "PROPERTY", 0, "Property", ""},
-		{1, "MATERIAL", 0, "Material", ""},
+//		{SENS_COLLISION_PULSE, "PULSE", 0, "Property", ""},
+		{SENS_COLLISION_PROPERTY, "PROPERTY", 0, "Property", ""},
+		{SENS_COLLISION_MATERIAL, "MATERIAL", 0, "Material", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "CollisionSensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Collision Sensor", "Sensor to detect objects colliding with the current object, with more settings than the Touch sensor");
 	RNA_def_struct_sdna_from(srna, "bCollisionSensor", "data");
 
+	prop= RNA_def_property(srna, "collision_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_ui_text(prop, "Collision Type", "Toggle collision on material or property");
+
+	/*
+	//XXX bad, ugly. pulse in 2.49 is part of the same "enum" of collision type
+	//to investigate: is pulse exclusive? or it works with mat/prop?
+	prop= RNA_def_property(srna, "pulse", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "mode");
+	RNA_def_property_ui_text(prop, "Property Name", "changes to the set of colliding objects generates pulse");
+	*/
+
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Property Name", "Only look for Objects with this property");
 
+	//XXX to make a setFunction to create a lookup with all materials in Blend File (not only this object mat.)
 	prop= RNA_def_property(srna, "material", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "materialName");
 	RNA_def_property_ui_text(prop, "Material Name", "Only look for Objects with this material");
@@ -395,10 +414,6 @@ static void rna_def_collision_sensor(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
 	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
 */
-	prop= RNA_def_property(srna, "collision_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "mode");
-	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Collision Type", "Toggle collision on material or property");
 }
 
 static void rna_def_radar_sensor(BlenderRNA *brna)

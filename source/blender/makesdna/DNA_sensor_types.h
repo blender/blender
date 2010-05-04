@@ -261,6 +261,7 @@ typedef struct bJoystickSensor {
  * and have a proper default value for this thing.
  * */
 /*  #define SENS_COLLISION_PROPERTY 0  */
+#define SENS_COLLISION_PROPERTY 0 // uncommenting to use with RNA/UI. will check if it's working/fix it later - dfelinto
 #define SENS_COLLISION_MATERIAL 1
 #define SENS_COLLISION_PULSE 2
 /* ray specific mode */
