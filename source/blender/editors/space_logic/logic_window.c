@@ -3554,7 +3554,7 @@ static void draw_actuator_camera(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	//XXXACTUATOR STILL HAVE TO DO THE RNA
 }
 
 static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
@@ -3569,17 +3569,52 @@ static void draw_actuator_filter_2d(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_game(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	if (RNA_enum_get(ptr, "mode") == ACT_GAME_LOAD)
+		uiItemR(layout, ptr, "filename", 0, NULL, 0);
 }
 
 static void draw_actuator_ipo(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *row, *col;
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "play_type", 0, NULL, 0);
+	uiItemR(row, ptr, "force", 0, NULL, 0);
+	uiItemR(row, ptr, "add", 0, NULL, 0);
+
+	col = uiLayoutColumn(row, 0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "add"));
+	uiItemR(col, ptr, "local", 0, NULL, 0);
+
+	row= uiLayoutRow(layout, 0);
+	if((RNA_enum_get(ptr, "play_type") == ACT_IPO_FROM_PROP))
+		uiItemR(row, ptr, "property", 0, NULL, 0);
+
+	else {
+		uiItemR(row, ptr, "frame_start", 0, NULL, 0);
+		uiItemR(row, ptr, "frame_end", 0, NULL, 0);
+	}
+	uiItemR(row, ptr, "child", 0, NULL, 0);
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "frame_property", 0, NULL, 0);
 }
 
 static void draw_actuator_message(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *row;
+
+	uiItemR(layout, ptr, "to_property", 0, NULL, 0);
+	uiItemR(layout, ptr, "subject", 0, NULL, 0);
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "body_type", 0, NULL, 0);
+
+	if(RNA_enum_get(ptr, "body_type") == ACT_MESG_MESG)
+		uiItemR(row, ptr, "body_message", 0, NULL, 0);
+	else // mode == ACT_MESG_PROP
+		uiItemR(row, ptr, "body_property", 0, NULL, 0);
 }
 
 static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
@@ -3601,12 +3636,85 @@ static void draw_actuator_parent(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_property(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *row;
+
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	uiItemR(layout, ptr, "prop_name", 0, NULL, 0);
+
+	switch(RNA_enum_get(ptr, "mode"))
+	{
+		case ACT_PROP_TOGGLE:
+			break;
+		case ACT_PROP_ADD:
+			uiItemR(layout, ptr, "value", 0, NULL, 0);
+			break;
+		case ACT_PROP_ASSIGN:
+			uiItemR(layout, ptr, "value", 0, NULL, 0);
+			break;
+		case ACT_PROP_COPY:
+			row = uiLayoutRow(layout, 0);
+			uiItemR(row, ptr, "object", 0, NULL, 0);
+			uiItemR(row, ptr, "object_prop_name", 0, NULL, 0);
+	}
 }
 
 static void draw_actuator_random(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *row;
+	row = uiLayoutRow(layout, 0);
+
+	uiItemR(row, ptr, "seed", 0, NULL, 0);
+	uiItemR(row, ptr, "distribution", 0, NULL, 0);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "property", 0, NULL, 0);
+
+	row = uiLayoutRow(layout, 0);
+
+	switch (RNA_enum_get(ptr, "distribution")){
+		case ACT_RANDOM_BOOL_CONST:
+			uiItemR(row, ptr, "always_true", 0, NULL, 0);
+			break;
+
+		case ACT_RANDOM_BOOL_UNIFORM:
+			uiItemL(row, "Choose between true and false, 50% chance each", 0);
+			break;
+
+		case ACT_RANDOM_BOOL_BERNOUILLI:
+			uiItemR(row, ptr, "chance", 0, NULL, 0);
+			break;
+
+		case ACT_RANDOM_INT_CONST:
+			uiItemR(row, ptr, "int_value", 0, NULL, 0);
+			break;
+
+		case ACT_RANDOM_INT_UNIFORM:
+			uiItemR(row, ptr, "int_min", 0, NULL, 0);
+			uiItemR(row, ptr, "int_max", 0, NULL, 0);
+			break;
+
+		case ACT_RANDOM_INT_POISSON:
+			uiItemR(row, ptr, "int_mean", 0, NULL, 0);
+			break;
+
+		case ACT_RANDOM_FLOAT_CONST:
+			uiItemR(row, ptr, "float_value", 0, NULL, 0);
+			break;
+
+		case ACT_RANDOM_FLOAT_UNIFORM:
+			uiItemR(row, ptr, "float_min", 0, NULL, 0);
+			uiItemR(row, ptr, "float_max", 0, NULL, 0);
+			break;
+
+		case ACT_RANDOM_FLOAT_NORMAL:
+			uiItemR(row, ptr, "float_mean", 0, NULL, 0);
+			uiItemR(row, ptr, "standard_derivation", 0, NULL, 0);
+			break;
+
+		case ACT_RANDOM_FLOAT_NEGATIVE_EXPONENTIAL:
+			uiItemR(row, ptr, "half_life_time", 0, NULL, 0);
+			break;
+	}
 }
 
 static void draw_actuator_scene(uiLayout *layout, PointerRNA *ptr)
@@ -3618,7 +3726,32 @@ static void draw_actuator_scene(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *row;
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "mode", 0, NULL, 0);
+	uiItemR(row, ptr, "action", 0, NULL, 0);
+	uiItemR(row, ptr, "continue_last_frame", 0, NULL, 0);
+
+	row= uiLayoutRow(layout, 0);
+	if((RNA_enum_get(ptr, "mode") == ACT_ACTION_FROM_PROP))
+		uiItemR(row, ptr, "property", 0, NULL, 0);
+
+	else {
+		uiItemR(row, ptr, "frame_start", 0, NULL, 0);
+		uiItemR(row, ptr, "frame_end", 0, NULL, 0);
+	}
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "blendin", 0, NULL, 0);
+	uiItemR(row, ptr, "priority", 0, NULL, 0);
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "frame_property", 0, NULL, 0);
+
+#ifdef __NLA_ACTION_BY_MOTION_ACTUATOR
+	uiItemR(row, "stride_length", 0, NULL, 0);
+#endif
 }
 
 static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr)
@@ -3633,7 +3766,12 @@ static void draw_actuator_state(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_visibility(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *row;
+	row = uiLayoutRow(layout, 0);
+
+	uiItemR(row, ptr, "visible", 0, NULL, 0);
+	uiItemR(row, ptr, "occlusion", 0, NULL, 0);
+	uiItemR(row, ptr, "children", 0, NULL, 0);
 }
 
 void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr)

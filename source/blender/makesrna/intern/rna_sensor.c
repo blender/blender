@@ -407,7 +407,8 @@ static void rna_def_collision_sensor(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "materialName");
 	RNA_def_property_ui_text(prop, "Material Name", "Only look for Objects with this material");
 
-/*
+/*//XXX either use a datablock look up to store the string name (material)
+  // or to do a doversion and use a material pointer.
 	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -494,7 +495,8 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "matname");
 	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
 
-/*
+	/* //XXX either use a datablock look up to store the string name (material)
+	   // or to do a doversion and use a material pointer.
 	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);

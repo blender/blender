@@ -358,7 +358,7 @@ static void rna_def_ipo_actuator(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOFORCE);
 	RNA_def_property_ui_text(prop, "Force", "Apply IPO as a global or local force depending on the local option (dynamic objects only)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
-//	logic_window::change_ipo_actuator
+//XXX	logic_window::change_ipo_actuator
 //	RNA_def_property_boolean_funcs(prop, "rna_Actuator_Ipo_get", "rna_Actuator_Ipo_get", "rna_Actuator_Ipo_range");	
 	
 	prop= RNA_def_property(srna, "local", PROP_BOOLEAN, PROP_NONE);
@@ -375,7 +375,7 @@ static void rna_def_ipo_actuator(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOADD);
 	RNA_def_property_ui_text(prop, "Add", "Ipo is added to the current loc/rot/scale in global or local coordinate according to Local flag");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
-//	logic_window::change_ipo_actuator
+//XXX	logic_window::change_ipo_actuator
 //	RNA_def_property_boolean_funcs(prop, "rna_Actuator_Ipo_get", "rna_Actuator_Ipo_get", "rna_Actuator_Ipo_range");	
 }
 
@@ -548,6 +548,7 @@ static void rna_def_property_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	//XXX add magic property lookup
 	prop= RNA_def_property(srna, "prop_name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Property", "The name of the property");
@@ -555,6 +556,20 @@ static void rna_def_property_actuator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "value", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Value", "The value to use, use \"\" around strings");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	/* Copy Mode */
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_sdna(prop, NULL, "ob");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Object", "Copy from this Object");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	//XXX add even magic'er property lookup (need to look for the property list of the target object)
+	prop= RNA_def_property(srna, "object_prop_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "value");
+	RNA_def_property_ui_text(prop, "Property Name", "Copy this property");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
@@ -771,6 +786,7 @@ static void rna_def_random_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Seed", "Initial seed of the random generator. Use Python for more freedom (choose 0 for not random)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	//XXX add magic property lookup
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "propname");
 	RNA_def_property_ui_text(prop, "Property", "Assign the random value to this property");
@@ -937,7 +953,8 @@ static void rna_def_game_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Game", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_NONE);
+	/* ACT_GAME_LOAD */
+	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_ui_text(prop, "File", "Load this blend file, use the \"//\" prefix for a path relative to the current blend file");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
