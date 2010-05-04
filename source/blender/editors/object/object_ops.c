@@ -321,7 +321,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	/* same as above but for rendering */
 	WM_keymap_add_item(keymap, "OBJECT_OT_restrictrender_clear", HKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_restrictrender_set", HKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_restrictrender_set", HKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "unselected", 1);
+//	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_restrictrender_set", HKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "unselected", 1); // conflicts, removing
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_layer", MKEY, KM_PRESS, 0, 0);
 	
