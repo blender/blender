@@ -200,41 +200,41 @@ class InfoPropertyRNA:
 
         if self.type == "enum":
             self.enum_items[:] = rna_prop.items.keys()
-
+            
+            
         if self.array_length:
             self.default = tuple(getattr(rna_prop, "default_array", ()))
+        else:
+            self.default = getattr(rna_prop, "default", None)
+        self.default_str = "" # fallback
+
+
+        if self.type == "pointer":
+            # pointer has no default, just set as None
+            self.default = None
+            self.default_str = "None"
+        elif self.type == "string":
+            self.default_str = "\"%s\"" % self.default
+        elif self.type == "enum":
+            self.default_str = "'%s'" % self.default
+        elif self.array_length:
             self.default_str = ''
             # special case for floats
             if len(self.default) > 0:
-                if type(self.default[0]) is float:
+                if self.type == "float":
                     self.default_str = "(%s)" % ", ".join([float_as_string(f) for f in self.default])
             if not self.default_str:
                 self.default_str = str(self.default)
         else:
-            self.default = getattr(rna_prop, "default", "")
-            if type(self.default) is float:
+            if self.type == "float":
                 self.default_str = float_as_string(self.default)
             else:
                 self.default_str = str(self.default)
 
         self.srna = GetInfoStructRNA(rna_prop.srna) # valid for pointer/collections
 
-    def get_default_string(self):
-        # pointer has no default, just set as None
-        if self.type == "pointer":
-            return "None"
-        elif self.type == "string":
-            return '"' + self.default_str + '"'
-        elif self.type == "enum":
-            if self.default_str:
-                return "'" + self.default_str + "'"
-            else:
-                return ""
-
-        return self.default_str
-
     def get_arg_default(self, force=True):
-        default = self.get_default_string()
+        default = self.default_str
         if default and (force or self.is_required == False):
             return "%s=%s" % (self.identifier, default)
         return self.identifier
@@ -253,9 +253,9 @@ class InfoPropertyRNA:
 
             if not (as_arg or as_ret):
                 # write default property, ignore function args for this
-                default_str = self.get_default_string()
-                if default_str:
-                    type_str += ", default %s" % default_str
+                if self.type != "pointer":
+                    if self.default_str:
+                        type_str += ", default %s" % self.default_str
 
         else:
             if self.type == "collection":
@@ -579,6 +579,16 @@ def BuildRNAInfo():
                 prop.build()
             for prop in func.return_values:
                 prop.build()
+
+    if 1:
+        for rna_info in InfoStructRNA.global_lookup.values():
+            for prop in rna_info.properties:
+                # ERROR CHECK
+                default = prop.default
+                if type(default) in (float, int):
+                    if default < prop.min or default > prop.max:
+                        print("\t %s.%s, %s not in [%s - %s]" % (rna_info.identifier, prop.identifier, default, prop.min, prop.max))
+
 
     # now for operators
     op_mods = dir(bpy.ops)
