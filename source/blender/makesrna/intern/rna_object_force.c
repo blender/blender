@@ -1273,13 +1273,13 @@ static void rna_def_field(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "guide_clump_amount", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clump_fac");
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Amount", "Amount of clumpimg");
+	RNA_def_property_ui_text(prop, "Amount", "Amount of clumping");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	prop= RNA_def_property(srna, "guide_clump_shape", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clump_pow");
 	RNA_def_property_range(prop, -0.999f, 0.999f);
-	RNA_def_property_ui_text(prop, "Shape", "Shape of clumpimg");
+	RNA_def_property_ui_text(prop, "Shape", "Shape of clumping");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	/* Kink Settings */
@@ -1305,7 +1305,7 @@ static void rna_def_field(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "guide_kink_shape", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "kink_shape");
 	RNA_def_property_range(prop, -0.999f, 0.999f);
-	RNA_def_property_ui_text(prop, "Shape", "djust the offset to the beginning/end");
+	RNA_def_property_ui_text(prop, "Shape", "Adjust the offset to the beginning/end");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	prop= RNA_def_property(srna, "guide_kink_amplitude", PROP_FLOAT, PROP_NONE);
@@ -1551,7 +1551,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ball_stiff", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ballstiff");
 	RNA_def_property_range(prop, 0.001f, 100.0f);
-	RNA_def_property_ui_text(prop, "Ball Size", "Ball inflating presure");
+	RNA_def_property_ui_text(prop, "Ball Size", "Ball inflating pressure");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "ball_damp", PROP_FLOAT, PROP_NONE);
@@ -1589,7 +1589,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "fuzzy", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "fuzzyness");
 	RNA_def_property_range(prop, 1, 100);
-	RNA_def_property_ui_text(prop, "Fuzzy", "Fuzzyness while on collision, high values make collsion handling faster but less stable");
+	RNA_def_property_ui_text(prop, "Fuzzy", "Fuzziness while on collision, high values make collsion handling faster but less stable");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "auto_step", PROP_BOOLEAN, PROP_NONE);
@@ -1603,7 +1603,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "estimate_matrix", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "solverflags", SBSO_ESTIMATEIPO);
-	RNA_def_property_ui_text(prop, "Estimate matrix", "esimate matrix .. split to COM , ROT ,SCALE ");
+	RNA_def_property_ui_text(prop, "Estimate matrix", "estimate matrix .. split to COM , ROT ,SCALE ");
 
 
 	/***********************************************************************************/

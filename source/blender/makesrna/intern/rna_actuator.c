@@ -322,13 +322,13 @@ static void rna_def_ipo_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "IpoActuator", "Actuator");
-	RNA_def_struct_ui_text(srna, "Ipo Actuator", "Actuator to animate the object");
+	RNA_def_struct_ui_text(srna, "IPO Actuator", "Actuator to animate the object");
 	RNA_def_struct_sdna_from(srna, "bIpoActuator", "data");
 
 	prop= RNA_def_property(srna, "play_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Ipo Type", "Specify the way you want to play the animation");
+	RNA_def_property_ui_text(prop, "IPO Type", "Specify the way you want to play the animation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
 	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
@@ -355,14 +355,14 @@ static void rna_def_ipo_actuator(BlenderRNA *brna)
 	/* booleans */
 	prop= RNA_def_property(srna, "force", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOFORCE);
-	RNA_def_property_ui_text(prop, "Force", "Apply Ipo as a global or local force depending on the local option (dynamic objects only)");
+	RNA_def_property_ui_text(prop, "Force", "Apply IPO as a global or local force depending on the local option (dynamic objects only)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 //	logic_window::change_ipo_actuator
 //	RNA_def_property_boolean_funcs(prop, "rna_Actuator_Ipo_get", "rna_Actuator_Ipo_get", "rna_Actuator_Ipo_range");	
 	
 	prop= RNA_def_property(srna, "local", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOLOCAL);
-	RNA_def_property_ui_text(prop, "L", "Let the ipo acts in local coordinates, used in Force and Add mode");
+	RNA_def_property_ui_text(prop, "L", "Let the IPO act in local coordinates, used in Force and Add mode");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "child", PROP_BOOLEAN, PROP_NONE);
@@ -420,7 +420,7 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "axis");
 	RNA_def_property_enum_items(prop, prop_axis_items);
-	RNA_def_property_ui_text(prop, "Axis", "Specify the axy the Camera will try to get behind");
+	RNA_def_property_ui_text(prop, "Axis", "Specify the axis the Camera will try to get behind");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 

@@ -821,7 +821,7 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "normals", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WAVE_NORM);
-	RNA_def_property_ui_text(prop, "Normals", "Dispace along normals");
+	RNA_def_property_ui_text(prop, "Normals", "Displace along normals");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "x_normal", PROP_BOOLEAN, PROP_NONE);
@@ -1069,7 +1069,7 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_MOD_BOOLEAN);
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Object", "Mesh object to use for boolean operation");
+	RNA_def_property_ui_text(prop, "Object", "Mesh object to use for Boolean operation");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_BooleanModifier_object_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
@@ -2186,7 +2186,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 
 	/*prop= RNA_def_property(srna, "use_angle_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_OBJECT_ANGLE);
-	RNA_def_property_ui_text(prop, "Object Angle", "Use the angle between the objects rather then the fixed angle");
+	RNA_def_property_ui_text(prop, "Object Angle", "Use the angle between the objects rather than the fixed angle");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 }
 

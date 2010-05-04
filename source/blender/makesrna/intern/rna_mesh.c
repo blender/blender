@@ -1343,7 +1343,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "twoside", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TWOSIDE);
-	RNA_def_property_ui_text(prop, "Twoside", "Render face twosided");
+	RNA_def_property_ui_text(prop, "Two-side", "Render face two-sided");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	prop= RNA_def_property(srna, "object_color", PROP_BOOLEAN, PROP_NONE);
@@ -1658,7 +1658,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "texture_mesh", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
-	RNA_def_property_ui_text(prop, "Texture Mesh", "Use another mesh for texture indicies (vertex indicies must be aligned)");
+	RNA_def_property_ui_text(prop, "Texture Mesh", "Use another mesh for texture indices (vertex indices must be aligned)");
 
 	/* UV textures */
 	prop= RNA_def_property(srna, "uv_textures", PROP_COLLECTION, PROP_NONE);
@@ -1771,7 +1771,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
+	RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
 	RNA_def_property_editable_func(prop, "rna_Mesh_texspace_editable");
 	RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_loc_get", "rna_Mesh_texspace_loc_set", NULL);	
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
@@ -1800,7 +1800,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "draw_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEDGES);
-	RNA_def_property_ui_text(prop, "Draw Edges", "Displays selected edges using hilights in the 3D view and UV editor");
+	RNA_def_property_ui_text(prop, "Draw Edges", "Displays selected edges using highlights in the 3D view and UV editor");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
 	prop= RNA_def_property(srna, "all_edges", PROP_BOOLEAN, PROP_NONE);

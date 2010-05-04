@@ -232,7 +232,7 @@ static void rna_def_metaball(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
+	RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
 	RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
 	RNA_def_property_float_funcs(prop, "rna_Meta_texspace_loc_get", "rna_Meta_texspace_loc_set", NULL);	
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
