@@ -264,8 +264,11 @@ typedef struct bJoystickSensor {
 #define SENS_COLLISION_PROPERTY 0 // uncommenting to use with RNA/UI. will check if it's working/fix it later - dfelinto
 #define SENS_COLLISION_MATERIAL 1
 #define SENS_COLLISION_PULSE 2
+
 /* ray specific mode */
 /* X-Ray means that the ray will traverse objects that don't have the property/material */
+#define SENS_RAY_PROPERTY		0
+#define SENS_RAY_MATERIAL		1
 #define SENS_RAY_XRAY			2
 
 /* Some stuff for the mouse sensor Type: */
@@ -278,6 +281,7 @@ typedef struct bJoystickSensor {
 #define BL_SENS_MOUSE_MOUSEOVER      16
 #define BL_SENS_MOUSE_MOUSEOVER_ANY	 32
 
+/* Joystick sensor - sorted by axis types */
 #define SENS_JOY_ANY_EVENT		1
 
 #define SENS_JOY_BUTTON		0			/* axis type */
@@ -293,6 +297,16 @@ typedef struct bJoystickSensor {
 
 #define SENS_JOY_HAT			2		/* axis type */
 #define SENS_JOY_HAT_DIR		0
+#define SENS_JOY_HAT_UP			1
+#define SENS_JOY_HAT_RIGHT		2
+#define SENS_JOY_HAT_DOWN		4
+#define SENS_JOY_HAT_LEFT		8
+
+#define SENS_JOY_HAT_UP_RIGHT	SENS_JOY_HAT_UP | SENS_JOY_HAT_RIGHT
+#define SENS_JOY_HAT_DOWN_RIGHT	SENS_JOY_HAT_DOWN | SENS_JOY_HAT_RIGHT
+#define SENS_JOY_HAT_UP_LEFT	SENS_JOY_HAT_UP | SENS_JOY_HAT_LEFT
+#define SENS_JOY_HAT_DOWN_LEFT	SENS_JOY_HAT_DOWN | SENS_JOY_HAT_LEFT
+
 
 #define SENS_JOY_AXIS_SINGLE	3		/* axis type */
 

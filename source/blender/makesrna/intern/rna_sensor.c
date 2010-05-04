@@ -478,8 +478,8 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 		{SENS_RAY_NEG_Z_AXIS, "NEGZAXIS", 0, "-Z axis", ""},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_type_items[] ={
-		{0, "PROPERTY", 0, "Property", ""},
-		{1, "MATERIAL", 0, "Material", ""},
+		{SENS_RAY_PROPERTY, "PROPERTY", 0, "Property", ""},
+		{SENS_RAY_MATERIAL, "MATERIAL", 0, "Material", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RaySensor", "Sensor");
@@ -543,6 +543,7 @@ static void rna_def_joystick_sensor(BlenderRNA *brna)
 		{SENS_JOY_BUTTON, "BUTTON", 0, "Button", ""},
 		{SENS_JOY_AXIS, "AXIS", 0, "Axis", ""},
 		{SENS_JOY_HAT, "HAT", 0, "Hat", ""},
+		{SENS_JOY_AXIS_SINGLE, "AXIS_SINGLE", 0, "Single Axis", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem axis_direction_items[] ={
@@ -552,13 +553,25 @@ static void rna_def_joystick_sensor(BlenderRNA *brna)
 		{SENS_JOY_NEG_Y_AXIS, "DOWNAXIS", 0, "Down Axis", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem hat_direction_items[] ={
+		{SENS_JOY_HAT_UP, "UP", 0, "Up", ""},
+		{SENS_JOY_HAT_DOWN, "DOWN", 0, "Down", ""},
+		{SENS_JOY_HAT_LEFT, "LEFT", 0, "Left", ""},
+		{SENS_JOY_HAT_RIGHT, "RIGHT", 0, "Right", ""},
+
+		{SENS_JOY_HAT_UP_RIGHT, "UPRIGHT", 0, "Up/Right", ""},
+		{SENS_JOY_HAT_DOWN_LEFT, "DOWNLEFT", 0, "Down/Left", ""},
+		{SENS_JOY_HAT_UP_LEFT, "UPLEFT", 0, "Up/Left", ""},
+		{SENS_JOY_HAT_DOWN_RIGHT, "DOWNRIGHT", 0, "Down/Right", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "JoystickSensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Joystick Sensor", "Sensor to detect joystick events");
 	RNA_def_struct_sdna_from(srna, "bJoystickSensor", "data");
 	
 	prop= RNA_def_property(srna, "joystick_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "joyindex");
-	RNA_def_property_ui_text(prop, "Joystick Index", "Specify which joystick to use");
+	RNA_def_property_ui_text(prop, "Index", "Specify which joystick to use");
 	RNA_def_property_range(prop, 0, SENS_JOY_MAXINDEX-1);
 
 	prop= RNA_def_property(srna, "event_type", PROP_ENUM, PROP_NONE);
@@ -592,16 +605,22 @@ static void rna_def_joystick_sensor(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, axis_direction_items);
 	RNA_def_property_ui_text(prop, "Axis Direction", "The direction of the axis");
 
+	/* Single Axis */
+	prop= RNA_def_property(srna, "single_axis_number", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "axis_single");
+	RNA_def_property_ui_text(prop, "Axis Number", "Specify a single axis (verticle/horizontal/other) to detect");
+	RNA_def_property_range(prop, 1, 16);
+
 	/* Hat */
 	prop= RNA_def_property(srna, "hat_number", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "hat");
 	RNA_def_property_ui_text(prop, "Hat Number", "Specify which hat to use");
 	RNA_def_property_range(prop, 1, 2);
 
-	prop= RNA_def_property(srna, "hat_direction", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "hatf");
+	prop= RNA_def_property(srna, "hat_direction", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "hatf");
+	RNA_def_property_enum_items(prop, hat_direction_items);
 	RNA_def_property_ui_text(prop, "Hat Direction", "Specify hat direction");
-	RNA_def_property_range(prop, 0, 12);
 }
 
 void RNA_def_sensor(BlenderRNA *brna)

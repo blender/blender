@@ -153,7 +153,8 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bObjectActuator", "data");
 
 
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Motion Type", "Specify the motion system");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -422,6 +423,8 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_axis_items);
 	RNA_def_property_ui_text(prop, "Axis", "Specify the axis the Camera will try to get behind");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	//XXX it's not working (no default value)
+	// probably need to make a get/set function
 }
 
 static void rna_def_sound_actuator(BlenderRNA *brna)
@@ -449,7 +452,8 @@ static void rna_def_sound_actuator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Sound", "Sound file");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -538,7 +542,8 @@ static void rna_def_property_actuator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Property Actuator", "Actuator to handle properties");
 	RNA_def_struct_sdna_from(srna, "bPropertyActuator", "data");
 
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -598,7 +603,7 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Edit Object Actuator", "Actuator used to edit objects");
 	RNA_def_struct_sdna_from(srna, "bEditObjectActuator", "data");
 
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Edit Object", "The mode of the actuator");
@@ -926,7 +931,8 @@ static void rna_def_game_actuator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Game Actuator", "");
 	RNA_def_struct_sdna_from(srna, "bGameActuator", "data");
 
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Game", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -989,7 +995,8 @@ static void rna_def_twodfilter_actuator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "2D Filter Actuator", "Actuator to ..");
 	RNA_def_struct_sdna_from(srna, "bTwoDFilterActuator", "data");
 
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "2D Filter Type", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -1082,7 +1089,8 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Shape Action Actuator", "Actuator to ..");
 	RNA_def_struct_sdna_from(srna, "bActionActuator", "data");
 	
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Action type", "Action playback type");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);

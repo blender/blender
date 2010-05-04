@@ -3249,7 +3249,43 @@ static void draw_sensor_delay(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_joystick(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXSENSOR
+	uiLayout *col, *row;
+
+	uiItemR(layout, ptr, "joystick_index", 0, NULL, 0);
+	uiItemR(layout, ptr, "event_type", 0, NULL, 0);
+
+	switch (RNA_enum_get(ptr, "event_type")) {
+		case SENS_JOY_BUTTON:
+			uiItemR(layout, ptr, "all_events", 0, NULL, 0);
+
+			col = uiLayoutColumn(layout, 0);
+			uiLayoutSetActive(col, RNA_boolean_get(ptr, "all_events")==0);
+			uiItemR(col, ptr, "button_number", 0, NULL, 0);
+			break;
+		case SENS_JOY_AXIS:
+			row = uiLayoutRow(layout, 0);
+			uiItemR(row, ptr, "axis_number", 0, NULL, 0);
+			uiItemR(row, ptr, "axis_threshold", 0, NULL, 0);
+
+			uiItemR(layout, ptr, "all_events", 0, NULL, 0);
+			col = uiLayoutColumn(layout, 0);
+			uiLayoutSetActive(col, RNA_boolean_get(ptr, "all_events")==0);
+			uiItemR(col, ptr, "axis_direction", 0, NULL, 0);
+			break;
+		case SENS_JOY_HAT:
+			uiItemR(layout, ptr, "hat_number", 0, NULL, 0);
+			uiItemR(layout, ptr, "all_events", 0, NULL, 0);
+
+			col = uiLayoutColumn(layout, 0);
+			uiLayoutSetActive(col, RNA_boolean_get(ptr, "all_events")==0);
+			uiItemR(col, ptr, "hat_direction", 0, NULL, 0); //XXXSENSOR - needs a default value (somewhere else in the code)
+			break;
+		case SENS_JOY_AXIS_SINGLE:
+			row = uiLayoutRow(layout, 0);
+			uiItemR(row, ptr, "single_axis_number", 0, NULL, 0);
+			uiItemR(row, ptr, "axis_threshold", 0, NULL, 0);
+			break;
+	}
 }
 
 static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
@@ -3316,8 +3352,8 @@ static void draw_sensor_radar(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(layout, ptr, "axis", 0, NULL, 0);
 
 	row= uiLayoutRow(layout, 0);
-	uiItemR(layout, ptr, "angle", 0, NULL, 0);
-	uiItemR(layout, ptr, "distance", 0, NULL, 0);
+	uiItemR(row, ptr, "angle", 0, NULL, 0);
+	uiItemR(row, ptr, "distance", 0, NULL, 0);
 }
 
 static void draw_sensor_random(uiLayout *layout, PointerRNA *ptr)
@@ -3327,7 +3363,17 @@ static void draw_sensor_random(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_ray(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXSENSOR
+	uiItemR(layout, ptr, "ray_type", 0, NULL, 0);
+	switch (RNA_enum_get(ptr, "ray_type")) {
+		case SENS_RAY_PROPERTY:
+			uiItemR(layout, ptr, "property", 0, NULL, 0); break;
+		case SENS_RAY_MATERIAL:
+			uiItemR(layout, ptr, "material", 0, NULL, 0); break;
+	}
+	uiItemR(layout, ptr, "x_ray_mode", 0, NULL, 0);
+	uiItemR(layout, ptr, "range", 0, NULL, 0);
+	uiItemR(layout, ptr, "axis", 0, NULL, 0);
+	//XXXSENSOR - same problem as collision. enums badly used by UI code
 }
 
 static void draw_sensor_touch(uiLayout *layout, PointerRNA *ptr)
@@ -3482,6 +3528,87 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr)
 	uiItemO(row, "", ICON_X, "LOGIC_OT_actuator_remove");
 }
 
+static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_camera(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *row;
+	uiItemR(layout, ptr, "object", 0, NULL, 0);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "height", 0, NULL, 0);
+	uiItemR(row, ptr, "axis", 0, NULL, 0);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "min", 0, NULL, 0);
+	uiItemR(row, ptr, "max", 0, NULL, 0);
+}
+
+static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_filter_2d(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_game(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_ipo(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_message(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_parent(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *row;
+
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	uiItemR(layout, ptr, "object", 0, NULL, 0);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "compound", 0, NULL, 0);
+	uiItemR(row, ptr, "ghost", 0, NULL, 0);
+}
+
+static void draw_actuator_property(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_random(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
 static void draw_actuator_scene(uiLayout *layout, PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
@@ -3489,12 +3616,24 @@ static void draw_actuator_scene(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(layout, ptr, "scene", 0, NULL, 0);
 }
 
-static void draw_actuator_parent(uiLayout *layout, PointerRNA *ptr)
+static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "mode", 0, NULL, 0);
-	uiItemR(layout, ptr, "object", 0, NULL, 0);
-	uiItemR(layout, ptr, "compound", 0, NULL, 0);
-	uiItemR(layout, ptr, "ghost", 0, NULL, 0);
+	//XXXACTUATOR
+}
+
+static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_state(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
+}
+
+static void draw_actuator_visibility(uiLayout *layout, PointerRNA *ptr)
+{
+	//XXXACTUATOR
 }
 
 void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr)
@@ -3507,11 +3646,59 @@ void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr)
 	box = uiLayoutBox(layout);
 	
 	switch (RNA_enum_get(ptr, "type")) {
+		case ACT_ACTION:
+			draw_actuator_action(box, ptr);
+			break;
+		case ACT_ARMATURE:
+			draw_actuator_armature(box, ptr);
+			break;
+		case ACT_CAMERA:
+			draw_actuator_camera(box, ptr);
+			break;
+		case ACT_CONSTRAINT:
+			draw_actuator_constraint(box, ptr);
+			break;
+		case ACT_EDIT_OBJECT:
+			draw_actuator_edit_object(box, ptr);
+			break;
+		case ACT_2DFILTER:
+			draw_actuator_filter_2d(box, ptr);
+			break;
+		case ACT_GAME:
+			draw_actuator_game(box, ptr);
+			break;
+		case ACT_IPO:
+			draw_actuator_ipo(box, ptr);
+			break;
+		case ACT_MESSAGE:
+			draw_actuator_message(box, ptr);
+			break;
+		case ACT_OBJECT:
+			draw_actuator_motion(box, ptr);
+			break;
 		case ACT_PARENT:
 			draw_actuator_parent(box, ptr);
 			break;
+		case ACT_PROPERTY:
+			draw_actuator_property(box, ptr);
+			break;
+		case ACT_RANDOM:
+			draw_actuator_random(box, ptr);
+			break;
 		case ACT_SCENE:
 			draw_actuator_scene(box, ptr);
+			break;
+		case ACT_SHAPEACTION:
+			draw_actuator_shape_action(box, ptr);
+			break;
+		case ACT_SOUND:
+			draw_actuator_sound(box, ptr);
+			break;
+		case ACT_STATE:
+			draw_actuator_state(box, ptr);
+			break;
+		case ACT_VISIBILITY:
+			draw_actuator_visibility(box, ptr);
 			break;
 	}
 }
