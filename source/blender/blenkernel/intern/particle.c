@@ -1137,6 +1137,9 @@ static void do_particle_interpolation(ParticleSystem *psys, int p, ParticleData 
 	int point_vel = (point && point->keys->vel);
 	float real_t, dfra, keytime;
 
+	/* billboards wont fill in all of these, so start cleared */
+	memset(keys, 0, sizeof(keys));
+
 	/* interpret timing and find keys */
 	if(point) {
 		if(result->time < 0.0f)
