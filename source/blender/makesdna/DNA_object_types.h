@@ -62,6 +62,7 @@ typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
 	char name[32];
 } bDeformGroup;
+#define MAX_VGROUP_NAME 32
 
 /**
  * The following illustrates the orientation of the 

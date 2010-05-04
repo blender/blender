@@ -137,11 +137,20 @@ static int default_break(void *unused) {return G.afbreek == 1;}
 
 static void stats_background(void *unused, RenderStats *rs)
 {
-	uintptr_t mem_in_use= MEM_get_memory_in_use();
-	float megs_used_memory= mem_in_use/(1024.0*1024.0);
 	char str[400], *spos= str;
-	
-	spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", rs->cfra, megs_used_memory);
+	uintptr_t mem_in_use, mmap_in_use, peak_memory;
+	float megs_used_memory, mmap_used_memory, megs_peak_memory;
+
+	mem_in_use= MEM_get_memory_in_use();
+	mmap_in_use= MEM_get_mapped_memory_in_use();
+	peak_memory = MEM_get_peak_memory();
+
+	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
+	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
+	megs_peak_memory = (peak_memory)/(1024.0*1024.0);
+
+	spos+= sprintf(spos, "Fra:%d Mem:%.2fM (%.2fM, combined peak %.2fM) ", rs->cfra,
+				   megs_used_memory, mmap_used_memory, megs_peak_memory);
 	
 	if(rs->curfield)
 		spos+= sprintf(spos, "Field %d ", rs->curfield);
@@ -2727,6 +2736,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned i
 	scene->r.cfra= frame;
 	
 	if(render_initialize_from_scene(re, scene, srl, lay, 0, 0)) {
+		MEM_reset_peak_memory();
 		do_render_all_options(re);
 	}
 	

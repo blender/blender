@@ -176,6 +176,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_mirror);
 	WM_operatortype_append(OBJECT_OT_vertex_group_set_active);
 	WM_operatortype_append(OBJECT_OT_vertex_group_sort);
+	WM_operatortype_append(OBJECT_OT_vertex_group_move);
 
 	WM_operatortype_append(OBJECT_OT_game_property_new);
 	WM_operatortype_append(OBJECT_OT_game_property_remove);

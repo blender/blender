@@ -155,6 +155,9 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
         col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
         col.menu("MESH_MT_vertex_group_specials", icon='DOWNARROW_HLT', text="")
+        if group:
+            col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
         if group:
             row = layout.row()

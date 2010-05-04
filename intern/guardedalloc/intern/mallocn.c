@@ -138,7 +138,7 @@ static const char *check_memlist(MemHead *memh);
 	
 
 static volatile int totblock= 0;
-static volatile uintptr_t mem_in_use= 0, mmap_in_use= 0;
+static volatile uintptr_t mem_in_use= 0, mmap_in_use= 0, peak_mem = 0;
 
 static volatile struct localListBase _membase;
 static volatile struct localListBase *membase = &_membase;
@@ -293,6 +293,8 @@ static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 	
 	totblock++;
 	mem_in_use += len;
+
+	peak_mem = mem_in_use > peak_mem ? mem_in_use : peak_mem;
 }
 
 void *MEM_mallocN(size_t len, const char *str)
@@ -377,6 +379,7 @@ void *MEM_mapallocN(size_t len, const char *str)
 		make_memhead_header(memh, len, str);
 		memh->mmap= 1;
 		mmap_in_use += len;
+		peak_mem = mmap_in_use > peak_mem ? mmap_in_use : peak_mem;
 		mem_unlock_thread();
 #ifdef DEBUG_MEMCOUNTER
 		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
@@ -800,6 +803,24 @@ static const char *check_memlist(MemHead *memh)
 	}
 
 	return(name);
+}
+
+uintptr_t MEM_get_peak_memory(void)
+{
+	uintptr_t _peak_mem;
+
+	mem_lock_thread();
+	_peak_mem = peak_mem;
+	mem_unlock_thread();
+
+	return _peak_mem;
+}
+
+void MEM_reset_peak_memory(void)
+{
+	mem_lock_thread();
+	peak_mem = 0;
+	mem_unlock_thread();
 }
 
 uintptr_t MEM_get_memory_in_use(void)

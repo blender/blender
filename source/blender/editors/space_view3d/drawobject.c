@@ -3828,7 +3828,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		float *cd2=0,*cdata2=0;
 
 		/* setup gl flags */
-		if(ob_dt > OB_WIRE) {
+		if (1) { //ob_dt > OB_WIRE) {
 			glEnableClientState(GL_NORMAL_ARRAY);
 
 			if(part->draw&PART_DRAW_MAT_COL)
@@ -3838,13 +3838,13 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 			glEnable(GL_COLOR_MATERIAL);
 		}
-		else {
+		/*else {
 			glDisableClientState(GL_NORMAL_ARRAY);
 
 			glDisable(GL_COLOR_MATERIAL);
 			glDisable(GL_LIGHTING);
 			UI_ThemeColor(TH_WIRE);
-		}
+		}*/
 
 		if(totchild && (part->draw&PART_DRAW_PARENT)==0)
 			totpart=0;
@@ -3858,7 +3858,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			if(path->steps > 0) {
 				glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
 
-				if(ob_dt > OB_WIRE) {
+				if(1) { //ob_dt > OB_WIRE) {
 					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
 					if(part->draw&PART_DRAW_MAT_COL)
 						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
@@ -3874,7 +3874,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			path=cache[a];
 			glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
 
-			if(ob_dt > OB_WIRE) {
+			if(1) { //ob_dt > OB_WIRE) {
 				glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
 				if(part->draw&PART_DRAW_MAT_COL)
 					glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
@@ -3885,7 +3885,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 
 		/* restore & clean up */
-		if(ob_dt > OB_WIRE) {
+		if(1) { //ob_dt > OB_WIRE) {
 			if(part->draw&PART_DRAW_MAT_COL)
 				glDisable(GL_COLOR_ARRAY);
 			glDisable(GL_COLOR_MATERIAL);
