@@ -30,7 +30,16 @@
 static char py_blf_position_doc[] =
 ".. function:: position(fontid, x, y, z)\n"
 "\n"
-"   Set the position for drawing text.\n";
+"   Set the position for drawing text.\n"
+"\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
+"   :arg x: X axis position to draw the text.\n"
+"   :type x: float\n"
+"   :arg y: Y axis position to draw the text.\n"
+"   :type y: float\n"
+"   :arg z: Z axis position to draw the text.\n"
+"   :type x: float\n";
 
 static PyObject *py_blf_position(PyObject *self, PyObject *args)
 {
@@ -51,6 +60,8 @@ static char py_blf_size_doc[] =
 "\n"
 "   Set the size and dpi for drawing text.\n"
 "\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
 "   :arg size: Point size of the font.\n"
 "   :type size: int\n"
 "   :arg dpi: dots per inch value to use for drawing.\n"
@@ -74,6 +85,8 @@ static char py_blf_aspect_doc[] =
 "\n"
 "   Set the aspect for drawing text.\n"
 "\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
 "   :arg aspect: The aspect ratio for text drawing to use.\n"
 "   :type aspect: float\n";
 
@@ -96,6 +109,8 @@ static char py_blf_blur_doc[] =
 "\n"
 "   Set the blur radius for drawing text.\n"
 "\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
 "   :arg radius: The radius for blurring text (in pixels).\n"
 "   :type radius: int\n";
 
@@ -117,6 +132,8 @@ static char py_blf_draw_doc[] =
 "\n"
 "   Draw text in the current context.\n"
 "\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
 "   :arg text: the text to draw.\n"
 "   :type text: string\n";
 
@@ -138,6 +155,8 @@ static char py_blf_dimensions_doc[] =
 "\n"
 "   Return the width and hight of the text.\n"
 "\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
 "   :arg text: the text to draw.\n"
 "   :type text: string\n"
 "   :return: the width and height of the text.\n"
@@ -164,7 +183,18 @@ static PyObject *py_blf_dimensions(PyObject *self, PyObject *args)
 static char py_blf_clipping_doc[] =
 ".. function:: clipping(fontid, xmin, ymin, xmax, ymax)\n"
 "\n"
-"   Set the clipping, enable/disable using CLIPPING.\n";
+"   Set the clipping, enable/disable using CLIPPING.\n"
+"\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
+"   :arg xmin: Clip the drawing area by these bounds.\n"
+"   :type xmin: float\n"
+"   :arg ymin: Clip the drawing area by these bounds.\n"
+"   :type ymin: float\n"
+"   :arg xmax: Clip the drawing area by these bounds.\n"
+"   :type xmax: float\n"
+"   :arg ymax: Clip the drawing area by these bounds.\n"
+"   :type ymax: float\n";
 
 static PyObject *py_blf_clipping(PyObject *self, PyObject *args)
 {
@@ -184,6 +214,8 @@ static char py_blf_disable_doc[] =
 "\n"
 "   Disable option.\n"
 "\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
 "   :arg option: One of ROTATION, CLIPPING, SHADOW or KERNING_DEFAULT.\n"
 "   :type option: int\n";
 
@@ -204,6 +236,8 @@ static char py_blf_enable_doc[] =
 "\n"
 "   Enable option.\n"
 "\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
 "   :arg option: One of ROTATION, CLIPPING, SHADOW or KERNING_DEFAULT.\n"
 "   :type option: int\n";
 
@@ -224,6 +258,8 @@ static char py_blf_rotation_doc[] =
 "\n"
 "   Set the text rotation angle, enable/disable using ROTATION.\n"
 "\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
 "   :arg angle: The angle for text drawing to use.\n"
 "   :type aspect: float\n";
 
@@ -245,8 +281,16 @@ static char py_blf_shadow_doc[] =
 "\n"
 "   Shadow options, enable/disable using SHADOW .\n"
 "\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
 "   :arg level: The blur level, can be 3, 5 or 0.\n"
-"   :type level: int\n";
+"   :type level: int\n"
+"   :arg r: Shadow color (red channel 0.0 - 1.0).\n"
+"   :type r: float\n"
+"   :arg g: Shadow color (green channel 0.0 - 1.0).\n"
+"   :type g: float\n"
+"   :arg b: Shadow color (blue channel 0.0 - 1.0).\n"
+"   :type b: float\n";
 
 static PyObject *py_blf_shadow(PyObject *self, PyObject *args)
 {
@@ -269,7 +313,14 @@ static PyObject *py_blf_shadow(PyObject *self, PyObject *args)
 static char py_blf_shadow_offset_doc[] =
 ".. function:: shadow_offset(fontid, x, y)\n"
 "\n"
-"   Set the offset for shadow text.\n";
+"   Set the offset for shadow text.\n"
+"\n"
+"   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
+"   :type fontid: int\n"
+"   :arg x: Vertical shadow offset value in pixels.\n"
+"   :type x: float\n"
+"   :arg y: Horizontal shadow offset value in pixels.\n"
+"   :type y: float\n";
 
 static PyObject *py_blf_shadow_offset(PyObject *self, PyObject *args)
 {
@@ -281,6 +332,27 @@ static PyObject *py_blf_shadow_offset(PyObject *self, PyObject *args)
 	BLF_shadow_offset(fontid, x, y);
 
 	Py_RETURN_NONE;
+}
+
+static char py_blf_load_doc[] =
+".. function:: load(filename)\n"
+"\n"
+"   Load a new font.\n"
+"\n"
+"   :arg filename: the filename of the font.\n"
+"   :type text: string\n"
+"   :return: the new font's fontid or -1 if there was an error.\n"
+"   :rtype: integer\n";
+
+static PyObject *py_blf_load(PyObject *self, PyObject *args)
+{
+	int fontid = 0;
+	char* filename;
+
+	if (!PyArg_ParseTuple(args, "s:blf.load", &filename))
+		return NULL;
+
+	return PyLong_FromLong(BLF_load(filename));
 }
 
 /*----------------------------MODULE INIT-------------------------*/
@@ -297,6 +369,7 @@ struct PyMethodDef BLF_methods[] = {
 	{"shadow", (PyCFunction) py_blf_shadow, METH_VARARGS, py_blf_shadow_doc},
 	{"shadow_offset", (PyCFunction) py_blf_shadow_offset, METH_VARARGS, py_blf_shadow_offset_doc},
 	{"size", (PyCFunction) py_blf_size, METH_VARARGS, py_blf_size_doc},
+	{"load", (PyCFunction) py_blf_load, METH_VARARGS, py_blf_load_doc},
 	{NULL, NULL, 0, NULL}
 };
 

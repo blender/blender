@@ -95,7 +95,7 @@ typedef struct bSceneActuator {
 typedef struct bPropertyActuator {
 	int pad, type;
 	char name[32], value[32];
-	struct Object *ob; // not in use anymore
+	struct Object *ob;
 } bPropertyActuator;
 
 typedef struct bObjectActuator {

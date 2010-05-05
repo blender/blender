@@ -455,15 +455,17 @@ static void render_freejob(void *rjv)
 static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 {
 	char info_time_str[32];	// used to be extern to header_info.c
-	uintptr_t mem_in_use, mmap_in_use;
-	float megs_used_memory, mmap_used_memory;
+	uintptr_t mem_in_use, mmap_in_use, peak_memory;
+	float megs_used_memory, mmap_used_memory, megs_peak_memory;
 	char *spos= str;
 
 	mem_in_use= MEM_get_memory_in_use();
 	mmap_in_use= MEM_get_mapped_memory_in_use();
+	peak_memory = MEM_get_peak_memory();
 
 	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
 	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
+	megs_peak_memory = (peak_memory)/(1024.0*1024.0);
 
 	if(scene->lay & 0xFF000000)
 		spos+= sprintf(spos, "Localview | ");
@@ -477,7 +479,7 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (scene->r.cfra), rs->totvert, rs->totface);
 		if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
 		if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
-		spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory);
+		spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM, combined peak %.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory, megs_peak_memory);
 
 		if(rs->curfield)
 			spos+= sprintf(spos, "Field %d ", rs->curfield);

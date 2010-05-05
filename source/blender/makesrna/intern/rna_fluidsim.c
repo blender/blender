@@ -559,7 +559,7 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_FluidSettings_update_type");
 
 	//prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	//RNA_def_property_ui_text(prop, "Ipo Curves", "Ipo curves used by fluid simulation settings");
+	//RNA_def_property_ui_text(prop, "IPO Curves", "IPO curves used by fluid simulation settings");
 
 	/* types */
 

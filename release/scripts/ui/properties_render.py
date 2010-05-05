@@ -106,7 +106,6 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.label(text="Mask Layers:")
         col.prop(rl, "zmask_layers", text="")
 
-        
 
         layout.separator()
         layout.label(text="Include:")

@@ -32,6 +32,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_ghash.h"
 
@@ -386,7 +387,7 @@ ModifierTypeInfo modifierType_Mask = {
 	/* structName */        "MaskModifierData",
 	/* structSize */        sizeof(MaskModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh,
+	/* flags */             eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_SupportsMapping|eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,

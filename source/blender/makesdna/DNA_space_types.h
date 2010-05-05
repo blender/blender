@@ -628,6 +628,7 @@ typedef struct SpaceUserPref {
 #define BUTS_ACT_LINK		256
 #define BUTS_SENS_STATE		512
 #define BUTS_ACT_STATE		1024
+#define BUTS_CONT_INIT_STATE	2048
 
 /* FileSelectParams.display */
 enum FileDisplayTypeE {

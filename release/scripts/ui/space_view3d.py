@@ -993,8 +993,8 @@ class VIEW3D_MT_particle_specials(bpy.types.Menu):
         layout.separator()
         if particle_edit.selection_mode == 'POINT':
             layout.operator("particle.subdivide")
-            layout.operator("particle.select_first")
-            layout.operator("particle.select_last")
+            layout.operator("particle.select_roots")
+            layout.operator("particle.select_tips")
 
         layout.operator("particle.remove_doubles")
 

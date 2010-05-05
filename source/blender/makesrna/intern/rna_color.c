@@ -505,7 +505,7 @@ static void rna_def_scopes(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "waveform_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, "Scopes", "wavefrm_mode");
 	RNA_def_property_enum_items(prop, prop_wavefrm_mode_items);
-	RNA_def_property_ui_text(prop, "Wavefrom Mode", "");
+	RNA_def_property_ui_text(prop, "Waveform Mode", "");
 	RNA_def_property_update(prop, 0, "rna_Scopes_update");
 
 	prop= RNA_def_property(srna, "waveform_alpha", PROP_FLOAT, PROP_PERCENTAGE);

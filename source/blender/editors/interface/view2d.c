@@ -1389,6 +1389,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		/* scroller 'button' extents */
 		totsize= v2d->tot.xmax - v2d->tot.xmin;
 		scrollsize= (float)(hor.xmax - hor.xmin);
+		if(totsize==0.0f) totsize = 1.0f; /* avoid divide by zero */
 		
 		fac1= (v2d->cur.xmin - v2d->tot.xmin) / totsize;
 		if(fac1<=0.0f)
@@ -1429,6 +1430,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		/* scroller 'button' extents */
 		totsize= v2d->tot.ymax - v2d->tot.ymin;
 		scrollsize= (float)(vert.ymax - vert.ymin);
+		if(totsize==0.0f) totsize = 1.0f; /* avoid divide by zero */
 		
 		fac1= (v2d->cur.ymin- v2d->tot.ymin) / totsize;
 		if(fac1<=0.0f)

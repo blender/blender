@@ -30,7 +30,20 @@
 
 #include "DNA_controller_types.h"
 
+EnumPropertyItem controller_type_items[] ={
+	{CONT_LOGIC_AND, "LOGIC_AND", 0, "And", "Logic And"},
+	{CONT_LOGIC_OR, "LOGIC_OR", 0, "Or", "Logic Or"},
+	{CONT_LOGIC_NAND, "LOGIC_NAND", 0, "Nand", "Logic Nand"},
+	{CONT_LOGIC_NOR, "LOGIC_NOR", 0, "Nor", "Logic Nor"},
+	{CONT_LOGIC_XOR, "LOGIC_XOR", 0, "Xor", "Logic Xor"},
+	{CONT_LOGIC_XNOR, "LOGIC_XNOR", 0, "Xnor", "Logic Xnor"},
+	{CONT_EXPRESSION, "EXPRESSION", 0, "Expression", ""},
+	{CONT_PYTHON, "PYTHON", 0, "Python Script", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
+
+#include "BKE_sca.h"
 
 static struct StructRNA* rna_Controller_refine(struct PointerRNA *ptr)
 {
@@ -58,21 +71,23 @@ static struct StructRNA* rna_Controller_refine(struct PointerRNA *ptr)
 	}
 }
 
+static void rna_Controller_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bController *cont= (bController *)ptr->data;
+
+	init_controller(cont);
+}
+
 #else
 
 void RNA_def_controller(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem controller_type_items[] ={
-		{CONT_LOGIC_AND, "LOGIC_AND", 0, "Logic And", ""},
-		{CONT_LOGIC_OR, "LOGIC_OR", 0, "Logic Or", ""},
-		{CONT_LOGIC_NAND, "LOGIC_NAND", 0, "Logic Nand", ""},
-		{CONT_LOGIC_NOR, "LOGIC_NOR", 0, "Logic Nor", ""},
-		{CONT_LOGIC_XOR, "LOGIC_XOR", 0, "Logic Xor", ""},
-		{CONT_LOGIC_XNOR, "LOGIC_XNOR", 0, "Logic Xnor", ""},
-		{CONT_EXPRESSION, "EXPRESSION", 0, "Expression", ""},
-		{CONT_PYTHON, "PYTHON", 0, "Python Script", ""},
+
+	static EnumPropertyItem python_controller_modes[] ={
+		{CONT_PY_SCRIPT, "SCRIPT", 0, "Script", ""},
+		{CONT_PY_MODULE, "MODULE", 0, "Module", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* Controller */
@@ -85,11 +100,22 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 
-	/* type is not editable, would need to do proper data free/alloc */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, controller_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
+
+	RNA_def_property_update(prop, 0, "rna_Controller_type_update");
+
+	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONT_SHOW);
+	RNA_def_property_ui_text(prop, "Expanded", "Set controller expanded in the user interface");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);	
+
+	prop= RNA_def_property(srna, "priority", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONT_PRIO);
+	RNA_def_property_ui_text(prop, "Priority", "Mark controller for execution before all non-marked controllers (good for startup scripts)");
+	RNA_def_property_ui_icon(prop, ICON_BOOKMARKS, 1);
 
 	/* Expression Controller */
 	srna= RNA_def_struct(brna, "ExpressionController", "Controller");
@@ -105,6 +131,10 @@ void RNA_def_controller(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "PythonController", "Controller" );
 	RNA_def_struct_sdna_from(srna, "bPythonCont", "data");
 	RNA_def_struct_ui_text(srna, "Python Controller", "Controller executing a python script");
+
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, python_controller_modes);
+	RNA_def_property_ui_text(prop, "Execution Method", "Python script type (textblock or module - faster)");
 
 	prop= RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Text");

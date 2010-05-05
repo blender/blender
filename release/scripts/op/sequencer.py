@@ -98,12 +98,33 @@ class SequencerCutMulticam(bpy.types.Operator):
             
         cfra = context.scene.frame_current
         bpy.ops.sequencer.cut(frame=cfra,type='HARD',side='RIGHT')
-        for s in context.scene.sequence_editor.sequences:
+        for s in context.scene.sequence_editor.sequences_all:
             if s.selected and s.type == 'MULTICAM' and s.frame_final_start <= cfra and cfra < s.frame_final_end:
                 context.scene.sequence_editor.active_strip = s
                 
         context.scene.sequence_editor.active_strip.multicam_source = camera
         return {'FINISHED'}
+
+class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
+    '''Deinterlace all selected movie sources.'''
+
+    bl_idname = "sequencer.deinterlace_selected_movies"
+    bl_label = "Deinterlace Movies"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def poll(self, context):
+        if context.scene and context.scene.sequence_editor:
+            return True
+        else:
+            return False
+
+    def execute(self, context):
+        for s in context.scene.sequence_editor.sequences_all:
+            if s.selected and s.type == 'MOVIE':
+                s.de_interlace = True
+                
+        return {'FINISHED'}
+
 
 
 def register():
@@ -111,6 +132,7 @@ def register():
     
     register(SequencerCrossfadeSounds)
     register(SequencerCutMulticam)
+    register(SequencerDeinterlaceSelectedMovies)
 
 
 def unregister():
@@ -118,6 +140,7 @@ def unregister():
     
     unregister(SequencerCrossfadeSounds)
     unregister(SequencerCutMulticam)
+    unregister(SequencerDeinterlaceSelectedMovies)
 
 if __name__ == "__main__":
     register()

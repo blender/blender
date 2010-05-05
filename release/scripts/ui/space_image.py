@@ -471,7 +471,7 @@ class IMAGE_PT_scope_sample(bpy.types.Panel):
 
     def poll(self, context):
         sima = context.space_data
-        return sima 
+        return sima
 
     def draw(self, context):
         layout = self.layout

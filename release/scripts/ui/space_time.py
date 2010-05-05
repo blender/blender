@@ -39,7 +39,7 @@ class TIME_HT_header(bpy.types.Header):
             sub.menu("TIME_MT_frame")
             sub.menu("TIME_MT_playback")
 
-        layout.prop(scene, "use_preview_range", text="PR")
+        layout.prop(scene, "use_preview_range", text="", toggle=True)
 
         row = layout.row(align=True)
         if not scene.use_preview_range:
@@ -67,7 +67,7 @@ class TIME_HT_header(bpy.types.Header):
         row.operator("screen.frame_jump", text="", icon='FF').end = True
 
         row = layout.row(align=True)
-        row.prop(tools, "use_auto_keying", text="", toggle=True, icon='REC')
+        row.prop(tools, "use_auto_keying", text="", toggle=True)
         if screen.animation_playing and tools.use_auto_keying:
             subsub = row.row()
             subsub.prop(tools, "record_with_nla", toggle=True)

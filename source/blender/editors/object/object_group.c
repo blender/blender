@@ -52,6 +52,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "object_intern.h"
 
@@ -224,84 +225,71 @@ void GROUP_OT_create(wmOperatorType *ot)
 
 static int group_add_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Base *base;
 	Group *group;
-	int value= RNA_enum_get(op->ptr, "group");
 
-	if(!ob)
+	if(ob == NULL)
 		return OPERATOR_CANCELLED;
-	
-	base= object_in_scene(ob, scene);
-	if(!base)
-		return OPERATOR_CANCELLED;
-	
-	if(value == -1)
-		group= add_group( "Group" );
-	else
-		group= BLI_findlink(&bmain->group, value);
 
-	if(group) {
-		add_to_group(group, ob, scene, NULL); /* base will be used if found */
-	}
+    group= add_group("Group");
+    add_to_group(group, ob, scene, NULL);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-	
+
 	return OPERATOR_FINISHED;
-}
-
-static EnumPropertyItem group_items[]= {
-	{-1, "ADD_NEW", 0, "Add New Group", ""},
-	{0, NULL, 0, NULL, NULL}};
-
-static EnumPropertyItem *group_itemf(bContext *C, PointerRNA *ptr, int *free)
-{	
-	Main *bmain= CTX_data_main(C);
-	Group *group;
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
-	EnumPropertyItem *item= NULL;
-	int a, totitem= 0;
-	
-	RNA_enum_items_add_value(&item, &totitem, group_items, -1);
-
-	if (bmain) {
-		if(bmain->group.first)
-			RNA_enum_item_add_separator(&item, &totitem);
-
-		for(a=0, group=bmain->group.first; group; group=group->id.next, a++) {
-			tmp.value= a;
-			tmp.identifier= group->id.name+2;
-			tmp.name= group->id.name+2;
-			RNA_enum_item_add(&item, &totitem, &tmp);
-		}
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-	*free= 1;
-
-	return item;
 }
 
 void OBJECT_OT_group_add(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "Add to Group";
 	ot->idname= "OBJECT_OT_group_add";
-	ot->description = "Add an object to an existing group, or create new";
+	ot->description = "Add an object to a new group";
 	
 	/* api callbacks */
 	ot->exec= group_add_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int group_link_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+    Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "group"));
+
+	if(ELEM(NULL, ob, group))
+		return OPERATOR_CANCELLED;
+
+    add_to_group(group, ob, scene, NULL);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_group_link(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Link to Group";
+	ot->idname= "OBJECT_OT_group_link";
+	ot->description = "Add an object to an existing group";
+	
+	/* api callbacks */
+	ot->exec= group_link_exec;
+	ot->invoke= WM_enum_search_invoke;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "group", group_items, -1, "Group", "Group to add object to.");
-	RNA_def_enum_funcs(prop, group_itemf);
+	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "");
+	RNA_def_enum_funcs(prop, RNA_group_local_itemf);
+	ot->prop= prop;
 }
 
 static int group_remove_exec(bContext *C, wmOperator *op)

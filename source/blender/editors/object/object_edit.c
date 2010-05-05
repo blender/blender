@@ -229,6 +229,78 @@ void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 	
 }
 
+/* 99% same as above except no need for scene refreshing (TODO, update render preview) */
+static int object_restrictrender_clear_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	Base *base;
+
+
+	/* XXX need a context loop to handle such cases */
+	for(base = FIRSTBASE; base; base=base->next){
+		if((base->lay & v3d->lay) && base->object->restrictflag & OB_RESTRICT_RENDER) {
+			base->object->restrictflag &= ~OB_RESTRICT_RENDER;
+		}
+	}
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_OUTLINER, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_restrictrender_clear(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "Clear Restrict View";
+	ot->description = "Reveal the render object by setting the restrictrender flag";
+	ot->idname= "OBJECT_OT_restrictrender_clear";
+
+	/* api callbacks */
+	ot->exec= object_restrictrender_clear_exec;
+	ot->poll= ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int object_restrictrender_set_exec(bContext *C, wmOperator *op)
+{
+	int unselected= RNA_boolean_get(op->ptr, "unselected");
+
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if(!unselected) {
+			if (base->flag & SELECT){
+				base->object->restrictflag |= OB_RESTRICT_RENDER;
+			}
+		}
+		else {
+			if (!(base->flag & SELECT)){
+				base->object->restrictflag |= OB_RESTRICT_RENDER;
+			}
+		}
+	}
+	CTX_DATA_END;
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_OUTLINER, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_restrictrender_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Restrict Render";
+	ot->description = "Hide the render object by setting the restrictrender flag";
+	ot->idname= "OBJECT_OT_restrictrender_set";
+
+	/* api callbacks */
+	ot->exec= object_restrictrender_set_exec;
+	ot->poll= ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
+}
 
 /* ******************* toggle editmode operator  ***************** */
 

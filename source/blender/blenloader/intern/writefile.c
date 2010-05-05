@@ -1266,6 +1266,14 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			write_sensors(wd, &ob->sensors);
 			write_controllers(wd, &ob->controllers);
 			write_actuators(wd, &ob->actuators);
+
+			if (ob->type == OB_ARMATURE) {
+				bArmature *arm = ob->data;
+				if (arm && ob->pose && arm->act_bone) {
+					strcpy(ob->pose->proxy_act_bone, arm->act_bone->name);
+				}
+			}
+
 			write_pose(wd, ob->pose);
 			write_defgroups(wd, &ob->defbase);
 			write_constraints(wd, &ob->constraints);

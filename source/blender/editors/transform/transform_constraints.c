@@ -524,6 +524,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	if (t->flag & T_EDIT) {
 		float obmat[3][3];
 		copy_m3_m4(obmat, t->scene->obedit->obmat);
+		normalize_m3(obmat);
 		setConstraint(t, obmat, mode, text);
 	}
 	else {

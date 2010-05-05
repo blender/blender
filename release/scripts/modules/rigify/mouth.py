@@ -77,7 +77,7 @@ def addget_shape_key_driver(obj, name="Key"):
             if driver_s.data_path == driver_path:
                 fcurve = driver_s
     if fcurve == None:
-        fcurve = obj.data.shape_keys.keys[name].driver_add("value", 0)
+        fcurve = obj.data.shape_keys.keys[name].driver_add("value")
         fcurve.driver.type = 'AVERAGE'
         new = True
 
@@ -173,7 +173,7 @@ def deform(obj, definitions, base_names, options):
     jopen1 = copy_bone_simple(obj.data, jaw, "MCH-"+base_names[jaw]+".track1", parent=True).name
     eb[jopen1].connected = False
     eb[jopen1].head = eb[jaw].tail
-    eb[jopen1].tail = eb[jopen1].head + Vector(0, 0, eb[jaw].length/4)
+    eb[jopen1].tail = eb[jopen1].head + Vector((0, 0, eb[jaw].length/4))
 
     jopen2 = copy_bone_simple(obj.data, jopen1, "MCH-"+base_names[jaw]+".track2").name
     eb[jopen2].parent = eb[jaw]
@@ -427,7 +427,7 @@ def control(obj, definitions, base_names, options):
     # Jaw open tracker
     jopent = copy_bone_simple(obj.data, jaw_e.name, "MCH-"+base_names[jaw_e.name]+".track", parent=True).name
     eb[jopent].connected = False
-    eb[jopent].tail = jaw_e.tail + Vector(0,0,jaw_e.length)
+    eb[jopent].tail = jaw_e.tail + Vector((0.0, 0.0, jaw_e.length))
     eb[jopent].head = jaw_e.tail
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -548,7 +548,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -566,7 +566,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -584,7 +584,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -602,7 +602,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -620,7 +620,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -638,7 +638,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -656,7 +656,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -674,7 +674,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = 0.0
     con.maximum = 1.0
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()

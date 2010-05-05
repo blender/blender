@@ -50,6 +50,10 @@ static void rna_Main_debug_set(PointerRNA *ptr, const int value)
 		G.f &= ~G_DEBUG;
 }
 
+static int rna_Main_fileissaved_get(PointerRNA *ptr)
+{
+	return G.relbase_valid;
+}
 
 static void rna_Main_filename_get(PointerRNA *ptr, char *value)
 {
@@ -308,6 +312,11 @@ void RNA_def_main(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Main_filename_get", "rna_Main_filename_length", "rna_Main_filename_set");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "Path to the .blend file");
+	
+	prop= RNA_def_property(srna, "file_is_saved", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_fileissaved_get", NULL);
+	RNA_def_property_ui_text(prop, "File is Saved", "Has the current session been saved to disk as a .blend file");
 
 	prop= RNA_def_property(srna, "debug", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_debug_get", "rna_Main_debug_set");

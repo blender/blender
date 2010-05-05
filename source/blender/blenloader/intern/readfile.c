@@ -2221,6 +2221,12 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 	/* always rebuild to match proxy or lib changes */
 	rebuild= ob->proxy || (ob->id.lib==NULL && arm->id.lib);
 
+	if (ob->proxy && pose->proxy_act_bone[0]) {
+		Bone *bone = get_named_bone(arm, pose->proxy_act_bone);
+		if (bone)
+			arm->act_bone = bone;
+	}
+
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
 		lib_link_constraints(fd, (ID *)ob, &pchan->constraints);
 		
@@ -11584,7 +11590,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	PartEff *paf;
 	int a;
 
-
 	expand_doit(fd, mainvar, ob->data);
 	
 	for (md=ob->modifiers.first; md; md=md->next) {
@@ -12068,7 +12073,9 @@ static Main* library_append_begin(const bContext *C, FileData **fd, char *dir)
 	/* which one do we need? */
 	mainl = blo_find_main(*fd, &(*fd)->mainlist, dir, G.sce);
 	
-	mainl->versionfile= (*fd)->fileversion;	/* needed for do_version */
+	/* needed for do_version */
+	mainl->versionfile= (*fd)->fileversion;
+	read_file_version(*fd, mainl);
 	
 	return mainl;
 }

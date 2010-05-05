@@ -1069,7 +1069,7 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 {
 	ListBase *markers= context_get_markers(C);
-	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "type"));
+	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 	TimeMarker *marker, *marker_new;
 
 	if(scene_to==NULL) {
@@ -1110,7 +1110,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
 	RNA_def_enum_funcs(prop, RNA_scene_itemf);
 
 }

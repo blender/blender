@@ -877,14 +877,14 @@ static void rna_def_armature(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ghost_step", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ghostep");
 	RNA_def_property_range(prop, 0, 30);
-	RNA_def_property_ui_text(prop, "Ghosting Step", "Number of frame steps on either side of current frame to show as ghosts (only for 'Around Current Frame' Onion-skining method)");
+	RNA_def_property_ui_text(prop, "Ghosting Step", "Number of frame steps on either side of current frame to show as ghosts (only for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "ghost_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ghostsize");
 	RNA_def_property_range(prop, 1, 20);
-	RNA_def_property_ui_text(prop, "Ghosting Frame Step", "Frame step for Ghosts (not for 'On Keyframes' Onion-skining method)");
+	RNA_def_property_ui_text(prop, "Ghosting Frame Step", "Frame step for Ghosts (not for 'On Keyframes' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	

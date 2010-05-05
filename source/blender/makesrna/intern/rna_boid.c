@@ -266,7 +266,7 @@ static void rna_def_boidrule_avoid(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "fear_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 100.0f);
-	RNA_def_property_ui_text(prop, "Fear factor", "Avoid object if danger from it is above this threshol");
+	RNA_def_property_ui_text(prop, "Fear factor", "Avoid object if danger from it is above this threshold");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 }
 
@@ -445,7 +445,7 @@ static void rna_def_boidstate(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "rule_fuzziness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Rule Fuzzines", "");
+	RNA_def_property_ui_text(prop, "Rule Fuzziness", "");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
 	prop= RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);

@@ -2335,6 +2335,10 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 						}
 					}
 					break;
+				default:
+					/* should never happen */
+					PyErr_Format(PyExc_AttributeError, "bpy_struct: Context type invalid %d, can't get \"%.200s\" from context", newtype, name);
+					ret= NULL;
 				}
 			}
 			else if (done==-1) { /* found but not set */
