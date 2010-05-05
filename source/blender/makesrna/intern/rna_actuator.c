@@ -190,28 +190,43 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Derivate Coefficient", "Not required, high values can cause instability");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	/* XXX We need one of those special get/set functions here:
-	int offset
-	if (flag & ACT_SERVO_LIMIT_X):
-		offset = 0
-	elif (flag & ACT_SERVO_LIMIT_Y):
-		offset = 1
-	elif (flag & ACT_SERVO_LIMIT_Z):
-		offset = 2
-	
-	prop= RNA_def_property(srna, "force_max", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "dloc[offset]");
+	/* Servo Limit */
+	prop= RNA_def_property(srna, "force_max_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dloc[0]");
 	RNA_def_property_ui_range(prop, -100.0, 100.0, 1.0, 0.1);
 	RNA_def_property_ui_text(prop, "Max", "Set the upper limit for force");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "force_max", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "drot[offset]");
+	prop= RNA_def_property(srna, "force_min_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "drot[0]");
+	RNA_def_property_ui_range(prop, -100.0, 100.0, 1.0, 0.1);
+	RNA_def_property_ui_text(prop, "Max", "Set the lower limit for force");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "force_max_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dloc[0]");
 	RNA_def_property_ui_range(prop, -100.0, 100.0, 1.0, 0.1);
 	RNA_def_property_ui_text(prop, "Max", "Set the upper limit for force");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	*/
-	
+
+	prop= RNA_def_property(srna, "force_min_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "drot[1]");
+	RNA_def_property_ui_range(prop, -100.0, 100.0, 1.0, 0.1);
+	RNA_def_property_ui_text(prop, "Max", "Set the lower limit for force");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "force_max_z", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dloc[2]");
+	RNA_def_property_ui_range(prop, -100.0, 100.0, 1.0, 0.1);
+	RNA_def_property_ui_text(prop, "Max", "Set the upper limit for force");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "force_min_z", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "drot[2]");
+	RNA_def_property_ui_range(prop, -100.0, 100.0, 1.0, 0.1);
+	RNA_def_property_ui_text(prop, "Max", "Set the lower limit for force");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	/* floats 3 Arrays*/
 	prop= RNA_def_property(srna, "loc", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dloc");
@@ -1039,11 +1054,8 @@ static void rna_def_twodfilter_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
 	/* booleans */
-	// it must be renamed to enable_motion_blur.
-	// it'll require code change and do_version()
-	// or RNA_def_property_boolean_funcs() to flip the boolean value
-	prop= RNA_def_property(srna, "disable_motion_blur", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1);
+	prop= RNA_def_property(srna, "enable_motion_blur", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", 1);
 	RNA_def_property_ui_text(prop, "D", "Enable/Disable Motion Blur");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }

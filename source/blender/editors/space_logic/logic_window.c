@@ -3221,6 +3221,7 @@ static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_collision(uiLayout *layout, PointerRNA *ptr)
 {
+	uiItemL(layout, "Not ported back yet", 0);
 	//XXXSENSOR
 	/* // need to solve problems in rna_sensor.c
 	uiItemR(layout, ptr, "pulse", 0, NULL, 0);
@@ -3308,8 +3309,6 @@ static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
 	
 	uiItemR(layout, ptr, "target", 0, NULL, 0);
 	uiItemR(layout, ptr, "log", 0, NULL, 0);
-
-	//XXXSENSOR
 }
 
 static void draw_sensor_message(uiLayout *layout, PointerRNA *ptr)
@@ -3375,6 +3374,8 @@ static void draw_sensor_random(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_ray(uiLayout *layout, PointerRNA *ptr)
 {
+	uiItemL(layout, "Not ported back yet", 0);
+	/*
 	uiItemR(layout, ptr, "ray_type", 0, NULL, 0);
 	switch (RNA_enum_get(ptr, "ray_type")) {
 		case SENS_RAY_PROPERTY:
@@ -3385,6 +3386,7 @@ static void draw_sensor_ray(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(layout, ptr, "x_ray_mode", 0, NULL, 0);
 	uiItemR(layout, ptr, "range", 0, NULL, 0);
 	uiItemR(layout, ptr, "axis", 0, NULL, 0);
+	*/
 	//XXXSENSOR - same problem as collision. enums badly used by UI code
 }
 
@@ -3576,7 +3578,24 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_filter_2d(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *split;
+
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	switch (RNA_enum_get(ptr, "mode"))
+	{
+		case ACT_2DFILTER_CUSTOMFILTER:
+			uiItemR(layout, ptr, "filter_pass", 0, NULL, 0);
+			uiItemR(layout, ptr, "glsl_shader", 0, NULL, 0);
+			break;
+		case ACT_2DFILTER_MOTIONBLUR:
+			split=uiLayoutSplit(layout, 0.9, 0);
+			uiItemR(split, ptr, "motion_blur_value", 0, NULL, 0);
+			uiItemR(split, ptr, "enable_motion_blur", UI_ITEM_R_TOGGLE, NULL, 0);
+			break;
+		default: // all other 2D Filters
+			uiItemR(layout, ptr, "filter_pass", 0, NULL, 0);
+			break;
+	}
 }
 
 static void draw_actuator_game(uiLayout *layout, PointerRNA *ptr)
@@ -3631,7 +3650,75 @@ static void draw_actuator_message(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *split, *row, *col, *subcol;
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+
+	switch (RNA_enum_get(ptr, "mode")) {
+		case ACT_OBJECT_NORMAL:
+			split = uiLayoutSplit(layout, 0.9, 0);
+			uiItemR(split, ptr, "loc", 0, NULL, 0);
+			uiItemR(split, ptr, "local_location", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			split = uiLayoutSplit(layout, 0.9, 0);
+			uiItemR(split, ptr, "rot", 0, NULL, 0);
+			uiItemR(split, ptr, "local_rotation", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			// Matt, how to check for ob->gameflag here? Do we need to pass the obj through the drawing function only for that?
+//			if ((ob->gameflag & OB_DYNAMIC)==0)
+//				break;
+
+			split = uiLayoutSplit(layout, 0.9, 0);
+			uiItemR(split, ptr, "force", 0, NULL, 0);
+			uiItemR(split, ptr, "local_force", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			split = uiLayoutSplit(layout, 0.9, 0);
+			uiItemR(split, ptr, "torque", 0, NULL, 0);
+			uiItemR(split, ptr, "local_torque", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			split = uiLayoutSplit(layout, 0.9, 0);
+			uiItemR(split, ptr, "linear_velocity", 0, NULL, 0);
+			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "local_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+			uiItemR(row, ptr, "add_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			split = uiLayoutSplit(layout, 0.9, 0);
+			uiItemR(split, ptr, "angular_velocity", 0, NULL, 0);
+			uiItemR(split, ptr, "local_angular_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			uiItemR(layout, ptr, "damping", 0, NULL, 0);
+			break;
+		case ACT_OBJECT_SERVO:
+			uiItemR(layout, ptr, "reference_object", 0, NULL, 0);
+
+			split = uiLayoutSplit(layout, 0.9, 0);
+			uiItemR(split, ptr, "linear_velocity", 0, NULL, 0);
+
+			col = uiLayoutColumn(layout, 0);
+			uiItemR(col, ptr, "servo_limit_x", 0, NULL, 0);
+			subcol = uiLayoutColumn(col, 0);
+			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "servo_limit_x")==1);
+			uiItemR(subcol, ptr, "force_max_x", 0, NULL, 0);
+			uiItemR(subcol, ptr, "force_min_x", 0, NULL, 0);
+
+			col = uiLayoutColumn(layout, 0);
+			uiItemR(col, ptr, "servo_limit_y", 0, NULL, 0);
+			subcol = uiLayoutColumn(col, 0);
+			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "servo_limit_y")==1);
+			uiItemR(subcol, ptr, "force_max_y", 0, NULL, 0);
+			uiItemR(subcol, ptr, "force_min_y", 0, NULL, 0);
+
+			col = uiLayoutColumn(layout, 0);
+			uiItemR(col, ptr, "servo_limit_z", 0, NULL, 0);
+			subcol = uiLayoutColumn(col, 0);
+			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "servo_limit_z")==1);
+			uiItemR(subcol, ptr, "force_max_z", 0, NULL, 0);
+			uiItemR(subcol, ptr, "force_min_z", 0, NULL, 0);
+
+			uiItemR(col, ptr, "proportional_coefficient", 0, NULL, 0);
+			uiItemR(col, ptr, "integral_coefficient", 0, NULL, 0);
+			uiItemR(col, ptr, "derivate_coefficient", 0, NULL, 0);
+			break;
+	}
 }
 
 static void draw_actuator_parent(uiLayout *layout, PointerRNA *ptr)
