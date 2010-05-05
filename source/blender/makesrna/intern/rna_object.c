@@ -33,6 +33,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_controller_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force.h"
@@ -864,16 +865,32 @@ static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
 	int i, tot= 0;
 
 	/* ensure we always have some state selected */
-	for(i=0; i<20; i++)
+	for(i=0; i<OB_MAX_STATES; i++)
 		if(values[i])
 			tot++;
 	
 	if(tot==0)
 		return;
 
-	for(i=0; i<20; i++) {
+	for(i=0; i<OB_MAX_STATES; i++) {
 		if(values[i]) ob->state |= (1<<i);
 		else ob->state &= ~(1<<i);
+	}
+}
+
+static void rna_GameObjectSettings_used_state_get(PointerRNA *ptr, int *values)
+{
+	Object *ob= (Object*)ptr->data;
+	bController *cont;
+
+	memset(values, 0, sizeof(int)*OB_MAX_STATES);
+	for (cont=ob->controllers.first; cont; cont=cont->next) {
+		int i;
+
+		for (i=0; i<OB_MAX_STATES; i++) {
+			if (cont->state_mask & (1<<i))
+				values[i] = 1;
+		}
 	}
 }
 
@@ -1235,15 +1252,21 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	/* state */
 
-	prop= RNA_def_property(srna, "state", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "state", 1);
-	RNA_def_property_array(prop, 30);
+	RNA_def_property_array(prop, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "State", "State determining which controllers are displayed");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_GameObjectSettings_state_set");
 
+	prop= RNA_def_property(srna, "used_state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_array(prop, OB_MAX_STATES);
+	RNA_def_property_ui_text(prop, "Used State", "States which are being used by controllers");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_used_state_get", NULL);
+	
 	prop= RNA_def_property(srna, "initial_state", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "init_state", 1);
-	RNA_def_property_array(prop, 30);
+	RNA_def_property_array(prop, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "Initial State", "Initial state when the game starts");
 
 	prop= RNA_def_property(srna, "debug_state", PROP_BOOLEAN, PROP_NONE);

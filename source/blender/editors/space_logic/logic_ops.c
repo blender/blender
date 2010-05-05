@@ -306,6 +306,7 @@ static int controller_remove_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	BLI_remlink(&(ob->controllers), cont);
+	unlink_controller(cont);
 	free_controller(cont);
 	
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
@@ -344,12 +345,27 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	bController *cont;
 	int type= RNA_enum_get(op->ptr, "type");
-
+	int bit;
+	
 	cont= new_controller(type);
 	BLI_addtail(&(ob->controllers), cont);
 	make_unique_prop_names(C, cont->name);
+	
+	/* set the controller state mask from the current object state.
+	 A controller is always in a single state, so select the lowest bit set
+	 from the object state */
+	for (bit=0; bit<OB_MAX_STATES; bit++) {
+		if (ob->state & (1<<bit))
+			break;
+	}
+	cont->state_mask = (1<<bit);
+	if (cont->state_mask == 0) {
+		/* shouldn't happen, object state is never 0 */
+		cont->state_mask = 1;
+	}
+	
 	ob->scaflag |= OB_SHOWCONT;
-
+	
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -390,6 +406,7 @@ static int actuator_remove_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	BLI_remlink(&(ob->actuators), act);
+	unlink_actuator(act);
 	free_actuator(act);
 	
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
@@ -432,7 +449,7 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 	act= new_actuator(type);
 	BLI_addtail(&(ob->actuators), act);
 	make_unique_prop_names(C, act->name);
-	ob->scaflag |= OB_SHOWCONT;
+	ob->scaflag |= OB_SHOWACT;
 
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
 	

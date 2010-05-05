@@ -2148,6 +2148,12 @@ static void rna_def_space_logic(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_CONT_LINK);
 	RNA_def_property_ui_text(prop, "Show Linked to Controller", "Show linked objects to sensor/actuator");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	
+	prop= RNA_def_property(srna, "controllers_show_initial_state", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_CONT_INIT_STATE);
+	RNA_def_property_ui_text(prop, "Show Initial State", "Show the initial controller state for this object");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* actuators */
 	prop= RNA_def_property(srna, "actuators_show_selected_objects", PROP_BOOLEAN, PROP_NONE);

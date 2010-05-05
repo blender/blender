@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -232,22 +233,27 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Keyboard Sensor", "Sensor to detect keyboard events");
 	RNA_def_struct_sdna_from(srna, "bKeyboardSensor", "data");
 
+	/*
 	prop= RNA_def_property(srna, "key", PROP_INT, PROP_NONE);//XXX need to use another input template
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* need better range or enum check */
+	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // need better range or enum check
 	RNA_def_property_ui_text(prop, "Key", "Input key code");
 	RNA_def_property_range(prop, 0, 255);
-
-	prop= RNA_def_property(srna, "modifier_key", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* need better range or enum check */
-	RNA_def_property_int_sdna(prop, NULL, "qual");
+	*/
+	
+	prop= RNA_def_property(srna, "key", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "key");
+	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_ui_text(prop, "Key",  "");
+	
+	prop= RNA_def_property(srna, "modifier_key", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "qual");
+	RNA_def_property_enum_items(prop, event_type_items);
 	RNA_def_property_ui_text(prop, "Modifier Key", "Modifier key code");
-	RNA_def_property_range(prop, 0, 255);
-
-	prop= RNA_def_property(srna, "second_modifier_key", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* need better range or enum check */
-	RNA_def_property_int_sdna(prop, NULL, "qual2");
+	
+	prop= RNA_def_property(srna, "second_modifier_key", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "qual2");
+	RNA_def_property_enum_items(prop, event_type_items);
 	RNA_def_property_ui_text(prop, "Second Modifier Key", "Modifier key code");
-	RNA_def_property_range(prop, 0, 255);
 
 	prop= RNA_def_property(srna, "target", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "targetName");

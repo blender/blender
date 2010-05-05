@@ -437,6 +437,8 @@ extern Object workob;
 #define OB_RECALC_TIME		4
 #define OB_RECALC			7
 
+/* controller state */
+#define OB_MAX_STATES		30
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1
