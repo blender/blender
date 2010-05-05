@@ -47,6 +47,7 @@ PyObject*	initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 PyObject*	initMathutils();
 PyObject*	initGeometry();
 PyObject*	initBGL();
+PyObject*	initBLF();
 PyObject*	initVideoTexture(void); 
 void		exitGamePlayerPythonScripting();
 PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level, struct Main *maggie);
