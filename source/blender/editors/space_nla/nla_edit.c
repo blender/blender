@@ -260,7 +260,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	cfra= (float)CFRA;
 		
 	/* get action to use */
-	act= BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "type"));
+	act= BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "action"));
 	
 	if (act == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No valid Action to add.");
@@ -336,7 +336,7 @@ void NLA_OT_actionclip_add (wmOperatorType *ot)
 	
 	/* props */
 		// TODO: this would be nicer as an ID-pointer...
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	prop= RNA_def_enum(ot->srna, "action", DummyRNA_NULL_items, 0, "Action", "");
 	RNA_def_enum_funcs(prop, RNA_action_itemf);
 	ot->prop= prop;
 }

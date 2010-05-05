@@ -212,6 +212,7 @@ void OBJECT_OT_shape_key_move(struct wmOperatorType *ot);
 
 /* object_group.c */
 void OBJECT_OT_group_add(struct wmOperatorType *ot);
+void OBJECT_OT_group_link(struct wmOperatorType *ot);
 void OBJECT_OT_group_remove(struct wmOperatorType *ot);
 
 /* object_bake.c */

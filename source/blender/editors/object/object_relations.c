@@ -1146,7 +1146,7 @@ void link_to_scene(unsigned short nr)
 
 static int make_links_scene_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "type"));
+	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 
 	if(scene_to==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Scene not found");
@@ -1264,8 +1264,8 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
-	RNA_def_enum_funcs(prop, RNA_scene_itemf);
+	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+	RNA_def_enum_funcs(prop, RNA_scene_local_itemf);
 }
 
 void OBJECT_OT_make_links_data(wmOperatorType *ot)

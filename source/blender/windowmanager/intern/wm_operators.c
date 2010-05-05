@@ -3252,7 +3252,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 }
 
 /* Generic itemf's for operators that take library args */
-static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, ID *id)
+static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, ID *id, int local)
 {
 	EnumPropertyItem *item= NULL, item_tmp;
 	int totitem= 0;
@@ -3261,9 +3261,11 @@ static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, I
 	memset(&item_tmp, 0, sizeof(item_tmp));
 
 	for( ; id; id= id->next) {
-		item_tmp.identifier= item_tmp.name= id->name+2;
-		item_tmp.value= i++;
-		RNA_enum_item_add(&item, &totitem, &item_tmp);
+		if(local==FALSE || id->lib==NULL) {
+			item_tmp.identifier= item_tmp.name= id->name+2;
+			item_tmp.value= i++;
+			RNA_enum_item_add(&item, &totitem, &item_tmp);
+		}
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -3275,17 +3277,36 @@ static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, I
 /* can add more as needed */
 EnumPropertyItem *RNA_action_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->action.first : NULL);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->action.first : NULL, FALSE);
 }
+EnumPropertyItem *RNA_action_local_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->action.first : NULL, TRUE);
+}
+
 EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->group.first : NULL);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->group.first : NULL, FALSE);
 }
+EnumPropertyItem *RNA_group_local_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->group.first : NULL, TRUE);
+}
+
 EnumPropertyItem *RNA_image_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->image.first : NULL);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->image.first : NULL, FALSE);
 }
+EnumPropertyItem *RNA_image_local_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->image.first : NULL, TRUE);
+}
+
 EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->scene.first : NULL);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, FALSE);
+}
+EnumPropertyItem *RNA_scene_local_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, TRUE);
 }
