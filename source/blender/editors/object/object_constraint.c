@@ -527,8 +527,12 @@ static int stretchto_reset_exec (bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
 	bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_STRETCHTO);
-	bStretchToConstraint *data= (bStretchToConstraint *)con->data;
-
+	bStretchToConstraint *data= (con) ? (bStretchToConstraint *)con->data : NULL;
+	
+	/* despite 3 layers of checks, we may still not be able to find a constraint */
+	if (data == NULL)
+		return OPERATOR_CANCELLED;
+	
 	/* just set original length to 0.0, which will cause a reset on next recalc */
 	data->orglength = 0.0f;
 	ED_object_constraint_update(ob);
@@ -566,7 +570,11 @@ static int limitdistance_reset_exec (bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
 	bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_DISTLIMIT);
-	bDistLimitConstraint *data= (bDistLimitConstraint *)con->data;
+	bDistLimitConstraint *data= (con) ? (bDistLimitConstraint *)con->data : NULL;
+	
+	/* despite 3 layers of checks, we may still not be able to find a constraint */
+	if (data == NULL)
+		return OPERATOR_CANCELLED;
 	
 	/* just set original length to 0.0, which will cause a reset on next recalc */
 	data->dist = 0.0f;
@@ -601,22 +609,19 @@ void CONSTRAINT_OT_limitdistance_reset (wmOperatorType *ot)
 }
 
 /* ------------- Child-Of Constraint ------------------ */
-#if 0 // unused
-static int childof_poll(bContext *C)
-{
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_ChildOfConstraint);
-	return (ptr.id.data && ptr.data);
-}
-#endif
 /* ChildOf Constraint - set inverse callback */
 static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_CHILDOF);
-	bChildOfConstraint *data= (bChildOfConstraint *)con->data;
+	bChildOfConstraint *data= (con) ? (bChildOfConstraint *)con->data : NULL;
 	bPoseChannel *pchan= NULL;
-
+	
+	/* despite 3 layers of checks, we may still not be able to find a constraint */
+	if (data == NULL)
+		return OPERATOR_CANCELLED;
+	
 	/* try to find a pose channel */
 	// TODO: get from context instead?
 	if (ob && ob->pose)
@@ -694,7 +699,7 @@ static int childof_clear_inverse_exec (bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
 	bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_CHILDOF);
-	bChildOfConstraint *data= (bChildOfConstraint *)con->data;
+	bChildOfConstraint *data= (con) ? (bChildOfConstraint *)con->data : NULL;
 	
 	/* simply clear the matrix */
 	unit_m4(data->invmat);
