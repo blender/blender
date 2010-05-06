@@ -29,7 +29,7 @@ class IMAGE_MT_view(bpy.types.Menu):
         layout = self.layout
 
         sima = context.space_data
-        # uv = sima.uv_editor
+        uv = sima.uv_editor
         toolsettings = context.tool_settings
 
         show_uvedit = sima.show_uvedit
@@ -42,6 +42,7 @@ class IMAGE_MT_view(bpy.types.Menu):
         layout.prop(sima, "update_automatically")
         if show_uvedit:
             layout.prop(toolsettings, "uv_local_view") # Numpad /
+            layout.prop(uv, "draw_other_objects")
 
         layout.separator()
 
