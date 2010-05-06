@@ -109,6 +109,16 @@ static void rna_Actuator_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	init_actuator(act);
 }
 
+static void rna_ObjectActuator_integralcoefficient_set(struct PointerRNA *ptr, float value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bObjectActuator *oa = act->data;
+	
+	oa->forcerot[1] = value;
+	oa->forcerot[0] = 60.0f*oa->forcerot[1];
+}
+
+
 #else
 
 void rna_def_actuator(BlenderRNA *brna)
@@ -181,6 +191,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "integral_coefficient", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "forcerot[1]");
 	RNA_def_property_ui_range(prop, 0.0, 3.0, 0.1, 0.01);
+	RNA_def_property_float_funcs(prop, NULL, "rna_ObjectActuator_integralcoefficient_set", NULL);
 	RNA_def_property_ui_text(prop, "Integral Coefficient", "Low value (0.01) for slow response, high value (0.5) for fast response");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
