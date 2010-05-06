@@ -202,17 +202,32 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
-	else if(ELEM3(t->spacetype, SPACE_IPO, SPACE_NLA, SPACE_ACTION)) {
+	else if(t->spacetype == SPACE_ACTION) {
+		SpaceAction *sact = t->sa->spacedata.first;
 		int out[2] = {0, 0};
 
-		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1);
+		if (sact->flag & SACTION_DRAWTIME) {
+			//vec[0] = vec[0]/((t->scene->r.frs_sec / t->scene->r.frs_sec_base));
+
+			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
+		} else {
+			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
+		}
+
+		adr[0]= out[0];
+		adr[1]= out[1];
+	}
+	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
+		int out[2] = {0, 0};
+
+		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
 		adr[0]= out[0];
 		adr[1]= out[1];
 	}
 	else if(t->spacetype==SPACE_SEQ) { /* XXX not tested yet, but should work */
 		int out[2] = {0, 0};
 
-		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1);
+		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
 		adr[0]= out[0];
 		adr[1]= out[1];
 	}
@@ -5285,12 +5300,12 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 /* This function is used by Animation Editor specific transform functions to do
  * the Snap Keyframe to Nearest Frame/Marker
  */
-static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, AnimData *adt, short autosnap)
+static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d, AnimData *adt, short autosnap)
 {
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
 		const Scene *scene= t->scene;
-		const short doTime= getAnimEdit_DrawTime(t);
+		const short doTime= 0; //XXX doesn't work - getAnimEdit_DrawTime(t);
 		const double secf= FPS;
 		double val;
 
@@ -5331,6 +5346,14 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, AnimData *adt, sho
 			*(td->val)= BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
 		else
 			*(td->val)= val;
+	}
+
+	if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
+		td2d->h1[0] = td2d->ih1[0] + *td->val - td->ival;
+	}
+
+	if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
+		td2d->h2[0] = td2d->ih2[0] + *td->val - td->ival;
 	}
 }
 
@@ -5394,6 +5417,7 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 static void applyTimeTranslate(TransInfo *t, float sval)
 {
 	TransData *td = t->data;
+	TransData2D *td2d = t->data2d;
 	Scene *scene = t->scene;
 	int i;
 
@@ -5402,15 +5426,17 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 
 	const short autosnap= getAnimEdit_SnapMode(t);
 
-	float deltax, val;
+	float deltax, val, valprev;
 
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
-	for (i = 0 ; i < t->total; i++, td++) {
+	for (i = 0 ; i < t->total; i++, td++, td2d++) {
 		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from
 		 * (this is only valid when not in NLA)
 		 */
 		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
+
+		valprev = *td->val;
 
 		/* check if any need to apply nla-mapping */
 		if (adt && t->spacetype != SPACE_SEQ) {
@@ -5441,7 +5467,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		}
 
 		/* apply nearest snapping */
-		doAnimEdit_SnapFrame(t, td, adt, autosnap);
+		doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
 	}
 }
 
@@ -5652,6 +5678,7 @@ static void headerTimeScale(TransInfo *t, char *str) {
 static void applyTimeScale(TransInfo *t) {
 	Scene *scene = t->scene;
 	TransData *td = t->data;
+	TransData2D *td2d = t->data2d;
 	int i;
 
 	const short autosnap= getAnimEdit_SnapMode(t);
@@ -5659,7 +5686,7 @@ static void applyTimeScale(TransInfo *t) {
 	const double secf= FPS;
 
 
-	for (i = 0 ; i < t->total; i++, td++) {
+	for (i = 0 ; i < t->total; i++, td++, td2d++) {
 		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from
 		 * (this is only valid when not in NLA)
@@ -5685,7 +5712,7 @@ static void applyTimeScale(TransInfo *t) {
 		*(td->val) += startx;
 
 		/* apply nearest snapping */
-		doAnimEdit_SnapFrame(t, td, adt, autosnap);
+		doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
 	}
 }
 

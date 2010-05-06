@@ -2972,9 +2972,8 @@ static int count_fcurve_keys(FCurve *fcu, char side, float cfra)
 			bezt->f1 |= SELECT;
 			bezt->f3 |= SELECT;
 
-			/* increment by 3, as there are 3 points (3 * x-coordinates) that need transform */
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra))
-				count += 3;
+				count += 1;
 		}
 	}
 
@@ -3023,9 +3022,10 @@ static void TimeToTransData(TransData *td, float *time, AnimData *adt)
  * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
  * on the named side are used.
  */
-static TransData *FCurveToTransData(TransData *td, FCurve *fcu, AnimData *adt, char side, float cfra)
+static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FCurve *fcu, AnimData *adt, char side, float cfra)
 {
 	BezTriple *bezt;
+	TransData2D *td2d = *td2dv;
 	int i;
 
 	if (fcu == NULL)
@@ -3036,18 +3036,23 @@ static TransData *FCurveToTransData(TransData *td, FCurve *fcu, AnimData *adt, c
 		if (BEZSELECTED(bezt)) {
 			/* only add if on the right 'side' of the current frame */
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
-				/* each control point needs to be added separetely */
-				TimeToTransData(td, bezt->vec[0], adt);
-				td++;
-
 				TimeToTransData(td, bezt->vec[1], adt);
-				td++;
 
-				TimeToTransData(td, bezt->vec[2], adt);
+				/*set flags to move handles as necassary*/
+				td->flag |= TD_MOVEHANDLE1|TD_MOVEHANDLE2;
+				td2d->h1 = bezt->vec[0];
+				td2d->h2 = bezt->vec[2];
+
+				VECCOPY2D(td2d->ih1, td2d->h1);
+				VECCOPY2D(td2d->ih2, td2d->h2);
+
 				td++;
+				td2d++;
 			}
 		}
 	}
+
+	*td2dv = td2d;
 
 	return td;
 }
@@ -3116,6 +3121,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 {
 	Scene *scene= t->scene;
 	TransData *td = NULL;
+	TransData2D *td2d = NULL;
 	tGPFtransdata *tfd = NULL;
 	
 	bAnimContext ac;
@@ -3179,7 +3185,9 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	t->total= count;
 	
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData(Action Editor)");
+	t->data2d= MEM_callocN(t->total*sizeof(TransData2D), "transdata2d");
 	td= t->data;
+	td2d = t->data2d;
 	
 	if (ac.datatype == ANIMCONT_GPENCIL) {
 		if (t->mode == TFM_TIME_SLIDE) {
@@ -3216,7 +3224,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			else
 				cfra = (float)CFRA;
 			
-			td= FCurveToTransData(td, fcu, adt, t->frame_side, cfra);
+			td= ActionFCurveToTransData(td, &td2d, fcu, adt, t->frame_side, cfra);
 		//}
 	}
 	
@@ -3248,8 +3256,11 @@ static void createTransActionData(bContext *C, TransInfo *t)
 /* Helper function for createTransGraphEditData, which is reponsible for associating
  * source data with transform data
  */
-static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, float *loc, float *cent, short selected, short ishandle, short intvals)
+static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, BezTriple *bezt, int bi, short selected, short ishandle, short intvals)
 {
+	float *loc = bezt->vec[bi];
+	float *cent = bezt->vec[1];
+
 	/* New location from td gets dumped onto the old-location of td2d, which then
 	 * gets copied to the actual data at td2d->loc2d (bezt->vec[n])
 	 *
@@ -3280,7 +3291,17 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 		VECCOPY(td->center, cent);
 		VECCOPY(td->iloc, td->loc);
 	}
-	
+
+	if (td->flag & TD_MOVEHANDLE1) {
+		td2d->h1 = bezt->vec[0];
+		VECCOPY2D(td2d->ih1, td2d->h1);
+	} else td2d->h1 = NULL;
+
+	if (td->flag & TD_MOVEHANDLE2) {
+		td2d->h2 = bezt->vec[2];
+		VECCOPY2D(td2d->ih2, td2d->h2);
+	} else td2d->h2 = NULL;
+
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
 	
@@ -3300,7 +3321,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 		td->flag |= TD_NOTIMESNAP;
 	if (intvals)
 		td->flag |= TD_INTVALUES;
-	
+
 	unit_m3(td->mtx);
 	unit_m3(td->smtx);
 }
@@ -3362,11 +3383,11 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* F-Curve may not have any keyframes */
 		if (fcu->bezt == NULL)
 			continue;
-		
+
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
 		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-				if (sipo->around == V3D_LOCAL) {
+				if (sipo->around == V3D_LOCAL && !ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE)) {
 					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
 					 * don't get moved wrong
 					 */
@@ -3376,7 +3397,15 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					}
 					else if (bezt->f2 & SELECT) count++; // TODO: could this cause problems?
 				}
-				else {
+				else if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
+					/* for 'normal' pivots - just include anything that is selected.
+					   this works a bit differently in translation modes */
+					if (bezt->f2 & SELECT) count++;
+					else {
+						if (bezt->f1 & SELECT) count++;
+						if (bezt->f3 & SELECT) count++;
+					}
+				} else {
 					/* for 'normal' pivots - just include anything that is selected */
 					if (bezt->f1 & SELECT) count++;
 					if (bezt->f2 & SELECT) count++;
@@ -3429,23 +3458,32 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				TransDataCurveHandleFlags *hdata = NULL;
 				short h1=1, h2=1;
 				
-				/* only include handles if selected, irrespective of the interpolation modes */
-				if (bezt->f1 & SELECT) {
-					hdata = initTransDataCurveHandles(td, bezt);
-					bezt_to_transdata(td++, td2d++, adt, bezt->vec[0], bezt->vec[1], 1, 1, intvals);
-				}
-				else
-					h1= 0;
-				if (bezt->f3 & SELECT) {
-					if (hdata==NULL)
+				/* only include handles if selected, irrespective of the interpolation modes.
+				   also, only treat handles specially if the center point isn't selected. */
+				if (!ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE) || !(bezt->f2 & SELECT)) {
+					if (bezt->f1 & SELECT) {
 						hdata = initTransDataCurveHandles(td, bezt);
-					bezt_to_transdata(td++, td2d++, adt, bezt->vec[2], bezt->vec[1], 1, 1, intvals);
+						bezt_to_transdata(td++, td2d++, adt, bezt, 0, 1, 1, intvals);
+					} else
+						h1= 0;
+
+					if (bezt->f3 & SELECT) {
+						if (hdata==NULL)
+							hdata = initTransDataCurveHandles(td, bezt);
+						bezt_to_transdata(td++, td2d++, adt, bezt, 2, 1, 1, intvals);
+					} else
+						h2= 0;
 				}
-				else
-					h2= 0;
-				
-				/* only include main vert if selected */
+
 				if (bezt->f2 & SELECT) {
+					 /*move handles relative to center*/
+					if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
+						if (bezt->f1 & SELECT) td->flag |= TD_MOVEHANDLE1;
+						if (bezt->f3 & SELECT) td->flag |= TD_MOVEHANDLE2;
+					}
+
+					/* only include main vert if selected */
+
 					/* if scaling around individuals centers, do not include keyframes */
 					if (sipo->around != V3D_LOCAL) {
 						/* if handles were not selected, store their selection status */
@@ -3454,7 +3492,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 								hdata = initTransDataCurveHandles(td, bezt);
 						}
 						
-						bezt_to_transdata(td++, td2d++, adt, bezt->vec[1], bezt->vec[1], 1, 0, intvals);
+						bezt_to_transdata(td++, td2d++, adt, bezt, 1, 1, 0, intvals);
 					}
 					
 					/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
@@ -3700,7 +3738,7 @@ void flushTransGraphData(TransInfo *t)
 					break;
 			}
 		}
-		
+
 		/* we need to unapply the nla-mapping from the time in some situations */
 		if (adt)
 			td2d->loc2d[0]= BKE_nla_tweakedit_remap(adt, td2d->loc[0], NLATIME_CONVERT_UNMAP);
@@ -3712,6 +3750,16 @@ void flushTransGraphData(TransInfo *t)
 			td2d->loc2d[1]= (float)((int)td2d->loc[1]);
 		else
 			td2d->loc2d[1]= td2d->loc[1];
+
+		if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
+			td2d->h1[0] = td2d->ih1[0] + td->loc[0] - td->iloc[0];
+			td2d->h1[1] = td2d->ih1[1] + td->loc[1] - td->iloc[1];
+		}
+
+		if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
+			td2d->h2[0] = td2d->ih2[0] + td->loc[0] - td->iloc[0];
+			td2d->h2[1] = td2d->ih2[1] + td->loc[1] - td->iloc[1];
+		}
 	}
 }
 

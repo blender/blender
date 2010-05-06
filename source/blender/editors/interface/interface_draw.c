@@ -1088,8 +1088,12 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti
 
 	glTranslatef(centerx, centery, 0.f);
 	glScalef(diam, diam, 0.f);
-	glVertexPointer(2, GL_FLOAT, 0, scopes->vecscope);
-	glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+
+	/*apparently this can sometimes be NULL? - joeedh*/
+	if (scopes) {
+		glVertexPointer(2, GL_FLOAT, 0, scopes->vecscope);
+		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+	}
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glPopMatrix();
