@@ -739,15 +739,47 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 			}
 			case GHOST_kEventDraggingDropDone:
 			{
-				wmEvent event= *(win->eventstate);	/* copy last state, like mouse coords */
+				wmEvent event;
 				GHOST_TEventDragnDropData *ddd= GHOST_GetEventData(evt);
+				int cx, cy, wx, wy;
+
+				
+				/* entering window, update mouse pos */
+				GHOST_GetCursorPosition(g_system, &wx, &wy);
+				
+				GHOST_ScreenToClient(win->ghostwin, wx, wy, &cx, &cy);
+				win->eventstate->x= cx;
+				
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+				//Cocoa already uses coordinates with y=0 at bottom
+				win->eventstate->y= cy;
+#else
+				win->eventstate->y= (win->sizey-1) - cy;
+#endif
+				
+				event= *(win->eventstate);	/* copy last state, like mouse coords */
+				
+				// activate region
+				event.type= MOUSEMOVE;
+				event.prevx= event.x;
+				event.prevy= event.y;
+				
+				wm->winactive= win; /* no context change! c->wm->windrawable is drawable, or for area queues */
+				win->active= 1;
+				
+				wm_event_add(win, &event);
+				
 				
 				/* make blender drop event with custom data pointing to wm drags */
 				event.type= EVT_DROP;
+				event.val= KM_RELEASE;
 				event.custom= EVT_DATA_LISTBASE;
 				event.customdata= &wm->drags;
+				event.customdatafree= 1;
 				
-				printf("Drop detected\n");
+				wm_event_add(win, &event);
+				
+				/* printf("Drop detected\n"); */
 				
 				/* add drag data to wm for paths: */
 				/* need icon type, some dropboxes check for that... see filesel code for this */
@@ -760,10 +792,11 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 						printf("drop file %s\n", stra->strings[a]);
 						WM_event_start_drag(C, 0, WM_DRAG_PATH, stra->strings[a], 0.0);
 						/* void poin should point to string, it makes a copy */
+						break; // only one drop element supported now 
 					}
 				}
 				
-				wm_event_add(win, &event);
+				
 				
 				break;
 			}
