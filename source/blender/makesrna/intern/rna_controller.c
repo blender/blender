@@ -71,11 +71,14 @@ static struct StructRNA* rna_Controller_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_Controller_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Controller_type_set(struct PointerRNA *ptr, int value)
 {
 	bController *cont= (bController *)ptr->data;
-
-	init_controller(cont);
+	if (value != cont->type)
+	{
+		cont->type = value;
+		init_controller(cont);
+	}
 }
 
 #else
@@ -102,10 +105,9 @@ void RNA_def_controller(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Controller_type_set", NULL);
 	RNA_def_property_enum_items(prop, controller_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
-
-	RNA_def_property_update(prop, 0, "rna_Controller_type_update");
 
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONT_SHOW);

@@ -111,24 +111,15 @@ static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 			return &RNA_Actuator;
 	}
 }
-//
-//static StructRNA* rna_ActionActuator_refine(struct PointerRNA *ptr)
-//{
-//	bActuator *actuator= (bActuator*)ptr->data;
-//
-//	switch(actuator->type) {
-//		case ACT_ACTION:
-//			return &RNA_ActionActuator;
-//		case ACT_SHAPEACTION:
-//			return &RNA_ShapeActionActuator;
-//	}
-//}
 
-static void rna_Actuator_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Actuator_type_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act= (bActuator *)ptr->data;
-	
-	init_actuator(act);
+	if (value != act->type)
+	{
+		act->type = value;
+		init_actuator(act);
+	}
 }
 
 static void rna_ObjectActuator_integralcoefficient_set(struct PointerRNA *ptr, float value)
@@ -186,7 +177,6 @@ static EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, i
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_OBJECT);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_PARENT);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_PROPERTY);
-
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_RANDOM);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SCENE);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SOUND);
@@ -216,17 +206,14 @@ void rna_def_actuator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Actuator_type_itemf");
 	RNA_def_property_enum_items(prop, actuator_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Actuator_type_set", "rna_Actuator_type_itemf");
 	RNA_def_property_ui_text(prop, "Type", "");
-
-	RNA_def_property_update(prop, 0, "rna_Actuator_type_update");
 
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_SHOW);
 	RNA_def_property_ui_text(prop, "Expanded", "Set actuator expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
-
 }
 
 static void rna_def_action_actuator(BlenderRNA *brna)
@@ -248,8 +235,6 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ActionActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Action Actuator", "Actuator to control the object movement");
 	RNA_def_struct_sdna_from(srna, "bActionActuator", "data");
-//	RNA_def_struct_sdna(srna, "bActionActuator");
-//	RNA_def_struct_refine_func(srna, "rna_ActionActuator_refine");
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
@@ -372,7 +357,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "force_min_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "drot[0]");
 	RNA_def_property_ui_range(prop, -100.0, 100.0, 1.0, 0.1);
-	RNA_def_property_ui_text(prop, "Max", "Set the lower limit for force");
+	RNA_def_property_ui_text(prop, "Min", "Set the lower limit for force");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "force_max_y", PROP_FLOAT, PROP_NONE);
@@ -384,7 +369,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "force_min_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "drot[1]");
 	RNA_def_property_ui_range(prop, -100.0, 100.0, 1.0, 0.1);
-	RNA_def_property_ui_text(prop, "Max", "Set the lower limit for force");
+	RNA_def_property_ui_text(prop, "Min", "Set the lower limit for force");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "force_max_z", PROP_FLOAT, PROP_NONE);
@@ -396,7 +381,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "force_min_z", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "drot[2]");
 	RNA_def_property_ui_range(prop, -100.0, 100.0, 1.0, 0.1);
-	RNA_def_property_ui_text(prop, "Max", "Set the lower limit for force");
+	RNA_def_property_ui_text(prop, "Min", "Set the lower limit for force");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* floats 3 Arrays*/
@@ -814,6 +799,12 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Direction", "Set the direction of the ray");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	prop= RNA_def_property(srna, "direction_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, prop_direction_items);
+	RNA_def_property_ui_text(prop, "Direction", "Select the axis to be aligned along the reference direction");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	/* ACT_CONST_TYPE_LOC */
 	prop= RNA_def_property(srna, "limit_loc_min_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "minloc[0]");
@@ -918,6 +909,69 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "rotDamp", "Use a different damping for orientation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	/* ACT_CONST_TYPE_ORI */
+	prop= RNA_def_property(srna, "max_rotation", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "maxrot");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_range(prop, -2000.0, 2000.0, 0.1, 0.001);
+	RNA_def_property_ui_text(prop, "Reference Direction", "Reference Direction");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "min_angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "minloc[0]");
+	RNA_def_property_ui_range(prop, 0.0, 180.0, 0.1, 0.01);
+	RNA_def_property_ui_text(prop, "Min Angle", "Minimum angle (in degree) to maintain with target direction. No correction is done if angle with target direction is between min and max");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "max_angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "maxloc[0]");
+	RNA_def_property_ui_range(prop, 0.0, 180.0, 0.1, 0.01);
+	RNA_def_property_ui_text(prop, "Max Angle", "Maximum angle (in degree) allowed with target direction. No correction is done if angle with target direction is between min and max");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	/* ACT_CONST_TYPE_FH */
+	prop= RNA_def_property(srna, "fh_damping", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "maxrot[0]");
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 1);
+	RNA_def_property_ui_text(prop, "Damping", "Damping factor of the Fh spring force");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "fh_height_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "minloc[0]");
+	RNA_def_property_ui_range(prop, 0.01, 2000.0, 0.1, 0.01);
+	RNA_def_property_ui_text(prop, "Distance", "Height of the Fh area");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "fh_height_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "minloc[1]");
+	RNA_def_property_ui_range(prop, 0.01, 2000.0, 0.1, 0.01);
+	RNA_def_property_ui_text(prop, "Distance", "Height of the Fh area");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "fh_height_z", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "minloc[2]");
+	RNA_def_property_ui_range(prop, 0.01, 2000.0, 0.1, 0.01);
+	RNA_def_property_ui_text(prop, "Distance", "Height of the Fh area");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "spring_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "maxloc[0]");
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 0.01);
+	RNA_def_property_ui_text(prop, "Fh", "Spring force within the Fh area");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "spring_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "maxloc[1]");
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 0.01);
+	RNA_def_property_ui_text(prop, "Fh", "Spring force within the Fh area");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "spring_z", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "maxloc[2]");
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 0.01);
+	RNA_def_property_ui_text(prop, "Fh", "Spring force within the Fh area");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	/* booleans */
 	prop= RNA_def_property(srna, "force_distance", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_CONST_DISTANCE);
@@ -943,6 +997,16 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "detect_material", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_CONST_MATERIAL);
 	RNA_def_property_ui_text(prop, "M/P", "Detect material instead of property");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "fh_paralel_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_CONST_DOROTFH);
+	RNA_def_property_ui_text(prop, "Rot Fh", "Keep object axis parallel to normal");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "fh_normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_CONST_NORMAL);
+	RNA_def_property_ui_text(prop, "N", "Add a horizontal spring force on slopes");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	//XXX to replace all maxloc and minloc by a single one with get/set funcs
@@ -1451,8 +1515,6 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ShapeActionActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Shape Action Actuator", "Actuator to control shape key animations");
 	RNA_def_struct_sdna_from(srna, "bActionActuator", "data");
-	//RNA_def_struct_sdna(srna, "bActionActuator");
-	//RNA_def_struct_refine_func(srna, "rna_ActionActuator_refine");
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");

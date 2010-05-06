@@ -29,6 +29,7 @@
 
 #include "rna_internal.h"
 
+#include "DNA_object_types.h"
 #include "DNA_sensor_types.h"
 
 EnumPropertyItem sensor_type_items[] ={
@@ -93,11 +94,49 @@ static StructRNA* rna_Sensor_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_Sensor_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sensor_type_set(struct PointerRNA *ptr, int value)
 {
 	bSensor *sens= (bSensor *)ptr->data;
+	if (value != sens->type)
+	{
+		sens->type = value;
+		init_sensor(sens);
+	}
+}
+
+static EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem *item= NULL;
+	Object *ob = (Object *)ptr->id.data;
+
+	int totitem= 0;
+
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_ACTUATOR);
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_ALWAYS);
+
+	if (ob->type==OB_ARMATURE)
+		RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_ARMATURE);
+	else if(ob->type==OB_MESH){
+		RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_COLLISION);
+		RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_TOUCH);
+	}
+
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_DELAY);
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_JOYSTICK);
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_KEYBOARD);
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_MESSAGE);
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_MOUSE);
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_NEAR);
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_PROPERTY);
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_RADAR);
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_RANDOM);
+	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_RAY);
+//	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_TOUCH);
 	
-	init_sensor(sens);
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+	
+	return item;
 }
 
 #else
@@ -119,9 +158,9 @@ static void rna_def_sensor(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, sensor_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_type_set", "rna_Sensor_type_itemf");
 	RNA_def_property_ui_text(prop, "Type", "");
-	RNA_def_property_update(prop, 0, "rna_Sensor_type_update");
-	
+
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_SHOW);
 	RNA_def_property_ui_text(prop, "Expanded", "Set sensor expanded in the user interface");
@@ -322,7 +361,7 @@ static void rna_def_armature_sensor(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Armature Sensor", "Sensor to detect values and changes in values of IK solver");
 	RNA_def_struct_sdna_from(srna, "bArmatureSensor", "data");
 
-	prop= RNA_def_property(srna, "armature_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "test_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Test Type", "Type of value and test");
