@@ -317,8 +317,9 @@ void WM_exit(bContext *C)
 	
 //	if (copybuf) MEM_freeN(copybuf);
 //	if (copybufinfo) MEM_freeN(copybufinfo);
-	
-	BKE_undo_save_quit();	// saves quit.blend if global undo is on
+	if (!G.background) {
+		BKE_undo_save_quit();	// saves quit.blend if global undo is on
+	}
 	BKE_reset_undo(); 
 	
 	ED_file_exit(); /* for fsmenu */

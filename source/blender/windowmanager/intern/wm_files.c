@@ -286,7 +286,8 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		
 		if (retval!=0) {
 			G.relbase_valid = 1;
-			writeBlog();
+			if(!G.background) /* assume automated tasks with background, dont write recent file list */
+				writeBlog();
 		}
 
 // XXX		undo_editmode_clear();
