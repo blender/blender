@@ -89,9 +89,20 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionG
 	MEM_freeN(agrp); 
 }
 
-static FCurve *rna_Action_fcurve_new(bAction *act, char *data_path, int index, char *group)
+static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, char *data_path, int index, char *group)
 {
 	if(group && group[0]=='\0') group= NULL;
+
+	if(data_path[0] == '\0') {
+		BKE_report(reports, RPT_ERROR, "FCurve data path empty, invalid argument");
+		return NULL;
+	}
+
+	/* annoying, check if this exists */
+	if(verify_fcurve(act, group, data_path, index, 0)) {
+		BKE_reportf(reports, RPT_ERROR, "FCurve '%s[%d]' alredy exists in action '%s'", data_path, index, act->id.name+2);
+		return NULL;
+	}
 	return verify_fcurve(act, group, data_path, index, 1);
 }
 
@@ -352,9 +363,10 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "new", "rna_Action_fcurve_new");
 	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
-	parm= RNA_def_string(func, "data_path", "Data Path", 0, "", "FCurve data path to use.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_string(func, "data_path", "", 0, "Data Path", "FCurve data path to use.");
 	parm= RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Index", "Array index.", 0, INT_MAX);
-	parm= RNA_def_string(func, "action_group", "Action Group", 0, "", "Acton group to add this fcurve into.");
+	parm= RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this fcurve into.");
 
 	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created fcurve");
 	RNA_def_function_return(func, parm);
