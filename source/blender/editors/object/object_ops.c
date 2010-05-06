@@ -317,7 +317,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_clear", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, KM_SHIFT, KM_CTRL)->ptr, "unselected", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
 
 	/* same as above but for rendering */
 	WM_keymap_add_item(keymap, "OBJECT_OT_restrictrender_clear", HKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
