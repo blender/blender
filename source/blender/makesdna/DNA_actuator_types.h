@@ -351,6 +351,7 @@ typedef struct FreeCamera {
 #define ACT_PROP_TOGGLE		3
 
 /* constraint flag */
+#define ACT_CONST_NONE		0
 #define ACT_CONST_LOCX		1
 #define ACT_CONST_LOCY		2
 #define ACT_CONST_LOCZ		4

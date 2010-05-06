@@ -3544,7 +3544,32 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *row;
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "mode", 0, NULL, 0);
+	uiItemR(row, ptr, "action", 0, NULL, 0);
+	uiItemR(row, ptr, "continue_last_frame", 0, NULL, 0);
+
+	row= uiLayoutRow(layout, 0);
+	if((RNA_enum_get(ptr, "mode") == ACT_ACTION_FROM_PROP))
+		uiItemR(row, ptr, "property", 0, NULL, 0);
+
+	else {
+		uiItemR(row, ptr, "frame_start", 0, NULL, 0);
+		uiItemR(row, ptr, "frame_end", 0, NULL, 0);
+	}
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "blendin", 0, NULL, 0);
+	uiItemR(row, ptr, "priority", 0, NULL, 0);
+
+	row= uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "frame_property", 0, NULL, 0);
+
+#ifdef __NLA_ACTION_BY_MOTION_ACTUATOR
+	uiItemR(row, "stride_length", 0, NULL, 0);
+#endif
 }
 
 static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
@@ -3599,6 +3624,90 @@ static void draw_actuator_camera(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 {
+	uiLayout *row, *subrow, *split;
+
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	switch (RNA_enum_get(ptr, "mode"))
+	{
+		case ACT_CONST_TYPE_LOC:
+			uiItemR(layout, ptr, "limit", 0, NULL, 0);
+
+			switch(RNA_enum_get(ptr, "limit")){
+				case ACT_CONST_LOCX:
+					row = uiLayoutRow(layout, 1);
+					uiItemR(row, ptr, "limit_loc_min_x", 0, NULL, 0);
+					uiItemR(row, ptr, "limit_loc_max_x", 0, NULL, 0);
+					break;
+
+				case ACT_CONST_LOCY:
+					row = uiLayoutRow(layout, 1);
+					uiItemR(row, ptr, "limit_loc_min_y", 0, NULL, 0);
+					uiItemR(row, ptr, "limit_loc_max_y", 0, NULL, 0);
+					break;
+
+				case ACT_CONST_LOCZ:
+					row = uiLayoutRow(layout, 1);
+					uiItemR(row, ptr, "limit_loc_min_z", 0, NULL, 0);
+					uiItemR(row, ptr, "limit_loc_max_z", 0, NULL, 0);
+					break;
+			}
+			uiItemR(layout, ptr, "damping", UI_ITEM_R_SLIDER, NULL, 0);
+			break;
+
+		case ACT_CONST_TYPE_DIST:
+			uiItemR(layout, ptr, "direction", 0, NULL, 0);//move to the right
+			if(RNA_enum_get(ptr, "direction")!=0)
+				uiItemR(layout, ptr, "force_distance", 0, NULL, 0);
+
+			switch(RNA_enum_get(ptr, "direction")){
+				case ACT_CONST_DIRPX:
+				case ACT_CONST_DIRNX:
+					row = uiLayoutRow(layout, 0);
+					uiItemR(row, ptr, "range_x", 0, NULL, 0);
+					subrow = uiLayoutRow(row, 0);
+					uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "force_distance")==1);
+					uiItemR(subrow, ptr, "distance_x", 0, NULL, 0);
+					break;
+
+				case ACT_CONST_DIRPY:
+				case ACT_CONST_DIRNY:
+					row = uiLayoutRow(layout, 0);
+					uiItemR(row, ptr, "range_y", 0, NULL, 0);
+					subrow = uiLayoutRow(row, 0);
+					uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "force_distance")==1);
+					uiItemR(subrow, ptr, "distance_y", 0, NULL, 0);
+					break;
+
+				case ACT_CONST_DIRPZ:
+				case ACT_CONST_DIRNZ:
+					row = uiLayoutRow(layout, 0);
+					uiItemR(row, ptr, "range_z", 0, NULL, 0);
+					subrow = uiLayoutRow(row, 0);
+					uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "force_distance")==1);
+					uiItemR(subrow, ptr, "distance_z", 0, NULL, 0);
+					break;
+			}
+			uiItemR(layout, ptr, "damping", UI_ITEM_R_SLIDER , NULL, 0);
+			split = uiLayoutSplit(layout, 0.15, 0);
+			uiItemR(split, ptr, "detect_material", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			if (RNA_boolean_get(ptr, "detect_material"))
+				uiItemR(split, ptr, "material", 0, NULL, 0);
+			else
+				uiItemR(split, ptr, "property", 0, NULL, 0);
+
+			uiItemR(layout, ptr, "damping_rotation", UI_ITEM_R_SLIDER, NULL, 0);
+			break;
+
+		case ACT_CONST_TYPE_ORI:
+			uiItemL(layout, "to be done", 0);
+			break;
+
+		case ACT_CONST_TYPE_FH:
+			uiItemL(layout, "to be done", 0);
+			break;
+	}
+
 	//XXXACTUATOR STILL HAVE TO DO THE RNA
 }
 
@@ -3951,9 +4060,41 @@ static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 #endif
 }
 
-static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr)
+static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
-	//XXXACTUATOR
+	uiLayout *row, *box;
+
+	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL);
+	if (!RNA_pointer_get(ptr, "sound").data)
+	{
+		uiItemL(layout, "Select a sound from the list or load a new one", 0);
+		return;
+	}
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "volume", 0, NULL, 0);
+	uiItemR(row, ptr, "pitch", 0, NULL, 0);
+
+	uiItemR(layout, ptr, "enable_sound_3d", UI_ITEM_R_TOGGLE, NULL, 0);
+	box = uiLayoutBox(layout);
+	uiLayoutSetActive(box, RNA_boolean_get(ptr, "enable_sound_3d")==1);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, ptr, "minimum_gain_3d", 0, NULL, 0);
+	uiItemR(row, ptr, "maximum_gain_3d", 0, NULL, 0);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, ptr, "reference_distance_3d", 0, NULL, 0);
+	uiItemR(row, ptr, "max_distance_3d", 0, NULL, 0);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, ptr, "rolloff_factor_3d", 0, NULL, 0);
+	uiItemR(row, ptr, "cone_outer_gain_3d", 0, NULL, 0);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, ptr, "cone_outer_angle_3d", 0, NULL, 0);
+	uiItemR(row, ptr, "cone_inner_angle_3d", 0, NULL, 0);
 }
 
 static void draw_actuator_state(uiLayout *layout, PointerRNA *ptr)
@@ -3971,7 +4112,7 @@ static void draw_actuator_visibility(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "children", 0, NULL, 0);
 }
 
-void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr)
+void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *box;
 	
@@ -4027,7 +4168,7 @@ void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr)
 			draw_actuator_shape_action(box, ptr);
 			break;
 		case ACT_SOUND:
-			draw_actuator_sound(box, ptr);
+			draw_actuator_sound(box, ptr, C);
 			break;
 		case ACT_STATE:
 			draw_actuator_state(box, ptr);
@@ -4287,7 +4428,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 				draw_actuator_header(col, &ptr);
 				
 				/* draw the brick contents */
-				draw_brick_actuator(col, &ptr);
+				draw_brick_actuator(col, &ptr, C);
 				
 			}
 		}
