@@ -1076,7 +1076,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 		char file[MAX_PTCACHE_PATH]; /* we dont want the dir, only the file */
 		char *blendfilename;
 
-		blendfilename= (lib)? lib->filename: G.sce;
+		blendfilename= (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH)==0) ? lib->filename: G.sce;
 
 		BLI_split_dirfile(blendfilename, NULL, file);
 		i = strlen(file);
