@@ -3651,8 +3651,13 @@ static void draw_actuator_message(uiLayout *layout, PointerRNA *ptr)
 static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *split, *row, *col, *subcol;
+	Object *ob = (Object *)ptr->id.data;
+	PointerRNA settings_ptr;
+	
+	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
+	
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
-
+	
 	switch (RNA_enum_get(ptr, "mode")) {
 		case ACT_OBJECT_NORMAL:
 			split = uiLayoutSplit(layout, 0.9, 0);
@@ -3662,11 +3667,10 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 			split = uiLayoutSplit(layout, 0.9, 0);
 			uiItemR(split, ptr, "rot", 0, NULL, 0);
 			uiItemR(split, ptr, "local_rotation", UI_ITEM_R_TOGGLE, NULL, 0);
-
-			// Matt, how to check for ob->gameflag here? Do we need to pass the obj through the drawing function only for that?
-//			if ((ob->gameflag & OB_DYNAMIC)==0)
-//				break;
-
+			
+			if (RNA_enum_get(&settings_ptr, "physics_type") != OB_BODY_TYPE_DYNAMIC)
+				break;
+			
 			split = uiLayoutSplit(layout, 0.9, 0);
 			uiItemR(split, ptr, "force", 0, NULL, 0);
 			uiItemR(split, ptr, "local_force", UI_ITEM_R_TOGGLE, NULL, 0);
