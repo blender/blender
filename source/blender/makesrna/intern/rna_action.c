@@ -41,6 +41,9 @@
 
 #ifdef RNA_RUNTIME
 
+#include "ED_keyframing.h"
+#include "BKE_fcurve.h"
+
 static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
@@ -86,6 +89,32 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionG
 	MEM_freeN(agrp); 
 }
 
+static FCurve *rna_Action_fcurve_new(bAction *act, char *data_path, int index, char *group)
+{
+	if(group && group[0]=='\0') group= NULL;
+	return verify_fcurve(act, group, data_path, index, 1);
+}
+
+static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *fcu)
+{
+	if(fcu->grp) {
+		if (BLI_findindex(&act->groups, fcu->grp) == -1) {
+			BKE_reportf(reports, RPT_ERROR, "FCurve's ActionGroup '%s' not found in action '%s'", fcu->grp->name, act->id.name+2);
+			return;
+		}
+
+		action_groups_remove_channel(act, fcu);
+	}
+	else {
+		if(BLI_findindex(&act->curves, fcu) == -1) {
+			BKE_reportf(reports, RPT_ERROR, "FCurve not found in action '%s'", act->id.name+2);
+			return;
+		}
+
+		BLI_remlink(&act->curves, fcu);
+		free_fcurve(fcu);
+	}
+}
 
 #else
 
@@ -291,7 +320,7 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "ActionGroups");
 	srna= RNA_def_struct(brna, "ActionGroups", NULL);
 	RNA_def_struct_sdna(srna, "bAction");
-	RNA_def_struct_ui_text(srna, "Action Points", "Collection of action groups");
+	RNA_def_struct_ui_text(srna, "Action Groups", "Collection of action groups");
 
 	func= RNA_def_function(srna, "add", "rna_Action_groups_add");
 	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
@@ -309,6 +338,35 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
+static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "ActionFCurves");
+	srna= RNA_def_struct(brna, "ActionFCurves", NULL);
+	RNA_def_struct_sdna(srna, "bAction");
+	RNA_def_struct_ui_text(srna, "Action FCurves", "Collection of action fcurves");
+
+	func= RNA_def_function(srna, "new", "rna_Action_fcurve_new");
+	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
+	parm= RNA_def_string(func, "data_path", "Data Path", 0, "", "FCurve data path to use.");
+	parm= RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Index", "Array index.", 0, INT_MAX);
+	parm= RNA_def_string(func, "action_group", "Action Group", 0, "", "Acton group to add this fcurve into.");
+
+	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created fcurve");
+	RNA_def_function_return(func, parm);
+
+
+	func= RNA_def_function(srna, "remove", "rna_Action_fcurve_remove");
+	RNA_def_function_ui_description(func, "Remove action group.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "FCurve to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+}
+
 static void rna_def_action(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -323,6 +381,7 @@ static void rna_def_action(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "curves", NULL);
 	RNA_def_property_struct_type(prop, "FCurve");
 	RNA_def_property_ui_text(prop, "F-Curves", "The individual F-Curves that make up the Action");
+	rna_def_action_fcurves(brna, prop);
 
 	prop= RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "groups", NULL);
