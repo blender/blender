@@ -3854,7 +3854,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 			short groupmode= KSP_GROUP_KSNAME;
 			
 			/* check if RNA-property described by this selected element is an animateable prop */
-			if ((tselem->type == TSE_RNA_PROPERTY) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
+			if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
 				/* get id + path + index info from the selected element */
 				tree_element_to_path(soops, te, tselem, 
 						&id, &path, &array_index, &flag, &groupmode);
@@ -3862,7 +3862,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 			
 			/* only if ID and path were set, should we perform any actions */
 			if (id && path) {
-				int arraylen;
+				int arraylen = 1;
 				
 				/* array checks */
 				if (flag & KSP_FLAG_WHOLE_ARRAY) {
