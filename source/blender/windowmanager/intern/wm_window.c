@@ -740,6 +740,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 			case GHOST_kEventDraggingDropDone:
 			{
 				wmEvent event= *(win->eventstate);	/* copy last state, like mouse coords */
+				GHOST_TEventDragnDropData *ddd= GHOST_GetEventData(evt);
 				
 				/* make blender drop event with custom data pointing to wm drags */
 				event.type= EVT_DROP;
@@ -750,8 +751,17 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				
 				/* add drag data to wm for paths: */
 				/* need icon type, some dropboxes check for that... see filesel code for this */
-				// WM_event_start_drag(C, icon, WM_DRAG_PATH, void *poin, 0.0);
-				/* void poin should point to string, it makes a copy */
+				
+				if(ddd->dataType == GHOST_kDragnDropTypeFilenames) {
+					GHOST_TStringArray *stra= ddd->data;
+					int a;
+					
+					for(a=0; a<stra->count; a++) {
+						printf("drop file %s\n", stra->strings[a]);
+						WM_event_start_drag(C, 0, WM_DRAG_PATH, stra->strings[a], 0.0);
+						/* void poin should point to string, it makes a copy */
+					}
+				}
 				
 				wm_event_add(win, &event);
 				
