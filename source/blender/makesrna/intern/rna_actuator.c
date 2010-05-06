@@ -154,7 +154,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	PropertyRNA* prop;
 
 	static EnumPropertyItem prop_type_items[] ={
-		{ACT_OBJECT_NORMAL, "OBJECT_NORMAL", 0, "Simple motion", ""},
+		{ACT_OBJECT_NORMAL, "OBJECT_NORMAL", 0, "Simple Motion", ""},
 		{ACT_OBJECT_SERVO, "OBJECT_SERVO", 0, "Servo Control", ""},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -1238,7 +1238,7 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Armature Actuator", "Actuator to ..");
 	RNA_def_struct_sdna_from(srna, "bArmatureActuator", "data");
 
-	prop= RNA_def_property(srna, "contraint_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Constraint Type", "");
@@ -1252,7 +1252,7 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 	/* XXX eventually move to a datablock pointer. However datablocking this may be a problem
 	we would need to update the value whenever the armature changes. */
 
-	prop= RNA_def_property(srna, "contraint", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "constraint", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "constraint");
 	RNA_def_property_ui_text(prop, "Constraint", "Name of the constraint you want to control");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);

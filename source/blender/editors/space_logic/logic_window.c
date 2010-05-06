@@ -3549,7 +3549,38 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *row;
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	switch (RNA_enum_get(ptr, "mode"))
+	{
+		case ACT_ARM_RUN:
+			break;
+		case ACT_ARM_ENABLE:
+			row = uiLayoutRow(layout, 1);
+			uiItemR(row, ptr, "bone", 0, NULL, 0);
+			uiItemR(row, ptr, "constraint", 0, NULL, 0);
+			break;
+		case ACT_ARM_DISABLE:
+			row = uiLayoutRow(layout, 1);
+			uiItemR(row, ptr, "bone", 0, NULL, 0);
+			uiItemR(row, ptr, "constraint", 0, NULL, 0);
+			break;
+		case ACT_ARM_SETTARGET:
+			row = uiLayoutRow(layout, 1);
+			uiItemR(row, ptr, "bone", 0, NULL, 0);
+			uiItemR(row, ptr, "constraint", 0, NULL, 0);
+
+			uiItemR(layout, ptr, "target", 0, NULL, 0);
+			uiItemR(layout, ptr, "secondary_target", 0, NULL, 0);
+			break;
+		case ACT_ARM_SETWEIGHT:
+			row = uiLayoutRow(layout, 1);
+			uiItemR(row, ptr, "bone", 0, NULL, 0);
+			uiItemR(row, ptr, "constraint", 0, NULL, 0);
+
+			uiItemR(layout, ptr, "weight", 0, NULL, 0);
+			break;
+	}
 }
 
 static void draw_actuator_camera(uiLayout *layout, PointerRNA *ptr)
@@ -3573,7 +3604,48 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 {
-	//XXXACTUATOR
+	uiLayout *row, *split, *subsplit;
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+
+	switch (RNA_enum_get(ptr, "mode"))
+	{
+		case ACT_EDOB_ADD_OBJECT:
+			row = uiLayoutRow(layout, 0);
+			uiItemR(row, ptr, "object", 0, NULL, 0);
+			uiItemR(row, ptr, "time", 0, NULL, 0);
+
+			split = uiLayoutSplit(layout, 0.9, 0);
+			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "linear_velocity", 0, NULL, 0);
+			uiItemR(split, ptr, "local_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+
+			split = uiLayoutSplit(layout, 0.9, 0);
+			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "angular_velocity", 0, NULL, 0);
+			uiItemR(split, ptr, "local_angular_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+			break;
+		case ACT_EDOB_END_OBJECT:
+			break;
+		case ACT_EDOB_REPLACE_MESH:
+			split = uiLayoutSplit(layout, 0.6, 0);
+			uiItemR(split, ptr, "mesh", 0, NULL, 0);
+			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "replace_display_mesh", UI_ITEM_R_TOGGLE, NULL, 0);
+			uiItemR(row, ptr, "replace_physics_mesh", UI_ITEM_R_TOGGLE, NULL, 0);
+			break;
+		case ACT_EDOB_TRACK_TO:
+			split = uiLayoutSplit(layout, 0.5, 0);
+			uiItemR(split, ptr, "track_object", 0, NULL, 0);
+			subsplit = uiLayoutSplit(split, 0.7, 0);
+			uiItemR(subsplit, ptr, "time", 0, NULL, 0);
+			uiItemR(subsplit, ptr, "enable_3d_tracking", UI_ITEM_R_TOGGLE, NULL, 0);
+			break;
+		case ACT_EDOB_DYNAMICS:
+			uiItemR(layout, ptr, "dynamic_operation", 0, NULL, 0);
+			if (RNA_enum_get(ptr, "dynamic_operation") == ACT_EDOB_SET_MASS)
+				uiItemR(layout, ptr, "mass", 0, NULL, 0);
+			break;
+	}
 }
 
 static void draw_actuator_filter_2d(uiLayout *layout, PointerRNA *ptr)
@@ -3661,32 +3733,39 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 	switch (RNA_enum_get(ptr, "mode")) {
 		case ACT_OBJECT_NORMAL:
 			split = uiLayoutSplit(layout, 0.9, 0);
-			uiItemR(split, ptr, "loc", 0, NULL, 0);
+			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "loc", 0, NULL, 0);
 			uiItemR(split, ptr, "local_location", UI_ITEM_R_TOGGLE, NULL, 0);
 
 			split = uiLayoutSplit(layout, 0.9, 0);
-			uiItemR(split, ptr, "rot", 0, NULL, 0);
+			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "rot", 0, NULL, 0);
 			uiItemR(split, ptr, "local_rotation", UI_ITEM_R_TOGGLE, NULL, 0);
 			
 			if (RNA_enum_get(&settings_ptr, "physics_type") != OB_BODY_TYPE_DYNAMIC)
 				break;
 			
+			uiItemL(layout, "Dynamic Object Settings:", 0);
 			split = uiLayoutSplit(layout, 0.9, 0);
-			uiItemR(split, ptr, "force", 0, NULL, 0);
+			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "force", 0, NULL, 0);
 			uiItemR(split, ptr, "local_force", UI_ITEM_R_TOGGLE, NULL, 0);
 
 			split = uiLayoutSplit(layout, 0.9, 0);
-			uiItemR(split, ptr, "torque", 0, NULL, 0);
+			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "torque", 0, NULL, 0);
 			uiItemR(split, ptr, "local_torque", UI_ITEM_R_TOGGLE, NULL, 0);
 
 			split = uiLayoutSplit(layout, 0.9, 0);
-			uiItemR(split, ptr, "linear_velocity", 0, NULL, 0);
 			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "linear_velocity", 0, NULL, 0);
+			row = uiLayoutRow(split, 1);
 			uiItemR(row, ptr, "local_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
 			uiItemR(row, ptr, "add_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
 
 			split = uiLayoutSplit(layout, 0.9, 0);
-			uiItemR(split, ptr, "angular_velocity", 0, NULL, 0);
+			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "angular_velocity", 0, NULL, 0);
 			uiItemR(split, ptr, "local_angular_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
 
 			uiItemR(layout, ptr, "damping", 0, NULL, 0);
@@ -3695,32 +3774,38 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(layout, ptr, "reference_object", 0, NULL, 0);
 
 			split = uiLayoutSplit(layout, 0.9, 0);
-			uiItemR(split, ptr, "linear_velocity", 0, NULL, 0);
+			row = uiLayoutRow(split, 0);
+			uiItemR(row, ptr, "linear_velocity", 0, NULL, 0);
+			uiItemR(split, ptr, "local_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			col = uiLayoutColumn(layout, 0);
-			uiItemR(col, ptr, "servo_limit_x", 0, NULL, 0);
+			row = uiLayoutRow(layout, 0);
+			col = uiLayoutColumn(row, 0);
+			uiItemR(col, ptr, "servo_limit_x", UI_ITEM_R_TOGGLE, NULL, 0);
 			subcol = uiLayoutColumn(col, 0);
 			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "servo_limit_x")==1);
 			uiItemR(subcol, ptr, "force_max_x", 0, NULL, 0);
 			uiItemR(subcol, ptr, "force_min_x", 0, NULL, 0);
 
-			col = uiLayoutColumn(layout, 0);
-			uiItemR(col, ptr, "servo_limit_y", 0, NULL, 0);
+			col = uiLayoutColumn(row, 0);
+			uiItemR(col, ptr, "servo_limit_y", UI_ITEM_R_TOGGLE, NULL, 0);
 			subcol = uiLayoutColumn(col, 0);
 			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "servo_limit_y")==1);
 			uiItemR(subcol, ptr, "force_max_y", 0, NULL, 0);
 			uiItemR(subcol, ptr, "force_min_y", 0, NULL, 0);
 
-			col = uiLayoutColumn(layout, 0);
-			uiItemR(col, ptr, "servo_limit_z", 0, NULL, 0);
+			col = uiLayoutColumn(row, 0);
+			uiItemR(col, ptr, "servo_limit_z", UI_ITEM_R_TOGGLE, NULL, 0);
 			subcol = uiLayoutColumn(col, 0);
 			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "servo_limit_z")==1);
 			uiItemR(subcol, ptr, "force_max_z", 0, NULL, 0);
 			uiItemR(subcol, ptr, "force_min_z", 0, NULL, 0);
 
-			uiItemR(col, ptr, "proportional_coefficient", 0, NULL, 0);
-			uiItemR(col, ptr, "integral_coefficient", 0, NULL, 0);
-			uiItemR(col, ptr, "derivate_coefficient", 0, NULL, 0);
+			//XXXACTUATOR missing labels from original 2.49 ui (e.g. Servo, Min, Max, Fast)
+
+			col = uiLayoutColumn(layout, 1);
+			uiItemR(col, ptr, "proportional_coefficient", UI_ITEM_R_SLIDER, NULL, 0);
+			uiItemR(col, ptr, "integral_coefficient", UI_ITEM_R_SLIDER, NULL, 0);
+			uiItemR(col, ptr, "derivate_coefficient", UI_ITEM_R_SLIDER, NULL, 0);
 			break;
 	}
 }
