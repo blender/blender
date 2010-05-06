@@ -10748,6 +10748,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		} /* sequencer changes */
 	}
+	
+	if (main->versionfile <= 251) {	/* 2.5.1 had no subversions */
+		bScreen *sc;
+		
+		/* Blender 2.5.2 - subversion 0 introduced a new setting: V3D_RENDER_OVERRIDE.
+		 * This bit was used in the past for V3D_TRANSFORM_SNAP, which is now deprecated. 
+		 * Here we clear it for old files so they don't come in with V3D_RENDER_OVERRIDE set,
+		 * which would cause cameras, lamps, etc to become invisible */
+		for(sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for(sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D* v3d = (View3D *)sl;
+						v3d->flag2 &= ~V3D_RENDER_OVERRIDE;
+					}
+				}
+			}
+		}
+	}
 
 	if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 1)) {
 		Brush *brush;
