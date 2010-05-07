@@ -104,23 +104,31 @@ static void rna_Sensor_type_set(struct PointerRNA *ptr, int value)
 	}
 }
 
-static EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	EnumPropertyItem *item= NULL;
-	Object *ob = (Object *)ptr->id.data;
-
+	Object *ob=NULL;
 	int totitem= 0;
 
+	if (ptr->type == &RNA_Sensor) {
+		ob = (Object *)ptr->id.data;
+	} else {
+		/* can't use ob from ptr->id.data because that enum is also used by operators */
+		ob = CTX_data_active_object(C);
+	}
+	
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_ACTUATOR);
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_ALWAYS);
 
-	if (ob->type==OB_ARMATURE)
-		RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_ARMATURE);
-	else if(ob->type==OB_MESH){
-		RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_COLLISION);
-		RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_TOUCH);
+	if (ob != NULL) {
+		if (ob->type==OB_ARMATURE) {
+			RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_ARMATURE);
+		} else if(ob->type==OB_MESH) {
+			RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_COLLISION);
+			RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_TOUCH);
+		}
 	}
-
+	
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_DELAY);
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_JOYSTICK);
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_KEYBOARD);

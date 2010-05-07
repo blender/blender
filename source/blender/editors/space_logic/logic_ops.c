@@ -289,7 +289,8 @@ void LOGIC_OT_sensor_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", sensor_type_items, SENS_ALWAYS, "Type", "Type of sensor to add");
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
+	RNA_def_enum_funcs(prop, rna_Sensor_type_itemf);
 }
 
 /* ************* Add/Remove Controller Operator ************* */
@@ -474,7 +475,8 @@ void LOGIC_OT_actuator_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", actuator_type_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
+	RNA_def_enum_funcs(prop, rna_Actuator_type_itemf);
 }
 
 void ED_operatortypes_logic(void)

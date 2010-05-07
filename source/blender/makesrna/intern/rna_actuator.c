@@ -174,19 +174,27 @@ static EnumPropertyItem *rna_EditObjectActuator_mode_itemf(bContext *C, PointerR
 	return item;
 }
 
-static EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	EnumPropertyItem *item= NULL;
-	Object *ob = (Object *)ptr->id.data;
-
+	Object *ob= NULL;
 	int totitem= 0;
-	if (ob->type==OB_ARMATURE)
-	{
-		RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_ACTION);
-		RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_ARMATURE);
+	
+	if (ptr->type == &RNA_Actuator) {
+		ob = (Object *)ptr->id.data;
+	} else {
+		/* can't use ob from ptr->id.data because that enum is also used by operators */
+		ob = CTX_data_active_object(C);
 	}
-	else
-		RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SHAPEACTION);
+	
+	if (ob != NULL) {
+		if (ob->type==OB_ARMATURE) {
+			RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_ACTION);
+			RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_ARMATURE);
+		} else {
+			RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SHAPEACTION);
+		}
+	}
 
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_CAMERA);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_CONSTRAINT);
