@@ -749,13 +749,13 @@ static void rna_def_ipo_actuator(BlenderRNA *brna)
 	/* booleans */
 	prop= RNA_def_property(srna, "add", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOADD);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_IpoActuator_add_set", NULL);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_IpoActuator_add_set");
 	RNA_def_property_ui_text(prop, "Add", "Ipo is added to the current loc/rot/scale in global or local coordinate according to Local flag");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "force", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOFORCE);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_IpoActuator_force_set", NULL);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_IpoActuator_force_set");
 	RNA_def_property_ui_text(prop, "Force", "Apply IPO as a global or local force depending on the local option (dynamic objects only)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
