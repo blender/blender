@@ -125,7 +125,6 @@ EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 			RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_ARMATURE);
 		} else if(ob->type==OB_MESH) {
 			RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_COLLISION);
-			RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_TOUCH);
 		}
 	}
 	
@@ -139,7 +138,12 @@ EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_RADAR);
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_RANDOM);
 	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_RAY);
-//	RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_TOUCH);
+
+	if (ob != NULL) {
+		if(ob->type==OB_MESH) {
+			RNA_enum_items_add_value(&item, &totitem, sensor_type_items, SENS_TOUCH);
+		}
+	}
 	
 	RNA_enum_item_end(&item, &totitem);
 	*free= 1;

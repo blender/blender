@@ -4171,10 +4171,14 @@ static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 static void draw_actuator_state(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *split;
+	Object *ob = (Object *)ptr->id.data;
+	PointerRNA settings_ptr;
+	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
+
 	split = uiLayoutSplit(layout, 0.35, 0);
 	uiItemR(split, ptr, "operation", 0, NULL, 0);
 
-	uiTemplateLayers(split, ptr, "state", NULL, NULL, 0);
+	uiTemplateLayers(split, ptr, "state", &settings_ptr, "used_state", 0);
 }
 
 static void draw_actuator_visibility(uiLayout *layout, PointerRNA *ptr)
