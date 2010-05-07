@@ -432,37 +432,27 @@ static void rna_def_collision_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_type_items[] ={
-//		{SENS_COLLISION_PULSE, "PULSE", 0, "Property", ""},
-		{SENS_COLLISION_PROPERTY, "PROPERTY", 0, "Property", ""},
-		{SENS_COLLISION_MATERIAL, "MATERIAL", 0, "Material", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "CollisionSensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Collision Sensor", "Sensor to detect objects colliding with the current object, with more settings than the Touch sensor");
 	RNA_def_struct_sdna_from(srna, "bCollisionSensor", "data");
 
-	prop= RNA_def_property(srna, "collision_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "mode");
-	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Collision Type", "Toggle collision on material or property");
+	prop= RNA_def_property(srna, "pulse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", SENS_COLLISION_PULSE);
+	RNA_def_property_ui_text(prop, "Pulse", "Changes to the set of colliding objects generates pulse");
 
-	/*
-	//XXX bad, ugly. pulse in 2.49 is part of the same "enum" of collision type
-	//to investigate: is pulse exclusive? or it works with mat/prop?
-	prop= RNA_def_property(srna, "pulse", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "mode");
-	RNA_def_property_ui_text(prop, "Property Name", "changes to the set of colliding objects generates pulse");
-	*/
+	prop= RNA_def_property(srna, "collision_type", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", SENS_COLLISION_MATERIAL);
+	RNA_def_property_ui_text(prop, "M/P", "Toggle collision on material or property");
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property Name", "Only look for Objects with this property");
+	RNA_def_property_ui_text(prop, "Property", "Only look for Objects with this property");
 
 	//XXX to make a setFunction to create a lookup with all materials in Blend File (not only this object mat.)
 	prop= RNA_def_property(srna, "material", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "materialName");
-	RNA_def_property_ui_text(prop, "Material Name", "Only look for Objects with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
 
 /*//XXX either use a datablock look up to store the string name (material)
   // or to do a doversion and use a material pointer.
@@ -535,10 +525,6 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 		{SENS_RAY_NEG_Y_AXIS, "NEGYAXIS", 0, "-Y axis", ""},
 		{SENS_RAY_NEG_Z_AXIS, "NEGZAXIS", 0, "-Z axis", ""},
 		{0, NULL, 0, NULL, NULL}};
-	static EnumPropertyItem prop_type_items[] ={
-		{SENS_RAY_PROPERTY, "PROPERTY", 0, "Property", ""},
-		{SENS_RAY_MATERIAL, "MATERIAL", 0, "Material", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RaySensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Ray Sensor", "Sensor to detect intersections with a ray emanating from the current object");
@@ -561,10 +547,9 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
 */
 
-	prop= RNA_def_property(srna, "ray_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "mode");
-	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Collision Type", "Toggle collision on material or property");
+	prop= RNA_def_property(srna, "ray_type", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", SENS_COLLISION_MATERIAL);
+	RNA_def_property_ui_text(prop, "M/P", "Toggle collision on material or property");
 
 	prop= RNA_def_property(srna, "x_ray_mode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", SENS_RAY_XRAY);

@@ -122,6 +122,198 @@ static void rna_Actuator_type_set(struct PointerRNA *ptr, int value)
 	}
 }
 
+static float rna_ConstraintActuator_limitmin_get(struct PointerRNA *ptr)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->flag & ACT_CONST_LOCX) fp= ca->minloc;
+	else if(ca->flag & ACT_CONST_LOCY) fp= ca->minloc+1;
+	else if(ca->flag & ACT_CONST_LOCZ) fp= ca->minloc+2;
+	else if(ca->flag & ACT_CONST_ROTX) fp= ca->minrot;
+	else if(ca->flag & ACT_CONST_ROTY) fp= ca->minrot+1;
+	else fp= ca->minrot+2;
+
+	return *fp;
+}
+
+static void rna_ConstraintActuator_limitmin_set(struct PointerRNA *ptr, float value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->flag & ACT_CONST_LOCX) fp= ca->minloc;
+	else if(ca->flag & ACT_CONST_LOCY) fp= ca->minloc+1;
+	else if(ca->flag & ACT_CONST_LOCZ) fp= ca->minloc+2;
+	else if(ca->flag & ACT_CONST_ROTX) fp= ca->minrot;
+	else if(ca->flag & ACT_CONST_ROTY) fp= ca->minrot+1;
+	else fp= ca->minrot+2;
+
+	*fp = value;
+}
+
+static float rna_ConstraintActuator_limitmax_get(struct PointerRNA *ptr)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->flag & ACT_CONST_LOCX) fp= ca->maxloc;
+	else if(ca->flag & ACT_CONST_LOCY) fp= ca->maxloc+1;
+	else if(ca->flag & ACT_CONST_LOCZ) fp= ca->maxloc+2;
+	else if(ca->flag & ACT_CONST_ROTX) fp= ca->maxrot;
+	else if(ca->flag & ACT_CONST_ROTY) fp= ca->maxrot+1;
+	else fp= ca->maxrot+2;
+
+	return *fp;
+}
+
+static void rna_ConstraintActuator_limitmax_set(struct PointerRNA *ptr, float value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->flag & ACT_CONST_LOCX) fp= ca->maxloc;
+	else if(ca->flag & ACT_CONST_LOCY) fp= ca->maxloc+1;
+	else if(ca->flag & ACT_CONST_LOCZ) fp= ca->maxloc+2;
+	else if(ca->flag & ACT_CONST_ROTX) fp= ca->maxrot;
+	else if(ca->flag & ACT_CONST_ROTY) fp= ca->maxrot+1;
+	else fp= ca->maxrot+2;
+
+	*fp = value;
+}
+
+static float rna_ConstraintActuator_distance_get(struct PointerRNA *ptr)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= ca->minloc;
+	else if(ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= ca->minloc+1;
+	else fp= ca->minloc+2;
+
+	return *fp;
+}
+
+static void rna_ConstraintActuator_distance_set(struct PointerRNA *ptr, float value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= ca->minloc;
+	else if(ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= ca->minloc+1;
+	else fp= ca->minloc+2;
+
+	*fp = value;
+}
+
+static float rna_ConstraintActuator_range_get(struct PointerRNA *ptr)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= ca->maxloc;
+	else if(ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= ca->maxloc+1;
+	else fp= ca->maxloc+2;
+
+	return *fp;
+}
+
+static void rna_ConstraintActuator_range_set(struct PointerRNA *ptr, float value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= ca->maxloc;
+	else if(ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= ca->maxloc+1;
+	else fp= ca->maxloc+2;
+
+	*fp = value;
+}
+
+static float rna_ConstraintActuator_fhheight_get(struct PointerRNA *ptr)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= ca->minloc;
+	else if(ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= ca->minloc+1;
+	else fp= ca->minloc+2;
+
+	return *fp;
+}
+
+static void rna_ConstraintActuator_fhheight_set(struct PointerRNA *ptr, float value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= ca->minloc;
+	else if(ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= ca->minloc+1;
+	else fp= ca->minloc+2;
+
+	*fp = value;
+}
+
+static float rna_ConstraintActuator_spring_get(struct PointerRNA *ptr)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= ca->maxloc;
+	else if(ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= ca->maxloc+1;
+	else fp= ca->maxloc+2;
+
+	return *fp;
+}
+
+static void rna_ConstraintActuator_spring_set(struct PointerRNA *ptr, float value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+	float *fp;
+
+	if(ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= ca->maxloc;
+	else if(ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= ca->maxloc+1;
+	else fp= ca->maxloc+2;
+
+	*fp = value;
+}
+
+static void rna_IpoActuator_add_set(struct PointerRNA *ptr, int value)
+{
+	bActuator *act = (bActuator *)ptr->data;
+	bIpoActuator *ia = act->data;
+
+	if(value == 1){
+		ia->flag &= ~ACT_IPOFORCE;
+		ia->flag |= ACT_IPOADD;
+	}else
+		ia->flag &= ~ACT_IPOADD;
+}
+
+static void rna_IpoActuator_force_set(struct PointerRNA *ptr, int value)
+{
+	bActuator *act = (bActuator *)ptr->data;
+	bIpoActuator *ia = act->data;
+
+	if(value == 1){
+		ia->flag &= ~ACT_IPOADD;
+		ia->flag |= ACT_IPOFORCE;
+	}else
+		ia->flag &= ~ACT_IPOFORCE;
+}
+
 static void rna_ObjectActuator_integralcoefficient_set(struct PointerRNA *ptr, float value)
 {
 	bActuator *act = (bActuator*)ptr->data;
@@ -555,12 +747,17 @@ static void rna_def_ipo_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frame Property", "Assign the action's current frame number to this property");
 
 	/* booleans */
+	prop= RNA_def_property(srna, "add", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOADD);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_IpoActuator_add_set", NULL);
+	RNA_def_property_ui_text(prop, "Add", "Ipo is added to the current loc/rot/scale in global or local coordinate according to Local flag");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	prop= RNA_def_property(srna, "force", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOFORCE);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_IpoActuator_force_set", NULL);
 	RNA_def_property_ui_text(prop, "Force", "Apply IPO as a global or local force depending on the local option (dynamic objects only)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
-//XXX	logic_window::change_ipo_actuator
-//	RNA_def_property_boolean_funcs(prop, "rna_Actuator_Ipo_get", "rna_Actuator_Ipo_get", "rna_Actuator_Ipo_range");	
 	
 	prop= RNA_def_property(srna, "local", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOLOCAL);
@@ -571,13 +768,6 @@ static void rna_def_ipo_actuator(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOCHILD);
 	RNA_def_property_ui_text(prop, "Child", "Update IPO on all children Objects as well");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	
-	prop= RNA_def_property(srna, "add", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOADD);
-	RNA_def_property_ui_text(prop, "Add", "Ipo is added to the current loc/rot/scale in global or local coordinate according to Local flag");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-//XXX	logic_window::change_ipo_actuator
-//	RNA_def_property_boolean_funcs(prop, "rna_Actuator_Ipo_get", "rna_Actuator_Ipo_get", "rna_Actuator_Ipo_range");	
 }
 
 static void rna_def_camera_actuator(BlenderRNA *brna)
@@ -835,40 +1025,16 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* ACT_CONST_TYPE_LOC */
-	prop= RNA_def_property(srna, "limit_loc_min_x", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "minloc[0]");
+	prop= RNA_def_property(srna, "limit_min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_limitmin_get", "rna_ConstraintActuator_limitmin_set", NULL);
 	RNA_def_property_ui_range(prop, -2000.f, 2000.f, 1, 2);
 	RNA_def_property_ui_text(prop, "Min", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "limit_loc_min_y", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "minloc[1]");
+	prop= RNA_def_property(srna, "limit_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_limitmax_get", "rna_ConstraintActuator_limitmax_set", NULL);
 	RNA_def_property_ui_range(prop, -2000.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Min", "");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "limit_loc_min_z", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "minloc[2]");
-	RNA_def_property_ui_range(prop, -2000.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Min", "");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "limit_loc_max_x", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "maxloc[0]");
-	RNA_def_property_ui_range(prop, -2000.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Min", "");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "limit_loc_max_y", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "maxloc[1]");
-	RNA_def_property_ui_range(prop, -2000.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Min", "");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "limit_loc_max_z", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "maxloc[2]");
-	RNA_def_property_ui_range(prop, -2000.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Min", "");
+	RNA_def_property_ui_text(prop, "Max", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "damping", PROP_INT, PROP_PERCENTAGE);
@@ -878,39 +1044,15 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* ACT_CONST_TYPE_DIST */
-	prop= RNA_def_property(srna, "range_x", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "maxloc[0]");
-	RNA_def_property_ui_range(prop, -2000.f, 2000.f, 1, 2);
+	prop= RNA_def_property(srna, "range", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_range_get", "rna_ConstraintActuator_range_set", NULL);
+	RNA_def_property_ui_range(prop, 0.f, 2000.f, 1, 2);
 	RNA_def_property_ui_text(prop, "Range", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "range_y", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "maxloc[1]");
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_distance_get", "rna_ConstraintActuator_distance_set", NULL);
 	RNA_def_property_ui_range(prop, -2000.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Range", "");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "range_z", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "maxloc[2]");
-	RNA_def_property_ui_range(prop, -2000.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Range", "");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "distance_x", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "minloc[0]");
-	RNA_def_property_ui_range(prop, 0.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Distance", "Set the maximum length of ray");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "distance_y", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "minloc[1]");
-	RNA_def_property_ui_range(prop, 0.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Distance", "Set the maximum length of ray");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "distance_z", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "minloc[2]");
-	RNA_def_property_ui_range(prop, 0.f, 2000.f, 1, 2);
 	RNA_def_property_ui_text(prop, "Distance", "Set the maximum length of ray");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -959,46 +1101,22 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* ACT_CONST_TYPE_FH */
+	prop= RNA_def_property(srna, "fh_height", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_fhheight_get", "rna_ConstraintActuator_fhheight_set", NULL);
+	RNA_def_property_ui_range(prop, 0.01, 2000.0, 0.1, 0.01);
+	RNA_def_property_ui_text(prop, "Distance", "Height of the Fh area");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "spring", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_spring_get", "rna_ConstraintActuator_spring_set", NULL);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 0.01);
+	RNA_def_property_ui_text(prop, "Fh", "Spring force within the Fh area");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	prop= RNA_def_property(srna, "fh_damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxrot[0]");
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 1);
 	RNA_def_property_ui_text(prop, "Damping", "Damping factor of the Fh spring force");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "fh_height_x", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "minloc[0]");
-	RNA_def_property_ui_range(prop, 0.01, 2000.0, 0.1, 0.01);
-	RNA_def_property_ui_text(prop, "Distance", "Height of the Fh area");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "fh_height_y", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "minloc[1]");
-	RNA_def_property_ui_range(prop, 0.01, 2000.0, 0.1, 0.01);
-	RNA_def_property_ui_text(prop, "Distance", "Height of the Fh area");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "fh_height_z", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "minloc[2]");
-	RNA_def_property_ui_range(prop, 0.01, 2000.0, 0.1, 0.01);
-	RNA_def_property_ui_text(prop, "Distance", "Height of the Fh area");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "spring_x", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "maxloc[0]");
-	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 0.01);
-	RNA_def_property_ui_text(prop, "Fh", "Spring force within the Fh area");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "spring_y", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "maxloc[1]");
-	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 0.01);
-	RNA_def_property_ui_text(prop, "Fh", "Spring force within the Fh area");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "spring_z", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "maxloc[2]");
-	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 0.01);
-	RNA_def_property_ui_text(prop, "Fh", "Spring force within the Fh area");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* booleans */
@@ -1037,8 +1155,6 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_CONST_NORMAL);
 	RNA_def_property_ui_text(prop, "N", "Add a horizontal spring force on slopes");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	//XXX to replace all maxloc and minloc by a single one with get/set funcs
 }
 
 static void rna_def_edit_object_actuator(BlenderRNA *brna)

@@ -3225,21 +3225,21 @@ static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_collision(uiLayout *layout, PointerRNA *ptr)
 {
-	uiItemL(layout, "Not ported back yet", 0);
-	//XXXSENSOR
-	/* // need to solve problems in rna_sensor.c
-	uiItemR(layout, ptr, "pulse", 0, NULL, 0);
-	uiItemR(layout, ptr, "collision_type", 0, NULL, 0);
+	uiLayout *row, *split;
+
+	split = uiLayoutSplit(layout, 0.3, 0);
+	row = uiLayoutRow(split, 1);
+	uiItemR(row, ptr, "pulse", UI_ITEM_R_TOGGLE, NULL, 0);
+	uiItemR(row, ptr, "collision_type", UI_ITEM_R_TOGGLE, NULL, 0);
 
 	switch (RNA_enum_get(ptr, "collision_type")) {
 		case SENS_COLLISION_PROPERTY:
-			uiItemR(layout, ptr, "property", 0, NULL, 0);
+			uiItemR(split, ptr, "property", 0, NULL, 0);
 			break;
 		case SENS_COLLISION_MATERIAL:
-			uiItemR(layout, ptr, "material", 0, NULL, 0);
+			uiItemR(split, ptr, "material", 0, NULL, 0);
 			break;
 	}
-	*/
 }
 
 static void draw_sensor_delay(uiLayout *layout, PointerRNA *ptr)
@@ -3296,18 +3296,23 @@ static void draw_sensor_joystick(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row;
-	
+	uiLayout *row, *col;
+
 	row = uiLayoutRow(layout, 0);
 	uiItemL(row, "Key:", 0);
-	uiItemR(row, ptr, "key", UI_ITEM_R_EVENT, "", 0);
-	uiItemR(layout, ptr, "all_keys", 0, NULL, 0);
+	col = uiLayoutColumn(row, 0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "all_keys")==0);
+	uiItemR(col, ptr, "key", UI_ITEM_R_EVENT, "", 0);
+	col = uiLayoutColumn(row, 0);
+	uiItemR(col, ptr, "all_keys", UI_ITEM_R_TOGGLE, NULL, 0);
 	
-	row = uiLayoutRow(layout, 0);
+	col = uiLayoutColumn(layout, 0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "all_keys")==0);
+	row = uiLayoutRow(col, 0);
 	uiItemL(row, "First Modifier:", 0);
 	uiItemR(row, ptr, "modifier_key", UI_ITEM_R_EVENT, "", 0);
 	
-	row = uiLayoutRow(layout, 0);
+	row = uiLayoutRow(col, 0);
 	uiItemL(row, "Second Modifier:", 0);
 	uiItemR(row, ptr, "second_modifier_key", UI_ITEM_R_EVENT, "", 0);
 	
@@ -3378,20 +3383,22 @@ static void draw_sensor_random(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_ray(uiLayout *layout, PointerRNA *ptr)
 {
-	uiItemL(layout, "Not ported back yet", 0);
-	/*
-	uiItemR(layout, ptr, "ray_type", 0, NULL, 0);
+	uiLayout *split, *row;
+
+	split= uiLayoutSplit(layout, 0.3, 0);
+	uiItemR(split, ptr, "ray_type", UI_ITEM_R_TOGGLE, NULL, 0);
 	switch (RNA_enum_get(ptr, "ray_type")) {
 		case SENS_RAY_PROPERTY:
-			uiItemR(layout, ptr, "property", 0, NULL, 0); break;
+			uiItemR(split, ptr, "property", 0, NULL, 0); break;
 		case SENS_RAY_MATERIAL:
-			uiItemR(layout, ptr, "material", 0, NULL, 0); break;
+			uiItemR(split, ptr, "material", 0, NULL, 0); break;
 	}
-	uiItemR(layout, ptr, "x_ray_mode", 0, NULL, 0);
-	uiItemR(layout, ptr, "range", 0, NULL, 0);
-	uiItemR(layout, ptr, "axis", 0, NULL, 0);
-	*/
-	//XXXSENSOR - same problem as collision. enums badly used by UI code
+
+	split= uiLayoutSplit(layout, 0.3, 0);
+	uiItemR(split, ptr, "x_ray_mode", UI_ITEM_R_TOGGLE, NULL, 0);
+	row= uiLayoutRow(split, 0);
+	uiItemR(row, ptr, "range", 0, NULL, 0);
+	uiItemR(row, ptr, "axis", 0, NULL, 0);
 }
 
 static void draw_sensor_touch(uiLayout *layout, PointerRNA *ptr)
@@ -3636,25 +3643,10 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 		case ACT_CONST_TYPE_LOC:
 			uiItemR(layout, ptr, "limit", 0, NULL, 0);
 
-			switch(RNA_enum_get(ptr, "limit")){
-				case ACT_CONST_LOCX:
-					row = uiLayoutRow(layout, 1);
-					uiItemR(row, ptr, "limit_loc_min_x", 0, NULL, 0);
-					uiItemR(row, ptr, "limit_loc_max_x", 0, NULL, 0);
-					break;
+			row = uiLayoutRow(layout, 1);
+			uiItemR(row, ptr, "limit_min", 0, NULL, 0);
+			uiItemR(row, ptr, "limit_max", 0, NULL, 0);
 
-				case ACT_CONST_LOCY:
-					row = uiLayoutRow(layout, 1);
-					uiItemR(row, ptr, "limit_loc_min_y", 0, NULL, 0);
-					uiItemR(row, ptr, "limit_loc_max_y", 0, NULL, 0);
-					break;
-
-				case ACT_CONST_LOCZ:
-					row = uiLayoutRow(layout, 1);
-					uiItemR(row, ptr, "limit_loc_min_z", 0, NULL, 0);
-					uiItemR(row, ptr, "limit_loc_max_z", 0, NULL, 0);
-					break;
-			}
 			uiItemR(layout, ptr, "damping", UI_ITEM_R_SLIDER, NULL, 0);
 			break;
 
@@ -3663,34 +3655,12 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 			if(RNA_enum_get(ptr, "direction")!=0)
 				uiItemR(layout, ptr, "force_distance", 0, NULL, 0);
 
-			switch(RNA_enum_get(ptr, "direction")){
-				case ACT_CONST_DIRPX:
-				case ACT_CONST_DIRNX:
-					row = uiLayoutRow(layout, 0);
-					uiItemR(row, ptr, "range_x", 0, NULL, 0);
-					subrow = uiLayoutRow(row, 0);
-					uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "force_distance")==1);
-					uiItemR(subrow, ptr, "distance_x", 0, NULL, 0);
-					break;
+			row = uiLayoutRow(layout, 0);
+			uiItemR(row, ptr, "range", 0, NULL, 0);
+			subrow = uiLayoutRow(row, 0);
+			uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "force_distance")==1);
+			uiItemR(subrow, ptr, "distance", 0, NULL, 0);
 
-				case ACT_CONST_DIRPY:
-				case ACT_CONST_DIRNY:
-					row = uiLayoutRow(layout, 0);
-					uiItemR(row, ptr, "range_y", 0, NULL, 0);
-					subrow = uiLayoutRow(row, 0);
-					uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "force_distance")==1);
-					uiItemR(subrow, ptr, "distance_y", 0, NULL, 0);
-					break;
-
-				case ACT_CONST_DIRPZ:
-				case ACT_CONST_DIRNZ:
-					row = uiLayoutRow(layout, 0);
-					uiItemR(row, ptr, "range_z", 0, NULL, 0);
-					subrow = uiLayoutRow(row, 0);
-					uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "force_distance")==1);
-					uiItemR(subrow, ptr, "distance_z", 0, NULL, 0);
-					break;
-			}
 			uiItemR(layout, ptr, "damping", UI_ITEM_R_SLIDER , NULL, 0);
 
 			split = uiLayoutSplit(layout, 0.15, 0);
@@ -3727,41 +3697,15 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 			split=uiLayoutSplit(layout, 0.75, 0);
 			row= uiLayoutRow(split, 0);
 			uiItemR(row, ptr, "fh_damping", UI_ITEM_R_SLIDER , NULL, 0);
-			switch(RNA_enum_get(ptr, "direction_axis")){
-				case ACT_CONST_DIRPX:
-				case ACT_CONST_DIRNX:
-					uiItemR(row, ptr, "fh_height_x", 0, NULL, 0);
-					uiItemR(split, ptr, "fh_paralel_axis", UI_ITEM_R_TOGGLE , NULL, 0);
 
-					row = uiLayoutRow(layout, 0);
-					uiItemR(row, ptr, "direction_axis", 0, NULL, 0);
-					split = uiLayoutSplit(row, 0.9, 0);
-					uiItemR(split, ptr, "spring_x", 0, NULL, 0);
-					uiItemR(split, ptr, "fh_normal", UI_ITEM_R_TOGGLE , NULL, 0);
-					break;
+			uiItemR(row, ptr, "fh_height", 0, NULL, 0);
+			uiItemR(split, ptr, "fh_paralel_axis", UI_ITEM_R_TOGGLE , NULL, 0);
 
-				case ACT_CONST_DIRPY:
-				case ACT_CONST_DIRNY:
-					uiItemR(row, ptr, "fh_height_y", 0, NULL, 0);
-					uiItemR(split, ptr, "fh_paralel_axis", UI_ITEM_R_TOGGLE , NULL, 0);
-
-					row = uiLayoutRow(layout, 0);
-					uiItemR(row, ptr, "direction_axis", 0, NULL, 0);
-					split = uiLayoutSplit(row, 0.9, 0);
-					uiItemR(split, ptr, "spring_y", 0, NULL, 0);
-					uiItemR(split, ptr, "fh_normal", UI_ITEM_R_TOGGLE , NULL, 0);
-
-				default: //ACT_CONST_DIRPZ|ACT_CONST_DIRPZ|ACT_CONST_NONE
-					uiItemR(row, ptr, "fh_height_z", 0, NULL, 0);
-					uiItemR(split, ptr, "fh_paralel_axis", UI_ITEM_R_TOGGLE , NULL, 0);
-
-					row = uiLayoutRow(layout, 0);
-					uiItemR(row, ptr, "direction_axis", 0, NULL, 0);
-					split = uiLayoutSplit(row, 0.9, 0);
-					uiItemR(split, ptr, "spring_z", 0, NULL, 0);
-					uiItemR(split, ptr, "fh_normal", UI_ITEM_R_TOGGLE , NULL, 0);
-					break;
-			}
+			row = uiLayoutRow(layout, 0);
+			uiItemR(row, ptr, "direction_axis", 0, NULL, 0);
+			split = uiLayoutSplit(row, 0.9, 0);
+			uiItemR(split, ptr, "spring", 0, NULL, 0);
+			uiItemR(split, ptr, "fh_normal", UI_ITEM_R_TOGGLE , NULL, 0);
 
 			split = uiLayoutSplit(layout, 0.15, 0);
 			uiItemR(split, ptr, "detect_material", UI_ITEM_R_TOGGLE, NULL, 0);
@@ -3778,8 +3722,6 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(row, ptr, "damping_rotation", UI_ITEM_R_SLIDER, NULL, 0);
 			break;
 	}
-	//XXXACTUATOR to do: to replace all maxloc and minloc by a single one with get/set funcs
-	//i.e. remove the switch direction, mode and axis_direction
 }
 
 static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
@@ -3859,16 +3801,17 @@ static void draw_actuator_game(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_ipo(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row, *col;
+	uiLayout *row, *subrow, *col;
 
 	row= uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "play_type", 0, NULL, 0);
-	uiItemR(row, ptr, "force", 0, NULL, 0);
-	uiItemR(row, ptr, "add", 0, NULL, 0);
+	subrow= uiLayoutRow(row, 1);
+	uiItemR(subrow, ptr, "force", UI_ITEM_R_TOGGLE, NULL, 0);
+	uiItemR(subrow, ptr, "add", UI_ITEM_R_TOGGLE, NULL, 0);
 
-	col = uiLayoutColumn(row, 0);
-	uiLayoutSetActive(col, RNA_boolean_get(ptr, "add"));
-	uiItemR(col, ptr, "local", 0, NULL, 0);
+	col = uiLayoutColumn(subrow, 0);
+	uiLayoutSetActive(col, (RNA_boolean_get(ptr, "add") || RNA_boolean_get(ptr, "force")));
+	uiItemR(col, ptr, "local", UI_ITEM_R_TOGGLE, NULL, 0);
 
 	row= uiLayoutRow(layout, 0);
 	if((RNA_enum_get(ptr, "play_type") == ACT_IPO_FROM_PROP))
