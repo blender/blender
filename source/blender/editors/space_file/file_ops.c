@@ -816,26 +816,15 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 
 int file_directory_exec(bContext *C, wmOperator *unused)
 {
-	char tmpstr[FILE_MAX];
-
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
 	if(sfile->params) {
 		if ( sfile->params->dir[0] == '~' ) {
-			if (sfile->params->dir[1] == '\0') {
-				BLI_strncpy(sfile->params->dir, BLI_gethome(), sizeof(sfile->params->dir) );
-			} else {
-				/* replace ~ with home */
-				char homestr[FILE_MAX];
-				char *d = &sfile->params->dir[1];
-
-				while ( (*d == '\\') || (*d == '/') )
-					d++;
-				BLI_strncpy(homestr,  BLI_gethome(), FILE_MAX);
-				BLI_join_dirfile(tmpstr, homestr, d);
-				BLI_strncpy(sfile->params->dir, tmpstr, sizeof(sfile->params->dir));
-			}
+			char tmpstr[sizeof(sfile->params->dir)-1];
+			strncpy(tmpstr, sfile->params->dir+1, sizeof(tmpstr));
+			BLI_join_dirfile(sfile->params->dir, BLI_gethome(), tmpstr);
 		}
+
 #ifdef WIN32
 		if (sfile->params->dir[0] == '\0')
 			get_default_root(sfile->params->dir);

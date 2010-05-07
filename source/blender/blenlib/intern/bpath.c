@@ -622,7 +622,7 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 	
 	while ((de = readdir(dir)) != NULL) {
 		
-		if (strncmp(".", de->d_name, 2)==0 || strncmp("..", de->d_name, 3)==0)
+		if (strcmp(".", de->d_name)==0 || strcmp("..", de->d_name)==0)
 			continue;
 		
 		BLI_join_dirfile(path, dirname, de->d_name);
