@@ -1015,12 +1015,6 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 			
 		}
 		delete file;
-		if(ibuf) {
-			if(ibuf->rect_float) {
-				MEM_freeN(ibuf->rect_float);
-				ibuf->rect_float= NULL;
-			}
-		}
 		return(ibuf);
 	}
 	catch (const std::exception &exc)
