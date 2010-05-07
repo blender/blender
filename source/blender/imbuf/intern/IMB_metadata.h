@@ -1,5 +1,5 @@
 /**
- * $Id: IMB_metadata.h 28607 2010-05-06 07:10:56Z campbellbarton $ 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

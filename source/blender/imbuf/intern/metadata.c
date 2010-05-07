@@ -1,5 +1,5 @@
 /**
- * $Id: metadata.c 28209 2010-04-15 15:49:48Z blendix $ 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
