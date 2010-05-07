@@ -32,6 +32,8 @@
 #include "DNA_object_types.h"
 #include "DNA_sensor_types.h"
 
+#include "WM_types.h"
+
 EnumPropertyItem sensor_type_items[] ={
 	{SENS_ACTUATOR, "ACTUATOR", 0, "Actuator", ""},
 	{SENS_ALWAYS, "ALWAYS", 0, "Always", ""},
@@ -149,6 +151,33 @@ EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 	*free= 1;
 	
 	return item;
+}
+
+static void rna_Sensor_keyboard_key_set(struct PointerRNA *ptr, int value)
+{
+	bSensor *sens= (bSensor *)ptr->data;
+	bKeyboardSensor *ks = sens->data;
+	
+	if (ISKEYBOARD(value) && !ISKEYMODIFIER(value))
+		ks->key = value;
+}
+
+static void rna_Sensor_keyboard_modifier_set(struct PointerRNA *ptr, int value)
+{
+	bSensor *sens= (bSensor *)ptr->data;
+	bKeyboardSensor *ks = sens->data;
+	
+	if (ISKEYMODIFIER(value))
+		ks->qual = value;
+}
+		
+static void rna_Sensor_keyboard_modifier2_set(struct PointerRNA *ptr, int value)
+{
+	bSensor *sens= (bSensor *)ptr->data;
+	bKeyboardSensor *ks = sens->data;
+	
+	if (ISKEYMODIFIER(value))
+		ks->qual2 = value;
 }
 
 #else
@@ -284,26 +313,22 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Keyboard Sensor", "Sensor to detect keyboard events");
 	RNA_def_struct_sdna_from(srna, "bKeyboardSensor", "data");
 
-	/*
-	prop= RNA_def_property(srna, "key", PROP_INT, PROP_NONE);//XXX need to use another input template
-	//RNA_def_property_clear_flag(prop, PROP_EDITABLE); // need better range or enum check
-	RNA_def_property_ui_text(prop, "Key", "Input key code");
-	RNA_def_property_range(prop, 0, 255);
-	*/
-	
 	prop= RNA_def_property(srna, "key", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "key");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_keyboard_key_set", NULL);
 	RNA_def_property_ui_text(prop, "Key",  "");
 	
 	prop= RNA_def_property(srna, "modifier_key", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "qual");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_keyboard_modifier_set", NULL);
 	RNA_def_property_ui_text(prop, "Modifier Key", "Modifier key code");
 	
 	prop= RNA_def_property(srna, "second_modifier_key", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "qual2");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_keyboard_modifier2_set", NULL);
 	RNA_def_property_ui_text(prop, "Second Modifier Key", "Modifier key code");
 
 	prop= RNA_def_property(srna, "target", PROP_STRING, PROP_NONE);
