@@ -609,6 +609,7 @@ void CONSTRAINT_OT_limitdistance_reset (wmOperatorType *ot)
 }
 
 /* ------------- Child-Of Constraint ------------------ */
+
 /* ChildOf Constraint - set inverse callback */
 static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 {

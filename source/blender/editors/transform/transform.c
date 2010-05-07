@@ -210,7 +210,8 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 			//vec[0] = vec[0]/((t->scene->r.frs_sec / t->scene->r.frs_sec_base));
 
 			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
-		} else {
+		} 
+		else {
 			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
 		}
 
@@ -5308,19 +5309,19 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 		const short doTime= 0; //XXX doesn't work - getAnimEdit_DrawTime(t);
 		const double secf= FPS;
 		double val;
-
+		
 		/* convert frame to nla-action time (if needed) */
 		if (adt)
 			val= BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
 		else
 			val= *(td->val);
-
+		
 		/* do the snapping to nearest frame/second */
 		if (doTime)
 			val= (float)( floor((val/secf) + 0.5f) * secf );
 		else
 			val= (float)( floor(val+0.5f) );
-
+		
 		/* convert frame out of nla-action time */
 		if (adt)
 			*(td->val)= BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
@@ -5330,28 +5331,31 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 	/* snap key to nearest marker? */
 	else if (autosnap == SACTSNAP_MARKER) {
 		float val;
-
+		
 		/* convert frame to nla-action time (if needed) */
 		if (adt)
 			val= BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
 		else
 			val= *(td->val);
-
+		
 		/* snap to nearest marker */
 		// TODO: need some more careful checks for where data comes from
 		val= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, val);
-
+		
 		/* convert frame out of nla-action time */
 		if (adt)
 			*(td->val)= BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
 		else
 			*(td->val)= val;
 	}
-
+	
+	/* if the handles are to be moved too (as side-effect of keyframes moving, to keep the general effect) 
+	 * offset them by the same amount so that the general angles are maintained (i.e. won't change while 
+	 * handles are free-to-roam and keyframes are snap-locked)
+	 */
 	if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
 		td2d->h1[0] = td2d->ih1[0] + *td->val - td->ival;
 	}
-
 	if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
 		td2d->h2[0] = td2d->ih2[0] + *td->val - td->ival;
 	}

@@ -3295,12 +3295,16 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 	if (td->flag & TD_MOVEHANDLE1) {
 		td2d->h1 = bezt->vec[0];
 		VECCOPY2D(td2d->ih1, td2d->h1);
-	} else td2d->h1 = NULL;
+	} 
+	else 	
+		td2d->h1 = NULL;
 
 	if (td->flag & TD_MOVEHANDLE2) {
 		td2d->h2 = bezt->vec[2];
 		VECCOPY2D(td2d->ih2, td2d->h2);
-	} else td2d->h2 = NULL;
+	} 
+	else 
+		td2d->h2 = NULL;
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
