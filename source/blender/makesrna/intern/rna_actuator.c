@@ -131,6 +131,27 @@ static void rna_ObjectActuator_integralcoefficient_set(struct PointerRNA *ptr, f
 	oa->forcerot[0] = 60.0f*oa->forcerot[1];
 }
 
+static void rna_StateActuator_state_set(PointerRNA *ptr, const int *values)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bStateActuator *sa = act->data;
+
+	int i, tot= 0;
+
+	/* ensure we always have some state selected */
+	for(i=0; i<OB_MAX_STATES; i++)
+		if(values[i])
+			tot++;
+	
+	if(tot==0)
+		return;
+
+	for(i=0; i<OB_MAX_STATES; i++) {
+		if(values[i]) sa->mask |= (1<<i);
+		else sa->mask &= ~(1<<i);
+	}
+}
+
 static EnumPropertyItem *rna_EditObjectActuator_mode_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	EnumPropertyItem *item= NULL;
@@ -1597,14 +1618,11 @@ static void rna_def_state_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Operation", "Select the bit operation on object state mask");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-/*
-	XXX mask needs a template or to use RNA layer type
-	prop= RNA_def_property(srna, "mask", PROP_BOOLEAN, PROP_LAYER);
-	RNA_def_property_array(prop, 20);
-*/
-	prop= RNA_def_property(srna, "mask", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Mask", "");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	prop= RNA_def_property(srna, "state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "mask", 1);
+	RNA_def_property_array(prop, OB_MAX_STATES);
+	RNA_def_property_ui_text(prop, "State", "");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_StateActuator_state_set");
 }
 
 static void rna_def_armature_actuator(BlenderRNA *brna)

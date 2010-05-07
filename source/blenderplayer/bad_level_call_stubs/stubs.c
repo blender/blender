@@ -188,6 +188,7 @@ int WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2){ret
 
 
 /* rna editors */
+struct FCurve *verify_fcurve (struct bAction *act, const char group[], const char rna_path[], const int array_index, short add){return (struct FCurve *) NULL;}
 int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag){return 0;}
 void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc){}
 struct KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[]){return (struct KeyingSetInfo *) NULL;}
