@@ -3635,7 +3635,7 @@ static void draw_actuator_camera(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row, *subrow, *split;
+	uiLayout *row, *subrow, *col, *subcol, *split;
 
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 	switch (RNA_enum_get(ptr, "mode"))
@@ -3651,15 +3651,22 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 			break;
 
 		case ACT_CONST_TYPE_DIST:
-			uiItemR(layout, ptr, "direction", 0, NULL, 0);//move to the right
-			if(RNA_enum_get(ptr, "direction")!=0)
-				uiItemR(layout, ptr, "force_distance", 0, NULL, 0);
+			split = uiLayoutSplit(layout, 0.8, 0);
+			uiItemR(split, ptr, "direction", 0, NULL, 0);
+			row = uiLayoutRow(split, 1);
+			uiItemR(row, ptr, "local", UI_ITEM_R_TOGGLE, NULL, 0);
+			uiItemR(row, ptr, "normal", UI_ITEM_R_TOGGLE, NULL, 0);
 
 			row = uiLayoutRow(layout, 0);
-			uiItemR(row, ptr, "range", 0, NULL, 0);
-			subrow = uiLayoutRow(row, 0);
-			uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "force_distance")==1);
-			uiItemR(subrow, ptr, "distance", 0, NULL, 0);
+			col = uiLayoutColumn(row, 0);
+			uiItemL(col, "Range:", 0);
+			uiItemR(col, ptr, "range", 0, "", 0);
+
+			col = uiLayoutColumn(row, 1);
+			uiItemR(col, ptr, "force_distance", UI_ITEM_R_TOGGLE, NULL, 0);
+			subcol = uiLayoutColumn(col, 0);
+			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "force_distance")==1);
+			uiItemR(subcol, ptr, "distance", 0, "", 0);
 
 			uiItemR(layout, ptr, "damping", UI_ITEM_R_SLIDER , NULL, 0);
 
@@ -3904,21 +3911,21 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 			row = uiLayoutRow(layout, 0);
 			col = uiLayoutColumn(row, 0);
 			uiItemR(col, ptr, "servo_limit_x", UI_ITEM_R_TOGGLE, NULL, 0);
-			subcol = uiLayoutColumn(col, 0);
+			subcol = uiLayoutColumn(col, 1);
 			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "servo_limit_x")==1);
 			uiItemR(subcol, ptr, "force_max_x", 0, NULL, 0);
 			uiItemR(subcol, ptr, "force_min_x", 0, NULL, 0);
 
 			col = uiLayoutColumn(row, 0);
 			uiItemR(col, ptr, "servo_limit_y", UI_ITEM_R_TOGGLE, NULL, 0);
-			subcol = uiLayoutColumn(col, 0);
+			subcol = uiLayoutColumn(col, 1);
 			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "servo_limit_y")==1);
 			uiItemR(subcol, ptr, "force_max_y", 0, NULL, 0);
 			uiItemR(subcol, ptr, "force_min_y", 0, NULL, 0);
 
 			col = uiLayoutColumn(row, 0);
 			uiItemR(col, ptr, "servo_limit_z", UI_ITEM_R_TOGGLE, NULL, 0);
-			subcol = uiLayoutColumn(col, 0);
+			subcol = uiLayoutColumn(col, 1);
 			uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "servo_limit_z")==1);
 			uiItemR(subcol, ptr, "force_max_z", 0, NULL, 0);
 			uiItemR(subcol, ptr, "force_min_z", 0, NULL, 0);

@@ -546,7 +546,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "damping", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_range(prop, 0, 1000, 1, 1);
-	RNA_def_property_ui_text(prop, "Damping", "Number of frames to reach the target velocity");
+	RNA_def_property_ui_text(prop, "Damping Frames", "Number of frames to reach the target velocity");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "proportional_coefficient", PROP_FLOAT, PROP_NONE);
@@ -1044,7 +1044,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "range", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_ConstraintActuator_range_get", "rna_ConstraintActuator_range_set", NULL);
 	RNA_def_property_ui_range(prop, 0.f, 2000.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Range", "");
+	RNA_def_property_ui_text(prop, "Range", "Set the maximum length of ray");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
@@ -1127,7 +1127,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "L", "Set ray along object's axis or global axis");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "nomal", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_CONST_NORMAL);
 	RNA_def_property_ui_text(prop, "N", "Set object axis along (local axis) or parallel (global axis) to the normal at hit position");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
