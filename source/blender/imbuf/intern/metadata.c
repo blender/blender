@@ -1,5 +1,5 @@
 /**
- * $Id$ 
+ * $Id: metadata.c 28209 2010-04-15 15:49:48Z blendix $ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -36,22 +36,22 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "IMB_imginfo.h"
+#include "IMB_metadata.h"
 
 
 
-void IMB_imginfo_free(struct ImBuf* img)
+void IMB_metadata_free(struct ImBuf* img)
 {
-	ImgInfo *info;
+	ImMetaData *info;
 
 	if (!img)
 		return;
-	if (!img->img_info) {
+	if (!img->metadata) {
 		return;
 	}
-	info = img->img_info;
+	info = img->metadata;
 	while (info) {
-		ImgInfo* next = info->next;
+		ImMetaData* next = info->next;
 		MEM_freeN(info->key);
 		MEM_freeN(info->value);
 		MEM_freeN(info);
@@ -59,17 +59,17 @@ void IMB_imginfo_free(struct ImBuf* img)
 	}
 }
 
-int IMB_imginfo_get_field(struct ImBuf* img, const char* key, char* field, int len)
+int IMB_metadata_get_field(struct ImBuf* img, const char* key, char* field, int len)
 {
-	ImgInfo *info;
+	ImMetaData *info;
 	int retval = 0;
 
 	if (!img)
 		return 0;
-	if (!img->img_info) {
+	if (!img->metadata) {
 		return 0;
 	}
-	info = img->img_info;
+	info = img->metadata;
 	while (info) {
 		if (strcmp(key, info->key) == 0) {
 			BLI_strncpy(field, info->value, len);
@@ -81,25 +81,25 @@ int IMB_imginfo_get_field(struct ImBuf* img, const char* key, char* field, int l
 	return retval;
 }
 
-int IMB_imginfo_add_field(struct ImBuf* img, const char* key, const char* field)
+int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* field)
 {
-	ImgInfo *info;
-	ImgInfo *last;
+	ImMetaData *info;
+	ImMetaData *last;
 
 	if (!img)
 		return 0;
 
-	if (!img->img_info) {
-		img->img_info = MEM_callocN(sizeof(ImgInfo), "ImgInfo");
-		info = img->img_info;
+	if (!img->metadata) {
+		img->metadata = MEM_callocN(sizeof(ImMetaData), "ImMetaData");
+		info = img->metadata;
 	} else {
-		info = img->img_info;
+		info = img->metadata;
 		last = info;
 		while (info) {
 			last = info;
 			info = info->next;
 		}
-		info = MEM_callocN(sizeof(ImgInfo), "ImgInfo");
+		info = MEM_callocN(sizeof(ImMetaData), "ImMetaData");
 		last->next = info;
 	}
 	info->key = BLI_strdup(key);
@@ -107,21 +107,21 @@ int IMB_imginfo_add_field(struct ImBuf* img, const char* key, const char* field)
 	return 1;
 }
 
-int IMB_imginfo_del_field(struct ImBuf *img, const char *key)
+int IMB_metadata_del_field(struct ImBuf *img, const char *key)
 {
-	ImgInfo *p, *p1;
+	ImMetaData *p, *p1;
 
-	if ((!img) || (!img->img_info))
+	if ((!img) || (!img->metadata))
 		return (0);
 
-	p = img->img_info;
+	p = img->metadata;
 	p1 = NULL;
 	while (p) {
 		if (!strcmp (key, p->key)) {
 			if (p1)
 				p1->next = p->next;
 			else
-				img->img_info = p->next;
+				img->metadata = p->next;
 
 			MEM_freeN(p->key);
 			MEM_freeN(p->value);
@@ -134,17 +134,17 @@ int IMB_imginfo_del_field(struct ImBuf *img, const char *key)
 	return (0);
 }
 
-int IMB_imginfo_change_field(struct ImBuf *img, const char *key, const char *field)
+int IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field)
 {
-	ImgInfo *p;
+	ImMetaData *p;
 
 	if (!img)
 		return (0);
 
-	if (!img->img_info)
-		return (IMB_imginfo_add_field (img, key, field));
+	if (!img->metadata)
+		return (IMB_metadata_add_field (img, key, field));
 
-	p = img->img_info;
+	p = img->metadata;
 	while (p) {
 		if (!strcmp (key, p->key)) {
 			MEM_freeN (p->value);
@@ -154,5 +154,6 @@ int IMB_imginfo_change_field(struct ImBuf *img, const char *key, const char *fie
 		p = p->next;
 	}
 
-	return (IMB_imginfo_add_field (img, key, field));
+	return (IMB_metadata_add_field (img, key, field));
 }
+

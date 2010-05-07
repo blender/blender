@@ -72,7 +72,7 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 
-#include "IMB_imbuf.h"	// for quicktime_init
+#include "IMB_imbuf.h"	// for IMB_init
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -217,7 +217,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("      use -E help to list available engines.\n");
 	printf ("\nFormat options:\n");
 	printf ("    -F <format>\tSet the render format, Valid options are...\n");
-	printf ("    \tTGA IRIS HAMX JPEG MOVIE IRIZ RAWTGA\n");
+	printf ("    \tTGA IRIS JPEG MOVIE IRIZ RAWTGA\n");
 	printf ("    \tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
 	printf ("    \tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
@@ -367,8 +367,6 @@ static int playback_mode(int argc, char **argv, void *data)
 {
 	/* not if -b was given first */
 	if (G.background == 0) {
-		/* exception here, see below, it probably needs happens after qt init? */
-		libtiff_init();
 
 // XXX				playanim(argc, argv); /* not the same argc and argv as before */
 		exit(0);
@@ -532,12 +530,10 @@ static int set_image_type(int argc, char **argv, void *data)
 			Scene *scene= CTX_data_scene(C);
 			if      (!strcmp(imtype,"TGA")) scene->r.imtype = R_TARGA;
 			else if (!strcmp(imtype,"IRIS")) scene->r.imtype = R_IRIS;
-			else if (!strcmp(imtype,"HAMX")) scene->r.imtype = R_HAMX;
 #ifdef WITH_DDS
 			else if (!strcmp(imtype,"DDS")) scene->r.imtype = R_DDS;
 #endif
 			else if (!strcmp(imtype,"JPEG")) scene->r.imtype = R_JPEG90;
-			else if (!strcmp(imtype,"MOVIE")) scene->r.imtype = R_MOVIE;
 			else if (!strcmp(imtype,"IRIZ")) scene->r.imtype = R_IRIZ;
 			else if (!strcmp(imtype,"RAWTGA")) scene->r.imtype = R_RAWTGA;
 			else if (!strcmp(imtype,"AVIRAW")) scene->r.imtype = R_AVIRAW;
@@ -972,6 +968,8 @@ int main(int argc, char **argv)
 	
 	initglobals();	/* blender.c */
 
+	IMB_init();
+
 	syshandle = SYS_GetSystem();
 	GEN_init_messaging_system();
 
@@ -1041,20 +1039,6 @@ int main(int argc, char **argv)
 	
 	CTX_py_init_set(C, 1);
 	WM_keymap_init(C);
-
-#ifdef WITH_QUICKTIME
-
-	quicktime_init();
-
-#endif /* WITH_QUICKTIME */
-
-	/* dynamically load libtiff, if available */
-	libtiff_init();
-	if (!G.have_libtiff && (G.f & G_DEBUG)) {
-		printf("Unable to load: libtiff.\n");
-		printf("Try setting the BF_TIFF_LIB environment variable if you want this support.\n");
-		printf("Example: setenv BF_TIFF_LIB /usr/lib/libtiff.so\n");
-	}
 
 	/* OK we are ready for it */
 	BLI_argsParse(ba, 4, load_file, C);

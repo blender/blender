@@ -1777,7 +1777,7 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 
 	if(seq->flag & SEQ_MAKE_PREMUL) {
 		if(se->ibuf->depth == 32 && se->ibuf->zbuf == 0) {
-			converttopremul(se->ibuf);
+			IMB_premultiply_alpha(se->ibuf);
 		}
 	}
 

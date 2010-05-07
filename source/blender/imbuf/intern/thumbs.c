@@ -37,7 +37,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_thumbs.h"
-#include "IMB_imginfo.h"
+#include "IMB_metadata.h"
 
 #include "md5.h"
 
@@ -282,11 +282,11 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source)
 			return NULL;
 		}
 		if (size == THB_FAIL) {
-			img = IMB_allocImBuf(0,0,32, IB_rect | IB_imginfo, 0);
+			img = IMB_allocImBuf(0,0,32, IB_rect | IB_metadata, 0);
 			if (!img) return 0;
 		} else {
 			if (THB_SOURCE_IMAGE == source) {
-				img = IMB_loadiffname(path, IB_rect | IB_imginfo);
+				img = IMB_loadiffname(path, IB_rect | IB_metadata);
 				if (img != NULL) {
 					stat(path, &info);
 					sprintf(mtime, "%ld", info.st_mtime);
@@ -295,7 +295,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source)
 				}
 			} else if (THB_SOURCE_MOVIE == source) {
 				struct anim * anim = NULL;
-				anim = IMB_open_anim(path, IB_rect | IB_imginfo);
+				anim = IMB_open_anim(path, IB_rect | IB_metadata);
 				if (anim != NULL) {
 					img = IMB_anim_absolute(anim, 0);
 					if (img == NULL) {
@@ -325,17 +325,17 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source)
 			IMB_scaleImBuf(img, ex, ey);
 		}
 		sprintf(desc, "Thumbnail for %s", uri);
-		IMB_imginfo_change_field(img, "Description", desc);
-		IMB_imginfo_change_field(img, "Software", "Blender");
-		IMB_imginfo_change_field(img, "Thumb::URI", uri);
-		IMB_imginfo_change_field(img, "Thumb::MTime", mtime);
+		IMB_metadata_change_field(img, "Description", desc);
+		IMB_metadata_change_field(img, "Software", "Blender");
+		IMB_metadata_change_field(img, "Thumb::URI", uri);
+		IMB_metadata_change_field(img, "Thumb::MTime", mtime);
 		if (THB_SOURCE_IMAGE == source) {
-			IMB_imginfo_change_field(img, "Thumb::Image::Width", cwidth);
-			IMB_imginfo_change_field(img, "Thumb::Image::Height", cheight);
+			IMB_metadata_change_field(img, "Thumb::Image::Width", cwidth);
+			IMB_metadata_change_field(img, "Thumb::Image::Height", cheight);
 		}
 		img->ftype = PNG;
 		img->depth = 32;		
-		if (IMB_saveiff(img, temp, IB_rect | IB_imginfo)) {
+		if (IMB_saveiff(img, temp, IB_rect | IB_metadata)) {
 #ifndef WIN32
 			chmod(temp, S_IRUSR | S_IWUSR);
 #endif
@@ -358,7 +358,7 @@ ImBuf* IMB_thumb_read(const char* path, ThumbSize size)
 		return NULL;
 	}
 	if (thumbpath_from_uri(uri, thumb, size)) {		
-		img = IMB_loadiffname(thumb, IB_rect | IB_imginfo);
+		img = IMB_loadiffname(thumb, IB_rect | IB_metadata);
 	}
 
 	return img;
@@ -409,10 +409,10 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 		if (strncmp(path, thumb, strlen(thumb)) == 0) {
 			img = IMB_loadiffname(path, IB_rect);
 		} else {
-			img = IMB_loadiffname(thumb, IB_rect | IB_imginfo);
+			img = IMB_loadiffname(thumb, IB_rect | IB_metadata);
 			if (img) {
 				char mtime[40];
-				if (!IMB_imginfo_get_field(img, "Thumb::MTime", mtime, 40)) {
+				if (!IMB_metadata_get_field(img, "Thumb::MTime", mtime, 40)) {
 					/* illegal thumb, forget it! */
 					IMB_freeImBuf(img);
 					img = 0;

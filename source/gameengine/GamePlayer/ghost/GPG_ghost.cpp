@@ -376,11 +376,7 @@ int main(int argc, char** argv)
 
 	GEN_init_messaging_system();
 
-#ifdef WITH_QUICKTIME
-	quicktime_init();
-#endif
-
-	libtiff_init();
+	IMB_init();
  
 	// Parse command line options
 #ifndef NDEBUG

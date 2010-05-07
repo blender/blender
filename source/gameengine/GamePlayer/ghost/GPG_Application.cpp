@@ -794,10 +794,7 @@ void GPG_Application::exitEngine()
 		m_canvas = 0;
 	}
 
-	libtiff_exit();
-#ifdef WITH_QUICKTIME
-	quicktime_exit();
-#endif
+	IMB_exit();
 	GPU_extensions_exit();
 
 	m_exitRequested = 0;

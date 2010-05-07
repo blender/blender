@@ -92,58 +92,6 @@
 
 /* ******** IMAGE PROCESSING ************* */
 
-/* used by sequencer and image premul option - IMA_DO_PREMUL */
-void converttopremul(struct ImBuf *ibuf)
-{
-	int x, y;
-	
-	if(ibuf==0) return;
-	if (ibuf->rect) {
-		int val;
-		char *cp;
-		if(ibuf->depth==24) {	/* put alpha at 255 */
-			cp= (char *)(ibuf->rect);
-			for(y=0; y<ibuf->y; y++) {
-				for(x=0; x<ibuf->x; x++, cp+=4) {
-					cp[3]= 255;
-				}
-			}
-		} else {
-			cp= (char *)(ibuf->rect);
-			for(y=0; y<ibuf->y; y++) {
-				for(x=0; x<ibuf->x; x++, cp+=4) {
-					val= cp[3];
-					cp[0]= (cp[0]*val)>>8;
-					cp[1]= (cp[1]*val)>>8;
-					cp[2]= (cp[2]*val)>>8;
-				}
-			}
-		}
-	}
-	if (ibuf->rect_float) {
-		float val;
-		float *cp;
-		if(ibuf->depth==24) {	/* put alpha at 1.0 */
-			cp= ibuf->rect_float;;
-			for(y=0; y<ibuf->y; y++) {
-				for(x=0; x<ibuf->x; x++, cp+=4) {
-					cp[3]= 1.0;
-				}
-			}
-		} else {
-			cp= ibuf->rect_float;
-			for(y=0; y<ibuf->y; y++) {
-				for(x=0; x<ibuf->x; x++, cp+=4) {
-					val= cp[3];
-					cp[0]= cp[0]*val;
-					cp[1]= cp[1]*val;
-					cp[2]= cp[2]*val;
-				}
-			}
-		}
-	}
-}
-
 static void de_interlace_ng(struct ImBuf *ibuf)	/* neogeo fields */
 {
 	struct ImBuf * tbuf1, * tbuf2;
@@ -735,8 +683,6 @@ int BKE_imtype_to_ftype(int imtype)
 		return TGA;
 	else if(imtype==R_RAWTGA)
 		return RAWTGA;
-	else if(imtype==R_HAMX)
-		return AN_hamx;
 #ifdef WITH_OPENJPEG
 	else if(imtype==R_JP2)
 		return JP2;
@@ -773,8 +719,6 @@ int BKE_ftype_to_imtype(int ftype)
 		return R_TARGA;
 	else if(ftype & RAWTGA)
 		return R_RAWTGA;
-	else if(ftype == AN_hamx)
-		return R_HAMX;
 #ifdef WITH_OPENJPEG
 	else if(ftype & JP2)
 		return R_JP2;
@@ -787,7 +731,6 @@ int BKE_ftype_to_imtype(int ftype)
 int BKE_imtype_is_movie(int imtype)
 {
 	switch(imtype) {
-	case R_MOVIE:
 	case R_AVIRAW:
 	case R_AVIJPEG:
 	case R_AVICODEC:
@@ -864,7 +807,7 @@ void BKE_add_image_extension(char *string, int imtype)
 			extension= ".jp2";
 	}
 #endif
-	else { //   R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90, R_QUICKTIME etc
+	else { //   R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90, R_QUICKTIME etc
 		if(!( BLI_testextensie(string, ".jpg") || BLI_testextensie(string, ".jpeg")))
 			extension= ".jpg";
 	}
@@ -1211,15 +1154,15 @@ void BKE_stamp_info(Scene *scene, struct ImBuf *ibuf)
 	/* fill all the data values, no prefix */
 	stampdata(scene, &stamp_data, 0);
 	
-	if (stamp_data.file[0])		IMB_imginfo_change_field (ibuf, "File",		stamp_data.file);
-	if (stamp_data.note[0])		IMB_imginfo_change_field (ibuf, "Note",		stamp_data.note);
-	if (stamp_data.date[0])		IMB_imginfo_change_field (ibuf, "Date",		stamp_data.date);
-	if (stamp_data.marker[0])	IMB_imginfo_change_field (ibuf, "Marker",	stamp_data.marker);
-	if (stamp_data.time[0])		IMB_imginfo_change_field (ibuf, "Time",		stamp_data.time);
-	if (stamp_data.frame[0])	IMB_imginfo_change_field (ibuf, "Frame",	stamp_data.frame);
-	if (stamp_data.camera[0])	IMB_imginfo_change_field (ibuf, "Camera",	stamp_data.camera);
-	if (stamp_data.scene[0])	IMB_imginfo_change_field (ibuf, "Scene",	stamp_data.scene);
-	if (stamp_data.strip[0])	IMB_imginfo_change_field (ibuf, "Strip",	stamp_data.strip);
+	if (stamp_data.file[0])		IMB_metadata_change_field (ibuf, "File",		stamp_data.file);
+	if (stamp_data.note[0])		IMB_metadata_change_field (ibuf, "Note",		stamp_data.note);
+	if (stamp_data.date[0])		IMB_metadata_change_field (ibuf, "Date",		stamp_data.date);
+	if (stamp_data.marker[0])	IMB_metadata_change_field (ibuf, "Marker",	stamp_data.marker);
+	if (stamp_data.time[0])		IMB_metadata_change_field (ibuf, "Time",		stamp_data.time);
+	if (stamp_data.frame[0])	IMB_metadata_change_field (ibuf, "Frame",	stamp_data.frame);
+	if (stamp_data.camera[0])	IMB_metadata_change_field (ibuf, "Camera",	stamp_data.camera);
+	if (stamp_data.scene[0])	IMB_metadata_change_field (ibuf, "Scene",	stamp_data.scene);
+	if (stamp_data.strip[0])	IMB_metadata_change_field (ibuf, "Strip",	stamp_data.strip);
 }
 
 int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimtype, int quality)
@@ -1273,9 +1216,6 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	else if(imtype==R_RAWTGA) {
 		ibuf->ftype= RAWTGA;
 	}
-	else if(imtype==R_HAMX) {
-		ibuf->ftype= AN_hamx;
-	}
 #ifdef WITH_OPENJPEG
 	else if(imtype==R_JP2) {
 		if(quality < 10) quality= 90;
@@ -1299,7 +1239,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	}
 #endif
 	else {
-		/* R_JPEG90, R_MOVIE, etc. default we save jpegs */
+		/* R_JPEG90, etc. default we save jpegs */
 		if(quality < 10) quality= 90;
 		ibuf->ftype= JPG|quality;
 		if(ibuf->depth==32) ibuf->depth= 24;	/* unsupported feature only confuses other s/w */
@@ -1595,6 +1535,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	struct ImBuf *ibuf;
 	unsigned short numlen;
 	char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
+	int flag;
 	
 	/* XXX temp stuff? */
 	if(ima->lastframe != frame)
@@ -1611,8 +1552,12 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	else
 		BLI_path_abs(name, G.sce);
 	
+	flag= IB_rect|IB_multilayer;
+	if(ima->flag & IMA_DO_PREMUL)
+		flag |= IB_premul;
+
 	/* read ibuf */
-	ibuf = IMB_loadiffname(name, IB_rect|IB_multilayer);
+	ibuf = IMB_loadiffname(name, flag);
 	if(G.f & G_DEBUG) printf("loaded %s\n", name);
 	
 	if (ibuf) {
@@ -1632,10 +1577,6 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 		image_initialize_after_load(ima, ibuf);
 		image_assign_ibuf(ima, ibuf, 0, frame);
 #endif
-		
-		if(ima->flag & IMA_DO_PREMUL)
-			converttopremul(ibuf);
-		
 	}
 	else
 		ima->ok= 0;
@@ -1718,7 +1659,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 		else
 			BLI_path_abs(str, G.sce);
 		
-		ima->anim = openanim(str, IB_cmap | IB_rect);
+		ima->anim = openanim(str, IB_rect);
 		
 		/* let's initialize this user */
 		if(ima->anim && iuser && iuser->frames==0)
@@ -1749,21 +1690,25 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 	return ibuf;
 }
 
-/* cfra used for # code, Image can only have this # for all its users */
+/* cfra used for # code, Image can only have this # for all its users
+ * warning, 'iuser' can be NULL */
 static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 {
 	struct ImBuf *ibuf;
 	char str[FILE_MAX];
-	int assign = 0;
+	int assign = 0, flag;
 	
 	/* always ensure clean ima */
 	image_free_buffers(ima);
 	
 	/* is there a PackedFile with this image ? */
 	if (ima->packedfile) {
-		ibuf = IMB_ibImageFromMemory((int *) ima->packedfile->data, ima->packedfile->size, IB_rect|IB_multilayer);
+		ibuf = IMB_ibImageFromMemory((unsigned char*)ima->packedfile->data, ima->packedfile->size, IB_rect|IB_multilayer);
 	} 
 	else {
+		flag= IB_rect|IB_multilayer|IB_metadata;
+		if(ima->flag & IMA_DO_PREMUL)
+			flag |= IB_premul;
 			
 		/* get the right string */
 		BLI_strncpy(str, ima->name, sizeof(str));
@@ -1775,7 +1720,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		BLI_path_frame(str, cfra, 0);
 		
 		/* read ibuf */
-		ibuf = IMB_loadiffname(str, IB_rect|IB_multilayer|IB_imginfo);
+		ibuf = IMB_loadiffname(str, flag);
 	}
 	
 	if (ibuf) {
@@ -1797,9 +1742,6 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 			if ((ima->packedfile == NULL) && (G.fileflags & G_AUTOPACK))
 				ima->packedfile = newPackedFile(NULL, str);
 		}
-		
-		if(ima->flag & IMA_DO_PREMUL)
-			converttopremul(ibuf);
 	}
 	else
 		ima->ok= 0;

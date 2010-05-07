@@ -1,5 +1,5 @@
 /**
- * $Id$ 
+ * $Id: IMB_metadata.h 28607 2010-05-06 07:10:56Z campbellbarton $ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -30,20 +30,16 @@
 #ifndef _IMB_IMGINFO_H
 #define _IMB_IMGINFO_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ImBuf;
 
-typedef struct ImgInfo {
-	struct ImgInfo *next, *prev;
+typedef struct ImMetaData {
+	struct ImMetaData *next, *prev;
 	char* key;
 	char* value;
 	int len;
-} ImgInfo;
+} ImMetaData;
 
-/** The imginfo is a list of key/value pairs (both char*) that can me 
+/** The metadata is a list of key/value pairs (both char*) that can me 
 	saved in the header of several image formats.
 	Apart from some common keys like 
 	'Software' and 'Description' (png standard) we'll use keys within the 
@@ -52,8 +48,8 @@ typedef struct ImgInfo {
 */
 
 
-/* free blender ImgInfo struct */
-void IMB_imginfo_free(struct ImBuf* img);
+/* free blender ImMetaData struct */
+void IMB_metadata_free(struct ImBuf* img);
 
 /** read the field from the image info into the field 
  *  @param img - the ImBuf that contains the image data
@@ -63,23 +59,22 @@ void IMB_imginfo_free(struct ImBuf* img);
  *  @param len - length of value buffer allocated by user.
  *  @return    - 1 (true) if ImageInfo present and value for the key found, 0 (false) otherwise
  */
-int IMB_imginfo_get_field(struct ImBuf* img, const char* key, char* value, int len);
+int IMB_metadata_get_field(struct ImBuf* img, const char* key, char* value, int len);
 
-/** set user data in the ImgInfo struct, which has to be allocated with IMB_imginfo_create
+/** set user data in the ImMetaData struct, which has to be allocated with IMB_metadata_create
  *  before calling this function.
  *  @param img - the ImBuf that contains the image data
  *  @param key - the key of the field
  *  @param value - the data to be written to the field. zero terminated string
  *  @return    - 1 (true) if ImageInfo present, 0 (false) otherwise
  */
-int IMB_imginfo_add_field(struct ImBuf* img, const char* key, const char* field);
+int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* field);
 
-/** delete the key/field par in the ImgInfo struct.
+/** delete the key/field par in the ImMetaData struct.
  * @param img - the ImBuf that contains the image data
  * @param key - the key of the field
  * @return - 1 (true) if delete the key/field, 0 (false) otherwise
  */
-int IMB_imginfo_del_field(struct ImBuf *img, const char *key);
+int IMB_metadata_del_field(struct ImBuf *img, const char *key);
 
 #endif /* _IMB_IMGINFO_H */
-

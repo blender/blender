@@ -32,11 +32,10 @@
 #include <string.h>
 #include "BLI_blenlib.h"
 #include "imbuf.h"
-#include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
-#include "IMB_iris.h"
+#include "IMB_filetype.h"
 
 typedef struct {
 	unsigned short	imagic;		/* stuff saved on disk . . */
@@ -224,6 +223,16 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
 	}
 }
 
+/* from misc_util: flip the bytes from x  */
+#define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1])
+
+/* this one is only def-ed once, strangely... */
+#define GSS(x) (((uchar *)(x))[1] << 8 | ((uchar *)(x))[0])
+
+int imb_is_a_iris(unsigned char *mem)
+{
+	return ((GS(mem) == IMAGIC) || (GSS(mem) == IMAGIC));
+}
 
 /*
  *	longimagedata - 
@@ -232,7 +241,7 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
  *
  */
 
-struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
+struct ImBuf *imb_loadiris(unsigned char *mem, int size, int flags)
 {
 	unsigned int *base, *lptr = NULL;
 	float *fbase, *fptr = NULL;
@@ -245,7 +254,9 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 	int xsize, ysize, zsize;
 	int bpp, rle, cur, badorder;
 	ImBuf * ibuf;
-	
+
+	if(!imb_is_a_iris(mem)) return NULL;
+
 	/*printf("new iris\n");*/
 	
 	file_data = mem;
@@ -277,8 +288,8 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 	if (rle) {
 		
 		tablen = ysize*zsize*sizeof(int);
-		starttab = (unsigned int *)malloc(tablen);
-		lengthtab = (unsigned int *)malloc(tablen);
+		starttab = (unsigned int *)MEM_mallocN(tablen, "iris starttab");
+		lengthtab = (unsigned int *)MEM_mallocN(tablen, "iris endtab");
 		file_offset = 512;
 		
 		readtab(inf,starttab,tablen);
@@ -379,8 +390,8 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 			}
 		}
 		
-		free(starttab);
-		free(lengthtab);	
+		MEM_freeN(starttab);
+		MEM_freeN(lengthtab);	
 
 	} else {
 		if (bpp == 1) {
@@ -495,7 +506,6 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 
 	ibuf->ftype = IMAGIC;
 	ibuf->profile = IB_PROFILE_SRGB;
-	if (flags & IB_ttob) IMB_flipy(ibuf);
 	
 	test_endian_zbuf(ibuf);
 	
@@ -661,12 +671,12 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, char
 
 	tablen = ysize*zsize*sizeof(int);
 
-	image = (IMAGE *)malloc(sizeof(IMAGE));
-	starttab = (unsigned int *)malloc(tablen);
-	lengthtab = (unsigned int *)malloc(tablen);
+	image = (IMAGE *)MEM_mallocN(sizeof(IMAGE), "iris image");
+	starttab = (unsigned int *)MEM_mallocN(tablen, "iris starttab");
+	lengthtab = (unsigned int *)MEM_mallocN(tablen, "iris lengthtab");
 	rlebuflen = 1.05*xsize+10;
-	rlebuf = (unsigned char *)malloc(rlebuflen);
-	lumbuf = (unsigned int *)malloc(xsize*sizeof(int));
+	rlebuf = (unsigned char *)MEM_mallocN(rlebuflen, "iris rlebuf");
+	lumbuf = (unsigned int *)MEM_mallocN(xsize*sizeof(int), "iris lumbuf");
 
 	memset(image, 0, sizeof(IMAGE));
 	image->imagic = IMAGIC;
@@ -715,11 +725,11 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, char
 	fseek(outf,512,SEEK_SET);
 	goodwrite *= writetab(outf,starttab,tablen);
 	goodwrite *= writetab(outf,lengthtab,tablen);
-	free(image);
-	free(starttab);
-	free(lengthtab);
-	free(rlebuf);
-	free(lumbuf);
+	MEM_freeN(image);
+	MEM_freeN(starttab);
+	MEM_freeN(lengthtab);
+	MEM_freeN(rlebuf);
+	MEM_freeN(lumbuf);
 	fclose(outf);
 	if(goodwrite)
 		return 1;
@@ -799,7 +809,7 @@ static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cn
 	return optr - (unsigned char *)rlebuf;
 }
 
-short imb_saveiris(struct ImBuf * ibuf, char *name, int flags)
+int imb_saveiris(struct ImBuf * ibuf, char *name, int flags)
 {
 	short zsize;
 	int ret;

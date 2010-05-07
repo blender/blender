@@ -26,12 +26,11 @@
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
-#include "IMB_jp2.h"
+#include "IMB_filetype.h"
 
 #include "openjpeg.h"
 
@@ -58,7 +57,7 @@ static int checkj2p(unsigned char *mem) /* J2K_CFMT */
 	return memcmp(JP2_HEAD, mem, 12) ? 0 : 1;
 }
 
-int imb_is_a_jp2(void *buf)
+int imb_is_a_jp2(unsigned char *buf)
 {	
 	return checkj2p(buf);
 }
@@ -642,7 +641,7 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-short imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
+int imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
 	
 	int quality = ibuf->ftype & 0xff;
 	

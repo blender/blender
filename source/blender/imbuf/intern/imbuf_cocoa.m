@@ -34,7 +34,6 @@
 #import <Cocoa/Cocoa.h>
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 
 #include "IMB_cocoa.h"
 
@@ -184,6 +183,9 @@ struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 	[pool drain];
 
 	if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
+
+	ibuf->ftype = TIF;
+	ibuf->profile = IB_PROFILE_SRGB;
 
 	/* return successfully */
 	return (ibuf);

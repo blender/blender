@@ -301,12 +301,6 @@ void WM_exit(bContext *C)
 	BPY_end_python();
 #endif
 
-	libtiff_exit();
-	
-#ifdef WITH_QUICKTIME
-	quicktime_exit();
-#endif
-	
 	if (!G.background) {
 // XXX		UI_filelist_free_icons();
 	}

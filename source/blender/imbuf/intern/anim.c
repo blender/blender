@@ -64,7 +64,6 @@
 #include "BKE_global.h"
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 
 #include "AVI_avi.h"
 
@@ -78,9 +77,7 @@
 #include "IMB_imbuf.h"
 
 #include "IMB_allocimbuf.h"
-#include "IMB_bitplanes.h"
 #include "IMB_anim.h"
-#include "IMB_anim5.h"
 
 #ifdef WITH_FFMPEG
 #include <libavformat/avformat.h>
@@ -327,7 +324,6 @@ void IMB_free_anim(struct anim * anim) {
 	}
 
 	IMB_free_anim_ibuf(anim);
-	free_anim_anim5(anim);
 	free_anim_movie(anim);
 	free_anim_avi(anim);
 
@@ -341,7 +337,7 @@ void IMB_free_anim(struct anim * anim) {
 	free_anim_redcode(anim);
 #endif
 
-	free(anim);
+	MEM_freeN(anim);
 }
 
 void IMB_close_anim(struct anim * anim) {
@@ -476,7 +472,7 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 		if (anim->pgf) {
 			lpbi = AVIStreamGetFrame(anim->pgf, position + AVIStreamStart(anim->pavi[anim->firstvideo]));
 			if (lpbi) {
-				ibuf = IMB_ibImageFromMemory((int *) lpbi, 100, IB_rect);
+				ibuf = IMB_ibImageFromMemory((unsigned char *) lpbi, 100, IB_rect);
 //Oh brother...
 			}
 		}
@@ -995,7 +991,6 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 
 	if (anim == NULL) return(0);
 
-	free_anim_anim5(anim);
 	free_anim_movie(anim);
 	free_anim_avi(anim);
 #ifdef WITH_QUICKTIME
@@ -1013,10 +1008,6 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 	anim->curtype = imb_get_anim_type(anim->name);	
 
 	switch (anim->curtype) {
-	case ANIM_ANIM5:
-		if (startanim5(anim)) return (0);
-		ibuf = anim5_fetchibuf(anim);
-		break;
 	case ANIM_SEQUENCE:
 		ibuf = IMB_loadiffname(anim->name, anim->ib_flags);
 		if (ibuf) {
@@ -1094,26 +1085,13 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 	if (position >= anim->duration) return(0);
 
 	switch(anim->curtype) {
-	case ANIM_ANIM5:
-		if (anim->curposition > position) rewindanim5(anim);
-		while (anim->curposition < position) {
-			if (nextanim5(anim)) return (0);
-		}
-		ibuf = anim5_fetchibuf(anim);
-		ibuf->profile = IB_PROFILE_SRGB;
-		break;
 	case ANIM_SEQUENCE:
 		pic = an_stringdec(anim->first, head, tail, &digits);
 		pic += position;
 		an_stringenc(anim->name, head, tail, digits, pic);
-		ibuf = IMB_loadiffname(anim->name, LI_rect);
+		ibuf = IMB_loadiffname(anim->name, IB_rect);
 		if (ibuf) {
 			anim->curposition = position;
-			/* patch... by freeing the cmap you prevent a double apply cmap... */
-			/* probably the IB_CMAP option isn't working proper
-			 * after the abgr->rgba reconstruction
-			 */
-			IMB_freecmapImBuf(ibuf);
 		}
 		break;
 	case ANIM_MOVIE:
@@ -1153,21 +1131,10 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 	}
 
 	if (ibuf) {
-		if (anim->ib_flags & IB_ttob) IMB_flipy(ibuf);
 		if (filter_y) IMB_filtery(ibuf);
 		sprintf(ibuf->name, "%s.%04d", anim->name, anim->curposition + 1);
 		
 	}
-	return(ibuf);
-}
-
-struct ImBuf * IMB_anim_nextpic(struct anim * anim) {
-	struct ImBuf * ibuf = 0;
-
-	if (anim == 0) return(0);
-
-	ibuf = IMB_anim_absolute(anim, anim->curposition + 1);
-
 	return(ibuf);
 }
 

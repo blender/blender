@@ -37,40 +37,6 @@
  *     blenlib handles guarded memory management in blender-style.
  *     BLI_winstuff.h makes a few windows specific behaviours
  *     posix-compliant.
- * - avi
- *     avi defines import/export to the avi format. Only anim.c
- *     needs this. It uses the following functions:
- *       - avi_close
- *       - avi_is_avi
- *       - avi_print_error
- *       - avi_open_movie
- *       - avi_read_frame
- *       - avi_get_stream
- *     Additionally, it needs the types from the avi module.
- * - external jpeg library
- *     The jpeg lib defines import/export to the jpeg format.
- *     only jpeg.c needs these. Used functions are:
- *       - jpeg_destroy
- *       - jpeg_resync_to_restart
- *       - jpeg_set_marker_processor
- *       - jpeg_read_header
- *       - jpeg_start_decompress
- *       - jpeg_abort_decompress
- *       - jpeg_read_scanlines
- *       - jpeg_finish_decompress
- *       - jpeg_std_error
- *       - jpeg_create_decompress
- *       - jpeg_stdio_src
- *       - jpeg_start_compress
- *       - jpeg_write_marker
- *       - jpeg_write_scanlines
- *       - jpeg_finish_compress
- *       - jpeg_create_compress
- *       - jpeg_stdio_dest
- *       - jpeg_set_defaults
- *       - jpeg_set_quality
- *       - jpeg_destroy_compress
- *     Additionally, it needs the types from the jpeg lib.
  */
 /*
  * $Id$ 
@@ -100,6 +66,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifndef IMB_IMBUF_H
 #define IMB_IMBUF_H
 
@@ -117,33 +84,16 @@ struct anim;
 
 /**
  *
- * @attention Defined in cmap.c
+ * @attention Defined in allocimbuf.c
  */
-void IMB_freeImBufdata(void);
-
-/**
- *
- * @attention Defined in cmap.c
- */
-void IMB_applycmap(struct ImBuf *ibuf);
-
-/**
- *
- * @attention Defined in cmap.c
- */
-short IMB_converttocmap(struct ImBuf *ibuf);
-
-/**
- *
- * @attention Defined in cmap.c
- */
-int IMB_alpha_to_col0(int value);
+void IMB_init(void);
+void IMB_exit(void);
 
 /**
  *
  * @attention Defined in readimage.c
  */
-struct ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags);
+struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, int size, int flags);
 
 /**
  *
@@ -161,7 +111,7 @@ struct ImBuf *IMB_loadiffname(const char *naam, int flags);
  *
  * @attention Defined in allocimbuf.c
  */
-void IMB_freeImBuf(struct ImBuf * ibuf);
+void IMB_freeImBuf(struct ImBuf *ibuf);
 
 /**
  *
@@ -180,18 +130,20 @@ struct ImBuf *IMB_allocImBuf(short x, short y,
  * @attention Defined in allocimbuf.c
  */
 
-void IMB_refImBuf(struct ImBuf * ibuf);
+void IMB_refImBuf(struct ImBuf *ibuf);
 
 /**
  *
  * @attention Defined in allocimbuf.c
  */
-void IMB_cache_limiter_insert(struct ImBuf * i);
-void IMB_cache_limiter_unmanage(struct ImBuf * i);
-void IMB_cache_limiter_touch(struct ImBuf * i);
-void IMB_cache_limiter_ref(struct ImBuf * i);
-void IMB_cache_limiter_unref(struct ImBuf * i);
-int IMB_cache_limiter_get_refcount(struct ImBuf * i);
+void IMB_cache_limiter_insert(struct ImBuf *i);
+void IMB_cache_limiter_unmanage(struct ImBuf *i);
+void IMB_cache_limiter_touch(struct ImBuf *i);
+void IMB_cache_limiter_ref(struct ImBuf *i);
+void IMB_cache_limiter_unref(struct ImBuf *i);
+int IMB_cache_limiter_get_refcount(struct ImBuf *i);
+
+void IMB_free_cache_limiter(void);
 
 /**
  *
@@ -203,14 +155,8 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1);
  *
  * @attention Defined in allocimbuf.c
  */
-short addzbufImBuf(struct ImBuf * ibuf);
-short addzbuffloatImBuf(struct ImBuf * ibuf);
-
-/**
- *
- * @attention Defined in allocimbuf.c
- */
-void IMB_freecmapImBuf(struct ImBuf * ibuf);
+short addzbufImBuf(struct ImBuf *ibuf);
+short addzbuffloatImBuf(struct ImBuf *ibuf);
 
 /**
  *
@@ -253,8 +199,8 @@ int IMB_anim_get_duration(struct anim *anim);
  *
  * @attention Defined in anim.c
  */
-struct anim * IMB_open_anim(const char * name, int ib_flags);
-void IMB_close_anim(struct anim * anim);
+struct anim *IMB_open_anim(const char *name, int ib_flags);
+void IMB_close_anim(struct anim *anim);
 
 /**
  *
@@ -262,53 +208,34 @@ void IMB_close_anim(struct anim * anim);
  */
 
 int ismovie(char *name);
-void IMB_anim_set_preseek(struct anim * anim, int preseek);
-int IMB_anim_get_preseek(struct anim * anim);
+void IMB_anim_set_preseek(struct anim *anim, int preseek);
+int IMB_anim_get_preseek(struct anim *anim);
 
 /**
  *
  * @attention Defined in anim.c
  */
 
-struct ImBuf * IMB_anim_absolute(struct anim * anim, int position);
+struct ImBuf *IMB_anim_absolute(struct anim *anim, int position);
 
 /**
  *
  * @attention Defined in anim.c
  * fetches a define previewframe, usually half way into the movie
  */
-struct ImBuf * IMB_anim_previewframe(struct anim * anim);
+struct ImBuf *IMB_anim_previewframe(struct anim *anim);
 
 /**
  *
  * @attention Defined in anim.c
  */
-void IMB_free_anim_ibuf(struct anim * anim);
+void IMB_free_anim_ibuf(struct anim *anim);
 
 /**
  *
  * @attention Defined in anim.c
  */
-void IMB_free_anim(struct anim * anim);
-
-/**
- *
- * @attention Defined in anim.c
- */
-struct ImBuf * IMB_anim_nextpic(struct anim * anim);     
-
-
-/**
- *
- * @attention Defined in antialias.c
- */
-void IMB_clever_double (struct ImBuf * ibuf);
-
-/**
- *
- * @attention Defined in antialias.c
- */
-void IMB_antialias(struct ImBuf * ibuf);
+void IMB_free_anim(struct anim *anim);
 
 /**
  *
@@ -318,6 +245,16 @@ void IMB_filter(struct ImBuf *ibuf);
 void IMB_filterN(struct ImBuf *out, struct ImBuf *in);
 void IMB_filter_extend(struct ImBuf *ibuf, char *mask);
 void IMB_makemipmap(struct ImBuf *ibuf, int use_filter);
+struct ImBuf *IMB_getmipmap(struct ImBuf *ibuf, int level);
+
+/**
+ *
+ * @attention Defined in cache.c
+ */
+
+void IMB_tile_cache_params(int totthread, int maxmem);
+unsigned int *IMB_gettile(struct ImBuf *ibuf, int tx, int ty, int thread);
+void IMB_tiles_to_rect(struct ImBuf *ibuf);
 
 /**
  *
@@ -335,13 +272,7 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1);
  *
  * @attention Defined in scaling.c
  */
-struct ImBuf *IMB_scaleImBuf(struct ImBuf * ibuf, short newx, short newy);
-
-/**
- *
- * @attention Defined in scaling.c
- */
-struct ImBuf *IMB_scalefieldImBuf(struct ImBuf *ibuf, short newx, short newy);
+struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, short newx, short newy);
 
 /**
  *
@@ -372,13 +303,13 @@ int IMB_ispic(char *name);
  *
  * @attention Defined in util.c
  */
-int IMB_isanim(char * name);
+int IMB_isanim(char *name);
 
 /**
  *
  * @attention Defined in util.c
  */
-int imb_get_anim_type(char * name);
+int imb_get_anim_type(char *name);
 
 /**
  *
@@ -386,7 +317,6 @@ int imb_get_anim_type(char * name);
  */
 void IMB_de_interlace(struct ImBuf *ibuf);
 void IMB_interlace(struct ImBuf *ibuf);
-void IMB_gamwarp(struct ImBuf *ibuf, double gamma);
 void IMB_rect_from_float(struct ImBuf *ibuf);
 void IMB_float_from_rect(struct ImBuf *ibuf);
 
@@ -397,6 +327,15 @@ void IMB_float_from_rect(struct ImBuf *ibuf);
  * @attention Defined in imageprocess.c
  */
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf);
+
+/**
+ * Change the ordering of the color bytes pointed to by rect from
+ * rgba to abgr. size * 4 color bytes are reordered.
+ *
+ * @attention Defined in imageprocess.c
+ */
+void IMB_convert_bgra_to_rgba(int size, unsigned int *rect);
+
 /**
  *
  * @attention defined in imageprocess.c
@@ -409,22 +348,6 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *col, float *co
 void neareast_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
 void bilinear_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
 void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
-
-/**
- * Change the ordering of the color bytes pointed to by rect from
- * rgba to abgr. size * 4 color bytes are reordered.
- *
- * @attention Defined in imageprocess.c
- */
-void IMB_convert_bgra_to_rgba(int size, unsigned int *rect);
-
-/**
- *
- * @attention defined in scaling.c
- */
-struct ImBuf *IMB_scalefastfieldImBuf(struct ImBuf *ibuf,
-									  short newx,
-									  short newy);
 
 /**
  *
@@ -480,66 +403,21 @@ struct ImBuf *IMB_double_y(struct ImBuf *ibuf1);
 
 /**
  *
- * @attention defined in scaling.c
- */
-struct ImBuf *IMB_onethird(struct ImBuf *ibuf1);
-
-/**
- *
- * @attention defined in scaling.c
- */
-struct ImBuf *IMB_halflace(struct ImBuf *ibuf1);
-
-/**
- *
- * @attention defined in dither.c
- */
-void IMB_dit2(struct ImBuf * ibuf, short ofs, short bits);
-
-/**
- *
- * @attention defined in dither.c
- */
-void IMB_dit0(struct ImBuf * ibuf, short ofs, short bits);
-
-/** Externally used vars: fortunately they do not use funny types */
-
-/**
- * boolean toggle that tells whether or not to
- * scale the color map in the y-direction.
- *
- * @attention declared in hamx.c
- */
-extern int scalecmapY;
-
-/**
- * This 'matrix' defines the transformation from rgb to bw color
- * maps. You need to do a sort of dot-product for that. It is a matrix
- * with fixed coefficients, extracted from some book.
- *
- * @attention Defined in matrix.h, only included in hamx.c
- */
-extern float rgb_to_bw[4][4]; 
-
-/**
- *
  * @attention Defined in rotate.c
  */
 void IMB_flipx(struct ImBuf *ibuf);
-void IMB_flipy(struct ImBuf * ibuf);
+void IMB_flipy(struct ImBuf *ibuf);
 
-/**
- *
- * @attention Defined in cspace.c
- */
-void IMB_cspace(struct ImBuf *ibuf, float mat[][4]);
+/* Premultiply alpha */
+
+void IMB_premultiply_alpha(struct ImBuf *ibuf);
 
 /**
  *
  * @attention Defined in allocimbuf.c
  */
-void IMB_freezbufImBuf(struct ImBuf * ibuf);
-void IMB_freezbuffloatImBuf(struct ImBuf * ibuf);
+void IMB_freezbufImBuf(struct ImBuf *ibuf);
+void IMB_freezbuffloatImBuf(struct ImBuf *ibuf);
 
 /**
  *
@@ -551,34 +429,19 @@ void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, i
 /* this should not be here, really, we needed it for operating on render data, IMB_rectfill_area calls it */
 void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, float *col, int x1, int y1, int x2, int y2);
 
-/* defined in imginfo.c */
-int IMB_imginfo_change_field(struct ImBuf *img, const char *key, const char *field);
+/* defined in metadata.c */
+int IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field);
 
 /* exported for image tools in blender, to quickly allocate 32 bits rect */
-short imb_addrectImBuf(struct ImBuf * ibuf);
-void imb_freerectImBuf(struct ImBuf * ibuf);
+short imb_addrectImBuf(struct ImBuf *ibuf);
+void imb_freerectImBuf(struct ImBuf *ibuf);
 
-short imb_addrectfloatImBuf(struct ImBuf * ibuf);
-void imb_freerectfloatImBuf(struct ImBuf * ibuf);
-void imb_freemipmapImBuf(struct ImBuf * ibuf);
+short imb_addrectfloatImBuf(struct ImBuf *ibuf);
+void imb_freerectfloatImBuf(struct ImBuf *ibuf);
+void imb_freemipmapImBuf(struct ImBuf *ibuf);
 
-#ifdef WITH_QUICKTIME
-/**
- *
- * @attention Defined in quicktime_import.c
- */
-void quicktime_init(void);
-
-/**
- *
- * @attention Defined in quicktime_import.c
- */
-void quicktime_exit(void);
-
-#endif //WITH_QUICKTIME
-
-/* intern/dynlibtiff.c */
-void libtiff_init(void);
-void libtiff_exit(void);
+short imb_addtilesImBuf(struct ImBuf *ibuf);
+void imb_freetilesImBuf(struct ImBuf *ibuf);
 
 #endif
+

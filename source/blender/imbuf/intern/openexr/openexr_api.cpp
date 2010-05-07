@@ -50,6 +50,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
+#include "IMB_metadata.h"
 
 #include "openexr_multi.h"
 }
@@ -177,7 +178,15 @@ static void openexr_header_compression(Header *header, int compression)
 	}
 }
 
-static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
+static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
+{
+	ImMetaData* info;
+
+	for(info= ibuf->metadata; info; info= info->next)
+		header->insert(info->key, StringAttribute(info->value));
+}
+
+static int imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 {
 	int channels = ibuf->channels;
 	int width = ibuf->x;
@@ -189,6 +198,7 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 		Header header (width, height);
 		
 		openexr_header_compression(&header, ibuf->ftype & OPENEXR_COMPRESS);
+		openexr_header_metadata(&header, ibuf);
 		
 		header.channels().insert ("R", Channel (HALF));
 		header.channels().insert ("G", Channel (HALF));
@@ -269,7 +279,7 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 	return (1);
 }
 
-static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
+static int imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 {
 	int channels = ibuf->channels;
 	int width = ibuf->x;
@@ -281,6 +291,7 @@ static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 		Header header (width, height);
 		
 		openexr_header_compression(&header, ibuf->ftype & OPENEXR_COMPRESS);
+		openexr_header_metadata(&header, ibuf);
 		
 		header.channels().insert ("R", Channel (FLOAT));
 		header.channels().insert ("G", Channel (FLOAT));
@@ -326,7 +337,7 @@ static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 }
 
 
-short imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
+int imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
 {
 	if (flags & IB_mem) 
 	{
@@ -435,6 +446,7 @@ void IMB_exr_add_channel(void *handle, const char *layname, const char *passname
 	BLI_addtail(&data->channels, echan);
 }
 
+/* only used for writing temp. render results (not image files) */
 void IMB_exr_begin_write(void *handle, char *filename, int width, int height, int compress)
 {
 	ExrHandle *data= (ExrHandle *)handle;
@@ -448,6 +460,7 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height, in
 		header.channels().insert (echan->name, Channel (FLOAT));
 	
 	openexr_header_compression(&header, compress);
+	// openexr_header_metadata(&header, ibuf); // no imbuf. cant write
 	/* header.lineOrder() = DECREASING_Y; this crashes in windows for file read! */
 	
 	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43 and newer"));
@@ -575,7 +588,12 @@ void IMB_exr_write_channels(void *handle)
 													echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
 		
 		data->ofile->setFrameBuffer (frameBuffer);
-		data->ofile->writePixels (data->height);	
+		try {
+			data->ofile->writePixels (data->height);	
+		}
+		catch (const std::exception &exc) {
+			std::cerr << "OpenEXR-writePixels: ERROR: " << exc.what() << std::endl;
+		}
 	}
 	else {
 		printf("Error: attempt to save MultiLayer without layers.\n");
@@ -598,7 +616,13 @@ void IMB_exr_read_channels(void *handle)
 	}
 	
 	data->ifile->setFrameBuffer (frameBuffer);
-	data->ifile->readPixels (0, data->height-1);	
+
+	try {
+		data->ifile->readPixels (0, data->height-1);	
+	}
+	catch (const std::exception &exc) {
+		std::cerr << "OpenEXR-readPixels: ERROR: " << exc.what() << std::endl;
+	}
 }
 
 void IMB_exr_multilayer_convert(void *handle, void *base,  
