@@ -283,7 +283,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh) 
 {
 	FileData *fd= (FileData*) bh;
-	GHash *gathered= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	GHash *gathered= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "linkable_groups gh");
 	LinkNode *names= NULL;
 	BHead *bhead;
 	

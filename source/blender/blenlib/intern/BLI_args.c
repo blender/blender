@@ -102,7 +102,7 @@ bArgs *BLI_argsInit(int argc, char **argv)
 {
 	bArgs *ba = MEM_callocN(sizeof(bArgs), "bArgs");
 	ba->passes = MEM_callocN(sizeof(int) * argc, "bArgs passes");
-	ba->items = BLI_ghash_new(keyhash, keycmp);
+	ba->items = BLI_ghash_new(keyhash, keycmp, "bArgs passes gh");
 	ba->argc = argc;
 	ba->argv = argv;
 

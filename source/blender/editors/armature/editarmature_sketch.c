@@ -168,7 +168,7 @@ void BIF_makeListTemplates(const bContext *C)
 		BLI_ghash_free(TEMPLATES_HASH, NULL, NULL);
 	}
 
-	TEMPLATES_HASH = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+	TEMPLATES_HASH = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "makeListTemplates gh");
 	TEMPLATES_CURRENT = 0;
 
 	for ( base = FIRSTBASE; base; base = base->next )
