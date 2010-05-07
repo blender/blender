@@ -2487,9 +2487,9 @@ void CustomData_external_add(CustomData *data, ID *id, int type, int totelem, co
 
 	if(!external) {
 		external= MEM_callocN(sizeof(CustomDataExternal), "CustomDataExternal");
-		BLI_strncpy(external->filename, filename, sizeof(external->filename));
 		data->external= external;
 	}
+	BLI_strncpy(external->filename, filename, sizeof(external->filename));
 
 	layer->flag |= CD_FLAG_EXTERNAL|CD_FLAG_IN_MEMORY;
 }
