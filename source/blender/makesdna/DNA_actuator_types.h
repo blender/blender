@@ -498,6 +498,10 @@ typedef struct FreeCamera {
 #define ACT_STATE_REMOVE	2
 #define ACT_STATE_CHANGE	3
 
+/* cameraactuator->axis */
+#define ACT_CAMERA_X		(float)'x'
+#define ACT_CAMERA_Y		(float)'y'
+
 #endif
 
 

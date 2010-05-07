@@ -776,8 +776,8 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_axis_items[] ={
-		{(float)'x', "X", 0, "X", "Camera tries to get behind the X axis"},
-		{(float)'y', "Y", 0, "Y", "Camera tries to get behind the Y axis"},
+		{ACT_CAMERA_X, "X", 0, "X", "Camera tries to get behind the X axis"},
+		{ACT_CAMERA_Y, "Y", 0, "Y", "Camera tries to get behind the Y axis"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "CameraActuator", "Actuator");
@@ -808,14 +808,11 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* x/y */
-	// It could be changed to be a regular ENUM instead of this weird "(float)string enum"
 	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "axis");
 	RNA_def_property_enum_items(prop, prop_axis_items);
 	RNA_def_property_ui_text(prop, "Axis", "Specify the axis the Camera will try to get behind");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	//XXX it's not working (no default value)
-	// probably need to make a get/set function
 }
 
 static void rna_def_sound_actuator(BlenderRNA *brna)

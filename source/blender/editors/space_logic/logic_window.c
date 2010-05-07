@@ -3284,7 +3284,7 @@ static void draw_sensor_joystick(uiLayout *layout, PointerRNA *ptr)
 
 			col = uiLayoutColumn(layout, 0);
 			uiLayoutSetActive(col, RNA_boolean_get(ptr, "all_events")==0);
-			uiItemR(col, ptr, "hat_direction", 0, NULL, 0); //XXXSENSOR - needs a default value (somewhere else in the code)
+			uiItemR(col, ptr, "hat_direction", 0, NULL, 0);
 			break;
 		case SENS_JOY_AXIS_SINGLE:
 			row = uiLayoutRow(layout, 0);
@@ -3924,6 +3924,8 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(subcol, ptr, "force_min_z", 0, NULL, 0);
 
 			//XXXACTUATOR missing labels from original 2.49 ui (e.g. Servo, Min, Max, Fast)
+			//Layout designers willing to help on that, please compare with 2.49 ui
+			// (since the old code is going to be deleted ... soon)
 
 			col = uiLayoutColumn(layout, 1);
 			uiItemR(col, ptr, "proportional_coefficient", UI_ITEM_R_SLIDER, NULL, 0);
