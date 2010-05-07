@@ -27,6 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -433,13 +434,17 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index);
 
+#define LOG2I(x) (int)(log(x)/log(2.0))
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
 {
 	TreeStoreElem *tselem= TREESTORE(tenla);
 	TreeElement *te;
+
+	/* log stuff is to convert bitflags (powers of 2) to small integers,
+	 * in order to not overflow short tselem->nr */
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_COMBINED);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_COMBINED));
 	te->name= "Combined";
 	te->directdata= &srl->passflag;
 	
@@ -447,73 +452,72 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	if(tselem->flag & TSE_CLOSED)
 		return;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_Z);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_Z));
 	te->name= "Z";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_VECTOR);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_VECTOR));
 	te->name= "Vector";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_NORMAL);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_NORMAL));
 	te->name= "Normal";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_UV);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_UV));
 	te->name= "UV";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_MIST);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_MIST));
 	te->name= "Mist";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_INDEXOB);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_INDEXOB));
 	te->name= "Index Object";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_RGBA);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_RGBA));
 	te->name= "Color";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_DIFFUSE);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_DIFFUSE));
 	te->name= "Diffuse";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_SPEC);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_SPEC));
 	te->name= "Specular";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_SHADOW);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_SHADOW));
 	te->name= "Shadow";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_AO);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_AO));
 	te->name= "AO";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_REFLECT);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_REFLECT));
 	te->name= "Reflection";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_REFRACT);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_REFRACT));
 	te->name= "Refraction";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_INDIRECT);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_INDIRECT));
 	te->name= "Indirect";
 	te->directdata= &srl->passflag;
 
-	/* TODO SCE_PASS_ENVIRONMENT/EMIT overflow short..
-
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_ENVIRONMENT);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_ENVIRONMENT));
 	te->name= "Environment";
 	te->directdata= &srl->passflag;
 
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_EMIT);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_EMIT));
 	te->name= "Emit";
-	te->directdata= &srl->passflag;*/
+	te->directdata= &srl->passflag;
 }
 
+#undef LOG2I
 
 /* special handling of hierarchical non-lib data */
 static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone, 
@@ -4977,22 +4981,29 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 		if(te->ys+2*OL_H >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {	
 			/* objects have toggle-able restriction flags */
 			if(tselem->type==0 && te->idcode==ID_OB) {
+				PointerRNA ptr;
+
 				ob = (Object *)tselem->id;
+				RNA_pointer_create((ID *)ob, &RNA_Object, ob, &ptr);
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, 0, ICON_RESTRICT_VIEW_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_VIEW_OFF,
+							  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1,
+							  &ptr, "restrict_view", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, 0, ICON_RESTRICT_SELECT_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_SELECT_OFF,
+								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1,
+								  &ptr, "restrict_select", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, 0, ICON_RESTRICT_RENDER_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
+				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_RENDER_OFF,
+								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1,
+								  &ptr, "restrict_render", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_rend_cb, scene, ob);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
+				
 			}
 			/* scene render layers and passes have toggle-able flags too! */
 			else if(tselem->type==TSE_R_LAYER) {
@@ -5006,16 +5017,18 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 			}
 			else if(tselem->type==TSE_R_PASS) {
 				int *layflag= te->directdata;
+				int passflag= 1<<tselem->nr;
+				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				
-				/* NOTE: tselem->nr is short! */
-				bt= uiDefIconButBitI(block, ICONTOG, tselem->nr, 0, ICON_CHECKBOX_HLT-1, 
+				
+				bt= uiDefIconButBitI(block, ICONTOG, passflag, 0, ICON_CHECKBOX_HLT-1, 
 									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
 				layflag++;	/* is lay_xor */
-				if(ELEM8(tselem->nr, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_INDIRECT, SCE_PASS_EMIT, SCE_PASS_ENVIRONMENT))
-					bt= uiDefIconButBitI(block, TOG, tselem->nr, 0, (*layflag & tselem->nr)?ICON_DOT:ICON_BLANK1, 
+				if(ELEM8(passflag, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_INDIRECT, SCE_PASS_EMIT, SCE_PASS_ENVIRONMENT))
+					bt= uiDefIconButBitI(block, TOG, passflag, 0, (*layflag & passflag)?ICON_DOT:ICON_BLANK1, 
 									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				

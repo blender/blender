@@ -796,7 +796,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 
 static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int imtype)
 {
-	ImBuf *ibuf;
+	ImBuf *ibuf=NULL;
 	int dx;
 	int retval;
 	

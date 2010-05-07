@@ -939,12 +939,12 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 {
 	int x, y, c, n, nl;
 	double div, divl;
-	float *rf;
-	unsigned char *rc;
+	float *rf=NULL;
+	unsigned char *rc=NULL;
 	unsigned int *bin_r, *bin_g, *bin_b, *bin_lum;
 	int savedlines, saveline;
 	float rgb[3], ycc[3];
-	int ycc_mode;
+	int ycc_mode=-1;
 
 	if (scopes->ok == 1 ) return;
 

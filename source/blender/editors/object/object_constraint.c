@@ -496,7 +496,7 @@ static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Ob
 	char constraint_name[32];
 	int owner = RNA_enum_get(op->ptr, "owner");
 	bConstraint *con;
-	ListBase *list;
+	ListBase *list=NULL;
 	
 	RNA_string_get(op->ptr, "constraint", constraint_name);
 	

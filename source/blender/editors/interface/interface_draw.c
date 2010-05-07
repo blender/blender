@@ -969,7 +969,7 @@ float polar_to_y(float center, float diam, float ampli, float angle)
 void vectorscope_draw_target(float centerx, float centery, float diam, float r, float g, float b)
 {
 	float y,u,v;
-	float tangle, tampli;
+	float tangle=0.f, tampli;
 	float dangle, dampli, dangle2, dampli2;
 
 	rgb_to_yuv(r,g,b, &y, &u, &v);
