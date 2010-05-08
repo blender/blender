@@ -3483,21 +3483,22 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_controller_expression(uiLayout *layout, PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "expression", 0, NULL, 0);
+	uiItemR(layout, ptr, "expression", 0, "", 0);
 }
 
 static void draw_controller_python(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row;
+	uiLayout *row, *split, *subsplit;
 
-	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	split = uiLayoutSplit(layout, 0.3, 1);
+	uiItemR(split, ptr, "mode", 0, "", 0);
 	if (RNA_enum_get(ptr, "mode") == CONT_PY_SCRIPT) {
-		uiItemR(layout, ptr, "text", 0, NULL, 0);
+		uiItemR(split, ptr, "text", 0, "", 0);
 	}
 	else {
-		row= uiLayoutRow(layout, 0);
-		uiItemR(row, ptr, "module", 0, NULL, 0);
-		uiItemR(row, ptr, "debug", 0, NULL, 0);
+		subsplit = uiLayoutSplit(split, 0.8, 0);
+		uiItemR(subsplit, ptr, "module", 0, "", 0);
+		uiItemR(subsplit, ptr, "debug", UI_ITEM_R_TOGGLE, NULL, 0);
 	}
 }
 
@@ -3558,7 +3559,7 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row;
 
 	row= uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "mode", 0, NULL, 0);
+	uiItemR(row, ptr, "mode", 0, "", 0);
 	uiItemR(row, ptr, "action", 0, NULL, 0);
 	uiItemR(row, ptr, "continue_last_frame", 0, NULL, 0);
 
@@ -3811,7 +3812,7 @@ static void draw_actuator_ipo(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row, *subrow, *col;
 
 	row= uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "play_type", 0, NULL, 0);
+	uiItemR(row, ptr, "play_type", 0, "", 0);
 	subrow= uiLayoutRow(row, 1);
 	uiItemR(subrow, ptr, "force", UI_ITEM_R_TOGGLE, NULL, 0);
 	uiItemR(subrow, ptr, "add", UI_ITEM_R_TOGGLE, NULL, 0);
@@ -4058,7 +4059,7 @@ static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row;
 
 	row= uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "mode", 0, NULL, 0);
+	uiItemR(row, ptr, "mode", 0, "", 0);
 	uiItemR(row, ptr, "action", 0, NULL, 0);
 	uiItemR(row, ptr, "continue_last_frame", 0, NULL, 0);
 
