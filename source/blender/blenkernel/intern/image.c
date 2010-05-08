@@ -1163,6 +1163,7 @@ void BKE_stamp_info(Scene *scene, struct ImBuf *ibuf)
 	if (stamp_data.camera[0])	IMB_metadata_change_field (ibuf, "Camera",	stamp_data.camera);
 	if (stamp_data.scene[0])	IMB_metadata_change_field (ibuf, "Scene",	stamp_data.scene);
 	if (stamp_data.strip[0])	IMB_metadata_change_field (ibuf, "Strip",	stamp_data.strip);
+	if (stamp_data.rendertime[0]) IMB_metadata_change_field (ibuf, "RenderTime", stamp_data.rendertime);
 }
 
 int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimtype, int quality)
