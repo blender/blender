@@ -566,15 +566,26 @@ void calc_sequence(Scene *scene, Sequence *seq)
 	}
 }
 
-void reload_sequence_new_file(Scene *scene, Sequence * seq)
+/* note: caller should run calc_sequence(scene, seq) */
+void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
+	int prev_startdisp, prev_enddisp;
+	/* note: dont rename the strip, will break animation curves */
 
 	if (!(seq->type == SEQ_MOVIE || seq->type == SEQ_IMAGE ||
 		  seq->type == SEQ_SOUND ||
 		  seq->type == SEQ_SCENE || seq->type == SEQ_META)) {
 		return;
 	}
+
+	if(lock_range) {
+		/* keep so we dont have to move the actual start and end points (only the data) */
+		calc_sequence_disp(scene, seq);
+		prev_startdisp= seq->startdisp;
+		prev_enddisp= seq->enddisp;
+	}
+
 
 	new_tstripdata(seq);
 
@@ -587,6 +598,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 	if (seq->type == SEQ_IMAGE) {
 		/* Hack? */
 		size_t olen = MEM_allocN_len(seq->strip->stripdata)/sizeof(struct StripElem);
+
 		seq->len = olen;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
@@ -621,6 +633,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 		}
 		seq->strip->len = seq->len;
 	} else if (seq->type == SEQ_SCENE) {
+		/* 'seq->scenenr' should be replaced with something more reliable */
 		Scene * sce = G.main->scene.first;
 		int nr = 1;
 		
@@ -637,9 +650,6 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 		} else {
 			sce = seq->scene;
 		}
-
-		BLI_strncpy(seq->name+2, sce->id.name + 2, SEQ_NAME_MAXSTR-2);
-		seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 		
 		seq->len= seq->scene->r.efra - seq->scene->r.sfra + 1;
 		seq->len -= seq->anim_startofs;
@@ -652,6 +662,12 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 
 	free_proxy_seq(seq);
 
+	if(lock_range) {
+		seq_tx_set_final_left(seq, prev_startdisp);
+		seq_tx_set_final_right(seq, prev_enddisp);
+		seq_single_fix(seq);
+	}
+	
 	calc_sequence(scene, seq);
 }
 

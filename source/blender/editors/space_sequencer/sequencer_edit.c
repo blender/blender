@@ -946,7 +946,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 		}
 	}
 	
-	reload_sequence_new_file(scene, seq);
+	reload_sequence_new_file(scene, seq, FALSE);
 	calc_sequence(scene, seq);
 
 	if (!skip_dup) {
@@ -985,8 +985,8 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 			seqn->startstill = 0;
 		}
 		
-		reload_sequence_new_file(scene, seqn);
-		calc_sequence(scene, seqn);
+		reload_sequence_new_file(scene, seqn, FALSE);
+		calc_sequence(scene, seq);
 	}
 	return seqn;
 }
@@ -1178,7 +1178,8 @@ void set_filter_seq(Scene *scene)
 		if(seq->flag & SELECT) {
 			if(seq->type==SEQ_MOVIE) {
 				seq->flag |= SEQ_FILTERY;
-				reload_sequence_new_file(scene, seq);
+				reload_sequence_new_file(scene, seq, FALSE);
+				calc_sequence(scene, seq);
 			}
 
 		}
