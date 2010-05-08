@@ -213,11 +213,11 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
 		int width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;
-		numfiles = width/layout->tile_w + 1;
+		numfiles = (float)width/(float)layout->tile_w+0.5;
 		return numfiles*layout->rows;
 	} else {
 		int height = ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y;
-		numfiles = height/layout->tile_h + 1;
+		numfiles = (float)height/(float)layout->tile_h+0.5;
 		return numfiles*layout->columns;
 	}
 }
@@ -482,7 +482,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 			if (BLI_exists(str)) {
 				BLI_add_slash(str);
 			} else {
-				BLI_make_exist(str);
+				BLI_strncpy(sfile->params->dir, str, sizeof(sfile->params->dir));
 			}
 		}
 	}

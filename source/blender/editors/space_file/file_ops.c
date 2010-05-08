@@ -745,6 +745,107 @@ int file_next_exec(bContext *C, wmOperator *unused)
 	return OPERATOR_FINISHED;
 }
 
+
+/* only meant for timer usage */
+static int file_smoothscroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceFile *sfile= CTX_wm_space_file(C);
+	ARegion *ar= CTX_wm_region(C);
+	int numfiles, offset;
+	int edit_idx = 0;
+	int numfiles_layout;
+	int i;
+
+	/* escape if not our timer */
+	if(sfile->smoothscroll_timer==NULL || sfile->smoothscroll_timer!=event->customdata)
+		return OPERATOR_PASS_THROUGH;
+	
+	numfiles = filelist_numfiles(sfile->files);
+
+	/* check if we are editing a name */
+	for (i=0; i < numfiles; ++i)
+	{
+		struct direntry *file = filelist_file(sfile->files, i);	
+		if (file->flags & EDITING) {
+			edit_idx=i;
+			break;
+		}
+	}
+
+	/* if we are not editing, we are done */
+	if (0==edit_idx) {
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
+		sfile->smoothscroll_timer=NULL;
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	/* we need the correct area for scrolling */
+	if (!ar || ar->regiontype != RGN_TYPE_WINDOW) {
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
+		sfile->smoothscroll_timer=NULL;
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	offset = ED_fileselect_layout_offset(sfile->layout, 0, ar->v2d.cur.xmin, -ar->v2d.cur.ymax);
+	if (offset<0) offset=0;
+
+	/* scroll offset is the first file in the row/column we are editing in */
+	if (sfile->scroll_offset == 0) {
+		if (sfile->layout->flag & FILE_LAYOUT_HOR) {
+			sfile->scroll_offset = (edit_idx/sfile->layout->rows)*sfile->layout->rows;
+			if (sfile->scroll_offset <= offset) sfile->scroll_offset -= sfile->layout->rows;
+		} else {
+			sfile->scroll_offset = (edit_idx/sfile->layout->columns)*sfile->layout->columns;
+			if (sfile->scroll_offset <= offset) sfile->scroll_offset -= sfile->layout->columns;
+		}
+	}
+	
+	numfiles_layout = ED_fileselect_layout_numfiles(sfile->layout, ar);
+	
+	/* check if we have reached our final scroll position */
+	if ( (sfile->scroll_offset >= offset) && (sfile->scroll_offset < offset + numfiles_layout) ) {
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
+		sfile->smoothscroll_timer=NULL;
+		return OPERATOR_FINISHED;
+	}
+
+	/* scroll one step in the desired direction */
+	if (sfile->scroll_offset < offset) {
+		if (sfile->layout->flag & FILE_LAYOUT_HOR) {
+			WM_operator_name_call(C, "VIEW2D_OT_scroll_left", 0, NULL);
+		} else {
+			WM_operator_name_call(C, "VIEW2D_OT_scroll_up", 0, NULL);
+		}
+		
+	} else {
+		if (sfile->layout->flag & FILE_LAYOUT_HOR) {
+			WM_operator_name_call(C, "VIEW2D_OT_scroll_right", 0, NULL);
+		} else {
+			WM_operator_name_call(C, "VIEW2D_OT_scroll_down", 0, NULL);
+		}
+	}
+	
+	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+
+void FILE_OT_smoothscroll(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Smooth Scroll";
+	ot->idname= "FILE_OT_smoothscroll";
+	ot->description="Smooth scroll to make editable file visible.";
+	
+	/* api callbacks */
+	ot->invoke= file_smoothscroll_invoke;
+	
+	ot->poll= ED_operator_file_active;
+}
+
+
 /* create a new, non-existing folder name, returns 1 if successful, 0 if name couldn't be created.
    The actual name is returned in 'name', 'folder' contains the complete path, including the new folder name.
 */
@@ -794,6 +895,12 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 
 	/* now remember file to jump into editing */
 	BLI_strncpy(sfile->params->renamefile, name, FILE_MAXFILE);
+
+	/* set timer to smoothly view newly generated file */
+	sfile->smoothscroll_timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/1000.0);	/* max 30 frs/sec */
+	sfile->scroll_offset=0;
+
+	/* reload dir to make sure we're seeing what's in the directory */
 	ED_fileselect_clear(C, sfile);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 

@@ -514,6 +514,13 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 	numfiles_layout = ED_fileselect_layout_numfiles(layout, ar);
 
+	/* adjust, so the next row is already drawn when scrolling */
+	if (layout->flag & FILE_LAYOUT_HOR) {
+		numfiles_layout += layout->rows;
+	} else {
+		numfiles_layout += layout->columns;
+	}
+
 	for (i=offset; (i < numfiles) && (i<offset+numfiles_layout); ++i)
 	{
 		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
