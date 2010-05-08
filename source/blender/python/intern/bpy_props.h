@@ -41,6 +41,8 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw);
 
+PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw);
+
 #define PYRNA_STACK_ARRAY 32
 
 #endif

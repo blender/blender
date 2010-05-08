@@ -2722,5 +2722,39 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 		}
 	}
 }
+
+void RNA_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
+{
+	ContainerRNA *cont= cont_;
+	
+	RNA_def_property_free_pointers(prop);
+	
+	if(prop->flag & PROP_RUNTIME) {
+		if(cont->prophash)
+			BLI_ghash_remove(cont->prophash, (void*)prop->identifier, NULL, NULL);
+
+		rna_freelinkN(&cont->properties, prop);
+	}
+}
+
+/* note: only intended for removing dynamic props */
+int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *identifier)
+{
+	ContainerRNA *cont= cont_;
+	PropertyRNA *prop;
+	
+	for(prop= cont->properties.first; prop; prop= prop->next) {
+		if(strcmp(prop->identifier, identifier)==0) {
+			if(prop->flag & PROP_RUNTIME) {
+				RNA_def_property_free(cont_, prop);
+				return 1;
+			}
+			else {
+				return 0;
+			}
+		}
+	}
+	return 0;
+}
 #endif
 

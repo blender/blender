@@ -860,6 +860,42 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 	return NULL;
 }
 
+static char BPy_RemoveProperty_doc[] =
+".. function:: RemoveProperty(attr)\n"
+"\n"
+"   Removes a dynamically defined property.\n"
+"\n"
+"   :arg attr: Property name.\n"
+"   :type attr: string";
+PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw)
+{
+	StructRNA *srna;
+
+	srna= srna_from_self(self, "RemoveProperty(...):");
+	if(srna==NULL && PyErr_Occurred()) {
+		return NULL; /* self's type was compatible but error getting the srna */
+	}
+	else if(srna==NULL) {
+		PyErr_SetString(PyExc_TypeError, "RemoveProperty(): struct rna not available for this type.");
+		return NULL;
+	}
+	else {
+		static const char *kwlist[] = {"attr", NULL};
+		
+		char *id=NULL;
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s:RemoveProperty", (char **)kwlist, &id))
+			return NULL;
+
+		if(RNA_def_property_free_identifier(srna, id) == 0) {
+			PyErr_Format(PyExc_TypeError, "RemoveProperty(): '%s' not a defined dynamic property.", id);
+			return NULL;
+		}
+		
+		Py_RETURN_NONE;
+	}
+}
+
 static struct PyMethodDef props_methods[] = {
 	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolProperty_doc},
 	{"BoolVectorProperty", (PyCFunction)BPy_BoolVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolVectorProperty_doc},
@@ -871,6 +907,9 @@ static struct PyMethodDef props_methods[] = {
 	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, BPy_EnumProperty_doc},
 	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, BPy_PointerProperty_doc},
 	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, BPy_CollectionProperty_doc},
+
+	/* only useful as a bpy_struct method */
+	/* {"RemoveProperty", (PyCFunction)BPy_RemoveProperty, METH_VARARGS|METH_KEYWORDS, BPy_RemoveProperty_doc}, */
 	{NULL, NULL, 0, NULL}
 };
 
