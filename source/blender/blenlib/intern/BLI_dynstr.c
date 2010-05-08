@@ -39,9 +39,6 @@
 #ifndef vsnprintf
 #define vsnprintf _vsnprintf
 #endif
-#ifndef strnlen
-#define strnlen _strnlen
-#endif
 #endif
 
 /***/
@@ -86,7 +83,7 @@ void BLI_dynstr_append(DynStr *ds, const char *cstr) {
 
 void BLI_dynstr_nappend(DynStr *ds, const char *cstr, int len) {
 	DynStrElem *dse= malloc(sizeof(*dse));
-	int cstrlen= strnlen(cstr, len);
+	int cstrlen= BLI_strnlen(cstr, len);
 
 	dse->str= malloc(cstrlen+1);
 	memcpy(dse->str, cstr, cstrlen);
