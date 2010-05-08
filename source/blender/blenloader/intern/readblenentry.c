@@ -70,41 +70,44 @@
 
 typedef struct {
 	unsigned short code;
-	char *name;
+	char *name, *plural;
 	
 	int flags;
 #define IDTYPE_FLAGS_ISLINKABLE	(1<<0)
 } IDType;
 
+/* plural need to match rna_main.c's MainCollectionDef */
 static IDType idtypes[]= {
-	{ ID_AC,		"Action",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_AR,		"Armature", IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_BR,		"Brush",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_CA,		"Camera",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_CU,		"Curve",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_GD,		"GPencil",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_GR,		"Group",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_ID,		"ID",		0}, 
-	{ ID_IM,		"Image",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_IP,		"Ipo",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_KE,		"Key",		0}, 
-	{ ID_LA,		"Lamp",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_LI,		"Library",	0}, 
-	{ ID_LT,		"Lattice",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_MA,		"Material", IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_MB,		"Metaball", IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_ME,		"Mesh",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_NT,		"NodeTree",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_OB,		"Object",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_SCE,		"Scene",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_SCR,		"Screen",	0}, 
-	{ ID_SEQ,		"Sequence",	0}, 
-	{ ID_SO,		"Sound",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_TE,		"Texture",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_TXT,		"Text",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_VF,		"VFont",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_WO,		"World",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_WV,		"Wave",		0}, 
+	{ ID_AC,		"Action",	"actions",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_AR,		"Armature", "armatures",	IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_BR,		"Brush",	"brushes",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_CA,		"Camera",	"cameras",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_CU,		"Curve",	"curves",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_GD,		"GPencil",	"gpencil",		IDTYPE_FLAGS_ISLINKABLE},  /* rename gpencil */
+	{ ID_GR,		"Group",	"groups",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_ID,		"ID",		"ids",			0}, /* plural is fake */
+	{ ID_IM,		"Image",	"images",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_IP,		"Ipo",		"ipos",			IDTYPE_FLAGS_ISLINKABLE},  /* deprecated */
+	{ ID_KE,		"Key",		"keys",			0}, 
+	{ ID_LA,		"Lamp",		"lamps",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_LI,		"Library",	"libraries",	0}, 
+	{ ID_LT,		"Lattice",	"lattices",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_MA,		"Material", "materials",	IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_MB,		"Metaball", "metaballs",	IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_ME,		"Mesh",		"meshes",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_NT,		"NodeTree",	"node_groups",	IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_OB,		"Object",	"objects",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_PA,		"ParticleSettings",	"particles", 0},
+	{ ID_SCE,		"Scene",	"scenes",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_SCR,		"Screen",	"screens",		0}, 
+	{ ID_SEQ,		"Sequence",	"sequences",	0}, /* not actually ID data */
+	{ ID_SO,		"Sound",	"sounds",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_TE,		"Texture",	"textures",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_TXT,		"Text",		"texts",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_VF,		"VFont",	"fonts",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_WO,		"World",	"worlds",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_WM,		"WindowManager", "window_managers",	0}, 
+	{ ID_WV,		"Wave",		"waves",		0},  /* deprecated */
 };
 static int nidtypes= sizeof(idtypes)/sizeof(idtypes[0]);
 
@@ -156,7 +159,14 @@ int BLO_idcode_from_name(char *name)
 	
 	return idt?idt->code:0;
 }
+
+char *BLO_idcode_to_name_plural(int code) 
+{
+	IDType *idt= idtype_from_code(code);
 	
+	return idt?idt->plural:NULL;
+}
+
 	/* Access routines used by filesel. */
 	 
 BlendHandle *BLO_blendhandle_from_file(char *file) 
