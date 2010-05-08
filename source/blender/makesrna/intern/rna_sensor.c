@@ -314,7 +314,7 @@ static void rna_def_touch_sensor(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Material", "Only look for floors with this material");
+	RNA_def_property_ui_text(prop, "Material", "Only look for objects with this material");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 

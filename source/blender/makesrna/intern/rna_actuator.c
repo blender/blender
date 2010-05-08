@@ -383,8 +383,6 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 		if (ob->type==OB_ARMATURE) {
 			RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_ACTION);
 			RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_ARMATURE);
-		} else {
-			RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SHAPEACTION);
 		}
 	}
 
@@ -400,6 +398,13 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_PROPERTY);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_RANDOM);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SCENE);
+
+	if (ob != NULL) {
+		if (ob->type==OB_MESH){
+			RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SHAPEACTION);
+		}
+	}
+
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SOUND);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_STATE);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_VISIBILITY);
@@ -936,8 +941,7 @@ static void rna_def_property_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	//XXX add magic property lookup
-	prop= RNA_def_property(srna, "prop_name", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Property", "The name of the property");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -955,7 +959,7 @@ static void rna_def_property_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	//XXX add even magic'er property lookup (need to look for the property list of the target object)
-	prop= RNA_def_property(srna, "object_prop_name", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "object_property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "value");
 	RNA_def_property_ui_text(prop, "Property Name", "Copy this property");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -1340,7 +1344,6 @@ static void rna_def_random_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Seed", "Initial seed of the random generator. Use Python for more freedom (choose 0 for not random)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	//XXX add magic property lookup
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "propname");
 	RNA_def_property_ui_text(prop, "Property", "Assign the random value to this property");
@@ -1464,7 +1467,7 @@ static void rna_def_message_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "body_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bodyType");
 	RNA_def_property_enum_items(prop, prop_body_type_items);
-	RNA_def_property_ui_text(prop, "Body Type", "Toggle message type: either Text or a PropertyName");
+	RNA_def_property_ui_text(prop, "Body", "Toggle message type: either Text or a PropertyName");
 
 	/* ACT_MESG_MESG */
 	prop= RNA_def_property(srna, "body_message", PROP_STRING, PROP_NONE);

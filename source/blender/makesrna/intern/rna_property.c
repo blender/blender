@@ -30,6 +30,8 @@
 
 #include "DNA_property_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_property.h"
@@ -111,24 +113,29 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Available as GameObject attributes in the game engine's python API");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_GameProperty_name_set");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, gameproperty_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_enum_funcs(prop, NULL, "rna_GameProperty_type_set", NULL);
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "debug", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PROP_DEBUG);
 	RNA_def_property_ui_text(prop, "Debug", "Print debug information for this property");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* GameBooleanProperty */
 	srna= RNA_def_struct(brna, "GameBooleanProperty", "GameProperty");
 	RNA_def_struct_ui_text(srna , "Game Boolean Property", "Game engine user defined Boolean property");
 	RNA_def_struct_sdna(srna, "bProperty");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "value", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "data", 1);
 	RNA_def_property_ui_text(prop, "Value", "Property value");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* GameIntProperty */
 	srna= RNA_def_struct(brna, "GameIntProperty", "GameProperty");
@@ -139,6 +146,7 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "data");
 	RNA_def_property_ui_text(prop, "Value", "Property value");
 	RNA_def_property_range(prop, -10000, 10000);
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* GameFloatProperty */
 	srna= RNA_def_struct(brna, "GameFloatProperty", "GameProperty");
@@ -150,6 +158,7 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Value", "Property value");
 	RNA_def_property_range(prop, -10000, 10000);
 	RNA_def_property_float_funcs(prop, "rna_GameFloatProperty_value_get", "rna_GameFloatProperty_value_set", NULL);
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* GameTimerProperty */
 	srna= RNA_def_struct(brna, "GameTimerProperty", "GameProperty");
@@ -161,6 +170,7 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Value", "Property value");
 	RNA_def_property_range(prop, -10000, 10000);
 	RNA_def_property_float_funcs(prop, "rna_GameFloatProperty_value_get", "rna_GameFloatProperty_value_set", NULL);
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* GameStringProperty */
 	srna= RNA_def_struct(brna, "GameStringProperty", "GameProperty");
@@ -171,6 +181,7 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "poin");
 	RNA_def_property_string_maxlength(prop, MAX_PROPSTRING);
 	RNA_def_property_ui_text(prop, "Value", "Property value");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
 #endif
