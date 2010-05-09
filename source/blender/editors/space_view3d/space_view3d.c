@@ -57,6 +57,8 @@
 
 #include "RNA_access.h"
 
+#include "UI_resources.h"
+
 #include "view3d_intern.h"	// own include
 
 /* ******************** manage regions ********************* */
@@ -416,6 +418,10 @@ static int view3d_ima_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 		if( GS(id->name)==ID_IM )
 			return 1;
 	}
+	else if(drag->type==WM_DRAG_PATH){
+		if(ELEM(drag->icon, 0, ICON_FILE_IMAGE))	/* rule might not work? */
+			return 1;
+	}
 	return 0;
 }
 
@@ -435,8 +441,18 @@ static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
 static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	ID *id= (ID *)drag->poin;
-
+	
 	RNA_string_set(drop->ptr, "name", id->name+2);
+}
+
+static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id= (ID *)drag->poin;
+	
+	if(id)
+		RNA_string_set(drop->ptr, "name", id->name+2);
+	if(drag->path) 
+		RNA_string_set(drop->ptr, "path", drag->path);
 }
 
 
@@ -447,7 +463,7 @@ static void view3d_dropboxes(void)
 	
 	WM_dropbox_add(lb, "OBJECT_OT_add_named_cursor", view3d_ob_drop_poll, view3d_ob_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
-	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_drop_poll, view3d_id_drop_copy);
+	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_drop_poll, view3d_id_path_drop_copy);
 }
 
 

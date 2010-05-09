@@ -43,6 +43,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -319,11 +320,25 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	char name[32];
 	
 	/* check input variables */
-	RNA_string_get(op->ptr, "name", name);
-	ima= (Image *)find_id("IM", name);
-	if(base==NULL || base->object->type!=OB_MESH || ima==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Not a Mesh or no Image.");
-		return OPERATOR_CANCELLED;
+	if(RNA_property_is_set(op->ptr, "path")) {
+		char path[FILE_MAX];
+		
+		RNA_string_get(op->ptr, "path", path);
+		ima= BKE_add_image_file(path, 
+								scene ? scene->r.cfra : 1);
+		
+		if(!ima) {
+			BKE_report(op->reports, RPT_ERROR, "Not an Image.");
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		RNA_string_get(op->ptr, "name", name);
+		ima= (Image *)find_id("IM", name);
+		if(base==NULL || base->object->type!=OB_MESH || ima==NULL) {
+			BKE_report(op->reports, RPT_ERROR, "Not a Mesh or no Image.");
+			return OPERATOR_CANCELLED;
+		}
 	}
 	
 	/* turn mesh in editmode */
@@ -368,6 +383,7 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign.");
+	RNA_def_string(ot->srna, "path", "Path", FILE_MAX, "Filepath", "Path to image file");
 }
 
 static int uv_texture_remove_exec(bContext *C, wmOperator *op)

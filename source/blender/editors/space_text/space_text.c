@@ -368,6 +368,36 @@ static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 	WM_cursor_set(win, BC_TEXTEDITCURSOR);
 }
 
+
+
+/* ************* dropboxes ************* */
+
+static int text_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_PATH)
+		if(ELEM(drag->icon, 0, ICON_FILE_BLANK))	/* rule might not work? */
+			return 1;
+	return 0;
+}
+
+static void text_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	/* copy drag path to properties */
+	RNA_string_set(drop->ptr, "path", drag->path);
+}
+
+/* this region dropbox definition */
+static void text_dropboxes(void)
+{
+	ListBase *lb= WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
+	
+	WM_dropbox_add(lb, "TEXT_OT_open", text_drop_poll, text_drop_copy);
+
+}
+
+/* ************* end drop *********** */
+
+
 /****************** header region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -413,6 +443,7 @@ void ED_spacetype_text(void)
 	st->keymap= text_keymap;
 	st->listener= text_listener;
 	st->context= text_context;
+	st->dropboxes = text_dropboxes;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
