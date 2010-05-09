@@ -31,7 +31,7 @@ int Interface1D_Init( PyObject *module )
 	if( PyType_Ready( &FrsCurve_Type ) < 0 )
 		return -1;
 	Py_INCREF( &FrsCurve_Type );
-	PyModule_AddObject(module, "FrsCurve", (PyObject *)&FrsCurve_Type);
+	PyModule_AddObject(module, "Curve", (PyObject *)&FrsCurve_Type);
 
 	if( PyType_Ready( &Chain_Type ) < 0 )
 		return -1;

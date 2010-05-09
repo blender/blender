@@ -18,7 +18,7 @@ int FrsMaterial_Init( PyObject *module )
 		return -1;
 
 	Py_INCREF( &FrsMaterial_Type );
-	PyModule_AddObject(module, "FrsMaterial", (PyObject *)&FrsMaterial_Type);
+	PyModule_AddObject(module, "Material", (PyObject *)&FrsMaterial_Type);
 	return 0;
 }
 
@@ -36,7 +36,7 @@ static char FrsMaterial___doc__[] =
 "   Copy constructor.\n"
 "\n"
 "   :arg m: A Material object.\n"
-"   :type m: :class:`FrsMaterial`\n"
+"   :type m: :class:`Material`\n"
 "\n"
 ".. method:: __init__(iDiffuse, iAmbiant, iSpecular, iEmission, iShininess)\n"
 "\n"
@@ -112,7 +112,7 @@ static void FrsMaterial___dealloc__( BPy_FrsMaterial* self)
 
 static PyObject * FrsMaterial___repr__( BPy_FrsMaterial* self)
 {
-    return PyUnicode_FromFormat("FrsMaterial - address: %p", self->m );
+    return PyUnicode_FromFormat("Material - address: %p", self->m );
 }
 
 static char FrsMaterial_diffuse___doc__[] =
@@ -553,7 +553,7 @@ static PyMethodDef BPy_FrsMaterial_methods[] = {
 
 PyTypeObject FrsMaterial_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"FrsMaterial",                  /* tp_name */
+	"Material",                     /* tp_name */
 	sizeof(BPy_FrsMaterial),        /* tp_basicsize */
 	0,                              /* tp_itemsize */
 	(destructor)FrsMaterial___dealloc__, /* tp_dealloc */

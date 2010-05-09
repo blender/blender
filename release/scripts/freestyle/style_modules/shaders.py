@@ -911,7 +911,7 @@ class pySinusDisplacementShader(StrokeShader):
 class pyPerlinNoise1DShader(StrokeShader):
 	def __init__(self, freq = 10, amp = 10, oct = 4):
 		StrokeShader.__init__(self)
-		self.__noise = FrsNoise()
+		self.__noise = Noise()
 		self.__freq = freq
 		self.__amp = amp
 		self.__oct = oct
@@ -930,7 +930,7 @@ class pyPerlinNoise1DShader(StrokeShader):
 class pyPerlinNoise2DShader(StrokeShader):
 	def __init__(self, freq = 10, amp = 10, oct = 4):
 		StrokeShader.__init__(self)
-		self.__noise = FrsNoise()
+		self.__noise = Noise()
 		self.__freq = freq
 		self.__amp = amp
 		self.__oct = oct

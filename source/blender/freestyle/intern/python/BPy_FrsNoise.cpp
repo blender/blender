@@ -19,7 +19,7 @@ int FrsNoise_Init( PyObject *module )
 		return -1;
 
 	Py_INCREF( &FrsNoise_Type );
-	PyModule_AddObject(module, "FrsNoise", (PyObject *)&FrsNoise_Type);
+	PyModule_AddObject(module, "Noise", (PyObject *)&FrsNoise_Type);
 	return 0;
 }
 
@@ -49,7 +49,7 @@ static void FrsNoise___dealloc__(BPy_FrsNoise* self)
 
 static PyObject * FrsNoise___repr__(BPy_FrsNoise* self)
 {
-    return PyUnicode_FromFormat("FrsNoise - address: %p", self->n );
+    return PyUnicode_FromFormat("Noise - address: %p", self->n );
 }
 
 static char FrsNoise_turbulence1___doc__[] =
@@ -228,7 +228,7 @@ static PyMethodDef BPy_FrsNoise_methods[] = {
 
 PyTypeObject FrsNoise_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"FrsNoise",                     /* tp_name */
+	"Noise",                        /* tp_name */
 	sizeof(BPy_FrsNoise),           /* tp_basicsize */
 	0,                              /* tp_itemsize */
 	(destructor)FrsNoise___dealloc__, /* tp_dealloc */

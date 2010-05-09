@@ -35,7 +35,7 @@ int UnaryFunction0DMaterial_Init( PyObject *module ) {
 
 static char UnaryFunction0DMaterial___doc__[] =
 "Base class for unary functions (functors) that work on\n"
-":class:`Interface0DIterator` and return a :class:`FrsMaterial` object.\n"
+":class:`Interface0DIterator` and return a :class:`Material` object.\n"
 "\n"
 ".. method:: __init__()\n"
 "\n"

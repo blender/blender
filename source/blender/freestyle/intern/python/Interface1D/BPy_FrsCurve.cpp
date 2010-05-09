@@ -27,7 +27,7 @@ static char FrsCurve___doc__[] =
 "   Copy Constructor.\n"
 "\n"
 "   :arg iBrother: A FrsCurve object.\n"
-"   :type iBrother: :class:`FrsCurve`\n"
+"   :type iBrother: :class:`Curve`\n"
 "\n"
 ".. method:: __init__(iId)\n"
 "\n"
@@ -154,7 +154,7 @@ static PyMethodDef BPy_FrsCurve_methods[] = {
 
 PyTypeObject FrsCurve_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"FrsCurve",                     /* tp_name */
+	"Curve",                        /* tp_name */
 	sizeof(BPy_FrsCurve),           /* tp_basicsize */
 	0,                              /* tp_itemsize */
 	0,                              /* tp_dealloc */
