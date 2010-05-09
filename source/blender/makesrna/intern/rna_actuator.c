@@ -41,7 +41,7 @@ EnumPropertyItem actuator_type_items[] ={
 	{ACT_EDIT_OBJECT, "EDIT_OBJECT", 0, "Edit Object", ""},
 	{ACT_2DFILTER, "FILTER_2D", 0, "2D Filter", ""},
 	{ACT_GAME, "GAME", 0, "Game", ""},
-	{ACT_IPO, "IPO", 0, "IPO", ""},
+	{ACT_IPO, "F-Curve", 0, "F-Curve", ""},
 	{ACT_MESSAGE, "MESSAGE", 0, "Message", ""},
 	{ACT_OBJECT, "OBJECT", 0, "Motion", ""},
 	{ACT_PARENT, "PARENT", 0, "Parent", ""},
@@ -76,7 +76,7 @@ static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 		case ACT_OBJECT:
 			return &RNA_ObjectActuator;
 		case ACT_IPO:
-			return &RNA_IpoActuator;
+			return &RNA_FcurveActuator;
 		case ACT_CAMERA:
 			return &RNA_CameraActuator;
 		case ACT_SOUND:
@@ -290,7 +290,7 @@ static void rna_ConstraintActuator_spring_set(struct PointerRNA *ptr, float valu
 	*fp = value;
 }
 
-static void rna_IpoActuator_add_set(struct PointerRNA *ptr, int value)
+static void rna_FcurveActuator_add_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act = (bActuator *)ptr->data;
 	bIpoActuator *ia = act->data;
@@ -302,7 +302,7 @@ static void rna_IpoActuator_add_set(struct PointerRNA *ptr, int value)
 		ia->flag &= ~ACT_IPOADD;
 }
 
-static void rna_IpoActuator_force_set(struct PointerRNA *ptr, int value)
+static void rna_FcurveActuator_force_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act = (bActuator *)ptr->data;
 	bIpoActuator *ia = act->data;
@@ -705,7 +705,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
-static void rna_def_ipo_actuator(BlenderRNA *brna)
+static void rna_def_fcurve_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -720,14 +720,14 @@ static void rna_def_ipo_actuator(BlenderRNA *brna)
 		{ACT_IPO_FROM_PROP, "PROP", 0, "Property", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
-	srna= RNA_def_struct(brna, "IpoActuator", "Actuator");
-	RNA_def_struct_ui_text(srna, "IPO Actuator", "Actuator to animate the object");
+	srna= RNA_def_struct(brna, "FcurveActuator", "Actuator");
+	RNA_def_struct_ui_text(srna, "F-Curve Actuator", "Actuator to animate the object");
 	RNA_def_struct_sdna_from(srna, "bIpoActuator", "data");
 
 	prop= RNA_def_property(srna, "play_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "IPO Type", "Specify the way you want to play the animation");
+	RNA_def_property_ui_text(prop, "F-Curve Type", "Specify the way you want to play the animation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
 	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
@@ -744,7 +744,7 @@ static void rna_def_ipo_actuator(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property", "Use this property to define the Ipo position");
+	RNA_def_property_ui_text(prop, "Property", "Use this property to define the F-Curve position");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "frame_property", PROP_STRING, PROP_NONE);
@@ -754,24 +754,24 @@ static void rna_def_ipo_actuator(BlenderRNA *brna)
 	/* booleans */
 	prop= RNA_def_property(srna, "add", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOADD);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_IpoActuator_add_set");
-	RNA_def_property_ui_text(prop, "Add", "Ipo is added to the current loc/rot/scale in global or local coordinate according to Local flag");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_FcurveActuator_add_set");
+	RNA_def_property_ui_text(prop, "Add", "F-Curve is added to the current loc/rot/scale in global or local coordinate according to Local flag");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "force", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOFORCE);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_IpoActuator_force_set");
-	RNA_def_property_ui_text(prop, "Force", "Apply IPO as a global or local force depending on the local option (dynamic objects only)");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_FcurveActuator_force_set");
+	RNA_def_property_ui_text(prop, "Force", "Apply F-Curve as a global or local force depending on the local option (dynamic objects only)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
 	prop= RNA_def_property(srna, "local", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOLOCAL);
-	RNA_def_property_ui_text(prop, "L", "Let the IPO act in local coordinates, used in Force and Add mode");
+	RNA_def_property_ui_text(prop, "L", "Let the F-Curve act in local coordinates, used in Force and Add mode");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "child", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOCHILD);
-	RNA_def_property_ui_text(prop, "Child", "Update IPO on all children Objects as well");
+	RNA_def_property_ui_text(prop, "Child", "Update F-Curve on all children Objects as well");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
@@ -1814,7 +1814,7 @@ void RNA_def_actuator(BlenderRNA *brna)
 
 	rna_def_action_actuator(brna);
 	rna_def_object_actuator(brna);
-	rna_def_ipo_actuator(brna);
+	rna_def_fcurve_actuator(brna);
 	rna_def_camera_actuator(brna);
 	rna_def_sound_actuator(brna);
 	rna_def_property_actuator(brna);
