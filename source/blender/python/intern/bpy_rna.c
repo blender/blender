@@ -1864,7 +1864,7 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *er
 }
 
 static char pyrna_struct_keyframe_insert_doc[] =
-".. method:: keyframe_insert(path, index=-1, frame=bpy.context.scene.frame_current)\n"
+".. method:: keyframe_insert(path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
 "\n"
 "   Insert a keyframe on the property given, adding fcurves and animation data when necessary.\n"
 "\n"
@@ -1898,7 +1898,7 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *arg
 }
 
 static char pyrna_struct_keyframe_delete_doc[] =
-".. method:: keyframe_delete(path, index=-1, frame=bpy.context.scene.frame_current)\n"
+".. method:: keyframe_delete(path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
 "\n"
 "   Remove a keyframe from this properties fcurve.\n"
 "\n"
