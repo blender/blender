@@ -346,7 +346,6 @@ static char py_blf_load_doc[] =
 
 static PyObject *py_blf_load(PyObject *self, PyObject *args)
 {
-	int fontid = 0;
 	char* filename;
 
 	if (!PyArg_ParseTuple(args, "s:blf.load", &filename))

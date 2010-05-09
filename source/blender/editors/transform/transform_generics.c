@@ -1167,6 +1167,7 @@ static void restoreElement(TransData *td) {
 	if (td->val) {
 		*td->val = td->ival;
 	}
+
 	if (td->ext && (td->flag&TD_NO_EXT)==0) {
 		if (td->ext->rot) {
 			VECCOPY(td->ext->rot, td->ext->irot);
@@ -1188,11 +1189,23 @@ static void restoreElement(TransData *td) {
 void restoreTransObjects(TransInfo *t)
 {
 	TransData *td;
-	
+	TransData2D *td2d;
+
 	for (td = t->data; td < t->data + t->total; td++) {
 		restoreElement(td);
 	}
 	
+	for (td2d=t->data2d; t->data2d && td2d < t->data2d + t->total; td2d++) {
+		if (td2d->h1) {
+			td2d->h1[0] = td2d->ih1[0];
+			td2d->h1[1] = td2d->ih1[1];
+		}
+		if (td2d->h2) {
+			td2d->h2[0] = td2d->ih2[0];
+			td2d->h2[1] = td2d->ih2[1];
+		}
+	}
+
 	unit_m3(t->mat);
 	
 	recalcData(t);

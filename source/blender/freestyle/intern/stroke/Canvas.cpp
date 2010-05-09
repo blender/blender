@@ -38,7 +38,6 @@
 extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "intern/IMB_bmp.h"
 }
 
 using namespace std;
@@ -419,7 +418,8 @@ int rowbytes = w*4;
 	stringstream filename;
 	filename << base;
 	filename << i << ".bmp";	
-	imb_savebmp(qtmp, const_cast<char *>(filename.str().c_str()), 0);
+	qtmp->ftype= BMP;
+	IMB_saveiff(qtmp, const_cast<char *>(filename.str().c_str()), IB_rect);
 	
   }
   //  QImage *qtmp = new QImage(w, h, 32);

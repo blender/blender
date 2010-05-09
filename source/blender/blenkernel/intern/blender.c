@@ -100,7 +100,7 @@ void free_blender(void)
 
 	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
 	
-	IMB_freeImBufdata();		/* imbuf lib */
+	IMB_exit();
 	
 	free_nodesystem();	
 }

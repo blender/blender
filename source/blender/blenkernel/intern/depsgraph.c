@@ -803,7 +803,7 @@ DagNode * dag_add_node (DagForest *forest, void * fob)
 		}
 
 		if(!forest->nodeHash)
-			forest->nodeHash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+			forest->nodeHash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "dag_add_node gh");
 		BLI_ghash_insert(forest->nodeHash, fob, node);
 	}
 

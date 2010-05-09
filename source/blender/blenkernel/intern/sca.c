@@ -98,6 +98,8 @@ void init_sensor(bSensor *sens)
 	/* also use when sensor changes type */
 	bNearSensor *ns;
 	bMouseSensor *ms;
+	bJoystickSensor *js;
+	bRaySensor *rs;
 	
 	if(sens->data) MEM_freeN(sens->data);
 	sens->data= NULL;
@@ -145,12 +147,18 @@ void init_sensor(bSensor *sens)
 		break;
 	case SENS_RAY:
 		sens->data= MEM_callocN(sizeof(bRaySensor), "raysens");
+		rs = sens->data;
+		rs->range = 0.01f;
 		break;
 	case SENS_MESSAGE:
 		sens->data= MEM_callocN(sizeof(bMessageSensor), "messagesens");
 		break;
 	case SENS_JOYSTICK:
 		sens->data= MEM_callocN(sizeof(bJoystickSensor), "joysticksens");
+		js= sens->data;
+		js->hatf = SENS_JOY_HAT_UP;
+		js->axis = 1;
+		js->hat = 1;
 		break;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
@@ -383,7 +391,9 @@ void copy_actuators(ListBase *lbn, ListBase *lbo)
 void init_actuator(bActuator *act)
 {
 	/* also use when actuator changes type */
+	bCameraActuator *ca;
 	bObjectActuator *oa;
+	bRandomActuator *ra;
 	bSoundActuator *sa;
 	
 	if(act->data) MEM_freeN(act->data);
@@ -417,6 +427,8 @@ void init_actuator(bActuator *act)
 		break;
 	case ACT_CAMERA:
 		act->data= MEM_callocN(sizeof(bCameraActuator), "camact");
+		ca = act->data;
+		ca->axis = ACT_CAMERA_X;
 		break;
 	case ACT_EDIT_OBJECT:
 		act->data= MEM_callocN(sizeof(bEditObjectActuator), "editobact");
@@ -432,6 +444,8 @@ void init_actuator(bActuator *act)
 		break;
 	case ACT_RANDOM:
 		act->data= MEM_callocN(sizeof(bRandomActuator), "random act");
+		ra=act->data;
+		ra->float_arg_1 = 0.1f;
 		break;
 	case ACT_MESSAGE:
 		act->data= MEM_callocN(sizeof(bMessageActuator), "message act");

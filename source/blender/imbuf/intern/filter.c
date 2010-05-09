@@ -29,14 +29,13 @@
  * $Id$
  */
 
-#include "BLI_blenlib.h"
+#include "BKE_utildefines.h"
 
-#include "imbuf.h"
-#include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_filter.h"
 
+#include "imbuf.h"
 
 /************************************************************************/
 /*				FILTERS					*/
@@ -375,17 +374,97 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
 {
 	ImBuf *hbuf = ibuf;
 	int curmap = 0;
-	while (curmap < IB_MIPMAP_LEVELS) {
-		if (use_filter) {
+
+	ibuf->miptot= 1;
+
+	while(curmap < IB_MIPMAP_LEVELS) {
+		if(use_filter) {
 			ImBuf *nbuf= IMB_allocImBuf(hbuf->x, hbuf->y, 32, IB_rect, 0);
 			IMB_filterN(nbuf, hbuf);
 			ibuf->mipmap[curmap] = IMB_onehalf(nbuf);
 			IMB_freeImBuf(nbuf);
 		}
-		else ibuf->mipmap[curmap] = IMB_onehalf(hbuf);
-		hbuf = ibuf->mipmap[curmap];
-		if (hbuf->x == 1 && hbuf->y == 1) break;
+		else
+			ibuf->mipmap[curmap] = IMB_onehalf(hbuf);
+
+		ibuf->miptot= curmap+2;
+		hbuf= ibuf->mipmap[curmap];
+		hbuf->miplevel= curmap+1;
+
+		if(!hbuf || (hbuf->x == 1 && hbuf->y == 1))
+			break;
+
 		curmap++;
 	}
+}
+
+ImBuf *IMB_getmipmap(ImBuf *ibuf, int level)
+{
+	CLAMP(level, 0, ibuf->miptot-1);
+	return (level == 0)? ibuf: ibuf->mipmap[level-1];
+}
+
+void IMB_premultiply_rect(unsigned int *rect, int depth, int w, int h)
+{
+	char *cp;
+	int x, y, val;
+
+	if(depth == 24) {	/* put alpha at 255 */
+		cp= (char *)(rect);
+
+		for(y=0; y<h; y++)
+			for(x=0; x<w; x++, cp+=4)
+				cp[3]= 255;
+	}
+	else {
+		cp= (char *)(rect);
+
+		for(y=0; y<h; y++) {
+			for(x=0; x<w; x++, cp+=4) {
+				val= cp[3];
+				cp[0]= (cp[0]*val)>>8;
+				cp[1]= (cp[1]*val)>>8;
+				cp[2]= (cp[2]*val)>>8;
+			}
+		}
+	}
+}
+
+void IMB_premultiply_rect_float(float *rect_float, int depth, int w, int h)
+{
+	float val, *cp;
+	int x, y;
+
+	if(depth==24) {	/* put alpha at 1.0 */
+		cp= rect_float;
+
+		for(y=0; y<h; y++)
+			for(x=0; x<w; x++, cp+=4)
+				cp[3]= 1.0;
+	}
+	else {
+		cp= rect_float;
+		for(y=0; y<h; y++) {
+			for(x=0; x<w; x++, cp+=4) {
+				val= cp[3];
+				cp[0]= cp[0]*val;
+				cp[1]= cp[1]*val;
+				cp[2]= cp[2]*val;
+			}
+		}
+	}
+
+}
+
+void IMB_premultiply_alpha(ImBuf *ibuf)
+{
+	if(ibuf==NULL)
+		return;
+
+	if(ibuf->rect)
+		IMB_premultiply_rect(ibuf->rect, ibuf->depth, ibuf->x, ibuf->y);
+
+	if(ibuf->rect_float)
+		IMB_premultiply_rect_float(ibuf->rect_float, ibuf->depth, ibuf->x, ibuf->y);
 }
 

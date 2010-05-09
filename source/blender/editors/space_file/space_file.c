@@ -364,6 +364,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_directory_new);
 	WM_operatortype_append(FILE_OT_delete);
 	WM_operatortype_append(FILE_OT_rename);
+	WM_operatortype_append(FILE_OT_smoothscroll);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -408,6 +409,7 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	RNA_int_set(kmi->ptr, "increment", -10);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	RNA_int_set(kmi->ptr, "increment",-100);
+	WM_keymap_verify_item(keymap, "FILE_OT_smoothscroll", TIMER1, KM_ANY, KM_ANY, 0);
 	
 	/* keys for button area (top) */
 	keymap= WM_keymap_find(keyconf, "File Browser Buttons", SPACE_FILE, 0);

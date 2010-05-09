@@ -382,11 +382,13 @@ class SEQUENCER_PT_preview(bpy.types.Panel):
         col.active = render.use_sequencer_gl_preview
         col.prop(render, "sequencer_gl_preview", text="")
 
+        '''
         col = layout.column()
         col.prop(render, "use_sequencer_gl_render", text="Open GL Render")
         col = layout.column()
         col.active = render.use_sequencer_gl_render
         col.prop(render, "sequencer_gl_render", text="")
+        '''
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel):

@@ -1021,8 +1021,8 @@ static int multires_save_external_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	RNA_string_get(op->ptr, "path", path);
-	if(G.save_over)
-		BLI_path_rel(path, G.sce);
+
+	/* BLI_path_rel(path, G.sce); */ /* TODO, relative path operator option */
 
 	CustomData_external_add(&me->fdata, &me->id, CD_MDISPS, me->totface, path);
 	CustomData_external_write(&me->fdata, &me->id, CD_MASK_MESH, me->totface, 0);

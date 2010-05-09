@@ -222,9 +222,6 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 	Sequence *seq;
 	int desel = 0;
 
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
-
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if(seq->flag & SEQ_ALLSEL) {
 			desel= 1;
@@ -256,8 +253,7 @@ void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_deselect_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -270,9 +266,6 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
-
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if (seq->flag & SELECT) {
@@ -298,8 +291,7 @@ void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_inverse_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -617,7 +609,7 @@ void SEQUENCER_OT_select_more(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_more_exec;
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -648,7 +640,7 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_less_exec;
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -699,7 +691,7 @@ void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select pick linked";
 	ot->idname= "SEQUENCER_OT_select_linked_pick";
-	ot->description="DOC_BROKEN";
+	ot->description="Select a chain of linked strips nearest to the mouse pointer";
 	
 	/* api callbacks */
 	ot->invoke= sequencer_select_linked_pick_invoke;
@@ -738,7 +730,7 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_linked_exec;
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -755,8 +747,6 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 	Sequence *seq;
 	int sel_side= RNA_enum_get(op->ptr, "side");
 
-	if (ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if (seq->flag & SELECT) {
@@ -786,11 +776,11 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Handles";
 	ot->idname= "SEQUENCER_OT_select_handles";
-	ot->description="DOC_BROKEN";
+	ot->description="Select manipulator handles on the sides of the selected strip";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_handles_exec;
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -827,7 +817,7 @@ void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_active_side_exec;
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

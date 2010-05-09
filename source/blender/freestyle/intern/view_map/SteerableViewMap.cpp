@@ -33,7 +33,6 @@ using namespace Geometry;
 extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "intern/IMB_png.h"
 }
 
 SteerableViewMap::SteerableViewMap(unsigned int nbOrientations){
@@ -241,8 +240,8 @@ void SteerableViewMap::saveSteerableViewMap() const {
       //soc qtmp.save(base+QString::number(i)+"-"+QString::number(j)+".png", "PNG");
 	filename << base;
 	filename << i << "-" << j << ".png";
-	
-	imb_savepng(ibuf, const_cast<char *>(filename.str().c_str()), 0);
+	ibuf->ftype= PNG;
+	IMB_saveiff(ibuf, const_cast<char *>(filename.str().c_str()), IB_rect);
 	
     }
     //    QString base("SteerableViewMap");

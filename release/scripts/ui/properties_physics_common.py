@@ -73,6 +73,8 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
             sub.prop(cache, "disk_cache")
             col.label(text=cache.info)
 
+            sub = col.column()
+            sub.prop(cache, "use_library_path", "Use Lib Path")
 
         layout.separator()
 

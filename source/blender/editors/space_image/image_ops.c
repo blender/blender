@@ -964,7 +964,12 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if(ibuf->name[0]==0)
 			BLI_strncpy(ibuf->name, G.ima, FILE_MAX);
-		
+
+		/* enable save_copy by default for render results */
+		if(ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE) && !RNA_property_is_set(op->ptr, "copy")) {
+			RNA_boolean_set(op->ptr, "copy", TRUE);
+		}
+
 		// XXX note: we can give default menu enums to operator for this 
 		image_filesel(C, op, ibuf->name);
 

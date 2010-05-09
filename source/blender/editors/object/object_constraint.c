@@ -496,7 +496,7 @@ static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Ob
 	char constraint_name[32];
 	int owner = RNA_enum_get(op->ptr, "owner");
 	bConstraint *con;
-	ListBase *list;
+	ListBase *list=NULL;
 	
 	RNA_string_get(op->ptr, "constraint", constraint_name);
 	
@@ -609,6 +609,7 @@ void CONSTRAINT_OT_limitdistance_reset (wmOperatorType *ot)
 }
 
 /* ------------- Child-Of Constraint ------------------ */
+
 /* ChildOf Constraint - set inverse callback */
 static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 {

@@ -173,7 +173,7 @@ static void rna_Main_script_begin(CollectionPropertyIterator *iter, PointerRNA *
 	rna_iterator_listbase_begin(iter, &bmain->script, NULL);
 }
 
-static void rna_Main_vfont_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_font_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->vfont, NULL);
@@ -271,6 +271,7 @@ void RNA_def_main(BlenderRNA *brna)
 	PropertyRNA *prop;
 	CollectionDefFunc *func;
 
+	/* plural must match idtypes in readblenentry.c */
 	MainCollectionDef lists[]= {
 		{"cameras", "Camera", "rna_Main_camera_begin", "Cameras", "Camera datablocks.", RNA_def_main_cameras},
 		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks.", RNA_def_main_scenes},
@@ -286,7 +287,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"lattices", "Lattice", "rna_Main_latt_begin", "Lattices", "Lattice datablocks.", RNA_def_main_lattices},
 		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks.", RNA_def_main_curves} ,
 		{"metaballs", "MetaBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks.", RNA_def_main_metaballs},
-		{"vfonts", "VectorFont", "rna_Main_vfont_begin", "Vector Fonts", "Vector font datablocks.", RNA_def_main_vfonts},
+		{"fonts", "VectorFont", "rna_Main_font_begin", "Vector Fonts", "Vector font datablocks.", RNA_def_main_fonts},
 		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks.", RNA_def_main_textures},
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks.", RNA_def_main_brushes},
 		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks.", RNA_def_main_worlds},

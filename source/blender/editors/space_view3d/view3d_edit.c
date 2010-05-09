@@ -1893,7 +1893,8 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 					if(v3d->camera==NULL) {
 						v3d->camera= scene_find_camera(scene);
-						/*handle_view3d_lock();*/
+						if (v3d->camera == NULL)
+							return OPERATOR_CANCELLED;
 					}
 					rv3d->persp= RV3D_CAMOB;
 					smooth_view(C, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);

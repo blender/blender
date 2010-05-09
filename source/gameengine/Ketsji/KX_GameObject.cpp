@@ -1355,12 +1355,9 @@ static int mathutils_kxgameob_vector_set(BaseMathObject *bmo, int subtype)
 
 static int mathutils_kxgameob_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
-	float f[4];
 	/* lazy, avoid repeteing the case statement */
 	if(!mathutils_kxgameob_vector_get(bmo, subtype))
 		return 0;
-	
-	bmo->data[index]= f[index];
 	return 1;
 }
 

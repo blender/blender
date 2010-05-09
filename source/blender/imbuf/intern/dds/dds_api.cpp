@@ -31,13 +31,12 @@
 extern "C" {
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
 
 
-short imb_save_dds(struct ImBuf * ibuf, char *name, int flags)
+int imb_save_dds(struct ImBuf * ibuf, char *name, int flags)
 {
 	return(0); /* todo: finish this function */
 
@@ -77,6 +76,9 @@ struct ImBuf *imb_load_dds(unsigned char *mem, int size, int flags)
 	unsigned char *cp = (unsigned char *) &col;
 	Color32 pixel;
 	Color32 *pixels = 0;
+
+	if(!imb_is_a_dds(mem))
+		return (0);
 
 	/* check if DDS is valid and supported */
 	if (!dds.isValid()) {

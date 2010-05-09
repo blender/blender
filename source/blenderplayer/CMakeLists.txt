@@ -81,10 +81,11 @@ IF(UNIX)
 		bf_oglrasterizer 
 		bf_expressions 
 		bf_scenegraph
-        bf_ikplugin
-        bf_ITASC
-        bf_IK
-        bf_smoke
+        	bf_ikplugin
+        	bf_ITASC
+        	bf_IK
+        	bf_smoke
+		bf_modifiers
 		bf_moto 
 		bf_kernel 
 		bf_nodes
@@ -115,7 +116,7 @@ IF(UNIX)
 	)
   
 	IF(WITH_QUICKTIME)
-		SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} quicktime)
+		SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_quicktime)
 	ENDIF(WITH_QUICKTIME)
 
 	IF(WITH_CXX_GUARDEDALLOC)

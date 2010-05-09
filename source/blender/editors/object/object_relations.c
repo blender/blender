@@ -1266,6 +1266,7 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
 	RNA_def_enum_funcs(prop, RNA_scene_local_itemf);
+	ot->prop= prop;
 }
 
 void OBJECT_OT_make_links_data(wmOperatorType *ot)

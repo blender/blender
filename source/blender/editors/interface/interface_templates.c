@@ -940,77 +940,6 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 	ED_object_constraint_set_active(ob_v, con_v);
 }
 
-
-/* some commonly used macros in the constraints drawing code */
-#define is_armature_target(target) (target && target->type==OB_ARMATURE)
-#define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE))
-#define is_geom_target(target) (target && (ELEM(target->type, OB_MESH, OB_LATTICE)) )
-
-/* Helper function for draw constraint - draws constraint space stuff 
- * This function should not be called if no menus are required 
- * owner/target: -1 = don't draw menu; 0= not posemode, 1 = posemode 
- */
-static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short xco, short yco, short owner, short target)
-{
-	short tarx, ownx, iconx;
-	short bwidth;
-	short iconwidth = 20;
-	
-	/* calculate sizes and placement of menus */
-	if (owner == -1) {
-		bwidth = 125;
-		tarx = 120;
-		ownx = 0;
-	}
-	else if (target == -1) {
-		bwidth = 125;
-		tarx = 0;
-		ownx = 120;
-	}
-	else {
-		bwidth = 100;
-		tarx = 85;
-		iconx = tarx + bwidth + 5;
-		ownx = tarx + bwidth + iconwidth + 10;
-	}
-	
-	
-	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Convert:", xco, yco, 80,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
-	/* Target-Space */
-	if (target == 1) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
-												tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
-	}
-	else if (target == 0) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
-										tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
-	}
-	
-	if ((target != -1) && (owner != -1))
-		uiDefIconBut(block, LABEL, 0, ICON_ARROW_LEFTRIGHT,
-			iconx, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "");
-	
-	/* Owner-Space */
-	if (owner == 1) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
-												ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
-	}
-	else if (owner == 0) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Local (Without Parent) Space %x1", 
-										ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
-	}
-}
-
-static void test_obpoin_but(bContext *C, char *name, ID **idpp)
-{
-	ID *id= BLI_findstring(&CTX_data_main(C)->object, name, offsetof(ID, name) + 2);
-	*idpp= id; /* can be NULL */
-	
-	if(id)
-		id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
-}
-
 /* draw panel showing settings for a constraint */
 static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 {
@@ -1018,7 +947,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	bConstraintTypeInfo *cti;
 	uiBlock *block;
 	uiLayout *result= NULL, *col, *box, *row, *subrow;
-	uiBut *but;
 	PointerRNA ptr;
 	char typestr[32];
 	short width = 265;
@@ -1059,7 +987,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	block= uiLayoutGetBlock(box);
 
 	subrow= uiLayoutRow(row, 0);
-	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
+	//uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
 
 	/* Draw constraint header */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -1085,7 +1013,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		uiItemL(subrow, con->name, 0);
 
 	subrow= uiLayoutRow(row, 0);
-	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
+	//uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
 	
 	/* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
 	if (proxy_protected) {
@@ -1143,109 +1071,19 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	/* Set but-locks for protected settings (magic numbers are used here!) */
 	if (proxy_protected)
 		uiBlockSetButLock(block, 1, "Cannot edit Proxy-Protected Constraint");
-	
+
+		
 	/* Draw constraint data */
+	
 	if ((con->flag & CONSTRAINT_EXPAND) == 0) {
 		(yco) -= 21;
 	}
 	else {
 		box= uiLayoutBox(col);
 		block= uiLayoutAbsoluteBlock(box);
-
-		switch (con->type) {
-#ifndef DISABLE_PYTHON
-		case CONSTRAINT_TYPE_PYTHON:
-			{
-				bPythonConstraint *data = con->data;
-				bConstraintTarget *ct;
-				// uiBut *but2;
-				int tarnum, theight;
-				// static int pyconindex=0;
-				// char *menustr;
-				
-				theight = (data->tarnum)? (data->tarnum * 38) : (38);
-				
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Script:", xco+60, yco-24, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
-				/* do the scripts menu */
-				/* XXX menustr = buildmenu_pyconstraints(data->text, &pyconindex);
-				but2 = uiDefButI(block, MENU, B_CONSTRAINT_TEST, menustr,
-					  xco+120, yco-24, 150, 20, &pyconindex,
-					  0, 0, 0, 0, "Set the Script Constraint to use");
-				uiButSetFunc(but2, validate_pyconstraint_cb, data, &pyconindex);
-				MEM_freeN(menustr);	 */
-				
-				/* draw target(s) */
-				if (data->flag & PYCON_USETARGETS) {
-					/* Draw target parameters */ 
-					for (ct=data->targets.first, tarnum=1; ct; ct=ct->next, tarnum++) {
-						char tarstr[32];
-						short yoffset= ((tarnum-1) * 38);
-	
-						/* target label */
-						sprintf(tarstr, "Target %d:", tarnum);
-						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, xco+45, yco-(48+yoffset), 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-						
-						/* target space-selector - per target */
-						if (is_armature_target(ct->tar)) {
-							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
-															xco+10, yco-(66+yoffset), 100, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
-						}
-						else {
-							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
-															xco+10, yco-(66+yoffset), 100, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
-						}
-						
-						uiBlockBeginAlign(block);
-							/* target object */
-							uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", xco+120, yco-(48+yoffset), 150, 18, &ct->tar, "Target Object"); 
-							
-							/* subtarget */
-							if (is_armature_target(ct->tar)) {
-								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco+120, yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-								//uiButSetCompleteFunc(but, autocomplete_bone, (void *)ct->tar);
-							}
-							else if (is_geom_target(ct->tar)) {
-								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", xco+120, yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-								//uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ct->tar);
-							}
-							else {
-								strcpy(ct->subtarget, "");
-							}
-						uiBlockEndAlign(block);
-					}
-				}
-				else {
-					/* Draw indication that no target needed */
-					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", xco+60, yco-48, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Not Applicable", xco+120, yco-48, 150, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				}
-				
-				/* settings */
-				uiBlockBeginAlign(block);
-					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Options", xco, yco-(52+theight), (width/2),18, NULL, 0, 24, 0, 0, "Change some of the constraint's settings.");
-					// XXX uiButSetFunc(but, BPY_pyconstraint_settings, data, NULL);
-					
-					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Refresh", xco+((width/2)+10), yco-(52+theight), (width/2),18, NULL, 0, 24, 0, 0, "Force constraint to refresh it's settings");
-				uiBlockEndAlign(block);
-				
-				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, xco, yco-(73+theight), is_armature_owner(ob), -1);
-			}
-			break;
-#endif 
-
-		case CONSTRAINT_TYPE_NULL:
-			{
-				uiItemL(box, "", 0);
-			}
-			break;
-		default:
-			result= box;
-			break;
+		result= box;
 		}
-	}
-	
+
 	/* clear any locks set up for proxies/lib-linking */
 	uiBlockClearButLock(block);
 

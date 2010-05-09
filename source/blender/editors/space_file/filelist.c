@@ -375,7 +375,7 @@ void filelist_init_icons()
 	short x, y, k;
 	ImBuf *bbuf;
 	ImBuf *ibuf;
-	bbuf = IMB_ibImageFromMemory((int *)datatoc_prvicons, datatoc_prvicons_size, IB_rect);
+	bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_prvicons, datatoc_prvicons_size, IB_rect);
 	if (bbuf) {
 		for (y=0; y<SPECIAL_IMG_ROWS; y++) {
 			for (x=0; x<SPECIAL_IMG_COLS; x++) {
@@ -850,6 +850,7 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".psd")
 				||	BLI_testextensie(file->relname, ".tif")
 				||	BLI_testextensie(file->relname, ".tiff")
+				||	BLI_testextensie(file->relname, ".tx")
 				||	BLI_testextensie(file->relname, ".pct")
 				||	BLI_testextensie(file->relname, ".pict")
 				||	BLI_testextensie(file->relname, ".pntg") //macpaint
@@ -913,6 +914,7 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".iff")
 				||	BLI_testextensie(file->relname, ".tif")
 				||	BLI_testextensie(file->relname, ".tiff")
+				||	BLI_testextensie(file->relname, ".tx")
 				||	BLI_testextensie(file->relname, ".hdr")
 #ifdef WITH_DDS
 				||	BLI_testextensie(file->relname, ".dds")

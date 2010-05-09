@@ -1,6 +1,4 @@
 /*
- * IMB_png.h
- *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -19,30 +17,24 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation, 2010.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/**
- * \file IMB_png.h
- * \ingroup imbuf
- * \brief Function declarations for png.c
- */
 
-#ifndef IMB_PNG_H
-#define IMB_PNG_H
+#include "IMB_imbuf.h"
+#include "IMB_filetype.h"
 
-struct ImBuf;
+void IMB_init(void)
+{
+	imb_filetypes_init();
+	imb_tile_cache_init();
+}
 
-int imb_is_a_png(void *buf);
-struct ImBuf *imb_loadpng(unsigned char *mem, int size, int flags);
-
-short imb_savepng(struct ImBuf *ibuf, char *name, int flags);
-
-#endif
+void IMB_exit(void)
+{
+	IMB_free_cache_limiter();
+	imb_tile_cache_exit();
+	imb_filetypes_exit();
+}
 

@@ -105,13 +105,6 @@
 ((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || \
 	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
 
-#define CHECK_OB_DRAWFACEDOT(sce, vd, dt) \
-(	(sce->toolsettings->selectmode & SCE_SELECT_FACE) && \
-	(vd->drawtype<=OB_SOLID) && \
-	(G.f & G_BACKBUFSEL)==0 && \
-	(((vd->drawtype==OB_SOLID) && (dt>=OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX) && (vd->flag & V3D_ZBUF_SELECT)) == 0) \
-	)
-
 static void draw_bounding_volume(Scene *scene, Object *ob);
 
 static void drawcube_size(float size);
@@ -119,6 +112,26 @@ static void drawcircle_size(float size);
 static void draw_empty_sphere(float size);
 static void draw_empty_cone(float size);
 
+static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
+{
+	if((sce->toolsettings->selectmode & SCE_SELECT_FACE) == 0)
+		return 0;
+
+	if(G.f & G_BACKBUFSEL)
+		return 0;
+
+	if((vd->flag & V3D_ZBUF_SELECT) == 0)
+		return 1;
+
+	/* if its drawing textures with zbuf sel, then dont draw dots */
+	if(dt==OB_TEXTURE && vd->drawtype==OB_TEXTURE)
+		return 0;
+
+	if(vd->drawtype>=OB_SOLID && vd->flag2 & V3D_SOLID_TEX)
+		return 0;
+
+	return 1;
+}
 
 /* ************* only use while object drawing **************
  * or after running ED_view3d_init_mats_rv3d
@@ -1980,7 +1993,7 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, EditM
 				draw_dm_verts(cageDM, sel, eve_act);
 			}
 			
-			if( CHECK_OB_DRAWFACEDOT(scene, v3d, obedit->dt) ) {
+			if(check_ob_drawface_dot(scene, v3d, obedit->dt)) {
 				glPointSize(fsize);
 				glColor4ubv((GLubyte *)fcol);
 				draw_dm_face_centers(cageDM, sel);
@@ -6293,7 +6306,7 @@ static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh
 	if (facecol) {
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(intptr_t) 1, 0);
 
-		if( CHECK_OB_DRAWFACEDOT(scene, v3d, ob->dt) ) {
+		if(check_ob_drawface_dot(scene, v3d, ob->dt)) {
 			glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
 		
 			bglBegin(GL_POINTS);

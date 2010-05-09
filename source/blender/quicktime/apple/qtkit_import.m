@@ -376,7 +376,11 @@ int imb_is_a_quicktime (char *name)
 {
 	NSImage *image;
 	int result;
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool *pool;
+	
+	if(!G.have_quicktime) return 0;
+
+	pool = [[NSAutoreleasePool alloc] init];
 	
 	// dont let quicktime image import handle these
 	if( BLI_testextensie(name, ".swf") ||
@@ -412,6 +416,9 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	NSBitmapImageRep *bitmapImage;
 	NSBitmapImageRep *blBitmapFormatImageRGB,*blBitmapFormatImageRGBA;
 	NSAutoreleasePool *pool;
+
+	if(!G.have_quicktime)
+		return NULL;
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	

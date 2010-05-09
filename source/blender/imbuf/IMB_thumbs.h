@@ -53,7 +53,7 @@ typedef enum ThumbSource {
 	THB_SOURCE_MOVIE
 } ThumbSource;
 
-// IB_imginfo
+// IB_metadata
 
 /* create thumbnail for file and returns new imbuf for thumbnail */
 ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source);

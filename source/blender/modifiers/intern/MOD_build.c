@@ -82,10 +82,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	GHashIterator *hashIter;
 	/* maps vert indices in old mesh to indices in new mesh */
 	GHash *vertHash = BLI_ghash_new(BLI_ghashutil_inthash,
-					BLI_ghashutil_intcmp);
+					BLI_ghashutil_intcmp, "build ve apply gh");
 	/* maps edge indices in new mesh to indices in old mesh */
 	GHash *edgeHash = BLI_ghash_new(BLI_ghashutil_inthash,
-					BLI_ghashutil_intcmp);
+					BLI_ghashutil_intcmp, "build ed apply gh");
 
 	maxVerts = dm->getNumVerts(dm);
 	vertMap = MEM_callocN(sizeof(*vertMap) * maxVerts,

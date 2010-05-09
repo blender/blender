@@ -594,7 +594,7 @@ void RNA_def_main_metaballs(BlenderRNA *brna, PropertyRNA *cprop)
 {
 
 }
-void RNA_def_main_vfonts(BlenderRNA *brna, PropertyRNA *cprop)
+void RNA_def_main_fonts(BlenderRNA *brna, PropertyRNA *cprop)
 {
 
 }

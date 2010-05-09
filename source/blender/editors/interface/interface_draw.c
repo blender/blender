@@ -469,7 +469,7 @@ void ui_draw_but_IMAGE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	//int w, h;
 	
 	/* hardcoded to splash, loading and freeing every draw, eek! */
-	ibuf= IMB_ibImageFromMemory((int *)datatoc_splash_png, datatoc_splash_png_size, IB_rect);
+	ibuf= IMB_ibImageFromMemory((unsigned char*)datatoc_splash_png, datatoc_splash_png_size, IB_rect);
 
 	if (!ibuf) return;
 	
@@ -969,7 +969,7 @@ float polar_to_y(float center, float diam, float ampli, float angle)
 void vectorscope_draw_target(float centerx, float centery, float diam, float r, float g, float b)
 {
 	float y,u,v;
-	float tangle, tampli;
+	float tangle=0.f, tampli;
 	float dangle, dampli, dangle2, dampli2;
 
 	rgb_to_yuv(r,g,b, &y, &u, &v);
@@ -1088,8 +1088,12 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti
 
 	glTranslatef(centerx, centery, 0.f);
 	glScalef(diam, diam, 0.f);
-	glVertexPointer(2, GL_FLOAT, 0, scopes->vecscope);
-	glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+
+	/*apparently this can sometimes be NULL? - joeedh*/
+	if (scopes) {
+		glVertexPointer(2, GL_FLOAT, 0, scopes->vecscope);
+		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+	}
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glPopMatrix();
