@@ -241,7 +241,7 @@ void SteerableViewMap::saveSteerableViewMap() const {
 	filename << base;
 	filename << i << "-" << j << ".png";
 	ibuf->ftype= PNG;
-	IMB_saveiff(ibuf, const_cast<char *>(filename.str().c_str()), IB_rect);
+	IMB_saveiff(ibuf, const_cast<char *>(filename.str().c_str()), 0);
 	
     }
     //    QString base("SteerableViewMap");

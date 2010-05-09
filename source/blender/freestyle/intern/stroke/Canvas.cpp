@@ -419,7 +419,7 @@ int rowbytes = w*4;
 	filename << base;
 	filename << i << ".bmp";	
 	qtmp->ftype= BMP;
-	IMB_saveiff(qtmp, const_cast<char *>(filename.str().c_str()), IB_rect);
+	IMB_saveiff(qtmp, const_cast<char *>(filename.str().c_str()), 0);
 	
   }
   //  QImage *qtmp = new QImage(w, h, 32);
