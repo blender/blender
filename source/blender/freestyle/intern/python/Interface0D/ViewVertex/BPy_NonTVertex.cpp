@@ -97,7 +97,6 @@ static PyObject * NonTVertex_setSVertex( BPy_NonTVertex *self, PyObject *args) {
 
 /*----------------------NonTVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_NonTVertex_methods[] = {	
-//	{"__copy__", ( PyCFunction ) NonTVertex___copy__, METH_NOARGS, "() Cloning method."},
 	{"svertex", ( PyCFunction ) NonTVertex_svertex, METH_NOARGS, NonTVertex_svertex___doc__},
 	{"setSVertex", ( PyCFunction ) NonTVertex_setSVertex, METH_VARARGS, NonTVertex_setSVertex___doc__},
 	{NULL, NULL, 0, NULL}

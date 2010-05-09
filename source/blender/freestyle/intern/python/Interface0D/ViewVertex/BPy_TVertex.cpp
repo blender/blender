@@ -188,7 +188,6 @@ static PyObject * TVertex_mate( BPy_TVertex *self, PyObject *args) {
 
 /*----------------------TVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_TVertex_methods[] = {	
-//	{"__copy__", ( PyCFunction ) TVertex___copy__, METH_NOARGS, "() Cloning method."},
 	{"frontSVertex", ( PyCFunction ) TVertex_frontSVertex, METH_NOARGS, TVertex_frontSVertex___doc__},
 	{"backSVertex", ( PyCFunction ) TVertex_backSVertex, METH_NOARGS, TVertex_backSVertex___doc__},
 	{"setFrontSVertex", ( PyCFunction ) TVertex_setFrontSVertex, METH_VARARGS, TVertex_setFrontSVertex___doc__},

@@ -70,18 +70,6 @@ static int SVertex___init__(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static PyObject * SVertex___copy__( BPy_SVertex *self ) {
-	BPy_SVertex *py_svertex;
-	
-	py_svertex = (BPy_SVertex *) SVertex_Type.tp_new( &SVertex_Type, 0, 0 );
-	
-	py_svertex->sv = self->sv->duplicate();
-	py_svertex->py_if0D.if0D = py_svertex->sv;
-	py_svertex->py_if0D.borrowed = 0;
-
-	return (PyObject *) py_svertex;
-}
-
 static char SVertex_normals___doc__[] =
 ".. method:: normals()\n"
 "\n"
@@ -252,7 +240,6 @@ static PyObject *SVertex_AddFEdge( BPy_SVertex *self , PyObject *args) {
 
 /*----------------------SVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_SVertex_methods[] = {
-	{"__copy__", ( PyCFunction ) SVertex___copy__, METH_NOARGS, "() Cloning method."},
 	{"normals", ( PyCFunction ) SVertex_normals, METH_NOARGS, SVertex_normals___doc__},
 	{"normalsSize", ( PyCFunction ) SVertex_normalsSize, METH_NOARGS, SVertex_normalsSize___doc__},
 	{"viewvertex", ( PyCFunction ) SVertex_viewvertex, METH_NOARGS, SVertex_viewvertex___doc__},

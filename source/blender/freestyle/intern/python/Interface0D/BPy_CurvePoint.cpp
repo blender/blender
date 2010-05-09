@@ -100,18 +100,6 @@ static int CurvePoint___init__(BPy_CurvePoint *self, PyObject *args, PyObject *k
 	return 0;
 }
 
-static PyObject * CurvePoint___copy__( BPy_CurvePoint *self ) {
-	BPy_CurvePoint *py_cp;
-	
-	py_cp = (BPy_CurvePoint *) CurvePoint_Type.tp_new( &CurvePoint_Type, 0, 0 );
-	
-	py_cp->cp = new CurvePoint( *(self->cp) );
-	py_cp->py_if0D.if0D = py_cp->cp;
-	py_cp->py_if0D.borrowed = 0;
-
-	return (PyObject *) py_cp;
-}
-
 static char CurvePoint_A___doc__[] =
 ".. method:: A()\n"
 "\n"
@@ -229,7 +217,6 @@ static PyObject *CurvePoint_curvatureFredo( BPy_CurvePoint *self , PyObject *arg
 
 /*----------------------CurvePoint instance definitions ----------------------------*/
 static PyMethodDef BPy_CurvePoint_methods[] = {	
-	{"__copy__", ( PyCFunction ) CurvePoint___copy__, METH_NOARGS, "() Cloning method."},
 	{"A", ( PyCFunction ) CurvePoint_A, METH_NOARGS, CurvePoint_A___doc__},
 	{"B", ( PyCFunction ) CurvePoint_B, METH_NOARGS, CurvePoint_B___doc__},
 	{"t2d", ( PyCFunction ) CurvePoint_t2d, METH_NOARGS, CurvePoint_t2d___doc__},

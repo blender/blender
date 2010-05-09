@@ -72,19 +72,6 @@ static int FEdge___init__(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-
-static PyObject * FEdge___copy__( BPy_FEdge *self ) {
-	BPy_FEdge *py_fe;
-	
-	py_fe = (BPy_FEdge *) FEdge_Type.tp_new( &FEdge_Type, 0, 0 );
-	
-	py_fe->fe = new FEdge( *(self->fe) );
-	py_fe->py_if1D.if1D = py_fe->fe;
-	py_fe->py_if1D.borrowed = 0;
-
-	return (PyObject *) py_fe;
-}
-
 static char FEdge_vertexA___doc__[] =
 ".. method:: vertexA()\n"
 "\n"
@@ -359,7 +346,6 @@ static PyObject *FEdge_setSmooth( BPy_FEdge *self , PyObject *args) {
 /*----------------------FEdge instance definitions ----------------------------*/
 
 static PyMethodDef BPy_FEdge_methods[] = {	
-	{"__copy__", ( PyCFunction ) FEdge___copy__, METH_NOARGS, "() Cloning method."},
 	{"vertexA", ( PyCFunction ) FEdge_vertexA, METH_NOARGS, FEdge_vertexA___doc__},
 	{"vertexB", ( PyCFunction ) FEdge_vertexB, METH_NOARGS, FEdge_vertexB___doc__},
 	{"__getitem__", ( PyCFunction ) FEdge___getitem__, METH_VARARGS, "(int i) Returns the first SVertex if i=0, the seccond SVertex if i=1."},

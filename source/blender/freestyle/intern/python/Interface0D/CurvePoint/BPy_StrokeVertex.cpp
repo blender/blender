@@ -333,7 +333,6 @@ static PyObject *StrokeVertex_setStrokeLength( BPy_StrokeVertex *self , PyObject
 
 /*----------------------StrokeVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_StrokeVertex_methods[] = {	
-//	{"__copy__", ( PyCFunction ) StrokeVertex___copy__, METH_NOARGS, "() Cloning method."},
 	{"x", ( PyCFunction ) StrokeVertex_x, METH_NOARGS, StrokeVertex_x___doc__},
 	{"y", ( PyCFunction ) StrokeVertex_y, METH_NOARGS, StrokeVertex_y___doc__},
 	{"getPoint", ( PyCFunction ) StrokeVertex_getPoint, METH_NOARGS, StrokeVertex_getPoint___doc__},
