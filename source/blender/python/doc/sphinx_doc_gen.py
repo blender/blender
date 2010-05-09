@@ -669,6 +669,9 @@ if __name__ == '__main__':
         # only for partial updates
         path_in_tmp = path_in + "-tmp"
 
+        if not os.path.exists(path_in):
+            os.mkdir(path_in)
+
         for f in os.listdir(path_examples):
             if f.endswith(".py"):
                 EXAMPLE_SET.add(os.path.splitext(f)[0])
