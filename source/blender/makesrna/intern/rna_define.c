@@ -2750,7 +2750,7 @@ int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *ide
 				return 1;
 			}
 			else {
-				return 0;
+				return -1;
 			}
 		}
 	}
