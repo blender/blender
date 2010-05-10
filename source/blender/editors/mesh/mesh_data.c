@@ -313,11 +313,17 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *base= ED_view3d_give_base_under_cursor(C, event->mval);
-	Image *ima;
+	Image *ima= NULL;
 	Mesh *me;
 	Object *obedit;
 	int exitmode= 0;
 	char name[32];
+	
+	/* Check context */
+	if(base==NULL || base->object->type!=OB_MESH) {
+		BKE_report(op->reports, RPT_ERROR, "Not an Object or Mesh");
+		return OPERATOR_CANCELLED;
+	}
 	
 	/* check input variables */
 	if(RNA_property_is_set(op->ptr, "path")) {
@@ -326,19 +332,15 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_string_get(op->ptr, "path", path);
 		ima= BKE_add_image_file(path, 
 								scene ? scene->r.cfra : 1);
-		
-		if(!ima) {
-			BKE_report(op->reports, RPT_ERROR, "Not an Image.");
-			return OPERATOR_CANCELLED;
-		}
 	}
 	else {
 		RNA_string_get(op->ptr, "name", name);
 		ima= (Image *)find_id("IM", name);
-		if(base==NULL || base->object->type!=OB_MESH || ima==NULL) {
-			BKE_report(op->reports, RPT_ERROR, "Not a Mesh or no Image.");
-			return OPERATOR_CANCELLED;
-		}
+	}
+	
+	if(!ima) {
+		BKE_report(op->reports, RPT_ERROR, "Not an Image.");
+		return OPERATOR_CANCELLED;
 	}
 	
 	/* turn mesh in editmode */
