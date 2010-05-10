@@ -3609,34 +3609,50 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row;
+	bActuator *act = (bActuator*)ptr->data;
+	bArmatureActuator *aa = (bArmatureActuator *) act->data;
+	Object *ob = (Object *)ptr->id.data;
+	PointerRNA pose_ptr, pchan_ptr;
+	PropertyRNA *bones_prop;
+	
+	if (ob->pose) {
+		RNA_pointer_create((ID *)ob, &RNA_Pose, ob->pose, &pose_ptr);
+		bones_prop = RNA_struct_find_property(&pose_ptr, "bones");
+	}
+	
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	
 	switch (RNA_enum_get(ptr, "mode"))
 	{
 		case ACT_ARM_RUN:
 			break;
 		case ACT_ARM_ENABLE:
-			row = uiLayoutRow(layout, 1);
-			uiItemR(row, ptr, "bone", 0, NULL, 0);
-			uiItemR(row, ptr, "constraint", 0, NULL, 0);
-			break;
 		case ACT_ARM_DISABLE:
-			row = uiLayoutRow(layout, 1);
-			uiItemR(row, ptr, "bone", 0, NULL, 0);
-			uiItemR(row, ptr, "constraint", 0, NULL, 0);
+			if (&pose_ptr.data) {
+				uiItemPointerR(layout, ptr, "bone", &pose_ptr, "bones", NULL, ICON_BONE_DATA);
+
+				if (RNA_property_collection_lookup_string(&pose_ptr, bones_prop, aa->posechannel, &pchan_ptr))
+					uiItemPointerR(layout, ptr, "constraint", &pchan_ptr, "constraints", NULL, ICON_CONSTRAINT_BONE);
+			}
 			break;
 		case ACT_ARM_SETTARGET:
-			row = uiLayoutRow(layout, 1);
-			uiItemR(row, ptr, "bone", 0, NULL, 0);
-			uiItemR(row, ptr, "constraint", 0, NULL, 0);
+			if (&pose_ptr.data) {
+				uiItemPointerR(layout, ptr, "bone", &pose_ptr, "bones", NULL, ICON_BONE_DATA);
+				
+				if (RNA_property_collection_lookup_string(&pose_ptr, bones_prop, aa->posechannel, &pchan_ptr))
+					uiItemPointerR(layout, ptr, "constraint", &pchan_ptr, "constraints", NULL, ICON_CONSTRAINT_BONE);
+			}
 
 			uiItemR(layout, ptr, "target", 0, NULL, 0);
 			uiItemR(layout, ptr, "secondary_target", 0, NULL, 0);
 			break;
 		case ACT_ARM_SETWEIGHT:
-			row = uiLayoutRow(layout, 1);
-			uiItemR(row, ptr, "bone", 0, NULL, 0);
-			uiItemR(row, ptr, "constraint", 0, NULL, 0);
+			if (&pose_ptr.data) {
+				uiItemPointerR(layout, ptr, "bone", &pose_ptr, "bones", NULL, ICON_BONE_DATA);
+				
+				if (RNA_property_collection_lookup_string(&pose_ptr, bones_prop, aa->posechannel, &pchan_ptr))
+					uiItemPointerR(layout, ptr, "constraint", &pchan_ptr, "constraints", NULL, ICON_CONSTRAINT_BONE);
+			}
 
 			uiItemR(layout, ptr, "weight", 0, NULL, 0);
 			break;

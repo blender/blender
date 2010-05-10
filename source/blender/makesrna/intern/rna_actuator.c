@@ -1755,11 +1755,11 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 	PropertyRNA* prop;
 
 	static EnumPropertyItem prop_type_items[] ={
-		{ACT_ARM_RUN, "RUN", 0, "Run armature", ""},
+		{ACT_ARM_RUN, "RUN", 0, "Run Armature", ""},
 		{ACT_ARM_ENABLE, "ENABLE", 0, "Enable", ""},
 		{ACT_ARM_DISABLE, "DISABLE", 0, "Disable", ""},
-		{ACT_ARM_SETTARGET, "SETTARGET", 0, "Set target", ""},
-		{ACT_ARM_SETWEIGHT, "SETWEIGHT", 0, "Set weight", ""},
+		{ACT_ARM_SETTARGET, "SETTARGET", 0, "Set Target", ""},
+		{ACT_ARM_SETWEIGHT, "SETWEIGHT", 0, "Set Weight", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ArmatureActuator", "Actuator");
