@@ -252,7 +252,7 @@ void OBJECT_OT_restrictrender_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Clear Restrict View";
+	ot->name= "Clear Restrict Render";
 	ot->description = "Reveal the render object by setting the restrictrender flag";
 	ot->idname= "OBJECT_OT_restrictrender_clear";
 
