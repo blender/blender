@@ -259,10 +259,20 @@ static int sensor_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
 	bSensor *sens;
+	PointerRNA sens_ptr;
+	PropertyRNA *prop;
+	const char *sens_name;
 	int type= RNA_enum_get(op->ptr, "type");
 
 	sens= new_sensor(type);
 	BLI_addtail(&(ob->sensors), sens);
+	
+	/* set the sensor name based on rna type enum */
+	RNA_pointer_create((ID *)ob, &RNA_Sensor, sens, &sens_ptr);
+	prop = RNA_struct_find_property(&sens_ptr, "type");
+	RNA_property_enum_name(C, &sens_ptr, prop, RNA_property_enum_get(&sens_ptr, prop), &sens_name);
+	BLI_strncpy(sens->name, sens_name, sizeof(sens->name));
+	
 	make_unique_prop_names(C, sens->name);
 	ob->scaflag |= OB_SHOWSENS;
 
@@ -345,11 +355,21 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
 	bController *cont;
+	PointerRNA cont_ptr;
+	PropertyRNA *prop;
+	const char *cont_name;
 	int type= RNA_enum_get(op->ptr, "type");
 	int bit;
 	
 	cont= new_controller(type);
 	BLI_addtail(&(ob->controllers), cont);
+	
+	/* set the controller name based on rna type enum */
+	RNA_pointer_create((ID *)ob, &RNA_Controller, cont, &cont_ptr);
+	prop = RNA_struct_find_property(&cont_ptr, "type");
+	RNA_property_enum_name(C, &cont_ptr, prop, RNA_property_enum_get(&cont_ptr, prop), &cont_name);
+	BLI_strncpy(cont->name, cont_name, sizeof(cont->name));
+	
 	make_unique_prop_names(C, cont->name);
 	
 	/* set the controller state mask from the current object state.
@@ -445,13 +465,23 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
 	bActuator *act;
+	PointerRNA act_ptr;
+	PropertyRNA *prop;
+	const char *act_name;
 	int type= RNA_enum_get(op->ptr, "type");
 
 	act= new_actuator(type);
 	BLI_addtail(&(ob->actuators), act);
+	
+	/* set the actuator name based on rna type enum */
+	RNA_pointer_create((ID *)ob, &RNA_Actuator, act, &act_ptr);
+	prop = RNA_struct_find_property(&act_ptr, "type");
+	RNA_property_enum_name(C, &act_ptr, prop, RNA_property_enum_get(&act_ptr, prop), &act_name);
+	BLI_strncpy(act->name, act_name, sizeof(act->name));
+	
 	make_unique_prop_names(C, act->name);
 	ob->scaflag |= OB_SHOWACT;
-
+	
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
 	
 	return OPERATOR_FINISHED;

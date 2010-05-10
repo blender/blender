@@ -1101,6 +1101,22 @@ int RNA_property_enum_identifier(bContext *C, PointerRNA *ptr, PropertyRNA *prop
 	return 0;
 }
 
+int RNA_property_enum_name(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **name)
+{	
+	EnumPropertyItem *item= NULL;
+	int result, free;
+	
+	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
+	if(item) {
+		result= RNA_enum_name(item, value, name);
+		if(free)
+			MEM_freeN(item);
+		
+		return result;
+	}
+	return 0;
+}
+
 int RNA_property_enum_bitflag_identifiers(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier)
 {
 	EnumPropertyItem *item= NULL;
