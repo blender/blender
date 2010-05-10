@@ -332,3 +332,52 @@ def preset_paths(subdir):
     '''
 
     return (_os.path.join(_presets, subdir), )
+
+
+def smpte_from_seconds(time, fps=None):
+    '''
+    Returns an SMPTE formatted string from the time in seconds: "HH:MM:SS:FF".
+
+    If the fps is not given the current scene is used.
+    '''
+    import math
+
+    if fps is None:
+        fps = _bpy.context.scene.render.fps
+
+    hours = minutes = seconds = frames = 0
+
+    if time < 0:
+        time = -time
+        neg = "-"
+    else:
+        neg = ""
+
+    if time >= 3600.0: # hours
+        hours = int(time / 3600.0)
+        time = time % 3600.0
+    if time >= 60.0: # mins
+        minutes = int(time / 60.0)
+        time = time % 60.0
+
+    seconds = int(time)
+    frames= int(round(math.floor( ((time - seconds) * fps))))
+
+    return "%s%02d:%02d:%02d:%02d" % (neg, hours, minutes, seconds, frames)
+    
+
+def smpte_from_frame(frame, fps=None, fps_base=None):
+    '''
+    Returns an SMPTE formatted string from the frame: "HH:MM:SS:FF".
+
+    If the fps and fps_base are not given the current scene is used.
+    '''
+
+    if fps is None:
+        fps = _bpy.context.scene.render.fps
+
+    if fps_base is None:
+        fps_base = _bpy.context.scene.render.fps_base
+
+    return smpte_from_seconds((frame * fps_base) / fps, fps)
+    
