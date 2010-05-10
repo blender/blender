@@ -1794,7 +1794,7 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 }
 
 /* for keyframes and drivers */
-static int pyrna_struct_anim_args_parse(PointerRNA *ptr, char *error_prefix, char *path,
+static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefix, const char *path,
 	char **path_full, int *index)
 {
 	PropertyRNA *prop;
@@ -1844,15 +1844,15 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, char *error_prefix, cha
 }
 
 /* internal use for insert and delete */
-static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *error_prefix,
+static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject *kw,  const char *parse_str, const char *error_prefix,
 	char **path_full, int *index, float *cfra, char **group_name) /* return values */
 {
+	static char *kwlist[] = {"path", "index", "frame", "group", NULL};
 	char *path;
 
-	if (!PyArg_ParseTuple(args, "s|ifs", &path, index, cfra, group_name)) {
-		PyErr_Format(PyExc_TypeError, "%.200s expected a string and optionally an int, float, and string arguments", error_prefix);
+	/* note, parse_str MUST start with 's|ifs' */
+	if (!PyArg_ParseTupleAndKeywords(args, kw, parse_str, (char **)kwlist, &path, index, cfra, group_name))
 		return -1;
-	}
 
 	if(pyrna_struct_anim_args_parse(ptr, error_prefix, path,  path_full, index) < 0) 
 		return -1;
@@ -1879,7 +1879,7 @@ static char pyrna_struct_keyframe_insert_doc[] =
 "   :return: Success of keyframe insertion.\n"
 "   :rtype: boolean";
 
-static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args)
+static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
 	PyObject *result;
 	/* args, pyrna_struct_keyframe_parse handles these */
@@ -1888,7 +1888,7 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *arg
 	float cfra= FLT_MAX;
     char *group_name= NULL;
 
-	if(pyrna_struct_keyframe_parse(&self->ptr, args, "bpy_struct.keyframe_insert():", &path_full, &index, &cfra, &group_name) == -1)
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1)
 		return NULL;
 
 	result= PyBool_FromLong(insert_keyframe((ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0));
@@ -1913,7 +1913,7 @@ static char pyrna_struct_keyframe_delete_doc[] =
 "   :return: Success of keyframe deleation.\n"
 "   :rtype: boolean";
 
-static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args)
+static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
 	PyObject *result;
 	/* args, pyrna_struct_keyframe_parse handles these */
@@ -1922,7 +1922,7 @@ static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *arg
 	float cfra= FLT_MAX;
     char *group_name= NULL;
 
-	if(pyrna_struct_keyframe_parse(&self->ptr, args, "bpy_struct.keyframe_delete():", &path_full, &index, &cfra, &group_name) == -1)
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_delete()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1)
 		return NULL;
 
 	result= PyBool_FromLong(delete_keyframe((ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0));
@@ -3002,8 +3002,8 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
 	{"as_pointer", (PyCFunction)pyrna_struct_as_pointer, METH_NOARGS, pyrna_struct_as_pointer_doc},
 
-	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, pyrna_struct_keyframe_insert_doc},
-	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS, pyrna_struct_keyframe_delete_doc},
+	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS|METH_KEYWORDS, pyrna_struct_keyframe_insert_doc},
+	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS|METH_KEYWORDS, pyrna_struct_keyframe_delete_doc},
 	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, pyrna_struct_driver_add_doc},
 	{"driver_remove", (PyCFunction)pyrna_struct_driver_remove, METH_VARARGS, pyrna_struct_driver_remove_doc},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, pyrna_struct_is_property_set_doc},
