@@ -918,7 +918,7 @@ DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, f
 			scopes->waveform_3[idx + 0] = fx;
 			scopes->waveform_3[idx + 1] = rgb[2];
 			break;
-		case SCOPES_WAVEFRM_LUM:
+		case SCOPES_WAVEFRM_LUMA:
 			scopes->waveform_1[idx + 0] = fx;
 			scopes->waveform_1[idx + 1] = ycc[0];
 			break;
@@ -943,7 +943,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	unsigned char *rc=NULL;
 	unsigned int *bin_r, *bin_g, *bin_b, *bin_lum;
 	int savedlines, saveline;
-	float rgb[3], ycc[3];
+	float rgb[3], ycc[3], luma;
 	int ycc_mode=-1;
 
 	if (scopes->ok == 1 ) return;
@@ -959,7 +959,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 		case SCOPES_WAVEFRM_RGB:
 			ycc_mode = -1;
 			break;
-		case SCOPES_WAVEFRM_LUM:
+		case SCOPES_WAVEFRM_LUMA:
 		case SCOPES_WAVEFRM_YCC_JPEG:
 			ycc_mode = BLI_YCC_JFIF_0_255;
 			break;
@@ -1027,6 +1027,10 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 				for (c=0; c<3; c++)
 					rgb[c] = rc[c] * INV_255;
 			}
+
+			/* we still need luma for histogram */
+			luma = 0.299*rgb[0] + 0.587*rgb[1] + 0.114 * rgb[2];
+
 			/* check for min max */
 			if(ycc_mode == -1 ) {
 				for (c=0; c<3; c++) {
@@ -1046,7 +1050,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 			bin_r[ get_bin_float(rgb[0]) ] += 1;
 			bin_g[ get_bin_float(rgb[1]) ] += 1;
 			bin_b[ get_bin_float(rgb[2]) ] += 1;
-			bin_lum[ get_bin_float(ycc[0]) ] += 1;
+			bin_lum[ get_bin_float(luma) ] += 1;
 
 			/* save sample if needed */
 			if(saveline) {

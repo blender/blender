@@ -861,7 +861,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	}
 	/* 3 vertical separation */
-	if (scopes->wavefrm_mode!= SCOPES_WAVEFRM_LUM) {
+	if (scopes->wavefrm_mode!= SCOPES_WAVEFRM_LUMA) {
 		for (i=1; i<3; i++) {
 			fdrawline(rect.xmin+i*w3, rect.ymin, rect.xmin+i*w3, rect.ymax);
 		}
@@ -878,7 +878,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 		fdrawline(rect.xmin+w3, yofs+h*240.0f/255.0f, rect.xmax+1, yofs+h*240.0f/255.0f);
 	}
 	/* 7.5 IRE black point level for NTSC */
-	if (scopes->wavefrm_mode== SCOPES_WAVEFRM_LUM)
+	if (scopes->wavefrm_mode== SCOPES_WAVEFRM_LUMA)
 		fdrawline(rect.xmin, yofs+h*0.075f, rect.xmax+1, yofs+h*0.075f);
 
 	if (scopes->ok && scopes->waveform_1 != NULL) {
@@ -886,7 +886,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 		/* LUMA (1 channel) */
 		glBlendFunc(GL_ONE,GL_ONE);
 		glColor3f(alpha, alpha, alpha);
-		if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUM){
+		if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUMA){
 
 			glBlendFunc(GL_ONE,GL_ONE);
 			
