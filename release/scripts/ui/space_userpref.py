@@ -622,9 +622,10 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "bone_solid")
             col.prop(v3d, "bone_pose")
             col.prop(v3d, "edge_seam")
+            col.prop(v3d, "edge_select")
+            col.prop(v3d, "edge_facesel")
             col.prop(v3d, "edge_sharp")
             col.prop(v3d, "edge_crease")
-            #col.prop(v3d, "edge") Doesn't seem to work
 
         elif theme.theme_area == 'GRAPH_EDITOR':
             graph = theme.graph_editor
@@ -925,18 +926,18 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(prefs, "header_text")
 
         elif theme.theme_area == 'CONSOLE':
-            prefs = theme.console
+            console = theme.console
 
             col = split.column()
-            col.prop(prefs, "back")
-            col.prop(prefs, "header")
+            col.prop(console, "back")
+            col.prop(console, "header")
 
             col = split.column()
-            col.prop(prefs, "line_output")
-            col.prop(prefs, "line_input")
-            col.prop(prefs, "line_info")
-            col.prop(prefs, "line_error")
-            col.prop(prefs, "cursor")
+            col.prop(console, "line_output")
+            col.prop(console, "line_input")
+            col.prop(console, "line_info")
+            col.prop(console, "line_error")
+            col.prop(console, "cursor")
 
 
 class USERPREF_PT_file(bpy.types.Panel):
