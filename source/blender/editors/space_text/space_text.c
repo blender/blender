@@ -334,12 +334,18 @@ static int text_context(const bContext *C, const char *member, bContextDataResul
 static void text_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
+	ListBase *lb;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_find(wm->defaultconf, "Text", SPACE_TEXT, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	
+	/* add drop boxes */
+	lb = WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
+	
+	WM_event_add_dropbox_handler(&ar->handlers, lb);
 }
 
 static void text_main_area_draw(const bContext *C, ARegion *ar)
