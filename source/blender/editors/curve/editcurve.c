@@ -4272,37 +4272,128 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
-/********************** select every nth *********************/
+/********************* every nth number of point *******************/
 
-static int select_every_nth_exec(bContext *C, wmOperator *op)
+static int point_on_nurb(Nurb *nu, void *point)
+{
+	if (nu->bezt) {
+		BezTriple *bezt= (BezTriple*)point;
+		return bezt >= nu->bezt && bezt < nu->bezt + nu->pntsu;
+	} else {
+		BPoint *bp= (BPoint*)point;
+		return bp >= nu->bp && bp < nu->bp + nu->pntsu * nu->pntsv;
+	}
+}
+
+static void select_nth_bezt(Nurb *nu, BezTriple *bezt, int nth)
+{
+	int a, start;
+
+	start= bezt - nu->bezt;
+	a= nu->pntsu;
+	bezt= nu->bezt + a - 1;
+
+	while (a--) {
+		if (abs(start - a) % nth) {
+			select_beztriple(bezt, DESELECT, 1, HIDDEN);
+		}
+
+		bezt--;
+	}
+}
+
+static void select_nth_bp(Nurb *nu, BPoint *bp, int nth)
+{
+	int a, startrow, startpnt;
+	int dist, row, pnt;
+
+	startrow= (bp - nu->bp) / nu->pntsu;
+	startpnt= (bp - nu->bp) % nu->pntsu;
+
+	a= nu->pntsu * nu->pntsv;
+	bp= nu->bp + a - 1;
+	row = nu->pntsv - 1;
+	pnt = nu->pntsu - 1;
+
+	while (a--) {
+		dist= abs(pnt - startpnt) + abs(row - startrow);
+		if (dist % nth) {
+			select_bpoint(bp, DESELECT, 1, HIDDEN);
+		}
+
+		pnt--;
+		if (pnt < 0) {
+			pnt= nu->pntsu - 1;
+			row--;
+		}
+
+		bp--;
+	}
+}
+
+int CU_select_nth(Object *obedit, int nth)
+{
+	Curve *cu= (Curve*)obedit->data;
+	ListBase *nubase= cu->editnurb;
+	Nurb *nu;
+	int ok=0;
+
+	/* Search nurb to which selected point belongs to */
+	nu= nubase->first;
+	while (nu) {
+		if (point_on_nurb(nu, cu->lastsel)) {
+			ok= 1;
+			break;
+		}
+		nu= nu->next;
+	}
+
+	if (!ok) return 0;
+
+	if (nu->bezt) {
+		select_nth_bezt(nu, cu->lastsel, nth);
+	} else {
+		select_nth_bp(nu, cu->lastsel, nth);
+	}
+
+	return 1;
+}
+
+static int select_nth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
-	int n= RNA_int_get(op->ptr, "n");
-	
-	select_adjacent_cp(editnurb, n, 1, SELECT);
-	select_adjacent_cp(editnurb, -n, 1, SELECT);
-	
+	int nth= RNA_int_get(op->ptr, "nth");
+
+	if (!CU_select_nth(obedit, nth)) {
+		if (obedit->type == OB_SURF) {
+			BKE_report(op->reports, RPT_ERROR, "Surface hasn't got active point");
+		} else {
+			BKE_report(op->reports, RPT_ERROR, "Curve hasn't got active point");
+		}
+
+		return OPERATOR_CANCELLED;
+	}
+
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_select_every_nth(wmOperatorType *ot)
+void CURVE_OT_select_nth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Every Nth";
-	ot->idname= "CURVE_OT_select_every_nth";
-	
+	ot->name= "Select Nth";
+	ot->description= "";
+	ot->idname= "CURVE_OT_select_nth";
+
 	/* api callbacks */
-	ot->exec= select_every_nth_exec;
+	ot->exec= select_nth_exec;
 	ot->poll= ED_operator_editsurfcurve;
-	
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	/* properties */
-	RNA_def_int(ot->srna, "n", 2, 2, INT_MAX, "N", "Select every Nth element", 2, 25);
+	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
 }
 
 /********************** add duplicate operator *********************/

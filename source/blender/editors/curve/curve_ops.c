@@ -111,7 +111,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_select_more);
 	WM_operatortype_append(CURVE_OT_select_less);
 	WM_operatortype_append(CURVE_OT_select_random);
-	WM_operatortype_append(CURVE_OT_select_every_nth);
+	WM_operatortype_append(CURVE_OT_select_nth);
 
 	WM_operatortype_append(CURVE_OT_switch_direction);
 	WM_operatortype_append(CURVE_OT_subdivide);
