@@ -3405,19 +3405,19 @@ static void draw_sensor_ray(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *split, *row;
 
 	split= uiLayoutSplit(layout, 0.3, 0);
-	uiItemR(split, ptr, "ray_type", UI_ITEM_R_TOGGLE, NULL, 0);
+	uiItemR(split, ptr, "ray_type", 0, "", 0);
 	switch (RNA_enum_get(ptr, "ray_type")) {
 		case SENS_RAY_PROPERTY:
-			uiItemR(split, ptr, "property", 0, NULL, 0); break;
+			uiItemR(split, ptr, "property", 0, "", 0); break;
 		case SENS_RAY_MATERIAL:
-			uiItemR(split, ptr, "material", 0, NULL, 0); break;
+			uiItemR(split, ptr, "material", 0, "", 0); break;
 	}
 
 	split= uiLayoutSplit(layout, 0.3, 0);
-	uiItemR(split, ptr, "x_ray_mode", UI_ITEM_R_TOGGLE, NULL, 0);
-	row= uiLayoutRow(split, 0);
+	uiItemR(split, ptr, "axis", 0, "", 0);
+	row= uiLayoutRow(split, 0);	
 	uiItemR(row, ptr, "range", 0, NULL, 0);
-	uiItemR(row, ptr, "axis", 0, NULL, 0);
+	uiItemR(row, ptr, "x_ray_mode", UI_ITEM_R_TOGGLE, NULL, 0);
 }
 
 static void draw_sensor_touch(uiLayout *layout, PointerRNA *ptr)

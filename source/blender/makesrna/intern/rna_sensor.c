@@ -592,10 +592,21 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 		{SENS_RAY_NEG_Y_AXIS, "NEGYAXIS", 0, "-Y axis", ""},
 		{SENS_RAY_NEG_Z_AXIS, "NEGZAXIS", 0, "-Z axis", ""},
 		{0, NULL, 0, NULL, NULL}};
+	
+	static const EnumPropertyItem prop_ray_type_items[]= {
+		{0, "PROPERTY", ICON_LOGIC, "Property", "Use a material for ray intersections"},
+		{SENS_COLLISION_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Use a property for ray intersections"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RaySensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Ray Sensor", "Sensor to detect intersections with a ray emanating from the current object");
 	RNA_def_struct_sdna_from(srna, "bRaySensor", "data");
+	
+	prop= RNA_def_property(srna, "ray_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, prop_ray_type_items);
+	RNA_def_property_ui_text(prop, "Ray Type", "Toggle collision on material or property");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "propname");
@@ -615,11 +626,6 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
 	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material");
 */
-
-	prop= RNA_def_property(srna, "ray_type", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", SENS_COLLISION_MATERIAL);
-	RNA_def_property_ui_text(prop, "M/P", "Toggle collision on material or property");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "x_ray_mode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", SENS_RAY_XRAY);
