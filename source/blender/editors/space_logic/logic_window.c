@@ -3208,15 +3208,11 @@ static void draw_sensor_internal_header(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_actuator(uiLayout *layout, PointerRNA *ptr)
 {
-	/* -- couldnt make it work for actuators
 	Object *ob = (Object *)ptr->id.data;
 	PointerRNA settings_ptr;
 
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
-	uiItemPointerR(layout, ptr, "actuator", &settings_ptr, "actuators", "", 0);
-	*/
-
-	uiItemR(layout, ptr, "actuator", 0, NULL, 0);
+	uiItemPointerR(layout, ptr, "actuator", &settings_ptr, "actuators", NULL, ICON_LOGIC);
 }
 
 static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
