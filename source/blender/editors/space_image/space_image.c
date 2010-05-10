@@ -385,6 +385,8 @@ static SpaceLink *image_new(const bContext *C)
 	simage->iuser.ok= 1;
 	simage->iuser.fie_ima= 2;
 	simage->iuser.frames= 100;
+	
+	scopes_new(&simage->scopes);
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for image");
@@ -409,13 +411,6 @@ static SpaceLink *image_new(const bContext *C)
 	ar->alignment= RGN_ALIGN_RIGHT;
 	ar->flag = RGN_FLAG_HIDDEN;
 
-	simage->scopes.accuracy=30.0;
-	simage->scopes.hist.mode=HISTO_MODE_RGB;
-	simage->scopes.wavefrm_alpha=0.3;
-	simage->scopes.vecscope_alpha=0.3;
-	simage->scopes.wavefrm_height= 100;
-	simage->scopes.hist.height= 100;
-	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for image");
 	

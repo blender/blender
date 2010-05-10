@@ -1110,3 +1110,19 @@ void scopes_free(Scopes *scopes)
 		scopes->vecscope = NULL;
 	}
 }
+
+void scopes_new(Scopes *scopes)
+{
+	scopes->accuracy=30.0;
+	scopes->hist.mode=HISTO_MODE_RGB;
+	scopes->wavefrm_alpha=0.3;
+	scopes->vecscope_alpha=0.3;
+	scopes->wavefrm_height= 100;
+	scopes->vecscope_height= 100;
+	scopes->hist.height= 100;
+	scopes->ok= 0;
+	scopes->waveform_1 = NULL;
+	scopes->waveform_2 = NULL;
+	scopes->waveform_3 = NULL;
+	scopes->vecscope = NULL;
+}

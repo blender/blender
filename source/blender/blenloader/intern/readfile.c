@@ -10841,13 +10841,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_IMAGE) {
 						SpaceImage *sima = (SpaceImage *)sl;
-						sima->scopes.accuracy = 30.0;
-						sima->scopes.hist.mode=HISTO_MODE_RGB;
-						sima->scopes.wavefrm_alpha=0.3;
-						sima->scopes.vecscope_alpha=0.3;
-						sima->scopes.wavefrm_height= 100;
-						sima->scopes.vecscope_height= 100;
-						sima->scopes.hist.height= 100;
+						scopes_new(&sima->scopes);
 					}
 				}
 			}

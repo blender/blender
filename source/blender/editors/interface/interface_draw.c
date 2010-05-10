@@ -880,76 +880,80 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *r
 	/* 7.5 IRE black point level for NTSC */
 	if (scopes->wavefrm_mode== SCOPES_WAVEFRM_LUM)
 		fdrawline(rect.xmin, yofs+h*0.075f, rect.xmax+1, yofs+h*0.075f);
-	
-	/* LUMA (1 channel) */
-	glBlendFunc(GL_ONE,GL_ONE);
-	glColor3f(alpha, alpha, alpha);
-	if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUM){
 
+	if (scopes->ok && scopes->waveform_1 != NULL) {
+		
+		/* LUMA (1 channel) */
 		glBlendFunc(GL_ONE,GL_ONE);
-		
-		glPushMatrix();
-		glEnableClientState(GL_VERTEX_ARRAY);
-		
-		glTranslatef(rect.xmin, yofs, 0.f);
-		glScalef(w, h, 0.f);
-		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
-		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-				
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glPopMatrix();
+		glColor3f(alpha, alpha, alpha);
+		if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUM){
 
-		/* min max */
-		glColor3f(.5f, .5f, .5f);
-		min= yofs+scopes->minmax[0][0]*h;
-		max= yofs+scopes->minmax[0][1]*h;
-		CLAMP(min, rect.ymin, rect.ymax);
-		CLAMP(max, rect.ymin, rect.ymax);
-		fdrawline(rect.xmax-3,min,rect.xmax-3,max);
-	}
+			glBlendFunc(GL_ONE,GL_ONE);
+			
+			glPushMatrix();
+			glEnableClientState(GL_VERTEX_ARRAY);
+			
+			glTranslatef(rect.xmin, yofs, 0.f);
+			glScalef(w, h, 0.f);
+			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
+			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+					
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glPopMatrix();
 
-	/* RGB / YCC (3 channels) */
-	else if (ELEM4(scopes->wavefrm_mode, SCOPES_WAVEFRM_RGB, SCOPES_WAVEFRM_YCC_601, SCOPES_WAVEFRM_YCC_709, SCOPES_WAVEFRM_YCC_JPEG)) {
-		int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB);
-		
-		glBlendFunc(GL_ONE,GL_ONE);
-		
-		glPushMatrix();
-		glEnableClientState(GL_VERTEX_ARRAY);
-		
-		glTranslatef(rect.xmin, yofs, 0.f);
-		glScalef(w3, h, 0.f);
-		
-		glColor3fv((rgb)?colors_alpha[0]:colorsycc_alpha[0]);
-		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
-		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-
-		glTranslatef(1.f, 0.f, 0.f);
-		glColor3fv((rgb)?colors_alpha[1]:colorsycc_alpha[1]);
-		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_2);
-		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-		
-		glTranslatef(1.f, 0.f, 0.f);
-		glColor3fv((rgb)?colors_alpha[2]:colorsycc_alpha[2]);
-		glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_3);
-		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
-		
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glPopMatrix();
-
-		
-		/* min max */
-		for (c=0; c<3; c++) {
-			if (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB)
-				glColor3f(colors[c][0]*0.75, colors[c][1]*0.75, colors[c][2]*0.75);
-			else
-				glColor3f(colorsycc[c][0]*0.75, colorsycc[c][1]*0.75, colorsycc[c][2]*0.75);
-			min= yofs+scopes->minmax[c][0]*h;
-			max= yofs+scopes->minmax[c][1]*h;
+			/* min max */
+			glColor3f(.5f, .5f, .5f);
+			min= yofs+scopes->minmax[0][0]*h;
+			max= yofs+scopes->minmax[0][1]*h;
 			CLAMP(min, rect.ymin, rect.ymax);
 			CLAMP(max, rect.ymin, rect.ymax);
-			fdrawline(rect.xmin+w+2+c*2,min,rect.xmin+w+2+c*2,max);
+			fdrawline(rect.xmax-3,min,rect.xmax-3,max);
 		}
+
+		/* RGB / YCC (3 channels) */
+		else if (ELEM4(scopes->wavefrm_mode, SCOPES_WAVEFRM_RGB, SCOPES_WAVEFRM_YCC_601, SCOPES_WAVEFRM_YCC_709, SCOPES_WAVEFRM_YCC_JPEG)) {
+			int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB);
+			
+			glBlendFunc(GL_ONE,GL_ONE);
+			
+			glPushMatrix();
+			glEnableClientState(GL_VERTEX_ARRAY);
+			
+			glTranslatef(rect.xmin, yofs, 0.f);
+			glScalef(w3, h, 0.f);
+			
+			glColor3fv((rgb)?colors_alpha[0]:colorsycc_alpha[0]);
+			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_1);
+			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+
+			glTranslatef(1.f, 0.f, 0.f);
+			glColor3fv((rgb)?colors_alpha[1]:colorsycc_alpha[1]);
+			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_2);
+			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+			
+			glTranslatef(1.f, 0.f, 0.f);
+			glColor3fv((rgb)?colors_alpha[2]:colorsycc_alpha[2]);
+			glVertexPointer(2, GL_FLOAT, 0, scopes->waveform_3);
+			glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+			
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glPopMatrix();
+
+			
+			/* min max */
+			for (c=0; c<3; c++) {
+				if (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB)
+					glColor3f(colors[c][0]*0.75, colors[c][1]*0.75, colors[c][2]*0.75);
+				else
+					glColor3f(colorsycc[c][0]*0.75, colorsycc[c][1]*0.75, colorsycc[c][2]*0.75);
+				min= yofs+scopes->minmax[c][0]*h;
+				max= yofs+scopes->minmax[c][1]*h;
+				CLAMP(min, rect.ymin, rect.ymax);
+				CLAMP(max, rect.ymin, rect.ymax);
+				fdrawline(rect.xmin+w+2+c*2,min,rect.xmin+w+2+c*2,max);
+			}
+		}
+		
 	}
 	
 	/* outline, scale gripper */
@@ -1030,8 +1034,6 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti
 	float colors[6][3]={{.75,0,0},{.75,.75,0},{0,.75,0},{0,.75,.75},{0,0,.75},{.75,0,.75}};
 	GLint scissor[4];
 	
-	if (scopes==NULL) return;
-	
 	rect.xmin = (float)recti->xmin+1;
 	rect.xmax = (float)recti->xmax-1;
 	rect.ymin = (float)recti->ymin+SCOPE_RESIZE_PAD+2;
@@ -1079,25 +1081,24 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti
 	for(i=0; i<6; i++)
 		vectorscope_draw_target(centerx, centery, diam, colors[i][0], colors[i][1], colors[i][2]);
 	
-	/* pixel point cloud */
-	glBlendFunc(GL_ONE,GL_ONE);
-	glColor4f(alpha, alpha, alpha, alpha);
+	if (scopes->ok && scopes->vecscope != NULL) {
+		/* pixel point cloud */
+		glBlendFunc(GL_ONE,GL_ONE);
+		glColor3f(alpha, alpha, alpha);
 
-	glPushMatrix();
-	glEnableClientState(GL_VERTEX_ARRAY);
+		glPushMatrix();
+		glEnableClientState(GL_VERTEX_ARRAY);
 
-	glTranslatef(centerx, centery, 0.f);
-	glScalef(diam, diam, 0.f);
+		glTranslatef(centerx, centery, 0.f);
+		glScalef(diam, diam, 0.f);
 
-	/*apparently this can sometimes be NULL? - joeedh*/
-	if (scopes) {
 		glVertexPointer(2, GL_FLOAT, 0, scopes->vecscope);
 		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
+		
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glPopMatrix();
 	}
 
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glPopMatrix();
-	
 	/* outline, scale gripper */
 	draw_scope_end(&rect, scissor);
 		
