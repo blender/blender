@@ -749,8 +749,9 @@ int file_next_exec(bContext *C, wmOperator *unused)
 /* only meant for timer usage */
 static int file_smoothscroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ScrArea *sa = CTX_wm_area(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
-	ARegion *ar= CTX_wm_region(C);
+	ARegion *ar, *oldar= CTX_wm_region(C);
 	int numfiles, offset;
 	int edit_idx = 0;
 	int numfiles_layout;
@@ -780,6 +781,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	/* we need the correct area for scrolling */
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 	if (!ar || ar->regiontype != RGN_TYPE_WINDOW) {
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
 		sfile->smoothscroll_timer=NULL;
@@ -809,6 +811,10 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_FINISHED;
 	}
 
+	/* temporarily set context to the main window region, 
+	 * so the scroll operators work */
+	CTX_wm_region_set(C, ar);
+	
 	/* scroll one step in the desired direction */
 	if (sfile->scroll_offset < offset) {
 		if (sfile->layout->flag & FILE_LAYOUT_HOR) {
@@ -826,6 +832,9 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	/* and restore context */
+	CTX_wm_region_set(C, oldar);
 	
 	return OPERATOR_FINISHED;
 }
