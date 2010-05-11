@@ -31,8 +31,9 @@
 #include "bpy_app.h"
 #include "bpy_props.h"
 #include "bpy_operator.h"
- 
+
 #include "BLI_path_util.h"
+#include "BLI_bpath.h"
  
  /* external util modules */
 #include "../generic/geometry.h"
@@ -43,7 +44,7 @@
 static char bpy_home_paths_doc[] =
 ".. function:: home_paths(subfolder)\n"
 "\n"
-"   return 3 paths to blender home directories.\n"
+"   Return 3 paths to blender home directories.\n"
 "\n"
 "   :arg subfolder: The name of a subfolder to find within the blenders home directory.\n"
 "   :type subfolder: string\n"
@@ -71,7 +72,56 @@ PyObject *bpy_home_paths(PyObject *self, PyObject *args)
 	return ret;
 }
 
+static char bpy_blend_paths_doc[] =
+".. function:: blend_paths(absolute=False)\n"
+"\n"
+"   Returns a list of paths assosiated with this blend file.\n"
+"\n"
+"   :arg absolute: When true the paths returned are made absolute.\n"
+"   :type absolute: boolean\n"
+"   :return: path list.\n"
+"   :rtype: list of strigs\n";
+static PyObject *bpy_blend_paths(PyObject * self, PyObject *args, PyObject *kw)
+{
+	struct BPathIterator bpi;
+	PyObject *list = PyList_New(0), *st; /* stupidly big string to be safe */
+	/* be sure there is low chance of the path being too short */
+	char filepath_expanded[1024];
+	char *lib;
+
+	int absolute = 0;
+	static char *kwlist[] = {"absolute", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "|i:blend_paths", kwlist, &absolute))
+		return NULL;
+
+	for(BLI_bpathIterator_init(&bpi, NULL); !BLI_bpathIterator_isDone(&bpi); BLI_bpathIterator_step(&bpi)) {
+		/* build the list */
+		if (absolute) {
+			BLI_bpathIterator_getPathExpanded(&bpi, filepath_expanded);
+		}
+		else {
+			lib = BLI_bpathIterator_getLib(&bpi);
+			if (lib && (strcmp(lib, bpi.base_path))) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
+				BLI_bpathIterator_getPathExpanded(&bpi, filepath_expanded);
+			}
+			else {
+				BLI_bpathIterator_getPath(&bpi, filepath_expanded);
+			}
+		}
+		st = PyUnicode_FromString(filepath_expanded);
+
+		PyList_Append(list, st);
+		Py_DECREF(st);
+	}
+
+	BLI_bpathIterator_free(&bpi);
+
+	return list;
+}
+
 static PyMethodDef meth_bpy_home_paths[] = {{ "home_paths", (PyCFunction)bpy_home_paths, METH_VARARGS, bpy_home_paths_doc}};
+static PyMethodDef meth_bpy_blend_paths[] = {{ "blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc}};
 
 static void bpy_import_test(char *modname)
 {
@@ -138,6 +188,7 @@ void BPy_init_modules( void )
 
 	/* utility func's that have nowhere else to go */
 	PyModule_AddObject(mod, meth_bpy_home_paths->ml_name, (PyObject *)PyCFunction_New(meth_bpy_home_paths, NULL));
+	PyModule_AddObject(mod, meth_bpy_blend_paths->ml_name, (PyObject *)PyCFunction_New(meth_bpy_blend_paths, NULL));
 
 	/* add our own modules dir, this is a python package */
 	bpy_import_test("bpy");

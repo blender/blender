@@ -27,7 +27,7 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
-from _bpy import home_paths
+from _bpy import home_paths, blend_paths
 
 
 def _test_import(module_name, loaded_modules):

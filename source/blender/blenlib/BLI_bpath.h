@@ -29,6 +29,9 @@
 /* Based on ghash, difference is ghash is not a fixed size,
  * so for BPath we dont need to malloc  */
 
+#ifndef BLI_BPATH_H
+#define BLI_BPATH_H
+
 struct BPathIteratorSeqData {
 	int totseq;
 	int seq;
@@ -72,3 +75,5 @@ void checkMissingFiles(char *basepath, ReportList *reports);
 void makeFilesRelative(char *basepath, ReportList *reports);
 void makeFilesAbsolute(char *basepath, ReportList *reports);
 void findMissingFiles(char *basepath, char *str);
+
+#endif // BLI_BPATH_H
