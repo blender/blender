@@ -812,23 +812,27 @@ static int ptcache_compress_read(PTCacheFile *pf, unsigned char *result, unsigne
 	ptcache_file_read(pf, &compressed, 1, sizeof(unsigned char));
 	if(compressed) {
 		ptcache_file_read(pf, &in_len, 1, sizeof(unsigned int));
-		in = (unsigned char *)MEM_callocN(sizeof(unsigned char)*in_len, "pointcache_compressed_buffer");
-		ptcache_file_read(pf, in, in_len, sizeof(unsigned char));
-
+		if(in_len==0) {
+			/* do nothing */
+		}
+		else {
+			in = (unsigned char *)MEM_callocN(sizeof(unsigned char)*in_len, "pointcache_compressed_buffer");
+			ptcache_file_read(pf, in, in_len, sizeof(unsigned char));
 #ifdef WITH_LZO
-		if(compressed == 1)
-				r = lzo1x_decompress(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, NULL);
+			if(compressed == 1)
+				r = lzo1x_decompress_safe(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, NULL);
 #endif
 #ifdef WITH_LZMA
-		if(compressed == 2)
-		{
-			size_t leni = in_len, leno = out_len;
-			ptcache_file_read(pf, &sizeOfIt, 1, sizeof(unsigned int));
-			ptcache_file_read(pf, props, sizeOfIt, sizeof(unsigned char));
-			r = LzmaUncompress(result, &leno, in, &leni, props, sizeOfIt);
-		}
+			if(compressed == 2)
+			{
+				size_t leni = in_len, leno = out_len;
+				ptcache_file_read(pf, &sizeOfIt, 1, sizeof(unsigned int));
+				ptcache_file_read(pf, props, sizeOfIt, sizeof(unsigned char));
+				r = LzmaUncompress(result, &leno, in, &leni, props, sizeOfIt);
+			}
 #endif
-		MEM_freeN(in);
+			MEM_freeN(in);
+		}
 	}
 	else {
 		ptcache_file_read(pf, result, len, sizeof(unsigned char));
