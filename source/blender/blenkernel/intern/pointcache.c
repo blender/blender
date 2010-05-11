@@ -1712,14 +1712,13 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 	int totpoint = pid->totpoint(pid->calldata, cfra);
 	int add = 0, overwrite = 0;
 
-	if(totpoint == 0 || cfra < 0
-		|| (cfra ? pid->data_types == 0 : pid->info_types == 0))
+	if(totpoint == 0 || (cfra ? pid->data_types == 0 : pid->info_types == 0))
 		return 0;
 
 	if(cache->flag & PTCACHE_DISK_CACHE) {
 		int ofra=0, efra = cache->endframe;
 
-		if(cfra==0)
+		if(cfra==0 && cache->startframe > 0)
 			add = 1;
 		/* allways start from scratch on the first frame */
 		else if(cfra == cache->startframe) {
@@ -1931,7 +1930,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 				if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
 					if (strncmp(filename, de->d_name, len ) == 0) { /* do we have the right prefix */
 						if (mode == PTCACHE_CLEAR_ALL) {
-							pid->cache->last_exact = 0;
+							pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
 							BLI_join_dirfile(path_full, path, de->d_name);
 							BLI_delete(path_full, 0, 0);
 						} else {
@@ -1963,7 +1962,8 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 			pm= pid->cache->mem_cache.first;
 
 			if(mode == PTCACHE_CLEAR_ALL) {
-				pid->cache->last_exact = 0;
+				/*we want startframe if the cache starts before zero*/
+				pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
 				for(; pm; pm=pm->next)
 					ptcache_free_data(pm);
 				BLI_freelistN(&pid->cache->mem_cache);
@@ -2880,6 +2880,6 @@ void BKE_ptcache_invalidate(PointCache *cache)
 {
 	cache->flag &= ~PTCACHE_SIMULATION_VALID;
 	cache->simframe = 0;
-	cache->last_exact = 0;
+	cache->last_exact = MIN2(cache->startframe, 0);
 }
 
