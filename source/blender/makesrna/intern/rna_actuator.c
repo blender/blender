@@ -27,21 +27,23 @@
 #include "RNA_define.h"
 
 #include "rna_internal.h"
+#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_actuator_types.h"
 #include "DNA_scene_types.h" // for MAXFRAME
 
 #include "WM_types.h"
 
+/* Always keep in alphabetical order */
 EnumPropertyItem actuator_type_items[] ={
 	{ACT_ACTION, "ACTION", 0, "Action", ""},
 	{ACT_ARMATURE, "ARMATURE", 0, "Armature", ""},
 	{ACT_CAMERA, "CAMERA", 0, "Camera", ""},
 	{ACT_CONSTRAINT, "CONSTRAINT", 0, "Constraint", ""},
 	{ACT_EDIT_OBJECT, "EDIT_OBJECT", 0, "Edit Object", ""},
-	{ACT_2DFILTER, "FILTER_2D", 0, "2D Filter", ""},
-	{ACT_GAME, "GAME", 0, "Game", ""},
 	{ACT_IPO, "F-Curve", 0, "F-Curve", ""},
+	{ACT_2DFILTER, "FILTER_2D", 0, "Filter 2D", ""},
+	{ACT_GAME, "GAME", 0, "Game", ""},
 	{ACT_MESSAGE, "MESSAGE", 0, "Message", ""},
 	{ACT_OBJECT, "OBJECT", 0, "Motion", ""},
 	{ACT_PARENT, "PARENT", 0, "Parent", ""},
@@ -366,6 +368,7 @@ static EnumPropertyItem *rna_EditObjectActuator_mode_itemf(bContext *C, PointerR
 	return item;
 }
 
+/* Always keep in alphabetical order */
 EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	EnumPropertyItem *item= NULL;
@@ -389,9 +392,9 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_CAMERA);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_CONSTRAINT);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_EDIT_OBJECT);
+	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_IPO);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_2DFILTER);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_GAME);
-	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_IPO);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_MESSAGE);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_OBJECT);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_PARENT);
@@ -413,6 +416,40 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 	*free= 1;
 	
 	return item;
+}
+
+static void rna_Actuator_Armature_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bActuator *act= (bActuator *)ptr->data;
+	bArmatureActuator *aa = act->data;
+	Object *ob = (Object *)ptr->id.data;
+
+	char *posechannel= aa->posechannel;
+	char *constraint= aa->constraint;
+
+	/* check that bone exist in the active object */
+	if (ob->type == OB_ARMATURE && ob->pose) {
+		bPoseChannel *pchan;
+		bPose *pose = ob->pose;
+		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
+			if (!strcmp(pchan->name, posechannel)) {
+				/* found it, now look for constraint channel */
+				bConstraint *con;
+				for (con=pchan->constraints.first; con; con=con->next) {
+					if (!strcmp(con->name, constraint)) {
+						/* found it, all ok */
+						return;						
+					}
+				}
+				/* didn't find constraint, make empty */
+				constraint[0] = 0;
+				return;
+			}
+		}
+	}
+	/* didn't find any */
+	posechannel[0] = 0;
+	constraint[0] = 0;
 }
 
 #else
@@ -1288,8 +1325,9 @@ static void rna_def_scene_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scene", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
+	//XXX filter only camera objects
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Camera");
+	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Camera Object", "Set this Camera. Leave empty to refer to self object");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -1590,7 +1628,7 @@ static void rna_def_twodfilter_actuator(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 99); //MAX_RENDER_PASS-1
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "motion_blur_value", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "motion_blur_value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "float_arg");
 	RNA_def_property_ui_text(prop, "Value", "Set motion blur value");
 	RNA_def_property_range(prop, 0.0, 1.0);
@@ -1599,7 +1637,7 @@ static void rna_def_twodfilter_actuator(BlenderRNA *brna)
 	/* booleans */
 	prop= RNA_def_property(srna, "enable_motion_blur", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", 1);
-	RNA_def_property_ui_text(prop, "D", "Enable/Disable Motion Blur");
+	RNA_def_property_ui_text(prop, "Enable", "Enable/Disable Motion Blur");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
@@ -1776,18 +1814,12 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bone", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "posechannel");
 	RNA_def_property_ui_text(prop, "Bone", "Bone on which the constraint is defined");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	// XXX uiButSetFunc(but, check_armature_actuator, but, armAct); // the bone must be from the armature
-	/* XXX eventually move to a datablock pointer. However datablocking this may be a problem
-	we would need to update the value whenever the armature changes. */
+	RNA_def_property_update(prop, NC_LOGIC, "rna_Actuator_Armature_update");
 
 	prop= RNA_def_property(srna, "constraint", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "constraint");
 	RNA_def_property_ui_text(prop, "Constraint", "Name of the constraint you want to control");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	// XXX uiButSetFunc(but, check_armature_actuator, but, armAct); // the constraintbone must be from the armature
-	/* XXX eventually move to a datablock pointer.
-		(more likely to work than for the Bone in my opinion) */
+	RNA_def_property_update(prop, NC_LOGIC, "rna_Actuator_Armature_update");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
@@ -1819,7 +1851,7 @@ void RNA_def_actuator(BlenderRNA *brna)
 	rna_def_camera_actuator(brna);
 	rna_def_sound_actuator(brna);
 	rna_def_property_actuator(brna);
-	rna_def_constraint_actuator(brna);	// to be done
+	rna_def_constraint_actuator(brna);
 	rna_def_edit_object_actuator(brna);
 	rna_def_scene_actuator(brna);
 	rna_def_random_actuator(brna);

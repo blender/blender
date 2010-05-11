@@ -3217,11 +3217,24 @@ static void draw_sensor_actuator(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 {
+	bSensor *sens = (bSensor*)ptr->data;
+	bArmatureSensor *as = (bArmatureSensor *) sens->data;
+	Object *ob = (Object *)ptr->id.data;
+	PointerRNA pose_ptr, pchan_ptr;
+	PropertyRNA *bones_prop;
 	uiLayout *row;
-	row = uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "channel_name", 0, NULL, 0);
-	uiItemR(row, ptr, "constraint_name", 0, NULL, 0);
 
+	if (ob->pose) {
+		RNA_pointer_create((ID *)ob, &RNA_Pose, ob->pose, &pose_ptr);
+		bones_prop = RNA_struct_find_property(&pose_ptr, "bones");
+	}
+
+	if (&pose_ptr.data) {
+		uiItemPointerR(layout, ptr, "bone", &pose_ptr, "bones", NULL, ICON_BONE_DATA);
+
+		if (RNA_property_collection_lookup_string(&pose_ptr, bones_prop, as->posechannel, &pchan_ptr))
+			uiItemPointerR(layout, ptr, "constraint", &pchan_ptr, "constraints", NULL, ICON_CONSTRAINT_BONE);
+	}
 	row = uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "test_type", 0, NULL, 0);
 	uiItemR(row, ptr, "value", 0, NULL, 0);
@@ -3346,7 +3359,7 @@ static void draw_sensor_near(uiLayout *layout, PointerRNA *ptr)
 
 	uiItemR(layout, ptr, "property", 0, NULL, 0);
 
-	row= uiLayoutRow(layout, 0);
+	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "distance", 0, NULL, 0);
 	uiItemR(row, ptr, "reset_distance", 0, NULL, 0);
 }
@@ -3503,7 +3516,7 @@ static void draw_controller_expression(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_controller_python(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row, *split, *subsplit;
+	uiLayout *split, *subsplit;
 
 	split = uiLayoutSplit(layout, 0.3, 1);
 	uiItemR(split, ptr, "mode", 0, "", 0);
@@ -3671,7 +3684,7 @@ static void draw_actuator_camera(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *row, *subrow, *col, *subcol, *split;
+	uiLayout *row, *col, *subcol, *split;
 
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 	switch (RNA_enum_get(ptr, "mode"))
@@ -3815,7 +3828,7 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_filter_2d(uiLayout *layout, PointerRNA *ptr)
 {
-	uiLayout *split;
+	uiLayout *row, *split;
 
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 	switch (RNA_enum_get(ptr, "mode"))
@@ -3825,8 +3838,10 @@ static void draw_actuator_filter_2d(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(layout, ptr, "glsl_shader", 0, NULL, 0);
 			break;
 		case ACT_2DFILTER_MOTIONBLUR:
-			split=uiLayoutSplit(layout, 0.9, 0);
-			uiItemR(split, ptr, "motion_blur_value", 0, NULL, 0);
+			split=uiLayoutSplit(layout, 0.75, 1);
+			row= uiLayoutRow(split, 0);
+			uiLayoutSetActive(row, RNA_boolean_get(ptr, "enable_motion_blur")==1);
+			uiItemR(row, ptr, "motion_blur_value", 0, NULL, 0);
 			uiItemR(split, ptr, "enable_motion_blur", UI_ITEM_R_TOGGLE, NULL, 0);
 			break;
 		default: // all other 2D Filters
@@ -4004,12 +4019,16 @@ static void draw_actuator_parent(uiLayout *layout, PointerRNA *ptr)
 static void draw_actuator_property(uiLayout *layout, PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
-	PointerRNA settings_ptr;
-	uiLayout *row;
+	bActuator *act = (bActuator *)ptr->data;
+	bPropertyActuator *pa = (bPropertyActuator *) act->data;
+	Object *ob_from= pa->ob;
+	PointerRNA settings_ptr, obj_settings_ptr;
 
-	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	uiLayout *row, *subrow;
 
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
+
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 	uiItemPointerR(layout, ptr, "property", &settings_ptr, "properties", NULL, 0);
 
 	switch(RNA_enum_get(ptr, "mode"))
@@ -4025,7 +4044,16 @@ static void draw_actuator_property(uiLayout *layout, PointerRNA *ptr)
 		case ACT_PROP_COPY:
 			row = uiLayoutRow(layout, 0);
 			uiItemR(row, ptr, "object", 0, NULL, 0);
-			uiItemR(row, ptr, "object_property", 0, NULL, 0);
+			if(ob_from){
+				RNA_pointer_create((ID *)ob_from, &RNA_GameObjectSettings, ob_from, &obj_settings_ptr);
+				uiItemPointerR(row, ptr, "object_property", &obj_settings_ptr, "properties", NULL, 0);
+			}else
+			{
+				subrow= uiLayoutRow(row, 0);
+				uiLayoutSetActive(subrow, 0);
+				uiItemR(subrow, ptr, "object_property", 0, NULL, 0);
+			}
+			break;
 	}
 }
 
@@ -4555,7 +4583,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	 * pin so changing states dosnt hide the logic brick */
 	char pin;
 
-	if (G.rt != 0) {
+	if (G.rt == 0) {
 		logic_buttons_new(C, ar);
 		return;
 	}

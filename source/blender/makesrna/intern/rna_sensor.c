@@ -29,11 +29,13 @@
 
 #include "rna_internal.h"
 
+#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_sensor_types.h"
 
 #include "WM_types.h"
 
+/* Always keep in alphabetical order */
 EnumPropertyItem sensor_type_items[] ={
 	{SENS_ACTUATOR, "ACTUATOR", 0, "Actuator", ""},
 	{SENS_ALWAYS, "ALWAYS", 0, "Always", ""},
@@ -106,6 +108,7 @@ static void rna_Sensor_type_set(struct PointerRNA *ptr, int value)
 	}
 }
 
+/* Always keep in alphabetical order */
 EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	EnumPropertyItem *item= NULL;
@@ -180,6 +183,58 @@ static void rna_Sensor_keyboard_modifier2_set(struct PointerRNA *ptr, int value)
 		ks->qual2 = value;
 }
 
+static void rna_Sensor_tap_set(struct PointerRNA *ptr, int value)
+{
+	bSensor *sens= (bSensor*)ptr->data;
+
+	sens->tap = value;
+	if(sens->tap == 1)
+		sens->level = 0;
+}
+
+static void rna_Sensor_level_set(struct PointerRNA *ptr, int value)
+{
+	bSensor *sens= (bSensor*)ptr->data;
+
+	sens->level = value;
+	if(sens->level == 1)
+		sens->tap = 0;
+}
+
+static void rna_Sensor_Armature_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bSensor *sens= (bSensor *)ptr->data;
+	bArmatureSensor *as = sens->data;
+	Object *ob = (Object *)ptr->id.data;
+
+	char *posechannel= as->posechannel;
+	char *constraint= as->constraint;
+
+	/* check that bone exist in the active object */
+	if (ob->type == OB_ARMATURE && ob->pose) {
+		bPoseChannel *pchan;
+		bPose *pose = ob->pose;
+		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
+			if (!strcmp(pchan->name, posechannel)) {
+				/* found it, now look for constraint channel */
+				bConstraint *con;
+				for (con=pchan->constraints.first; con; con=con->next) {
+					if (!strcmp(con->name, constraint)) {
+						/* found it, all ok */
+						return;						
+					}
+				}
+				/* didn't find constraint, make empty */
+				constraint[0] = 0;
+				return;
+			}
+		}
+	}
+	/* didn't find any */
+	posechannel[0] = 0;
+	constraint[0] = 0;
+}
+
 #else
 
 static void rna_def_sensor(BlenderRNA *brna)
@@ -216,6 +271,7 @@ static void rna_def_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "level", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Level", "Level detector, trigger controllers of new states(only applicable upon logic state transition)");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Sensor_level_set");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "pulse_true_level", PROP_BOOLEAN, PROP_NONE);
@@ -234,8 +290,9 @@ static void rna_def_sensor(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 10000);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "tap", PROP_BOOLEAN, PROP_NONE);\
+	prop= RNA_def_property(srna, "tap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tap", 1);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Sensor_tap_set");
 	RNA_def_property_ui_text(prop, "Tap", "Trigger controllers only for an instant, even while the sensor remains true");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
@@ -429,15 +486,15 @@ static void rna_def_armature_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Test Type", "Type of value and test");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "channel_name", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bone", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "posechannel");
 	RNA_def_property_ui_text(prop, "Bone name", "Identify the bone to check value from");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	RNA_def_property_update(prop, NC_LOGIC, "rna_Sensor_Armature_update");
 
-	prop= RNA_def_property(srna, "constraint_name", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "constraint", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "constraint");
 	RNA_def_property_ui_text(prop, "Constraint name", "Identify the bone constraint to check value from");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	RNA_def_property_update(prop, NC_LOGIC, "rna_Sensor_Armature_update");
 
 	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "value");
@@ -594,7 +651,7 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static const EnumPropertyItem prop_ray_type_items[]= {
-		{0, "PROPERTY", ICON_LOGIC, "Property", "Use a material for ray intersections"},
+		{SENS_COLLISION_PROPERTY, "PROPERTY", ICON_LOGIC, "Property", "Use a material for ray intersections"},
 		{SENS_COLLISION_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Use a property for ray intersections"},
 		{0, NULL, 0, NULL, NULL}};
 
