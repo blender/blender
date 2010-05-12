@@ -388,3 +388,53 @@ void NODE_OT_select_same_type(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+/* ****** Select The Next/Prev Node Of The Same Type ****** */
+
+static int node_select_same_type_next_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	node_select_same_type_np(snode, 0);
+	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_same_type_next(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Same Type Next";
+	ot->description = "Select the next node of the same type.";
+	ot->idname = "NODE_OT_select_same_type_next";
+	
+	/* api callbacks */
+	ot->exec = node_select_same_type_next_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int node_select_same_type_prev_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	node_select_same_type_np(snode, 1);
+	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_same_type_prev(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Same Type Prev";
+	ot->description = "Select the prev node of the same type.";
+	ot->idname = "NODE_OT_select_same_type_prev";
+	
+	/* api callbacks */
+	ot->exec = node_select_same_type_prev_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}

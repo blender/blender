@@ -954,6 +954,47 @@ int node_select_same_type(SpaceNode *snode)
 	return(redraw);
 }
 
+/* return 1 if we need redraw, otherwise zero.
+ * dir can be 0 == next or 0 != prev.
+ */
+int node_select_same_type_np(SpaceNode *snode, int dir)
+{
+	bNode *nac, *p;
+
+	/* search the active one. */
+	for (nac= snode->edittree->nodes.first; nac; nac= nac->next) {
+		if (nac->flag & SELECT)
+			break;
+	}
+
+	/* no active node, return. */
+	if (!nac)
+		return(0);
+
+	if (dir == 0)
+		p= nac->next;
+	else
+		p= nac->prev;
+
+	while (p) {
+		/* Now search the next with the same type. */
+		if (p->type == nac->type)
+			break;
+
+		if (dir == 0)
+			p= p->next;
+		else
+			p= p->prev;
+	}
+
+	if (p) {
+		node_deselectall(snode);
+		p->flag |= SELECT;
+		return(1);
+	}
+	return(0);
+}
+
 int node_has_hidden_sockets(bNode *node)
 {
 	bNodeSocket *sock;
