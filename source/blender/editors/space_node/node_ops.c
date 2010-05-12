@@ -77,6 +77,8 @@ void node_operatortypes(void)
 	
 	WM_operatortype_append(NODE_OT_backimage_move);
 	WM_operatortype_append(NODE_OT_backimage_zoom);
+	
+	WM_operatortype_append(NODE_OT_add_file);
 }
 
 void ED_operatormacros_node(void)

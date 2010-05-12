@@ -453,7 +453,7 @@ static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 	
 	if(id)
 		RNA_string_set(drop->ptr, "name", id->name+2);
-	if(drag->path) 
+	if(drag->path[0]) 
 		RNA_string_set(drop->ptr, "path", drag->path);
 }
 

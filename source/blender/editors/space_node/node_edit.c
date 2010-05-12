@@ -2030,4 +2030,86 @@ void NODE_OT_show_cyclic_dependencies(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ****************** Add File Node Operator  ******************* */
+
+static int node_add_file_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNode *node;
+	Image *ima= NULL;
+	int ntype=0;
+
+	/* check input variables */
+	if (RNA_property_is_set(op->ptr, "path"))
+	{
+		char path[FILE_MAX];
+		RNA_string_get(op->ptr, "path", path);
+		ima= BKE_add_image_file(path, scene ? scene->r.cfra : 1);
+	}
+	else if(RNA_property_is_set(op->ptr, "name"))
+	{
+		char name[32];
+		RNA_string_get(op->ptr, "name", name);
+		ima= (Image *)find_id("IM", name);
+	}
+	
+	if(!ima) {
+		BKE_report(op->reports, RPT_ERROR, "Not an Image.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	
+	node_deselectall(snode);
+	
+	if (snode->nodetree->type==NTREE_COMPOSIT)
+		ntype = CMP_NODE_IMAGE;
+	
+	node = node_add_node(snode, scene, ntype, snode->mx, snode->my);
+	
+	if (!node) {
+		BKE_report(op->reports, RPT_ERROR, "Could not add an image node.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	node->id = (ID *)ima;
+	
+	snode_notify(C, snode);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int node_add_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
+	
+	/* convert mouse coordinates to v2d space */
+	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
+							 &snode->mx, &snode->my);
+	
+	if (RNA_property_is_set(op->ptr, "path") || RNA_property_is_set(op->ptr, "name"))
+		return node_add_file_exec(C, op);
+	else
+		return WM_operator_filesel(C, op, event);
+}
+
+void NODE_OT_add_file(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add File Node";
+	ot->description= "Add a file node to the current node editor";
+	ot->idname= "NODE_OT_add_file";
+	
+	/* callbacks */
+	ot->exec= node_add_file_exec;
+	ot->invoke= node_add_file_invoke;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE);
+	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign.");
+}
 

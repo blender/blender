@@ -108,6 +108,8 @@ void NODE_OT_read_renderlayers(struct wmOperatorType *ot);
 void NODE_OT_backimage_move(struct wmOperatorType *ot);
 void NODE_OT_backimage_zoom(struct wmOperatorType *ot);
 
+void NODE_OT_add_file(struct wmOperatorType *ot);
+
 // XXXXXX
 
 // XXX from BSE_node.h
