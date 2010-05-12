@@ -1034,22 +1034,31 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 	}
 		
 	if(node) {
-		bNodeLink *link;
+		bNodeSocket *sock;
 		
-		/* get link to viewer */
-		for(link= snode->edittree->links.first; link; link= link->next)
-			if(link->tonode==node)
+		/* get a good socket to view from */
+		for(sock= tonode->outputs.first; sock; sock= sock->next)
+			if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
 				break;
 		
-		if(link==NULL) {
-			nodeAddLink(snode->edittree, tonode, tonode->outputs.first, node, node->inputs.first);
+		if(sock) {
+			bNodeLink *link;
+			
+			/* get link to viewer */
+			for(link= snode->edittree->links.first; link; link= link->next)
+				if(link->tonode==node)
+					break;
+			
+			if(link==NULL) {
+				nodeAddLink(snode->edittree, tonode, sock, node, node->inputs.first);
+			}
+			else {
+				link->fromnode= tonode;
+				link->fromsock= sock;
+			}
+			ntreeSolveOrder(snode->edittree);
+			NodeTagChanged(snode->edittree, node);
 		}
-		else {
-			link->fromnode= tonode;
-			link->fromsock= tonode->outputs.first;
-		}
-		ntreeSolveOrder(snode->edittree);
-		NodeTagChanged(snode->edittree, node);
 	}
 }
 
