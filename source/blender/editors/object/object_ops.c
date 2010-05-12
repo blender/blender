@@ -98,6 +98,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_select_inverse);
 	WM_operatortype_append(OBJECT_OT_select_random);
 	WM_operatortype_append(OBJECT_OT_select_all);
+	WM_operatortype_append(OBJECT_OT_select_same_group);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
 	WM_operatortype_append(OBJECT_OT_select_by_layer);
 	WM_operatortype_append(OBJECT_OT_select_linked);
