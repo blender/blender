@@ -448,8 +448,8 @@ void do_logic_buts(bContext *C, void *arg, int event)
 
 	case B_SET_STATE_BIT:
 		for(ob=G.main->object.first; ob; ob=ob->id.next) {
-			if(ob->scaflag & OB_SETSTBIT) {
-				ob->scaflag &= ~OB_SETSTBIT;
+			if(ob->scaflag & OB_ALLSTATE) {
+				ob->scaflag &= ~OB_ALLSTATE;
 				ob->state = 0x3FFFFFFF;
 			}
 		}
@@ -4305,9 +4305,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	Object *ob= CTX_data_active_object(C);
 	ID **idar;
 	
-	PointerRNA logic_ptr;
+	PointerRNA logic_ptr, settings_ptr;
 	
-	uiLayout *layout, *row;
+	uiLayout *layout, *row, *split, *subsplit, *box, *col;
 	uiBlock *block;
 	uiBut *but;
 	char name[32];
@@ -4355,29 +4355,42 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	uiItemR(row, &logic_ptr, "controllers_show_active_objects", 0, "Act", 0);
 	uiItemR(row, &logic_ptr, "controllers_show_linked_controller", 0, "Link", 0);
 
-	{
-		PointerRNA settings_ptr;
-		row = uiLayoutRow(layout, 0);
-		RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
-		uiItemR(row, &logic_ptr, "controllers_show_initial_state", UI_ITEM_R_NO_BG, "", 0);
-		uiTemplateLayers(row, &settings_ptr, "state", &settings_ptr, "used_state", 0);
-		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, OB_SETSTBIT, B_SET_STATE_BIT, "All", 0, 0, UI_UNIT_X, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Set all state bits");
-		uiDefButBitS(block, TOG, OB_DEBUGSTATE, 0, "D", 0, 0, UI_UNIT_X, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Print state debug info");
-		uiBlockEndAlign(block);
-		
-		if (RNA_boolean_get(&logic_ptr, "controllers_show_initial_state")) {
-			row = uiLayoutRow(layout, 0);
-			uiItemL(row, "Initial State:", 0);
-			uiTemplateLayers(row, &settings_ptr, "initial_state", &settings_ptr, "used_state", 0);
-		}
-	}
+	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
 
-	row = uiLayoutRow(layout, 1);
+	split= uiLayoutSplit(layout, 0.05, 0);
+	uiItemR(split, &settings_ptr, "show_state_panel", UI_ITEM_R_NO_BG, "", ICON_DISCLOSURE_TRI_RIGHT);
+
+	row = uiLayoutRow(split, 1);
 	uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide controllers");
 	uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", 0);
-	
+
+	if (RNA_boolean_get(&settings_ptr, "show_state_panel")) {
+
+		box= uiLayoutBox(layout);
+		uiLayoutSetAlignment(box, UI_LAYOUT_ALIGN_CENTER); //XXX doesn't seem to work
+		split= uiLayoutSplit(box, 0.15, 0);
+
+		col= uiLayoutColumn(split, 0);
+		uiItemR(col, &settings_ptr, "all_states", UI_ITEM_R_TOGGLE, NULL, 0);
+		/* XXX terrible workaround while we don't have a nice set of icons here :) */
+		if(RNA_boolean_get(&settings_ptr, "debug_state")==0)
+			uiItemR(col, &settings_ptr, "debug_state", UI_ITEM_R_NO_BG, "", 0);
+		else
+			uiItemR(col, &settings_ptr, "debug_state", 0, "", 0); 
+
+		subsplit= uiLayoutSplit(split, 0.7225, 0);
+		col= uiLayoutColumn(subsplit, 0);
+		row= uiLayoutRow(col, 0);
+		uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "all_states")==0);
+		uiTemplateLayers(row, &settings_ptr, "state", &settings_ptr, "used_state", 0);
+		row= uiLayoutRow(col, 0);
+		uiTemplateLayers(row, &settings_ptr, "initial_state", &settings_ptr, "used_state", 0);
+
+		col= uiLayoutColumn(subsplit, 0);
+		uiItemL(col, "Visible", 0);
+		uiItemL(col, "Initial", 0);
+	}
+
 	for(a=0; a<count; a++) {
 		bController *cont;
 		PointerRNA ptr;
@@ -4680,7 +4693,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 				}
 			}
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, OB_SETSTBIT, B_SET_STATE_BIT, "All",(short)(xco+226), yco-10, 22, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Set all state bits");
+			uiDefButBitS(block, TOG, OB_ALLSTATE, B_SET_STATE_BIT, "All",(short)(xco+226), yco-10, 22, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Set all state bits");
 			uiDefButBitS(block, TOG, OB_INITSTBIT, B_INIT_STATE_BIT, "Ini",(short)(xco+248), yco-10, 22, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Set the initial state");
 			uiDefButBitS(block, TOG, OB_DEBUGSTATE, 0, "D",(short)(xco+270), yco-10, 15, UI_UNIT_Y, &ob->scaflag, 0, 0, 0, 0, "Print state debug info");
 			uiBlockEndAlign(block);

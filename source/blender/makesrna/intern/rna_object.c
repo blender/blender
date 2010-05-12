@@ -1273,6 +1273,16 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "debug_state", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_DEBUGSTATE);
 	RNA_def_property_ui_text(prop, "Debug State", "Print state debug info in the game engine");
+	RNA_def_property_ui_icon(prop, ICON_INFO, 0);
+
+	prop= RNA_def_property(srna, "all_states", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_ALLSTATE);
+	RNA_def_property_ui_text(prop, "All", "Set all state bits");
+
+	prop= RNA_def_property(srna, "show_state_panel", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_SHOWSTATE);
+	RNA_def_property_ui_text(prop, "States", "Show state panel");
+	RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
 }
 
 static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
