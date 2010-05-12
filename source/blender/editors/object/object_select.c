@@ -45,7 +45,6 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -409,8 +408,7 @@ static short select_grouped_group(bContext *C, Object *ob)	/* Select objects in 
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	// XXX G.main ?
-	for (group=G.main->group.first;	group && group_count < GROUP_MENU_MAX; group=group->id.next) {
+	for (group=CTX_data_main(C)->group.first; group && group_count < GROUP_MENU_MAX; group=group->id.next) {
 		if (object_in_group (ob, group)) {
 			ob_groups[group_count] = group;
 			group_count++;
@@ -788,8 +786,7 @@ static int object_select_same_group_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "group", group_name);
 
-	// XXX G.main ?
-	for (group=G.main->group.first;	group; group=group->id.next) {
+	for (group=CTX_data_main(C)->group.first;	group; group=group->id.next) {
 		if (!strcmp(group->id.name, group_name))
 			break;
 	}
