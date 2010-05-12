@@ -62,6 +62,7 @@ void NODE_OT_select_linked_from(wmOperatorType *ot);
 void NODE_OT_visibility_toggle(struct wmOperatorType *ot);
 void NODE_OT_view_all(struct wmOperatorType *ot);
 void NODE_OT_select_border(struct wmOperatorType *ot);
+void NODE_OT_select_same_type(struct wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
@@ -80,6 +81,7 @@ void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void node_set_active(SpaceNode *snode, bNode *node);
 void node_deselectall(SpaceNode *snode);
+int node_select_same_type(SpaceNode *snode);
 void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *node_tree_get_editgroup(bNodeTree *ntree);
 void node_tree_verify_groups(bNodeTree *nodetree);

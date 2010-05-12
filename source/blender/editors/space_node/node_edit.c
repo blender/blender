@@ -922,6 +922,38 @@ void node_deselectall(SpaceNode *snode)
 		node->flag &= ~SELECT;
 }
 
+/* return 1 if we need redraw otherwise zero. */
+int node_select_same_type(SpaceNode *snode)
+{
+	bNode *nac, *p;
+	int redraw;
+
+	/* search for the active node. */
+	for (nac= snode->edittree->nodes.first; nac; nac= nac->next) {
+		if (nac->flag & SELECT)
+			break;
+	}
+
+	/* no active node, return. */
+	if (!nac)
+		return(0);
+
+	redraw= 0;
+	for (p= snode->edittree->nodes.first; p; p= p->next) {
+		if (p->type != nac->type && p->flag & SELECT) {
+			/* if it's selected but different type, unselect */
+			redraw= 1;
+			p->flag &= ~SELECT;
+		}
+		else if (p->type == nac->type && (!(p->flag & SELECT))) {
+			/* if it's the same type and is not selected, select! */
+			redraw= 1;
+			p->flag |= SELECT;
+		}
+	}
+	return(redraw);
+}
+
 int node_has_hidden_sockets(bNode *node)
 {
 	bNodeSocket *sock;

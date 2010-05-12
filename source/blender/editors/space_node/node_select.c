@@ -363,3 +363,28 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ****** Select Same Type ****** */
+
+static int node_select_same_type_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	node_select_same_type(snode);
+	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_same_type(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Same Type";
+	ot->description = "Select all the same type";
+	ot->idname = "NODE_OT_select_same_type";
+	
+	/* api callbacks */
+	ot->exec = node_select_same_type_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
