@@ -10850,6 +10850,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		bScreen *sc;
+
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if (sl->spacetype == SPACE_NODE) {
+						SpaceNode *snode;
+
+						snode= (SpaceNode *)sl;
+						if (snode->v2d.minzoom > 0.09f)
+							snode->v2d.minzoom= 0.09f;
+						if (snode->v2d.maxzoom < 2.31f)
+							snode->v2d.maxzoom= 2.31f;
+					}
+				}
+			}
+		}
+
 		do_version_mdef_250(fd, lib, main);
 	}
 
