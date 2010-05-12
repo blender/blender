@@ -4368,17 +4368,13 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 		box= uiLayoutBox(layout);
 		uiLayoutSetAlignment(box, UI_LAYOUT_ALIGN_CENTER); //XXX doesn't seem to work
-		split= uiLayoutSplit(box, 0.15, 0);
+		split= uiLayoutSplit(box, 0.2, 0);
 
 		col= uiLayoutColumn(split, 0);
-		uiItemR(col, &settings_ptr, "all_states", UI_ITEM_R_TOGGLE, NULL, 0);
-		/* XXX terrible workaround while we don't have a nice set of icons here :) */
-		if(RNA_boolean_get(&settings_ptr, "debug_state")==0)
-			uiItemR(col, &settings_ptr, "debug_state", UI_ITEM_R_NO_BG, "", 0);
-		else
-			uiItemR(col, &settings_ptr, "debug_state", 0, "", 0); 
+		uiItemL(col, "Visible", 0);
+		uiItemL(col, "Initial", 0);
 
-		subsplit= uiLayoutSplit(split, 0.7225, 0);
+		subsplit= uiLayoutSplit(split, 0.85, 0);
 		col= uiLayoutColumn(subsplit, 0);
 		row= uiLayoutRow(col, 0);
 		uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "all_states")==0);
@@ -4387,8 +4383,8 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		uiTemplateLayers(row, &settings_ptr, "initial_state", &settings_ptr, "used_state", 0);
 
 		col= uiLayoutColumn(subsplit, 0);
-		uiItemL(col, "Visible", 0);
-		uiItemL(col, "Initial", 0);
+		uiItemR(col, &settings_ptr, "all_states", UI_ITEM_R_TOGGLE, NULL, 0);
+		uiItemR(col, &settings_ptr, "debug_state", 0, "", 0); 
 	}
 
 	for(a=0; a<count; a++) {
