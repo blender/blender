@@ -274,6 +274,21 @@ class TEXT_MT_edit(bpy.types.Menu):
         layout.menu("TEXT_MT_edit_to3d")
 
 
+class TEXT_MT_toolbox(bpy.types.Menu):
+    bl_label = ""
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("text.cut")
+        layout.operator("text.copy")
+        layout.operator("text.paste")
+
+        layout.separator()
+        
+        layout.operator("text.run_script")
+
+
 classes = [
     TEXT_HT_header,
     TEXT_PT_properties,
@@ -285,7 +300,8 @@ classes = [
     TEXT_MT_edit_view,
     TEXT_MT_edit_select,
     TEXT_MT_edit_markers,
-    TEXT_MT_edit_to3d]
+    TEXT_MT_edit_to3d,
+    TEXT_MT_toolbox]
 
 
 def register():
