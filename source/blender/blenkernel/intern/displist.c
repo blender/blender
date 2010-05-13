@@ -1274,6 +1274,40 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 	*numVerts_r = numVerts;
 }
 
+static float (*displist_get_allverts (ListBase *dispbase, int *totvert))[3]
+{
+	DispList *dl;
+	float (*allverts)[3], *fp;
+
+	*totvert= 0;
+
+	for (dl=dispbase->first; dl; dl=dl->next)
+		*totvert+= (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr;
+
+	allverts= MEM_mallocN((*totvert)*sizeof(float)*3, "displist_get_allverts allverts");
+	fp= (float*)allverts;
+	for (dl=dispbase->first; dl; dl=dl->next) {
+		int offs= 3 * ((dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
+		memcpy(fp, dl->verts, sizeof(float) * offs);
+		fp+= offs;
+	}
+
+	return allverts;
+}
+
+static void displist_apply_allverts(ListBase *dispbase, float (*allverts)[3])
+{
+	DispList *dl;
+	float *fp;
+
+	fp= (float*)allverts;
+	for (dl=dispbase->first; dl; dl=dl->next) {
+		int offs= 3 * ((dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
+		memcpy(dl->verts, fp, sizeof(float) * offs);
+		fp+= offs;
+	}
+}
+
 static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispbase,
 	DerivedMesh **derivedFinal, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
 {
@@ -1281,12 +1315,10 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	ModifierData *preTesselatePoint;
 	Curve *cu= ob->data;
 	ListBase *nurb= cu->editnurb?cu->editnurb:&cu->nurb;
-	DispList *dl;
-	int required_mode;
+	int required_mode, totvert;
 	int editmode = (!forRender && cu->editnurb);
 	DerivedMesh *dm= NULL, *ndm;
-	float (*dmDeformedVerts)[3] = NULL;
-	int numVerts;
+	float (*vertCos)[3] = NULL;
 
 	if(forRender) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
@@ -1311,47 +1343,22 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md, forRender)) continue;
 
-		if(md->type==eModifierType_Curve && !dm) {
-			/* need to put all verts in 1 block for curve deform */
-			float *allverts = NULL, *fp;
-			int totvert= 0;
-
-			for (dl=dispbase->first; dl; dl=dl->next)
-				totvert+= (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr;
-
-			fp= allverts= MEM_mallocN(totvert*sizeof(float)*3, "temp vert");
-			for (dl=dispbase->first; dl; dl=dl->next) {
-				int offs= 3 * ((dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
-				memcpy(fp, dl->verts, sizeof(float) * offs);
-				fp+= offs;
-			}
-
-			mti->deformVerts(md, ob, NULL, (float(*)[3]) allverts, totvert, forRender, editmode);
-
-			if (allverts) {
-				fp= allverts;
-				for (dl=dispbase->first; dl; dl=dl->next) {
-					int offs= 3 * ((dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
-					memcpy(dl->verts, fp, sizeof(float) * offs);
-					fp+= offs;
-				}
-				MEM_freeN(allverts);
-			}
-		} else if (mti->type == eModifierTypeType_OnlyDeform ||
+		if (mti->type == eModifierTypeType_OnlyDeform ||
 				(mti->type == eModifierTypeType_DeformOrConstruct && !dm)) {
 			if (dm) {
-				if (!dmDeformedVerts) {
-					numVerts = dm->getNumVerts(dm);
-					dmDeformedVerts =
-						MEM_mallocN(sizeof(*dmDeformedVerts) * numVerts, "dfmv");
-					dm->getVertCos(dm, dmDeformedVerts);
+				if (!vertCos) {
+					totvert = dm->getNumVerts(dm);
+					vertCos = MEM_mallocN(sizeof(*vertCos) * totvert, "dfmv");
+					dm->getVertCos(dm, vertCos);
 				}
 
-				mti->deformVerts(md, ob, dm, dmDeformedVerts, numVerts, forRender, editmode);
+				mti->deformVerts(md, ob, dm, vertCos, totvert, forRender, editmode);
 			} else {
-				for (dl=dispbase->first; dl; dl=dl->next) {
-					mti->deformVerts(md, ob, dm, (float(*)[3]) dl->verts, (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr, forRender, editmode);
+				if (!vertCos) {
+					vertCos= displist_get_allverts(dispbase, &totvert);
 				}
+
+				mti->deformVerts(md, ob, NULL, vertCos, totvert, forRender, editmode);
 			}
 		} else {
 			if (!derivedFinal) {
@@ -1362,27 +1369,32 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 			}
 
 			if (dm) {
-				if (dmDeformedVerts) {
+				if (vertCos) {
 					DerivedMesh *tdm = CDDM_copy(dm);
 					dm->release(dm);
 					dm = tdm;
 
-					CDDM_apply_vert_coords(dm, dmDeformedVerts);
+					CDDM_apply_vert_coords(dm, vertCos);
 					CDDM_calc_normals(dm);
 				}
 			} else {
+				if (vertCos) {
+					displist_apply_allverts(dispbase, vertCos);
+				}
+
 				if (ELEM(ob->type, OB_CURVE, OB_FONT) && (cu->flag & CU_DEFORM_FILL)) {
 					curve_to_filledpoly(cu, nurb, dispbase);
 				}
 
 				dm= CDDM_from_curve_customDB(ob, dispbase);
 
-				if(dmDeformedVerts) {
-					CDDM_apply_vert_coords(dm, dmDeformedVerts);
-					CDDM_calc_normals(dm);
-				}
-
 				CDDM_calc_normals(dm);
+			}
+
+			if (vertCos) {
+				/* Vertex coordinates were applied to necessary data, could free it */
+				MEM_freeN(vertCos);
+				vertCos= NULL;
 			}
 
 			ndm = mti->applyModifier(md, ob, dm, forRender, editmode);
@@ -1393,23 +1405,24 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 				if (dm && dm != ndm) /* Modifier  */
 					dm->release (dm);
 				dm = ndm;
-
-				if (dmDeformedVerts) {
-					MEM_freeN(dmDeformedVerts);
-					dmDeformedVerts= NULL;
-				}
 			}
 		}
 	}
 
-	if(dm && dmDeformedVerts) {
-		DerivedMesh *tdm = CDDM_copy(dm);
-		dm->release(dm);
-		dm = tdm;
+	if (vertCos) {
+		if (dm) {
+			DerivedMesh *tdm = CDDM_copy(dm);
+			dm->release(dm);
+			dm = tdm;
 
-		CDDM_apply_vert_coords(dm, dmDeformedVerts);
-		CDDM_calc_normals(dm);
-		MEM_freeN(dmDeformedVerts);
+			CDDM_apply_vert_coords(dm, vertCos);
+			CDDM_calc_normals(dm);
+			MEM_freeN(vertCos);
+		} else {
+			displist_apply_allverts(dispbase, vertCos);
+			MEM_freeN(vertCos);
+			vertCos= NULL;
+		}
 	}
 
 	if (derivedFinal) {
