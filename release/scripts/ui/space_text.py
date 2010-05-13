@@ -279,6 +279,7 @@ class TEXT_MT_toolbox(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
+        layout.operator_context = 'INVOKE_DEFAULT'
 
         layout.operator("text.cut")
         layout.operator("text.copy")
