@@ -85,7 +85,7 @@ void				folderlist_pushdir(struct ListBase* folderlist, const char *dir);
 int					folderlist_clear_next(struct SpaceFile* sfile);
 
 void				thumbnails_stop(struct FileList* filelist, const struct bContext* C);
-void				thumbnails_start(struct FileList* filelist, const struct bContext* C);
+void				thumbnails_start(struct FileList* filelist, FileSelectParams *params, const struct bContext* C);
 
 #ifdef __cplusplus
 }

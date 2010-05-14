@@ -201,13 +201,13 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 			filelist_sort(sfile->files, params->sort);
 		}
 		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
-		thumbnails_start(sfile->files, C);
+		thumbnails_start(sfile->files, params, C);
 	} else {
 		filelist_filter(sfile->files);
 		if(params->sort!=FILE_SORT_NONE) {
 			thumbnails_stop(sfile->files, C);
 			filelist_sort(sfile->files, params->sort);
-			thumbnails_start(sfile->files, C);
+			thumbnails_start(sfile->files, params, C);
 		} else {
 			filelist_filter(sfile->files);
 		}
