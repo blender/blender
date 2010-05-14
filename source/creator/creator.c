@@ -223,7 +223,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("    \tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
 	printf ("    -t <threads>\tUse amount of <threads> for rendering (background mode only).\n");
-	printf ("      [1-8], 0 for systems processor count.\n");
+	printf ("      [1-%d], 0 for systems processor count.\n", BLENDER_MAX_THREADS);
 	printf ("\nAnimation playback options:\n");
 	printf ("  -a <options> <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
