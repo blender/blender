@@ -97,7 +97,7 @@ static char AdjacencyIterator_getObject___doc__[] =
 "   Returns the pointed ViewEdge.\n"
 "\n"
 "   :return: The pointed ViewEdge.\n"
-"   :rtype: ViewEdge* operator\n";
+"   :rtype: :class:`ViewEdge`\n";
 
 static PyObject * AdjacencyIterator_getObject(BPy_AdjacencyIterator *self) {
 	

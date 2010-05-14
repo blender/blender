@@ -26,12 +26,12 @@ static char FrsCurve___doc__[] =
 "\n"
 "   Copy Constructor.\n"
 "\n"
-"   :arg iBrother: A FrsCurve object.\n"
+"   :arg iBrother: A Curve object.\n"
 "   :type iBrother: :class:`Curve`\n"
 "\n"
 ".. method:: __init__(iId)\n"
 "\n"
-"   Builds a FrsCurve from its Id.\n"
+"   Builds a Curve from its Id.\n"
 "\n"
 "   :arg iId: An Id object.\n"
 "   :type iId: :class:`Id`\n";
@@ -67,7 +67,7 @@ static int FrsCurve___init__(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 static char FrsCurve_push_vertex_back___doc__[] =
 ".. method:: push_vertex_back(iVertex)\n"
 "\n"
-"   Adds a single vertex at the end of the FrsCurve.\n"
+"   Adds a single vertex at the end of the Curve.\n"
 "\n"
 "   :arg iVertex: A vertex object.\n"
 "   :type iVertex: :class:`SVertex` or :class:`CurvePoint`\n";
@@ -93,7 +93,7 @@ static PyObject * FrsCurve_push_vertex_back( BPy_FrsCurve *self, PyObject *args 
 static char FrsCurve_push_vertex_front___doc__[] =
 ".. method:: push_vertex_front(iVertex)\n"
 "\n"
-"   Adds a single vertex at the front of the FrsCurve.\n"
+"   Adds a single vertex at the front of the Curve.\n"
 "\n"
 "   :arg iVertex: A vertex object.\n"
 "   :type iVertex: :class:`SVertex` or :class:`CurvePoint`\n";
@@ -119,9 +119,9 @@ static PyObject * FrsCurve_push_vertex_front( BPy_FrsCurve *self, PyObject *args
 static char FrsCurve_empty___doc__[] =
 ".. method:: empty()\n"
 "\n"
-"   Returns true if the FrsCurve doesn't have any Vertex yet.\n"
+"   Returns true if the Curve doesn't have any Vertex yet.\n"
 "\n"
-"   :return: True if the FrsCurve has no vertices.\n"
+"   :return: True if the Curve has no vertices.\n"
 "   :rtype: bool\n";
 
 static PyObject * FrsCurve_empty( BPy_FrsCurve *self ) {
@@ -132,7 +132,7 @@ static char FrsCurve_nSegments___doc__[] =
 ".. method:: nSegments()\n"
 "\n"
 "   Returns the number of segments in the polyline constituing the\n"
-"   FrsCurve.\n"
+"   Curve.\n"
 "\n"
 "   :return: The number of segments.\n"
 "   :rtype: int\n";
