@@ -605,7 +605,7 @@ void SEQUENCER_OT_select_more(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select More";
 	ot->idname= "SEQUENCER_OT_select_more";
-	ot->description="DOC_BROKEN";
+	ot->description="Select more strips adjacent to the current selection";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_more_exec;
@@ -636,7 +636,7 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select less";
 	ot->idname= "SEQUENCER_OT_select_less";
-	ot->description="DOC_BROKEN";
+	ot->description="Shrink the current selection of adjacent selected strips";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_less_exec;
@@ -726,7 +726,7 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select linked";
 	ot->idname= "SEQUENCER_OT_select_linked";
-	ot->description="DOC_BROKEN";
+	ot->description="Select all strips adjacent to the current selection";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_linked_exec;
@@ -813,7 +813,7 @@ void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Active Side";
 	ot->idname= "SEQUENCER_OT_select_active_side";
-	ot->description="DOC_BROKEN";
+	ot->description="Select strips on the nominated side of the active strip";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_active_side_exec;

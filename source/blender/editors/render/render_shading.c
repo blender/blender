@@ -1037,7 +1037,7 @@ void MATERIAL_OT_paste(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Paste Material";
 	ot->idname= "MATERIAL_OT_paste";
-	ot->description="Copy the material settings and nodes";
+	ot->description="Paste the material settings and nodes";
 
 	/* api callbacks */
 	ot->exec= paste_material_exec;
