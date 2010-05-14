@@ -166,7 +166,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
         md = context.smoke.domain_settings
         cache = md.point_cache_low
 
-        point_cache_ui(self, context, cache, (cache.baked is False), 0, 1)
+        point_cache_ui(self, context, cache, (cache.baked is False), 'SMOKE')
 
 
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
@@ -222,7 +222,7 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
         md = context.smoke.domain_settings
         cache = md.point_cache_high
 
-        point_cache_ui(self, context, cache, (cache.baked is False), 0, 1)
+        point_cache_ui(self, context, cache, (cache.baked is False), 'SMOKE')
 
 
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):

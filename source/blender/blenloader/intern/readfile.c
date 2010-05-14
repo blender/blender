@@ -10846,13 +10846,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_IMAGE) {
 						SpaceImage *sima = (SpaceImage *)sl;
-						sima->scopes.accuracy = 30.0;
-						sima->scopes.hist.mode=HISTO_MODE_RGB;
-						sima->scopes.wavefrm_alpha=0.3;
-						sima->scopes.vecscope_alpha=0.3;
-						sima->scopes.wavefrm_height= 100;
-						sima->scopes.vecscope_height= 100;
-						sima->scopes.hist.height= 100;
+						scopes_new(&sima->scopes);
 					}
 				}
 			}
@@ -10861,6 +10855,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		bScreen *sc;
+
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if (sl->spacetype == SPACE_NODE) {
+						SpaceNode *snode;
+
+						snode= (SpaceNode *)sl;
+						if (snode->v2d.minzoom > 0.09f)
+							snode->v2d.minzoom= 0.09f;
+						if (snode->v2d.maxzoom < 2.31f)
+							snode->v2d.maxzoom= 2.31f;
+					}
+				}
+			}
+		}
+
 		do_version_mdef_250(fd, lib, main);
 	}
 

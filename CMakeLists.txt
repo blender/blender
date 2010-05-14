@@ -62,7 +62,6 @@ OPTION(WITH_GAMEENGINE    "Enable Game Engine" ON)
 OPTION(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 OPTION(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
 OPTION(WITH_ELBEEM        "Enable Elbeem (Fluid Simulation)" ON)
-OPTION(WITH_QUICKTIME     "Enable Quicktime Support" OFF)
 OPTION(WITH_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
 OPTION(WITH_DDS           "Enable DDS Support" ON)
 OPTION(WITH_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)" OFF)
@@ -79,16 +78,21 @@ OPTION(WITH_LZMA          "Enable best LZMA compression, used for pointcache" ON
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
-OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	ON)
+OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" OFF) 
+
+IF(APPLE OR WIN32)
+	OPTION(WITH_QUICKTIME     "Enable Quicktime Support" OFF)
+ENDIF(APPLE OR WIN32)
 
 # Unix defaults to OpenMP On
+# Disable opencollada on non-apple unix because opencollada has no package for debian
 IF(UNIX AND NOT APPLE)
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
+	OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
 ELSE()
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
+	OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	ON)
 ENDIF()
-
-OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" OFF) 
 
 IF (APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)

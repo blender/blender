@@ -269,10 +269,9 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
         return psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.hair_dynamics)
 
     def draw(self, context):
-
         psys = context.particle_system
 
-        point_cache_ui(self, context, psys.point_cache, particle_panel_enabled(context, psys), not psys.hair_dynamics, 0)
+        point_cache_ui(self, context, psys.point_cache, True, 'HAIR' if psys.hair_dynamics else 'PSYS')
 
 
 class PARTICLE_PT_velocity(ParticleButtonsPanel):

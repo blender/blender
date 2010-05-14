@@ -290,6 +290,9 @@ def rna2sphinx(BASEPATH):
     fw("copyright = u'Blender Foundation'\n")
     fw("version = '%s - UNSTABLE API'\n" % version_string)
     fw("release = '%s - UNSTABLE API'\n" % version_string)
+    fw("html_theme = 'blender-org'\n")
+    fw("html_theme_path = ['../']\n")
+    fw("html_favicon = 'favicon.ico'\n")
     # not helpful since the source us generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("\n")
@@ -680,6 +683,9 @@ if __name__ == '__main__':
         path_examples = 'source/blender/python/doc/examples'
         # only for partial updates
         path_in_tmp = path_in + "-tmp"
+
+        if not os.path.exists(path_in):
+            os.mkdir(path_in)
 
         for f in os.listdir(path_examples):
             if f.endswith(".py"):

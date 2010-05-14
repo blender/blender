@@ -130,6 +130,8 @@ void initglobals(void)
 	G.charstart = 0x0000;
 	G.charmin = 0x0000;
 	G.charmax = 0xffff;
+	
+	G.f |= G_SCRIPT_AUTOEXEC;
 }
 
 /***/

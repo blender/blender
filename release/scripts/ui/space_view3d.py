@@ -523,7 +523,7 @@ class VIEW3D_MT_select_edit_curve(bpy.types.Menu):
         layout.operator("curve.select_all", text="Select/Deselect All")
         layout.operator("curve.select_inverse")
         layout.operator("curve.select_random")
-        layout.operator("curve.select_every_nth")
+        layout.operator("curve.select_nth", text="Every Nth Number of Points")
 
         layout.separator()
 
@@ -552,7 +552,7 @@ class VIEW3D_MT_select_edit_surface(bpy.types.Menu):
         layout.operator("curve.select_all", text="Select/Deselect All")
         layout.operator("curve.select_inverse")
         layout.operator("curve.select_random")
-        layout.operator("curve.select_every_nth")
+        layout.operator("curve.select_nth", text="Every Nth Number of Points")
 
         layout.separator()
 

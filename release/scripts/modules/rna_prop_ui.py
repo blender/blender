@@ -253,7 +253,7 @@ class WM_OT_properties_add(bpy.types.Operator):
 class WM_OT_properties_remove(bpy.types.Operator):
     '''Internal use (edit a property path)'''
     bl_idname = "wm.properties_remove"
-    bl_label = "Add Property"
+    bl_label = "Remove Property"
 
     path = rna_path
     property = rna_property

@@ -132,6 +132,7 @@ void BLI_bpathIterator_getPathExpanded( struct BPathIterator *bpi, char *path_ex
 	} else { /* local data, use the blend files path */
 		BLI_path_abs(path_expanded, bpi->base_path);
 	}
+	BLI_cleanup_file(NULL, path_expanded);
 }
 char* BLI_bpathIterator_getLib( struct BPathIterator *bpi) {
 	return bpi->lib;

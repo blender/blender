@@ -1314,6 +1314,13 @@ void UI_view2d_constant_grid_draw(const bContext *C, View2D *v2d)
 	glEnd();
 }
 
+/* the price we pay for not exposting structs :( */
+void UI_view2d_grid_size(View2DGrid *grid, float *r_dx, float *r_dy)
+{
+	*r_dx= grid->dx;
+	*r_dy= grid->dy;
+}
+
 /* free temporary memory used for drawing grid */
 void UI_view2d_grid_free(View2DGrid *grid)
 {

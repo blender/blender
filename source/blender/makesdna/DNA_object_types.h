@@ -496,9 +496,10 @@ extern Object workob;
 #define OB_ADDCONT		512
 #define OB_ADDACT		1024
 #define OB_SHOWCONT		2048
-#define OB_SETSTBIT		4096
+#define OB_ALLSTATE		4096
 #define OB_INITSTBIT	8192
 #define OB_DEBUGSTATE	16384
+#define OB_SHOWSTATE	32768
 
 /* ob->restrictflag */
 #define OB_RESTRICT_VIEW	1

@@ -1805,9 +1805,10 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	 */
 #define EVAL_ANIM_IDS(first, aflag) \
 	for (id= first; id; id= id->next) { \
-		AnimData *adt= BKE_animdata_from_id(id); \
-		if ( (id->us > 1) || (id->us && !(id->flag & LIB_FAKEUSER)) ) \
+		if (ID_REAL_USERS(id) > 0) { \
+			AnimData *adt= BKE_animdata_from_id(id); \
 			BKE_animsys_evaluate_animdata(id, adt, ctime, aflag); \
+		} \
 	}
 	
 	/* optimisation: 

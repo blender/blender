@@ -2129,7 +2129,7 @@ static void rna_def_space_logic(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "sensors_show_active_states", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_SENS_STATE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "scaflag", BUTS_SENS_STATE);
 	RNA_def_property_ui_text(prop, "Show Active States", "Show only sensors connected to active states");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -2147,12 +2147,6 @@ static void rna_def_space_logic(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "controllers_show_linked_controller", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_CONT_LINK);
 	RNA_def_property_ui_text(prop, "Show Linked to Controller", "Show linked objects to sensor/actuator");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	
-	prop= RNA_def_property(srna, "controllers_show_initial_state", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_CONT_INIT_STATE);
-	RNA_def_property_ui_text(prop, "Show Initial State", "Show the initial controller state for this object");
-	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* actuators */
@@ -2172,7 +2166,7 @@ static void rna_def_space_logic(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "actuators_show_active_states", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_ACT_STATE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "scaflag", BUTS_ACT_STATE);
 	RNA_def_property_ui_text(prop, "Show Active States", "Show only actuators connected to active states");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 

@@ -232,19 +232,20 @@ void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 /* 99% same as above except no need for scene refreshing (TODO, update render preview) */
 static int object_restrictrender_clear_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-	Scene *scene= CTX_data_scene(C);
-	Base *base;
-
+	short changed= 0;
 
 	/* XXX need a context loop to handle such cases */
-	for(base = FIRSTBASE; base; base=base->next){
-		if((base->lay & v3d->lay) && base->object->restrictflag & OB_RESTRICT_RENDER) {
-			base->object->restrictflag &= ~OB_RESTRICT_RENDER;
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		if(ob->restrictflag & OB_RESTRICT_RENDER) {
+			ob->restrictflag &= ~OB_RESTRICT_RENDER;
+			changed= 1;
 		}
 	}
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_OUTLINER, NULL);
+	CTX_DATA_END;
+
+	if(changed)
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_OUTLINER, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -252,7 +253,7 @@ void OBJECT_OT_restrictrender_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Clear Restrict View";
+	ot->name= "Clear Restrict Render";
 	ot->description = "Reveal the render object by setting the restrictrender flag";
 	ot->idname= "OBJECT_OT_restrictrender_clear";
 

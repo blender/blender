@@ -343,6 +343,9 @@ typedef struct ExtensionRNA {
 #define MainGroups Main
 #define MainTextures Main
 #define MainCurves Main
+#define MainBrushes Main
+#define MainLattices Main
+#define MainMetaBall Main
 
 #ifdef __cplusplus
 }

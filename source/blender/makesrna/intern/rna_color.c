@@ -453,10 +453,10 @@ static void rna_def_histogram(BlenderRNA *brna)
 	
 	static EnumPropertyItem prop_mode_items[] = {
 		{HISTO_MODE_LUMA, "Luma", ICON_COLOR, "Luma", ""},
-		{HISTO_MODE_RGB, "RGB", ICON_COLOR, "RGB", ""},
-		{HISTO_MODE_R, "R", ICON_COLOR, "R", ""},
-		{HISTO_MODE_G, "G", ICON_COLOR, "G", ""},
-		{HISTO_MODE_B, "B", ICON_COLOR, "B", ""},
+		{HISTO_MODE_RGB, "RGB", ICON_COLOR, "Red Green Blue", ""},
+		{HISTO_MODE_R, "R", ICON_COLOR, "Red", ""},
+		{HISTO_MODE_G, "G", ICON_COLOR, "Green", ""},
+		{HISTO_MODE_B, "B", ICON_COLOR, "Blue", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	srna= RNA_def_struct(brna, "Histogram", NULL);
@@ -475,7 +475,7 @@ static void rna_def_scopes(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_wavefrm_mode_items[] = {
-		{SCOPES_WAVEFRM_LUM, "LUMINANCE", ICON_COLOR, "Luminance", ""},
+		{SCOPES_WAVEFRM_LUMA, "LUMA", ICON_COLOR, "Luma", ""},
 		{SCOPES_WAVEFRM_RGB, "RGB", ICON_COLOR, "Red Green Blue", ""},
 		{SCOPES_WAVEFRM_YCC_601, "YCBCR601", ICON_COLOR, "YCbCr (ITU 601)", ""},
 		{SCOPES_WAVEFRM_YCC_709, "YCBCR709", ICON_COLOR, "YCbCr (ITU 709)", ""},

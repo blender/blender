@@ -1280,7 +1280,7 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update)
 	while ( (*stop==0) && (limg) ) {
 		if ( limg->flags & IMAGEFILE ) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_IMAGE);
-		} else if ( limg->flags & MOVIEFILE ) {			
+		} else if ( limg->flags & MOVIEFILE ) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_MOVIE);
 			if (!limg->img) {
 					/* remember that file can't be loaded via IMB_open_anim */
@@ -1359,4 +1359,9 @@ void thumbnails_start(struct FileList* filelist, const struct bContext* C)
 void thumbnails_stop(struct FileList* filelist, const struct bContext* C)
 {
 	WM_jobs_kill(CTX_wm_manager(C), filelist);
+}
+
+int thumbnails_running(struct FileList* filelist, const struct bContext* C)
+{
+	return WM_jobs_test(CTX_wm_manager(C), filelist);
 }

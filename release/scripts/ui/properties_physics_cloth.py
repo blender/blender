@@ -142,7 +142,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 
     def draw(self, context):
         md = context.cloth
-        point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 0, 0)
+        point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 'CLOTH')
 
 
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
