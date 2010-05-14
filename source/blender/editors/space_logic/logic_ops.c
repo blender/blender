@@ -263,6 +263,7 @@ static int sensor_add_exec(bContext *C, wmOperator *op)
 	PropertyRNA *prop;
 	const char *sens_name;
 	int type= RNA_enum_get(op->ptr, "type");
+	char name[32];
 
 	sens= new_sensor(type);
 	BLI_addtail(&(ob->sensors), sens);
@@ -270,9 +271,15 @@ static int sensor_add_exec(bContext *C, wmOperator *op)
 	/* set the sensor name based on rna type enum */
 	RNA_pointer_create((ID *)ob, &RNA_Sensor, sens, &sens_ptr);
 	prop = RNA_struct_find_property(&sens_ptr, "type");
-	RNA_property_enum_name(C, &sens_ptr, prop, RNA_property_enum_get(&sens_ptr, prop), &sens_name);
-	BLI_strncpy(sens->name, sens_name, sizeof(sens->name));
-	
+
+	RNA_string_get(op->ptr, "name", name);
+	if(BLI_strnlen(name, 32) < 1){
+		RNA_property_enum_name(C, &sens_ptr, prop, RNA_property_enum_get(&sens_ptr, prop), &sens_name);
+		BLI_strncpy(sens->name, sens_name, sizeof(sens->name));
+	}
+	else
+		BLI_strncpy(sens->name, name, sizeof(sens->name));
+
 	make_unique_prop_names(C, sens->name);
 	ob->scaflag |= OB_SHOWSENS;
 
@@ -301,6 +308,7 @@ void LOGIC_OT_sensor_add(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
 	RNA_def_enum_funcs(prop, rna_Sensor_type_itemf);
+	prop= RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the Sensor to add");
 }
 
 /* ************* Add/Remove Controller Operator ************* */
@@ -360,6 +368,7 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 	const char *cont_name;
 	int type= RNA_enum_get(op->ptr, "type");
 	int bit;
+	char name[32];
 	
 	cont= new_controller(type);
 	BLI_addtail(&(ob->controllers), cont);
@@ -367,11 +376,16 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 	/* set the controller name based on rna type enum */
 	RNA_pointer_create((ID *)ob, &RNA_Controller, cont, &cont_ptr);
 	prop = RNA_struct_find_property(&cont_ptr, "type");
-	RNA_property_enum_name(C, &cont_ptr, prop, RNA_property_enum_get(&cont_ptr, prop), &cont_name);
-	BLI_strncpy(cont->name, cont_name, sizeof(cont->name));
-	
+
+	RNA_string_get(op->ptr, "name", name);
+	if(BLI_strnlen(name, 32) < 1){
+		RNA_property_enum_name(C, &cont_ptr, prop, RNA_property_enum_get(&cont_ptr, prop), &cont_name);
+		BLI_strncpy(cont->name, cont_name, sizeof(cont->name));
+	}
+	else
+		BLI_strncpy(cont->name, name, sizeof(cont->name));
+
 	make_unique_prop_names(C, cont->name);
-	
 	/* set the controller state mask from the current object state.
 	 A controller is always in a single state, so select the lowest bit set
 	 from the object state */
@@ -411,6 +425,7 @@ void LOGIC_OT_controller_add(wmOperatorType *ot)
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
+	prop= RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the Controller to add");
 }
 
 /* ************* Add/Remove Actuator Operator ************* */
@@ -468,6 +483,8 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 	PointerRNA act_ptr;
 	PropertyRNA *prop;
 	const char *act_name;
+	char  name[32];
+	//XXX RNA_string_get is not using maxlen, it's using UserPreferencesFilePaths_python_scripts_directory_get instead (what limits the string copy to 160 chars in this case and CRASHES Blender).
 	int type= RNA_enum_get(op->ptr, "type");
 
 	act= new_actuator(type);
@@ -476,9 +493,15 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 	/* set the actuator name based on rna type enum */
 	RNA_pointer_create((ID *)ob, &RNA_Actuator, act, &act_ptr);
 	prop = RNA_struct_find_property(&act_ptr, "type");
-	RNA_property_enum_name(C, &act_ptr, prop, RNA_property_enum_get(&act_ptr, prop), &act_name);
-	BLI_strncpy(act->name, act_name, sizeof(act->name));
-	
+
+	RNA_string_get(op->ptr, "name", name);
+	if (BLI_strnlen(name, 32) < 1){
+		RNA_property_enum_name(C, &act_ptr, prop, RNA_property_enum_get(&act_ptr, prop), &act_name);
+		BLI_strncpy(act->name, act_name, sizeof(act->name));
+	}
+	else
+		BLI_strncpy(act->name, name, sizeof(act->name));
+
 	make_unique_prop_names(C, act->name);
 	ob->scaflag |= OB_SHOWACT;
 	
@@ -507,6 +530,7 @@ void LOGIC_OT_actuator_add(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
 	RNA_def_enum_funcs(prop, rna_Actuator_type_itemf);
+	prop= RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the Actuator to add");
 }
 
 void ED_operatortypes_logic(void)

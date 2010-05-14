@@ -4402,7 +4402,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		for(cont= ob->controllers.first; cont; cont=cont->next) {
 			RNA_pointer_create((ID *)ob, &RNA_Controller, cont, &ptr);
 			
-			if (!(ob->state & cont->state_mask))
+			if (!(ob->scaflag & OB_ALLSTATE) && !(ob->state & cont->state_mask))
 				continue;
 			//if (!(cont->state_mask & (1<<stbit))) 
 			//	continue;
@@ -4477,7 +4477,8 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		for(sens= ob->sensors.first; sens; sens=sens->next) {
 			RNA_pointer_create((ID *)ob, &RNA_Sensor, sens, &ptr);
 			
-			if ((slogic->scaflag & BUTS_SENS_STATE) ||
+			if ((ob->scaflag & OB_ALLSTATE) ||
+				(slogic->scaflag & BUTS_SENS_STATE) ||
 				(sens->totlinks == 0) ||											/* always display sensor without links so that is can be edited */
 				(sens->flag & SENS_PIN && slogic->scaflag & BUTS_SENS_STATE) ||	/* states can hide some sensors, pinned sensors ignore the visible state */
 				(is_sensor_linked(block, sens))
@@ -4536,7 +4537,8 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			
 			RNA_pointer_create((ID *)ob, &RNA_Actuator, act, &ptr);
 			
-			if ((slogic->scaflag & BUTS_ACT_STATE) ||
+			if ((ob->scaflag & OB_ALLSTATE) ||
+				(slogic->scaflag & BUTS_ACT_STATE) ||
 				!(act->flag & ACT_LINKED) ||		/* always display actuators without links so that is can be edited */
 				(act->flag & ACT_VISIBLE) ||		/* this actuator has visible connection, display it */
 				(act->flag & ACT_PIN && slogic->scaflag & BUTS_ACT_STATE)	/* states can hide some sensors, pinned sensors ignore the visible state */
