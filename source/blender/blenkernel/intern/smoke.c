@@ -753,6 +753,41 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 	}
 }
 
+void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData *tsmd)
+{
+	tsmd->type = smd->type;
+	tsmd->time = smd->time;
+	
+	smokeModifier_createType(tsmd);
+
+	if (tsmd->domain) {
+		tsmd->domain->maxres = smd->domain->maxres;
+		tsmd->domain->amplify = smd->domain->amplify;
+		tsmd->domain->omega = smd->domain->omega;
+		tsmd->domain->alpha = smd->domain->alpha;
+		tsmd->domain->beta = smd->domain->beta;
+		tsmd->domain->flags = smd->domain->flags;
+		tsmd->domain->strength = smd->domain->strength;
+		tsmd->domain->noise = smd->domain->noise;
+		tsmd->domain->diss_speed = smd->domain->diss_speed;
+		tsmd->domain->viewsettings = smd->domain->viewsettings;
+		tsmd->domain->fluid_group = smd->domain->fluid_group;
+		tsmd->domain->coll_group = smd->domain->coll_group;
+		
+		MEM_freeN(tsmd->domain->effector_weights);
+		tsmd->domain->effector_weights = MEM_dupallocN(smd->domain->effector_weights);
+	} else if (tsmd->flow) {
+		tsmd->flow->density = smd->flow->density;
+		tsmd->flow->temp = smd->flow->temp;
+		tsmd->flow->psys = smd->flow->psys;
+		tsmd->flow->type = smd->flow->type;
+	} else if (tsmd->coll) {
+		;
+		/* leave it as initialised, collision settings is mostly caches */
+	}
+}
+
+
 // forward decleration
 static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
