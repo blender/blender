@@ -105,7 +105,6 @@ typedef struct ThumbnailJob {
 	short *stop;
 	short *do_update;
 	struct FileList* filelist;
-	FileSelectParams *params;
 	ReportList reports;
 } ThumbnailJob;
 
@@ -1279,25 +1278,19 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update)
 	tj->do_update= do_update;
 
 	while ( (*stop==0) && (limg) ) {
-		/* skip if thumbnail view is not enabled, makes network filesystems browse faster */
-		if(tj->params->display != FILE_IMGDISPLAY) {
-			PIL_sleep_ms(100); /* 10th of a sec should be enough */
+		if ( limg->flags & IMAGEFILE ) {
+			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_IMAGE);
+		} else if ( limg->flags & MOVIEFILE ) {
+			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_MOVIE);
+			if (!limg->img) {
+					/* remember that file can't be loaded via IMB_open_anim */
+					limg->flags &= ~MOVIEFILE;
+					limg->flags |= MOVIEFILE_ICON;
+				}
 		}
-		else {
-			if ( limg->flags & IMAGEFILE ) {
-				limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_IMAGE);
-			} else if ( limg->flags & MOVIEFILE ) {
-				limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_MOVIE);
-				if (!limg->img) {
-						/* remember that file can't be loaded via IMB_open_anim */
-						limg->flags &= ~MOVIEFILE;
-						limg->flags |= MOVIEFILE_ICON;
-					}
-			}
-			*do_update = 1;
-			PIL_sleep_ms(10);
-			limg = limg->next;
-		}
+		*do_update = 1;
+		PIL_sleep_ms(10);
+		limg = limg->next;
 	}
 }
 
@@ -1330,7 +1323,7 @@ static void thumbnails_free(void *tjv)
 }
 
 
-void thumbnails_start(struct FileList* filelist, FileSelectParams *params, const struct bContext* C)
+void thumbnails_start(struct FileList* filelist, const struct bContext* C)
 {
 	wmJob *steve;
 	ThumbnailJob *tj;
@@ -1339,7 +1332,6 @@ void thumbnails_start(struct FileList* filelist, FileSelectParams *params, const
 	/* prepare job data */
 	tj= MEM_callocN(sizeof(ThumbnailJob), "thumbnails\n");
 	tj->filelist = filelist;
-	tj->params = params;
 	for (idx = 0; idx < filelist->numfiles;idx++) {
 		if (!filelist->filelist[idx].image) {
 			if ( (filelist->filelist[idx].flags & IMAGEFILE) || (filelist->filelist[idx].flags & MOVIEFILE) ) {
@@ -1367,4 +1359,9 @@ void thumbnails_start(struct FileList* filelist, FileSelectParams *params, const
 void thumbnails_stop(struct FileList* filelist, const struct bContext* C)
 {
 	WM_jobs_kill(CTX_wm_manager(C), filelist);
+}
+
+int thumbnails_running(struct FileList* filelist, const struct bContext* C)
+{
+	return WM_jobs_test(CTX_wm_manager(C), filelist);
 }
