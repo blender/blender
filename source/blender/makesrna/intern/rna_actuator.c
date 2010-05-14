@@ -1834,7 +1834,7 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Secondary Target", "Set weight of this constraint");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "weight");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Weight", "Set weight of this constraint");

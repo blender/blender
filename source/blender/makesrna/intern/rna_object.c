@@ -859,6 +859,17 @@ static void rna_Base_layer_set(PointerRNA *ptr, const int *values)
 	/* rna_Base_layer_update updates the objects layer */
 }
 
+static void rna_GameObjectSettings_state_get(PointerRNA *ptr, int *values)
+{
+	Object *ob= (Object*)ptr->data;
+	int i;
+	int all_states = (ob->scaflag & OB_ALLSTATE?1:0);
+
+	memset(values, 0, sizeof(int)*OB_MAX_STATES);
+	for(i=0; i<OB_MAX_STATES; i++)
+		values[i] = (ob->state & (1<<i)) | all_states;
+}
+
 static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
 {
 	Object *ob= (Object*)ptr->data;
@@ -1257,7 +1268,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "state", 1);
 	RNA_def_property_array(prop, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "State", "State determining which controllers are displayed");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_GameObjectSettings_state_set");
+	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_state_get", "rna_GameObjectSettings_state_set");
 
 	prop= RNA_def_property(srna, "used_state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_array(prop, OB_MAX_STATES);
