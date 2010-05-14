@@ -283,6 +283,9 @@ def rna2sphinx(BASEPATH):
     fw("copyright = u'Blender Foundation'\n")
     fw("version = '%s - UNSTABLE API'\n" % version_string)
     fw("release = '%s - UNSTABLE API'\n" % version_string)
+    fw("html_theme = 'blender-org'\n")
+    fw("html_theme_path = ['../']\n")
+    fw("html_favicon = 'favicon.ico'\n")
     # not helpful since the source us generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("\n")
