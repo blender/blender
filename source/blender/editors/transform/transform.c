@@ -258,9 +258,8 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 
 void applyAspectRatio(TransInfo *t, float *vec)
 {
-	SpaceImage *sima= t->sa->spacedata.first;
-
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
+		SpaceImage *sima= t->sa->spacedata.first;
 		float aspx, aspy;
 
 		if((sima->flag & SI_COORDFLOATS)==0) {
@@ -279,9 +278,8 @@ void applyAspectRatio(TransInfo *t, float *vec)
 
 void removeAspectRatio(TransInfo *t, float *vec)
 {
-	SpaceImage *sima= t->sa->spacedata.first;
-
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
+		SpaceImage *sima= t->sa->spacedata.first;
 		float aspx, aspy;
 
 		if((sima->flag & SI_COORDFLOATS)==0) {
