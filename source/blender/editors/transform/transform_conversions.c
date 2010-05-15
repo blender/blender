@@ -3445,7 +3445,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	unit_m3(mtx);
 	unit_m3(smtx);
 	
-	{
+	if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
 		float xscale, yscale;
 		
 		/* apply scale factors to x and y axes of space-conversion matrices */
