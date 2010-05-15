@@ -24,57 +24,67 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC . ../string ../../extern/glew/include ../../source/blender/imbuf ../../source/blender/makesdna)
+SET(INC
+	.
+	../string
+	../../extern/glew/include
+	../../source/blender/imbuf
+	../../source/blender/makesdna
+)
 
-FILE(GLOB SRC intern/*.cpp intern/*.mm)
+SET(SRC
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_Buttons.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_CallbackEventConsumer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_C-api.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_EventManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_EventPrinter.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_ISystem.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_ModifierKeys.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_NDOFManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_Rect.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_System.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_TimerManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_Window.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowManager.cpp
+)
 
 IF(APPLE)
 	IF(WITH_COCOA)
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerCarbon.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemCarbon.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowCarbon.cpp")
+		SET(SRC ${SRC}
+			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerCocoa.mm
+			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemCocoa.mm
+			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowCocoa.mm
+		)
 	ELSE(WITH_COCOA)
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerCocoa.mm")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemCocoa.mm")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowCocoa.mm")
+		SET(SRC ${SRC}
+			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerCarbon.cpp
+			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemCarbon.cpp
+			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowCarbon.cpp
+		)
 	ENDIF(WITH_COCOA)
-	LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerWin32.cpp")
-	LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemWin32.cpp")
-	LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowWin32.cpp")
-	LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DropTargetWin32.cpp")
-	LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerX11.cpp")
-	LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemX11.cpp")
-	LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowX11.cpp")
 
 	IF(WITH_QUICKTIME)
 		ADD_DEFINITIONS(-DWITH_QUICKTIME)
 	ENDIF(WITH_QUICKTIME)
-ELSE(APPLE)
-	IF(WIN32)
-		SET(INC ${INC} ${WINTAB_INC})
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerCarbon.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemCarbon.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowCarbon.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerCocoa.mm")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemCocoa.mm")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowCocoa.mm")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerX11.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemX11.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowX11.cpp")
-	ELSE(WIN32)
-		SET(INC ${INC} ${X11_X11_INCLUDE_PATH})
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerWin32.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DropTargetWin32.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemWin32.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowWin32.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerCarbon.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemCarbon.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowCarbon.cpp")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerCocoa.mm")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemCocoa.mm")
-		LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowCocoa.mm")
-	ENDIF(WIN32)
-ENDIF(APPLE)
+ELSEIF(WIN32)
+	SET(INC ${INC} ${WINTAB_INC})
+
+	SET(SRC ${SRC}
+		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerWin32.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemWin32.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowWin32.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DropTargetWin32.cpp
+	)
+ELSEIF(UNIX)
+	SET(INC ${INC} ${X11_X11_INCLUDE_PATH})
+
+	SET(SRC ${SRC}
+		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerX11.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemX11.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowX11.cpp
+	)
+ENDIF(UNIX)
 
 BLENDERLIB(bf_ghost "${SRC}" "${INC}")
-#, libtype=['core','player'], priority = [25,15] ) 
+
