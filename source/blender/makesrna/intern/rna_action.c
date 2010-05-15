@@ -127,6 +127,27 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *
 	}
 }
 
+static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports, char name[])
+{
+	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
+	marker->flag= 1;
+	marker->frame= 1;
+	BLI_strncpy(marker->name, name, sizeof(marker->name));
+	BLI_addtail(&act->markers, marker);
+	return marker;
+}
+
+static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, TimeMarker *marker)
+{
+	if (!BLI_remlink_safe(&act->markers, marker)) {
+		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in action '%s'", marker->name, act->id.name+2);
+		return;
+	}
+
+	/* XXX, invalidates PyObject */
+	MEM_freeN(marker);
+}
+
 #else
 
 static void rna_def_dopesheet(BlenderRNA *brna)
@@ -379,6 +400,34 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
+static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "ActionPoseMarkers");
+	srna= RNA_def_struct(brna, "ActionPoseMarkers", NULL);
+	RNA_def_struct_sdna(srna, "bAction");
+	RNA_def_struct_ui_text(srna, "Action Pose Markers", "Collection of timeline markers");
+
+	func= RNA_def_function(srna, "new", "rna_Action_pose_markers_new");
+	RNA_def_function_ui_description(func, "Add a pose marker to the action.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_string(func, "name", "Marker", 0, "", "New name for the marker (not unique).");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Newly created marker");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Action_pose_markers_remove");
+	RNA_def_function_ui_description(func, "Remove a timeline marker.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+}
+
 static void rna_def_action(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -405,6 +454,7 @@ static void rna_def_action(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
 	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this Action, for labeling poses");
+	rna_def_action_pose_markers(brna, prop);
 
 	RNA_api_action(srna);
 }
