@@ -23,6 +23,8 @@ import bpy
 narrowui = bpy.context.user_preferences.view.properties_width_check
 
 #cachetype can be 'PSYS' 'HAIR' 'SMOKE' etc
+
+
 def point_cache_ui(self, context, cache, enabled, cachetype):
     layout = self.layout
 
@@ -68,7 +70,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             sub = col.column()
             sub.enabled = enabled
             sub.prop(cache, "quick_cache")
-            
+
             sub = col.column()
             sub.enabled = bpy.data.file_is_saved
             sub.prop(cache, "disk_cache")
@@ -102,6 +104,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         col.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
         col.operator("ptcache.free_bake_all", text="Free All Bakes")
         col.operator("ptcache.bake_all", text="Update All To Frame").bake = False
+
 
 def effector_weights_ui(self, context, weights):
     layout = self.layout

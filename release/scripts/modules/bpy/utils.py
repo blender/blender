@@ -348,7 +348,7 @@ def smpte_from_seconds(time, fps=None):
     hours = minutes = seconds = frames = 0
 
     if time < 0:
-        time = -time
+        time = - time
         neg = "-"
     else:
         neg = ""
@@ -361,10 +361,10 @@ def smpte_from_seconds(time, fps=None):
         time = time % 60.0
 
     seconds = int(time)
-    frames= int(round(math.floor( ((time - seconds) * fps))))
+    frames= int(round(math.floor(((time - seconds) * fps))))
 
     return "%s%02d:%02d:%02d:%02d" % (neg, hours, minutes, seconds, frames)
-    
+
 
 def smpte_from_frame(frame, fps=None, fps_base=None):
     '''
@@ -380,4 +380,3 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
         fps_base = _bpy.context.scene.render.fps_base
 
     return smpte_from_seconds((frame * fps_base) / fps, fps)
-    
