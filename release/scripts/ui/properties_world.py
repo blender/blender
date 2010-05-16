@@ -111,14 +111,14 @@ class WORLD_PT_mist(WorldButtonsPanel):
     def draw_header(self, context):
         world = context.world
 
-        self.layout.prop(world.mist, "enabled", text="")
+        self.layout.prop(world.mist, "use_mist", text="")
 
     def draw(self, context):
         layout = self.layout
         wide_ui = context.region.width > narrowui
         world = context.world
 
-        layout.active = world.mist.enabled
+        layout.active = world.mist.use_mist
 
         split = layout.split()
 
@@ -142,14 +142,14 @@ class WORLD_PT_stars(WorldButtonsPanel):
     def draw_header(self, context):
         world = context.world
 
-        self.layout.prop(world.stars, "enabled", text="")
+        self.layout.prop(world.stars, "use_stars", text="")
 
     def draw(self, context):
         layout = self.layout
         wide_ui = context.region.width > narrowui
         world = context.world
 
-        layout.active = world.stars.enabled
+        layout.active = world.stars.use_stars
 
         split = layout.split()
 

@@ -472,14 +472,14 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
     def draw_header(self, context):
         rd = context.scene.render
 
-        self.layout.prop(rd, "antialiasing", text="")
+        self.layout.prop(rd, "render_antialiasing", text="")
 
     def draw(self, context):
         layout = self.layout
 
         rd = context.scene.render
         wide_ui = context.region.width > narrowui
-        layout.active = rd.antialiasing
+        layout.active = rd.render_antialiasing
 
         split = layout.split()
 
