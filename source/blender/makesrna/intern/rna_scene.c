@@ -376,16 +376,24 @@ static void rna_Scene_active_keying_set_set(PointerRNA *ptr, PointerRNA value)
 	scene->active_keyingset= ANIM_scene_get_keyingset_index(scene, ks);
 }
 
-#if 0 // XXX: these need to be fixed up first...
-static void rna_Scene_active_keying_set_index_range(PointerRNA *ptr, int *min, int *max)
+/* get KeyingSet index stuff for list of Keying Sets editing UI
+ *	- active_keyingset-1 since 0 is reserved for 'none'
+ *	- don't clamp, otherwise can never set builtins types as active... 
+ */
+static int rna_Scene_active_keying_set_index_get(PointerRNA *ptr)
 {
-	Scene *scene= (Scene *)ptr->data;
-	
-	// FIXME: would need access to builtin keyingsets list to count min...
-	*min= 0;
-	*max= 0;
+	Scene *scene= (Scene *)ptr->data; 	
+	return scene->active_keyingset-1;
 }
-#endif
+
+/* get KeyingSet index stuff for list of Keying Sets editing UI
+ *	- value+1 since 0 is reserved for 'none'=
+ */
+static void rna_Scene_active_keying_set_index_set(PointerRNA *ptr, int value) 
+{
+	Scene *scene= (Scene *)ptr->data; 
+	scene->active_keyingset= value+1; 	 
+}
 
 // XXX: evil... builtin_keyingsets is defined in keyingsets.c!
 // TODO: make API function to retrieve this...
@@ -3038,7 +3046,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "active_keying_set_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "active_keyingset");
-	//RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Scene_active_keying_set_index_range"); // XXX
+	RNA_def_property_int_funcs(prop, "rna_Scene_active_keying_set_index_get", "rna_Scene_active_keying_set_index_set", NULL);
 	RNA_def_property_ui_text(prop, "Active Keying Set Index", "Current Keying Set index (negative for 'builtin' and positive for 'absolute')");
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET, NULL);
 	
