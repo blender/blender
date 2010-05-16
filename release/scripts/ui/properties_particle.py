@@ -25,7 +25,7 @@ from properties_physics_common import effector_weights_ui
 from properties_physics_common import basic_force_field_settings_ui
 from properties_physics_common import basic_force_field_falloff_ui
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 def particle_panel_enabled(context, psys):

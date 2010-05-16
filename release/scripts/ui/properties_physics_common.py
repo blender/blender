@@ -18,9 +18,9 @@
 
 # <pep8 compliant>
 
-narrowui = 180
-
 import bpy
+
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 #cachetype can be 'PSYS' 'HAIR' 'SMOKE' etc
 def point_cache_ui(self, context, cache, enabled, cachetype):
