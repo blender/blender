@@ -2,6 +2,8 @@
 Documentation for the bge.render Module.
 ========================================
 
+.. module:: bge.render
+
 .. code-block:: python
 
    # Example Uses an L{SCA_MouseSensor}, and two L{KX_ObjectActuator}s to implement MouseLook::
