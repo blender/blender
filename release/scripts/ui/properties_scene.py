@@ -89,7 +89,6 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
         row = layout.row()
 
         col = row.column()
-        # XXX: this fails because index is not what this expects...
         col.template_list(scene, "keying_sets", scene, "active_keying_set_index", rows=2)
 
         col = row.column(align=True)
