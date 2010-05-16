@@ -1340,7 +1340,7 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
 void OBJECT_OT_constraint_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Constraints to Others";
+	ot->name= "Copy Constraints to Selected";
 	ot->description = "Copy constraints to other selected objects.";
 	ot->idname= "OBJECT_OT_constraint_copy";
 
