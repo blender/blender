@@ -23,6 +23,9 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
+// needed for INT64_C
+#define __STDC_CONSTANT_MACROS
+
 #include "AUD_FFMPEGFactory.h"
 #include "AUD_FFMPEGReader.h"
 #include "AUD_Buffer.h"
