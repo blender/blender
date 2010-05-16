@@ -1194,17 +1194,17 @@ static Py_ssize_t pyrna_prop_collection_length( BPy_PropertyRNA *self )
 static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_ssize_t keynum)
 {
 	PointerRNA newptr;
-    int len= RNA_property_collection_length(&self->ptr, self->prop);
+	int len= RNA_property_collection_length(&self->ptr, self->prop);
 
 	if(keynum < 0) keynum += len;
 
-    if(keynum >= 0 && keynum < len)  {
-        if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr)) {
-            return pyrna_struct_CreatePyObject(&newptr);
-        }        
-        PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d could not be found", keynum);
-        return NULL;
-    }
+	if(keynum >= 0 && keynum < len)  {
+		if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr)) {
+			return pyrna_struct_CreatePyObject(&newptr);
+		}
+		PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d could not be found", keynum);
+		return NULL;
+	}
 	PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d out of range", keynum);
 	return NULL;
 }
@@ -1637,6 +1637,8 @@ static PySequenceMethods pyrna_prop_array_as_sequence = {
 	(ssizeobjargproc)prop_subscript_ass_array_int,		/* sq_ass_item */
 	NULL,		/* *was* sq_ass_slice */
 	(objobjproc)pyrna_prop_array_contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 static PySequenceMethods pyrna_prop_collection_as_sequence = {
@@ -1648,6 +1650,8 @@ static PySequenceMethods pyrna_prop_collection_as_sequence = {
 	NULL,		/* sq_ass_item */
 	NULL,		/* *was* sq_ass_slice */
 	(objobjproc)pyrna_prop_collection_contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 static PySequenceMethods pyrna_struct_as_sequence = {
@@ -1659,6 +1663,8 @@ static PySequenceMethods pyrna_struct_as_sequence = {
 	NULL,		/* sq_ass_item */
 	NULL,		/* *was* sq_ass_slice */
 	(objobjproc)pyrna_struct_contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 static PyObject *pyrna_struct_subscript( BPy_StructRNA *self, PyObject *key )
@@ -1886,7 +1892,7 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *arg
 	char *path_full= NULL;
 	int index= -1;
 	float cfra= FLT_MAX;
-    char *group_name= NULL;
+	char *group_name= NULL;
 
 	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1)
 		return NULL;
@@ -1920,7 +1926,7 @@ static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *arg
 	char *path_full= NULL;
 	int index= -1;
 	float cfra= FLT_MAX;
-    char *group_name= NULL;
+	char *group_name= NULL;
 
 	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_delete()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1)
 		return NULL;
@@ -3550,7 +3556,7 @@ PyTypeObject pyrna_prop_Type = {
 	0,			/* tp_itemsize */
 	/* methods */
 	NULL,						/* tp_dealloc */
-	NULL,                       /* printfunc tp_print; */
+	NULL,                   /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */

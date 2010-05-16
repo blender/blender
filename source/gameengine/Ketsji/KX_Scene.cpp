@@ -962,8 +962,8 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	{
 		m_logicmgr->RemoveSensor(*its);
 	}
-	
-    SCA_ControllerList& controllers = newobj->GetControllers();
+
+	SCA_ControllerList& controllers = newobj->GetControllers();
 	for (SCA_ControllerList::iterator itc = controllers.begin();
 		 !(itc==controllers.end());itc++)
 	{
@@ -1999,6 +1999,8 @@ PySequenceMethods KX_Scene::Sequence = {
 	NULL,		/* sq_ass_item */
 	NULL,		/* sq_ass_slice */
 	(objobjproc)Seq_Contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 PyObject* KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

@@ -84,7 +84,7 @@ ELSEIF(UNIX)
 		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemX11.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowX11.cpp
 	)
-ENDIF(UNIX)
+ENDIF(APPLE)
 
 BLENDERLIB(bf_ghost "${SRC}" "${INC}")
 
