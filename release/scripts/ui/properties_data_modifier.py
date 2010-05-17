@@ -229,7 +229,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def DECIMATE(self, layout, ob, md, wide_ui):
         layout.prop(md, "ratio")
-        layout.prop(md, "face_count")
+        layout.label(text="Face Count: %s" % str(md.face_count))
 
     def DISPLACE(self, layout, ob, md, wide_ui):
         split = layout.split()
