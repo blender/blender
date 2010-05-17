@@ -279,7 +279,7 @@ static char Vector_ToTrackQuat_doc[] =
 "   :type track: string\n"
 "   :arg up: Up axis in ['X', 'Y', 'Z'].\n"
 "   :type up: string\n"
-"   :return: rotation from the vector and the track and up axis."
+"   :return: rotation from the vector and the track and up axis.\n"
 "   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Vector_ToTrackQuat(VectorObject *self, PyObject *args )

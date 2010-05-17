@@ -290,7 +290,9 @@ static char py_blf_shadow_doc[] =
 "   :arg g: Shadow color (green channel 0.0 - 1.0).\n"
 "   :type g: float\n"
 "   :arg b: Shadow color (blue channel 0.0 - 1.0).\n"
-"   :type b: float\n";
+"   :type b: float\n"
+"   :arg a: Shadow color (alpha channel 0.0 - 1.0).\n"
+"   :type a: float\n";
 
 static PyObject *py_blf_shadow(PyObject *self, PyObject *args)
 {
@@ -340,7 +342,7 @@ static char py_blf_load_doc[] =
 "   Load a new font.\n"
 "\n"
 "   :arg filename: the filename of the font.\n"
-"   :type text: string\n"
+"   :type filename: string\n"
 "   :return: the new font's fontid or -1 if there was an error.\n"
 "   :rtype: integer\n";
 
