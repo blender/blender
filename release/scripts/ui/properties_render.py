@@ -313,6 +313,15 @@ class RENDER_PT_output(RenderButtonsPanel):
         if rd.file_format in ('AVI_JPEG', 'JPEG'):
             split = layout.split()
             split.prop(rd, "file_quality", slider=True)
+        
+        elif rd.file_format == 'MULTILAYER':
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="Codec:")
+            col.prop(rd, "exr_codec", text="")
+            if wide_ui:
+                col = split.column()
 
         elif rd.file_format == 'OPEN_EXR':
             split = layout.split()
