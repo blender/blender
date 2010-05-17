@@ -1,6 +1,6 @@
 
-Documentation for the bge.types Module.
-=======================================
+Game Engine  bge.types Module.
+==============================
 
 .. module:: bge.types
 

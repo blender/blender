@@ -1,6 +1,6 @@
 
-Documentation for the bge.events module.
-========================================
+Game Engine bge.events module.
+==============================
 
 This module holds key constants for the SCA_KeyboardSensor.
 

@@ -1,6 +1,6 @@
 
-Documentation for the bge.logic Module.
-=======================================
+Game Engine bge.logic Module.
+=============================
 	
 Module to access logic functions, imported automatically into the python controllers namespace.
 
