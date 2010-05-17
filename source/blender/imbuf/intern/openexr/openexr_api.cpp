@@ -546,12 +546,9 @@ void IMB_exr_set_channel(void *handle, char *layname, char *passname, int xstrid
 	}
 	else
 		BLI_strncpy(name, passname, EXR_TOT_MAXNAME-1);
-	
-	
-	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
-		if(strcmp(echan->name, name)==0)
-			break;
-	
+
+	echan= (ExrChannel *)BLI_findstring(&data->channels, name, offsetof(ExrChannel, name));
+
 	if(echan) {
 		echan->xstride= xstride;
 		echan->ystride= ystride;
@@ -764,35 +761,30 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 
 static ExrLayer *imb_exr_get_layer(ListBase *lb, char *layname)
 {
-	ExrLayer *lay;
-	
-	for(lay= (ExrLayer *)lb->first; lay; lay= lay->next) {
-		if( strcmp(lay->name, layname)==0 )
-			return lay;
+	ExrLayer *lay= (ExrLayer *)BLI_findstring(lb, layname, offsetof(ExrLayer, name));
+
+	if(lay==NULL) {
+		lay= (ExrLayer *)MEM_callocN(sizeof(ExrLayer), "exr layer");
+		BLI_addtail(lb, lay);
+		BLI_strncpy(lay->name, layname, EXR_LAY_MAXNAME);
 	}
-	lay= (ExrLayer *)MEM_callocN(sizeof(ExrLayer), "exr layer");
-	BLI_addtail(lb, lay);
-	BLI_strncpy(lay->name, layname, EXR_LAY_MAXNAME);
-	
+
 	return lay;
 }
 
 static ExrPass *imb_exr_get_pass(ListBase *lb, char *passname)
 {
-	ExrPass *pass;
+	ExrPass *pass= (ExrPass *)BLI_findstring(lb, passname, offsetof(ExrPass, name));
 	
-	for(pass= (ExrPass *)lb->first; pass; pass= pass->next) {
-		if( strcmp(pass->name, passname)==0 )
-			return pass;
-	}
-	
-	pass= (ExrPass *)MEM_callocN(sizeof(ExrPass), "exr pass");
+	if(pass==NULL) {
+		pass= (ExrPass *)MEM_callocN(sizeof(ExrPass), "exr pass");
 
-	if(strcmp(passname, "Combined")==0)
-		BLI_addhead(lb, pass);
-	else
-		BLI_addtail(lb, pass);
-	
+		if(strcmp(passname, "Combined")==0)
+			BLI_addhead(lb, pass);
+		else
+			BLI_addtail(lb, pass);
+	}
+
 	BLI_strncpy(pass->name, passname, EXR_LAY_MAXNAME);
 	
 	return pass;
@@ -944,14 +936,7 @@ static const char *exr_rgba_channelname(InputFile *file, const char *chan)
 
 static int exr_has_zbuffer(InputFile *file)
 {
-	const ChannelList &channels = file->header().channels();
-	
-	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
-	{
-		if(strcmp("Z", i.name())==0)
-			return 1;
-	}
-	return 0;
+	return !(file->header().channels().findChannel("Z") == NULL);
 }
 
 static int exr_is_renderresult(InputFile *file)
