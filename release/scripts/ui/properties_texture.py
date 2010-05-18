@@ -374,7 +374,8 @@ class TEXTURE_PT_influence(TextureSlotPanel):
                 factor_but(col, tex.map_raymir, "map_raymir", "raymir_factor", "Ray Mirror")
 
                 col.label(text="Geometry:")
-                factor_but(col, tex.map_normal, "map_normal", "normal_factor", "Normal")
+                # XXX replace 'or' when displacement is fixed to not rely on normal influence value.
+                factor_but(col, (tex.map_normal or tex.map_displacement), "map_normal", "normal_factor", "Normal")
                 factor_but(col, tex.map_warp, "map_warp", "warp_factor", "Warp")
                 factor_but(col, tex.map_displacement, "map_displacement", "displacement_factor", "Displace")
 
