@@ -509,6 +509,28 @@ static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 	return &RNA_ID;
 }
 
+static void rna_SpaceProperties_pin_id_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
+	ID *id = sbuts->pinid;
+	
+	switch (GS(id->name)) {
+		case ID_MA:
+			WM_main_add_notifier(NC_MATERIAL|ND_SHADING, NULL);
+			break;
+		case ID_TE:
+			WM_main_add_notifier(NC_TEXTURE, NULL);
+			break;
+		case ID_WO:
+			WM_main_add_notifier(NC_WORLD, NULL);
+			break;
+		case ID_LA:
+			WM_main_add_notifier(NC_LAMP, NULL);
+			break;
+	}
+}
+
+
 static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
@@ -1203,7 +1225,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
     /* note: custom set function is ONLY to avoid rna setting a user for this. */
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceProperties_pin_id_set", "rna_SpaceProperties_pin_id_typef");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, "rna_SpaceProperties_pin_id_update");
 
 	prop= RNA_def_property(srna, "use_pin_id", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SB_PIN_CONTEXT);
