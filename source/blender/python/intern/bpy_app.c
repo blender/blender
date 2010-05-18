@@ -46,6 +46,7 @@ static PyStructSequence_Field app_info_fields[] = {
 	{"home", "The blender home directory, normally matching $HOME"},
 	{"binary_path", "The location of blenders executable, useful for utilities that spawn new instances"},
 	{"debug", "Boolean, set when blender is running in debug mode (started with -d)"},
+	{"background", "Boolean, True when blender is running without a user interface (started with -b)"},
 
 	/* buildinfo */
 	{"build_date", "The date this blender instance was built"},
@@ -60,7 +61,7 @@ static PyStructSequence_Desc app_info_desc = {
 	"bpy.app",     /* name */
 	"This module contains application values that remain unchanged during runtime.",    /* doc */
 	app_info_fields,    /* fields */
-	10
+	(sizeof(app_info_fields)/sizeof(PyStructSequence_Field)) - 1
 };
 
 static PyObject *make_app_info(void)
@@ -87,6 +88,7 @@ static PyObject *make_app_info(void)
 	SetStrItem(BLI_gethome());
 	SetStrItem(bprogname);
 	SetObjItem(PyBool_FromLong(G.f & G_DEBUG));
+	SetObjItem(PyBool_FromLong(G.background));
 
 	/* build info */
 #ifdef BUILD_DATE
