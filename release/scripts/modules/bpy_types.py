@@ -410,6 +410,19 @@ class MeshFace(StructRNA):
         return ord_ind(verts[0], verts[1]), ord_ind(verts[1], verts[2]), ord_ind(verts[2], verts[3]), ord_ind(verts[3], verts[0])
 
 
+class Text(bpy_types.ID):
+    __slots__ = ()
+
+    def as_string(self):
+        """Return the text as a string."""
+        return "\n".join(line.line for line in self.lines)
+
+    def from_string(self, string):
+        """Replace text with this string."""
+        self.clear()
+        self.write(string)
+
+
 import collections
 
 
