@@ -179,7 +179,7 @@ def main(obj, bone_definition, base_names, options):
     ex.neck_socket_e.connected = False
     ex.neck_socket_e.parent = mt.body_e
     ex.neck_socket_e.head = mt.head_e.head
-    ex.neck_socket_e.tail = mt.head_e.head - Vector(0.0, neck_chain_segment_length / 2.0, 0.0)
+    ex.neck_socket_e.tail = mt.head_e.head - Vector((0.0, neck_chain_segment_length / 2.0, 0.0))
     ex.neck_socket_e.roll = 0.0
 
 
@@ -243,7 +243,7 @@ def main(obj, bone_definition, base_names, options):
     # add driver
     hinge_driver_path = ex.head_ctrl_p.path_to_id() + '["hinge"]'
 
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'
@@ -263,7 +263,7 @@ def main(obj, bone_definition, base_names, options):
     target_names = [("b%.2d" % (i + 1)) for i in range(len(neck_chain))]
 
     ex.head_ctrl_p["bend_tot"] = 0.0
-    fcurve = ex.head_ctrl_p.driver_add('["bend_tot"]', 0)
+    fcurve = ex.head_ctrl_p.driver_add('["bend_tot"]')
     driver = fcurve.driver
     driver.type = 'SUM'
     fcurve.modifiers.remove(0) # grr dont need a modifier
@@ -308,7 +308,7 @@ def main(obj, bone_definition, base_names, options):
         con.owner_space = 'LOCAL'
         con.target_space = 'LOCAL'
 
-        fcurve = con.driver_add("influence", 0)
+        fcurve = con.driver_add("influence")
         driver = fcurve.driver
         driver.type = 'SCRIPTED'
         driver.expression = "bend/bend_tot"

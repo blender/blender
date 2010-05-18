@@ -746,7 +746,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(colsub, ptr, "location", 0, "Location", 0);
 	colsub = uiLayoutColumn(split, 1);
 	uiItemL(colsub, "", 0);
-	uiItemR(colsub, ptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
+	uiItemR(colsub, ptr, "lock_location", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
 	
 	split = uiLayoutSplit(layout, 0.8, 0);
 	
@@ -757,10 +757,10 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 			colsub = uiLayoutColumn(split, 1);
 			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", 0);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
+				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
 			else
 				uiItemL(colsub, "", 0);
-			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
 			break;
 		case ROT_MODE_AXISANGLE: /* axis angle */
 			colsub = uiLayoutColumn(split, 1);
@@ -768,17 +768,17 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 			colsub = uiLayoutColumn(split, 1);
 			uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, "4L", 0);
 			if (RNA_boolean_get(ptr, "lock_rotations_4d"))
-				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
+				uiItemR(colsub, ptr, "lock_rotation_w", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
 			else
 				uiItemL(colsub, "", 0);
-			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
 			break;
 		default: /* euler rotations */
 			colsub = uiLayoutColumn(split, 1);
 			uiItemR(colsub, ptr, "rotation_euler", 0, "Rotation", 0);
 			colsub = uiLayoutColumn(split, 1);
 			uiItemL(colsub, "", 0);
-			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
+			uiItemR(colsub, ptr, "lock_rotation", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
 			break;
 	}
 	uiItemR(layout, ptr, "rotation_mode", 0, "", 0);
@@ -788,7 +788,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(colsub, ptr, "scale", 0, "Scale", 0);
 	colsub = uiLayoutColumn(split, 1);
 	uiItemL(colsub, "", 0);
-	uiItemR(colsub, ptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", ICON_LOCKED);
+	uiItemR(colsub, ptr, "lock_scale", UI_ITEM_R_TOGGLE+UI_ITEM_R_ICON_ONLY, "", 0);
 	
 	if (ptr->type == &RNA_Object) {
 		Object *ob = ptr->data;

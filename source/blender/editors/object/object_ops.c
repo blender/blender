@@ -74,6 +74,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_proxy_make);
 	WM_operatortype_append(OBJECT_OT_restrictview_clear);
 	WM_operatortype_append(OBJECT_OT_restrictview_set);
+	WM_operatortype_append(OBJECT_OT_restrictrender_clear);
+	WM_operatortype_append(OBJECT_OT_restrictrender_set);
 	WM_operatortype_append(OBJECT_OT_shade_smooth);
 	WM_operatortype_append(OBJECT_OT_shade_flat);
 	WM_operatortype_append(OBJECT_OT_paths_calculate);
@@ -96,6 +98,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_select_inverse);
 	WM_operatortype_append(OBJECT_OT_select_random);
 	WM_operatortype_append(OBJECT_OT_select_all);
+	WM_operatortype_append(OBJECT_OT_select_same_group);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
 	WM_operatortype_append(OBJECT_OT_select_by_layer);
 	WM_operatortype_append(OBJECT_OT_select_linked);
@@ -176,6 +179,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_mirror);
 	WM_operatortype_append(OBJECT_OT_vertex_group_set_active);
 	WM_operatortype_append(OBJECT_OT_vertex_group_sort);
+	WM_operatortype_append(OBJECT_OT_vertex_group_move);
 
 	WM_operatortype_append(OBJECT_OT_game_property_new);
 	WM_operatortype_append(OBJECT_OT_game_property_remove);
@@ -190,6 +194,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(LATTICE_OT_make_regular);
 
 	WM_operatortype_append(OBJECT_OT_group_add);
+	WM_operatortype_append(OBJECT_OT_group_link);
 	WM_operatortype_append(OBJECT_OT_group_remove);
 
 	WM_operatortype_append(OBJECT_OT_hook_add_selobj);
@@ -315,10 +320,16 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_restrictview_set", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "unselected", 1);
 
+	/* same as above but for rendering */
+	WM_keymap_add_item(keymap, "OBJECT_OT_restrictrender_clear", HKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_restrictrender_set", HKEY, KM_PRESS, KM_CTRL, 0);
+//	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_restrictrender_set", HKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "unselected", 1); // conflicts, removing
+
 	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_layer", MKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu(keymap, "INFO_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicates_make_real", AKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);

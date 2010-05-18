@@ -882,7 +882,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
 
 					col= uiLayoutColumn(split, 0);
-					uiItemR(col, &imaptr, "antialias", 0, NULL, 0);
 					uiItemR(col, &imaptr, "premultiply", 0, NULL, 0);
 				}
 			}
@@ -899,7 +898,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 				uiItemR(col, userptr, "frames", 0, str, 0);
 				if(ima->anim) {
 					block= uiLayoutGetBlock(row);
-					but= uiDefBut(block, BUT, 0, "<", 0, 0, UI_UNIT_X*2, UI_UNIT_Y, 0, 0, 0, 0, 0, "Set the number of frames from the movie or sequence.");
+					but= uiDefBut(block, BUT, 0, "Match Movie Length", 0, 0, UI_UNIT_X*2, UI_UNIT_Y, 0, 0, 0, 0, 0, "Set the number of frames to match the movie or sequence.");
 					uiButSetFunc(but, set_frames_cb, ima, iuser);
 				}
 

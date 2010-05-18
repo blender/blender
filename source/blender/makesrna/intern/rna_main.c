@@ -50,6 +50,10 @@ static void rna_Main_debug_set(PointerRNA *ptr, const int value)
 		G.f &= ~G_DEBUG;
 }
 
+static int rna_Main_fileissaved_get(PointerRNA *ptr)
+{
+	return G.relbase_valid;
+}
 
 static void rna_Main_filename_get(PointerRNA *ptr, char *value)
 {
@@ -169,7 +173,7 @@ static void rna_Main_script_begin(CollectionPropertyIterator *iter, PointerRNA *
 	rna_iterator_listbase_begin(iter, &bmain->script, NULL);
 }
 
-static void rna_Main_vfont_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_font_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->vfont, NULL);
@@ -267,6 +271,7 @@ void RNA_def_main(BlenderRNA *brna)
 	PropertyRNA *prop;
 	CollectionDefFunc *func;
 
+	/* plural must match idtypes in readblenentry.c */
 	MainCollectionDef lists[]= {
 		{"cameras", "Camera", "rna_Main_camera_begin", "Cameras", "Camera datablocks.", RNA_def_main_cameras},
 		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks.", RNA_def_main_scenes},
@@ -282,7 +287,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"lattices", "Lattice", "rna_Main_latt_begin", "Lattices", "Lattice datablocks.", RNA_def_main_lattices},
 		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks.", RNA_def_main_curves} ,
 		{"metaballs", "MetaBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks.", RNA_def_main_metaballs},
-		{"vfonts", "VectorFont", "rna_Main_vfont_begin", "Vector Fonts", "Vector font datablocks.", RNA_def_main_vfonts},
+		{"fonts", "VectorFont", "rna_Main_font_begin", "Vector Fonts", "Vector font datablocks.", RNA_def_main_fonts},
 		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks.", RNA_def_main_textures},
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks.", RNA_def_main_brushes},
 		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks.", RNA_def_main_worlds},
@@ -308,6 +313,11 @@ void RNA_def_main(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Main_filename_get", "rna_Main_filename_length", "rna_Main_filename_set");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "Path to the .blend file");
+	
+	prop= RNA_def_property(srna, "file_is_saved", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_fileissaved_get", NULL);
+	RNA_def_property_ui_text(prop, "File is Saved", "Has the current session been saved to disk as a .blend file");
 
 	prop= RNA_def_property(srna, "debug", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_debug_get", "rna_Main_debug_set");

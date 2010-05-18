@@ -326,12 +326,15 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
 //-----------------PROTCOL DECLARATIONS--------------------------
 static PySequenceMethods Color_SeqMethods = {
 	(lenfunc) Color_len,					/* sq_length */
-	(binaryfunc) 0,							/* sq_concat */
-	(ssizeargfunc) 0,						/* sq_repeat */
+	(binaryfunc) NULL,						/* sq_concat */
+	(ssizeargfunc) NULL,					/* sq_repeat */
 	(ssizeargfunc) Color_item,				/* sq_item */
 	(ssizessizeargfunc) NULL,				/* sq_slice, deprecated */
 	(ssizeobjargproc) Color_ass_item,		/* sq_ass_item */
 	(ssizessizeobjargproc) NULL,			/* sq_ass_slice, deprecated */
+	(objobjproc) NULL,						/* sq_contains */
+	(binaryfunc) NULL,						/* sq_inplace_concat */
+	(ssizeargfunc) NULL,					/* sq_inplace_repeat */
 };
 
 static PyMappingMethods Color_AsMapping = {

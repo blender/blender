@@ -57,7 +57,7 @@ def addget_shape_key_driver(obj, name="Key"):
             if driver_s.data_path == driver_path:
                 fcurve = driver_s
     if fcurve == None:
-        fcurve = obj.data.shape_keys.keys[name].driver_add("value", 0)
+        fcurve = obj.data.shape_keys.keys[name].driver_add("value")
         fcurve.driver.type = 'AVERAGE'
         new = True
 

@@ -186,7 +186,7 @@ static void rna_def_animviz_ghosts(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ghost_step");
 	RNA_def_property_range(prop, 1, 20);
-	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames between ghosts shown (not for 'On Keyframes' Onion-skining method)");
+	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames between ghosts shown (not for 'On Keyframes' Onion-skinning method)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
 	/* Playback Ranges */
@@ -267,7 +267,7 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "path_step");
 	RNA_def_property_range(prop, 1, 100);
-	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames between paths shown (not for 'On Keyframes' Onion-skining method)");
+	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames between paths shown (not for 'On Keyframes' Onion-skinning method)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
 	

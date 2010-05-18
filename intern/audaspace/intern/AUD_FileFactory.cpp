@@ -29,6 +29,9 @@
 #include <cstring>
 
 #ifdef WITH_FFMPEG
+// needed for INT64_C
+#define __STDC_CONSTANT_MACROS
+
 #include "AUD_FFMPEGReader.h"
 #endif
 #ifdef WITH_SNDFILE

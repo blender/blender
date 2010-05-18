@@ -1137,6 +1137,9 @@ static void do_particle_interpolation(ParticleSystem *psys, int p, ParticleData 
 	int point_vel = (point && point->keys->vel);
 	float real_t, dfra, keytime;
 
+	/* billboards wont fill in all of these, so start cleared */
+	memset(keys, 0, sizeof(keys));
+
 	/* interpret timing and find keys */
 	if(point) {
 		if(result->time < 0.0f)
@@ -2950,7 +2953,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	float birthtime = 0.0, dietime = 0.0;
 	float t, time = 0.0, keytime = 0.0, frs_sec;
 	float hairmat[4][4], rotmat[3][3], prev_tangent[3];
-	int k,i;
+	int k, i;
 	int steps = (int)pow(2.0, (double)pset->draw_step);
 	int totpart = edit->totpoint, recalc_set=0;
 	float sel_col[3];
@@ -3097,17 +3100,26 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 			/* selection coloring in edit mode */
 			if(pset->brushtype==PE_BRUSH_WEIGHT){
-				if(k==0)
+				float t2;
+
+				if(k==0) {
 					weight_to_rgb(pind.hkey[1]->weight, ca->col, ca->col+1, ca->col+2);
-				else if(k >= steps - 1)
-					weight_to_rgb(pind.hkey[0]->weight, ca->col, ca->col+1, ca->col+2);
-				else
-					weight_to_rgb((1.0f - keytime) * pind.hkey[0]->weight + keytime * pind.hkey[1]->weight, ca->col, ca->col+1, ca->col+2);
+				} else {
+					float w1[3], w2[3];
+					keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
+
+					weight_to_rgb(pind.hkey[0]->weight, w1, w1+1, w1+2);
+					weight_to_rgb(pind.hkey[1]->weight, w2, w2+1, w2+2);
+
+					interp_v3_v3v3(ca->col, w1, w2, keytime);
+				}
 
 				/* at the moment this is only used for weight painting.
 				 * will need to move out of this check if its used elsewhere. */
-				pind.hkey[0] = pind.hkey[1];
-				pind.hkey[1]++;
+				t2 = birthtime + ((float)(k+1)/(float)steps) * (dietime - birthtime);
+
+				while (pind.hkey[1]->time < t2) pind.hkey[1]++;
+				pind.hkey[0] = pind.hkey[1] - 1;
 			}
 			else {
 				if((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT){
@@ -4279,6 +4291,23 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 
 	xvec[0] = 1.0f; xvec[1] = 0.0f; xvec[2] = 0.0f;
 	yvec[0] = 0.0f; yvec[1] = 1.0f; yvec[2] = 0.0f;
+
+    /* can happen with bad pointcache or physics calculation
+     * since this becomes geometry, nan's and inf's crash raytrace code.
+     * better not allow this. */
+    if( !finite(bb->vec[0]) || !finite(bb->vec[1]) || !finite(bb->vec[2]) ||
+        !finite(bb->vel[0]) || !finite(bb->vel[1]) || !finite(bb->vel[2]) )
+    {
+        zero_v3(bb->vec);
+        zero_v3(bb->vel);
+        
+        zero_v3(xvec);
+        zero_v3(yvec);
+        zero_v3(zvec);
+        zero_v3(center);
+
+        return;
+    }
 
 	if(bb->align < PART_BB_VIEW)
 		onevec[bb->align]=1.0f;

@@ -65,7 +65,6 @@
 							BLI_countlist BLI_stringdec */
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 
 #include "AVI_avi.h"
 
@@ -93,7 +92,6 @@
 #include "IMB_imbuf.h"
 
 #include "IMB_allocimbuf.h"
-#include "IMB_bitplanes.h"
 
 
 
@@ -117,7 +115,7 @@
 #define ANIM_NONE		(0)
 #define ANIM_SEQUENCE		(1 << 0)
 #define ANIM_DIR		(1 << 1)
-#define ANIM_ANIM5		(1 << 2)
+#define ANIM_DEPRECATED	(1 << 2)
 #define ANIM_TGA		(1 << 3)
 #define ANIM_MOVIE		(1 << 4)
 #define ANIM_MDEC		(1 << 5)
@@ -126,12 +124,9 @@
 #define ANIM_FFMPEG             (1 << 8)
 #define ANIM_REDCODE            (1 << 9)
 
-#define ANIM5_MMAP		0
-#define ANIM5_MALLOC		1
-#define ANIM5_SNGBUF		2
-#define ANIM5_XOR		4
-
 #define MAXNUMSTREAMS		50
+
+struct _AviMovie;
 
 struct anim {
 	int ib_flags;
@@ -144,14 +139,6 @@ struct anim {
 	char name[256];
 		/* voor sequence */
 	char first[256];
-	
-		/* anim5 */
-	struct ListBase	anim5base;
-	void		* anim5mmap;
-	int		anim5len;
-	struct Anim5Delta *anim5curdlta;
-	void		(*anim5decode)(struct ImBuf *, unsigned char *);
-	int		anim5flags;
 	
 		/* movie */
 	void *movie;

@@ -51,6 +51,7 @@ EXAMPLE_SET = set()
 EXAMPLE_SET_USED = set()
 
 _BPY_STRUCT_FAKE = "bpy_struct"
+_BPY_FULL_REBUILD = False
 
 def range_str(val):
     if val < -10000000:	return '-inf'
@@ -282,6 +283,9 @@ def rna2sphinx(BASEPATH):
     fw("copyright = u'Blender Foundation'\n")
     fw("version = '%s - UNSTABLE API'\n" % version_string)
     fw("release = '%s - UNSTABLE API'\n" % version_string)
+    fw("html_theme = 'blender-org'\n")
+    fw("html_theme_path = ['../']\n")
+    fw("html_favicon = 'favicon.ico'\n")
     # not helpful since the source us generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("\n")
@@ -320,6 +324,11 @@ def rna2sphinx(BASEPATH):
     fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
     fw("      * modules: bgl, mathutils and geometry\n")
     fw("\n")
+
+    fw("===================\n")
+    fw("Application Modules\n")
+    fw("===================\n")
+    fw("\n")
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
     fw("   bpy.ops.rst\n\n")
@@ -331,9 +340,30 @@ def rna2sphinx(BASEPATH):
     
     # C modules
     fw("   bpy.props.rst\n\n")
-    
+
+    fw("==================\n")
+    fw("Standalone Modules\n")
+    fw("==================\n")
+    fw("\n")
+    fw(".. toctree::\n")
+    fw("   :maxdepth: 1\n\n")
+
+
     fw("   mathutils.rst\n\n")
     fw("   blf.rst\n\n")
+    
+    # game engine
+    fw("===================\n")
+    fw("Game Engine Modules\n")
+    fw("===================\n")
+    fw("\n")
+    fw(".. toctree::\n")
+    fw("   :maxdepth: 1\n\n")
+    fw("   bge.types.rst\n\n")
+    fw("   bge.logic.rst\n\n")
+    fw("   bge.render.rst\n\n")
+    fw("   bge.events.rst\n\n")
+
     file.close()
 
 
@@ -359,7 +389,6 @@ def rna2sphinx(BASEPATH):
     file.close()
 
 
-
     # python modules
     from bpy import utils as module
     pymodule2sphinx(BASEPATH, "bpy.utils", module, "Utilities (bpy.utils)")
@@ -378,6 +407,15 @@ def rna2sphinx(BASEPATH):
     import blf as module
     pymodule2sphinx(BASEPATH, "blf", module, "Blender Font Drawing (blf)")
     del module
+
+    # game engine
+    import shutil
+    # copy2 keeps time/date stamps
+    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.types.rst"), BASEPATH)
+    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.logic.rst"), BASEPATH)
+    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.render.rst"), BASEPATH)
+    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.events.rst"), BASEPATH)
+
 
     if 0:
         filepath = os.path.join(BASEPATH, "bpy.rst")
@@ -663,22 +701,59 @@ if __name__ == '__main__':
         import shutil
 
         path_in = 'source/blender/python/doc/sphinx-in'
-        path_out = 'source/blender/python/doc/sphinx-in'
+        path_out = 'source/blender/python/doc/sphinx-out'
         path_examples = 'source/blender/python/doc/examples'
+        # only for partial updates
+        path_in_tmp = path_in + "-tmp"
 
-        shutil.rmtree(path_in, True)
-        shutil.rmtree(path_out, True)
-        
+        if not os.path.exists(path_in):
+            os.mkdir(path_in)
+
         for f in os.listdir(path_examples):
             if f.endswith(".py"):
                 EXAMPLE_SET.add(os.path.splitext(f)[0])
-        
-        rna2sphinx(path_in)
 
-        # for fast module testing
-        # os.system("rm source/blender/python/doc/sphinx-in/bpy.types.*.rst")
-        # os.system("rm source/blender/python/doc/sphinx-in/bpy.ops.*.rst")
-        
+
+        # only for full updates
+        if _BPY_FULL_REBUILD:
+            shutil.rmtree(path_in, True)
+            shutil.rmtree(path_out, True)
+        else:
+            # write here, then move
+            shutil.rmtree(path_in_tmp, True)
+
+        rna2sphinx(path_in_tmp)
+
+        if not _BPY_FULL_REBUILD:
+            import filecmp
+
+            # now move changed files from 'path_in_tmp' --> 'path_in'
+            file_list_path_in = set(os.listdir(path_in))
+            file_list_path_in_tmp = set(os.listdir(path_in_tmp))
+            
+            # remove deprecated files that have been removed.
+            for f in sorted(file_list_path_in):
+                if f not in file_list_path_in_tmp:
+                    print("\tdeprecated: %s" % f)
+                    os.remove(os.path.join(path_in, f))
+
+            # freshen with new files.
+            for f in sorted(file_list_path_in_tmp):
+                f_from = os.path.join(path_in_tmp, f)
+                f_to = os.path.join(path_in, f)
+
+                do_copy = True
+                if f in file_list_path_in:
+                    if filecmp.cmp(f_from, f_to):
+                        do_copy = False
+                
+                if do_copy:
+                    print("\tupdating: %s" % f)
+                    shutil.copy(f_from, f_to)
+                '''else:
+                    print("\tkeeping: %s" % f) # eh, not that useful'''
+
+
         EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED
         if EXAMPLE_SET_UNUSED:
             print("\nUnused examples found in '%s'..." % path_examples)

@@ -1,6 +1,4 @@
-/*
- * IMB_radiance_hdr.h
- *
+/**
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -19,24 +17,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef ED_LOGIC_H
+#define ED_LOGIC_H
 
-#ifndef IMB_RADIANCE_HDR_H
-#define IMB_RADIANCE_HDR_H
+/* logic_ops.c */
+void ED_operatortypes_logic(void);
 
-struct ImBuf;
+#endif /* ED_LOGIC_H */
 
-int imb_is_a_hdr(void *buf);
 
-struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags);
-short imb_savehdr(struct ImBuf * ibuf, char *name, int flags);
 
-#endif

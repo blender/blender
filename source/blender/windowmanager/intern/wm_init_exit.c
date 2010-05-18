@@ -301,12 +301,6 @@ void WM_exit(bContext *C)
 	BPY_end_python();
 #endif
 
-	libtiff_exit();
-	
-#ifdef WITH_QUICKTIME
-	quicktime_exit();
-#endif
-	
 	if (!G.background) {
 // XXX		UI_filelist_free_icons();
 	}
@@ -317,8 +311,9 @@ void WM_exit(bContext *C)
 	
 //	if (copybuf) MEM_freeN(copybuf);
 //	if (copybufinfo) MEM_freeN(copybufinfo);
-	
-	BKE_undo_save_quit();	// saves quit.blend if global undo is on
+	if (!G.background) {
+		BKE_undo_save_quit();	// saves quit.blend if global undo is on
+	}
 	BKE_reset_undo(); 
 	
 	ED_file_exit(); /* for fsmenu */

@@ -64,7 +64,7 @@ void RNA_init()
 
 	for(srna=BLENDER_RNA.structs.first; srna; srna=srna->cont.next) {
 		if(!srna->cont.prophash) {
-			srna->cont.prophash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+			srna->cont.prophash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "RNA_init gh");
 
 			for(prop=srna->cont.properties.first; prop; prop=prop->next)
 				if(!(prop->flag & PROP_BUILTIN))
@@ -1096,6 +1096,22 @@ int RNA_property_enum_identifier(bContext *C, PointerRNA *ptr, PropertyRNA *prop
 		if(free)
 			MEM_freeN(item);
 
+		return result;
+	}
+	return 0;
+}
+
+int RNA_property_enum_name(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **name)
+{	
+	EnumPropertyItem *item= NULL;
+	int result, free;
+	
+	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
+	if(item) {
+		result= RNA_enum_name(item, value, name);
+		if(free)
+			MEM_freeN(item);
+		
 		return result;
 	}
 	return 0;

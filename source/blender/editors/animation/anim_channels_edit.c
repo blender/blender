@@ -2004,6 +2004,7 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	/* delete */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 	
 	/* settings */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_setting_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);

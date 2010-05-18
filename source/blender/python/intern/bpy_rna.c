@@ -56,8 +56,8 @@
 
 static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyRNA *self, PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length);
 static Py_ssize_t pyrna_prop_array_length(BPy_PropertyRNA *self);
-static Py_ssize_t pyrna_prop_collection_length( BPy_PropertyRNA *self );
-
+static Py_ssize_t pyrna_prop_collection_length(BPy_PropertyRNA *self);
+static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback);
 
 /* bpyrna vector/euler/quat callbacks */
 static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
@@ -74,26 +74,25 @@ static int mathutils_rna_generic_check(BaseMathObject *bmo)
 	return self->prop ? 1:0;
 }
 
-static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype, float *vec_from)
+static int mathutils_rna_vector_get(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	if(self->prop==NULL)
 		return 0;
 	
-	RNA_property_float_get_array(&self->ptr, self->prop, vec_from);
+	RNA_property_float_get_array(&self->ptr, self->prop, bmo->data);
 	
 	/* Euler order exception */
 	if(subtype==MATHUTILS_CB_SUBTYPE_EUL) {
-		PropertyRNA *prop_eul_order= RNA_struct_find_property(&self->ptr, "rotation_mode");
-		if(prop_eul_order) {
-			((EulerObject *)bmo)->order= RNA_property_enum_get(&self->ptr, prop_eul_order);
-		}		
+		EulerObject *eul= (EulerObject *)bmo;
+		PropertyRNA *prop_eul_order= NULL;
+		eul->order= pyrna_rotation_euler_order_get(&self->ptr, &prop_eul_order, eul->order);
 	}
 	
 	return 1;
 }
 
-static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype, float *vec_to)
+static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	float min, max;
@@ -105,45 +104,46 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype, float *vec
 	if(min != FLT_MIN || max != FLT_MAX) {
 		int i, len= RNA_property_array_length(&self->ptr, self->prop);
 		for(i=0; i<len; i++) {
-			CLAMP(vec_to[i], min, max);
+			CLAMP(bmo->data[i], min, max);
 		}
 	}
 
-	RNA_property_float_set_array(&self->ptr, self->prop, vec_to);
-	
+	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
+	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+
 	/* Euler order exception */
 	if(subtype==MATHUTILS_CB_SUBTYPE_EUL) {
-		PropertyRNA *prop_eul_order= RNA_struct_find_property(&self->ptr, "rotation_mode");
-		if(prop_eul_order) {
-			RNA_property_enum_set(&self->ptr, prop_eul_order, ((EulerObject *)bmo)->order);
+		EulerObject *eul= (EulerObject *)bmo;
+		PropertyRNA *prop_eul_order= NULL;
+		short order= pyrna_rotation_euler_order_get(&self->ptr, &prop_eul_order, eul->order);
+		if(order != eul->order) {
+			RNA_property_enum_set(&self->ptr, prop_eul_order, eul->order);
 			RNA_property_update(BPy_GetContext(), &self->ptr, prop_eul_order);
-		}		
+		}
 	}
-
-	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
 
-static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int subtype, float *vec_from, int index)
+static int mathutils_rna_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
 		return 0;
 	
-	vec_from[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
+	bmo->data[index]= RNA_property_float_get_index(&self->ptr, self->prop, index);
 	return 1;
 }
 
-static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int subtype, float *vec_to, int index)
+static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int subtype, int index)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
 		return 0;
 
-	RNA_property_float_clamp(&self->ptr, self->prop, &vec_to[index]);
-	RNA_property_float_set_index(&self->ptr, self->prop, index, vec_to[index]);
+	RNA_property_float_clamp(&self->ptr, self->prop, &bmo->data[index]);
+	RNA_property_float_set_index(&self->ptr, self->prop, index, bmo->data[index]);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
@@ -160,35 +160,35 @@ Mathutils_Callback mathutils_rna_array_cb = {
 /* bpyrna matrix callbacks */
 static int mathutils_rna_matrix_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_rna_matrix_get(BaseMathObject *bmo, int subtype, float *mat_from)
+static int mathutils_rna_matrix_get(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 
 	if(self->prop==NULL)
 		return 0;
 
-	RNA_property_float_get_array(&self->ptr, self->prop, mat_from);
+	RNA_property_float_get_array(&self->ptr, self->prop, bmo->data);
 	return 1;
 }
 
-static int mathutils_rna_matrix_set(BaseMathObject *bmo, int subtype, float *mat_to)
+static int mathutils_rna_matrix_set(BaseMathObject *bmo, int subtype)
 {
 	BPy_PropertyRNA *self= (BPy_PropertyRNA *)bmo->cb_user;
 	
 	if(self->prop==NULL)
 		return 0;
 	/* can ignore clamping here */
-	RNA_property_float_set_array(&self->ptr, self->prop, mat_to);
+	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
 }
 
 Mathutils_Callback mathutils_rna_matrix_cb = {
-	(BaseMathCheckFunc)		mathutils_rna_generic_check,
-	(BaseMathGetFunc)		mathutils_rna_matrix_get,
-	(BaseMathSetFunc)		mathutils_rna_matrix_set,
-	(BaseMathGetIndexFunc)	NULL,
-	(BaseMathSetIndexFunc)	NULL
+	mathutils_rna_generic_check,
+	mathutils_rna_matrix_get,
+	mathutils_rna_matrix_set,
+	NULL,
+	NULL
 };
 
 /* same as RNA_enum_value_from_id but raises an exception  */
@@ -271,22 +271,17 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		case PROP_EULER:
 		case PROP_QUATERNION:
 			if(len==3) { /* euler */
-				/* attempt to get order */
-				/* TODO, keep order in sync */
-				short order= ROT_MODE_XYZ;
-				PropertyRNA *prop_eul_order= RNA_struct_find_property(ptr, "rotation_mode");
-				if(prop_eul_order) {
-					order = RNA_property_enum_get(ptr, prop_eul_order);
-					if (order < ROT_MODE_XYZ || order > ROT_MODE_ZYX) /* could be quat or axisangle */
-						order= ROT_MODE_XYZ;
-				}
-
 				if(is_thick) {
+					/* attempt to get order, only needed for thixk types since wrapped with update via callbacks */
+					PropertyRNA *prop_eul_order= NULL;
+					short order= pyrna_rotation_euler_order_get(ptr, &prop_eul_order, ROT_MODE_XYZ);
+
 					ret= newEulerObject(NULL, order, Py_NEW, NULL); // TODO, get order from RNA
 					RNA_property_float_get_array(ptr, prop, ((EulerObject *)ret)->eul);
 				}
 				else {
-					PyObject *eul_cb= newEulerObject_cb(ret, order, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
+					/* order will be updated from callback on use */
+					PyObject *eul_cb= newEulerObject_cb(ret, ROT_MODE_XYZ, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
 					Py_DECREF(ret); /* the euler owns now */
 					ret= eul_cb; /* return the euler instead */
 				}
@@ -336,6 +331,21 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 }
 
 #endif
+
+static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback)
+{
+	/* attempt to get order */
+	if(*prop_eul_order==NULL)
+		*prop_eul_order= RNA_struct_find_property(ptr, "rotation_mode");
+
+	if(*prop_eul_order) {
+		short order= RNA_property_enum_get(ptr, *prop_eul_order);
+		if (order >= ROT_MODE_XYZ && order <= ROT_MODE_ZYX) /* could be quat or axisangle */
+			return order;
+	}
+
+	return order_fallback;
+}
 
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
 {
@@ -1184,17 +1194,17 @@ static Py_ssize_t pyrna_prop_collection_length( BPy_PropertyRNA *self )
 static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_ssize_t keynum)
 {
 	PointerRNA newptr;
-    int len= RNA_property_collection_length(&self->ptr, self->prop);
+	int len= RNA_property_collection_length(&self->ptr, self->prop);
 
 	if(keynum < 0) keynum += len;
 
-    if(keynum >= 0 && keynum < len)  {
-        if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr)) {
-            return pyrna_struct_CreatePyObject(&newptr);
-        }        
-        PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d could not be found", keynum);
-        return NULL;
-    }
+	if(keynum >= 0 && keynum < len)  {
+		if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr)) {
+			return pyrna_struct_CreatePyObject(&newptr);
+		}
+		PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d could not be found", keynum);
+		return NULL;
+	}
 	PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d out of range", keynum);
 	return NULL;
 }
@@ -1627,6 +1637,8 @@ static PySequenceMethods pyrna_prop_array_as_sequence = {
 	(ssizeobjargproc)prop_subscript_ass_array_int,		/* sq_ass_item */
 	NULL,		/* *was* sq_ass_slice */
 	(objobjproc)pyrna_prop_array_contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 static PySequenceMethods pyrna_prop_collection_as_sequence = {
@@ -1638,6 +1650,8 @@ static PySequenceMethods pyrna_prop_collection_as_sequence = {
 	NULL,		/* sq_ass_item */
 	NULL,		/* *was* sq_ass_slice */
 	(objobjproc)pyrna_prop_collection_contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 static PySequenceMethods pyrna_struct_as_sequence = {
@@ -1649,6 +1663,8 @@ static PySequenceMethods pyrna_struct_as_sequence = {
 	NULL,		/* sq_ass_item */
 	NULL,		/* *was* sq_ass_slice */
 	(objobjproc)pyrna_struct_contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 static PyObject *pyrna_struct_subscript( BPy_StructRNA *self, PyObject *key )
@@ -1784,7 +1800,7 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 }
 
 /* for keyframes and drivers */
-static int pyrna_struct_anim_args_parse(PointerRNA *ptr, char *error_prefix, char *path,
+static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefix, const char *path,
 	char **path_full, int *index)
 {
 	PropertyRNA *prop;
@@ -1834,15 +1850,15 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, char *error_prefix, cha
 }
 
 /* internal use for insert and delete */
-static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *error_prefix,
+static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject *kw,  const char *parse_str, const char *error_prefix,
 	char **path_full, int *index, float *cfra, char **group_name) /* return values */
 {
+	static char *kwlist[] = {"path", "index", "frame", "group", NULL};
 	char *path;
 
-	if (!PyArg_ParseTuple(args, "s|ifs", &path, index, cfra, group_name)) {
-		PyErr_Format(PyExc_TypeError, "%.200s expected a string and optionally an int, float, and string arguments", error_prefix);
+	/* note, parse_str MUST start with 's|ifs' */
+	if (!PyArg_ParseTupleAndKeywords(args, kw, parse_str, (char **)kwlist, &path, index, cfra, group_name))
 		return -1;
-	}
 
 	if(pyrna_struct_anim_args_parse(ptr, error_prefix, path,  path_full, index) < 0) 
 		return -1;
@@ -1854,7 +1870,7 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *er
 }
 
 static char pyrna_struct_keyframe_insert_doc[] =
-".. method:: keyframe_insert(path, index=-1, frame=bpy.context.scene.frame_current)\n"
+".. method:: keyframe_insert(path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
 "\n"
 "   Insert a keyframe on the property given, adding fcurves and animation data when necessary.\n"
 "\n"
@@ -1869,16 +1885,16 @@ static char pyrna_struct_keyframe_insert_doc[] =
 "   :return: Success of keyframe insertion.\n"
 "   :rtype: boolean";
 
-static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args)
+static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
 	PyObject *result;
 	/* args, pyrna_struct_keyframe_parse handles these */
 	char *path_full= NULL;
 	int index= -1;
 	float cfra= FLT_MAX;
-    char *group_name= NULL;
+	char *group_name= NULL;
 
-	if(pyrna_struct_keyframe_parse(&self->ptr, args, "bpy_struct.keyframe_insert():", &path_full, &index, &cfra, &group_name) == -1)
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1)
 		return NULL;
 
 	result= PyBool_FromLong(insert_keyframe((ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0));
@@ -1888,7 +1904,7 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *arg
 }
 
 static char pyrna_struct_keyframe_delete_doc[] =
-".. method:: keyframe_delete(path, index=-1, frame=bpy.context.scene.frame_current)\n"
+".. method:: keyframe_delete(path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
 "\n"
 "   Remove a keyframe from this properties fcurve.\n"
 "\n"
@@ -1903,16 +1919,16 @@ static char pyrna_struct_keyframe_delete_doc[] =
 "   :return: Success of keyframe deleation.\n"
 "   :rtype: boolean";
 
-static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args)
+static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
 	PyObject *result;
 	/* args, pyrna_struct_keyframe_parse handles these */
 	char *path_full= NULL;
 	int index= -1;
 	float cfra= FLT_MAX;
-    char *group_name= NULL;
+	char *group_name= NULL;
 
-	if(pyrna_struct_keyframe_parse(&self->ptr, args, "bpy_struct.keyframe_delete():", &path_full, &index, &cfra, &group_name) == -1)
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, kw, "s|ifs:bpy_struct.keyframe_delete()", "bpy_struct.keyframe_insert()", &path_full, &index, &cfra, &group_name) == -1)
 		return NULL;
 
 	result= PyBool_FromLong(delete_keyframe((ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0));
@@ -2325,6 +2341,10 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 						}
 					}
 					break;
+				default:
+					/* should never happen */
+					PyErr_Format(PyExc_AttributeError, "bpy_struct: Context type invalid %d, can't get \"%.200s\" from context", newtype, name);
+					ret= NULL;
 				}
 			}
 			else if (done==-1) { /* found but not set */
@@ -2988,8 +3008,8 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
 	{"as_pointer", (PyCFunction)pyrna_struct_as_pointer, METH_NOARGS, pyrna_struct_as_pointer_doc},
 
-	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, pyrna_struct_keyframe_insert_doc},
-	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS, pyrna_struct_keyframe_delete_doc},
+	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS|METH_KEYWORDS, pyrna_struct_keyframe_insert_doc},
+	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS|METH_KEYWORDS, pyrna_struct_keyframe_delete_doc},
 	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, pyrna_struct_driver_add_doc},
 	{"driver_remove", (PyCFunction)pyrna_struct_driver_remove, METH_VARARGS, pyrna_struct_driver_remove_doc},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, pyrna_struct_is_property_set_doc},
@@ -3536,7 +3556,7 @@ PyTypeObject pyrna_prop_Type = {
 	0,			/* tp_itemsize */
 	/* methods */
 	NULL,						/* tp_dealloc */
-	NULL,                       /* printfunc tp_print; */
+	NULL,                   /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
@@ -3780,6 +3800,8 @@ static struct PyMethodDef pyrna_struct_subtype_methods[] = {
 	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, ""},
 	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, ""},
 	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	
+	{"RemoveProperty", (PyCFunction)BPy_RemoveProperty, METH_VARARGS|METH_KEYWORDS, ""},
 
 //	{"__get_rna", (PyCFunction)BPy_GetStructRNA, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}

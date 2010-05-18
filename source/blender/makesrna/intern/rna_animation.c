@@ -596,7 +596,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type_info", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyingSetInfo");
 	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_typeinfo_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Type Info", "Callback function defines for builtin Keying Sets");
+	RNA_def_property_ui_text(prop, "Type Info", "Callback function defines for built-in Keying Sets");
 	
 	/* Paths */
 	prop= RNA_def_property(srna, "paths", PROP_COLLECTION, PROP_NONE);

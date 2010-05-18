@@ -244,8 +244,8 @@ static void wm_init_userdef(bContext *C)
 	sound_init(CTX_data_main(C));
 
 	/* set the python auto-execute setting from user prefs */
-	if (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE)	G.f &= ~G_SCRIPT_AUTOEXEC;
-	else										G.f |=  G_SCRIPT_AUTOEXEC;
+	/* disabled by default, unless explicitly enabled in the command line */
+	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
 
 	if(U.tempdir[0]) strncpy(btempdir, U.tempdir, FILE_MAXDIR+FILE_MAXFILE);
 }
@@ -286,7 +286,8 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		
 		if (retval!=0) {
 			G.relbase_valid = 1;
-			writeBlog();
+			if(!G.background) /* assume automated tasks with background, dont write recent file list */
+				writeBlog();
 		}
 
 // XXX		undo_editmode_clear();

@@ -946,7 +946,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 		}
 	}
 	
-	reload_sequence_new_file(scene, seq);
+	reload_sequence_new_file(scene, seq, FALSE);
 	calc_sequence(scene, seq);
 
 	if (!skip_dup) {
@@ -985,8 +985,8 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 			seqn->startstill = 0;
 		}
 		
-		reload_sequence_new_file(scene, seqn);
-		calc_sequence(scene, seqn);
+		reload_sequence_new_file(scene, seqn, FALSE);
+		calc_sequence(scene, seq);
 	}
 	return seqn;
 }
@@ -1178,7 +1178,8 @@ void set_filter_seq(Scene *scene)
 		if(seq->flag & SELECT) {
 			if(seq->type==SEQ_MOVIE) {
 				seq->flag |= SEQ_FILTERY;
-				reload_sequence_new_file(scene, seq);
+				reload_sequence_new_file(scene, seq, FALSE);
+				calc_sequence(scene, seq);
 			}
 
 		}
@@ -1270,6 +1271,11 @@ static int seq_get_snaplimit(View2D *v2d)
 #endif
 
 /* Operator functions */
+int sequencer_edit_poll(bContext *C)
+{
+	return (seq_give_editing(CTX_data_scene(C), FALSE) != NULL);
+}
+
 
 /* snap operator*/
 static int sequencer_snap_exec(bContext *C, wmOperator *op)
@@ -1279,8 +1285,6 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 	int snap_frame;
-	
-	if(ed==NULL) return OPERATOR_CANCELLED;
 
 	snap_frame= RNA_int_get(op->ptr, "frame");
 
@@ -1354,8 +1358,7 @@ void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= sequencer_snap_invoke;
 	ot->exec= sequencer_snap_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1370,9 +1373,6 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 	int selected;
-
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	selected= !RNA_boolean_get(op->ptr, "unselected");
 	
@@ -1404,8 +1404,7 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_mute_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1421,9 +1420,6 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 	int selected;
-
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	selected= !RNA_boolean_get(op->ptr, "unselected");
 	
@@ -1449,14 +1445,13 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "UnMute Strips";
+	ot->name= "Un-Mute Strips";
 	ot->idname= "SEQUENCER_OT_unmute";
-	ot->description="UnMute unselected rather than selected strips";
+	ot->description="Un-Mute unselected rather than selected strips";
 	
 	/* api callbacks */
 	ot->exec= sequencer_unmute_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1471,9 +1466,6 @@ static int sequencer_lock_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
-
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if (seq->flag & SELECT) {
@@ -1495,8 +1487,7 @@ void SEQUENCER_OT_lock(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_lock_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1508,9 +1499,6 @@ static int sequencer_unlock_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
-
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if (seq->flag & SELECT) {
@@ -1532,8 +1520,7 @@ void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_unlock_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1545,9 +1532,6 @@ static int sequencer_reload_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
-
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if(seq->flag & SELECT) {
@@ -1569,8 +1553,7 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_reload_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1581,9 +1564,6 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
-	
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE);
 
@@ -1601,8 +1581,7 @@ void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_refresh_all_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1623,9 +1602,6 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 
 	ListBase newlist;
 	int changed;
-	
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	cut_frame= RNA_int_get(op->ptr, "frame");
 	cut_hard= RNA_enum_get(op->ptr, "type");
@@ -1678,7 +1654,8 @@ static int sequencer_cut_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	int cut_side, cut_frame;
 	
 	cut_frame= CFRA;
-	cut_side= mouse_frame_side(v2d, event->x - ar->winrct.xmin, cut_frame);
+	if (ED_operator_sequencer_active(C) && v2d)
+		cut_side= mouse_frame_side(v2d, event->x - ar->winrct.xmin, cut_frame);
 	
 	RNA_int_set(op->ptr, "frame", cut_frame);
 	RNA_enum_set(op->ptr, "side", cut_side);
@@ -1698,8 +1675,7 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= sequencer_cut_invoke;
 	ot->exec= sequencer_cut_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1749,7 +1725,6 @@ static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *
 
 void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 {
-
 	/* identifiers */
 	ot->name= "Duplicate";
 	ot->idname= "SEQUENCER_OT_duplicate";
@@ -1758,7 +1733,6 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= sequencer_add_duplicate_invoke;
 	ot->exec= sequencer_add_duplicate_exec;
-
 	ot->poll= ED_operator_sequencer_active;
 	
 	/* flags */
@@ -1776,9 +1750,6 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 	Sequence *seq;
 	MetaStack *ms;
 	int nothingSelected = TRUE;
-
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	seq=active_seq_get(scene);
 	if (seq && seq->flag & SELECT) { /* avoid a loop since this is likely to be selected */
@@ -1840,8 +1811,7 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= sequencer_delete_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1932,8 +1902,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_props_popup;
 	ot->exec= sequencer_separate_images_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1951,9 +1920,6 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *last_seq= active_seq_get(scene);
 	MetaStack *ms;
-
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	if(last_seq && last_seq->type==SEQ_META && last_seq->flag & SELECT) {
 		/* Enter Metastrip */
@@ -2008,8 +1974,7 @@ void SEQUENCER_OT_meta_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_meta_toggle_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2025,9 +1990,6 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	Sequence *seq, *seqm, *next;
 	
 	int channel_max= 1;
-
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
 
 	if(seqbase_isolated_sel_check(ed->seqbasep)==FALSE) {
 		BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
@@ -2081,8 +2043,7 @@ void SEQUENCER_OT_meta_make(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= sequencer_meta_make_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2153,8 +2114,7 @@ void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= sequencer_meta_separate_exec;
-
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2186,7 +2146,6 @@ void SEQUENCER_OT_view_all(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_all_exec;
-
 	ot->poll= ED_operator_sequencer_active;
 	
 	/* flags */
@@ -2253,7 +2212,6 @@ void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_all_preview_exec;
-
 	ot->poll= ED_operator_sequencer_active;
 	
 	/* flags */
@@ -2370,7 +2328,6 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_selected_exec;
-
 	ot->poll= ED_operator_sequencer_active;
 	
 	/* flags */
@@ -2456,7 +2413,7 @@ void SEQUENCER_OT_next_edit(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_next_edit_exec;
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2486,7 +2443,7 @@ void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_previous_edit_exec;
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2531,7 +2488,6 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 	Sequence *seq, *iseq;
 	int side= RNA_enum_get(op->ptr, "side");
 
-	if(ed==NULL) return OPERATOR_CANCELLED;
 	if(active_seq==NULL) return OPERATOR_CANCELLED;
 
 	seq = find_next_prev_sequence(scene, active_seq, side, -1);
@@ -2591,7 +2547,7 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_swap_exec;
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2641,7 +2597,7 @@ void SEQUENCER_OT_rendersize(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sequencer_rendersize_exec;
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2670,9 +2626,6 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq;
 
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
-
 	seq_free_clipboard();
 
 	if(seqbase_isolated_sel_check(ed->seqbasep)==FALSE) {
@@ -2700,7 +2653,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= sequencer_copy_exec;
-	ot->poll= ED_operator_sequencer_active;
+	ot->poll= sequencer_edit_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

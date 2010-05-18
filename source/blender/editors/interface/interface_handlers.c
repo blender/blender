@@ -777,6 +777,8 @@ static void ui_apply_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data)
 			break;
 	}
 	if(bt && bt!=but) {
+		if (!ELEM(bt->type, LINK, INLINK) || !ELEM(but->type, LINK, INLINK))
+			return;
 		
 		if(but->type==LINK) ui_add_link(but, bt);
 		else ui_add_link(bt, but);
@@ -1758,7 +1760,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		if(event->ascii && (retval == WM_UI_HANDLER_CONTINUE)) {
 			changed= ui_textedit_type_ascii(but, data, event->ascii);
 			retval= WM_UI_HANDLER_BREAK;
+			
 		}
+		/* textbutton with magnifier icon: do live update for search button */
+		if(but->icon==ICON_VIEWZOOM)
+			update= 1;
 	}
 
 	if(changed) {
@@ -2113,8 +2119,13 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 		}
 		
 		if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val==KM_PRESS) {
+			int ret = WM_UI_HANDLER_BREAK;
+			/* XXX (a bit ugly) Special case handling for filebrowser drag button */
+			if(but->dragpoin && but->imb && ui_but_mouse_inside_icon(but, data->region, event)) {
+				ret = WM_UI_HANDLER_CONTINUE;
+			}
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			return WM_UI_HANDLER_BREAK;
+			return ret;
 		}
 	}
 	else if(data->state == BUTTON_STATE_WAIT_DRAG) {

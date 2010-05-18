@@ -375,7 +375,7 @@ void filelist_init_icons()
 	short x, y, k;
 	ImBuf *bbuf;
 	ImBuf *ibuf;
-	bbuf = IMB_ibImageFromMemory((int *)datatoc_prvicons, datatoc_prvicons_size, IB_rect);
+	bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_prvicons, datatoc_prvicons_size, IB_rect);
 	if (bbuf) {
 		for (y=0; y<SPECIAL_IMG_ROWS; y++) {
 			for (x=0; x<SPECIAL_IMG_COLS; x++) {
@@ -613,9 +613,7 @@ struct ImBuf * filelist_loadimage(struct FileList* filelist, int index)
 	if (!imb)
 	{
 		if ( (filelist->filelist[fidx].flags & IMAGEFILE) || (filelist->filelist[fidx].flags & MOVIEFILE) ) {
-			char path[FILE_MAX];
-			BLI_join_dirfile(path, filelist->dir, filelist->filelist[fidx].relname);
-			imb = IMB_thumb_read(path, THB_NORMAL);
+			imb = IMB_thumb_read(filelist->filelist[fidx].path, THB_NORMAL);
 		} 
 		if (imb) {
 			filelist->filelist[fidx].image = imb;
@@ -852,6 +850,7 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".psd")
 				||	BLI_testextensie(file->relname, ".tif")
 				||	BLI_testextensie(file->relname, ".tiff")
+				||	BLI_testextensie(file->relname, ".tx")
 				||	BLI_testextensie(file->relname, ".pct")
 				||	BLI_testextensie(file->relname, ".pict")
 				||	BLI_testextensie(file->relname, ".pntg") //macpaint
@@ -915,6 +914,7 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".iff")
 				||	BLI_testextensie(file->relname, ".tif")
 				||	BLI_testextensie(file->relname, ".tiff")
+				||	BLI_testextensie(file->relname, ".tx")
 				||	BLI_testextensie(file->relname, ".hdr")
 #ifdef WITH_DDS
 				||	BLI_testextensie(file->relname, ".dds")
@@ -1280,7 +1280,7 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update)
 	while ( (*stop==0) && (limg) ) {
 		if ( limg->flags & IMAGEFILE ) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_IMAGE);
-		} else if ( limg->flags & MOVIEFILE ) {			
+		} else if ( limg->flags & MOVIEFILE ) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_MOVIE);
 			if (!limg->img) {
 					/* remember that file can't be loaded via IMB_open_anim */
@@ -1336,7 +1336,7 @@ void thumbnails_start(struct FileList* filelist, const struct bContext* C)
 		if (!filelist->filelist[idx].image) {
 			if ( (filelist->filelist[idx].flags & IMAGEFILE) || (filelist->filelist[idx].flags & MOVIEFILE) ) {
 				FileImage* limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
-				BLI_join_dirfile(limg->path, filelist->dir, filelist->filelist[idx].relname);
+				BLI_strncpy(limg->path, filelist->filelist[idx].path, FILE_MAX);
 				limg->index= idx;
 				limg->flags= filelist->filelist[idx].flags;
 				BLI_addtail(&tj->loadimages, limg);
@@ -1359,4 +1359,9 @@ void thumbnails_start(struct FileList* filelist, const struct bContext* C)
 void thumbnails_stop(struct FileList* filelist, const struct bContext* C)
 {
 	WM_jobs_kill(CTX_wm_manager(C), filelist);
+}
+
+int thumbnails_running(struct FileList* filelist, const struct bContext* C)
+{
+	return WM_jobs_test(CTX_wm_manager(C), filelist);
 }

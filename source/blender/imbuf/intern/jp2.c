@@ -24,14 +24,14 @@
 #ifdef WITH_OPENJPEG
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
-#include "IMB_jp2.h"
+#include "IMB_filetype.h"
 
 #include "openjpeg.h"
 
@@ -58,7 +58,7 @@ static int checkj2p(unsigned char *mem) /* J2K_CFMT */
 	return memcmp(JP2_HEAD, mem, 12) ? 0 : 1;
 }
 
-int imb_is_a_jp2(void *buf)
+int imb_is_a_jp2(unsigned char *buf)
 {	
 	return checkj2p(buf);
 }
@@ -533,16 +533,23 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 	
 	
 	if (rect_float) {
+		float rgb[3];
+		
 		switch (prec) {
 		case 8: /* Convert blenders float color channels to 8,12 or 16bit ints */
 			for(y=h-1; y>=0; y--) {
 				y_row = y*w;
 				for(x=0; x<w; x++, rect_float+=4) {
 					i = y_row + x;
+					
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+						linearrgb_to_srgb_v3_v3(rgb, rect_float);
+					else
+						copy_v3_v3(rgb, rect_float);
 				
-					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[0]);
-					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[1]);
-					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[2]);
+					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[0]);
+					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[1]);
+					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[2]);
 					if (numcomps>3)
 						image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[3]);
 				}
@@ -554,10 +561,15 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 				y_row = y*w;
 				for(x=0; x<w; x++, rect_float+=4) {
 					i = y_row + x;
+					
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+						linearrgb_to_srgb_v3_v3(rgb, rect_float);
+					else
+						copy_v3_v3(rgb, rect_float);
 				
-					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[0]);
-					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[1]);
-					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[2]);
+					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[0]);
+					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[1]);
+					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[2]);
 					if (numcomps>3)
 						image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[3]);
 				}
@@ -568,10 +580,15 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 				y_row = y*w;
 				for(x=0; x<w; x++, rect_float+=4) {
 					i = y_row + x;
+					
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+						linearrgb_to_srgb_v3_v3(rgb, rect_float);
+					else
+						copy_v3_v3(rgb, rect_float);
 				
-					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[0]);
-					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[1]);
-					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[2]);
+					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[0]);
+					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[1]);
+					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[2]);
 					if (numcomps>3)
 						image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[3]);
 				}
@@ -642,7 +659,7 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-short imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
+int imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
 	
 	int quality = ibuf->ftype & 0xff;
 	

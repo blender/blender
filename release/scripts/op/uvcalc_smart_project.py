@@ -963,7 +963,7 @@ def main(context, island_margin, projection_limit):
                     newProjectMeshFaces.append(tempMeshFaces.pop(fIdx))
 
             # Add the average of all these faces normals as a projectionVec
-            averageVec = Vector(0.0, 0.0, 0.0)
+            averageVec = Vector((0.0, 0.0, 0.0))
             if USER_AREA_WEIGHT:
                 for fprop in newProjectMeshFaces:
                     averageVec += (fprop.no * fprop.area)

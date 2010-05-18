@@ -132,6 +132,7 @@ void BLI_bpathIterator_getPathExpanded( struct BPathIterator *bpi, char *path_ex
 	} else { /* local data, use the blend files path */
 		BLI_path_abs(path_expanded, bpi->base_path);
 	}
+	BLI_cleanup_file(NULL, path_expanded);
 }
 char* BLI_bpathIterator_getLib( struct BPathIterator *bpi) {
 	return bpi->lib;
@@ -622,7 +623,7 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 	
 	while ((de = readdir(dir)) != NULL) {
 		
-		if (strncmp(".", de->d_name, 2)==0 || strncmp("..", de->d_name, 3)==0)
+		if (strcmp(".", de->d_name)==0 || strcmp("..", de->d_name)==0)
 			continue;
 		
 		BLI_join_dirfile(path, dirname, de->d_name);

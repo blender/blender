@@ -32,6 +32,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_ghash.h"
 
@@ -128,8 +129,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		 * 	- vgroups to indicies -> vgroupHash  (string, int)
 		 *	- bones to vgroup indices -> boneHash (index of vgroup, dummy)
 		 */
-		vgroupHash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
-		boneHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+		vgroupHash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "mask vgroup gh");
+		boneHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask bone gh");
 		
 		/* build mapping of names of vertex groups to indices */
 		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) 
@@ -174,7 +175,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 		
 		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
-		vertHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+		vertHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask vert gh");
 		
 		/* add vertices which exist in vertexgroups into vertHash for filtering */
 		for (i = 0; i < maxVerts; i++) 
@@ -223,7 +224,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			return dm;
 			
 		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
-		vertHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+		vertHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask vert2 bh");
 		
 		/* add vertices which exist in vertexgroup into ghash for filtering */
 		for (i = 0; i < maxVerts; i++) 
@@ -257,8 +258,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 	
 	/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
-	edgeHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
-	faceHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+	edgeHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask ed2 gh");
+	faceHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask fa2 gh");
 	
 	/* loop over edges and faces, and do the same thing to 
 	 * ensure that they only reference existing verts 
@@ -386,7 +387,7 @@ ModifierTypeInfo modifierType_Mask = {
 	/* structName */        "MaskModifierData",
 	/* structSize */        sizeof(MaskModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh,
+	/* flags */             eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_SupportsMapping|eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       0,

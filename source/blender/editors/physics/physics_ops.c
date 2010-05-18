@@ -43,8 +43,8 @@
 static void operatortypes_particle(void)
 {
 	WM_operatortype_append(PARTICLE_OT_select_all);
-	WM_operatortype_append(PARTICLE_OT_select_first);
-	WM_operatortype_append(PARTICLE_OT_select_last);
+	WM_operatortype_append(PARTICLE_OT_select_roots);
+	WM_operatortype_append(PARTICLE_OT_select_tips);
 	WM_operatortype_append(PARTICLE_OT_select_linked);
 	WM_operatortype_append(PARTICLE_OT_select_less);
 	WM_operatortype_append(PARTICLE_OT_select_more);
@@ -100,6 +100,7 @@ static void keymap_particle(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PARTICLE_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "PARTICLE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_hide", HKEY, KM_PRESS, 0, 0);

@@ -76,7 +76,7 @@ def verify_address(netsettings):
         else:
             netsettings.server_address = "[default]"
 
-class RenderButtonsPanel(bpy.types.Panel):
+class RenderButtonsPanel():
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "render"
@@ -88,7 +88,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 
 # Setting panel, use in the scene for now.
 @rnaType
-class RENDER_PT_network_settings(RenderButtonsPanel):
+class RENDER_PT_network_settings(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Network Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
 
@@ -123,7 +123,7 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
         layout.operator("render.netclientweb", icon='QUESTION')
 
 @rnaType
-class RENDER_PT_network_slave_settings(RenderButtonsPanel):
+class RENDER_PT_network_slave_settings(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Slave Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
 
@@ -141,13 +141,14 @@ class RENDER_PT_network_slave_settings(RenderButtonsPanel):
 
         layout.prop(netsettings, "slave_clear")
         layout.prop(netsettings, "slave_thumb")
+        layout.prop(netsettings, "slave_outputlog")
         layout.label(text="Threads:")
         layout.prop(rd, "threads_mode", expand=True)
         sub = layout.column()
         sub.enabled = rd.threads_mode == 'FIXED'
         sub.prop(rd, "threads")
 @rnaType
-class RENDER_PT_network_master_settings(RenderButtonsPanel):
+class RENDER_PT_network_master_settings(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Master Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
 
@@ -166,7 +167,7 @@ class RENDER_PT_network_master_settings(RenderButtonsPanel):
         layout.prop(netsettings, "master_clear")
 
 @rnaType
-class RENDER_PT_network_job(RenderButtonsPanel):
+class RENDER_PT_network_job(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Job Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
 
@@ -186,6 +187,7 @@ class RENDER_PT_network_job(RenderButtonsPanel):
         if netsettings.server_address != "[default]":
             layout.operator("render.netclientanim", icon='RENDER_ANIMATION')
             layout.operator("render.netclientsend", icon='FILE_BLEND')
+            layout.operator("render.netclientsendframe", icon='RENDER_STILL')
             if netsettings.job_id:
                 row = layout.row()
                 row.operator("render.render", text="Get Image", icon='RENDER_STILL')
@@ -206,16 +208,17 @@ class RENDER_PT_network_job(RenderButtonsPanel):
         row.prop(netsettings, "chunks")
 
 @rnaType
-class RENDER_PT_network_slaves(RenderButtonsPanel):
+class RENDER_PT_network_slaves(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Slaves Status"
     COMPAT_ENGINES = {'NET_RENDER'}
 
     def poll(self, context):
         scene = context.scene
         netsettings = scene.network_render
+        if netsettings.mode != "RENDER_CLIENT":
+            return False
         verify_address(netsettings)
         return (super().poll(context)
-                and netsettings.mode == "RENDER_CLIENT"
                 and netsettings.server_address != "[default]")
 
     def draw(self, context):
@@ -244,16 +247,17 @@ class RENDER_PT_network_slaves(RenderButtonsPanel):
             layout.label(text="Stats: " + slave.stats)
 
 @rnaType
-class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
+class RENDER_PT_network_slaves_blacklist(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Slaves Blacklist"
     COMPAT_ENGINES = {'NET_RENDER'}
 
     def poll(self, context):
         scene = context.scene
         netsettings = scene.network_render
+        if netsettings.mode != "RENDER_CLIENT":
+            return False
         verify_address(netsettings)
         return (super().poll(context)
-                and netsettings.mode == "RENDER_CLIENT"
                 and netsettings.server_address != "[default]")
 
     def draw(self, context):
@@ -281,16 +285,17 @@ class RENDER_PT_network_slaves_blacklist(RenderButtonsPanel):
             layout.label(text="Stats: " + slave.stats)
 
 @rnaType
-class RENDER_PT_network_jobs(RenderButtonsPanel):
+class RENDER_PT_network_jobs(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Jobs"
     COMPAT_ENGINES = {'NET_RENDER'}
 
     def poll(self, context):
         scene = context.scene
         netsettings = scene.network_render
+        if netsettings.mode != "RENDER_CLIENT":
+            return False
         verify_address(netsettings)
         return (super().poll(context)
-                and netsettings.mode == "RENDER_CLIENT"
                 and netsettings.server_address != "[default]")
 
     def draw(self, context):
@@ -361,6 +366,11 @@ NetRenderSettings.BoolProperty( attr="slave_thumb",
                 name="Generate thumbnails",
                 description="Generate thumbnails on slaves instead of master",
                 default = False)
+
+NetRenderSettings.BoolProperty( attr="slave_outputlog",
+                name="Output render log on console",
+                description="Output render text log to console as well as sending it to the master",
+                default = True)
 
 NetRenderSettings.BoolProperty( attr="master_clear",
                 name="Clear on exit",

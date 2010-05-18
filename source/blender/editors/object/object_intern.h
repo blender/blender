@@ -77,6 +77,8 @@ void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_posemode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_restrictview_set(struct wmOperatorType *ot);
 void OBJECT_OT_restrictview_clear(struct wmOperatorType *ot);
+void OBJECT_OT_restrictrender_set(struct wmOperatorType *ot);
+void OBJECT_OT_restrictrender_clear(struct wmOperatorType *ot);
 void OBJECT_OT_proxy_make(struct wmOperatorType *ot);
 void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
@@ -93,6 +95,7 @@ void OBJECT_OT_select_linked(struct wmOperatorType *ot);
 void OBJECT_OT_select_grouped(struct wmOperatorType *ot);
 void OBJECT_OT_select_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_select_name(struct wmOperatorType *ot);
+void OBJECT_OT_select_same_group(struct wmOperatorType *ot);
 
 /* object_add.c */
 void OBJECT_OT_add(struct wmOperatorType *ot);
@@ -196,6 +199,7 @@ void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_sort(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_move(struct wmOperatorType *ot);
 
 void OBJECT_OT_game_property_new(struct wmOperatorType *ot);
 void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);
@@ -209,6 +213,7 @@ void OBJECT_OT_shape_key_move(struct wmOperatorType *ot);
 
 /* object_group.c */
 void OBJECT_OT_group_add(struct wmOperatorType *ot);
+void OBJECT_OT_group_link(struct wmOperatorType *ot);
 void OBJECT_OT_group_remove(struct wmOperatorType *ot);
 
 /* object_bake.c */

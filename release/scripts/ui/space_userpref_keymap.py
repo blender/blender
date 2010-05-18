@@ -92,7 +92,7 @@ KM_HIERARCHY = [
         ]),
 
     ('Property Editor', 'PROPERTIES', 'WINDOW', []), # align context menu
-    
+
     ('Script', 'SCRIPTS_WINDOW', 'WINDOW', []),
     ('Text', 'TEXT_EDITOR', 'WINDOW', []),
     ('Console', 'CONSOLE', 'WINDOW', []),
@@ -107,19 +107,22 @@ KM_HIERARCHY = [
     ('View3D Zoom Modal', 'EMPTY', 'WINDOW', []),
     ]
 
+
 def _km_exists_in(km, export_keymaps):
     for km2, kc in export_keymaps:
         if km2.name == km.name:
             return True
     return False
 
-# kc1 takes priority over kc2
+
 def _merge_keymaps(kc1, kc2):
+    """ note: kc1 takes priority over kc2
+    """
     merged_keymaps = [(km, kc1) for km in kc1.keymaps]
     if kc1 != kc2:
         merged_keymaps.extend([(km, kc2) for km in kc2.keymaps if not _km_exists_in(km, merged_keymaps)])
-            
-    return merged_keymaps  
+
+    return merged_keymaps
 
 
 class InputKeyMapPanel(bpy.types.Panel):

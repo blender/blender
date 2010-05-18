@@ -72,7 +72,7 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 
-#include "IMB_imbuf.h"	// for quicktime_init
+#include "IMB_imbuf.h"	// for IMB_init
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -217,13 +217,13 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("      use -E help to list available engines.\n");
 	printf ("\nFormat options:\n");
 	printf ("    -F <format>\tSet the render format, Valid options are...\n");
-	printf ("    \tTGA IRIS HAMX JPEG MOVIE IRIZ RAWTGA\n");
+	printf ("    \tTGA IRIS JPEG MOVIE IRIZ RAWTGA\n");
 	printf ("    \tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
 	printf ("    \tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
 	printf ("    -t <threads>\tUse amount of <threads> for rendering (background mode only).\n");
-	printf ("      [1-8], 0 for systems processor count.\n");
+	printf ("      [1-%d], 0 for systems processor count.\n", BLENDER_MAX_THREADS);
 	printf ("\nAnimation playback options:\n");
 	printf ("  -a <options> <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
@@ -254,6 +254,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("    \tNULL SDL OPENAL JACK\n");
 	printf ("  -h\t\tPrint this help text\n");
 	printf ("  -y\t\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)\n");
+	printf ("  -Y\t\tEnable automatic python script execution\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
 #ifdef WIN32
 	printf ("  -R\t\tRegister .blend extension\n");
@@ -316,29 +317,15 @@ static int end_arguments(int argc, char **argv, void *data)
 	return -1;
 }
 
-static int disable_python(int argc, char **argv, void *data)
+static int enable_python(int argc, char **argv, void *data)
 {
-	G.f &= ~G_SCRIPT_AUTOEXEC;
+	G.f |= G_SCRIPT_AUTOEXEC;
 	return 0;
 }
 
-
-static int forked_tongue(int argc, char **argv, void *data)
+static int disable_python(int argc, char **argv, void *data)
 {
-	printf ("-y was used to disable script links because,\n");
-	printf ("\t-p being taken, Ton was of the opinion that Y\n");
-	printf ("\tlooked like a split (disabled) snake, and also\n");
-	printf ("\twas similar to a python's tongue (unproven).\n\n");
-
-	printf ("\tZr agreed because it gave him a reason to add a\n");
-	printf ("\tcompletely useless text into Blender.\n\n");
-
-	printf ("\tADDENDUM! Ton, in defense, found this picture of\n");
-	printf ("\tan Australian python, exhibiting her (his/its) forked\n");
-	printf ("\tY tongue. It could be part of an H Zr retorted!\n\n");
-	printf ("\thttp://www.users.bigpond.com/snake.man/\n");
-
-	exit(252);
+	G.f &= ~G_SCRIPT_AUTOEXEC;
 	return 0;
 }
 
@@ -380,8 +367,6 @@ static int playback_mode(int argc, char **argv, void *data)
 {
 	/* not if -b was given first */
 	if (G.background == 0) {
-		/* exception here, see below, it probably needs happens after qt init? */
-		libtiff_init();
 
 // XXX				playanim(argc, argv); /* not the same argc and argv as before */
 		exit(0);
@@ -545,12 +530,10 @@ static int set_image_type(int argc, char **argv, void *data)
 			Scene *scene= CTX_data_scene(C);
 			if      (!strcmp(imtype,"TGA")) scene->r.imtype = R_TARGA;
 			else if (!strcmp(imtype,"IRIS")) scene->r.imtype = R_IRIS;
-			else if (!strcmp(imtype,"HAMX")) scene->r.imtype = R_HAMX;
 #ifdef WITH_DDS
 			else if (!strcmp(imtype,"DDS")) scene->r.imtype = R_DDS;
 #endif
 			else if (!strcmp(imtype,"JPEG")) scene->r.imtype = R_JPEG90;
-			else if (!strcmp(imtype,"MOVIE")) scene->r.imtype = R_MOVIE;
 			else if (!strcmp(imtype,"IRIZ")) scene->r.imtype = R_IRIZ;
 			else if (!strcmp(imtype,"RAWTGA")) scene->r.imtype = R_RAWTGA;
 			else if (!strcmp(imtype,"AVIRAW")) scene->r.imtype = R_AVIRAW;
@@ -846,6 +829,12 @@ static int load_file(int argc, char **argv, void *data)
 			if (CTX_wm_manager(C) == NULL) CTX_wm_manager_set(C, wm); /* reset wm */
 		}
 
+		/* WM_read_file() runs normally but since we're in background mode do here */
+#ifndef DISABLE_PYTHON
+		/* run any texts that were loaded in and flagged as modules */
+		BPY_load_user_modules(C);
+#endif
+
 		/* happens for the UI on file reading too (huh? (ton))*/
 	// XXX			BKE_reset_undo();
 	//				BKE_write_undo("original");	/* save current state */
@@ -875,7 +864,7 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, "--version", 1, print_version, NULL);
 	BLI_argsAdd(ba, "-v", 1, print_version, NULL);
 
-	BLI_argsAdd(ba, "-Y", 1, forked_tongue, NULL);
+	BLI_argsAdd(ba, "-Y", 1, enable_python, NULL);
 	BLI_argsAdd(ba, "-y", 1, disable_python, NULL);
 
 	BLI_argsAdd(ba, "-fpe", 1, set_fpe, NULL);
@@ -979,13 +968,12 @@ int main(int argc, char **argv)
 	
 	initglobals();	/* blender.c */
 
+	IMB_init();
+
 	syshandle = SYS_GetSystem();
 	GEN_init_messaging_system();
 
 	/* first test for background */
-
-	G.f |= G_SCRIPT_AUTOEXEC; /* script links enabled by default */
-
 	ba = BLI_argsInit(argc, argv); /* skip binary path */
 	setupArguments(C, ba, &syshandle);
 
@@ -1051,20 +1039,6 @@ int main(int argc, char **argv)
 	
 	CTX_py_init_set(C, 1);
 	WM_keymap_init(C);
-
-#ifdef WITH_QUICKTIME
-
-	quicktime_init();
-
-#endif /* WITH_QUICKTIME */
-
-	/* dynamically load libtiff, if available */
-	libtiff_init();
-	if (!G.have_libtiff && (G.f & G_DEBUG)) {
-		printf("Unable to load: libtiff.\n");
-		printf("Try setting the BF_TIFF_LIB environment variable if you want this support.\n");
-		printf("Example: setenv BF_TIFF_LIB /usr/lib/libtiff.so\n");
-	}
 
 	/* OK we are ready for it */
 	BLI_argsParse(ba, 4, load_file, C);

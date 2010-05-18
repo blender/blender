@@ -137,7 +137,7 @@ static void rna_Sequence_anim_startofs_final_set(PointerRNA *ptr, int value)
 
 	seq->anim_startofs = MIN2(value, seq->len + seq->anim_startofs);
 
-	reload_sequence_new_file(scene, seq);
+	reload_sequence_new_file(scene, seq, FALSE);
 	rna_Sequence_frame_change_update(scene, seq);
 }
 
@@ -148,7 +148,7 @@ static void rna_Sequence_anim_endofs_final_set(PointerRNA *ptr, int value)
 
 	seq->anim_endofs = MIN2(value, seq->len + seq->anim_endofs);
 
-	reload_sequence_new_file(scene, seq);
+	reload_sequence_new_file(scene, seq, FALSE);
 	rna_Sequence_frame_change_update(scene, seq);
 }
 
@@ -431,6 +431,14 @@ static void rna_Sequence_mute_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	rna_Sequence_update(bmain, scene, ptr);
 }
 
+static void rna_Sequence_filepath_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+	reload_sequence_new_file(scene, seq, TRUE);
+	calc_sequence(scene, seq);
+	rna_Sequence_update(bmain, scene, ptr);
+}
+
 /* do_versions? */
 static float rna_Sequence_opacity_get(PointerRNA *ptr) {
 	return ((Sequence*)(ptr->data))->blend_opacity / 100.0f;
@@ -639,7 +647,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	//prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	//RNA_def_property_ui_text(prop, "Ipo Curves", "Ipo curves used by this sequence");
+	//RNA_def_property_ui_text(prop, "IPO Curves", "IPO curves used by this sequence");
 
 	/* flags */
 
@@ -693,7 +701,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frame_final_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startdisp");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Start Frame", "Start frame displayed in the sequence editor after offsets are applied, setting this is equivilent to moving the handle, not the actual start frame");
+	RNA_def_property_ui_text(prop, "Start Frame", "Start frame displayed in the sequence editor after offsets are applied, setting this is equivalent to moving the handle, not the actual start frame");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_start_frame_final_set", NULL); // overlap tests and calc_seq_disp
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
@@ -758,7 +766,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_effect_default_fade", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_EFFECT_DEFAULT_FADE);
-	RNA_def_property_ui_text(prop, "Use Default Fade", "Fade effect using the builtin default (usually make transition as long as effect strip)");
+	RNA_def_property_ui_text(prop, "Use Default Fade", "Fade effect using the built-in default (usually make transition as long as effect strip)");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 
@@ -804,6 +812,8 @@ static void rna_def_editor(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+
 	RNA_def_property_ui_text(prop, "Active Strip", "Sequencers active strip");
 }
 
@@ -1012,7 +1022,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "File", "");
 	RNA_def_property_string_funcs(prop, "rna_Sequence_filepath_get", "rna_Sequence_filepath_length",
 										"rna_Sequence_filepath_set");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_filepath_update");
 
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);

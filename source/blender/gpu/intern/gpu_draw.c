@@ -799,6 +799,9 @@ void GPU_free_unused_buffers(void)
 {
 	Image *ima;
 
+	if(!BLI_thread_is_main())
+		return;
+
 	BLI_lock_thread(LOCK_OPENGL);
 
 	for(ima=image_free_queue.first; ima; ima=ima->id.next)

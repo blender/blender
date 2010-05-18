@@ -67,6 +67,9 @@ int event_to_efftype(int event);
 int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, char **error_str);
 struct Sequence *alloc_sequence(struct ListBase *lb, int cfra, int machine);
 
+/* operator helpers */
+int sequencer_edit_poll(struct bContext *C);
+
 /* externs */
 extern EnumPropertyItem sequencer_prop_effect_types[];
 extern EnumPropertyItem prop_side_types[];

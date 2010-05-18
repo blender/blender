@@ -1021,8 +1021,8 @@ static int multires_save_external_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	RNA_string_get(op->ptr, "path", path);
-	if(G.save_over)
-		BLI_path_rel(path, G.sce);
+
+	/* BLI_path_rel(path, G.sce); */ /* TODO, relative path operator option */
 
 	CustomData_external_add(&me->fdata, &me->id, CD_MDISPS, me->totface, path);
 	CustomData_external_write(&me->fdata, &me->id, CD_MASK_MESH, me->totface, 0);
@@ -1124,14 +1124,14 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 	if (!mmd)
 		return OPERATOR_CANCELLED;
 
-	if(mmd->bindcos) {
+	if(mmd->bindcagecos) {
 		if(mmd->bindweights) MEM_freeN(mmd->bindweights);
-		if(mmd->bindcos) MEM_freeN(mmd->bindcos);
+		if(mmd->bindcagecos) MEM_freeN(mmd->bindcagecos);
 		if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
 		if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
 		if(mmd->dynverts) MEM_freeN(mmd->dynverts);
 		mmd->bindweights= NULL;
-		mmd->bindcos= NULL;
+		mmd->bindcagecos= NULL;
 		mmd->dyngrid= NULL;
 		mmd->dyninfluences= NULL;
 		mmd->dynverts= NULL;
@@ -1175,7 +1175,7 @@ static int meshdeform_bind_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return meshdeform_bind_exec(C, op);
-	else
+	else 
 		return OPERATOR_CANCELLED;
 }
 

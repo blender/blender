@@ -439,7 +439,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlock *block;
 	uiLayout *row;
 	
-	RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);	
+	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);	
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
 	RNA_pointer_create(&scene->id, &RNA_Scene, scene, &sceneptr);
 

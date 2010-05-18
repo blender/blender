@@ -812,23 +812,27 @@ static int ptcache_compress_read(PTCacheFile *pf, unsigned char *result, unsigne
 	ptcache_file_read(pf, &compressed, 1, sizeof(unsigned char));
 	if(compressed) {
 		ptcache_file_read(pf, &in_len, 1, sizeof(unsigned int));
-		in = (unsigned char *)MEM_callocN(sizeof(unsigned char)*in_len, "pointcache_compressed_buffer");
-		ptcache_file_read(pf, in, in_len, sizeof(unsigned char));
-
+		if(in_len==0) {
+			/* do nothing */
+		}
+		else {
+			in = (unsigned char *)MEM_callocN(sizeof(unsigned char)*in_len, "pointcache_compressed_buffer");
+			ptcache_file_read(pf, in, in_len, sizeof(unsigned char));
 #ifdef WITH_LZO
-		if(compressed == 1)
-				r = lzo1x_decompress(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, NULL);
+			if(compressed == 1)
+				r = lzo1x_decompress_safe(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, NULL);
 #endif
 #ifdef WITH_LZMA
-		if(compressed == 2)
-		{
-			size_t leni = in_len, leno = out_len;
-			ptcache_file_read(pf, &sizeOfIt, 1, sizeof(unsigned int));
-			ptcache_file_read(pf, props, sizeOfIt, sizeof(unsigned char));
-			r = LzmaUncompress(result, &leno, in, &leni, props, sizeOfIt);
-		}
+			if(compressed == 2)
+			{
+				size_t leni = in_len, leno = out_len;
+				ptcache_file_read(pf, &sizeOfIt, 1, sizeof(unsigned int));
+				ptcache_file_read(pf, props, sizeOfIt, sizeof(unsigned char));
+				r = LzmaUncompress(result, &leno, in, &leni, props, sizeOfIt);
+			}
 #endif
-		MEM_freeN(in);
+			MEM_freeN(in);
+		}
 	}
 	else {
 		ptcache_file_read(pf, result, len, sizeof(unsigned char));
@@ -1076,7 +1080,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 		char file[MAX_PTCACHE_PATH]; /* we dont want the dir, only the file */
 		char *blendfilename;
 
-		blendfilename= (lib)? lib->filename: G.sce;
+		blendfilename= (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH)==0) ? lib->filename: G.sce;
 
 		BLI_split_dirfile(blendfilename, NULL, file);
 		i = strlen(file);
@@ -1379,7 +1383,9 @@ static void ptcache_copy_data(void *from[], void *to[])
 {
 	int i;
 	for(i=0; i<BPHYS_TOT_DATA; i++) {
-		if(from[i])
+        /* note, durian file 03.4b_comp crashes if to[i] is not tested
+         * its NULL, not sure if this should be fixed elsewhere but for now its needed */
+		if(from[i] && to[i])
 			memcpy(to[i], from[i], ptcache_data_size[i]);
 	}
 }
@@ -1706,14 +1712,13 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 	int totpoint = pid->totpoint(pid->calldata, cfra);
 	int add = 0, overwrite = 0;
 
-	if(totpoint == 0 || cfra < 0
-		|| (cfra ? pid->data_types == 0 : pid->info_types == 0))
+	if(totpoint == 0 || (cfra ? pid->data_types == 0 : pid->info_types == 0))
 		return 0;
 
 	if(cache->flag & PTCACHE_DISK_CACHE) {
 		int ofra=0, efra = cache->endframe;
 
-		if(cfra==0)
+		if(cfra==0 && cache->startframe > 0)
 			add = 1;
 		/* allways start from scratch on the first frame */
 		else if(cfra == cache->startframe) {
@@ -1925,7 +1930,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 				if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
 					if (strncmp(filename, de->d_name, len ) == 0) { /* do we have the right prefix */
 						if (mode == PTCACHE_CLEAR_ALL) {
-							pid->cache->last_exact = 0;
+							pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
 							BLI_join_dirfile(path_full, path, de->d_name);
 							BLI_delete(path_full, 0, 0);
 						} else {
@@ -1957,7 +1962,8 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 			pm= pid->cache->mem_cache.first;
 
 			if(mode == PTCACHE_CLEAR_ALL) {
-				pid->cache->last_exact = 0;
+				/*we want startframe if the cache starts before zero*/
+				pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
 				for(; pm; pm=pm->next)
 					ptcache_free_data(pm);
 				BLI_freelistN(&pid->cache->mem_cache);
@@ -2360,8 +2366,12 @@ typedef struct {
 static void *ptcache_make_cache_thread(void *ptr) {
 	ptcache_make_cache_data *data = (ptcache_make_cache_data*)ptr;
 
-	for(; (*data->cfra_ptr <= data->endframe) && !data->break_operation; *data->cfra_ptr+=data->step)
+	for(; (*data->cfra_ptr <= data->endframe) && !data->break_operation; *data->cfra_ptr+=data->step) {
 		scene_update_for_newframe(data->scene, data->scene->lay);
+		if(G.background) {
+			printf("bake: frame %d :: %d\n", (int)*data->cfra_ptr, data->endframe);
+		}
+	}
 
 	data->thread_ended = TRUE;
 	return NULL;
@@ -2483,36 +2493,40 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	thread_data.thread_ended = FALSE;
 	old_progress = -1;
 	
-	BLI_init_threads(&threads, ptcache_make_cache_thread, 1);
-	BLI_insert_thread(&threads, (void*)&thread_data);
-	
-	while (thread_data.thread_ended == FALSE) {
-
-		if(bake)
-			progress = (int)(100.0f * (float)(CFRA - startframe)/(float)(thread_data.endframe-startframe));
-		else
-			progress = CFRA;
-
-		/* NOTE: baking should not redraw whole ui as this slows things down */
-		if ((baker->progressbar) && (progress != old_progress)) {
-			baker->progressbar(baker->progresscontext, progress);
-			old_progress = progress;
-		}
-		
-		/* Delay to lessen CPU load from UI thread */
-		PIL_sleep_ms(200);
-
-		/* NOTE: breaking baking should leave calculated frames in cache, not clear it */
-		if(blender_test_break() && !thread_data.break_operation) {
-			thread_data.break_operation = TRUE;
-			if (baker->progressend)
-				baker->progressend(baker->progresscontext);
-			WM_cursor_wait(1);
-		}
+	if(G.background) {
+		ptcache_make_cache_thread((void*)&thread_data);
 	}
+	else {
+		BLI_init_threads(&threads, ptcache_make_cache_thread, 1);
+		BLI_insert_thread(&threads, (void*)&thread_data);
+
+		while (thread_data.thread_ended == FALSE) {
+
+			if(bake)
+				progress = (int)(100.0f * (float)(CFRA - startframe)/(float)(thread_data.endframe-startframe));
+			else
+				progress = CFRA;
+
+			/* NOTE: baking should not redraw whole ui as this slows things down */
+			if ((baker->progressbar) && (progress != old_progress)) {
+				baker->progressbar(baker->progresscontext, progress);
+				old_progress = progress;
+			}
+
+			/* Delay to lessen CPU load from UI thread */
+			PIL_sleep_ms(200);
+
+			/* NOTE: breaking baking should leave calculated frames in cache, not clear it */
+			if(blender_test_break() && !thread_data.break_operation) {
+				thread_data.break_operation = TRUE;
+				if (baker->progressend)
+					baker->progressend(baker->progresscontext);
+				WM_cursor_wait(1);
+			}
+		}
 
 	BLI_end_threads(&threads);
-
+	}
 	/* clear baking flag */
 	if(pid) {
 		cache->flag &= ~(PTCACHE_BAKING|PTCACHE_REDO_NEEDED);
@@ -2650,7 +2664,8 @@ void BKE_ptcache_mem_to_disk(PTCacheID *pid)
 			ptcache_file_init_pointers(pf);
 
 			if(!ptcache_file_write_header_begin(pf) || !pid->write_header(pf)) {
-				printf("Error writing to disk cache\n");
+				if (G.f & G_DEBUG) 
+					printf("Error writing to disk cache\n");
 				cache->flag &= ~PTCACHE_DISK_CACHE;
 
 				ptcache_file_close(pf);
@@ -2660,7 +2675,8 @@ void BKE_ptcache_mem_to_disk(PTCacheID *pid)
 			for(i=0; i<pm->totpoint; i++) {
 				ptcache_copy_data(pm->cur, pf->cur);
 				if(!ptcache_file_write_data(pf)) {
-					printf("Error writing to disk cache\n");
+					if (G.f & G_DEBUG) 
+						printf("Error writing to disk cache\n");
 					cache->flag &= ~PTCACHE_DISK_CACHE;
 
 					ptcache_file_close(pf);
@@ -2676,7 +2692,8 @@ void BKE_ptcache_mem_to_disk(PTCacheID *pid)
 				BKE_ptcache_write_cache(pid, 0);
 		}
 		else
-			printf("Error creating disk cache file\n");
+			if (G.f & G_DEBUG) 
+				printf("Error creating disk cache file\n");
 	}
 }
 void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
@@ -2686,7 +2703,8 @@ void BKE_ptcache_toggle_disk_cache(PTCacheID *pid)
 
 	if (!G.relbase_valid){
 		cache->flag &= ~PTCACHE_DISK_CACHE;
-		printf("File must be saved before using disk cache!\n");
+		if (G.f & G_DEBUG) 
+			printf("File must be saved before using disk cache!\n");
 		return;
 	}
 
@@ -2870,6 +2888,6 @@ void BKE_ptcache_invalidate(PointCache *cache)
 {
 	cache->flag &= ~PTCACHE_SIMULATION_VALID;
 	cache->simframe = 0;
-	cache->last_exact = 0;
+	cache->last_exact = MIN2(cache->startframe, 0);
 }
 

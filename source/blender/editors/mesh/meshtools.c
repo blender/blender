@@ -1374,7 +1374,7 @@ int *mesh_get_x_mirror_faces(Object *ob, EditMesh *em)
 
 	mesh_octree_table(ob, em, NULL, 'e');
 
-	fhash= BLI_ghash_new(mirror_facehash, mirror_facecmp);
+	fhash= BLI_ghash_new(mirror_facehash, mirror_facecmp, "mirror_facehash gh");
 	for(a=0, mf=mface; a<me->totface; a++, mf++)
 		BLI_ghash_insert(fhash, mf, mf);
 

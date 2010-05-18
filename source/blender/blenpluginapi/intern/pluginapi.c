@@ -118,11 +118,6 @@ LIBEXPORT void freeImBuf(struct ImBuf* ib)
 	IMB_freeImBuf(ib);
 }
 
-LIBEXPORT short converttocmap(struct ImBuf* ibuf)
-{
-	return IMB_converttocmap(ibuf);
-}
-
 LIBEXPORT short saveiff(struct ImBuf *ib,
 			  char *c,
 			  int i)
@@ -130,11 +125,6 @@ LIBEXPORT short saveiff(struct ImBuf *ib,
 	return IMB_saveiff(ib, c, i);
 }
 
-LIBEXPORT struct ImBuf *loadiffmem(int *mem,int flags)
-{
-	return IMB_loadiffmem(mem, flags);
-}
-	
 LIBEXPORT struct ImBuf *loadifffile(int a,
 						  int b)
 {
@@ -156,16 +146,6 @@ LIBEXPORT struct ImBuf *testiffname(char *n,
 LIBEXPORT struct ImBuf *onehalf(struct ImBuf *ib)
 {
 	return IMB_onehalf(ib);
-}
-
-LIBEXPORT struct ImBuf *onethird(struct ImBuf *ib)
-{
-	return IMB_onethird(ib);
-}
-
-LIBEXPORT struct ImBuf *halflace(struct ImBuf *ib)
-{
-	return IMB_halflace(ib);
 }
 
 LIBEXPORT struct ImBuf *half_x(struct ImBuf *ib)
@@ -203,20 +183,6 @@ LIBEXPORT int ispic(char * name)
 	return IMB_ispic(name);
 }
 
-LIBEXPORT void dit2(struct ImBuf *ib,
-		   short a,
-		   short b)
-{
-	IMB_dit2(ib, a, b);
-}
-
-LIBEXPORT void dit0(struct ImBuf *ib,
-		   short a,
-		   short b)
-{
-	IMB_dit0(ib, a, b);
-}
-
 /* still the same name */
 /*  void (*ditherfunc)(struct ImBuf *, short, short){} */
 
@@ -234,21 +200,6 @@ LIBEXPORT struct ImBuf *scalefastImBuf(struct ImBuf *ib,
 	return IMB_scalefastImBuf(ib, x, y);
 }
 
-
-LIBEXPORT struct ImBuf *scalefieldImBuf(struct ImBuf *ib,
-							  short x,
-							  short y)
-{
-	return IMB_scalefieldImBuf(ib, x, y);
-}
-
-LIBEXPORT struct ImBuf *scalefastfieldImBuf(struct ImBuf *ib,
-								  short x,
-								  short y)
-{
-	return IMB_scalefastfieldImBuf(ib, x, y);
-}
-
 	/* Extra ones that some NaN (read Ton) plugins use,
 	 * even though they aren't in the header
 	 */
@@ -258,11 +209,6 @@ LIBEXPORT void interlace(struct ImBuf *ibuf)
 	IMB_interlace(ibuf);
 }
 
-LIBEXPORT void gamwarp(struct ImBuf *ibuf, double gamma)
-{
-	IMB_gamwarp(ibuf,gamma);
-}
-	 
 LIBEXPORT void de_interlace(struct ImBuf *ib)
 {
 	IMB_de_interlace(ib);
@@ -334,15 +280,11 @@ int pluginapi_force_ref(void)
 		GET_INT_FROM_POINTER( allocImBuf ) +
 		GET_INT_FROM_POINTER( dupImBuf ) +
 		GET_INT_FROM_POINTER( freeImBuf ) +
-		GET_INT_FROM_POINTER( converttocmap ) +
 		GET_INT_FROM_POINTER( saveiff ) +
-		GET_INT_FROM_POINTER( loadiffmem ) +
 		GET_INT_FROM_POINTER( loadifffile ) +
 		GET_INT_FROM_POINTER( loadiffname ) +
 		GET_INT_FROM_POINTER( testiffname ) +
 		GET_INT_FROM_POINTER( onehalf ) +
-		GET_INT_FROM_POINTER( onethird ) +
-		GET_INT_FROM_POINTER( halflace ) +
 		GET_INT_FROM_POINTER( half_x ) +
 		GET_INT_FROM_POINTER( half_y ) +
 		GET_INT_FROM_POINTER( double_x ) +
@@ -350,17 +292,12 @@ int pluginapi_force_ref(void)
 		GET_INT_FROM_POINTER( double_fast_x ) +
 		GET_INT_FROM_POINTER( double_fast_y ) +
 		GET_INT_FROM_POINTER( ispic ) +
-		GET_INT_FROM_POINTER( dit2 ) +
-		GET_INT_FROM_POINTER( dit0 ) +
 		GET_INT_FROM_POINTER( scaleImBuf ) +
 		GET_INT_FROM_POINTER( scalefastImBuf ) +
-		GET_INT_FROM_POINTER( scalefieldImBuf ) +
-		GET_INT_FROM_POINTER( scalefastfieldImBuf ) +
 		GET_INT_FROM_POINTER( hnoise ) +
 		GET_INT_FROM_POINTER( hnoisep ) +
 		GET_INT_FROM_POINTER( turbulence ) +
 		GET_INT_FROM_POINTER( turbulence1 ) +
 		GET_INT_FROM_POINTER( de_interlace ) +
-		GET_INT_FROM_POINTER( interlace ) +
-		GET_INT_FROM_POINTER( gamwarp );
+		GET_INT_FROM_POINTER( interlace );
 }

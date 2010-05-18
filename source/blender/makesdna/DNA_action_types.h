@@ -344,6 +344,7 @@ typedef struct bPose {
 	void *ikparam;				/* IK solver parameters, structure depends on iksolver */ 
 	
 	bAnimVizSettings avs;		/* settings for visualisation of bone animation */
+	char proxy_act_bone[32];           /*proxy active bone name*/
 } bPose;
 
 

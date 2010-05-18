@@ -96,7 +96,7 @@ void CURVE_OT_select_previous(struct wmOperatorType *ot);
 void CURVE_OT_select_more(struct wmOperatorType *ot);
 void CURVE_OT_select_less(struct wmOperatorType *ot);
 void CURVE_OT_select_random(struct wmOperatorType *ot);
-void CURVE_OT_select_every_nth(struct wmOperatorType *ot);
+void CURVE_OT_select_nth(struct wmOperatorType *ot);
 
 void CURVE_OT_switch_direction(struct wmOperatorType *ot);
 void CURVE_OT_subdivide(struct wmOperatorType *ot);

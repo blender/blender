@@ -30,13 +30,11 @@
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
-#include "IMB_cmap.h"
-#include "IMB_bmp.h"
+#include "IMB_filetype.h"
 
 /* some code copied from article on microsoft.com, copied
   here for enhanced BMP support in the future
@@ -98,7 +96,7 @@ static int checkbmp(unsigned char *mem)
 	return(ret_val);
 }
 
-int imb_is_a_bmp(void *buf) {
+int imb_is_a_bmp(unsigned char *buf) {
 	
 	return checkbmp(buf);
 }
@@ -195,7 +193,7 @@ static int putShortLSB(unsigned short us,FILE *ofile) {
 } 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-short imb_savebmp(struct ImBuf *ibuf, char *name, int flags) {
+int imb_savebmp(struct ImBuf *ibuf, char *name, int flags) {
 
 	BMPINFOHEADER infoheader;
 	int bytesize, extrabytes, x, y, t, ptr;

@@ -796,7 +796,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	
 	prop= RNA_def_property(srna, "body", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "str");
-	RNA_def_property_ui_text(prop, "Body Text", "contence of this text object");
+	RNA_def_property_ui_text(prop, "Body Text", "contents of this text object");
 	RNA_def_property_string_funcs(prop, "rna_Curve_body_get", "rna_Curve_body_length", "rna_Curve_body_set");
 	RNA_def_property_string_maxlength(prop, 8192); /* note that originally str did not have a limit! */
 	RNA_def_struct_name_property(srna, prop);
@@ -1181,7 +1181,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
+	RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
 	RNA_def_property_editable_func(prop, "rna_Curve_texspace_editable");
 	RNA_def_property_float_funcs(prop, "rna_Curve_texspace_loc_get", "rna_Curve_texspace_loc_set", NULL);	
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");

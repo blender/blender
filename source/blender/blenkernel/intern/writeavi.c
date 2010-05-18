@@ -75,11 +75,6 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 	mh.get_movie_path = filepath_avi;
 	
 	/* do the platform specific handles */
-#ifdef __sgi
-	if (imtype == R_MOVIE) {
-		
-	}
-#endif
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	if (imtype == R_AVICODEC) {		
 		//XXX mh.start_movie= start_avi_codec;

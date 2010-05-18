@@ -1140,12 +1140,13 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	}
 
 	BLI_duplicatelist(&psysn->targets, &psys->targets);
-	
+
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
 	psysn->frand= NULL;
 	psysn->pdd= NULL;
+	psysn->effectors= NULL;
 	
 	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
 	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
@@ -1282,7 +1283,7 @@ Object *copy_object(Object *ob)
 			armature_rebuild_pose(obn, obn->data);
 	}
 	defgroup_copy_list(&obn->defbase, &ob->defbase);
-	copy_constraints(&obn->constraints, &ob->constraints);
+	copy_constraints(&obn->constraints, &ob->constraints, TRUE);
 
 	obn->mode = 0;
 	obn->sculpt = NULL;

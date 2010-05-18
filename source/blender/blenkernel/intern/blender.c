@@ -100,7 +100,7 @@ void free_blender(void)
 
 	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
 	
-	IMB_freeImBufdata();		/* imbuf lib */
+	IMB_exit();
 	
 	free_nodesystem();	
 }
@@ -130,6 +130,8 @@ void initglobals(void)
 	G.charstart = 0x0000;
 	G.charmin = 0x0000;
 	G.charmax = 0xffff;
+	
+	G.f |= G_SCRIPT_AUTOEXEC;
 }
 
 /***/
@@ -276,6 +278,8 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	else bfd->globalf &= ~G_DEBUG;
 	if (G.f & G_SWAP_EXCHANGE) bfd->globalf |= G_SWAP_EXCHANGE;
 	else bfd->globalf &= ~G_SWAP_EXCHANGE;
+	if (G.f & G_SCRIPT_AUTOEXEC) bfd->globalf |= G_SCRIPT_AUTOEXEC;
+	else bfd->globalf &= ~G_SCRIPT_AUTOEXEC;
 
 	G.f= bfd->globalf;
 

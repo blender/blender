@@ -36,13 +36,20 @@
 #include <stdlib.h>
 #include <string.h>	/* memcpy */
 #include <stdarg.h>
+#include <sys/types.h>
+/* Blame Microsoft for LLP64 and no inttypes.h, quick workaround needed: */
+#if defined(WIN64)
+#define SIZET_FORMAT "%I64u"
+#define SIZET_ARG(a) ((unsigned long long)(a))
+#else
+#define SIZET_FORMAT "%lu"
+#define SIZET_ARG(a) ((unsigned long)(a))
+#endif
 
 /* mmap exception */
 #if defined(WIN32)
-#include <sys/types.h>
 #include "mmap_win.h"
 #else
-#include <sys/types.h>
 #include <sys/mman.h>
 #endif
 
@@ -82,7 +89,7 @@ typedef struct localListBase
 	/* note: keep this struct aligned (e.g., irix/gcc) - Hos */
 typedef struct MemHead {
 	int tag1;
-	int len;
+	size_t len;
 	struct MemHead *next,*prev;
 	const char * name;
 	const char * nextname;
@@ -131,7 +138,7 @@ static const char *check_memlist(MemHead *memh);
 	
 
 static volatile int totblock= 0;
-static volatile uintptr_t mem_in_use= 0, mmap_in_use= 0;
+static volatile uintptr_t mem_in_use= 0, mmap_in_use= 0, peak_mem = 0;
 
 static volatile struct localListBase _membase;
 static volatile struct localListBase *membase = &_membase;
@@ -213,7 +220,7 @@ void MEM_set_memory_debug(void)
 	malloc_debug_memset= 1;
 }
 
-int MEM_allocN_len(void *vmemh)
+size_t MEM_allocN_len(void *vmemh)
 {
 	if (vmemh) {
 		MemHead *memh= vmemh;
@@ -245,7 +252,7 @@ void *MEM_dupallocN(void *vmemh)
 	return newp;
 }
 
-void *MEM_reallocN(void *vmemh, unsigned int len)
+void *MEM_reallocN(void *vmemh, size_t len)
 {
 	void *newp= NULL;
 	
@@ -267,7 +274,7 @@ void *MEM_reallocN(void *vmemh, unsigned int len)
 	return newp;
 }
 
-static void make_memhead_header(MemHead *memh, unsigned int len, const char *str)
+static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 {
 	MemTail *memt;
 	
@@ -286,9 +293,11 @@ static void make_memhead_header(MemHead *memh, unsigned int len, const char *str
 	
 	totblock++;
 	mem_in_use += len;
+
+	peak_mem = mem_in_use > peak_mem ? mem_in_use : peak_mem;
 }
 
-void *MEM_mallocN(unsigned int len, const char *str)
+void *MEM_mallocN(size_t len, const char *str)
 {
 	MemHead *memh;
 
@@ -312,11 +321,11 @@ void *MEM_mallocN(unsigned int len, const char *str)
 		return (++memh);
 	}
 	mem_unlock_thread();
-	print_error("Malloc returns nill: len=%d in %s, total %u\n",len, str, mem_in_use);
+	print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n", SIZET_ARG(len), str, mem_in_use);
 	return NULL;
 }
 
-void *MEM_callocN(unsigned int len, const char *str)
+void *MEM_callocN(size_t len, const char *str)
 {
 	MemHead *memh;
 
@@ -337,12 +346,12 @@ void *MEM_callocN(unsigned int len, const char *str)
 		return (++memh);
 	}
 	mem_unlock_thread();
-	print_error("Calloc returns nill: len=%d in %s, total %u\n",len, str, mem_in_use);
+	print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n", SIZET_ARG(len), str, mem_in_use);
 	return 0;
 }
 
 /* note; mmap returns zero'd memory */
-void *MEM_mapallocN(unsigned int len, const char *str)
+void *MEM_mapallocN(size_t len, const char *str)
 {
 	MemHead *memh;
 
@@ -370,6 +379,7 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 		make_memhead_header(memh, len, str);
 		memh->mmap= 1;
 		mmap_in_use += len;
+		peak_mem = mmap_in_use > peak_mem ? mmap_in_use : peak_mem;
 		mem_unlock_thread();
 #ifdef DEBUG_MEMCOUNTER
 		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
@@ -380,7 +390,7 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 	}
 	else {
 		mem_unlock_thread();
-		print_error("Mapalloc returns nill, fallback to regular malloc: len=%d in %s, total %u\n",len, str, mmap_in_use);
+		print_error("Mapalloc returns null, fallback to regular malloc: len=" SIZET_FORMAT " in %s, total %u\n", SIZET_ARG(len), str, mmap_in_use);
 		return MEM_callocN(len, str);
 	}
 }
@@ -492,12 +502,12 @@ static void MEM_printmemlist_internal( int pydict )
 	}
 	while(membl) {
 		if (pydict) {
-			fprintf(stderr, "{'len':%i, 'name':'''%s''', 'pointer':'%p'},\\\n", membl->len, membl->name, membl+1);
+			fprintf(stderr, "{'len':" SIZET_FORMAT ", 'name':'''%s''', 'pointer':'%p'},\\\n", SIZET_ARG(membl->len), membl->name, membl+1);
 		} else {
 #ifdef DEBUG_MEMCOUNTER
-			print_error("%s len: %d %p, count: %d\n",membl->name,membl->len, membl+1, membl->_count);
+			print_error("%s len: " SIZET_FORMAT " %p, count: %d\n", membl->name, SIZET_ARG(membl->len), membl+1, membl->_count);
 #else
-			print_error("%s len: %d %p\n",membl->name,membl->len, membl+1);
+			print_error("%s len: " SIZET_FORMAT " %p\n", membl->name, SIZET_ARG(membl->len), membl+1);
 #endif
 		}
 		if(membl->next)
@@ -793,6 +803,24 @@ static const char *check_memlist(MemHead *memh)
 	}
 
 	return(name);
+}
+
+uintptr_t MEM_get_peak_memory(void)
+{
+	uintptr_t _peak_mem;
+
+	mem_lock_thread();
+	_peak_mem = peak_mem;
+	mem_unlock_thread();
+
+	return _peak_mem;
+}
+
+void MEM_reset_peak_memory(void)
+{
+	mem_lock_thread();
+	peak_mem = 0;
+	mem_unlock_thread();
 }
 
 uintptr_t MEM_get_memory_in_use(void)

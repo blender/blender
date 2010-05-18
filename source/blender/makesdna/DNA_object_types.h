@@ -62,6 +62,7 @@ typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
 	char name[32];
 } bDeformGroup;
+#define MAX_VGROUP_NAME 32
 
 /**
  * The following illustrates the orientation of the 
@@ -436,6 +437,8 @@ extern Object workob;
 #define OB_RECALC_TIME		4
 #define OB_RECALC			7
 
+/* controller state */
+#define OB_MAX_STATES		30
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1
@@ -493,9 +496,10 @@ extern Object workob;
 #define OB_ADDCONT		512
 #define OB_ADDACT		1024
 #define OB_SHOWCONT		2048
-#define OB_SETSTBIT		4096
+#define OB_ALLSTATE		4096
 #define OB_INITSTBIT	8192
 #define OB_DEBUGSTATE	16384
+#define OB_SHOWSTATE	32768
 
 /* ob->restrictflag */
 #define OB_RESTRICT_VIEW	1

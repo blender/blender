@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class RENDER_MT_presets(bpy.types.Menu):
@@ -106,7 +106,6 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.label(text="Mask Layers:")
         col.prop(rl, "zmask_layers", text="")
 
-        
 
         layout.separator()
         layout.label(text="Include:")
@@ -314,6 +313,15 @@ class RENDER_PT_output(RenderButtonsPanel):
         if rd.file_format in ('AVI_JPEG', 'JPEG'):
             split = layout.split()
             split.prop(rd, "file_quality", slider=True)
+        
+        elif rd.file_format == 'MULTILAYER':
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="Codec:")
+            col.prop(rd, "exr_codec", text="")
+            if wide_ui:
+                col = split.column()
 
         elif rd.file_format == 'OPEN_EXR':
             split = layout.split()
@@ -473,14 +481,14 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
     def draw_header(self, context):
         rd = context.scene.render
 
-        self.layout.prop(rd, "antialiasing", text="")
+        self.layout.prop(rd, "render_antialiasing", text="")
 
     def draw(self, context):
         layout = self.layout
 
         rd = context.scene.render
         wide_ui = context.region.width > narrowui
-        layout.active = rd.antialiasing
+        layout.active = rd.render_antialiasing
 
         split = layout.split()
 

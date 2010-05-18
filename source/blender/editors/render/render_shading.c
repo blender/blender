@@ -796,7 +796,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 
 static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int imtype)
 {
-	ImBuf *ibuf;
+	ImBuf *ibuf=NULL;
 	int dx;
 	int retval;
 	
@@ -1037,7 +1037,7 @@ void MATERIAL_OT_paste(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Paste Material";
 	ot->idname= "MATERIAL_OT_paste";
-	ot->description="Copy the material settings and nodes";
+	ot->description="Paste the material settings and nodes";
 
 	/* api callbacks */
 	ot->exec= paste_material_exec;

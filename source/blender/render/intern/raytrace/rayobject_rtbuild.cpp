@@ -458,8 +458,10 @@ float bb_area(float *min, float *max)
 	sub[2] = max[2]-min[2];
 
 	a = (sub[0]*sub[1] + sub[0]*sub[2] + sub[1]*sub[2])*2;
-	assert(a >= 0.0);
-	return a;
+    /* used to have an assert() here on negative results 
+     * however, in this case its likely some overflow or ffast math error.
+     * so just return 0.0f instead. */
+	return a < 0.0f ? 0.0f : a;
 }
 
 int bb_largest_axis(float *min, float *max)

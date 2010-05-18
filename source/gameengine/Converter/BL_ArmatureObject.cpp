@@ -93,7 +93,7 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 	BLI_duplicatelist(&out->chanbase, &src->chanbase);
 
 	/* remap pointers */
-	ghash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	ghash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "game_copy_pose gh");
 
 	pchan= (bPoseChannel*)src->chanbase.first;
 	outpchan= (bPoseChannel*)out->chanbase.first;
@@ -108,7 +108,7 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 		if (copy_constraint) {
 			ListBase listb;
 			// copy all constraint for backward compatibility
-			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
+			copy_constraints(&listb, &pchan->constraints, FALSE);  // copy_constraints NULLs listb, no need to make extern for this operation.
 			pchan->constraints= listb;
 		} else {
 			pchan->constraints.first = NULL;

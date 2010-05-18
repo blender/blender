@@ -108,6 +108,9 @@ class NODE_MT_select(bpy.types.Menu):
         layout.operator("node.select_all")
         layout.operator("node.select_linked_from")
         layout.operator("node.select_linked_to")
+        layout.operator("node.select_same_type")
+        layout.operator("node.select_same_type_next")
+        layout.operator("node.select_same_type_prev")
 
 
 class NODE_MT_node(bpy.types.Menu):

@@ -45,21 +45,21 @@ class Object(bpy_types.ID):
     def children(self):
         """All the children of this object"""
         import bpy
-        return [child for child in bpy.data.objects if child.parent == self]
+        return tuple(child for child in bpy.data.objects if child.parent == self)
 
     @property
     def group_users(self):
         """The groups this object is in"""
         import bpy
         name = self.name
-        return [group for group in bpy.data.groups if name in group.objects]
+        return tuple(group for group in bpy.data.groups if name in group.objects)
 
     @property
     def scene_users(self):
         """The scenes this object is in"""
         import bpy
         name = self.name
-        return [scene for scene in bpy.data.scenes if name in scene.objects]
+        return tuple(scene for scene in bpy.data.scenes if name in scene.objects)
 
 
 class _GenericBone:
@@ -408,6 +408,19 @@ class MeshFace(StructRNA):
             return ord_ind(verts[0], verts[1]), ord_ind(verts[1], verts[2]), ord_ind(verts[2], verts[0])
 
         return ord_ind(verts[0], verts[1]), ord_ind(verts[1], verts[2]), ord_ind(verts[2], verts[3]), ord_ind(verts[3], verts[0])
+
+
+class Text(bpy_types.ID):
+    __slots__ = ()
+
+    def as_string(self):
+        """Return the text as a string."""
+        return "\n".join(line.line for line in self.lines)
+
+    def from_string(self, string):
+        """Replace text with this string."""
+        self.clear()
+        self.write(string)
 
 
 import collections

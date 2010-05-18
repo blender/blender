@@ -49,7 +49,6 @@
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 #include "IMB_imbuf.h"
 
 #include "BKE_global.h"
@@ -172,6 +171,12 @@ void libtiff_init(void)
 	}
 	libtiff_loadlibtiff();
 	G.have_libtiff = ((libtiff != NULL) && (libtiff_load_symbols()));
+
+	if (!G.have_libtiff && (G.f & G_DEBUG)) {
+		printf("Unable to load: libtiff.\n");
+		printf("Try setting the BF_TIFF_LIB environment variable if you want this support.\n");
+		printf("Example: setenv BF_TIFF_LIB /usr/lib/libtiff.so\n");
+	}
 }
 
 void libtiff_exit(void)
@@ -230,6 +235,26 @@ int libtiff_load_symbols(void)
 	if (libtiff__TIFFmalloc == NULL) {
 		return (0);
 	}
+	/* Attempt to load TIFFSetDirectory */
+	libtiff_TIFFSetDirectory = libtiff_findsymbol("TIFFSetDirectory");
+	if (libtiff_TIFFSetDirectory == NULL) {
+		return (0);
+	}
+	/* Attempt to load TIFFNumberOfDirectories */
+	libtiff_TIFFNumberOfDirectories = libtiff_findsymbol("TIFFNumberOfDirectories");
+	if (libtiff_TIFFNumberOfDirectories == NULL) {
+		return (0);
+	}
+	/* Attempt to load TIFFIsTiled */
+	libtiff_TIFFIsTiled = libtiff_findsymbol("TIFFIsTiled");
+	if (libtiff_TIFFIsTiled == NULL) {
+		return (0);
+	}
+	/* Attempt to load TIFFReadRGBATile */
+	libtiff_TIFFReadRGBATile = libtiff_findsymbol("TIFFReadRGBATile");
+	if (libtiff_TIFFReadRGBATile == NULL) {
+		return (0);
+	}
 	return (1);
 }
 
@@ -247,3 +272,9 @@ int (*libtiff_TIFFSetField)(TIFF*, ttag_t, ...) = NULL;
 tsize_t (*libtiff_TIFFWriteEncodedStrip)(TIFF*, tstrip_t, tdata_t, tsize_t) = NULL;
 void (*libtiff__TIFFfree)(tdata_t) = NULL;
 tdata_t (*libtiff__TIFFmalloc)(tsize_t) = NULL;
+int (*libtiff_TIFFSetDirectory)(TIFF*, tdir_t) = NULL;
+tdir_t (*libtiff_TIFFNumberOfDirectories)(TIFF*) = NULL;
+int (*libtiff_TIFFIsTiled)(TIFF*) = NULL;
+int (*libtiff_TIFFReadRGBATile)(TIFF*, uint32, uint32, uint32 * ) = NULL;
+
+

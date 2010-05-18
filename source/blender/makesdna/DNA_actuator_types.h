@@ -95,7 +95,7 @@ typedef struct bSceneActuator {
 typedef struct bPropertyActuator {
 	int pad, type;
 	char name[32], value[32];
-	struct Object *ob; // not in use anymore
+	struct Object *ob;
 } bPropertyActuator;
 
 typedef struct bObjectActuator {
@@ -351,6 +351,7 @@ typedef struct FreeCamera {
 #define ACT_PROP_TOGGLE		3
 
 /* constraint flag */
+#define ACT_CONST_NONE		0
 #define ACT_CONST_LOCX		1
 #define ACT_CONST_LOCY		2
 #define ACT_CONST_LOCZ		4
@@ -496,6 +497,10 @@ typedef struct FreeCamera {
 #define ACT_STATE_ADD		1
 #define ACT_STATE_REMOVE	2
 #define ACT_STATE_CHANGE	3
+
+/* cameraactuator->axis */
+#define ACT_CAMERA_X		(float)'x'
+#define ACT_CAMERA_Y		(float)'y'
 
 #endif
 

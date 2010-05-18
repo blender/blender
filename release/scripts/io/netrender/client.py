@@ -125,6 +125,10 @@ def clientSendJob(conn, scene, anim = False):
             file_path = bpy.utils.expandpath(image.filename)
             if os.path.exists(file_path):
                 job.addFile(file_path)
+                
+                tex_path = os.path.splitext(file_path)[0] + ".tex"
+                if os.path.exists(tex_path):
+                    job.addFile(tex_path)
 
     ###########################
     # FLUID + POINT CACHE
@@ -144,6 +148,9 @@ def clientSendJob(conn, scene, anim = False):
                 addPointCache(job, object, modifier.domain_settings.point_cache_low, default_path)
                 if modifier.domain_settings.highres:
                     addPointCache(job, object, modifier.domain_settings.point_cache_high, default_path)
+            elif modifier.type == "MULTIRES" and modifier.external:
+                file_path = bpy.utils.expandpath(modifier.filename)
+                job.addFile(file_path)
 
         # particles modifier are stupid and don't contain data
         # we have to go through the object property

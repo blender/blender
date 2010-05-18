@@ -71,6 +71,7 @@ MINLINE void mul_v3_v3fl(float r[3], const float a[3], float f);
 MINLINE void mul_v2_v2(float r[2], const float a[2]);
 MINLINE void mul_v3_v3(float r[3], const float a[3]);
 MINLINE void mul_v3_v3v3(float r[3], const float a[3], const float b[3]);
+MINLINE void mul_v4_fl(float r[4], float f);
 
 MINLINE void madd_v3_v3fl(float r[3], const float a[3], float f);
 MINLINE void madd_v3_v3v3(float r[3], const float a[3], const float b[3]);
