@@ -89,7 +89,7 @@ void bake_console_progress_end(void *arg)
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	wmWindow *win = CTX_wm_window(C);
+	wmWindow *win = G.background ? NULL : CTX_wm_window(C);
 	PTCacheBaker baker;
 
 
@@ -171,7 +171,7 @@ void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 static int ptcache_bake_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	wmWindow *win = CTX_wm_window(C);
+	wmWindow *win = G.background ? NULL : CTX_wm_window(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	Object *ob= ptr.id.data;
 	PointCache *cache= ptr.data;
