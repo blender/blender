@@ -45,7 +45,9 @@
 #include "imbuf.h"
 
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 
+#include "BLI_math.h"
 #include "BLI_string.h"
 
 #include "IMB_imbuf_types.h"
@@ -501,8 +503,6 @@ void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, int size, int tx, int ty,
  * @return: 1 if the function is successful, 0 on failure.
  */
 
-#define FTOUSHORT(val) ((val >= 1.0f-0.5f/65535)? 65535: (val <= 0.0f)? 0: (unsigned short)(val*65535.0f + 0.5f))
-
 int imb_savetiff(ImBuf *ibuf, char *name, int flags)
 {
 	TIFF *image = NULL;
@@ -609,8 +609,23 @@ int imb_savetiff(ImBuf *ibuf, char *name, int flags)
 			to_i   = samplesperpixel*((ibuf->y-y-1)*ibuf->x+x);
 
 			if(pixels16) {
-				for(i = 0; i < samplesperpixel; i++, to_i++, from_i++)
-					to16[to_i] = FTOUSHORT(fromf[from_i]);
+				/* convert from float source */
+				float rgb[3];
+				
+				if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+					linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
+				else
+					copy_v3_v3(rgb, &fromf[from_i]);
+
+				to16[to_i+0] = FTOUSHORT(rgb[0]);
+				to16[to_i+1] = FTOUSHORT(rgb[1]);
+				to16[to_i+2] = FTOUSHORT(rgb[2]);
+				to_i += 3; from_i+=3;
+				
+				if (samplesperpixel == 4) {
+					to16[to_i+3] = FTOUSHORT(fromf[from_i+3]);
+					to_i++; from_i++;
+				}
 			}
 			else {
 				for(i = 0; i < samplesperpixel; i++, to_i++, from_i++)
