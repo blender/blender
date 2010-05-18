@@ -4162,8 +4162,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				base->object= newlibadr_us(fd, sce->id.lib, base->object);
 				
 				if(base->object==NULL) {
-					printf("LIB ERROR: base removed\n");
 					BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: Object lost from scene:'%s\'\n", sce->id.name+2);
+					if(G.background==0) printf("LIB ERROR: base removed from scene:'%s\'\n", sce->id.name+2);
 					BLI_remlink(&sce->base, base);
 					if(base==sce->basact) sce->basact= 0;
 					MEM_freeN(base);
@@ -12296,8 +12296,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if(fd==NULL) {
 
 					/* printf and reports for now... its important users know this */
-					printf("read library: '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
 					BKE_reportf(basefd->reports, RPT_INFO, "read library:  '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
+					if(!G.background && basefd->reports) printf("read library: '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
 
 					fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
 					
@@ -12342,8 +12342,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					else mainptr->curlib->filedata= NULL;
 
 					if (fd==NULL) {
-						printf("ERROR: can't find lib %s \n", mainptr->curlib->filename);
 						BKE_reportf(basefd->reports, RPT_ERROR, "Can't find lib '%s'\n", mainptr->curlib->filename);
+						if(!G.background && basefd->reports) printf("ERROR: can't find lib %s \n", mainptr->curlib->filename);
 					}
 				}
 				if(fd) {
@@ -12360,8 +12360,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
-									printf("LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
+									if(!G.background && basefd->reports) printf("LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 								}
 								
 								change_idid_adr(mainlist, basefd, id, realid);
@@ -12396,8 +12396,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				ID *idn= id->next;
 				if(id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
-					printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
+					if(!G.background && basefd->reports)printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);
