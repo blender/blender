@@ -71,7 +71,7 @@ static int ptcache_bake_all_poll(bContext *C)
 
 static int ptcache_poll(bContext *C)
 {
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	return (ptr.data && ptr.id.data);
 }
 
@@ -172,7 +172,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	wmWindow *win = CTX_wm_window(C);
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	Object *ob= ptr.id.data;
 	PointCache *cache= ptr.data;
 	PTCacheBaker baker;
@@ -216,7 +216,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 }
 static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
 {
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
 
 	if(cache->edit) {
@@ -233,7 +233,7 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
 }
 static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *op)
 {
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
 	
 	cache->flag |= PTCACHE_BAKED;
@@ -285,7 +285,7 @@ void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
 static int ptcache_add_new_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	Object *ob= ptr.id.data;
 	PointCache *cache= ptr.data;
 	PTCacheID *pid;
@@ -308,7 +308,7 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *op)
 }
 static int ptcache_remove_exec(bContext *C, wmOperator *op)
 {
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ptr.id.data;
 	PointCache *cache= ptr.data;

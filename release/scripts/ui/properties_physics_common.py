@@ -29,7 +29,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
     layout = self.layout
 
     wide_ui = context.region.width > narrowui
-    layout.set_context_pointer("PointCache", cache)
+    layout.set_context_pointer("point_cache", cache)
 
     row = layout.row()
     row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
