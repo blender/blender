@@ -2366,8 +2366,12 @@ typedef struct {
 static void *ptcache_make_cache_thread(void *ptr) {
 	ptcache_make_cache_data *data = (ptcache_make_cache_data*)ptr;
 
-	for(; (*data->cfra_ptr <= data->endframe) && !data->break_operation; *data->cfra_ptr+=data->step)
+	for(; (*data->cfra_ptr <= data->endframe) && !data->break_operation; *data->cfra_ptr+=data->step) {
 		scene_update_for_newframe(data->scene, data->scene->lay);
+		if(G.background) {
+			printf("bake: frame %d :: %d\n", (int)*data->cfra_ptr, data->endframe);
+		}
+	}
 
 	data->thread_ended = TRUE;
 	return NULL;
@@ -2489,36 +2493,40 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	thread_data.thread_ended = FALSE;
 	old_progress = -1;
 	
-	BLI_init_threads(&threads, ptcache_make_cache_thread, 1);
-	BLI_insert_thread(&threads, (void*)&thread_data);
-	
-	while (thread_data.thread_ended == FALSE) {
-
-		if(bake)
-			progress = (int)(100.0f * (float)(CFRA - startframe)/(float)(thread_data.endframe-startframe));
-		else
-			progress = CFRA;
-
-		/* NOTE: baking should not redraw whole ui as this slows things down */
-		if ((baker->progressbar) && (progress != old_progress)) {
-			baker->progressbar(baker->progresscontext, progress);
-			old_progress = progress;
-		}
-		
-		/* Delay to lessen CPU load from UI thread */
-		PIL_sleep_ms(200);
-
-		/* NOTE: breaking baking should leave calculated frames in cache, not clear it */
-		if(blender_test_break() && !thread_data.break_operation) {
-			thread_data.break_operation = TRUE;
-			if (baker->progressend)
-				baker->progressend(baker->progresscontext);
-			WM_cursor_wait(1);
-		}
+	if(G.background) {
+		ptcache_make_cache_thread((void*)&thread_data);
 	}
+	else {
+		BLI_init_threads(&threads, ptcache_make_cache_thread, 1);
+		BLI_insert_thread(&threads, (void*)&thread_data);
+
+		while (thread_data.thread_ended == FALSE) {
+
+			if(bake)
+				progress = (int)(100.0f * (float)(CFRA - startframe)/(float)(thread_data.endframe-startframe));
+			else
+				progress = CFRA;
+
+			/* NOTE: baking should not redraw whole ui as this slows things down */
+			if ((baker->progressbar) && (progress != old_progress)) {
+				baker->progressbar(baker->progresscontext, progress);
+				old_progress = progress;
+			}
+
+			/* Delay to lessen CPU load from UI thread */
+			PIL_sleep_ms(200);
+
+			/* NOTE: breaking baking should leave calculated frames in cache, not clear it */
+			if(blender_test_break() && !thread_data.break_operation) {
+				thread_data.break_operation = TRUE;
+				if (baker->progressend)
+					baker->progressend(baker->progresscontext);
+				WM_cursor_wait(1);
+			}
+		}
 
 	BLI_end_threads(&threads);
-
+	}
 	/* clear baking flag */
 	if(pid) {
 		cache->flag &= ~(PTCACHE_BAKING|PTCACHE_REDO_NEEDED);
