@@ -3221,7 +3221,7 @@ static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 	bArmatureSensor *as = (bArmatureSensor *) sens->data;
 	Object *ob = (Object *)ptr->id.data;
 	PointerRNA pose_ptr, pchan_ptr;
-	PropertyRNA *bones_prop;
+	PropertyRNA *bones_prop= NULL;
 	uiLayout *row;
 
 	if(ob->type != OB_ARMATURE){
