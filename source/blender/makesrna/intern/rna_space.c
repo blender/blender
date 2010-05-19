@@ -338,6 +338,18 @@ static void rna_RegionView3D_quadview_update(Main *main, Scene *scene, PointerRN
 		ED_view3d_quadview_update(sa, ar);
 }
 
+static void rna_RegionView3D_view_location_get(PointerRNA *ptr, float *values)
+{
+	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
+	negate_v3_v3(values, rv3d->ofs);
+}
+
+static void rna_RegionView3D_view_location_set(PointerRNA *ptr, const float *values)
+{
+	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
+	negate_v3_v3(rv3d->ofs, values);
+}
+
 /* Space Image Editor */
 
 static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
@@ -1175,10 +1187,32 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
 	RNA_def_property_ui_text(prop, "View Matrix", "Current view matrix of the 3D region");
 
-	prop= RNA_def_property(srna, "perspective", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "view_perspective", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "persp");
 	RNA_def_property_enum_items(prop, rv3d_persp_items);
 	RNA_def_property_ui_text(prop, "Perspective", "View Perspective");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	
+	prop= RNA_def_property(srna, "view_location", PROP_FLOAT, PROP_TRANSLATION);
+#if 0
+	RNA_def_property_float_sdna(prop, NULL, "ofs"); // cant use because its negated
+#else
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_RegionView3D_view_location_get", "rna_RegionView3D_view_location_set", NULL);
+#endif
+	RNA_def_property_ui_text(prop, "View Location", "View pivot location");
+	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	
+	prop= RNA_def_property(srna, "view_rotation", PROP_FLOAT, PROP_QUATERNION);
+	RNA_def_property_float_sdna(prop, NULL, "viewquat");
+	RNA_def_property_ui_text(prop, "View Rotation", "Rotation in quaternions (keep normalized)");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	
+	/* not sure we need rna access to these but adding anyway */
+	prop= RNA_def_property(srna, "view_distance", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "dist");
+	RNA_def_property_ui_text(prop, "Distance", "Distance to the view location");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
