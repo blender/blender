@@ -533,48 +533,6 @@ void LOGIC_OT_actuator_add(wmOperatorType *ot)
 	prop= RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the Actuator to add");
 }
 
-/* Copy Routines */
-
-static int logicbricks_copy_exec(bContext *C, wmOperator *op)
-{
-	Object *ob=ED_object_active_context(C);
-
-	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
-		if(ob != ob_iter) {
-			if (ob->data != ob_iter->data){
-				copy_sensors(&ob_iter->sensors, &ob->sensors);
-				copy_controllers(&ob_iter->controllers, &ob->controllers);
-				copy_actuators(&ob_iter->actuators, &ob->actuators);
-			}
-			
-			if(ob_iter->totcol==ob->totcol) {
-				ob_iter->actcol= ob->actcol;
-				WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob_iter);
-			}
-		}
-	}
-	CTX_DATA_END;
-
-	WM_event_add_notifier(C, NC_LOGIC, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-void LOGIC_OT_bricks_copy(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Copy Logic Bricks to Selected";
-	ot->description = "Copy logic bricks to other selected objects.";
-	ot->idname= "LOGIC_OT_bricks_copy";
-
-	/* api callbacks */
-	ot->exec= logicbricks_copy_exec;
-	ot->poll= ED_operator_object_active_editable;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
 void ED_operatortypes_logic(void)
 {
 	WM_operatortype_append(LOGIC_OT_sensor_remove);
@@ -583,5 +541,4 @@ void ED_operatortypes_logic(void)
 	WM_operatortype_append(LOGIC_OT_controller_add);
 	WM_operatortype_append(LOGIC_OT_actuator_remove);
 	WM_operatortype_append(LOGIC_OT_actuator_add);
-	WM_operatortype_append(LOGIC_OT_bricks_copy);
 }

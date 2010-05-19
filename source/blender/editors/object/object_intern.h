@@ -85,6 +85,11 @@ void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
 void OBJECT_OT_paths_calculate(struct wmOperatorType *ot);
 void OBJECT_OT_paths_clear(struct wmOperatorType *ot);
 
+void OBJECT_OT_game_property_new(struct wmOperatorType *ot);
+void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);
+void OBJECT_OT_game_property_copy(struct wmOperatorType *ot);
+void OBJECT_OT_logic_bricks_copy(struct wmOperatorType *ot);
+
 /* object_select.c */
 void OBJECT_OT_select_all(struct wmOperatorType *ot);
 void OBJECT_OT_select_inverse(struct wmOperatorType *ot);
@@ -200,9 +205,6 @@ void OBJECT_OT_vertex_group_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_sort(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_move(struct wmOperatorType *ot);
-
-void OBJECT_OT_game_property_new(struct wmOperatorType *ot);
-void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);
 
 /* object_shapekey.c */
 void OBJECT_OT_shape_key_add(struct wmOperatorType *ot);

@@ -3224,6 +3224,11 @@ static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 	PropertyRNA *bones_prop;
 	uiLayout *row;
 
+	if(ob->type != OB_ARMATURE){
+		uiItemL(layout, "Sensor only available for armatures", 0);
+		return;
+	}
+
 	if (ob->pose) {
 		RNA_pointer_create((ID *)ob, &RNA_Pose, ob->pose, &pose_ptr);
 		bones_prop = RNA_struct_find_property(&pose_ptr, "bones");
@@ -3588,6 +3593,10 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 	PointerRNA settings_ptr;
 	uiLayout *row;
 
+	if(ob->type != OB_ARMATURE){
+		uiItemL(layout, "Actuator only available for armatures", 0);
+		return;
+	}
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
 
 	row= uiLayoutRow(layout, 0);
@@ -3623,6 +3632,11 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 	Object *ob = (Object *)ptr->id.data;
 	PointerRNA pose_ptr, pchan_ptr;
 	PropertyRNA *bones_prop;
+
+	if(ob->type != OB_ARMATURE){
+		uiItemL(layout, "Actuator only available for armatures", 0);
+		return;
+	}
 	
 	if (ob->pose) {
 		RNA_pointer_create((ID *)ob, &RNA_Pose, ob->pose, &pose_ptr);
@@ -3782,6 +3796,7 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 {
+	Object *ob = (Object *)ptr->id.data;
 	uiLayout *row, *split, *subsplit;
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 
@@ -3805,6 +3820,10 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 		case ACT_EDOB_END_OBJECT:
 			break;
 		case ACT_EDOB_REPLACE_MESH:
+			if(ob->type != OB_MESH) {
+				uiItemL(layout, "Mode only available for mesh objects", 0);
+				break;
+			}
 			split = uiLayoutSplit(layout, 0.6, 0);
 			uiItemR(split, ptr, "mesh", 0, NULL, 0);
 			row = uiLayoutRow(split, 0);
@@ -3819,6 +3838,10 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(subsplit, ptr, "enable_3d_tracking", UI_ITEM_R_TOGGLE, NULL, 0);
 			break;
 		case ACT_EDOB_DYNAMICS:
+			if(ob->type != OB_MESH) {
+				uiItemL(layout, "Mode only available for mesh objects", 0);
+				break;
+			}
 			uiItemR(layout, ptr, "dynamic_operation", 0, NULL, 0);
 			if (RNA_enum_get(ptr, "dynamic_operation") == ACT_EDOB_SET_MASS)
 				uiItemR(layout, ptr, "mass", 0, NULL, 0);
@@ -4143,6 +4166,11 @@ static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 	Object *ob = (Object *)ptr->id.data;
 	PointerRNA settings_ptr;
 	uiLayout *row;
+
+	if(ob->type != OB_MESH){
+		uiItemL(layout, "Actuator only available for mesh objects", 0);
+		return;
+	}
 
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
 
