@@ -338,30 +338,6 @@ static void rna_RegionView3D_quadview_update(Main *main, Scene *scene, PointerRN
 		ED_view3d_quadview_update(sa, ar);
 }
 
-static void rna_RegionView3D_prespective_set(PointerRNA *ptr, const int value)
-{
-	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
-
-	if(value==RV3D_CAMOB) {
-		bScreen *sc= (bScreen*)ptr->id.data;
-		Scene *scene= (Scene *)sc->scene;
-		ScrArea *sa;
-		ARegion *ar;
-		View3D *v3d;
-
-		rna_area_region_from_regiondata(ptr, &sa, &ar);
-		v3d = sa->spacedata.first; // XXX, could be not the first!
-		if(v3d->camera==NULL) {
-			if(scene->camera==NULL)
-				return; /* cant set camera */
-
-			v3d->camera= scene->camera;
-		}		
-	}
-
-	rv3d->persp= value;
-}
-
 /* Space Image Editor */
 
 static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
@@ -1202,7 +1178,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "perspective", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "persp");
 	RNA_def_property_enum_items(prop, rv3d_persp_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_RegionView3D_prespective_set", NULL);
 	RNA_def_property_ui_text(prop, "Perspective", "View Perspective");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
