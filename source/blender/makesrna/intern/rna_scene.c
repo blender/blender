@@ -93,36 +93,30 @@ EnumPropertyItem snap_element_items[] = {
 
 EnumPropertyItem image_type_items[] = {
 	{0, "", 0, "Image", NULL},
-	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", ""},
-	//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
-	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
 	{R_PNG, "PNG", ICON_FILE_IMAGE, "PNG", ""},
 	{R_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", ""},
 #ifdef WITH_OPENJPEG
 	{R_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", ""},
 #endif
+	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", ""},
 	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
 	{R_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", ""},
+	//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
+	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
 	{0, "", 0, " ", NULL},
+#ifdef WITH_OPENEXR
+	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", ""},
+	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
+#endif
+	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},	// XXX only with G.have_libtiff
+	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
 	{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", ""},
 	{R_DPX, "DPX", ICON_FILE_IMAGE, "DPX", ""},
-#ifdef WITH_OPENEXR
-	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
-	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", ""},
-#endif
-	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
-	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},	// XXX only with G.have_libtiff
 	{0, "", 0, "Movie", NULL},
-#ifdef _WIN32
-	{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", ""}, // XXX Missing codec menu
-#endif
-	{R_AVIJPEG, "AVI_JPEG", ICON_FILE_MOVIE, "AVI JPEG", ""},
 	{R_AVIRAW, "AVI_RAW", ICON_FILE_MOVIE, "AVI Raw", ""},
-	{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", ""},
-#ifdef WITH_FFMPEG
-	{R_H264, "H264", ICON_FILE_MOVIE, "H.264", ""},
-	{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "MPEG", ""},
-	{R_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", ""},
+	{R_AVIJPEG, "AVI_JPEG", ICON_FILE_MOVIE, "AVI JPEG", ""},
+#ifdef _WIN32
+	{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", ""},
 #endif
 #ifdef WITH_QUICKTIME
 #	ifdef USE_QTKIT
@@ -132,8 +126,12 @@ EnumPropertyItem image_type_items[] = {
 #	endif
 #endif
 #ifdef WITH_FFMPEG
+	{R_H264, "H264", ICON_FILE_MOVIE, "H.264", ""},
 	{R_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", ""},
+	{R_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", ""},
+	{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "MPEG", ""},
 #endif
+	{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -2336,34 +2334,35 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fields Still", "Disable the time difference between fields");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "render_shadows", PROP_BOOLEAN, PROP_NONE);
+	/* rendering features */
+	prop= RNA_def_property(srna, "use_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_SHADOW);
-	RNA_def_property_ui_text(prop, "Render Shadows", "Calculate shadows while rendering");
+	RNA_def_property_ui_text(prop, "Shadows", "Calculate shadows while rendering");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "render_envmaps", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_envmaps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_ENVMAP);
-	RNA_def_property_ui_text(prop, "Render Environment Maps", "Calculate environment maps while rendering");
+	RNA_def_property_ui_text(prop, "Environment Maps", "Calculate environment maps while rendering");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "render_radiosity", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_radiosity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_RADIO);
-	RNA_def_property_ui_text(prop, "Render Radiosity", "Calculate radiosity in a pre-process before rendering");
+	RNA_def_property_ui_text(prop, "Radiosity", "Calculate radiosity in a pre-process before rendering");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "render_sss", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sss", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_SSS);
-	RNA_def_property_ui_text(prop, "Render SSS", "Calculate sub-surface scattering in materials rendering");
+	RNA_def_property_ui_text(prop, "Subsurface Scattering", "Calculate sub-surface scattering in materials rendering");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "render_raytracing", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_raytracing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_RAYTRACE);
-	RNA_def_property_ui_text(prop, "Render Raytracing", "Pre-calculate the raytrace accelerator and render raytracing effects");
+	RNA_def_property_ui_text(prop, "Raytracing", "Pre-calculate the raytrace accelerator and render raytracing effects");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "render_textures", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "scemode", R_NO_TEX);
-	RNA_def_property_ui_text(prop, "Render Textures", "Use textures to affect material properties");
+	RNA_def_property_ui_text(prop, "Textures", "Use textures to affect material properties");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "edge", PROP_BOOLEAN, PROP_NONE);
