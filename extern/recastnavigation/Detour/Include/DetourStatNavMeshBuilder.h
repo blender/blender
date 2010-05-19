@@ -26,4 +26,8 @@ bool dtCreateNavMeshData(const unsigned short* verts, const int nverts,
 						 const unsigned char* dtris, const int ndtris, 
 						 unsigned char** outData, int* outDataSize);
 
+int createBVTree(const unsigned short* verts, const int nverts,
+						const unsigned short* polys, const int npolys, const int nvp,
+						float cs, float ch, int nnodes, dtStatBVNode* nodes);
+
 #endif // DETOURSTATNAVMESHBUILDER_H

@@ -94,7 +94,7 @@
 #endif
 
 #include "KX_Light.h"
-
+#include "KX_Pathfinder.h"
 #include <stdio.h>
 
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
@@ -150,7 +150,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_networkDeviceInterface(ndi),
 	m_active_camera(NULL),
 	m_ueberExecutionPriority(0),
-	m_blenderScene(scene)
+	m_blenderScene(scene),
+	m_pathfinder(NULL)
 {
 	m_suspendedtime = 0.0;
 	m_suspendeddelta = 0.0;
@@ -210,6 +211,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_rootnode = NULL;
 
 	m_bucketmanager=new RAS_BucketManager();
+
+	m_pathfinder = new KX_Pathfinder();
 	
 #ifndef DISABLE_PYTHON
 	m_attr_dict = PyDict_New(); /* new ref */
@@ -263,6 +266,11 @@ KX_Scene::~KX_Scene()
 	if (m_bucketmanager)
 	{
 		delete m_bucketmanager;
+	}
+
+	if (m_pathfinder)
+	{
+		delete m_pathfinder;
 	}
 
 #ifndef DISABLE_PYTHON

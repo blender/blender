@@ -496,5 +496,6 @@ bool rcBuildPolyMeshDetail(const rcPolyMesh& mesh, const rcCompactHeightfield& c
 
 bool rcMergePolyMeshDetails(rcPolyMeshDetail** meshes, const int nmeshes, rcPolyMeshDetail& mesh);
 
+bool buildMeshAdjacency(unsigned short* polys, const int npolys, const int nverts, const int vertsPerPoly);
 
 #endif // RECAST_H

@@ -75,6 +75,8 @@
 #include "DNA_world_types.h"
 #include "DNA_scene_types.h"
 
+#include "KX_Pathfinder.h"
+
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.
 //#define NZC_GUARDED_OUTPUT
@@ -1323,6 +1325,9 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
+
+	if (scene->GetPathfinder())
+		scene->GetPathfinder()->debugDraw();
 }
 /*
 To run once per scene

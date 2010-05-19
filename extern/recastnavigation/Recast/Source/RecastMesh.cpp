@@ -32,7 +32,7 @@ struct rcEdge
 	unsigned short poly[2];
 };
 
-static bool buildMeshAdjacency(unsigned short* polys, const int npolys,
+/*static */bool buildMeshAdjacency(unsigned short* polys, const int npolys,
 							   const int nverts, const int vertsPerPoly)
 {
 	// Based on code by Eric Lengyel from:

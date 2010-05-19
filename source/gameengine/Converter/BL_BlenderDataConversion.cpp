@@ -172,6 +172,8 @@ extern "C" {
 #include "BL_ArmatureObject.h"
 #include "BL_DeformableGameObject.h"
 
+#include "KX_Pathfinder.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -2668,6 +2670,25 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 #endif //CONVERT_LOGIC
 
 	logicbrick_conversionlist->Release();
+	
+	//create navigation mesh
+	KX_Pathfinder* pathfinder = kxscene->GetPathfinder();
+	if (pathfinder)
+	{
+		for ( i=0;i<objectlist->GetCount();i++)
+		{
+			KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
+			struct Object* blenderobject = gameobj->GetBlenderObject();
+			if (blenderobject->type==OB_MESH && gameobj->GetProperty("navmesh") && gameobj->GetMeshCount()>0)
+			{
+				RAS_MeshObject* meshobj = gameobj->GetMesh(0);
+				pathfinder->createFromMesh(meshobj);
+				gameobj->SetVisible(0, 0);
+			}
+		}		
+	}
+	
+
 	
 	// Calculate the scene btree -
 	// too slow - commented out.

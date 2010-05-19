@@ -160,7 +160,7 @@ static void subdivide(BVItem* items, int nitems, int imin, int imax, int& curNod
 	}
 }
 
-static int createBVTree(const unsigned short* verts, const int nverts,
+/*static*/ int createBVTree(const unsigned short* verts, const int nverts,
 						const unsigned short* polys, const int npolys, const int nvp,
 						float cs, float ch,
 						int nnodes, dtStatBVNode* nodes)
