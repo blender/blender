@@ -264,6 +264,11 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Keyframe Numbers", "Show frame numbers of Keyframes on Motion Paths");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
+	prop= RNA_def_property(srna, "search_all_action_keyframes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "path_viewflag", MOTIONPATH_VIEW_KFACT);
+	RNA_def_property_ui_text(prop, "All Action Keyframes", "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
+	
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "path_step");
 	RNA_def_property_range(prop, 1, 100);

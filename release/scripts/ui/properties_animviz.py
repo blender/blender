@@ -61,6 +61,8 @@ class MotionPathButtonsPanel(bpy.types.Panel):
         col.label(text="Display:")
         col.prop(mps, "show_frame_numbers", text="Frame Numbers")
         col.prop(mps, "highlight_keyframes", text="Keyframes")
+        if bones:
+            col.prop(mps, "search_all_action_keyframes", text="+ Non-Grouped Keyframes")
         col.prop(mps, "show_keyframe_numbers", text="Keyframe Numbers")
 
 
