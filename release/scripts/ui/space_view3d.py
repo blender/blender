@@ -32,14 +32,13 @@ class VIEW3D_HT_header(bpy.types.Header):
         obj = context.active_object
         toolsettings = context.tool_settings
 
-        row = layout.row()
+        row = layout.row(align=True)
         row.template_header()
-
-        sub = row.row(align=True)
 
         # Menus
         if context.area.show_menus:
-
+            sub = row.row(align=True)
+			
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
@@ -54,6 +53,7 @@ class VIEW3D_HT_header(bpy.types.Header):
             else:
                 sub.menu("VIEW3D_MT_object")
 
+        row = layout.row()
         row.template_header_3D()
 
         # do in C for now since these buttons cant be both toggle AND exclusive.
