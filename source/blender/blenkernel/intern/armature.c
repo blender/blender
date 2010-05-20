@@ -2055,7 +2055,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 					
 					/* we need to clamp this within sensible values */
 					// NOTE: these should be fine for now, but should get sanitised in future
-					scale= MIN2( MAX2(scale, 0.0001) , 100000);
+					scale= MIN2(MAX2(scale, 0.0001) , 100000);
 				}
 				else
 					scale= 1.0f;
@@ -2126,8 +2126,6 @@ static void splineik_execute_tree(Scene *scene, Object *ob, bPoseChannel *pchan_
 				bPoseChannel *pchan= tree->chain[i];
 				splineik_evaluate_bone(tree, scene, ob, pchan, i, ctime);
 			}
-			
-			// TODO: if another pass is needed to ensure the validity of the chain after blending, it should go here
 			
 			/* free the tree info specific to SplineIK trees now */
 			if (tree->chain) MEM_freeN(tree->chain);
