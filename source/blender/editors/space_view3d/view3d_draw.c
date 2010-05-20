@@ -1965,7 +1965,10 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 
 	/* set flags */
 	G.f |= G_RENDER_OGL;
-	GPU_free_images();
+
+	/* free images which can have changed on frame-change
+	 * warning! can be slow so only free animated images - campbell */
+	GPU_free_images_anim();
 
 	/* set background color, fallback on the view background color */
 	if(scene->world) {
@@ -2030,7 +2033,8 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
 	draw_gpencil_view3d_ext(scene, ar, 0);
 
-	GPU_free_images();
+	/* freeing the images again here could be done after the operator runs, leaving for now */
+	GPU_free_images_anim();
 
 	/* restore size */
 	ar->winx= bwinx;
