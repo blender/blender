@@ -30,10 +30,6 @@
 
 #include "MEM_guardedalloc.h"
 
-
-
-
-
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h" // for drawing constraint
@@ -2714,8 +2710,9 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
 		
-		dm->drawEdges(dm, (dt==OB_WIRE || totface==0), 0);
-		
+		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_SOLID)==0)
+			dm->drawEdges(dm, (dt==OB_WIRE || totface==0), 0);
+
 		if (dt!=OB_WIRE && draw_wire==2) {
 			glDepthMask(1);
 			bglPolygonOffset(rv3d->dist, 0.0);
@@ -3082,7 +3079,8 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
 		glDisable(GL_LIGHTING);
 		GPU_end_object_materials();
 	} else {
-		drawCurveDMWired (ob);
+		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_SOLID)==0)
+			drawCurveDMWired (ob);
 	}
 
 	return 0;
@@ -5839,8 +5837,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					set_inverted_drawing(0);
 				}
 			}
-			else if(dt==OB_BOUNDBOX) 
-				draw_bounding_volume(scene, ob);
+			else if(dt==OB_BOUNDBOX) {
+				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
+					draw_bounding_volume(scene, ob);
+			}
 			else if(boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb))
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
 
@@ -5852,8 +5852,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			if(cu->editnurb) {
 				drawnurb(scene, v3d, rv3d, base, cu->editnurb->first, dt);
 			}
-			else if(dt==OB_BOUNDBOX) 
-				draw_bounding_volume(scene, ob);
+			else if(dt==OB_BOUNDBOX) {
+				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
+					draw_bounding_volume(scene, ob);
+			}
 			else if(boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
 				
@@ -5867,8 +5869,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			
 			if(mb->editelems) 
 				drawmball(scene, v3d, rv3d, base, dt);
-			else if(dt==OB_BOUNDBOX) 
-				draw_bounding_volume(scene, ob);
+			else if(dt==OB_BOUNDBOX) {
+				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
+					draw_bounding_volume(scene, ob);
+			}
 			else 
 				empty_object= drawmball(scene, v3d, rv3d, base, dt);
 			break;
@@ -5905,7 +5909,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 	}
 
-		if((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+	if((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 
 		if(ob->soft /*&& flag & OB_SBMOTION*/){
 			float mrt[3][3],msc[3][3],mtr[3][3]; 
