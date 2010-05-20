@@ -187,6 +187,8 @@ bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *
 	
 	if (avs->path_bakeflag & MOTIONPATH_BAKE_HEADS)
 		mpath->flag |= MOTIONPATH_FLAG_BHEAD;
+	else
+		mpath->flag &= ~MOTIONPATH_FLAG_BHEAD;
 	
 	/* allocate a cache */
 	mpath->points= MEM_callocN(sizeof(bMotionPathVert)*mpath->length, "bMotionPathVerts");
