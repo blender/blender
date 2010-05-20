@@ -939,7 +939,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *op)
 	/* do groups only first (unless in Drivers mode, where there are none) */
 	if (ac.datatype != ANIMCONT_DRIVERS) {
 		/* filter data */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CHANNELS | ANIMFILTER_FOREDIT);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CHANNELS | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
 		/* delete selected groups and their associated channels */
@@ -978,7 +978,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *op)
 	/* now do F-Curves */
 	if (ac.datatype != ANIMCONT_GPENCIL) {
 		/* filter data */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
 		/* delete selected F-Curves */
@@ -1038,7 +1038,7 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *op)
 	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 	
 	/* hide all channels not selected */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_UNSEL);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1054,7 +1054,7 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* make all the selected channels visible */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1113,11 +1113,11 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 		
 	/* get list of all channels that selection may need to be flushed to */
-	filter= ANIMFILTER_CHANNELS;
+	filter= (ANIMFILTER_CHANNELS | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 		
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* See if we should be making showing all selected or hiding */
@@ -1215,7 +1215,8 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode, 
 	}
 	
 	/* filter data that we're working on */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	// XXX: noduplis enabled so that results don't cancel, but will be problematic for some channels where only type differs
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS | ANIMFILTER_NODUPLIS);
 	if (onlysel) filter |= ANIMFILTER_SEL;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	

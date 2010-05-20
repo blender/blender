@@ -521,7 +521,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 		 * 	- we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a 
 		 * 	  mismatch between channel-colors and the drawn curves
 		 */
-		filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY);
+		filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CURVESONLY|ANIMFILTER_NODUPLIS);
 		items= ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
 		/* loop over F-Curves, assigning colors */
