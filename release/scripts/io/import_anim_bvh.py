@@ -459,12 +459,10 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
             pose_bone.rotation_mode = eul_order_lookup[tuple(bvh_node.rot_order)]
 
     elif ROT_MODE == 'XYZ':
-        print(2)
         for pose_bone in pose_bones:
             pose_bone.rotation_mode = 'XYZ'
     else:
         # Quats default
-        print(3)
         pass
 
     context.scene.update()
@@ -520,7 +518,7 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
             lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current + 1]
 
             if bvh_node.has_rot:
-                bone_rotation_matrix = Euler(rx, ry, rz).to_matrix().resize4x4()
+                bone_rotation_matrix = Euler((rx, ry, rz)).to_matrix().resize4x4()
                 bone_rotation_matrix = bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix
 
                 if ROT_MODE == 'QUATERNION':
