@@ -2484,7 +2484,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	if (ob==OBACT && paint_facesel_test(ob)) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
-		draw_bounding_volume(scene, ob);
+		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
+			draw_bounding_volume(scene, ob);
 	}
 	else if(hasHaloMat || (totface==0 && totedge==0)) {
 		glPointSize(1.5);
@@ -6107,7 +6108,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			if(dtx & OB_AXIS) {
 				drawaxes(rv3d, rv3d->viewmatob, 1.0f, flag, OB_ARROWS);
 			}
-			if(dtx & OB_BOUNDBOX) draw_bounding_volume(scene, ob);
+			if(dtx & OB_BOUNDBOX) {
+				if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
+					draw_bounding_volume(scene, ob);
+			}
 			if(dtx & OB_TEXSPACE) drawtexspace(ob);
 			if(dtx & OB_DRAWNAME) {
 				/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
