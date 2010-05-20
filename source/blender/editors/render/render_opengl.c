@@ -211,7 +211,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 
 	if(oglrender->timer) { /* exec will not have a timer */
 		scene->r.cfra= oglrender->cfrao;
-		scene_update_for_newframe(scene, scene->lay);
+		scene_update_for_newframe(scene, scene->lay|oglrender->v3d->lay);
 
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), oglrender->timer);
 	}
@@ -268,16 +268,16 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
 	/* go to next frame */
 	while(CFRA<oglrender->nfra) {
-		if(scene->lay & 0xFF000000)
-			lay= scene->lay & 0xFF000000;
-		else
-			lay= scene->lay;
+		lay = scene->lay | oglrender->v3d->lay;
+
+		if(lay & 0xFF000000)
+			lay &= 0xFF000000;
 
 		scene_update_for_newframe(scene, lay);
 		CFRA++;
 	}
-
-	scene_update_for_newframe(scene, scene->lay);
+	
+	scene_update_for_newframe(scene, scene->lay | oglrender->v3d->lay);
 
 	if(oglrender->rv3d->persp==RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {
 		/* since scene_update_for_newframe() is used rather
