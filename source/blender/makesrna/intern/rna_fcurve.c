@@ -857,7 +857,7 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Phase", "A random seed for the noise effect");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "depth");
 	RNA_def_property_ui_text(prop, "Depth", "Amount of fine level detail present in the noise");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
