@@ -128,6 +128,8 @@ static char StrokeVertexIterator_getObject___doc__[] =
 "   :rtype: :class:`StrokeVertex`\n";
 
 static PyObject * StrokeVertexIterator_getObject( BPy_StrokeVertexIterator *self) {
+	if (!self->reversed && self->sv_it->isEnd())
+		Py_RETURN_NONE;
 	StrokeVertex *sv = self->sv_it->operator->();
 	if( sv )	
 		return BPy_StrokeVertex_from_StrokeVertex( *sv );

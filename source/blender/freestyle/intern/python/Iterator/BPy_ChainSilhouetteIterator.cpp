@@ -31,7 +31,7 @@ static char ChainSilhouetteIterator___doc__[] =
 "      to stay within the set of selected ViewEdges or not.\n"
 "   :type iRestrictToSelection: bool\n"
 "   :arg begin: The ViewEdge from where to start the iteration.\n"
-"   :type begin: :class:`ViewEdge`\n"
+"   :type begin: :class:`ViewEdge` or None\n"
 "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
 "      the ViewEdges that surround the ending ViewVertex of begin.  If\n"
 "      false, we'll search over the ViewEdges surrounding the ending\n"
