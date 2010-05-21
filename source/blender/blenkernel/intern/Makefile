@@ -132,6 +132,10 @@ ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -DWITH_QUICKTIME
 endif
 
+ifeq ($(WITH_TIFF), true
+    CPPFLAGS += -DWITH_TIFF
+endif
+
 ifeq ($(OS), darwin)
     ifeq ($(WITH_BF_OPENMP), true)
       CPPFLAGS += -DPARALLEL=1

@@ -191,4 +191,8 @@ ifeq ($(WITH_OPENCOLLADA),true)
     LLIBS += $(BF_OPENCOLLADA_LIBS)
 endif
 
+ifeq ($(WITH_TIFF),true)
+   LLIBS += $(NAN_TIFF_LIBS)
+endif
+
 LLIBS += $(NAN_PYTHON_LIB)

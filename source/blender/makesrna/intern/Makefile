@@ -92,6 +92,10 @@ ifeq ($(WITH_OPENAL),true)
 	CPPFLAGS += -DWITH_OPENAL
 endif
 
+ifeq ($(WITH_TIFF),true)
+    CPPFLAGS += -DWITH_TIFF
+endif
+
 ifeq ($(OS),windows)
     # Windows needs these extra libs because of winstuff... It is not 
     # _really_ needed, but it is the easiest fix for now. If you have 
