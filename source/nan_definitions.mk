@@ -133,13 +133,13 @@ ifndef CONFIG_GUESS
   endif
 
   ifeq ($(WITH_JACK), true)
-    export NAN_JACK ?= /usr
+    export NAN_JACK ?= $(LCGDIR)/jack
     export NAN_JACKCFLAGS ?= -I$(NAN_JACK)/include/jack
     export NAN_JACKLIBS ?= $(NAN_JACK)/lib/libjack.a
   endif
 
   ifeq ($(WITH_SNDFILE),true)
-    export NAN_SNDFILE ?= /usr
+    export NAN_SNDFILE ?= $(LCGDIR)/sndfile
     export NAN_SNDFILECFLAGS ?= -I$(NAN_SNDFILE)/include
     export NAN_SNDFILELIBS ?= $(NAN_SNDFILE)/lib/libsndfile.a $(NAN_SNDFILE)/lib/libFLAC.a $(NAN_SNDFILE)/lib/libogg.a
   endif
@@ -158,9 +158,8 @@ ifndef CONFIG_GUESS
     export BF_PCRE_LIBS ?= $(BF_PCRE)/lib/libpcre.a
   endif
 
-  export WITH_TIFF ?= true
-
-
+  export WITH_TIFF =? true
+  
   # Compare recreated .mo files with committed ones
   export BF_VERIFY_MO_FILES ?= true
 
@@ -371,7 +370,7 @@ ifndef CONFIG_GUESS
     # enable l10n
     export INTERNATIONAL ?= true
 
-    # Different endianess will make it fail, rely on other plataforms for checks
+    # Different endianess will make it fail, rely on other platforms for checks
     export BF_VERIFY_MO_FILES = false
 
   else
@@ -439,6 +438,11 @@ ifndef CONFIG_GUESS
     # enable ffmpeg support
     ifndef NAN_NO_FFMPEG
       export WITH_FFMPEG ?= true
+    endif
+
+    ifeq ($(CPU), powerpc)
+        # Different endianess will make it fail, rely on other platforms for checks
+        export BF_VERIFY_MO_FILES = false
     endif
 
   else
