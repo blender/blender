@@ -132,7 +132,7 @@ ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -DWITH_QUICKTIME
 endif
 
-ifeq ($(WITH_TIFF), true
+ifeq ($(WITH_TIFF), true)
     CPPFLAGS += -DWITH_TIFF
 endif
 

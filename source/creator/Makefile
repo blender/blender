@@ -69,4 +69,8 @@ ifeq ($(WITH_BINRELOC), true)
   CPPFLAGS += -I$(NANBLENDERHOME)/extern/binreloc/include -DWITH_BINRELOC
 endif
 
+ifeq ($(WITH_TIFF), true)
+  CPPFLAGS += -DWITH_TIFF
+endif
+
 CPPFLAGS += -I$(OPENGL_HEADERS)
