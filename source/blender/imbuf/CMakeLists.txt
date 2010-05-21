@@ -28,12 +28,16 @@ FILE(GLOB SRC intern/*.c)
 
 
 SET(INC 
-	. ../makesdna ../../../intern/guardedalloc ../../../intern/memutil ../blenlib
-	../avi ../blenkernel
+	.
+	../makesdna
+	../../../intern/guardedalloc
+	../../../intern/memutil
+	../blenlib
+	../avi
+	../blenkernel
 	${JPEG_INC}
 	${PNG_INC}
 	${ZLIB_INC}
-	${OPENJPEG_INC}
 )
 
 IF(WIN32)
@@ -45,11 +49,12 @@ IF(WITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_TIFF)
-	SET(INC ${INC} ${TIFF_INC})
+	SET(INC ${INC} ${TIFF_INCLUDE_DIR})
 	ADD_DEFINITIONS(-DWITH_TIFF)
 ENDIF(WITH_TIFF)
 
 IF(WITH_OPENJPEG)
+	SET(INC ${INC} ${OPENJPEG_INC})
 	ADD_DEFINITIONS(-DWITH_OPENJPEG)
 ENDIF(WITH_OPENJPEG)
 

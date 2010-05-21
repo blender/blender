@@ -186,11 +186,11 @@ IF(UNIX AND NOT APPLE)
 		ENDIF(NOT SDL_FOUND)
 	ENDIF(WITH_SDL)
 
-    SET(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
+	SET(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
 	FIND_PATH(OPENEXR_INC
 		ImfXdr.h
 		PATHS
-        ${OPENEXR}/include/OpenEXR
+		${OPENEXR}/include/OpenEXR
 		/usr/local/include/OpenEXR
 		/sw/include/OpenEXR
 		/opt/local/include/OpenEXR
@@ -215,6 +215,10 @@ IF(UNIX AND NOT APPLE)
 	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
 	SET(LIBSAMPLERATE_LIB samplerate)
 	SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
+
+	IF(WITH_TIFF)
+		FIND_PACKAGE(TIFF REQUIRED)
+	ENDIF(WITH_TIFF)
 
 	FIND_PACKAGE(JPEG REQUIRED)
 
@@ -410,7 +414,7 @@ IF(WIN32)
 	SET(JPEG_LIBPATH ${JPEG}/lib)
 
 	SET(TIFF ${LIBDIR}/tiff)
-	SET(TIFF_INC ${TIFF}/include)
+	SET(TIFF_INCLUDE_DIR ${TIFF}/include)
 	SET(TIFF_LIBRARY tiff)
 	SET(TIFF_LIBPATH ${TIFF}/lib)
   
@@ -481,7 +485,7 @@ IF(APPLE)
 		# SET(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}") # not used yet
 		SET(PYTHON_LIB python${PYTHON_VERSION})
 		SET(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}")
-		#    SET(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
+		# SET(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 	ELSE(PYTHON_VERSION MATCHES 3.1)
 		# otherwise, use custom system framework
 
@@ -588,7 +592,7 @@ IF(APPLE)
 	SET(JPEG_LIBPATH ${JPEG}/lib)
 
 	SET(TIFF ${LIBDIR}/tiff)
-	SET(TIFF_INC ${TIFF}/include)
+	SET(TIFF_INCLUDE_DIR ${TIFF}/include)
 	SET(TIFF_LIBRARY tiff)
 	SET(TIFF_LIBPATH ${TIFF}/lib)
 
