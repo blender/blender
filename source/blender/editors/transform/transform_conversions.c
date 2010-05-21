@@ -4499,7 +4499,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
 		if(base->flag & BA_WAS_SEL)
 			base->flag |= SELECT;
 
-		base->flag &= ~(BA_WAS_SEL|BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA|BA_DO_IPO|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT);
+		base->flag &= ~(BA_WAS_SEL|BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA|BA_TEMP_TAG|BA_TRANSFORM_CHILD|BA_TRANSFORM_PARENT);
 	}
 }
 
