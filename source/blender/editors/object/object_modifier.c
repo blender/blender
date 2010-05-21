@@ -413,7 +413,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 			multires_force_update(ob);
 
 		if (mmd && mti->type==eModifierTypeType_OnlyDeform) {
-			multiresModifier_reshapeFromDeformMod (mmd, ob, md);
+			multiresModifier_reshapeFromDeformMod (ob, md);
 		} else {
 			dm = mesh_create_derived_for_modifier(scene, ob, md);
 			if (!dm) {
@@ -972,7 +972,7 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	if(!multiresModifier_reshape(mmd, ob, secondob)) {
+	if(!multiresModifier_reshape(ob, secondob)) {
 		BKE_report(op->reports, RPT_ERROR, "Objects do not have the same number of vertices.");
 		return OPERATOR_CANCELLED;
 	}
