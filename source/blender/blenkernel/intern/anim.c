@@ -256,6 +256,7 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
  * Optimisations currently used here play tricks with the depsgraph in order to try and 
  * evaluate as few objects as strictly necessary to get nicer performance under standard
  * production conditions. For those people who really need the accurate version, 
+ * disable the ifdef (i.e. 1 -> 0) and comment out the call to motionpaths_calc_optimise_depsgraph()
  */
 
 /* tweak the object ordering to trick depsgraph into making MotionPath calculations run faster */
