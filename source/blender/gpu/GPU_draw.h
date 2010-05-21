@@ -117,6 +117,7 @@ int GPU_update_image_time(struct Image *ima, double time);
 int GPU_verify_image(struct Image *ima, struct ImageUser *iuser, int tftile, int tfmode, int compare, int mipmap);
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(void);
+void GPU_free_images_anim(void);
 
 /* smoke drawing functions */
 void GPU_free_smoke(struct SmokeModifierData *smd);

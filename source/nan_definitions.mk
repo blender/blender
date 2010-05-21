@@ -158,6 +158,8 @@ ifndef CONFIG_GUESS
     export BF_PCRE_LIBS ?= $(BF_PCRE)/lib/libpcre.a
   endif
 
+  export WITH_TIFF ?= true
+
 
   # Compare recreated .mo files with committed ones
   export BF_VERIFY_MO_FILES ?= true
@@ -617,6 +619,9 @@ ifndef CONFIG_GUESS
   endif # irix
   endif # freebsd
   endif # darwin
+
+  # default tiff libs
+  export NAN_TIFF_LIBS ?= $(NAN_TIFF)/lib/libtiff.a
 
 endif # CONFIG_GUESS
 

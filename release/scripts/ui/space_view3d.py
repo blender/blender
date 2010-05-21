@@ -32,14 +32,13 @@ class VIEW3D_HT_header(bpy.types.Header):
         obj = context.active_object
         toolsettings = context.tool_settings
 
-        row = layout.row()
+        row = layout.row(align=True)
         row.template_header()
-
-        sub = row.row(align=True)
 
         # Menus
         if context.area.show_menus:
-
+            sub = row.row(align=True)
+			
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
@@ -54,6 +53,7 @@ class VIEW3D_HT_header(bpy.types.Header):
             else:
                 sub.menu("VIEW3D_MT_object")
 
+        row = layout.row()
         row.template_header_3D()
 
         # do in C for now since these buttons cant be both toggle AND exclusive.
@@ -706,14 +706,13 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
 
     def poll(self, context):
         # add more special types
-        obj = context.object
-        return bool(obj and obj.type == 'LAMP')
+        return context.object
 
     def draw(self, context):
         layout = self.layout
 
         obj = context.object
-        if obj and obj.type == 'LAMP':
+        if obj.type == 'LAMP':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             props = layout.operator("wm.context_modal_mouse", text="Spot Size")
@@ -735,6 +734,10 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
             props.path_iter = "selected_editable_objects"
             props.path_item = "data.shadow_buffer_clip_end"
             props.input_scale = 0.05
+
+            layout.separator()
+
+        props = layout.operator("object.isolate_type_render")
 
 
 class VIEW3D_MT_object_apply(bpy.types.Menu):

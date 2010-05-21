@@ -960,7 +960,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		{
 			t->current_orientation = RNA_enum_get(op->ptr, "constraint_orientation");
 			
-			if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C) - 1)
+			if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C))
 			{
 				t->current_orientation = V3D_MANIP_GLOBAL;
 			}

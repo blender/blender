@@ -339,6 +339,19 @@ static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, 
 		/* firstly, handle the F-Curve's own path */
 		if (fcu->rna_path)
 			fcu->rna_path= rna_path_rename_fix(owner_id, prefix, oldName, newName, fcu->rna_path, verify_paths);
+	}
+}
+
+/* Check RNA-Paths for a list of Drivers */
+static void drivers_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, char *oldKey, char *newKey, ListBase *curves, int verify_paths)
+{
+	FCurve *fcu;
+	
+	/* we need to check every curve - drivers are F-Curves too! */
+	for (fcu= curves->first; fcu; fcu= fcu->next) {
+		/* firstly, handle the F-Curve's own path */
+		if (fcu->rna_path)
+			fcu->rna_path= rna_path_rename_fix(owner_id, prefix, oldKey, newKey, fcu->rna_path, verify_paths);
 		
 		/* driver? */
 		if (fcu->driver) {
@@ -352,15 +365,16 @@ static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, 
 				{
 					/* rename RNA path */
 					if (dtar->rna_path)
-						dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldName, newName, dtar->rna_path, verify_paths);
+						dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldKey, newKey, dtar->rna_path, verify_paths);
 					
 					/* also fix the bone-name (if applicable) */
-					// XXX this has been disabled because the old/new names have padding which means this check will fail
-					//if ( ((dtar->id) && (GS(dtar->id->name) == ID_OB)) &&
-					//	 (dtar->pchan_name[0]) && (strcmp(oldName, dtar->pchan_name)==0) )
-					//{
-					//	BLI_strncpy(dtar->pchan_name, newName, sizeof(dtar->pchan_name));
-					//}
+					if (strstr(prefix, "bones")) {
+						if ( ((dtar->id) && (GS(dtar->id->name) == ID_OB)) &&
+							 (dtar->pchan_name[0]) && (strcmp(oldName, dtar->pchan_name)==0) )
+						{
+							BLI_strncpy(dtar->pchan_name, newName, sizeof(dtar->pchan_name));
+						}
+					}
 				}
 				DRIVER_TARGETS_LOOPER_END
 			}
@@ -398,11 +412,12 @@ void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, c
 	if (ELEM(NULL, owner_id, adt))
 		return;
 	
-	if (oldName != NULL && newName != NULL) {
+	if ((oldName != NULL) && (newName != NULL)) {
 		/* pad the names with [" "] so that only exact matches are made */
 		oldN= BLI_sprintfN("[\"%s\"]", oldName);
 		newN= BLI_sprintfN("[\"%s\"]", newName);
-	} else {
+	} 
+	else {
 		oldN= BLI_sprintfN("[%d]", oldSubscript);
 		newN= BLI_sprintfN("[%d]", newSubscript);
 	}
@@ -414,7 +429,7 @@ void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, c
 		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->tmpact->curves, verify_paths);
 		
 	/* Drivers - Drivers are really F-Curves */
-	fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->drivers, verify_paths);
+	drivers_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &adt->drivers, verify_paths);
 	
 	/* NLA Data - Animation Data for Strips */
 	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next)

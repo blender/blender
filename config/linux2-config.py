@@ -68,8 +68,10 @@ BF_PNG = '/usr'
 BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'png'
 
+WITH_BF_TIFF = True
 BF_TIFF = '/usr'
 BF_TIFF_INC = '${BF_TIFF}/include'
+BF_TIFF_LIB = 'tiff'
 
 WITH_BF_ZLIB = True
 BF_ZLIB = '/usr'

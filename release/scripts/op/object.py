@@ -507,6 +507,26 @@ class MakeDupliFace(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class IsolateTypeRender(bpy.types.Operator):
+    '''Select object matching a naming pattern'''
+    bl_idname = "object.isolate_type_render"
+    bl_label = "Isolate Render Selection"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        act_type = context.object.type
+        
+        for obj in context.visible_objects:
+            
+            if obj.selected:
+                obj.restrict_render = False
+            else:
+                if obj.type == act_type:
+                    obj.restrict_render = True
+
+        return {'FINISHED'}
+
+
 classes = [
     SelectPattern,
     SelectCamera,
@@ -514,6 +534,7 @@ classes = [
     SubdivisionSet,
     ShapeTransfer,
     JoinUVs,
+    IsolateTypeRender,
     MakeDupliFace]
 
 

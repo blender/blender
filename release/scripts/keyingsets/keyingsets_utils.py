@@ -26,7 +26,7 @@ def RKS_POLL_selected_objects(ksi, context):
 def RKS_POLL_selected_bones(ksi, context):
     # we must be in Pose Mode, and there must be some bones selected 
     if (context.active_object) and (context.active_object.mode == 'POSE'):
-        if context.active_pose_bone or len(context.select_pose_bones):
+        if context.active_pose_bone or len(context.selected_pose_bones):
             return True;
     
     # nothing selected 

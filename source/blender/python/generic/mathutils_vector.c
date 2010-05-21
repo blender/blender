@@ -279,7 +279,7 @@ static char Vector_ToTrackQuat_doc[] =
 "   :type track: string\n"
 "   :arg up: Up axis in ['X', 'Y', 'Z'].\n"
 "   :type up: string\n"
-"   :return: rotation from the vector and the track and up axis."
+"   :return: rotation from the vector and the track and up axis.\n"
 "   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Vector_ToTrackQuat(VectorObject *self, PyObject *args )
@@ -1258,13 +1258,16 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 
 /*-----------------PROTCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Vector_SeqMethods = {
-	(lenfunc) Vector_len,						/* sq_length */
-	(binaryfunc) 0,								/* sq_concat */
-	(ssizeargfunc) 0,							/* sq_repeat */
-	(ssizeargfunc) Vector_item,					/* sq_item */
-	NULL,										/* py3 deprecated slice func */
-	(ssizeobjargproc) Vector_ass_item,			/* sq_ass_item */
-	NULL,										/* py3 deprecated slice assign func */
+	(lenfunc) Vector_len,				/* sq_length */
+	(binaryfunc) 0,						/* sq_concat */
+	(ssizeargfunc) 0,					/* sq_repeat */
+	(ssizeargfunc) Vector_item,			/* sq_item */
+	NULL,								/* py3 deprecated slice func */
+	(ssizeobjargproc) Vector_ass_item,	/* sq_ass_item */
+	NULL,								/* py3 deprecated slice assign func */
+	(objobjproc) NULL,					/* sq_contains */
+	(binaryfunc) NULL,					/* sq_inplace_concat */
+	(ssizeargfunc) NULL,				/* sq_inplace_repeat */
 };
 
 static PyObject *Vector_subscript(VectorObject* self, PyObject* item)

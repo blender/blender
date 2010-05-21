@@ -170,7 +170,7 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 					continue;
 
 			if(BLI_strcasestr(id->name+2, str)) {
-				iconid= ui_id_icon_get((bContext*)C, id, 0);
+				iconid= ui_id_icon_get((bContext*)C, id, 1);
                 
 				if(!uiSearchItemAdd(items, id->name+2, id, iconid))
 					break;

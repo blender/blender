@@ -1739,6 +1739,8 @@ PySequenceMethods KX_GameObject::Sequence = {
 	NULL,		/* sq_ass_item */
 	NULL,		/* sq_ass_slice */
 	(objobjproc)Seq_Contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 PyTypeObject KX_GameObject::Type = {
@@ -2733,7 +2735,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	KX_RayCast::Callback<KX_GameObject> callback(this,spc);
 	KX_RayCast::RayTest(pe, fromPoint, toPoint, callback);
 
-    if (m_pHitObject)
+	if (m_pHitObject)
 		return m_pHitObject->GetProxy();
 	
 	Py_RETURN_NONE;

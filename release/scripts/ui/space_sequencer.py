@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+
 def act_strip(context):
     try:
         return context.scene.sequence_editor.active_strip

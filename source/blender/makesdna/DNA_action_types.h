@@ -154,6 +154,8 @@ typedef enum eMotionPaths_ViewFlag {
 	MOTIONPATH_VIEW_KFRAS		= (1<<1),
 		/* show keyframe/frame numbers */
 	MOTIONPATH_VIEW_KFNOS		= (1<<2),
+		/* find keyframes in whole action (instead of just in matching group name) */
+	MOTIONPATH_VIEW_KFACT		= (1<<3),
 } eMotionPath_ViewFlag;
 
 /* bAnimVizSettings->path_bakeflag */

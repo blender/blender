@@ -199,6 +199,21 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 		glVertex3fv(mpv->co);
 	glEnd();
 	
+	/* Draw big green dot where the current frame is */
+	// NOTE: only do this when drawing keyframes for now... 
+	if (avs->path_viewflag & MOTIONPATH_VIEW_KFRAS) {
+		UI_ThemeColor(TH_CFRAME);
+		glPointSize(6.0f);
+		
+		glBegin(GL_POINTS);
+			mpv = mpv_start + (CFRA - sfra);
+			glVertex3fv(mpv->co);
+		glEnd();
+		
+		glPointSize(1.0f);
+		UI_ThemeColor(TH_TEXT_HI);
+	}
+	
 	/* Draw frame numbers at each framestep value */
 	if (avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) {
 		for (i=0, mpv=mpv_start; i < len; i+=stepsize, mpv+=stepsize) {
@@ -220,9 +235,9 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 			}
 		}
 	}
-
+	
 	/* Keyframes - dots and numbers */
-	if (avs->path_viewflag & MOTIONPATH_VIEW_KFNOS) {
+	if (avs->path_viewflag & MOTIONPATH_VIEW_KFRAS) {
 		AnimData *adt= BKE_animdata_from_id(&ob->id);
 		DLRBT_Tree keys;
 		
@@ -230,8 +245,10 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 		BLI_dlrbTree_init(&keys);
 		
 		if (adt) {
-			/* for now, it is assumed that keyframes for bones are all grouped in a single group */
-			if (pchan) {
+			/* it is assumed that keyframes for bones are all grouped in a single group
+			 * unless an option is set to always use the whole action
+			 */
+			if ((pchan) && (avs->path_viewflag & MOTIONPATH_VIEW_KFACT)==0) {
 				bActionGroup *agrp= action_groups_find_named(adt->action, pchan->name);
 				
 				if (agrp) {
@@ -261,7 +278,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 		glPointSize(1.0f);
 		
 		/* Draw frame numbers of keyframes  */
-		if (avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) {
+		if (avs->path_viewflag & MOTIONPATH_VIEW_KFNOS) {
 			for (i=0, mpv=mpv_start; i < len; i++, mpv++) {
 				float mframe= (float)(sfra + i);
 				

@@ -330,22 +330,31 @@ typedef struct ExtensionRNA {
 
 /* fake struct definitions, needed otherwise collections end up owning the C
  * structs like 'Object' when defined first */
-#define MainCameras Main
-#define MainScenes Main
-#define MainArmatures Main
-#define MainMaterials Main
-#define MainMeshes Main
-#define MainLamps Main
-#define MainImages Main
-#define MainObjects Main
-#define MainTexts Main
-#define MainActions Main
-#define MainGroups Main
-#define MainTextures Main
-#define MainCurves Main
-#define MainBrushes Main
-#define MainLattices Main
-#define MainMetaBall Main
+#define MainActions		Main
+#define MainArmatures		Main
+#define MainBrushes		Main
+#define MainCameras		Main
+#define MainCurves		Main
+#define MainFonts		Main
+#define MainGreasePencils	Main
+#define MainGroups		Main
+#define MainImages		Main
+#define MainLamps		Main
+#define MainLattices		Main
+#define MainLibraries		Main
+#define MainMaterials		Main
+#define MainMeshes		Main
+#define MainMetaBalls		Main
+#define MainNodeTrees		Main
+#define MainObjects		Main
+#define MainParticles		Main
+#define MainScenes		Main
+#define MainScreens		Main
+#define MainSounds		Main
+#define MainTexts		Main
+#define MainTextures		Main
+#define MainWindowManagers	Main
+#define MainWorlds		Main
 
 #ifdef __cplusplus
 }

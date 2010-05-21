@@ -200,8 +200,8 @@ class InfoPropertyRNA:
 
         if self.type == "enum":
             self.enum_items[:] = rna_prop.items.keys()
-            
-            
+
+
         if self.array_length:
             self.default = tuple(getattr(rna_prop, "default_array", ()))
         else:
@@ -245,7 +245,7 @@ class InfoPropertyRNA:
             type_str += self.type
             if self.array_length:
                 type_str += " array of %d items" % (self.array_length)
-                
+
             if self.type in ("float", "int"):
                 type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))
             elif self.type == "enum":

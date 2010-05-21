@@ -24,6 +24,7 @@
 #ifdef WITH_OPENJPEG
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 
 #include "imbuf.h"
 
@@ -532,16 +533,23 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 	
 	
 	if (rect_float) {
+		float rgb[3];
+		
 		switch (prec) {
 		case 8: /* Convert blenders float color channels to 8,12 or 16bit ints */
 			for(y=h-1; y>=0; y--) {
 				y_row = y*w;
 				for(x=0; x<w; x++, rect_float+=4) {
 					i = y_row + x;
+					
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+						linearrgb_to_srgb_v3_v3(rgb, rect_float);
+					else
+						copy_v3_v3(rgb, rect_float);
 				
-					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[0]);
-					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[1]);
-					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[2]);
+					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[0]);
+					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[1]);
+					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[2]);
 					if (numcomps>3)
 						image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[3]);
 				}
@@ -553,10 +561,15 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 				y_row = y*w;
 				for(x=0; x<w; x++, rect_float+=4) {
 					i = y_row + x;
+					
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+						linearrgb_to_srgb_v3_v3(rgb, rect_float);
+					else
+						copy_v3_v3(rgb, rect_float);
 				
-					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[0]);
-					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[1]);
-					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[2]);
+					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[0]);
+					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[1]);
+					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[2]);
 					if (numcomps>3)
 						image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[3]);
 				}
@@ -567,10 +580,15 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 				y_row = y*w;
 				for(x=0; x<w; x++, rect_float+=4) {
 					i = y_row + x;
+					
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+						linearrgb_to_srgb_v3_v3(rgb, rect_float);
+					else
+						copy_v3_v3(rgb, rect_float);
 				
-					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[0]);
-					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[1]);
-					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[2]);
+					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[0]);
+					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[1]);
+					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[2]);
 					if (numcomps>3)
 						image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[3]);
 				}

@@ -331,6 +331,11 @@ def rna2sphinx(BASEPATH):
     fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
     fw("      * modules: bgl, mathutils and geometry\n")
     fw("\n")
+
+    fw("===================\n")
+    fw("Application Modules\n")
+    fw("===================\n")
+    fw("\n")
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
     fw("   bpy.ops.rst\n\n")
@@ -342,10 +347,31 @@ def rna2sphinx(BASEPATH):
     
     # C modules
     fw("   bpy.props.rst\n\n")
-    
+
+    fw("==================\n")
+    fw("Standalone Modules\n")
+    fw("==================\n")
+    fw("\n")
+    fw(".. toctree::\n")
+    fw("   :maxdepth: 1\n\n")
+
+
     fw("   mathutils.rst\n\n")
     fw("   Freestyle.rst\n\n")
     fw("   blf.rst\n\n")
+    
+    # game engine
+    fw("===================\n")
+    fw("Game Engine Modules\n")
+    fw("===================\n")
+    fw("\n")
+    fw(".. toctree::\n")
+    fw("   :maxdepth: 1\n\n")
+    fw("   bge.types.rst\n\n")
+    fw("   bge.logic.rst\n\n")
+    fw("   bge.render.rst\n\n")
+    fw("   bge.events.rst\n\n")
+
     file.close()
 
 
@@ -371,7 +397,6 @@ def rna2sphinx(BASEPATH):
     file.close()
 
 
-
     # python modules
     from bpy import utils as module
     pymodule2sphinx(BASEPATH, "bpy.utils", module, "Utilities (bpy.utils)")
@@ -394,6 +419,15 @@ def rna2sphinx(BASEPATH):
     import blf as module
     pymodule2sphinx(BASEPATH, "blf", module, "Blender Font Drawing (blf)")
     del module
+
+    # game engine
+    import shutil
+    # copy2 keeps time/date stamps
+    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.types.rst"), BASEPATH)
+    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.logic.rst"), BASEPATH)
+    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.render.rst"), BASEPATH)
+    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.events.rst"), BASEPATH)
+
 
     if 0:
         filepath = os.path.join(BASEPATH, "bpy.rst")

@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class RENDER_MT_presets(bpy.types.Menu):
@@ -215,14 +215,14 @@ class RENDER_PT_shading(RenderButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "render_textures", text="Textures")
-        col.prop(rd, "render_shadows", text="Shadows")
-        col.prop(rd, "render_sss", text="Subsurface Scattering")
-        col.prop(rd, "render_envmaps", text="Environment Map")
+        col.prop(rd, "use_textures", text="Textures")
+        col.prop(rd, "use_shadows", text="Shadows")
+        col.prop(rd, "use_sss", text="Subsurface Scattering")
+        col.prop(rd, "use_envmaps", text="Environment Map")
 
         if wide_ui:
             col = split.column()
-        col.prop(rd, "render_raytracing", text="Ray Tracing")
+        col.prop(rd, "use_raytracing", text="Ray Tracing")
         col.prop(rd, "color_management")
         col.prop(rd, "alpha_mode", text="Alpha")
 
@@ -261,7 +261,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
         sub.active = rd.use_compositing
         sub.prop(rd, "free_image_textures")
         sub = col.column()
-        sub.active = rd.render_raytracing
+        sub.active = rd.use_raytracing
         sub.label(text="Acceleration structure:")
         sub.prop(rd, "raytrace_structure", text="")
         if rd.raytrace_structure == 'OCTREE':
@@ -347,6 +347,15 @@ class RENDER_PT_output(RenderButtonsPanel):
         if rd.file_format in ('AVI_JPEG', 'JPEG'):
             split = layout.split()
             split.prop(rd, "file_quality", slider=True)
+        
+        elif rd.file_format == 'MULTILAYER':
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="Codec:")
+            col.prop(rd, "exr_codec", text="")
+            if wide_ui:
+                col = split.column()
 
         elif rd.file_format == 'OPEN_EXR':
             split = layout.split()
@@ -506,14 +515,14 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
     def draw_header(self, context):
         rd = context.scene.render
 
-        self.layout.prop(rd, "antialiasing", text="")
+        self.layout.prop(rd, "render_antialiasing", text="")
 
     def draw(self, context):
         layout = self.layout
 
         rd = context.scene.render
         wide_ui = context.region.width > narrowui
-        layout.active = rd.antialiasing
+        layout.active = rd.render_antialiasing
 
         split = layout.split()
 

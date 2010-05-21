@@ -22,6 +22,7 @@ import bpy
 
 from bpy.props import *
 
+
 class SequencerCrossfadeSounds(bpy.types.Operator):
     '''Do crossfading volume animation of two selected sound strips.'''
 
@@ -95,15 +96,16 @@ class SequencerCutMulticam(bpy.types.Operator):
 
         if not s.selected:
             s.selected = True
-            
+
         cfra = context.scene.frame_current
-        bpy.ops.sequencer.cut(frame=cfra,type='HARD',side='RIGHT')
+        bpy.ops.sequencer.cut(frame=cfra, type='HARD', side='RIGHT')
         for s in context.scene.sequence_editor.sequences_all:
             if s.selected and s.type == 'MULTICAM' and s.frame_final_start <= cfra and cfra < s.frame_final_end:
                 context.scene.sequence_editor.active_strip = s
-                
+
         context.scene.sequence_editor.active_strip.multicam_source = camera
         return {'FINISHED'}
+
 
 class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
     '''Deinterlace all selected movie sources.'''
@@ -122,14 +124,13 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
         for s in context.scene.sequence_editor.sequences_all:
             if s.selected and s.type == 'MOVIE':
                 s.de_interlace = True
-                
-        return {'FINISHED'}
 
+        return {'FINISHED'}
 
 
 def register():
     register = bpy.types.register
-    
+
     register(SequencerCrossfadeSounds)
     register(SequencerCutMulticam)
     register(SequencerDeinterlaceSelectedMovies)
@@ -137,7 +138,7 @@ def register():
 
 def unregister():
     unregister = bpy.types.unregister
-    
+
     unregister(SequencerCrossfadeSounds)
     unregister(SequencerCutMulticam)
     unregister(SequencerDeinterlaceSelectedMovies)

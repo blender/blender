@@ -53,6 +53,10 @@
 #include "BKE_brush.h"
 #include "BKE_lattice.h"
 #include "BKE_mball.h"
+#include "BKE_world.h"
+#include "BKE_particle.h"
+#include "BKE_font.h"
+#include "BKE_node.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -67,6 +71,10 @@
 #include "DNA_brush_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_world_types.h"
+#include "DNA_particle_types.h"
+#include "DNA_vfont_types.h"
+#include "DNA_node_types.h"
 
 #include "ED_screen.h"
 
@@ -196,6 +204,23 @@ void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material
 	/* XXX python now has invalid pointer? */
 }
 
+// XXX, commended for now, need to see how this can be used with node groups.
+struct bNodeTree *rna_Main_nodetree_new(Main *bmain, int type)
+{
+	bNodeTree *tree = ntreeAddTree(type);
+	tree->id.us--;
+	return tree;
+}
+void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bNodeTree *tree)
+{
+	if(ID_REAL_USERS(tree) <= 0)
+		free_libblock(&bmain->nodetree, tree);
+	else
+		BKE_reportf(reports, RPT_ERROR, "Node Tree \"%s\" must have zero users to be removed, found %d.", tree->id.name+2, ID_REAL_USERS(tree));
+
+	/* XXX python now has invalid pointer? */
+}
+
 Mesh *rna_Main_meshes_new(Main *bmain, char* name)
 {
 	Mesh *me= add_mesh(name);
@@ -291,6 +316,20 @@ void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall
 		BKE_reportf(reports, RPT_ERROR, "MetaBall \"%s\" must have zero users to be removed, found %d.", mb->id.name+2, ID_REAL_USERS(mb));
 }
 
+VFont *rna_Main_fonts_load(Main *bmain, char *filename)
+{
+	return load_vfont(filename);
+}
+void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont)
+{
+	if(ID_REAL_USERS(vfont) <= 0)
+		free_libblock(&bmain->vfont, vfont);
+	else
+		BKE_reportf(reports, RPT_ERROR, "Font \"%s\" must have zero users to be removed, found %d.", vfont->id.name+2, ID_REAL_USERS(vfont));
+
+	/* XXX python now has invalid pointer? */
+}
+
 Tex *rna_Main_textures_new(Main *bmain, char* name)
 {
 	Tex *tex= add_texture(name);
@@ -317,6 +356,20 @@ void rna_Main_brushes_remove(Main *bmain, ReportList *reports, struct Brush *bru
 		free_libblock(&bmain->brush, brush);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Brush \"%s\" must have zero users to be removed, found %d.", brush->id.name+2, ID_REAL_USERS(brush));
+}
+
+World *rna_Main_worlds_new(Main *bmain, char* name)
+{
+	World *world = add_world(name);
+	world->id.us--;
+	return world;
+}
+void rna_Main_worlds_remove(Main *bmain, ReportList *reports, struct World *world)
+{
+	if(ID_REAL_USERS(world) <= 0)
+		free_libblock(&bmain->world, world);
+	else
+		BKE_reportf(reports, RPT_ERROR, "World \"%s\" must have zero users to be removed, found %d.", world->id.name+2, ID_REAL_USERS(world));
 }
 
 Group *rna_Main_groups_new(Main *bmain, char* name)
@@ -379,6 +432,22 @@ void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
 		free_libblock(&bmain->action, act);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Action \"%s\" must have zero users to be removed, found %d.", act->id.name+2, ID_REAL_USERS(act));
+
+	/* XXX python now has invalid pointer? */
+}
+
+ParticleSettings *rna_Main_particles_new(Main *bmain, char* name)
+{
+	ParticleSettings *part = psys_new_settings(name, bmain);
+	part->id.us--;
+	return part;
+}
+void rna_Main_particles_remove(Main *bmain, ReportList *reports, ParticleSettings *part)
+{
+	if(ID_REAL_USERS(part) <= 0)
+		free_libblock(&bmain->particle, part);
+	else
+		BKE_reportf(reports, RPT_ERROR, "Particle Settings \"%s\" must have zero users to be removed, found %d.", part->id.name+2, ID_REAL_USERS(part));
 
 	/* XXX python now has invalid pointer? */
 }
@@ -510,7 +579,35 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
 }
 void RNA_def_main_node_groups(BlenderRNA *brna, PropertyRNA *cprop)
 {
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
+	static EnumPropertyItem node_nodetree_items[] = {
+	{0, "SHADER",       0,    "Shader",       ""},
+	{1, "COMPOSITE",    0,    "Composite",    ""},
+	{2, "TEXTURE",      0,    "Texture",      ""},
+	{0, NULL, 0, NULL, NULL}};
+
+	RNA_def_property_srna(cprop, "MainNodeTrees");
+	srna= RNA_def_struct(brna, "MainNodeTrees", NULL);
+	RNA_def_struct_ui_text(srna, "Main Node Trees", "Collection of node trees");
+
+#if 0 // need to see some examples of using these functions before enabling.
+	func= RNA_def_function(srna, "new", "rna_Main_nodetree_new");
+	RNA_def_function_ui_description(func, "Add a new node tree to the main database");
+	parm= RNA_def_enum(func, "type", node_nodetree_items, 0, "Type", "The type of curve object to add");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "tree", "NodeTree", "", "New node tree datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_nodetree_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a node tree from the current blendfile.");
+	parm= RNA_def_pointer(func, "tree", "NodeTree", "", "Node tree to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+#endif
 }
 void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -664,8 +761,8 @@ void RNA_def_main_metaballs(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MainMetaBall");
-	srna= RNA_def_struct(brna, "MainMetaBall", NULL);
+	RNA_def_property_srna(cprop, "MainMetaBalls");
+	srna= RNA_def_struct(brna, "MainMetaBalls", NULL);
 	RNA_def_struct_ui_text(srna, "Main MetaBall", "Collection of metaballs");
 
 	func= RNA_def_function(srna, "new", "rna_Main_metaballs_new");
@@ -684,7 +781,27 @@ void RNA_def_main_metaballs(BlenderRNA *brna, PropertyRNA *cprop)
 }
 void RNA_def_main_fonts(BlenderRNA *brna, PropertyRNA *cprop)
 {
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "MainFonts");
+	srna= RNA_def_struct(brna, "MainFonts", NULL);
+	RNA_def_struct_ui_text(srna, "Main Fonts", "Collection of fonts");
+
+	func= RNA_def_function(srna, "load", "rna_Main_fonts_load");
+	RNA_def_function_ui_description(func, "Load a new font into the main database");
+	parm= RNA_def_string(func, "filename", "File Name", 0, "", "path of the font to load.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "vfont", "VectorFont", "", "New font datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_fonts_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a font from the current blendfile.");
+	parm= RNA_def_pointer(func, "vfont", "VectorFont", "", "Font to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 void RNA_def_main_textures(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -734,10 +851,32 @@ void RNA_def_main_brushes(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_pointer(func, "brush", "Brush", "", "Brush to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
+
 void RNA_def_main_worlds(BlenderRNA *brna, PropertyRNA *cprop)
 {
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "MainWorlds");
+	srna= RNA_def_struct(brna, "MainWorlds", NULL);
+	RNA_def_struct_ui_text(srna, "Main Worlds", "Collection of worlds");
+
+	func= RNA_def_function(srna, "new", "rna_Main_worlds_new");
+	RNA_def_function_ui_description(func, "Add a new world to the main database");
+	parm= RNA_def_string(func, "name", "World", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "world", "World", "", "New world datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_worlds_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a world from the current blendfile.");
+	parm= RNA_def_pointer(func, "world", "World", "", "World to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
+
 void RNA_def_main_groups(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
@@ -850,7 +989,27 @@ void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop)
 }
 void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop)
 {
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "MainParticles");
+	srna= RNA_def_struct(brna, "MainParticles", NULL);
+	RNA_def_struct_ui_text(srna, "Main Particle Settings", "Collection of particle settings");
+
+	func= RNA_def_function(srna, "new", "rna_Main_particles_new");
+	RNA_def_function_ui_description(func, "Add a new particle settings instance to the main database");
+	parm= RNA_def_string(func, "name", "ParticleSettings", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "particle", "ParticleSettings", "", "New particle settings datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_particles_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a particle settings instance from the current blendfile.");
+	parm= RNA_def_pointer(func, "particle", "ParticleSettings", "", "Particle Settings to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 {

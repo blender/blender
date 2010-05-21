@@ -286,7 +286,7 @@ class TEXT_MT_toolbox(bpy.types.Menu):
         layout.operator("text.paste")
 
         layout.separator()
-        
+
         layout.operator("text.run_script")
 
 

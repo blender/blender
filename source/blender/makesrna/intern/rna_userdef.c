@@ -2052,6 +2052,13 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_userdef_timecode_style_set", NULL);
 	RNA_def_property_ui_text(prop, "TimeCode Style", "Format of Time Codes displayed when not displaying timing in terms of frames");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	/* Properties Window */
+	prop= RNA_def_property(srna, "properties_width_check", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "propwidth");
+	RNA_def_property_range(prop, 150, 400); 
+	RNA_def_property_ui_text(prop, "Width Check", "Dual Column layout will change to single column layout when the width of the area gets below this value (needs restart to take effect)");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_edit(BlenderRNA *brna)

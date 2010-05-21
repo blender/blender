@@ -42,7 +42,7 @@ def validate_arguments(args, bc):
             'WITH_BF_OPENJPEG', 'BF_OPENJPEG', 'BF_OPENJPEG_INC', 'BF_OPENJPEG_LIB', 'BF_OPENJPEG_LIBPATH',
             'WITH_BF_REDCODE', 'BF_REDCODE', 'BF_REDCODE_INC', 'BF_REDCODE_LIB', 'BF_REDCODE_LIBPATH',
             'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
-            'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH',
+            'WITH_BF_TIFF', 'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH',
             'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH',
             'WITH_BF_INTERNATIONAL',
             'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'BF_GETTEXT_LIBPATH',
@@ -261,6 +261,7 @@ def read_opts(cfg, args):
         ('BF_PNG_LIB', 'PNG library', ''),
         ('BF_PNG_LIBPATH', 'PNG library path', ''),
 
+	(BoolVariable('WITH_BF_TIFF', 'Use TIFF if true', True)),
         ('BF_TIFF', 'TIFF base path', ''),
         ('BF_TIFF_INC', 'TIFF include path', ''),
         ('BF_TIFF_LIB', 'TIFF library', ''),

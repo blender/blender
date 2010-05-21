@@ -12,8 +12,12 @@ defs = []
 
 if env['WITH_BF_OPENJPEG']:
     defs.append('WITH_OPENJPEG')
+
 if env['WITH_BF_OPENEXR']:
 	defs.append('WITH_OPENEXR')
+
+if env['WITH_BF_TIFF']:
+	defs.append('WITH_TIFF')
 
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'

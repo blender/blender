@@ -27,6 +27,11 @@
 #include <cstring>
 #include <cmath>
 
+#ifdef WITH_FFMPEG
+// needed for INT64_C
+#define __STDC_CONSTANT_MACROS
+#endif
+
 #include "AUD_NULLDevice.h"
 #include "AUD_I3DDevice.h"
 #include "AUD_FileFactory.h"
@@ -61,6 +66,7 @@
 #ifdef WITH_JACK
 #include "AUD_JackDevice.h"
 #endif
+
 
 #ifdef WITH_FFMPEG
 extern "C" {
