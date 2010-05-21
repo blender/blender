@@ -111,7 +111,9 @@ EnumPropertyItem image_type_items[] = {
 	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", ""},
 #endif
 	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
-	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},	// XXX only with G.have_libtiff
+#ifdef WITH_TIFF
+	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},
+#endif
 	{0, "", 0, "Movie", NULL},
 #ifdef _WIN32
 	{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", ""}, // XXX Missing codec menu

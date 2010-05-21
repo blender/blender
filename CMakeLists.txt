@@ -63,6 +63,7 @@ OPTION(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 OPTION(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
 OPTION(WITH_ELBEEM        "Enable Elbeem (Fluid Simulation)" ON)
 OPTION(WITH_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
+OPTION(WITH_TIFF          "Enable LibTIFF Support" ON)
 OPTION(WITH_DDS           "Enable DDS Support" ON)
 OPTION(WITH_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)" OFF)
 OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
@@ -410,6 +411,8 @@ IF(WIN32)
 
 	SET(TIFF ${LIBDIR}/tiff)
 	SET(TIFF_INC ${TIFF}/include)
+	SET(TIFF_LIBRARY tiff)
+	SET(TIFF_LIBPATH ${TIFF}/lib)
   
 	SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
@@ -586,6 +589,8 @@ IF(APPLE)
 
 	SET(TIFF ${LIBDIR}/tiff)
 	SET(TIFF_INC ${TIFF}/include)
+	SET(TIFF_LIBRARY tiff)
+	SET(TIFF_LIBPATH ${TIFF}/lib)
 
 	SET(EXETYPE MACOSX_BUNDLE)
 

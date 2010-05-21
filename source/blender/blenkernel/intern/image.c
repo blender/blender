@@ -779,10 +779,12 @@ void BKE_add_image_extension(char *string, int imtype)
 		if(!BLI_testextensie(string, ".bmp"))
 			extension= ".bmp";
 	}
-	else if(G.have_libtiff && (imtype==R_TIFF)) {
+#ifdef WITH_TIFF
+	else if(imtype==R_TIFF) {
 		if(!BLI_testextensie(string, ".tif") && 
 			!BLI_testextensie(string, ".tiff")) extension= ".tif";
 	}
+#endif
 #ifdef WITH_OPENEXR
 	else if( ELEM(imtype, R_OPENEXR, R_MULTILAYER)) {
 		if(!BLI_testextensie(string, ".exr"))
@@ -1187,12 +1189,14 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	else if ((imtype==R_BMP)) {
 		ibuf->ftype= BMP;
 	}
-	else if ((G.have_libtiff) && (imtype==R_TIFF)) {
+#ifdef WITH_TIFF
+	else if (imtype==R_TIFF) {
 		ibuf->ftype= TIF;
 
 		if(subimtype & R_TIFF_16BIT)
 			ibuf->ftype |= TIF_16BIT;
 	}
+#endif
 #ifdef WITH_OPENEXR
 	else if (imtype==R_OPENEXR || imtype==R_MULTILAYER) {
 		ibuf->ftype= OPENEXR;

@@ -543,7 +543,9 @@ static int set_image_type(int argc, char **argv, void *data)
 			else if (!strcmp(imtype,"QUICKTIME")) scene->r.imtype = R_QUICKTIME;
 			else if (!strcmp(imtype,"BMP")) scene->r.imtype = R_BMP;
 			else if (!strcmp(imtype,"HDR")) scene->r.imtype = R_RADHDR;
+#ifdef WITH_TIFF
 			else if (!strcmp(imtype,"TIFF")) scene->r.imtype = R_TIFF;
+#endif
 #ifdef WITH_OPENEXR
 			else if (!strcmp(imtype,"EXR")) scene->r.imtype = R_OPENEXR;
 			else if (!strcmp(imtype,"MULTILAYER")) scene->r.imtype = R_MULTILAYER;

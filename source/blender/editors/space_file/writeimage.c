@@ -143,10 +143,11 @@ void save_image_filesel_str(Scene *scene, char *str)
 		case R_BMP:
 			strcpy(str, "Save BMP");
 			break;
+#ifdef WITH_TIFF
 		case R_TIFF:
-			if (G.have_libtiff)
-				strcpy(str, "Save TIFF");
+			strcpy(str, "Save TIFF");
 			break;
+#endif
 #ifdef WITH_OPENEXR
 		case R_OPENEXR:
 			strcpy(str, "Save OpenEXR");

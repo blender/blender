@@ -637,8 +637,9 @@ static const EnumPropertyItem image_file_type_items[] = {
 		{R_JP2, "JPEG_2000", 0, "Jpeg 2000", ""},
 #endif
 		{R_IRIS, "IRIS", 0, "Iris", ""},
-	//if(G.have_libtiff)
+#ifdef WITH_TIFF
 		{R_TIFF, "TIFF", 0, "Tiff", ""},
+#endif
 		{R_RADHDR, "RADIANCE_HDR", 0, "Radiance HDR", ""},
 		{R_CINEON, "CINEON", 0, "Cineon", ""},
 		{R_DPX, "DPX", 0, "DPX", ""},

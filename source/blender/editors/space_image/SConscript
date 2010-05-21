@@ -13,6 +13,8 @@ if env['WITH_BF_LCMS']:
 	defs.append('WITH_LCMS')
 if env['WITH_BF_OPENEXR']:
 	defs.append('WITH_OPENEXR')
+if env['WITH_BF_TIFF']:
+	defs.append('WITH_TIFF')
     
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
