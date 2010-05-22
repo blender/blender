@@ -370,7 +370,7 @@ void FEdgeXDetector::ProcessCreaseEdge(WXEdge *iEdge)
   WXFace * fB = (WXFace *)iEdge->GetaOEdge()->GetbFace();
 
   WVertex * aVertex = iEdge->GetaVertex();
-  if((fA->GetVertexNormal(aVertex) * fB->GetVertexNormal(aVertex)) <= 0.7) // angle of 140 degrees
+  if((fA->GetVertexNormal(aVertex) * fB->GetVertexNormal(aVertex)) <= _creaseAngle)
     iEdge->AddNature(Nature::CREASE);
 }
 

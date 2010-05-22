@@ -124,6 +124,8 @@ public:
 
   void setComputeSteerableViewMapFlag(bool iBool);
   bool getComputeSteerableViewMapFlag() const;
+  void setCreaseAngle(real angle){_creaseAngle=angle;}
+  real getCreaseAngle() const {return _creaseAngle;}
   void setSphereRadius(real s){_sphereRadius=s;}
   real getSphereRadius() const {return _sphereRadius;}
   void setSuggestiveContourKrDerivativeEpsilon(real dkr){_suggestiveContourKrDerivativeEpsilon=dkr;}
@@ -225,6 +227,7 @@ private:
   bool _ComputeRidges;
   bool _ComputeSuggestive;
   bool _ComputeMaterialBoundaries;
+  real _creaseAngle;
   real _sphereRadius;
   real _suggestiveContourKrDerivativeEpsilon;
 

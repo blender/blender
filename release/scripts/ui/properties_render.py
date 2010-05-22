@@ -182,6 +182,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
             col = split.column()
             col.label(text="Freestyle:")
             freestyle = rl.freestyle_settings
+            col.prop(freestyle, "crease_angle", text="Crease Angle")
             col.prop(freestyle, "sphere_radius", text="Sphere Radius")
             col.prop(freestyle, "ridges_and_valleys", text="Ridges and Valleys")
             col.prop(freestyle, "suggestive_contours", text="Suggestive Contours")

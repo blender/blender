@@ -1527,6 +1527,12 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Dkr Epsilon", "*TBD*");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "crease_angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "crease_angle");
+	RNA_def_property_range(prop, 0.0, 180.0);
+	RNA_def_property_ui_text(prop, "Crease Angle", "Angular threshold in degrees (between 0 and 180) for detecting crease edges.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 }
 
 static void rna_def_scene_game_data(BlenderRNA *brna)

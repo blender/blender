@@ -159,12 +159,14 @@ extern "C" {
 		cout << endl;
 		
 		// set parameters
+		controller->setCreaseAngle( config->crease_angle );
 		controller->setSphereRadius( config->sphere_radius );
 		controller->setComputeRidgesAndValleysFlag( (config->flags & FREESTYLE_RIDGES_AND_VALLEYS_FLAG) ? true : false);
 		controller->setComputeSuggestiveContoursFlag( (config->flags & FREESTYLE_SUGGESTIVE_CONTOURS_FLAG) ? true : false);
 		controller->setComputeMaterialBoundariesFlag( (config->flags & FREESTYLE_MATERIAL_BOUNDARIES_FLAG) ? true : false);
 		controller->setSuggestiveContourKrDerivativeEpsilon( config->dkr_epsilon ) ;
 
+		cout << "Crease angle : " << controller->getCreaseAngle() << endl;
 		cout << "Sphere radius : " << controller->getSphereRadius() << endl;
 		cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled") << endl;
 		cout << "Suggestive contours : " << (controller->getComputeSuggestiveContoursFlag() ? "enabled" : "disabled") << endl;
@@ -312,6 +314,7 @@ extern "C" {
 		config->flags = 0;
 		config->sphere_radius = 1.0;
 		config->dkr_epsilon = 0.001;
+		config->crease_angle = 134.43;
 	}
 	
 	void FRS_free_freestyle_config( SceneRenderLayer* srl )

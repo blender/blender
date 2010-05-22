@@ -22,7 +22,7 @@ typedef struct FreestyleConfig {
 	int flags;
 	float sphere_radius;
 	float dkr_epsilon;
-	int pad;
+	float crease_angle;
 	
 } FreestyleConfig;
 

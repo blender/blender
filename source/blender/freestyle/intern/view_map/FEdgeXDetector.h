@@ -60,6 +60,7 @@ public:
     _orthographicProjection = false;
     _changes = false;
     _kr_derivative_epsilon = 0.0;
+	_creaseAngle = 0.7; // angle of 134.43 degrees
   }
   virtual ~FEdgeXDetector() {}
 
@@ -79,6 +80,23 @@ public:
   // CREASE
   virtual void processCreaseShape(WXShape* iShape);
   virtual void ProcessCreaseEdge(WXEdge *iEdge);
+  /*! Sets the minimum angle for detecting crease edges
+   *  \param angle
+   *    The angular threshold in degrees (between 0 and 180) for detecting crease
+   *    edges.  An edge is considered a crease edge if the angle between two faces
+   *    sharing the edge is smaller than the given threshold.
+   */
+  inline void setCreaseAngle(real angle) {
+    if (angle < 0.0)
+      angle = 0.0;
+	else if (angle > 180.0)
+      angle = 180.0;
+    angle = cos(M_PI * (180.0 - angle) / 180.0);
+    if (angle != _creaseAngle){
+      _creaseAngle = angle;
+      _changes = true;
+    }
+  }
 
   // BORDER
   virtual void processBorderShape(WXShape* iShape);
@@ -150,6 +168,7 @@ protected:
   bool _computeSuggestiveContours;
   bool _computeMaterialBoundaries;
   real _sphereRadius; // expressed as a ratio of the mean edge size
+  real _creaseAngle; // [-1, 1] compared with the inner product of face normals
   bool _changes;
 
   real _kr_derivative_epsilon;

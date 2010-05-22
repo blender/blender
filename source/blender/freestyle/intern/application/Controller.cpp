@@ -116,6 +116,7 @@ Controller::Controller()
   _ComputeSuggestive = true;
   _ComputeMaterialBoundaries = true;
   _sphereRadius = 1.0;
+  _creaseAngle = 134.43;
 
 	init_options();
 }
@@ -468,6 +469,7 @@ void Controller::ComputeViewMap()
   edgeDetector.enableRidgesAndValleysFlag(_ComputeRidges);
   edgeDetector.enableSuggestiveContours(_ComputeSuggestive);
   edgeDetector.enableMaterialBoundaries(_ComputeMaterialBoundaries);
+  edgeDetector.setCreaseAngle(_creaseAngle);
   edgeDetector.setSphereRadius(_sphereRadius);
   edgeDetector.setSuggestiveContourKrDerivativeEpsilon(_suggestiveContourKrDerivativeEpsilon);
   edgeDetector.processShapes(*_winged_edge);
