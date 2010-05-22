@@ -174,6 +174,10 @@ static PyLongObject _Nature_SUGGESTIVE_CONTOUR = {
 	PyVarObject_HEAD_INIT(&Nature_Type, 1)
 	{ Nature::SUGGESTIVE_CONTOUR }
 };
+static PyLongObject _Nature_MATERIAL_BOUNDARY = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::MATERIAL_BOUNDARY }
+};
 
 #define BPy_Nature_POINT               ((PyObject *)&_Nature_POINT)
 #define BPy_Nature_S_VERTEX            ((PyObject *)&_Nature_S_VERTEX)
@@ -188,6 +192,7 @@ static PyLongObject _Nature_SUGGESTIVE_CONTOUR = {
 #define BPy_Nature_RIDGE               ((PyObject *)&_Nature_RIDGE)
 #define BPy_Nature_VALLEY              ((PyObject *)&_Nature_VALLEY)
 #define BPy_Nature_SUGGESTIVE_CONTOUR  ((PyObject *)&_Nature_SUGGESTIVE_CONTOUR)
+#define BPy_Nature_MATERIAL_BOUNDARY   ((PyObject *)&_Nature_MATERIAL_BOUNDARY)
 
 //-------------------MODULE INITIALIZATION--------------------------------
 int Nature_Init( PyObject *module )
@@ -216,6 +221,7 @@ int Nature_Init( PyObject *module )
 	PyDict_SetItemString( Nature_Type.tp_dict, "RIDGE", BPy_Nature_RIDGE );
 	PyDict_SetItemString( Nature_Type.tp_dict, "VALLEY", BPy_Nature_VALLEY );
 	PyDict_SetItemString( Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", BPy_Nature_SUGGESTIVE_CONTOUR );
+	PyDict_SetItemString( Nature_Type.tp_dict, "MATERIAL_BOUNDARY", BPy_Nature_MATERIAL_BOUNDARY );
 
 	return 0;
 }

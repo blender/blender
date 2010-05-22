@@ -64,6 +64,8 @@ void FEdgeXDetector::processShapes(WingedEdge& we) {
     if (progressBarDisplay)
       _pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
     processBorderShape(wxs);
+    if(_computeMaterialBoundaries)
+      processMaterialBoundaryShape(wxs);
     processCreaseShape(wxs);
     if(_computeRidgesAndValleys)
       processRidgesAndValleysShape(wxs);
@@ -679,6 +681,29 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace) {
     sc_layer->removeSmoothEdge();
 }
 
+// MATERIAL_BOUNDARY
+////////////////////
+void FEdgeXDetector::processMaterialBoundaryShape(WXShape* iWShape) {
+
+  if(!_computeViewIndependant)
+    return;
+  // Make a pass on the edges to detect material boundaries
+  vector<WEdge*>::iterator we, weend;
+  vector<WEdge*> &wedges = iWShape->getEdgeList();
+  for(we=wedges.begin(), weend=wedges.end();
+  we!=weend;
+  ++we){
+    ProcessMaterialBoundaryEdge((WXEdge*)(*we));
+  }
+}
+
+void FEdgeXDetector::ProcessMaterialBoundaryEdge(WXEdge *iEdge)
+{
+  // check whether the edge is a material boundary?
+  if(iEdge->GetaFace()->frs_materialIndex() != iEdge->GetbFace()->frs_materialIndex()){
+    iEdge->AddNature(Nature::MATERIAL_BOUNDARY);
+  }
+}
 
 // Build Smooth edges
 /////////////////////

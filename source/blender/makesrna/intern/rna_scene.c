@@ -1511,6 +1511,11 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Ridges and Valleys", "Enable ridges and valleys.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop= RNA_def_property(srna, "material_boundaries", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_MATERIAL_BOUNDARIES_FLAG);
+	RNA_def_property_ui_text(prop, "Material boundaries", "Enable material boundaries.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
 	prop= RNA_def_property(srna, "sphere_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sphere_radius");
 	RNA_def_property_range(prop, 0.0, 1000.0);

@@ -119,6 +119,8 @@ public:
   bool getComputeRidgesAndValleysFlag() const ;
   void setComputeSuggestiveContoursFlag(bool b);
   bool getComputeSuggestiveContoursFlag() const ;
+  void setComputeMaterialBoundariesFlag(bool b);
+  bool getComputeMaterialBoundariesFlag() const ;
 
   void setComputeSteerableViewMapFlag(bool iBool);
   bool getComputeSteerableViewMapFlag() const;
@@ -222,6 +224,7 @@ private:
   bool _EnableQI;
   bool _ComputeRidges;
   bool _ComputeSuggestive;
+  bool _ComputeMaterialBoundaries;
   real _sphereRadius;
   real _suggestiveContourKrDerivativeEpsilon;
 

@@ -55,6 +55,7 @@ public:
     _meanEdgeSize = 0;
     _computeRidgesAndValleys = true;
     _computeSuggestiveContours = true;
+	_computeMaterialBoundaries = true;
     _sphereRadius = 1.0;
     _orthographicProjection = false;
     _changes = false;
@@ -103,6 +104,10 @@ public:
     }
   }
 
+  // MATERIAL BOUNDARY
+  virtual void FEdgeXDetector::processMaterialBoundaryShape(WXShape* iWShape);
+  virtual void FEdgeXDetector::ProcessMaterialBoundaryEdge(WXEdge *iEdge);
+
   // EVERYBODY
   virtual void buildSmoothEdges(WXShape* iShape);
 
@@ -111,6 +116,7 @@ public:
   inline void enableOrthographicProjection(bool b) {_orthographicProjection = b;}
   inline void enableRidgesAndValleysFlag(bool b) {_computeRidgesAndValleys = b;}
   inline void enableSuggestiveContours(bool b) {_computeSuggestiveContours = b;}
+  inline void enableMaterialBoundaries(bool b) {_computeMaterialBoundaries = b;}
   /*! Sets the radius of the geodesic sphere around each vertex (for the curvature computation)
    *  \param r
    *    The radius of the sphere expressed as a ratio of the mean edge size
@@ -142,6 +148,7 @@ protected:
 
   bool _computeRidgesAndValleys;
   bool _computeSuggestiveContours;
+  bool _computeMaterialBoundaries;
   real _sphereRadius; // expressed as a ratio of the mean edge size
   bool _changes;
 

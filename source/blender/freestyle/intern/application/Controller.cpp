@@ -114,6 +114,7 @@ Controller::Controller()
   _ComputeRidges = true;
   _ComputeSteerableViewMap = false;
   _ComputeSuggestive = true;
+  _ComputeMaterialBoundaries = true;
   _sphereRadius = 1.0;
 
 	init_options();
@@ -466,6 +467,7 @@ void Controller::ComputeViewMap()
   edgeDetector.enableOrthographicProjection(proj[3][3] != 0.0);
   edgeDetector.enableRidgesAndValleysFlag(_ComputeRidges);
   edgeDetector.enableSuggestiveContours(_ComputeSuggestive);
+  edgeDetector.enableMaterialBoundaries(_ComputeMaterialBoundaries);
   edgeDetector.setSphereRadius(_sphereRadius);
   edgeDetector.setSuggestiveContourKrDerivativeEpsilon(_suggestiveContourKrDerivativeEpsilon);
   edgeDetector.processShapes(*_winged_edge);
@@ -647,6 +649,7 @@ void Controller::setComputeRidgesAndValleysFlag(bool iBool){
 bool Controller::getComputeRidgesAndValleysFlag() const {
   return _ComputeRidges;
 }
+
 void Controller::setComputeSuggestiveContoursFlag(bool b){
   _ComputeSuggestive = b;
 }
@@ -654,6 +657,15 @@ void Controller::setComputeSuggestiveContoursFlag(bool b){
 bool Controller::getComputeSuggestiveContoursFlag() const {
   return _ComputeSuggestive;
 }
+
+void Controller::setComputeMaterialBoundariesFlag(bool b){
+  _ComputeMaterialBoundaries = b;
+}
+  
+bool Controller::getComputeMaterialBoundariesFlag() const {
+  return _ComputeMaterialBoundaries;
+}
+
 void Controller::setComputeSteerableViewMapFlag(bool iBool){
   _ComputeSteerableViewMap = iBool;
 }

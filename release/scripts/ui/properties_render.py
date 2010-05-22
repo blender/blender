@@ -185,6 +185,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
             col.prop(freestyle, "sphere_radius", text="Sphere Radius")
             col.prop(freestyle, "ridges_and_valleys", text="Ridges and Valleys")
             col.prop(freestyle, "suggestive_contours", text="Suggestive Contours")
+            col.prop(freestyle, "material_boundaries", text="Material Boundaries")
             col.prop(freestyle, "dkr_epsilon", text="Dkr Epsilon")
 
             col.operator("scene.freestyle_module_add", text="Add Style Module")

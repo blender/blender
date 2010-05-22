@@ -162,6 +162,7 @@ extern "C" {
 		controller->setSphereRadius( config->sphere_radius );
 		controller->setComputeRidgesAndValleysFlag( (config->flags & FREESTYLE_RIDGES_AND_VALLEYS_FLAG) ? true : false);
 		controller->setComputeSuggestiveContoursFlag( (config->flags & FREESTYLE_SUGGESTIVE_CONTOURS_FLAG) ? true : false);
+		controller->setComputeMaterialBoundariesFlag( (config->flags & FREESTYLE_MATERIAL_BOUNDARIES_FLAG) ? true : false);
 		controller->setSuggestiveContourKrDerivativeEpsilon( config->dkr_epsilon ) ;
 
 		cout << "Sphere radius : " << controller->getSphereRadius() << endl;
