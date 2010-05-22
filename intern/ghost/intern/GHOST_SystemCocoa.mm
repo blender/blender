@@ -1106,7 +1106,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					{
 						droppedStr = [droppedArray objectAtIndex:i];
 						
-						pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
+						pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 						temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
 					
 						if (!temp_buff) {
@@ -1114,7 +1114,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 							break;
 						}
 					
-						strncpy((char*)temp_buff, [droppedStr cStringUsingEncoding:NSISOLatin1StringEncoding], pastedTextSize);
+						strncpy((char*)temp_buff, [droppedStr cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
 						temp_buff[pastedTextSize] = '\0';
 						
 						strArray->strings[i] = temp_buff;
@@ -1125,7 +1125,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					
 				case GHOST_kDragnDropTypeString:
 					droppedStr = (NSString*)data;
-					pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
+					pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 					
 					temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
 					
@@ -1133,7 +1133,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 						return GHOST_kFailure;
 					}
 					
-					strncpy((char*)temp_buff, [droppedStr cStringUsingEncoding:NSISOLatin1StringEncoding], pastedTextSize);
+					strncpy((char*)temp_buff, [droppedStr cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
 					
 					temp_buff[pastedTextSize] = '\0';
 					
