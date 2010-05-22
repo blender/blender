@@ -780,7 +780,7 @@ static void nearest_fcurve_vert_store (ListBase *matches, View2D *v2d, FCurve *f
 		 * 	needed to access the relevant vertex coordinates in the 3x3 
 		 * 	'vec' matrix
 		 */
-		UI_view2d_to_region_no_clip(v2d, bezt->vec[hpoint+1][0], bezt->vec[hpoint+1][1], &screen_co[0], &screen_co[1]);
+		UI_view2d_view_to_region(v2d, bezt->vec[hpoint+1][0], bezt->vec[hpoint+1][1], &screen_co[0], &screen_co[1]);
 		
 		/* check if distance from mouse cursor to vert in screen space is within tolerance */
 			// XXX: inlined distance calculation, since we cannot do this on ints using the math lib...
