@@ -580,14 +580,14 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
 void RNA_def_main_node_groups(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
-	FunctionRNA *func;
-	PropertyRNA *parm;
+//	FunctionRNA *func;
+//	PropertyRNA *parm;
 
-	static EnumPropertyItem node_nodetree_items[] = {
+/*	static EnumPropertyItem node_nodetree_items[] = {
 	{0, "SHADER",       0,    "Shader",       ""},
 	{1, "COMPOSITE",    0,    "Composite",    ""},
 	{2, "TEXTURE",      0,    "Texture",      ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}}; */
 
 	RNA_def_property_srna(cprop, "MainNodeTrees");
 	srna= RNA_def_struct(brna, "MainNodeTrees", NULL);

@@ -272,7 +272,6 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("  $TEMP\t\tStore temporary files here.\n");
 #else
 	printf ("  $TMP or $TMPDIR\tStore temporary files here.\n");
-	printf ("  $BF_TIFF_LIB\t\tUse an alternative libtiff.so for loading tiff image files.\n");
 #endif
 #ifndef DISABLE_SDL
 	printf ("  $SDL_AUDIODRIVER\tLibSDL audio driver - alsa, esd, alsa, dma.\n");
