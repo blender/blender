@@ -241,7 +241,6 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 {
 	Scene *scene= oglrender->scene;
-	int view_context = (oglrender->v3d != NULL);
 
 	if(oglrender->mh) {
 		if(BKE_imtype_is_movie(scene->r.imtype))

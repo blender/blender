@@ -2050,7 +2050,7 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	/* TODO: DupliObject has more properties that can be wrapped */
 }
 
-static void rna_def_base(BlenderRNA *brna)
+static void rna_def_object_base(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -2081,13 +2081,15 @@ static void rna_def_base(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BA_WAS_SEL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "User Selected", "Object base user selection state, used to restore user selection after transformations");
+	
+	RNA_api_object_base(srna);
 }
 
 void RNA_def_object(BlenderRNA *brna)
 {
 	rna_def_object(brna);
 	rna_def_object_game_settings(brna);
-	rna_def_base(brna);
+	rna_def_object_base(brna);
 	rna_def_vertex_group(brna);
 	rna_def_material_slot(brna);
 	rna_def_dupli_object(brna);
