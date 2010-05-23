@@ -73,7 +73,7 @@ static void UnaryFunction0D___dealloc__(BPy_UnaryFunction0D* self)
 
 static PyObject * UnaryFunction0D___repr__(BPy_UnaryFunction0D* self)
 {
-    return PyUnicode_FromFormat("UnaryFunction0D");
+    return PyUnicode_FromString("UnaryFunction0D");
 }
 
 /*-----------------------BPy_UnaryFunction0D type definition ------------------------------*/

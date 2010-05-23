@@ -90,7 +90,7 @@ static char UnaryFunction1DUnsigned_getName___doc__[] =
 
 static PyObject * UnaryFunction1DUnsigned_getName( BPy_UnaryFunction1DUnsigned *self )
 {
-	return PyUnicode_FromFormat( self->uf1D_unsigned->getName().c_str() );
+	return PyUnicode_FromString( self->uf1D_unsigned->getName().c_str() );
 }
 
 static PyObject * UnaryFunction1DUnsigned___call__( BPy_UnaryFunction1DUnsigned *self, PyObject *args, PyObject *kwds)

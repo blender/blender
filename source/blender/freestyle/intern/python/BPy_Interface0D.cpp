@@ -99,7 +99,7 @@ static char Interface0D_getExactTypeName___doc__[] =
 "   :rtype: string\n";
 
 static PyObject *Interface0D_getExactTypeName( BPy_Interface0D *self ) {
-	return PyUnicode_FromFormat( self->if0D->getExactTypeName().c_str() );	
+	return PyUnicode_FromString( self->if0D->getExactTypeName().c_str() );	
 }
 
 static char Interface0D_getX___doc__[] =

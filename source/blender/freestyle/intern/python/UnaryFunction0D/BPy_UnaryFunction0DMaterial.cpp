@@ -73,7 +73,7 @@ static char UnaryFunction0DMaterial_getName___doc__[] =
 
 static PyObject * UnaryFunction0DMaterial_getName( BPy_UnaryFunction0DMaterial *self )
 {
-	return PyUnicode_FromFormat( self->uf0D_material->getName().c_str() );
+	return PyUnicode_FromString( self->uf0D_material->getName().c_str() );
 }
 
 static PyObject * UnaryFunction0DMaterial___call__( BPy_UnaryFunction0DMaterial *self, PyObject *args, PyObject *kwds)

@@ -78,7 +78,7 @@ static char UnaryFunction0DVec2f_getName___doc__[] =
 
 static PyObject * UnaryFunction0DVec2f_getName( BPy_UnaryFunction0DVec2f *self )
 {
-	return PyUnicode_FromFormat( self->uf0D_vec2f->getName().c_str() );
+	return PyUnicode_FromString( self->uf0D_vec2f->getName().c_str() );
 }
 
 static PyObject * UnaryFunction0DVec2f___call__( BPy_UnaryFunction0DVec2f *self, PyObject *args, PyObject *kwds)

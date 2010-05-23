@@ -64,7 +64,7 @@ static void UnaryFunction1D___dealloc__(BPy_UnaryFunction1D* self)
 
 static PyObject * UnaryFunction1D___repr__(BPy_UnaryFunction1D* self)
 {
-    return PyUnicode_FromFormat("UnaryFunction1D");
+    return PyUnicode_FromString("UnaryFunction1D");
 }
 
 /*-----------------------BPy_UnaryFunction1D type definition ------------------------------*/

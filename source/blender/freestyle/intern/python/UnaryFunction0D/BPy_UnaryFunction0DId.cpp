@@ -72,7 +72,7 @@ static char UnaryFunction0DId_getName___doc__[] =
 
 static PyObject * UnaryFunction0DId_getName( BPy_UnaryFunction0DId *self )
 {
-	return PyUnicode_FromFormat( self->uf0D_id->getName().c_str() );
+	return PyUnicode_FromString( self->uf0D_id->getName().c_str() );
 }
 
 static PyObject * UnaryFunction0DId___call__( BPy_UnaryFunction0DId *self, PyObject *args, PyObject *kwds)

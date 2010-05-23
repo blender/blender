@@ -103,7 +103,7 @@ static char UnaryFunction1DVoid_getName___doc__[] =
 
 static PyObject * UnaryFunction1DVoid_getName( BPy_UnaryFunction1DVoid *self )
 {
-	return PyUnicode_FromFormat( self->uf1D_void->getName().c_str() );
+	return PyUnicode_FromString( self->uf1D_void->getName().c_str() );
 }
 
 static PyObject * UnaryFunction1DVoid___call__( BPy_UnaryFunction1DVoid *self, PyObject *args, PyObject *kwds)

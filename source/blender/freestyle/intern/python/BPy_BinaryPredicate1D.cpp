@@ -110,7 +110,7 @@ static char BinaryPredicate1D_getName___doc__[] =
 
 static PyObject *BinaryPredicate1D_getName( BPy_BinaryPredicate1D *self, PyObject *args)
 {
-	return PyUnicode_FromFormat( self->bp1D->getName().c_str() );
+	return PyUnicode_FromString( self->bp1D->getName().c_str() );
 }
 
 static PyObject *BinaryPredicate1D___call__( BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds)

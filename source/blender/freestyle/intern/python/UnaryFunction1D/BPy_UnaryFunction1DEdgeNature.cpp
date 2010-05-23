@@ -90,7 +90,7 @@ static char UnaryFunction1DEdgeNature_getName___doc__[] =
 
 static PyObject * UnaryFunction1DEdgeNature_getName( BPy_UnaryFunction1DEdgeNature *self )
 {
-	return PyUnicode_FromFormat( self->uf1D_edgenature->getName().c_str() );
+	return PyUnicode_FromString( self->uf1D_edgenature->getName().c_str() );
 }
 
 static PyObject * UnaryFunction1DEdgeNature___call__( BPy_UnaryFunction1DEdgeNature *self, PyObject *args, PyObject *kwds)

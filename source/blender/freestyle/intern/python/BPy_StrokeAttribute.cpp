@@ -125,7 +125,7 @@ static PyObject * StrokeAttribute___repr__(BPy_StrokeAttribute* self)
 		 << " - R: " << self->sa->getThicknessR() 
 		 << " L: " << self->sa->getThicknessL();
 
-	return PyUnicode_FromFormat( repr.str().c_str() );
+	return PyUnicode_FromString( repr.str().c_str() );
 }
 
 

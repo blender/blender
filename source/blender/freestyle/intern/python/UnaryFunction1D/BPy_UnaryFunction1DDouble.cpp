@@ -169,7 +169,7 @@ static char UnaryFunction1DDouble_getName___doc__[] =
 
 static PyObject * UnaryFunction1DDouble_getName( BPy_UnaryFunction1DDouble *self )
 {
-	return PyUnicode_FromFormat( self->uf1D_double->getName().c_str() );
+	return PyUnicode_FromString( self->uf1D_double->getName().c_str() );
 }
 
 static PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyObject *args, PyObject *kwds)

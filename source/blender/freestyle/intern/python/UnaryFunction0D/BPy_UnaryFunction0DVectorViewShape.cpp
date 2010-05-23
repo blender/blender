@@ -73,7 +73,7 @@ static char UnaryFunction0DVectorViewShape_getName___doc__[] =
 
 static PyObject * UnaryFunction0DVectorViewShape_getName( BPy_UnaryFunction0DVectorViewShape *self )
 {
-	return PyUnicode_FromFormat( self->uf0D_vectorviewshape->getName().c_str() );
+	return PyUnicode_FromString( self->uf0D_vectorviewshape->getName().c_str() );
 }
 
 static PyObject * UnaryFunction0DVectorViewShape___call__( BPy_UnaryFunction0DVectorViewShape *self, PyObject *args, PyObject *kwds)

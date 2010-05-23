@@ -83,7 +83,7 @@ static char UnaryFunction1DFloat_getName___doc__[] =
 
 static PyObject * UnaryFunction1DFloat_getName( BPy_UnaryFunction1DFloat *self )
 {
-	return PyUnicode_FromFormat( self->uf1D_float->getName().c_str() );
+	return PyUnicode_FromString( self->uf1D_float->getName().c_str() );
 }
 
 static PyObject * UnaryFunction1DFloat___call__( BPy_UnaryFunction1DFloat *self, PyObject *args, PyObject *kwds)

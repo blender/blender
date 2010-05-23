@@ -209,7 +209,7 @@ static char StrokeShader_getName___doc__[] =
 
 static PyObject * StrokeShader_getName( BPy_StrokeShader *self, PyObject *args)
 {
-	return PyUnicode_FromFormat( self->ss->getName().c_str() );
+	return PyUnicode_FromString( self->ss->getName().c_str() );
 }
 
 static char StrokeShader_shade___doc__[] =

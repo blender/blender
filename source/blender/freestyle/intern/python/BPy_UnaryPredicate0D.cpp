@@ -90,7 +90,7 @@ static char UnaryPredicate0D_getName___doc__[] =
 
 static PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self )
 {
-	return PyUnicode_FromFormat( self->up0D->getName().c_str() );
+	return PyUnicode_FromString( self->up0D->getName().c_str() );
 }
 
 static PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)

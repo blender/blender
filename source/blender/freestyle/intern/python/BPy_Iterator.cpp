@@ -110,7 +110,7 @@ static char Iterator_getExactTypeName___doc__[] =
 "   :rtype: string\n";
 
 static PyObject * Iterator_getExactTypeName(BPy_Iterator* self) {
-	return PyUnicode_FromFormat( self->it->getExactTypeName().c_str() );	
+	return PyUnicode_FromString( self->it->getExactTypeName().c_str() );	
 }
 
 static char Iterator_increment___doc__[] =
