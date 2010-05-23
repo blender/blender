@@ -412,12 +412,6 @@ ifndef CONFIG_GUESS
       export BF_FFTW3_LIBS ?= $(shell pkg-config --libs fftw3 )
     endif
 
-    ifeq ($(WITH_OPENJPEG), true)
-      export BF_OPENJPEG ?= /usr
-      export BF_OPENJPEG_INC ?= /usr/include
-      export BF_OPENJPEG_LIBS ?= -lopenjpeg
-    endif
-
     # Uncomment the following line to use Mozilla inplace of netscape
 
     # Location of MOZILLA/Netscape header files...

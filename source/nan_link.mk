@@ -108,7 +108,7 @@ ifeq ($(OS),linux)
   endif
   ifeq ($(CPU),$(findstring $(CPU), "i386 x86_64 ia64 parisc64 powerpc sparc64"))
     COMMENT = "MESA 3.1"
-    LLIBS = -L$(NAN_MESA)/lib -L/usr/X11R6/lib -lXmu -lXext -lX11 -lXi
+    LLIBS = -L$(NAN_MESA)/lib -L/usr/X11R6/lib -lXext -lX11 -lXi
     LLIBS += -lutil -lc -lm -ldl -lpthread
     LLIBS += -L$(NAN_PYTHON)/lib -Wl,-rpath -Wl,$(NAN_PYTHON)/lib -lpython$(NAN_PYTHON_VERSION)
     LOPTS = -export-dynamic
