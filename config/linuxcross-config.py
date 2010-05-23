@@ -174,9 +174,6 @@ BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib ${BF_ICONV_LIBPATH}'
 WITH_BF_RAYOPTIMIZATION = False
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse']
 
-CC = 'i586-mingw32msvc-gcc'
-CXX = 'i586-mingw32msvc-g++'
-
 CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 
 CPPFLAGS = ['-DWIN32', '-DFREE_WINDOWS']

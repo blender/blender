@@ -182,7 +182,7 @@ if os.path.exists(userconfig):
 else:
 	print B.bc.WARNING + userconfig + " not found, no user overrides" + B.bc.ENDC
 
-opts = btools.read_opts(optfiles, B.arguments)
+opts = btools.read_opts(env, optfiles, B.arguments)
 opts.Update(env)
 
 if not env['BF_FANCY']:
