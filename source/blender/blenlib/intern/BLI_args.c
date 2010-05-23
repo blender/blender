@@ -166,6 +166,12 @@ void BLI_argsAdd(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, void 
 	internalAdd(ba, arg, pass, 0, cb, data);
 }
 
+void BLI_argsAddPair(struct bArgs *ba, char *arg_short, char *arg_long, int pass, BA_ArgCallback cb, void *data)
+{
+	internalAdd(ba, arg_short, pass, 0, cb, data);
+	internalAdd(ba, arg_long, pass, 0, cb, data);
+}
+
 void BLI_argsAddCase(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, void *data)
 {
 	internalAdd(ba, arg, pass, 1, cb, data);

@@ -43,6 +43,8 @@ void BLI_argsFree(struct bArgs *ba);
 
 /* pass starts at 1, -1 means valid all the time */
 void BLI_argsAdd(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, void *data);
+void BLI_argsAddPair(struct bArgs *ba, char *arg_short, char *arg_long, int pass, BA_ArgCallback cb, void *data);
+
 void BLI_argsAddCase(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, void *data); /* not case specific */
 
 void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *data);

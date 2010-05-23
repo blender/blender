@@ -196,46 +196,76 @@ static int print_version(int argc, char **argv, void *data)
 static int print_help(int argc, char **argv, void *data)
 {
 	printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
-	printf ("Usage: blender [args ...] [file] [args ...]\n");
-	printf ("\nRender options:\n");
-	printf ("  -b <file>\tLoad <file> in background (often used for background rendering)\n");
-	printf ("    -a render frames from start to end (inclusive), only works when used after -b\n");
-	printf ("    -S <name>\tSet scene <name>\n");
-	printf ("    -f <frame>\tRender frame <frame> and save it\n");				
-	printf ("    -s <frame>\tSet start to frame <frame> (use before the -a argument)\n");
-	printf ("    -e <frame>\tSet end to frame <frame> (use before the -a argument)\n");
-	printf ("    -o <path>\tSet the render path and file name.\n");
+	printf ("Usage: blender [args ...] [file] [args ...]\n\n");
+
+	printf ("Render Options:\n");
+	printf ("  -b or --background <file>\n");
+	printf ("    Load <file> in background (often used for background rendering)\n\n");
+	
+	printf ("    -a or --render-anim\n");
+	printf ("      Render frames from start to end (inclusive), only works when used after -b\n\n");
+	
+	printf ("    -S or --scene <name>\n");
+	printf ("      Set the active scene <name> for rendering, only works when used after -b\n\n");
+	
+	printf ("    -f or --render-frame <frame>\n");
+	printf ("      Render frame <frame> and save it.\n\n");
+	
+	printf ("    -s or --frame-start <frame>\n");
+	printf ("      Set start to frame <frame> (use before the -a argument).\n\n");
+	
+	
+	printf ("    -e or --frame-end <frame>\n");
+	printf ("      Set end to frame <frame> (use before the -a argument).\n\n");
+	
+	printf ("    -o or --render-output <path>\n");
+	printf ("      Set the render path and file name.\n");
 	printf ("      Use // at the start of the path to\n");
 	printf ("        render relative to the blend file.\n");
 	printf ("      The # characters are replaced by the frame number, and used to define zero padding.\n");
 	printf ("        ani_##_test.png becomes ani_01_test.png\n");
 	printf ("        test-######.png becomes test-000001.png\n");
-	printf ("        When the filename has no #, The suffix #### is added to the filename\n");
+	printf ("        When the filename does not contain #, The suffix #### is added to the filename\n");
 	printf ("      The frame number will be added at the end of the filename.\n");
-	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
-	printf ("    -E <engine>\tSpecify the render engine.\n");
-	printf ("      use -E help to list available engines.\n");
-	printf ("\nFormat options:\n");
-	printf ("    -F <format>\tSet the render format, Valid options are...\n");
-	printf ("    \tTGA IRIS JPEG MOVIE IRIZ RAWTGA\n");
-	printf ("    \tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
+	printf ("        eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
+	printf ("        test-######.png becomes test-000001.png\n\n");
+
+	printf ("    -E or --engine <engine>\n");
+	printf ("      Specify the render engine.\n");
+	printf ("      use -E help to list available engines.\n\n");
+	
+	printf ("Format Options:\n");
+	printf ("  -F or --render-format <format>\n");
+	printf ("    Set the render format, Valid options are...\n");
+	printf ("      TGA IRIS JPEG MOVIE IRIZ RAWTGA\n");
+	printf ("      AVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
-	printf ("    \tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
-	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
-	printf ("    -t <threads>\tUse amount of <threads> for rendering (background mode only).\n");
-	printf ("      [1-%d], 0 for systems processor count.\n", BLENDER_MAX_THREADS);
-	printf ("\nAnimation playback options:\n");
+	printf ("      HDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n\n");
+
+	printf ("  -x or --use-extension <bool>\n");
+	printf ("    Set option to add the file extension to the end of the file.\n\n");
+
+	printf ("  -t or --threads <threads>\n");
+	printf ("    Use amount of <threads> for rendering (background mode only).\n");
+	printf ("    [1-%d], 0 for systems processor count.\n\n", BLENDER_MAX_THREADS);
+
+	printf ("Animation Playback Options:\n");
 	printf ("  -a <options> <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
 	printf ("    -m\t\tRead from disk (Don't buffer)\n");
 	printf ("    -f <fps> <fps-base>\t\tSpecify FPS to start with\n");
 	printf ("    -j <frame>\tSet frame step to <frame>\n");
 				
-	printf ("\nWindow options:\n");
-	printf ("  -w\t\tForce opening with borders (default)\n");
-	printf ("  -W\t\tForce opening without borders\n");
-	printf ("  -p <sx> <sy> <w> <h>\tOpen with lower left corner at <sx>, <sy>\n");
-	printf ("                      \tand width and height <w>, <h>\n");
+	printf ("Window Options:\n");
+	printf ("  -w or --window-border\n");
+	printf ("    Force opening with borders (default)\n\n");
+	
+	printf ("  -W or --window-borderless\n");
+	printf ("    Force opening with without borders\n\n");
+
+	printf ("  -p or --window-geometry <sx> <sy> <w> <h>\n");
+	printf ("    Open with lower left corner at <sx>, <sy> and width and height as <w>, <h>\n\n");
+
 	printf ("\nGame Engine specific options:\n");
 	printf ("  -g fixedtime\t\tRun on 50 hertz without dropping frames\n");
 	printf ("  -g vertexarrays\tUse Vertex Arrays for rendering (usually faster)\n");
@@ -243,53 +273,71 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("  -g linearmipmap\tLinear Texture Mipmapping instead of Nearest (default)\n");
 
 	printf ("\nMisc options:\n");
-	printf ("  -d\t\tTurn debugging on\n");
-	printf ("    \t\t * prints every operator call and their arguments\n");
-	printf ("    \t\t * disables mouse grab (to interact with a debugger in some cases)\n");
-	printf ("    \t\t * keeps python sys.stdin rather then setting it to None\n");
-	printf ("  -nojoystick\tDisable joystick support\n");
-	printf ("  -noglsl\tDisable GLSL shading\n");
-	printf ("  -noaudio\tForce sound system to None\n");
-	printf ("  -setaudio\tForce sound system to a specific device\n");
-	printf ("    \tNULL SDL OPENAL JACK\n");
-	printf ("  -h\t\tPrint this help text\n");
-	printf ("  -y\t\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)\n");
-	printf ("  -Y\t\tEnable automatic python script execution\n");
-	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
+	printf ("  -d or --debug\n");
+	printf ("    Turn debugging on\n");
+	printf ("     * Prints every operator call and their arguments\n");
+	printf ("     * Disables mouse grab (to interact with a debugger in some cases)\n");
+	printf ("     * Keeps python sys.stdin rather then setting it to None\n\n");
+
+    printf ("  --debug-fpe\n");
+    printf ("    Enable floating point exceptions (currently linux only)\n\n");
+
+	printf ("  -nojoystick  Disable joystick support\n");
+	printf ("  -noglsl      Disable GLSL shading\n");
+	printf ("  -noaudio     Force sound system to None\n");
+	printf ("  -setaudio    Force sound system to a specific device\n");
+	printf ("                 NULL SDL OPENAL JACK\n\n");
+
+	printf ("  -h or --help\n");
+	printf ("    Print this help text\n\n");
+
+	printf ("  -Y or --enable-autoexec\n");
+	printf ("    Enable automatic python script execution (default)\n\n");
+	printf ("  -y or --disable-autoexec\n");
+	printf ("    Disable automatic python script execution (pydrivers, pyconstraints, pynodes)\n\n");
+
+	printf ("  -P or --python <filename>\t\n");
+	printf ("    Run the given Python script (filename or Blender Text)\n\n");
+
 #ifdef WIN32
-	printf ("  -R\t\tRegister .blend extension\n");
+	printf ("  -R\t\tRegister .blend extension (windows only)\n");
 #endif
-	printf ("  -v\t\tPrint Blender version and exit\n");
-	printf ("  --\t\tEnds option processing.  Following arguments are \n");
-	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
+	printf ("  -v or --version\n");
+	printf ("    Print Blender version and exit.\n\n");
+
+	printf ("  --\n");
+	printf ("    Ends option processing, following arguments passed unchanged. Access via python's sys.argv\n\n");
+
 	printf ("\nEnvironment Variables:\n");
 	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
-	printf ("  $BLENDERPATH\tSystem directory to use for data files and scripts.\n");
-	printf ("              \tFor this build of blender the default BLENDERPATH is...\n");
-	printf ("              \t\"%s\"\n", blender_path);
-	printf ("              \tseting the $BLENDERPATH will override this\n");
+	printf ("  $BLENDERPATH  System directory to use for data files and scripts.\n");
+	printf ("                For this build of blender the default BLENDERPATH is...\n");
+	printf ("                \"%s\"\n", blender_path);
+	printf ("                seting the $BLENDERPATH will override this\n");
 #ifdef WIN32
-	printf ("  $TEMP\t\tStore temporary files here.\n");
+	printf ("  $TEMP         Store temporary files here.\n");
 #else
-	printf ("  $TMP or $TMPDIR\tStore temporary files here.\n");
+	printf ("  $TMP or $TMPDIR  Store temporary files here.\n");
 #endif
 #ifndef DISABLE_SDL
-	printf ("  $SDL_AUDIODRIVER\tLibSDL audio driver - alsa, esd, alsa, dma.\n");
+	printf ("  $SDL_AUDIODRIVER  LibSDL audio driver - alsa, esd, alsa, dma.\n");
 #endif
-	printf ("  $IMAGEEDITOR\t\tImage editor executable, launch with the IKey from the file selector.\n");
-	printf ("  $WINEDITOR\t\tText editor executable, launch with the EKey from the file selector.\n");
-	printf ("  $PYTHONHOME\t\tPath to the python directory, eg. /usr/lib/python.\n");
-	printf ("\nNote: Arguments must be separated by white space. eg:\n");
+	printf ("  $IMAGEEDITOR  Image editor executable, launch with the IKey from the file selector.\n");
+	printf ("  $WINEDITOR    Text editor executable, launch with the EKey from the file selector.\n");
+	printf ("  $PYTHONHOME   Path to the python directory, eg. /usr/lib/python.\n\n");
+
+	printf ("Note: Arguments must be separated by white space. eg:\n");
 	printf ("    \"blender -ba test.blend\"\n");
 	printf ("  ...will ignore the 'a'\n");
 	printf ("    \"blender -b test.blend -f8\"\n");
-	printf ("  ...will ignore 8 because there is no space between the -f and the frame value\n");
+	printf ("  ...will ignore 8 because there is no space between the -f and the frame value\n\n");
+
 	printf ("Note: Arguments are executed in the order they are given. eg:\n");
-	printf ("    \"blender -b test.blend -f 1 -o /tmp\"\n");
-	printf ("  ...may not render to /tmp because '-f 1' renders before the output path is set\n");
-	printf ("    \"blender -b -o /tmp test.blend -f 1\"\n");
-	printf ("  ...may not render to /tmp because loading the blend file overwrites the output path that was set\n");
-	printf ("    \"blender -b test.blend -o /tmp -f 1\" works as expected.\n\n");
+	printf ("    \"blender --background test.blend --render-frame 1 --render-output /tmp\"\n");
+	printf ("  ...will not render to /tmp because '--render-frame 1' renders before the output path is set\n");
+	printf ("    \"blender --background --render-output /tmp test.blend --render-frame 1\"\n");
+	printf ("  ...will not render to /tmp because loading the blend file overwrites the render output that was set\n");
+	printf ("    \"blender --background test.blend --render-output /tmp --render-frame 1\" works as expected.\n\n");
 
 	exit(0);
 
@@ -463,11 +511,11 @@ static int set_output(int argc, char **argv, void *data)
 			Scene *scene= CTX_data_scene(C);
 			BLI_strncpy(scene->r.pic, argv[1], FILE_MAXDIR);
 		} else {
-			printf("\nError: no blend loaded. cannot use '-o'.\n");
+			printf("\nError: no blend loaded. cannot use '-o / --render-output'.\n");
 		}
 		return 1;
 	} else {
-		printf("\nError: you must specify a path after '-o '.\n");
+		printf("\nError: you must specify a path after '-o  / --render-output'.\n");
 		return 0;
 	}
 }
@@ -491,7 +539,7 @@ static int set_engine(int argc, char **argv, void *data)
 		{
 			if (CTX_data_scene(C)==NULL)
 			{
-				printf("\nError: no blend loaded. order the arguments so '-E ' is after a blend is loaded.\n");
+				printf("\nError: no blend loaded. order the arguments so '-E  / --engine ' is after a blend is loaded.\n");
 			}
 			else
 			{
@@ -524,7 +572,7 @@ static int set_image_type(int argc, char **argv, void *data)
 	if (argc >= 1){
 		char *imtype = argv[1];
 		if (CTX_data_scene(C)==NULL) {
-			printf("\nError: no blend loaded. order the arguments so '-F ' is after the blend is loaded.\n");
+			printf("\nError: no blend loaded. order the arguments so '-F  / --render-format' is after the blend is loaded.\n");
 		} else {
 			Scene *scene= CTX_data_scene(C);
 			if      (!strcmp(imtype,"TGA")) scene->r.imtype = R_TARGA;
@@ -556,11 +604,11 @@ static int set_image_type(int argc, char **argv, void *data)
 #if WITH_OPENJPEG
 			else if (!strcmp(imtype,"JP2")) scene->r.imtype = R_JP2;
 #endif
-			else printf("\nError: Format from '-F' not known or not compiled in this release.\n");
+			else printf("\nError: Format from '-F / --render-format' not known or not compiled in this release.\n");
 		}
 		return 1;
 	} else {
-		printf("\nError: you must specify a format after '-F '.\n");
+		printf("\nError: you must specify a format after '-F  / --render-foramt'.\n");
 		return 0;
 	}
 }
@@ -575,7 +623,7 @@ static int set_threads(int argc, char **argv, void *data)
 		}
 		return 1;
 	} else {
-		printf("\nError: you must specify a number of threads between 0 and 8 '-t '.\n");
+		printf("\nError: you must specify a number of threads between 0 and 8 '-t  / --threads'.\n");
 		return 0;
 	}
 }
@@ -591,7 +639,7 @@ static int set_extension(int argc, char **argv, void *data)
 			} else if (argv[1][0] == '1') {
 				scene->r.scemode |= R_EXTENSION;
 			} else {
-				printf("\nError: Use '-x 1' or '-x 0' To set the extension option.\n");
+				printf("\nError: Use '-x 1 / -x 0' To set the extension option or '--use-extension'\n");
 			}
 		} else {
 			printf("\nError: no blend loaded. order the arguments so '-o ' is after '-x '.\n");
@@ -674,11 +722,11 @@ static int render_frame(int argc, char **argv, void *data)
 			RE_BlenderAnim(re, scene, scene->lay, frame, frame, scene->r.frame_step, &reports);
 			return 1;
 		} else {
-			printf("\nError: frame number must follow '-f'.\n");
+			printf("\nError: frame number must follow '-f / --render-frame'.\n");
 			return 0;
 		}
 	} else {
-		printf("\nError: no blend loaded. cannot use '-f'.\n");
+		printf("\nError: no blend loaded. cannot use '-f / --render-frame'.\n");
 		return 0;
 	}
 }
@@ -704,7 +752,7 @@ static int set_scene(int argc, char **argv, void *data)
 		set_scene_name(argv[1]);
 		return 1;
 	} else {
-		printf("\nError: Scene name must follow '-S'.\n");
+		printf("\nError: Scene name must follow '-S / --scene'.\n");
 		return 0;
 	}
 }
@@ -719,11 +767,11 @@ static int set_start_frame(int argc, char **argv, void *data)
 			(scene->r.sfra) = CLAMPIS(frame, MINFRAME, MAXFRAME);
 			return 1;
 		} else {
-			printf("\nError: frame number must follow '-s'.\n");
+			printf("\nError: frame number must follow '-s / --frame-start'.\n");
 			return 0;
 		}
 	} else {
-		printf("\nError: no blend loaded. cannot use '-s'.\n");
+		printf("\nError: no blend loaded. cannot use '-s / --frame-start'.\n");
 		return 0;
 	}
 }
@@ -738,11 +786,11 @@ static int set_end_frame(int argc, char **argv, void *data)
 			(scene->r.efra) = CLAMPIS(frame, MINFRAME, MAXFRAME);
 			return 1;
 		} else {
-			printf("\nError: frame number must follow '-e'.\n");
+			printf("\nError: frame number must follow '-e / --frame-end'.\n");
 			return 0;
 		}
 	} else {
-		printf("\nError: no blend loaded. cannot use '-e'.\n");
+		printf("\nError: no blend loaded. cannot use '-e / --frame-end'.\n");
 		return 0;
 	}
 }
@@ -757,11 +805,11 @@ static int set_skip_frame(int argc, char **argv, void *data)
 			(scene->r.frame_step) = CLAMPIS(frame, 1, MAXFRAME);
 			return 1;
 		} else {
-			printf("\nError: number of frames to step must follow '-j'.\n");
+			printf("\nError: number of frames to step must follow '-j / --frame-jump'.\n");
 			return 0;
 		}
 	} else {
-		printf("\nError: no blend loaded. cannot use '-j'.\n");
+		printf("\nError: no blend loaded. cannot use '-j / --frame-jump'.\n");
 		return 0;
 	}
 }
@@ -799,7 +847,7 @@ static int run_python(int argc, char **argv, void *data)
 
 		return 1;
 	} else {
-		printf("\nError: you must specify a Python script after '-P '.\n");
+		printf("\nError: you must specify a Python script after '-P / --python'.\n");
 		return 0;
 	}
 #else
@@ -858,28 +906,25 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, "--", -1, end_arguments, NULL);
 
 	/* first pass: background mode, disable python and commands that exit after usage */
-	BLI_argsAdd(ba, "--help", 1, print_help, NULL);
-	BLI_argsAdd(ba, "-h", 1, print_help, NULL);
+	BLI_argsAddPair(ba, "-h", "--help", 1, print_help, NULL);
 	BLI_argsAdd(ba, "/?", 1, print_help, NULL);
 
-	BLI_argsAdd(ba, "--version", 1, print_version, NULL);
-	BLI_argsAdd(ba, "-v", 1, print_version, NULL);
+	BLI_argsAddPair(ba, "-v", "--version", 1, print_version, NULL);
 
-	BLI_argsAdd(ba, "-Y", 1, enable_python, NULL);
-	BLI_argsAdd(ba, "-y", 1, disable_python, NULL);
+	BLI_argsAddPair(ba, "-y", "--enable-autoexec", 1, enable_python, NULL);
+	BLI_argsAddPair(ba, "-Y", "--disable-autoexec", 1, disable_python, NULL);
 
-	BLI_argsAdd(ba, "-fpe", 1, set_fpe, NULL);
+	BLI_argsAddPair(ba, "-b", "--background", 1, background_mode, NULL);
 
-	BLI_argsAdd(ba, "-B", 1, background_mode, NULL);
-	BLI_argsAdd(ba, "-b", 1, background_mode, NULL);
 	BLI_argsAdd(ba, "-a", 1, playback_mode, NULL);
 
-	BLI_argsAdd(ba, "-d", 1, debug_mode, ba);
+	BLI_argsAddPair(ba, "-d", "--debug", 1, debug_mode, ba);
+    BLI_argsAdd(ba, "--debug-fpe", 1, set_fpe, NULL);
 
 	/* second pass: custom window stuff */
-	BLI_argsAdd(ba, "-p", 2, prefsize, NULL);
-	BLI_argsAdd(ba, "-w", 2, with_borders, NULL);
-	BLI_argsAdd(ba, "-W", 2, without_borders, NULL);
+	BLI_argsAddPair(ba, "-p", "--window-geometry", 2, prefsize, NULL);
+	BLI_argsAddPair(ba, "-w", "--window-border", 2, with_borders, NULL);
+	BLI_argsAddPair(ba, "-W", "--window-borderless", 2, without_borders, NULL);
 	BLI_argsAdd(ba, "-R", 2, register_extension, ba);
 
 	/* third pass: disabling things and forcing settings */
@@ -890,18 +935,18 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 	/* fourth pass: processing arguments */
 	BLI_argsAdd(ba, "-g", 4, set_ge_parameters, syshandle);
-	BLI_argsAdd(ba, "-f", 4, render_frame, C);
-	BLI_argsAdd(ba, "-a", 4, render_animation, C);
-	BLI_argsAdd(ba, "-S", 4, set_scene, NULL);
-	BLI_argsAdd(ba, "-s", 4, set_start_frame, C);
-	BLI_argsAdd(ba, "-e", 4, set_end_frame, C);
-	BLI_argsAdd(ba, "-j", 4, set_skip_frame, C);
-	BLI_argsAdd(ba, "-P", 4, run_python, C);
-	BLI_argsAdd(ba, "-o", 4, set_output, C);
-	BLI_argsAdd(ba, "-E", 4, set_engine, C);
-	BLI_argsAdd(ba, "-F", 4, set_image_type, C);
-	BLI_argsAdd(ba, "-t", 4, set_threads, NULL);
-	BLI_argsAdd(ba, "-x", 4, set_extension, C);
+	BLI_argsAddPair(ba, "-f", "--render-frame", 4, render_frame, C);
+	BLI_argsAddPair(ba, "-a", "--render-anim", 4, render_animation, C);
+	BLI_argsAddPair(ba, "-S", "--scene", 4, set_scene, NULL);
+	BLI_argsAddPair(ba, "-s", "--frame-start", 4, set_start_frame, C);
+	BLI_argsAddPair(ba, "-e", "--frame-end", 4, set_end_frame, C);
+	BLI_argsAddPair(ba, "-j", "--frame-jump", 4, set_skip_frame, C);
+	BLI_argsAddPair(ba, "-P", "--python", 4, run_python, C);
+	BLI_argsAddPair(ba, "-o", "--render-output", 4, set_output, C);
+	BLI_argsAddPair(ba, "-E", "--engine", 4, set_engine, C);
+	BLI_argsAddPair(ba, "-F", "--render-format", 4, set_image_type, C);
+	BLI_argsAddPair(ba, "-t", "--threads", 4, set_threads, NULL);
+	BLI_argsAddPair(ba, "-x", "--use-extension", 4, set_extension, C);
 
 }
 
