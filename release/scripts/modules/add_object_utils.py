@@ -19,6 +19,21 @@
 # <pep8 compliant>
 
 import bpy
+import mathutils
+
+def _align_matrix(context):
+    # TODO, local view cursor!
+    location = mathutils.TranslationMatrix(context.scene.cursor_location)
+
+    if context.user_preferences.edit.object_align == 'VIEW' and context.space_data.type == 'VIEW_3D':
+        rotation = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
+    else:
+        rotation = mathutils.Matrix()
+
+    align_matrix = location * rotation
+
+    return align_matrix
+
 
 def add_object_data(obdata, context):
 
@@ -36,8 +51,8 @@ def add_object_data(obdata, context):
     if context.space_data and context.space_data.type == 'VIEW_3D':
         base.layers_from_view(context.space_data)
 
-    # TODO, local view cursor!
-    obj_new.location = scene.cursor_location
+
+    obj_new.matrix = _align_matrix(context)
 
     obj_act = scene.objects.active
 
@@ -55,3 +70,5 @@ def add_object_data(obdata, context):
         scene.objects.active = obj_new
         if context.user_preferences.edit.enter_edit_mode:
             bpy.ops.object.mode_set(mode='EDIT')
+
+    return base
