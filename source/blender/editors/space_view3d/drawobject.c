@@ -2525,7 +2525,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			else
 				UI_ThemeColor(TH_WIRE);
 
-			dm->drawLooseEdges(dm);
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
+				dm->drawLooseEdges(dm);
 		}
 	}
 	else if(dt==OB_SOLID) {
@@ -2592,7 +2593,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			} else {
 				UI_ThemeColor(TH_WIRE);
 			}
-			if(!ob->sculpt)
+			if(!ob->sculpt && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
 				dm->drawLooseEdges(dm);
 		}
 	}
@@ -2659,7 +2660,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			} else {
 				UI_ThemeColor(TH_WIRE);
 			}
-			dm->drawLooseEdges(dm);
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
+				dm->drawLooseEdges(dm);
 		}
 	}
 	
