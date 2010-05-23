@@ -96,6 +96,12 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_shade_smooth);
 	WM_operatortype_append(CURVE_OT_shade_flat);
 	WM_operatortype_append(CURVE_OT_tilt_clear);
+	
+	WM_operatortype_append(CURVE_OT_primitive_bezier_add);
+	WM_operatortype_append(CURVE_OT_primitive_bezier_circle_add);
+	WM_operatortype_append(CURVE_OT_primitive_nurbs_curve_add);
+	WM_operatortype_append(CURVE_OT_primitive_nurbs_circle_add);
+	WM_operatortype_append(CURVE_OT_primitive_curve_path_add);
 
 	WM_operatortype_append(CURVE_OT_smooth);
 	WM_operatortype_append(CURVE_OT_smooth_radius);

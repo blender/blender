@@ -4886,7 +4886,6 @@ int join_curve_exec(bContext *C, wmOperator *op)
 }
 
 /************ add primitive, used by object/ module ****************/
-
 Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 {
 	static int xzproj= 0;	/* this function calls itself... */
@@ -5257,6 +5256,169 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	
 	return nu;
 }
+static int curve_prim_add(bContext *C, wmOperator *op,int type){
+	
+	Object *obedit= CTX_data_edit_object(C);
+	ListBase *editnurb;
+	Nurb *nu;
+	int newob= 0;//, type= RNA_enum_get(op->ptr, "type");
+	int enter_editmode;
+	unsigned int layer;
+	float loc[3], rot[3];
+	float mat[4][4];
+	
+	//object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	
+	if(obedit==NULL || obedit->type!=OB_CURVE) {
+		Curve *cu;
+		obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
+		newob = 1;
+
+		cu= (Curve*)obedit->data;
+		cu->flag |= CU_DEFORM_FILL;
+		if(type & CU_PRIM_PATH)
+			cu->flag |= CU_PATH|CU_3D;
+	}
+	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	
+	ED_object_new_primitive_matrix(C, loc, rot, mat);
+	
+	nu= add_nurbs_primitive(C, mat, type, newob);
+	editnurb= curve_get_editcurve(obedit);
+	BLI_addtail(editnurb, nu);
+	
+	/* userdef */
+	if (newob && !enter_editmode) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int add_primitive_bezier_exec(bContext *C, wmOperator *op)
+{
+	if (curve_prim_add(C,op,CU_BEZIER|CU_PRIM_CURVE))
+		return OPERATOR_FINISHED;
+}
+
+void CURVE_OT_primitive_bezier_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Bezier";
+	ot->description= "Construct a Bezier Curve";
+	ot->idname= "CURVE_OT_primitive_bezier_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_bezier_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
+{
+	if(curve_prim_add(C,op,CU_BEZIER|CU_PRIM_CIRCLE))
+		return OPERATOR_FINISHED;
+}
+
+void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Circle";
+	ot->description= "Construct a Bezier Circle";
+	ot->idname= "CURVE_OT_primitive_bezier_circle_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_bezier_circle_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_nurbs_curve_exec(bContext *C, wmOperator *op)
+{
+	if(curve_prim_add(C,op,CU_NURBS|CU_PRIM_CURVE))
+		return OPERATOR_FINISHED;
+}
+
+void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Nurbs Curve";
+	ot->description= "Construct a Nurbs Curve";
+	ot->idname= "CURVE_OT_primitive_nurbs_curve_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_nurbs_curve_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_nurbs_circle_exec(bContext *C, wmOperator *op)
+{
+	if(curve_prim_add(C,op,CU_NURBS|CU_PRIM_CIRCLE))
+		return OPERATOR_FINISHED;
+}
+
+void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Nurbs Circle";
+	ot->description= "Construct a Nurbs Circle";
+	ot->idname= "CURVE_OT_primitive_nurbs_circle_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_nurbs_circle_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_curve_path_exec(bContext *C, wmOperator *op)
+{
+	if(curve_prim_add(C,op,CU_NURBS|CU_PRIM_PATH))
+		return OPERATOR_FINISHED;
+}
+
+void CURVE_OT_primitive_curve_path_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Path";
+	ot->description= "Construct a Path";
+	ot->idname= "CURVE_OT_primitive_curve_path_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_curve_path_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+
 
 /***************** clear tilt operator ********************/
 

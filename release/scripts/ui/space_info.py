@@ -199,6 +199,18 @@ class INFO_MT_mesh_add(bpy.types.Menu):
         layout.operator("mesh.primitive_grid_add", icon='MESH_GRID', text="Grid")
         layout.operator("mesh.primitive_monkey_add", icon='MESH_MONKEY', text="Monkey")
 
+class INFO_MT_curve_add(bpy.types.Menu):
+    bl_idname = "INFO_MT_curve_add"
+    bl_label = "Curve"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("curve.primitive_bezier_add", icon='CURVE_BEZCURVE', text="Bezier")
+        layout.operator("curve.primitive_bezier_circle_add", icon='CURVE_BEZCIRCLE', text="Circle")
+        layout.operator("curve.primitive_nurbs_curve_add", icon='CURVE_NCURVE', text="Nurbs Curve")
+        layout.operator("curve.primitive_nurbs_circle_add", icon='CURVE_NCIRCLE', text="Nurbs Circle")
+        layout.operator("curve.primitive_curve_path_add", icon='CURVE_PATH', text="Path")
 
 class INFO_MT_armature_add(bpy.types.Menu):
     bl_idname = "INFO_MT_armature_add"
@@ -221,7 +233,8 @@ class INFO_MT_add(bpy.types.Menu):
         #layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='OUTLINER_OB_MESH')
         layout.menu("INFO_MT_mesh_add", icon='OUTLINER_OB_MESH')
 
-        layout.operator_menu_enum("object.curve_add", "type", text="Curve", icon='OUTLINER_OB_CURVE')
+        #layout.operator_menu_enum("object.curve_add", "type", text="Curve", icon='OUTLINER_OB_CURVE')
+        layout.menu("INFO_MT_curve_add", icon='OUTLINER_OB_CURVE')
         layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='OUTLINER_OB_SURFACE')
         layout.operator_menu_enum("object.metaball_add", "type", text="Metaball", icon='OUTLINER_OB_META')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
@@ -416,6 +429,7 @@ classes = [
     INFO_MT_file_external_data,
     INFO_MT_add,
     INFO_MT_mesh_add,
+    INFO_MT_curve_add,
     INFO_MT_armature_add,
     INFO_MT_game,
     INFO_MT_render,
