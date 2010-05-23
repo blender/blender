@@ -75,7 +75,8 @@ static char Nature___doc__[] =
 "* Nature.CREASE: True for creases.\n"
 "* Nature.RIDGE: True for ridges.\n"
 "* Nature.VALLEY: True for valleys.\n"
-"* Nature.SUGGESTIVE_CONTOUR: True for suggestive contours.\n";
+"* Nature.SUGGESTIVE_CONTOUR: True for suggestive contours.\n"
+"* Nature.MATERIAL_BOUNDARY: True for edges at material boundaries.\n";
 
 /*-----------------------BPy_Nature type definition ------------------------------*/
 
