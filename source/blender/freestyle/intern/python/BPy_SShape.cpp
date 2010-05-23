@@ -229,6 +229,37 @@ static PyObject * SShape_setId( BPy_SShape *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
+static char SShape_getName___doc__[] =
+".. method:: getName()\n"
+"\n"
+"   Returns the name of the SShape.\n"
+"\n"
+"   :return: The name string.\n"
+"   :rtype: str\n";
+
+static PyObject * SShape_getName( BPy_SShape *self ) {
+	return PyUnicode_FromString( self->ss->getName().c_str() );
+}
+
+static char SShape_setName___doc__[] =
+".. method:: setName(name)\n"
+"\n"
+"   Sets the name of the SShape.\n"
+"\n"
+"   :arg name: A name string.\n"
+"   :type name: str\n";
+
+static PyObject * SShape_setName( BPy_SShape *self , PyObject *args) {
+	char *s;
+
+	if(!( PyArg_ParseTuple(args, "s", &s) ))
+		return NULL;
+
+	self->ss->setName(s);
+
+	Py_RETURN_NONE;
+}
+
 // const Material & 	material (unsigned i) const
 // const vector< Material > & 	materials () const
 // void 	SetMaterials (const vector< Material > &iMaterials)
@@ -244,6 +275,8 @@ static PyMethodDef BPy_SShape_methods[] = {
 	{"getEdgeList", ( PyCFunction ) SShape_getEdgeList, METH_NOARGS, SShape_getEdgeList___doc__},
 	{"getId", ( PyCFunction ) SShape_getId, METH_NOARGS, SShape_getId___doc__},
 	{"setId", ( PyCFunction ) SShape_setId, METH_VARARGS, SShape_setId___doc__},
+	{"getName", ( PyCFunction ) SShape_getName, METH_NOARGS, SShape_getName___doc__},
+	{"setName", ( PyCFunction ) SShape_setName, METH_VARARGS, SShape_setName___doc__},
 	{NULL, NULL, 0, NULL}
 };
 

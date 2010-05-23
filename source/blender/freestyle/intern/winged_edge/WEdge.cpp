@@ -475,6 +475,7 @@ WShape * WShape::duplicate()
 WShape::WShape(WShape& iBrother)
 {
   _Id = iBrother.GetId();
+  _Name = iBrother._Name;
   _FrsMaterials = iBrother._FrsMaterials;
   _meanEdgeSize = iBrother._meanEdgeSize;
   iBrother.bbox(_min, _max);

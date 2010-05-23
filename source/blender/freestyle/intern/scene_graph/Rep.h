@@ -50,6 +50,7 @@ public:
     : BaseObject()
   {
     _Id = iBrother._Id;
+    _Name = iBrother._Name;
     if(0 == iBrother._FrsMaterial)
       _FrsMaterial = 0;
     else
@@ -60,11 +61,13 @@ public:
 	inline void swap(Rep& ioOther){
 		std::swap(_BBox,ioOther._BBox);
 		std::swap(_Id, ioOther._Id);
+		std::swap(_Name, ioOther._Name);
 		std::swap(_FrsMaterial,ioOther._FrsMaterial);
 	}
 	Rep& operator=(const Rep& iBrother){
 		if(&iBrother != this){
 			_Id = iBrother._Id;
+			_Name = iBrother._Name;
 			if(0 == iBrother._FrsMaterial)
 				_FrsMaterial = 0;
 			else{
@@ -108,11 +111,13 @@ public:
   /*! Returns the rep bounding box */
   virtual const BBox<Vec3r>& bbox() const {return _BBox;}
   inline Id getId() const {return _Id;}
+  inline const string& getName() const {return _Name;}
   inline const FrsMaterial * frs_material() const {return _FrsMaterial;}
 
   /*! Sets the Rep bounding box */
   virtual void setBBox(const BBox<Vec3r>& iBox) {_BBox = iBox;}
   inline void setId(const Id& id) {_Id = id;}
+  inline void setName(const string& name) {_Name = name;}
   inline void setFrsMaterial(const FrsMaterial& iMaterial) 
   {
     _FrsMaterial = new FrsMaterial(iMaterial);
@@ -121,6 +126,7 @@ public:
 private:
   BBox<Vec3r> _BBox;
   Id _Id;
+  string _Name;
   FrsMaterial *_FrsMaterial;
 };
 

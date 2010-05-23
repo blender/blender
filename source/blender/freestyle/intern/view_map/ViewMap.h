@@ -1252,6 +1252,8 @@ public:
   inline  vector<ViewEdge*>& edges() {return _Edges;}
   /*! Returns the ViewShape id. */
   inline  Id getId() const {return _SShape->getId();}
+  /*! Returns the ViewShape id. */
+  inline  const string& getName() const {return _SShape->getName();}
 
   /* modifiers */
   /*! Sets the SShape on top of which the ViewShape is built. */

@@ -411,6 +411,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	                         0);
 	// sets the id of the rep
 	rep->setId(Id(id, 0));
+	rep->setName(obi->ob->id.name+2);
 	
 	const BBox<Vec3r> bbox = BBox<Vec3r>(Vec3r(ls.minBBox[0], ls.minBBox[1], ls.minBBox[2]), 
 	                                     Vec3r(ls.maxBBox[0], ls.maxBBox[1], ls.maxBBox[2]));

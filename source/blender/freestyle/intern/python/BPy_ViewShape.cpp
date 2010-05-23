@@ -153,6 +153,18 @@ static PyObject * ViewShape_getId( BPy_ViewShape *self ) {
 	return BPy_Id_from_Id( id );
 }
 
+static char ViewShape_getName___doc__[] =
+".. method:: getName()\n"
+"\n"
+"   Returns the name of the ViewShape.\n"
+"\n"
+"   :return: The name string.\n"
+"   :rtype: str\n";
+
+static PyObject * ViewShape_getName( BPy_ViewShape *self ) {
+	return PyUnicode_FromString( self->vs->getName().c_str() );
+}
+
 static char ViewShape_setSShape___doc__[] =
 ".. method:: setSShape(iSShape)\n"
 "\n"
@@ -282,6 +294,7 @@ static PyMethodDef BPy_ViewShape_methods[] = {
 	{"vertices", ( PyCFunction ) ViewShape_vertices, METH_NOARGS, ViewShape_vertices___doc__},
 	{"edges", ( PyCFunction ) ViewShape_edges, METH_NOARGS, ViewShape_edges___doc__},
 	{"getId", ( PyCFunction ) ViewShape_getId, METH_NOARGS, ViewShape_getId___doc__},
+	{"getName", ( PyCFunction ) ViewShape_getName, METH_NOARGS, ViewShape_getName___doc__},
 	{"setSShape", ( PyCFunction ) ViewShape_setSShape, METH_VARARGS, ViewShape_setSShape___doc__},
 	{"setVertices", ( PyCFunction ) ViewShape_setVertices, METH_VARARGS, ViewShape_setVertices___doc__},
 	{"setEdges", ( PyCFunction ) ViewShape_setEdges, METH_VARARGS, ViewShape_setEdges___doc__},

@@ -156,10 +156,10 @@ public:
       increment();
       return *this;
     }
-    virtual incoming_edge_iterator operator++(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
-      incoming_edge_iterator tmp = *this;        // C'est pour cela qu'on stocke la valeur
-      increment();                    // dans un temporaire. 
+    virtual incoming_edge_iterator operator++(int)  // operator corresponding to i++
+    {
+      incoming_edge_iterator tmp = *this;
+      increment();
       return tmp;
     } 
   
@@ -231,10 +231,10 @@ public:
       increment();
       return *this;
     }
-    virtual face_iterator operator++(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
-      face_iterator tmp = *this;        // C'est pour cela qu'on stocke la valeur
-      increment();                    // dans un temporaire. 
+    virtual face_iterator operator++(int)  // operator corresponding to i++ 
+    {
+      face_iterator tmp = *this;
+      increment();
       return tmp;
     } 
   
@@ -699,6 +699,7 @@ protected:
   vector<WEdge*>   _EdgeList;
   vector<WFace*>   _FaceList;
   int _Id; 
+  string _Name;
   static unsigned _SceneCurrentId;
   Vec3r _min;
   Vec3r _max;
@@ -752,6 +753,7 @@ public:
   inline const FrsMaterial& frs_material(unsigned i) const  {return _FrsMaterials[i];}
   inline const vector<FrsMaterial>& frs_materials() const {return _FrsMaterials;}
   inline const real getMeanEdgeSize() const {return _meanEdgeSize;}
+  inline const string& getName() const {return _Name;}
   /*! modifiers */
   static inline void setCurrentId(const unsigned id) { _SceneCurrentId = id; }
   inline void setEdgeList(const vector<WEdge*>& iEdgeList) {_EdgeList = iEdgeList;}
@@ -761,6 +763,7 @@ public:
   inline void setBBox(const Vec3r& min, const Vec3r& max) {_min = min; _max=max;}
   inline void setFrsMaterial(const FrsMaterial& frs_material, unsigned i) {_FrsMaterials[i]=frs_material;}
   inline void setFrsMaterials(const vector<FrsMaterial>& iMaterials) {_FrsMaterials = iMaterials;}
+  inline void setName(const string& name) {_Name = name;}
 
   /*! designed to build a specialized WFace 
    *  for use in MakeFace

@@ -936,6 +936,7 @@ private:
   vector<SVertex*> _verticesList;  // list of all vertices
   vector<FEdge*>   _edgesList;     // list of all edges
   Id _Id;
+  string _Name;
   BBox<Vec3r> _BBox;
   vector<FrsMaterial> _FrsMaterials;  
 
@@ -961,6 +962,7 @@ public:
   {
     userdata = 0;
     _Id = iBrother._Id;
+    _Name = iBrother._Name;
     _BBox = iBrother.bbox();
     _FrsMaterials = iBrother._FrsMaterials;
 
@@ -1416,10 +1418,14 @@ public:
   inline float importance() const {return _importance;}
   /*! Returns the Id of the Shape. */
   inline Id getId() const { return _Id; }
+  /*! Returns the name of the Shape. */
+  inline const string& getName() const { return _Name; }
   
   /* Modififers */
   /*! Sets the Id of the shape.*/
   inline void setId(Id id) {_Id = id;}
+  /*! Sets the name of the shape.*/
+  inline void setName(const string& name) {_Name = name;}
   /*! Sets the list of materials for the shape */
   inline void setFrsMaterials(const vector<FrsMaterial>& iMaterials) {_FrsMaterials = iMaterials;}
   inline void setViewShape(ViewShape *iShape) {_ViewShape = iShape;}

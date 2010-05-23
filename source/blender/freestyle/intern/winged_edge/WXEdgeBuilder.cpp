@@ -26,6 +26,7 @@ void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs)
   WXShape *shape = new WXShape;
   buildWShape(*shape, ifs);
   shape->setId(ifs.getId().getFirst());
+  shape->setName(ifs.getName());
   //ifs.setId(shape->GetId());
 }
 
