@@ -123,8 +123,8 @@ public:
   }
 
   // MATERIAL BOUNDARY
-  virtual void FEdgeXDetector::processMaterialBoundaryShape(WXShape* iWShape);
-  virtual void FEdgeXDetector::ProcessMaterialBoundaryEdge(WXEdge *iEdge);
+  virtual void processMaterialBoundaryShape(WXShape* iWShape);
+  virtual void ProcessMaterialBoundaryEdge(WXEdge *iEdge);
 
   // EVERYBODY
   virtual void buildSmoothEdges(WXShape* iShape);
