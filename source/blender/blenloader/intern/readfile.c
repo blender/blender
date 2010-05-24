@@ -10971,7 +10971,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filename)
 		switch(bhead->code) {
 		case DATA:
 		case DNA1:
-		case TEST:
+		case TEST: /* used as preview since 2.5x */
 		case REND:
 			bhead = blo_nextbhead(fd, bhead);
 			break;

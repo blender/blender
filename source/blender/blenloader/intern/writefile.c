@@ -62,6 +62,7 @@ Any case: direct data is ALWAYS after the lib block
 	- write library block
 	- per LibBlock
 		- write the ID of LibBlock
+- write TEST (128x128, blend file preview, optional)
 - write FileGlobal (some global vars)
 - write SDNA
 - write USER if filename is ~/.B.blend
@@ -2390,9 +2391,19 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }
 
+/* preview image, first 2 values are width and height
+ * second are an RGBA image (unsigned char)
+ * note, this uses 'TEST' since new types will segfault on file load for older blender versions.
+ */
+static void write_thumb(WriteData *wd, int *img)
+{
+	if(img)
+		writedata(wd, TEST, (2 + img[0] * img[1]) * sizeof(int), img);
+}
+
 /* if MemFile * there's filesave to memory */
 static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFile *current, 
-							 int write_user_block, int write_flags)
+							 int write_user_block, int write_flags, int *thumb)
 {
 	BHead bhead;
 	ListBase mainlist;
@@ -2407,6 +2418,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	mywrite(wd, buf, 12);
 
 	write_renderinfo(wd, mainvar);
+	write_thumb(wd, thumb);
 	write_global(wd, write_flags, mainvar);
 
 	/* no UI save in undo */
@@ -2458,7 +2470,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 }
 
 /* return: success (1) */
-int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *reports)
+int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *reports, int *thumb)
 {
 	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
 	char tempname[FILE_MAXDIR+FILE_MAXFILE+1];
@@ -2497,7 +2509,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 		makeFilesRelative(dir, NULL); /* note, making relative to something OTHER then G.sce */
 
 	/* actual file writing */
-	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags);
+	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags, thumb);
 	close(file);
 
 	/* rename/compress */
@@ -2550,7 +2562,7 @@ int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int wr
 {
 	int err;
 
-	err= write_file_handle(mainvar, 0, compare, current, 0, write_flags);
+	err= write_file_handle(mainvar, 0, compare, current, 0, write_flags, NULL);
 	
 	if(err==0) return 1;
 	return 0;
@@ -2646,7 +2658,7 @@ int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *repo
 	outfd= open(gamename, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
 	if (outfd != -1) {
 
-		write_file_handle(mainvar, outfd, NULL,NULL, 0, G.fileflags);
+		write_file_handle(mainvar, outfd, NULL,NULL, 0, G.fileflags, NULL);
 
 		if (write(outfd, " ", 1) != 1) {
 			BKE_report(reports, RPT_ERROR, "Unable to write to output file.");
@@ -2732,7 +2744,7 @@ int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *repo
 
 	datastart= lseek(outfd, 0, SEEK_CUR);
 
-	write_file_handle(mainvar, outfd, NULL,NULL, 0, G.fileflags);
+	write_file_handle(mainvar, outfd, NULL,NULL, 0, G.fileflags, NULL);
 
 	if (!handle_write_msb_int(outfd, datastart) || (write(outfd, "BRUNTIME", 8)!=8)) {
 		BKE_report(reports, RPT_ERROR, "Unable to write to output file.");
