@@ -97,11 +97,11 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_shade_flat);
 	WM_operatortype_append(CURVE_OT_tilt_clear);
 	
-	WM_operatortype_append(CURVE_OT_primitive_bezier_add);
+	WM_operatortype_append(CURVE_OT_primitive_bezier_curve_add);
 	WM_operatortype_append(CURVE_OT_primitive_bezier_circle_add);
 	WM_operatortype_append(CURVE_OT_primitive_nurbs_curve_add);
 	WM_operatortype_append(CURVE_OT_primitive_nurbs_circle_add);
-	WM_operatortype_append(CURVE_OT_primitive_curve_path_add);
+	WM_operatortype_append(CURVE_OT_primitive_nurbs_path_add);
 
 	WM_operatortype_append(CURVE_OT_smooth);
 	WM_operatortype_append(CURVE_OT_smooth_radius);
@@ -185,8 +185,8 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	/* only set in editmode curve, by space_view3d listener */
 	keymap= WM_keymap_find(keyconf, "Curve", 0, 0);
 	keymap->poll= ED_operator_editsurfcurve;
-	
-	WM_keymap_add_item(keymap, "OBJECT_OT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+
+    WM_keymap_add_menu(keymap, "INFO_MT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_select_all", AKEY, KM_PRESS, 0, 0);

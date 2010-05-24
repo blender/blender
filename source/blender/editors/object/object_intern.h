@@ -105,7 +105,6 @@ void OBJECT_OT_select_same_group(struct wmOperatorType *ot);
 /* object_add.c */
 void OBJECT_OT_add(struct wmOperatorType *ot);
 void OBJECT_OT_add_named(struct wmOperatorType *ot);
-void OBJECT_OT_curve_add(struct wmOperatorType *ot);
 void OBJECT_OT_surface_add(struct wmOperatorType *ot);
 void OBJECT_OT_metaball_add(struct wmOperatorType *ot);
 void OBJECT_OT_text_add(struct wmOperatorType *ot);

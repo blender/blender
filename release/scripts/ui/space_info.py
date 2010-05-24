@@ -206,11 +206,11 @@ class INFO_MT_curve_add(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("curve.primitive_bezier_add", icon='CURVE_BEZCURVE', text="Bezier")
+        layout.operator("curve.primitive_bezier_curve_add", icon='CURVE_BEZCURVE', text="Bezier")
         layout.operator("curve.primitive_bezier_circle_add", icon='CURVE_BEZCIRCLE', text="Circle")
         layout.operator("curve.primitive_nurbs_curve_add", icon='CURVE_NCURVE', text="Nurbs Curve")
         layout.operator("curve.primitive_nurbs_circle_add", icon='CURVE_NCIRCLE', text="Nurbs Circle")
-        layout.operator("curve.primitive_curve_path_add", icon='CURVE_PATH', text="Path")
+        layout.operator("curve.primitive_nurbs_path_add", icon='CURVE_PATH', text="Path")
 
 class INFO_MT_armature_add(bpy.types.Menu):
     bl_idname = "INFO_MT_armature_add"

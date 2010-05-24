@@ -5256,7 +5256,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	
 	return nu;
 }
-static int curve_prim_add(bContext *C, wmOperator *op,int type){
+
+static int curve_prim_add(bContext *C, wmOperator *op, int type){
 	
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb;
@@ -5300,16 +5301,15 @@ static int curve_prim_add(bContext *C, wmOperator *op,int type){
 
 static int add_primitive_bezier_exec(bContext *C, wmOperator *op)
 {
-	if (curve_prim_add(C,op,CU_BEZIER|CU_PRIM_CURVE))
-		return OPERATOR_FINISHED;
+	return curve_prim_add(C, op, CU_BEZIER|CU_PRIM_CURVE);
 }
 
-void CURVE_OT_primitive_bezier_add(wmOperatorType *ot)
+void CURVE_OT_primitive_bezier_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Bezier";
 	ot->description= "Construct a Bezier Curve";
-	ot->idname= "CURVE_OT_primitive_bezier_add";
+	ot->idname= "CURVE_OT_primitive_bezier_curve_add";
 	
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
@@ -5324,8 +5324,7 @@ void CURVE_OT_primitive_bezier_add(wmOperatorType *ot)
 
 static int add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
 {
-	if(curve_prim_add(C,op,CU_BEZIER|CU_PRIM_CIRCLE))
-		return OPERATOR_FINISHED;
+	return curve_prim_add(C, op, CU_BEZIER|CU_PRIM_CIRCLE);
 }
 
 void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
@@ -5348,8 +5347,7 @@ void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
 
 static int add_primitive_nurbs_curve_exec(bContext *C, wmOperator *op)
 {
-	if(curve_prim_add(C,op,CU_NURBS|CU_PRIM_CURVE))
-		return OPERATOR_FINISHED;
+	return curve_prim_add(C, op, CU_NURBS|CU_PRIM_CURVE);
 }
 
 void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
@@ -5372,8 +5370,7 @@ void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
 
 static int add_primitive_nurbs_circle_exec(bContext *C, wmOperator *op)
 {
-	if(curve_prim_add(C,op,CU_NURBS|CU_PRIM_CIRCLE))
-		return OPERATOR_FINISHED;
+	return curve_prim_add(C, op, CU_NURBS|CU_PRIM_CIRCLE);
 }
 
 void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
@@ -5396,16 +5393,15 @@ void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
 
 static int add_primitive_curve_path_exec(bContext *C, wmOperator *op)
 {
-	if(curve_prim_add(C,op,CU_NURBS|CU_PRIM_PATH))
-		return OPERATOR_FINISHED;
+	return curve_prim_add(C, op, CU_NURBS|CU_PRIM_PATH);
 }
 
-void CURVE_OT_primitive_curve_path_add(wmOperatorType *ot)
+void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Path";
 	ot->description= "Construct a Path";
-	ot->idname= "CURVE_OT_primitive_curve_path_add";
+	ot->idname= "CURVE_OT_primitive_nurbs_path_add";
 	
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
