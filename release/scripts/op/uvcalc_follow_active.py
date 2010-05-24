@@ -180,7 +180,7 @@ def extend(obj, operator, EXTEND_MODE):
     #SEAM = me.edges.seam
 
     if EXTEND_MODE == 'LENGTH':
-        edge_loops = me.edge_loops(face_sel, [ed.key for ed in me.edges if ed.seam])
+        edge_loops = me.edge_loops_from_faces(face_sel, [ed.key for ed in me.edges if ed.seam])
         me_verts = me.verts
         for loop in edge_loops:
             looplen = [0.0]
