@@ -33,9 +33,21 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_args.h"
 #include "BLI_ghash.h"
+
+char NO_DOCS[] = "NO DOCUMENTATION SPECIFIED";
+
+struct bArgDoc;
+typedef struct bArgDoc {
+	struct bArgDoc *next, *prev;
+	char *short_arg;
+	char *long_arg;
+	char *documentation;
+	int  done;
+} bArgDoc;
 
 typedef struct bAKey {
 	char *arg;
@@ -47,9 +59,11 @@ typedef struct bArgument {
 	bAKey *key;
 	BA_ArgCallback func;
 	void *data;
+	bArgDoc *doc;
 } bArgument;
 
 struct bArgs {
+	ListBase docs;
 	GHash  *items;
 	int 	argc;
 	char  **argv;
@@ -70,7 +84,7 @@ static unsigned int case_strhash(void *ptr) {
 static unsigned int	keyhash(void *ptr)
 {
 	bAKey *k = ptr;
-	return case_strhash(k->arg) ^ BLI_ghashutil_inthash((void*)k->pass);
+	return case_strhash(k->arg); // ^ BLI_ghashutil_inthash((void*)k->pass);
 }
 
 static int keycmp(void *a, void *b)
@@ -103,6 +117,7 @@ bArgs *BLI_argsInit(int argc, char **argv)
 	bArgs *ba = MEM_callocN(sizeof(bArgs), "bArgs");
 	ba->passes = MEM_callocN(sizeof(int) * argc, "bArgs passes");
 	ba->items = BLI_ghash_new(keyhash, keycmp, "bArgs passes gh");
+	ba->docs.first = ba->docs.last = NULL;
 	ba->argc = argc;
 	ba->argv = argv;
 
@@ -118,6 +133,7 @@ void BLI_argsFree(struct bArgs *ba)
 {
 	BLI_ghash_free(ba->items, freeItem, freeItem);
 	MEM_freeN(ba->passes);
+	BLI_freelistN(&ba->docs);
 	MEM_freeN(ba);
 }
 
@@ -134,7 +150,25 @@ char **BLI_argsArgv(struct bArgs *ba)
 	return ba->argv;
 }
 
-static void internalAdd(struct bArgs *ba, char *arg, int pass, int case_str, BA_ArgCallback cb, void *data)
+static bArgDoc *internalDocs(struct bArgs *ba, char *short_arg, char *long_arg, char *doc)
+{
+	bArgDoc *d;
+
+	d = MEM_callocN(sizeof(bArgDoc), "bArgDoc");
+
+	if (doc == NULL)
+		doc = NO_DOCS;
+
+	d->short_arg = short_arg;
+	d->long_arg = long_arg;
+	d->documentation = doc;
+
+	BLI_addtail(&ba->docs, d);
+
+	return d;
+}
+
+static void internalAdd(struct bArgs *ba, char *arg, int pass, int case_str, BA_ArgCallback cb, void *data, bArgDoc *d)
 {
 	bArgument *a;
 	bAKey *key;
@@ -157,36 +191,73 @@ static void internalAdd(struct bArgs *ba, char *arg, int pass, int case_str, BA_
 	a->key = key;
 	a->func = cb;
 	a->data = data;
+	a->doc = d;
 
 	BLI_ghash_insert(ba->items, key, a);
 }
 
-void BLI_argsAdd(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, void *data)
+void BLI_argsAddCase(struct bArgs *ba, int pass, char *short_arg, int short_case, char *long_arg, int long_case, char *doc, BA_ArgCallback cb, void *data)
 {
-	internalAdd(ba, arg, pass, 0, cb, data);
+	bArgDoc *d = internalDocs(ba, short_arg, long_arg, doc);
+
+	if (short_arg)
+		internalAdd(ba, short_arg, pass, short_case, cb, data, d);
+
+	if (long_arg)
+		internalAdd(ba, long_arg, pass, long_case, cb, data, d);
+
+
 }
 
-void BLI_argsAddPair(struct bArgs *ba, char *arg_short, char *arg_long, int pass, BA_ArgCallback cb, void *data)
+void BLI_argsAdd(struct bArgs *ba, int pass, char *short_arg, char *long_arg, char *doc, BA_ArgCallback cb, void *data)
 {
-	internalAdd(ba, arg_short, pass, 0, cb, data);
-	internalAdd(ba, arg_long, pass, 0, cb, data);
+	BLI_argsAddCase(ba, pass, short_arg, 0, long_arg, 0, doc, cb, data);
 }
 
-void BLI_argsAddCase(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, void *data)
+static void internalDocPrint(bArgDoc *d)
 {
-	internalAdd(ba, arg, pass, 1, cb, data);
+	if (d->short_arg && d->long_arg)
+		printf("%s or %s", d->short_arg, d->long_arg);
+	else if (d->short_arg)
+		printf("%s", d->short_arg);
+	else if (d->long_arg)
+		printf("%s", d->long_arg);
+
+	printf(" %s\n\n", d->documentation);
 }
 
+void BLI_argsPrintArgDoc(struct bArgs *ba, char *arg)
+{
+	bArgument *a = lookUp(ba, arg, -1, -1);
+
+	if (a)
+	{
+		bArgDoc *d = a->doc;
+
+		internalDocPrint(d);
+
+		d->done = 1;
+	}
+}
+
+void BLI_argsPrintOtherDoc(struct bArgs *ba)
+{
+	bArgDoc *d;
+
+	for( d = ba->docs.first; d; d = d->next)
+	{
+		if (d->done == 0)
+		{
+			internalDocPrint(d);
+		}
+	}
+}
 
 void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *default_data)
 {
 	int i = 0;
 
 	for( i = 1; i < ba->argc; i++) { /* skip argv[0] */
-		/* stop on -- */
-		if (BLI_streq(ba->argv[i], "--"))
-			break;
-
 		if (ba->passes[i] == 0) {
 			 /* -1 signal what side of the comparison it is */
 			bArgument *a = lookUp(ba, ba->argv[i], pass, -1);

@@ -38,6 +38,9 @@
 #define TRUE 1
 #endif
 
+/* Macro to convert a value to string in the preprocessor */
+#define QUOTE(x) #x
+
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in DNA_space_types.h */
 #ifndef FILE_MAXDIR
