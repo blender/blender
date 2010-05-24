@@ -149,7 +149,7 @@ static void stats_background(void *unused, RenderStats *rs)
 	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
 	megs_peak_memory = (peak_memory)/(1024.0*1024.0);
 
-	spos+= sprintf(spos, "Fra:%d Mem:%.2fM (%.2fM, combined peak %.2fM) ", rs->cfra,
+	spos+= sprintf(spos, "Fra:%d Mem:%.2fM (%.2fM, peak %.2fM) ", rs->cfra,
 				   megs_used_memory, mmap_used_memory, megs_peak_memory);
 	
 	if(rs->curfield)

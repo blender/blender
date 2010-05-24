@@ -228,7 +228,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("        When the filename does not contain #, The suffix #### is added to the filename\n");
 	printf ("      The frame number will be added at the end of the filename.\n");
 	printf ("        eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
-	printf ("        test-######.png becomes test-000001.png\n\n");
+	printf ("        //render_ becomes //render_####, writing frames as //render_0001.png//\n");
 
 	printf ("    -E or --engine <engine>\n");
 	printf ("      Specify the render engine.\n");

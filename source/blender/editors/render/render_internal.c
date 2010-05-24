@@ -479,7 +479,7 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (scene->r.cfra), rs->totvert, rs->totface);
 		if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
 		if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
-		spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM, combined peak %.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory, megs_peak_memory);
+		spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM, peak %.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory, megs_peak_memory);
 
 		if(rs->curfield)
 			spos+= sprintf(spos, "Field %d ", rs->curfield);
