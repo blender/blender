@@ -154,7 +154,7 @@ static void rna_Sensor_keyboard_key_set(struct PointerRNA *ptr, int value)
 	bSensor *sens= (bSensor *)ptr->data;
 	bKeyboardSensor *ks = sens->data;
 	
-	if (ISKEYBOARD(value) && !ISKEYMODIFIER(value))
+	if (ISKEYBOARD(value))
 		ks->key = value;
 }
 
@@ -163,7 +163,7 @@ static void rna_Sensor_keyboard_modifier_set(struct PointerRNA *ptr, int value)
 	bSensor *sens= (bSensor *)ptr->data;
 	bKeyboardSensor *ks = sens->data;
 	
-	if (ISKEYMODIFIER(value))
+	if (ISKEYBOARD(value))
 		ks->qual = value;
 }
 		
@@ -172,7 +172,7 @@ static void rna_Sensor_keyboard_modifier2_set(struct PointerRNA *ptr, int value)
 	bSensor *sens= (bSensor *)ptr->data;
 	bKeyboardSensor *ks = sens->data;
 	
-	if (ISKEYMODIFIER(value))
+	if (ISKEYBOARD(value))
 		ks->qual2 = value;
 }
 

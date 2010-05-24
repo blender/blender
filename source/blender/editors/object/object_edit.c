@@ -2239,15 +2239,7 @@ static int game_property_copy_invoke(bContext *C, wmOperator *op, wmEvent *event
 	else {
 		uiItemEnumO(menu, "OBJECT_OT_game_property_copy", NULL, 0, "type", 1);//REPLACE);
 		uiItemEnumO(menu, "OBJECT_OT_game_property_copy", NULL, 0, "type", 2);//MERGE);
-
-		//Menu Separator
-		uiItemL(menu, "Copy a Property", 0);
-
-		prop= ob->prop.first;
-		while(prop) {
-			uiItemStringO(menu, prop->name, 0, "OBJECT_OT_game_property_copy", "property", prop->name);
-			prop= prop->next;
-		}
+		uiItemMenuEnumO(menu, "OBJECT_OT_game_property_copy", "property", "Copy Property", 0);//COPY
 	}
 	uiPupMenuEnd(C, pup);
 
@@ -2255,14 +2247,50 @@ static int game_property_copy_invoke(bContext *C, wmOperator *op, wmEvent *event
 	return OPERATOR_CANCELLED;
 }
 
+static EnumPropertyItem gameprops_items[]= {
+	{0, NULL, 0, NULL, NULL}};
+
+static EnumPropertyItem *gameprops_itemf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	bProperty *prop;
+	int a, totitem= 0;
+	
+	if(!ob)
+		return gameprops_items;
+
+	for(a=1, prop= ob->prop.first; prop; prop=prop->next, a++) {
+		tmp.value= a;
+		tmp.identifier= prop->name;
+		tmp.name= prop->name;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
 static int game_property_copy_exec(bContext *C, wmOperator *op)
 {
 	Object *ob=ED_object_active_context(C);
 	bProperty *prop;
-	char prop_name[32];
+
+	int tmp_int; //need an int pointer to pass for the RNA_enum_name
+	EnumPropertyItem *dyn_props= NULL;
+	const char *prop_name= NULL;
 
 	int type = RNA_enum_get(op->ptr, "type");
-	RNA_string_get(op->ptr, "property", prop_name);
+	int propid= RNA_enum_get(op->ptr, "property");
+
+	// recreate the dynamic enum with the properties	
+	dyn_props = gameprops_itemf(C, NULL, &tmp_int);
+
+	if (propid > 0)
+		RNA_enum_name(dyn_props, propid, &prop_name);
 
 	if ( type == 1 || type == 2 || type == 3) {
 		CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
@@ -2279,7 +2307,7 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	else if(strlen(prop_name) > 0) { /* copy */
+	else if(prop_name) { /* copy */
 		prop = (bProperty *) BLI_findstring(&ob->prop, prop_name, offsetof(bProperty, name));
 		
 		if(prop) {
@@ -2296,6 +2324,7 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	/* identifiers */
 	ot->name= "Copy Game Property";
 	ot->idname= "OBJECT_OT_game_property_copy";
@@ -2309,7 +2338,9 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "type", game_properties_copy_types, 4, "Operation", "");
-	RNA_def_string(ot->srna, "property", "", 32, "Name", "Name of the property to copy");
+	prop=RNA_def_enum(ot->srna, "property", gameprops_items, 0, "Property", "Properties to copy");
+	RNA_def_enum_funcs(prop, gameprops_itemf);
+	ot->prop=prop;
 }
 
 /************************ Copy Logic Bricks ***********************/
