@@ -2250,6 +2250,16 @@ void DAG_on_load_update(void)
 	}
 }
 
+static void dag_id_flush_update__isDependentTexture(void *userData, Object *ob, ID **idpoin)
+{
+	struct { ID *id; int is_dependent; } *data = userData;
+	
+	if(*idpoin && GS((*idpoin)->name)==ID_TE) {
+		if (data->id == (*idpoin))
+			data->is_dependent = 1;
+	}
+}
+
 void DAG_id_flush_update(ID *id, short flag)
 {
 	Main *bmain= G.main;
@@ -2301,6 +2311,17 @@ void DAG_id_flush_update(ID *id, short flag)
 					if(obt->type==OB_CURVE || obt->type==OB_SURF)
 						break;
 				}
+			}
+		}
+		
+		/* set flags based on textures - can influence depgraph via modifiers */
+		if(idtype == ID_TE) {
+			for(obt=bmain->object.first; obt; obt= obt->id.next) {
+				struct { ID *id; int is_dependent; } data = {id, 0};
+				
+				modifiers_foreachIDLink(obt, dag_id_flush_update__isDependentTexture, &data);
+				if (data.is_dependent)
+					obt->recalc |= OB_RECALC_DATA;
 			}
 		}
 		

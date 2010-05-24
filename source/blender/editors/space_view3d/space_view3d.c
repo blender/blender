@@ -610,6 +610,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			 * more context than just the region */
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_TEXTURE:	
+			/* same as above */
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_VIEW3D) {
 				if (wmn->subtype == NS_VIEW3D_GPU) {
