@@ -276,6 +276,7 @@ ifndef CONFIG_GUESS
     endif
 
     export BF_PCRE = $(LCGDIR)/opencollada
+    export BF_OPENCOLLADA_LIBS = $(BF_OPENCOLLADA)/lib/libOpenCOLLADASaxFrameworkLoader.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAFramework.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADABaseUtils.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAStreamWriter.a $(BF_OPENCOLLADA)/lib/libMathMLSolver.a $(BF_OPENCOLLADA)/lib/libGeneratedSaxParser.a $(BF_OPENCOLLADA)/lib/libUTF.a $(BF_OPENCOLLADA)/lib/libftoa.a $(BF_OPENCOLLADA)/lib/libbuffer.a -lxml2
 
   else
   ifeq ($(OS),freebsd)
