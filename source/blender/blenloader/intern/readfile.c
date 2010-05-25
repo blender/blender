@@ -10878,31 +10878,33 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			if(ob->parent) {
 				Object *parent= (Object *)newlibadr(fd, lib, ob->parent);
-				if(parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
-					ArmatureModifierData *amd;
-					bArmature *arm= (bArmature *)newlibadr(fd, lib, parent->data);
+				if(parent) { /* parent may not be in group */
+					if(parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
+						ArmatureModifierData *amd;
+						bArmature *arm= (bArmature *)newlibadr(fd, lib, parent->data);
 
-					amd = (ArmatureModifierData*) modifier_new(eModifierType_Armature);
-					amd->object = ob->parent;
-					BLI_addtail((ListBase*)&ob->modifiers, amd);
-					amd->deformflag= arm->deformflag;
-					ob->partype = PAROBJECT;
-				}
-				else if(parent->type==OB_LATTICE && ob->partype==PARSKEL) {
-					LatticeModifierData *lmd;
+						amd = (ArmatureModifierData*) modifier_new(eModifierType_Armature);
+						amd->object = ob->parent;
+						BLI_addtail((ListBase*)&ob->modifiers, amd);
+						amd->deformflag= arm->deformflag;
+						ob->partype = PAROBJECT;
+					}
+					else if(parent->type==OB_LATTICE && ob->partype==PARSKEL) {
+						LatticeModifierData *lmd;
 
-					lmd = (LatticeModifierData*) modifier_new(eModifierType_Lattice);
-					lmd->object = ob->parent;
-					BLI_addtail((ListBase*)&ob->modifiers, lmd);
-					ob->partype = PAROBJECT;
-				}
-				else if(parent->type==OB_CURVE && ob->partype==PARCURVE) {
-					CurveModifierData *cmd;
+						lmd = (LatticeModifierData*) modifier_new(eModifierType_Lattice);
+						lmd->object = ob->parent;
+						BLI_addtail((ListBase*)&ob->modifiers, lmd);
+						ob->partype = PAROBJECT;
+					}
+					else if(parent->type==OB_CURVE && ob->partype==PARCURVE) {
+						CurveModifierData *cmd;
 
-					cmd = (CurveModifierData*) modifier_new(eModifierType_Curve);
-					cmd->object = ob->parent;
-					BLI_addtail((ListBase*)&ob->modifiers, cmd);
-					ob->partype = PAROBJECT;
+						cmd = (CurveModifierData*) modifier_new(eModifierType_Curve);
+						cmd->object = ob->parent;
+						BLI_addtail((ListBase*)&ob->modifiers, cmd);
+						ob->partype = PAROBJECT;
+					}
 				}
 			}
 		}
