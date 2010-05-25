@@ -114,7 +114,23 @@ bool BL_ModifierDeformer::HasCompatibleDeformer(Object *ob)
 			continue;
 		if (!(md->mode & eModifierMode_Realtime))
 			continue;
+		/* armature modifier are handled by SkinDeformer, not ModifierDeformer */
+		if (md->type == eModifierType_Armature )
+			continue;
 		return true;
+	}
+	return false;
+}
+
+bool BL_ModifierDeformer::HasArmatureDeformer(Object *ob)
+{
+	if (!ob->modifiers.first)
+		return false;
+
+	ModifierData* md;
+	for (md = (ModifierData*)ob->modifiers.first; md; md = (ModifierData*)md->next) {
+		if (md->type == eModifierType_Armature )
+			return true;
 	}
 	return false;
 }

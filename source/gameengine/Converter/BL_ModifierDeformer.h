@@ -45,6 +45,7 @@ class BL_ModifierDeformer : public BL_ShapeDeformer
 {
 public:
 	static bool HasCompatibleDeformer(Object *ob);
+	static bool HasArmatureDeformer(Object *ob);
 
 
 	BL_ModifierDeformer(BL_DeformableGameObject *gameobj,
