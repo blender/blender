@@ -10877,14 +10877,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* parent type to modifier */
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			if(ob->parent) {
-				Object *parent= newlibadr(fd, lib, ob->parent);
+				Object *parent= (Object *)newlibadr(fd, lib, ob->parent);
 				if(parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
 					ArmatureModifierData *amd;
+					bArmature *arm= (bArmature *)newlibadr(fd, lib, parent->data);
 
 					amd = (ArmatureModifierData*) modifier_new(eModifierType_Armature);
 					amd->object = ob->parent;
 					BLI_addtail((ListBase*)&ob->modifiers, amd);
-					amd->deformflag= ((bArmature *)(parent->data))->deformflag;
+					amd->deformflag= arm->deformflag;
 					ob->partype = PAROBJECT;
 				}
 				else if(parent->type==OB_LATTICE && ob->partype==PARSKEL) {
