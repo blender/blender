@@ -675,6 +675,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.menu("VIEW3D_MT_object_track")
         layout.menu("VIEW3D_MT_object_group")
         layout.menu("VIEW3D_MT_object_constraints")
+        layout.menu("VIEW3D_MT_object_game_properties")
 
         layout.separator()
 
@@ -842,6 +843,17 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
         layout.operator_menu_enum("marker.make_links_scene", "scene", text="Markers to Scene...")
         layout.operator_enums("object.make_links_data", "type") # inline
 
+
+class VIEW3D_MT_object_game_properties(bpy.types.Menu):
+    bl_label = "Game Properties"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.game_property_copy", text="Replace").operation="REPLACE"
+        layout.operator("object.game_property_copy", text="Merge").operation="MERGE"
+        # layout.operator("object.game_property_copy").operation="CLEAR" doesn't really belong as part of copy...
+        layout.operator_menu_enum("object.game_property_copy", "property", text="Copy...")
 
 # ********** Vertex paint menu **********
 
@@ -2208,6 +2220,7 @@ classes = [
     VIEW3D_MT_object_track,
     VIEW3D_MT_object_group,
     VIEW3D_MT_object_constraints,
+    VIEW3D_MT_object_game_properties,
     VIEW3D_MT_object_showhide,
     VIEW3D_MT_make_single_user,
     VIEW3D_MT_make_links,
