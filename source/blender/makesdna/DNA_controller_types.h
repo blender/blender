@@ -84,5 +84,9 @@ typedef struct bController {
 /* pyctrl->flag */
 #define CONT_PY_DEBUG	1
 
+/* pyctrl->mode */
+#define CONT_PY_SCRIPT	0
+#define CONT_PY_MODULE	1
+
 #endif
 

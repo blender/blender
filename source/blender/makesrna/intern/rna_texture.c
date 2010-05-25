@@ -620,13 +620,13 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Ignore Layers", "Hide objects on these layers when generating the Environment Map");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
-	prop= RNA_def_property(srna, "resolution", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "resolution", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "cuberes");
 	RNA_def_property_range(prop, 50, 4096);
 	RNA_def_property_ui_text(prop, "Resolution", "Pixel resolution of the rendered environment map");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
-	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_range(prop, 0, 5);
 	RNA_def_property_ui_text(prop, "Depth", "Number of times a map will be rendered recursively (mirror effects.)");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
@@ -1205,7 +1205,7 @@ static void rna_def_texture_musgrave(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lacunarity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "mg_lacunarity");
 	RNA_def_property_range(prop, 0, 6);
-	RNA_def_property_ui_text(prop, "Lacunarity", "Gap between succesive frequencies");
+	RNA_def_property_ui_text(prop, "Lacunarity", "Gap between successive frequencies");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "octaves", PROP_FLOAT, PROP_NONE);
@@ -1489,7 +1489,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "speed_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "speed_scale");
 	RNA_def_property_range(prop, 0.001, 100.0);
-	RNA_def_property_ui_text(prop, "Scale", "Multipler to bring particle speed within an acceptable range");
+	RNA_def_property_ui_text(prop, "Scale", "Multiplier to bring particle speed within an acceptable range");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NEVER_NULL);
@@ -1531,7 +1531,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noise_basis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
-	RNA_def_property_ui_text(prop, "Noise Basis", "Noise formula used for tubulence");
+	RNA_def_property_ui_text(prop, "Noise Basis", "Noise formula used for turbulence");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 

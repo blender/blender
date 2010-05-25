@@ -192,6 +192,7 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
 	ANIMFILTER_NLATRACKS	= (1<<10),	/* only include NLA-tracks */
 	ANIMFILTER_SELEDIT		= (1<<11),	/* link editability with selected status */
+	ANIMFILTER_NODUPLIS		= (1<<12),	/* duplicate entries for animation data attached to multi-user blocks must not occur */
 	
 	/* all filters - the power inside the bracket must be the last power for left-shifts + 1 */
 	ANIMFILTER_ALLFILTERS	= ((1<<12) - 1)

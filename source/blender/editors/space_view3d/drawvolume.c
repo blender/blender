@@ -349,6 +349,11 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		}
 	}
 
+	if(i >= 8) {
+		/* fallback, avoid using buffer over-run */
+		i= 0;
+	}
+
 	// printf("i: %d\n", i);
 	// printf("point %f, %f, %f\n", cv[i][0], cv[i][1], cv[i][2]);
 

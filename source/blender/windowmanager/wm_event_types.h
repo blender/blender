@@ -213,6 +213,9 @@
 	/* test whether the event is a key on the keyboard */
 #define ISKEYBOARD(event)	(event >=' ' && event <=320)
 
+	/* test whether the event is a modifier key */
+#define ISKEYMODIFIER(event)	((event >= LEFTCTRLKEY && event <= LEFTSHIFTKEY) || event == COMMANDKEY)
+
 	/* test whether the event is a mouse button */
 #define ISMOUSE(event)	(event >= LEFTMOUSE && event <= MOUSEROTATE)
 

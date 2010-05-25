@@ -34,16 +34,23 @@
 #include <stdio.h>
 #include <setjmp.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "IMB_imginfo.h"
-#include "IMB_jpeg.h"
+#include "IMB_metadata.h"
+#include "IMB_filetype.h"
 #include "jpeglib.h" 
 #include "jerror.h"
+
+#define IS_jpg(x)		(x->ftype & JPG)
+#define IS_stdjpg(x)	((x->ftype & JPG_MSK) == JPG_STD)
+#define IS_vidjpg(x)	((x->ftype & JPG_MSK) == JPG_VID)
+#define IS_jstjpg(x)	((x->ftype & JPG_MSK) == JPG_JST)
+#define IS_maxjpg(x)	((x->ftype & JPG_MSK) == JPG_MAX)
 
 /* the types are from the jpeg lib */
 static void jpeg_error (j_common_ptr cinfo);
@@ -297,11 +304,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 			
 			for (y = ibuf->y - 1; y >= 0; y--) {
 				jpeg_read_scanlines(cinfo, row_pointer, 1);
-				if (flags & IB_ttob) {
-					rect = (uchar *) (ibuf->rect + (ibuf->y - 1 - y) * ibuf->x);
-				} else {
-					rect = (uchar *) (ibuf->rect + y * ibuf->x);
-				}
+				rect = (uchar *) (ibuf->rect + y * ibuf->x);
 				buffer = row_pointer[0];
 				
 				switch(depth) {
@@ -378,8 +381,8 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 					 * the information when we write
 					 * it back to disk.
 					 */
-					IMB_imginfo_add_field(ibuf, "None", (char *) marker->data);
-					ibuf->flags |= IB_imginfo;
+					IMB_metadata_add_field(ibuf, "None", (char *) marker->data);
+					ibuf->flags |= IB_metadata;
 					goto next_stamp_marker;
 				}
 
@@ -404,8 +407,8 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 
 				*value = '\0'; /* need finish the key string */
 				value++;
-				IMB_imginfo_add_field(ibuf, key, value);
-				ibuf->flags |= IB_imginfo;
+				IMB_metadata_add_field(ibuf, key, value);
+				ibuf->flags |= IB_metadata;
 				MEM_freeN(str);
 next_stamp_marker:
 				marker= marker->next;
@@ -453,11 +456,13 @@ ImBuf * imb_ibJpegImageFromFilename (const char * filename, int flags)
 	return(ibuf);
 }
 
-ImBuf * imb_ibJpegImageFromMemory (unsigned char * buffer, int size, int flags)
+ImBuf * imb_load_jpeg (unsigned char * buffer, int size, int flags)
 {
 	struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;
 	ImBuf * ibuf;
+
+	if(!imb_is_a_jpeg(buffer)) return NULL;
 	
 	cinfo->err = jpeg_std_error(&jerr.pub);
 	jerr.pub.error_exit = jpeg_error;
@@ -487,7 +492,7 @@ static void write_jpeg(struct jpeg_compress_struct * cinfo, struct ImBuf * ibuf)
 	uchar * rect;
 	int x, y;
 	char neogeo[128];
-	ImgInfo *iptr;
+	ImMetaData *iptr;
 	char *text;
 
 	jpeg_start_compress(cinfo, TRUE);
@@ -498,10 +503,10 @@ static void write_jpeg(struct jpeg_compress_struct * cinfo, struct ImBuf * ibuf)
 	memcpy(neogeo + 6, &ibuf_ftype, 4);
 	jpeg_write_marker(cinfo, 0xe1, (JOCTET*) neogeo, 10);
 
-	if(ibuf->img_info) {
+	if(ibuf->metadata) {
 		/* key + max value + "Blender" */
 		text= MEM_mallocN(530, "stamp info read");
-		iptr= ibuf->img_info;
+		iptr= ibuf->metadata;
 		while(iptr) {
 			if (!strcmp (iptr->key, "None")) {
 				jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *) iptr->value, strlen (iptr->value) + 1);
@@ -526,9 +531,9 @@ next_stamp_info:
 	}
 
 	row_pointer[0] =
-		mallocstruct(JSAMPLE,
+		MEM_mallocN(sizeof(JSAMPLE) *
 					 cinfo->input_components *
-					 cinfo->image_width);
+					 cinfo->image_width, "jpeg row_pointer");
 
 	for(y = ibuf->y - 1; y >= 0; y--){
 		rect = (uchar *) (ibuf->rect + y * ibuf->x);
@@ -561,7 +566,7 @@ next_stamp_info:
 	}
 
 	jpeg_finish_compress(cinfo);
-	free(row_pointer[0]);
+	MEM_freeN(row_pointer[0]);
 }
 
 
@@ -580,7 +585,7 @@ static int init_jpeg(FILE * outfile, struct jpeg_compress_struct * cinfo, struct
 	cinfo->image_height = ibuf->y;
 
 	cinfo->in_color_space = JCS_RGB;
-	if (ibuf->depth == 8 && ibuf->cmap == 0) cinfo->in_color_space = JCS_GRAYSCALE;
+	if (ibuf->depth == 8) cinfo->in_color_space = JCS_GRAYSCALE;
 	if (ibuf->depth == 32) cinfo->in_color_space = JCS_UNKNOWN;
 	
 	switch(cinfo->in_color_space){

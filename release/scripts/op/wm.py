@@ -24,8 +24,7 @@ from bpy.props import *
 
 
 class MESH_OT_delete_edgeloop(bpy.types.Operator):
-    '''Export a single object as a stanford PLY with normals,
-    colours and texture coordinates.'''
+    '''Delete an edge loop by merging the faces on each side to a single face loop'''
     bl_idname = "mesh.delete_edgeloop"
     bl_label = "Delete Edge Loop"
 

@@ -83,6 +83,7 @@ typedef struct ModifierData {
 	struct ModifierData *next, *prev;
 
 	int type, mode;
+	int stackindex, pad;
 	char name[32];
 	
 	/* XXX for timing info set by caller... solve later? (ton) */

@@ -617,6 +617,10 @@ static int binary_search_distribution(float *sum, int n, float value)
 	return low;
 }
 
+/* the max number if calls to rng_* funcs within psys_thread_distribute_particle
+ * be sure to keep up to date if this changes */
+#define PSYS_RND_DIST_SKIP 2
+
 /* note: this function must be thread safe, for from == PART_FROM_CHILD */
 #define ONLY_WORKING_WITH_PA_VERTS 0
 static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, ChildParticle *cpa, int p)
@@ -632,6 +636,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 	int cfrom= ctx->cfrom;
 	int distr= ctx->distr;
 	int i, intersect, tot;
+	int rng_skip_tot= PSYS_RND_DIST_SKIP; /* count how many rng_* calls wont need skipping */
 
 	if(from == PART_FROM_VERT) {
 		/* TODO_PARTICLE - use original index */
@@ -669,6 +674,8 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 		case PART_DISTR_RAND:
 			randu= rng_getFloat(thread->rng);
 			randv= rng_getFloat(thread->rng);
+			rng_skip_tot -= 2;
+
 			psys_uv_to_w(randu, randv, mface->v4, pa->fuv);
 			break;
 		}
@@ -751,6 +758,8 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 
 		randu= rng_getFloat(thread->rng);
 		randv= rng_getFloat(thread->rng);
+		rng_skip_tot -= 2;
+
 		psys_uv_to_w(randu, randv, mf->v4, cpa->fuv);
 
 		cpa->num = ctx->index[p];
@@ -859,6 +868,9 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 			cpa->parent=cpa->pa[0];
 		}
 	}
+
+	if(rng_skip_tot > 0) /* should never be below zero */
+		rng_skip(thread->rng, rng_skip_tot);
 }
 
 static void *exec_distribution(void *data)
@@ -875,12 +887,12 @@ static void *exec_distribution(void *data)
 
 		for(p=0; p<totpart; p++, cpa++) {
 			if(thread->ctx->skip) /* simplification skip */
-				rng_skip(thread->rng, 5*thread->ctx->skip[p]);
+				rng_skip(thread->rng, PSYS_RND_DIST_SKIP * thread->ctx->skip[p]);
 
 			if((p+thread->num) % thread->tot == 0)
 				psys_thread_distribute_particle(thread, NULL, cpa, p);
 			else /* thread skip */
-				rng_skip(thread->rng, 5);
+				rng_skip(thread->rng, PSYS_RND_DIST_SKIP);
 		}
 	}
 	else {

@@ -283,8 +283,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->mode	= smd->mode;
 	tsmd->axis  = smd->axis;
 	tsmd->origin= smd->origin;
+	tsmd->originOpts= smd->originOpts;
 	tsmd->factor= smd->factor;
 	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
+	strcpy(tsmd->vgroup_name, smd->vgroup_name);
 }
 
 static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)

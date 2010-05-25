@@ -75,9 +75,9 @@ BF_PNG_LIB = 'png'
 BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
 WITH_BF_TIFF = True
-BF_TIFF = LIBDIR + '/tiff'
+BF_TIFF = LIBDIR + '/gcc/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
-BF_TIFF_LIB = 'libtiff'
+BF_TIFF_LIB = 'tiff'
 BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 
 WITH_BF_ZLIB = True
@@ -173,9 +173,6 @@ BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib ${BF_ICONV_LIBPATH}'
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = False
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse']
-
-CC = 'i586-mingw32msvc-gcc'
-CXX = 'i586-mingw32msvc-g++'
 
 CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 

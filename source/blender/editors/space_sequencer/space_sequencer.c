@@ -306,7 +306,7 @@ static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 static int movie_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 {
 	if(drag->type==WM_DRAG_PATH)
-		if(ELEM(drag->icon, ICON_FILE_MOVIE, ICON_FILE_BLANK))	/* rule might not work? */
+		if(ELEM3(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK))	/* rule might not work? */
 			return 1;
 	return 0;
 }

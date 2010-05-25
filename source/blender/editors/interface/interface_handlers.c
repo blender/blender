@@ -2119,8 +2119,13 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 		}
 		
 		if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val==KM_PRESS) {
+			int ret = WM_UI_HANDLER_BREAK;
+			/* XXX (a bit ugly) Special case handling for filebrowser drag button */
+			if(but->dragpoin && but->imb && ui_but_mouse_inside_icon(but, data->region, event)) {
+				ret = WM_UI_HANDLER_CONTINUE;
+			}
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			return WM_UI_HANDLER_BREAK;
+			return ret;
 		}
 	}
 	else if(data->state == BUTTON_STATE_WAIT_DRAG) {

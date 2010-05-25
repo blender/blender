@@ -41,6 +41,7 @@ extern "C" {
 	#include "mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 	#include "geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
 	#include "bgl.h"
+	#include "blf_api.h"
 
 	#include "marshal.h" /* python header for loading/saving dicts */
 }
@@ -1981,6 +1982,7 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 	initMathutils();
 	initGeometry();
 	initBGL();
+	initBLF();
 
 #ifdef WITH_FFMPEG
 	initVideoTexture();
@@ -2304,6 +2306,11 @@ PyObject* initGeometry()
 PyObject* initBGL()
 {
 	return BGL_Init();
+}
+
+PyObject* initBLF()
+{
+	return BLF_Init();
 }
 
 // utility function for loading and saving the globalDict

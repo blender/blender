@@ -179,24 +179,24 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_NEG_ZMASK	0x80000
 
 /* srl->passflag */
-#define SCE_PASS_COMBINED		1
-#define SCE_PASS_Z				2
-#define SCE_PASS_RGBA			4
-#define SCE_PASS_DIFFUSE		8
-#define SCE_PASS_SPEC			16
-#define SCE_PASS_SHADOW			32
-#define SCE_PASS_AO				64
-#define SCE_PASS_REFLECT		128
-#define SCE_PASS_NORMAL			256
-#define SCE_PASS_VECTOR			512
-#define SCE_PASS_REFRACT		1024
-#define SCE_PASS_INDEXOB		2048
-#define SCE_PASS_UV				4096
-#define SCE_PASS_INDIRECT		8192
-#define SCE_PASS_MIST			16384
-#define SCE_PASS_RAYHITS		32768
-#define SCE_PASS_EMIT			65536
-#define SCE_PASS_ENVIRONMENT	131072
+#define SCE_PASS_COMBINED		(1<<0)
+#define SCE_PASS_Z				(1<<1)
+#define SCE_PASS_RGBA			(1<<2)
+#define SCE_PASS_DIFFUSE		(1<<3)
+#define SCE_PASS_SPEC			(1<<4)
+#define SCE_PASS_SHADOW			(1<<5)
+#define SCE_PASS_AO				(1<<6)
+#define SCE_PASS_REFLECT		(1<<7)
+#define SCE_PASS_NORMAL			(1<<8)
+#define SCE_PASS_VECTOR			(1<<9)
+#define SCE_PASS_REFRACT		(1<<10)
+#define SCE_PASS_INDEXOB		(1<<11)
+#define SCE_PASS_UV				(1<<12)
+#define SCE_PASS_INDIRECT		(1<<13)
+#define SCE_PASS_MIST			(1<<14)
+#define SCE_PASS_RAYHITS		(1<<15)
+#define SCE_PASS_EMIT			(1<<16)
+#define SCE_PASS_ENVIRONMENT	(1<<17)
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 

@@ -362,6 +362,8 @@ typedef struct UserDef {
 
 	short scrcastfps;		/* frame rate for screencast to be played back */
 	short scrcastwait;		/* milliseconds between screencast snapshots */
+	
+	short propwidth, pad[3]; /* Value for Dual/Single Column UI */
 
 	char versemaster[160];
 	char verseuser[160];

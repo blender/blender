@@ -1384,7 +1384,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "bb_uv_split");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_range(prop, 1, 10, 1, 0);
-	RNA_def_property_ui_text(prop, "UV Split", "Amount of rows/columns to split uv coordinates for billboards");
+	RNA_def_property_ui_text(prop, "UV Split", "Amount of rows/columns to split UV coordinates for billboards");
 
 	prop= RNA_def_property(srna, "billboard_animation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bb_anim");
@@ -1428,7 +1428,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "simplify_refsize", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "simplify_refsize");
 	RNA_def_property_range(prop, 1, 32768);
-	RNA_def_property_ui_text(prop, "Reference Size", "Reference size size in pixels, after which simplification begins");
+	RNA_def_property_ui_text(prop, "Reference Size", "Reference size in pixels, after which simplification begins");
 
 	prop= RNA_def_property(srna, "simplify_rate", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -1493,7 +1493,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "effect_hair", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "eff_hair");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Stiffnes", "Hair stiffness for effectors");
+	RNA_def_property_ui_text(prop, "Stiffness", "Hair stiffness for effectors");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	prop= RNA_def_property(srna, "amount", PROP_INT, PROP_UNSIGNED);
@@ -1641,7 +1641,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "brownfac");
 	RNA_def_property_range(prop, 0.0f, 200.0f);
 	RNA_def_property_ui_range(prop, 0, 20, 1, 3);
-	RNA_def_property_ui_text(prop, "Brownian", "Specify the amount of brownian motion");
+	RNA_def_property_ui_text(prop, "Brownian", "Specify the amount of Brownian motion");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "damp_factor", PROP_FLOAT, PROP_NONE);

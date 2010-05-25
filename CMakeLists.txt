@@ -62,8 +62,8 @@ OPTION(WITH_GAMEENGINE    "Enable Game Engine" ON)
 OPTION(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 OPTION(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
 OPTION(WITH_ELBEEM        "Enable Elbeem (Fluid Simulation)" ON)
-OPTION(WITH_QUICKTIME     "Enable Quicktime Support" OFF)
 OPTION(WITH_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
+OPTION(WITH_TIFF          "Enable LibTIFF Support" ON)
 OPTION(WITH_DDS           "Enable DDS Support" ON)
 OPTION(WITH_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)" OFF)
 OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
@@ -79,16 +79,21 @@ OPTION(WITH_LZMA          "Enable best LZMA compression, used for pointcache" ON
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
-OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	ON)
+OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" OFF) 
+
+IF(APPLE OR WIN32)
+	OPTION(WITH_QUICKTIME     "Enable Quicktime Support" OFF)
+ENDIF(APPLE OR WIN32)
 
 # Unix defaults to OpenMP On
+# Disable opencollada on non-apple unix because opencollada has no package for debian
 IF(UNIX AND NOT APPLE)
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
+	OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
 ELSE()
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
+	OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	ON)
 ENDIF()
-
-OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" OFF) 
 
 IF (APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
@@ -120,11 +125,9 @@ IF(UNIX AND NOT APPLE)
 
 	IF(WITH_OPENAL)
 		FIND_PACKAGE(OpenAL)
-		IF(OPENAL_FOUND)
-			SET(WITH_OPENAL ON)
-		ELSE(OPENAL_FOUND)
+		IF(NOT OPENAL_FOUND)
 			SET(WITH_OPENAL OFF)
-		ENDIF(OPENAL_FOUND)
+		ENDIF(NOT OPENAL_FOUND)
 	ENDIF(WITH_OPENAL)
 
 	IF(WITH_JACK)
@@ -181,11 +184,11 @@ IF(UNIX AND NOT APPLE)
 		ENDIF(NOT SDL_FOUND)
 	ENDIF(WITH_SDL)
 
-    SET(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
+	SET(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
 	FIND_PATH(OPENEXR_INC
 		ImfXdr.h
 		PATHS
-        ${OPENEXR}/include/OpenEXR
+		${OPENEXR}/include/OpenEXR
 		/usr/local/include/OpenEXR
 		/sw/include/OpenEXR
 		/opt/local/include/OpenEXR
@@ -210,6 +213,13 @@ IF(UNIX AND NOT APPLE)
 	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
 	SET(LIBSAMPLERATE_LIB samplerate)
 	SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
+
+	IF(WITH_TIFF)
+		FIND_PACKAGE(TIFF)
+		IF(NOT TIFF_FOUND)
+			SET(WITH_TIFF OFF)
+		ENDIF(NOT TIFF_FOUND)
+	ENDIF(WITH_TIFF)
 
 	FIND_PACKAGE(JPEG REQUIRED)
 
@@ -405,7 +415,9 @@ IF(WIN32)
 	SET(JPEG_LIBPATH ${JPEG}/lib)
 
 	SET(TIFF ${LIBDIR}/tiff)
-	SET(TIFF_INC ${TIFF}/include)
+	SET(TIFF_INCLUDE_DIR ${TIFF}/include)
+	SET(TIFF_LIBRARY tiff)
+	SET(TIFF_LIBPATH ${TIFF}/lib)
   
 	SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
@@ -474,7 +486,7 @@ IF(APPLE)
 		# SET(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}") # not used yet
 		SET(PYTHON_LIB python${PYTHON_VERSION})
 		SET(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}")
-		#    SET(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
+		# SET(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 	ELSE(PYTHON_VERSION MATCHES 3.1)
 		# otherwise, use custom system framework
 
@@ -581,7 +593,9 @@ IF(APPLE)
 	SET(JPEG_LIBPATH ${JPEG}/lib)
 
 	SET(TIFF ${LIBDIR}/tiff)
-	SET(TIFF_INC ${TIFF}/include)
+	SET(TIFF_INCLUDE_DIR ${TIFF}/include)
+	SET(TIFF_LIBRARY tiff)
+	SET(TIFF_LIBPATH ${TIFF}/lib)
 
 	SET(EXETYPE MACOSX_BUNDLE)
 

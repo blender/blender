@@ -101,7 +101,7 @@ void BKE_icons_init(int first_dyn_id)
 	gFirstIconId = first_dyn_id;
 
 	if (!gIcons)
-		gIcons = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+		gIcons = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "icons_init gh");
 }
 
 void BKE_icons_free()

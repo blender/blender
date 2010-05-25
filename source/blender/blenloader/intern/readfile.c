@@ -2221,6 +2221,12 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 	/* always rebuild to match proxy or lib changes */
 	rebuild= ob->proxy || (ob->id.lib==NULL && arm->id.lib);
 
+	if (ob->proxy && pose->proxy_act_bone[0]) {
+		Bone *bone = get_named_bone(arm, pose->proxy_act_bone);
+		if (bone)
+			arm->act_bone = bone;
+	}
+
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
 		lib_link_constraints(fd, (ID *)ob, &pchan->constraints);
 		
@@ -4156,8 +4162,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				base->object= newlibadr_us(fd, sce->id.lib, base->object);
 				
 				if(base->object==NULL) {
-					printf("LIB ERROR: base removed\n");
 					BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: Object lost from scene:'%s\'\n", sce->id.name+2);
+					if(G.background==0) printf("LIB ERROR: base removed from scene:'%s\'\n", sce->id.name+2);
 					BLI_remlink(&sce->base, base);
 					if(base==sce->basact) sce->basact= 0;
 					MEM_freeN(base);
@@ -8447,8 +8453,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						ima->flag |= IMA_FIELDS;
 					if(tex->imaflag & TEX_STD_FIELD_)
 						ima->flag |= IMA_STD_FIELD;
-					if(tex->imaflag & TEX_ANTIALI_)
-						ima->flag |= IMA_ANTIALI;
 				}
 				tex->iuser.frames= tex->frames;
 				tex->iuser.fie_ima= tex->fie_ima;
@@ -10742,6 +10746,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		} /* sequencer changes */
 	}
+	
+	if (main->versionfile <= 251) {	/* 2.5.1 had no subversions */
+		bScreen *sc;
+		
+		/* Blender 2.5.2 - subversion 0 introduced a new setting: V3D_RENDER_OVERRIDE.
+		 * This bit was used in the past for V3D_TRANSFORM_SNAP, which is now deprecated. 
+		 * Here we clear it for old files so they don't come in with V3D_RENDER_OVERRIDE set,
+		 * which would cause cameras, lamps, etc to become invisible */
+		for(sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for(sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D* v3d = (View3D *)sl;
+						v3d->flag2 &= ~V3D_RENDER_OVERRIDE;
+					}
+				}
+			}
+		}
+	}
 
 	if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 1)) {
 		Brush *brush;
@@ -10816,22 +10841,70 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_IMAGE) {
 						SpaceImage *sima = (SpaceImage *)sl;
-						sima->scopes.accuracy = 30.0;
-						sima->scopes.hist.mode=HISTO_MODE_RGB;
-						sima->scopes.wavefrm_alpha=0.3;
-						sima->scopes.vecscope_alpha=0.3;
-						sima->scopes.wavefrm_height= 100;
-						sima->scopes.vecscope_height= 100;
-						sima->scopes.hist.height= 100;
+						scopes_new(&sima->scopes);
 					}
 				}
 			}
 		}
 	}
 	
+
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		Object *ob;
+		bScreen *sc;
+
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if (sl->spacetype == SPACE_NODE) {
+						SpaceNode *snode;
+
+						snode= (SpaceNode *)sl;
+						if (snode->v2d.minzoom > 0.09f)
+							snode->v2d.minzoom= 0.09f;
+						if (snode->v2d.maxzoom < 2.31f)
+							snode->v2d.maxzoom= 2.31f;
+					}
+				}
+			}
+		}
+
 		do_version_mdef_250(fd, lib, main);
+
+		/* parent type to modifier */
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			if(ob->parent) {
+				Object *parent= newlibadr(fd, lib, ob->parent);
+				if(parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
+					ArmatureModifierData *amd;
+
+					amd = (ArmatureModifierData*) modifier_new(eModifierType_Armature);
+					amd->object = ob->parent;
+					BLI_addtail((ListBase*)&ob->modifiers, amd);
+					amd->deformflag= ((bArmature *)(parent->data))->deformflag;
+					ob->partype = PAROBJECT;
+				}
+				else if(parent->type==OB_LATTICE && ob->partype==PARSKEL) {
+					LatticeModifierData *lmd;
+
+					lmd = (LatticeModifierData*) modifier_new(eModifierType_Lattice);
+					lmd->object = ob->parent;
+					BLI_addtail((ListBase*)&ob->modifiers, lmd);
+					ob->partype = PAROBJECT;
+				}
+				else if(parent->type==OB_CURVE && ob->partype==PARCURVE) {
+					CurveModifierData *cmd;
+
+					cmd = (CurveModifierData*) modifier_new(eModifierType_Curve);
+					cmd->object = ob->parent;
+					BLI_addtail((ListBase*)&ob->modifiers, cmd);
+					ob->partype = PAROBJECT;
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -10932,7 +11005,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filename)
 		switch(bhead->code) {
 		case DATA:
 		case DNA1:
-		case TEST:
+		case TEST: /* used as preview since 2.5x */
 		case REND:
 			bhead = blo_nextbhead(fd, bhead);
 			break;
@@ -11579,7 +11652,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	PartEff *paf;
 	int a;
 
-
 	expand_doit(fd, mainvar, ob->data);
 	
 	for (md=ob->modifiers.first; md; md=md->next) {
@@ -12063,7 +12135,9 @@ static Main* library_append_begin(const bContext *C, FileData **fd, char *dir)
 	/* which one do we need? */
 	mainl = blo_find_main(*fd, &(*fd)->mainlist, dir, G.sce);
 	
-	mainl->versionfile= (*fd)->fileversion;	/* needed for do_version */
+	/* needed for do_version */
+	mainl->versionfile= (*fd)->fileversion;
+	read_file_version(*fd, mainl);
 	
 	return mainl;
 }
@@ -12256,8 +12330,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if(fd==NULL) {
 
 					/* printf and reports for now... its important users know this */
-					printf("read library: '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
 					BKE_reportf(basefd->reports, RPT_INFO, "read library:  '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
+					if(!G.background && basefd->reports) printf("read library: '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
 
 					fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
 					
@@ -12302,8 +12376,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					else mainptr->curlib->filedata= NULL;
 
 					if (fd==NULL) {
-						printf("ERROR: can't find lib %s \n", mainptr->curlib->filename);
 						BKE_reportf(basefd->reports, RPT_ERROR, "Can't find lib '%s'\n", mainptr->curlib->filename);
+						if(!G.background && basefd->reports) printf("ERROR: can't find lib %s \n", mainptr->curlib->filename);
 					}
 				}
 				if(fd) {
@@ -12320,8 +12394,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
-									printf("LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
+									if(!G.background && basefd->reports) printf("LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 								}
 								
 								change_idid_adr(mainlist, basefd, id, realid);
@@ -12356,8 +12430,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				ID *idn= id->next;
 				if(id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
-					printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
+					if(!G.background && basefd->reports)printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);

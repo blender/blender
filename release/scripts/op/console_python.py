@@ -40,9 +40,9 @@ def get_console(console_id):
     '''
     from code import InteractiveConsole
 
-    try:
-        consoles = get_console.consoles
-    except:
+    consoles = getattr(get_console, "consoles", None)
+
+    if consoles is None:
         consoles = get_console.consoles = {}
 
     # clear all dead consoles, use text names as IDs
@@ -53,16 +53,17 @@ def get_console(console_id):
             del consoles[id]
     '''
 
-    try:
-        console, stdout, stderr = consoles[console_id]
-        
+    console_data = consoles.get(console_id)
+
+    if console_data:
+        console, stdout, stderr = console_data
+
         # XXX, bug in python 3.1.2 ?
         # seems there is no way to clear StringIO objects for writing, have to make new ones each time.
         import io
         stdout = io.StringIO()
         stderr = io.StringIO()
-        
-    except:
+    else:
         namespace = {'__builtins__': __builtins__, 'bpy': bpy}
         console = InteractiveConsole(namespace)
 

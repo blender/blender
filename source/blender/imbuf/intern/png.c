@@ -33,15 +33,13 @@
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "IMB_allocimbuf.h"
-#include "IMB_cmap.h"
-#include "IMB_imginfo.h"
-#include "IMB_png.h"
+#include "IMB_metadata.h"
+#include "IMB_filetype.h"
 
 typedef struct PNGReadStruct {
 	unsigned char *data;
@@ -53,7 +51,7 @@ static void ReadData( png_structp png_ptr, png_bytep data, png_size_t length);
 static void WriteData( png_structp png_ptr, png_bytep data, png_size_t length);
 static void Flush( png_structp png_ptr);
 
-int imb_is_a_png(void *mem)
+int imb_is_a_png(unsigned char *mem)
 {
 	int ret_val = 0;
 
@@ -94,7 +92,7 @@ static void ReadData( png_structp png_ptr, png_bytep data, png_size_t length)
 	longjmp(png_jmpbuf(png_ptr), 1);
 }
 
-short imb_savepng(struct ImBuf *ibuf, char *name, int flags)
+int imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 {
 	png_structp png_ptr;
 	png_infop info_ptr;
@@ -219,30 +217,30 @@ short imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 		 PNG_FILTER_TYPE_DEFAULT);
 
 	/* image text info */
-	if (ibuf->img_info) {
-		png_text*  imginfo;
-		ImgInfo* iptr;
+	if (ibuf->metadata) {
+		png_text*  metadata;
+		ImMetaData* iptr;
 		int  num_text = 0;
-		iptr = ibuf->img_info;
+		iptr = ibuf->metadata;
 		while (iptr) {
 			num_text++;
 			iptr = iptr->next;
 		}
 		
-		imginfo = MEM_callocN(num_text*sizeof(png_text), "png_imginfo");
-		iptr = ibuf->img_info;
+		metadata = MEM_callocN(num_text*sizeof(png_text), "png_metadata");
+		iptr = ibuf->metadata;
 		num_text = 0;
 		while (iptr) {
 			
-			imginfo[num_text].compression = PNG_TEXT_COMPRESSION_NONE;
-			imginfo[num_text].key = iptr->key;
-			imginfo[num_text].text = iptr->value;
+			metadata[num_text].compression = PNG_TEXT_COMPRESSION_NONE;
+			metadata[num_text].key = iptr->key;
+			metadata[num_text].text = iptr->value;
 			num_text++;
 			iptr = iptr->next;
 		}
 		
-		png_set_text(png_ptr, info_ptr, imginfo, num_text);
-		MEM_freeN(imginfo);
+		png_set_text(png_ptr, info_ptr, metadata, num_text);
+		MEM_freeN(metadata);
 
 	}
 
@@ -437,12 +435,12 @@ struct ImBuf *imb_loadpng(unsigned char *mem, int size, int flags)
 			break;
 		}
 
-		if (flags & IB_imginfo) {
+		if (flags & IB_metadata) {
 			png_text* text_chunks;
 			int count = png_get_text(png_ptr, info_ptr, &text_chunks, NULL);
 			for(i = 0; i < count; i++) {
-				IMB_imginfo_add_field(ibuf, text_chunks[i].key, text_chunks[i].text);
-				ibuf->flags |= IB_imginfo;				
+				IMB_metadata_add_field(ibuf, text_chunks[i].key, text_chunks[i].text);
+				ibuf->flags |= IB_metadata;				
 			 }
 		}
 

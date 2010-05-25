@@ -135,7 +135,7 @@ def main(obj, bone_definitions, base_names, options):
     # Add drivers
     bone_path = pb[bones[0]].path_from_id()
 
-    driver_fcurve = con_f.driver_add("influence", 0)
+    driver_fcurve = con_f.driver_add("influence")
     driver = driver_fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -148,7 +148,7 @@ def main(obj, bone_definitions, base_names, options):
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
 
-    driver_fcurve = con_h.driver_add("influence", 0)
+    driver_fcurve = con_h.driver_add("influence")
     driver = driver_fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()

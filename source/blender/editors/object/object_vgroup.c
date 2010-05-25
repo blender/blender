@@ -122,6 +122,72 @@ void ED_vgroup_data_create(ID *id)
 	}
 }
 
+int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
+{
+	if(id) {
+		switch(GS(id->name)) {
+			case ID_ME:
+			{
+				Mesh *me = (Mesh *)id;
+				*dvert_tot= me->totvert;
+
+				if (!me->edit_mesh) {
+					int i;
+
+					*dvert_arr= MEM_mallocN(sizeof(void*)*me->totvert, "vgroup parray from me");
+
+					for (i=0; i<me->totvert; i++) {
+						(*dvert_arr)[i] = me->dvert + i;
+					}
+				} else {
+					EditMesh *em = me->edit_mesh;
+					EditVert *eve;
+					int i;
+
+					if (!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT)) {
+						*dvert_tot = 0;
+						*dvert_arr = NULL;
+						return 0;
+					}
+
+					i = 0;
+					for (eve=em->verts.first; eve; eve=eve->next) i++;
+
+					*dvert_arr= MEM_mallocN(sizeof(void*)*i, "vgroup parray from me");
+					*dvert_tot = i;
+
+					i = 0;
+					for (eve=em->verts.first; eve; eve=eve->next, i++) {
+						(*dvert_arr)[i] = CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+					}
+
+				}
+				return 1;
+			}
+			case ID_LT:
+			{
+				int i=0;
+
+				Lattice *lt= (Lattice *)id;
+				lt= (lt->editlatt)? lt->editlatt: lt;
+
+				*dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
+				*dvert_arr= MEM_mallocN(sizeof(void*)*(*dvert_tot), "vgroup parray from me");
+
+				for (i=0; i<*dvert_tot; i++) {
+					(*dvert_arr)[i] = lt->dvert + i;
+				}
+
+				return 1;
+			}
+		}
+	}
+
+	*dvert_arr= NULL;
+	*dvert_tot= 0;
+	return 0;
+}
+
 /* returns true if the id type supports weights */
 int ED_vgroup_give_array(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
 {
@@ -153,20 +219,22 @@ int ED_vgroup_give_array(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
 /* matching index only */
 int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 {
-	MDeformVert *dvert_array_from, *dvf;
-	MDeformVert *dvert_array, *dv;
-
+	MDeformVert **dvert_array_from, **dvf;
+	MDeformVert **dvert_array, **dv;
 	int dvert_tot_from;
 	int dvert_tot;
 	int i;
 	int totdef_from= BLI_countlist(&ob_from->defbase);
 	int totdef= BLI_countlist(&ob->defbase);
 
-	ED_vgroup_give_array(ob_from->data, &dvert_array_from, &dvert_tot_from);
-	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	ED_vgroup_give_parray(ob_from->data, &dvert_array_from, &dvert_tot_from);
+	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
-	if(ob==ob_from || dvert_tot==0 || (dvert_tot != dvert_tot_from) || dvert_array_from==NULL || dvert_array==NULL)
+	if(ob==ob_from || dvert_tot==0 || (dvert_tot != dvert_tot_from) || dvert_array_from==NULL || dvert_array==NULL) {
+		if (dvert_array) MEM_freeN(dvert_array);
+		if (dvert_array_from) MEM_freeN(dvert_array_from);
 		return 0;
+	}
 
 	/* do the copy */
 	BLI_freelistN(&ob->defbase);
@@ -187,14 +255,17 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	dv= dvert_array;
 
 	for(i=0; i<dvert_tot; i++, dvf++, dv++) {
-		if(dv->dw)
-			MEM_freeN(dv->dw);
+		if((*dv)->dw)
+			MEM_freeN((*dv)->dw);
 
-		*dv= *dvf;
+		*(*dv)= *(*dvf);
 
-		if(dv->dw)
-			dv->dw= MEM_dupallocN(dv->dw);
+		if((*dv)->dw)
+			(*dv)->dw= MEM_dupallocN((*dv)->dw);
 	}
+
+	MEM_freeN(dvert_array);
+	MEM_freeN(dvert_array_from);
 
 	return 1;
 }
@@ -537,7 +608,7 @@ static void vgroup_duplicate(Object *ob)
 	bDeformGroup *dg, *cdg;
 	char name[32], s[32];
 	MDeformWeight *org, *cpy;
-	MDeformVert *dvert, *dvert_array=NULL;
+	MDeformVert *dvert, **dvert_array=NULL;
 	int i, idg, icdg, dvert_tot=0;
 
 	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
@@ -570,13 +641,13 @@ static void vgroup_duplicate(Object *ob)
 	ob->actdef = BLI_countlist(&ob->defbase);
 	icdg = (ob->actdef-1);
 
-	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 	
 	if(!dvert_array)
 		return;
 
 	for(i = 0; i < dvert_tot; i++) {
-		dvert = dvert_array+i;
+		dvert = dvert_array[i];
 		org = defvert_find_index(dvert, idg);
 		if(org) {
 			float weight = org->weight;
@@ -585,16 +656,18 @@ static void vgroup_duplicate(Object *ob)
 			cpy->weight = weight;
 		}
 	}
+
+	MEM_freeN(dvert_array);
 }
 
 static void vgroup_normalize(Object *ob)
 {
 	bDeformGroup *dg;
 	MDeformWeight *dw;
-	MDeformVert *dvert, *dvert_array=NULL;
+	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
 
-	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
 	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
 
@@ -604,7 +677,7 @@ static void vgroup_normalize(Object *ob)
 		def_nr= ob->actdef-1;
 
 		for(i = 0; i < dvert_tot; i++) {
-			dvert = dvert_array+i;
+			dvert = dvert_array[i];
 			dw = defvert_find_index(dvert, def_nr);
 			if(dw) {
 				weight_max = MAX2(dw->weight, weight_max);
@@ -613,7 +686,7 @@ static void vgroup_normalize(Object *ob)
 
 		if(weight_max > 0.0f) {
 			for(i = 0; i < dvert_tot; i++) {
-				dvert = dvert_array+i;
+				dvert = dvert_array[i];
 				dw = defvert_find_index(dvert, def_nr);
 				if(dw) {
 					dw->weight /= weight_max;
@@ -624,16 +697,18 @@ static void vgroup_normalize(Object *ob)
 			}
 		}
 	}
+
+	if (dvert_array) MEM_freeN(dvert_array);
 }
 
 static void vgroup_levels(Object *ob, float offset, float gain)
 {
 	bDeformGroup *dg;
 	MDeformWeight *dw;
-	MDeformVert *dvert, *dvert_array=NULL;
+	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
 	
-	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 	
 	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
 	
@@ -641,7 +716,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 		def_nr= ob->actdef-1;
 		
 		for(i = 0; i < dvert_tot; i++) {
-			dvert = dvert_array+i;
+			dvert = dvert_array[i];
 			dw = defvert_find_index(dvert, def_nr);
 			if(dw) {
 				dw->weight = gain * (dw->weight + offset);
@@ -650,17 +725,19 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 			}
 		}
 	}
+
+	if (dvert_array) MEM_freeN(dvert_array);
 }
 
 /* TODO - select between groups */
 static void vgroup_normalize_all(Object *ob, int lock_active)
 {
 	MDeformWeight *dw, *dw_act;
-	MDeformVert *dvert, *dvert_array=NULL;
+	MDeformVert *dvert, **dvert_array=NULL;
 	int i, dvert_tot=0;
 	float tot_weight;
 
-	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
 	if(dvert_array) {
 		if(lock_active) {
@@ -672,7 +749,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 
 				tot_weight= 0.0f;
 				dw_act= NULL;
-				dvert = dvert_array+i;
+				dvert = dvert_array[i];
 
 				j= dvert->totweight;
 				while(j--) {
@@ -710,7 +787,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 			for(i = 0; i < dvert_tot; i++) {
 				int j;
 				tot_weight= 0.0f;
-				dvert = dvert_array+i;
+				dvert = dvert_array[i];
 
 				j= dvert->totweight;
 				while(j--) {
@@ -731,6 +808,8 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 			}
 		}
 	}
+
+	if (dvert_array) MEM_freeN(dvert_array);
 }
 
 
@@ -738,10 +817,10 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 {
 	bDeformGroup *dg;
 	MDeformWeight *dw;
-	MDeformVert *dvert, *dvert_array=NULL;
+	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
 
-	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
 	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
 
@@ -750,7 +829,7 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 
 
 		for(i = 0; i < dvert_tot; i++) {
-			dvert = dvert_array+i;
+			dvert = dvert_array[i];
 
 			if(auto_assign) {
 				dw= defvert_verify_index(dvert, def_nr);
@@ -768,6 +847,8 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 			}
 		}
 	}
+
+	if (dvert_array) MEM_freeN(dvert_array);
 }
 
 static void vgroup_blend(Object *ob)
@@ -858,10 +939,10 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 {
 	bDeformGroup *dg;
 	MDeformWeight *dw;
-	MDeformVert *dvert, *dvert_array=NULL;
+	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
 
-	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
 	/* only the active group */
 	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
@@ -869,7 +950,7 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 		def_nr= ob->actdef-1;
 
 		for(i = 0; i < dvert_tot; i++) {
-			dvert = dvert_array+i;
+			dvert = dvert_array[i];
 
 			dw= defvert_find_index(dvert, def_nr);
 
@@ -880,21 +961,23 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 			}
 		}
 	}
+
+	if (dvert_array) MEM_freeN(dvert_array);
 }
 
 static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 {
 
 	MDeformWeight *dw;
-	MDeformVert *dvert, *dvert_array=NULL;
+	MDeformVert *dvert, **dvert_array=NULL;
 	int i, dvert_tot=0;
 
-	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
 	if(dvert_array) {
 		for(i = 0; i < dvert_tot; i++) {
 			int j;
-			dvert = dvert_array+i;
+			dvert = dvert_array[i];
 			j= dvert->totweight;
 
 			while(j--) {
@@ -910,6 +993,8 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 			}
 		}
 	}
+
+	if (dvert_array) MEM_freeN(dvert_array);
 }
 
 void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
@@ -1920,41 +2005,38 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
-static int vgroup_sort(void *def_a_ptr, void *def_b_ptr)
+/*creates the name_array parameter for vgroup_do_remap, call this before fiddling
+  with the order of vgroups then call vgroup_do_remap after*/
+static char *vgroup_init_remap(Object *ob)
 {
-	bDeformGroup *def_a= (bDeformGroup *)def_a_ptr;
-	bDeformGroup *def_b= (bDeformGroup *)def_b_ptr;
-
-	return strcmp(def_a->name, def_b->name);
-}
-
-#define DEF_GROUP_SIZE (sizeof(((bDeformGroup *)NULL)->name))
-static int vertex_group_sort_exec(bContext *C, wmOperator *op)
-{
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	bDeformGroup *def;
 	int def_tot = BLI_countlist(&ob->defbase);
+	char *name_array= MEM_mallocN(MAX_VGROUP_NAME * sizeof(char) * def_tot, "sort vgroups");
 	char *name;
-	char *name_array= MEM_mallocN(DEF_GROUP_SIZE * sizeof(char) * def_tot, "sort vgroups");
-	int *sort_map_update= MEM_mallocN(DEF_GROUP_SIZE * sizeof(int) * def_tot + 1, "sort vgroups"); /* needs a dummy index at the start*/
-	int *sort_map= sort_map_update + 1;
-	int i;
-
-	MDeformVert *dvert= NULL;
-	int dvert_tot;
 
 	name= name_array;
-	for(def = ob->defbase.first; def; def=def->next){
-		BLI_strncpy(name, def->name, DEF_GROUP_SIZE);
-		name += DEF_GROUP_SIZE;
+	for(def = ob->defbase.first; def; def=def->next) {
+		BLI_strncpy(name, def->name, MAX_VGROUP_NAME);
+		name += MAX_VGROUP_NAME;
 	}
 
-	BLI_sortlist(&ob->defbase, vgroup_sort);
+	return name_array;
+}
+
+static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
+{
+	MDeformVert *dvert= NULL;
+	bDeformGroup *def;
+	int def_tot = BLI_countlist(&ob->defbase);
+	int *sort_map_update= MEM_mallocN(MAX_VGROUP_NAME * sizeof(int) * def_tot + 1, "sort vgroups"); /* needs a dummy index at the start*/
+	int *sort_map= sort_map_update + 1;
+	char *name;
+	int i;
 
 	name= name_array;
 	for(def= ob->defbase.first, i=0; def; def=def->next, i++){
 		sort_map[i]= BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name));
-		name += DEF_GROUP_SIZE;
+		name += MAX_VGROUP_NAME;
 	}
 
 	if(ob->mode == OB_MODE_EDIT) {
@@ -1975,8 +2057,12 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
+		int dvert_tot=0;
+
 		ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
-		while(dvert_tot--) {
+
+		/*create as necassary*/
+		while(dvert && dvert_tot--) {
 			if(dvert->totweight)
 				defvert_remap(dvert, sort_map);
 			dvert++;
@@ -1988,21 +2074,45 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 		sort_map[i]++;
 
 	sort_map_update[0]= 0;
-
 	vgroup_remap_update_users(ob, sort_map_update);
 
 	ob->actdef= sort_map_update[ob->actdef];
 
-	MEM_freeN(name_array);
-	MEM_freeN(sort_map_update);
-
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob);
-
 	return OPERATOR_FINISHED;
 }
-#undef DEF_GROUP_SIZE
 
+static int vgroup_sort(void *def_a_ptr, void *def_b_ptr)
+{
+	bDeformGroup *def_a= (bDeformGroup *)def_a_ptr;
+	bDeformGroup *def_b= (bDeformGroup *)def_b_ptr;
+
+	return strcmp(def_a->name, def_b->name);
+}
+
+static int vertex_group_sort_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	char *name_array;
+	int ret;
+
+	/*init remapping*/
+	name_array = vgroup_init_remap(ob);
+
+	/*sort vgroup names*/
+	BLI_sortlist(&ob->defbase, vgroup_sort);
+
+	/*remap vgroup data to map to correct names*/
+	ret = vgroup_do_remap(ob, name_array, op);
+
+	if (ret != OPERATOR_CANCELLED) {
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob);
+	}
+
+	if (name_array) MEM_freeN(name_array);
+
+	return ret;
+}
 
 void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 {
@@ -2016,4 +2126,64 @@ void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int vgroup_move_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	bDeformGroup *def;
+	char *name_array;
+	int dir= RNA_enum_get(op->ptr, "direction"), ret;
+
+	def = BLI_findlink(&ob->defbase, ob->actdef - 1);
+	if (!def) {
+		return OPERATOR_CANCELLED;
+	}
+
+	name_array = vgroup_init_remap(ob);
+
+	if (dir == 1) { /*up*/
+		void *prev = def->prev;
+
+		BLI_remlink(&ob->defbase, def);
+		BLI_insertlinkbefore(&ob->defbase, prev, def);
+	} else { /*down*/
+		void *next = def->next;
+
+		BLI_remlink(&ob->defbase, def);
+		BLI_insertlinkafter(&ob->defbase, next, def);
+	}
+
+	ret = vgroup_do_remap(ob, name_array, op);
+
+	if (name_array) MEM_freeN(name_array);
+
+	if (ret != OPERATOR_CANCELLED) {
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob);
+	}
+
+	return ret;
+}
+
+void OBJECT_OT_vertex_group_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem vgroup_slot_move[] = {
+		{1, "UP", 0, "Up", ""},
+		{-1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Move Vertex Group";
+	ot->idname= "OBJECT_OT_vertex_group_move";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vgroup_move_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "direction", vgroup_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
 }

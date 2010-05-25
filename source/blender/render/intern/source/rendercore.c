@@ -2634,7 +2634,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	get_next_bake_face(NULL);
 	
 	/* do we need a mask? */
-	if (re->r.bake_filter && (re->r.bake_flag & R_BAKE_CLEAR)==0)
+	if (re->r.bake_filter)
 		usemask = 1;
 	
 	/* baker uses this flag to detect if image was initialized */

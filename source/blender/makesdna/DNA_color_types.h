@@ -133,7 +133,7 @@ typedef struct Scopes {
 } Scopes;
 
 /* scopes->wavefrm_mode */
-#define SCOPES_WAVEFRM_LUM		0
+#define SCOPES_WAVEFRM_LUMA		0
 #define SCOPES_WAVEFRM_RGB		1
 #define SCOPES_WAVEFRM_YCC_601	2
 #define SCOPES_WAVEFRM_YCC_709	3

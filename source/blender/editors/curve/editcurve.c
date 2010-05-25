@@ -4272,37 +4272,128 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
-/********************** select every nth *********************/
+/********************* every nth number of point *******************/
 
-static int select_every_nth_exec(bContext *C, wmOperator *op)
+static int point_on_nurb(Nurb *nu, void *point)
+{
+	if (nu->bezt) {
+		BezTriple *bezt= (BezTriple*)point;
+		return bezt >= nu->bezt && bezt < nu->bezt + nu->pntsu;
+	} else {
+		BPoint *bp= (BPoint*)point;
+		return bp >= nu->bp && bp < nu->bp + nu->pntsu * nu->pntsv;
+	}
+}
+
+static void select_nth_bezt(Nurb *nu, BezTriple *bezt, int nth)
+{
+	int a, start;
+
+	start= bezt - nu->bezt;
+	a= nu->pntsu;
+	bezt= nu->bezt + a - 1;
+
+	while (a--) {
+		if (abs(start - a) % nth) {
+			select_beztriple(bezt, DESELECT, 1, HIDDEN);
+		}
+
+		bezt--;
+	}
+}
+
+static void select_nth_bp(Nurb *nu, BPoint *bp, int nth)
+{
+	int a, startrow, startpnt;
+	int dist, row, pnt;
+
+	startrow= (bp - nu->bp) / nu->pntsu;
+	startpnt= (bp - nu->bp) % nu->pntsu;
+
+	a= nu->pntsu * nu->pntsv;
+	bp= nu->bp + a - 1;
+	row = nu->pntsv - 1;
+	pnt = nu->pntsu - 1;
+
+	while (a--) {
+		dist= abs(pnt - startpnt) + abs(row - startrow);
+		if (dist % nth) {
+			select_bpoint(bp, DESELECT, 1, HIDDEN);
+		}
+
+		pnt--;
+		if (pnt < 0) {
+			pnt= nu->pntsu - 1;
+			row--;
+		}
+
+		bp--;
+	}
+}
+
+int CU_select_nth(Object *obedit, int nth)
+{
+	Curve *cu= (Curve*)obedit->data;
+	ListBase *nubase= cu->editnurb;
+	Nurb *nu;
+	int ok=0;
+
+	/* Search nurb to which selected point belongs to */
+	nu= nubase->first;
+	while (nu) {
+		if (point_on_nurb(nu, cu->lastsel)) {
+			ok= 1;
+			break;
+		}
+		nu= nu->next;
+	}
+
+	if (!ok) return 0;
+
+	if (nu->bezt) {
+		select_nth_bezt(nu, cu->lastsel, nth);
+	} else {
+		select_nth_bp(nu, cu->lastsel, nth);
+	}
+
+	return 1;
+}
+
+static int select_nth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
-	int n= RNA_int_get(op->ptr, "n");
-	
-	select_adjacent_cp(editnurb, n, 1, SELECT);
-	select_adjacent_cp(editnurb, -n, 1, SELECT);
-	
+	int nth= RNA_int_get(op->ptr, "nth");
+
+	if (!CU_select_nth(obedit, nth)) {
+		if (obedit->type == OB_SURF) {
+			BKE_report(op->reports, RPT_ERROR, "Surface hasn't got active point");
+		} else {
+			BKE_report(op->reports, RPT_ERROR, "Curve hasn't got active point");
+		}
+
+		return OPERATOR_CANCELLED;
+	}
+
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_select_every_nth(wmOperatorType *ot)
+void CURVE_OT_select_nth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Every Nth";
-	ot->idname= "CURVE_OT_select_every_nth";
-	
+	ot->name= "Select Nth";
+	ot->description= "";
+	ot->idname= "CURVE_OT_select_nth";
+
 	/* api callbacks */
-	ot->exec= select_every_nth_exec;
+	ot->exec= select_nth_exec;
 	ot->poll= ED_operator_editsurfcurve;
-	
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	/* properties */
-	RNA_def_int(ot->srna, "n", 2, 2, INT_MAX, "N", "Select every Nth element", 2, 25);
+	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
 }
 
 /********************** add duplicate operator *********************/
@@ -4795,7 +4886,6 @@ int join_curve_exec(bContext *C, wmOperator *op)
 }
 
 /************ add primitive, used by object/ module ****************/
-
 Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 {
 	static int xzproj= 0;	/* this function calls itself... */
@@ -5166,6 +5256,165 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	
 	return nu;
 }
+
+static int curve_prim_add(bContext *C, wmOperator *op, int type){
+	
+	Object *obedit= CTX_data_edit_object(C);
+	ListBase *editnurb;
+	Nurb *nu;
+	int newob= 0;//, type= RNA_enum_get(op->ptr, "type");
+	int enter_editmode;
+	unsigned int layer;
+	float loc[3], rot[3];
+	float mat[4][4];
+	
+	//object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
+	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	
+	if(obedit==NULL || obedit->type!=OB_CURVE) {
+		Curve *cu;
+		obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
+		newob = 1;
+
+		cu= (Curve*)obedit->data;
+		cu->flag |= CU_DEFORM_FILL;
+		if(type & CU_PRIM_PATH)
+			cu->flag |= CU_PATH|CU_3D;
+	}
+	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	
+	ED_object_new_primitive_matrix(C, loc, rot, mat);
+	
+	nu= add_nurbs_primitive(C, mat, type, newob);
+	editnurb= curve_get_editcurve(obedit);
+	BLI_addtail(editnurb, nu);
+	
+	/* userdef */
+	if (newob && !enter_editmode) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int add_primitive_bezier_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_BEZIER|CU_PRIM_CURVE);
+}
+
+void CURVE_OT_primitive_bezier_curve_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Bezier";
+	ot->description= "Construct a Bezier Curve";
+	ot->idname= "CURVE_OT_primitive_bezier_curve_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_bezier_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_BEZIER|CU_PRIM_CIRCLE);
+}
+
+void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Circle";
+	ot->description= "Construct a Bezier Circle";
+	ot->idname= "CURVE_OT_primitive_bezier_circle_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_bezier_circle_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_nurbs_curve_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_NURBS|CU_PRIM_CURVE);
+}
+
+void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Nurbs Curve";
+	ot->description= "Construct a Nurbs Curve";
+	ot->idname= "CURVE_OT_primitive_nurbs_curve_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_nurbs_curve_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_nurbs_circle_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_NURBS|CU_PRIM_CIRCLE);
+}
+
+void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Nurbs Circle";
+	ot->description= "Construct a Nurbs Circle";
+	ot->idname= "CURVE_OT_primitive_nurbs_circle_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_nurbs_circle_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_curve_path_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_NURBS|CU_PRIM_PATH);
+}
+
+void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Path";
+	ot->description= "Construct a Path";
+	ot->idname= "CURVE_OT_primitive_nurbs_path_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_curve_path_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+
 
 /***************** clear tilt operator ********************/
 

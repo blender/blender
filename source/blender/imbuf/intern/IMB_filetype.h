@@ -1,0 +1,120 @@
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Blender Foundation 2010.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+#ifndef IMB_FILETYPE_H
+#define IMB_FILETYPE_H
+
+/* Generic File Type */
+
+struct ImBuf;
+
+#define IM_FTYPE_FLOAT	1
+
+typedef struct ImFileType {
+	void (*init)(void);
+	void (*exit)(void);
+
+	int (*is_a)(unsigned char *buf);
+	int (*ftype)(struct ImFileType *type, struct ImBuf *ibuf);
+	struct ImBuf *(*load)(unsigned char *mem, int size, int flags);
+	int (*save)(struct ImBuf *ibuf, char *name, int flags);
+	void (*load_tile)(struct ImBuf *ibuf, unsigned char *mem, int size, int tx, int ty, unsigned int *rect);
+
+	int flag;
+	int filetype;
+} ImFileType;
+
+extern ImFileType IMB_FILE_TYPES[];
+
+void imb_filetypes_init(void);
+void imb_filetypes_exit(void);
+
+void imb_tile_cache_init(void);
+void imb_tile_cache_exit(void);
+
+void imb_loadtile(struct ImBuf *ibuf, int tx, int ty, unsigned int *rect);
+void imb_tile_cache_tile_free(struct ImBuf *ibuf, int tx, int ty);
+
+/* Type Specific Functions */
+
+/* png */
+int imb_is_a_png(unsigned char *buf);
+struct ImBuf *imb_loadpng(unsigned char *mem, int size, int flags);
+int imb_savepng(struct ImBuf *ibuf, char *name, int flags);
+
+/* targa */
+int imb_is_a_targa(unsigned char *buf);
+struct ImBuf *imb_loadtarga(unsigned char *mem, int size, int flags);
+int imb_savetarga(struct ImBuf * ibuf, char *name, int flags);
+
+/* iris */
+int imb_is_a_iris(unsigned char *mem);
+struct ImBuf *imb_loadiris(unsigned char *mem, int size, int flags);
+int imb_saveiris(struct ImBuf * ibuf, char *name, int flags);
+
+/* jp2 */
+int imb_is_a_jp2(unsigned char *buf);
+struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags);
+int imb_savejp2(struct ImBuf *ibuf, char *name, int flags);
+
+/* jpeg */
+int imb_is_a_jpeg(unsigned char *mem);
+int imb_savejpeg(struct ImBuf * ibuf, char * name, int flags);
+struct ImBuf * imb_ibJpegImageFromFilename (const char * filename, int flags);
+struct ImBuf * imb_load_jpeg (unsigned char * buffer, int size, int flags);
+
+/* bmp */
+int imb_is_a_bmp(unsigned char *buf);
+struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags);
+int imb_savebmp(struct ImBuf *ibuf, char *name, int flags);
+
+/* cocoa */
+struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags);
+short imb_cocoaSaveImage(struct ImBuf *ibuf, char *name, int flags);
+
+/* cineon */
+int imb_savecineon(struct ImBuf *buf, char *myfil, int flags);
+struct ImBuf *imb_loadcineon(unsigned char *mem, int size, int flags);
+int imb_is_cineon(unsigned char *buf);
+
+/* dpx */
+int imb_save_dpx(struct ImBuf *buf, char *myfile, int flags);
+struct ImBuf *imb_loaddpx(unsigned char *mem, int size, int flags);
+int imb_is_dpx(unsigned char *buf);
+
+/* hdr */
+int imb_is_a_hdr(unsigned char *buf);
+struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags);
+int imb_savehdr(struct ImBuf * ibuf, char *name, int flags);
+
+/* tiff */
+int imb_is_a_tiff(unsigned char *buf);
+struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags);
+void imb_loadtiletiff(struct ImBuf *ibuf, unsigned char *mem, int size,
+	int tx, int ty, unsigned int *rect);
+int imb_savetiff(struct ImBuf *ibuf, char *name, int flags);
+void *libtiff_findsymbol(char *name);
+
+#endif	/* IMB_FILETYPE_H */
+

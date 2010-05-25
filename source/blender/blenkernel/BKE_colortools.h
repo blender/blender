@@ -76,6 +76,7 @@ void				colorcorrection_do_ibuf(struct ImBuf *ibuf, const char *profile);
 
 void				scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, int use_color_management);
 void				scopes_free(struct Scopes *scopes);
+void				scopes_new(struct Scopes *scopes);
 
 #endif
 

@@ -991,7 +991,7 @@ static void rna_def_property(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "is_required", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_required_get", NULL);
-	RNA_def_property_ui_text(prop, "Required", "False when this property is an optional argument in an rna function");
+	RNA_def_property_ui_text(prop, "Required", "False when this property is an optional argument in an RNA function");
 
 	prop= RNA_def_property(srna, "is_never_none", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1001,17 +1001,17 @@ static void rna_def_property(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_use_output_get", NULL);
-	RNA_def_property_ui_text(prop, "Return", "True when this property is an output value from an rna function");
+	RNA_def_property_ui_text(prop, "Return", "True when this property is an output value from an RNA function");
 
 	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_get", NULL);
-	RNA_def_property_ui_text(prop, "Registered", "Property is registerd as part of type registration");
+	RNA_def_property_ui_text(prop, "Registered", "Property is registered as part of type registration");
 
 	prop= RNA_def_property(srna, "registered_optional", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_optional_get", NULL);
-	RNA_def_property_ui_text(prop, "Registered Optionally", "Property is optionally registerd as part of type registration");
+	RNA_def_property_ui_text(prop, "Registered Optionally", "Property is optionally registered as part of type registration");
 }
 
 static void rna_def_function(BlenderRNA *brna)
@@ -1043,12 +1043,12 @@ static void rna_def_function(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_get", NULL);
-	RNA_def_property_ui_text(prop, "Registered", "Function is registerd as callback as part of type registration");
+	RNA_def_property_ui_text(prop, "Registered", "Function is registered as callback as part of type registration");
 
 	prop= RNA_def_property(srna, "registered_optional", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_optional_get", NULL);
-	RNA_def_property_ui_text(prop, "Registered Optionally", "Function is optionally registerd as callback part of type registration");
+	RNA_def_property_ui_text(prop, "Registered Optionally", "Function is optionally registered as callback part of type registration");
 }
 
 static void rna_def_number_property(StructRNA *srna, PropertyType type)

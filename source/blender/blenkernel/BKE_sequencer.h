@@ -154,7 +154,7 @@ void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, i
 void calc_sequence(struct Scene *scene, struct Sequence *seq);
 void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
 void new_tstripdata(struct Sequence *seq);
-void reload_sequence_new_file(struct Scene *scene, struct Sequence * seq);
+void reload_sequence_new_file(struct Scene *scene, struct Sequence * seq, int lock_range);
 void sort_seq(struct Scene *scene);
 void build_seqar_cb(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq,
 					int (*test_func)(struct Sequence * seq));

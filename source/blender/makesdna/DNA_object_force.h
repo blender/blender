@@ -365,6 +365,8 @@ typedef struct SoftBody {
 #define PTCACHE_FRAMES_SKIPPED		256
 #define PTCACHE_EXTERNAL			512
 #define PTCACHE_READ_INFO			1024
+/* dont use the filename of the blendfile the data is linked from (write a local cache) */
+#define PTCACHE_IGNORE_LIBPATH		2048
 
 /* PTCACHE_OUTDATED + PTCACHE_FRAMES_SKIPPED */
 #define PTCACHE_REDO_NEEDED			258

@@ -132,10 +132,9 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiO!s:BoolProperty", (char **)kwlist, &id, &name, &description, &def, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
-		if(bpy_struct_id_used(srna, id)) {
-			// PyErr_Format(PyExc_TypeError, "BoolProperty(): '%s' already defined.", id);
-			// return NULL;
-			Py_RETURN_NONE;
+		if(RNA_def_property_free_identifier(srna, id) == -1) {
+			PyErr_Format(PyExc_TypeError, "BoolProperty(): '%s' is defined as a non-dynamic type.", id);
+			return NULL;
 		}
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "BoolProperty(options={...}):"))
@@ -200,10 +199,9 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOO!si:BoolVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
 
-		if(bpy_struct_id_used(srna, id)) {
-			// PyErr_Format(PyExc_TypeError, "BoolVectorProperty(): '%s' already defined.", id);
-			// return NULL;
-			Py_RETURN_NONE;
+		if(RNA_def_property_free_identifier(srna, id) == -1) {
+			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(): '%s' is defined as a non-dynamic type.", id);
+			return NULL;
 		}
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "BoolVectorProperty(options={...}):"))
@@ -275,10 +273,9 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiiiiO!s:IntProperty", (char **)kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
-		if(bpy_struct_id_used(srna, id)) {
-			// PyErr_Format(PyExc_TypeError, "IntProperty(): '%s' already defined.", id);
-			// return NULL;
-			Py_RETURN_NONE;
+		if(RNA_def_property_free_identifier(srna, id) == -1) {
+			PyErr_Format(PyExc_TypeError, "IntProperty(): '%s' is defined as a non-dynamic type.", id);
+			return NULL;
 		}
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "IntProperty(options={...}):"))
@@ -344,10 +341,9 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOiiiiO!si:IntVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
 
-		if(bpy_struct_id_used(srna, id)) {
-			// PyErr_Format(PyExc_TypeError, "IntVectorProperty(): '%s' already defined.", id);
-			// return NULL;
-			Py_RETURN_NONE;
+		if(RNA_def_property_free_identifier(srna, id) == -1) {
+			PyErr_Format(PyExc_TypeError, "IntVectorProperty(): '%s' is defined as a non-dynamic type.", id);
+			return NULL;
 		}
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "IntVectorProperty(options={...}):"))
@@ -426,10 +422,9 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssffffffiO!ss:FloatProperty", (char **)kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &pyunit))
 			return NULL;
 
-		if(bpy_struct_id_used(srna, id)) {
-			// PyErr_Format(PyExc_TypeError, "FloatProperty(): '%s' already defined.", id);
-			// return NULL;
-			Py_RETURN_NONE;
+		if(RNA_def_property_free_identifier(srna, id) == -1) {
+			PyErr_Format(PyExc_TypeError, "FloatProperty(): '%s' is defined as a non-dynamic type.", id);
+			return NULL;
 		}
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "FloatProperty(options={...}):"))
@@ -500,10 +495,9 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOfffffiO!si:FloatVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
 
-		if(bpy_struct_id_used(srna, id)) {
-			// PyErr_Format(PyExc_TypeError, "FloatVectorProperty(): '%s' already defined.", id);
-			// return NULL;
-			Py_RETURN_NONE;
+		if(RNA_def_property_free_identifier(srna, id) == -1) {
+			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(): '%s' is defined as a non-dynamic type.", id);
+			return NULL;
 		}
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "FloatVectorProperty(options={...}):"))
@@ -576,10 +570,9 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|sssiO!s:StringProperty", (char **)kwlist, &id, &name, &description, &def, &maxlen, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
-		if(bpy_struct_id_used(srna, id)) {
-			// PyErr_Format(PyExc_TypeError, "StringProperty(): '%s' already defined.", id);
-			// return NULL;
-			Py_RETURN_NONE;
+		if(RNA_def_property_free_identifier(srna, id) == -1) {
+			PyErr_Format(PyExc_TypeError, "StringProperty(): '%s' is defined as a non-dynamic type.", id);
+			return NULL;
 		}
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "StringProperty(options={...}):"))
@@ -688,10 +681,9 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|sssO!:EnumProperty", (char **)kwlist, &id, &items, &name, &description, &def, &PySet_Type, &pyopts))
 			return NULL;
 
-		if(bpy_struct_id_used(srna, id)) {
-			// PyErr_Format(PyExc_TypeError, "EnumProperty(): '%s' already defined.", id);
-			// return NULL;
-			Py_RETURN_NONE;
+		if(RNA_def_property_free_identifier(srna, id) == -1) {
+			PyErr_Format(PyExc_TypeError, "EnumProperty(): '%s' is defined as a non-dynamic type.", id);
+			return NULL;
 		}
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "EnumProperty(options={...}):"))
@@ -772,10 +764,9 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssO!:PointerProperty", (char **)kwlist, &id, &type, &name, &description, &PySet_Type, &pyopts))
 			return NULL;
 
-		if(bpy_struct_id_used(srna, id)) {
-			// PyErr_Format(PyExc_TypeError, "PointerProperty(): '%s' already defined.", id);
-			// return NULL;
-			Py_RETURN_NONE;
+		if(RNA_def_property_free_identifier(srna, id) == -1) {
+			PyErr_Format(PyExc_TypeError, "PointerProperty(): '%s' is defined as a non-dynamic type.", id);
+			return NULL;
 		}
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "PointerProperty(options={...}):"))
@@ -833,10 +824,9 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssO!:CollectionProperty", (char **)kwlist, &id, &type, &name, &description, &PySet_Type, &pyopts))
 			return NULL;
 
-		if(bpy_struct_id_used(srna, id)) {
-			// PyErr_Format(PyExc_TypeError, "CollectionProperty(): '%s' already defined.", id);
-			// return NULL;
-			Py_RETURN_NONE;
+		if(RNA_def_property_free_identifier(srna, id) == -1) {
+			PyErr_Format(PyExc_TypeError, "CollectionProperty(): '%s' is defined as a non-dynamic type.", id);
+			return NULL;
 		}
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "CollectionProperty(options={...}):"))
@@ -860,6 +850,42 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 	return NULL;
 }
 
+static char BPy_RemoveProperty_doc[] =
+".. function:: RemoveProperty(attr)\n"
+"\n"
+"   Removes a dynamically defined property.\n"
+"\n"
+"   :arg attr: Property name.\n"
+"   :type attr: string";
+PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw)
+{
+	StructRNA *srna;
+
+	srna= srna_from_self(self, "RemoveProperty(...):");
+	if(srna==NULL && PyErr_Occurred()) {
+		return NULL; /* self's type was compatible but error getting the srna */
+	}
+	else if(srna==NULL) {
+		PyErr_SetString(PyExc_TypeError, "RemoveProperty(): struct rna not available for this type.");
+		return NULL;
+	}
+	else {
+		static const char *kwlist[] = {"attr", NULL};
+		
+		char *id=NULL;
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s:RemoveProperty", (char **)kwlist, &id))
+			return NULL;
+
+		if(RNA_def_property_free_identifier(srna, id) != 1) {
+			PyErr_Format(PyExc_TypeError, "RemoveProperty(): '%s' not a defined dynamic property.", id);
+			return NULL;
+		}
+		
+		Py_RETURN_NONE;
+	}
+}
+
 static struct PyMethodDef props_methods[] = {
 	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolProperty_doc},
 	{"BoolVectorProperty", (PyCFunction)BPy_BoolVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolVectorProperty_doc},
@@ -871,6 +897,9 @@ static struct PyMethodDef props_methods[] = {
 	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, BPy_EnumProperty_doc},
 	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, BPy_PointerProperty_doc},
 	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, BPy_CollectionProperty_doc},
+
+	/* only useful as a bpy_struct method */
+	/* {"RemoveProperty", (PyCFunction)BPy_RemoveProperty, METH_VARARGS|METH_KEYWORDS, BPy_RemoveProperty_doc}, */
 	{NULL, NULL, 0, NULL}
 };
 

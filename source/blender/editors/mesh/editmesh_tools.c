@@ -2729,7 +2729,7 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float 
 		}
 	}
 
-	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "subdivideedgenum gh");
 
 	// If we are knifing, We only need the selected edges that were cut, so deselect if it was not cut
 	if(beauty & B_KNIFE) {
@@ -4091,7 +4091,7 @@ useless:
 
 	// populate the SlideVerts
 
-	vertgh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	vertgh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "EdgeSlide gh");
 	look = vertlist;
 	while(look) {
 		i=0;
@@ -4259,7 +4259,7 @@ useless:
 
 		for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 
-			uvarray[uvlay_idx] = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+			uvarray[uvlay_idx] = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "EdgeSlideUV gh");
 
 			for(ev=em->verts.first;ev;ev=ev->next) {
 				ev->tmp.l = 0;

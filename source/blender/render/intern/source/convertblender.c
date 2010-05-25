@@ -853,7 +853,7 @@ static float *get_object_orco(Render *re, Object *ob)
 	float *orco;
 	
 	if (!re->orco_hash)
-		re->orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+		re->orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "get_object_orco gh");
 	
 	orco = BLI_ghash_lookup(re->orco_hash, ob);
 	
@@ -876,7 +876,7 @@ static float *get_object_orco(Render *re, Object *ob)
 static void set_object_orco(Render *re, void *ob, float *orco)
 {
 	if (!re->orco_hash)
-		re->orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+		re->orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "set_object_orco gh");
 	
 	BLI_ghash_insert(re->orco_hash, ob, orco);
 }

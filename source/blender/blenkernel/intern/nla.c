@@ -1243,7 +1243,7 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 	 *	- this is easier than iterating over all the tracks+strips hierarchy everytime
 	 *	  (and probably faster)
 	 */
-	gh= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+	gh= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "nlastrip_validate_name gh");
 	
 	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
 		for (tstrip= nlt->strips.first; tstrip; tstrip= tstrip->next) {

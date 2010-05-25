@@ -73,9 +73,10 @@ BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'png'
 BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
-BF_TIFF = LIBDIR + '/tiff'
+WITH_BF_TIFF = True
+BF_TIFF = LIBDIR + '/gcc/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
-BF_TIFF_LIB = 'libtiff'
+BF_TIFF_LIB = 'tiff'
 BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 
 WITH_BF_ZLIB = True

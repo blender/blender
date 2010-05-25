@@ -42,6 +42,15 @@
 #include <sys/times.h>
 #endif   
 
+/* path/file handeling stuff */
+#ifndef WIN32
+  #include <dirent.h>
+  #include <unistd.h>
+#else
+  #include <io.h>
+  #include "BLI_winstuff.h"
+#endif
+
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
@@ -204,11 +213,11 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
 		int width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;
-		numfiles = width/layout->tile_w + 1;
+		numfiles = (float)width/(float)layout->tile_w+0.5;
 		return numfiles*layout->rows;
 	} else {
 		int height = ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y;
-		numfiles = height/layout->tile_h + 1;
+		numfiles = (float)height/(float)layout->tile_h+0.5;
 		return numfiles*layout->columns;
 	}
 }
@@ -432,10 +441,55 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 	return match;
 }
 
-
 void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 {
-	char tmp[FILE_MAX];
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
+	/* search if str matches the beginning of name */
+	if(str[0] && sfile->files) {
+		char dirname[FILE_MAX];
+
+		DIR *dir;
+		struct dirent *de;
+		
+		BLI_split_dirfile(str, dirname, NULL);
+
+		dir = opendir(dirname);
+
+		if(dir) {
+			AutoComplete *autocpl= autocomplete_begin(str, FILE_MAX);
+
+			while ((de = readdir(dir)) != NULL) {
+				if (strcmp(".", de->d_name)==0 || strcmp("..", de->d_name)==0) {
+					/* pass */
+				}
+				else {
+					char path[FILE_MAX];
+					struct stat status;
+					
+					BLI_join_dirfile(path, dirname, de->d_name);
+
+					if (stat(path, &status) == 0) {
+						if (S_ISDIR(status.st_mode)) { /* is subdir */
+							autocomplete_do_name(autocpl, path);
+						}
+					}
+				}
+			}
+			closedir(dir);
+
+			autocomplete_end(autocpl, str);
+			if (BLI_exists(str)) {
+				BLI_add_slash(str);
+			} else {
+				BLI_strncpy(sfile->params->dir, str, sizeof(sfile->params->dir));
+			}
+		}
+	}
+}
+
+void autocomplete_file(struct bContext *C, char *str, void *arg_v)
+{
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
 	/* search if str matches the beginning of name */
@@ -446,19 +500,11 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 
 		for(i= 0; i<nentries; ++i) {
 			struct direntry* file = filelist_file(sfile->files, i);
-			const char* dir = filelist_dir(sfile->files);
-			if (file && S_ISDIR(file->type))	{
-				// BLI_make_file_string(G.sce, tmp, dir, file->relname);
-				BLI_join_dirfile(tmp, dir, file->relname);
-				autocomplete_do_name(autocpl,tmp);
+			if (file && S_ISREG(file->type)) {
+				autocomplete_do_name(autocpl, file->relname);
 			}
 		}
 		autocomplete_end(autocpl, str);
-		if (BLI_exists(str)) {
-			BLI_add_slash(str);
-		} else {
-			BLI_make_exist(str);
-		}
 	}
 }
 

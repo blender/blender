@@ -33,6 +33,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_controller_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force.h"
@@ -858,22 +859,49 @@ static void rna_Base_layer_set(PointerRNA *ptr, const int *values)
 	/* rna_Base_layer_update updates the objects layer */
 }
 
+static void rna_GameObjectSettings_state_get(PointerRNA *ptr, int *values)
+{
+	Object *ob= (Object*)ptr->data;
+	int i;
+	int all_states = (ob->scaflag & OB_ALLSTATE?1:0);
+
+	memset(values, 0, sizeof(int)*OB_MAX_STATES);
+	for(i=0; i<OB_MAX_STATES; i++)
+		values[i] = (ob->state & (1<<i)) | all_states;
+}
+
 static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
 {
 	Object *ob= (Object*)ptr->data;
 	int i, tot= 0;
 
 	/* ensure we always have some state selected */
-	for(i=0; i<20; i++)
+	for(i=0; i<OB_MAX_STATES; i++)
 		if(values[i])
 			tot++;
 	
 	if(tot==0)
 		return;
 
-	for(i=0; i<20; i++) {
+	for(i=0; i<OB_MAX_STATES; i++) {
 		if(values[i]) ob->state |= (1<<i);
 		else ob->state &= ~(1<<i);
+	}
+}
+
+static void rna_GameObjectSettings_used_state_get(PointerRNA *ptr, int *values)
+{
+	Object *ob= (Object*)ptr->data;
+	bController *cont;
+
+	memset(values, 0, sizeof(int)*OB_MAX_STATES);
+	for (cont=ob->controllers.first; cont; cont=cont->next) {
+		int i;
+
+		for (i=0; i<OB_MAX_STATES; i++) {
+			if (cont->state_mask & (1<<i))
+				values[i] = 1;
+		}
 	}
 }
 
@@ -1111,6 +1139,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, body_type_items);
 	RNA_def_property_enum_funcs(prop, "rna_GameObjectSettings_physics_type_get", "rna_GameObjectSettings_physics_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Physics Type",  "Selects the type of physical representation");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "actor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ACTOR);
@@ -1222,7 +1251,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "collision_compound", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_CHILD);
-	RNA_def_property_ui_text(prop, "Collison Compound", "Add children to form a compound collision object");
+	RNA_def_property_ui_text(prop, "Collision Compound", "Add children to form a compound collision object");
 
 	prop= RNA_def_property(srna, "collision_margin", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "margin");
@@ -1235,20 +1264,36 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	/* state */
 
-	prop= RNA_def_property(srna, "state", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "state", 1);
-	RNA_def_property_array(prop, 30);
+	RNA_def_property_array(prop, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "State", "State determining which controllers are displayed");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_GameObjectSettings_state_set");
+	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_state_get", "rna_GameObjectSettings_state_set");
 
+	prop= RNA_def_property(srna, "used_state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_array(prop, OB_MAX_STATES);
+	RNA_def_property_ui_text(prop, "Used State", "States which are being used by controllers");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_used_state_get", NULL);
+	
 	prop= RNA_def_property(srna, "initial_state", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "init_state", 1);
-	RNA_def_property_array(prop, 30);
+	RNA_def_property_array(prop, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "Initial State", "Initial state when the game starts");
 
 	prop= RNA_def_property(srna, "debug_state", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_DEBUGSTATE);
 	RNA_def_property_ui_text(prop, "Debug State", "Print state debug info in the game engine");
+	RNA_def_property_ui_icon(prop, ICON_INFO, 0);
+
+	prop= RNA_def_property(srna, "all_states", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_ALLSTATE);
+	RNA_def_property_ui_text(prop, "All", "Set all state bits");
+
+	prop= RNA_def_property(srna, "show_state_panel", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_SHOWSTATE);
+	RNA_def_property_ui_text(prop, "States", "Show state panel");
+	RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
 }
 
 static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1470,7 +1515,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_multi_array(prop, 2, boundbox_dimsize);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_Object_boundbox_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Bound Box", "Objects bound box in object-space coords");
+	RNA_def_property_ui_text(prop, "Bound Box", "Objects bound box in object-space coordinates");
 
 	/* parent */
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
@@ -1627,17 +1672,20 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_LOCX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Location", "Lock editing of location in the interface");
+	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_XYZ);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Rotation", "Lock editing of rotation in the interface");
+	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
 		// XXX this is sub-optimal - it really should be included above, but due to technical reasons we can't do this!
 	prop= RNA_def_property(srna, "lock_rotation_w", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTW);
+	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_ui_text(prop, "Lock Rotation (4D Angle)", "Lock editing of 'angle' component of four-component rotations in the interface");
 		// XXX this needs a better name
 	prop= RNA_def_property(srna, "lock_rotations_4d", PROP_BOOLEAN, PROP_NONE);
@@ -1648,6 +1696,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_SCALEX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface");
+	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
 	/* matrix */
@@ -1757,16 +1806,19 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "restrict_view", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEW);
 	RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport");
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "restrict_select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_SELECT);
 	RNA_def_property_ui_text(prop, "Restrict Select", "Restrict selection in the viewport");
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "restrict_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_RENDER);
 	RNA_def_property_ui_text(prop, "Restrict Render", "Restrict renderability");
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* anim */
@@ -1846,16 +1898,20 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "DupliObject");
 	RNA_def_property_ui_text(prop, "Dupli list", "Object duplis");
 
+	prop= RNA_def_property(srna, "duplis_used", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLI);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	/* time offset */
 	prop= RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "sf");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
-	RNA_def_property_ui_text(prop, "Time Offset", "Animation offset in frames for IPO's and dupligroup instances");
+	RNA_def_property_ui_text(prop, "Time Offset", "Animation offset in frames for F-Curve and dupligroup instances");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "time_offset_edit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_OFFS_OB);
-	RNA_def_property_ui_text(prop, "Time Offset Edit", "Use time offset when inserting keys and display time offset for IPO and action views");
+	RNA_def_property_ui_text(prop, "Time Offset Edit", "Use time offset when inserting keys and display time offset for F-Curve and action views");
 
 	prop= RNA_def_property(srna, "time_offset_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_OFFS_PARENT);
@@ -1994,7 +2050,7 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	/* TODO: DupliObject has more properties that can be wrapped */
 }
 
-static void rna_def_base(BlenderRNA *brna)
+static void rna_def_object_base(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -2025,13 +2081,15 @@ static void rna_def_base(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BA_WAS_SEL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "User Selected", "Object base user selection state, used to restore user selection after transformations");
+	
+	RNA_api_object_base(srna);
 }
 
 void RNA_def_object(BlenderRNA *brna)
 {
 	rna_def_object(brna);
 	rna_def_object_game_settings(brna);
-	rna_def_base(brna);
+	rna_def_object_base(brna);
 	rna_def_vertex_group(brna);
 	rna_def_material_slot(brna);
 	rna_def_dupli_object(brna);

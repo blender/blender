@@ -683,42 +683,32 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			icon_id= ICON_MATERIAL;
 		else
 			icon_id= ICON_MATERIAL_DATA;
-		iconofs-=18.0f;
-		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, icon_id, 1.0f, 0.5f);
-		glDisable(GL_BLEND);
+		iconofs-=22.0f;
+		uiDefIconBut(node->block, LABEL, B_REDR, icon_id, iconofs, rct->ymax-NODE_DY,
+					 UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, 0.5, "");
 	}
 	if(node->type == NODE_GROUP) {
 		
-		iconofs-=18.0f;
-		glEnable(GL_BLEND);
-		if(node->id->lib) {
-			float rgb[3] = {1.0f, 0.7f, 0.3f};
-			UI_icon_draw_aspect_color(iconofs, rct->ymax-NODE_DY, ICON_NODETREE, 1.0f, rgb);
-		}
-		else {
-			UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, ICON_NODETREE, 1.0f, 0.5f);
-		}
-		glDisable(GL_BLEND);
+		iconofs-=15.0f;
+		uiDefIconBut(node->block, LABEL, B_REDR, ICON_NODETREE, iconofs, rct->ymax-NODE_DY,
+					 UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, 0.5, "");
 	}
 	if(node->typeinfo->flag & NODE_OPTIONS) {
-		iconofs-=18.0f;
-		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, ICON_BUTS, 1.0f, 0.5f);
-		glDisable(GL_BLEND);
+		iconofs-=15.0f;
+		uiDefIconBut(node->block, LABEL, B_REDR, ICON_BUTS, iconofs, rct->ymax-NODE_DY,
+					 UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, 0.5, "");
 	}
 	{	/* always hide/reveal unused sockets */ 
 		int shade;
 
-		iconofs-=18.0f;
+		iconofs-=15.0f;
 		// XXX re-enable
 		/*if(node_has_hidden_sockets(node))
 			shade= -40;
 		else*/
 			shade= -90;
-		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, ICON_PLUS, 1.0f, 0.5f);
-		glDisable(GL_BLEND);
+		uiDefIconBut(node->block, LABEL, B_REDR, ICON_PLUS, iconofs, rct->ymax-NODE_DY,
+						  UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, 0.5, "");
 	}
 	
 	/* title */

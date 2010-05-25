@@ -85,6 +85,7 @@ class OUTLINER_MT_view(bpy.types.Menu):
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 
+
 class OUTLINER_MT_search(bpy.types.Menu):
     bl_label = "Search"
 
@@ -97,6 +98,7 @@ class OUTLINER_MT_search(bpy.types.Menu):
 
         col.prop(space, "match_case_sensitive")
         col.prop(space, "match_complete")
+
 
 class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
     bl_label = "Edit"
@@ -118,7 +120,7 @@ class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
 classes = [
     OUTLINER_HT_header,
     OUTLINER_MT_view,
-	OUTLINER_MT_search,
+    OUTLINER_MT_search,
     OUTLINER_MT_edit_datablocks]
 
 

@@ -122,6 +122,17 @@ BLO_blendfiledata_free(
 	char*
 BLO_idcode_to_name(
 	int code);
+	
+/**
+ * Convert an idcode into a name (plural).
+ * 
+ * @param code The code to convert.
+ * @return A static string representing the name of
+ * the code.
+ */
+	char*
+BLO_idcode_to_name_plural(
+	int code);
 
 /**
  * Convert a name into an idcode (ie. ID_SCE)

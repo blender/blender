@@ -502,7 +502,15 @@ static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, SpaceIpo *
 	float samplefreq, ctime;
 	float stime, etime;
 	float unitFac;
-	
+	float dx, dy;
+
+	/* when opening a blend file on a different sized screen or while dragging the toolbar this can happen
+	 * best just bail out in this case */
+	UI_view2d_grid_size(grid, &dx, &dy);
+	if(dx <= 0.0f)
+		return;
+
+
 	/* disable any drivers temporarily */
 	driver= fcu->driver;
 	fcu->driver= NULL;
@@ -522,11 +530,9 @@ static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, SpaceIpo *
 	 *	loop (i.e. too close to 0), then clamp it to a determined "safe" value. The value
 	 * 	chosen here is just the coarsest value which still looks reasonable...
 	 */
-		/* grid->dx is the first float in View2DGrid struct, so just cast to float pointer, and use it
-		 * It represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps
-		 */
+		/* grid->dx represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps */
 		// TODO: perhaps we should have 1.0 frames as upper limit so that curves don't get too distorted?
-	samplefreq= *((float *)grid) / U.v2d_min_gridsize;
+	samplefreq= dx / U.v2d_min_gridsize;
 	if (samplefreq < 0.00001f) samplefreq= 0.00001f;
 	
 	

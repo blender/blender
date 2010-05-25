@@ -637,8 +637,9 @@ static const EnumPropertyItem image_file_type_items[] = {
 		{R_JP2, "JPEG_2000", 0, "Jpeg 2000", ""},
 #endif
 		{R_IRIS, "IRIS", 0, "Iris", ""},
-	//if(G.have_libtiff)
+#ifdef WITH_TIFF
 		{R_TIFF, "TIFF", 0, "Tiff", ""},
+#endif
 		{R_RADHDR, "RADIANCE_HDR", 0, "Radiance HDR", ""},
 		{R_CINEON, "CINEON", 0, "Cineon", ""},
 		{R_DPX, "DPX", 0, "DPX", ""},
@@ -964,7 +965,12 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if(ibuf->name[0]==0)
 			BLI_strncpy(ibuf->name, G.ima, FILE_MAX);
-		
+
+		/* enable save_copy by default for render results */
+		if(ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE) && !RNA_property_is_set(op->ptr, "copy")) {
+			RNA_boolean_set(op->ptr, "copy", TRUE);
+		}
+
 		// XXX note: we can give default menu enums to operator for this 
 		image_filesel(C, op, ibuf->name);
 
@@ -1150,7 +1156,6 @@ static int reload_exec(bContext *C, wmOperator *op)
 	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
 
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
-	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -1163,7 +1168,6 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= reload_exec;
-	ot->poll= space_image_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

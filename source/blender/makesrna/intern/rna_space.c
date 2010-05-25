@@ -338,6 +338,18 @@ static void rna_RegionView3D_quadview_update(Main *main, Scene *scene, PointerRN
 		ED_view3d_quadview_update(sa, ar);
 }
 
+static void rna_RegionView3D_view_location_get(PointerRNA *ptr, float *values)
+{
+	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
+	negate_v3_v3(values, rv3d->ofs);
+}
+
+static void rna_RegionView3D_view_location_set(PointerRNA *ptr, const float *values)
+{
+	RegionView3D *rv3d= (RegionView3D *)(ptr->data);
+	negate_v3_v3(rv3d->ofs, values);
+}
+
 /* Space Image Editor */
 
 static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
@@ -508,6 +520,28 @@ static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 
 	return &RNA_ID;
 }
+
+static void rna_SpaceProperties_pin_id_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
+	ID *id = sbuts->pinid;
+	
+	switch (GS(id->name)) {
+		case ID_MA:
+			WM_main_add_notifier(NC_MATERIAL|ND_SHADING, NULL);
+			break;
+		case ID_TE:
+			WM_main_add_notifier(NC_TEXTURE, NULL);
+			break;
+		case ID_WO:
+			WM_main_add_notifier(NC_WORLD, NULL);
+			break;
+		case ID_LA:
+			WM_main_add_notifier(NC_LAMP, NULL);
+			break;
+	}
+}
+
 
 static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 {
@@ -899,7 +933,13 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point", ""},
 		{V3D_ACTIVE, "ACTIVE_ELEMENT", ICON_ROTACTIVE, "Active Element", ""},
 		{0, NULL, 0, NULL, NULL}};
-		
+
+	static EnumPropertyItem rv3d_persp_items[] = {
+		{RV3D_PERSP, "PERSP", 0, "Perspective", ""},
+		{RV3D_ORTHO, "ORTHO", 0, "Orthographic", ""},
+		{RV3D_CAMOB, "CAMERA", 0, "Camera", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
 	srna= RNA_def_struct(brna, "SpaceView3D", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
@@ -1146,6 +1186,34 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX: for now, it's too risky for users to do this
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
 	RNA_def_property_ui_text(prop, "View Matrix", "Current view matrix of the 3D region");
+
+	prop= RNA_def_property(srna, "view_perspective", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "persp");
+	RNA_def_property_enum_items(prop, rv3d_persp_items);
+	RNA_def_property_ui_text(prop, "Perspective", "View Perspective");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	
+	prop= RNA_def_property(srna, "view_location", PROP_FLOAT, PROP_TRANSLATION);
+#if 0
+	RNA_def_property_float_sdna(prop, NULL, "ofs"); // cant use because its negated
+#else
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_RegionView3D_view_location_get", "rna_RegionView3D_view_location_set", NULL);
+#endif
+	RNA_def_property_ui_text(prop, "View Location", "View pivot location");
+	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	
+	prop= RNA_def_property(srna, "view_rotation", PROP_FLOAT, PROP_QUATERNION);
+	RNA_def_property_float_sdna(prop, NULL, "viewquat");
+	RNA_def_property_ui_text(prop, "View Rotation", "Rotation in quaternions (keep normalized)");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	
+	/* not sure we need rna access to these but adding anyway */
+	prop= RNA_def_property(srna, "view_distance", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "dist");
+	RNA_def_property_ui_text(prop, "Distance", "Distance to the view location");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
 static void rna_def_space_buttons(BlenderRNA *brna)
@@ -1203,7 +1271,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
     /* note: custom set function is ONLY to avoid rna setting a user for this. */
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceProperties_pin_id_set", "rna_SpaceProperties_pin_id_typef");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, "rna_SpaceProperties_pin_id_update");
 
 	prop= RNA_def_property(srna, "use_pin_id", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SB_PIN_CONTEXT);
@@ -1311,7 +1379,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_uvedit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_SpaceImageEditor_show_uvedit_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Show UV Editor", "Show uv editing related properties");
+	RNA_def_property_ui_text(prop, "Show UV Editor", "Show UV editing related properties");
 
 	rna_def_space_image_uv(brna);
 }
@@ -1351,7 +1419,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "view_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "view");
 	RNA_def_property_enum_items(prop, view_type_items);
-	RNA_def_property_ui_text(prop, "View Type", "The type of the Sequencere view (sequencer, preview or both)");
+	RNA_def_property_ui_text(prop, "View Type", "The type of the Sequencer view (sequencer, preview or both)");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Sequencer_display_mode_update");
 
@@ -1370,7 +1438,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "draw_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_DRAWFRAMES);
-	RNA_def_property_ui_text(prop, "Draw Frames", "Draw frames rather then seconds");
+	RNA_def_property_ui_text(prop, "Draw Frames", "Draw frames rather than seconds");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "use_marker_sync", PROP_BOOLEAN, PROP_NONE);
@@ -1380,7 +1448,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "separate_color_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_DRAW_COLOR_SEPERATED);
-	RNA_def_property_ui_text(prop, "Seperate Colors", "Seperate color channels in preview");
+	RNA_def_property_ui_text(prop, "Separate Colors", "Separate color channels in preview");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 
 	prop= RNA_def_property(srna, "draw_safe_margin", PROP_BOOLEAN, PROP_NONE);
@@ -2111,7 +2179,8 @@ static void rna_def_space_logic(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SpaceLogicEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceLogic");
 	RNA_def_struct_ui_text(srna, "Space Logic Editor", "Logic editor space data");
-	
+
+	/* sensors */
 	prop= RNA_def_property(srna, "sensors_show_selected_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_SENS_SEL);
 	RNA_def_property_ui_text(prop, "Show Selected Object", "Show sensors of all selected objects");
@@ -2126,12 +2195,49 @@ static void rna_def_space_logic(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_SENS_LINK);
 	RNA_def_property_ui_text(prop, "Show Linked to Controller", "Show linked objects to the controller");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	
+
 	prop= RNA_def_property(srna, "sensors_show_active_states", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_SENS_STATE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "scaflag", BUTS_SENS_STATE);
 	RNA_def_property_ui_text(prop, "Show Active States", "Show only sensors connected to active states");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	/* controllers */
+	prop= RNA_def_property(srna, "controllers_show_selected_objects", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_CONT_SEL);
+	RNA_def_property_ui_text(prop, "Show Selected Object", "Show controllers of all selected objects");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
+	prop= RNA_def_property(srna, "controllers_show_active_objects", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_CONT_ACT);
+	RNA_def_property_ui_text(prop, "Show Active Object", "Show controllers of active object");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "controllers_show_linked_controller", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_CONT_LINK);
+	RNA_def_property_ui_text(prop, "Show Linked to Controller", "Show linked objects to sensor/actuator");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	/* actuators */
+	prop= RNA_def_property(srna, "actuators_show_selected_objects", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_ACT_SEL);
+	RNA_def_property_ui_text(prop, "Show Selected Object", "Show actuators of all selected objects");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	
+	prop= RNA_def_property(srna, "actuators_show_active_objects", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_ACT_ACT);
+	RNA_def_property_ui_text(prop, "Show Active Object", "Show actuators of active object");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	
+	prop= RNA_def_property(srna, "actuators_show_linked_controller", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_ACT_LINK);
+	RNA_def_property_ui_text(prop, "Show Linked to Actuator", "Show linked objects to the actuator");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "actuators_show_active_states", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "scaflag", BUTS_ACT_STATE);
+	RNA_def_property_ui_text(prop, "Show Active States", "Show only actuators connected to active states");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 }
 
 void RNA_def_space(BlenderRNA *brna)

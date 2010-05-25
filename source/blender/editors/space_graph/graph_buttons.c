@@ -208,11 +208,88 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 				uiLayoutSetEnabled(subrow, (fcu->color_mode==FCURVE_COLOR_CUSTOM));
 				uiItemR(subrow, &fcu_ptr, "color", 0, "", 0);
 	
-	/* TODO: the following settings could be added here
-	 *	- Access details (ID-block + RNA-Path + Array Index)
-	 *	- ...
-	 */
+	MEM_freeN(ale);
+}
 
+/* ******************* active Keyframe ************** */
+
+/* get 'active' keyframe for panel editing */
+static short get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezTriple **prevbezt)
+{
+	BezTriple *b;
+	int i;
+	
+	/* zero the pointers */
+	*bezt = *prevbezt = NULL;
+	
+	/* sanity checks */
+	if ((fcu->bezt == NULL) || (fcu->totvert == 0))
+		return 0;
+		
+	/* find first selected keyframe for now, and call it the active one 
+	 *	- this is a reasonable assumption, given that whenever anyone 
+	 *	  wants to edit numerically, there is likely to only be 1 vert selected
+	 */
+	for (i=0, b=fcu->bezt; i < fcu->totvert; i++, b++) {
+		if (BEZSELECTED(b)) {
+			/* found 
+			 *	- 'previous' is either the one before, of the keyframe itself (which is still fine)
+			 *		XXX: we can just make this null instead if needed
+			 */
+			*prevbezt = (i > 0) ? b-1 : b;
+			*bezt = b;
+			
+			return 1;
+		}
+	}
+	
+	/* not found */
+	return 0;
+}
+
+static void graph_panel_key_properties(const bContext *C, Panel *pa)
+{
+	bAnimListElem *ale;
+	FCurve *fcu;
+	BezTriple *bezt, *prevbezt;
+	
+	uiLayout *layout = pa->layout;
+	uiLayout *col;
+	uiBlock *block;
+
+	if (!graph_panel_context(C, &ale, &fcu))
+		return;
+	
+	block = uiLayoutGetBlock(layout);
+	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
+	
+	/* only show this info if there are keyframes to edit */
+	if (get_active_fcurve_keyframe_edit(fcu, &bezt, &prevbezt)) {
+		PointerRNA bezt_ptr;
+		
+		/* RNA pointer to keyframe, to allow editing */
+		RNA_pointer_create(ale->id, &RNA_Keyframe, bezt, &bezt_ptr);
+		
+		/* interpolation */
+		col= uiLayoutColumn(layout, 0);
+			uiItemR(col, &bezt_ptr, "interpolation", 0, NULL, 0);
+			
+		/* numerical coordinate editing */
+		col= uiLayoutColumn(layout, 1);
+			/* keyframe itself */
+			uiItemR(col, &bezt_ptr, "co", 0, "Key", 0);
+			
+			/* previous handle - only if previous was Bezier interpolation */
+			if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ))
+				uiItemR(col, &bezt_ptr, "handle1", 0, NULL, 0);
+			
+			/* next handle - only if current is Bezier interpolation */
+			if (bezt->ipo == BEZT_IPO_BEZ)
+				uiItemR(col, &bezt_ptr, "handle2", 0, NULL, 0);
+	}
+	else
+		uiItemL(layout, "No active keyframe on F-Curve", 0);
+	
 	MEM_freeN(ale);
 }
 
@@ -631,6 +708,7 @@ void graph_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "GRAPH_PT_view");
 	strcpy(pt->label, "View Properties");
 	pt->draw= graph_panel_view;
+	pt->flag |= PNL_DEFAULT_CLOSED;
 	BLI_addtail(&art->paneltypes, pt);
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
@@ -639,6 +717,14 @@ void graph_buttons_register(ARegionType *art)
 	pt->draw= graph_panel_properties;
 	pt->poll= graph_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
+	
+	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
+	strcpy(pt->idname, "GRAPH_PT_key_properties");
+	strcpy(pt->label, "Active Keyframe");
+	pt->draw= graph_panel_key_properties;
+	pt->poll= graph_panel_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers");
 	strcpy(pt->idname, "GRAPH_PT_drivers");

@@ -29,9 +29,14 @@
  #include <string.h>
 #include <stdio.h>
 
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
 
 #include "MEM_guardedalloc.h"
 
+#include "BLO_readfile.h"
+		
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
@@ -142,13 +147,70 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
 static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
+	ListBase *lb;
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymap */
 	keymap= WM_keymap_find(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	
+	/* add drop boxes */
+	lb= WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
+	
+	WM_event_add_dropbox_handler(&ar->handlers, lb);
 }
+
+
+/* ************* dropboxes ************* */
+
+static int id_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+    SpaceConsole *sc= CTX_wm_space_console(C);
+    if(sc->type==CONSOLE_TYPE_PYTHON)
+        if(drag->type==WM_DRAG_ID)
+            return 1;
+	return 0;
+}
+
+static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	char text[64];
+	ID *id= drag->poin;
+
+	snprintf(text, sizeof(text), "bpy.data.%s['%s']", BLO_idcode_to_name_plural(GS(id->name)), id->name+2);	
+
+	/* copy drag path to properties */
+	RNA_string_set(drop->ptr, "text", text);
+}
+
+static int path_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+    SpaceConsole *sc= CTX_wm_space_console(C);
+    if(sc->type==CONSOLE_TYPE_PYTHON)
+        if(drag->type==WM_DRAG_PATH)
+            return 1;
+	return 0;
+}
+
+static void path_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+    char pathname[FILE_MAXDIR+FILE_MAXFILE+2];
+    snprintf(pathname, sizeof(pathname), "\"%s\"", drag->path);
+	RNA_string_set(drop->ptr, "text", pathname);
+}
+
+
+/* this region dropbox definition */
+static void console_dropboxes(void)
+{
+	ListBase *lb= WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
+	
+	WM_dropbox_add(lb, "CONSOLE_OT_insert", id_drop_poll, id_drop_copy);
+	WM_dropbox_add(lb, "CONSOLE_OT_insert", path_drop_poll, path_drop_copy);
+}
+
+/* ************* end drop *********** */
 
 static void console_main_area_draw(const bContext *C, ARegion *ar)
 {
@@ -344,6 +406,7 @@ void ED_spacetype_console(void)
 	st->duplicate= console_duplicate;
 	st->operatortypes= console_operatortypes;
 	st->keymap= console_keymap;
+	st->dropboxes= console_dropboxes;
 	st->listener= console_main_area_listener;
 	
 	/* regions: main window */

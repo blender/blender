@@ -75,7 +75,7 @@ extern EnumPropertyItem object_type_items[];
 
 extern EnumPropertyItem object_type_curve_items[];
 
-extern EnumPropertyItem sensor_type_items[];
+extern EnumPropertyItem controller_type_items[];
 
 extern EnumPropertyItem space_type_items[];
 
@@ -93,13 +93,19 @@ extern EnumPropertyItem viewport_shading_items[];
 struct bContext;
 struct PointerRNA;
 EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
+EnumPropertyItem *rna_Sensor_type_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
+EnumPropertyItem *rna_Actuator_type_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 
 /* Generic functions, return an enum from library data, index is the position
  * in the linked list can add more for different types as needed */
 EnumPropertyItem *RNA_action_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
+EnumPropertyItem *RNA_action_local_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 EnumPropertyItem *RNA_group_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
+EnumPropertyItem *RNA_group_local_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 EnumPropertyItem *RNA_image_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
+EnumPropertyItem *RNA_image_local_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 EnumPropertyItem *RNA_scene_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
+EnumPropertyItem *RNA_scene_local_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 
 #endif /* RNA_ENUM_TYPES */
 

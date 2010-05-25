@@ -1033,9 +1033,13 @@ static int modify_key_op_poll(bContext *C)
 	if (ELEM(NULL, sa, scene)) 
 		return 0;
 	
-	/* if Outliner, only allow in DataBlocks view */
-	if (so && (so->outlinevis != SO_DATABLOCKS))
-		return 0;
+	/* if Outliner, don't allow in some views */
+	if (so) {
+		if (ELEM4(so->outlinevis, SO_GROUPS, SO_LIBRARIES, SO_VERSE_SESSION, SO_VERSE_SESSION))
+			return 0;
+		if (ELEM3(so->outlinevis, SO_SEQUENCE, SO_USERDEF, SO_KEYMAP))
+			return 0;
+	}
 	
 	/* TODO: checks for other space types can be added here */
 	

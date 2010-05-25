@@ -144,6 +144,12 @@ extern "C" {
 	uintptr_t MEM_get_mapped_memory_in_use(void);
 	int MEM_get_memory_blocks_in_use(void);
 
+	/*reset the peak memory statistic to zero*/
+	void MEM_reset_peak_memory(void);
+
+	/*get the peak memory usage in bytes, including mmap allocations*/
+	uintptr_t MEM_get_peak_memory(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -105,6 +105,7 @@ JOB_TYPES = {
 class RenderFile:
     def __init__(self, filepath = "", index = 0, start = -1, end = -1, signature=0):
         self.filepath = filepath
+        self.original_path = filepath
         self.signature = signature
         self.index = index
         self.start = start
@@ -113,6 +114,7 @@ class RenderFile:
     def serialize(self):
         return 	{
                     "filepath": self.filepath,
+                    "original_path": self.original_path,
                     "index": self.index,
                     "start": self.start,
                     "end": self.end,
@@ -125,6 +127,7 @@ class RenderFile:
             return None
 
         rfile = RenderFile(data["filepath"], data["index"], data["start"], data["end"], data["signature"])
+        rfile.original_path = data["original_path"]
 
         return rfile
 

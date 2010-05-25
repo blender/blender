@@ -882,7 +882,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
 
 					col= uiLayoutColumn(split, 0);
-					uiItemR(col, &imaptr, "antialias", 0, NULL, 0);
 					uiItemR(col, &imaptr, "premultiply", 0, NULL, 0);
 				}
 			}

@@ -100,7 +100,7 @@ void free_blender(void)
 
 	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
 	
-	IMB_freeImBufdata();		/* imbuf lib */
+	IMB_exit();
 	
 	free_nodesystem();	
 }
@@ -130,6 +130,8 @@ void initglobals(void)
 	G.charstart = 0x0000;
 	G.charmin = 0x0000;
 	G.charmax = 0xffff;
+	
+	G.f |= G_SCRIPT_AUTOEXEC;
 }
 
 /***/
@@ -532,7 +534,7 @@ void BKE_write_undo(bContext *C, char *name)
 		sprintf(numstr, "%d.blend", counter);
 		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
-		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, NULL);
+		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, NULL, NULL);
 		
 		strcpy(curundo->str, tstr);
 	}

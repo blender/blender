@@ -1145,6 +1145,8 @@ typedef struct v2dScrollerMove {
 	float fac;				/* view adjustment factor, based on size of region */
 	float delta;			/* amount moved by mouse on axis of interest */
 	
+	float scrollbarwidth;	/* width of the scrollbar itself, used for page up/down clicks */
+	
 	int lastx, lasty;		/* previous mouse coordinates (in screen coordinates) for determining movement */
 } v2dScrollerMove;
 
@@ -1164,19 +1166,21 @@ struct View2DScrollers {
 enum {
 	SCROLLHANDLE_MIN= -1,
 	SCROLLHANDLE_BAR,
-	SCROLLHANDLE_MAX
+	SCROLLHANDLE_MAX,
+	SCROLLHANDLE_MIN_OUTSIDE,
+	SCROLLHANDLE_MAX_OUTSIDE
 } eV2DScrollerHandle_Zone;
 
 /* ------------------------ */
 
 /* check if mouse is within scroller handle 
  *	- mouse			= 	relevant mouse coordinate in region space
- *	- sc_min, sc_max	= 	extents of scroller
- *	- sh_min, sh_max	= 	positions of scroller handles
+ *	- sc_min, sc_max	= 	extents of scroller 'groove' (potential available space for scroller)
+ *	- sh_min, sh_max	= 	positions of scrollbar handles
  */
 static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_min, int sh_max)
 {
-	short in_min, in_max, in_view=1;
+	short in_min, in_max, in_bar, out_min, out_max, in_view=1;
 	
 	/* firstly, check if 
 	 *	- 'bubble' fills entire scroller 
@@ -1200,15 +1204,21 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 	/* check if mouse is in or past either handle */
 	in_max= ( (mouse >= (sh_max - V2D_SCROLLER_HANDLE_SIZE)) && (mouse <= (sh_max + V2D_SCROLLER_HANDLE_SIZE)) );
 	in_min= ( (mouse <= (sh_min + V2D_SCROLLER_HANDLE_SIZE)) && (mouse >= (sh_min - V2D_SCROLLER_HANDLE_SIZE)) );
+	in_bar= ( (mouse < (sh_max - V2D_SCROLLER_HANDLE_SIZE)) && (mouse > (sh_min + V2D_SCROLLER_HANDLE_SIZE)) );
+	out_min= mouse < (sh_min - V2D_SCROLLER_HANDLE_SIZE);
+	out_max= mouse > (sh_max + V2D_SCROLLER_HANDLE_SIZE);
 	
-	/* check if overlap --> which means user clicked on bar, as bar is within handles region */
-	if (in_max && in_min)
+	if (in_bar)
 		return SCROLLHANDLE_BAR;
 	else if (in_max)
 		return SCROLLHANDLE_MAX;
 	else if (in_min)
 		return SCROLLHANDLE_MIN;
-		
+	else if (out_min)
+		return SCROLLHANDLE_MIN_OUTSIDE;			  
+	else if (out_max)
+		return SCROLLHANDLE_MAX_OUTSIDE;
+	
 	/* unlikely to happen, though we just cover it in case */
 	return SCROLLHANDLE_BAR;
 } 
@@ -1248,14 +1258,14 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 		vsm->fac= (v2d->tot.xmax - v2d->tot.xmin) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
-		if (v2d->keepzoom & V2D_LOCKZOOM_X) {
+		vsm->zone= mouse_in_scroller_handle(x, v2d->hor.xmin, v2d->hor.xmax, scrollers->hor_min, scrollers->hor_max); 
+		
+		if ((v2d->keepzoom & V2D_LOCKZOOM_X) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
 			/* default to scroll, as handles not usable */
 			vsm->zone= SCROLLHANDLE_BAR;
 		}
-		else {
-			/* check which handle we're in */
-			vsm->zone= mouse_in_scroller_handle(x, v2d->hor.xmin, v2d->hor.xmax, scrollers->hor_min, scrollers->hor_max); 
-		}
+
+		vsm->scrollbarwidth = scrollers->hor_max - scrollers->hor_min;
 	}
 	else {
 		/* vertical scroller - calculate adjustment factor first */
@@ -1263,14 +1273,14 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 		vsm->fac= (v2d->tot.ymax - v2d->tot.ymin) / mask_size;
 		
 		/* get 'zone' (i.e. which part of scroller is activated) */
-		if (v2d->keepzoom & V2D_LOCKZOOM_Y) {
+		vsm->zone= mouse_in_scroller_handle(y, v2d->vert.ymin, v2d->vert.ymax, scrollers->vert_min, scrollers->vert_max); 
+			
+		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
 			/* default to scroll, as handles not usable */
 			vsm->zone= SCROLLHANDLE_BAR;
 		}
-		else {
-			/* check which handle we're in */
-			vsm->zone= mouse_in_scroller_handle(y, v2d->vert.ymin, v2d->vert.ymax, scrollers->vert_min, scrollers->vert_max); 
-		}
+		
+		vsm->scrollbarwidth = scrollers->vert_max - scrollers->vert_min;
 	}
 	
 	UI_view2d_scrollers_free(scrollers);
@@ -1320,8 +1330,11 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 			if ((vsm->scroller == 'v') && !(v2d->keepzoom & V2D_LOCKZOOM_Y))
 				v2d->cur.ymax += temp;
 			break;
-		
-		default: /* SCROLLHANDLE_BAR */
+			
+		case SCROLLHANDLE_MIN_OUTSIDE:
+		case SCROLLHANDLE_MAX_OUTSIDE:
+		case SCROLLHANDLE_BAR:
+		default:
 			/* only move view on an axis if panning is allowed */
 			if ((vsm->scroller == 'h') && !(v2d->keepofs & V2D_LOCKOFS_X)) {
 				v2d->cur.xmin += temp;
@@ -1332,6 +1345,7 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 				v2d->cur.ymax += temp;
 			}
 			break;
+			
 	}
 	
 	/* validate that view is in valid configuration after this operation */
@@ -1353,7 +1367,7 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 		{
 			/* calculate new delta transform, then store mouse-coordinates for next-time */
-			if (vsm->zone != SCROLLHANDLE_MIN) {
+			if (ELEM(vsm->zone, SCROLLHANDLE_BAR, SCROLLHANDLE_MAX)) {
 				/* if using bar (i.e. 'panning') or 'max' zoom widget */
 				switch (vsm->scroller) {
 					case 'h': /* horizontal scroller - so only horizontal movement ('cur' moves opposite to mouse) */
@@ -1364,7 +1378,7 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 						break;
 				}
 			}
-			else {
+			else if (vsm->zone == SCROLLHANDLE_MIN) {
 				/* using 'min' zoom widget */
 				switch (vsm->scroller) {
 					case 'h': /* horizontal scroller - so only horizontal movement ('cur' moves with mouse) */
@@ -1386,8 +1400,24 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 		case LEFTMOUSE:
 			if (event->val==KM_RELEASE) {
-				scroller_activate_exit(C, op);
-				return OPERATOR_FINISHED;
+				
+				/* click was in empty space outside scroll bar */
+				if (ELEM(vsm->zone, SCROLLHANDLE_MIN_OUTSIDE, SCROLLHANDLE_MAX_OUTSIDE)) {
+					if (vsm->zone == SCROLLHANDLE_MIN_OUTSIDE)
+						vsm->delta = -vsm->scrollbarwidth * 0.8;
+					else if (vsm->zone == SCROLLHANDLE_MAX_OUTSIDE)
+						vsm->delta = vsm->scrollbarwidth * 0.8;
+					
+					scroller_activate_apply(C, op);
+					scroller_activate_exit(C, op);
+					return OPERATOR_FINISHED;
+				}
+				
+				/* otherwise, end the drag action  */
+				if (vsm->lastx || vsm->lasty) {
+					scroller_activate_exit(C, op);
+					return OPERATOR_FINISHED;
+				}
 			}
 			break;
 	}

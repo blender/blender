@@ -299,14 +299,15 @@ def control(obj, definitions, base_names, options):
     lid8 = copy_bone_simple(obj.data, definitions[9], base_names[definitions[9]]).name
 
     size = eb[lid1].length
-    eb[lid1].tail = eb[lid1].head + Vector(0,size,0)
-    eb[lid2].tail = eb[lid2].head + Vector(0,size,0)
-    eb[lid3].tail = eb[lid3].head + Vector(0,size,0)
-    eb[lid4].tail = eb[lid4].head + Vector(0,size,0)
-    eb[lid5].tail = eb[lid5].head + Vector(0,size,0)
-    eb[lid6].tail = eb[lid6].head + Vector(0,size,0)
-    eb[lid7].tail = eb[lid7].head + Vector(0,size,0)
-    eb[lid8].tail = eb[lid8].head + Vector(0,size,0)
+    size_y = Vector(0.0, size, 0.0)
+    eb[lid1].tail = eb[lid1].head + size_y
+    eb[lid2].tail = eb[lid2].head + size_y
+    eb[lid3].tail = eb[lid3].head + size_y
+    eb[lid4].tail = eb[lid4].head + size_y
+    eb[lid5].tail = eb[lid5].head + size_y
+    eb[lid6].tail = eb[lid6].head + size_y
+    eb[lid7].tail = eb[lid7].head + size_y
+    eb[lid8].tail = eb[lid8].head + size_y
 
     eb[lid1].roll = 0
     eb[lid2].roll = 0
@@ -438,7 +439,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = -distance*2
     con.maximum = distance
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -457,7 +458,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = -distance*2
     con.maximum = distance
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -475,7 +476,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = -distance*2
     con.maximum = distance
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -493,7 +494,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = -distance*2
     con.maximum = distance
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -511,7 +512,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = -distance*2
     con.maximum = distance
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -530,7 +531,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = -distance
     con.maximum = distance*2
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -548,7 +549,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = -distance
     con.maximum = distance*2
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -566,7 +567,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = -distance
     con.maximum = distance*2
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -584,7 +585,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = -distance
     con.maximum = distance*2
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -602,7 +603,7 @@ def control(obj, definitions, base_names, options):
     con.minimum = -distance
     con.maximum = distance*2
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()

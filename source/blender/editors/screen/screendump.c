@@ -88,8 +88,6 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 		ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0, 0);
 		ibuf->rect= scd->dumprect;
 		
-		if(scene->r.planes == 8) IMB_cspace(ibuf, rgb_to_bw);
-		
 		BKE_write_ibuf(scene, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 
 		IMB_freeImBuf(ibuf);

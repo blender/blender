@@ -65,6 +65,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -405,6 +406,13 @@ void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], fl
 	*index= -1;
 }
 
+/* ObjectBase */
+
+void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
+{
+	base->lay= base->object->lay= v3d->lay;
+}
+
 #else
 
 void RNA_api_object(StructRNA *srna)
@@ -519,6 +527,18 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	parm= RNA_def_boolean(func, "is_visible", 0, "", "Object visibility.");
 	RNA_def_function_return(func, parm);
+}
+
+
+void RNA_api_object_base(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	func= RNA_def_function(srna, "layers_from_view", "rna_ObjectBase_layers_from_view");
+	RNA_def_function_ui_description(func, "Sets the object layers from a 3D View (use when adding an object in local view).");
+	parm= RNA_def_pointer(func, "view", "SpaceView3D", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 #endif

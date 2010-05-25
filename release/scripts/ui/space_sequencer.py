@@ -237,6 +237,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator("sequencer.cut", text="Cut (hard) at frame").type = 'HARD'
         layout.operator("sequencer.cut", text="Cut (soft) at frame").type = 'SOFT'
         layout.operator("sequencer.images_separate")
+        layout.operator("sequencer.deinterlace_selected_movies")
         layout.separator()
 
         layout.operator("sequencer.duplicate")
@@ -382,11 +383,13 @@ class SEQUENCER_PT_preview(bpy.types.Panel):
         col.active = render.use_sequencer_gl_preview
         col.prop(render, "sequencer_gl_preview", text="")
 
+        '''
         col = layout.column()
         col.prop(render, "use_sequencer_gl_render", text="Open GL Render")
         col = layout.column()
         col.active = render.use_sequencer_gl_render
         col.prop(render, "sequencer_gl_render", text="")
+        '''
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
@@ -447,9 +450,22 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 
         elif strip.type == 'TRANSFORM':
             self.draw_panel_transform(strip)
-            
+
         elif strip.type == "MULTICAM":
             layout.prop(strip, "multicam_source")
+
+            row = layout.row(align=True)
+            sub = row.row()
+            sub.scale_x = 2.0
+            if not context.screen.animation_playing:
+                sub.operator("screen.animation_play", text="", icon='PLAY')
+            else:
+                sub.operator("screen.animation_play", text="", icon='PAUSE')
+
+            row.label("Cut To")
+            for i in range(1, strip.channel):
+                row.operator("sequencer.cut_multicam", text=str(i)).camera = i
+
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':
@@ -506,7 +522,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-                              'MULTICAM','SPEED')
+                              'MULTICAM', 'SPEED')
 
     def draw_filename(self, context):
         pass
@@ -599,6 +615,7 @@ class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
             col = split.column()
             col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
 
+
 class SEQUENCER_PT_input_secondary(SEQUENCER_PT_input):
     bl_label = "Strip Input"
 
@@ -614,6 +631,7 @@ class SEQUENCER_PT_input_secondary(SEQUENCER_PT_input):
 
     def draw_filename(self, context):
         pass
+
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel):
     bl_label = "Sound"

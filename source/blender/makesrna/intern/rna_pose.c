@@ -1065,7 +1065,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "auto_step", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ITASC_AUTO_STEP);
-	RNA_def_property_ui_text(prop, "Auto step", "Automatically determine the optimal number of steps for best performance/accurary trade off");
+	RNA_def_property_ui_text(prop, "Auto step", "Automatically determine the optimal number of steps for best performance/accuracy trade off");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
 	prop= RNA_def_property(srna, "min_step", PROP_FLOAT, PROP_NONE);

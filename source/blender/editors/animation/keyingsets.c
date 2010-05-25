@@ -164,6 +164,10 @@ static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "No active Keying Set to remove");
 		return OPERATOR_CANCELLED;
 	}
+	else if (scene->active_keyingset < 0) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot remove built in Keying Set");
+		return OPERATOR_CANCELLED;
+	}
 	else
 		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
 	
@@ -315,6 +319,10 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 		
 		scene->active_keyingset= BLI_countlist(&scene->keyingsets);
 	}
+	else if (scene->active_keyingset < 0) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot add property to built in Keying Set");
+		return OPERATOR_CANCELLED;
+	}
 	else
 		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
 	
@@ -394,6 +402,10 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	 */
 	if (scene->active_keyingset == 0) {
 		BKE_report(op->reports, RPT_ERROR, "No active Keying Set to remove property from");
+		return OPERATOR_CANCELLED;
+	}
+	else if (scene->active_keyingset < 0) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot remove property from built in Keying Set");
 		return OPERATOR_CANCELLED;
 	}
 	else

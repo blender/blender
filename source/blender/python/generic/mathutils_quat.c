@@ -707,13 +707,16 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 
 //-----------------PROTOCOL DECLARATIONS--------------------------
 static PySequenceMethods Quaternion_SeqMethods = {
-	(lenfunc) Quaternion_len,					/* sq_length */
-	(binaryfunc) 0,								/* sq_concat */
-	(ssizeargfunc) 0,								/* sq_repeat */
-	(ssizeargfunc) Quaternion_item,				/* sq_item */
-	(ssizessizeargfunc) NULL,			/* sq_slice, deprecated */
-	(ssizeobjargproc) Quaternion_ass_item,		/* sq_ass_item */
-	(ssizessizeobjargproc) NULL,	/* sq_ass_slice, deprecated */
+	(lenfunc) Quaternion_len,				/* sq_length */
+	(binaryfunc) NULL,						/* sq_concat */
+	(ssizeargfunc) NULL,					/* sq_repeat */
+	(ssizeargfunc) Quaternion_item,			/* sq_item */
+	(ssizessizeargfunc) NULL,				/* sq_slice, deprecated */
+	(ssizeobjargproc) Quaternion_ass_item,	/* sq_ass_item */
+	(ssizessizeobjargproc) NULL,			/* sq_ass_slice, deprecated */
+	(objobjproc) NULL,						/* sq_contains */
+	(binaryfunc) NULL,						/* sq_inplace_concat */
+	(ssizeargfunc) NULL,					/* sq_inplace_repeat */
 };
 
 static PyMappingMethods Quaternion_AsMapping = {

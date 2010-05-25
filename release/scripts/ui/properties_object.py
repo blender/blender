@@ -20,7 +20,7 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class ObjectButtonsPanel(bpy.types.Panel):
@@ -155,13 +155,11 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
         ob = context.object
         wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split()
-            split.operator_menu_enum("object.group_add", "group")
-            split.label()
-        else:
-            layout.operator_menu_enum("object.group_add", "group")
+        split = layout.split(percentage=0.8, align=True)
+        split.operator("object.group_link", text="Add to Group")
+        split.operator("object.group_add", text="", icon='ZOOMIN')
 
+        # XXX, this is bad practice, yes, I wrote it :( - campbell
         index = 0
         value = str(tuple(context.scene.cursor_location))
         for group in bpy.data.groups:

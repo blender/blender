@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-short	      imb_save_dds(struct ImBuf *ibuf, char *name, int flags);
+int  	      imb_save_dds(struct ImBuf *ibuf, char *name, int flags);
 int           imb_is_a_dds(unsigned char *mem); /* use only first 32 bytes of mem */
 struct ImBuf *imb_load_dds(unsigned char *mem, int size, int flags);
 

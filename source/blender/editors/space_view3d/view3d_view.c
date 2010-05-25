@@ -1719,7 +1719,8 @@ int ED_view3d_context_activate(bContext *C)
 	ARegion *ar;
 	RegionView3D *rv3d;
 
-	if(sa->spacetype != SPACE_VIEW3D)
+	/* sa can be NULL when called from python */
+	if(sa==NULL || sa->spacetype != SPACE_VIEW3D)
 		for(sa=sc->areabase.first; sa; sa= sa->next)
 			if(sa->spacetype==SPACE_VIEW3D)
 				break;

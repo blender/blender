@@ -799,6 +799,9 @@ void GPU_free_unused_buffers(void)
 {
 	Image *ima;
 
+	if(!BLI_thread_is_main())
+		return;
+
 	BLI_lock_thread(LOCK_OPENGL);
 
 	for(ima=image_free_queue.first; ima; ima=ima->id.next)
@@ -846,6 +849,17 @@ void GPU_free_images(void)
 	if(G.main)
 		for(ima=G.main->image.first; ima; ima=ima->id.next)
 			GPU_free_image(ima);
+}
+
+/* same as above but only free animated images */
+void GPU_free_images_anim(void)
+{
+	Image* ima;
+
+	if(G.main)
+		for(ima=G.main->image.first; ima; ima=ima->id.next)
+			if(ELEM(ima->type, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
+				GPU_free_image(ima);
 }
 
 /* OpenGL Materials */

@@ -57,7 +57,7 @@ def addget_shape_key_driver(obj, name="Key"):
             if driver_s.data_path == driver_path:
                 fcurve = driver_s
     if fcurve == None:
-        fcurve = obj.data.shape_keys.keys[name].driver_add("value", 0)
+        fcurve = obj.data.shape_keys.keys[name].driver_add("value")
         fcurve.driver.type = 'AVERAGE'
         new = True
 
@@ -217,7 +217,7 @@ def control(obj, definitions, base_names, options):
         eyes += ["ORG-"+name]
 
     # Get the average position of the eyes
-    center = Vector(0,0,0)
+    center = Vector((0, 0, 0))
     for eye in eyes:
         center += eb[eye].head
     if len(eyes) != 0:
@@ -295,7 +295,7 @@ def control(obj, definitions, base_names, options):
     con.target = obj
     con.subtarget = head
 
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     mod = fcurve.modifiers[0]

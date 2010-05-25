@@ -270,7 +270,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "temp");
 	RNA_def_property_range(prop, -10, 10);
 	RNA_def_property_ui_range(prop, -10, 10, 1, 1);
-	RNA_def_property_ui_text(prop, "Temp. Diff.", "Temperature difference to ambientt temperature");
+	RNA_def_property_ui_text(prop, "Temp. Diff.", "Temperature difference to ambient temperature");
 	RNA_def_property_update(prop, 0, NULL);
 	
 	prop= RNA_def_property(srna, "psys", PROP_POINTER, PROP_NONE);

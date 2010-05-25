@@ -109,7 +109,11 @@ static int bpy_pydriver_create_dict(void)
  */
 void BPY_pydriver_update(void)
 {
-	PyGILState_STATE gilstate = PyGILState_Ensure();
+	PyGILState_STATE gilstate;
+	int use_gil= 1; // (PyThreadState_Get()==NULL);
+
+	if(use_gil)
+		gilstate = PyGILState_Ensure();
 
 	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
 		PyDict_Clear(bpy_pydriver_Dict);
@@ -117,7 +121,8 @@ void BPY_pydriver_update(void)
 		bpy_pydriver_Dict = NULL;
 	}
 
-	PyGILState_Release(gilstate);
+	if(use_gil)
+		PyGILState_Release(gilstate);
 
 	return;
 }
@@ -143,6 +148,10 @@ static float pydriver_error(ChannelDriver *driver)
 
 /* This evals py driver expressions, 'expr' is a Python expression that
  * should evaluate to a float number, which is returned.
+ *
+ * note: PyGILState_Ensure() isnt always called because python can call the
+ * bake operator which intern starts a thread which calls scene update which
+ * does a driver update. to avoid a deadlock check PyThreadState_Get() if PyGILState_Ensure() is needed.
  */
 float BPY_pydriver_eval (ChannelDriver *driver)
 {
@@ -151,6 +160,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	PyObject *expr_vars; /* speed up by pre-hashing string & avoids re-converting unicode strings for every execution */
 	PyObject *expr_code;
 	PyGILState_STATE gilstate;
+	int use_gil;
 
 	DriverVar *dvar;
 	double result = 0.0; /* default return */
@@ -168,13 +178,17 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		return 0.0f;
 	}
 
-	gilstate = PyGILState_Ensure();
+	use_gil= 1; //(PyThreadState_Get()==NULL);
+
+	if(use_gil)
+		gilstate = PyGILState_Ensure();
 
 	/* init global dictionary for py-driver evaluation settings */
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr, "Pydriver error: couldn't create Python dictionary");
-			PyGILState_Release(gilstate);
+			if(use_gil)
+				PyGILState_Release(gilstate);
 			return 0.0f;
 		}
 	}
@@ -269,7 +283,8 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		Py_DECREF(retval);
 	}
 
-	PyGILState_Release(gilstate);
+	if(use_gil)
+		PyGILState_Release(gilstate);
     
 	if(finite(result)) {
 		return (float)result;

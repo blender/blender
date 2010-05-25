@@ -22,6 +22,7 @@ import subprocess, time
 
 from netrender.utils import *
 import netrender.model
+import netrender.repath
 
 BLENDER_PATH = sys.argv[0]
 
@@ -75,9 +76,10 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path = None):
         
         if not found:
             print("Found file %s at %s but signature mismatch!" % (rfile.filepath, job_full_path))
+            job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force = True)
 
     if not found:
-        temp_path = JOB_PREFIX + "slave.temp.blend"
+        temp_path = JOB_PREFIX + "slave.temp"
         conn.request("GET", fileURL(job_id, rfile.index), headers={"slave-id":slave_id})
         response = conn.getresponse()
 
@@ -94,6 +96,8 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path = None):
         f.close()
 
         os.renames(temp_path, job_full_path)
+        
+    rfile.filepath = job_full_path
 
     return job_full_path
 
@@ -138,11 +142,14 @@ def render_slave(engine, netsettings, threads):
                     job_full_path = testFile(conn, job.id, slave_id, job.files[0], JOB_PREFIX)
                     print("Fullpath", job_full_path)
                     print("File:", main_file, "and %i other files" % (len(job.files) - 1,))
-                    engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
 
                     for rfile in job.files[1:]:
-                        print("\t", rfile.filepath)
                         testFile(conn, job.id, slave_id, rfile, JOB_PREFIX, main_path)
+                        print("\t", rfile.filepath)
+                        
+                    netrender.repath.update(job)
+
+                    engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
 
                 # announce log to master
                 logfile = netrender.model.LogFile(job.id, slave_id, [frame.number for frame in job.frames])
@@ -197,6 +204,9 @@ def render_slave(engine, netsettings, threads):
                         run_t = current_t
                         if testCancel(conn, job.id, first_frame):
                             cancelled = True
+
+                if job.type == netrender.model.JOB_BLENDER:
+                    netrender.repath.reset(job)
 
                 # read leftovers if needed
                 stdout += process.stdout.read()

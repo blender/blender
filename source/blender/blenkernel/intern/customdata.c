@@ -559,7 +559,7 @@ static int layerRead_mdisps(CDataFile *cdf, void *data, int count)
 			d[i].disps = MEM_callocN(sizeof(float)*3*d[i].totdisp, "mdisps read");
 
 		if(!cdf_read_data(cdf, d[i].totdisp*3*sizeof(float), d[i].disps)) {
-			printf("failed to read %d/%d %d\n", i, count, d[i].totdisp);
+			printf("failed to read multires displacement %d/%d %d\n", i, count, d[i].totdisp);
 			return 0;
 		}
 	}
@@ -574,7 +574,7 @@ static int layerWrite_mdisps(CDataFile *cdf, void *data, int count)
 
 	for(i = 0; i < count; ++i) {
 		if(!cdf_write_data(cdf, d[i].totdisp*3*sizeof(float), d[i].disps)) {
-			printf("failed to write %d/%d %d\n", i, count, d[i].totdisp);
+			printf("failed to write multires displacement %d/%d %d\n", i, count, d[i].totdisp);
 			return 0;
 		}
 	}
@@ -2487,9 +2487,9 @@ void CustomData_external_add(CustomData *data, ID *id, int type, int totelem, co
 
 	if(!external) {
 		external= MEM_callocN(sizeof(CustomDataExternal), "CustomDataExternal");
-		BLI_strncpy(external->filename, filename, sizeof(external->filename));
 		data->external= external;
 	}
+	BLI_strncpy(external->filename, filename, sizeof(external->filename));
 
 	layer->flag |= CD_FLAG_EXTERNAL|CD_FLAG_IN_MEMORY;
 }

@@ -52,9 +52,9 @@ void multiresModifier_join(struct Object *);
 void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
 void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob,
 				int updateblock, int simple);
-int multiresModifier_reshape(struct MultiresModifierData *mmd, struct Object *dst, struct Object *src);
-int multiresModifier_reshapeFromDM(struct MultiresModifierData *mmd, struct Object *ob, struct DerivedMesh *srcdm);
-int multiresModifier_reshapeFromDeformMod(struct MultiresModifierData *mmd, struct Object *ob, struct ModifierData *md);
+int multiresModifier_reshape(struct Object *dst, struct Object *src);
+int multiresModifier_reshapeFromDM(struct Object *ob, struct DerivedMesh *srcdm);
+int multiresModifier_reshapeFromDeformMod(struct Object *ob, struct ModifierData *md);
 
 void multires_stitch_grids(struct Object *);
 
