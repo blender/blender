@@ -38,6 +38,16 @@ class Context(StructRNA):
         return new_context
 
 
+class Group(bpy_types.ID):
+    __slots__ = ()
+
+    @property
+    def users_dupli_object(self):
+        """The dupli group this group is used in, XXX, TODO, WHY DOESNT THIS WORK???"""
+        import bpy
+        return tuple(obj for obj in bpy.data.objects if self == obj.dupli_object)
+
+
 class Object(bpy_types.ID):
     __slots__ = ()
 
@@ -48,18 +58,16 @@ class Object(bpy_types.ID):
         return tuple(child for child in bpy.data.objects if child.parent == self)
 
     @property
-    def group_users(self):
+    def users_group(self):
         """The groups this object is in"""
         import bpy
-        name = self.name
-        return tuple(group for group in bpy.data.groups if name in group.objects)
+        return tuple(group for group in bpy.data.groups if self in group.objects[:])
 
     @property
-    def scene_users(self):
+    def users_scene(self):
         """The scenes this object is in"""
         import bpy
-        name = self.name
-        return tuple(scene for scene in bpy.data.scenes if name in scene.objects)
+        return tuple(scene for scene in bpy.data.scenes if self in scene.objects[:])
 
 
 class _GenericBone:
