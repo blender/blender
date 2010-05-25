@@ -35,6 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
+/* extracts the thumbnail from between the 'REND' and the 'GLOB'
+ * chunks of the header, dont use typical blend loader because its too slow */
 ImBuf *IMB_loadblend_thumb(const char *path)
 {
 	char buf[8];
@@ -56,7 +58,7 @@ ImBuf *IMB_loadblend_thumb(const char *path)
 	}
 	
 	/* read the blend file header */
-	if(gzread(gzfile, buf, 8) < 8)		goto thumb_error;
+	if(gzread(gzfile, buf, 8) != 8)		goto thumb_error;
 	if(strncmp(buf, "BLENDER", 7))		goto thumb_error;
 	
 	if(buf[7]=='-')						pointer_size= 8;
@@ -65,22 +67,22 @@ ImBuf *IMB_loadblend_thumb(const char *path)
 	
 	/* read the next 4 bytes, only need the first char, ignore the version */
 	/* endian and vertsion (ignored) */
-	if(gzread(gzfile, buf, 4) < 4)		goto thumb_error;
+	if(gzread(gzfile, buf, 4) != 4)		goto thumb_error;
 	
 	if(buf[0]=='V')						endian= B_ENDIAN; /* big: PPC */
 	else if(buf[0]=='v')				endian= L_ENDIAN; /* little: x86 */
 	else								goto thumb_error;
 
-	while(gzread(gzfile, &code, 4) == 4) {
+	while(gzread(gzfile, &code, sizeof(int)) == sizeof(int)) {
 		endian_switch = ((ENDIAN_ORDER != endian)) ? 1 : 0;
 		
-		if(gzread(gzfile, buf, 4) < 4)		goto thumb_error;
+		if(gzread(gzfile, buf, sizeof(int)) != sizeof(int))		goto thumb_error;
 		len = *( (int *)((void *)buf) );
 		if(endian_switch) SWITCH_INT(len);
 		
 		/* finally read the rest of the bhead struct, pointer and 2 ints */
-		if(gzread(gzfile, buf, pointer_size) < pointer_size)	goto thumb_error;
-		if(gzread(gzfile, buf, 8) < 8)	goto thumb_error;
+		if(gzread(gzfile, buf, pointer_size) != pointer_size)	goto thumb_error;
+		if(gzread(gzfile, buf, sizeof(int) * 2) != sizeof(int) * 2)	goto thumb_error;
 		/* we dont actually care whats in the bhead */
 		
 		if (code==REND) {
@@ -94,22 +96,27 @@ ImBuf *IMB_loadblend_thumb(const char *path)
 	/* using 'TEST' since new names segfault when loading in old blenders */
 	if(code != TEST)					goto thumb_error;
 	
+	if(gzread(gzfile, &x, sizeof(int)) != sizeof(int))		goto thumb_error;
+	if(gzread(gzfile, &y, sizeof(int)) != sizeof(int))		goto thumb_error;
+	len -= sizeof(int) * 2;
+
+	if(endian_switch) { SWITCH_INT(x); SWITCH_INT(y); }
+
+	/* inconsistant image size, quit early */
+	im_len = x * y * sizeof(int);
+	if(im_len != len)					goto thumb_error;
+
 	/* finally malloc and read the data */
 	rect= MEM_mallocN(len, "imb_loadblend_thumb");
 
-	if(gzread(gzfile, rect, len) < len)	goto thumb_error;
+	if(gzread(gzfile, rect, len) != len) goto thumb_error;
 
 	/* read ok! */
 	gzclose(gzfile);
-	
-	x= rect[0];	y= rect[1];
-	if(endian_switch) { SWITCH_INT(x); SWITCH_INT(y); }
-
-	im_len = x * y * sizeof(int);
 
 	img = IMB_allocImBuf(x, y, 32, IB_rect | IB_metadata, 0);
 
-	memcpy(img->rect, rect + 2, im_len);
+	memcpy(img->rect, rect, im_len);
 
 	MEM_freeN(rect);
 	

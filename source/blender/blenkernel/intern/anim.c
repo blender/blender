@@ -63,6 +63,7 @@
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
+#include "BKE_depsgraph.h"
 
 // XXX bad level call...
 
