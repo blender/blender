@@ -27,16 +27,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cloth.h"
-
 #include "BKE_cdderivedmesh.h"
+#include "BKE_cloth.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_modifier.h"
-#include "BKE_utildefines.h"
-
 #include "BKE_pointcache.h"
-
+#include "BKE_utildefines.h"
 
 #ifdef _WIN32
 void tstart ( void )

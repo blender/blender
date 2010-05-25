@@ -37,6 +37,10 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
+#include "BLI_threads.h"
+
+#define CLOTH_OPENMP_LIMIT 25
+
 #ifdef _WIN32
 #include <windows.h>
 static LARGE_INTEGER _itstart, _itend;
@@ -230,8 +234,11 @@ DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3],
 {
 	long i = 0;
 	float temp = 0.0;
+// XXX brecht, disabled this for now (first schedule line was already disabled),
+// due to non-commutative nature of floating point ops this makes the sim give
+// different results each time you run it!
 // schedule(guided, 2)
-#pragma omp parallel for reduction(+: temp)
+//#pragma omp parallel for reduction(+: temp) if(verts > CLOTH_OPENMP_LIMIT)
 	for(i = 0; i < (long)verts; i++)
 	{
 		temp += INPR(fLongVectorA[i], fLongVectorB[i]);
@@ -577,11 +584,12 @@ DO_INLINE void mul_bfmatrix_S(fmatrix3x3 *matrix, float scalar)
 DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector *fLongVector)
 {
 	unsigned int i = 0;
-	lfVector *temp = create_lfvector(from[0].vcount);
+	unsigned int vcount = from[0].vcount;
+	lfVector *temp = create_lfvector(vcount);
 	
-	zero_lfvector(to, from[0].vcount);
+	zero_lfvector(to, vcount);
 
-#pragma omp parallel sections private(i)
+#pragma omp parallel sections private(i) if(vcount > CLOTH_OPENMP_LIMIT)
 	{
 #pragma omp section
 		{
@@ -962,7 +970,7 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 	unsigned int i = 0;
 	
 	// Take only the diagonal blocks of A
-// #pragma omp parallel for private(i)
+// #pragma omp parallel for private(i) if(lA[0].vcount > CLOTH_OPENMP_LIMIT)
 	for(i = 0; i<lA[0].vcount; i++)
 	{
 		// block diagonalizer
@@ -1460,6 +1468,8 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
 		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
 		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
+		if (i < 0 || j < 0 || k < 0 || i > 10 || j >= 10 || k >= 10)
+			continue;
 
 		grid[i][j][k].velocity[0] += lV[v][0];
 		grid[i][j][k].velocity[1] += lV[v][1];
@@ -1523,6 +1533,8 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
 		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
 		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
+		if (i < 0 || j < 0 || k < 0 || i > 10 || j >= 10 || k >= 10)
+			continue;
 
 		lF[v][0] += smoothfac * (grid[i][j][k].velocity[0] - lV[v][0]);
 		lF[v][1] += smoothfac * (grid[i][j][k].velocity[1] - lV[v][1]);
@@ -1537,6 +1549,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 
 	free_collider_cache(&colliders);
 }
+
 static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
@@ -1731,9 +1744,10 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	ClothVertex *verts = cloth->verts;
 	unsigned int numverts = cloth->numverts;
 	float dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
+	float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 	Implicit_Data *id = cloth->implicit;
-	int result = 0;
-	
+	int do_extra_solve;
+
 	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) /* do goal stuff */
 	{
 		for(i = 0; i < numverts; i++)
@@ -1778,60 +1792,50 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 
 		if(clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED && clmd->clothObject->bvhtree)
 		{
-			float temp = clmd->sim_parms->stepsPerFrame;
-			/* not too nice hack, but collisions need this correction -jahka */
-			clmd->sim_parms->stepsPerFrame /= clmd->sim_parms->timescale;
-
 			// collisions 
 			// itstart();
 			
 			// update verts to current positions
 			for(i = 0; i < numverts; i++)
-			{	
+			{
 				VECCOPY(verts[i].tx, id->Xnew[i]);
-				
+
 				VECSUB(verts[i].tv, verts[i].tx, verts[i].txold);
 				VECCOPY(verts[i].v, verts[i].tv);
 			}
-			
+
 			// call collision function
 			// TODO: check if "step" or "step+dt" is correct - dg
-			result = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
-			
-			// correct velocity again, just to be sure we had to change it due to adaptive collisions
-			for(i = 0; i < numverts; i++)
-			{
-				VECSUB(verts[i].tv, verts[i].tx, id->X[i]);
-			}
+			do_extra_solve = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
 			
 			// copy corrected positions back to simulation
 			for(i = 0; i < numverts; i++)
 			{		
-				if(result)
+				// correct velocity again, just to be sure we had to change it due to adaptive collisions
+				VECSUB(verts[i].tv, verts[i].tx, id->X[i]);
+
+				if(do_extra_solve)
 				{
 					
 					if((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (verts [i].flags & CLOTH_VERT_FLAG_PINNED))
 						continue;
-					
+
 					VECCOPY(id->Xnew[i], verts[i].tx);
 					VECCOPY(id->Vnew[i], verts[i].tv);
-					mul_v3_fl(id->Vnew[i], clmd->sim_parms->stepsPerFrame);
+					mul_v3_fl(id->Vnew[i], spf);
 				}
 			}
 			
-			/* restore original stepsPerFrame */
-			clmd->sim_parms->stepsPerFrame = temp;
-			
 			// X = Xnew;
 			cp_lfvector(id->X, id->Xnew, numverts);
-			
+
 			// if there were collisions, advance the velocity from v_n+1/2 to v_n+1
 			
-			if(result)
+			if(do_extra_solve)
 			{
 				// V = Vnew;
 				cp_lfvector(id->V, id->Vnew, numverts);
-				
+
 				// calculate 
 				cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);	
 				
@@ -1851,7 +1855,6 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		cp_lfvector(id->V, id->Vnew, numverts);
 		
 		step += dt;
-		
 	}
 
 	for(i = 0; i < numverts; i++)
