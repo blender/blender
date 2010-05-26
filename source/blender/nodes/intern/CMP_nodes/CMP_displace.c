@@ -44,94 +44,83 @@ static bNodeSocketType cmp_node_displace_out[]= {
 	{	-1, 0, ""	}
 };
 
-static float *vecbuf_get_pixel(CompBuf *vecbuf, float *veccol, int x, int y)
-{
-	/* the x-xrad stuff is a bit weird, but i seem to need it otherwise 
-	 * my returned pixels are offset weirdly */
-	return compbuf_get_pixel(vecbuf, veccol, x-vecbuf->xrad, y-vecbuf->yrad, vecbuf->xrad, vecbuf->yrad);
-}
+/* minimum distance (in pixels) a pixel has to be displaced
+ * in order to take effect */
+#define DISPLACE_EPSILON	0.01
 
 static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float *veccol, float *xscale, float *yscale)
 {
 	ImBuf *ibuf;
-	float dx=0.0, dy=0.0;
-	float dspx, dspy;
-	float uv[2], col[4], colnext[4], colprev[4];
-	float *vp, *vpnext, *vpprev;
-	float *out= stackbuf->rect, *vec=vecbuf->rect, *in= cbuf->rect;
-	int x, y, vx, vy, sx, sy;
+	int x, y;
+	float p_dx, p_dy;	/* main displacement in pixel space */
+	float d_dx, d_dy;
+	float dxt, dyt;
+	float u, v;
+	float vec[3], vecdx[3], vecdy[3];
+	float col[3];
 	
-	/* ibuf needed for sampling */
 	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
 	ibuf->rect_float= cbuf->rect;
 	
-	vec = vecbuf->rect;
-	
-	sx= stackbuf->x;
-	sy= stackbuf->y;
-
-	QUATCOPY(col, veccol);
-	QUATCOPY(colnext, veccol);
-	QUATCOPY(colprev, veccol);
-	
-	for(y=0; y<sy; y++) {
-		for(x= 0; x< sx; x++, out+=4, in+=4, vec+=3) {
+	for(y=0; y < stackbuf->y; y++) {
+		for(x=0; x < stackbuf->x; x++) {
+			/* calc pixel coordinates */
+			qd_getPixel(vecbuf, x-vecbuf->xof, y-vecbuf->yof, vec);
+			p_dx = vec[0] * xscale[0];
+			p_dy = vec[1] * yscale[0];
 			
-			vp = vecbuf_get_pixel(vecbuf, col, x, y);
-
-			/* this happens in compbuf_get_pixel, need to make sure the following
-			 * check takes them into account */
-			vx= x-vecbuf->xof;
-			vy= y-vecbuf->yof;
-			
-			/* find the new displaced co-ords, also correcting for translate offset */
-			dspx = vx - (*xscale * vp[0]);
-			dspy = vy - (*yscale * vp[1]);
-
-			/* convert image space to 0.0-1.0 UV space for sampling, correcting for translate offset */
-			uv[0] = dspx / (float)sx;
-			uv[1] = dspy / (float)sy;
-		
-			if(vx>0 && vx< vecbuf->x-1 && vy>0 && vy< vecbuf->y-1)  {
-				/* adaptive sampling, X and Y channel.
-				 * we call vecbuf_get_pixel for every pixel since the input
-				 * might be a procedural, and then we can't use offsets */
-				vpprev = vecbuf_get_pixel(vecbuf, colprev, x-1, y);
-				vpnext = vecbuf_get_pixel(vecbuf, colnext, x+1, y);
-				dx= 0.5f*(fabs(vp[0]-vpprev[0]) + fabs(vp[0]-vpnext[0]));
-
-				vpprev = vecbuf_get_pixel(vecbuf, colprev, x, y-1);
-				vpnext = vecbuf_get_pixel(vecbuf, colnext, x, y+1);
-				dy= 0.5f*(fabs(vp[1]-vpnext[1]) + fabs(vp[1]-vpprev[1]));
-
-				vpprev = vecbuf_get_pixel(vecbuf, colprev, x-1, y-1);
-				vpnext = vecbuf_get_pixel(vecbuf, colnext, x-1, y+1);
-				dx+= 0.25f*(fabs(vp[0]-vpprev[0]) + fabs(vp[0]-vpnext[0]));
-				dy+= 0.25f*(fabs(vp[1]-vpprev[1]) + fabs(vp[1]-vpnext[1]));
-
-				vpprev = vecbuf_get_pixel(vecbuf, colprev, x+1, y-1);
-				vpnext = vecbuf_get_pixel(vecbuf, colnext, x+1, y+1);
-				dx+= 0.25f*(fabs(vp[0]-vpprev[0]) + fabs(vp[0]-vpnext[0]));
-				dy+= 0.25f*(fabs(vp[1]-vpprev[1]) + fabs(vp[1]-vpnext[1]));
-				
-				/* scaled down to prevent blurriness */
-				/* 8: magic number, provides a good level of sharpness without getting too aliased */
-				dx /= 8;
-				dy /= 8;
+			/* if no displacement, then just copy this pixel */
+			if (p_dx < DISPLACE_EPSILON && p_dy < DISPLACE_EPSILON) {
+				qd_getPixel(cbuf, x-cbuf->xof, y-cbuf->yof, col);
+				qd_setPixel(stackbuf, x, y, col);
+				continue;
 			}
-
-			/* should use mipmap */
-			if(dx > 0.006f) dx= 0.006f;
-			if(dy > 0.006f) dy= 0.006f;
-			if ((vp[0]> 0.0) && (dx < 0.004)) dx = 0.004;
-			if ((vp[1]> 0.0) && (dy < 0.004)) dy = 0.004;
 			
-
-			ibuf_sample(ibuf, uv[0], uv[1], dx, dy, out);
+			/* displaced pixel in uv coords, for image sampling */
+			u = (x - cbuf->xof - p_dx + 0.5f) / (float)stackbuf->x;
+			v = (y - cbuf->yof - p_dy + 0.5f) / (float)stackbuf->y;
+			
+			
+			/* calc derivatives */
+			qd_getPixel(vecbuf, x-vecbuf->xof+1, y-vecbuf->yof, vecdx);
+			qd_getPixel(vecbuf, x-vecbuf->xof, y-vecbuf->yof+1, vecdy);
+			d_dx = vecdx[0] * xscale[0];
+			d_dy = vecdy[0] * yscale[0];
+			
+			/* clamp derivatives to minimum displacement distance in UV space */
+			dxt = MAX2(p_dx - d_dx, DISPLACE_EPSILON)/(float)stackbuf->x;
+			dyt = MAX2(p_dy - d_dy, DISPLACE_EPSILON)/(float)stackbuf->y;
+			
+			ibuf_sample(ibuf, u, v, dxt, dyt, col);
+			qd_setPixel(stackbuf, x, y, col);
 		}
 	}
-
-	IMB_freeImBuf(ibuf);	
+	IMB_freeImBuf(ibuf);
+	
+	
+/* simple method for reference, linear interpolation */
+/*	
+	int x, y;
+	float dx, dy;
+	float u, v;
+	float vec[3];
+	float col[3];
+	
+	for(y=0; y < stackbuf->y; y++) {
+		for(x=0; x < stackbuf->x; x++) {
+			qd_getPixel(vecbuf, x, y, vec);
+			
+			dx = vec[0] * (xscale[0]);
+			dy = vec[1] * (yscale[0]);
+			
+			u = (x - dx + 0.5f) / (float)stackbuf->x;
+			v = (y - dy + 0.5f) / (float)stackbuf->y;
+			
+			qd_getPixelLerp(cbuf, u*cbuf->x - 0.5f, v*cbuf->y - 0.5f, col);
+			qd_setPixel(stackbuf, x, y, col);
+		}
+	}
+*/
 }
 
 
