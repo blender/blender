@@ -160,7 +160,7 @@ def SetupSpawn( env ):
     env['SPAWN'] = buf.ourspawn
 
 
-def read_opts(cfg, args):
+def read_opts(env, cfg, args):
     localopts = Variables.Variables(cfg, args)
     localopts.AddVariables(
         ('LCGDIR', 'location of cvs lib dir'),
@@ -400,8 +400,8 @@ def read_opts(cfg, args):
         ('BF_BUILDDIR', 'Build dir', ''),
         ('BF_INSTALLDIR', 'Installation dir', ''),
 
-        ('CC', 'C compiler to use', ''),
-        ('CXX', 'C++ compiler to use', ''),
+        ('CC', 'C compiler to use', env['CC']),
+        ('CXX', 'C++ compiler to use', env['CXX']),
 
         (BoolVariable('BF_BUILDINFO', 'Buildtime in splash if true', True)),
 

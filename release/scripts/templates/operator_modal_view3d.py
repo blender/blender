@@ -10,13 +10,13 @@ class ViewOperator(bpy.types.Operator):
 
 
     def execute(self, context):
-        v3d = context.area.spaces[0]
+        v3d = context.space_data
         rv3d = v3d.region_3d
 
         rv3d.view_location = self._initial_location + Vector(self.properties.offset)
 
     def modal(self, context, event):
-        v3d = context.area.spaces[0]
+        v3d = context.space_data
         rv3d = v3d.region_3d
 
         if event.type == 'MOUSEMOVE':
@@ -33,10 +33,9 @@ class ViewOperator(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
-        active_space = context.area.spaces[0]
 
-        if active_space.type == 'VIEW_3D':
-            v3d = active_space
+        if context.space_data.type == 'VIEW_3D':
+            v3d = context.space_data
             rv3d = v3d.region_3d
 
             context.manager.add_modal_handler(self)

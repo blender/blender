@@ -59,7 +59,7 @@ Collision modifier code start
 /* step is limited from 0 (frame start position) to 1 (frame end position) */
 void collision_move_object ( CollisionModifierData *collmd, float step, float prevstep )
 {
-	float tv[3] = {0,0,0};
+	float tv[3] = {0, 0, 0};
 	unsigned int i = 0;
 
 	for ( i = 0; i < collmd->numverts; i++ )
@@ -69,6 +69,7 @@ void collision_move_object ( CollisionModifierData *collmd, float step, float pr
 		VECADDS ( collmd->current_xnew[i].co, collmd->x[i].co, tv, step );
 		VECSUB ( collmd->current_v[i].co, collmd->current_xnew[i].co, collmd->current_x[i].co );
 	}
+
 	bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
 }
 
@@ -527,7 +528,7 @@ int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifier
 			float magtangent = 0, repulse = 0, d = 0;
 			double impulse = 0.0;
 			float vrel_t_pre[3];
-			float temp[3];
+			float temp[3], spf;
 
 			// calculate tangential velocity
 			VECCOPY ( temp, collpair->normal );
@@ -565,10 +566,12 @@ int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifier
 
 			// Apply repulse impulse if distance too short
 			// I_r = -min(dt*kd, m(0,1d/dt - v_n))
+			spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
+
 			d = clmd->coll_parms->epsilon*8.0/9.0 + epsilon2*8.0/9.0 - collpair->distance;
-			if ( ( magrelVel < 0.1*d*clmd->sim_parms->stepsPerFrame ) && ( d > ALMOST_ZERO ) )
+			if ( ( magrelVel < 0.1*d*spf ) && ( d > ALMOST_ZERO ) )
 			{
-				repulse = MIN2 ( d*1.0/clmd->sim_parms->stepsPerFrame, 0.1*d*clmd->sim_parms->stepsPerFrame - magrelVel );
+				repulse = MIN2 ( d*1.0/spf, 0.1*d*spf - magrelVel );
 
 				// stay on the safe side and clamp repulse
 				if ( impulse > ALMOST_ZERO )
@@ -1541,20 +1544,15 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 			overlap = BLI_bvhtree_overlap ( cloth_bvh, collmd->bvhtree, &result );
 				
 			// go to next object if no overlap is there
-			if(!result || !overlap)
-			{
-				if ( overlap )
-					MEM_freeN ( overlap );
-				continue;
+			if( result && overlap ) {
+				/* check if collisions really happen (costly near check) */
+				cloth_bvh_objcollisions_nearcheck ( clmd, collmd, &collisions[i], &collisions_index[i], result, overlap);
+			
+				// resolve nearby collisions
+				ret += cloth_bvh_objcollisions_resolve ( clmd, collmd, collisions[i],  collisions_index[i]);
+				ret2 += ret;
 			}
-			
-			/* check if collisions really happen (costly near check) */
-			cloth_bvh_objcollisions_nearcheck ( clmd, collmd, &collisions[i], &collisions_index[i], result, overlap);
-			
-			// resolve nearby collisions
-			ret += cloth_bvh_objcollisions_resolve ( clmd, collmd, collisions[i],  collisions_index[i]);
-			ret2 += ret;
-			
+
 			if ( overlap )
 				MEM_freeN ( overlap );
 		}

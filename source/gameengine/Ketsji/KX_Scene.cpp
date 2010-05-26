@@ -1067,12 +1067,12 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 			bool bHasShapeKey = blendmesh->key != NULL && blendmesh->key->type==KEY_RELATIVE;
 			bool bHasDvert = blendmesh->dvert != NULL;
 			bool bHasArmature = 
+				BL_ModifierDeformer::HasArmatureDeformer(blendobj) &&
 				parentobj &&								// current parent is armature
 				parentobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE &&
 				oldblendobj &&								// needed for mesh deform
 				blendobj->parent &&							// original object had armature (not sure this test is needed)
-				blendobj->parent->type == OB_ARMATURE && 
-				blendobj->partype==PARSKEL && 
+				blendobj->parent->type == OB_ARMATURE &&
 				blendmesh->dvert!=NULL;						// mesh has vertex group
 			bool bHasSoftBody = (!parentobj && (blendobj->gameflag & OB_SOFT_BODY));
 

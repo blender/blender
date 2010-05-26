@@ -62,6 +62,7 @@
 							BLI_countlist BLI_stringdec */
 #include "DNA_userdef_types.h"
 #include "BKE_global.h"
+#include "BKE_depsgraph.h"
 
 #include "imbuf.h"
 

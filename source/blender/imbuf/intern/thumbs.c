@@ -241,9 +241,8 @@ void IMB_thumb_makedirs()
 }
 
 /* create thumbnail for file and returns new imbuf for thumbnail */
-ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source)
+ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, ImBuf *img)
 {
-	ImBuf *img = 0;
 	char uri[URI_MAX];
 	char desc[URI_MAX+22];
 	char tpath[FILE_MAX];
@@ -285,8 +284,18 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source)
 			img = IMB_allocImBuf(0,0,32, IB_rect | IB_metadata, 0);
 			if (!img) return 0;
 		} else {
-			if (THB_SOURCE_IMAGE == source) {
-				img = IMB_loadiffname(path, IB_rect | IB_metadata);
+			if (THB_SOURCE_IMAGE == source || THB_SOURCE_BLEND == source) {
+				
+				/* only load if we didnt give an image */
+				if(img==NULL) {
+					if(THB_SOURCE_BLEND == source) {
+						img = IMB_loadblend_thumb(path);
+					}
+					else {
+						img = IMB_loadiffname(path, IB_rect | IB_metadata);
+					}
+				}
+
 				if (img != NULL) {
 					stat(path, &info);
 					sprintf(mtime, "%ld", info.st_mtime);
@@ -425,10 +434,10 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 						IMB_thumb_delete(path, THB_NORMAL);
 						IMB_thumb_delete(path, THB_LARGE);
 						IMB_thumb_delete(path, THB_FAIL);
-						img = IMB_thumb_create(path, size, source);
+						img = IMB_thumb_create(path, size, source, NULL);
 						if(!img){
 							/* thumb creation failed, write fail thumb */
-							img = IMB_thumb_create(path, THB_FAIL, source);
+							img = IMB_thumb_create(path, THB_FAIL, source, NULL);
 							if (img) {
 								/* we don't need failed thumb anymore */
 								IMB_freeImBuf(img);
@@ -438,10 +447,10 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 					}
 				}
 			} else {
-				img = IMB_thumb_create(path, size, source);
+				img = IMB_thumb_create(path, size, source, NULL);
 				if(!img){
 					/* thumb creation failed, write fail thumb */
-					img = IMB_thumb_create(path, THB_FAIL, source);
+					img = IMB_thumb_create(path, THB_FAIL, source, NULL);
 					if (img) {
 						/* we don't need failed thumb anymore */
 						IMB_freeImBuf(img);

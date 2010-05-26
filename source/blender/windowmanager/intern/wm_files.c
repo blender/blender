@@ -77,10 +77,15 @@
 
 #include "RNA_access.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "IMB_thumbs.h"
+
 #include "ED_datafiles.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
+#include "ED_view3d.h"
 #include "ED_util.h"
 
 #include "GHOST_C-api.h"
@@ -486,12 +491,53 @@ static void do_history(char *name, ReportList *reports)
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
+/* writes a thumbnail for a blendfile */
+static void writeThumb(const char *path, Scene *scene, int **thumb_pt)
+{
+	/* will be scaled down, but gives some nice oversampling */
+	ImBuf *ibuf;
+	int *thumb;
+
+	*thumb_pt= NULL;
+	
+	if(G.background || scene->camera==NULL)
+		return;
+	
+	thumb = MEM_mallocN(((2 + (BLEN_THUMB_SIZE * BLEN_THUMB_SIZE))) * sizeof(int), "write_file thumb");
+	
+	/* gets scaled to BLEN_THUMB_SIZE */
+	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, OB_SOLID);
+	
+	if(ibuf) {		
+		
+		/* dirty oversampling */
+		IMB_scaleImBuf(ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE);
+		
+		/* first write into thumb buffer */
+		thumb[0] = BLEN_THUMB_SIZE;
+		thumb[1] = BLEN_THUMB_SIZE;
+		memcpy(thumb + 2, ibuf->rect, BLEN_THUMB_SIZE * BLEN_THUMB_SIZE * sizeof(int));
+		
+		/* the image is scaled here */
+		ibuf= IMB_thumb_create(path, THB_NORMAL, THB_SOURCE_BLEND, ibuf);
+	}
+
+	if (ibuf) {		
+		IMB_freeImBuf(ibuf);
+	}
+	
+	/* must be freed by caller */
+	*thumb_pt= thumb;
+}
+
 int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 {
 	Library *li;
 	int len;
 	char di[FILE_MAX];
-	
+
+	int *thumb= NULL;
+
 	len = strlen(target);
 	
 	if (len == 0) {
@@ -532,7 +578,10 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 
 	do_history(di, reports);
 	
-	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports)) {
+	/* blend file thumbnail */
+	writeThumb(di, CTX_data_scene(C), &thumb);
+
+	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
 		strcpy(G.sce, di);
 		G.relbase_valid = 1;
 		strcpy(G.main->name, di);	/* is guaranteed current file */
@@ -546,7 +595,11 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 		else G.fileflags &= ~G_FILE_AUTOPLAY;
 
 		writeBlog();
-	} else {
+
+		if(thumb) MEM_freeN(thumb);
+	}
+	else {
+		if(thumb) MEM_freeN(thumb);
 		return -1;
 	}
 
@@ -571,7 +624,7 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	/*  force save as regular blend file */
 	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN);
 
-	BLO_write_file(CTX_data_main(C), tstr, fileflags, op->reports);
+	BLO_write_file(CTX_data_main(C), tstr, fileflags, op->reports, NULL);
 	
 	G.save_over= 0;
 	
@@ -640,7 +693,7 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 	fileflags = G.fileflags & ~(G_FILE_COMPRESS|G_FILE_AUTOPLAY |G_FILE_LOCK|G_FILE_SIGN);
 
 	/* no error reporting to console */
-	BLO_write_file(CTX_data_main(C), filename, fileflags, NULL);
+	BLO_write_file(CTX_data_main(C), filename, fileflags, NULL, NULL);
 
 	/* do timer after file write, just in case file write takes a long time */
 	wm->autosavetimer= WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime*60.0);

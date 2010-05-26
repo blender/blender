@@ -133,13 +133,13 @@ ifndef CONFIG_GUESS
   endif
 
   ifeq ($(WITH_JACK), true)
-    export NAN_JACK ?= /usr
+    export NAN_JACK ?= $(LCGDIR)/jack
     export NAN_JACKCFLAGS ?= -I$(NAN_JACK)/include/jack
     export NAN_JACKLIBS ?= $(NAN_JACK)/lib/libjack.a
   endif
 
   ifeq ($(WITH_SNDFILE),true)
-    export NAN_SNDFILE ?= /usr
+    export NAN_SNDFILE ?= $(LCGDIR)/sndfile
     export NAN_SNDFILECFLAGS ?= -I$(NAN_SNDFILE)/include
     export NAN_SNDFILELIBS ?= $(NAN_SNDFILE)/lib/libsndfile.a $(NAN_SNDFILE)/lib/libFLAC.a $(NAN_SNDFILE)/lib/libogg.a
   endif
@@ -158,9 +158,8 @@ ifndef CONFIG_GUESS
     export BF_PCRE_LIBS ?= $(BF_PCRE)/lib/libpcre.a
   endif
 
-  export WITH_TIFF ?= true
-
-
+  export WITH_TIFF =? true
+  
   # Compare recreated .mo files with committed ones
   export BF_VERIFY_MO_FILES ?= true
 
@@ -277,6 +276,7 @@ ifndef CONFIG_GUESS
     endif
 
     export BF_PCRE = $(LCGDIR)/opencollada
+    export BF_OPENCOLLADA_LIBS = $(BF_OPENCOLLADA)/lib/libOpenCOLLADASaxFrameworkLoader.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAFramework.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADABaseUtils.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAStreamWriter.a $(BF_OPENCOLLADA)/lib/libMathMLSolver.a $(BF_OPENCOLLADA)/lib/libGeneratedSaxParser.a $(BF_OPENCOLLADA)/lib/libUTF.a $(BF_OPENCOLLADA)/lib/libftoa.a $(BF_OPENCOLLADA)/lib/libbuffer.a -lxml2
 
   else
   ifeq ($(OS),freebsd)
@@ -371,7 +371,7 @@ ifndef CONFIG_GUESS
     # enable l10n
     export INTERNATIONAL ?= true
 
-    # Different endianess will make it fail, rely on other plataforms for checks
+    # Different endianess will make it fail, rely on other platforms for checks
     export BF_VERIFY_MO_FILES = false
 
   else
@@ -413,12 +413,6 @@ ifndef CONFIG_GUESS
       export BF_FFTW3_LIBS ?= $(shell pkg-config --libs fftw3 )
     endif
 
-    ifeq ($(WITH_OPENJPEG), true)
-      export BF_OPENJPEG ?= /usr
-      export BF_OPENJPEG_INC ?= /usr/include
-      export BF_OPENJPEG_LIBS ?= -lopenjpeg
-    endif
-
     # Uncomment the following line to use Mozilla inplace of netscape
 
     # Location of MOZILLA/Netscape header files...
@@ -439,6 +433,11 @@ ifndef CONFIG_GUESS
     # enable ffmpeg support
     ifndef NAN_NO_FFMPEG
       export WITH_FFMPEG ?= true
+    endif
+
+    ifeq ($(CPU), powerpc)
+        # Different endianess will make it fail, rely on other platforms for checks
+        export BF_VERIFY_MO_FILES = false
     endif
 
   else

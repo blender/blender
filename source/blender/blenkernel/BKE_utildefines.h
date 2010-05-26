@@ -38,6 +38,9 @@
 #define TRUE 1
 #endif
 
+/* Macro to convert a value to string in the preprocessor */
+#define QUOTE(x) #x
+
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in DNA_space_types.h */
 #ifndef FILE_MAXDIR
@@ -163,7 +166,7 @@
 #define IMAG MAKE_ID('I','M','A','G')
 
 #define DNA1 MAKE_ID('D','N','A','1')
-#define TEST MAKE_ID('T','E','S','T')
+#define TEST MAKE_ID('T','E','S','T') /* used as preview between 'REND' and 'GLOB' */
 #define REND MAKE_ID('R','E','N','D')
 #define USER MAKE_ID('U','S','E','R')
 

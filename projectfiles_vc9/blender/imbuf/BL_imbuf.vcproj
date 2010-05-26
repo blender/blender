@@ -494,10 +494,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\imbuf\intern\dynlibtiff.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\filetype.c"
 				>
 			</File>
@@ -747,10 +743,6 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
-			<File
-				RelativePath="..\..\..\source\blender\imbuf\intern\dynlibtiff.h"
-				>
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_allocimbuf.h"
 				>

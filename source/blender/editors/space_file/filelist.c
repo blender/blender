@@ -1280,6 +1280,8 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update)
 	while ( (*stop==0) && (limg) ) {
 		if ( limg->flags & IMAGEFILE ) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_IMAGE);
+		} else if ( limg->flags & BLENDERFILE ) {
+			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_BLEND);
 		} else if ( limg->flags & MOVIEFILE ) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_MOVIE);
 			if (!limg->img) {
@@ -1334,7 +1336,7 @@ void thumbnails_start(struct FileList* filelist, const struct bContext* C)
 	tj->filelist = filelist;
 	for (idx = 0; idx < filelist->numfiles;idx++) {
 		if (!filelist->filelist[idx].image) {
-			if ( (filelist->filelist[idx].flags & IMAGEFILE) || (filelist->filelist[idx].flags & MOVIEFILE) ) {
+			if ( (filelist->filelist[idx].flags & (IMAGEFILE|MOVIEFILE|BLENDERFILE)) ) {
 				FileImage* limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
 				BLI_strncpy(limg->path, filelist->filelist[idx].path, FILE_MAX);
 				limg->index= idx;
