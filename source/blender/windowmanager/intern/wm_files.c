@@ -502,9 +502,7 @@ static void writeThumb(const char *path, Scene *scene, int **thumb_pt)
 	
 	if(G.background || scene->camera==NULL)
 		return;
-	
-	thumb = MEM_mallocN(((2 + (BLEN_THUMB_SIZE * BLEN_THUMB_SIZE))) * sizeof(int), "write_file thumb");
-	
+
 	/* gets scaled to BLEN_THUMB_SIZE */
 	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, OB_SOLID);
 	
@@ -514,16 +512,24 @@ static void writeThumb(const char *path, Scene *scene, int **thumb_pt)
 		IMB_scaleImBuf(ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE);
 		
 		/* first write into thumb buffer */
+		thumb= MEM_mallocN(((2 + (BLEN_THUMB_SIZE * BLEN_THUMB_SIZE))) * sizeof(int), "write_file thumb");
+
 		thumb[0] = BLEN_THUMB_SIZE;
 		thumb[1] = BLEN_THUMB_SIZE;
+
 		memcpy(thumb + 2, ibuf->rect, BLEN_THUMB_SIZE * BLEN_THUMB_SIZE * sizeof(int));
 		
 		/* the image is scaled here */
 		ibuf= IMB_thumb_create(path, THB_NORMAL, THB_SOURCE_BLEND, ibuf);
-	}
 
-	if (ibuf) {		
-		IMB_freeImBuf(ibuf);
+		if (ibuf)
+			IMB_freeImBuf(ibuf);
+
+		ibuf= NULL;
+	}
+	else {
+		/* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
+		thumb= NULL;
 	}
 	
 	/* must be freed by caller */
