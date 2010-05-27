@@ -277,7 +277,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("  $BLENDERPATH  System directory to use for data files and scripts.\n");
 	printf ("                For this build of blender the default BLENDERPATH is...\n");
 	printf ("                \"%s\"\n", blender_path);
-	printf ("                seting the $BLENDERPATH will override this\n");
+	printf ("                setting the $BLENDERPATH will override this\n");
 #ifdef WIN32
 	printf ("  $TEMP         Store temporary files here.\n");
 #else
