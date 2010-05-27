@@ -211,7 +211,7 @@ typedef struct bSizeLikeConstraint {
 
 /* Maintain Volume Constraint */
 typedef struct bSameVolumeConstraint {
-	int		flag;
+	int			flag;
 	float 		volume;
 } bSameVolumeConstraint;
 

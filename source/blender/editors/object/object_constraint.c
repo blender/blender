@@ -133,6 +133,7 @@ bConstraint *get_active_constraint (Object *ob)
 {
 	return constraints_get_active(get_active_constraints(ob));
 }
+
 /* -------------- Constraint Management (Add New, Remove, Rename) -------------------- */
 /* ------------- PyConstraints ------------------ */
 
@@ -435,15 +436,16 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 
 void object_test_constraints (Object *owner)
 {
-	if(owner->constraints.first)
+	if (owner->constraints.first)
 		test_constraints(owner, NULL);
-
+	
 	if (owner->type==OB_ARMATURE && owner->pose) {
 		bPoseChannel *pchan;
-
-		for (pchan= owner->pose->chanbase.first; pchan; pchan= pchan->next)
-			if(pchan->constraints.first)
+		
+		for (pchan= owner->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (pchan->constraints.first)
 				test_constraints(owner, pchan);
+		}
 	}
 }
 
@@ -454,9 +456,9 @@ void object_test_constraints (Object *owner)
 #define EDIT_CONSTRAINT_OWNER_BONE		1
 
 static EnumPropertyItem constraint_owner_items[] = {
-{EDIT_CONSTRAINT_OWNER_OBJECT, "OBJECT", 0, "Object", "Edit a constraint on the active object"},
-{EDIT_CONSTRAINT_OWNER_BONE, "BONE", 0, "Bone", "Edit a constraint on the active bone"},
-{0, NULL, 0, NULL, NULL}};
+	{EDIT_CONSTRAINT_OWNER_OBJECT, "OBJECT", 0, "Object", "Edit a constraint on the active object"},
+	{EDIT_CONSTRAINT_OWNER_BONE, "BONE", 0, "Bone", "Edit a constraint on the active bone"},
+	{0, NULL, 0, NULL, NULL}};
 
 
 static int edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
@@ -519,7 +521,8 @@ static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Ob
 	
 	if (owner == EDIT_CONSTRAINT_OWNER_OBJECT) {
 		list = &ob->constraints;
-	} else if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
+	} 
+	else if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
 		bPoseChannel *pchan= get_active_posechannel(ob);
 		if (pchan)
 			list = &pchan->constraints;
@@ -529,7 +532,7 @@ static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Ob
 	
 	con = constraints_findByName(list, constraint_name);
 	
-	if (con && type != 0 && con->type != type)
+	if (con && (type != 0) && (con->type != type))
 		con = NULL;
 	
 	return con;
@@ -964,19 +967,21 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 
 static int object_constraints_clear_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= ED_object_active_context(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	/* do freeing */
-	// TODO: we should free constraints for all selected objects instead (to be more consistent with bones)
-	free_constraints(&ob->constraints);
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
+		free_constraints(&ob->constraints);
+		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+	}
+	CTX_DATA_END;
 	
 	/* force depsgraph to get recalculated since relationships removed */
 	DAG_scene_sort(scene);		/* sort order of objects */	
 	
 	/* do updates */
-	DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -991,6 +996,84 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
 	/* callbacks */
 	ot->exec= object_constraints_clear_exec;
 	ot->poll= ED_operator_object_active_editable;
+}
+
+/************************ copy all constraints operators *********************/
+
+static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
+{
+	bPoseChannel *pchan = CTX_data_active_pose_bone(C);
+	Scene *scene = CTX_data_scene(C);
+	
+	/* don't do anything if bone doesn't exist or doesn't have any constraints */
+	if (ELEM(NULL, pchan, pchan->constraints.first)) {
+		BKE_report(op->reports, RPT_ERROR, "No active bone with constraints for copying");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* copy all constraints from active posebone to all selected posebones */
+	CTX_DATA_BEGIN(C, bPoseChannel*, chan, selected_pose_bones) 
+	{
+		/* if we're not handling the object we're copying from, copy all constraints over */
+		if (pchan != chan)
+			copy_constraints(&chan->constraints, &pchan->constraints, TRUE);
+	}
+	CTX_DATA_END;
+	
+	/* force depsgraph to get recalculated since new relationships added */
+	DAG_scene_sort(scene);		/* sort order of objects/bones */
+
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_constraints_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Constraints to Selected";
+	ot->idname= "POSE_OT_constraints_copy";
+	ot->description = "Copy constraints to other selected bones.";
+	
+	/* api callbacks */
+	ot->exec= pose_constraint_copy_exec;
+	ot->poll= ED_operator_posemode;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int object_constraint_copy_exec(bContext *C, wmOperator *op)
+{
+	Object *obact = ED_object_active_context(C);
+	Scene *scene = CTX_data_scene(C);
+	
+	/* copy all constraints from active object to all selected objects */
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
+		/* if we're not handling the object we're copying from, copy all constraints over */
+		if (obact != ob)
+			copy_constraints(&ob->constraints, &obact->constraints, TRUE);
+	}
+	CTX_DATA_END;
+	
+	/* force depsgraph to get recalculated since new relationships added */
+	DAG_scene_sort(scene);		/* sort order of objects */
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_constraints_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Constraints to Selected";
+	ot->idname= "OBJECT_OT_constraints_copy";
+	ot->description = "Copy constraints to other selected objects.";
+	
+	/* api callbacks */
+	ot->exec= object_constraint_copy_exec;
+	ot->poll= ED_operator_object_active_editable;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ add constraint operators *********************/
@@ -1163,7 +1246,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	}
 	
 	/* create a new constraint of the type requried, and add it to the active/given constraints list */
-	if(pchan)
+	if (pchan)
 		con = add_pose_constraint(ob, pchan, NULL, type);
 	else
 		con = add_ob_constraint(ob, NULL, type);
@@ -1272,28 +1355,6 @@ static int object_constraint_add_exec(bContext *C, wmOperator *op)
 }
 
 /* dummy operator callback */
-static int object_constraint_copy_exec(bContext *C, wmOperator *op)
-{
-	Object *ob=ED_object_active_context(C);
-
-	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
-		if(ob != ob_iter) {
-			if (ob->data != ob_iter->data){
-				copy_constraints(&ob_iter->constraints, &ob->constraints, TRUE);
-			}
-			
-			if(ob_iter->totcol==ob->totcol) {
-				ob_iter->actcol= ob->actcol;
-				WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob_iter);
-			}
-		}
-	}
-	CTX_DATA_END;
-
-	return OPERATOR_FINISHED;
-}
-
-/* dummy operator callback */
 static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= ED_object_active_context(C);
@@ -1352,21 +1413,6 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
 	
 	/* properties */
 	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
-}
-
-void OBJECT_OT_constraint_copy(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Copy Constraints to Selected";
-	ot->description = "Copy constraints to other selected objects.";
-	ot->idname= "OBJECT_OT_constraint_copy";
-
-	/* api callbacks */
-	ot->exec= object_constraint_copy_exec;
-	ot->poll= ED_operator_object_active_editable;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void POSE_OT_constraint_add(wmOperatorType *ot)
