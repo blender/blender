@@ -2376,7 +2376,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		}
 	}
 
-	if((block->flag & UI_BLOCK_LOOP) || ELEM7(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU))
+	if((block->flag & UI_BLOCK_LOOP) || ELEM8(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR))
 		but->flag |= (UI_TEXT_LEFT|UI_ICON_LEFT);
 	else if(but->type==BUT_TOGDUAL)
 		but->flag |= UI_ICON_LEFT;

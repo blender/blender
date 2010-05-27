@@ -1269,7 +1269,7 @@ static void thumbnail_joblist_free(ThumbnailJob *tj)
 	BLI_freelistN(&tj->loadimages);
 }
 
-static void thumbnails_startjob(void *tjv, short *stop, short *do_update)
+static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float *progress)
 {
 	ThumbnailJob *tj= tjv;
 	FileImage* limg = tj->loadimages.first;
@@ -1349,7 +1349,7 @@ void thumbnails_start(struct FileList* filelist, const struct bContext* C)
 	BKE_reports_init(&tj->reports, RPT_PRINT);
 
 	/* setup job */
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), filelist, 0);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), filelist, "Thumbnails", 0);
 	WM_jobs_customdata(steve, tj, thumbnails_free);
 	WM_jobs_timer(steve, 0.5, NC_WINDOW, NC_WINDOW);
 	WM_jobs_callbacks(steve, thumbnails_startjob, NULL, thumbnails_update, NULL);

@@ -708,7 +708,7 @@ typedef struct FluidBakeJob {
 	/* from wmJob */
 	void *owner;
 	short *stop, *do_update;
-	
+	float *progress;
 	int current_frame;
 	elbeemSimulationSettings *settings;
 } FluidBakeJob;
@@ -732,19 +732,21 @@ static int fluidbake_breakjob(void *customdata)
 }
 
 /* called by fluidbake, wmJob sends notifier */
-static void fluidbake_updatejob(void *customdata, char *str)
+static void fluidbake_updatejob(void *customdata, float progress)
 {
 	FluidBakeJob *fb= customdata;
 	
 	*(fb->do_update)= 1;
+	*(fb->progress)= progress;
 }
 
-static void fluidbake_startjob(void *customdata, short *stop, short *do_update)
+static void fluidbake_startjob(void *customdata, short *stop, short *do_update, float *progress)
 {
 	FluidBakeJob *fb= customdata;
 	
 	fb->stop= stop;
 	fb->do_update = do_update;
+	fb->progress = progress;
 	
 	G.afbreek= 0;	/* XXX shared with render - replace with job 'stop' switch */
 	
@@ -753,14 +755,24 @@ static void fluidbake_startjob(void *customdata, short *stop, short *do_update)
 	*stop = 0;
 }
 
+static void fluidbake_endjob(void *customdata)
+{
+	FluidBakeJob *fb= customdata;
+	
+	if (fb->settings) {
+		MEM_freeN(fb->settings);
+		fb->settings = NULL;
+	}
+}
+
 int runSimulationCallback(void *data, int status, int frame) {
 	FluidBakeJob *fb = (FluidBakeJob *)data;
-	
-	//elbeemSimulationSettings *settings = fb->settings;
+	elbeemSimulationSettings *settings = fb->settings;
 	//printf("elbeem blender cb s%d, f%d, domainid:%d \n", status,frame, settings->domainId ); // DEBUG
 	
-	if (status == FLUIDSIM_CBSTATUS_NEWFRAME)
-		fluidbake_updatejob(fb, "");
+	if (status == FLUIDSIM_CBSTATUS_NEWFRAME) {
+		fluidbake_updatejob(fb, frame / (float)settings->noOfFrames);
+	}
 	
 	if (fluidbake_breakjob(fb))  {
 		return FLUIDSIM_CBRET_ABORT;
@@ -799,9 +811,9 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	
 	wmJob *steve;
 	FluidBakeJob *fb;
-	elbeemSimulationSettings fsset;
+	elbeemSimulationSettings *fsset= MEM_callocN(sizeof(elbeemSimulationSettings), "Fluid sim settings");
 	
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, 0);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Fluid Sim", WM_JOB_PROGRESS);
 	fb= MEM_callocN(sizeof(FluidBakeJob), "fluid bake job");
 	
 	if(getenv(strEnvName)) {
@@ -902,7 +914,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 			for(i=2; i<=allchannelSize; i++) {
 				timeAtFrame[i] = timeAtFrame[i-1]+channelDomainTime[(i-1)*2+0];
 			}
-		} else {
+		fsset->} else {
 			for(i=2; i<=allchannelSize; i++) { timeAtFrame[i] = timeAtFrame[i-1]+aniFrameTime; }
 		}
 
@@ -936,76 +948,77 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	}
 
 	/* ******** export domain to elbeem ******** */
-	elbeemResetSettings(&fsset);
-	fsset.version = 1;
+	elbeemResetSettings(fsset);
+	fsset->version = 1;
 
 	// setup global settings
-	copy_v3_v3(fsset.geoStart, domainSettings->bbStart);
-	copy_v3_v3(fsset.geoSize, domainSettings->bbSize);
+	copy_v3_v3(fsset->geoStart, domainSettings->bbStart);
+	copy_v3_v3(fsset->geoSize, domainSettings->bbSize);
 	
 	// simulate with 50^3
-	fsset.resolutionxyz = (int)domainSettings->resolutionxyz;
-	fsset.previewresxyz = (int)domainSettings->previewresxyz;
+	fsset->resolutionxyz = (int)domainSettings->resolutionxyz;
+	fsset->previewresxyz = (int)domainSettings->previewresxyz;
 
-	fsset.realsize = get_fluid_size_m(scene, fsDomain, domainSettings);
-	fsset.viscosity = get_fluid_viscosity(domainSettings);
-	get_fluid_gravity(fsset.gravity, scene, domainSettings);
+	fsset->realsize = get_fluid_size_m(scene, fsDomain, domainSettings);
+	fsset->viscosity = get_fluid_viscosity(domainSettings);
+	get_fluid_gravity(fsset->gravity, scene, domainSettings);
 
 	// simulate 5 frames, each 0.03 seconds, output to ./apitest_XXX.bobj.gz
-	fsset.animStart = domainSettings->animStart;
-	fsset.aniFrameTime = channels->aniFrameTime;
-	fsset.noOfFrames = noFrames; // is otherwise subtracted in parser
+	fsset->animStart = domainSettings->animStart;
+	fsset->aniFrameTime = channels->aniFrameTime;
+	fsset->noOfFrames = noFrames; // is otherwise subtracted in parser
+
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixSurface);
 	// defaults for compressibility and adaptive grids
-	fsset.gstar = domainSettings->gstar;
-	fsset.maxRefine = domainSettings->maxRefine; // check <-> gridlevels
-	fsset.generateParticles = domainSettings->generateParticles; 
-	fsset.numTracerParticles = domainSettings->generateTracers; 
-	fsset.surfaceSmoothing = domainSettings->surfaceSmoothing; 
-	fsset.surfaceSubdivs = domainSettings->surfaceSubdivs; 
-	fsset.farFieldSize = domainSettings->farFieldSize; 
-	strcpy( fsset.outputPath, targetFile);
+	fsset->gstar = domainSettings->gstar;
+	fsset->maxRefine = domainSettings->maxRefine; // check <-> gridlevels
+	fsset->generateParticles = domainSettings->generateParticles; 
+	fsset->numTracerParticles = domainSettings->generateTracers; 
+	fsset->surfaceSmoothing = domainSettings->surfaceSmoothing; 
+	fsset->surfaceSubdivs = domainSettings->surfaceSubdivs; 
+	fsset->farFieldSize = domainSettings->farFieldSize; 
+	strcpy( fsset->outputPath, targetFile);
 
 	// domain channels
-	fsset.channelSizeFrameTime = 
-	fsset.channelSizeViscosity = 
-	fsset.channelSizeGravity = channels->length;
-	fsset.channelFrameTime = channels->DomainTime;
-	fsset.channelViscosity = channels->DomainViscosity;
-	fsset.channelGravity = channels->DomainGravity;
+	fsset->channelSizeFrameTime = 
+	fsset->channelSizeViscosity = 
+	fsset->channelSizeGravity = channels->length;
+	fsset->channelFrameTime = channels->DomainTime;
+	fsset->channelViscosity = channels->DomainViscosity;
+	fsset->channelGravity = channels->DomainGravity;
 	
-	fsset.runsimCallback = &runSimulationCallback;
-	fsset.runsimUserData = fb;
+	fsset->runsimCallback = &runSimulationCallback;
+	fsset->runsimUserData = fb;
 
-	if (domainSettings->typeFlags & OB_FSBND_NOSLIP)		fsset.domainobsType = FLUIDSIM_OBSTACLE_NOSLIP;
-	else if (domainSettings->typeFlags&OB_FSBND_PARTSLIP)	fsset.domainobsType = FLUIDSIM_OBSTACLE_PARTSLIP;
-	else if (domainSettings->typeFlags&OB_FSBND_FREESLIP)	fsset.domainobsType = FLUIDSIM_OBSTACLE_FREESLIP;
-	fsset.domainobsPartslip = domainSettings->partSlipValue;
-	fsset.generateVertexVectors = (domainSettings->domainNovecgen==0);
+	if (domainSettings->typeFlags & OB_FSBND_NOSLIP)		fsset->domainobsType = FLUIDSIM_OBSTACLE_NOSLIP;
+	else if (domainSettings->typeFlags&OB_FSBND_PARTSLIP)	fsset->domainobsType = FLUIDSIM_OBSTACLE_PARTSLIP;
+	else if (domainSettings->typeFlags&OB_FSBND_FREESLIP)	fsset->domainobsType = FLUIDSIM_OBSTACLE_FREESLIP;
+	fsset->domainobsPartslip = domainSettings->partSlipValue;
+	fsset->generateVertexVectors = (domainSettings->domainNovecgen==0);
 
 	// init blender domain transform matrix
 	{ int j; 
 	for(i=0; i<4; i++) {
 		for(j=0; j<4; j++) {
-			fsset.surfaceTrafo[i*4+j] = invDomMat[j][i];
+			fsset->surfaceTrafo[i*4+j] = invDomMat[j][i];
 		}
 	} }
 
 	/* ******** init solver with settings ******** */
 	elbeemInit();
-	elbeemAddDomain(&fsset);
+	elbeemAddDomain(fsset);
 	
 	/* ******** export all fluid objects to elbeem ******** */
 	export_fluid_objects(fobjects, scene, channels->length);
 	
 	/* custom data for fluid bake job */
-	fb->settings = &fsset;
+	fb->settings = fsset;
 	
 	/* setup job */
 	WM_jobs_customdata(steve, fb, fluidbake_free);
 	WM_jobs_timer(steve, 0.1, NC_SCENE|ND_FRAME, NC_SCENE|ND_FRAME);
-	WM_jobs_callbacks(steve, fluidbake_startjob, NULL, NULL, NULL);
+	WM_jobs_callbacks(steve, fluidbake_startjob, NULL, NULL, fluidbake_endjob);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
 

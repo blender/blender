@@ -2423,24 +2423,40 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
-
+	void *owner;
+	int handle_event;
+	
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetCurLayout(block, layout);
 
 	uiBlockSetHandleFunc(block, do_running_jobs, NULL);
 
 	if(sa->spacetype==SPACE_NODE) {
-		if(WM_jobs_test(wm, sa))
-			uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Composite", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop composite");
+		owner = sa;
+		handle_event= B_STOPCOMPO;
+	} else {
+		owner = scene;
+		handle_event= B_STOPRENDER;
 	}
-	else {
-		if(WM_jobs_test(wm, scene))
-			uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_CANCEL, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
-		if(WM_jobs_test(wm, screen))
-			uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
-		if(screen->animtimer)
-			uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+
+	if(WM_jobs_test(wm, owner)) {
+		uiLayout *abs;
+		
+		abs = uiLayoutAbsolute(layout, 0);
+		
+		uiDefIconBut(block, BUT, handle_event, ICON_PANEL_CLOSE, 
+				0, UI_UNIT_Y*0.1, UI_UNIT_X*0.8, UI_UNIT_Y*0.8, NULL, 0.0f, 0.0f, 0, 0, "Stop this job");
+		uiDefBut(block, PROGRESSBAR, 0, WM_jobs_name(wm, owner), 
+				UI_UNIT_X, 0, 100, UI_UNIT_Y, NULL, 0.0f, 0.0f, WM_jobs_progress(wm, owner), 0, "Progress");
+		
+		uiLayoutRow(layout, 0);
 	}
+	if(WM_jobs_test(wm, screen))
+		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
+	if(screen->animtimer)
+		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+
+	uiItemS(layout);
 }
 
 /************************* Reports for Last Operator Template **************************/

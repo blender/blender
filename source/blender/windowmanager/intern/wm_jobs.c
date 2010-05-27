@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h>
+
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -89,7 +91,7 @@ struct wmJob {
 	/* to prevent cpu overhead, use this one which only gets called when job really starts, not in thread */
 	void (*initjob)(void *);
 	/* this runs inside thread, and does full job */
-	void (*startjob)(void *, short *stop, short *do_update);
+	void (*startjob)(void *, short *stop, short *do_update, float *progress);
 	/* update gets called if thread defines so, and max once per timerstep */
 	/* it runs outside thread, blocking blender, no drawing! */
 	void (*update)(void *);
@@ -109,6 +111,10 @@ struct wmJob {
 	void *owner;
 	int flag;
 	short suspended, running, ready, do_update, stop;
+	float progress;
+
+	/* for display in header, identification */
+	char name[128];
 	
 	/* once running, we store this separately */
 	void *run_customdata;
@@ -119,18 +125,32 @@ struct wmJob {
 
 };
 
+/* finds:
+ * 1st priority: job with same owner and name
+ * 2nd priority: job with same owner
+ */
+static wmJob *wm_job_find(wmWindowManager *wm, void *owner, char *name)
+{
+	wmJob *steve, *found=NULL;
+	
+	for(steve= wm->jobs.first; steve; steve= steve->next)
+		if(steve->owner==owner) {
+			found= steve;
+			if (name && strcmp(steve->name, name)==0)
+				return steve;
+		}
+	
+	return found;
+}
+
 /* ******************* public API ***************** */
 
 /* returns current or adds new job, but doesnt run it */
 /* every owner only gets a single job, adding a new one will stop running stop and 
    when stopped it starts the new one */
-wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, int flag)
+wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, char *name, int flag)
 {
-	wmJob *steve;
-	
-	for(steve= wm->jobs.first; steve; steve= steve->next)
-		if(steve->owner==owner)
-			break;
+	wmJob *steve= wm_job_find(wm, owner, name);
 	
 	if(steve==NULL) {
 		steve= MEM_callocN(sizeof(wmJob), "new job");
@@ -139,6 +159,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, int flag)
 		steve->win= win;
 		steve->owner= owner;
 		steve->flag= flag;
+		BLI_strncpy(steve->name, name, sizeof(steve->name));
 	}
 	
 	return steve;
@@ -154,6 +175,26 @@ int WM_jobs_test(wmWindowManager *wm, void *owner)
 			if(steve->running)
 				return 1;
 	return 0;
+}
+
+float WM_jobs_progress(wmWindowManager *wm, void *owner)
+{
+	wmJob *steve= wm_job_find(wm, owner, NULL);
+	
+	if (steve && steve->flag & WM_JOB_PROGRESS)
+		return steve->progress;
+	
+	return 0.0;
+}
+
+char *WM_jobs_name(wmWindowManager *wm, void *owner)
+{
+	wmJob *steve= wm_job_find(wm, owner, NULL);
+	
+	if (steve)
+		return steve->name;
+	
+	return NULL;
 }
 
 void WM_jobs_customdata(wmJob *steve, void *customdata, void (*free)(void *))
@@ -179,7 +220,7 @@ void WM_jobs_timer(wmJob *steve, double timestep, unsigned int note, unsigned in
 }
 
 void WM_jobs_callbacks(wmJob *steve, 
-					   void (*startjob)(void *, short *, short *),
+					   void (*startjob)(void *, short *, short *, float *),
 					   void (*initjob)(void *),
 					   void (*update)(void  *),
 					   void (*endjob)(void  *))
@@ -194,7 +235,7 @@ static void *do_job_thread(void *job_v)
 {
 	wmJob *steve= job_v;
 	
-	steve->startjob(steve->run_customdata, &steve->stop, &steve->do_update);
+	steve->startjob(steve->run_customdata, &steve->stop, &steve->do_update, &steve->progress);
 	steve->ready= 1;
 	
 	return NULL;
@@ -248,6 +289,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 				
 				steve->stop= 0;
 				steve->ready= 0;
+				steve->progress= 0.0;
 
 				BLI_init_threads(&steve->threads, do_job_thread, 1);
 				BLI_insert_thread(&steve->threads, steve);
@@ -354,6 +396,9 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 						steve->update(steve->run_customdata);
 					if(steve->note)
 						WM_event_add_notifier(C, steve->note, NULL);
+
+					if (steve->flag & WM_JOB_PROGRESS)
+						WM_event_add_notifier(C, NC_WM|ND_JOB, NULL);
 					steve->do_update= 0;
 				}	
 				
@@ -374,6 +419,8 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 					
 					if(steve->endnote)
 						WM_event_add_notifier(C, steve->endnote, NULL);
+					
+					WM_event_add_notifier(C, NC_WM|ND_JOB, NULL);
 					
 					/* new job added for steve? */
 					if(steve->customdata) {

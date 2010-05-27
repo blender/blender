@@ -220,6 +220,7 @@ typedef struct uiLayout uiLayout;
 #define HISTOGRAM	(47<<9)
 #define WAVEFORM	(48<<9)
 #define VECTORSCOPE	(49<<9)
+#define PROGRESSBAR	(50<<9)
 
 #define BUTTYPE		(63<<9)
 
@@ -247,8 +248,9 @@ void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, s
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
 
 /* state for scrolldrawing */
-#define UI_SCROLL_PRESSED	1
-#define UI_SCROLL_ARROWS	2
+#define UI_SCROLL_PRESSED		1
+#define UI_SCROLL_ARROWS		2
+#define UI_SCROLL_NO_OUTLINE	4
 void uiWidgetScrollDraw(struct uiWidgetColors *wcol, struct rcti *rect, struct rcti *slider, int state);
 
 /* Menu Callbacks */

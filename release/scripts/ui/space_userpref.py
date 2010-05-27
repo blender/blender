@@ -554,6 +554,10 @@ class USERPREF_PT_theme(bpy.types.Panel):
             ui = theme.user_interface.wcol_scroll
             col.label(text="Scroll Bar:")
             ui_items_general(col, ui)
+            
+            ui = theme.user_interface.wcol_progress
+            col.label(text="Progress Bar:")
+            ui_items_general(col, ui)
 
             ui = theme.user_interface.wcol_list_item
             col.label(text="List Item:")

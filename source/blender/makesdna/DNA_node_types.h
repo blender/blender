@@ -186,10 +186,10 @@ typedef struct bNodeTree {
 	int pad2[2];
 	
 	/* callbacks */
-	void (*timecursor)(void *, int nr);
+	void (*progress)(void *, float progress);
 	void (*stats_draw)(void *, char *str);
 	int (*test_break)(void *);
-	void *tbh, *tch, *sdh;
+	void *tbh, *prh, *sdh;
 	
 } bNodeTree;
 

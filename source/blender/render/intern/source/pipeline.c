@@ -131,7 +131,7 @@ static int thread_break(void *unused)
 static void result_nothing(void *unused, RenderResult *rr) {}
 static void result_rcti_nothing(void *unused, RenderResult *rr, volatile struct rcti *rect) {}
 static void stats_nothing(void *unused, RenderStats *rs) {}
-static void int_nothing(void *unused, int val) {}
+static void float_nothing(void *unused, float val) {}
 static void print_error(void *unused, char *str) {printf("ERROR: %s\n", str);}
 static int default_break(void *unused) {return G.afbreek == 1;}
 
@@ -1162,7 +1162,7 @@ Render *RE_NewRender(const char *name)
 	re->display_init= result_nothing;
 	re->display_clear= result_nothing;
 	re->display_draw= result_rcti_nothing;
-	re->timecursor= int_nothing;
+	re->progress= float_nothing;
 	re->test_break= default_break;
 	re->error= print_error;
 	if(G.background)
@@ -1170,7 +1170,7 @@ Render *RE_NewRender(const char *name)
 	else
 		re->stats_draw= stats_nothing;
 	/* clear callback handles */
-	re->dih= re->dch= re->ddh= re->sdh= re->tch= re->tbh= re->erh= NULL;
+	re->dih= re->dch= re->ddh= re->sdh= re->prh= re->tbh= re->erh= NULL;
 	
 	/* init some variables */
 	re->ycor= 1.0f;
@@ -1374,10 +1374,10 @@ void RE_stats_draw_cb(Render *re, void *handle, void (*f)(void *handle, RenderSt
 	re->stats_draw= f;
 	re->sdh= handle;
 }
-void RE_timecursor_cb(Render *re, void *handle, void (*f)(void *handle, int))
+void RE_progress_cb(Render *re, void *handle, void (*f)(void *handle, float))
 {
-	re->timecursor= f;
-	re->tch= handle;
+	re->progress= f;
+	re->prh= handle;
 }
 
 void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
@@ -1694,6 +1694,7 @@ static void threaded_tile_processor(Render *re)
 					free_render_result(&pa->fullresult, pa->result);
 					pa->result= NULL;
 					re->i.partsdone++;
+					re->progress(re->prh, re->i.partsdone / (float)re->i.totpart);
 					hasdrawn= 1;
 				}
 			}
@@ -2376,8 +2377,11 @@ static void do_render_composite_fields_blur_3d(Render *re)
 			if(!re->test_break(re->tbh)) {
 				ntree->stats_draw= render_composit_stats;
 				ntree->test_break= re->test_break;
+				ntree->progress= re->progress;
 				ntree->sdh= re->sdh;
 				ntree->tbh= re->tbh;
+				ntree->prh= re->prh;
+				
 				/* in case it was never initialized */
 				R.sdh= re->sdh;
 				R.stats_draw= re->stats_draw;
@@ -2393,7 +2397,8 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				
 				ntree->stats_draw= NULL;
 				ntree->test_break= NULL;
-				ntree->tbh= ntree->sdh= NULL;
+				ntree->progress= NULL;
+				ntree->tbh= ntree->sdh= ntree->prh= NULL;
 			}
 		}
 		else if(re->r.scemode & R_FULL_SAMPLE)

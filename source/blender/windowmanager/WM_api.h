@@ -299,15 +299,18 @@ int			WM_framebuffer_to_index(unsigned int col);
 			/* threaded Jobs Manager */
 #define WM_JOB_PRIORITY		1
 #define WM_JOB_EXCL_RENDER	2
+#define WM_JOB_PROGRESS		4
 
-struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, int flag);
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, char *name, int flag);
 
 int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
+float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
+char		*WM_jobs_name(struct wmWindowManager *wm, void *owner);
 
 void		WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *));
 void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
 void		WM_jobs_callbacks(struct wmJob *, 
-							  void (*startjob)(void *, short *, short *),
+							  void (*startjob)(void *, short *, short *, float *),
 							  void (*initjob)(void *),
 							  void (*update)(void *),
 							  void (*endjob)(void *));
