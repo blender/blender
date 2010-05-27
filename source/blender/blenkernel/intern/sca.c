@@ -44,6 +44,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_library.h"
 
 /* ******************* SENSORS ************************ */
 
@@ -348,7 +349,19 @@ void unlink_actuators(ListBase *lb)
 
 void free_actuator(bActuator *act)
 {
-	if(act->data) MEM_freeN(act->data);
+	bSoundActuator *sa;
+
+	if(act->data) {
+		switch (act->type) {
+			case ACT_SOUND:
+				sa = (bSoundActuator *) act->data;
+                        	if(sa->sound)
+                                	id_us_min((ID *) sa->sound);
+                	        break;
+        	}
+
+		MEM_freeN(act->data);
+	}
 	MEM_freeN(act);
 }
 
@@ -365,6 +378,7 @@ void free_actuators(ListBase *lb)
 bActuator *copy_actuator(bActuator *act)
 {
 	bActuator *actn;
+	bSoundActuator *sa;
 	
 	act->mynew=actn= MEM_dupallocN(act);
 	actn->flag |= ACT_NEW;
@@ -372,6 +386,13 @@ bActuator *copy_actuator(bActuator *act)
 		actn->data= MEM_dupallocN(act->data);
 	}
 	
+	switch (act->type) {
+		case ACT_SOUND:
+			sa= (bSoundActuator *)act->data;
+			if(sa->sound)
+				id_us_plus((ID *) sa->sound);
+			break;
+	}
 	return actn;
 }
 
