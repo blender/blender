@@ -1325,9 +1325,6 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
-
-	if (scene->GetPathfinder())
-		scene->GetPathfinder()->debugDraw();
 }
 /*
 To run once per scene

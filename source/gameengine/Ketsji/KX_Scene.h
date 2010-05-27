@@ -83,7 +83,6 @@ class SCA_JoystickManager;
 class btCollisionShape;
 class KX_BlenderSceneConverter;
 struct KX_ClientObjectInfo;
-class KX_Pathfinder;
 
 /* for ID freeing */
 #define IS_TAGGED(_id) ((_id) && (((ID *)_id)->flag & LIB_DOIT))
@@ -278,7 +277,6 @@ protected:
 
 	RAS_2DFilterManager m_filtermanager;
 
-	KX_Pathfinder*		m_pathfinder;
 public:	
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
@@ -614,7 +612,6 @@ public:
 	//	m_bucketmanager->PrintStats(verbose_level)
 	//}
 
-	KX_Pathfinder *GetPathfinder() {return m_pathfinder; };
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

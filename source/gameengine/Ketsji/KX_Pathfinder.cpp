@@ -1,5 +1,5 @@
 /**
-* $Id: 
+* $Id$ 
 * ***** BEGIN GPL LICENSE BLOCK *****
 *
 * This program is free software; you can redistribute it and/or
@@ -38,8 +38,13 @@ extern "C" {
 #include "BKE_DerivedMesh.h"
 }
 #include "KX_PythonInit.h"
+#include "KX_PyMath.h"
+#include "Value.h"
 #include "Recast.h"
 #include "DetourStatNavMeshBuilder.h"
+
+static const int MAX_PATH_LEN = 256;
+static const float polyPickExt[3] = {2, 4, 2};
 
 static void calcMeshBounds(const float* vert, int nverts, float* bmin, float* bmax)
 {
@@ -48,18 +53,24 @@ static void calcMeshBounds(const float* vert, int nverts, float* bmin, float* bm
 	bmin[2] = bmax[2] = vert[2];
 	for (int i=1; i<nverts; i++)
 	{
-		if (bmin[0]>vert[i+0]) bmin[0] = vert[i+0];
-		if (bmin[1]>vert[i+1]) bmin[1] = vert[i+1];
-		if (bmin[2]>vert[i+2]) bmin[2] = vert[i+2];
+		if (bmin[0]>vert[3*i+0]) bmin[0] = vert[3*i+0];
+		if (bmin[1]>vert[3*i+1]) bmin[1] = vert[3*i+1];
+		if (bmin[2]>vert[3*i+2]) bmin[2] = vert[3*i+2];
 
-		if (bmax[0]<vert[i+0]) bmax[0] = vert[i+0];
-		if (bmax[1]<vert[i+1]) bmax[2] = vert[i+1];
-		if (bmax[2]<vert[i+2]) bmax[1] = vert[i+2];
+		if (bmax[0]<vert[3*i+0]) bmax[0] = vert[3*i+0];
+		if (bmax[1]<vert[3*i+1]) bmax[1] = vert[3*i+1];
+		if (bmax[2]<vert[3*i+2]) bmax[2] = vert[3*i+2];
 	}
 }
 
-KX_Pathfinder::KX_Pathfinder()
-:	m_navMesh(NULL)
+inline void flipAxes(float* vec)
+{
+	std::swap(vec[1],vec[2]);
+}
+
+KX_Pathfinder::KX_Pathfinder(void* sgReplicationInfo, SG_Callbacks callbacks)
+:	KX_GameObject(sgReplicationInfo, callbacks)
+,	m_navMesh(NULL)
 {
 	
 }
@@ -70,7 +81,7 @@ KX_Pathfinder::~KX_Pathfinder()
 		delete m_navMesh;
 }
 
-bool KX_Pathfinder::buildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices, int& nverts,
+bool KX_Pathfinder::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices, int& nverts,
 									   unsigned short* &faces, int& npolys)
 {
 	if (!meshobj || meshobj->HasColliderPolygon()==false) 
@@ -87,111 +98,87 @@ bool KX_Pathfinder::buildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices
 	int* index = (int*)dm->getFaceDataArray(dm, CD_ORIGINDEX);
 	MTFace *tface = (MTFace *)dm->getFaceDataArray(dm, CD_MTFACE);
 
-	vector<bool> vert_tag_array(numverts, false);
-	vector<size_t> vert_remap_array(numverts, 0);
-
-	// Tag verts we're using
-	for (int p2=0; p2<numpolys; p2++)
-	{
-		MFace* mf = &mface[p2];
-		RAS_Polygon* poly= meshobj->GetPolygon((index)? index[p2]: p2);
-		// only add polygons that have the collision flag set
-		if (poly->IsCollider())
-		{
-			if (vert_tag_array[mf->v1]==false)
-			{vert_tag_array[mf->v1]= true;vert_remap_array[mf->v1]= (size_t)nverts;nverts++;}
-			if (vert_tag_array[mf->v2]==false)
-			{vert_tag_array[mf->v2]= true;vert_remap_array[mf->v2]= (size_t)nverts;nverts++;}
-			if (vert_tag_array[mf->v3]==false)
-			{vert_tag_array[mf->v3]= true;vert_remap_array[mf->v3]= (size_t)nverts;nverts++;}
-			if (mf->v4 && vert_tag_array[mf->v4]==false)
-			{vert_tag_array[mf->v4]= true;vert_remap_array[mf->v4]= (size_t)nverts;nverts++;}
-			npolys += (mf->v4 ? 2:1); /* a quad or a tri */
-		}
-	}
-
+	nverts = numverts;
 	if (nverts >= 0xffff)
 		return false;
-
-	vertices = new float[nverts*3];
-	faces = new unsigned short[npolys*3*2];
-	memset(faces,0xff,sizeof(unsigned short)*3*2*npolys);
-	float *bt= vertices;
-	unsigned short *tri_pt= faces;
-
+	//calculate count of tris
+	npolys = numpolys;
 	for (int p2=0; p2<numpolys; p2++)
 	{
 		MFace* mf = &mface[p2];
-		MTFace* tf = (tface) ? &tface[p2] : NULL;
-		RAS_Polygon* poly= meshobj->GetPolygon((index)? index[p2]: p2);
-		// only add polygons that have the collisionflag set
-		if (poly->IsCollider())
+		if (mf->v4)
+			npolys+=1;
+	}
+
+	//create verts
+	vertices = new float[nverts*3];
+	for (int vi=0; vi<nverts; vi++)
+	{
+		MVert *v = &mvert[vi];
+		for (int j=0; j<3; j++)
+			vertices[3*vi+j] = v->co[j];
+	}
+	//create tris
+	faces = new unsigned short[npolys*3*2];
+	memset(faces,0xff,sizeof(unsigned short)*3*2*npolys);
+	unsigned short *face = faces;
+	for (int p2=0; p2<numpolys; p2++)
+	{
+		MFace* mf = &mface[p2];
+		face[0]= mf->v1;
+		face[1]= mf->v2;
+		face[2]= mf->v3;
+		face += 6;
+		if (mf->v4)
 		{
-			MVert *v1= &mvert[mf->v1];
-			MVert *v2= &mvert[mf->v2];
-			MVert *v3= &mvert[mf->v3];
-
-			// the face indicies
-			tri_pt[0]= vert_remap_array[mf->v1];
-			tri_pt[1]= vert_remap_array[mf->v2];
-			tri_pt[2]= vert_remap_array[mf->v3];
-			tri_pt= tri_pt+6;
-
-			// the vertex location
-			if (vert_tag_array[mf->v1]==true) { /* *** v1 *** */
-				vert_tag_array[mf->v1]= false;
-				*bt++ = v1->co[0];
-				*bt++ = v1->co[1];
-				*bt++ = v1->co[2];
-			}
-			if (vert_tag_array[mf->v2]==true) { /* *** v2 *** */
-				vert_tag_array[mf->v2]= false;
-				*bt++ = v2->co[0];
-				*bt++ = v2->co[1];
-				*bt++ = v2->co[2];
-			}
-			if (vert_tag_array[mf->v3]==true) { /* *** v3 *** */
-				vert_tag_array[mf->v3]= false;
-				*bt++ = v3->co[0];	
-				*bt++ = v3->co[1];
-				*bt++ = v3->co[2];
-			}
-
-			if (mf->v4)
-			{
-				MVert *v4= &mvert[mf->v4];
-
-				tri_pt[0]= vert_remap_array[mf->v1];
-				tri_pt[1]= vert_remap_array[mf->v3];
-				tri_pt[2]= vert_remap_array[mf->v4];
-				tri_pt= tri_pt+3;
-
-				// the vertex location
-				if (vert_tag_array[mf->v4]==true) { /* *** v4 *** */
-					vert_tag_array[mf->v4]= false;
-					*bt++ = v4->co[0];
-					*bt++ = v4->co[1];	
-					*bt++ = v4->co[2];
-				}
-			}
+			face[0]= mf->v1;
+			face[1]= mf->v3;
+			face[2]= mf->v4;
+			face += 6;
 		}
 	}
 
 	dm->release(dm);
 	dm = NULL;
-	const int vertsPerPoly = 3;
-	buildMeshAdjacency(faces, npolys, nverts, vertsPerPoly);
+	
 	return true;
 }
 
-bool KX_Pathfinder::createFromMesh(RAS_MeshObject* meshobj)
+bool KX_Pathfinder::BuildNavMesh()
 {
+	if (GetMeshCount()==0)
+		return false;
+
+	RAS_MeshObject* meshobj = GetMesh(0);
+
 	float* vertices = NULL;
 	unsigned short* faces = NULL;
 	int nverts = 0, npolys = 0;	
-	if (!buildVertIndArrays(meshobj, vertices, nverts, faces, npolys))
+	if (!BuildVertIndArrays(meshobj, vertices, nverts, faces, npolys))
 		return false;
 	
+	//prepare vertices and indices
+	MT_Transform worldTransform = GetSGNode()->GetWorldTransform();
+	MT_Point3 pos;
+	for (int i=0; i<nverts; i++)
+	{
+		flipAxes(&vertices[i*3]);
+		pos.setValue(&vertices[i*3]);
+		//add world transform
+		pos = worldTransform(pos);
+		pos.getValue(&vertices[i*3]);
+
+	}
+	//reorder tris 
+	for (int i=0; i<npolys; i++)
+	{
+		std::swap(faces[6*i+1], faces[6*i+2]);
+	}
+	const int vertsPerPoly = 3;
+	buildMeshAdjacency(faces, npolys, nverts, vertsPerPoly);
+
+	
+
 	
 	int ndtris = npolys;
 	int uniqueDetailVerts = 0;
@@ -202,6 +189,15 @@ bool KX_Pathfinder::createFromMesh(RAS_MeshObject* meshobj)
 
 	float bmin[3], bmax[3];
 	calcMeshBounds(vertices, nverts, bmin, bmax);
+	//quantize vertex pos
+	unsigned short* vertsi = new unsigned short[3*nverts];
+	float ics = 1.f/cs;
+	for (int i=0; i<nverts; i++)
+	{
+		vertsi[3*i+0] = static_cast<unsigned short>((vertices[3*i+0]-bmin[0])*ics);
+		vertsi[3*i+1] = static_cast<unsigned short>((vertices[3*i+1]-bmin[1])*ics);
+		vertsi[3*i+2] = static_cast<unsigned short>((vertices[3*i+2]-bmin[2])*ics);
+	}
 
 	// Calculate data size
 	const int headerSize = sizeof(dtStatNavMeshHeader);
@@ -244,7 +240,16 @@ bool KX_Pathfinder::createFromMesh(RAS_MeshObject* meshobj)
 	header->ndverts = uniqueDetailVerts;
 	header->ndtris = ndtris;
 
-	memcpy(navVerts, vertices, nverts*3*sizeof(float));
+	// Store vertices
+	for (int i = 0; i < nverts; ++i)
+	{
+		const unsigned short* iv = &vertsi[i*3];
+		float* v = &navVerts[i*3];
+		v[0] = bmin[0] + iv[0] * cs;
+		v[1] = bmin[1] + iv[1] * cs;
+		v[2] = bmin[2] + iv[2] * cs;
+	}
+	//memcpy(navVerts, vertices, nverts*3*sizeof(float));
 
 	// Store polygons
 	const int nvp = 3;
@@ -262,15 +267,6 @@ bool KX_Pathfinder::createFromMesh(RAS_MeshObject* meshobj)
 		src += nvp*2;
 	}
 
-	//quantize vertex pos to creating BVTree 
-	unsigned short* vertsi = new unsigned short[3*nverts];
-	float* vf = vertices;
-	unsigned short* vi = vertsi;
-	float ics = 1.f/cs;
-	for (int i=0; i<nverts*3; i++)
-	{
-		vi[i] = static_cast<unsigned short>(vf[i]*ics);
-	}
 	header->nnodes = createBVTree(vertsi, nverts, faces, npolys, nvp,
 								cs, cs, npolys*2, navNodes);
 	
@@ -302,7 +298,7 @@ bool KX_Pathfinder::createFromMesh(RAS_MeshObject* meshobj)
 	return true;
 }
 
-void KX_Pathfinder::debugDraw()
+void KX_Pathfinder::DebugDraw()
 {
 	if (!m_navMesh)
 		return;
@@ -319,10 +315,15 @@ void KX_Pathfinder::debugDraw()
 			MT_Vector3 tri[3];
 			for (int k = 0; k < 3; ++k)
 			{
+				const float* v;
 				if (t[k] < p->nv)
-					tri[k].setValue(m_navMesh->getVertex(p->v[t[k]]));
+					v = m_navMesh->getVertex(p->v[t[k]]);
 				else
-					tri[k].setValue(m_navMesh->getDetailVertex(pd->vbase+(t[k]-p->nv)));
+					v =  m_navMesh->getDetailVertex(pd->vbase+(t[k]-p->nv));
+				float pos[3];
+				vcopy(pos, v);
+				flipAxes(pos);
+				tri[k].setValue(pos);
 			}
 
 			for (int k=0; k<3; k++)
@@ -330,3 +331,131 @@ void KX_Pathfinder::debugDraw()
 		}
 	}
 }
+
+int KX_Pathfinder::FindPath(MT_Vector3& from, MT_Vector3& to, float* path, int maxPathLen)
+{
+	if (!m_navMesh)
+		return 0;
+	float spos[3], epos[3];
+	from.getValue(spos); flipAxes(spos);
+	to.getValue(epos); flipAxes(epos);
+	dtStatPolyRef sPolyRef = m_navMesh->findNearestPoly(spos, polyPickExt);
+	dtStatPolyRef ePolyRef = m_navMesh->findNearestPoly(epos, polyPickExt);
+
+	int pathLen = 0;
+	if (sPolyRef && ePolyRef)
+	{
+		dtStatPolyRef* polys = new dtStatPolyRef[maxPathLen];
+		int npolys;
+		npolys = m_navMesh->findPath(sPolyRef, ePolyRef, spos, epos, polys, maxPathLen);
+		if (npolys)
+		{
+			pathLen = m_navMesh->findStraightPath(spos, epos, polys, npolys, path, maxPathLen);
+			for (int i=0; i<pathLen; i++)
+				flipAxes(&path[i*3]);
+		}
+	}
+
+	return pathLen;
+}
+
+float KX_Pathfinder::Raycast(MT_Vector3& from, MT_Vector3& to)
+{
+	if (!m_navMesh)
+		return 0.f;
+	float spos[3], epos[3];
+	from.getValue(spos); flipAxes(spos);
+	to.getValue(epos); flipAxes(epos);
+	dtStatPolyRef sPolyRef = m_navMesh->findNearestPoly(spos, polyPickExt);
+	float t=0;
+	static dtStatPolyRef polys[MAX_PATH_LEN];
+	m_navMesh->raycast(sPolyRef, spos, epos, t, polys, MAX_PATH_LEN);
+	return t;
+}
+
+#ifndef DISABLE_PYTHON
+//----------------------------------------------------------------------------
+//Python
+
+PyTypeObject KX_Pathfinder::Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"KX_Pathfinder",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,
+	0,
+	0,
+	0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&CValue::Type,
+	0,0,0,0,0,0,
+	py_base_new
+};
+
+PyAttributeDef KX_Pathfinder::Attributes[] = {
+	{ NULL }	//Sentinel
+};
+
+//KX_PYMETHODTABLE_NOARGS(KX_GameObject, getD),
+PyMethodDef KX_Pathfinder::Methods[] = {
+	KX_PYMETHODTABLE(KX_Pathfinder, findPath),
+	KX_PYMETHODTABLE(KX_Pathfinder, raycast),
+	KX_PYMETHODTABLE(KX_Pathfinder, draw),
+	{NULL,NULL} //Sentinel
+};
+
+KX_PYMETHODDEF_DOC(KX_Pathfinder, findPath,
+				   "findPath(start, goal): find path from start to goal points\n"
+				   "Returns a path as list of points)\n")
+{
+	PyObject *ob_from, *ob_to;
+	if (!PyArg_ParseTuple(args,"OO:getPath",&ob_from,&ob_to))
+		return NULL;
+	MT_Vector3 from, to;
+	if (!PyVecTo(ob_from, from) || !PyVecTo(ob_to, to))
+		return NULL;
+	
+	float path[MAX_PATH_LEN*3];
+	int pathLen = FindPath(from, to, path, MAX_PATH_LEN);
+	PyObject *pathList = PyList_New( pathLen );
+	for (int i=0; i<pathLen; i++)
+	{
+		MT_Vector3 point(&path[3*i]);
+		PyList_SET_ITEM(pathList, i, PyObjectFrom(point));
+	}
+
+	return pathList;
+}
+
+KX_PYMETHODDEF_DOC(KX_Pathfinder, raycast,
+				   "raycast(start, goal): raycast from start to goal points\n"
+				   "Returns hit factor)\n")
+{
+	PyObject *ob_from, *ob_to;
+	if (!PyArg_ParseTuple(args,"OO:getPath",&ob_from,&ob_to))
+		return NULL;
+	MT_Vector3 from, to;
+	if (!PyVecTo(ob_from, from) || !PyVecTo(ob_to, to))
+		return NULL;
+	float hit = Raycast(from, to);
+	return PyFloat_FromDouble(hit);
+}
+
+KX_PYMETHODDEF_DOC_NOARGS(KX_Pathfinder, draw,
+				   "draw(): navigation mesh debug drawing\n")
+{
+	DebugDraw();
+	Py_RETURN_NONE;
+}
+
+#endif // DISABLE_PYTHON

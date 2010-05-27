@@ -1715,6 +1715,13 @@ static KX_GameObject *gameobject_from_blenderobject(
 		// needed for python scripting
 		kxscene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
 	
+		if (ob->gameflag & OB_NAVMESH)
+		{
+			gameobj = new KX_Pathfinder(kxscene,KX_Scene::m_callbacks);
+			gameobj->AddMesh(meshobj);
+			break;
+		}
+			
 		gameobj = new BL_DeformableGameObject(ob,kxscene,KX_Scene::m_callbacks);
 	
 		// set transformation
@@ -2671,22 +2678,18 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 	logicbrick_conversionlist->Release();
 	
-	//create navigation mesh
-	KX_Pathfinder* pathfinder = kxscene->GetPathfinder();
-	if (pathfinder)
+	//build navigation mesh
+	for ( i=0;i<objectlist->GetCount();i++)
 	{
-		for ( i=0;i<objectlist->GetCount();i++)
+		KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
+		struct Object* blenderobject = gameobj->GetBlenderObject();
+		if (blenderobject->type==OB_MESH && (blenderobject->gameflag & OB_NAVMESH))
 		{
-			KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
-			struct Object* blenderobject = gameobj->GetBlenderObject();
-			if (blenderobject->type==OB_MESH && gameobj->GetProperty("navmesh") && gameobj->GetMeshCount()>0)
-			{
-				RAS_MeshObject* meshobj = gameobj->GetMesh(0);
-				pathfinder->createFromMesh(meshobj);
-				gameobj->SetVisible(0, 0);
-			}
-		}		
-	}
+			KX_Pathfinder* pathfinder = static_cast<KX_Pathfinder*>(gameobj);
+			pathfinder->BuildNavMesh();
+			pathfinder->SetVisible(0, true);
+		}
+	}		
 	
 
 	

@@ -1,5 +1,5 @@
 /**
-* $Id: 
+* $Id$ 
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
 *
@@ -29,22 +29,41 @@
 #ifndef __KX_PATHFINDER
 #define __KX_PATHFINDER
 #include "DetourStatNavMesh.h"
+#include "KX_GameObject.h"
+#include "PyObjectPlus.h"
 #include <vector>
 
 class RAS_MeshObject;
+class MT_Transform;
 
-class KX_Pathfinder
+class KX_Pathfinder: public KX_GameObject
 {
-public:
-	KX_Pathfinder();
-	~KX_Pathfinder();
-	bool createFromMesh(RAS_MeshObject* meshobj);
-	void debugDraw();
-protected:
-	bool buildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices, int& nverts,
-							unsigned short *&faces, int& npolys);
+	Py_Header;
 
+protected:
 	dtStatNavMesh* m_navMesh;
+	
+	bool BuildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices, int& nverts,
+		unsigned short *&faces, int& npolys);
+
+public:
+	KX_Pathfinder(void* sgReplicationInfo, SG_Callbacks callbacks);
+	~KX_Pathfinder();
+	bool BuildNavMesh();
+	int FindPath(MT_Vector3& from, MT_Vector3& to, float* path, int maxPathLen);
+	float Raycast(MT_Vector3& from, MT_Vector3& to);
+	void DebugDraw();
+
+
+#ifndef DISABLE_PYTHON
+	/* --------------------------------------------------------------------- */
+	/* Python interface ---------------------------------------------------- */
+	/* --------------------------------------------------------------------- */
+
+	KX_PYMETHOD_DOC(KX_Pathfinder, findPath);
+	KX_PYMETHOD_DOC(KX_Pathfinder, raycast);
+	KX_PYMETHOD_DOC_NOARGS(KX_Pathfinder, draw);
+#endif
 };
 
 #endif //__KX_PATHFINDER
