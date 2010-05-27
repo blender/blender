@@ -798,10 +798,12 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
-	"CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
-	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
-	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV",
-	"CDMloopCol", "CDTangent", "CDMDisps", "CDWeightMCol", "CDClothOrco"};
+	/*   0-4 */ "CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace",
+	/*   5-9 */ "CDMTFace", "CDMCol", "CDOrigIndex", "CDNormal", "CDFlags",
+	/* 10-14 */ "CDMFloatProperty", "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco",
+	/* 15-19 */ "CDMTexPoly", "CDMLoopUV", "CDMloopCol", "CDTangent", "CDMDisps",
+	/* 20-23 */"CDWeightMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco"
+};
 
 const CustomDataMask CD_MASK_BAREMESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE;
