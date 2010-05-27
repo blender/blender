@@ -158,7 +158,7 @@ ifndef CONFIG_GUESS
     export BF_PCRE_LIBS ?= $(BF_PCRE)/lib/libpcre.a
   endif
 
-  export WITH_TIFF =? true
+  export WITH_TIFF ?= true
   
   # Compare recreated .mo files with committed ones
   export BF_VERIFY_MO_FILES ?= true

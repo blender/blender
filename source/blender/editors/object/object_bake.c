@@ -102,7 +102,8 @@ typedef struct BakeRender {
 
 	short *stop;
 	short *do_update;
-
+	float *progress;
+	
 	ListBase threads;
 
 	/* backup */
@@ -185,19 +186,20 @@ static void *do_bake_render(void *bake_v)
 {
 	BakeRender *bkr= bake_v;
 
-	bkr->tot= RE_bake_shade_all_selected(bkr->re, bkr->scene->r.bake_mode, bkr->actob, NULL);
+	bkr->tot= RE_bake_shade_all_selected(bkr->re, bkr->scene->r.bake_mode, bkr->actob, NULL, bkr->progress);
 	bkr->ready= 1;
 
 	return NULL;
 }
 
-static void bake_startjob(void *bkv, short *stop, short *do_update)
+static void bake_startjob(void *bkv, short *stop, short *do_update, float *progress)
 {
 	BakeRender *bkr= bkv;
 	Scene *scene= bkr->scene;
 
 	bkr->stop= stop;
 	bkr->do_update= do_update;
+	bkr->progress= progress;
 
 	RE_test_break_cb(bkr->re, NULL, thread_break);
 	G.afbreek= 0;	/* blender_test_break uses this global */
@@ -205,7 +207,7 @@ static void bake_startjob(void *bkv, short *stop, short *do_update)
 	RE_Database_Baking(bkr->re, scene, scene->lay, scene->r.bake_mode, bkr->actob);
 
 	/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
-	bkr->tot= RE_bake_shade_all_selected(bkr->re, scene->r.bake_mode, bkr->actob, bkr->do_update);
+	bkr->tot= RE_bake_shade_all_selected(bkr->re, scene->r.bake_mode, bkr->actob, bkr->do_update, bkr->progress);
 }
 
 static void bake_update(void *bkv)
@@ -260,7 +262,7 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *_eve
 		bkr->reports= op->reports;
 
 		/* setup job */
-		steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY);
+		steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Texture Bake", WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS);
 		WM_jobs_customdata(steve, bkr, bake_freejob);
 		WM_jobs_timer(steve, 0.2, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
 		WM_jobs_callbacks(steve, bake_startjob, NULL, bake_update, NULL);

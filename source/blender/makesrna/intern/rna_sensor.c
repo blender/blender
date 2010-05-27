@@ -152,7 +152,7 @@ EnumPropertyItem *rna_Sensor_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 static void rna_Sensor_keyboard_key_set(struct PointerRNA *ptr, int value)
 {
 	bSensor *sens= (bSensor *)ptr->data;
-	bKeyboardSensor *ks = sens->data;
+	bKeyboardSensor *ks = (bKeyboardSensor *)sens->data;
 	
 	if (ISKEYBOARD(value))
 		ks->key = value;
@@ -161,7 +161,7 @@ static void rna_Sensor_keyboard_key_set(struct PointerRNA *ptr, int value)
 static void rna_Sensor_keyboard_modifier_set(struct PointerRNA *ptr, int value)
 {
 	bSensor *sens= (bSensor *)ptr->data;
-	bKeyboardSensor *ks = sens->data;
+	bKeyboardSensor *ks = (bKeyboardSensor *)sens->data;
 	
 	if (ISKEYBOARD(value))
 		ks->qual = value;
@@ -170,7 +170,7 @@ static void rna_Sensor_keyboard_modifier_set(struct PointerRNA *ptr, int value)
 static void rna_Sensor_keyboard_modifier2_set(struct PointerRNA *ptr, int value)
 {
 	bSensor *sens= (bSensor *)ptr->data;
-	bKeyboardSensor *ks = sens->data;
+	bKeyboardSensor *ks = (bKeyboardSensor *)sens->data;
 	
 	if (ISKEYBOARD(value))
 		ks->qual2 = value;
@@ -228,6 +228,14 @@ static void rna_Sensor_Armature_update(Main *bmain, Scene *scene, PointerRNA *pt
 	constraint[0] = 0;
 }
 
+/* note: the following set functions exists only to avoid id refcounting */
+static void rna_Sensor_touch_material_set(PointerRNA *ptr, PointerRNA value)
+{
+        bSensor *sens = (bSensor *)ptr->data;
+        bTouchSensor *ts = (bTouchSensor *) sens->data;
+
+        ts->ma = value.data;
+}
 #else
 
 static void rna_def_sensor(BlenderRNA *brna)
@@ -365,6 +373,8 @@ static void rna_def_touch_sensor(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Material", "Only look for objects with this material");
+	/* note: custom set function is ONLY to avoid rna setting a user for this. */
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Sensor_touch_material_set", NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 

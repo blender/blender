@@ -67,6 +67,7 @@ EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", ICON_CONSTRAINT_DATA, "Rigid Body Joint", ""},
 	{CONSTRAINT_TYPE_PYTHON, "SCRIPT", ICON_CONSTRAINT_DATA, "Script", ""},
 	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", ICON_CONSTRAINT_DATA, "Shrinkwrap", ""},
+	{CONSTRAINT_TYPE_PIVOT, "PIVOT", ICON_CONSTRAINT_DATA, "Pivot", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem space_pchan_items[] = {
@@ -157,6 +158,8 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 			return &RNA_SplineIKConstraint;
 		case CONSTRAINT_TYPE_TRANSLIKE:
 			return &RNA_CopyTransformsConstraint;
+		case CONSTRAINT_TYPE_PIVOT:
+			return &RNA_PivotConstraint;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -1839,6 +1842,62 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
+static void rna_def_constraint_pivot(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem pivot_rotAxis_items[] = {
+		{PIVOTCON_AXIS_NONE, "ALWAYS_ACTIVE", 0, "Always", ""},
+		{PIVOTCON_AXIS_X_NEG, "NX", 0, "-X Rot", ""},
+		{PIVOTCON_AXIS_Y_NEG, "NY", 0, "-Y Rot", ""},
+		{PIVOTCON_AXIS_Z_NEG, "NZ", 0, "-Z Rot", ""},
+		{PIVOTCON_AXIS_X, "X", 0, "X Rot", ""},
+		{PIVOTCON_AXIS_Y, "Y", 0, "Y Rot", ""},
+		{PIVOTCON_AXIS_Z, "Z", 0, "Z Rot", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "PivotConstraint", "Constraint");
+	RNA_def_struct_ui_text(srna, "Pivot Constraint", "Rotate around a different point");
+	
+	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, "bConstraint", "headtail");
+	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	RNA_def_struct_sdna_from(srna, "bPivotConstraint", "data");
+	
+	/* target-defined pivot */
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_ui_text(prop, "Target", "Target Object, defining the position of the pivot when defined");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	
+	prop= RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "subtarget");
+	RNA_def_property_ui_text(prop, "Sub-Target", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	
+	/* pivot offset */
+	prop= RNA_def_property(srna, "use_relative_position", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", PIVOTCON_FLAG_OFFSET_ABS);
+	RNA_def_property_ui_text(prop, "Use Relative Offset", "Offset will be an absolute point in space instead of relative to the target");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_ui_text(prop, "Offset", "Offset of pivot from target (when set), or from owner's location (when Fixed Position is off), or the absolute pivot point");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	/* rotation-based activation */
+	prop= RNA_def_property(srna, "enabled_rotation_range", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "rotAxis");
+	RNA_def_property_enum_items(prop, pivot_rotAxis_items);
+	RNA_def_property_ui_text(prop, "Enabled Rotation Range", "Rotation range on which pivoting should occur");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+}
+
 /* base struct for constraints */
 void RNA_def_constraint(BlenderRNA *brna)
 {
@@ -1943,6 +2002,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	rna_def_constraint_shrinkwrap(brna);
 	rna_def_constraint_damped_track(brna);
 	rna_def_constraint_spline_ik(brna);
+	rna_def_constraint_pivot(brna);
 }
 
 #endif

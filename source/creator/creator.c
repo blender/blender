@@ -144,8 +144,8 @@ char blender_path[FILE_MAXDIR+FILE_MAXFILE] = BLENDERPATH;
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
 
-/* on linux set breakpoints here when running in debug mode, useful to catch floating point errors */
-#if defined(__sgi) || defined(__linux__) || OSX_SSE_FPE
+/* set breakpoints here when running in debug mode, useful to catch floating point errors */
+#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || OSX_SSE_FPE
 static void fpe_handler(int sig)
 {
 	// printf("SIGFPE trapped\n");
@@ -279,7 +279,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("  $BLENDERPATH  System directory to use for data files and scripts.\n");
 	printf ("                For this build of blender the default BLENDERPATH is...\n");
 	printf ("                \"%s\"\n", blender_path);
-	printf ("                seting the $BLENDERPATH will override this\n");
+	printf ("                setting the $BLENDERPATH will override this\n");
 #ifdef WIN32
 	printf ("  $TEMP         Store temporary files here.\n");
 #else
@@ -364,21 +364,24 @@ static int debug_mode(int argc, char **argv, void *data)
 
 static int set_fpe(int argc, char **argv, void *data)
 {
-#if defined(__sgi) || defined(__linux__) || OSX_SSE_FPE
+#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || OSX_SSE_FPE
 	/* zealous but makes float issues a heck of a lot easier to find!
 	 * set breakpoints on fpe_handler */
 	signal(SIGFPE, fpe_handler);
 
-#if defined(__linux__) && defined(__GNUC__)
+# if defined(__linux__) && defined(__GNUC__)
 	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-#else
-#if OSX_SSE_FPE
+# endif	/* defined(__linux__) && defined(__GNUC__) */
+# if OSX_SSE_FPE
 	/* OSX uses SSE for floating point by default, so here 
 	 * use SSE instructions to throw floating point exceptions */
 	_MM_SET_EXCEPTION_MASK(_MM_MASK_MASK &~
 						   (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO));
-#endif	/* OSX_SSE_FPE */
-#endif	/* defined(__linux__) && defined(__GNUC__) */
+# endif	/* OSX_SSE_FPE */
+# if defined(_WIN32) && defined(_MSC_VER)
+	_controlfp_s(NULL, 0, _MCW_EM); /* enables all fp exceptions */
+	_controlfp_s(NULL, _EM_DENORMAL | _EM_UNDERFLOW | _EM_INEXACT, _MCW_EM); /* hide the ones we don't care about */
+# endif /* _WIN32 && _MSC_VER */
 #endif
 
 	return 0;
@@ -931,7 +934,7 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, "-a", NULL, playback_doc, playback_mode, NULL);
 
 	BLI_argsAdd(ba, 1, "-d", "--debug", debug_doc, debug_mode, ba);
-    BLI_argsAdd(ba, 1, NULL, "--debug-fpe", "\n\tEnable floating point exceptions (currently linux and osx intel only)", set_fpe, NULL);
+    BLI_argsAdd(ba, 1, NULL, "--debug-fpe", "\n\tEnable floating point exceptions", set_fpe, NULL);
 
 	/* second pass: custom window stuff */
 	BLI_argsAdd(ba, 2, "-p", "--window-geometry", "<sx> <sy> <w> <h>\n\tOpen with lower left corner at <sx>, <sy> and width and height as <w>, <h>", prefsize, NULL);

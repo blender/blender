@@ -1162,7 +1162,7 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
 	
 	/* Vector value */
-	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_XYZ);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");

@@ -76,7 +76,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
                 else:
                     layout.prop_object(con, "subtarget", con.target.data, "bones", text="")
 
-                if con.type in ('COPY_LOCATION', 'STRETCH_TO', 'TRACK_TO'):
+                if con.type in ('COPY_LOCATION', 'STRETCH_TO', 'TRACK_TO', 'PIVOT'):
                     row = layout.row()
                     row.label(text="Head/Tail:")
                     row.prop(con, "head_tail", text="")
@@ -730,6 +730,22 @@ class ConstraintButtonsPanel(bpy.types.Panel):
             col.prop(con, "xz_scaling_mode", text="")
         col.prop(con, "use_curve_radius")
 
+    def PIVOT(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
+
+        if con.target:
+            col = layout.column()
+            col.prop(con, "offset", text="Pivot Offset")
+        else:
+            col = layout.column()
+            col.prop(con, "use_relative_position")
+            if con.use_relative_position:  
+                col.prop(con, "offset", text="Relative Pivot Point")
+            else:
+                col.prop(con, "offset", text="Absolute Pivot Point")
+
+        col = layout.column()
+        col.prop(con, "enabled_rotation_range", text="Pivot When")
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
     bl_label = "Object Constraints"

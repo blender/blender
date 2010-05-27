@@ -208,8 +208,10 @@ static void meshdeformModifier_do(
 			cagedm->needsFree= 1;
 	}
 	
-	if(!cagedm)
+	if(!cagedm) {
+		modifier_setError(md, "Can't get mesh from cage object.");
 		return;
+	}
 
 	/* compute matrices to go in and out of cage object space */
 	invert_m4_m4(imat, mmd->object->obmat);
@@ -234,11 +236,21 @@ static void meshdeformModifier_do(
 	totvert= numVerts;
 	totcagevert= cagedm->getNumVerts(cagedm);
 
-	if(mmd->totvert!=totvert || mmd->totcagevert!=totcagevert || !mmd->bindcagecos) {
+	if(mmd->totvert != totvert) {
+		modifier_setError(md, "Verts changed from %d to %d.", mmd->totvert, totvert);
 		cagedm->release(cagedm);
 		return;
 	}
-	
+	else if (mmd->totcagevert != totcagevert) {
+		modifier_setError(md, "Cage verts changed from %d to %d.", mmd->totcagevert, totcagevert);
+		cagedm->release(cagedm);
+		return;
+	} else if (mmd->bindcagecos == NULL) {
+		modifier_setError(md, "Bind data missing.");
+		cagedm->release(cagedm);
+		return;
+	}
+
 	/* setup deformation data */
 	cagemvert= cagedm->getVertArray(cagedm);
 	influences= mmd->bindinfluences;

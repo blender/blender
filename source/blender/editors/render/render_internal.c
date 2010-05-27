@@ -441,6 +441,7 @@ typedef struct RenderJob {
 	ImageUser iuser;
 	short *stop;
 	short *do_update;
+	float *progress;
 	ReportList *reports;
 } RenderJob;
 
@@ -519,6 +520,14 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 
 }
 
+static void render_progress_update(void *rjv, float progress)
+{
+	RenderJob *rj= rjv;
+	
+	if (rj->progress)
+		*rj->progress = progress;
+}
+
 static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrect)
 {
 	RenderJob *rj= rjv;
@@ -540,13 +549,14 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 	BKE_image_release_ibuf(ima, lock);
 }
 
-static void render_startjob(void *rjv, short *stop, short *do_update)
+static void render_startjob(void *rjv, short *stop, short *do_update, float *progress)
 {
 	RenderJob *rj= rjv;
 //	Main *mainp= BKE_undo_get_main(&rj->scene);
 
 	rj->stop= stop;
 	rj->do_update= do_update;
+	rj->progress= progress;
 
 	if(rj->anim)
 		RE_BlenderAnim(rj->re, rj->scene, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
@@ -663,7 +673,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->reports= op->reports;
 
 	/* setup job */
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Render", WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS);
 	WM_jobs_customdata(steve, rj, render_freejob);
 	WM_jobs_timer(steve, 0.2, NC_SCENE|ND_RENDER_RESULT, 0);
 	WM_jobs_callbacks(steve, render_startjob, NULL, NULL, render_endjob);
@@ -679,6 +689,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RE_test_break_cb(re, rj, render_breakjob);
 	RE_display_draw_cb(re, rj, image_rect_update);
 	RE_stats_draw_cb(re, rj, image_renderinfo_cb);
+	RE_progress_cb(re, rj, render_progress_update);
 
 	rj->re= re;
 	G.afbreek= 0;
