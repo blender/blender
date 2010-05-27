@@ -3831,6 +3831,118 @@ static bConstraintTypeInfo CTI_SPLINEIK = {
 	NULL /* evaluate - solved as separate loop */
 };
 
+/* ----------- Pivot ------------- */
+
+static void pivotcon_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bPivotConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
+}
+
+static int pivotcon_get_tars (bConstraint *con, ListBase *list)
+{
+	if (con && list) {
+		bPivotConstraint *data= con->data;
+		bConstraintTarget *ct;
+		
+		/* standard target-getting macro for single-target constraints */
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+static void pivotcon_flush_tars (bConstraint *con, ListBase *list, short nocopy)
+{
+	if (con && list) {
+		bPivotConstraint *data= con->data;
+		bConstraintTarget *ct= list->first;
+		
+		/* the following macro is used for all standard single-target constraints */
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+	}
+}
+
+static void pivotcon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+	bPivotConstraint *data= con->data;
+	bConstraintTarget *ct= targets->first;
+	
+	float pivot[3], vec[3];
+	float rotMat[3][3];
+	
+	/* firstly, check if pivoting should take place based on the current rotation */
+	if (data->rotAxis != PIVOTCON_AXIS_NONE) {
+		float rot[3];
+		
+		/* extract euler-rotation of target */
+		mat4_to_eulO(rot, cob->rotOrder, cob->matrix);
+		
+		/* check which range might be violated */
+		if (data->rotAxis < PIVOTCON_AXIS_X) {
+			/* negative rotations (data->rotAxis = 0 -> 2) */
+			if (rot[data->rotAxis] > 0.0f)
+				return;
+		}
+		else {
+			/* positive rotations (data->rotAxis = 3 -> 5 */
+			if (rot[data->rotAxis - PIVOTCON_AXIS_X] < 0.0f)
+				return;
+		}
+	}
+	
+	/* find the pivot-point to use  */
+	if (VALID_CONS_TARGET(ct)) {
+		/* apply offset to target location */
+		add_v3_v3v3(pivot, ct->matrix[3], data->offset);
+	}
+	else {
+		/* no targets to worry about... */
+		if ((data->flag & PIVOTCON_FLAG_OFFSET_ABS) == 0) {
+			/* offset is relative to owner */
+			add_v3_v3v3(pivot, cob->matrix[3], data->offset);
+		}
+		else {
+			/* directly use the 'offset' specified as an absolute position instead */
+			VECCOPY(pivot, data->offset);
+		}
+	}
+	
+	/* get rotation matrix representing the rotation of the owner */
+	// TODO: perhaps we might want to include scaling based on the pivot too?
+	copy_m3_m4(rotMat, cob->matrix);
+	normalize_m3(rotMat);
+	
+	/* perform the pivoting... */
+		/* 1. take the vector from owner to the pivot */
+	sub_v3_v3v3(vec, pivot, cob->matrix[3]);
+		/* 2. rotate this vector by the rotation of the object... */
+	mul_m3_v3(rotMat, vec);
+		/* 3. make the rotation in terms of the pivot now */
+	add_v3_v3v3(cob->matrix[3], pivot, vec);
+}
+
+
+static bConstraintTypeInfo CTI_PIVOT = {
+	CONSTRAINT_TYPE_PIVOT, /* type */
+	sizeof(bPivotConstraint), /* size */
+	"Pivot", /* name */
+	"bPivotConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	pivotcon_id_looper, /* id looper */
+	NULL, /* copy data */
+	NULL, /* new data */ // XXX: might be needed to get 'normal' pivot behaviour...
+	pivotcon_get_tars, /* get constraint targets */
+	pivotcon_flush_tars, /* flush constraint targets */
+	default_get_tarmat, /* get target matrix */
+	pivotcon_evaluate /* evaluate */
+};
+
 /* ************************* Constraints Type-Info *************************** */
 /* All of the constraints api functions use bConstraintTypeInfo structs to carry out
  * and operations that involve constraint specific code.
@@ -3867,6 +3979,7 @@ static void constraints_init_typeinfo () {
 	constraintsTypeInfo[22]= &CTI_SPLINEIK;			/* Spline IK Constraint */
 	constraintsTypeInfo[23]= &CTI_TRANSLIKE;		/* Copy Transforms Constraint */
 	constraintsTypeInfo[24]= &CTI_SAMEVOL;			/* Maintain Volume Constraint */
+	constraintsTypeInfo[25]= &CTI_PIVOT;			/* Pivot Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only

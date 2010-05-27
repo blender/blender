@@ -174,6 +174,7 @@ typedef struct bSplineIKConstraint {
 
 
 /* Single-target subobject constraints ---------------------  */
+
 /* Track To Constraint */
 typedef struct bTrackToConstraint {
 	Object		*tar;
@@ -336,6 +337,24 @@ typedef struct bTransformConstraint {
 	float		to_max[3];	
 } bTransformConstraint;
 
+/* Pivot Constraint */
+typedef struct bPivotConstraint {
+	/* Pivot Point:
+	 *	Either target object + offset, or just offset is used
+	 */
+	Object 		*tar;			/* target object (optional) */
+	char	 	subtarget[32];		/* subtarget name (optional) */
+	float 		offset[3];		/* offset from the target to use, regardless of whether it exists */
+	
+	/* Rotation-driven activation:
+	 *	This option provides easier one-stop setups for footrolls
+	 */
+	short 		rotAxis;		/* rotation axes to consider for this (ePivotConstraint_Axis) */
+	
+	/* General flags */
+	short 		flag;			/* ePivotConstraint_Flag */
+} bPivotConstraint;
+
 /* transform limiting constraints - zero target ----------------------------  */
 /* Limit Location Constraint */
 typedef struct bLocLimitConstraint {
@@ -419,6 +438,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_SPLINEIK,			/* Spline-IK - Align 'n' bones to a curve */
 	CONSTRAINT_TYPE_TRANSLIKE,			/* Copy transform matrix */
 	CONSTRAINT_TYPE_SAMEVOL,			/* Maintain volume during scaling */
+	CONSTRAINT_TYPE_PIVOT,				/* Pivot Constraint */
 	
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES
@@ -468,11 +488,6 @@ typedef enum eConstraintChannel_Flags {
 } eConstraintChannel_Flags;
 
 /* -------------------------------------- */
-
-/**
- * The flags for ROTLIKE, LOCLIKE and SIZELIKE should be kept identical
- * (that is, same effect, different name). It simplifies the Python API access a lot.
- */
 
 /* bRotateLikeConstraint.flag */
 typedef enum eCopyRotation_Flags {
@@ -687,6 +702,35 @@ typedef enum eChildOf_Flags {
 	CHILDOF_SIZEY	= (1<<7),
 	CHILDOF_SIZEZ	= (1<<8),
 } eChildOf_Flags;
+
+/* Pivot Constraint */
+	/* Restrictions for Pivot Constraint axis to consider for enabling constraint */
+typedef enum ePivotConstraint_Axis {
+	/* do not consider this activity-clamping */
+	PIVOTCON_AXIS_NONE = -1,	
+	
+	/* consider -ve x-axis rotations */
+	PIVOTCON_AXIS_X_NEG,
+	/* consider -ve y-axis rotations */
+	PIVOTCON_AXIS_Y_NEG,
+	/* consider -ve z-axis rotations */
+	PIVOTCON_AXIS_Z_NEG,
+	
+	/* consider +ve x-axis rotations */
+	PIVOTCON_AXIS_X,
+	/* consider +ve y-axis rotations */
+	PIVOTCON_AXIS_Y,
+	/* consider +ve z-axis rotations */
+	PIVOTCON_AXIS_Z,
+} ePivotConstraint_Axis;
+
+	/* settings for Pivot Constraint in general */
+typedef enum ePivotConstraint_Flag {
+	/* offset is to be interpreted as being a fixed-point in space */
+	PIVOTCON_FLAG_OFFSET_ABS	= (1<<0),
+	/* rotation-based activation uses negative rotation to drive result */
+	PIVOTCON_FLAG_ROTACT_NEG	= (1<<1),
+} ePivotConstraint_Flag;
 
 /* Rigid-Body Constraint */
 #define CONSTRAINT_DRAW_PIVOT 0x40

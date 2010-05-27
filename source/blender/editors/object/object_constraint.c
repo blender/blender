@@ -322,6 +322,23 @@ static void test_constraints (Object *owner, bPoseChannel *pchan)
 				/* targets have already been checked for this */
 				continue;
 			}
+			else if (curcon->type == CONSTRAINT_TYPE_PIVOT) {
+				bPivotConstraint *data = curcon->data;
+				
+				/* target doesn't have to exist, but if it is non-null, it must exist! */
+				if (data->tar && exist_object(data->tar)==0) {
+					data->tar = NULL;
+					curcon->flag |= CONSTRAINT_DISABLE;
+				}
+				else if (data->tar == owner) {
+					if (!get_named_bone(get_armature(owner), data->subtarget)) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+					}
+				}
+				
+				/* targets have already been checked for this */
+				continue;
+			}
 			else if (curcon->type == CONSTRAINT_TYPE_ACTION) {
 				bActionConstraint *data = curcon->data;
 				
