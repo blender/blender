@@ -4213,8 +4213,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
 			}
 			/*Game Settings: Dome Warp Text*/
-//			sce->r.dometext= newlibadr_us(fd, sce->id.lib, sce->r.dometext); // XXX deprecated since 2.5
-			sce->gm.dome.warptext= newlibadr_us(fd, sce->id.lib, sce->gm.dome.warptext);
+			sce->gm.dome.warptext= newlibadr(fd, sce->id.lib, sce->gm.dome.warptext);
 
 			sce->id.flag -= LIB_NEEDLINK;
 		}
