@@ -92,7 +92,7 @@ IF(UNIX AND NOT APPLE)
 	OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
 ELSE()
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
-	OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	ON)
+	OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
 ENDIF()
 
 IF (APPLE)
@@ -416,7 +416,7 @@ IF(WIN32)
 
 	SET(TIFF ${LIBDIR}/tiff)
 	SET(TIFF_INCLUDE_DIR ${TIFF}/include)
-	SET(TIFF_LIBRARY tiff)
+	SET(TIFF_LIBRARY libtiff)
 	SET(TIFF_LIBPATH ${TIFF}/lib)
   
 	SET(WINTAB_INC ${LIBDIR}/wintab/include) 
