@@ -436,7 +436,7 @@ static void rna_Actuator_action_action_set(PointerRNA *ptr, PointerRNA value)
         bActuator *act = (bActuator *)ptr->data;
         bActionActuator *aa = (bActionActuator *) act->data;
 
-        aa->me = value.data;
+        aa->act = value.data;
 }
 
 #else
