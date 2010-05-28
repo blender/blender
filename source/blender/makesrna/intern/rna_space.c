@@ -526,6 +526,11 @@ static void rna_SpaceProperties_pin_id_update(Main *bmain, Scene *scene, Pointer
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
 	ID *id = sbuts->pinid;
 	
+	if (id == NULL) {
+		sbuts->flag &= ~SB_PIN_CONTEXT;
+		return;
+	}
+	
 	switch (GS(id->name)) {
 		case ID_MA:
 			WM_main_add_notifier(NC_MATERIAL|ND_SHADING, NULL);
