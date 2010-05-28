@@ -106,7 +106,7 @@ static char BinaryPredicate1D_getName___doc__[] =
 "   Returns the name of the binary 1D predicate.\n"
 "\n"
 "   :return: The name of the binary 1D predicate.\n"
-"   :rtype: string\n";
+"   :rtype: str\n";
 
 static PyObject *BinaryPredicate1D_getName( BPy_BinaryPredicate1D *self, PyObject *args)
 {

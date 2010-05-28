@@ -68,7 +68,7 @@ static char UnaryFunction0DEdgeNature_getName___doc__[] =
 "   Returns the name of the unary 0D predicate.\n"
 "\n"
 "   :return: The name of the unary 0D predicate.\n"
-"   :rtype: string\n";
+"   :rtype: str\n";
 
 static PyObject * UnaryFunction0DEdgeNature_getName( BPy_UnaryFunction0DEdgeNature *self )
 {

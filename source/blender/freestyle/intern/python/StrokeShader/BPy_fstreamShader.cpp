@@ -18,7 +18,7 @@ static char fstreamShader___doc__[] =
 "   Builds a fstreamShader object.\n"
 "\n"
 "   :arg iFileName: The output file name.\n"
-"   :type iFileName: string\n"
+"   :type iFileName: str\n"
 "\n"
 ".. method:: shade(s)\n"
 "\n"

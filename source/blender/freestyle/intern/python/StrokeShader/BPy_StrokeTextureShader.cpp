@@ -20,7 +20,7 @@ static char StrokeTextureShader___doc__[] =
 "   Builds a StrokeTextureShader object.\n"
 "\n"
 "   :arg textureFile: \n"
-"   :type textureFile: string\n"
+"   :type textureFile: str\n"
 "   :arg mediumType: The medium type and therefore, the blending mode\n"
 "      that must be used for the rendering of this stroke.\n"
 "   :type mediumType: :class:`MediumType`\n"

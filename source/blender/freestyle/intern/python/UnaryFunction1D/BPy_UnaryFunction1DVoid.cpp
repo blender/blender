@@ -99,7 +99,7 @@ static char UnaryFunction1DVoid_getName___doc__[] =
 "   Returns the name of the unary 1D function.\n"
 "\n"
 "   :return: The name of the unary 1D function.\n"
-"   :rtype: string\n";
+"   :rtype: str\n";
 
 static PyObject * UnaryFunction1DVoid_getName( BPy_UnaryFunction1DVoid *self )
 {

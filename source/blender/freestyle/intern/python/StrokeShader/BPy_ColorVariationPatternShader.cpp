@@ -20,7 +20,7 @@ static char ColorVariationPatternShader___doc__[] =
 "\n"
 "   :arg pattern_name: The file name of the texture file to use as\n"
 "      pattern.\n"
-"   :type pattern_name: string\n"
+"   :type pattern_name: str\n"
 "   :arg stretch: Tells whether the texture must be strecthed or\n"
 "      repeted to fit the stroke.\n"
 "   :type stretch: bool\n"

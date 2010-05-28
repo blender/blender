@@ -96,7 +96,7 @@ static char Interface0D_getExactTypeName___doc__[] =
 "   Returns the name of the 0D element.\n"
 "\n"
 "   :return: Name of the interface.\n"
-"   :rtype: string\n";
+"   :rtype: str\n";
 
 static PyObject *Interface0D_getExactTypeName( BPy_Interface0D *self ) {
 	return PyUnicode_FromString( self->if0D->getExactTypeName().c_str() );	

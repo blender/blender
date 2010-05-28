@@ -86,7 +86,7 @@ static char UnaryFunction1DVec3f_getName___doc__[] =
 "   Returns the name of the unary 1D function.\n"
 "\n"
 "   :return: The name of the unary 1D function.\n"
-"   :rtype: string\n";
+"   :rtype: str\n";
 
 PyObject * UnaryFunction1DVec3f_getName( BPy_UnaryFunction1DVec3f *self )
 {

@@ -107,7 +107,7 @@ static char Iterator_getExactTypeName___doc__[] =
 "   Returns the name of the iterator.\n"
 "\n"
 "   :return: The name of the iterator.\n"
-"   :rtype: string\n";
+"   :rtype: str\n";
 
 static PyObject * Iterator_getExactTypeName(BPy_Iterator* self) {
 	return PyUnicode_FromString( self->it->getExactTypeName().c_str() );	

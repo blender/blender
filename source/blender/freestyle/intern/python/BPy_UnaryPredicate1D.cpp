@@ -132,7 +132,7 @@ static char UnaryPredicate1D_getName___doc__[] =
 "   EqualToChainingTimeStampUP1D, ShapeUP1D, and DensityLowerThanUP1D.\n"
 "\n"
 "   :return: \n"
-"   :rtype: string\n";
+"   :rtype: str\n";
 
 static PyObject * UnaryPredicate1D_getName( BPy_UnaryPredicate1D *self, PyObject *args)
 {

@@ -205,7 +205,7 @@ static char StrokeShader_getName___doc__[] =
 "   Returns the name of this stroke shader.\n"
 "\n"
 "   :return: The name of this stroke shader.\n"
-"   :rtype: string\n";
+"   :rtype: str\n";
 
 static PyObject * StrokeShader_getName( BPy_StrokeShader *self, PyObject *args)
 {

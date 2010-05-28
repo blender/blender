@@ -19,7 +19,7 @@ static char ThicknessVariationPatternShader___doc__[] =
 "   Builds a ThicknessVariationPatternShader object.\n"
 "\n"
 "   :arg pattern_name: The texture file name.\n"
-"   :type pattern_name: string\n"
+"   :type pattern_name: str\n"
 "   :arg iMinThickness: The minimum thickness we don't want to exceed.\n"
 "   :type iMinThickness: float\n"
 "   :arg iMaxThickness: The maximum thickness we don't want to exceed.\n"

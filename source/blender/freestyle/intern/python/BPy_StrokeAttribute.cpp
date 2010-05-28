@@ -250,7 +250,7 @@ static char StrokeAttribute_getAttributeReal___doc__[] =
 "   Returns an attribute of float type.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
-"   :type iName: string\n"
+"   :type iName: str\n"
 "   :return: The attribute value.\n"
 "   :rtype: float\n";
 
@@ -270,7 +270,7 @@ static char StrokeAttribute_getAttributeVec2f___doc__[] =
 "   Returns an attribute of two-dimensional vector type.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
-"   :type iName: string\n"
+"   :type iName: str\n"
 "   :return: The attribute value.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
@@ -290,7 +290,7 @@ static char StrokeAttribute_getAttributeVec3f___doc__[] =
 "   Returns an attribute of three-dimensional vector type.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
-"   :type iName: string\n"
+"   :type iName: str\n"
 "   :return: The attribute value.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
@@ -310,7 +310,7 @@ static char StrokeAttribute_isAttributeAvailableReal___doc__[] =
 "   Checks whether the attribute iName of float type is available.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
-"   :type iName: string\n"
+"   :type iName: str\n"
 "   :return: True if the attribute is availbale.\n"
 "   :rtype: bool\n";
 
@@ -330,7 +330,7 @@ static char StrokeAttribute_isAttributeAvailableVec2f___doc__[] =
 "   is available.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
-"   :type iName: string\n"
+"   :type iName: str\n"
 "   :return: True if the attribute is availbale.\n"
 "   :rtype: bool\n";
 
@@ -350,7 +350,7 @@ static char StrokeAttribute_isAttributeAvailableVec3f___doc__[] =
 "   type is available.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
-"   :type iName: string\n"
+"   :type iName: str\n"
 "   :return: True if the attribute is availbale.\n"
 "   :rtype: bool\n";
 
@@ -507,7 +507,7 @@ static char StrokeAttribute_setAttributeReal___doc__[] =
 "   replaces the old one.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
-"   :type iName: string\n"
+"   :type iName: str\n"
 "   :arg att: The attribute value.\n"
 "   :type att: float\n";
 
@@ -530,7 +530,7 @@ static char StrokeAttribute_setAttributeVec2f___doc__[] =
 "   the new value replaces the old one.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
-"   :type iName: string\n"
+"   :type iName: str\n"
 "   :arg att: The attribute value.\n"
 "   :type att: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n";
 
@@ -559,7 +559,7 @@ static char StrokeAttribute_setAttributeVec3f___doc__[] =
 "   Otherwise, the new value replaces the old one.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
-"   :type iName: string\n"
+"   :type iName: str\n"
 "   :arg att: The attribute value.\n"
 "   :type att: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
 

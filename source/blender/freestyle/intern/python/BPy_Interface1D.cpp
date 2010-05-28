@@ -106,7 +106,7 @@ static char Interface1D_getExactTypeName___doc__[] =
 "   Returns the string of the name of the 1D element.\n"
 "\n"
 "   :return: The name of the 1D element.\n"
-"   :rtype: string\n";
+"   :rtype: str\n";
 
 static PyObject *Interface1D_getExactTypeName( BPy_Interface1D *self ) {
 	return PyUnicode_FromString( self->if1D->getExactTypeName().c_str() );	

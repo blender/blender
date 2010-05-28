@@ -86,7 +86,7 @@ static char UnaryPredicate0D_getName___doc__[] =
 "   Returns the name of the UnaryPredicate0D.\n"
 "\n"
 "   :return: The name of the UnaryPredicate0D.\n"
-"   :rtype: string\n";
+"   :rtype: str\n";
 
 static PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self )
 {

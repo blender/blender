@@ -16,7 +16,7 @@ static char ReadMapPixelF0D___doc__[] =
 "   Builds a ReadMapPixelF0D object.\n"
 "\n"
 "   :arg iMapName: The name of the map to be read.\n"
-"   :type iMapName: string\n"
+"   :type iMapName: str\n"
 "   :arg level: The level of the pyramid from which the pixel must be\n"
 "      read.\n"
 "   :type level: int\n"
