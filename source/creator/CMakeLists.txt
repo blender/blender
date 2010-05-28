@@ -254,8 +254,6 @@ IF(WITH_INSTALL)
 	ENDIF(APPLE)
 
 	IF(WIN32)
-		FILE(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR} WIN_SOURCE_DIR)
-    
 		ADD_CUSTOM_COMMAND(TARGET blender
 			POST_BUILD
 			MAIN_DEPENDENCY blender
@@ -263,38 +261,36 @@ IF(WITH_INSTALL)
 			COMMAND if not exist \"${TARGETDIR}\\.blender\\locale\" mkdir \"${TARGETDIR}\\.blender\\locale\"
 			COMMAND if not exist \"${TARGETDIR}\\.blender\\scripts\" mkdir \"${TARGETDIR}\\.blender\\scripts\"
 			COMMAND if not exist \"${TARGETDIR}\\plugins\" mkdir \"${TARGETDIR}\\plugins\"
-			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\.blender\\\" 
-			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\.blender\\\"
-			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\.blender\\locale\"
-			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
-			COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
-			COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
+			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\.blender\\\" 
+			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\.blender\\\"
+			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\.blender\\locale\"
+			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
+			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
+			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
 			# TODO, copy python bundle
-			# COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python31.zip\" \"${TARGETDIR}\\\"
+			# COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\windows\\extra\\python31.zip\" \"${TARGETDIR}\\\"
 		)
-    
-		FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)
     
 		ADD_CUSTOM_COMMAND(TARGET blender
 			POST_BUILD
 			MAIN_DEPENDENCY blender
-			COMMAND copy /Y \"${WIN_LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${WIN_LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\python31_d.zip\"
-			COMMAND copy /Y \"${WIN_LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${WIN_LIBDIR}\\png\\lib\\libpng.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${WIN_LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${WIN_LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python31_d.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${WIN_LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${WIN_LIBDIR}\\samplerate\\lib\\libsamplerate-0.dll\" \"${TARGETDIR}\\\"
+			COMMAND copy /Y \"${LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\\"
+			COMMAND copy /Y \"${LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\python31_d.zip\"
+			COMMAND copy /Y \"${LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"${TARGETDIR}\\\"
+			COMMAND copy /Y \"${LIBDIR}\\png\\lib\\libpng.dll\" \"${TARGETDIR}\\\"
+			COMMAND copy /Y \"${LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
+			COMMAND copy /Y \"${LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
+			COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
+			COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31_d.dll\" \"${TARGETDIR}\\\"
+			COMMAND copy /Y \"${LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
+			# COMMAND copy /Y \"${LIBDIR}\\samplerate\\lib\\libsamplerate-0.dll\" \"${TARGETDIR}\\\"
 		)
 
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(TARGET blender
 				POST_BUILD
 				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${WIN_LIBDIR}\\iconv\\lib\\iconv.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\iconv\\lib\\iconv.dll\" \"${TARGETDIR}\\\"
 			)
 		ENDIF(WITH_INTERNATIONAL)
 
@@ -302,16 +298,16 @@ IF(WITH_INSTALL)
 			ADD_CUSTOM_COMMAND(TARGET blender
 				POST_BUILD
 				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avcodec-52.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avformat-52.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avdevice-52.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avutil-50.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaac-0.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaad-2.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libmp3lame-0.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libx264-67.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\swscale-0.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\xvidcore.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\avcodec-52.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\avformat-52.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\avdevice-52.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\avutil-50.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\libfaac-0.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\libfaad-2.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\libmp3lame-0.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\libx264-67.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\swscale-0.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\ffmpeg\\lib\\xvidcore.dll\" \"${TARGETDIR}\\\"
 			)
 		ENDIF(WITH_FFMPEG)
 
@@ -319,7 +315,7 @@ IF(WITH_INSTALL)
 			ADD_CUSTOM_COMMAND(TARGET blender
 				POST_BUILD
 				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${WIN_LIBDIR}\\sndfile\\lib\\libsndfile-1.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\sndfile\\lib\\libsndfile-1.dll\" \"${TARGETDIR}\\\"
 			)
 		ENDIF(WITH_SNDFILE)
 
@@ -327,7 +323,7 @@ IF(WITH_INSTALL)
 			ADD_CUSTOM_COMMAND(TARGET blender
 				POST_BUILD
 				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${WIN_LIBDIR}\\jack\\lib\\libjack.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\jack\\lib\\libjack.dll\" \"${TARGETDIR}\\\"
 			)
 		ENDIF(WITH_JACK)
 
@@ -335,8 +331,8 @@ IF(WITH_INSTALL)
 			ADD_CUSTOM_COMMAND(TARGET blender
 				POST_BUILD
 				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${WIN_LIBDIR}\\openal\\lib\\OpenAL32.dll\" \"${TARGETDIR}\\\"
-				COMMAND copy /Y \"${WIN_LIBDIR}\\openal\\lib\\wrap_oal.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\openal\\lib\\OpenAL32.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\openal\\lib\\wrap_oal.dll\" \"${TARGETDIR}\\\"
 
 			)
 		ENDIF(WITH_OPENAL)
