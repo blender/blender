@@ -545,7 +545,7 @@ IF(WIN32)
 		IF(WITH_OPENEXR)
 			SET(OPENEXR ${LIBDIR}/gcc/openexr)
 			SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
-			SET(OPENEXR_LIB Half IlmImf Iex)
+			SET(OPENEXR_LIB Half IlmImf Iex IlmThread)
 			SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		ENDIF(WITH_OPENEXR)
 
