@@ -59,12 +59,12 @@ public:
 
 			bool SetGameEngineData(struct Main* maggie, struct Scene* scene, int argc, char** argv);
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
-			const bool stereoVisual, const int stereoMode, const GHOST_TUns16 numOfAASamples = 0);
-			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
-			bool startEmbeddedWindow(STR_String& title, const GHOST_TEmbedderWindowID parent_window, const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
+			const bool stereoVisual, const int stereoMode);
+			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
+			bool startEmbeddedWindow(STR_String& title, const GHOST_TEmbedderWindowID parent_window, const bool stereoVisual, const int stereoMode);
 #ifdef WIN32
-			bool startScreenSaverFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
-			bool startScreenSaverPreview(HWND parentWindow,	const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
+			bool startScreenSaverFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
+			bool startScreenSaverPreview(HWND parentWindow,	const bool stereoVisual, const int stereoMode);
 #endif
 
 	virtual	bool processEvent(GHOST_IEvent* event);

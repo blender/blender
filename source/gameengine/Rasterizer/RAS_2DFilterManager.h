@@ -45,7 +45,7 @@ private:
 	void			EndShaderProgram();
 	void			PrintShaderErrors(unsigned int shader, const char *task, const char *code);
 
-	void SetupTextures(bool depth, bool luminance, bool qrender, bool qdepth);
+	void SetupTextures(bool depth, bool luminance);
 	void FreeTextures();
 
 	void UpdateOffsetMatrix(RAS_ICanvas* canvas);
@@ -54,15 +54,13 @@ private:
 	float			canvascoord[4];
 	float			textureoffsets[18];
 	float			view[4];
-	/* texname[0] contains render to texture, texname[1] contains depth texture,  texname[2] contains luminance texture
-	 * texname[3] contains quartered render to texture, texname[4] contains quartered depth texture*/
-	unsigned int	texname[5]; 
+	/* texname[0] contains render to texture, texname[1] contains depth texture,  texname[2] contains luminance texture*/
+	unsigned int	texname[3]; 
 	int				texturewidth;
 	int				textureheight;
 	int				canvaswidth;
 	int				canvasheight;
 	int				numberoffilters;
-	unsigned int	fbo;
 	/* bit 0: enable/disable depth texture
 	 * bit 1: enable/disable luminance texture*/
 	short			texflag[MAX_RENDER_PASS];

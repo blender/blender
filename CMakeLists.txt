@@ -162,19 +162,23 @@ IF(UNIX AND NOT APPLE)
 	FIND_PACKAGE(Freetype)
 	# UNSET(FREETYPE_INCLUDE_DIRS CACHE) # cant use
 
-	# No way to set py31. remove for now.
-	# FIND_PACKAGE(PythonLibs)
-	SET(PYTHON /usr)
-	SET(PYTHON_VERSION 3.1)
-	SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
-	# SET(PYTHON_BINARY python) # not used yet
-	SET(PYTHON_LIB python${PYTHON_VERSION} CACHE STRING "")
-	SET(PYTHON_LIBPATH ${PYTHON}/lib CACHE STRING "")
-  
-	# FIND_PACKAGE(PythonInterp) # not used yet
-	# SET(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
-  
-	SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
+
+	IF(WITH_PYTHON)
+		# No way to set py31. remove for now.
+		# FIND_PACKAGE(PythonLibs)
+		SET(PYTHON /usr)
+		SET(PYTHON_VERSION 3.1)
+		SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
+		# SET(PYTHON_BINARY python) # not used yet
+		SET(PYTHON_LIB python${PYTHON_VERSION} CACHE STRING "")
+		SET(PYTHON_LIBPATH ${PYTHON}/lib CACHE STRING "")
+	
+		# FIND_PACKAGE(PythonInterp) # not used yet
+		# SET(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
+
+		SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
+	ENDIF(WITH_PYTHON)
+
 
 	IF(WITH_SDL)
 		FIND_PACKAGE(SDL)
@@ -184,23 +188,27 @@ IF(UNIX AND NOT APPLE)
 		ENDIF(NOT SDL_FOUND)
 	ENDIF(WITH_SDL)
 
-	SET(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
-	FIND_PATH(OPENEXR_INC
-		ImfXdr.h
-		PATHS
-		${OPENEXR}/include/OpenEXR
-		/usr/local/include/OpenEXR
-		/sw/include/OpenEXR
-		/opt/local/include/OpenEXR
-		/opt/csw/include/OpenEXR
-		/opt/include/OpenEXR
-	)
-	SET(OPENEXR_LIB Half IlmImf Iex Imath)
+	IF(WITH_OPENEXR)
+		SET(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
+		FIND_PATH(OPENEXR_INC
+			ImfXdr.h
+			PATHS
+			${OPENEXR}/include/OpenEXR
+			/usr/local/include/OpenEXR
+			/sw/include/OpenEXR
+			/opt/local/include/OpenEXR
+			/opt/csw/include/OpenEXR
+			/opt/include/OpenEXR
+		)
+		SET(OPENEXR_LIB Half IlmImf Iex Imath)
+	ENDIF(WITH_OPENEXR)
 
-	SET(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
-	SET(FFMPEG_INC ${FFMPEG}/include)
-	SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
-	SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
+	IF(WITH_FFMPEG)
+		SET(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
+		SET(FFMPEG_INC ${FFMPEG}/include)
+		SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
+		SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
+	ENDIF(WITH_FFMPEG)
   
 	IF(WITH_FFTW3)
 		SET(FFTW3 /usr)
@@ -247,6 +255,10 @@ IF(UNIX AND NOT APPLE)
 	IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		# BSD's dont use libdl.so
 		SET(LLIBS "${LLIBS} -ldl")
+
+		# binreloc is linux only
+		SET(BINRELOC ${CMAKE_SOURCE_DIR}/extern/binreloc)
+		SET(BINRELOC_INC ${BINRELOC}/include)
 	ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 	IF(WITH_OPENMP)
@@ -267,6 +279,7 @@ IF(UNIX AND NOT APPLE)
 	INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR} ${PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} )
 ENDIF(UNIX AND NOT APPLE)
 
+
 IF(WIN32)
 
 	# this file is included anyway when building under Windows with cl.exe
@@ -279,13 +292,37 @@ IF(WIN32)
 		message("64 bit compiler detected.")
 		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
 	ENDIF(CMAKE_CL_64)
+	
+	ADD_DEFINITIONS(-DWIN32)
 
-	SET(PYTHON ${LIBDIR}/python)
-	SET(PYTHON_VERSION 3.1)
-	SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
-	# SET(PYTHON_BINARY python) # not used yet
-	SET(PYTHON_LIB python31)
-	SET(PYTHON_LIBPATH ${PYTHON}/lib)
+	SET(ICONV ${LIBDIR}/iconv)
+	SET(ICONV_INC ${ICONV}/include)
+	SET(ICONV_LIB iconv)
+	SET(ICONV_LIBPATH ${ICONV}/lib)
+
+	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
+	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
+	SET(LIBSAMPLERATE_LIB libsamplerate)
+	SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
+
+	SET(PNG "${LIBDIR}/png")
+	SET(PNG_INC "${PNG}/include")
+	SET(PNG_LIBPATH ${PNG}/lib)
+
+	SET(JPEG "${LIBDIR}/jpeg")
+	SET(JPEG_INC "${JPEG}/include")
+	SET(JPEG_LIBPATH ${JPEG}/lib)
+
+	SET(WINTAB_INC ${LIBDIR}/wintab/include) 
+
+	IF(WITH_PYTHON)
+		SET(PYTHON ${LIBDIR}/python)
+		SET(PYTHON_VERSION 3.1)
+		SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+		# SET(PYTHON_BINARY python) # not used yet
+		SET(PYTHON_LIB python31)
+		SET(PYTHON_LIBPATH ${PYTHON}/lib)
+	ENDIF(WITH_PYTHON)
 
 	IF(WITH_OPENAL)
 		SET(OPENAL ${LIBDIR}/openal)
@@ -300,36 +337,20 @@ IF(WIN32)
 		SET(SNDFILE_LIB libsndfile-1)
 		SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
 	ENDIF(WITH_SNDFILE)
-  
-	SET(ICONV ${LIBDIR}/iconv)
-	SET(ICONV_INC ${ICONV}/include)
-	SET(ICONV_LIB iconv)
-	SET(ICONV_LIBPATH ${ICONV}/lib)
 
-	SET(QUICKTIME ${LIBDIR}/QTDevWin)
-	SET(QUICKTIME_INC ${QUICKTIME}/CIncludes)
-	SET(QUICKTIME_LIB qtmlClient)
-	SET(QUICKTIME_LIBPATH ${QUICKTIME}/Libraries)
+	IF(WITH_SDL)
+		SET(SDL ${LIBDIR}/sdl)
+		SET(SDL_INCLUDE_DIR ${SDL}/include)
+		SET(SDL_LIBRARY SDL)
+		SET(SDL_LIBPATH ${SDL}/lib)
+	ENDIF(WITH_SDL)
 
-	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
-	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
-	SET(LIBSAMPLERATE_LIB libsamplerate)
-	SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
-
-	SET(SDL ${LIBDIR}/sdl)
-	SET(SDL_INCLUDE_DIR ${SDL}/include)
-	SET(SDL_LIBRARY SDL)
-	SET(SDL_LIBPATH ${SDL}/lib)
-
-	SET(PNG "${LIBDIR}/png")
-	SET(PNG_INC "${PNG}/include")
-	SET(PNG_LIBPATH ${PNG}/lib)
-
-	SET(JPEG "${LIBDIR}/jpeg")
-	SET(JPEG_INC "${JPEG}/include")
-	SET(JPEG_LIBPATH ${JPEG}/lib)
-
-	SET(WINTAB_INC ${LIBDIR}/wintab/include) 
+	IF(WITH_QUICKTIME)
+		SET(QUICKTIME ${LIBDIR}/QTDevWin)
+		SET(QUICKTIME_INC ${QUICKTIME}/CIncludes)
+		SET(QUICKTIME_LIB qtmlClient)
+		SET(QUICKTIME_LIBPATH ${QUICKTIME}/Libraries)
+	ENDIF(WITH_QUICKTIME)
 
 	IF(MSVC)
 		IF(CMAKE_CL_64)
@@ -349,8 +370,6 @@ IF(WIN32)
 		SET(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
 		SET(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
 		SET(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
-
-		ADD_DEFINITIONS(-DWIN32)
 		
 		IF(WITH_OPENMP)
 			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /openmp ")
@@ -457,19 +476,19 @@ IF(WIN32)
 	ELSE(MSVC) # MINGW
 		SET(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
 
-		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing -mwindows" CACHE STRING "Mingw C++ flags " FORCE)
-		SET(CMAKE_C_FLAGS                  "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C flags " FORCE)
+		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing -mwindows" CACHE STRING "Mingw C++ flags ")
+		SET(CMAKE_C_FLAGS                  "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C flags ")
 
-		SET(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g" CACHE STRING "Mingw debug C++ flags " FORCE)
-		SET(CMAKE_CXX_FLAGS_RELEASE        "   -O2" CACHE STRING "Mingw release C++ flags " FORCE)
-		SET(CMAKE_CXX_FLAGS_MINSIZEREL     "   -Os" CACHE STRING "Mingw minsize release C++ flags " FORCE)
-		SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "Mingw release, debug C++ flags " FORCE)
+		SET(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g" CACHE STRING "Mingw debug C++ flags ")
+		SET(CMAKE_CXX_FLAGS_RELEASE        "   -O2" CACHE STRING "Mingw release C++ flags ")
+		SET(CMAKE_CXX_FLAGS_MINSIZEREL     "   -Os" CACHE STRING "Mingw minsize release C++ flags ")
+		SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "Mingw release, debug C++ flags ")
 
-		SET(CMAKE_C_FLAGS_DEBUG            "-O0 -g" CACHE STRING "Mingw debug C flags " FORCE)
-		SET(CMAKE_C_FLAGS_RELEASE          "-O2"    CACHE STRING "Mingw release C flags " FORCE)
-		SET(CMAKE_C_FLAGS_MINSIZEREL       "-Os"    CACHE STRING "Mingw minsize release C flags " FORCE)
-		SET(CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g" CACHE STRING "Mingw release, debug C++ flags " FORCE)
-		ADD_DEFINITIONS(-DFREE_WINDOWS -DWIN32)
+		SET(CMAKE_C_FLAGS_DEBUG            "-O0 -g" CACHE STRING "Mingw debug C flags ")
+		SET(CMAKE_C_FLAGS_RELEASE          "-O2"    CACHE STRING "Mingw release C flags ")
+		SET(CMAKE_C_FLAGS_MINSIZEREL       "-Os"    CACHE STRING "Mingw minsize release C flags ")
+		SET(CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g" CACHE STRING "Mingw release, debug C++ flags ")
+		ADD_DEFINITIONS(-DFREE_WINDOWS)
 		
 		IF(WITH_OPENMP)
 			SET(LLIBS "${LLIBS} -lgomp")
@@ -526,7 +545,7 @@ IF(WIN32)
 		IF(WITH_OPENEXR)
 			SET(OPENEXR ${LIBDIR}/gcc/openexr)
 			SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
-			SET(OPENEXR_LIB Half IlmImf Iex)
+			SET(OPENEXR_LIB Half IlmImf Iex IlmThread)
 			SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		ENDIF(WITH_OPENEXR)
 
@@ -550,6 +569,7 @@ IF(WIN32)
 	ENDIF(MSVC)
 
 ENDIF(WIN32)
+
 
 IF(APPLE)
 	IF(WITH_LIBS10.5)
@@ -728,11 +748,6 @@ IF(APPLE)
 	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
 ENDIF(APPLE)
-
-IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	SET(BINRELOC ${CMAKE_SOURCE_DIR}/extern/binreloc)
-	SET(BINRELOC_INC ${BINRELOC}/include)
-ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 
 # buildinfo

@@ -194,15 +194,6 @@ void RAS_2DFilterManager::AnalyseShader(int passindex, vector<STR_String>& propN
 	{
 		texflag[passindex] |= 0x2;
 	}
-	if(glGetUniformLocationARB(m_filters[passindex], "bgl_QuarteredRenderTexture") != -1)
-	{
-		texflag[passindex] |= 0x4;
-	}
-	if(glGetUniformLocationARB(m_filters[passindex], "bgl_QuartedDepthTexture") != -1)
-	{
-		if(GLEW_ARB_depth_texture)
-			texflag[passindex] |= 0x8;
-	}
 
 	if(m_gameObjects[passindex])
 	{
@@ -250,29 +241,6 @@ void RAS_2DFilterManager::StartShaderProgram(int passindex)
 			glUniform1iARB(uniformLoc, 2);
 		}
 	}
-
-	/* Send the quartered render texture to glsl program if it needs */
-	if(texflag[passindex] & 0x4){
-		uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_QuarteredRenderTexture");
-		glActiveTextureARB(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, texname[3]);
-
-		if (uniformLoc != -1)
-		{
-			glUniform1iARB(uniformLoc, 3);
-		}
-	}
-
-	if(texflag[passindex] & 0x5){
-		uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_QuarteredDepthTexture");
-		glActiveTextureARB(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, texname[4]);
-
-		if (uniformLoc != -1)
-		{
-			glUniform1iARB(uniformLoc, 4);
-		}
-	}
 	
 	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_TextureCoordinateOffset");
 	if (uniformLoc != -1)
@@ -309,24 +277,15 @@ void RAS_2DFilterManager::EndShaderProgram()
 
 void RAS_2DFilterManager::FreeTextures()
 {
-	// Update this when adding new textures!
-	for (int i=0; i<5; i++)
-	{
-		if(texname[i]!=(unsigned int)-1)
-			glDeleteTextures(1, (GLuint*)&texname[i]);
-	}
-	
-	if(fbo != (unsigned int)-1)
-		glDeleteFramebuffersEXT(1, &fbo);
-	/*if(texname[0]!=(unsigned int)-1)
+	if(texname[0]!=(unsigned int)-1)
 		glDeleteTextures(1, (GLuint*)&texname[0]);
 	if(texname[1]!=(unsigned int)-1)
 		glDeleteTextures(1, (GLuint*)&texname[1]);
 	if(texname[2]!=(unsigned int)-1)
-		glDeleteTextures(1, (GLuint*)&texname[2]);*/
+		glDeleteTextures(1, (GLuint*)&texname[2]);
 }
 
-void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance, bool qrender, bool qdepth)
+void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance)
 {
 	FreeTextures();
 	
@@ -362,25 +321,6 @@ void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance, bool qrender
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	}
-
-	if(qrender){
-		glGenTextures(1, (GLuint*)&texname[3]);
-		glBindTexture(GL_TEXTURE_2D, texname[3]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texturewidth/2, textureheight/2, 0, GL_RGBA8, 
-			GL_UNSIGNED_BYTE, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-		glGenFramebuffersEXT(1, &fbo);
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texname[3], 0);
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-	}
-
 }
 
 void RAS_2DFilterManager::UpdateOffsetMatrix(RAS_ICanvas* canvas)
@@ -437,8 +377,6 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 {
 	bool need_depth=false;
 	bool need_luminance=false;
-	bool need_qrender=false;
-	bool need_qdepth=false;
 	int num_filters = 0;
 
 	int passindex;
@@ -454,11 +392,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 				need_depth = true;
 			if(texflag[passindex] & 0x2)
 				need_luminance = true;
-			if(texflag[passindex] & 0x4)
-				need_qrender = true;
-			if(texflag[passindex] & 0x8)
-				need_qdepth = true;
-			if(need_depth && need_luminance && need_qrender && need_qdepth)
+			if(need_depth && need_luminance)
 				break;
 		}
 	}
@@ -478,7 +412,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	
 	if(need_tex_update)
 	{
-		SetupTextures(need_depth, need_luminance, need_qrender, need_qdepth);
+		SetupTextures(need_depth, need_luminance);
 		need_tex_update = false;
 	}
 
@@ -492,12 +426,6 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 		glActiveTextureARB(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texname[2]);
 		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, 0, 0, texturewidth,textureheight, 0);
-	}
-
-	if(need_qdepth){
-		glActiveTextureARB(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, texname[4]);
-		glCopyTexImage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT, 0, 0, texturewidth, textureheight, 0);
 	}
 
 	glViewport(0,0, texturewidth, textureheight);
@@ -520,53 +448,6 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 			glActiveTextureARB(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texname[0]);
 			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, texturewidth, textureheight, 0);
-			//glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, im_buff);
-
-			if(need_qrender){
-				//glActiveTextureARB(GL_TEXTURE3);
-				//glBindTexture(GL_TEXTURE_2D, texname[3]);
-				//glReadPixels(0, 0, texturewidth, textureheight, GL_RGB, GL_UNSIGNED_BYTE, im_buff);
-				//gluScaleImage(GL_RGB, texturewidth, textureheight, GL_UNSIGNED_BYTE, im_buff, 
-				//		texturewidth/2, textureheight/2, GL_UNSIGNED_BYTE, scaled_buff);
-				//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texturewidth, textureheight, GL_RGBA, GL_UNSIGNED_BYTE, im_buff);
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
-				if(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT) {
-					glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT);
-					glViewport(0, 0, texturewidth/2, textureheight/2);
-
-		/*			glMatrixMode(GL_PROJECTION);
-					glPushMatrix();
-					glLoadIdentity();
-					gluOrtho2D(0, texturewidth/2, 0, textureheight/2);
-					glMatrixMode(GL_MODELVIEW);
-					glPushMatrix();
-					glLoadIdentity();*/
-					glClearColor(0, 0, 0, 1);
-
-					glClear(GL_COLOR_BUFFER_BIT);
-					/*glBindTexture(GL_TEXTURE_2D, texname[0]);
-					glBegin(GL_QUADS);
-						glColor4f(0.f, 1.f, 1.f, 1.f);
-						glTexCoord2f(1.f, 1.f);	glVertex2f(1,1);
-						glTexCoord2f(0.f, 1.f);	glVertex2f(-1,1);
-						glTexCoord2f(0.f, 0.f); glVertex2f(-1,-1);
-						glTexCoord2f(1.f, 0.f);	glVertex2f(1,-1);
-					glEnd();*/
-
-					glFlush();	
-					//glPopMatrix();
-					//glMatrixMode(GL_PROJECTION);
-					//glPopMatrix();
-
-					glPopAttrib();
-				} else {
-					printf("Could not use the framebuffer\n");
-				}
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-				
-			}
-
-			glClearColor(1, 0, 1, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			glBegin(GL_QUADS);

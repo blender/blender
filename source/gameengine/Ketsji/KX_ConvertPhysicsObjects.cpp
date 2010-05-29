@@ -184,14 +184,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
 			break;
 		}
-	case KX_BOUNDCAPSULE:
-		{
-			shapeInfo->m_radius = objprop->m_boundobject.c.m_radius;
-			shapeInfo->m_height = objprop->m_boundobject.c.m_height;
-			shapeInfo->m_shapeType = PHY_SHAPE_CAPSULE;
-			bm = shapeInfo->CreateBulletShape(ci.m_margin);
-			break;
-		}
 	case KX_BOUNDMESH:
 		{
 			// mesh shapes can be shared, check first if we already have a shape on that mesh

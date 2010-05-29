@@ -214,7 +214,6 @@ void usage(const char* program)
 	printf("  -c: keep console window open\n\n");
 #endif
 	printf("  -d: turn debugging on\n\n");
-	printf("  -m: sets the number of samples to request for multisampling");
 	printf("  -g: game engine options:\n\n");
 	printf("       Name                       Default      Description\n");
 	printf("       ------------------------------------------------------------------------\n");
@@ -230,7 +229,6 @@ void usage(const char* program)
 	printf("\n");
 	printf("example: %s -w 320 200 10 10 -g noaudio c:\\loadtest.blend\n", program);
 	printf("example: %s -g show_framerate = 0 c:\\loadtest.blend\n", program);
-	printf("example: %s -m 4 game.blend", program);
 }
 
 static void get_filename(int argc, char **argv, char *filename)
@@ -336,7 +334,6 @@ int main(int argc, char** argv)
 	int windowHeight = 480;
 	GHOST_TUns32 fullScreenWidth = 0;
 	GHOST_TUns32 fullScreenHeight= 0;
-	GHOST_TUns16 aaSamples = 4;
 	int fullScreenBpp = 32;
 	int fullScreenFrequency = 60;
 	GHOST_TEmbedderWindowID parentWindow = 0;
@@ -510,12 +507,6 @@ int main(int argc, char** argv)
 						windowTop = atoi(argv[i++]);
 					}
 				}
-				break;
-			case 'm':
-				i++;
-
-				if ((i+1) < argc)
-					aaSamples = atoi(argv[i++]);
 				break;
 					
 			case 'h':
@@ -819,13 +810,13 @@ int main(int argc, char** argv)
 								if (scr_saver_mode == SCREEN_SAVER_MODE_SAVER)
 								{
 									app.startScreenSaverFullScreen(fullScreenWidth, fullScreenHeight, fullScreenBpp, fullScreenFrequency,
-										stereoWindow, stereomode, aaSamples);
+										stereoWindow, stereomode);
 								}
 								else
 #endif
 								{
 									app.startFullScreen(fullScreenWidth, fullScreenHeight, fullScreenBpp, fullScreenFrequency,
-										stereoWindow, stereomode, aaSamples);
+										stereoWindow, stereomode);
 								}
 							}
 							else
@@ -865,16 +856,16 @@ int main(int argc, char** argv)
 #ifdef WIN32
 								if (scr_saver_mode == SCREEN_SAVER_MODE_PREVIEW)
 								{
-									app.startScreenSaverPreview(scr_saver_hwnd, stereoWindow, stereomode, aaSamples);
+									app.startScreenSaverPreview(scr_saver_hwnd, stereoWindow, stereomode);
 								}
 								else
 #endif
 								{
 																										if (parentWindow != 0)
-										app.startEmbeddedWindow(title, parentWindow, stereoWindow, stereomode, aaSamples);
+										app.startEmbeddedWindow(title, parentWindow, stereoWindow, stereomode);
 									else
 										app.startWindow(title, windowLeft, windowTop, windowWidth, windowHeight,
-										stereoWindow, stereomode, aaSamples);
+										stereoWindow, stereomode);
 								}
 							}
 						}
