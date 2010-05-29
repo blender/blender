@@ -476,18 +476,18 @@ IF(WIN32)
 	ELSE(MSVC) # MINGW
 		SET(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
 
-		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing -mwindows" CACHE STRING "Mingw C++ flags " FORCE)
-		SET(CMAKE_C_FLAGS                  "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C flags " FORCE)
+		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing -mwindows" CACHE STRING "Mingw C++ flags ")
+		SET(CMAKE_C_FLAGS                  "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C flags ")
 
-		SET(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g" CACHE STRING "Mingw debug C++ flags " FORCE)
-		SET(CMAKE_CXX_FLAGS_RELEASE        "   -O2" CACHE STRING "Mingw release C++ flags " FORCE)
-		SET(CMAKE_CXX_FLAGS_MINSIZEREL     "   -Os" CACHE STRING "Mingw minsize release C++ flags " FORCE)
-		SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "Mingw release, debug C++ flags " FORCE)
+		SET(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g" CACHE STRING "Mingw debug C++ flags ")
+		SET(CMAKE_CXX_FLAGS_RELEASE        "   -O2" CACHE STRING "Mingw release C++ flags ")
+		SET(CMAKE_CXX_FLAGS_MINSIZEREL     "   -Os" CACHE STRING "Mingw minsize release C++ flags ")
+		SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "Mingw release, debug C++ flags ")
 
-		SET(CMAKE_C_FLAGS_DEBUG            "-O0 -g" CACHE STRING "Mingw debug C flags " FORCE)
-		SET(CMAKE_C_FLAGS_RELEASE          "-O2"    CACHE STRING "Mingw release C flags " FORCE)
-		SET(CMAKE_C_FLAGS_MINSIZEREL       "-Os"    CACHE STRING "Mingw minsize release C flags " FORCE)
-		SET(CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g" CACHE STRING "Mingw release, debug C++ flags " FORCE)
+		SET(CMAKE_C_FLAGS_DEBUG            "-O0 -g" CACHE STRING "Mingw debug C flags ")
+		SET(CMAKE_C_FLAGS_RELEASE          "-O2"    CACHE STRING "Mingw release C flags ")
+		SET(CMAKE_C_FLAGS_MINSIZEREL       "-Os"    CACHE STRING "Mingw minsize release C flags ")
+		SET(CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g" CACHE STRING "Mingw release, debug C++ flags ")
 		ADD_DEFINITIONS(-DFREE_WINDOWS)
 		
 		IF(WITH_OPENMP)
