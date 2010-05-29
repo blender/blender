@@ -4202,7 +4202,7 @@ static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
-	uiLayout *row, *box;
+	uiLayout *row, *col;
 
 	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL);
 	if (!RNA_pointer_get(ptr, "sound").data)
@@ -4216,23 +4216,24 @@ static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 	uiItemR(row, ptr, "volume", 0, NULL, 0);
 	uiItemR(row, ptr, "pitch", 0, NULL, 0);
 
-	uiItemR(layout, ptr, "enable_sound_3d", UI_ITEM_R_TOGGLE, NULL, 0);
-	box = uiLayoutBox(layout);
-	uiLayoutSetActive(box, RNA_boolean_get(ptr, "enable_sound_3d")==1);
+	uiItemR(layout, ptr, "enable_sound_3d", 0, NULL, 0);
+	
+	col = uiLayoutColumn(layout, 0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "enable_sound_3d")==1);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "minimum_gain_3d", 0, NULL, 0);
 	uiItemR(row, ptr, "maximum_gain_3d", 0, NULL, 0);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "reference_distance_3d", 0, NULL, 0);
 	uiItemR(row, ptr, "max_distance_3d", 0, NULL, 0);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "rolloff_factor_3d", 0, NULL, 0);
 	uiItemR(row, ptr, "cone_outer_gain_3d", 0, NULL, 0);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "cone_outer_angle_3d", 0, NULL, 0);
 	uiItemR(row, ptr, "cone_inner_angle_3d", 0, NULL, 0);
 }

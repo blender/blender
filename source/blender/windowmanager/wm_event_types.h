@@ -226,7 +226,7 @@
 #define ISTWEAK(event)	(event >= EVT_TWEAK_L && event <= EVT_GESTURE)
 
 /* test whether event type is acceptable as hotkey, excluding modifiers */
-#define ISHOTKEY(event)	((ISKEYBOARD(event) || ISMOUSE(event)) && !(event>=LEFTCTRLKEY && event<=ESCKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
+#define ISHOTKEY(event)	((ISKEYBOARD(event) || ISMOUSE(event)) && !(event>=LEFTCTRLKEY && event<=LEFTSHIFTKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
 
 /* **************** BLENDER GESTURE EVENTS ********************* */
 

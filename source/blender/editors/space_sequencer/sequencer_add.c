@@ -182,6 +182,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	
 	seq->type= SEQ_SCENE;
 	seq->scene= sce_seq;
+	seq->sfra= sce_seq->r.sfra;
 	
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
