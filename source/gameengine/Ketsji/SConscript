@@ -23,6 +23,9 @@ incs += ' #source/blender/misc #source/blender/blenloader #extern/glew/include #
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 
+if env['WITH_BF_DDS']:
+	defs.append('WITH_DDS')
+
 if  env['WITH_BF_SDL']:
     incs += ' ' + env['BF_SDL_INC']
 else:

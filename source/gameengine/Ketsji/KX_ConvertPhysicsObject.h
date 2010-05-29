@@ -53,7 +53,8 @@ typedef enum {
 	KX_BOUNDCONE,
 	KX_BOUNDMESH,
 	KX_BOUNDPOLYTOPE,
-	KX_BOUND_DYN_MESH
+	KX_BOUND_DYN_MESH,
+	KX_BOUNDCAPSULE
 } KX_BoundBoxClass;
 
 struct KX_BoxBounds

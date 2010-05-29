@@ -73,6 +73,7 @@ static EnumPropertyItem collision_bounds_items[] = {
 	{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
 	{OB_BOUND_POLYT, "CONVEX_HULL", 0, "Convex Hull", ""},
 	{OB_BOUND_POLYH, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
+	{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", ""},
 	//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
 	{0, NULL, 0, NULL, NULL}};
 
@@ -329,6 +330,7 @@ static EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *C, PointerR
 		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CYLINDER);
 		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_SPHERE);
 		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_BOX);
+		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CAPSULE);
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -1443,6 +1445,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
 		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
 		{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
+		{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", ""},
 		{OB_BOUND_POLYH, "POLYHEDER", 0, "Polyheder", ""},
 		{0, NULL, 0, NULL, NULL}};
 

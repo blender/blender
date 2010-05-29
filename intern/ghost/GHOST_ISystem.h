@@ -258,7 +258,7 @@ public:
 	 * @return	Indication of success.
 	 */
 	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window,
-		const bool stereoVisual) = 0;
+		const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0) = 0;
 
 	/**
 	 * Ends full screen mode.

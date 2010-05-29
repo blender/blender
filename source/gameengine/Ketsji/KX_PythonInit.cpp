@@ -628,12 +628,13 @@ static PyObject *gLibLoad(PyObject*, PyObject* args)
 	KX_Scene *kx_scene= gp_KetsjiScene;
 	char *path;
 	char *group;
+	char *filter= "";
 	char *err_str= NULL;
 	
-	if (!PyArg_ParseTuple(args,"ss:LibLoad",&path, &group))
+	if (!PyArg_ParseTuple(args,"ss|s:LibLoad",&path, &group, &filter))
 		return NULL;
 
-	if(kx_scene->GetSceneConverter()->LinkBlendFile(path, group, kx_scene, &err_str)) {
+	if(kx_scene->GetSceneConverter()->LinkBlendFile(path, group, filter, kx_scene, &err_str)) {
 		Py_RETURN_TRUE;
 	}
 	

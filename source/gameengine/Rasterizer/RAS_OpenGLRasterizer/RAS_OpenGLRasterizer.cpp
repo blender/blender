@@ -297,6 +297,7 @@ bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 	m_last_frontface = true;
 
 	glShadeModel(GL_SMOOTH);
+	glEnable(GL_MULTISAMPLE_ARB);
 
 	m_2DCanvas->BeginFrame();
 	
@@ -382,6 +383,7 @@ void RAS_OpenGLRasterizer::EndFrame()
 	FlushDebugLines();
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDisable(GL_MULTISAMPLE_ARB);
 	m_2DCanvas->EndFrame();
 }	
 

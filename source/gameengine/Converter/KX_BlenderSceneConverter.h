@@ -142,7 +142,7 @@ public:
 	struct Main*		  GetMainDynamicPath(const char *path);
 	vector<struct Main*> &GetMainDynamic();
 	
-	bool LinkBlendFile(const char *path, char *group, KX_Scene *scene_merge, char **err_str);
+	bool LinkBlendFile(const char *path, char *group, char *filter, KX_Scene *scene_merge, char **err_str);
 	bool MergeScene(KX_Scene *to, KX_Scene *from);
 	RAS_MeshObject *ConvertMeshSpecial(KX_Scene* kx_scene, Main *maggie, const char *name);
 	bool FreeBlendFile(struct Main *maggie);

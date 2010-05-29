@@ -1157,8 +1157,8 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			else {
 				
 				/* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
-				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
-				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY);
+				vod->origy = vod->oldy = event->x;
+				viewzoom_apply(vod, event->x, event->prevx, USER_ZOOM_DOLLY);
 			}
 			request_depth_update(CTX_wm_region_view3d(C));
 			

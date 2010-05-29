@@ -2027,6 +2027,11 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 		collisionShape->setMargin(margin);
 		break;
 
+	case PHY_SHAPE_CAPSULE:
+		collisionShape = new btCapsuleShapeZ(m_radius, m_height);
+		collisionShape->setMargin(margin);
+		break;
+
 	case PHY_SHAPE_MESH:
 		// Let's use the latest btScaledBvhTriangleMeshShape: it allows true sharing of 
 		// triangle mesh information between duplicates => drastic performance increase when 

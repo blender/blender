@@ -1659,7 +1659,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				my= event->y;
 				ui_window_to_block(data->region, block, &mx, &my);
 
-				if (ui_mouse_inside_button(data->region, but, mx, my)) {
+				if ((but->y1 <= my) && (my <= but->y2) && (but->x1 <= mx) && (mx <= but->x2)) {
 					ui_textedit_set_cursor_pos(but, data, mx);
 					but->selsta = but->selend = but->pos;
 					data->selstartx= mx;
@@ -1999,17 +1999,14 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 		if(event->type == MOUSEMOVE)
 			return WM_UI_HANDLER_CONTINUE;
 		
-		if(event->type == LEFTMOUSE && event->val==KM_PRESS) {
-			/* only cancel if click outside the button */
-			if(ui_mouse_inside_button(but->active->region, but, event->x, event->y) == 0) {
-				/* data->cancel doesnt work, this button opens immediate */
-				if(but->flag & UI_BUT_IMMEDIATE)
-					ui_set_but_val(but, 0);
-				else
-					data->cancel= 1;
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-				return WM_UI_HANDLER_BREAK;
-			}
+		if(event->type == ESCKEY) {
+			/* data->cancel doesnt work, this button opens immediate */
+			if(but->flag & UI_BUT_IMMEDIATE)
+				ui_set_but_val(but, 0);
+			else
+				data->cancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			return WM_UI_HANDLER_BREAK;
 		}
 		
 		/* always set */
@@ -2043,11 +2040,15 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 	return WM_UI_HANDLER_CONTINUE;
 }
 
+
 static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val==KM_PRESS) {
-			button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
+			short event= (short)ui_get_but_val(but);
+			/* hardcoded prevention from editing or assigning ESC */
+			if(event!=ESCKEY)
+				button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
 			return WM_UI_HANDLER_BREAK;
 		}
 	}
@@ -2056,7 +2057,7 @@ static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, w
 			return WM_UI_HANDLER_CONTINUE;
 
 		if(event->val==KM_PRESS) {
-			if(WM_key_event_string(event->type)[0])
+			if(event->type!=ESCKEY && WM_key_event_string(event->type)[0])
 				ui_set_but_val(but, event->type);
 			else
 				data->cancel= 1;

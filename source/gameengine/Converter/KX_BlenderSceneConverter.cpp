@@ -932,7 +932,7 @@ Main* KX_BlenderSceneConverter::GetMainDynamicPath(const char *path)
 	return NULL;
 }
 
-bool KX_BlenderSceneConverter::LinkBlendFile(const char *path, char *group, KX_Scene *scene_merge, char **err_str)
+bool KX_BlenderSceneConverter::LinkBlendFile(const char *path, char *group, char *filter, KX_Scene *scene_merge, char **err_str)
 {
 	bContext *C;
 	Main *main_newlib; /* stored as a dynamic 'main' until we free it */
@@ -941,6 +941,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(const char *path, char *group, KX_S
 	BlendHandle *bpy_openlib = NULL;	/* ptr to the open .blend file */	
 	int idcode= BLO_idcode_from_name(group);
 	short flag= 0; /* dont need any special options */
+	bool found = false; /* used for error reporting when using item */
 	ReportList reports;
 	static char err_local[255];
 	
@@ -949,50 +950,48 @@ bool KX_BlenderSceneConverter::LinkBlendFile(const char *path, char *group, KX_S
 		snprintf(err_local, sizeof(err_local), "invalid ID type given \"%s\"\n", group);
 		return false;
 	}
-	
-	if(GetMainDynamicPath(path)) {
-		snprintf(err_local, sizeof(err_local), "blend file already open \"%s\"\n", path);
-		*err_str= err_local;
-		return false;
-	}
 
-	bpy_openlib = BLO_blendhandle_from_file( (char *)path );
-	if(bpy_openlib==NULL) {
-		snprintf(err_local, sizeof(err_local), "could not open blendfile \"%s\"\n", path);
-		*err_str= err_local;
-		return false;
-	}
-	
-	main_newlib= (Main *)MEM_callocN( sizeof(Main), "BgeMain");
-	C= CTX_create();
-	CTX_data_main_set(C, main_newlib);
-	BKE_reports_init(&reports, RPT_STORE);	
+	main_newlib = GetMainDynamicPath(path);
 
-	/* here appending/linking starts */
-	main_tmp = BLO_library_append_begin(C, &bpy_openlib, (char *)path);
-	
-	names = BLO_blendhandle_get_datablock_names( bpy_openlib, idcode);
-	
-	int i=0;
-	LinkNode *n= names;
-	while(n) {
-		BLO_library_append_named_part(C, main_tmp, &bpy_openlib, (char *)n->link, idcode, 0);
-		n= (LinkNode *)n->next;
-		i++;
+	if (main_newlib == NULL)
+	{
+		bpy_openlib = BLO_blendhandle_from_file( (char *)path );
+		if(bpy_openlib==NULL) {
+			snprintf(err_local, sizeof(err_local), "could not open blendfile \"%s\"\n", path);
+			*err_str= err_local;
+			return false;
+		}
+		
+		main_newlib= (Main *)MEM_callocN( sizeof(Main), "BgeMain");
+		C= CTX_create();
+		CTX_data_main_set(C, main_newlib);
+		BKE_reports_init(&reports, RPT_STORE);	
+
+		/* here appending/linking starts */
+		main_tmp = BLO_library_append_begin(C, &bpy_openlib, (char *)path);
+		
+		names = BLO_blendhandle_get_datablock_names( bpy_openlib, idcode);
+		
+		int i=0;
+		LinkNode *n= names;
+		while(n) {
+			BLO_library_append_named_part(C, main_tmp, &bpy_openlib, (char *)n->link, idcode, 0);
+			n= (LinkNode *)n->next;
+			i++;
+		}
+		BLI_linklist_free(names, free);	/* free linklist *and* each node's data */
+		
+		BLO_library_append_end(C, main_tmp, &bpy_openlib, idcode, flag);
+		BLO_blendhandle_close(bpy_openlib);
+		
+		CTX_free(C);
+		BKE_reports_clear(&reports);
+		/* done linking */	
+		
+		/* needed for lookups*/
+		GetMainDynamic().push_back(main_newlib);
+		strncpy(main_newlib->name, path, sizeof(main_newlib->name));
 	}
-	BLI_linklist_free(names, free);	/* free linklist *and* each node's data */
-	
-	BLO_library_append_end(C, main_tmp, &bpy_openlib, idcode, flag);
-	BLO_blendhandle_close(bpy_openlib);
-	
-	CTX_free(C);
-	BKE_reports_clear(&reports);
-	/* done linking */	
-	
-	/* needed for lookups*/
-	GetMainDynamic().push_back(main_newlib);
-	strncpy(main_newlib->name, path, sizeof(main_newlib->name));	
-	
 	
 	if(idcode==ID_ME) {
 		/* Convert all new meshes into BGE meshes */
@@ -1000,23 +999,38 @@ bool KX_BlenderSceneConverter::LinkBlendFile(const char *path, char *group, KX_S
 		KX_Scene *kx_scene= m_currentScene;
 	
 		for(mesh= (ID *)main_newlib->mesh.first; mesh; mesh= (ID *)mesh->next ) {
-			RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)mesh, NULL, scene_merge, this);
-			kx_scene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
+			/* If item is defined, use it to filter meshes */
+			if (!strcmp(filter, "") || !strcmp(filter, mesh->name+2))
+			{
+				found = true;
+				RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)mesh, NULL, scene_merge, this);
+				kx_scene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
+			}
 		}
 	}
 	else if(idcode==ID_SCE) {		
 		/* Merge all new linked in scene into the existing one */
 		ID *scene;
 		for(scene= (ID *)main_newlib->scene.first; scene; scene= (ID *)scene->next ) {
-			printf("SceneName: %s\n", scene->name);
-			
-			/* merge into the base  scene */
-			KX_Scene* other= m_ketsjiEngine->CreateScene((Scene *)scene);
-			scene_merge->MergeScene(other);
-			
-			// RemoveScene(other); // Dont run this, it frees the entire scene converter data, just delete the scene
-			delete other;
+			/* If item is defined, use it to filter scenes */
+			if (!strcmp(filter, "") || !strcmp(filter, scene->name+2))
+			{
+				found = true;
+				printf("Loading scene: %s\n", scene->name+2);
+				/* merge into the base  scene */
+				KX_Scene* other= m_ketsjiEngine->CreateScene((Scene *)scene);
+				scene_merge->MergeScene(other);
+				
+				// RemoveScene(other); // Dont run this, it frees the entire scene converter data, just delete the scene
+				delete other;
+			}
 		}
+	}
+
+	if (found == false)
+	{
+		printf("Item not found: %s\n", filter);
+		return false;
 	}
 	
 	return true;
