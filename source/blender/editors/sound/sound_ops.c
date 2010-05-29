@@ -118,6 +118,7 @@ static int open_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
 	}
 
+	MEM_freeN(op->customdata);
 	return OPERATOR_FINISHED;
 }
 
