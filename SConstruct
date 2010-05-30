@@ -457,8 +457,6 @@ if  env['OURPLATFORM']!='darwin':
 				if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + dp.split(os.sep)[2:]))	# skip bin/.blender
 				else:					dir= os.path.join(*([BLENDERPATH] + dp.split(os.sep)[1:]))	# skip bin
 				
-				# print dir+ os.sep + f
-				print dir
 				dottargetlist.append(dir + os.sep + f)
 					
 
