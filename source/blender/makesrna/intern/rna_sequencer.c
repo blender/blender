@@ -40,8 +40,19 @@
 #include "MEM_guardedalloc.h"
 
 #include "WM_types.h"
+#include "BLI_math.h"
 
 #ifdef RNA_RUNTIME
+
+static float to_dB(float x)
+{
+	return logf(x * x + 1e-30f) * 4.34294480f;
+}
+
+static float from_dB(float x)
+{
+	return expf(x * 0.11512925f);
+}
 
 /* build a temp referene to the parent */
 static void meta_tmp_ref(Sequence *seq_par, Sequence *seq)
@@ -391,6 +402,20 @@ static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
 
 	BLI_join_dirfile(path, proxy->dir, proxy->file);
 	return strlen(path)+1;
+}
+
+static float rna_Sequence_attenuation_get(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+
+	return to_dB(seq->volume);
+}
+
+static void rna_Sequence_attenuation_set(PointerRNA *ptr, float value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+
+	seq->volume = from_dB(value);
 }
 
 
@@ -1045,8 +1070,15 @@ static void rna_def_sound(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "volume");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "attenuation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -100.0f, +40.0f);
+	RNA_def_property_ui_text(prop, "Attenuation/db", "Attenuation in dezibel");
+	RNA_def_property_float_funcs(prop, "rna_Sequence_attenuation_get", "rna_Sequence_attenuation_set", NULL); 
+
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);

@@ -457,7 +457,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             row = layout.row(align=True)
             sub = row.row()
             sub.scale_x = 2.0
-           
+          
             if not context.screen.animation_playing:
                 sub.operator("screen.animation_play", text="", icon='PLAY')
             else:
@@ -666,6 +666,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         row.prop(strip.sound, "caching")
 
         layout.prop(strip, "volume")
+        layout.prop(strip, "attenuation")
 
         col = layout.column(align=True)
         col.label(text="Trim Duration:")
