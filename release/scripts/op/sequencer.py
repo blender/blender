@@ -101,7 +101,7 @@ class SequencerCutMulticam(bpy.types.Operator):
             s.selected = True
 
         cfra = context.scene.frame_current
-        bpy.ops.sequencer.cut(frame=cfra, type='HARD', side='RIGHT')
+        bpy.ops.sequencer.cut(frame=cfra, type='SOFT', side='RIGHT')
         for s in context.scene.sequence_editor.sequences_all:
             if s.selected and s.type == 'MULTICAM' and s.frame_final_start <= cfra and cfra < s.frame_final_end:
                 context.scene.sequence_editor.active_strip = s
