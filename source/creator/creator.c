@@ -261,6 +261,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf("\n");
 
 	BLI_argsPrintArgDoc(ba, "--python");
+	BLI_argsPrintArgDoc(ba, "--python-console");
 
 #ifdef WIN32
 	BLI_argsPrintArgDoc(ba, "-R");
@@ -789,42 +790,61 @@ static int set_skip_frame(int argc, char **argv, void *data)
 	}
 }
 
+/* macro for ugly context setup/reset */
+#ifndef DISABLE_PYTHON
+#define BPY_CTX_SETUP(_cmd) \
+{ \
+	wmWindowManager *wm= CTX_wm_manager(C); \
+	wmWindow *prevwin= CTX_wm_window(C); \
+	Scene *prevscene= CTX_data_scene(C); \
+	if(wm->windows.first) { \
+		CTX_wm_window_set(C, wm->windows.first); \
+		_cmd; \
+		CTX_wm_window_set(C, prevwin); \
+	} \
+	else { \
+		fprintf(stderr, "Python script \"%s\" running with missing context data.\n", argv[1]); \
+		_cmd; \
+	} \
+	CTX_data_scene_set(C, prevscene); \
+} \
+
+#endif /* DISABLE_PYTHON */
+
 static int run_python(int argc, char **argv, void *data)
 {
 #ifndef DISABLE_PYTHON
 	bContext *C = data;
 
-	/* Make the path absolute because its needed for relative linked blends to be found */
-	char filename[FILE_MAXDIR + FILE_MAXFILE];
-	BLI_strncpy(filename, argv[1], sizeof(filename));
-	BLI_path_cwd(filename);
-
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
-		/* XXX, temp setting the WM is ugly, splash also does this :S */
-		wmWindowManager *wm= CTX_wm_manager(C);
-		wmWindow *prevwin= CTX_wm_window(C);
-		Scene *prevscene= CTX_data_scene(C);
+		/* Make the path absolute because its needed for relative linked blends to be found */
+		char filename[FILE_MAXDIR + FILE_MAXFILE];
+		BLI_strncpy(filename, argv[1], sizeof(filename));
+		BLI_path_cwd(filename);
 
-		if(wm->windows.first) {
-			CTX_wm_window_set(C, wm->windows.first);
-
-			BPY_run_python_script(C, filename, NULL, NULL); // use reports?
-
-			CTX_wm_window_set(C, prevwin);
-		}
-		else {
-			fprintf(stderr, "Python script \"%s\" running with missing context data.\n", argv[1]);
-			BPY_run_python_script(C, filename, NULL, NULL); // use reports?
-		}
-
-		CTX_data_scene_set(C, prevscene);
+		BPY_CTX_SETUP( BPY_run_python_script(C, filename, NULL, NULL) )
 
 		return 1;
 	} else {
 		printf("\nError: you must specify a Python script after '-P / --python'.\n");
 		return 0;
 	}
+#else
+	printf("This blender was built without python support\n");
+	return 0;
+#endif /* DISABLE_PYTHON */
+}
+
+static int run_python_console(int argc, char **argv, void *data)
+{
+#ifndef DISABLE_PYTHON
+	bContext *C = data;	
+	const char *expr= "__import__('code').interact()";
+
+	BPY_CTX_SETUP( BPY_eval_string(C, expr) )
+
+	return 0;
 #else
 	printf("This blender was built without python support\n");
 	return 0;
@@ -955,6 +975,7 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, "-e", "--frame-end", "<frame>\n\tSet end to frame <frame> (use before the -a argument)", set_end_frame, C);
 	BLI_argsAdd(ba, 4, "-j", "--frame-jump", "<frames>\n\tSet number of frames to step forward after each rendered frame", set_skip_frame, C);
 	BLI_argsAdd(ba, 4, "-P", "--python", "<filename>\n\tRun the given Python script (filename or Blender Text)", run_python, C);
+	BLI_argsAdd(ba, 4, NULL, "--python-console", "\n\tRun blender with an interactive console", run_python_console, C);
 
 	BLI_argsAdd(ba, 4, "-o", "--render-output", output_doc, set_output, C);
 	BLI_argsAdd(ba, 4, "-E", "--engine", "<engine>\n\tSpecify the render engine\n\tuse -E help to list available engines", set_engine, C);

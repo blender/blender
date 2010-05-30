@@ -1418,7 +1418,7 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 				/* this evaluates the expression using Python,and returns its result:
 				 * 	- on errors it reports, then returns 0.0f
 				 */
-				driver->curval= BPY_pydriver_eval(driver);
+				driver->curval= BPY_eval_driver(driver);
 			}
 #endif /* DISABLE_PYTHON*/
 		}

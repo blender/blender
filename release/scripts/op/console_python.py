@@ -102,6 +102,10 @@ def execute(context):
     sys.stdout = stdout
     sys.stderr = stderr
 
+    # dont allow the stdin to be used, can lock blender.
+    stdin_backup = sys.stdin
+    sys.stdin = None
+
     # run the console
     if not line.strip():
         line_exec = '\n'  # executes a multiline statement
@@ -144,6 +148,9 @@ def execute(context):
     if output_err:
         add_scrollback(output_err, 'ERROR')
 
+    # restore the stdin
+    sys.stdin = stdin_backup
+
     return {'FINISHED'}
 
 
@@ -163,6 +170,11 @@ def autocomplete(context):
     if sc.console_type != 'PYTHON':
         return {'CANCELLED'}
 
+    # dont allow the stdin to be used, can lock blender.
+    # note: unlikely stdin would be used for autocomp. but its possible.
+    stdin_backup = sys.stdin
+    sys.stdin = None
+
     # This function isnt aware of the text editor or being an operator
     # just does the autocomp then copy its results back
     current_line.line, current_line.current_character, scrollback = \
@@ -181,6 +193,9 @@ def autocomplete(context):
     # anymore
     if scrollback:
         add_scrollback(scrollback, 'INFO')
+
+    # restore the stdin
+    sys.stdin = stdin_backup
 
     context.area.tag_redraw()
 

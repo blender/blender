@@ -528,7 +528,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 #endif
 
 
-int BPY_button_eval(bContext *C, char *expr, double *value)
+int BPY_eval_button(bContext *C, const char *expr, double *value)
 {
 	PyGILState_STATE gilstate;
 	PyObject *dict, *mod, *retval;
@@ -598,6 +598,40 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 	
 	return error_ret;
 }
+
+int BPY_eval_string(bContext *C, const char *expr)
+{
+	PyGILState_STATE gilstate;
+	PyObject *dict, *retval;
+	int error_ret = 0;
+
+	if (!expr) return -1;
+
+	if(expr[0]=='\0') {
+		return error_ret;
+	}
+
+	bpy_context_set(C, &gilstate);
+
+	dict= CreateGlobalDictionary(C, NULL);
+
+	retval = PyRun_String(expr, Py_eval_input, dict, dict);
+
+	if (retval == NULL) {
+		error_ret= -1;
+
+		BPy_errors_to_report(CTX_wm_reports(C));
+	}
+	else {
+		Py_DECREF(retval);
+	}
+
+	Py_DECREF(dict);
+	bpy_context_clear(C, &gilstate);
+
+	return error_ret;
+}
+
 
 void BPY_load_user_modules(bContext *C)
 {
