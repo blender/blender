@@ -94,6 +94,9 @@ class SequencerCutMulticam(bpy.types.Operator):
 
         s = context.scene.sequence_editor.active_strip
 
+        if s.multicam_source == camera:
+            return {'FINISHED'}
+
         if not s.selected:
             s.selected = True
 
@@ -135,13 +138,14 @@ def register():
     register(SequencerCutMulticam)
     register(SequencerDeinterlaceSelectedMovies)
 
-
 def unregister():
     unregister = bpy.types.unregister
 
     unregister(SequencerCrossfadeSounds)
     unregister(SequencerCutMulticam)
     unregister(SequencerDeinterlaceSelectedMovies)
+
+ 
 
 if __name__ == "__main__":
     register()
