@@ -21,21 +21,29 @@
 import bpy
 import mathutils
 
-def _align_matrix(context):
-    # TODO, local view cursor!
-    location = mathutils.TranslationMatrix(context.scene.cursor_location)
+def add_object_align_init(context, operator):
 
-    if context.user_preferences.edit.object_align == 'VIEW' and context.space_data.type == 'VIEW_3D':
-        rotation = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
+    if operator and operator.properties.is_property_set("location") and operator.properties.is_property_set("rotation"):
+        location = mathutils.TranslationMatrix(mathutils.Vector(operator.properties.location))
+        rotation = mathutils.Euler(operator.properties.rotation).to_matrix().resize4x4()
     else:
-        rotation = mathutils.Matrix()
+        # TODO, local view cursor!
+        location = mathutils.TranslationMatrix(context.scene.cursor_location)
 
-    align_matrix = location * rotation
+        if context.user_preferences.edit.object_align == 'VIEW' and context.space_data.type == 'VIEW_3D':
+            rotation = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
+        else:
+            rotation = mathutils.Matrix()
 
-    return align_matrix
+        # set the operator properties
+        if operator:
+            operator.properties.location = location.translation_part()
+            operator.properties.rotation = rotation.to_euler()
+
+    return location * rotation
 
 
-def add_object_data(obdata, context):
+def add_object_data(context, obdata, operator=None):
 
     scene = context.scene
 
@@ -52,7 +60,7 @@ def add_object_data(obdata, context):
         base.layers_from_view(context.space_data)
 
 
-    obj_new.matrix = _align_matrix(context)
+    obj_new.matrix = add_object_align_init(context, operator)
 
     obj_act = scene.objects.active
 
