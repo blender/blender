@@ -1188,11 +1188,21 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	BLI_srandom(31415926 + psys->seed);
 	
 	lay= scene->lay;
-	if((psys->renderdata || part->draw_as==PART_DRAW_REND) &&
-		((part->ren_as == PART_DRAW_OB && part->dup_ob) ||
-		(part->ren_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first))) {
+	if((psys->renderdata || part->draw_as==PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
 
-		psys_check_group_weights(part);
+		/* first check for loops (particle system object used as dupli object) */
+		if(part->ren_as == PART_DRAW_OB) {
+			if(ELEM(part->dup_ob, NULL, par))
+				return;
+		}
+		else { /*PART_DRAW_GR */
+			if(part->dup_group == NULL || part->dup_group->gobject.first == NULL)
+				return;
+
+			for(go=part->dup_group->gobject.first; go; go=go->next)
+				if(go->ob == par)
+					return;
+		}
 
 		/* if we have a hair particle system, use the path cache */
 		if(part->type == PART_HAIR) {
@@ -1205,6 +1215,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			totchild = psys->totchildcache;
 			totpart = psys->totcached;
 		}
+
+		psys_check_group_weights(part);
 
 		psys->lattice = psys_get_lattice(&sim);
 
