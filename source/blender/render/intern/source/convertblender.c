@@ -1532,8 +1532,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* 1. check that everything is ok & updated */
 	if(psys==NULL)
 		return 0;
-	
-	totchild=psys->totchild;
 
 	part=psys->part;
 	pars=psys->particles;
@@ -1554,6 +1552,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if(part->phystype==PART_PHYS_KEYED)
 		psys_count_keyed_targets(&sim);
 
+	psys_update_children(&sim);
+	totchild=psys->totchild;
 
 	if(G.rendering == 0) { /* preview render */
 		totchild = (int)((float)totchild * (float)part->disp / 100.0f);
@@ -1657,6 +1657,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	transpose_m3(nmat);
 
 /* 2.6 setup strand rendering */
+	if(part->ren_as == PART_DRAW_PATH && psys->pathcache==NULL)
+		psys_update_path_cache(&sim, cfra);
+
 	if(part->ren_as == PART_DRAW_PATH && psys->pathcache){
 		path_nbr=(int)pow(2.0,(double) part->ren_step);
 

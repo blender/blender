@@ -160,7 +160,7 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
 		edit->emitter_field= 0;
 	}
 
-	psys_free_path_cache(NULL, edit);
+	psys_free_path_cache(edit->psys, edit);
 
 	MEM_freeN(edit);
 }
