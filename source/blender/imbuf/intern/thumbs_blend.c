@@ -127,3 +127,59 @@ thumb_error:
 	if(rect) MEM_freeN(rect);
 	return NULL;
 }
+
+/* add a fake passepartout overlay to a byte buffer, use for blend file thumbnails */
+#define MARGIN 2
+
+void IMB_overlayblend_thumb(int *thumb, int width, int height, float aspect)
+{
+	unsigned char *px= (unsigned char *)thumb;
+	int margin_l = MARGIN;
+	int margin_b = MARGIN;
+	int margin_r = width - MARGIN;
+	int margin_t = height - MARGIN;
+
+	if(aspect < 1.0f) {
+		margin_l= (int)((width - ((float)width * aspect)) / 2.0f);
+		margin_l += MARGIN;
+		CLAMP(margin_l, MARGIN, (width/2));
+		margin_r = width - margin_l;
+	}
+	else if (aspect > 1.0f) {
+		margin_b= (int)((height - ((float)height / aspect)) / 2.0f);
+		margin_b += MARGIN;
+		CLAMP(margin_b, MARGIN, (height/2));
+		margin_t = height - margin_b;
+	}
+
+	{	
+		int x, y;
+		int hline, vline;
+		int stride_x= (margin_r - margin_l) - 2;
+		
+		for(y=0; y < height; y++) {
+			for(x=0; x < width; x++, px+=4) {
+				if((x > margin_l && x < margin_r) && (y > margin_b && y < margin_t)) {
+					/* interior. skip */
+					x  += stride_x;
+					px += stride_x * 4;
+				} else if(	(hline=(((x == margin_l || x == margin_r)) && y >= margin_b && y <= margin_t)) ||
+							(vline=(((y == margin_b || y == margin_t)) && x >= margin_l && x <= margin_r))
+				) {
+					/* dashed line */
+					if((hline && y % 2) || (vline && x % 2)) {
+						px[0]= px[1]= px[2]= 0;
+						px[3] = 255;
+					}
+				}
+				else {
+					/* outside, fill in alpha, like passepartout */
+					px[0] *= 0.5f;
+					px[1] *= 0.5f;
+					px[2] *= 0.5f;
+					px[3] = (px[3] * 0.5f) + 96;
+				}
+			}
+		}
+	}
+}

@@ -348,6 +348,8 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 #ifndef WIN32
 			chmod(temp, S_IRUSR | S_IWUSR);
 #endif
+			printf("Saving: %s\n", tpath);
+			
 			BLI_rename(temp, tpath);
 		}
 

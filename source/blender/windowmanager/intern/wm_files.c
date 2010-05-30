@@ -491,66 +491,7 @@ static void do_history(char *name, ReportList *reports)
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
-/* writes a thumbnail for a blendfile */
-static void writeThumb_overlay(int *thumb, int width, int height, float aspect)
-{
-	unsigned char *px= (unsigned char *)thumb;
-	int margin_l = 3;
-	int margin_b = 3;
-	int margin_r = width - 3;
-	int margin_t = height - 3;
-
-	printf("%f\n", aspect);
-
-	if(aspect < 1.0f) {
-		margin_l= (int)((width - ((float)width * aspect)) / 2.0f);
-		margin_l += 2;
-		CLAMP(margin_l, 2, (width/2));
-		margin_r = width - margin_l;
-	}
-	else if (aspect > 1.0f) {
-		margin_b= (int)((height - ((float)height / aspect)) / 2.0f);
-		margin_b += 2;
-		CLAMP(margin_b, 2, (height/2));
-		margin_t = height - margin_b;
-	}
-
-	{	
-		int x, y;
-		int hline, vline;
-		float alpha;
-		int stride_x= (margin_r - margin_l) - 2;
-		
-		for(y=0; y < height; y++) {
-			float fac= (float)y / (float)height;
-			alpha= (0.2f * fac) + (1.0f * (1.0f - fac));
-			for(x=0; x < width; x++, px+=4) {
-				if((x > margin_l && x < margin_r) && (y > margin_b && y < margin_t)) {
-					/* interior. skip */
-					x  += stride_x;
-					px += stride_x * 4;
-				} else if(	(hline=(((x == margin_l || x == margin_r)) && y >= margin_b && y <= margin_t)) ||
-							(vline=(((y == margin_b || y == margin_t)) && x >= margin_l && x <= margin_r))
-				) {
-					/* dashed line */
-					if((hline && y % 2) || (vline && x % 2)) {
-						px[0]= px[1]= px[2]= 0;
-						px[3] = 255;
-					}
-				}
-				else {
-					/* outside, fill in alpha, like passepartout */
-					px[0] *= 0.5f;
-					px[1] *= 0.5f;
-					px[2] *= 0.5f;
-					px[3] = (px[3] * 0.5f) + (128 * alpha);
-				}
-			}
-		}
-	}
-}
-
-static void writeThumb(const char *path, Scene *scene, int **thumb_pt)
+static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
 {
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
@@ -559,7 +500,7 @@ static void writeThumb(const char *path, Scene *scene, int **thumb_pt)
 	*thumb_pt= NULL;
 	
 	if(G.background || scene->camera==NULL)
-		return;
+		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
 	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, OB_SOLID);
@@ -577,15 +518,9 @@ static void writeThumb(const char *path, Scene *scene, int **thumb_pt)
 		thumb[1] = BLEN_THUMB_SIZE;
 
 		memcpy(thumb + 2, ibuf->rect, BLEN_THUMB_SIZE * BLEN_THUMB_SIZE * sizeof(int));
-		writeThumb_overlay(thumb + 2, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE, aspect);
 		
-		/* the image is scaled here */
-		ibuf= IMB_thumb_create(path, THB_NORMAL, THB_SOURCE_BLEND, ibuf);
-
-		if (ibuf)
-			IMB_freeImBuf(ibuf);
-
-		ibuf= NULL;
+		/* add pretty overlay */
+		IMB_overlayblend_thumb(thumb + 2, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE, aspect);
 	}
 	else {
 		/* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
@@ -594,6 +529,8 @@ static void writeThumb(const char *path, Scene *scene, int **thumb_pt)
 	
 	/* must be freed by caller */
 	*thumb_pt= thumb;
+	
+	return ibuf;
 }
 
 int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
@@ -603,6 +540,7 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 	char di[FILE_MAX];
 
 	int *thumb= NULL;
+	ImBuf *ibuf_thumb= NULL;
 
 	len = strlen(target);
 	
@@ -645,7 +583,7 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 	do_history(di, reports);
 	
 	/* blend file thumbnail */
-	writeThumb(di, CTX_data_scene(C), &thumb);
+	ibuf_thumb= blend_file_thumb(di, CTX_data_scene(C), &thumb);
 
 	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
 		strcpy(G.sce, di);
@@ -662,9 +600,16 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 
 		writeBlog();
 
+		/* run this function after because the file cant be written before the blend is */
+		if (ibuf_thumb) {
+			ibuf_thumb= IMB_thumb_create(di, THB_NORMAL, THB_SOURCE_BLEND, ibuf_thumb);
+			IMB_freeImBuf(ibuf_thumb);
+		}
+
 		if(thumb) MEM_freeN(thumb);
 	}
 	else {
+		if(ibuf_thumb) IMB_freeImBuf(ibuf_thumb);
 		if(thumb) MEM_freeN(thumb);
 		return -1;
 	}
