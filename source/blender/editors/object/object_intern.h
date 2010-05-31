@@ -85,6 +85,11 @@ void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
 void OBJECT_OT_paths_calculate(struct wmOperatorType *ot);
 void OBJECT_OT_paths_clear(struct wmOperatorType *ot);
 
+void OBJECT_OT_game_property_new(struct wmOperatorType *ot);
+void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);
+void OBJECT_OT_game_property_copy(struct wmOperatorType *ot);
+void OBJECT_OT_logic_bricks_copy(struct wmOperatorType *ot);
+
 /* object_select.c */
 void OBJECT_OT_select_all(struct wmOperatorType *ot);
 void OBJECT_OT_select_inverse(struct wmOperatorType *ot);
@@ -100,7 +105,6 @@ void OBJECT_OT_select_same_group(struct wmOperatorType *ot);
 /* object_add.c */
 void OBJECT_OT_add(struct wmOperatorType *ot);
 void OBJECT_OT_add_named(struct wmOperatorType *ot);
-void OBJECT_OT_curve_add(struct wmOperatorType *ot);
 void OBJECT_OT_surface_add(struct wmOperatorType *ot);
 void OBJECT_OT_metaball_add(struct wmOperatorType *ot);
 void OBJECT_OT_text_add(struct wmOperatorType *ot);
@@ -160,9 +164,11 @@ void OBJECT_OT_explode_refresh(struct wmOperatorType *ot);
 /* object_constraint.c */
 void OBJECT_OT_constraint_add(struct wmOperatorType *ot);
 void OBJECT_OT_constraint_add_with_targets(struct wmOperatorType *ot);
-void OBJECT_OT_constraint_copy(struct wmOperatorType *ot);
 void POSE_OT_constraint_add(struct wmOperatorType *ot);
 void POSE_OT_constraint_add_with_targets(struct wmOperatorType *ot);
+
+void OBJECT_OT_constraints_copy(struct wmOperatorType *ot);
+void POSE_OT_constraints_copy(struct wmOperatorType *ot);
 
 void OBJECT_OT_constraints_clear(struct wmOperatorType *ot);
 void POSE_OT_constraints_clear(struct wmOperatorType *ot);
@@ -200,9 +206,6 @@ void OBJECT_OT_vertex_group_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_sort(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_move(struct wmOperatorType *ot);
-
-void OBJECT_OT_game_property_new(struct wmOperatorType *ot);
-void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);
 
 /* object_shapekey.c */
 void OBJECT_OT_shape_key_add(struct wmOperatorType *ot);

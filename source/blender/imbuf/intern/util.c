@@ -105,17 +105,19 @@ static int IMB_ispic_name(char *name)
 int IMB_ispic(char *filename)
 {
 	if(U.uiflag & USER_FILTERFILEEXTS) {
-		if (G.have_libtiff && (BLI_testextensie(filename, ".tif")
+		if (BLI_testextensie(filename, ".tif")
 				||	BLI_testextensie(filename, ".tiff")
-				||	BLI_testextensie(filename, ".tx"))) {
+				||	BLI_testextensie(filename, ".tx")) {
 				return IMB_ispic_name(filename);
 		}
 		if (G.have_quicktime){
 			if(		BLI_testextensie(filename, ".jpg")
 				||	BLI_testextensie(filename, ".jpeg")
+#ifdef WITH_TIFF
 				||	BLI_testextensie(filename, ".tif")
 				||	BLI_testextensie(filename, ".tiff")
 				||	BLI_testextensie(filename, ".tx")
+#endif
 				||	BLI_testextensie(filename, ".hdr")
 				||	BLI_testextensie(filename, ".tga")
 				||	BLI_testextensie(filename, ".rgb")
@@ -144,9 +146,14 @@ int IMB_ispic(char *filename)
 			} else {
 				return(FALSE);			
 			}
-		} else { /* no quicktime or libtiff */
+		} else { /* no quicktime */
 			if(		BLI_testextensie(filename, ".jpg")
 				||	BLI_testextensie(filename, ".jpeg")
+#ifdef WITH_TIFF
+				||	BLI_testextensie(filename, ".tif")
+				||	BLI_testextensie(filename, ".tiff")
+				||	BLI_testextensie(filename, ".tx")
+#endif
 				||	BLI_testextensie(filename, ".hdr")
 				||	BLI_testextensie(filename, ".tga")
 				||	BLI_testextensie(filename, ".rgb")

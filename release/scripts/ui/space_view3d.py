@@ -32,14 +32,13 @@ class VIEW3D_HT_header(bpy.types.Header):
         obj = context.active_object
         toolsettings = context.tool_settings
 
-        row = layout.row()
+        row = layout.row(align=True)
         row.template_header()
-
-        sub = row.row(align=True)
 
         # Menus
         if context.area.show_menus:
-
+            sub = row.row(align=True)
+			
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
@@ -54,6 +53,7 @@ class VIEW3D_HT_header(bpy.types.Header):
             else:
                 sub.menu("VIEW3D_MT_object")
 
+        row = layout.row()
         row.template_header_3D()
 
         # do in C for now since these buttons cant be both toggle AND exclusive.
@@ -675,6 +675,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.menu("VIEW3D_MT_object_track")
         layout.menu("VIEW3D_MT_object_group")
         layout.menu("VIEW3D_MT_object_constraints")
+        layout.menu("VIEW3D_MT_object_game_properties")
 
         layout.separator()
 
@@ -706,14 +707,13 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
 
     def poll(self, context):
         # add more special types
-        obj = context.object
-        return bool(obj and obj.type == 'LAMP')
+        return context.object
 
     def draw(self, context):
         layout = self.layout
 
         obj = context.object
-        if obj and obj.type == 'LAMP':
+        if obj.type == 'LAMP':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             props = layout.operator("wm.context_modal_mouse", text="Spot Size")
@@ -735,6 +735,10 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
             props.path_iter = "selected_editable_objects"
             props.path_item = "data.shadow_buffer_clip_end"
             props.input_scale = 0.05
+
+            layout.separator()
+
+        props = layout.operator("object.isolate_type_render")
 
 
 class VIEW3D_MT_object_apply(bpy.types.Menu):
@@ -793,6 +797,7 @@ class VIEW3D_MT_object_constraints(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("object.constraint_add_with_targets")
+        layout.operator("object.constraints_copy")
         layout.operator("object.constraints_clear")
 
 
@@ -839,6 +844,17 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
         layout.operator_menu_enum("marker.make_links_scene", "scene", text="Markers to Scene...")
         layout.operator_enums("object.make_links_data", "type") # inline
 
+
+class VIEW3D_MT_object_game_properties(bpy.types.Menu):
+    bl_label = "Game Properties"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.game_property_copy", text="Replace").operation="REPLACE"
+        layout.operator("object.game_property_copy", text="Merge").operation="MERGE"
+        # layout.operator("object.game_property_copy").operation="CLEAR" doesn't really belong as part of copy...
+        layout.operator_menu_enum("object.game_property_copy", "property", text="Copy...")
 
 # ********** Vertex paint menu **********
 
@@ -1145,6 +1161,7 @@ class VIEW3D_MT_pose_constraints(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("pose.constraint_add_with_targets", text="Add (With Targets)...")
+        layout.operator("pose.constraints_copy")
         layout.operator("pose.constraints_clear")
 
 
@@ -2205,6 +2222,7 @@ classes = [
     VIEW3D_MT_object_track,
     VIEW3D_MT_object_group,
     VIEW3D_MT_object_constraints,
+    VIEW3D_MT_object_game_properties,
     VIEW3D_MT_object_showhide,
     VIEW3D_MT_make_single_user,
     VIEW3D_MT_make_links,

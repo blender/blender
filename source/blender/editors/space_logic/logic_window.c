@@ -3222,8 +3222,13 @@ static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 	bArmatureSensor *as = (bArmatureSensor *) sens->data;
 	Object *ob = (Object *)ptr->id.data;
 	PointerRNA pose_ptr, pchan_ptr;
-	PropertyRNA *bones_prop;
+	PropertyRNA *bones_prop= NULL;
 	uiLayout *row;
+
+	if(ob->type != OB_ARMATURE){
+		uiItemL(layout, "Sensor only available for armatures", 0);
+		return;
+	}
 
 	if (ob->pose) {
 		RNA_pointer_create((ID *)ob, &RNA_Pose, ob->pose, &pose_ptr);
@@ -3589,6 +3594,10 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 	PointerRNA settings_ptr;
 	uiLayout *row;
 
+	if(ob->type != OB_ARMATURE){
+		uiItemL(layout, "Actuator only available for armatures", 0);
+		return;
+	}
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
 
 	row= uiLayoutRow(layout, 0);
@@ -3624,6 +3633,11 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 	Object *ob = (Object *)ptr->id.data;
 	PointerRNA pose_ptr, pchan_ptr;
 	PropertyRNA *bones_prop;
+
+	if(ob->type != OB_ARMATURE){
+		uiItemL(layout, "Actuator only available for armatures", 0);
+		return;
+	}
 	
 	if (ob->pose) {
 		RNA_pointer_create((ID *)ob, &RNA_Pose, ob->pose, &pose_ptr);
@@ -3783,6 +3797,7 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 {
+	Object *ob = (Object *)ptr->id.data;
 	uiLayout *row, *split, *subsplit;
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 
@@ -3806,6 +3821,10 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 		case ACT_EDOB_END_OBJECT:
 			break;
 		case ACT_EDOB_REPLACE_MESH:
+			if(ob->type != OB_MESH) {
+				uiItemL(layout, "Mode only available for mesh objects", 0);
+				break;
+			}
 			split = uiLayoutSplit(layout, 0.6, 0);
 			uiItemR(split, ptr, "mesh", 0, NULL, 0);
 			row = uiLayoutRow(split, 0);
@@ -3820,6 +3839,10 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(subsplit, ptr, "enable_3d_tracking", UI_ITEM_R_TOGGLE, NULL, 0);
 			break;
 		case ACT_EDOB_DYNAMICS:
+			if(ob->type != OB_MESH) {
+				uiItemL(layout, "Mode only available for mesh objects", 0);
+				break;
+			}
 			uiItemR(layout, ptr, "dynamic_operation", 0, NULL, 0);
 			if (RNA_enum_get(ptr, "dynamic_operation") == ACT_EDOB_SET_MASS)
 				uiItemR(layout, ptr, "mass", 0, NULL, 0);
@@ -4145,6 +4168,11 @@ static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 	PointerRNA settings_ptr;
 	uiLayout *row;
 
+	if(ob->type != OB_MESH){
+		uiItemL(layout, "Actuator only available for mesh objects", 0);
+		return;
+	}
+
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
 
 	row= uiLayoutRow(layout, 0);
@@ -4175,7 +4203,7 @@ static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
-	uiLayout *row, *box;
+	uiLayout *row, *col;
 
 	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL);
 	if (!RNA_pointer_get(ptr, "sound").data)
@@ -4189,23 +4217,24 @@ static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 	uiItemR(row, ptr, "volume", 0, NULL, 0);
 	uiItemR(row, ptr, "pitch", 0, NULL, 0);
 
-	uiItemR(layout, ptr, "enable_sound_3d", UI_ITEM_R_TOGGLE, NULL, 0);
-	box = uiLayoutBox(layout);
-	uiLayoutSetActive(box, RNA_boolean_get(ptr, "enable_sound_3d")==1);
+	uiItemR(layout, ptr, "enable_sound_3d", 0, NULL, 0);
+	
+	col = uiLayoutColumn(layout, 0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "enable_sound_3d")==1);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "minimum_gain_3d", 0, NULL, 0);
 	uiItemR(row, ptr, "maximum_gain_3d", 0, NULL, 0);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "reference_distance_3d", 0, NULL, 0);
 	uiItemR(row, ptr, "max_distance_3d", 0, NULL, 0);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "rolloff_factor_3d", 0, NULL, 0);
 	uiItemR(row, ptr, "cone_outer_gain_3d", 0, NULL, 0);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "cone_outer_angle_3d", 0, NULL, 0);
 	uiItemR(row, ptr, "cone_inner_angle_3d", 0, NULL, 0);
 }

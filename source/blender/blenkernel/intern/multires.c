@@ -207,7 +207,7 @@ void multiresModifier_join(Object *ob)
 }
 #endif
 
-int multiresModifier_reshapeFromDM(MultiresModifierData *mmd, Object *ob, DerivedMesh *srcdm)
+int multiresModifier_reshapeFromDM(Object *ob, DerivedMesh *srcdm)
 {
 	DerivedMesh *mrdm = get_multires_dm (ob);
 
@@ -228,13 +228,13 @@ int multiresModifier_reshapeFromDM(MultiresModifierData *mmd, Object *ob, Derive
 }
 
 /* Returns 1 on success, 0 if the src's totvert doesn't match */
-int multiresModifier_reshape(MultiresModifierData *mmd, Object *dst, Object *src)
+int multiresModifier_reshape(Object *dst, Object *src)
 {
 	DerivedMesh *srcdm = src->derivedFinal;
-	return multiresModifier_reshapeFromDM(mmd, dst, srcdm);
+	return multiresModifier_reshapeFromDM(dst, srcdm);
 }
 
-int multiresModifier_reshapeFromDeformMod(MultiresModifierData *mmd, Object *ob, ModifierData *md)
+int multiresModifier_reshapeFromDeformMod(Object *ob, ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	DerivedMesh *dm, *ndm;
@@ -256,7 +256,7 @@ int multiresModifier_reshapeFromDeformMod(MultiresModifierData *mmd, Object *ob,
 	dm->release(dm);
 
 	/* Reshaping */
-	result= multiresModifier_reshapeFromDM(mmd, ob, ndm);
+	result= multiresModifier_reshapeFromDM(ob, ndm);
 
 	/* Cleanup */
 	ndm->release(ndm);

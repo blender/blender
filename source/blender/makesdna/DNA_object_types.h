@@ -412,13 +412,14 @@ extern Object workob;
 #define BA_HAS_RECALC_OB	4
 #define BA_HAS_RECALC_DATA	8
 
-	// XXX DEPRECEATED SETTING...
-#define BA_DO_IPO			32
+	/* NOTE: this was used as a proper setting in past, so nullify before using */
+#define BA_TEMP_TAG			32
 
 #define BA_FROMSET			128
 
 #define BA_TRANSFORM_CHILD	256 /* child of a transformed object */
 #define BA_TRANSFORM_PARENT	8192 /* parent of a transformed object */
+
 
 /* an initial attempt as making selection more specific! */
 #define BA_DESELECT		0

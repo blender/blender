@@ -1,6 +1,6 @@
 
-Game Engine bge.events module.
-==============================
+Game Engine bge.events module
+=============================
 
 This module holds key constants for the SCA_KeyboardSensor.
 
@@ -191,4 +191,4 @@ This module holds key constants for the SCA_KeyboardSensor.
 .. data:: WHEELUPMOUSE
 .. data:: WHEELDOWNMOUSE
 .. data:: MOUSEX
-.. data:: MOUSEY:
+.. data:: MOUSEY

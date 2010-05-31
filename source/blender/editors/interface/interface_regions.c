@@ -1770,6 +1770,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	static float hsv[3];
 	static char hexcol[128];
 	float rgb_gamma[3];
+	float min, max, step, precision;
 	const char *propname = RNA_property_identifier(prop);
 	
 	width= PICKER_TOTAL_W;
@@ -1785,6 +1786,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 		linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
 	}
 	
+	RNA_property_float_ui_range(ptr, prop, &min, &max, &step, &precision);
 	RNA_property_float_get_array(ptr, prop, rgb);
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 
@@ -1833,7 +1835,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	bt= uiDefButF(block, NUMSLI, 0, "S ",	0, -80, butwidth, UI_UNIT_Y, hsv+1, 0.0, 1.0, 10, 3, "");
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, butwidth, UI_UNIT_Y, hsv+2, 0.0, 1.0, 10, 3, "");
+	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, butwidth, UI_UNIT_Y, hsv+2, 0.0, max, 10, 3, "");
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
 	

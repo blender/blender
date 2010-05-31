@@ -214,10 +214,7 @@ static void *tslot_thread_start(void *tslot_p)
 }
 
 int BLI_thread_is_main(void) {
-	pthread_t  tid;
-	tid = pthread_self();
-
-	return !memcmp(&tid, &mainid, sizeof(pthread_t));
+	return pthread_equal(pthread_self(), mainid);
 }
 
 void BLI_insert_thread(ListBase *threadbase, void *callerdata)

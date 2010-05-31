@@ -88,6 +88,7 @@ typedef struct CompoJob {
 	bNodeTree *localtree;
 	short *stop;
 	short *do_update;
+	float *progress;
 } CompoJob;
 
 /* called by compo, only to check job 'stop' value */
@@ -133,9 +134,16 @@ static void compo_updatejob(void *cjv)
 	ntreeLocalSync(cj->localtree, cj->ntree);
 }
 
+static void compo_progressjob(void *cjv, float progress)
+{
+	CompoJob *cj= cjv;
+	
+	*(cj->progress) = progress;
+}
+
 
 /* only this runs inside thread */
-static void compo_startjob(void *cjv, short *stop, short *do_update)
+static void compo_startjob(void *cjv, short *stop, short *do_update, float *progress)
 {
 	CompoJob *cj= cjv;
 	bNodeTree *ntree= cj->localtree;
@@ -145,11 +153,14 @@ static void compo_startjob(void *cjv, short *stop, short *do_update)
 	
 	cj->stop= stop;
 	cj->do_update= do_update;
+	cj->progress= progress;
 	
 	ntree->test_break= compo_breakjob;
 	ntree->tbh= cj;
 	ntree->stats_draw= compo_redrawjob;
 	ntree->sdh= cj;
+	ntree->progress= compo_progressjob;
+	ntree->prh= cj;
 	
 	// XXX BIF_store_spare();
 	
@@ -157,6 +168,7 @@ static void compo_startjob(void *cjv, short *stop, short *do_update)
 	
 	ntree->test_break= NULL;
 	ntree->stats_draw= NULL;
+	ntree->progress= NULL;
 
 }
 
@@ -166,7 +178,7 @@ void snode_composite_job(const bContext *C, ScrArea *sa)
 	wmJob *steve;
 	CompoJob *cj;
 
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, WM_JOB_EXCL_RENDER);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Compositing", WM_JOB_EXCL_RENDER|WM_JOB_PROGRESS);
 	cj= MEM_callocN(sizeof(CompoJob), "compo job");
 	
 	/* customdata for preview thread */

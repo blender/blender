@@ -57,3 +57,7 @@ ifeq ($(WITH_OPENEXR), true)
     CPPFLAGS += -DWITH_OPENEXR
 endif
 
+ifeq ($(WHITH_TIFF), true)
+    CPPFLAGS += -DWITH_TIFF
+endif
+

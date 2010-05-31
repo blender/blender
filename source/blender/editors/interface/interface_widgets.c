@@ -1276,6 +1276,19 @@ static struct uiWidgetColors wcol_scroll= {
 	5, -5
 };
 
+static struct uiWidgetColors wcol_progress= {
+	{0, 0, 0, 255},
+	{190, 190, 190, 255},
+	{100, 100, 100, 180},
+	{68, 68, 68, 255},
+	
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	
+	0,
+	0, 0
+};
+
 static struct uiWidgetColors wcol_list_item= {
 	{0, 0, 0, 255},
 	{0, 0, 0, 0},
@@ -1322,6 +1335,7 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_box= wcol_box;
 	tui->wcol_scroll= wcol_scroll;
 	tui->wcol_list_item= wcol_list_item;
+	tui->wcol_progress= wcol_progress;
 
 	tui->wcol_state= wcol_state;
 }
@@ -1954,6 +1968,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 	uiWidgetBase wtb;
 	float rad;
 	int horizontal;
+	short outline=0;
 
 	widget_init(&wtb);
 
@@ -1995,6 +2010,10 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 		/* draw */
 		wtb.emboss= 0; /* only emboss once */
 		
+		/* exception for progress bar */
+		if (state & UI_SCROLL_NO_OUTLINE)	
+			SWAP(short, outline, wtb.outline);
+		
 		round_box_edges(&wtb, 15, slider, rad); 
 		
 		if(state & UI_SCROLL_ARROWS) {
@@ -2013,6 +2032,9 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 			}
 		}
 		widgetbase_draw(&wtb, wcol);
+		
+		if (state & UI_SCROLL_NO_OUTLINE)
+			SWAP(short, outline, wtb.outline);
 	}	
 }
 
@@ -2077,9 +2099,35 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	uiWidgetScrollDraw(wcol, rect, &rect1, state);
 }
 
+static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	rcti rect_prog = *rect, rect_bar = *rect;
+	float value = but->a1;
+	float w, min;
+	
+	/* make the progress bar a proportion of the original height */
+	/* hardcoded 4px high for now */
+	rect_prog.ymax = rect_prog.ymin + 4;
+	rect_bar.ymax = rect_bar.ymin + 4;
+	
+	w = value * (rect_prog.xmax - rect_prog.xmin);
+	
+	/* ensure minimium size */
+	min= rect_prog.ymax - rect_prog.ymin;
+	w = MAX2(w, min);
+	
+	rect_bar.xmax = rect_bar.xmin + w;
+		
+	uiWidgetScrollDraw(wcol, &rect_prog, &rect_bar, UI_SCROLL_NO_OUTLINE);
+	
+	/* raise text a bit */
+	rect->ymin += 6;
+	rect->xmin -= 6;
+}
+
 static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-
+	
 	if(but->flag & UI_SELECT) {
 		rcti rectlink;
 		
@@ -2093,7 +2141,6 @@ static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state,
 		ui_draw_link_bezier(&rectlink);
 	}
 }
-
 
 static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
@@ -2541,6 +2588,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme= &btheme->tui.wcol_list_item;
 			wt.draw= widget_list_itembut;
 			break;
+			
+		case UI_WTYPE_PROGRESSBAR:
+			wt.wcol_theme= &btheme->tui.wcol_progress;
+			wt.custom= widget_progressbar;
+			break;
 	}
 	
 	return &wt;
@@ -2755,6 +2807,11 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 					
 			case BUT_CURVE:
 				ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
+				break;
+				
+			case PROGRESSBAR:
+				wt= widget_type(UI_WTYPE_PROGRESSBAR);
+				fstyle= &style->widgetlabel;
 				break;
 
 			case SCROLL:

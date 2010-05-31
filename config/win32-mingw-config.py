@@ -54,7 +54,7 @@ WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/gcc/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
-BF_OPENEXR_LIB = ' Half IlmImf Iex '
+BF_OPENEXR_LIB = ' Half IlmImf Iex IlmThread '
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 # Warning, this static lib configuration is untested! users of this OS please confirm.
 BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
@@ -73,9 +73,10 @@ BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'png'
 BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
-BF_TIFF = LIBDIR + '/tiff'
+WITH_BF_TIFF = True
+BF_TIFF = LIBDIR + '/gcc/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
-BF_TIFF_LIB = 'libtiff'
+BF_TIFF_LIB = 'tiff'
 BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 
 WITH_BF_ZLIB = True

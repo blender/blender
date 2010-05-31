@@ -534,7 +534,7 @@ void BKE_write_undo(bContext *C, char *name)
 		sprintf(numstr, "%d.blend", counter);
 		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
-		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, NULL);
+		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, NULL, NULL);
 		
 		strcpy(curundo->str, tstr);
 	}

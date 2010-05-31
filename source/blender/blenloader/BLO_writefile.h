@@ -35,10 +35,12 @@ struct MemFile;
 struct Main;
 struct ReportList;
 
-extern int BLO_write_file(struct Main *mainvar, char *dir, int write_flags, struct ReportList *reports);
+extern int BLO_write_file(struct Main *mainvar, char *dir, int write_flags, struct ReportList *reports, int *thumb);
 extern int BLO_write_file_mem(struct Main *mainvar, struct MemFile *compare, struct MemFile *current, 
 							  int write_flags, struct ReportList *reports);
 extern int BLO_write_runtime(struct Main *mainvar, char *file, char *exename, struct ReportList *reports);
+
+#define BLEN_THUMB_SIZE 128
 
 #endif
 

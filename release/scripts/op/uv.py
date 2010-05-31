@@ -167,18 +167,34 @@ class ExportUVLayout(bpy.types.Operator):
             fw('1 setlinewidth\n')
             fw('1 setlinejoin\n')
             fw('1 setlinecap\n')
+            fw('/DRAW {')
+            # can remove from here to next comment to disable filling, aparently alpha is not supported
+            fw('gsave\n')
+            fw('0.7 setgray\n')
+            fw('fill\n')
+            fw('grestore\n')
+            fw('0 setgray\n')
+            # remove to here
+            fw('stroke\n')
+            fw('} def\n')
             fw('newpath\n')
-
+            
+            firstline = True
             for i, uvs in self._face_uv_iter(context):
                 for j, uv in enumerate(uvs):
                     x, y = uv[0], uv[1]
                     if j == 0:
+                        if not firstline:
+                            fw('closepath\n')
+                            fw('DRAW\n')
+                            fw('newpath\n')
+                        firstline = False
                         fw('%.5f %.5f moveto\n' % (x * image_width, y * image_height))
                     else:
                         fw('%.5f %.5f lineto\n' % (x * image_width, y * image_height))
 
             fw('closepath\n')
-            fw('stroke\n')
+            fw('DRAW\n')
             fw('showpage\n')
             fw('%%EOF\n')
 
@@ -203,7 +219,7 @@ def register():
     bpy.types.IMAGE_MT_uvs.append(menu_func)
 
 
-def unreguster():
+def unregister():
     bpy.types.unregister(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.remove(menu_func)
 

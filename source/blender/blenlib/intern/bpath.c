@@ -62,7 +62,7 @@
 /* for sequence */
 //XXX #include "BSE_sequence.h"
 //XXX define below from BSE_sequence.h - otherwise potentially odd behaviour
-#define SEQ_HAS_PATH(seq) (seq->type==SEQ_MOVIE || seq->type==SEQ_IMAGE)
+#define SEQ_HAS_PATH(_seq) ( (_seq)->type==SEQ_MOVIE || (_seq)->type==SEQ_IMAGE || (_seq)->type==SEQ_SOUND )
 
 
 
@@ -262,7 +262,7 @@ static void seq_getpath(struct BPathIterator *bpi, char *path) {
 	path[0] = '\0'; /* incase we cant get the path */
 	if (seq==NULL) return;
 	if (SEQ_HAS_PATH(seq)) {
-		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
+		if (ELEM3(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_SOUND)) {
 			BLI_strncpy(path, seq->strip->dir, FILE_MAX);
 			BLI_add_slash(path); /* incase its missing */
 			if (seq->strip->stripdata) { /* should always be true! */
@@ -281,7 +281,7 @@ static void seq_setpath(struct BPathIterator *bpi, char *path) {
 	if (seq==NULL) return; 
 	
 	if (SEQ_HAS_PATH(seq)) {
-		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
+		if (ELEM3(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_SOUND)) {
 			BLI_split_dirfile(path, seq->strip->dir, seq->strip->stripdata->name);
 		} else {
 			/* simple case */

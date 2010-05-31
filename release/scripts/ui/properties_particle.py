@@ -705,12 +705,6 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
             sub = split.column()
             sub.prop(part, "velocity_length")
         elif part.ren_as == 'PATH':
-
-            if part.type != 'HAIR' and part.physics_type != 'KEYED' and (psys.point_cache.baked is False):
-                box = layout.box()
-                box.label(text="Baked or keyed particles needed for correct rendering.")
-                return
-
             sub.prop(part, "render_strand")
             subsub = sub.column()
             subsub.active = (part.render_strand is False)
@@ -861,11 +855,6 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
             return
 
         path = (part.ren_as == 'PATH' and part.draw_as == 'RENDER') or part.draw_as == 'PATH'
-
-        if path and part.type != 'HAIR' and part.physics_type != 'KEYED' and psys.point_cache.baked is False:
-            box = layout.box()
-            box.label(text="Baked or keyed particles needed for correct drawing.")
-            return
 
         row = layout.row()
         row.prop(part, "display", slider=True)

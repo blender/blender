@@ -158,7 +158,7 @@ static void rna_def_animviz_ghosts(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static const EnumPropertyItem prop_type_items[] = {
-		{GHOST_TYPE_NONE, "NONE", 0, "No Ghosts", "Don not show any ghosts"},
+		{GHOST_TYPE_NONE, "NONE", 0, "No Ghosts", "Do not show any ghosts"},
 		{GHOST_TYPE_ACFRA, "CURRENT_FRAME", 0, "Around Current Frame", "Show ghosts from around the current frame"},
 		{GHOST_TYPE_RANGE, "RANGE", 0, "In Range", "Show ghosts for the specified frame range"},
 		{GHOST_TYPE_KEYS, "KEYS", 0, "On Keyframes", "Show ghosts on keyframes"},
@@ -222,8 +222,8 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static const EnumPropertyItem prop_type_items[]= {
-		{MOTIONPATH_TYPE_RANGE, "RANGE", 0, "In Range", "Display Paths of poses within specified range"},
 		{MOTIONPATH_TYPE_ACFRA, "CURRENT_FRAME", 0, "Around Frame", "Display Paths of poses within a fixed number of frames around the current frame"},
+		{MOTIONPATH_TYPE_RANGE, "RANGE", 0, "In Range", "Display Paths of poses within specified range"},
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_location_items[]= {
 		{MOTIONPATH_BAKE_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
@@ -262,6 +262,11 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_keyframe_numbers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "path_viewflag", MOTIONPATH_VIEW_KFNOS);
 	RNA_def_property_ui_text(prop, "Show Keyframe Numbers", "Show frame numbers of Keyframes on Motion Paths");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
+	
+	prop= RNA_def_property(srna, "search_all_action_keyframes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "path_viewflag", MOTIONPATH_VIEW_KFACT);
+	RNA_def_property_ui_text(prop, "All Action Keyframes", "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_NONE);

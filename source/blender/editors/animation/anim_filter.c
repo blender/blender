@@ -68,6 +68,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -2512,6 +2513,65 @@ static short animdata_filter_dopesheet_summary (bAnimContext *ac, ListBase *anim
 	return 1;
 }  
 
+/* ----------- Cleanup API --------------- */
+
+/* Remove entries with invalid types in animation channel list */
+static int animdata_filter_remove_invalid (ListBase *anim_data)
+{
+	bAnimListElem *ale, *next;
+	int items = 0;
+	
+	/* only keep entries with valid types */
+	for (ale= anim_data->first; ale; ale= next) {
+		next= ale->next;
+		
+		if (ale->type == ANIMTYPE_NONE)
+			BLI_freelinkN(anim_data, ale);
+		else
+			items++;
+	}
+	
+	return items;
+}
+
+/* Remove duplicate entries in animation channel list */
+static int animdata_filter_remove_duplis (ListBase *anim_data)
+{
+	bAnimListElem *ale, *next;
+	GHash *gh;
+	int items = 0;
+	
+	/* build new hashtable to efficiently store and retrieve which entries have been 
+	 * encountered already while searching
+	 */
+	gh= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "animdata_filter_duplis_remove gh");
+	
+	/* loop through items, removing them from the list if a similar item occurs already */
+	for (ale = anim_data->first; ale; ale = next) {
+		next = ale->next;
+		
+		/* check if hash has any record of an entry like this 
+		 *	- just use ale->data for now, though it would be nicer to involve 
+		 *	  ale->type in combination too to capture corner cases (where same data performs differently)
+		 */
+		if (BLI_ghash_haskey(gh, ale->data) == 0) {
+			/* this entry is 'unique' and can be kept */
+			BLI_ghash_insert(gh, ale->data, NULL);
+			items++;
+		}
+		else {
+			/* this entry isn't needed anymore */
+			BLI_freelinkN(anim_data, ale);
+		}
+	}
+	
+	/* free the hash... */
+	BLI_ghash_free(gh, NULL, NULL);
+	
+	/* return the number of items still in the list */
+	return items;
+}
+
 /* ----------- Public API --------------- */
 
 /* This function filters the active data source to leave only animation channels suitable for
@@ -2527,7 +2587,6 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 	
 	/* only filter data if there's somewhere to put it */
 	if (data && anim_data) {
-		bAnimListElem *ale, *next;
 		Object *obact= (ac) ? ac->obact : NULL;
 		
 		/* firstly filter the data */
@@ -2572,16 +2631,12 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 				break;
 		}
 			
-		/* remove any weedy entries */
-		// XXX this is weedy code!
-		for (ale= anim_data->first; ale; ale= next) {
-			next= ale->next;
-			
-			if (ale->type == ANIMTYPE_NONE) {
-				items--;
-				BLI_freelinkN(anim_data, ale);
-			}
-		}
+		/* remove any 'weedy' entries */
+		items = animdata_filter_remove_invalid(anim_data);
+		
+		/* remove duplicates (if required) */
+		if (filter_mode & ANIMFILTER_NODUPLIS)
+			items = animdata_filter_remove_duplis(anim_data);
 	}
 	
 	/* return the number of items in the list */

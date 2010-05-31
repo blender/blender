@@ -36,6 +36,7 @@ For PDF generation
     make
 '''
 
+# import rpdb2; rpdb2.start_embedded_debugger('test')
 
 import os
 import inspect
@@ -133,7 +134,7 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
     
     if type(descr) == GetSetDescriptorType:
         fw(ident + ".. attribute:: %s\n\n" % identifier)
-        write_indented_lines(ident, fw, doc, False)
+        write_indented_lines(ident + "   ", fw, doc, False)
     elif type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
         write_indented_lines(ident, fw, doc, False)
     else:

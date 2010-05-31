@@ -162,7 +162,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			height = th;
 			top = rect.top;
 		}
-		else if(top > rect.top)
+		else if(top < rect.top)
 			top = rect.top;
 
 		m_hWnd = ::CreateWindow(

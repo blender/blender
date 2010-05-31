@@ -466,7 +466,7 @@ void ED_spacetype_text(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_UI;
 	art->prefsizex= UI_COMPACT_PANEL_WIDTH;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI;
 	
 	art->init= text_properties_area_init;
 	art->draw= text_properties_area_draw;

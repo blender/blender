@@ -112,7 +112,6 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(GROUP_OT_objects_remove_active);
 
 	WM_operatortype_append(OBJECT_OT_delete);
-	WM_operatortype_append(OBJECT_OT_curve_add);
 	WM_operatortype_append(OBJECT_OT_text_add);
 	WM_operatortype_append(OBJECT_OT_surface_add);
 	WM_operatortype_append(OBJECT_OT_armature_add);
@@ -146,9 +145,10 @@ void ED_operatortypes_object(void)
 	
 	WM_operatortype_append(OBJECT_OT_constraint_add);
 	WM_operatortype_append(OBJECT_OT_constraint_add_with_targets);
-	WM_operatortype_append(OBJECT_OT_constraint_copy);
 	WM_operatortype_append(POSE_OT_constraint_add);
 	WM_operatortype_append(POSE_OT_constraint_add_with_targets);
+	WM_operatortype_append(OBJECT_OT_constraints_copy);
+	WM_operatortype_append(POSE_OT_constraints_copy);
 	WM_operatortype_append(OBJECT_OT_constraints_clear);
 	WM_operatortype_append(POSE_OT_constraints_clear);
 	WM_operatortype_append(POSE_OT_ik_add);
@@ -183,6 +183,8 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_game_property_new);
 	WM_operatortype_append(OBJECT_OT_game_property_remove);
+	WM_operatortype_append(OBJECT_OT_game_property_copy);
+	WM_operatortype_append(OBJECT_OT_logic_bricks_copy);
 
 	WM_operatortype_append(OBJECT_OT_shape_key_add);
 	WM_operatortype_append(OBJECT_OT_shape_key_remove);

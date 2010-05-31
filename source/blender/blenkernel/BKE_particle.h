@@ -255,9 +255,11 @@ void psys_threads_free(ParticleThread *threads);
 void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3]);
 
 /* particle_system.c */
+void psys_update_path_cache(struct ParticleSimulationData *sim, float cfra);
 struct ParticleSystem *psys_get_target_system(struct Object *ob, struct ParticleTarget *pt);
 void psys_count_keyed_targets(struct ParticleSimulationData *sim);
 void psys_update_particle_tree(struct ParticleSystem *psys, float cfra);
+void psys_update_children(struct ParticleSimulationData *sim);
 
 void psys_make_temp_pointcache(struct Object *ob, struct ParticleSystem *psys);
 void psys_get_pointcache_start_end(struct Scene *scene, ParticleSystem *psys, int *sfra, int *efra);

@@ -2619,7 +2619,7 @@ static void *do_bake_thread(void *bs_v)
 /* using object selection tags, the faces with UV maps get baked */
 /* render should have been setup */
 /* returns 0 if nothing was handled */
-int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_update)
+int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_update, float *progress)
 {
 	BakeShade *handles;
 	ListBase threads;
@@ -2634,7 +2634,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	get_next_bake_face(NULL);
 	
 	/* do we need a mask? */
-	if (re->r.bake_filter && (re->r.bake_flag & R_BAKE_CLEAR)==0)
+	if (re->r.bake_filter)
 		usemask = 1;
 	
 	/* baker uses this flag to detect if image was initialized */
@@ -2680,12 +2680,18 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	/* wait for everything to be done */
 	a= 0;
 	while(a!=re->r.threads) {
-		
 		PIL_sleep_ms(50);
 
-		for(a=0; a<re->r.threads; a++)
+		/* calculate progress */
+		for(vdone=0, a=0; a<re->r.threads; a++)
+			vdone+= handles[a].vdone;
+		if (progress)
+			*progress = (float)(vdone / (float)re->totvlak);
+		
+		for(a=0; a<re->r.threads; a++) {
 			if(handles[a].ready==0)
 				break;
+		}
 	}
 	
 	/* filter and refresh images */
@@ -2733,12 +2739,10 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	}
 	
 	/* calculate return value */
-	 for(a=0; a<re->r.threads; a++) {
-		vdone+= handles[a].vdone;
-		
+	for(a=0; a<re->r.threads; a++) {
 		zbuf_free_span(handles[a].zspan);
 		MEM_freeN(handles[a].zspan);
-	 }
+	}
 
 	MEM_freeN(handles);
 	

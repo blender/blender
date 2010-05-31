@@ -61,7 +61,6 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I$(NAN_JPEG)/include
 CPPFLAGS += -I$(NAN_PNG)/include
 CPPFLAGS += -I$(NAN_ZLIB)/include
-CPPFLAGS += -I$(NAN_TIFF)/include
 CPPFLAGS += -I../../include
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
@@ -84,4 +83,9 @@ endif
 ifeq ($(WITH_FFMPEG), true)
    CPPFLAGS += -DWITH_FFMPEG
    CPPFLAGS += $(NAN_FFMPEGCFLAGS)
+endif
+
+ifeq ($(WITH_TIFF), true)
+   CPPFLAGS += -DWITH_TIFF
+   CPPFLAGS += -I$(NAN_TIFF)/include
 endif

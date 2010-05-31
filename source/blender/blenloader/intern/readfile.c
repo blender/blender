@@ -2082,7 +2082,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	
 	ntree->init= 0;		/* to set callbacks and force setting types */
 	ntree->owntype= NULL;
-	ntree->timecursor= NULL;
+	ntree->progress= NULL;
 	
 	ntree->adt= newdataadr(fd, ntree->adt);
 	direct_link_animdata(fd, ntree->adt);
@@ -4179,7 +4179,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				if(seq->scene) {
 					seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
-					seq->scene_sound = sound_scene_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs);
+					seq->scene_sound = sound_scene_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 				}
 				if(seq->scene_camera) seq->scene_camera= newlibadr(fd, sce->id.lib, seq->scene_camera);
 				if(seq->sound) {
@@ -4190,7 +4190,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 						seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
 					if (seq->sound) {
 						seq->sound->id.us++;
-						seq->scene_sound = sound_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs);
+						seq->scene_sound = sound_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 					}
 				}
 				seq->anim= 0;
@@ -4218,8 +4218,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
 			}
 			/*Game Settings: Dome Warp Text*/
-//			sce->r.dometext= newlibadr_us(fd, sce->id.lib, sce->r.dometext); // XXX deprecated since 2.5
-			sce->gm.dome.warptext= newlibadr_us(fd, sce->id.lib, sce->gm.dome.warptext);
+			sce->gm.dome.warptext= newlibadr(fd, sce->id.lib, sce->gm.dome.warptext);
 
 			sce->id.flag -= LIB_NEEDLINK;
 		}
@@ -10853,8 +10852,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		Object *ob;
 		bScreen *sc;
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
@@ -10876,6 +10877,41 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		do_version_mdef_250(fd, lib, main);
+
+		/* parent type to modifier */
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			if(ob->parent) {
+				Object *parent= (Object *)newlibadr(fd, lib, ob->parent);
+				if(parent) { /* parent may not be in group */
+					if(parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
+						ArmatureModifierData *amd;
+						bArmature *arm= (bArmature *)newlibadr(fd, lib, parent->data);
+
+						amd = (ArmatureModifierData*) modifier_new(eModifierType_Armature);
+						amd->object = ob->parent;
+						BLI_addtail((ListBase*)&ob->modifiers, amd);
+						amd->deformflag= arm->deformflag;
+						ob->partype = PAROBJECT;
+					}
+					else if(parent->type==OB_LATTICE && ob->partype==PARSKEL) {
+						LatticeModifierData *lmd;
+
+						lmd = (LatticeModifierData*) modifier_new(eModifierType_Lattice);
+						lmd->object = ob->parent;
+						BLI_addtail((ListBase*)&ob->modifiers, lmd);
+						ob->partype = PAROBJECT;
+					}
+					else if(parent->type==OB_CURVE && ob->partype==PARCURVE) {
+						CurveModifierData *cmd;
+
+						cmd = (CurveModifierData*) modifier_new(eModifierType_Curve);
+						cmd->object = ob->parent;
+						BLI_addtail((ListBase*)&ob->modifiers, cmd);
+						ob->partype = PAROBJECT;
+					}
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -10976,7 +11012,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filename)
 		switch(bhead->code) {
 		case DATA:
 		case DNA1:
-		case TEST:
+		case TEST: /* used as preview since 2.5x */
 		case REND:
 			bhead = blo_nextbhead(fd, bhead);
 			break;

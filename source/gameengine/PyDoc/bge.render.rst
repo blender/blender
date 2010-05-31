@@ -1,6 +1,6 @@
 
-Game Engine bge.render Module.
-==============================
+Game Engine bge.render Module
+=============================
 
 .. module:: bge.render
 

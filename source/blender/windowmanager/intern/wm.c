@@ -30,8 +30,6 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "GHOST_C-api.h"
 
 #include "BLI_blenlib.h"
@@ -52,6 +50,8 @@
 #include "wm_event_types.h"
 #include "wm_draw.h"
 #include "wm.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "ED_screen.h"
 #include "BPY_extern.h"

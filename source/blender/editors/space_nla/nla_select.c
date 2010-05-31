@@ -70,7 +70,7 @@ static short selmodes_to_flagmodes (short sel)
 			break;
 			
 		case SELECT_INVERT:
-			return ACHANNEL_SETFLAG_TOGGLE;
+			return ACHANNEL_SETFLAG_INVERT;
 			break;
 			
 		case SELECT_ADD:

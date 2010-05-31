@@ -1202,11 +1202,11 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	split = uiLayoutSplit(layout, 0, 0);
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Links", 0);
-	uiItemO(col, NULL, ICON_URL, "HELP_OT_release_logs");
-	uiItemO(col, NULL, ICON_URL, "HELP_OT_manual");
-	uiItemO(col, NULL, ICON_URL, "HELP_OT_blender_website");
-	uiItemO(col, NULL, ICON_URL, "HELP_OT_user_community");
-	uiItemO(col, NULL, ICON_URL, "HELP_OT_python_api");
+	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-250/");
+	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:Manual");
+	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
+	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/");
+	uiItemStringO(col, "Python API Reference", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/documentation/250PythonDoc/contents.html");
 	uiItemL(col, "", 0);
 	
 	col = uiLayoutColumn(split, 0);

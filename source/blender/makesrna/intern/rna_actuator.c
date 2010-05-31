@@ -57,14 +57,6 @@ EnumPropertyItem actuator_type_items[] ={
 	{ACT_STEERING, "STEERING", 0, "Steering", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-EnumPropertyItem edit_object_type_items[] ={
-	{ACT_EDOB_ADD_OBJECT, "ADDOBJECT", 0, "Add Object", ""},
-	{ACT_EDOB_END_OBJECT, "ENDOBJECT", 0, "End Object", ""},
-	{ACT_EDOB_REPLACE_MESH, "REPLACEMESH", 0, "Replace Mesh", ""},
-	{ACT_EDOB_TRACK_TO, "TRACKTO", 0, "Track to", ""},
-	{ACT_EDOB_DYNAMICS, "DYNAMICS", 0, "Dynamics", ""},
-	{0, NULL, 0, NULL, NULL} };
-
 #ifdef RNA_RUNTIME
 
 #include "BKE_sca.h"
@@ -349,28 +341,6 @@ static void rna_StateActuator_state_set(PointerRNA *ptr, const int *values)
 	}
 }
 
-static EnumPropertyItem *rna_EditObjectActuator_mode_itemf(bContext *C, PointerRNA *ptr, int *free)
-{
-	EnumPropertyItem *item= NULL;
-	Object *ob = (Object *)ptr->id.data;
-
-	int totitem= 0;
-	if (ob->type!=OB_ARMATURE)
-	{
-		RNA_enum_items_add_value(&item, &totitem, edit_object_type_items, ACT_EDOB_REPLACE_MESH);
-		RNA_enum_items_add_value(&item, &totitem, edit_object_type_items, ACT_EDOB_DYNAMICS);
-	}
-
-	RNA_enum_items_add_value(&item, &totitem, edit_object_type_items, ACT_EDOB_ADD_OBJECT);
-	RNA_enum_items_add_value(&item, &totitem, edit_object_type_items, ACT_EDOB_END_OBJECT);
-	RNA_enum_items_add_value(&item, &totitem, edit_object_type_items, ACT_EDOB_TRACK_TO);
-	
-	RNA_enum_item_end(&item, &totitem);
-	*free= 1;
-	
-	return item;
-}
-
 /* Always keep in alphabetical order */
 EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
@@ -456,6 +426,23 @@ static void rna_Actuator_Armature_update(Main *bmain, Scene *scene, PointerRNA *
 	constraint[0] = 0;
 }
 
+/* note: the following set functions exists only to avoid id refcounting */
+static void rna_Actuator_editobject_mesh_set(PointerRNA *ptr, PointerRNA value)
+{
+        bActuator *act = (bActuator *)ptr->data;
+        bEditObjectActuator *eoa = (bEditObjectActuator *) act->data;
+
+        eoa->me = value.data;
+}
+
+static void rna_Actuator_action_action_set(PointerRNA *ptr, PointerRNA value)
+{
+        bActuator *act = (bActuator *)ptr->data;
+        bActionActuator *aa = (bActionActuator *) act->data;
+
+        aa->act = value.data;
+}
+
 #else
 
 void rna_def_actuator(BlenderRNA *brna)
@@ -515,6 +502,8 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Action");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Action", "");
+        /* note: custom set function is ONLY to avoid rna setting a user for this. */
+        RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_action_action_set", NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "continue_last_frame", PROP_BOOLEAN, PROP_NONE);
@@ -1213,14 +1202,21 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 		{ACT_EDOB_SET_MASS, "SETMASS", 0, "Set Mass", ""},
 		{0, NULL, 0, NULL, NULL} };
 
+	static EnumPropertyItem prop_type_items[] ={
+	{ACT_EDOB_ADD_OBJECT, "ADDOBJECT", 0, "Add Object", ""},
+	{ACT_EDOB_END_OBJECT, "ENDOBJECT", 0, "End Object", ""},
+	{ACT_EDOB_REPLACE_MESH, "REPLACEMESH", 0, "Replace Mesh", ""},
+	{ACT_EDOB_TRACK_TO, "TRACKTO", 0, "Track to", ""},
+	{ACT_EDOB_DYNAMICS, "DYNAMICS", 0, "Dynamics", ""},
+	{0, NULL, 0, NULL, NULL} };
+
 	srna= RNA_def_struct(brna, "EditObjectActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Edit Object Actuator", "Actuator used to edit objects");
 	RNA_def_struct_sdna_from(srna, "bEditObjectActuator", "data");
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, edit_object_type_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_EditObjectActuator_mode_itemf");
+	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Edit Object", "The mode of the actuator");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -1249,6 +1245,8 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "me");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Mesh", "Replace the existing, when left blank 'Phys' will remake the existing physics mesh");
+	/* note: custom set function is ONLY to avoid rna setting a user for this. */
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_editobject_mesh_set", NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "time", PROP_INT, PROP_NONE);
@@ -1715,6 +1713,8 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Action");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Action", "");
+        /* note: custom set function is ONLY to avoid rna setting a user for this. */
+        RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_action_action_set", NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "continue_last_frame", PROP_BOOLEAN, PROP_NONE);

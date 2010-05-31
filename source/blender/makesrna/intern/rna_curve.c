@@ -1256,13 +1256,13 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "The interpolation type for this curve element");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "point_count_u", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "point_count_u", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* editing this needs knot recalc*/
 	RNA_def_property_int_sdna(prop, NULL, "pntsu");
 	RNA_def_property_ui_text(prop, "Points U", "Total number points for the curve or surface in the U direction");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "point_count_v", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "point_count_v", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* editing this needs knot recalc*/
 	RNA_def_property_int_sdna(prop, NULL, "pntsv");
 	RNA_def_property_ui_text(prop, "Points V", "Total number points for the surface on the V direction");

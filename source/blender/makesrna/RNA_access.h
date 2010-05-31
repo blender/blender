@@ -356,6 +356,7 @@ extern StructRNA RNA_SPHFluidSettings;
 extern StructRNA RNA_ParticleSystem;
 extern StructRNA RNA_ParticleSystemModifier;
 extern StructRNA RNA_ParticleTarget;
+extern StructRNA RNA_PivotConstraint;
 extern StructRNA RNA_PluginSequence;
 extern StructRNA RNA_PluginTexture;
 extern StructRNA RNA_PointCache;
