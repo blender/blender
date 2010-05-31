@@ -24,7 +24,7 @@ narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class LAMP_MT_sunsky_presets(bpy.types.Menu):
-    bl_label = "Render Presets"
+    bl_label = "Sun & Sky Presets"
     preset_subdir = "sunsky"
     preset_operator = "script.execute_preset"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
