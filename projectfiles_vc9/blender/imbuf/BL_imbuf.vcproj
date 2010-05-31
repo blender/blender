@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="BL_imbuf"
 	ProjectGUID="{415BFD6E-64CF-422B-AF88-C07F040A7292}"
 	RootNamespace="BL_imbuf"
@@ -494,10 +494,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\imbuf\intern\dynlibtiff.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\filetype.c"
 				>
 			</File>
@@ -591,6 +587,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\thumbs.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\thumbs_blend.c"
 				>
 			</File>
 			<File
@@ -747,10 +747,6 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
-			<File
-				RelativePath="..\..\..\source\blender\imbuf\intern\dynlibtiff.h"
-				>
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_allocimbuf.h"
 				>
