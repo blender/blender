@@ -1422,7 +1422,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
 
 
 class WM_OT_addon_links(bpy.types.Operator):
-    "Open the Blender Wiki in the Webbrowser"
+    "Open a website in the webbrowser"
     bl_idname = "wm.addon_links"
     bl_label = ""
 
