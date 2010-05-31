@@ -310,89 +310,25 @@ class INFO_MT_help(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("help.manual", icon='HELP')
-        layout.operator("help.release_logs", icon='URL')
+        layout.operator("wm.url_open", text="Manual", icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:Manual'
+        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-250/'
 
         layout.separator()
 
-        layout.operator("help.blender_website", icon='URL')
-        layout.operator("help.blender_eshop", icon='URL')
-        layout.operator("help.developer_community", icon='URL')
-        layout.operator("help.user_community", icon='URL')
+        layout.operator("wm.url_open", text="Blender Website", icon='URL').url = 'http://www.blender.org/'
+        layout.operator("wm.url_open", text="Blender e-Shop", icon='URL').url = 'http://www.blender.org/e-shop'
+        layout.operator("wm.url_open", text="Developer Community", icon='URL').url = 'http://www.blender.org/community/get-involved/'
+        layout.operator("wm.url_open", text="User Community", icon='URL').url = 'http://www.blender.org/community/user-community/'
         layout.separator()
-        layout.operator("help.report_bug", icon='URL')
+        layout.operator("wm.url_open", text="Report a Bug", icon='URL').url = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
         layout.separator()
-        layout.operator("help.python_api", icon='URL')
+        layout.operator("wm.url_open", text="Python API Reference", icon='URL').url = 'http://www.blender.org/documentation/250PythonDoc/contents.html'
         layout.operator("help.operator_cheat_sheet")
         layout.separator()
         layout.operator("wm.splash")
 
 
 # Help operators
-
-
-class HelpOperator(bpy.types.Operator):
-
-    def execute(self, context):
-        import webbrowser
-        webbrowser.open(self._url)
-        return {'FINISHED'}
-
-
-class HELP_OT_manual(HelpOperator):
-    '''The Blender Wiki manual'''
-    bl_idname = "help.manual"
-    bl_label = "Manual"
-    _url = 'http://wiki.blender.org/index.php/Doc:Manual'
-
-
-class HELP_OT_release_logs(HelpOperator):
-    '''Information about the changes in this version of Blender'''
-    bl_idname = "help.release_logs"
-    bl_label = "Release Log"
-    _url = 'http://www.blender.org/development/release-logs/blender-250/'
-
-
-class HELP_OT_blender_website(HelpOperator):
-    '''The official Blender website'''
-    bl_idname = "help.blender_website"
-    bl_label = "Blender Website"
-    _url = 'http://www.blender.org/'
-
-
-class HELP_OT_blender_eshop(HelpOperator):
-    '''Buy official Blender resources and merchandise online'''
-    bl_idname = "help.blender_eshop"
-    bl_label = "Blender e-Shop"
-    _url = 'http://www.blender.org/e-shop'
-
-
-class HELP_OT_developer_community(HelpOperator):
-    '''Get involved with Blender development'''
-    bl_idname = "help.developer_community"
-    bl_label = "Developer Community"
-    _url = 'http://www.blender.org/community/get-involved/'
-
-
-class HELP_OT_user_community(HelpOperator):
-    '''Get involved with other Blender users'''
-    bl_idname = "help.user_community"
-    bl_label = "User Community"
-    _url = 'http://www.blender.org/community/user-community/'
-
-
-class HELP_OT_report_bug(HelpOperator):
-    '''Report a bug in the Blender bug tracker'''
-    bl_idname = "help.report_bug"
-    bl_label = "Report a Bug"
-    _url = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
-
-
-class HELP_OT_python_api(HelpOperator):
-    '''Reference for operator and data Python API'''
-    bl_idname = "help.python_api"
-    bl_label = "Python API Reference"
-    _url = 'http://www.blender.org/documentation/250PythonDoc/contents.html'
 
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
@@ -435,14 +371,6 @@ classes = [
     INFO_MT_render,
     INFO_MT_help,
 
-    HELP_OT_manual,
-    HELP_OT_release_logs,
-    HELP_OT_blender_website,
-    HELP_OT_blender_eshop,
-    HELP_OT_developer_community,
-    HELP_OT_user_community,
-    HELP_OT_report_bug,
-    HELP_OT_python_api,
     HELP_OT_operator_cheat_sheet]
 
 

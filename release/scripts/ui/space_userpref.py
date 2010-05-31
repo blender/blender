@@ -1224,9 +1224,9 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         split = column.row().split(percentage=0.15)
                         split.label(text="Internet:")
                         if info["wiki_url"]:
-                            split.operator("wm.addon_links", text="Link to the Wiki").link = info["wiki_url"]
+                            split.operator("wm.url_open", text="Link to the Wiki", icon='HELP').url = info["wiki_url"]
                         if info["tracker_url"]:
-                            split.operator("wm.addon_links", text="Report a Bug").link = info["tracker_url"]
+                            split.operator("wm.url_open", text="Report a Bug", icon='URL').url = info["tracker_url"]
                         
                         if info["wiki_url"] and info["tracker_url"]:
                             split.separator()
@@ -1421,19 +1421,6 @@ class WM_OT_addon_expand(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class WM_OT_addon_links(bpy.types.Operator):
-    "Open a website in the webbrowser"
-    bl_idname = "wm.addon_links"
-    bl_label = ""
-
-    link = StringProperty(name="Link", description="Link to open")
-
-    def execute(self, context):
-        import webbrowser
-        webbrowser.open(self.properties.link)
-        return {'FINISHED'}
-
-
 classes = [
     USERPREF_HT_header,
     USERPREF_PT_tabs,
@@ -1451,8 +1438,7 @@ classes = [
     WM_OT_addon_enable,
     WM_OT_addon_disable,
     WM_OT_addon_install,
-    WM_OT_addon_expand,
-    WM_OT_addon_links]
+    WM_OT_addon_expand]
 
 
 def register():

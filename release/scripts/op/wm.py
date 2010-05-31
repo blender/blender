@@ -418,7 +418,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
 
 
 class WM_OT_url_open(bpy.types.Operator):
-    "Open the Blender Wiki in the Webbrowser"
+    "Open a website in the Webbrowser"
     bl_idname = "wm.url_open"
     bl_label = ""
 
