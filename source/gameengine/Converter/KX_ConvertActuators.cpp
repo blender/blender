@@ -62,6 +62,7 @@
 #include "KX_SCA_ReplaceMeshActuator.h"
 #include "KX_ParentActuator.h"
 #include "KX_SCA_DynamicActuator.h"
+#include "KX_SteeringActuator.h"
 
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
@@ -89,6 +90,7 @@
 #include "BL_ActionActuator.h"
 #include "BL_ShapeActionActuator.h"
 #include "BL_ArmatureActuator.h"
+#include "RNA_access.h"
 /* end of blender include block */
 
 #include "BL_BlenderDataConversion.h"
@@ -1026,6 +1028,39 @@ void BL_ConvertActuators(char* maggiename,
 				KX_GameObject *subgob = converter->FindGameObject(armAct->subtarget);
 				BL_ArmatureActuator* tmparmact = new BL_ArmatureActuator(gameobj, armAct->type, armAct->posechannel, armAct->constraint, tmpgob, subgob, armAct->weight);
 				baseact = tmparmact;
+				break;
+			}
+		case ACT_STEERING:
+			{
+				bSteeringActuator *stAct = (bSteeringActuator *) bact->data;
+				KX_GameObject *navmeshob = NULL;
+				if (stAct->navmesh)
+				{
+					PointerRNA settings_ptr;
+					RNA_pointer_create((ID *)stAct->navmesh, &RNA_GameObjectSettings, stAct->navmesh, &settings_ptr);
+					if (RNA_enum_get(&settings_ptr, "physics_type") == OB_BODY_TYPE_NAVMESH)
+						navmeshob = converter->FindGameObject(stAct->navmesh);
+				}
+				KX_GameObject *targetob = converter->FindGameObject(stAct->target);
+
+				int mode = KX_SteeringActuator::KX_STEERING_NODEF;
+				switch(stAct->type)
+				{
+				case ACT_STEERING_SEEK:
+					mode = KX_SteeringActuator::KX_STEERING_SEEK;
+					break;
+				case ACT_STEERING_FLEE:
+					mode = KX_SteeringActuator::KX_STEERING_FLEE;
+					break;
+				case ACT_STEERING_PATHFOLLOWING:
+					mode = KX_SteeringActuator::KX_STEERING_PATHFOLLOWING;
+					break;
+				}
+
+				KX_SteeringActuator *tmpstact
+					= new KX_SteeringActuator(gameobj, mode, targetob, navmeshob,
+												stAct->movement, stAct->dist);
+				baseact = tmpstact;
 				break;
 			}
 		default:

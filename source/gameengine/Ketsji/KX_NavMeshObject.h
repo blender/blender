@@ -36,7 +36,7 @@
 class RAS_MeshObject;
 class MT_Transform;
 
-class KX_Pathfinder: public KX_GameObject
+class KX_NavMeshObject: public KX_GameObject
 {
 	Py_Header;
 
@@ -47,12 +47,18 @@ protected:
 		unsigned short *&faces, int& npolys);
 
 public:
-	KX_Pathfinder(void* sgReplicationInfo, SG_Callbacks callbacks);
-	~KX_Pathfinder();
+	KX_NavMeshObject(void* sgReplicationInfo, SG_Callbacks callbacks);
+	~KX_NavMeshObject();
+
+	virtual	CValue* GetReplica();
+	virtual	void ProcessReplica();
+
+
 	bool BuildNavMesh();
-	int FindPath(MT_Vector3& from, MT_Vector3& to, float* path, int maxPathLen);
-	float Raycast(MT_Vector3& from, MT_Vector3& to);
-	void DebugDraw();
+	int FindPath(const MT_Point3& from, const MT_Point3& to, float* path, int maxPathLen);
+	float Raycast(const MT_Point3& from, const MT_Point3& to);
+	void DrawNavMesh();
+	void DrawPath(const float *path, int pathLen, const MT_Vector3& color);
 
 
 #ifndef DISABLE_PYTHON
@@ -60,9 +66,9 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	KX_PYMETHOD_DOC(KX_Pathfinder, findPath);
-	KX_PYMETHOD_DOC(KX_Pathfinder, raycast);
-	KX_PYMETHOD_DOC_NOARGS(KX_Pathfinder, draw);
+	KX_PYMETHOD_DOC(KX_NavMeshObject, findPath);
+	KX_PYMETHOD_DOC(KX_NavMeshObject, raycast);
+	KX_PYMETHOD_DOC_NOARGS(KX_NavMeshObject, draw);
 #endif
 };
 

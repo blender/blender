@@ -172,7 +172,7 @@ extern "C" {
 #include "BL_ArmatureObject.h"
 #include "BL_DeformableGameObject.h"
 
-#include "KX_Pathfinder.h"
+#include "KX_NavMeshObject.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1717,7 +1717,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	
 		if (ob->gameflag & OB_NAVMESH)
 		{
-			gameobj = new KX_Pathfinder(kxscene,KX_Scene::m_callbacks);
+			gameobj = new KX_NavMeshObject(kxscene,KX_Scene::m_callbacks);
 			gameobj->AddMesh(meshobj);
 			break;
 		}
@@ -2685,7 +2685,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobject = gameobj->GetBlenderObject();
 		if (blenderobject->type==OB_MESH && (blenderobject->gameflag & OB_NAVMESH))
 		{
-			KX_Pathfinder* pathfinder = static_cast<KX_Pathfinder*>(gameobj);
+			KX_NavMeshObject* pathfinder = static_cast<KX_NavMeshObject*>(gameobj);
 			pathfinder->BuildNavMesh();
 			pathfinder->SetVisible(0, true);
 		}

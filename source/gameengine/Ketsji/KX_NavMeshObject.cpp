@@ -26,7 +26,7 @@
 * ***** END GPL LICENSE BLOCK *****
 */
 
-#include "KX_Pathfinder.h"
+#include "KX_NavMeshObject.h"
 #include "RAS_MeshObject.h"
 
 #include "DNA_mesh_types.h"
@@ -68,23 +68,36 @@ inline void flipAxes(float* vec)
 	std::swap(vec[1],vec[2]);
 }
 
-KX_Pathfinder::KX_Pathfinder(void* sgReplicationInfo, SG_Callbacks callbacks)
+KX_NavMeshObject::KX_NavMeshObject(void* sgReplicationInfo, SG_Callbacks callbacks)
 :	KX_GameObject(sgReplicationInfo, callbacks)
 ,	m_navMesh(NULL)
 {
 	
 }
 
-KX_Pathfinder::~KX_Pathfinder()
+KX_NavMeshObject::~KX_NavMeshObject()
 {
 	if (m_navMesh)
 		delete m_navMesh;
 }
 
-bool KX_Pathfinder::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices, int& nverts,
+CValue* KX_NavMeshObject::GetReplica()
+{
+	KX_NavMeshObject* replica = new KX_NavMeshObject(*this);
+	replica->ProcessReplica();
+	return replica;
+}
+
+void KX_NavMeshObject::ProcessReplica()
+{
+	KX_GameObject::ProcessReplica();
+	BuildNavMesh();
+}
+
+bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices, int& nverts,
 									   unsigned short* &faces, int& npolys)
 {
-	if (!meshobj || meshobj->HasColliderPolygon()==false) 
+	if (!meshobj) 
 	{
 		return false;
 	}
@@ -144,7 +157,7 @@ bool KX_Pathfinder::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices
 	return true;
 }
 
-bool KX_Pathfinder::BuildNavMesh()
+bool KX_NavMeshObject::BuildNavMesh()
 {
 	if (GetMeshCount()==0)
 		return false;
@@ -162,12 +175,11 @@ bool KX_Pathfinder::BuildNavMesh()
 	MT_Point3 pos;
 	for (int i=0; i<nverts; i++)
 	{
-		flipAxes(&vertices[i*3]);
 		pos.setValue(&vertices[i*3]);
 		//add world transform
 		pos = worldTransform(pos);
 		pos.getValue(&vertices[i*3]);
-
+		flipAxes(&vertices[i*3]);
 	}
 	//reorder tris 
 	for (int i=0; i<npolys; i++)
@@ -176,9 +188,6 @@ bool KX_Pathfinder::BuildNavMesh()
 	}
 	const int vertsPerPoly = 3;
 	buildMeshAdjacency(faces, npolys, nverts, vertsPerPoly);
-
-	
-
 	
 	int ndtris = npolys;
 	int uniqueDetailVerts = 0;
@@ -298,7 +307,7 @@ bool KX_Pathfinder::BuildNavMesh()
 	return true;
 }
 
-void KX_Pathfinder::DebugDraw()
+void KX_NavMeshObject::DrawNavMesh()
 {
 	if (!m_navMesh)
 		return;
@@ -332,7 +341,7 @@ void KX_Pathfinder::DebugDraw()
 	}
 }
 
-int KX_Pathfinder::FindPath(MT_Vector3& from, MT_Vector3& to, float* path, int maxPathLen)
+int KX_NavMeshObject::FindPath(const MT_Point3& from, const MT_Point3& to, float* path, int maxPathLen)
 {
 	if (!m_navMesh)
 		return 0;
@@ -359,7 +368,7 @@ int KX_Pathfinder::FindPath(MT_Vector3& from, MT_Vector3& to, float* path, int m
 	return pathLen;
 }
 
-float KX_Pathfinder::Raycast(MT_Vector3& from, MT_Vector3& to)
+float KX_NavMeshObject::Raycast(const MT_Point3& from, const MT_Point3& to)
 {
 	if (!m_navMesh)
 		return 0.f;
@@ -373,13 +382,25 @@ float KX_Pathfinder::Raycast(MT_Vector3& from, MT_Vector3& to)
 	return t;
 }
 
+void KX_NavMeshObject::DrawPath(const float *path, int pathLen, const MT_Vector3& color)
+{
+	MT_Vector3 a,b;
+	for (int i=0; i<pathLen-1; i++)
+	{
+		a.setValue(&path[3*i]);
+		b.setValue(&path[3*(i+1)]);
+		KX_RasterizerDrawDebugLine(a, b, color);
+	}
+}
+
+
 #ifndef DISABLE_PYTHON
 //----------------------------------------------------------------------------
 //Python
 
-PyTypeObject KX_Pathfinder::Type = {
+PyTypeObject KX_NavMeshObject::Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"KX_Pathfinder",
+	"KX_NavMeshObject",
 	sizeof(PyObjectPlus_Proxy),
 	0,
 	py_base_dealloc,
@@ -402,26 +423,26 @@ PyTypeObject KX_Pathfinder::Type = {
 	py_base_new
 };
 
-PyAttributeDef KX_Pathfinder::Attributes[] = {
+PyAttributeDef KX_NavMeshObject::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
 //KX_PYMETHODTABLE_NOARGS(KX_GameObject, getD),
-PyMethodDef KX_Pathfinder::Methods[] = {
-	KX_PYMETHODTABLE(KX_Pathfinder, findPath),
-	KX_PYMETHODTABLE(KX_Pathfinder, raycast),
-	KX_PYMETHODTABLE(KX_Pathfinder, draw),
+PyMethodDef KX_NavMeshObject::Methods[] = {
+	KX_PYMETHODTABLE(KX_NavMeshObject, findPath),
+	KX_PYMETHODTABLE(KX_NavMeshObject, raycast),
+	KX_PYMETHODTABLE(KX_NavMeshObject, draw),
 	{NULL,NULL} //Sentinel
 };
 
-KX_PYMETHODDEF_DOC(KX_Pathfinder, findPath,
+KX_PYMETHODDEF_DOC(KX_NavMeshObject, findPath,
 				   "findPath(start, goal): find path from start to goal points\n"
 				   "Returns a path as list of points)\n")
 {
 	PyObject *ob_from, *ob_to;
 	if (!PyArg_ParseTuple(args,"OO:getPath",&ob_from,&ob_to))
 		return NULL;
-	MT_Vector3 from, to;
+	MT_Point3 from, to;
 	if (!PyVecTo(ob_from, from) || !PyVecTo(ob_to, to))
 		return NULL;
 	
@@ -430,31 +451,31 @@ KX_PYMETHODDEF_DOC(KX_Pathfinder, findPath,
 	PyObject *pathList = PyList_New( pathLen );
 	for (int i=0; i<pathLen; i++)
 	{
-		MT_Vector3 point(&path[3*i]);
+		MT_Point3 point(&path[3*i]);
 		PyList_SET_ITEM(pathList, i, PyObjectFrom(point));
 	}
 
 	return pathList;
 }
 
-KX_PYMETHODDEF_DOC(KX_Pathfinder, raycast,
+KX_PYMETHODDEF_DOC(KX_NavMeshObject, raycast,
 				   "raycast(start, goal): raycast from start to goal points\n"
 				   "Returns hit factor)\n")
 {
 	PyObject *ob_from, *ob_to;
 	if (!PyArg_ParseTuple(args,"OO:getPath",&ob_from,&ob_to))
 		return NULL;
-	MT_Vector3 from, to;
+	MT_Point3 from, to;
 	if (!PyVecTo(ob_from, from) || !PyVecTo(ob_to, to))
 		return NULL;
 	float hit = Raycast(from, to);
 	return PyFloat_FromDouble(hit);
 }
 
-KX_PYMETHODDEF_DOC_NOARGS(KX_Pathfinder, draw,
+KX_PYMETHODDEF_DOC_NOARGS(KX_NavMeshObject, draw,
 				   "draw(): navigation mesh debug drawing\n")
 {
-	DebugDraw();
+	DrawNavMesh();
 	Py_RETURN_NONE;
 }
 

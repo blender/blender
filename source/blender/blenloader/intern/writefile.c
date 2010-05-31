@@ -858,6 +858,9 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 		case ACT_ARMATURE:
 			writestruct(wd, DATA, "bArmatureActuator", 1, act->data);
 			break;
+		case ACT_STEERING:
+			writestruct(wd, DATA, "bSteeringActuator", 1, act->data);
+			break;
 		default:
 			; /* error: don't know how to write this file */
 		}

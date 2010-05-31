@@ -710,6 +710,8 @@ static char *actuator_name(int type)
 		return "State";
 	case ACT_ARMATURE:
 		return "Armature";
+	case ACT_STEERING:
+		return "Steering";
 	}
 	return "unknown";
 }
@@ -2895,7 +2897,6 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 		  yco-= ysize; 
 		  break; 
-
 	 default:
 		ysize= 4;
 
@@ -4232,6 +4233,20 @@ static void draw_actuator_visibility(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "children", 0, NULL, 0);
 }
 
+static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *row;
+
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	uiItemR(layout, ptr, "target", 0, NULL, 0);
+	uiItemR(layout, ptr, "navmesh", 0, NULL, 0);	
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "distance", 0, NULL, 0);
+	uiItemR(row, ptr, "movement", 0, NULL, 0);
+}
+
+
 void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *box;
@@ -4296,6 +4311,8 @@ void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 		case ACT_VISIBILITY:
 			draw_actuator_visibility(box, ptr);
 			break;
+		case ACT_STEERING:
+			draw_actuator_steering(box, ptr);
 	}
 }
 

@@ -75,7 +75,7 @@
 #include "DNA_world_types.h"
 #include "DNA_scene_types.h"
 
-#include "KX_Pathfinder.h"
+#include "KX_NavMeshObject.h"
 
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.

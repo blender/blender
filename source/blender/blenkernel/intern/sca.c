@@ -468,6 +468,8 @@ void init_actuator(bActuator *act)
 	case ACT_ARMATURE:
 		act->data = MEM_callocN(sizeof( bArmatureActuator ), "armature act");
 		break;
+	case ACT_STEERING:
+		act->data = MEM_callocN(sizeof( bSteeringActuator), "steering act");
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */
@@ -611,6 +613,7 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 	bMessageActuator *ma;
 	bParentActuator *para;
 	bArmatureActuator *aa;
+	bSteeringActuator *sta;
 
 	sens= obt->sensors.first;
 	while(sens) {
@@ -658,6 +661,11 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 			if (aa->target == ob) aa->target = NULL;
 			if (aa->subtarget == ob) aa->subtarget = NULL;
 			break;
+		case ACT_STEERING:
+			sta = act->data;
+			if (sta->target==ob) sta->target = NULL;
+			if (sta->navmesh==ob) sta->navmesh = NULL;
+			break;			
 		}
 		act= act->next;
 	}	

@@ -552,7 +552,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Pathfinder.cpp"
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_NavMeshObject.cpp"
 				>
 			</File>
 			<File
@@ -680,6 +680,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_StateActuator.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SteeringActuator.cpp"
 					>
 				</File>
 				<File
@@ -857,11 +861,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_OdePhysicsController.h"
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_NavMeshObject.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Pathfinder.h"
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_OdePhysicsController.h"
 				>
 			</File>
 			<File
@@ -997,6 +1001,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_StateActuator.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SteeringActuator.h"
 					>
 				</File>
 				<File

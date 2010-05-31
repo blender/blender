@@ -3612,6 +3612,11 @@ static void lib_link_object(FileData *fd, Main *main)
 					arma->target= newlibadr(fd, ob->id.lib, arma->target);
 					arma->subtarget= newlibadr(fd, ob->id.lib, arma->subtarget);
 				}
+				else if(act->type==ACT_STEERING) {
+					bSteeringActuator *steeringa = act->data; 
+					steeringa->target = newlibadr(fd, ob->id.lib, steeringa->target);
+					steeringa->navmesh = newlibadr(fd, ob->id.lib, steeringa->navmesh);
+				}
 				act= act->next;
 			}
 			
@@ -11744,6 +11749,11 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		else if(act->type==ACT_ARMATURE) {
 			bArmatureActuator *arma= act->data;
 			expand_doit(fd, mainvar, arma->target);
+		}
+		else if(act->type==ACT_STEERING) {
+			bSteeringActuator *sta= act->data;
+			expand_doit(fd, mainvar, sta->target);
+			expand_doit(fd, mainvar, sta->navmesh);
 		}
 		act= act->next;
 	}

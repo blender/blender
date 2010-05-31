@@ -54,6 +54,7 @@ EnumPropertyItem actuator_type_items[] ={
 	{ACT_SOUND, "SOUND", 0, "Sound", ""},
 	{ACT_STATE, "STATE", 0, "State", ""},
 	{ACT_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
+	{ACT_STEERING, "STEERING", 0, "Steering", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem edit_object_type_items[] ={
@@ -109,6 +110,8 @@ static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 			return &RNA_StateActuator;
 		case ACT_ARMATURE:
 			return &RNA_ArmatureActuator;
+		case ACT_STEERING:
+			return &RNA_SteeringActuator;
 		default:
 			return &RNA_Actuator;
 	}
@@ -401,6 +404,7 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_PROPERTY);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_RANDOM);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SCENE);
+	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_STEERING);
 
 	if (ob != NULL) {
 		if (ob->type==OB_MESH){
@@ -1841,6 +1845,54 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
+static void rna_def_steering_actuator(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_type_items[] ={
+		{ACT_STEERING_SEEK, "SEEK", 0, "Seek", ""},
+		{ACT_STEERING_FLEE, "FLEE", 0, "Flee", ""},
+		{ACT_STEERING_PATHFOLLOWING, "PATHFOLLOWING", 0, "Path following", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "SteeringActuator", "Actuator");
+	RNA_def_struct_ui_text(srna, "Steering Actuator", "");
+	RNA_def_struct_sdna_from(srna, "bSteeringActuator", "data");
+
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_ui_text(prop, "Behavior", "");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "movement", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "movement");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Move", "Movement value");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dist");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Dist", "Relax distance");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_sdna(prop, NULL, "target");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Target Object", "Set target object");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "navmesh", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_sdna(prop, NULL, "navmesh");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "NavMesh Object", "Navigation mesh");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+}
+
 void RNA_def_actuator(BlenderRNA *brna)
 {
 	rna_def_actuator(brna);
@@ -1863,6 +1915,7 @@ void RNA_def_actuator(BlenderRNA *brna)
 	rna_def_shape_action_actuator(brna);
 	rna_def_state_actuator(brna);
 	rna_def_armature_actuator(brna);
+	rna_def_steering_actuator(brna);
 }
 
 #endif
