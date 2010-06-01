@@ -139,6 +139,8 @@ void VIEW3D_OT_select_border(struct wmOperatorType *ot);
 void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
 
 /* view3d_view.c */
+void view3d_settings_from_ob(struct Object *ob, float *ofs, float *quat, float *dist, float *lens);
+
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
 void VIEW3D_OT_setobjectascamera(struct wmOperatorType *ot);

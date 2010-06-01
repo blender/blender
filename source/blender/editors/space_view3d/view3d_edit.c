@@ -691,8 +691,15 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (U.uiflag & USER_AUTOPERSP)
 			vod->rv3d->persp= RV3D_PERSP;
-		else if(vod->rv3d->persp==RV3D_CAMOB)
+		else if(vod->rv3d->persp==RV3D_CAMOB) {
+
+			/* changed since 2.4x, use the camera view */
+			View3D *v3d = CTX_wm_view3d(C);
+			if(v3d->camera)
+				view3d_settings_from_ob(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+
 			vod->rv3d->persp= RV3D_PERSP;
+		}
 		ED_region_tag_redraw(vod->ar);
 	}
 	
