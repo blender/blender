@@ -1159,7 +1159,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	int normalDataOffset = ss->normalDataOffset;
 	int vertDataSize = ss->meshIFC.vertDataSize;
 
-	#pragma omp parallel for private(ptrIdx) schedule(static)
+	//#pragma omp parallel for private(ptrIdx) schedule(static)
 	for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
 		CCGFace *f = (CCGFace*) effectedF[ptrIdx];
 		int S, x, y;
@@ -1285,7 +1285,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 		}
 	}
 
-	#pragma omp parallel for private(ptrIdx) schedule(static)
+	//#pragma omp parallel for private(ptrIdx) schedule(static)
 	for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
 		CCGFace *f = (CCGFace*) effectedF[ptrIdx];
 		int S, x, y;
@@ -1351,7 +1351,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 	int vertDataSize = ss->meshIFC.vertDataSize;
 	void *q = ss->q, *r = ss->r;
 
-	#pragma omp parallel for private(ptrIdx) schedule(static)
+	//#pragma omp parallel for private(ptrIdx) schedule(static)
 	for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
 		CCGFace *f = (CCGFace*) effectedF[ptrIdx];
 		int S, x, y;
@@ -1685,17 +1685,17 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 		}
 	}
 
-	#pragma omp parallel private(ptrIdx)
+	//#pragma omp parallel private(ptrIdx)
 	{
 		void *q, *r;
 
-		#pragma omp critical
+		//#pragma omp critical
 		{
 			q = MEM_mallocN(ss->meshIFC.vertDataSize, "CCGSubsurf q");
 			r = MEM_mallocN(ss->meshIFC.vertDataSize, "CCGSubsurf r");
 		}
 
-		#pragma omp for schedule(static)
+		//#pragma omp for schedule(static)
 		for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
 			CCGFace *f = (CCGFace*) effectedF[ptrIdx];
 			int S, x, y;
@@ -1779,7 +1779,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 			}
 		}
 
-		#pragma omp critical
+		//#pragma omp critical
 		{
 			MEM_freeN(q);
 			MEM_freeN(r);
@@ -1791,14 +1791,14 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 	gridSize = 1 + (1<<((nextLvl)-1));
 	cornerIdx = gridSize-1;
 
-	#pragma omp parallel for private(i) schedule(static)
+	//#pragma omp parallel for private(i) schedule(static)
 	for (i=0; i<numEffectedE; i++) {
 		CCGEdge *e = effectedE[i];
 		VertDataCopy(EDGE_getCo(e, nextLvl, 0), VERT_getCo(e->v0, nextLvl));
 		VertDataCopy(EDGE_getCo(e, nextLvl, edgeSize-1), VERT_getCo(e->v1, nextLvl));
 	}
 
-	#pragma omp parallel for private(i) schedule(static)
+	//#pragma omp parallel for private(i) schedule(static)
 	for (i=0; i<numEffectedF; i++) {
 		CCGFace *f = effectedF[i];
 		int S, x;

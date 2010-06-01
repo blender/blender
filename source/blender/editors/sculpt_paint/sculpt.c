@@ -772,7 +772,7 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3]
 	copy_v3_v3(out_dir, cache->view_normal_symmetry);
 
 	/* threaded loop over nodes */
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -809,7 +809,7 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3]
 			BLI_pbvh_vertex_iter_end;
 		}
 
-		#pragma omp critical
+		//#pragma omp critical
 		{
 			/* we sum per node and add together later for threads */
 			add_v3_v3(out, nout);
@@ -847,7 +847,7 @@ static void do_draw_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 	offset[2]= area_normal[2]*ss->cache->radius*ss->cache->scale[2]*bstrength;
 
 	/* threaded loop over nodes */
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -961,7 +961,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	BLI_pbvh_node_get_grids(ss->pbvh, node, &grid_indices, &totgrid,
 		NULL, &gridsize, &griddata, &gridadj);
 
-	#pragma omp critical
+	//#pragma omp critical
 	tmpgrid= MEM_mallocN(sizeof(float)*3*gridsize*gridsize, "tmpgrid");
 
 	for(i = 0; i < totgrid; ++i) {
@@ -1020,7 +1020,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 		}
 	}
 
-	#pragma omp critical
+	//#pragma omp critical
 	MEM_freeN(tmpgrid);
 }
 
@@ -1029,7 +1029,7 @@ static void do_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int
 	int iteration, n;
 
 	for(iteration = 0; iteration < 2; ++iteration) {
-		#pragma omp parallel for private(n) schedule(static)
+		//#pragma omp parallel for private(n) schedule(static)
 		for(n=0; n<totnode; n++) {
 			sculpt_undo_push_node(ss, nodes[n]);
 
@@ -1052,7 +1052,7 @@ static void do_pinch_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 	float bstrength= ss->cache->bstrength;
 	int n;
 
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1086,7 +1086,7 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 	
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1129,7 +1129,7 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 	offset[1]= ss->cache->scale[1]*area_normal[1];
 	offset[2]= ss->cache->scale[2]*area_normal[2];
 
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1186,7 +1186,7 @@ static void do_inflate_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, in
 	float bstrength= ss->cache->bstrength;
 	int n;
 
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1229,7 +1229,7 @@ static void calc_flatten_center(Sculpt *sd, SculptSession *ss, PBVHNode **nodes,
 		outer_dist[i]= -1.0f;
 	}
 		
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1951,7 +1951,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 
 		BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-		#pragma omp parallel for private(n) schedule(static)
+		//#pragma omp parallel for private(n) schedule(static)
 		for(n=0; n<totnode; n++) {
 			SculptUndoNode *unode;
 			
