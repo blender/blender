@@ -84,3 +84,23 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 	RNA_def_string_file_path(ot->srna, "path", "", 512, "Path", "");
 }
 
+
+static int script_reload_exec(bContext *C, wmOperator *op)
+{
+#ifndef DISABLE_PYTHON
+	BPY_eval_string(C, "__import__('bpy').utils.load_scripts(reload_scripts=True)");
+	return OPERATOR_FINISHED;
+#endif
+	return OPERATOR_CANCELLED;
+}
+
+void SCRIPT_OT_reload(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reload Scripts";
+	ot->description= "Reload Scripts";
+	ot->idname= "SCRIPT_OT_reload";
+
+	/* api callbacks */
+	ot->exec= script_reload_exec;
+}

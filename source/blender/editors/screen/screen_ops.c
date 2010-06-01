@@ -2998,7 +2998,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_reload_scripts", F8KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCRIPT_OT_reload", F8KEY, KM_PRESS, 0, 0);
 	
 	/* files */
 	WM_keymap_add_item(keymap, "FILE_OT_execute", RETKEY, KM_PRESS, 0, 0);

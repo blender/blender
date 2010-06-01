@@ -144,6 +144,9 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             _loaded.append(mod)
 
     if reload_scripts:
+        
+        # TODO, this is broken but should work, needs looking into
+        '''
         # reload modules that may not be directly included
         for type_class_name in dir(_bpy.types):
             type_class = getattr(_bpy.types, type_class_name)
@@ -156,6 +159,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         for module_name in sorted(loaded_modules):
             print("Reloading:", module_name)
             test_reload(_sys.modules[module_name])
+        '''
 
         # loop over and unload all scripts
         _loaded.reverse()
@@ -166,6 +170,10 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     unregister()
                 except:
                     traceback.print_exc()
+
+        for mod in _loaded:
+            reload(mod)
+
         _loaded[:] = []
 
     user_path = user_script_path()

@@ -543,17 +543,6 @@ class WM_OT_doc_edit(bpy.types.Operator):
         return wm.invoke_props_dialog(self, width=600)
 
 
-class WM_OT_reload_scripts(bpy.types.Operator):
-    '''Load online reference docs'''
-    bl_idname = "wm.reload_scripts"
-    bl_label = "Reload Scripts"
-
-    def execute(self, context):
-        MOD = type(bpy)
-        bpy.utils.load_scripts(True)
-        return {'FINISHED'}
-
-
 import rna_prop_ui
 
 classes = [
@@ -576,8 +565,6 @@ classes = [
 
     WM_OT_doc_view,
     WM_OT_doc_edit,
-
-    WM_OT_reload_scripts,
 
     # experemental!
     rna_prop_ui.WM_OT_properties_edit,

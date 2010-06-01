@@ -55,6 +55,7 @@
 void script_operatortypes(void)
 {
 	WM_operatortype_append(SCRIPT_OT_python_file_run);
+	WM_operatortype_append(SCRIPT_OT_reload);
 }
 
 void script_keymap(wmKeyConfig *keyconf)
