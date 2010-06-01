@@ -248,6 +248,21 @@ GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle, GHOST_Eve
 	return system->addEventConsumer((GHOST_CallbackEventConsumer*)consumerhandle);
 }
 
+GHOST_TSuccess GHOST_SetProgressBar(GHOST_WindowHandle windowhandle,float progress)
+{
+	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
+
+	return window->setProgressBar(progress);
+}
+
+GHOST_TSuccess GHOST_EndProgressBar(GHOST_WindowHandle windowhandle)
+{
+	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
+
+	return window->endProgressBar();
+}
+
+
 int GHOST_OpenNDOF(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windowhandle,
    GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
     GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,

@@ -324,5 +324,9 @@ void		WM_jobs_stop_all(struct wmWindowManager *wm);
 char		*WM_clipboard_text_get(int selection);
 void		WM_clipboard_text_set(char *buf, int selection);
 
+			/* progress */
+void		WM_progress_set(struct wmWindow *win, float progress);
+void		WM_progress_clear(struct wmWindow *win);
+
 #endif /* WM_API_H */
 
