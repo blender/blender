@@ -64,6 +64,7 @@
 LPCSTR GHOST_WindowWin32::s_windowClassName = "GHOST_WindowClass";
 const int GHOST_WindowWin32::s_maxTitleLength = 128;
 HGLRC GHOST_WindowWin32::s_firsthGLRc = NULL;
+HDC GHOST_WindowWin32::s_firstHDC = NULL;
 
 static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd);
 static int EnumPixelFormats(HDC hdc);
@@ -134,6 +135,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_top(top),
 	m_width(width),
 	m_height(height),
+	m_normal_state(GHOST_kWindowStateNormal),
 	m_stereo(stereoVisual),
 	m_nextWindow(NULL)
 {
@@ -201,6 +203,10 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 
 		// Store the device context
 		m_hDC = ::GetDC(m_hWnd);
+
+		if(!s_firstHDC) {
+			s_firstHDC = m_hDC;
+		}
 
 		// Show the window
 		int nCmdShow;
@@ -308,10 +314,11 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 		m_customCursor = NULL;
 	}
 
+	::wglMakeCurrent(NULL, NULL);
 	m_multisampleEnabled = GHOST_kFailure;
 	m_multisample = 0;
 	setDrawingContextType(GHOST_kDrawingContextTypeNone);
-	if (m_hDC) {
+	if (m_hDC && m_hDC != s_firstHDC) {
 		::ReleaseDC(m_hWnd, m_hDC);
 		m_hDC = 0;
 	}
@@ -482,9 +489,13 @@ void GHOST_WindowWin32::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST
 
 GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 {
+	GHOST_TWindowState curstate = getState();
 	WINDOWPLACEMENT wp;
 	wp.length = sizeof(WINDOWPLACEMENT);
 	::GetWindowPlacement(m_hWnd, &wp);
+
+	if (state == GHOST_kWindowStateNormal)
+		state = m_normal_state;
 	switch (state) {
 	case GHOST_kWindowStateMinimized:
 		wp.showCmd = SW_SHOWMINIMIZED;
@@ -495,6 +506,8 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 		break;
 	case GHOST_kWindowStateFullScreen:
+		if (curstate != state && curstate != GHOST_kWindowStateMinimized)
+			m_normal_state = curstate;
 		wp.showCmd = SW_SHOWMAXIMIZED;
 		wp.ptMaxPosition.x = 0;
 		wp.ptMaxPosition.y = 0;
@@ -637,6 +650,7 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 			m_hGlRc = ::wglCreateContext(m_hDC);
 			if (m_hGlRc) {
 				if (s_firsthGLRc) {
+					::wglCopyContext(s_firsthGLRc, m_hGlRc, GL_ALL_ATTRIB_BITS);
 					wglShareLists(s_firsthGLRc, m_hGlRc);
 				} else {
 					s_firsthGLRc = m_hGlRc;
