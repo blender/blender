@@ -31,6 +31,7 @@
 
 #include "DNA_group_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -798,10 +799,14 @@ static void rna_Scene_editmesh_select_mode_update(Main *bmain, Scene *scene, Poi
 static void object_simplify_update(Object *ob)
 {
 	ModifierData *md;
+	ParticleSystem *psys;
 
 	for(md=ob->modifiers.first; md; md=md->next)
 		if(ELEM3(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem))
-			ob->recalc |= OB_RECALC_DATA;
+			ob->recalc |= OB_RECALC_DATA|PSYS_RECALC_CHILD;
+
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		psys->recalc |= PSYS_RECALC_CHILD;
 	
 	if(ob->dup_group) {
 		GroupObject *gob;
@@ -811,15 +816,22 @@ static void object_simplify_update(Object *ob)
 	}
 }
 
-static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Scene_use_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
+	Scene *sce;
 	Base *base;
 
-	for(base= scene->base.first; base; base= base->next)
+	for(SETLOOPER(scene, base))
 		object_simplify_update(base->object);
 	
 	DAG_ids_flush_update(0);
 	WM_main_add_notifier(NC_GEOM|ND_DATA, NULL);
+}
+
+static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	if(scene->r.mode & R_SIMPLIFY)
+		rna_Scene_use_simplify_update(bmain, scene, ptr);
 }
 
 static int rna_Scene_sync_mode_get(PointerRNA *ptr)
@@ -2726,7 +2738,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_simplify", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_SIMPLIFY);
 	RNA_def_property_ui_text(prop, "Use Simplify", "Enable simplification of scene for quicker preview renders");
-	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+	RNA_def_property_update(prop, 0, "rna_Scene_use_simplify_update");
 
 	prop= RNA_def_property(srna, "simplify_subdivision", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "simplify_subsurf");
