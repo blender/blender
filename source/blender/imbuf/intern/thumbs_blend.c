@@ -131,7 +131,7 @@ thumb_error:
 /* add a fake passepartout overlay to a byte buffer, use for blend file thumbnails */
 #define MARGIN 2
 
-void IMB_overlayblend_thumb(int *thumb, int width, int height, float aspect)
+void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float aspect)
 {
 	unsigned char *px= (unsigned char *)thumb;
 	int margin_l = MARGIN;

@@ -510,6 +510,9 @@ static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
 
 		/* dirty oversampling */
 		IMB_scaleImBuf(ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE);
+
+		/* add pretty overlay */
+		IMB_overlayblend_thumb(ibuf->rect, ibuf->x, ibuf->y, aspect);
 		
 		/* first write into thumb buffer */
 		thumb= MEM_mallocN(((2 + (BLEN_THUMB_SIZE * BLEN_THUMB_SIZE))) * sizeof(int), "write_file thumb");
@@ -518,9 +521,6 @@ static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
 		thumb[1] = BLEN_THUMB_SIZE;
 
 		memcpy(thumb + 2, ibuf->rect, BLEN_THUMB_SIZE * BLEN_THUMB_SIZE * sizeof(int));
-		
-		/* add pretty overlay */
-		IMB_overlayblend_thumb(thumb + 2, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE, aspect);
 	}
 	else {
 		/* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */

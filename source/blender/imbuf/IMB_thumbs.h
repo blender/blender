@@ -73,7 +73,7 @@ void IMB_thumb_makedirs();
 
 /* special function for loading a thumbnail embedded into a blend file */
 ImBuf *IMB_loadblend_thumb(const char *path);
-void IMB_overlayblend_thumb(int *thumb, int width, int height, float aspect);
+void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float aspect);
 
 
 #endif /* _IMB_THUMBS_H */
