@@ -176,6 +176,7 @@ typedef struct uiAfterFunc {
 	int autokey;
 } uiAfterFunc;
 
+static int ui_but_contains_pt(uiBut *but, int mx, int my);
 static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
 static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata);
@@ -1659,7 +1660,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				my= event->y;
 				ui_window_to_block(data->region, block, &mx, &my);
 
-				if (ui_mouse_inside_button(data->region, but, mx, my)) {
+				if (ui_but_contains_pt(but, mx, my)) {
 					ui_textedit_set_cursor_pos(but, data, mx);
 					but->selsta = but->selend = but->pos;
 					data->selstartx= mx;
