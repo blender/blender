@@ -139,6 +139,14 @@ void multires_force_update(Object *ob)
 	}
 }
 
+void multires_force_external_reload(Object *ob)
+{
+	Mesh *me = get_mesh(ob);
+
+	CustomData_external_reload(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
+	multires_force_update(ob);
+}
+
 void multires_force_render_update(Object *ob)
 {
 	if(ob && (ob->mode & OB_MODE_SCULPT) && modifiers_findByType(ob, eModifierType_Multires))

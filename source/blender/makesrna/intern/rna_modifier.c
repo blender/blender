@@ -40,6 +40,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_bmesh.h" /* For BevelModifierData */
+#include "BKE_multires.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
 #include "WM_api.h"
@@ -382,8 +383,10 @@ static void rna_MultiresModifier_filename_set(PointerRNA *ptr, const char *value
 	Object *ob= (Object*)ptr->id.data;
 	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
 
-	if(external)
+	if(external && strcmp(external->filename, value)) {
 		BLI_strncpy(external->filename, value, sizeof(external->filename));
+		multires_force_external_reload(ob);
+	}
 }
 
 static int rna_MultiresModifier_filename_length(PointerRNA *ptr)
