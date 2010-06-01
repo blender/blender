@@ -1564,7 +1564,7 @@ static void rna_def_visibility_actuator(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bVisibilityActuator", "data");
 
 	prop= RNA_def_property(srna, "visible", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_VISIBILITY_INVISIBLE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ACT_VISIBILITY_INVISIBLE);
 	RNA_def_property_ui_text(prop, "Visible", "Set the objects visible. Initialized from the objects render restriction toggle (access in the outliner)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
