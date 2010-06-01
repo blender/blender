@@ -54,9 +54,6 @@ void quicktime_init(void);
 void quicktime_exit(void);
 #endif
 
-void libtiff_init(void);
-void libtiff_exit(void);
-
 ImFileType IMB_FILE_TYPES[]= {
 	{NULL, NULL, imb_is_a_iris, imb_ftype_iris, imb_loadiris, imb_saveiris, NULL, 0, IMAGIC},
 	{NULL, NULL, imb_is_a_jpeg, imb_ftype_default, imb_load_jpeg, imb_savejpeg, NULL, 0, JPG},
@@ -66,7 +63,7 @@ ImFileType IMB_FILE_TYPES[]= {
 	{NULL, NULL, imb_is_dpx, imb_ftype_default, imb_loaddpx, imb_save_dpx, NULL, IM_FTYPE_FLOAT, DPX},
 	{NULL, NULL, imb_is_cineon, imb_ftype_default, imb_loadcineon, imb_savecineon, NULL, IM_FTYPE_FLOAT, CINEON},
 #ifdef WITH_TIFF
-	{NULL, NULL, imb_is_a_tiff, imb_ftype_default, imb_loadtiff, imb_savetiff, imb_loadtiletiff, 0, TIF},
+	{imb_inittiff, NULL, imb_is_a_tiff, imb_ftype_default, imb_loadtiff, imb_savetiff, imb_loadtiletiff, 0, TIF},
 #elif defined(__APPLE__) && defined(IMBUF_COCOA)
 	{NULL, NULL, imb_is_a_cocoa, imb_ftype_cocoa, imb_imb_cocoaLoadImage, imb_savecocoa, NULL, 0, TIF},
 #endif
