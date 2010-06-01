@@ -2839,6 +2839,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	tex->vd= newdataadr(fd, tex->vd);
 	if(tex->vd) {
 		tex->vd->dataset = NULL;
+		tex->vd->ok = 0;
 	}
 	
 	tex->nodetree= newdataadr(fd, tex->nodetree);

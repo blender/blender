@@ -4595,7 +4595,6 @@ void RE_Database_Free(Render *re)
 	end_render_textures();
 	
 	free_pointdensities(re);
-	free_voxeldata(re);
 	
 	free_camera_inside_volumes(re);
 	
