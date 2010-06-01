@@ -2393,8 +2393,8 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	
-	if(screen->animtimer==event->customdata) {
+
+	if(screen->animtimer && screen->animtimer==event->customdata) {
 		Scene *scene= CTX_data_scene(C);
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;
