@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_text.h" /* txt_to_buf */	
 #include "BKE_main.h"
+#include "BKE_global.h" /* grr, only for G.sce */
 #include "BLI_listbase.h"
 #include <stddef.h>
 
@@ -55,6 +56,12 @@ void bpy_import_main_set(struct Main *maggie)
 	bpy_import_main= maggie;
 }
 
+/* returns a dummy filename for a textblock so we can tell what file a text block comes from */
+void bpy_text_filename_get(char *fn, Text *text)
+{
+	sprintf(fn, "%s/%s", text->id.lib ? text->id.lib->filename : G.sce, text->id.name+2);
+}
+
 PyObject *bpy_text_import( Text *text )
 {
 	char *buf = NULL;
@@ -62,8 +69,11 @@ PyObject *bpy_text_import( Text *text )
 	int len;
 
 	if( !text->compiled ) {
+		char fn_dummy[256];
+		bpy_text_filename_get(fn_dummy, text);
+
 		buf = txt_to_buf( text );
-		text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
+		text->compiled = Py_CompileString( buf, fn_dummy, Py_file_input );
 		MEM_freeN( buf );
 
 		if( PyErr_Occurred(  ) ) {

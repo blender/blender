@@ -327,16 +327,17 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	}
 	
 	bpy_context_set(C, &gilstate);
-	
-	py_dict = CreateGlobalDictionary(C, text?text->id.name+2:fn);
 
 	if (text) {
+		char fn_dummy[FILE_MAXDIR];
+		bpy_text_filename_get(fn_dummy, text);
+		py_dict = CreateGlobalDictionary(C, fn_dummy);
 		
 		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
 			char *buf = txt_to_buf( text );
 
 			text->compiled =
-				Py_CompileString( buf, text->id.name+2, Py_file_input );
+				Py_CompileString( buf, fn_dummy, Py_file_input );
 
 			MEM_freeN( buf );
 
@@ -347,7 +348,10 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 		if(text->compiled)
 			py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
 		
-	} else {
+	}
+	else {
+		py_dict = CreateGlobalDictionary(C, fn);
+
 		FILE *fp= fopen(fn, "r");		
 		if(fp) {
 #ifdef _WIN32
