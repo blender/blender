@@ -286,10 +286,21 @@ static void update_cb(PBVHNode *node, void *data)
 static int sculpt_modifiers_active(Scene *scene, Object *ob)
 {
 	ModifierData *md;
+	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
+
+	/* check if there are any modifiers after what we are sculpting,
+	   for a multires modifier with a deform modifier in front, we
+	   do no need to recalculate the modifier stack. note that this
+	   needs to be in sync with ccgDM_use_grid_pbvh! */
+	if(mmd)
+		md= mmd->modifier.next;
+	else
+		md= modifiers_getVirtualModifierList(ob);
 	
-	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
+	/* exception for shape keys because we can edit those */
+	for(; md; md= md->next) {
 		if(modifier_isEnabled(scene, md, eModifierMode_Realtime))
-			if(!ELEM(md->type, eModifierType_Multires, eModifierType_ShapeKey))
+			if(md->type != eModifierType_ShapeKey)
 				return 1;
 	}
 	
@@ -363,7 +374,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		BLI_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, NULL);
 		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw, NULL);
 
-		if((mmd=sculpt_multires_active(ob)))
+		if((mmd=sculpt_multires_active(scene, ob)))
 			multires_mark_as_modified(ob);
 
 		if(sculpt_modifiers_active(scene, ob))
@@ -1473,7 +1484,7 @@ static void sculpt_update_tex(Sculpt *sd, SculptSession *ss)
 
 /* Sculpt mode handles multires differently from regular meshes, but only if
    it's the last modifier on the stack and it is not on the first level */
-struct MultiresModifierData *sculpt_multires_active(Object *ob)
+struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 {
 	ModifierData *md, *nmd;
 	
@@ -1483,8 +1494,8 @@ struct MultiresModifierData *sculpt_multires_active(Object *ob)
 
 			/* Check if any of the modifiers after multires are active
 			 * if not it can use the multires struct */
-			for (nmd= md->next; nmd; nmd= nmd->next)
-				if(nmd->mode & eModifierMode_Realtime)
+			for(nmd= md->next; nmd; nmd= nmd->next)
+				if(modifier_isEnabled(scene, nmd, eModifierMode_Realtime))
 					break;
 
 			if(!nmd && mmd->sculptlvl > 0)
@@ -1514,10 +1525,11 @@ void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, 0);
 	SculptSession *ss = ob->sculpt;
-	
+	MultiresModifierData *mmd= sculpt_multires_active(scene, ob);
+
 	ss->ob= ob;
 
-	if((ob->shapeflag & OB_SHAPE_LOCK) && !sculpt_multires_active(ob)) {
+	if((ob->shapeflag & OB_SHAPE_LOCK) && !mmd) {
 		ss->kb= ob_get_keyblock(ob);
 		ss->refkb= ob_get_reference_keyblock(ob);
 	}
@@ -1529,7 +1541,8 @@ void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
 	/* need to make PBVH with shape key coordinates */
 	if(ss->kb) sculpt_key_to_mesh(ss->kb, ss->ob);
 
-	if((ss->multires = sculpt_multires_active(ob))) {
+	if(mmd) {
+		ss->multires = mmd;
 		ss->totvert = dm->getNumVerts(dm);
 		ss->totface = dm->getNumFaces(dm);
 		ss->mvert= NULL;
@@ -1543,6 +1556,7 @@ void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
 		ss->mvert = me->mvert;
 		ss->mface = me->mface;
 		ss->face_normals = NULL;
+		ss->multires = NULL;
 	}
 
 	ss->pbvh = dm->getPBVH(ob, dm);
@@ -2221,13 +2235,19 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
-	MultiresModifierData *mmd = sculpt_multires_active(ob);
+	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
+	int flush_recalc= 0;
+
+	/* multires in sculpt mode could have different from object mode subdivision level */
+	flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;
+	/* if object has got active modifiers, it's dm could be different in sculpt mode  */
+	//flush_recalc |= sculpt_modifiers_active(scene, ob);
 
 	if(ob->mode & OB_MODE_SCULPT) {
-		if(sculpt_multires_active(ob))
+		if(mmd)
 			multires_force_update(ob);
 
-		if(mmd && mmd->sculptlvl != mmd->lvl)
+		if(flush_recalc)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 		/* Leave sculptmode */
@@ -2239,7 +2259,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		/* Enter sculptmode */
 		ob->mode |= OB_MODE_SCULPT;
 
-		if(mmd && mmd->sculptlvl != mmd->lvl)
+		if(flush_recalc)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		
 		/* Create persistent sculpt mode data */

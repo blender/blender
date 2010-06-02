@@ -654,7 +654,9 @@ static void multiresModifier_update(DerivedMesh *dm)
 			int i, j, numGrids, highGridSize, lowGridSize;
 
 			/* create subsurf DM from original mesh at high level */
-			cddm = CDDM_from_mesh(me, NULL);
+			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
+			else cddm = CDDM_from_mesh(me, NULL);
+
 			highdm = subsurf_dm_create_local(ob, cddm, totlvl, mmd->simple, 0);
 
 			/* create multires DM from original mesh and displacements */
@@ -705,7 +707,9 @@ static void multiresModifier_update(DerivedMesh *dm)
 		else {
 			DerivedMesh *cddm, *subdm;
 
-			cddm = CDDM_from_mesh(me, NULL);
+			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
+			else cddm = CDDM_from_mesh(me, NULL);
+
 			subdm = subsurf_dm_create_local(ob, cddm, mmd->totlvl, mmd->simple, 0);
 			cddm->release(cddm);
 
