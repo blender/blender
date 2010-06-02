@@ -36,7 +36,7 @@
 #include "BKE_sound.h"
 #include "BKE_context.h"
 
-static void rna_Sound_filename_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sound_filepath_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	sound_load(bmain, (bSound*)ptr->data);
 }
@@ -70,10 +70,10 @@ static void rna_def_sound(BlenderRNA *brna)
 
 	//rna_def_ipo_common(srna);
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Filename", "Sound sample file used by this Sound datablock");
-	RNA_def_property_update(prop, 0, "rna_Sound_filename_update");
+	RNA_def_property_update(prop, 0, "rna_Sound_filepath_update");
 
 	prop= RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
@@ -82,7 +82,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "caching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Sound_caching_get", "rna_Sound_caching_set");
 	RNA_def_property_ui_text(prop, "Caching", "The sound file is decoded and loaded into RAM");
-	RNA_def_property_update(prop, 0, "rna_Sound_filename_update");
+	RNA_def_property_update(prop, 0, "rna_Sound_filepath_update");
 }
 
 void RNA_def_sound(BlenderRNA *brna)

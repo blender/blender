@@ -203,7 +203,7 @@ def write(filename, scene, ob, \
 
     file.write('ply\n')
     file.write('format ascii 1.0\n')
-    file.write('comment Created by Blender %s - www.blender.org, source file: %s\n' % (bpy.app.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1]))
+    file.write('comment Created by Blender %s - www.blender.org, source file: %s\n' % (bpy.app.version_string, bpy.data.filepath.split('/')[-1].split('\\')[-1]))
 
     file.write('element vertex %d\n' % len(ply_verts))
 
@@ -310,7 +310,7 @@ class ExportPLY(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".ply")
+    default_path = bpy.data.filepath.replace(".blend", ".ply")
     self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)").path = default_path
 
 

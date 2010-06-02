@@ -44,10 +44,10 @@ void RNA_def_vfont(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "VFont");
 	RNA_def_struct_ui_icon(srna, ICON_FILE_FONT);
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Filename", "");
+	RNA_def_property_ui_text(prop, "File Path", "");
 
 	prop= RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");

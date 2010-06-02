@@ -217,7 +217,7 @@ def expandpath(path):
     Returns the absolute path relative to the current blend file using the "//" prefix.
     """
     if path.startswith("//"):
-        return _os.path.join(_os.path.dirname(_bpy.data.filename), path[2:])
+        return _os.path.join(_os.path.dirname(_bpy.data.filepath), path[2:])
 
     return path
 
@@ -231,7 +231,7 @@ def relpath(path, start=None):
     """
     if not path.startswith("//"):
         if start is None:
-            start = _os.path.dirname(_bpy.data.filename)
+            start = _os.path.dirname(_bpy.data.filepath)
         return "//" + _os.path.relpath(path, start)
 
     return path

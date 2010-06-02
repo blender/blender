@@ -296,15 +296,15 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Image", "Image datablock referencing an external or packed image");
 	RNA_def_struct_ui_icon(srna, ICON_IMAGE_DATA);
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name");
+	RNA_def_property_ui_text(prop, "File Name", "Image/Movie file name");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_reload_update");
 
 	/* eek. this is horrible but needed so we can save to a new name without blanking the data :( */
-	prop= RNA_def_property(srna, "filename_raw", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "filepath_raw", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name (without data refreshing)");
+	RNA_def_property_ui_text(prop, "File Name", "Image/Movie file name (without data refreshing)");
 
 	prop= RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, image_type_items);

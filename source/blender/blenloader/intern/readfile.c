@@ -507,7 +507,7 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *name, c
 //	printf("blo_find_main: converted to %s\n", name1);
 
 	for (m= mainlist->first; m; m= m->next) {
-		char *libname= (m->curlib)?m->curlib->filename:m->name;
+		char *libname= (m->curlib)?m->curlib->filepath:m->name;
 		
 		if (BLI_streq(name1, libname)) {
 			if(G.f & G_DEBUG) printf("blo_find_main: found library %s\n", libname);
@@ -520,7 +520,7 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *name, c
 
 	lib= alloc_libblock(&m->library, ID_LI, "lib");
 	strncpy(lib->name, name, sizeof(lib->name)-1);
-	BLI_strncpy(lib->filename, name1, sizeof(lib->filename));
+	BLI_strncpy(lib->filepath, name1, sizeof(lib->filepath));
 	
 	m->curlib= lib;
 	
@@ -5233,8 +5233,8 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	
 	for(newmain= fd->mainlist.first; newmain; newmain= newmain->next) {
 		if(newmain->curlib) {
-			if(strcmp(newmain->curlib->filename, lib->filename)==0) {
-				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->filename);
+			if(strcmp(newmain->curlib->filepath, lib->filepath)==0) {
+				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->filepath);
 				
 				change_idid_adr(&fd->mainlist, fd, lib, newmain->curlib);
 //				change_idid_adr_fd(fd, lib, newmain->curlib);
@@ -5249,8 +5249,8 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	/* make sure we have full path in lib->filename */
-	BLI_strncpy(lib->filename, lib->name, sizeof(lib->name));
-	cleanup_path(fd->relabase, lib->filename);
+	BLI_strncpy(lib->filepath, lib->name, sizeof(lib->name));
+	cleanup_path(fd->relabase, lib->filepath);
 	
 //	printf("direct_link_library: name %s\n", lib->name);
 //	printf("direct_link_library: filename %s\n", lib->filename);
@@ -5283,7 +5283,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 		/* Libraries store both relative and abs paths, recreate relative paths,
 		 * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
 		if (strncmp(lib->name, "//", 2)==0) { /* if this is relative to begin with? */
-			strncpy(lib->name, lib->filename, sizeof(lib->name));
+			strncpy(lib->name, lib->filepath, sizeof(lib->name));
 			BLI_path_rel(lib->name, basepath);
 		}
 	}
@@ -12216,7 +12216,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	if(flag & FILE_RELPATH) {
 
 		/* use the full path, this could have been read by other library even */
-		BLI_strncpy(mainl->curlib->name, mainl->curlib->filename, sizeof(mainl->curlib->name));
+		BLI_strncpy(mainl->curlib->name, mainl->curlib->filepath, sizeof(mainl->curlib->name));
 		
 		/* uses current .blend file as reference */
 		BLI_path_rel(mainl->curlib->name, G.sce);
@@ -12333,10 +12333,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if(fd==NULL) {
 
 					/* printf and reports for now... its important users know this */
-					BKE_reportf(basefd->reports, RPT_INFO, "read library:  '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
-					if(!G.background && basefd->reports) printf("read library: '%s', '%s'\n", mainptr->curlib->filename, mainptr->curlib->name);
+					BKE_reportf(basefd->reports, RPT_INFO, "read library:  '%s', '%s'\n", mainptr->curlib->filepath, mainptr->curlib->name);
+					if(!G.background && basefd->reports) printf("read library: '%s', '%s'\n", mainptr->curlib->filepath, mainptr->curlib->name);
 
-					fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
+					fd= blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 					
 					/* allow typing in a new lib path */
 					if(G.rt==-666) {
@@ -12344,19 +12344,19 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 							char newlib_path[240] = { 0 };
 							printf("Missing library...'\n");
 							printf("	current file: %s\n", G.sce);
-							printf("	absolute lib: %s\n", mainptr->curlib->filename);
+							printf("	absolute lib: %s\n", mainptr->curlib->filepath);
 							printf("	relative lib: %s\n", mainptr->curlib->name);
 							printf("  enter a new path:\n");
 
 							if(scanf("%s", newlib_path) > 0) {
 								strcpy(mainptr->curlib->name, newlib_path);
-								strcpy(mainptr->curlib->filename, newlib_path);
-								cleanup_path(G.sce, mainptr->curlib->filename);
+								strcpy(mainptr->curlib->filepath, newlib_path);
+								cleanup_path(G.sce, mainptr->curlib->filepath);
 								
-								fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
+								fd= blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 
 								if(fd) {
-									printf("found: '%s', party on macuno!\n", mainptr->curlib->filename);
+									printf("found: '%s', party on macuno!\n", mainptr->curlib->filepath);
 								}
 							}
 						}
@@ -12379,8 +12379,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					else mainptr->curlib->filedata= NULL;
 
 					if (fd==NULL) {
-						BKE_reportf(basefd->reports, RPT_ERROR, "Can't find lib '%s'\n", mainptr->curlib->filename);
-						if(!G.background && basefd->reports) printf("ERROR: can't find lib %s \n", mainptr->curlib->filename);
+						BKE_reportf(basefd->reports, RPT_ERROR, "Can't find lib '%s'\n", mainptr->curlib->filepath);
+						if(!G.background && basefd->reports) printf("ERROR: can't find lib %s \n", mainptr->curlib->filepath);
 					}
 				}
 				if(fd) {
@@ -12397,8 +12397,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
-									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
-									if(!G.background && basefd->reports) printf("LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
+									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+									if(!G.background && basefd->reports) printf("LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
 								}
 								
 								change_idid_adr(mainlist, basefd, id, realid);
@@ -12433,8 +12433,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				ID *idn= id->next;
 				if(id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
-					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
-					if(!G.background && basefd->reports)printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
+					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					if(!G.background && basefd->reports)printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);

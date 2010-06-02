@@ -70,7 +70,7 @@ class EditExternally(bpy.types.Operator):
 
     def invoke(self, context, event):
         try:
-            path = context.space_data.image.filename
+            path = context.space_data.image.filepath
         except:
             self.report({'ERROR'}, "Image not found on disk")
             return {'CANCELLED'}
@@ -91,7 +91,7 @@ class SaveDirty(bpy.types.Operator):
         unique_paths = set()
         for image in bpy.data.images:
             if image.dirty:
-                path = bpy.utils.expandpath(image.filename)
+                path = bpy.utils.expandpath(image.filepath)
                 if "\\" not in path and "/" not in path:
                     self.report({'WARNING'}, "Invalid path: " + path)
                 elif path in unique_paths:
@@ -131,37 +131,37 @@ class ProjectEdit(bpy.types.Operator):
             self.report({'ERROR'}, "Could not make new image")
             return {'CANCELLED'}
 
-        filename = os.path.basename(bpy.data.filename)
-        filename = os.path.splitext(filename)[0]
-        # filename = bpy.utils.clean_name(filename) # fixes <memory> rubbish, needs checking
+        filepath = os.path.basename(bpy.data.filepath)
+        filepath = os.path.splitext(filepath)[0]
+        # filepath = bpy.utils.clean_name(filepath) # fixes <memory> rubbish, needs checking
 
-        if filename.startswith(".") or filename == "":
+        if filepath.startswith(".") or filepath == "":
             # TODO, have a way to check if the file is saved, assume .B25.blend
             tmpdir = context.user_preferences.filepaths.temporary_directory
-            filename = os.path.join(tmpdir, "project_edit")
+            filepath = os.path.join(tmpdir, "project_edit")
         else:
-            filename = "//" + filename
+            filepath = "//" + filepath
 
         obj = context.object
 
         if obj:
-            filename += "_" + bpy.utils.clean_name(obj.name)
+            filepath += "_" + bpy.utils.clean_name(obj.name)
 
-        filename_final = filename + "." + EXT
+        filepath_final = filepath + "." + EXT
         i = 0
 
-        while os.path.exists(bpy.utils.expandpath(filename_final)):
-            filename_final = filename + ("%.3d.%s" % (i, EXT))
+        while os.path.exists(bpy.utils.expandpath(filepath_final)):
+            filepath_final = filepath + ("%.3d.%s" % (i, EXT))
             i += 1
 
-        image_new.name = os.path.basename(filename_final)
+        image_new.name = os.path.basename(filepath_final)
         ProjectEdit._proj_hack[0] = image_new.name
 
-        image_new.filename_raw = filename_final # TODO, filename raw is crummy
+        image_new.filepath_raw = filepath_final # TODO, filepath raw is crummy
         image_new.file_format = 'PNG'
         image_new.save()
 
-        bpy.ops.image.external_edit(path=filename_final)
+        bpy.ops.image.external_edit(path=filepath_final)
 
         return {'FINISHED'}
 

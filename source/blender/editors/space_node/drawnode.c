@@ -891,7 +891,7 @@ static void node_composit_buts_file_output(uiLayout *layout, bContext *C, Pointe
 	uiLayout *col, *row;
 
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, ptr, "filename", 0, "", 0);
+	uiItemR(col, ptr, "filepath", 0, "", 0);
 	uiItemR(col, ptr, "image_type", 0, "", 0);
 	
 	row= uiLayoutRow(layout, 0);

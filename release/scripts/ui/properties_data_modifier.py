@@ -455,7 +455,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
             row.operator("object.multires_pack_external", text="Pack External")
             row.label()
             row = col.row()
-            row.prop(md, "filename", text="")
+            row.prop(md, "filepath", text="")
         else:
             row.operator("object.multires_save_external", text="Save External...")
             row.label()

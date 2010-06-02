@@ -260,9 +260,9 @@ Image *rna_Main_images_new(Main *bmain, char* name, int width, int height, int f
 	image->id.us--;
 	return image;
 }
-Image *rna_Main_images_load(Main *bmain, char *filename)
+Image *rna_Main_images_load(Main *bmain, char *filepath)
 {
-	return BKE_add_image_file(filename, 0);
+	return BKE_add_image_file(filepath, 0);
 }
 void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
 {
@@ -316,9 +316,9 @@ void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall
 		BKE_reportf(reports, RPT_ERROR, "MetaBall \"%s\" must have zero users to be removed, found %d.", mb->id.name+2, ID_REAL_USERS(mb));
 }
 
-VFont *rna_Main_fonts_load(Main *bmain, char *filename)
+VFont *rna_Main_fonts_load(Main *bmain, char *filepath)
 {
-	return load_vfont(filename);
+	return load_vfont(filepath);
 }
 void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont)
 {
@@ -465,7 +465,7 @@ void RNA_api_main(StructRNA *srna)
 	/*
 	func= RNA_def_function(srna, "add_image", "rna_Main_add_image");
 	RNA_def_function_ui_description(func, "Add a new image.");
-	parm= RNA_def_string(func, "filename", "", 0, "", "Filename to load image from.");
+	parm= RNA_def_string(func, "filepath", "", 0, "", "File path to load image from.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image.");
 	RNA_def_function_return(func, parm);
@@ -692,7 +692,7 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "load", "rna_Main_images_load");
 	RNA_def_function_ui_description(func, "Load a new image into the main database");
-	parm= RNA_def_string(func, "filename", "File Name", 0, "", "path of the file to load.");
+	parm= RNA_def_string(func, "filepath", "File Path", 0, "", "path of the file to load.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image datablock.");
@@ -791,7 +791,7 @@ void RNA_def_main_fonts(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "load", "rna_Main_fonts_load");
 	RNA_def_function_ui_description(func, "Load a new font into the main database");
-	parm= RNA_def_string(func, "filename", "File Name", 0, "", "path of the font to load.");
+	parm= RNA_def_string(func, "filepath", "File Path", 0, "", "path of the font to load.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "vfont", "VectorFont", "", "New font datablock.");

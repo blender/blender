@@ -37,8 +37,8 @@ DONE = 2
 ERROR = 3
 
 def init_file():
-    if netrender.init_file != bpy.data.filename:
-        netrender.init_file = bpy.data.filename
+    if netrender.init_file != bpy.data.filepath:
+        netrender.init_file = bpy.data.filepath
         netrender.init_data = True
         netrender.init_address = True
 

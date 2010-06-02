@@ -59,7 +59,7 @@ void bpy_import_main_set(struct Main *maggie)
 /* returns a dummy filename for a textblock so we can tell what file a text block comes from */
 void bpy_text_filename_get(char *fn, Text *text)
 {
-	sprintf(fn, "%s/%s", text->id.lib ? text->id.lib->filename : G.sce, text->id.name+2);
+	sprintf(fn, "%s/%s", text->id.lib ? text->id.lib->filepath : G.sce, text->id.name+2);
 }
 
 PyObject *bpy_text_import( Text *text )

@@ -370,7 +370,7 @@ static int rna_MultiresModifier_external_get(PointerRNA *ptr)
 	return CustomData_external_test(&me->fdata, CD_MDISPS);
 }
 
-static void rna_MultiresModifier_filename_get(PointerRNA *ptr, char *value)
+static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 {
 	Object *ob= (Object*)ptr->id.data;
 	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
@@ -378,7 +378,7 @@ static void rna_MultiresModifier_filename_get(PointerRNA *ptr, char *value)
 	BLI_strncpy(value, (external)? external->filename: "", sizeof(external->filename));
 }
 
-static void rna_MultiresModifier_filename_set(PointerRNA *ptr, const char *value)
+static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob= (Object*)ptr->id.data;
 	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
@@ -389,7 +389,7 @@ static void rna_MultiresModifier_filename_set(PointerRNA *ptr, const char *value
 	}
 }
 
-static int rna_MultiresModifier_filename_length(PointerRNA *ptr)
+static int rna_MultiresModifier_filepath_length(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
@@ -606,9 +606,9 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_MultiresModifier_external_get", NULL);
 	RNA_def_property_ui_text(prop, "External", "Store multires displacements outside the .blend file, to save memory");
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_string_funcs(prop, "rna_MultiresModifier_filename_get", "rna_MultiresModifier_filename_length", "rna_MultiresModifier_filename_set");
-	RNA_def_property_ui_text(prop, "Filename", "Path to external displacements file");
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_funcs(prop, "rna_MultiresModifier_filepath_get", "rna_MultiresModifier_filepath_length", "rna_MultiresModifier_filepath_set");
+	RNA_def_property_ui_text(prop, "File Path", "Path to external displacements file");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "optimal_display", PROP_BOOLEAN, PROP_NONE);

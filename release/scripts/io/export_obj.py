@@ -65,15 +65,15 @@ def fixName(name):
     else:
         return name.replace(' ', '_')
 
-def write_mtl(scene, filename, copy_images, mtl_dict):
+def write_mtl(scene, filepath, copy_images, mtl_dict):
 
     world = scene.world
     worldAmb = world.ambient_color
 
-    dest_dir = os.path.dirname(filename)
+    dest_dir = os.path.dirname(filepath)
 
     def copy_image(image):
-        fn = bpy.utils.expandpath(image.filename)
+        fn = bpy.utils.expandpath(image.filepath)
         fn_strip = os.path.basename(fn)
         if copy_images:
             rel = fn_strip
@@ -86,9 +86,9 @@ def write_mtl(scene, filename, copy_images, mtl_dict):
         return rel
 
 
-    file = open(filename, "w")
+    file = open(filepath, "w")
     # XXX
-#	file.write('# Blender MTL File: %s\n' % Blender.Get('filename').split('\\')[-1].split('/')[-1])
+#	file.write('# Blender MTL File: %s\n' % Blender.Get('filepath').split('\\')[-1].split('/')[-1])
     file.write('# Material Count: %i\n' % len(mtl_dict))
     # Write material/image combinations we have used.
     for key, (mtl_mat_name, mat, img) in mtl_dict.items():
@@ -131,15 +131,15 @@ def write_mtl(scene, filename, copy_images, mtl_dict):
             # write relative image path
             rel = copy_image(img)
             file.write('map_Kd %s\n' % rel) # Diffuse mapping image
-# 			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image
+# 			file.write('map_Kd %s\n' % img.filepath.split('\\')[-1].split('/')[-1]) # Diffuse mapping image
 
         elif mat: # No face image. if we havea material search for MTex image.
             for mtex in mat.texture_slots:
                 if mtex and mtex.texture.type == 'IMAGE':
                     try:
-                        filename = copy_image(mtex.texture.image)
-# 						filename = mtex.texture.image.filename.split('\\')[-1].split('/')[-1]
-                        file.write('map_Kd %s\n' % filename) # Diffuse mapping image
+                        filepath = copy_image(mtex.texture.image)
+# 						filepath = mtex.texture.image.filepath.split('\\')[-1].split('/')[-1]
+                        file.write('map_Kd %s\n' % filepath) # Diffuse mapping image
                         break
                     except:
                         # Texture has no image though its an image type, best ignore.
@@ -189,7 +189,7 @@ def copy_images(dest_dir):
     copyCount = 0
 
 # 	for bImage in uniqueImages.values():
-# 		image_path = bpy.utils.expandpath(bImage.filename)
+# 		image_path = bpy.utils.expandpath(bImage.filepath)
 # 		if bpy.sys.exists(image_path):
 # 			# Make a name for the target path.
 # 			dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
@@ -282,7 +282,7 @@ def write_nurb(file, ob, ob_mat):
 
     return tot_verts
 
-def write(filename, objects, scene,
+def write(filepath, objects, scene,
           EXPORT_TRI=False,
           EXPORT_EDGES=False,
           EXPORT_NORMALS=False,
@@ -351,23 +351,23 @@ def write(filename, objects, scene,
         return ret
 
 
-    print('OBJ Export path: "%s"' % filename)
+    print('OBJ Export path: "%s"' % filepath)
     temp_mesh_name = '~tmp-mesh'
 
     time1 = time.clock()
 #	time1 = sys.time()
 #	scn = Scene.GetCurrent()
 
-    file = open(filename, "w")
+    file = open(filepath, "w")
 
     # Write Header
-    file.write('# Blender v%s OBJ File: %s\n' % (bpy.app.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
+    file.write('# Blender v%s OBJ File: %s\n' % (bpy.app.version_string, bpy.data.filepath.split('/')[-1].split('\\')[-1] ))
     file.write('# www.blender.org\n')
 
     # Tell the obj file what material file to use.
     if EXPORT_MTL:
-        mtlfilename = '%s.mtl' % '.'.join(filename.split('.')[:-1])
-        file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
+        mtlfilepath = '%s.mtl' % '.'.join(filepath.split('.')[:-1])
+        file.write('mtllib %s\n' % ( mtlfilepath.split('\\')[-1].split('/')[-1] ))
 
     if EXPORT_ROTX90:
         mat_xrot90= mathutils.RotationMatrix(-math.pi/2, 4, 'X')
@@ -782,22 +782,22 @@ def write(filename, objects, scene,
 
     # Now we have all our materials, save them
     if EXPORT_MTL:
-        write_mtl(scene, mtlfilename, EXPORT_COPY_IMAGES, mtl_dict)
+        write_mtl(scene, mtlfilepath, EXPORT_COPY_IMAGES, mtl_dict)
 # 	if EXPORT_COPY_IMAGES:
-# 		dest_dir = os.path.basename(filename)
-# # 		dest_dir = filename
+# 		dest_dir = os.path.basename(filepath)
+# # 		dest_dir = filepath
 # # 		# Remove chars until we are just the path.
 # # 		while dest_dir and dest_dir[-1] not in '\\/':
 # # 			dest_dir = dest_dir[:-1]
 # 		if dest_dir:
 # 			copy_images(dest_dir, mtl_dict)
 # 		else:
-# 			print('\tError: "%s" could not be used as a base for an image path.' % filename)
+# 			print('\tError: "%s" could not be used as a base for an image path.' % filepath)
 
     print("OBJ Export time: %.2f" % (time.clock() - time1))
 #	print "OBJ Export time: %.2f" % (sys.time() - time1)
 
-def do_export(filename, context,
+def do_export(filepath, context,
               EXPORT_APPLY_MODIFIERS = True, # not used
               EXPORT_ROTX90 = True, # wrong
               EXPORT_TRI = False, # ok
@@ -817,7 +817,7 @@ def do_export(filename, context,
               EXPORT_POLYGROUPS = False,
               EXPORT_CURVE_AS_NURBS = True):
     
-    base_name, ext = splitExt(filename)
+    base_name, ext = splitExt(filepath)
     context_name = [base_name, '', '', ext] # Base name, scene name, frame number, extension
 
     orig_scene = context.scene
@@ -853,7 +853,7 @@ def do_export(filename, context,
 
         # Loop through all frames in the scene and export.
         for frame in scene_frames:
-            if EXPORT_ANIMATION: # Add frame to the filename.
+            if EXPORT_ANIMATION: # Add frame to the filepath.
                 context_name[2] = '_%.6d' % frame
 
             scn.frame_current = frame
@@ -964,7 +964,7 @@ class ExportOBJ(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".obj")
+    default_path = bpy.data.filepath.replace(".blend", ".obj")
     self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)").path = default_path
 
 

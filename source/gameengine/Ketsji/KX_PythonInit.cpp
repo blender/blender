@@ -1830,7 +1830,7 @@ static void initPySysObjects(Main *maggie)
 	while(lib) {
 		/* lib->name wont work in some cases (on win32),
 		 * even when expanding with gp_GamePythonPath, using lib->filename is less trouble */
-		initPySysObjects__append(sys_path, lib->filename);
+		initPySysObjects__append(sys_path, lib->filepath);
 		lib= (Library *)lib->id.next;
 	}
 	

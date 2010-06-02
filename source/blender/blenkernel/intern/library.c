@@ -1225,7 +1225,7 @@ static void image_fix_relative_path(Image *ima)
 {
 	if(ima->id.lib==NULL) return;
 	if(strncmp(ima->name, "//", 2)==0) {
-		BLI_path_abs(ima->name, ima->id.lib->filename);
+		BLI_path_abs(ima->name, ima->id.lib->filepath);
 		BLI_path_rel(ima->name, G.sce);
 	}
 }

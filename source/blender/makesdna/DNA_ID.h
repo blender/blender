@@ -117,7 +117,7 @@ typedef struct Library {
 	ID *idblock;
 	struct FileData *filedata;
 	char name[240];			/* path name used for reading, can be relative and edited in the outliner */
-	char filename[240];		/* temp. absolute filepath, only used while reading */
+	char filepath[240];		/* temp. absolute filepath, only used while reading */
 	int tot, pad;			/* tot, idblock and filedata are only fo read and write */
 	struct Library *parent;	/* set for indirectly linked libs, used in the outliner and while reading */
 } Library;

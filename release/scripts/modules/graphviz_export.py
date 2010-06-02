@@ -57,7 +57,7 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, 
     fileobject = open(path, "w")
     fw = fileobject.write
     fw(header)
-    fw('label = "%s::%s" ;' % (bpy.data.filename.split("/")[-1].split("\\")[-1], obj.name))
+    fw('label = "%s::%s" ;' % (bpy.data.filepath.split("/")[-1].split("\\")[-1], obj.name))
 
     arm = obj.data
 

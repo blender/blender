@@ -717,7 +717,7 @@ class x3d_class:
 
     def writeImageTexture(self, image):
         name = image.name
-        filename = image.filename.split('/')[-1].split('\\')[-1]
+        filename = image.filepath.split('/')[-1].split('\\')[-1]
         if name in self.texNames:
             self.writeIndented("<ImageTexture USE=\"%s\" />\n" % self.cleanStr(name))
             self.texNames[name] += 1
@@ -794,28 +794,28 @@ class x3d_class:
             pic = tex.image
 
             # using .expandpath just in case, os.path may not expect //
-            basename = os.path.basename(bpy.utils.expandpath(pic.filename))
+            basename = os.path.basename(bpy.utils.expandpath(pic.filepath))
 
             pic = alltextures[i].image
             # pic = alltextures[i].getImage()
             if (namemat == "back") and (pic != None):
                 self.file.write("\n\tbackUrl=\"%s\" " % basename)
-                # self.file.write("\n\tbackUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.file.write("\n\tbackUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
             elif (namemat == "bottom") and (pic != None):
                 self.writeIndented("bottomUrl=\"%s\" " % basename)
-                # self.writeIndented("bottomUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.writeIndented("bottomUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
             elif (namemat == "front") and (pic != None):
                 self.writeIndented("frontUrl=\"%s\" " % basename)
-                # self.writeIndented("frontUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.writeIndented("frontUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
             elif (namemat == "left") and (pic != None):
                 self.writeIndented("leftUrl=\"%s\" " % basename)
-                # self.writeIndented("leftUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.writeIndented("leftUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
             elif (namemat == "right") and (pic != None):
                 self.writeIndented("rightUrl=\"%s\" " % basename)
-                # self.writeIndented("rightUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.writeIndented("rightUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
             elif (namemat == "top") and (pic != None):
                 self.writeIndented("topUrl=\"%s\" " % basename)
-                # self.writeIndented("topUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.writeIndented("topUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
         self.writeIndented("/>\n\n")
 
 ##########################################################
@@ -1215,9 +1215,6 @@ def x3d_export_ui(filename):
 #########################################################
 
 
-# if __name__ == '__main__':
-# 	Blender.Window.FileSelector(x3d_export_ui,"Export X3D", Blender.Get('filename').replace('.blend', '.x3d'))
-
 from bpy.props import *
 
 class ExportX3D(bpy.types.Operator):
@@ -1245,7 +1242,7 @@ class ExportX3D(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".x3d")
+    default_path = bpy.data.filepath.replace(".blend", ".x3d")
     self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)").path = default_path
 
 

@@ -1518,7 +1518,7 @@ static void wm_link_make_library_local(Main *main, const char *libname)
 
 	/* and now find the latest append lib file */
 	for(lib= main->library.first; lib; lib=lib->id.next)
-		if(BLI_streq(libname, lib->filename))
+		if(BLI_streq(libname, lib->filepath))
 			break;
 	
 	/* make local */
