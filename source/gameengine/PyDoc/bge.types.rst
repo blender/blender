@@ -11,14 +11,14 @@ Game Engine  bge.types Module
    .. attribute:: invalid
 
       Test if the object has been freed by the game engine and is no longer valid.
-
+       
       Normally this is not a problem but when storing game engine data in the GameLogic module, 
       KX_Scenes or other KX_GameObjects its possible to hold a reference to invalid data.
       Calling an attribute or method on an invalid object will raise a SystemError.
-
+       
       The invalid attribute allows testing for this case without exception handling.
 
-      *type* bool
+      :type: boolean
 
    .. method:: isA(game_type)
 
@@ -27,7 +27,7 @@ Game Engine  bge.types Module
       :arg game_type: the name of the type or the type its self from the :mod:`bge.types` module.
       :type game_type: string or type
       :return: True if this object is a type or a subtype of game_type.
-      :rtype: bool
+      :rtype: boolean
 
 .. class:: CValue(PyObjectPlus)
 
@@ -35,8 +35,10 @@ Game Engine  bge.types Module
 
    .. attribute:: name
 
-      The name of this CValue derived object (read-only). **type** string
+      The name of this CValue derived object (read-only).
 
+      :type: string
+      
 .. class:: CPropValue(CValue)
 
    This class has no python functions
@@ -49,15 +51,19 @@ Game Engine  bge.types Module
 
       This determines the order controllers are evaluated, and actuators are activated (lower priority is executed first).
 
-      *type* executePriority: int
+      :type: executePriority: int
 
    .. attribute:: owner
 
-      The game object this logic brick is attached to (read-only). **type** :class:`KX_GameObject` or None in exceptional cases.
+      The game object this logic brick is attached to (read-only).
+      
+      :type: :class:`KX_GameObject` or None in exceptional cases.
 
    .. attribute:: name
 
-      The name of this logic brick (read-only). **type** string
+      The name of this logic brick (read-only).
+      
+      :type: string
 
 .. class:: SCA_PythonKeyboard(PyObjectPlus)
 
@@ -74,7 +80,7 @@ Game Engine  bge.types Module
          * :mod:`bge.logic.KX_INPUT_ACTIVE`
          * :mod:`bge.logic.KX_INPUT_JUST_RELEASED`
 
-      *type* list [[keycode, status], ...]
+      :type: list [[keycode, status], ...]
 
 .. class:: SCA_PythonMouse(PyObjectPlus)
 
@@ -91,15 +97,19 @@ Game Engine  bge.types Module
          * :mod:`bge.logic.KX_INPUT_ACTIVE`
          * :mod:`bge.logic.KX_INPUT_JUST_RELEASED`
 
-      *type* list [[keycode, status], ...]
+      :type: list [[keycode, status], ...]
 
    .. attribute:: position
 
-      The normalized x and y position of the mouse cursor. **type** list [x, y]
+      The normalized x and y position of the mouse cursor.
+
+      :type: list [x, y]
 
    .. attribute:: visible
 
-      The visibility of the mouse cursor. **type** boolean
+      The visibility of the mouse cursor.
+      
+      :type: boolean
 
 .. class:: SCA_IObject(CValue)
 
@@ -111,15 +121,21 @@ Game Engine  bge.types Module
 
    .. attribute:: usePosPulseMode
 
-      Flag to turn positive pulse mode on and off. **type** boolean
+      Flag to turn positive pulse mode on and off.
+      
+      :type: boolean
 
    .. attribute:: useNegPulseMode
 
-      Flag to turn negative pulse mode on and off. **type** boolean
+      Flag to turn negative pulse mode on and off.
+      
+      :type: boolean
 
    .. attribute:: frequency
 
-      The frequency for pulse mode sensors. **type** integer
+      The frequency for pulse mode sensors.
+      
+      :type: integer
 
    .. attribute:: level
 
@@ -130,7 +146,7 @@ Game Engine  bge.types Module
       A edge detector will wait for a state change before generating a pulse.
       note: mutually exclusive with :data:`tap`, enabling will disable :data:`tap`.
 
-      *type* boolean
+      :type: boolean
 
    .. attribute:: tap
 
@@ -139,23 +155,31 @@ Game Engine  bge.types Module
       This will make a key thats held act as if its only tapped for an instant.
       note: mutually exclusive with :data:`level`, enabling will disable :data:`level`.
 
-      *type* boolean
+      :type: boolean
 
    .. attribute:: invert
 
-      Flag to set if this sensor activates on positive or negative events. **type** boolean
+      Flag to set if this sensor activates on positive or negative events.
+      
+      :type: boolean
 
    .. attribute:: triggered
 
-      True if this sensor brick is in a positive state. (read-only). **type** boolean
+      True if this sensor brick is in a positive state. (read-only).
+     
+      :type: boolean
 
    .. attribute:: positive
 
-      True if this sensor brick is in a positive state. (read-only). **type** boolean
+      True if this sensor brick is in a positive state. (read-only).
+      
+      :type: boolean
 
    .. attribute:: status
 
-      The status of the sensor. (read-only). **type** int from 0-3.
+      The status of the sensor. (read-only).
+      
+      :type: int from 0-3.
 
       * KX_SENSOR_INACTIVE
       * KX_SENSOR_JUST_ACTIVATED
@@ -176,25 +200,33 @@ Game Engine  bge.types Module
 
    .. attribute:: state
 
-      The controllers state bitmask. This can be used with the GameObject's state to test if the controller is active. **type** int bitmask
+      The controllers state bitmask. This can be used with the GameObject's state to test if the controller is active.
+      
+      :type: int bitmask
 
    .. attribute:: sensors
 
-      A list of sensors linked to this controller. **type** sequence supporting index/string lookups and iteration.
+      A list of sensors linked to this controller.
+      
+      :type: sequence supporting index/string lookups and iteration.
 
       .. note:: The sensors are not necessarily owned by the same object.
       .. note:: When objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
 
    .. attribute:: actuators
 
-      A list of actuators linked to this controller. **type** sequence supporting index/string lookups and iteration.
+      A list of actuators linked to this controller.
+      
+      :type: sequence supporting index/string lookups and iteration.
 
       .. note:: The sensors are not necessarily owned by the same object.
       .. note:: When objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
 
    .. attribute:: useHighPriority
 
-      When set the controller executes always before all other controllers that dont have this set. **type** bool
+      When set the controller executes always before all other controllers that dont have this set.
+      
+      :type: boolen
 
       .. note:: Order of execution between high priority controllers is not guaranteed.
 
@@ -208,51 +240,75 @@ Game Engine  bge.types Module
 
    .. attribute:: action
 
-      The name of the action to set as the current action. **type** string
+      The name of the action to set as the current action.
+
+      :type: string
 
    .. attribute:: channelNames
 
-      A list of channel names that may be used with :data:`setChannel` and :data:`getChannel`. **type** list of strings
+      A list of channel names that may be used with :data:`setChannel` and :data:`getChannel`.
+
+      :type: list of strings
 
    .. attribute:: frameStart
 
-      Specifies the starting frame of the animation. **type** float
+      Specifies the starting frame of the animation.
+
+      :type: float
 
    .. attribute:: frameEnd
 
-      Specifies the ending frame of the animation. **type** float
+      Specifies the ending frame of the animation.
+
+      :type: float
 
    .. attribute:: blendIn
 
-      Specifies the number of frames of animation to generate when making transitions between actions. **type** float
+      Specifies the number of frames of animation to generate when making transitions between actions.
+
+      :type: float
 
    .. attribute:: priority
 
-      Sets the priority of this actuator. Actuators will lower priority numbers will override actuators with higher numbers. **type** integer
+      Sets the priority of this actuator. Actuators will lower priority numbers will override actuators with higher numbers.
+
+      :type: integer
 
    .. attribute:: frame
 
-      Sets the current frame for the animation. **type** float
+      Sets the current frame for the animation.
+
+      :type: float
 
    .. attribute:: propName
 
-      Sets the property to be used in FromProp playback mode. **type** string
+      Sets the property to be used in FromProp playback mode.
+
+      :type: string
 
    .. attribute:: blendTime
 
-      Sets the internal frame timer. This property must be in the range from 0.0 to blendIn. **type** float
+      Sets the internal frame timer. This property must be in the range from 0.0 to blendIn.
+
+      :type: float
 
    .. attribute:: mode
 
-      The operation mode of the actuator. KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND. **type** integer
+      The operation mode of the actuator. KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND.
+
+      :type: integer
 
    .. attribute:: useContinue
 
-      The actions continue option, True or False. When True, the action will always play from where last left off, otherwise negative events to this actuator will reset it to its start frame. **type** boolean
+      The actions continue option, True or False. When True, the action will always play from where last left off, otherwise negative events to this actuator will reset it to its start frame.
+
+      :type: boolean
 
    .. attribute:: framePropName
 
-      The name of the property that is set to the current frame number. **type** string
+      The name of the property that is set to the current frame number.
+
+      :type: string
 
    .. method:: setChannel(channel, matrix)
 
@@ -310,7 +366,7 @@ Game Engine  bge.types Module
       Check if the shader is valid.
 
       :return: True if the shader is valid
-      :rtype: bool
+      :rtype: boolean
 
    .. method:: setAttrib(enum)
 
@@ -459,7 +515,7 @@ Game Engine  bge.types Module
       :arg mat: A 3x3 matrix [[f, f, f], [f, f, f], [f, f, f]]
       :type mat: 3x3 matrix
       :arg transpose: set to True to transpose the matrix
-      :type transpose: bool
+      :type transpose: boolean
 
    .. method:: setUniformMatrix4(name, mat, transpose)
 
@@ -470,7 +526,7 @@ Game Engine  bge.types Module
       :arg mat: A 4x4 matrix [[f, f, f, f], [f, f, f, f], [f, f, f, f], [f, f, f, f]]
       :type mat: 4x4 matrix
       :arg transpose: set to True to transpose the matrix
-      :type transpose: bool
+      :type transpose: boolean
 
    .. method:: setUniformiv(name, iList)
 
@@ -491,43 +547,63 @@ Game Engine  bge.types Module
 
    .. attribute:: action
 
-      The name of the action to set as the current shape action. **type** string
+      The name of the action to set as the current shape action.
+
+      :type: string
 
    .. attribute:: frameStart
 
-      Specifies the starting frame of the shape animation. **type** float
+      Specifies the starting frame of the shape animation.
+
+      :type: float
 
    .. attribute:: frameEnd
 
-      Specifies the ending frame of the shape animation. **type** float
+      Specifies the ending frame of the shape animation.
+
+      :type: float
 
    .. attribute:: blendIn
 
-      Specifies the number of frames of animation to generate when making transitions between actions. **type** float
+      Specifies the number of frames of animation to generate when making transitions between actions.
+
+      :type: float
 
    .. attribute:: priority
 
-      Sets the priority of this actuator. Actuators will lower priority numbers will override actuators with higher numbers. **type** integer
+      Sets the priority of this actuator. Actuators will lower priority numbers will override actuators with higher numbers.
+
+      :type: integer
 
    .. attribute:: frame
 
-      Sets the current frame for the animation. **type** float
+      Sets the current frame for the animation.
+
+      :type: float
 
    .. attribute:: propName
 
-      Sets the property to be used in FromProp playback mode. **type** string
+      Sets the property to be used in FromProp playback mode.
+
+      :type: string
 
    .. attribute:: blendTime
 
-      Sets the internal frame timer. This property must be in the range from 0.0 to blendin. **type** float
+      Sets the internal frame timer. This property must be in the range from 0.0 to blendin.
+
+      :type: float
 
    .. attribute:: mode
 
-      The operation mode of the actuator in [KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND] **type** integer
+      The operation mode of the actuator in [KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND].
+
+      :type: integer
 
    .. attribute:: framePropName
 
-      The name of the property that is set to the current frame number. **type** string
+      The name of the property that is set to the current frame number.
+
+      :type: string
 
 .. class:: CListValue(CPropValue)
 
@@ -648,23 +724,33 @@ Game Engine  bge.types Module
 
    .. attribute:: min
 
-      minimum distance to the target object maintained by the actuator. **type** float
+      minimum distance to the target object maintained by the actuator.
+
+      :type: float
 
    .. attribute:: max
 
-      maximum distance to stay from the target object. **type** float
+      maximum distance to stay from the target object.
+
+      :type: float
 
    .. attribute:: height
 
-      height to stay above the target object. **type** float
+      height to stay above the target object.
+
+      :type: float
 
    .. attribute:: useXY
 
-      axis this actuator is tracking, True=X, False=Y. **type** boolean
+      axis this actuator is tracking, True=X, False=Y.
+
+      :type: boolean
 
    .. attribute:: object
 
-      the object this actuator tracks. **type** :class:`KX_GameObject` or None
+      the object this actuator tracks.
+
+      :type: :class:`KX_GameObject` or None
 
    @author: snail
 
@@ -676,19 +762,27 @@ Game Engine  bge.types Module
 
    .. attribute:: damp
 
-      Time constant of the constraint expressed in frame (not use by Force field constraint). **type** integer
+      Time constant of the constraint expressed in frame (not use by Force field constraint).
+
+      :type: integer
 
    .. attribute:: rotDamp
 
-      Time constant for the rotation expressed in frame (only for the distance constraint), 0 = use damp for rotation as well. **type** integer
+      Time constant for the rotation expressed in frame (only for the distance constraint), 0 = use damp for rotation as well.
+
+      :type: integer
 
    .. attribute:: direction
 
-      The reference direction in world coordinate for the orientation constraint. **type** 3-tuple of float: (x, y, z)
+      The reference direction in world coordinate for the orientation constraint.
+
+      :type: 3-tuple of float: (x, y, z)
 
    .. attribute:: option
 
-      Binary combination of the following values. **type** integer
+      Binary combination of the following values.
+
+      :type: integer
 
       * Applicable to Distance constraint
          * KX_ACT_CONSTRAINT_NORMAL    (  64) : Activate alignment to surface
@@ -702,58 +796,62 @@ Game Engine  bge.types Module
 
    .. attribute:: time
 
-      activation time of the actuator. The actuator disables itself after this many frame. If set to 0, the actuator is not limited in time. **type** integer
+      activation time of the actuator. The actuator disables itself after this many frame. If set to 0, the actuator is not limited in time.
+
+      :type: integer
 
    .. attribute:: propName
 
-      the name of the property or material for the ray detection of the distance constraint. **type** string
+      the name of the property or material for the ray detection of the distance constraint.
+
+      :type: string
 
    .. attribute:: min
 
-      The lower bound of the constraint. For the rotation and orientation constraint, it represents radiant **type** float
+      The lower bound of the constraint. For the rotation and orientation constraint, it represents radiant.
+
+      :type: float
 
    .. attribute:: distance
 
-      the target distance of the distance constraint **type** float
+      the target distance of the distance constraint.
+
+      :type: float
 
    .. attribute:: max
 
-      the upper bound of the constraint. For rotation and orientation constraints, it represents radiant. **type** float
+      the upper bound of the constraint. For rotation and orientation constraints, it represents radiant.
+
+      :type: float
 
    .. attribute:: rayLength
 
       the length of the ray of the distance constraint.
 
-      *type* float
+      :type: float
 
    .. attribute:: limit
 
-      type of constraint. **type** integer.
+      type of constraint.
+      
+      Use one of the following constant: :data:`~bge.logic.KX_CONSTRAINTACT_LOCX`, 
+      :data:`~bge.logic.KX_CONSTRAINTACT_LOCY`, :data:`~bge.logic.KX_CONSTRAINTACT_LOCZ`, 
+      :data:`~bge.logic.KX_CONSTRAINTACT_ROTX`, :data:`~bge.logic.KX_CONSTRAINTACT_ROTY`, 
+      :data:`~bge.logic.KX_CONSTRAINTACT_ROTZ`, :data:`~bge.logic.KX_CONSTRAINTACT_DIRPX`, 
+      :data:`~bge.logic.KX_CONSTRAINTACT_DIRPY`, :data:`~bge.logic.KX_CONSTRAINTACT_DIRPZ`, 
+      :data:`~bge.logic.KX_CONSTRAINTACT_DIRNX`, :data:`~bge.logic.KX_CONSTRAINTACT_DIRNY`, 
+      :data:`~bge.logic.KX_CONSTRAINTACT_DIRNZ`, :data:`~bge.logic.KX_CONSTRAINTACT_ORIX`, 
+      :data:`~bge.logic.KX_CONSTRAINTACT_ORIY`, :data:`~bge.logic.KX_CONSTRAINTACT_ORIZ`, 
+      :data:`~bge.logic.KX_ACT_CONSTRAINT_FHPX`, :data:`~bge.logic.KX_ACT_CONSTRAINT_FHPY`, 
+      :data:`~bge.logic.KX_ACT_CONSTRAINT_FHPZ`, :data:`~bge.logic.KX_ACT_CONSTRAINT_FHNX`, 
+      :data:`~bge.logic.KX_ACT_CONSTRAINT_FHNY`, :data:`~bge.logic.KX_ACT_CONSTRAINT_FHNZ`, 
+      :data:`~bge.logic.KX_ACT_CONSTRAINT_DISTANCE`, :data:`~bge.logic.KX_ACT_CONSTRAINT_DOROTFH`,
+      :data:`~bge.logic.KX_ACT_CONSTRAINT_LOCAL`, :data:`~bge.logic.KX_ACT_CONSTRAINT_MATERIAL`, 
+      :data:`~bge.logic.KX_ACT_CONSTRAINT_NORMAL`, :data:`~bge.logic.KX_ACT_CONSTRAINT_PERMANENT`
 
-      use one of the following constant:
+      :type: integer.
 
-      * KX_ACT_CONSTRAINT_LOCX  ( 1) : limit X coord
-      * KX_ACT_CONSTRAINT_LOCY  ( 2) : limit Y coord
-      * KX_ACT_CONSTRAINT_LOCZ  ( 3) : limit Z coord
-      * KX_ACT_CONSTRAINT_ROTX  ( 4) : limit X rotation
-      * KX_ACT_CONSTRAINT_ROTY  ( 5) : limit Y rotation
-      * KX_ACT_CONSTRAINT_ROTZ  ( 6) : limit Z rotation
-      * KX_ACT_CONSTRAINT_DIRPX ( 7) : set distance along positive X axis
-      * KX_ACT_CONSTRAINT_DIRPY ( 8) : set distance along positive Y axis
-      * KX_ACT_CONSTRAINT_DIRPZ ( 9) : set distance along positive Z axis
-      * KX_ACT_CONSTRAINT_DIRNX (10) : set distance along negative X axis
-      * KX_ACT_CONSTRAINT_DIRNY (11) : set distance along negative Y axis
-      * KX_ACT_CONSTRAINT_DIRNZ (12) : set distance along negative Z axis
-      * KX_ACT_CONSTRAINT_ORIX  (13) : set orientation of X axis
-      * KX_ACT_CONSTRAINT_ORIY  (14) : set orientation of Y axis
-      * KX_ACT_CONSTRAINT_ORIZ  (15) : set orientation of Z axis
-      * KX_ACT_CONSTRAINT_FHPX  (16) : set force field along positive X axis
-      * KX_ACT_CONSTRAINT_FHPY  (17) : set force field along positive Y axis
-      * KX_ACT_CONSTRAINT_FHPZ  (18) : set force field along positive Z axis
-      * KX_ACT_CONSTRAINT_FHNX  (19) : set force field along negative X axis
-      * KX_ACT_CONSTRAINT_FHNY  (20) : set force field along negative Y axis
-      * KX_ACT_CONSTRAINT_FHNZ  (21) : set force field along negative Z axis
-
+      
 .. class:: KX_ConstraintWrapper(PyObjectPlus)
 
    KX_ConstraintWrapper
@@ -773,18 +871,17 @@ Game Engine  bge.types Module
 
    .. attribute:: fileName
 
-      the new .blend file to load **type** string.
+      the new .blend file to load.
+
+      :type: string
 
    .. attribute:: mode
 
-      The mode of this actuator **type** Constant in...
+      The mode of this actuator.
 
-      * :mod:`bge.logic.KX_GAME_LOAD`
-      * :mod:`bge.logic.KX_GAME_START`
-      * :mod:`bge.logic.KX_GAME_RESTART`
-      * :mod:`bge.logic.KX_GAME_QUIT`
-      * :mod:`bge.logic.KX_GAME_SAVECFG`
-      * :mod:`bge.logic.KX_GAME_LOADCFG`
+      :type: Constant in :data:`~bge.logic.KX_GAME_LOAD`, :data:`~bge.logic.KX_GAME_START`, 
+      :data:`~bge.logic.KX_GAME_RESTART`, :data:`~bge.logic.KX_GAME_QUIT`, 
+      :data:`~bge.logic.KX_GAME_SAVECFG`, :data:`~bge.logic.KX_GAME_LOADCFG`
 
 .. class:: KX_GameObject(SCA_IObject)
 
@@ -796,13 +893,17 @@ Game Engine  bge.types Module
 
    .. attribute:: name
 
-      The object's name. (read-only). **type** string.
+      The object's name. (read-only).
+
+      :type: string
 
    .. attribute:: mass
 
       The object's mass
 
-      .. note:: The object must have a physics controller for the mass to be applied, otherwise the mass value will be returned as 0.0 **type** float
+      .. note:: The object must have a physics controller for the mass to be applied, otherwise the mass value will be returned as 0.0.
+
+      :type: float
 
    .. attribute:: linVelocityMin
 
@@ -810,125 +911,175 @@ Game Engine  bge.types Module
 
       .. note:: Applies to dynamic and rigid body objects only.
       .. note:: A value of 0.0 disables this option.
-      .. note:: While objects are stationary the minimum velocity will not be applied. **type** float
+      .. note:: While objects are stationary the minimum velocity will not be applied.
+
+      :type: float
 
    .. attribute:: linVelocityMax
 
       Clamp the maximum linear velocity to prevent objects moving beyond a set speed.
 
       .. note:: Applies to dynamic and rigid body objects only.
-      .. note:: A value of 0.0 disables this option (rather then setting it stationary). **type** float
+      .. note:: A value of 0.0 disables this option (rather then setting it stationary).
+
+      :type: float
 
    .. attribute:: localInertia
 
-      the object's inertia vector in local coordinates. Read only. **type** list [ix, iy, iz]
+      the object's inertia vector in local coordinates. Read only.
+
+      :type: list [ix, iy, iz]
 
    .. attribute:: parent
 
-      The object's parent object. (read-only). **type** :class:`KX_GameObject` or None
+      The object's parent object. (read-only).
+
+      :type: :class:`KX_GameObject` or None
 
    .. attribute:: visible
 
       visibility flag.
 
-      .. note:: Game logic will still run for invisible objects. **type** boolean
+      .. note:: Game logic will still run for invisible objects.
+
+      :type: boolean
 
    .. attribute:: color
 
-      The object color of the object **type** list [r, g, b, a]
+      The object color of the object.
+
+      :type: list [r, g, b, a]
 
    .. attribute:: occlusion
 
-      occlusion capability flag. **type** boolean
+      occlusion capability flag.
+
+      :type: boolean
 
    .. attribute:: position
 
       The object's position.
 
-      .. deprecated:: use :data:`localPosition` and :data:`worldPosition`. **type** list [x, y, z] On write: local position, on read: world position
+      .. deprecated:: use :data:`localPosition` and :data:`worldPosition`.
+
+      :type: list [x, y, z] On write: local position, on read: world position
 
    .. attribute:: orientation
 
       The object's orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
 
-      .. deprecated:: use :data:`localOrientation` and :data:`worldOrientation`. **type** 3x3 Matrix [[float]] On write: local orientation, on read: world orientation
+      .. deprecated:: use :data:`localOrientation` and :data:`worldOrientation`.
+
+      :type: 3x3 Matrix [[float]] On write: local orientation, on read: world orientation
 
    .. attribute:: scaling
 
       The object's scaling factor. list [sx, sy, sz]
 
-      .. deprecated:: use :data:`localScale` and :data:`worldScale`. **type** list [sx, sy, sz] On write: local scaling, on read: world scaling
+      .. deprecated:: use :data:`localScale` and :data:`worldScale`.
+
+      :type: list [sx, sy, sz] On write: local scaling, on read: world scaling
 
    .. attribute:: localOrientation
 
-      The object's local orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector. **type** 3x3 Matrix [[float]]
+      The object's local orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
+
+      :type: 3x3 Matrix [[float]]
 
    .. attribute:: worldOrientation
 
-      The object's world orientation. **type** 3x3 Matrix [[float]]
+      The object's world orientation.
+
+      :type: 3x3 Matrix [[float]]
 
    .. attribute:: localScale
 
-      The object's local scaling factor. **type** list [sx, sy, sz]
+      The object's local scaling factor.
+
+      :type: list [sx, sy, sz]
 
    .. attribute:: worldScale
 
-      The object's world scaling factor. Read-only **type** list [sx, sy, sz]
+      The object's world scaling factor. Read-only.
+
+      :type: list [sx, sy, sz]
 
    .. attribute:: localPosition
 
-      The object's local position. **type** list [x, y, z]
+      The object's local position.
+
+      :type: list [x, y, z]
 
    .. attribute:: worldPosition
 
-      The object's world position. **type** list [x, y, z]
+      The object's world position.
+
+      :type: list [x, y, z]
 
    .. attribute:: timeOffset
 
-      adjust the slowparent delay at runtime. **type** float
+      adjust the slowparent delay at runtime.
+
+      :type: float
 
    .. attribute:: state
 
-      the game object's state bitmask, using the first 30 bits, one bit must always be set. **type** int
+      the game object's state bitmask, using the first 30 bits, one bit must always be set.
+
+      :type: int
 
    .. attribute:: meshes
 
       a list meshes for this object.
 
       .. note:: Most objects use only 1 mesh.
-      .. note:: Changes to this list will not update the KX_GameObject. **type** list of :class:`KX_MeshProxy`
+      .. note:: Changes to this list will not update the KX_GameObject.
+
+      :type: list of :class:`KX_MeshProxy`
 
    .. attribute:: sensors
 
       a sequence of :class:`SCA_ISensor` objects with string/index lookups and iterator support.
 
       .. note:: This attribute is experemental and may be removed (but probably wont be).
-      .. note:: Changes to this list will not update the KX_GameObject. **type** list
+      .. note:: Changes to this list will not update the KX_GameObject.
+
+      :type: list
 
    .. attribute:: controllers
 
       a sequence of :class:`SCA_IController` objects with string/index lookups and iterator support.
       .. note:: This attribute is experemental and may be removed (but probably wont be).
-      .. note:: Changes to this list will not update the KX_GameObject. **type** list of :class:`SCA_ISensor`.
+      .. note:: Changes to this list will not update the KX_GameObject.
+
+      :type: list of :class:`SCA_ISensor`.
 
    .. attribute:: actuators
 
       a list of :class:`SCA_IActuator` with string/index lookups and iterator support.
 
       .. note:: This attribute is experemental and may be removed (but probably wont be).
-      .. note:: Changes to this list will not update the KX_GameObject. **type** list
+      .. note:: Changes to this list will not update the KX_GameObject.
+
+      :type: list
 
    .. attribute:: attrDict
 
-      get the objects internal python attribute dictionary for direct (faster) access. **type** dict
+      get the objects internal python attribute dictionary for direct (faster) access.
+
+      :type: dict
 
    .. attribute:: children
 
-      direct children of this object, (read-only). **type** :class:`CListValue` of :class:`KX_GameObject`'s
+      direct children of this object, (read-only).
+
+      :type: :class:`CListValue` of :class:`KX_GameObject`'s
 
    .. attribute:: childrenRecursive
 
-      all children of this object including childrens children, (read-only). **type** :class:`CListValue` of :class:`KX_GameObject`'s
+      all children of this object including childrens children, (read-only).
+
+      :type: :class:`CListValue` of :class:`KX_GameObject`'s
 
    .. method:: endObject()
 
@@ -943,9 +1094,9 @@ Game Engine  bge.types Module
       :arg mesh: mesh to replace or the meshes name.
       :type mesh: :class:`MeshProxy` or string
       :arg useDisplayMesh: when enabled the display mesh will be replaced (optional argument).
-      :type useDisplayMesh: bool
+      :type useDisplayMesh: boolean
       :arg usePhysicsMesh: when enabled the physics mesh will be replaced (optional argument).
-      :type usePhysicsMesh: bool
+      :type usePhysicsMesh: boolean
 
    .. method:: setVisible(visible, recursive)
 
@@ -1341,39 +1492,57 @@ Game Engine  bge.types Module
 
    .. attribute:: frameStart
 
-      Start frame. **type** float
+      Start frame.
+
+      :type: float
 
    .. attribute:: frameEnd
 
-      End frame. **type** float
+      End frame.
+
+      :type: float
 
    .. attribute:: propName
 
-      Use this property to define the Ipo position **type** string
+      Use this property to define the Ipo position.
+
+      :type: string
 
    .. attribute:: framePropName
 
-      Assign this property this action current frame number **type** string
+      Assign this property this action current frame number.
+
+      :type: string
 
    .. attribute:: mode
 
-      Play mode for the ipo. (In GameLogic.KX_IPOACT_PLAY, KX_IPOACT_PINGPONG, KX_IPOACT_FLIPPER, KX_IPOACT_LOOPSTOP, KX_IPOACT_LOOPEND, KX_IPOACT_FROM_PROP) **type** integer
+      Play mode for the ipo. (In GameLogic.KX_IPOACT_PLAY, KX_IPOACT_PINGPONG, KX_IPOACT_FLIPPER, KX_IPOACT_LOOPSTOP, KX_IPOACT_LOOPEND, KX_IPOACT_FROM_PROP).
+
+      :type: integer
 
    .. attribute:: useIpoAsForce
 
-      Apply Ipo as a global or local force depending on the local option (dynamic objects only) **type** bool
+      Apply Ipo as a global or local force depending on the local option (dynamic objects only).
+
+      :type: boolean
 
    .. attribute:: useIpoAdd
 
-      Ipo is added to the current loc/rot/scale in global or local coordinate according to Local flag **type** bool
+      Ipo is added to the current loc/rot/scale in global or local coordinate according to Local flag.
+
+      :type: boolean
 
    .. attribute:: useIpoLocal
 
-      Let the ipo acts in local coordinates, used in Force and Add mode. **type** bool
+      Let the ipo acts in local coordinates, used in Force and Add mode.
+
+      :type: boolean
 
    .. attribute:: useChildren
 
-      Update IPO on all children Objects as well **type** bool
+      Update IPO on all children Objects as well.
+
+      :type: boolean
 
 .. class:: KX_LightObject(KX_GameObject)
 
@@ -1408,19 +1577,27 @@ Game Engine  bge.types Module
 
    .. attribute:: layer
 
-      The layer mask that this light affects object on. **type** bitfield
+      The layer mask that this light affects object on.
+
+      :type: bitfield
 
    .. attribute:: energy
 
-      The brightness of this light. **type** float
+      The brightness of this light.
+
+      :type: float
 
    .. attribute:: distance
 
-      The maximum distance this light can illuminate. (SPOT and NORMAL lights only) **type** float
+      The maximum distance this light can illuminate. (SPOT and NORMAL lights only).
+
+      :type: float
 
    .. attribute:: colour
 
-      The colour of this light. Black = [0.0, 0.0, 0.0], White = [1.0, 1.0, 1.0]. **type** list [r, g, b]
+      The colour of this light. Black = [0.0, 0.0, 0.0], White = [1.0, 1.0, 1.0].
+
+      :type: list [r, g, b]
 
    .. attribute:: color
 
@@ -1428,19 +1605,27 @@ Game Engine  bge.types Module
 
    .. attribute:: lin_attenuation
 
-      The linear component of this light's attenuation. (SPOT and NORMAL lights only) **type** float
+      The linear component of this light's attenuation. (SPOT and NORMAL lights only).
+
+      :type: float
 
    .. attribute:: quad_attenuation
 
-      The quadratic component of this light's attenuation (SPOT and NORMAL lights only) **type** float
+      The quadratic component of this light's attenuation (SPOT and NORMAL lights only).
+
+      :type: float
 
    .. attribute:: spotsize
 
-      The cone angle of the spot light, in degrees (SPOT lights only). **type** float in [0 - 180].
+      The cone angle of the spot light, in degrees (SPOT lights only).
+
+      :type: float in [0 - 180].
 
    .. attribute:: spotblend
 
-      Specifies the intensity distribution of the spot light (SPOT lights only). **type** float in [0 - 1]
+      Specifies the intensity distribution of the spot light (SPOT lights only).
+
+      :type: float in [0 - 1]
 
       .. note:: Higher values result in a more focused light source.
 
@@ -1494,15 +1679,15 @@ Game Engine  bge.types Module
 
    .. attribute:: materials
 
-      **type** list of :class:`KX_BlenderMaterial` or :class:`KX_PolygonMaterial` types
+      :type: list of :class:`KX_BlenderMaterial` or :class:`KX_PolygonMaterial` types
 
    .. attribute:: numPolygons
 
-      **type** integer
+      :type: integer
 
    .. attribute:: numMaterials
 
-      **type** integer
+      :type: integer
 
    .. method:: getNumMaterials()
 
@@ -1571,11 +1756,15 @@ Game Engine  bge.types Module
 
    .. attribute:: position
 
-      current [x, y] coordinates of the mouse, in frame coordinates (pixels) **type** [integer, interger]
+      current [x, y] coordinates of the mouse, in frame coordinates (pixels).
+
+      :type: [integer, interger]
 
    .. attribute:: mode
 
-      sensor mode. **type** integer
+      sensor mode.
+
+      :type: integer
 
          * KX_MOUSESENSORMODE_LEFTBUTTON(1)
          * KX_MOUSESENSORMODE_MIDDLEBUTTON(2)
@@ -1602,31 +1791,45 @@ Game Engine  bge.types Module
 
    .. attribute:: raySource
 
-      The worldspace source of the ray (the view position) **type** list (vector of 3 floats)
+      The worldspace source of the ray (the view position).
+
+      :type: list (vector of 3 floats)
 
    .. attribute:: rayTarget
 
-      The worldspace target of the ray. **type** list (vector of 3 floats)
+      The worldspace target of the ray.
+
+      :type: list (vector of 3 floats)
 
    .. attribute:: rayDirection
 
-      The :data:`rayTarget` - :class:`raySource` normalized. **type** list (normalized vector of 3 floats)
+      The :data:`rayTarget` - :class:`raySource` normalized.
+
+      :type: list (normalized vector of 3 floats)
 
    .. attribute:: hitObject
 
-      the last object the mouse was over. **type** :class:`KX_GameObject` or None
+      the last object the mouse was over.
+
+      :type: :class:`KX_GameObject` or None
 
    .. attribute:: hitPosition
 
-      The worldspace position of the ray intersecton. **type** list (vector of 3 floats)
+      The worldspace position of the ray intersecton.
+
+      :type: list (vector of 3 floats)
 
    .. attribute:: hitNormal
 
-      the worldspace normal from the face at point of intersection. **type** list (normalized vector of 3 floats)
+      the worldspace normal from the face at point of intersection.
+
+      :type: list (normalized vector of 3 floats)
 
    .. attribute:: hitUV
 
-      the UV coordinates at the point of intersection. **type** list (vector of 2 floats)
+      the UV coordinates at the point of intersection.
+
+      :type: list (vector of 2 floats)
 
       If the object has no UV mapping, it returns [0, 0].
 
@@ -1634,7 +1837,9 @@ Game Engine  bge.types Module
 
    .. attribute:: usePulseFocus
 
-      When enabled, moving the mouse over a different object generates a pulse. (only used when the 'Mouse Over Any' sensor option is set) **type** bool
+      When enabled, moving the mouse over a different object generates a pulse. (only used when the 'Mouse Over Any' sensor option is set).
+
+      :type: boolean
 
 .. class:: KX_TouchSensor(SCA_ISensor)
 
@@ -1642,23 +1847,33 @@ Game Engine  bge.types Module
 
    .. attribute:: propName
 
-      The property or material to collide with. **type** string
+      The property or material to collide with.
+
+      :type: string
 
    .. attribute:: useMaterial
 
-      Determines if the sensor is looking for a property or material. KX_True = Find material; KX_False = Find property. **type** boolean
+      Determines if the sensor is looking for a property or material. KX_True = Find material; KX_False = Find property.
+
+      :type: boolean
 
    .. attribute:: usePulseCollision
 
-      When enabled, changes to the set of colliding objects generate a pulse. **type** bool
+      When enabled, changes to the set of colliding objects generate a pulse.
+
+      :type: boolean
 
    .. attribute:: hitObject
 
-      The last collided object. (read-only) **type** :class:`KX_GameObject` or None
+      The last collided object. (read-only).
+
+      :type: :class:`KX_GameObject` or None
 
    .. attribute:: hitObjectList
 
-      A list of colliding objects. (read-only) **type** :class:`CListValue` of :class:`KX_GameObject`
+      A list of colliding objects. (read-only).
+
+      :type: :class:`CListValue` of :class:`KX_GameObject`
 
 .. class:: KX_NearSensor(KX_TouchSensor)
 
@@ -1666,11 +1881,15 @@ Game Engine  bge.types Module
 
    .. attribute:: distance
 
-      The near sensor activates when an object is within this distance. **type** float
+      The near sensor activates when an object is within this distance.
+
+      :type: float
 
    .. attribute:: resetDistance
 
-      The near sensor deactivates when the object exceeds this distance. **type** float
+      The near sensor deactivates when the object exceeds this distance.
+
+      :type: float
 
 .. class:: KX_NetworkMessageActuator(SCA_IActuator)
 
@@ -1678,19 +1897,27 @@ Game Engine  bge.types Module
 
    .. attribute:: propName
 
-      Messages will only be sent to objects with the given property name. **type** string
+      Messages will only be sent to objects with the given property name.
+
+      :type: string
 
    .. attribute:: subject
 
-      The subject field of the message. **type** string
+      The subject field of the message.
+
+      :type: string
 
    .. attribute:: body
 
-      The body of the message. **type** string
+      The body of the message.
+
+      :type: string
 
    .. attribute:: usePropBody
 
-      Send a property instead of a regular body message. **type** boolean
+      Send a property instead of a regular body message.
+
+      :type: boolean
 
 .. class:: KX_NetworkMessageSensor(SCA_ISensor)
 
@@ -1700,19 +1927,27 @@ Game Engine  bge.types Module
 
    .. attribute:: subject
 
-      The subject the sensor is looking for. **type** string
+      The subject the sensor is looking for.
+
+      :type: string
 
    .. attribute:: frameMessageCount
 
-      The number of messages received since the last frame. (read-only). **type** integer
+      The number of messages received since the last frame. (read-only).
+
+      :type: integer
 
    .. attribute:: subjects
 
-      The list of message subjects received. (read-only). **type** list of strings
+      The list of message subjects received. (read-only).
+
+      :type: list of strings
 
    .. attribute:: bodies
 
-      The list of message bodies received. (read-only) **type** list of strings
+      The list of message bodies received. (read-only).
+
+      :type: list of strings
 
 .. class:: KX_ObjectActuator(SCA_IActuator)
 
@@ -1722,79 +1957,115 @@ Game Engine  bge.types Module
 
    .. attribute:: force
 
-      The force applied by the actuator **type** list [x, y, z]
+      The force applied by the actuator.
+
+      :type: list [x, y, z]
 
    .. attribute:: useLocalForce
 
-      A flag specifying if the force is local **type** bool
+      A flag specifying if the force is local.
+
+      :type: boolean
 
    .. attribute:: torque
 
-      The torque applied by the actuator **type** list [x, y, z]
+      The torque applied by the actuator.
+
+      :type: list [x, y, z]
 
    .. attribute:: useLocalTorque
 
-      A flag specifying if the torque is local **type** bool
+      A flag specifying if the torque is local.
+
+      :type: boolean
 
    .. attribute:: dLoc
 
-      The displacement vector applied by the actuator **type** list [x, y, z]
+      The displacement vector applied by the actuator.
+
+      :type: list [x, y, z]
 
    .. attribute:: useLocalDLoc
 
-      A flag specifying if the dLoc is local **type** bool
+      A flag specifying if the dLoc is local.
+
+      :type: boolean
 
    .. attribute:: dRot
 
       The angular displacement vector applied by the actuator
 
-      .. note:: Since the displacement is applied every frame, you must adjust the displacement based on the frame rate, or you game experience will depend on the player's computer speed. **type** list [x, y, z]
+      .. note:: Since the displacement is applied every frame, you must adjust the displacement based on the frame rate, or you game experience will depend on the player's computer speed.
+
+      :type: list [x, y, z]
 
    .. attribute:: useLocalDRot
 
-      A flag specifying if the dRot is local **type** bool
+      A flag specifying if the dRot is local.
+
+      :type: boolean
 
    .. attribute:: linV
 
-      The linear velocity applied by the actuator **type** list [x, y, z]
+      The linear velocity applied by the actuator.
+
+      :type: list [x, y, z]
 
    .. attribute:: useLocalLinV
 
       A flag specifying if the linear velocity is local.
 
-      .. note:: This is the target speed for servo controllers **type** bool
+      .. note:: This is the target speed for servo controllers.
+
+      :type: boolean
 
    .. attribute:: angV
 
-      The angular velocity applied by the actuator **type** list [x, y, z]
+      The angular velocity applied by the actuator.
+
+      :type: list [x, y, z]
 
    .. attribute:: useLocalAngV
 
-      A flag specifying if the angular velocity is local **type** bool
+      A flag specifying if the angular velocity is local.
+
+      :type: boolean
 
    .. attribute:: damping
 
-      The damping parameter of the servo controller **type** short
+      The damping parameter of the servo controller.
+
+      :type: short
 
    .. attribute:: forceLimitX
 
-      The min/max force limit along the X axis and activates or deactivates the limits in the servo controller **type** list [min(float), max(float), bool]
+      The min/max force limit along the X axis and activates or deactivates the limits in the servo controller.
+
+      :type: list [min(float), max(float), bool]
 
    .. attribute:: forceLimitY
 
-      The min/max force limit along the Y axis and activates or deactivates the limits in the servo controller **type** list [min(float), max(float), bool]
+      The min/max force limit along the Y axis and activates or deactivates the limits in the servo controller.
+
+      :type: list [min(float), max(float), bool]
 
    .. attribute:: forceLimitZ
 
-      The min/max force limit along the Z axis and activates or deactivates the limits in the servo controller **type** list [min(float), max(float), bool]
+      The min/max force limit along the Z axis and activates or deactivates the limits in the servo controller.
+
+      :type: list [min(float), max(float), bool]
 
    .. attribute:: pid
 
-      The PID coefficients of the servo controller **type** list of floats [proportional, integral, derivate]
+      The PID coefficients of the servo controller.
+
+      :type: list of floats [proportional, integral, derivate]
 
    .. attribute:: reference
 
-      The object that is used as reference to compute the velocity for the servo controller. **type** :class:`KX_GameObject` or None
+      The object that is used as reference to compute the velocity for the servo controller.
+
+      :type: :class:`KX_GameObject` or None
 
 .. class:: KX_ParentActuator(SCA_IActuator)
 
@@ -1802,22 +2073,30 @@ Game Engine  bge.types Module
 
    .. attribute:: object
 
-      the object this actuator sets the parent too. **type** :class:`KX_GameObject` or None
+      the object this actuator sets the parent too.
+
+      :type: :class:`KX_GameObject` or None
 
    .. attribute:: mode
 
-      The mode of this actuator **type** integer from 0 to 1.
+      The mode of this actuator.
+
+      :type: integer from 0 to 1.
 
    .. attribute:: compound
 
       Whether the object shape should be added to the parent compound shape when parenting.
 
-      Effective only if the parent is already a compound shape **type** bool
+      Effective only if the parent is already a compound shape.
+
+      :type: boolean
 
    .. attribute:: ghost
 
       whether the object should be made ghost when parenting
-                Effective only if the shape is not added to the parent compound shape **type** bool
+                Effective only if the shape is not added to the parent compound shape.
+
+      :type: boolean
 
 .. class:: KX_PhysicsObjectWrapper(PyObjectPlus)
 
@@ -1828,7 +2107,7 @@ Game Engine  bge.types Module
       Set the object to be active.
 
       :arg active: set to True to be active
-      :type active: bool
+      :type active: boolean
 
    .. method:: setAngularVelocity(x, y, z, local)
 
@@ -1844,7 +2123,7 @@ Game Engine  bge.types Module
       :type z: float
 
       :arg local: set to True for local axis
-      :type local: bool
+      :type local: boolean
 
    .. method:: setLinearVelocity(x, y, z, local)
 
@@ -1860,7 +2139,7 @@ Game Engine  bge.types Module
       :type z: float
 
       :arg local: set to True for local axis
-      :type local: bool
+      :type local: boolean
 
 .. class:: KX_PolyProxy(SCA_IObject)
 
@@ -1872,44 +2151,64 @@ Game Engine  bge.types Module
 
    .. attribute:: matname
 
-      The name of polygon material, empty if no material. **type** string
+      The name of polygon material, empty if no material.
+
+      :type: string
 
    .. attribute:: material
 
-      The material of the polygon **type** :class:`KX_PolygonMaterial` or :class:`KX_BlenderMaterial`
+      The material of the polygon.
+
+      :type: :class:`KX_PolygonMaterial` or :class:`KX_BlenderMaterial`
 
    .. attribute:: texture
 
-      The texture name of the polygon. **type** string
+      The texture name of the polygon.
+
+      :type: string
 
    .. attribute:: matid
 
-      The material index of the polygon, use this to retrieve vertex proxy from mesh proxy **type** integer
+      The material index of the polygon, use this to retrieve vertex proxy from mesh proxy.
+
+      :type: integer
 
    .. attribute:: v1
 
-      vertex index of the first vertex of the polygon, use this to retrieve vertex proxy from mesh proxy **type** integer
+      vertex index of the first vertex of the polygon, use this to retrieve vertex proxy from mesh proxy.
+
+      :type: integer
 
    .. attribute:: v2
 
-      vertex index of the second vertex of the polygon, use this to retrieve vertex proxy from mesh proxy **type** integer
+      vertex index of the second vertex of the polygon, use this to retrieve vertex proxy from mesh proxy.
+
+      :type: integer
 
    .. attribute:: v3
 
-      vertex index of the third vertex of the polygon, use this to retrieve vertex proxy from mesh proxy **type** integer
+      vertex index of the third vertex of the polygon, use this to retrieve vertex proxy from mesh proxy.
+
+      :type: integer
 
    .. attribute:: v4
 
       vertex index of the fourth vertex of the polygon, 0 if polygon has only 3 vertex
-             use this to retrieve vertex proxy from mesh proxy **type** integer
+             use this to retrieve vertex proxy from mesh proxy.
+
+      :type: integer
 
    .. attribute:: visible
 
-      visible state of the polygon: 1=visible, 0=invisible **type** integer
+      visible state of the polygon: 1=visible, 0=invisible.
+
+      :type: integer
 
    .. attribute:: collide
 
-      collide state of the polygon: 1=receives collision, 0=collision free. **type** integer
+      collide state of the polygon: 1=receives collision, 0=collision free.
+
+      :type: integer
 
    .. method:: getMaterialName()
 
@@ -2117,74 +2416,106 @@ Game Engine  bge.types Module
 
    .. attribute:: texture
 
-      Texture name **type** string (read-only)
+      Texture name.
+
+      :type: string (read-only)
 
    .. attribute:: gl_texture
 
-      OpenGL texture handle (eg for glBindTexture(GL_TEXTURE_2D, gl_texture) **type** integer (read-only)
+      OpenGL texture handle (eg for glBindTexture(GL_TEXTURE_2D, gl_texture).
+
+      :type: integer (read-only)
 
    .. attribute:: material
 
-      Material name **type** string (read-only)
+      Material name.
+
+      :type: string (read-only)
 
    .. attribute:: tface
 
-      Texture face properties **type** CObject (read-only)
+      Texture face properties.
+
+      :type: CObject (read-only)
 
    .. attribute:: tile
 
-      Texture is tiling **type** boolean
+      Texture is tiling.
+
+      :type: boolean
 
    .. attribute:: tilexrep
 
-      Number of tile repetitions in x direction. **type** integer
+      Number of tile repetitions in x direction.
+
+      :type: integer
 
    .. attribute:: tileyrep
 
-      Number of tile repetitions in y direction. **type** integer
+      Number of tile repetitions in y direction.
+
+      :type: integer
 
    .. attribute:: drawingmode
 
       Drawing mode for the material.
       - 2  (drawingmode & 4)     Textured
       - 4  (drawingmode & 16)    Light
-      - 14 (drawingmode & 16384) 3d Polygon Text **type** bitfield
+      - 14 (drawingmode & 16384) 3d Polygon Text.
+
+      :type: bitfield
 
    .. attribute:: transparent
 
       This material is transparent. All meshes with this
       material will be rendered after non transparent meshes from back
-      to front. **type** boolean
+      to front.
+
+      :type: boolean
 
    .. attribute:: zsort
 
       Transparent polygons in meshes with this material will be sorted back to
       front before rendering.
-      Non-Transparent polygons will be sorted front to back before rendering. **type** boolean
+      Non-Transparent polygons will be sorted front to back before rendering.
+
+      :type: boolean
 
    .. attribute:: lightlayer
 
-      Light layers this material affects. **type** bitfield.
+      Light layers this material affects.
+
+      :type: bitfield.
 
    .. attribute:: triangle
 
-      Mesh data with this material is triangles. It's probably not safe to change this. **type** boolean
+      Mesh data with this material is triangles. It's probably not safe to change this.
+
+      :type: boolean
 
    .. attribute:: diffuse
 
-      The diffuse colour of the material. black = [0.0, 0.0, 0.0] white = [1.0, 1.0, 1.0] **type** list [r, g, b]
+      The diffuse colour of the material. black = [0.0, 0.0, 0.0] white = [1.0, 1.0, 1.0].
+
+      :type: list [r, g, b]
 
    .. attribute:: specular
 
-      The specular colour of the material. black = [0.0, 0.0, 0.0] white = [1.0, 1.0, 1.0] **type** list [r, g, b]
+      The specular colour of the material. black = [0.0, 0.0, 0.0] white = [1.0, 1.0, 1.0].
+
+      :type: list [r, g, b]
 
    .. attribute:: shininess
 
-      The shininess (specular exponent) of the material. 0.0 <= shininess <= 128.0 **type** float
+      The shininess (specular exponent) of the material. 0.0 <= shininess <= 128.0.
+
+      :type: float
 
    .. attribute:: specularity
 
-      The amount of specular of the material. 0.0 <= specularity <= 1.0 **type** float
+      The amount of specular of the material. 0.0 <= specularity <= 1.0.
+
+      :type: float
 
    .. method:: updateTexture(tface, rasty)
 
@@ -2283,23 +2614,33 @@ Game Engine  bge.types Module
 
    .. attribute:: coneOrigin
 
-      The origin of the cone with which to test. The origin is in the middle of the cone. (read-only) **type** list of floats [x, y, z]
+      The origin of the cone with which to test. The origin is in the middle of the cone. (read-only).
+
+      :type: list of floats [x, y, z]
 
    .. attribute:: coneTarget
 
-      The center of the bottom face of the cone with which to test. (read-only) **type** list of floats [x, y, z]
+      The center of the bottom face of the cone with which to test. (read-only).
+
+      :type: list of floats [x, y, z]
 
    .. attribute:: distance
 
-      The height of the cone with which to test. **type** float
+      The height of the cone with which to test.
+
+      :type: float
 
    .. attribute:: angle
 
-      The angle of the cone (in degrees) with which to test. **type** float from 0 to 360
+      The angle of the cone (in degrees) with which to test.
+
+      :type: float from 0 to 360
 
    .. attribute:: axis
 
-      The axis on which the radar cone is cast **type** integer from 0 to 5
+      The axis on which the radar cone is cast.
+
+      :type: integer from 0 to 5
 
       KX_RADAR_AXIS_POS_X, KX_RADAR_AXIS_POS_Y, KX_RADAR_AXIS_POS_Z, 
       KX_RADAR_AXIS_NEG_X, KX_RADAR_AXIS_NEG_Y, KX_RADAR_AXIS_NEG_Z
@@ -2315,39 +2656,57 @@ Game Engine  bge.types Module
 
    .. attribute:: propName
 
-      The property the ray is looking for. **type** string
+      The property the ray is looking for.
+
+      :type: string
 
    .. attribute:: range
 
-      The distance of the ray. **type** float
+      The distance of the ray.
+
+      :type: float
 
    .. attribute:: useMaterial
 
-      Whether or not to look for a material (false = property) **type** boolean
+      Whether or not to look for a material (false = property).
+
+      :type: boolean
 
    .. attribute:: useXRay
 
-      Whether or not to use XRay. **type** boolean
+      Whether or not to use XRay.
+
+      :type: boolean
 
    .. attribute:: hitObject
 
-      The game object that was hit by the ray. (read-only) **type** :class:`KX_GameObject`
+      The game object that was hit by the ray. (read-only).
+
+      :type: :class:`KX_GameObject`
 
    .. attribute:: hitPosition
 
-      The position (in worldcoordinates) where the object was hit by the ray. (read-only) **type** list [x, y, z]
+      The position (in worldcoordinates) where the object was hit by the ray. (read-only).
+
+      :type: list [x, y, z]
 
    .. attribute:: hitNormal
 
-      The normal (in worldcoordinates) of the object at the location where the object was hit by the ray. (read-only) **type** list [x, y, z]
+      The normal (in worldcoordinates) of the object at the location where the object was hit by the ray. (read-only).
+
+      :type: list [x, y, z]
 
    .. attribute:: rayDirection
 
-      The direction from the ray (in worldcoordinates). (read-only) **type** list [x, y, z]
+      The direction from the ray (in worldcoordinates). (read-only).
+
+      :type: list [x, y, z]
 
    .. attribute:: axis
 
-      The axis the ray is pointing on. **type** integer from 0 to 5
+      The axis the ray is pointing on.
+
+      :type: integer from 0 to 5
 
       * KX_RAY_AXIS_POS_X
       * KX_RAY_AXIS_POS_Y
@@ -2362,23 +2721,33 @@ Game Engine  bge.types Module
 
    .. attribute:: object
 
-      the object this actuator adds. **type** :class:`KX_GameObject` or None
+      the object this actuator adds.
+
+      :type: :class:`KX_GameObject` or None
 
    .. attribute:: objectLastCreated
 
-      the last added object from this actuator (read-only). **type** :class:`KX_GameObject` or None
+      the last added object from this actuator (read-only).
+
+      :type: :class:`KX_GameObject` or None
 
    .. attribute:: time
 
-      the lifetime of added objects, in frames. Set to 0 to disable automatic deletion. **type** integer
+      the lifetime of added objects, in frames. Set to 0 to disable automatic deletion.
+
+      :type: integer
 
    .. attribute:: linearVelocity
 
-      the initial linear velocity of added objects. **type** list [vx, vy, vz]
+      the initial linear velocity of added objects.
+
+      :type: list [vx, vy, vz]
 
    .. attribute:: angularVelocity
 
-      the initial angular velocity of added objects. **type** list [vx, vy, vz]
+      the initial angular velocity of added objects.
+
+      :type: list [vx, vy, vz]
 
    .. warning:: An Add Object actuator will be ignored if at game start, the linked object doesn't exist
         (or is empty) or the linked object is in an active layer.
@@ -2398,7 +2767,7 @@ Game Engine  bge.types Module
 
    .. attribute:: mode
 
-      **type** integer
+      :type: integer
 
       the type of operation of the actuator, 0-4
 
@@ -2410,7 +2779,9 @@ Game Engine  bge.types Module
 
    .. attribute:: mass
 
-      the mass value for the KX_DYN_SET_MASS operation **type** float
+      the mass value for the KX_DYN_SET_MASS operation.
+
+      :type: float
 
 .. class:: KX_SCA_EndObjectActuator(SCA_IActuator)
 
@@ -2476,15 +2847,21 @@ Game Engine  bge.types Module
 
       :class:`MeshProxy` or the name of the mesh that will replace the current one.
    
-      Set to None to disable actuator **type** :class:`MeshProxy` or None if no mesh is set
+      Set to None to disable actuator.
+
+      :type: :class:`MeshProxy` or None if no mesh is set
 
    .. attribute:: useDisplayMesh
 
-      when true the displayed mesh is replaced. **type** boolean
+      when true the displayed mesh is replaced.
+
+      :type: boolean
 
    .. attribute:: usePhysicsMesh
 
-      when true the physics mesh is replaced. **type** boolean
+      when true the physics mesh is replaced.
+
+      :type: boolean
 
    .. method:: instantReplaceMesh()
 
@@ -2530,53 +2907,77 @@ Game Engine  bge.types Module
 
    .. attribute:: name
 
-      The scene's name, (read-only). **type** string
+      The scene's name, (read-only).
+
+      :type: string
 
    .. attribute:: objects
 
-      A list of objects in the scene, (read-only). **type** :class:`CListValue` of :class:`KX_GameObject`
+      A list of objects in the scene, (read-only).
+
+      :type: :class:`CListValue` of :class:`KX_GameObject`
 
    .. attribute:: objectsInactive
 
-      A list of objects on background layers (used for the addObject actuator), (read-only). **type** :class:`CListValue` of :class:`KX_GameObject`
+      A list of objects on background layers (used for the addObject actuator), (read-only).
+
+      :type: :class:`CListValue` of :class:`KX_GameObject`
 
    .. attribute:: lights
 
-      A list of lights in the scene, (read-only). **type** :class:`CListValue` of :class:`KX_LightObject`
+      A list of lights in the scene, (read-only).
+
+      :type: :class:`CListValue` of :class:`KX_LightObject`
 
    .. attribute:: cameras
 
-      A list of cameras in the scene, (read-only). **type** :class:`CListValue` of :class:`KX_Camera`
+      A list of cameras in the scene, (read-only).
+
+      :type: :class:`CListValue` of :class:`KX_Camera`
 
    .. attribute:: active_camera
 
       The current active camera.
 
-      .. note:: this can be set directly from python to avoid using the :class:`KX_SceneActuator`. **type** :class:`KX_Camera`
+      .. note:: this can be set directly from python to avoid using the :class:`KX_SceneActuator`.
+
+      :type: :class:`KX_Camera`
 
    .. attribute:: suspended
 
-      True if the scene is suspended, (read-only). **type** boolean
+      True if the scene is suspended, (read-only).
+
+      :type: boolean
 
    .. attribute:: activity_culling
 
-      True if the scene is activity culling **type** boolean
+      True if the scene is activity culling.
+
+      :type: boolean
 
    .. attribute:: activity_culling_radius
 
-      The distance outside which to do activity culling. Measured in manhattan distance. **type** float
+      The distance outside which to do activity culling. Measured in manhattan distance.
+
+      :type: float
 
    .. attribute:: dbvt_culling
 
-      True when Dynamic Bounding box Volume Tree is set (read-only). **type** bool
+      True when Dynamic Bounding box Volume Tree is set (read-only).
+
+      :type: boolean
 
    .. attribute:: pre_draw
 
-      A list of callables to be run before the render step. **type** list
+      A list of callables to be run before the render step.
+
+      :type: list
 
    .. attribute:: post_draw
 
-      A list of callables to be run after the render step. **type** list
+      A list of callables to be run after the render step.
+
+      :type: list
 
    .. method:: addObject(object, other, time=0)
 
@@ -2631,21 +3032,29 @@ Game Engine  bge.types Module
 
    .. attribute:: scene
 
-      the name of the scene to change to/overlay/underlay/remove/suspend/resume **type** string.
+      the name of the scene to change to/overlay/underlay/remove/suspend/resume.
+
+      :type: string
 
    .. attribute:: camera
 
       the camera to change to.
 
-      .. note:: When setting the attribute, you can use either a :class:`KX_Camera` or the name of the camera. **type** :class:`KX_Camera` on read, string or :class:`KX_Camera` on write
+      .. note:: When setting the attribute, you can use either a :class:`KX_Camera` or the name of the camera.
+
+      :type: :class:`KX_Camera` on read, string or :class:`KX_Camera` on write
 
    .. attribute:: useRestart
 
-      Set flag to True to restart the sene **type** bool
+      Set flag to True to restart the sene.
+
+      :type: boolean
 
    .. attribute:: mode
 
-      The mode of the actuator **type** integer from 0 to 5.
+      The mode of the actuator.
+
+      :type: integer from 0 to 5.
 
 .. class:: KX_SoundActuator(SCA_IActuator)
 
@@ -2655,39 +3064,57 @@ Game Engine  bge.types Module
 
    .. attribute:: fileName
 
-      The filename of the sound this actuator plays. **type** string
+      The filename of the sound this actuator plays.
+
+      :type: string
 
    .. attribute:: volume
 
-      The volume (gain) of the sound. **type** float
+      The volume (gain) of the sound.
+
+      :type: float
 
    .. attribute:: pitch
 
-      The pitch of the sound. **type** float
+      The pitch of the sound.
+
+      :type: float
 
    .. attribute:: rollOffFactor
 
-      The roll off factor. Rolloff defines the rate of attenuation as the sound gets further away. **type** float
+      The roll off factor. Rolloff defines the rate of attenuation as the sound gets further away.
+
+      :type: float
 
    .. attribute:: looping
 
-      The loop mode of the actuator. **type** integer
+      The loop mode of the actuator.
+
+      :type: integer
 
    .. attribute:: position
 
-      The position of the sound as a list: [x, y, z]. **type** float array
+      The position of the sound as a list: [x, y, z].
+
+      :type: float array
 
    .. attribute:: velocity
 
-      The velocity of the emitter as a list: [x, y, z]. The relative velocity to the observer determines the pitch. List of 3 floats: [x, y, z]. **type** float array
+      The velocity of the emitter as a list: [x, y, z]. The relative velocity to the observer determines the pitch. List of 3 floats: [x, y, z].
+
+      :type: float array
 
    .. attribute:: orientation
 
-      The orientation of the sound. When setting the orientation you can also use quaternion [float, float, float, float] or euler angles [float, float, float] **type** 3x3 matrix [[float]]
+      The orientation of the sound. When setting the orientation you can also use quaternion [float, float, float, float] or euler angles [float, float, float].
+
+      :type: 3x3 matrix [[float]]
 
    .. attribute:: mode
 
-      The operation mode of the actuator. **type** integer
+      The operation mode of the actuator.
+
+      :type: integer
       
       You can use one of the following constants:
       * KX_SOUNDACT_PLAYSTOP               (1)
@@ -2712,14 +3139,18 @@ Game Engine  bge.types Module
       * KX_STATE_OP_CPY (0) : Copy state mask
       * KX_STATE_OP_SET (1) : Add bits to state mask
       * KX_STATE_OP_CLR (2) : Substract bits to state mask
-      * KX_STATE_OP_NEG (3) : Invert bits to state mask **type** integer
+      * KX_STATE_OP_NEG (3) : Invert bits to state mask.
+
+      :type: integer
 
    .. attribute:: mask
 
       value that defines the bits that will be modified by the operation.
            The bits that are 1 in the mask will be updated in the object state, 
             the bits that are 0 are will be left unmodified expect for the Copy operation
-            which copies the mask to the object state **type** integer
+            which copies the mask to the object state.
+
+      :type: integer
 
 .. class:: KX_TrackToActuator(SCA_IActuator)
 
@@ -2734,15 +3165,21 @@ Game Engine  bge.types Module
 
    .. attribute:: object
 
-      the object this actuator tracks. **type** :class:`KX_GameObject` or None
+      the object this actuator tracks.
+
+      :type: :class:`KX_GameObject` or None
 
    .. attribute:: time
 
-      the time in frames with which to delay the tracking motion **type** integer
+      the time in frames with which to delay the tracking motion.
+
+      :type: integer
 
    .. attribute:: use3D
 
-      the tracking motion to use 3D **type** boolean
+      the tracking motion to use 3D.
+
+      :type: boolean
 
 .. class:: KX_VehicleWrapper(PyObjectPlus)
 
@@ -2908,19 +3345,27 @@ Game Engine  bge.types Module
 
    .. attribute:: XYZ
 
-      The position of the vertex. **type** list [x, y, z]
+      The position of the vertex.
+
+      :type: list [x, y, z]
 
    .. attribute:: UV
 
-      The texture coordinates of the vertex. **type** list [u, v]
+      The texture coordinates of the vertex.
+
+      :type: list [u, v]
 
    .. attribute:: normal
 
-      The normal of the vertex **type** list [nx, ny, nz]
+      The normal of the vertex.
+
+      :type: list [nx, ny, nz]
 
    .. attribute:: colour
 
-      The colour of the vertex. **type** list [r, g, b, a]
+      The colour of the vertex.
+
+      :type: list [r, g, b, a]
 
       Black = [0.0, 0.0, 0.0, 1.0], White = [1.0, 1.0, 1.0, 1.0]
 
@@ -2930,47 +3375,69 @@ Game Engine  bge.types Module
 
    .. attribute:: x
 
-      The x coordinate of the vertex. **type** float
+      The x coordinate of the vertex.
+
+      :type: float
 
    .. attribute:: y
 
-      The y coordinate of the vertex. **type** float
+      The y coordinate of the vertex.
+
+      :type: float
 
    .. attribute:: z
 
-      The z coordinate of the vertex. **type** float
+      The z coordinate of the vertex.
+
+      :type: float
 
    .. attribute:: u
 
-      The u texture coordinate of the vertex. **type** float
+      The u texture coordinate of the vertex.
+
+      :type: float
 
    .. attribute:: v
 
-      The v texture coordinate of the vertex. **type** float
+      The v texture coordinate of the vertex.
+
+      :type: float
 
    .. attribute:: u2
 
-      The second u texture coordinate of the vertex. **type** float
+      The second u texture coordinate of the vertex.
+
+      :type: float
 
    .. attribute:: v2
 
-      The second v texture coordinate of the vertex. **type** float
+      The second v texture coordinate of the vertex.
+
+      :type: float
 
    .. attribute:: r
 
-      The red component of the vertex colour. 0.0 <= r <= 1.0 **type** float
+      The red component of the vertex colour. 0.0 <= r <= 1.0.
+
+      :type: float
 
    .. attribute:: g
 
-      The green component of the vertex colour. 0.0 <= g <= 1.0 **type** float
+      The green component of the vertex colour. 0.0 <= g <= 1.0.
+
+      :type: float
 
    .. attribute:: b
 
-      The blue component of the vertex colour. 0.0 <= b <= 1.0 **type** float
+      The blue component of the vertex colour. 0.0 <= b <= 1.0.
+
+      :type: float
 
    .. attribute:: a
 
-      The alpha component of the vertex colour. 0.0 <= a <= 1.0 **type** float
+      The alpha component of the vertex colour. 0.0 <= a <= 1.0.
+
+      :type: float
 
    .. method:: getXYZ()
 
@@ -2983,7 +3450,7 @@ Game Engine  bge.types Module
 
       Sets the position of this vertex.
 
-         **type** list [x, y, z]
+      :type:  list [x, y, z]
 
       :arg pos: the new position for this vertex in local coordinates.
 
@@ -2998,7 +3465,7 @@ Game Engine  bge.types Module
 
       Sets the UV (texture) coordinates of this vertex.
 
-         **type** list [u, v]
+      :type:  list [u, v]
 
    .. method:: getUV2()
 
@@ -3011,7 +3478,7 @@ Game Engine  bge.types Module
 
       Sets the 2nd UV (texture) coordinates of this vertex.
 
-         **type** list [u, v]
+      :type:  list [u, v]
 
       :arg unit: optional argument, FLAT==1, SECOND_UV==2, defaults to SECOND_UV
       :arg unit:  integer
@@ -3070,7 +3537,7 @@ Game Engine  bge.types Module
 
       Sets the normal vector of this vertex.
 
-         **type** sequence of floats [r, g, b]
+      :type:  sequence of floats [r, g, b]
 
       :arg normal: the new normal of this vertex.
 
@@ -3080,15 +3547,21 @@ Game Engine  bge.types Module
 
    .. attribute:: visibility
 
-      whether the actuator makes its parent object visible or invisible **type** boolean
+      whether the actuator makes its parent object visible or invisible.
+
+      :type: boolean
 
    .. attribute:: useOcclusion
 
-      whether the actuator makes its parent object an occluder or not **type** boolean
+      whether the actuator makes its parent object an occluder or not.
+
+      :type: boolean
 
    .. attribute:: useRecursion
 
-      whether the visibility/occlusion should be propagated to all children of the object **type** boolean
+      whether the visibility/occlusion should be propagated to all children of the object.
+
+      :type: boolean
 
 .. class:: SCA_2DFilterActuator(SCA_IActuator)
 
@@ -3104,11 +3577,15 @@ Game Engine  bge.types Module
 
    .. attribute:: shaderText
 
-      shader source code for custom shader **type** string
+      shader source code for custom shader.
+
+      :type: string
 
    .. attribute:: disableMotionBlur
 
-      action on motion blur: 0=enable, 1=disable **type** integer
+      action on motion blur: 0=enable, 1=disable.
+
+      :type: integer
 
    .. attribute:: mode
 
@@ -3128,17 +3605,23 @@ Game Engine  bge.types Module
       * RAS_2DFILTER_GRAYSCALE     (9)
       * RAS_2DFILTER_SEPIA        (10)
       * RAS_2DFILTER_INVERT       (11)
-      * RAS_2DFILTER_CUSTOMFILTER (12) : customer filter, the code code is set via shaderText property **type** integer
+      * RAS_2DFILTER_CUSTOMFILTER (12) : customer filter, the code code is set via shaderText property.
+
+      :type: integer
 
    .. attribute:: passNumber
 
       order number of filter in the stack of 2D filters. Filters are executed in increasing order of passNb.
 
-      Only be one filter can be defined per passNb. **type** integer (0-100)
+      Only be one filter can be defined per passNb.
+
+      :type: integer (0-100)
 
    .. attribute:: value
 
-      argument for motion blur filter **type** float (0.0-100.0)
+      argument for motion blur filter.
+
+      :type: float (0.0-100.0)
 
 .. class:: SCA_ANDController(SCA_IController)
 
@@ -3156,7 +3639,9 @@ Game Engine  bge.types Module
 
    .. attribute:: actuator
 
-      the name of the actuator that the sensor is monitoring. **type** string
+      the name of the actuator that the sensor is monitoring.
+
+      :type: string
 
 .. class:: SCA_AlwaysSensor(SCA_ISensor)
 
@@ -3178,17 +3663,23 @@ Game Engine  bge.types Module
 
    .. attribute:: delay
 
-      length of the initial OFF period as number of frame, 0 for immediate trigger. **type** integer.
+      length of the initial OFF period as number of frame, 0 for immediate trigger.
+
+      :type: integer.
 
    .. attribute:: duration
 
       length of the ON period in number of frame after the initial OFF period.
 
-      If duration is greater than 0, a negative trigger is sent at the end of the ON pulse. **type** integer
+      If duration is greater than 0, a negative trigger is sent at the end of the ON pulse.
+
+      :type: integer
 
    .. attribute:: repeat
 
-      1 if the OFF-ON cycle should be repeated indefinately, 0 if it should run once. **type** integer
+      1 if the OFF-ON cycle should be repeated indefinately, 0 if it should run once.
+
+      :type: integer
 
 .. class:: SCA_JoystickSensor(SCA_ISensor)
 
@@ -3198,7 +3689,9 @@ Game Engine  bge.types Module
 
    .. attribute:: axisValues
 
-      The state of the joysticks axis as a list of values :data:`numAxis` long. (read-only). **type** list of ints.
+      The state of the joysticks axis as a list of values :data:`numAxis` long. (read-only).
+
+      :type: list of ints.
 
       Each spesifying the value of an axis between -32767 and 32767 depending on how far the axis is pushed, 0 for nothing.
       The first 2 values are used by most joysticks and gamepads for directional control. 3rd and 4th values are only on some joysticks and can be used for arbitary controls.
@@ -3210,13 +3703,17 @@ Game Engine  bge.types Module
 
    .. attribute:: axisSingle
 
-      like :data:`axisValues` but returns a single axis value that is set by the sensor. (read-only). **type** integer
+      like :data:`axisValues` but returns a single axis value that is set by the sensor. (read-only).
+
+      :type: integer
 
       .. note:: only use this for "Single Axis" type sensors otherwise it will raise an error.
 
    .. attribute:: hatValues
 
-      The state of the joysticks hats as a list of values :data:`numHats` long. (read-only) **type** list of ints
+      The state of the joysticks hats as a list of values :data:`numHats` long. (read-only).
+
+      :type: list of ints
 
       Each spesifying the direction of the hat from 1 to 12, 0 when inactive.
 
@@ -3234,49 +3731,69 @@ Game Engine  bge.types Module
 
    .. attribute:: hatSingle
 
-      Like :data:`hatValues` but returns a single hat direction value that is set by the sensor. (read-only). **type** integer
+      Like :data:`hatValues` but returns a single hat direction value that is set by the sensor. (read-only).
+
+      :type: integer
 
    .. attribute:: numAxis
 
-      The number of axes for the joystick at this index. (read-only). **type** integer
+      The number of axes for the joystick at this index. (read-only).
+
+      :type: integer
 
    .. attribute:: numButtons
 
-      The number of buttons for the joystick at this index. (read-only). **type** integer
+      The number of buttons for the joystick at this index. (read-only).
+
+      :type: integer
 
    .. attribute:: numHats
 
-      The number of hats for the joystick at this index. (read-only). **type** integer
+      The number of hats for the joystick at this index. (read-only).
+
+      :type: integer
 
    .. attribute:: connected
 
-      True if a joystick is connected at this joysticks index. (read-only). **type** boolean
+      True if a joystick is connected at this joysticks index. (read-only).
+
+      :type: boolean
 
    .. attribute:: index
 
-      The joystick index to use (from 0 to 7). The first joystick is always 0. **type** integer
+      The joystick index to use (from 0 to 7). The first joystick is always 0.
+
+      :type: integer
 
    .. attribute:: threshold
 
-      Axis threshold. Joystick axis motion below this threshold wont trigger an event. Use values between (0 and 32767), lower values are more sensitive. **type** integer
+      Axis threshold. Joystick axis motion below this threshold wont trigger an event. Use values between (0 and 32767), lower values are more sensitive.
+
+      :type: integer
 
    .. attribute:: button
 
-      The button index the sensor reacts to (first button = 0). When the "All Events" toggle is set, this option has no effect. **type** integer
+      The button index the sensor reacts to (first button = 0). When the "All Events" toggle is set, this option has no effect.
+
+      :type: integer
 
    .. attribute:: axis
 
       The axis this sensor reacts to, as a list of two values [axisIndex, axisDirection]
 
       * axisIndex: the axis index to use when detecting axis movement, 1=primary directional control, 2=secondary directional control.
-      * axisDirection: 0=right, 1=up, 2=left, 3=down. **type** [integer, integer]
+      * axisDirection: 0=right, 1=up, 2=left, 3=down.
+
+      :type: [integer, integer]
 
    .. attribute:: hat
 
       The hat the sensor reacts to, as a list of two values: [hatIndex, hatDirection]
 
       * hatIndex: the hat index to use when detecting hat movement, 1=primary hat, 2=secondary hat (4 max).
-      * hatDirection: 1-12 **type** [integer, integer]
+      * hatDirection: 1-12.
+
+      :type: [integer, integer]
 
    .. method:: getButtonActiveList()
 
@@ -3298,31 +3815,45 @@ Game Engine  bge.types Module
 
    .. attribute:: key
 
-      The key code this sensor is looking for. **type** keycode from :mod:`bge.keys` module
+      The key code this sensor is looking for.
+
+      :type: keycode from :mod:`bge.keys` module
 
    .. attribute:: hold1
 
-      The key code for the first modifier this sensor is looking for. **type** keycode from :mod:`bge.keys` module
+      The key code for the first modifier this sensor is looking for.
+
+      :type: keycode from :mod:`bge.keys` module
 
    .. attribute:: hold2
 
-      The key code for the second modifier this sensor is looking for. **type** keycode from :mod:`bge.keys` module
+      The key code for the second modifier this sensor is looking for.
+
+      :type: keycode from :mod:`bge.keys` module
 
    .. attribute:: toggleProperty
 
-      The name of the property that indicates whether or not to log keystrokes as a string. **type** string
+      The name of the property that indicates whether or not to log keystrokes as a string.
+
+      :type: string
 
    .. attribute:: targetProperty
 
-      The name of the property that receives keystrokes in case in case a string is logged. **type** string
+      The name of the property that receives keystrokes in case in case a string is logged.
+
+      :type: string
 
    .. attribute:: useAllKeys
 
-      Flag to determine whether or not to accept all keys. **type** boolean
+      Flag to determine whether or not to accept all keys.
+
+      :type: boolean
 
    .. attribute:: events
 
-      a list of pressed keys that have either been pressed, or just released, or are active this frame. (read-only). **type** list [[keycode, status], ...]
+      a list of pressed keys that have either been pressed, or just released, or are active this frame. (read-only).
+
+      :type: list [[keycode, status], ...]
 
       * 'keycode' matches the values in :mod:`bge.keys`.
       * 'status' uses...
@@ -3367,15 +3898,21 @@ Game Engine  bge.types Module
 
    .. attribute:: propName
 
-      the property on which to operate. **type** string
+      the property on which to operate.
+
+      :type: string
 
    .. attribute:: value
 
-      the value with which the actuator operates. **type** string
+      the value with which the actuator operates.
+
+      :type: string
 
    .. attribute:: mode
 
-      TODO - add constants to game logic dict!. **type** integer
+      TODO - add constants to game logic dict!.
+
+      :type: integer
 
 .. class:: SCA_PropertySensor(SCA_ISensor)
 
@@ -3385,7 +3922,9 @@ Game Engine  bge.types Module
 
    .. attribute:: mode
 
-      Type of check on the property. **type** integer
+      Type of check on the property.
+
+      :type: integer
 
       * KX_PROPSENSOR_EQUAL(1)
       * KX_PROPSENSOR_NOTEQUAL(2)
@@ -3395,19 +3934,27 @@ Game Engine  bge.types Module
 
    .. attribute:: propName
 
-      the property the sensor operates. **type** string
+      the property the sensor operates.
+
+      :type: string
 
    .. attribute:: value
 
-      the value with which the sensor compares to the value of the property. **type** string
+      the value with which the sensor compares to the value of the property.
+
+      :type: string
 
    .. attribute:: min
 
-      the minimum value of the range used to evaluate the property when in interval mode. **type** string
+      the minimum value of the range used to evaluate the property when in interval mode.
+
+      :type: string
 
    .. attribute:: max
 
-      the maximum value of the range used to evaluate the property when in interval mode. **type** string
+      the maximum value of the range used to evaluate the property when in interval mode.
+
+      :type: string
 
 .. class:: SCA_PythonController(SCA_IController)
 
@@ -3423,14 +3970,18 @@ Game Engine  bge.types Module
       * When 'Script' execution mode is set this value contains the entire python script as a single string (not the script name as you might expect) which can be modified to run different scripts.
       * When 'Module' execution mode is set this value will contain a single line string - module name and function "module.func" or "package.modile.func" where the module names are python textblocks or external scripts.
 
-      .. note:: once this is set the script name given for warnings will remain unchanged. **type** string
+      .. note:: once this is set the script name given for warnings will remain unchanged.
+
+      :type: string
 
    .. attribute:: mode
 
       the execution mode for this controller (read-only).
 
       * Script: 0, Execite the :data:`script` as a python code.
-      * Module: 1, Execite the :data:`script` as a module and function. **type** integer
+      * Module: 1, Execite the :data:`script` as a module and function.
+
+      :type: integer
 
    .. method:: activate(actuator)
 
@@ -3454,25 +4005,33 @@ Game Engine  bge.types Module
 
    .. attribute:: seed
 
-      Seed of the random number generator. **type** integer.
+      Seed of the random number generator.
+
+      :type: integer.
 
       Equal seeds produce equal series. If the seed is 0, the generator will produce the same value on every call.
 
    .. attribute:: para1
 
-      the first parameter of the active distribution. **type** float, read-only.
+      the first parameter of the active distribution.
+
+      :type: float, read-only.
 
       Refer to the documentation of the generator types for the meaning of this value. 
 
    .. attribute:: para2
 
-      the second parameter of the active distribution. **type** float, read-only
+      the second parameter of the active distribution.
+
+      :type: float, read-only
 
       Refer to the documentation of the generator types for the meaning of this value.
 
    .. attribute:: distribution
 
-      distribution type. (read-only). **type** integer
+      distribution type. (read-only).
+
+      :type: integer
 
       * KX_RANDOMACT_BOOL_CONST
       * KX_RANDOMACT_BOOL_UNIFORM
@@ -3487,7 +4046,9 @@ Game Engine  bge.types Module
 
    .. attribute:: propName
 
-      the name of the property to set with the random value. **type** string
+      the name of the property to set with the random value.
+
+      :type: string
 
       If the generator and property types do not match, the assignment is ignored.
 
@@ -3575,11 +4136,15 @@ Game Engine  bge.types Module
 
    .. attribute:: lastDraw
 
-      The seed of the random number generator. **type** integer
+      The seed of the random number generator.
+
+      :type: integer
 
    .. attribute:: seed
 
-      The seed of the random number generator. **type** integer
+      The seed of the random number generator.
+
+      :type: integer
 
    .. method:: setSeed(seed)
 
@@ -3629,50 +4194,70 @@ Game Engine  bge.types Module
 
    .. attribute:: lens
 
-      The camera's lens value. **type** float
+      The camera's lens value.
+
+      :type: float
 
    .. attribute:: near
 
-      The camera's near clip distance. **type** float
+      The camera's near clip distance.
+
+      :type: float
 
    .. attribute:: far
 
-      The camera's far clip distance. **type** float
+      The camera's far clip distance.
+
+      :type: float
 
    .. attribute:: perspective
 
-      True if this camera has a perspective transform, False for an orthographic projection. **type** boolean
+      True if this camera has a perspective transform, False for an orthographic projection.
+
+      :type: boolean
 
    .. attribute:: frustum_culling
 
-      True if this camera is frustum culling. **type** boolean
+      True if this camera is frustum culling.
+
+      :type: boolean
 
    .. attribute:: projection_matrix
 
-      This camera's 4x4 projection matrix. **type** 4x4 Matrix [[float]]
+      This camera's 4x4 projection matrix.
+
+      :type: 4x4 Matrix [[float]]
 
    .. attribute:: modelview_matrix
 
-      This camera's 4x4 model view matrix. (read-only). **type** 4x4 Matrix [[float]]
+      This camera's 4x4 model view matrix. (read-only).
+
+      :type: 4x4 Matrix [[float]]
 
       .. note:: This matrix is regenerated every frame from the camera's position and orientation. 
 
    .. attribute:: camera_to_world
 
-      This camera's camera to world transform. (read-only). **type** 4x4 Matrix [[float]]
+      This camera's camera to world transform. (read-only).
+
+      :type: 4x4 Matrix [[float]]
 
       .. note:: This matrix is regenerated every frame from the camera's position and orientation.
 
    .. attribute:: world_to_camera
 
-      This camera's world to camera transform. (read-only). **type** 4x4 Matrix [[float]]
+      This camera's world to camera transform. (read-only).
+
+      :type: 4x4 Matrix [[float]]
 
       .. note:: Regenerated every frame from the camera's position and orientation.
       .. note:: This is camera_to_world inverted.
 
    .. attribute:: useViewport
 
-      True when the camera is used as a viewport, set True to enable a viewport for this camera. **type** boolean
+      True when the camera is used as a viewport, set True to enable a viewport for this camera.
+
+      :type: boolean
 
    .. method:: sphereInsideFrustum(centre, radius)
 
@@ -3852,12 +4437,16 @@ Game Engine  bge.types Module
 
       The list of armature constraint defined on this armature.
       Elements of the list can be accessed by index or string.
-      The key format for string access is '<bone_name>:<constraint_name>' **type** list of :class:`BL_ArmatureConstraint`
+      The key format for string access is '<bone_name>:<constraint_name>'.
+
+      :type: list of :class:`BL_ArmatureConstraint`
 
    .. attribute:: channels
 
       The list of armature channels.
-      Elements of the list can be accessed by index or name the bone. **type** list of :class:`BL_ArmatureChannel`
+      Elements of the list can be accessed by index or name the bone.
+
+      :type: list of :class:`BL_ArmatureChannel`
 
    .. method:: update()
 
@@ -3899,25 +4488,35 @@ Game Engine  bge.types Module
       * KX_ACT_ARMATURE_ENABLE(1) enable the constraint.
       * KX_ACT_ARMATURE_DISABLE(2) disable the constraint (runtime constraint values are not updated).
       * KX_ACT_ARMATURE_SETTARGET(3) change target and subtarget of constraint.
-      * KX_ACT_ARMATURE_SETWEIGHT(4) change weight of (only for IK constraint). **type** integer
+      * KX_ACT_ARMATURE_SETWEIGHT(4) change weight of (only for IK constraint).
+
+      :type: integer
 
    .. attribute:: constraint
 
-      The constraint object this actuator is controlling. **type** :class:`BL_ArmatureConstraint`
+      The constraint object this actuator is controlling.
+
+      :type: :class:`BL_ArmatureConstraint`
 
    .. attribute:: target
 
-      The object that this actuator will set as primary target to the constraint it controls **type** :class:`KX_GameObject`
+      The object that this actuator will set as primary target to the constraint it controls.
+
+      :type: :class:`KX_GameObject`
 
    .. attribute:: subtarget
 
-      The object that this actuator will set as secondary target to the constraint it controls. **type** :class:`KX_GameObject`.
+      The object that this actuator will set as secondary target to the constraint it controls.
+
+      :type: :class:`KX_GameObject`.
       
       .. note:: Currently, the only secondary target is the pole target for IK constraint.
 
    .. attribute:: weight
 
-      The weight this actuator will set on the constraint it controls. **type** float.
+      The weight this actuator will set on the constraint it controls.
+
+      :type: float.
 
       .. note:: Currently only the IK constraint has a weight. It must be a value between 0 and 1.
 
@@ -3937,7 +4536,9 @@ Game Engine  bge.types Module
 
    .. attribute:: type
 
-      The type of measurement that the sensor make when it is active. **type** integer.
+      The type of measurement that the sensor make when it is active.
+
+      :type: integer.
 
       * KX_ARMSENSOR_STATE_CHANGED(0) detect that the constraint is changing state (active/inactive)
       * KX_ARMSENSOR_LIN_ERROR_BELOW(1) detect that the constraint linear error is above a threshold
@@ -3947,11 +4548,13 @@ Game Engine  bge.types Module
 
    .. attribute:: constraint
 
-      The constraint object this sensor is watching. **type** :class:`BL_ArmatureConstraint`
+      The constraint object this sensor is watching.
+
+      :type: :class:`BL_ArmatureConstraint`
 
    .. attribute:: value
    
-      **type** float
+      :type: float
 
       The threshold used in the comparison with the constraint error
       The linear error is only updated on CopyPose/Distance IK constraint with iTaSC solver
@@ -3997,21 +4600,29 @@ Game Engine  bge.types Module
 
    .. attribute:: type
 
-      Type of constraint, (read-only) **type** integer, one of CONSTRAINT_TYPE_* constants
+      Type of constraint, (read-only).
+
+      :type: integer, one of CONSTRAINT_TYPE_* constants
 
    .. attribute:: name
 
-      Name of constraint constructed as <bone_name>:<constraint_name>. constraints list **type** string
+      Name of constraint constructed as <bone_name>:<constraint_name>. constraints list.
+
+      :type: string
 
       This name is also the key subscript on :class:`BL_ArmatureObject`.
 
    .. attribute:: enforce
 
-      fraction of constraint effect that is enforced. Between 0 and 1. **type** float
+      fraction of constraint effect that is enforced. Between 0 and 1.
+
+      :type: float
 
    .. attribute:: headtail
 
-      Position of target between head and tail of the target bone: 0=head, 1=tail. **type** float.
+      Position of target between head and tail of the target bone: 0=head, 1=tail.
+
+      :type: float.
 
       .. note:: Only used if the target is a bone (i.e target object is an armature.
 
@@ -4019,11 +4630,15 @@ Game Engine  bge.types Module
 
       runtime linear error (in Blender units) on constraint at the current frame.
 
-      This is a runtime value updated on each frame by the IK solver. Only available on IK constraint and iTaSC solver. **type** float
+      This is a runtime value updated on each frame by the IK solver. Only available on IK constraint and iTaSC solver.
+
+      :type: float
 
    .. attribute:: rot_error
 
-      Runtime rotation error (in radiant) on constraint at the current frame. **type** float.
+      Runtime rotation error (in radiant) on constraint at the current frame.
+
+      :type: float.
 
       This is a runtime value updated on each frame by the IK solver. Only available on IK constraint and iTaSC solver.
 
@@ -4031,11 +4646,15 @@ Game Engine  bge.types Module
 
    .. attribute:: target
 
-      Primary target object for the constraint. The position of this object in the GE will be used as target for the constraint. **type** :class:`KX_GameObject`.
+      Primary target object for the constraint. The position of this object in the GE will be used as target for the constraint.
+
+      :type: :class:`KX_GameObject`.
 
    .. attribute:: subtarget
 
-      Secondary target object for the constraint. The position of this object in the GE will be used as secondary target for the constraint. **type** :class:`KX_GameObject`.
+      Secondary target object for the constraint. The position of this object in the GE will be used as secondary target for the constraint.
+
+      :type: :class:`KX_GameObject`.
 
       Currently this is only used for pole target on IK constraint.
 
@@ -4043,17 +4662,23 @@ Game Engine  bge.types Module
 
       True if the constraint is active.
 
-      .. note:: an inactive constraint does not update lin_error and rot_error. **type** boolean
+      .. note:: an inactive constraint does not update lin_error and rot_error.
+
+      :type: boolean
 
    .. attribute:: ik_weight
 
       Weight of the IK constraint between 0 and 1.
 
-      Only defined for IK constraint. **type** float
+      Only defined for IK constraint.
+
+      :type: float
 
    .. attribute:: ik_type
 
-      Type of IK constraint, (read-only). **type** integer.
+      Type of IK constraint, (read-only).
+
+      :type: integer.
 
       * CONSTRAINT_IK_COPYPOSE(0) constraint is trying to match the position and eventually the rotation of the target.
       * CONSTRAINT_IK_DISTANCE(1) constraint is maintaining a certain distance to target subject to ik_mode
@@ -4065,11 +4690,15 @@ Game Engine  bge.types Module
       * CONSTRAINT_IK_FLAG_TIP(1) : set when the constraint operates on the head of the bone and not the tail
       * CONSTRAINT_IK_FLAG_ROT(2) : set when the constraint tries to match the orientation of the target
       * CONSTRAINT_IK_FLAG_STRETCH(16) : set when the armature is allowed to stretch (only the bones with stretch factor > 0.0)
-      * CONSTRAINT_IK_FLAG_POS(32) : set when the constraint tries to match the position of the target **type** integer
+      * CONSTRAINT_IK_FLAG_POS(32) : set when the constraint tries to match the position of the target.
+
+      :type: integer
 
    .. attribute:: ik_dist
 
-      Distance the constraint is trying to maintain with target, only used when ik_type=CONSTRAINT_IK_DISTANCE **type** float
+      Distance the constraint is trying to maintain with target, only used when ik_type=CONSTRAINT_IK_DISTANCE.
+
+      :type: float
 
    .. attribute:: ik_mode
 
@@ -4077,7 +4706,9 @@ Game Engine  bge.types Module
 
       * CONSTRAINT_IK_MODE_INSIDE(0) : the constraint tries to keep the bone within ik_dist of target
       * CONSTRAINT_IK_MODE_OUTSIDE(1) : the constraint tries to keep the bone outside ik_dist of the target
-      * CONSTRAINT_IK_MODE_ONSURFACE(2) : the constraint tries to keep the bone exactly at ik_dist of the target **type** integer
+      * CONSTRAINT_IK_MODE_ONSURFACE(2) : the constraint tries to keep the bone exactly at ik_dist of the target.
+
+      :type: integer
 
 .. class:: BL_ArmatureChannel(PyObjectPlus)
 
@@ -4096,84 +4727,118 @@ Game Engine  bge.types Module
 
    .. attribute:: name
 
-      channel name (=bone name), read-only. **type** string
+      channel name (=bone name), read-only.
+
+      :type: string
 
    .. attribute:: bone
 
-      return the bone object corresponding to this pose channel, read-only. **type** :class:`BL_ArmatureBone`
+      return the bone object corresponding to this pose channel, read-only.
+
+      :type: :class:`BL_ArmatureBone`
 
    .. attribute:: parent
 
-      return the parent channel object, None if root channel, read-only. **type** :class:`BL_ArmatureChannel`
+      return the parent channel object, None if root channel, read-only.
+
+      :type: :class:`BL_ArmatureChannel`
 
    .. attribute:: has_ik
 
       true if the bone is part of an active IK chain, read-only.
-      This flag is not set when an IK constraint is defined but not enabled (miss target information for example) **type** boolean
+      This flag is not set when an IK constraint is defined but not enabled (miss target information for example).
+
+      :type: boolean
 
    .. attribute:: ik_dof_x
 
-      true if the bone is free to rotation in the X axis, read-only. **type** boolean
+      true if the bone is free to rotation in the X axis, read-only.
+
+      :type: boolean
 
    .. attribute:: ik_dof_y
 
-      true if the bone is free to rotation in the Y axis, read-only. **type** boolean
+      true if the bone is free to rotation in the Y axis, read-only.
+
+      :type: boolean
 
    .. attribute:: ik_dof_z
 
-      true if the bone is free to rotation in the Z axis, read-only. **type** boolean
+      true if the bone is free to rotation in the Z axis, read-only.
+
+      :type: boolean
 
    .. attribute:: ik_limit_x
 
-      true if a limit is imposed on X rotation, read-only. **type** boolean
+      true if a limit is imposed on X rotation, read-only.
+
+      :type: boolean
 
    .. attribute:: ik_limit_y
 
-      true if a limit is imposed on Y rotation, read-only. **type** boolean
+      true if a limit is imposed on Y rotation, read-only.
+
+      :type: boolean
 
    .. attribute:: ik_limit_z
 
-      true if a limit is imposed on Z rotation, read-only. **type** boolean
+      true if a limit is imposed on Z rotation, read-only.
+
+      :type: boolean
 
    .. attribute:: ik_rot_control
 
-      true if channel rotation should applied as IK constraint, read-only. **type** boolean
+      true if channel rotation should applied as IK constraint, read-only.
+
+      :type: boolean
 
    .. attribute:: ik_lin_control
 
-      true if channel size should applied as IK constraint, read-only. **type** boolean
+      true if channel size should applied as IK constraint, read-only.
+
+      :type: boolean
 
    .. attribute:: location
 
-      displacement of the bone head in armature local space, read-write. **type** vector [X, Y, Z].
+      displacement of the bone head in armature local space, read-write.
+
+      :type: vector [X, Y, Z].
 
       .. note:: You can only move a bone if it is unconnected to its parent. An action playing on the armature may change the value. An IK chain does not update this value, see joint_rotation.
       .. note:: Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`).
 
    .. attribute:: scale
 
-      scale of the bone relative to its parent, read-write. **type** vector [sizeX, sizeY, sizeZ].
+      scale of the bone relative to its parent, read-write.
+
+      :type: vector [sizeX, sizeY, sizeZ].
 
       .. note:: An action playing on the armature may change the value.  An IK chain does not update this value, see joint_rotation.
       .. note:: Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
 
    .. attribute:: rotation
 
-      rotation of the bone relative to its parent expressed as a quaternion, read-write. **type** vector [qr, qi, qj, qk].
+      rotation of the bone relative to its parent expressed as a quaternion, read-write.
+
+      :type: vector [qr, qi, qj, qk].
 
       .. note:: This field is only used if rotation_mode is 0. An action playing on the armature may change the value.  An IK chain does not update this value, see joint_rotation.
       .. note:: Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
 
    .. attribute:: euler_rotation
 
-      rotation of the bone relative to its parent expressed as a set of euler angles, read-write. **type** vector [X, Y, Z].
+      rotation of the bone relative to its parent expressed as a set of euler angles, read-write.
+
+      :type: vector [X, Y, Z].
 
       .. note:: This field is only used if rotation_mode is > 0. You must always pass the angles in [X, Y, Z] order; the order of applying the angles to the bone depends on rotation_mode. An action playing on the armature may change this field.  An IK chain does not update this value, see joint_rotation.
       .. note:: Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
 
    .. attribute:: rotation_mode
 
-      Method of updating the bone rotation, read-write. **type** integer
+      Method of updating the bone rotation, read-write.
+
+      :type: integer
 
       Use the following constants (euler mode are named as in Blender UI but the actual axis order is reversed).
 
@@ -4188,72 +4853,106 @@ Game Engine  bge.types Module
    .. attribute:: channel_matrix
 
       pose matrix in bone space (deformation of the bone due to action, constraint, etc), Read-only.
-      This field is updated after the graphic render, it represents the current pose. **type** matrix [4][4]
+      This field is updated after the graphic render, it represents the current pose.
+
+      :type: matrix [4][4]
 
    .. attribute:: pose_matrix
 
       pose matrix in armature space, read-only, 
-      This field is updated after the graphic render, it represents the current pose. **type** matrix [4][4]
+      This field is updated after the graphic render, it represents the current pose.
+
+      :type: matrix [4][4]
 
    .. attribute:: pose_head
 
-      position of bone head in armature space, read-only. **type** vector [x, y, z]
+      position of bone head in armature space, read-only.
+
+      :type: vector [x, y, z]
 
    .. attribute:: pose_tail
 
-      position of bone tail in armature space, read-only. **type** vector [x, y, z]
+      position of bone tail in armature space, read-only.
+
+      :type: vector [x, y, z]
 
    .. attribute:: ik_min_x
 
-      minimum value of X rotation in degree (<= 0) when X rotation is limited (see ik_limit_x), read-only. **type** float
+      minimum value of X rotation in degree (<= 0) when X rotation is limited (see ik_limit_x), read-only.
+
+      :type: float
 
    .. attribute:: ik_max_x
 
-      maximum value of X rotation in degree (>= 0) when X rotation is limited (see ik_limit_x), read-only. **type** float
+      maximum value of X rotation in degree (>= 0) when X rotation is limited (see ik_limit_x), read-only.
+
+      :type: float
 
    .. attribute:: ik_min_y
 
-      minimum value of Y rotation in degree (<= 0) when Y rotation is limited (see ik_limit_y), read-only. **type** float
+      minimum value of Y rotation in degree (<= 0) when Y rotation is limited (see ik_limit_y), read-only.
+
+      :type: float
 
    .. attribute:: ik_max_y
 
-      maximum value of Y rotation in degree (>= 0) when Y rotation is limited (see ik_limit_y), read-only. **type** float
+      maximum value of Y rotation in degree (>= 0) when Y rotation is limited (see ik_limit_y), read-only.
+
+      :type: float
 
    .. attribute:: ik_min_z
 
-      minimum value of Z rotation in degree (<= 0) when Z rotation is limited (see ik_limit_z), read-only. **type** float
+      minimum value of Z rotation in degree (<= 0) when Z rotation is limited (see ik_limit_z), read-only.
+
+      :type: float
 
    .. attribute:: ik_max_z
 
-      maximum value of Z rotation in degree (>= 0) when Z rotation is limited (see ik_limit_z), read-only. **type** float
+      maximum value of Z rotation in degree (>= 0) when Z rotation is limited (see ik_limit_z), read-only.
+
+      :type: float
 
    .. attribute:: ik_stiffness_x
 
-      bone rotation stiffness in X axis, read-only **type** float between 0 and 1
+      bone rotation stiffness in X axis, read-only.
+
+      :type: float between 0 and 1
 
    .. attribute:: ik_stiffness_y
 
-      bone rotation stiffness in Y axis, read-only **type** float between 0 and 1
+      bone rotation stiffness in Y axis, read-only.
+
+      :type: float between 0 and 1
 
    .. attribute:: ik_stiffness_z
 
-      bone rotation stiffness in Z axis, read-only **type** float between 0 and 1
+      bone rotation stiffness in Z axis, read-only.
+
+      :type: float between 0 and 1
 
    .. attribute:: ik_stretch
 
-      ratio of scale change that is allowed, 0=bone can't change size, read-only. **type** float
+      ratio of scale change that is allowed, 0=bone can't change size, read-only.
+
+      :type: float
 
    .. attribute:: ik_rot_weight
 
-      weight of rotation constraint when ik_rot_control is set, read-write. **type** float between 0 and 1
+      weight of rotation constraint when ik_rot_control is set, read-write.
+
+      :type: float between 0 and 1
 
    .. attribute:: ik_lin_weight
 
-      weight of size constraint when ik_lin_control is set, read-write. **type** float between 0 and 1
+      weight of size constraint when ik_lin_control is set, read-write.
+
+      :type: float between 0 and 1
 
    .. attribute:: joint_rotation
 
-      Control bone rotation in term of joint angle (for robotic applications), read-write. **type** vector [x, y, z]
+      Control bone rotation in term of joint angle (for robotic applications), read-write.
+
+      :type: vector [x, y, z]
 
       When writing to this attribute, you pass a [x, y, z] vector and an appropriate set of euler angles or quaternion is calculated according to the rotation_mode.
 
@@ -4278,62 +4977,92 @@ Game Engine  bge.types Module
 
    .. attribute:: name
 
-      bone name **type** string
+      bone name.
+
+      :type: string
 
    .. attribute:: connected
 
-      true when the bone head is struck to the parent's tail **type** boolean
+      true when the bone head is struck to the parent's tail.
+
+      :type: boolean
 
    .. attribute:: hinge
 
-      true when bone doesn't inherit rotation or scale from parent bone **type** boolean
+      true when bone doesn't inherit rotation or scale from parent bone.
+
+      :type: boolean
 
    .. attribute:: inherit_scale
 
-      true when bone inherits scaling from parent bone **type** boolean
+      true when bone inherits scaling from parent bone.
+
+      :type: boolean
 
    .. attribute:: bbone_segments
 
-      number of B-bone segments **type** integer
+      number of B-bone segments.
+
+      :type: integer
 
    .. attribute:: roll
 
-      bone rotation around head-tail axis **type** float
+      bone rotation around head-tail axis.
+
+      :type: float
 
    .. attribute:: head
 
-      location of head end of the bone in parent bone space **type** vector [x, y, z]
+      location of head end of the bone in parent bone space.
+
+      :type: vector [x, y, z]
 
    .. attribute:: tail
 
-      location of head end of the bone in parent bone space **type** vector [x, y, z]
+      location of head end of the bone in parent bone space.
+
+      :type: vector [x, y, z]
 
    .. attribute:: length
 
-      bone length **type** float
+      bone length.
+
+      :type: float
 
    .. attribute:: arm_head
 
-      location of head end of the bone in armature space **type** vector [x, y, z]
+      location of head end of the bone in armature space.
+
+      :type: vector [x, y, z]
 
    .. attribute:: arm_tail
 
-      location of tail end of the bone in armature space **type** vector [x, y, z]
+      location of tail end of the bone in armature space.
+
+      :type: vector [x, y, z]
 
    .. attribute:: arm_mat
 
-      matrix of the bone head in armature space **type** matrix [4][4]
+      matrix of the bone head in armature space.
+
+      :type: matrix [4][4]
 
       .. note:: This matrix has no scale part. 
 
    .. attribute:: bone_mat
 
-      rotation matrix of the bone in parent bone space. **type** matrix [3][3]
+      rotation matrix of the bone in parent bone space.
+
+      :type: matrix [3][3]
 
    .. attribute:: parent
 
-      parent bone, or None for root bone **type** :class:`BL_ArmatureBone`
+      parent bone, or None for root bone.
+
+      :type: :class:`BL_ArmatureBone`
 
    .. attribute:: children
 
-      list of bone's children. **type** list of :class:`BL_ArmatureBone`
+      list of bone's children.
+
+      :type: list of :class:`BL_ArmatureBone`

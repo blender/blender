@@ -305,8 +305,13 @@ Utility functions
 Constants
 =========
 
-.. data:: KX_TRUE: True value used by some modules.
-.. data:: KX_FALSE: False value used by some modules.
+.. data:: KX_TRUE
+
+   True value used by some modules.
+
+.. data:: KX_FALSE
+
+   False value used by some modules.
 
 ---------------
 Property Sensor
@@ -339,18 +344,96 @@ Constraint Actuator
 See :class:`bge.types.KX_ConstraintActuator`
 
 .. data:: KX_CONSTRAINTACT_LOCX
+
+   Limit X coord.
+   
 .. data:: KX_CONSTRAINTACT_LOCY
+
+   Limit Y coord
+
 .. data:: KX_CONSTRAINTACT_LOCZ
+
+   Limit Z coord
+   
 .. data:: KX_CONSTRAINTACT_ROTX
+
+   Limit X rotation
+
 .. data:: KX_CONSTRAINTACT_ROTY
+
+   Limit Y rotation
+   
 .. data:: KX_CONSTRAINTACT_ROTZ
+
+   Limit Z rotation
+   
 .. data:: KX_CONSTRAINTACT_DIRNX
+
+   Set distance along negative X axis
+
 .. data:: KX_CONSTRAINTACT_DIRNY
+
+   Set distance along negative Y axis
+   
+.. data:: KX_CONSTRAINTACT_DIRNZ
+
+   Set distance along negative Z axis
+   
 .. data:: KX_CONSTRAINTACT_DIRPX
+
+   Set distance along positive X axis
+
 .. data:: KX_CONSTRAINTACT_DIRPY
+
+   Set distance along positive Y axis
+   
+.. data:: KX_CONSTRAINTACT_DIRPZ
+
+   Set distance along positive Z axis
+   
 .. data:: KX_CONSTRAINTACT_ORIX
+
+   Set orientation of X axis
+   
 .. data:: KX_CONSTRAINTACT_ORIY
+
+   Set orientation of Y axis
+   
 .. data:: KX_CONSTRAINTACT_ORIZ
+
+   Set orientation of Z axis
+   
+.. data:: KX_ACT_CONSTRAINT_FHNX
+
+   Set force field along negative X axis
+   
+.. data:: KX_ACT_CONSTRAINT_FHNY
+
+   Set force field along negative Y axis
+   
+.. data:: KX_ACT_CONSTRAINT_FHNZ
+
+   Set force field along negative Z axis
+   
+.. data:: KX_ACT_CONSTRAINT_FHPX
+
+   Set force field along positive X axis
+
+.. data:: KX_ACT_CONSTRAINT_FHPY
+
+   Set force field along positive Y axis
+   
+.. data:: KX_ACT_CONSTRAINT_FHPZ
+
+   Set force field along positive Z axis
+   
+.. data:: KX_ACT_CONSTRAINT_DISTANCE
+.. data:: KX_ACT_CONSTRAINT_DOROTFH
+.. data:: KX_ACT_CONSTRAINT_LOCAL
+.. data:: KX_ACT_CONSTRAINT_MATERIAL
+.. data:: KX_ACT_CONSTRAINT_NORMAL
+.. data:: KX_ACT_CONSTRAINT_PERMANENT
+
 
 ------------
 IPO Actuator
@@ -554,23 +637,6 @@ See :class:`bge.types.KX_StateActuator`
 .. data:: RAS_2DFILTER_SEPIA
 .. data:: RAS_2DFILTER_SHARPEN
 .. data:: RAS_2DFILTER_SOBEL
-
--------------------
-Constraint Actuator
--------------------
-
-.. data:: KX_ACT_CONSTRAINT_DISTANCE
-.. data:: KX_ACT_CONSTRAINT_DOROTFH
-.. data:: KX_ACT_CONSTRAINT_FHNX
-.. data:: KX_ACT_CONSTRAINT_FHNY
-.. data:: KX_ACT_CONSTRAINT_FHNZ
-.. data:: KX_ACT_CONSTRAINT_FHPX
-.. data:: KX_ACT_CONSTRAINT_FHPY
-.. data:: KX_ACT_CONSTRAINT_FHPZ
-.. data:: KX_ACT_CONSTRAINT_LOCAL
-.. data:: KX_ACT_CONSTRAINT_MATERIAL
-.. data:: KX_ACT_CONSTRAINT_NORMAL
-.. data:: KX_ACT_CONSTRAINT_PERMANENT
 
 ---------------
 Parent Actuator

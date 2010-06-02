@@ -511,7 +511,7 @@ def rna2sphinx(BASEPATH):
             if prop.description:
                 fw("      %s\n\n" % prop.description)
             type_descr = prop.get_type_description(class_fmt=":class:`%s`")
-            fw("      *type* %s\n\n" % type_descr)
+            fw("      :type: %s\n\n" % type_descr)
         
         # python attributes
         py_properties = struct.get_py_properties()
