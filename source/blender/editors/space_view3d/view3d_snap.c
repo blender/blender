@@ -780,7 +780,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 			}
 		}
 		else {
-			CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+			CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 				VECCOPY(vec, ob->obmat[3]);
 				add_v3_v3(centroid, vec);
 				DO_MINMAX(vec, min, max);
