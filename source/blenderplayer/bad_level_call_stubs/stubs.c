@@ -353,9 +353,7 @@ int LOD_PreprocessMesh(struct LOD_Decimation_Info *info){return 0;}
 int LOD_LoadMesh(struct LOD_Decimation_Info *info){return 0;}
 
 /* smoke */
-void lzo1x_1_compress(void) {return;}
 void LzmaCompress(void) { return; }
-void lzo1x_decompress(void) {return;}
 void LzmaUncompress(void) {return;}
 /* smoke is included anyway
 void smoke_export(void) {return;}
