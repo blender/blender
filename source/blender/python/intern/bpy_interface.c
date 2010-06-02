@@ -350,9 +350,10 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 		
 	}
 	else {
+		FILE *fp= fopen(fn, "r");
+
 		py_dict = CreateGlobalDictionary(C, fn);
 
-		FILE *fp= fopen(fn, "r");		
 		if(fp) {
 #ifdef _WIN32
 			/* Previously we used PyRun_File to run directly the code on a FILE 
