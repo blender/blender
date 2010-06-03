@@ -65,10 +65,9 @@ class INFO_HT_header(bpy.types.Header):
 
         layout.template_running_jobs()
 
-        if last_op and last_op.has_reports:
-            layout.template_reports_banner(last_op)
-        else:
-            layout.label(text=scene.statistics())
+        layout.template_reports_banner()
+        
+        layout.label(text=scene.statistics())
 
         # XXX: this should be right-aligned to the RHS of the region
         layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER', text="")

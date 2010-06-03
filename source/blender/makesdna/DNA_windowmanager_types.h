@@ -96,7 +96,16 @@ typedef struct ReportList {
 	int printlevel; /* ReportType */
 	int storelevel; /* ReportType */
 	int flag, pad;
+	struct wmTimer *reporttimer;
 } ReportList;
+
+/* timer customdata to control reports display */
+typedef struct ReportTimerInfo {
+	float col[3];
+	float greyscale;
+	float widthfac;
+} ReportTimerInfo;
+
 /* reports need to be before wmWindowManager */
 
 

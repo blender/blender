@@ -30,6 +30,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_string.h"
 
@@ -52,6 +53,8 @@
 
 #include "UI_interface.h"
 #include "interface_intern.h"
+
+#include "BLF_api.h"
 
 void ui_template_fix_linking()
 {
@@ -2455,49 +2458,59 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
 	if(screen->animtimer)
 		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
-
-	uiItemS(layout);
 }
 
 /************************* Reports for Last Operator Template **************************/
 
-void uiTemplateReportsBanner(uiLayout *layout, bContext *C, wmOperator *op)
+void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 {
-	ReportList *reports = op->reports;
-	uiLayout *box;
+	ReportList *reports = CTX_wm_reports(C);
+	Report *report= BKE_reports_last_displayable(reports);
+	ReportTimerInfo *rti;
 	
-	/* sanity checks */
-	if (ELEM(NULL, op, reports)) {
-		printf("uiTemplateReportsBanner: no operator with reports!\n");
-		return;
-	}
+	uiLayout *abs;
+	uiBlock *block;
+	uiBut *but;
+	uiStyle *style= U.uistyles.first;
+	int width;
+	float hsv[3];
+	
+	/* if the report display has timed out, don't show */
+	if (!reports->reporttimer) return;
+	
+	rti= (ReportTimerInfo *)reports->reporttimer->customdata;
+	
+	if (!rti || rti->widthfac==0.0 || !report) return;
+	
+	abs = uiLayoutAbsolute(layout, 0);
+	block= uiLayoutGetBlock(abs);
+
+	rgb_to_hsv(rti->col[0], rti->col[1], rti->col[2], hsv+0, hsv+1, hsv+2);
+	
+	width = BLF_width(style->widget.uifont_id, report->message);
+	width = MIN2(rti->widthfac*width, width);
+	width = MAX2(width, 10);
 	
 	/* make a box around the report to make it stand out */
-	box = uiLayoutBox(layout);
-	uiLayoutSetScaleY(box, 0.48); /* experimentally determined value to reduce execessive padding... */
+	uiBlockBeginAlign(block);
+	but= uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X+10, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	copy_v3_v3(but->hsv, hsv);			/* set the report's bg colour in but->hsv - ROUNDBOX feature */
 	
-	/* if more than one report, we need to show the popup when user clicks on the temp label... */
-	if (reports->list.first != reports->list.last) {
-		int numReports = BLI_countlist(&reports->list);
-		char buf[64];
-		
-		// XXX: we need uiItem* to return uiBut pointer so that we can use it to set callbacks
-		// used to call uiPupMenuReports... as alternative, we could fall back to the "old ways"
-		//sprintf(buf, "Last Operator had %d errors. Click to see more...", numReports);
-		sprintf(buf, "Last Operator had %d errors", numReports);
-		uiItemL(box, buf, ICON_INFO);
-	}
-	else {
-		/* single report, so show report directly */
-		// XXX: what if the report is too long? should we truncate the text?
-		Report *report= (Report *)reports->list.first;
-		
-		if(report->type >= RPT_ERROR)
-			uiItemL(box, report->message, ICON_ERROR);
-		else if(report->type >= RPT_WARNING)
-			uiItemL(box, report->message, ICON_ERROR);
-		else if(report->type >= RPT_INFO)
-			uiItemL(box, report->message, ICON_INFO);
-	}
+	but= uiDefBut(block, ROUNDBOX, 0, "", UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	but->hsv[0] = but->hsv[1] = 0.0;	/* set a greyscale bg colour in but->hsv - ROUNDBOX feature */
+	but->hsv[2] = rti->greyscale;
+	uiBlockEndAlign(block);
+	
+	
+	/* icon and report message on top */
+	if(report->type & RPT_ERROR_ALL)
+		uiDefIconBut(block, LABEL, 0, ICON_ERROR, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	else if(report->type & RPT_WARNING_ALL)
+		uiDefIconBut(block, LABEL, 0, ICON_ERROR, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	else if(report->type & RPT_INFO_ALL)
+		uiDefIconBut(block, LABEL, 0, ICON_INFO, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	
+	uiDefBut(block, LABEL, 0, report->message, UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+
 }
 
