@@ -293,7 +293,9 @@ static void waveModifier_do(WaveModifierData *md,
 		wavemod_get_texture_coords(wmd, ob, dm, vertexCos, tex_co, numVerts);
 	}
 
-	if(lifefac != 0.0) {
+	if(lifefac != 0.0) {		
+		/* avoid divide by zero checks within the loop */
+		float falloff_inv= wmd->falloff ? 1.0f / wmd->falloff : 1.0;
 		int i;
 
 		for(i = 0; i < numVerts; i++) {
@@ -338,8 +340,7 @@ static void waveModifier_do(WaveModifierData *md,
 				dist = fabs(y);
 			}
 
-			falloff_fac = (1.0-(dist / wmd->falloff));
-			CLAMP(falloff_fac,0,1);
+			falloff_fac = (1.0f - (dist * falloff_inv));
 
 			if(wmd->flag & MOD_WAVE_X) {
 				if(wmd->flag & MOD_WAVE_Y) amplit = (float)sqrt(x*x + y*y);
