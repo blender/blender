@@ -356,7 +356,11 @@ class CompZipFile(zipfile.ZipFile):
 	"""Partial copy of python2.6's zipfile.ZipFile (see http://www.python.org)
 	to get a extractall() that works on py2.5 and probably earlier distributions."""
 	def __init__(self, file, mode="r", compression=zipfile.ZIP_STORED, allowZip64=False):
-		zipfile.ZipFile.__init__(self, file, mode, compression, allowZip64)
+		if sys.version_info < (2, 6):
+			zipfile.ZipFile.__init__(self, file, mode, compression)
+		else:
+			zipfile.ZipFile.__init__(self, file, mode, compression, allowZip64)
+
 		if not hasattr(self,"extractall"): # use our method 
 			print "Debug: Using comp_extractall!"
 			self.extractall= self.comp_extractall
