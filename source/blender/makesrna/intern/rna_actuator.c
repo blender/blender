@@ -284,6 +284,21 @@ static void rna_ConstraintActuator_spring_set(struct PointerRNA *ptr, float valu
 	*fp = value;
 }
 
+/* ConstraintActuator uses the same property for Material and Property.
+   Therefore we need to clear the property when "detect_material" mode changes */
+static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, int value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+
+	short old_value = (ca->flag & ACT_CONST_MATERIAL? 1:0);
+
+	if (old_value != value) {
+		ca->flag ^= ACT_CONST_MATERIAL;
+		ca->matprop[0] = '\0';
+	}
+}
+
 static void rna_FcurveActuator_add_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act = (bActuator *)ptr->data;
@@ -1172,6 +1187,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "detect_material", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_CONST_MATERIAL);
 	RNA_def_property_ui_text(prop, "M/P", "Detect material instead of property");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Actuator_constraint_detect_material_set");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "fh_paralel_axis", PROP_BOOLEAN, PROP_NONE);

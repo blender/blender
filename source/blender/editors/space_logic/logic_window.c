@@ -3245,9 +3245,12 @@ static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "value", 0, NULL, 0);
 }
 
-static void draw_sensor_collision(uiLayout *layout, PointerRNA *ptr)
+static void draw_sensor_collision(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *row, *split;
+	PointerRNA main_ptr;
+
+	RNA_main_pointer_create(CTX_data_main(C), &main_ptr);
 
 	split = uiLayoutSplit(layout, 0.3, 0);
 	row = uiLayoutRow(split, 1);
@@ -3259,7 +3262,7 @@ static void draw_sensor_collision(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(split, ptr, "property", 0, NULL, 0);
 			break;
 		case SENS_COLLISION_MATERIAL:
-			uiItemR(split, ptr, "material", 0, NULL, 0);
+			uiItemPointerR(split, ptr, "material", &main_ptr, "materials", NULL, ICON_MATERIAL_DATA);
 			break;
 	}
 }
@@ -3343,9 +3346,6 @@ static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
 	uiItemPointerR(layout, ptr, "target", &settings_ptr, "properties", NULL, 0);
 	uiItemPointerR(layout, ptr, "log", &settings_ptr, "properties", NULL, 0);
-
-//	uiItemR(layout, ptr, "target", 0, NULL, 0);
-//	uiItemR(layout, ptr, "log", 0, NULL, 0);
 }
 
 static void draw_sensor_message(uiLayout *layout, PointerRNA *ptr)
@@ -3414,17 +3414,21 @@ static void draw_sensor_random(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(layout, ptr, "seed", 0, NULL, 0);
 }
 
-static void draw_sensor_ray(uiLayout *layout, PointerRNA *ptr)
+static void draw_sensor_ray(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *split, *row;
+	PointerRNA main_ptr;
 
+	RNA_main_pointer_create(CTX_data_main(C), &main_ptr);
 	split= uiLayoutSplit(layout, 0.3, 0);
 	uiItemR(split, ptr, "ray_type", 0, "", 0);
 	switch (RNA_enum_get(ptr, "ray_type")) {
 		case SENS_RAY_PROPERTY:
-			uiItemR(split, ptr, "property", 0, "", 0); break;
+			uiItemR(split, ptr, "property", 0, "", 0);
+			break;
 		case SENS_RAY_MATERIAL:
-			uiItemR(split, ptr, "material", 0, "", 0); break;
+			uiItemPointerR(split, ptr, "material", &main_ptr, "materials", "", ICON_MATERIAL_DATA);
+			break;
 	}
 
 	split= uiLayoutSplit(layout, 0.3, 0);
@@ -3439,7 +3443,7 @@ static void draw_sensor_touch(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(layout, ptr, "material", 0, NULL, 0);
 }
 
-void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr)
+void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *box;
 	
@@ -3461,7 +3465,7 @@ void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr)
 			draw_sensor_armature(box, ptr);
 			break;
 		case SENS_COLLISION:
-			draw_sensor_collision(box, ptr);
+			draw_sensor_collision(box, ptr, C);
 			break;
 		case SENS_DELAY:
 			draw_sensor_delay(box, ptr);
@@ -3491,7 +3495,7 @@ void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr)
 			draw_sensor_random(box, ptr);
 			break;
 		case SENS_RAY:
-			draw_sensor_ray(box, ptr);
+			draw_sensor_ray(box, ptr, C);
 			break;
 		case SENS_TOUCH:
 			draw_sensor_touch(box, ptr);
@@ -3696,9 +3700,12 @@ static void draw_actuator_camera(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "max", 0, NULL, 0);
 }
 
-static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
+static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *row, *col, *subcol, *split;
+	PointerRNA main_ptr;
+
+	RNA_main_pointer_create(CTX_data_main(C), &main_ptr);
 
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 	switch (RNA_enum_get(ptr, "mode"))
@@ -3736,7 +3743,7 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 			split = uiLayoutSplit(layout, 0.15, 0);
 			uiItemR(split, ptr, "detect_material", UI_ITEM_R_TOGGLE, NULL, 0);
 			if (RNA_boolean_get(ptr, "detect_material"))
-				uiItemR(split, ptr, "material", 0, NULL, 0);
+				uiItemPointerR(split, ptr, "material", &main_ptr, "materials", NULL, ICON_MATERIAL_DATA);
 			else
 				uiItemR(split, ptr, "property", 0, NULL, 0);
 
@@ -3780,7 +3787,7 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr)
 			split = uiLayoutSplit(layout, 0.15, 0);
 			uiItemR(split, ptr, "detect_material", UI_ITEM_R_TOGGLE, NULL, 0);
 			if (RNA_boolean_get(ptr, "detect_material"))
-				uiItemR(split, ptr, "material", 0, NULL, 0);
+				uiItemPointerR(split, ptr, "material", &main_ptr, "materials", NULL, ICON_MATERIAL_DATA);
 			else
 				uiItemR(split, ptr, "property", 0, NULL, 0);
 
@@ -3913,16 +3920,18 @@ static void draw_actuator_ipo(uiLayout *layout, PointerRNA *ptr)
 	uiItemPointerR(row, ptr, "frame_property", &settings_ptr, "properties", NULL, 0);
 }
 
-static void draw_actuator_message(uiLayout *layout, PointerRNA *ptr)
+static void draw_actuator_message(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	Object *ob;
-	PointerRNA settings_ptr;
+	PointerRNA main_ptr, settings_ptr;
 	uiLayout *row;
+
+	RNA_main_pointer_create(CTX_data_main(C), &main_ptr);
 
 	ob = (Object *)ptr->id.data;
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
 
-	uiItemR(layout, ptr, "to_property", 0, NULL, 0);
+	uiItemPointerR(layout, ptr, "to_property", &main_ptr, "objects", NULL, ICON_OBJECT_DATA);
 	uiItemR(layout, ptr, "subject", 0, NULL, 0);
 
 	row= uiLayoutRow(layout, 1);
@@ -4281,7 +4290,7 @@ void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 			draw_actuator_camera(box, ptr);
 			break;
 		case ACT_CONSTRAINT:
-			draw_actuator_constraint(box, ptr);
+			draw_actuator_constraint(box, ptr, C);
 			break;
 		case ACT_EDIT_OBJECT:
 			draw_actuator_edit_object(box, ptr);
@@ -4296,7 +4305,7 @@ void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 			draw_actuator_ipo(box, ptr);
 			break;
 		case ACT_MESSAGE:
-			draw_actuator_message(box, ptr);
+			draw_actuator_message(box, ptr, C);
 			break;
 		case ACT_OBJECT:
 			draw_actuator_motion(box, ptr);
@@ -4523,7 +4532,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 				draw_sensor_header(col, &ptr);
 				
 				/* draw the brick contents */
-				draw_brick_sensor(col, &ptr);
+				draw_brick_sensor(col, &ptr, C);
 				
 				/* put link button to the right */
 				col = uiLayoutColumn(split, 0);
