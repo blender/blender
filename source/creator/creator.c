@@ -207,7 +207,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("Usage: blender [args ...] [file] [args ...]\n\n");
 
 	printf ("Render Options:\n");
-	BLI_argsPrintArgDoc(ba, "-b");
+	BLI_argsPrintArgDoc(ba, "--background");
 	BLI_argsPrintArgDoc(ba, "--render-anim");
 	BLI_argsPrintArgDoc(ba, "--scene");
 	BLI_argsPrintArgDoc(ba, "--render-frame");
@@ -287,8 +287,6 @@ static int print_help(int argc, char **argv, void *data)
 #ifndef DISABLE_SDL
 	printf ("  $SDL_AUDIODRIVER  LibSDL audio driver - alsa, esd, alsa, dma.\n");
 #endif
-	printf ("  $IMAGEEDITOR  Image editor executable, launch with the IKey from the file selector.\n");
-	printf ("  $WINEDITOR    Text editor executable, launch with the EKey from the file selector.\n");
 	printf ("  $PYTHONHOME   Path to the python directory, eg. /usr/lib/python.\n\n");
 
 	printf ("Note: Arguments must be separated by white space. eg:\n");
