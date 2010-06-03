@@ -354,8 +354,6 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 
 void BLI_path_rel(char *file, const char *relfile)
 {
-	char * p;
-	char * q;
 	char * lslash;
 	char temp[FILE_MAXDIR+FILE_MAXFILE];
 	char res[FILE_MAXDIR+FILE_MAXFILE];
@@ -403,11 +401,18 @@ void BLI_path_rel(char *file, const char *relfile)
 	{	
 		/* find the prefix of the filename that is equal for both filenames.
 		   This is replaced by the two slashes at the beginning */
-		p = temp;
-		q = file;
-		while (*p == *q) {
+		char *p= temp;
+		char *q= file;
+
+		while ((*p == *q)) {
 			++p; ++q;
+			/* dont search beyond the end of the string
+			 * in the rare case they match */
+			if ((*p=='\0') || (*q=='\0')) {
+				break;
+			}
 		}
+
 		/* we might have passed the slash when the beginning of a dir matches 
 		   so we rewind. Only check on the actual filename
 		*/
