@@ -2286,11 +2286,7 @@ void DAG_id_flush_update(ID *id, short flag)
 			/* no point in trying in this cases */
 			if(!id || id->us <= 1)
 				id= NULL;
-			/* curves and surfaces only need to mark one object, since
-			   otherwise cu->displist would be computed multiple times */
-			else if(ob->type==OB_CURVE || ob->type==OB_SURF)
-				id= NULL;
-			/* also for locked shape keys we make an exception */
+			/* for locked shape keys we make an exception */
 			else if(ob_get_key(ob) && (ob->shapeflag & OB_SHAPE_LOCK))
 				id= NULL;
 		}
@@ -2301,15 +2297,23 @@ void DAG_id_flush_update(ID *id, short flag)
 		idtype= GS(id->name);
 
 		if(ELEM7(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR)) {
+			int first_ob= 1;
 			for(obt=bmain->object.first; obt; obt= obt->id.next) {
 				if(!(ob && obt == ob) && obt->data == id) {
+
+					/* try to avoid displist recalculation for linked curves */
+					if (!first_ob && ELEM(obt->type, OB_CURVE, OB_SURF)) {
+						/* if curve object has got derivedFinal it means this
+						   object has got constructive modifiers and object
+						   should be recalculated anyhow */
+						if (!obt->derivedFinal)
+							continue;
+					}
+
 					obt->recalc |= OB_RECALC_DATA;
 					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 
-					/* for these we only flag one object, otherwise cu->displist
-					   would be computed multiple times */
-					if(obt->type==OB_CURVE || obt->type==OB_SURF)
-						break;
+					first_ob= 0;
 				}
 			}
 		}

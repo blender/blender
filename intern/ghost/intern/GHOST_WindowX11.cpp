@@ -159,6 +159,7 @@ GHOST_WindowX11(
 	GHOST_Window(title,left,top,width,height,state,type,stereoVisual,numOfAASamples),
 	m_context(NULL),
 	m_display(display),
+	m_normal_state(GHOST_kWindowStateNormal),
 	m_system (system),
 	m_valid_setup (false),
 	m_invalid_window(false),
@@ -1036,6 +1037,9 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
 
 	is_motif_full = motifIsFullScreen();
 
+	if (state == GHOST_kWindowStateNormal)
+		state = m_normal_state;
+
 	if (state == GHOST_kWindowStateNormal) {
 		if (is_max == True)
 			netwmMaximized(False);
@@ -1054,6 +1058,8 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
 		 */
 		if (cur_state == GHOST_kWindowStateMinimized)
 			return (GHOST_kFailure);
+
+		m_normal_state = cur_state;
 
 		if (is_max == True)
 			netwmMaximized(False);

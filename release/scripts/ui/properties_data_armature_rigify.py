@@ -212,7 +212,7 @@ class Graph(bpy.types.Operator):
         import bpy
         reload(graphviz_export)
         obj = bpy.context.object
-        path = os.path.splitext(bpy.data.filename)[0] + "-" + bpy.utils.clean_name(obj.name)
+        path = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.utils.clean_name(obj.name)
         path_dot = path + ".dot"
         path_png = path + ".png"
         saved = graphviz_export.graph_armature(bpy.context.object, path_dot, CONSTRAINTS=False, DRIVERS=False)
@@ -249,7 +249,7 @@ class AsScript(bpy.types.Operator):
     def invoke(self, context, event):
         import os
         obj = context.object
-        self.properties.path = os.path.splitext(bpy.data.filename)[0] + "-" + bpy.utils.clean_name(obj.name) + ".py"
+        self.properties.path = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.utils.clean_name(obj.name) + ".py"
         wm = context.manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}

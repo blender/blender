@@ -1562,7 +1562,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	BLI_strncpy(name, ima->name, sizeof(name));
 	
 	if(ima->id.lib)
-		BLI_path_abs(name, ima->id.lib->filename);
+		BLI_path_abs(name, ima->id.lib->filepath);
 	else
 		BLI_path_abs(name, G.sce);
 	
@@ -1669,7 +1669,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 		
 		BLI_strncpy(str, ima->name, FILE_MAX);
 		if(ima->id.lib)
-			BLI_path_abs(str, ima->id.lib->filename);
+			BLI_path_abs(str, ima->id.lib->filepath);
 		else
 			BLI_path_abs(str, G.sce);
 		
@@ -1727,7 +1727,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		/* get the right string */
 		BLI_strncpy(str, ima->name, sizeof(str));
 		if(ima->id.lib)
-			BLI_path_abs(str, ima->id.lib->filename);
+			BLI_path_abs(str, ima->id.lib->filepath);
 		else
 			BLI_path_abs(str, G.sce);
 		

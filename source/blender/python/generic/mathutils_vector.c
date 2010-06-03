@@ -255,8 +255,11 @@ static PyObject *Vector_ToTuple(VectorObject *self, PyObject *args)
 {
 	int ndigits= 0;
 
-	if(!PyArg_ParseTuple(args, "|i:to_tuple", &ndigits) || (ndigits > 22 || ndigits < 0)) {
-		PyErr_SetString(PyExc_TypeError, "vector.to_tuple(ndigits): ndigits must be between 0 and 21");
+	if(!PyArg_ParseTuple(args, "|i:to_tuple", &ndigits))
+		return NULL;
+
+	if(ndigits > 22 || ndigits < 0) {
+		PyErr_SetString(PyExc_ValueError, "vector.to_tuple(ndigits): ndigits must be between 0 and 21");
 		return NULL;
 	}
 
@@ -288,10 +291,9 @@ static PyObject *Vector_ToTrackQuat(VectorObject *self, PyObject *args )
 	char *strack, *sup;
 	short track = 2, up = 1;
 
-	if(!PyArg_ParseTuple( args, "|ss:to_track_quat", &strack, &sup)) {
-		PyErr_SetString( PyExc_TypeError, "expected optional two strings\n" );
+	if(!PyArg_ParseTuple( args, "|ss:to_track_quat", &strack, &sup))
 		return NULL;
-	}
+
 	if (self->size != 3) {
 		PyErr_SetString( PyExc_TypeError, "only for 3D vectors\n" );
 		return NULL;
@@ -498,21 +500,28 @@ static PyObject *Vector_Dot(VectorObject *self, VectorObject *value )
 	return PyFloat_FromDouble(dot);
 }
 
-static char Vector_Angle_doc[] = 
-".. function:: angle(other)\n"
+static char Vector_angle_doc[] = 
+".. function:: angle(other, fallback)\n"
 "\n"
 "   Return the angle between two vectors.\n"
 "\n"
+"   :arg other: another vector to compare the angle with\n"
 "   :type other: :class:`Vector`\n"
-"   :return angle: angle in radians\n"
+"   :arg fallback: return this value when the angle cant be calculated (zero length vector)\n"
+"   :return angle: angle in radians or fallback when given\n"
 "   :rtype: float\n"
 "\n"
 "   .. note:: Zero length vectors raise an :exc:`AttributeError`.\n";
-static PyObject *Vector_Angle(VectorObject *self, VectorObject *value)
+static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 {
+	VectorObject *value;
 	double dot = 0.0f, angleRads, test_v1 = 0.0f, test_v2 = 0.0f;
 	int x, size;
+	PyObject *fallback= NULL;
 	
+	if(!PyArg_ParseTuple(args, "O!|O:angle", &vector_Type, &value, &fallback))
+		return NULL;
+
 	if (!VectorObject_Check(value)) {
 		PyErr_SetString( PyExc_TypeError, "vec.angle(value): expected a vector argument" );
 		return NULL;
@@ -534,8 +543,15 @@ static PyObject *Vector_Angle(VectorObject *self, VectorObject *value)
 		test_v2 += value->vec[x] * value->vec[x];
 	}
 	if (!test_v1 || !test_v2){
-		PyErr_SetString(PyExc_AttributeError, "vector.angle(other): zero length vectors are not acceptable arguments\n");
-		return NULL;
+		/* avoid exception */
+		if(fallback) {
+			Py_INCREF(fallback);
+			return fallback;
+		}
+		else {
+			PyErr_SetString(PyExc_ValueError, "vector.angle(other): zero length vectors have no valid angle\n");
+			return NULL;
+		}
 	}
 
 	//dot product
@@ -649,10 +665,9 @@ static PyObject *Vector_Lerp(VectorObject *self, PyObject *args)
 	float fac, ifac, vec[4];
 	int x;
 
-	if(!PyArg_ParseTuple(args, "O!f:lerp", &vector_Type, &vec2, &fac)) {
-		PyErr_SetString(PyExc_TypeError, "vector.lerp(): expects a vector of the same size and float");
+	if(!PyArg_ParseTuple(args, "O!f:lerp", &vector_Type, &vec2, &fac))
 		return NULL;
-	}
+
 	if(self->size != vec2->size) {
 		PyErr_SetString(PyExc_AttributeError, "vector.lerp(): expects (2) vector objects of the same size");
 		return NULL;
@@ -2037,7 +2052,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"reflect", ( PyCFunction ) Vector_Reflect, METH_O, Vector_Reflect_doc},
 	{"cross", ( PyCFunction ) Vector_Cross, METH_O, Vector_Cross_doc},
 	{"dot", ( PyCFunction ) Vector_Dot, METH_O, Vector_Dot_doc},
-	{"angle", ( PyCFunction ) Vector_Angle, METH_O, Vector_Angle_doc},
+	{"angle", ( PyCFunction ) Vector_angle, METH_VARARGS, Vector_angle_doc},
 	{"difference", ( PyCFunction ) Vector_Difference, METH_O, Vector_Difference_doc},
 	{"project", ( PyCFunction ) Vector_Project, METH_O, Vector_Project_doc},
 	{"lerp", ( PyCFunction ) Vector_Lerp, METH_VARARGS, Vector_Lerp_doc},

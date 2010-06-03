@@ -85,7 +85,7 @@ def execute(context):
     sc = context.space_data
 
     try:
-        line = sc.history[-1].line
+        line_object = sc.history[-1]
     except:
         return {'CANCELLED'}
 
@@ -102,13 +102,26 @@ def execute(context):
     sys.stdout = stdout
     sys.stderr = stderr
 
-    # run the console
-    if not line.strip():
-        line_exec = '\n'  # executes a multiline statement
-    else:
-        line_exec = line
+    # dont allow the stdin to be used, can lock blender.
+    stdin_backup = sys.stdin
+    sys.stdin = None
 
-    is_multiline = console.push(line_exec)
+    # incase exception happens
+    line = "" # incase of encodingf error
+    is_multiline = False
+
+    try:
+        line = line_object.line
+
+        # run the console, "\n" executes a multiline statement
+        line_exec = line if line.strip() else "\n"
+
+        is_multiline = console.push(line_exec)
+    except:
+        # unlikely, but this can happen with unicode errors for example.
+        import traceback
+        stderr.write(traceback.format_exc())
+        
 
     stdout.seek(0)
     stderr.seek(0)
@@ -144,6 +157,9 @@ def execute(context):
     if output_err:
         add_scrollback(output_err, 'ERROR')
 
+    # restore the stdin
+    sys.stdin = stdin_backup
+
     return {'FINISHED'}
 
 
@@ -154,23 +170,37 @@ def autocomplete(context):
 
     console = get_console(hash(context.region))[0]
 
-    current_line = sc.history[-1]
-    line = current_line.line
-
     if not console:
         return {'CANCELLED'}
 
     if sc.console_type != 'PYTHON':
         return {'CANCELLED'}
 
-    # This function isnt aware of the text editor or being an operator
-    # just does the autocomp then copy its results back
-    current_line.line, current_line.current_character, scrollback = \
-        intellisense.expand(
-            line=current_line.line,
-            cursor=current_line.current_character,
-            namespace=console.locals,
-            private=bpy.app.debug)
+    # dont allow the stdin to be used, can lock blender.
+    # note: unlikely stdin would be used for autocomp. but its possible.
+    stdin_backup = sys.stdin
+    sys.stdin = None
+    
+    scrollback = ""
+    scrollback_error = ""
+
+    try:
+        current_line = sc.history[-1]
+        line = current_line.line
+
+        # This function isnt aware of the text editor or being an operator
+        # just does the autocomp then copy its results back
+        current_line.line, current_line.current_character, scrollback = \
+            intellisense.expand(
+                line=current_line.line,
+                cursor=current_line.current_character,
+                namespace=console.locals,
+                private=bpy.app.debug)
+    except:
+        # unlikely, but this can happen with unicode errors for example.
+        # or if the api attribute access its self causes an error.
+        import traceback
+        scrollback_error = traceback.format_exc()
 
     # Separate automplete output by command prompts
     if scrollback != '':
@@ -181,6 +211,12 @@ def autocomplete(context):
     # anymore
     if scrollback:
         add_scrollback(scrollback, 'INFO')
+
+    if scrollback_error:
+        add_scrollback(scrollback_error, 'ERROR')
+
+    # restore the stdin
+    sys.stdin = stdin_backup
 
     context.area.tag_redraw()
 

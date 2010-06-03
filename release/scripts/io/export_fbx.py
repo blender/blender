@@ -75,7 +75,7 @@ def copy_images(dest_dir, textures):
 
     image_paths = set()
     for tex in textures:
-        image_paths.add(Blender.sys.expandpath(tex.filename))
+        image_paths.add(bpy.utils.expandpath(tex.filepath))
 
     # Now copy images
     copyCount = 0
@@ -1255,7 +1255,7 @@ def write(filename, batch_objects = None, \
         file.write('\n\t}')
 
     def copy_image(image):
-        fn = bpy.utils.expandpath(image.filename)
+        fn = bpy.utils.expandpath(image.filepath)
         fn_strip = os.path.basename(fn)
 
         if EXP_IMAGE_COPY:
@@ -1282,7 +1282,7 @@ def write(filename, batch_objects = None, \
             Property: "Height", "int", "",0''')
         if tex:
             fname_rel, fname_strip = copy_image(tex)
-# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filepath, basepath, EXP_IMAGE_COPY)
         else:
             fname = fname_strip = fname_rel = ''
 
@@ -1347,7 +1347,7 @@ def write(filename, batch_objects = None, \
 
         if tex:
             fname_rel, fname_strip = copy_image(tex)
-# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filepath, basepath, EXP_IMAGE_COPY)
         else:
             fname = fname_strip = fname_rel = ''
 
@@ -3414,7 +3414,7 @@ class ExportFBX(bpy.types.Operator):
 
 
 # if __name__ == "__main__":
-# 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
+# 	bpy.ops.EXPORT_OT_ply(path="/tmp/test.ply")
 
 
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
@@ -3441,7 +3441,7 @@ class ExportFBX(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".fbx")
+    default_path = bpy.data.filepath.replace(".blend", ".fbx")
     self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").path = default_path
 
 

@@ -841,7 +841,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 
 			if(ima->source != IMA_SRC_GENERATED) {
 				row= uiLayoutRow(layout, 1);
-				uiItemR(row, &imaptr, "filename", 0, "", 0);
+				uiItemR(row, &imaptr, "filepath", 0, "", 0);
 				uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
 			}
 

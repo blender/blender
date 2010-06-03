@@ -55,20 +55,20 @@ static int rna_Main_fileissaved_get(PointerRNA *ptr)
 	return G.relbase_valid;
 }
 
-static void rna_Main_filename_get(PointerRNA *ptr, char *value)
+static void rna_Main_filepath_get(PointerRNA *ptr, char *value)
 {
 	Main *bmain= (Main*)ptr->data;
 	BLI_strncpy(value, bmain->name, sizeof(bmain->name));
 }
 
-static int rna_Main_filename_length(PointerRNA *ptr)
+static int rna_Main_filepath_length(PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	return strlen(bmain->name);
 }
 
 #if 0
-static void rna_Main_filename_set(PointerRNA *ptr, const char *value)
+static void rna_Main_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Main *bmain= (Main*)ptr->data;
 	BLI_strncpy(bmain->name, value, sizeof(bmain->name));
@@ -308,9 +308,9 @@ void RNA_def_main(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Main", "Main data structure representing a .blend file and all its datablocks");
 	RNA_def_struct_ui_icon(srna, ICON_BLENDER);
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_maxlength(prop, 240);
-	RNA_def_property_string_funcs(prop, "rna_Main_filename_get", "rna_Main_filename_length", "rna_Main_filename_set");
+	RNA_def_property_string_funcs(prop, "rna_Main_filepath_get", "rna_Main_filepath_length", "rna_Main_filepath_set");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "Path to the .blend file");
 	

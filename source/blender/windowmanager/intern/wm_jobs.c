@@ -381,6 +381,9 @@ void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
 void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 {
 	wmJob *steve= wm->jobs.first, *stevenext;
+	float total_progress= 0.f;
+	float jobs_progress=0;
+	
 	
 	for(; steve; steve= stevenext) {
 		stevenext= steve->next;
@@ -434,12 +437,24 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 						BLI_remlink(&wm->jobs, steve);
 						MEM_freeN(steve);
 					}
+				} else if (steve->flag & WM_JOB_PROGRESS) {
+					/* accumulate global progress for running jobs */
+					jobs_progress++;
+					total_progress += steve->progress;
 				}
 			}
 			else if(steve->suspended) {
 				WM_jobs_start(wm, steve);
 			}
 		}
+	}
+	
+	/* if there are running jobs, set the global progress indicator */
+	if (jobs_progress > 0) {
+		float progress = total_progress / (float)jobs_progress;
+		WM_progress_set(wm->winactive, progress);
+	} else {
+		WM_progress_clear(wm->winactive);
 	}
 }
 

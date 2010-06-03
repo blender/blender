@@ -372,14 +372,55 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 	return 1;
 }
 
+static void wm_operator_print(wmOperator *op)
+{
+	char *buf = WM_operator_pystring(NULL, op->type, op->ptr, 1);
+	printf("%s\n", buf);
+	MEM_freeN(buf);
+}
+
+static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int popup)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	ReportList *reports = CTX_wm_reports(C);
+	char *buf;
+	
+	if(popup)
+		if(op->reports->list.first)
+			uiPupMenuReports(C, op->reports);
+	
+	if(retval & OPERATOR_FINISHED) {
+		if(G.f & G_DEBUG)
+			wm_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
+			
+		/* Report the python string representation of the operator */
+		buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+		BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+		MEM_freeN(buf);
+	}
+
+	if (op->reports->list.first) {
+		ReportTimerInfo *rti;
+		
+		/* add reports to the global list, otherwise they are not seen */
+		addlisttolist(&CTX_wm_reports(C)->list, &op->reports->list);
+		
+		/* After adding reports to the global list, reset the report timer. */
+		WM_event_remove_timer(wm, NULL, reports->reporttimer);
+		
+		/* Records time since last report was added */
+		reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMER, 0.02);
+		
+		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
+		reports->reporttimer->customdata = rti;
+	}
+}
+
 static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 
 	op->customdata= NULL;
-
-	/* add reports to the global list, otherwise they are not seen */
-	addlisttolist(&CTX_wm_reports(C)->list, &op->reports->list);
 
 	/* we don't want to do undo pushes for operators that are being
 	   called from operators that already do an undo push. usually
@@ -424,9 +465,8 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 			wm->op_undo_depth--;
 	}
 	
-	if(retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
-		if(op->reports->list.first)
-			uiPupMenuReports(C, op->reports);
+	if (retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED) && repeat == 0)
+		wm_operator_reports(C, op, retval, 0);
 	
 	if(retval & OPERATOR_FINISHED)
 		wm_operator_finished(C, op, repeat);
@@ -534,13 +574,6 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 	return op;
 }
 
-static void wm_operator_print(wmOperator *op)
-{
-	char *buf = WM_operator_pystring(NULL, op->type, op->ptr, 1);
-	printf("%s\n", buf);
-	MEM_freeN(buf);
-}
-
 static void wm_region_mouse_co(bContext *C, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
@@ -584,18 +617,14 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 		}
 		else
 			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
-
+		
 		/* Note, if the report is given as an argument then assume the caller will deal with displaying them
 		 * currently python only uses this */
-		if((retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED)) && reports==NULL)
-			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
-				uiPupMenuReports(C, op->reports);
+		if (!(retval & OPERATOR_HANDLED) && retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
+			/* only show the report if the report list was not given in the function */
+			wm_operator_reports(C, op, retval, (reports==NULL));
+			
 		
-		if (retval & OPERATOR_FINISHED) { /* todo - this may conflict with the other wm_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
-			if(G.f & G_DEBUG)
-				wm_operator_print(op);
-		}
-
 		if(retval & OPERATOR_HANDLED)
 			; /* do nothing, wm_operator_exec() has been called somewhere */
 		else if(retval & OPERATOR_FINISHED) {
@@ -1084,17 +1113,11 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				/* this special cases is for areas and regions that get removed */
 				CTX_wm_area_set(C, NULL);
 				CTX_wm_region_set(C, NULL);
-			}
+			}		
 
-			if(retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
-				if(op->reports->list.first)
-					uiPupMenuReports(C, op->reports);
-
-			if (retval & OPERATOR_FINISHED) {
-				if(G.f & G_DEBUG)
-					wm_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
-			}			
-
+			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED))
+				wm_operator_reports(C, op, retval, 0);
+			
 			if(retval & OPERATOR_FINISHED) {
 				wm_operator_finished(C, op, 0);
 				handler->op= NULL;

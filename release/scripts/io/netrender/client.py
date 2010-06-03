@@ -101,7 +101,7 @@ def clientSendJob(conn, scene, anim = False):
     else:
         job.addFrame(scene.frame_current)
 
-    filename = bpy.data.filename
+    filename = bpy.data.filepath
     job.addFile(filename)
 
     job_name = netsettings.job_name
@@ -113,7 +113,7 @@ def clientSendJob(conn, scene, anim = False):
     # LIBRARIES
     ###########################
     for lib in bpy.data.libraries:
-        file_path = bpy.utils.expandpath(lib.filename)
+        file_path = bpy.utils.expandpath(lib.filepath)
         if os.path.exists(file_path):
             job.addFile(file_path)
 
@@ -122,7 +122,7 @@ def clientSendJob(conn, scene, anim = False):
     ###########################
     for image in bpy.data.images:
         if image.source == "FILE" and not image.packed_file:
-            file_path = bpy.utils.expandpath(image.filename)
+            file_path = bpy.utils.expandpath(image.filepath)
             if os.path.exists(file_path):
                 job.addFile(file_path)
                 
@@ -149,7 +149,7 @@ def clientSendJob(conn, scene, anim = False):
                 if modifier.domain_settings.highres:
                     addPointCache(job, object, modifier.domain_settings.point_cache_high, default_path)
             elif modifier.type == "MULTIRES" and modifier.external:
-                file_path = bpy.utils.expandpath(modifier.filename)
+                file_path = bpy.utils.expandpath(modifier.filepath)
                 job.addFile(file_path)
 
         # particles modifier are stupid and don't contain data

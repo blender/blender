@@ -335,7 +335,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				Image *ima = (Image *)bpi->data;
 				
-				bpi->lib = ima->id.lib ? ima->id.lib->filename : NULL;
+				bpi->lib = ima->id.lib ? ima->id.lib->filepath : NULL;
 				bpi->path = ima->name;
 				bpi->name = ima->id.name+2;
 				bpi->len = sizeof(ima->name);
@@ -356,7 +356,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				bSound *snd = (bSound *)bpi->data;
 				
-				bpi->lib = snd->id.lib ? snd->id.lib->filename : NULL;
+				bpi->lib = snd->id.lib ? snd->id.lib->filepath : NULL;
 				bpi->path = snd->name;
 				bpi->name = snd->id.name+2;
 				bpi->len = sizeof(snd->name);
@@ -377,7 +377,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				VFont *vf = (VFont *)bpi->data;
 				
-				bpi->lib = vf->id.lib ? vf->id.lib->filename : NULL;
+				bpi->lib = vf->id.lib ? vf->id.lib->filepath : NULL;
 				bpi->path = vf->name;
 				bpi->name = vf->id.name+2;
 				bpi->len = sizeof(vf->name);
@@ -424,7 +424,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 
 			if (bpi->data) {
 				Mesh *me = (Mesh *)bpi->data;
-				bpi->lib = me->id.lib ? me->id.lib->filename : NULL;
+				bpi->lib = me->id.lib ? me->id.lib->filepath : NULL;
 				bpi->path = me->fdata.external->filename;
 				bpi->name = me->id.name+2;
 				bpi->len = sizeof(me->fdata.external->filename);

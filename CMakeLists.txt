@@ -538,14 +538,16 @@ IF(WIN32)
 		ENDIF(WITH_OPENCOLLADA)
 		
 		IF(WITH_FFMPEG)
-			# TODO
-			SET(WITH_FFMPEG OFF)
+			SET(FFMPEG ${LIBDIR}/ffmpeg)
+			SET(FFMPEG_INC ${FFMPEG}/include ${FFMPEG}/include)
+			SET(FFMPEG_LIB avcodec-52 avformat-52 avdevice-52 avutil-50 swscale-0)
+			SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		ENDIF(WITH_FFMPEG)
 
 		IF(WITH_OPENEXR)
 			SET(OPENEXR ${LIBDIR}/gcc/openexr)
 			SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
-			SET(OPENEXR_LIB Half IlmImf Iex IlmThread)
+			SET(OPENEXR_LIB Half IlmImf Iex)
 			SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		ENDIF(WITH_OPENEXR)
 

@@ -30,6 +30,8 @@
 *
 */
 
+#include <stddef.h>
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
@@ -60,6 +62,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 						   int useRenderParams, int isFinalCalc)
 {
+	SculptSession *ss= ob->sculpt;
+	int sculpting= (ob->mode & OB_MODE_SCULPT) && ss;
 	MultiresModifierData *mmd = (MultiresModifierData*)md;
 	DerivedMesh *result;
 
@@ -73,10 +77,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		result->release(result);
 		result= cddm;
 	}
-	else if((ob->mode & OB_MODE_SCULPT) && ob->sculpt) {
+	else if(sculpting) {
 		/* would be created on the fly too, just nicer this
 		   way on first stroke after e.g. switching levels */
-		ob->sculpt->pbvh= result->getPBVH(ob, result);
+		ss->pbvh= result->getPBVH(ob, result);
 	}
 
 	return result;

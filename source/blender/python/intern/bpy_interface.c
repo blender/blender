@@ -327,16 +327,17 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	}
 	
 	bpy_context_set(C, &gilstate);
-	
-	py_dict = CreateGlobalDictionary(C, text?text->id.name+2:fn);
 
 	if (text) {
+		char fn_dummy[FILE_MAXDIR];
+		bpy_text_filename_get(fn_dummy, text);
+		py_dict = CreateGlobalDictionary(C, fn_dummy);
 		
 		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
 			char *buf = txt_to_buf( text );
 
 			text->compiled =
-				Py_CompileString( buf, text->id.name+2, Py_file_input );
+				Py_CompileString( buf, fn_dummy, Py_file_input );
 
 			MEM_freeN( buf );
 
@@ -347,8 +348,12 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 		if(text->compiled)
 			py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
 		
-	} else {
-		FILE *fp= fopen(fn, "r");		
+	}
+	else {
+		FILE *fp= fopen(fn, "r");
+
+		py_dict = CreateGlobalDictionary(C, fn);
+
 		if(fp) {
 #ifdef _WIN32
 			/* Previously we used PyRun_File to run directly the code on a FILE 
@@ -528,7 +533,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 #endif
 
 
-int BPY_button_eval(bContext *C, char *expr, double *value)
+int BPY_eval_button(bContext *C, const char *expr, double *value)
 {
 	PyGILState_STATE gilstate;
 	PyObject *dict, *mod, *retval;
@@ -598,6 +603,40 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 	
 	return error_ret;
 }
+
+int BPY_eval_string(bContext *C, const char *expr)
+{
+	PyGILState_STATE gilstate;
+	PyObject *dict, *retval;
+	int error_ret = 0;
+
+	if (!expr) return -1;
+
+	if(expr[0]=='\0') {
+		return error_ret;
+	}
+
+	bpy_context_set(C, &gilstate);
+
+	dict= CreateGlobalDictionary(C, NULL);
+
+	retval = PyRun_String(expr, Py_eval_input, dict, dict);
+
+	if (retval == NULL) {
+		error_ret= -1;
+
+		BPy_errors_to_report(CTX_wm_reports(C));
+	}
+	else {
+		Py_DECREF(retval);
+	}
+
+	Py_DECREF(dict);
+	bpy_context_clear(C, &gilstate);
+
+	return error_ret;
+}
+
 
 void BPY_load_user_modules(bContext *C)
 {

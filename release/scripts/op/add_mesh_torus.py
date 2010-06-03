@@ -102,6 +102,10 @@ class AddTorus(bpy.types.Operator):
             description="Total Interior Radius of the torus",
             default=0.5, min=0.01, max=100.0)
 
+    # generic transform props
+    location = FloatVectorProperty(name="Location")
+    rotation = FloatVectorProperty(name="Rotation")
+
     def execute(self, context):
         props = self.properties
 
@@ -123,7 +127,7 @@ class AddTorus(bpy.types.Operator):
         mesh.update()
 
         import add_object_utils
-        add_object_utils.add_object_data(mesh, context)
+        add_object_utils.add_object_data(context, mesh, operator=self)
 
         return {'FINISHED'}
 

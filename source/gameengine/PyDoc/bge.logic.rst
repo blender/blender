@@ -1,7 +1,10 @@
 
 Game Engine bge.logic Module
 ============================
-	
+*****
+Intro
+*****
+
 Module to access logic functions, imported automatically into the python controllers namespace.
 
 .. module:: bge.logic
@@ -14,7 +17,7 @@ Module to access logic functions, imported automatically into the python control
    # To get the game object this controller is on:
    obj = cont.owner
 
-:class:`bge.types.KX_GameObject` and :class:`bge.types.KX_Camera` or :class:`bge.types.KX_LightObject` methods are available depending on the type of object
+:class:`~bge.types.KX_GameObject` and :class:`~bge.types.KX_Camera` or :class:`bge.types.~KX_LightObject` methods are available depending on the type of object
 
 .. code-block:: python
 
@@ -30,18 +33,21 @@ Module to access logic functions, imported automatically into the python control
 
 See the sensor's reference for available methods:
 
-* :class:`bge.types.SCA_DelaySensor`
-* :class:`bge.types.SCA_JoystickSensor`
-* :class:`bge.types.SCA_KeyboardSensor`
-* :class:`bge.types.KX_MouseFocusSensor`
-* :class:`bge.types.SCA_MouseSensor`
-* :class:`bge.types.KX_NearSensor`
-* :class:`bge.types.KX_NetworkMessageSensor`
-* :class:`bge.types.SCA_PropertySensor`
-* :class:`bge.types.KX_RadarSensor`
-* :class:`bge.types.SCA_RandomSensor`
-* :class:`bge.types.KX_RaySensor`
-* :class:`bge.types.KX_TouchSensor`
+.. hlist::
+   :columns: 3
+
+   * :class:`~bge.types.KX_MouseFocusSensor`
+   * :class:`~bge.types.KX_NearSensor`
+   * :class:`~bge.types.KX_NetworkMessageSensor`
+   * :class:`~bge.types.KX_RadarSensor`
+   * :class:`~bge.types.KX_RaySensor`
+   * :class:`~bge.types.KX_TouchSensor`
+   * :class:`~bge.types.SCA_DelaySensor`
+   * :class:`~bge.types.SCA_JoystickSensor`
+   * :class:`~bge.types.SCA_KeyboardSensor`
+   * :class:`~bge.types.SCA_MouseSensor`
+   * :class:`~bge.types.SCA_PropertySensor`
+   * :class:`~bge.types.SCA_RandomSensor`
 
 You can also access actuators linked to the controller
 
@@ -56,30 +62,32 @@ You can also access actuators linked to the controller
    # Activate an actuator
    controller.activate(actuator)
 
-
 See the actuator's reference for available methods
 
-* :class:`bge.types.SCA_2DFilterActuator`
-* :class:`bge.types.BL_ActionActuator`
-* :class:`bge.types.KX_SCA_AddObjectActuator`
-* :class:`bge.types.KX_CameraActuator`
-* :class:`bge.types.KX_ConstraintActuator`
-* :class:`bge.types.KX_SCA_DynamicActuator`
-* :class:`bge.types.KX_SCA_EndObjectActuator`
-* :class:`bge.types.KX_GameActuator`
-* :class:`bge.types.KX_IpoActuator`
-* :class:`bge.types.KX_NetworkMessageActuator`
-* :class:`bge.types.KX_ObjectActuator`
-* :class:`bge.types.KX_ParentActuator`
-* :class:`bge.types.SCA_PropertyActuator`
-* :class:`bge.types.SCA_RandomActuator`
-* :class:`bge.types.KX_SCA_ReplaceMeshActuator`
-* :class:`bge.types.KX_SceneActuator`
-* :class:`bge.types.BL_ShapeActionActuator`
-* :class:`bge.types.KX_SoundActuator`
-* :class:`bge.types.KX_StateActuator`
-* :class:`bge.types.KX_TrackToActuator`
-* :class:`bge.types.KX_VisibilityActuator`
+.. hlist::
+   :columns: 3
+   
+   * :class:`~bge.types.BL_ActionActuator`
+   * :class:`~bge.types.BL_ShapeActionActuator`
+   * :class:`~bge.types.KX_CameraActuator`
+   * :class:`~bge.types.KX_ConstraintActuator`
+   * :class:`~bge.types.KX_GameActuator`
+   * :class:`~bge.types.KX_IpoActuator`
+   * :class:`~bge.types.KX_NetworkMessageActuator`
+   * :class:`~bge.types.KX_ObjectActuator`
+   * :class:`~bge.types.KX_ParentActuator`
+   * :class:`~bge.types.KX_SCA_AddObjectActuator`
+   * :class:`~bge.types.KX_SCA_DynamicActuator`
+   * :class:`~bge.types.KX_SCA_EndObjectActuator`
+   * :class:`~bge.types.KX_SCA_ReplaceMeshActuator`
+   * :class:`~bge.types.KX_SceneActuator`
+   * :class:`~bge.types.KX_SoundActuator`
+   * :class:`~bge.types.KX_StateActuator`
+   * :class:`~bge.types.KX_TrackToActuator`
+   * :class:`~bge.types.KX_VisibilityActuator`
+   * :class:`~bge.types.SCA_2DFilterActuator`
+   * :class:`~bge.types.SCA_PropertyActuator`
+   * :class:`~bge.types.SCA_RandomActuator`
 
 Most logic brick's methods are accessors for the properties available in the logic buttons.
 Consult the logic bricks documentation for more information on how each logic brick works.
@@ -99,16 +107,28 @@ Matricies as used by the game engine are **row major**
 
 :class:`bge.types.KX_Camera` has some examples using matricies.
 
+*********
+Variables
+*********
 
 .. data:: globalDict
 
    A dictionary that is saved between loading blend files so you can use it to store inventory and other variables you want to store between scenes and blend files.
    It can also be written to a file and loaded later on with the game load/save actuators.
 
-   .. note:: only python built in types such as int/string/bool/float/tuples/lists can be saved, GameObjects, Actuators etc will not work as expectred.
+   .. note:: only python built in types such as int/string/bool/float/tuples/lists can be saved, GameObjects, Actuators etc will not work as expected.
 
-.. data:: keyboard:		The current keyboard wrapped in an SCA_PythonKeyboard object.
-.. data:: mouse:			The current mouse wrapped in an SCA_PythonMouse object.
+.. data:: keyboard
+
+   The current keyboard wrapped in an :class:`~bge.types.SCA_PythonKeyboard` object.
+
+.. data:: mouse
+
+   The current mouse wrapped in an :class:`~bge.types.SCA_PythonMouse` object.
+
+*****************
+General functions
+*****************
 
 .. function:: getCurrentController()
 
@@ -258,15 +278,9 @@ Matricies as used by the game engine are **row major**
 
    Loads bge.logic.globalDict from a file.
 
-
+*****************
 Utility functions
-
-.. function:: getAverageFrameRate()
-
-   Gets the estimated average framerate
-   
-   :return: The estimed average framerate in frames per second
-   :rtype: float
+*****************
 
 .. function:: expandPath(path)
 
@@ -283,6 +297,12 @@ Utility functions
    :return: The converted string
    :rtype: string
 
+.. function:: getAverageFrameRate()
+
+   Gets the estimated average framerate
+   
+   :return: The estimed average framerate in frames per second
+   :rtype: float
 
 .. function:: getBlendFileList(path = "//")
 
@@ -293,20 +313,29 @@ Utility functions
    :return: A list of filenames, with no directory prefix
    :rtype: list
 
-.. function:: PrintGLInfo()
-
-   Prints GL Extension Info into the console
-
 .. function:: getRandomFloat()
 
    Returns a random floating point value in the range [0 - 1)
 
-=========
-Constants
-=========
+.. function:: PrintGLInfo()
 
-.. data:: KX_TRUE: True value used by some modules.
-.. data:: KX_FALSE: False value used by some modules.
+   Prints GL Extension Info into the console
+   
+*********
+Constants
+*********
+
+.. data:: KX_TRUE
+
+   True value used by some modules.
+
+.. data:: KX_FALSE
+
+   False value used by some modules.
+
+=======
+Sensors
+======= 
 
 ---------------
 Property Sensor
@@ -331,81 +360,6 @@ Property Sensor
 .. data:: KX_PROPSENSOR_EXPRESSION
 
    Activate when the expression matches
-
--------------------
-Constraint Actuator
--------------------
-
-See :class:`bge.types.KX_ConstraintActuator`
-
-.. data:: KX_CONSTRAINTACT_LOCX
-.. data:: KX_CONSTRAINTACT_LOCY
-.. data:: KX_CONSTRAINTACT_LOCZ
-.. data:: KX_CONSTRAINTACT_ROTX
-.. data:: KX_CONSTRAINTACT_ROTY
-.. data:: KX_CONSTRAINTACT_ROTZ
-.. data:: KX_CONSTRAINTACT_DIRNX
-.. data:: KX_CONSTRAINTACT_DIRNY
-.. data:: KX_CONSTRAINTACT_DIRPX
-.. data:: KX_CONSTRAINTACT_DIRPY
-.. data:: KX_CONSTRAINTACT_ORIX
-.. data:: KX_CONSTRAINTACT_ORIY
-.. data:: KX_CONSTRAINTACT_ORIZ
-
-------------
-IPO Actuator
-------------
-
-See :class:`bge.types.KX_IpoActuator`
-
-.. data:: KX_IPOACT_PLAY
-.. data:: KX_IPOACT_PINGPONG
-.. data:: KX_IPOACT_FLIPPER
-.. data:: KX_IPOACT_LOOPSTOP
-.. data:: KX_IPOACT_LOOPEND
-.. data:: KX_IPOACT_FROM_PROP
-
---------------------
-Random Distributions
---------------------
-
-See :class:`bge.types.SCA_RandomActuator`
-
-.. data:: KX_RANDOMACT_BOOL_CONST
-.. data:: KX_RANDOMACT_BOOL_UNIFORM
-.. data:: KX_RANDOMACT_BOOL_BERNOUILLI
-.. data:: KX_RANDOMACT_INT_CONST
-.. data:: KX_RANDOMACT_INT_UNIFORM
-.. data:: KX_RANDOMACT_INT_POISSON
-.. data:: KX_RANDOMACT_FLOAT_CONST
-.. data:: KX_RANDOMACT_FLOAT_UNIFORM
-.. data:: KX_RANDOMACT_FLOAT_NORMAL
-.. data:: KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL
-
----------------
-Action Actuator
----------------
-
-See :class:`bge.types.BL_ActionActuator`
-
-.. data:: KX_ACTIONACT_PLAY
-.. data:: KX_ACTIONACT_FLIPPER
-.. data:: KX_ACTIONACT_LOOPSTOP
-.. data:: KX_ACTIONACT_LOOPEND
-.. data:: KX_ACTIONACT_PROPERTY
-
---------------
-Sound Actuator
---------------
-
-See :class:`bge.types.KX_SoundActuator`
-
-.. data:: KX_SOUNDACT_PLAYSTOP
-.. data:: KX_SOUNDACT_PLAYEND
-.. data:: KX_SOUNDACT_LOOPSTOP
-.. data:: KX_SOUNDACT_LOOPEND
-.. data:: KX_SOUNDACT_LOOPBIDIRECTIONAL
-.. data:: KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP
 
 ------------
 Radar Sensor
@@ -433,6 +387,120 @@ See :class:`bge.types.KX_RaySensor`
 .. data:: KX_RAY_AXIS_NEG_Y
 .. data:: KX_RAY_AXIS_NEG_Z
 
+
+=========
+Actuators
+=========
+
+---------------
+Action Actuator
+---------------
+
+See :class:`bge.types.BL_ActionActuator`
+
+.. data:: KX_ACTIONACT_PLAY
+.. data:: KX_ACTIONACT_FLIPPER
+.. data:: KX_ACTIONACT_LOOPSTOP
+.. data:: KX_ACTIONACT_LOOPEND
+.. data:: KX_ACTIONACT_PROPERTY
+
+-------------------
+Constraint Actuator
+-------------------
+
+See :class:`bge.types.KX_ConstraintActuator`
+
+.. data:: KX_CONSTRAINTACT_LOCX
+
+   Limit X coord.
+   
+.. data:: KX_CONSTRAINTACT_LOCY
+
+   Limit Y coord
+
+.. data:: KX_CONSTRAINTACT_LOCZ
+
+   Limit Z coord
+   
+.. data:: KX_CONSTRAINTACT_ROTX
+
+   Limit X rotation
+
+.. data:: KX_CONSTRAINTACT_ROTY
+
+   Limit Y rotation
+   
+.. data:: KX_CONSTRAINTACT_ROTZ
+
+   Limit Z rotation
+   
+.. data:: KX_CONSTRAINTACT_DIRNX
+
+   Set distance along negative X axis
+
+.. data:: KX_CONSTRAINTACT_DIRNY
+
+   Set distance along negative Y axis
+   
+.. data:: KX_CONSTRAINTACT_DIRNZ
+
+   Set distance along negative Z axis
+   
+.. data:: KX_CONSTRAINTACT_DIRPX
+
+   Set distance along positive X axis
+
+.. data:: KX_CONSTRAINTACT_DIRPY
+
+   Set distance along positive Y axis
+   
+.. data:: KX_CONSTRAINTACT_DIRPZ
+
+   Set distance along positive Z axis
+   
+.. data:: KX_CONSTRAINTACT_ORIX
+
+   Set orientation of X axis
+   
+.. data:: KX_CONSTRAINTACT_ORIY
+
+   Set orientation of Y axis
+   
+.. data:: KX_CONSTRAINTACT_ORIZ
+
+   Set orientation of Z axis
+   
+.. data:: KX_ACT_CONSTRAINT_FHNX
+
+   Set force field along negative X axis
+   
+.. data:: KX_ACT_CONSTRAINT_FHNY
+
+   Set force field along negative Y axis
+   
+.. data:: KX_ACT_CONSTRAINT_FHNZ
+
+   Set force field along negative Z axis
+   
+.. data:: KX_ACT_CONSTRAINT_FHPX
+
+   Set force field along positive X axis
+
+.. data:: KX_ACT_CONSTRAINT_FHPY
+
+   Set force field along positive Y axis
+   
+.. data:: KX_ACT_CONSTRAINT_FHPZ
+
+   Set force field along positive Z axis
+   
+.. data:: KX_ACT_CONSTRAINT_DISTANCE
+.. data:: KX_ACT_CONSTRAINT_DOROTFH
+.. data:: KX_ACT_CONSTRAINT_LOCAL
+.. data:: KX_ACT_CONSTRAINT_MATERIAL
+.. data:: KX_ACT_CONSTRAINT_NORMAL
+.. data:: KX_ACT_CONSTRAINT_PERMANENT
+
 ----------------
 Dynamic Actuator
 ----------------
@@ -458,6 +526,43 @@ See :class:`bge.types.KX_GameActuator`
 .. data:: KX_GAME_SAVECFG
 .. data:: KX_GAME_LOADCFG
 
+------------
+IPO Actuator
+------------
+
+See :class:`bge.types.KX_IpoActuator`
+
+.. data:: KX_IPOACT_PLAY
+.. data:: KX_IPOACT_PINGPONG
+.. data:: KX_IPOACT_FLIPPER
+.. data:: KX_IPOACT_LOOPSTOP
+.. data:: KX_IPOACT_LOOPEND
+.. data:: KX_IPOACT_FROM_PROP
+
+---------------
+Parent Actuator
+---------------
+
+.. data:: KX_PARENT_REMOVE
+.. data:: KX_PARENT_SET
+
+--------------------
+Random Distributions
+--------------------
+
+See :class:`bge.types.SCA_RandomActuator`
+
+.. data:: KX_RANDOMACT_BOOL_CONST
+.. data:: KX_RANDOMACT_BOOL_UNIFORM
+.. data:: KX_RANDOMACT_BOOL_BERNOUILLI
+.. data:: KX_RANDOMACT_INT_CONST
+.. data:: KX_RANDOMACT_INT_UNIFORM
+.. data:: KX_RANDOMACT_INT_POISSON
+.. data:: KX_RANDOMACT_FLOAT_CONST
+.. data:: KX_RANDOMACT_FLOAT_UNIFORM
+.. data:: KX_RANDOMACT_FLOAT_NORMAL
+.. data:: KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL
+
 --------------
 Scene Actuator
 --------------
@@ -472,6 +577,23 @@ See :class:`bge.types.KX_SceneActuator`
 .. data:: KX_SCENE_REMOVE_SCENE
 .. data:: KX_SCENE_SUSPEND
 .. data:: KX_SCENE_RESUME
+
+--------------
+Sound Actuator
+--------------
+
+See :class:`bge.types.KX_SoundActuator`
+
+.. data:: KX_SOUNDACT_PLAYSTOP
+.. data:: KX_SOUNDACT_PLAYEND
+.. data:: KX_SOUNDACT_LOOPSTOP
+.. data:: KX_SOUNDACT_LOOPEND
+.. data:: KX_SOUNDACT_LOOPBIDIRECTIONAL
+.. data:: KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP
+
+=======
+Various
+=======
 
 ------------
 Input Status
@@ -554,30 +676,6 @@ See :class:`bge.types.KX_StateActuator`
 .. data:: RAS_2DFILTER_SEPIA
 .. data:: RAS_2DFILTER_SHARPEN
 .. data:: RAS_2DFILTER_SOBEL
-
--------------------
-Constraint Actuator
--------------------
-
-.. data:: KX_ACT_CONSTRAINT_DISTANCE
-.. data:: KX_ACT_CONSTRAINT_DOROTFH
-.. data:: KX_ACT_CONSTRAINT_FHNX
-.. data:: KX_ACT_CONSTRAINT_FHNY
-.. data:: KX_ACT_CONSTRAINT_FHNZ
-.. data:: KX_ACT_CONSTRAINT_FHPX
-.. data:: KX_ACT_CONSTRAINT_FHPY
-.. data:: KX_ACT_CONSTRAINT_FHPZ
-.. data:: KX_ACT_CONSTRAINT_LOCAL
-.. data:: KX_ACT_CONSTRAINT_MATERIAL
-.. data:: KX_ACT_CONSTRAINT_NORMAL
-.. data:: KX_ACT_CONSTRAINT_PERMANENT
-
----------------
-Parent Actuator
----------------
-
-.. data:: KX_PARENT_REMOVE
-.. data:: KX_PARENT_SET
 
 ------
 Shader

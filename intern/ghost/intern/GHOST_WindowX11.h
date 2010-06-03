@@ -327,6 +327,7 @@ private :
 	Window 	m_window;
 	Display 	*m_display;
 	XVisualInfo	*m_visual;
+	GHOST_TWindowState m_normal_state;
 
 	/** The first created OpenGL context (for sharing display lists) */
 	static GLXContext s_firstContext;

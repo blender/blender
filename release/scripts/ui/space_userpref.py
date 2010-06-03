@@ -1198,7 +1198,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 # If there are Infos or UI is expanded
                 if info["expanded"]:
                     row.operator("wm.addon_expand", icon="TRIA_DOWN").module = module_name
-                elif info["author"] or info["version"] or info["url"] or info["location"]:
+                elif info["author"] or info["version"] or info["wiki_url"] or info["location"]:
                     row.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
                 else:
                     # Else, block UI
@@ -1227,12 +1227,19 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         split = column.row().split(percentage=0.15)
                         split.label(text='Description:')
                         split.label(text=info["description"])
-                    if info["url"]:
+                    if info["wiki_url"] or info["tracker_url"]:
                         split = column.row().split(percentage=0.15)
                         split.label(text="Internet:")
-                        split.operator("wm.addon_links", text="Link to the Wiki").link = info["url"]
-                        split.separator()
-                        split.separator()
+                        if info["wiki_url"]:
+                            split.operator("wm.url_open", text="Link to the Wiki", icon='HELP').url = info["wiki_url"]
+                        if info["tracker_url"]:
+                            split.operator("wm.url_open", text="Report a Bug", icon='URL').url = info["tracker_url"]
+                        
+                        if info["wiki_url"] and info["tracker_url"]:
+                            split.separator()
+                        else:
+                            split.separator()
+                            split.separator()
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.
@@ -1256,7 +1263,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "url": "", "category": "", "expanded": False}):
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "expanded": False}):
     addon_info = getattr(mod, "bl_addon_info", {})
 
     # avoid re-initializing
@@ -1421,19 +1428,6 @@ class WM_OT_addon_expand(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class WM_OT_addon_links(bpy.types.Operator):
-    "Open the Blender Wiki in the Webbrowser"
-    bl_idname = "wm.addon_links"
-    bl_label = ""
-
-    link = StringProperty(name="Link", description="Link to open")
-
-    def execute(self, context):
-        import webbrowser
-        webbrowser.open(self.properties.link)
-        return {'FINISHED'}
-
-
 classes = [
     USERPREF_HT_header,
     USERPREF_PT_tabs,
@@ -1451,8 +1445,7 @@ classes = [
     WM_OT_addon_enable,
     WM_OT_addon_disable,
     WM_OT_addon_install,
-    WM_OT_addon_expand,
-    WM_OT_addon_links]
+    WM_OT_addon_expand]
 
 
 def register():

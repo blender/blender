@@ -1669,9 +1669,9 @@ void polarview_m4(float Vm[][4],float dist, float azimuth, float incidence, floa
 	unit_m4(Vm);
 
 	translate_m4(Vm,0.0, 0.0, -dist);
-	rotate_m4(Vm,'z',-twist);	
-	rotate_m4(Vm,'x',-incidence);
-	rotate_m4(Vm,'z',-azimuth);
+	rotate_m4(Vm,'Z',-twist);
+	rotate_m4(Vm,'X',-incidence);
+	rotate_m4(Vm,'Z',-azimuth);
 }
 
 void lookat_m4(float mat[][4],float vx, float vy, float vz, float px, float py, float pz, float twist)
@@ -1682,7 +1682,7 @@ void lookat_m4(float mat[][4],float vx, float vy, float vz, float px, float py, 
 	unit_m4(mat);
 	unit_m4(mat1);
 
-	rotate_m4(mat,'z',-twist);
+	rotate_m4(mat, 'Z', -twist);
 
 	dx = px - vx;
 	dy = py - vy;

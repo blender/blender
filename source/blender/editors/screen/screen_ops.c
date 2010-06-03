@@ -2393,8 +2393,8 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	
-	if(screen->animtimer==event->customdata) {
+
+	if(screen->animtimer && screen->animtimer==event->customdata) {
 		Scene *scene= CTX_data_scene(C);
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;
@@ -2998,7 +2998,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_reload_scripts", F8KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCRIPT_OT_reload", F8KEY, KM_PRESS, 0, 0);
 	
 	/* files */
 	WM_keymap_add_item(keymap, "FILE_OT_execute", RETKEY, KM_PRESS, 0, 0);

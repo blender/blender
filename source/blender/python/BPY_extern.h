@@ -119,9 +119,11 @@ extern "C" {
 //		short eventValue, unsigned short space_event);
 //
 //	void BPY_pydriver_update(void);
-	float BPY_pydriver_eval(struct ChannelDriver *driver);
+	float BPY_eval_driver(struct ChannelDriver *driver);
 //
-	int BPY_button_eval(struct bContext *C, char *expr, double *value);
+	int BPY_eval_button(struct bContext *C, const char *expr, double *value);
+
+	int BPY_eval_string(struct bContext *C, const char *expr);
 
 /* format importer hook */
 	int BPY_call_importloader( char *name );

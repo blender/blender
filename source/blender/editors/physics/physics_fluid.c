@@ -297,6 +297,8 @@ static void set_vertex_channel(float *channel, float time, struct Scene *scene, 
 
 static void free_domain_channels(FluidAnimChannels *channels)
 {
+	if (!channels->timeAtFrame)
+		return;
 	MEM_freeN(channels->timeAtFrame);
 	channels->timeAtFrame = NULL;
 	MEM_freeN(channels->DomainGravity);
@@ -781,6 +783,26 @@ int runSimulationCallback(void *data, int status, int frame) {
 	return FLUIDSIM_CBRET_CONTINUE;
 }
 
+static void fluidbake_free_data(FluidAnimChannels *channels, ListBase *fobjects, elbeemSimulationSettings *fsset, FluidBakeJob *fb)
+{
+	free_domain_channels(channels);
+	MEM_freeN(channels);
+	channels = NULL;
+
+	free_all_fluidobject_channels(fobjects);
+	BLI_freelistN(fobjects);
+	MEM_freeN(fobjects);
+	fobjects = NULL;
+	
+	MEM_freeN(fsset);
+	fsset = NULL;
+	
+	if (fb) {
+		MEM_freeN(fb);
+		fb = NULL;
+	}
+}
+
 int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -827,13 +849,14 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	noFrames = scene->r.efra - 0;
 	if(noFrames<=0) {
 		BKE_report(reports, RPT_ERROR, "No frames to export - check your animation range settings.");
+		fluidbake_free_data(channels, fobjects, fsset, fb);
 		return 0;
 	}
 	
 	/* check scene for sane object/modifier settings */
-	if (!fluid_validate_scene(reports, scene, fsDomain)) {
+	if (!fluid_validate_scene(reports, scene, fsDomain))
+		fluidbake_free_data(channels, fobjects, fsset, fb);
 		return 0;
-	}
 
 	
 	/* these both have to be valid, otherwise we wouldnt be here */
@@ -928,12 +951,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 		elbeemDebugOut(debugStrBuffer);
 		BKE_report(reports, RPT_ERROR, "Invalid object matrix."); 
 
-		free_domain_channels(channels);
-		MEM_freeN(channels);
-		
-		free_all_fluidobject_channels(fobjects);
-		BLI_freelistN(fobjects);
-		MEM_freeN(fobjects);
+		fluidbake_free_data(channels, fobjects, fsset, fb);
 		return 0;
 	}
 
@@ -1023,12 +1041,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	WM_jobs_start(CTX_wm_manager(C), steve);
 
 	/* ******** free stored animation data ******** */
-	free_domain_channels(channels);
-	MEM_freeN(channels);
-	
-	free_all_fluidobject_channels(fobjects);
-	BLI_freelistN(fobjects);
-	MEM_freeN(fobjects);
+	fluidbake_free_data(channels, fobjects, fsset, NULL);
 
 	// elbeemFree();
 	return 1;

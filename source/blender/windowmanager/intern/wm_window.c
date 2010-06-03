@@ -1018,6 +1018,18 @@ void WM_clipboard_text_set(char *buf, int selection)
 #endif
 }
 
+/* ******************* progress bar **************** */
+
+void WM_progress_set(wmWindow *win, float progress)
+{
+	GHOST_SetProgressBar(win->ghostwin, progress);
+}
+
+void WM_progress_clear(wmWindow *win)
+{
+	GHOST_EndProgressBar(win->ghostwin);
+}
+
 /* ************************************ */
 
 void wm_window_get_position(wmWindow *win, int *posx_r, int *posy_r) 

@@ -2368,8 +2368,20 @@ static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
+	char old_col[3];
 	
 	widget_init(&wtb);
+	
+	VECCOPY(old_col, wcol->inner);
+	
+	/* abuse but->hsv - if it's non-zero, use this colour as the box's background */
+	if ((but->hsv[0] != 0.0) || (but->hsv[1] != 0.0) || (but->hsv[2] != 0.0)) {
+		float rgb[3];
+		hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], rgb+0, rgb+1, rgb+2);
+		wcol->inner[0] = rgb[0] * 255;
+		wcol->inner[1] = rgb[1] * 255;
+		wcol->inner[2] = rgb[2] * 255;
+	}
 	
 	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
@@ -2379,6 +2391,8 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, 
 	/* store the box bg as gl clearcolor, to retrieve later when drawing semi-transparent rects
 	 * over the top to indicate disabled buttons */
 	glClearColor(wcol->inner[0]/255.0, wcol->inner[1]/255.0, wcol->inner[2]/255.0, 1.0);
+	
+	VECCOPY(wcol->inner, old_col);
 }
 
 static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
