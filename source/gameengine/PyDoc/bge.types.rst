@@ -73,14 +73,7 @@ Game Engine  bge.types Module
 
       A list of pressed keys that have either been pressed, or just released, or are active this frame. (read-only).
 
-      * 'keycode' matches the values in :mod:`bge.keys`.
-      * 'status' uses...
-         * :mod:`bge.logic.KX_INPUT_NONE`
-         * :mod:`bge.logic.KX_INPUT_JUST_ACTIVATED`
-         * :mod:`bge.logic.KX_INPUT_ACTIVE`
-         * :mod:`bge.logic.KX_INPUT_JUST_RELEASED`
-
-      :type: list [[keycode, status], ...]
+      :type: list [[:ref:`keycode<keyboard-keys>`, :ref:`status<input-status>`], ...]
 
 .. class:: SCA_PythonMouse(PyObjectPlus)
 
@@ -90,15 +83,8 @@ Game Engine  bge.types Module
 
       a list of pressed buttons that have either been pressed, or just released, or are active this frame. (read-only).
 
-      * 'keycode' matches the values in :mod:`bge.keys`.
-      * 'status' uses...
-         * :mod:`bge.logic.KX_INPUT_NONE`
-         * :mod:`bge.logic.KX_INPUT_JUST_ACTIVATED`
-         * :mod:`bge.logic.KX_INPUT_ACTIVE`
-         * :mod:`bge.logic.KX_INPUT_JUST_RELEASED`
-
-      :type: list [[keycode, status], ...]
-
+      :type: list [[:ref:`keycode<mouse-keys>`, :ref:`status<input-status>`], ...]
+      
    .. attribute:: position
 
       The normalized x and y position of the mouse cursor.
@@ -186,7 +172,9 @@ Game Engine  bge.types Module
       * KX_SENSOR_ACTIVE
       * KX_SENSOR_JUST_DEACTIVATED
 
-      .. note:: this convenient attribute combines the values of triggered and positive attributes.
+      .. note::
+      
+         This convenient attribute combines the values of triggered and positive attributes.
 
    .. method:: reset()
 
@@ -210,8 +198,13 @@ Game Engine  bge.types Module
       
       :type: sequence supporting index/string lookups and iteration.
 
-      .. note:: The sensors are not necessarily owned by the same object.
-      .. note:: When objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
+      .. note::
+
+         The sensors are not necessarily owned by the same object.
+
+      .. note::
+         
+         When objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
 
    .. attribute:: actuators
 
@@ -219,8 +212,13 @@ Game Engine  bge.types Module
       
       :type: sequence supporting index/string lookups and iteration.
 
-      .. note:: The sensors are not necessarily owned by the same object.
-      .. note:: When objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
+      .. note::
+
+         The sensors are not necessarily owned by the same object.
+
+      .. note::
+         
+         When objects are instanced in dupligroups links may be lost from objects outside the dupligroup.
 
    .. attribute:: useHighPriority
 
@@ -228,7 +226,9 @@ Game Engine  bge.types Module
       
       :type: boolen
 
-      .. note:: Order of execution between high priority controllers is not guaranteed.
+      .. note::
+         
+         Order of execution between high priority controllers is not guaranteed.
 
 .. class:: SCA_IActuator(SCA_ILogicBrick)
 
@@ -319,7 +319,9 @@ Game Engine  bge.types Module
       :arg matrix: A 4x4 matrix specifying the overriding transformation as an offset from the bone's rest position.
       :arg  matrix: list [[float]]
 
-      .. note:: These values are relative to the bones rest position, currently the api has no way to get this info (which is annoying), but can be worked around by using bones with a rest pose that has no translation.
+      .. note::
+         
+         These values are relative to the bones rest position, currently the api has no way to get this info (which is annoying), but can be worked around by using bones with a rest pose that has no translation.
 
    .. method:: getChannel(channel)
 
@@ -607,23 +609,19 @@ Game Engine  bge.types Module
 
 .. class:: CListValue(CPropValue)
 
-   CListValue
-
    This is a list like object used in the game engine internally that behaves similar to a python list in most ways.
 
-   As well as the normal index lookup.
-   ``val= clist[i]``
+   As well as the normal index lookup (``val= clist[i]``), CListValue supports string lookups (``val= scene.objects["Cube"]``)
 
-   CListValue supports string lookups.
-   ``val= scene.objects["Cube"]``
-
-   Other operations such as ``len(clist), list(clist), clist[0:10]`` are also supported.
+   Other operations such as ``len(clist)``, ``list(clist)``, ``clist[0:10]`` are also supported.
 
    .. method:: append(val)
 
       Add an item to the list (like pythons append)
 
-      .. warning:: Appending values to the list can cause crashes when the list is used internally by the game engine.
+      .. warning::
+      
+         Appending values to the list can cause crashes when the list is used internally by the game engine.
 
    .. method:: count(val)
 
@@ -664,7 +662,9 @@ Game Engine  bge.types Module
 
       This has the advantage that you can store the id in places you could not store a gameObject.
 
-      .. warning:: the id is derived from a memory location and will be different each time the game engine starts.
+      .. warning::
+
+         The id is derived from a memory location and will be different each time the game engine starts.
 
 .. class:: KX_BlenderMaterial(PyObjectPlus)
 
@@ -845,7 +845,7 @@ Game Engine  bge.types Module
       :data:`~bge.logic.KX_ACT_CONSTRAINT_FHPX`, :data:`~bge.logic.KX_ACT_CONSTRAINT_FHPY`, 
       :data:`~bge.logic.KX_ACT_CONSTRAINT_FHPZ`, :data:`~bge.logic.KX_ACT_CONSTRAINT_FHNX`, 
       :data:`~bge.logic.KX_ACT_CONSTRAINT_FHNY`, :data:`~bge.logic.KX_ACT_CONSTRAINT_FHNZ`, 
-      :data:`~bge.logic.KX_ACT_CONSTRAINT_DISTANCE`, :data:`~bge.logic.KX_ACT_CONSTRAINT_DOROTFH`,
+      :data:`~bge.logic.KX_ACT_CONSTRAINT_DISTANCE`, :data:`~bge.logic.KX_ACT_CONSTRAINT_DOROTFH`, 
       :data:`~bge.logic.KX_ACT_CONSTRAINT_LOCAL`, :data:`~bge.logic.KX_ACT_CONSTRAINT_MATERIAL`, 
       :data:`~bge.logic.KX_ACT_CONSTRAINT_NORMAL`, :data:`~bge.logic.KX_ACT_CONSTRAINT_PERMANENT`
 
@@ -889,7 +889,9 @@ Game Engine  bge.types Module
 
    Properties assigned to game objects are accessible as attributes of this class.
 
-   .. note:: Calling ANY method or attribute on an object that has been removed from a scene will raise a SystemError, if an object may have been removed since last accessing it use the :data:`invalid` attribute to check.
+   .. note::
+      
+      Calling ANY method or attribute on an object that has been removed from a scene will raise a SystemError, if an object may have been removed since last accessing it use the :data:`invalid` attribute to check.
 
    .. attribute:: name
 
@@ -901,28 +903,43 @@ Game Engine  bge.types Module
 
       The object's mass
 
-      .. note:: The object must have a physics controller for the mass to be applied, otherwise the mass value will be returned as 0.0.
-
       :type: float
 
+      .. note::
+         
+         The object must have a physics controller for the mass to be applied, otherwise the mass value will be returned as 0.0.
+      
    .. attribute:: linVelocityMin
 
       Enforces the object keeps moving at a minimum velocity.
 
-      .. note:: Applies to dynamic and rigid body objects only.
-      .. note:: A value of 0.0 disables this option.
-      .. note:: While objects are stationary the minimum velocity will not be applied.
-
       :type: float
+      
+      .. note::
+      
+         Applies to dynamic and rigid body objects only.
+
+      .. note::
+         
+         A value of 0.0 disables this option.
+
+      .. note::
+      
+         While objects are stationary the minimum velocity will not be applied.
 
    .. attribute:: linVelocityMax
 
       Clamp the maximum linear velocity to prevent objects moving beyond a set speed.
 
-      .. note:: Applies to dynamic and rigid body objects only.
-      .. note:: A value of 0.0 disables this option (rather then setting it stationary).
-
       :type: float
+      
+      .. note::
+         
+         Applies to dynamic and rigid body objects only.
+
+      .. note::
+
+         A value of 0.0 disables this option (rather then setting it stationary).
 
    .. attribute:: localInertia
 
@@ -940,9 +957,11 @@ Game Engine  bge.types Module
 
       visibility flag.
 
-      .. note:: Game logic will still run for invisible objects.
-
       :type: boolean
+      
+      .. note::
+      
+         Game logic will still run for invisible objects.
 
    .. attribute:: color
 
@@ -1032,36 +1051,57 @@ Game Engine  bge.types Module
 
       a list meshes for this object.
 
-      .. note:: Most objects use only 1 mesh.
-      .. note:: Changes to this list will not update the KX_GameObject.
-
       :type: list of :class:`KX_MeshProxy`
+      
+      .. note::
+         
+         Most objects use only 1 mesh.
+
+      .. note::
+         
+         Changes to this list will not update the KX_GameObject.
 
    .. attribute:: sensors
 
       a sequence of :class:`SCA_ISensor` objects with string/index lookups and iterator support.
 
-      .. note:: This attribute is experemental and may be removed (but probably wont be).
-      .. note:: Changes to this list will not update the KX_GameObject.
-
       :type: list
+      
+      .. note::
+         
+         This attribute is experemental and may be removed (but probably wont be).
+
+      .. note::
+      
+         Changes to this list will not update the KX_GameObject.
 
    .. attribute:: controllers
 
       a sequence of :class:`SCA_IController` objects with string/index lookups and iterator support.
-      .. note:: This attribute is experemental and may be removed (but probably wont be).
-      .. note:: Changes to this list will not update the KX_GameObject.
 
-      :type: list of :class:`SCA_ISensor`.
+      :type: list of :class:`SCA_ISensor`
+      
+      .. note::
+         
+         This attribute is experemental and may be removed (but probably wont be).
+
+      .. note::
+         
+         Changes to this list will not update the KX_GameObject.
 
    .. attribute:: actuators
 
       a list of :class:`SCA_IActuator` with string/index lookups and iterator support.
 
-      .. note:: This attribute is experemental and may be removed (but probably wont be).
-      .. note:: Changes to this list will not update the KX_GameObject.
-
       :type: list
+      
+      .. note::
+
+         This attribute is experemental and may be removed (but probably wont be).
+
+      .. note::
+
+         Changes to this list will not update the KX_GameObject.
 
    .. attribute:: attrDict
 
@@ -1265,7 +1305,9 @@ Game Engine  bge.types Module
       :return: the reaction force of this object.
       :rtype: list [fx, fy, fz]
 
-      .. note:: This is not implimented at the moment.
+      .. note::
+
+         This is not implimented at the moment.
 
    .. method:: applyImpulse(point, impulse)
 
@@ -1286,7 +1328,9 @@ Game Engine  bge.types Module
 
       Resumes physics for this object.
 
-      .. note:: The objects linear velocity will be applied from when the dynamics were suspended.
+      .. note::
+         
+         The objects linear velocity will be applied from when the dynamics were suspended.
 
    .. method:: enableRigidBody()
 
@@ -1294,13 +1338,17 @@ Game Engine  bge.types Module
 
       Rigid body physics allows the object to roll on collisions.
 
-      .. note:: This is not working with bullet physics yet.
+      .. note::
+         
+         This is not working with bullet physics yet.
 
    .. method:: disableRigidBody()
 
       Disables rigid body physics for this object.
 
-      .. note:: This is not working with bullet physics yet. The angular is removed but rigid body physics can still rotate it later.
+      .. note::
+
+         This is not working with bullet physics yet. The angular is removed but rigid body physics can still rotate it later.
 
    .. method:: setParent(parent, compound=True, ghost=True)
 
@@ -1324,7 +1372,9 @@ Game Engine  bge.types Module
 
       :type ghost: boolean
 
-      .. note:: if the object type is sensor, it stays ghost regardless of ghost parameter
+      .. note::
+      
+         If the object type is sensor, it stays ghost regardless of ghost parameter
 
    .. method:: removeParent()
 
@@ -1439,16 +1489,20 @@ Game Engine  bge.types Module
          * or 4-tuple (:class:`KX_GameObject`, 3-tuple (x, y, z), 3-tuple (nx, ny, nz), :class:`PolyProxy`)
          * or 5-tuple (:class:`KX_GameObject`, 3-tuple (x, y, z), 3-tuple (nx, ny, nz), :class:`PolyProxy`, 2-tuple (u, v))
 
-      .. note:: The ray ignores the object on which the method is called. It is casted from/to object center or explicit [x, y, z] points.
+      .. note::
+      
+         The ray ignores the object on which the method is called. It is casted from/to object center or explicit [x, y, z] points.
 
    .. method:: setCollisionMargin(margin)
 
       Set the objects collision margin.
 
-      .. note:: If this object has no physics controller (a physics ID of zero), this function will raise RuntimeError.
-
       :arg margin: the collision margin distance in blender units.
       :type margin: float
+
+      .. note::
+      
+         If this object has no physics controller (a physics ID of zero), this function will raise RuntimeError.
 
    .. method:: sendMessage(subject, body="", to="")
 
@@ -1472,14 +1526,28 @@ Game Engine  bge.types Module
       :arg meshObject: optional argument, set the physics shape from this mesh.
       :type meshObject: string, :class:`MeshProxy` or None
 
-      .. note:: if this object has instances the other instances will be updated too.
-      .. note:: the gameObject argument has an advantage that it can convert from a mesh with modifiers applied (such as subsurf).
-      .. warning:: only triangle mesh type objects are supported currently (not convex hull)
-      .. warning:: if the object is a part of a combound object it will fail (parent or child)
-      .. warning:: rebuilding the physics mesh can be slow, running many times per second will give a performance hit.
-
       :return: True if reinstance succeeded, False if it failed.
       :rtype: boolean
+
+      .. note::
+
+         If this object has instances the other instances will be updated too.
+      
+      .. note::
+
+         The gameObject argument has an advantage that it can convert from a mesh with modifiers applied (such as subsurf).
+      
+      .. warning::
+
+         Only triangle mesh type objects are supported currently (not convex hull)
+
+      .. warning::
+
+         If the object is a part of a combound object it will fail (parent or child)
+
+      .. warning::
+
+         Rebuilding the physics mesh can be slow, running many times per second will give a performance hit.
 
    .. method:: get(key, default=None)
 
@@ -1627,7 +1695,9 @@ Game Engine  bge.types Module
 
       :type: float in [0 - 1]
 
-      .. note:: Higher values result in a more focused light source.
+      .. note::
+         
+         Higher values result in a more focused light source.
 
 .. class:: KX_MeshProxy(SCA_IObject)
 
@@ -1995,9 +2065,11 @@ Game Engine  bge.types Module
 
       The angular displacement vector applied by the actuator
 
-      .. note:: Since the displacement is applied every frame, you must adjust the displacement based on the frame rate, or you game experience will depend on the player's computer speed.
-
       :type: list [x, y, z]
+      
+      .. note::
+      
+         Since the displacement is applied every frame, you must adjust the displacement based on the frame rate, or you game experience will depend on the player's computer speed.
 
    .. attribute:: useLocalDRot
 
@@ -2015,9 +2087,11 @@ Game Engine  bge.types Module
 
       A flag specifying if the linear velocity is local.
 
-      .. note:: This is the target speed for servo controllers.
-
       :type: boolean
+      
+      .. note::
+      
+         This is the target speed for servo controllers.
 
    .. attribute:: angV
 
@@ -2279,12 +2353,11 @@ Game Engine  bge.types Module
 
    Materials define the render state to be applied to mesh objects.
 
-   .. warning:: Some of the methods/variables are CObjects.  If you mix these up, you will crash blender.
+   .. warning::
 
-   This example requires
+      Some of the methods/variables are CObjects.  If you mix these up, you will crash blender.
 
-   * PyOpenGL <http://pyopengl.sourceforge.net>
-   * GLEWPy <http://glewpy.sourceforge.net>
+   This example requires `PyOpenGL <http://pyopengl.sourceforge.net>`_ and `GLEWPy <http://glewpy.sourceforge.net>`_
 
    .. code-block:: python
 
@@ -2719,6 +2792,14 @@ Game Engine  bge.types Module
 
    Edit Object Actuator (in Add Object Mode)
 
+   .. warning::
+
+      An Add Object actuator will be ignored if at game start, the linked object doesn't exist (or is empty) or the linked object is in an active layer.
+
+      This will genereate a warning in the console:
+
+      ``Error: GameObject 'Name' has a AddObjectActuator 'ActuatorName' without object (in 'nonactive' layer)``
+      
    .. attribute:: object
 
       the object this actuator adds.
@@ -2748,13 +2829,6 @@ Game Engine  bge.types Module
       the initial angular velocity of added objects.
 
       :type: list [vx, vy, vz]
-
-   .. warning:: An Add Object actuator will be ignored if at game start, the linked object doesn't exist
-        (or is empty) or the linked object is in an active layer.
-
-      This will genereate a warning in the console:
-
-      ``Error: GameObject 'Name' has a AddObjectActuator 'ActuatorName' without object (in 'nonactive' layer)``
 
    .. method:: instantAddObject()
 
@@ -2792,6 +2866,14 @@ Game Engine  bge.types Module
 .. class:: KX_SCA_ReplaceMeshActuator(SCA_IActuator)
 
    Edit Object actuator, in Replace Mesh mode.
+
+   .. warning::
+
+      Replace mesh actuators will be ignored if at game start, the named mesh doesn't exist.
+
+      This will generate a warning in the console
+
+      ``Error: GameObject 'Name' ReplaceMeshActuator 'ActuatorName' without object``
 
    .. code-block:: python
 
@@ -2836,12 +2918,6 @@ Game Engine  bge.types Module
 			if curmesh == None or curmesh[1] < depth or curmesh[2] > depth:
 				act.mesh = obj.getName() + newmesh[0]
 				GameLogic.addActiveActuator(act, True)
-
-   .. warning:: Replace mesh actuators will be ignored if at game start, the named mesh doesn't exist.
-
-      This will generate a warning in the console
-
-      ``Error: GameObject 'Name' ReplaceMeshActuator 'ActuatorName' without object``
 
    .. attribute:: mesh
 
@@ -2939,9 +3015,11 @@ Game Engine  bge.types Module
 
       The current active camera.
 
-      .. note:: this can be set directly from python to avoid using the :class:`KX_SceneActuator`.
-
       :type: :class:`KX_Camera`
+      
+      .. note::
+         
+         This can be set directly from python to avoid using the :class:`KX_SceneActuator`.
 
    .. attribute:: suspended
 
@@ -3024,11 +3102,13 @@ Game Engine  bge.types Module
 
    Scene Actuator logic brick.
 
-   .. warning:: Scene actuators that use a scene name will be ignored if at game start, the named scene doesn't exist or is empty
+   .. warning::
+
+      Scene actuators that use a scene name will be ignored if at game start, the named scene doesn't exist or is empty
 
       This will generate a warning in the console:
 
-        ``Error: GameObject 'Name' has a SceneActuator 'ActuatorName' (SetScene) without scene``
+      ``Error: GameObject 'Name' has a SceneActuator 'ActuatorName' (SetScene) without scene``
 
    .. attribute:: scene
 
@@ -3040,9 +3120,11 @@ Game Engine  bge.types Module
 
       the camera to change to.
 
-      .. note:: When setting the attribute, you can use either a :class:`KX_Camera` or the name of the camera.
-
       :type: :class:`KX_Camera` on read, string or :class:`KX_Camera` on write
+      
+      .. note::
+         
+         When setting the attribute, you can use either a :class:`KX_Camera` or the name of the camera.
 
    .. attribute:: useRestart
 
@@ -3156,8 +3238,9 @@ Game Engine  bge.types Module
 
    Edit Object actuator in Track To mode.
 
-   .. warning:: Track To Actuators will be ignored if at game start, the
-      object to track to is invalid.
+   .. warning::
+   
+      Track To Actuators will be ignored if at game start, the object to track to is invalid.
 
       This will generate a warning in the console:
 
@@ -3707,7 +3790,9 @@ Game Engine  bge.types Module
 
       :type: integer
 
-      .. note:: only use this for "Single Axis" type sensors otherwise it will raise an error.
+      .. note::
+         
+         Only use this for "Single Axis" type sensors otherwise it will raise an error.
 
    .. attribute:: hatValues
 
@@ -3970,9 +4055,11 @@ Game Engine  bge.types Module
       * When 'Script' execution mode is set this value contains the entire python script as a single string (not the script name as you might expect) which can be modified to run different scripts.
       * When 'Module' execution mode is set this value will contain a single line string - module name and function "module.func" or "package.modile.func" where the module names are python textblocks or external scripts.
 
-      .. note:: once this is set the script name given for warnings will remain unchanged.
-
       :type: string
+      
+      .. note::
+      
+         Once this is set the script name given for warnings will remain unchanged.
 
    .. attribute:: mode
 
@@ -4234,7 +4321,9 @@ Game Engine  bge.types Module
 
       :type: 4x4 Matrix [[float]]
 
-      .. note:: This matrix is regenerated every frame from the camera's position and orientation. 
+      .. note::
+      
+         This matrix is regenerated every frame from the camera's position and orientation. 
 
    .. attribute:: camera_to_world
 
@@ -4242,7 +4331,9 @@ Game Engine  bge.types Module
 
       :type: 4x4 Matrix [[float]]
 
-      .. note:: This matrix is regenerated every frame from the camera's position and orientation.
+      .. note::
+      
+         This matrix is regenerated every frame from the camera's position and orientation.
 
    .. attribute:: world_to_camera
 
@@ -4250,8 +4341,13 @@ Game Engine  bge.types Module
 
       :type: 4x4 Matrix [[float]]
 
-      .. note:: Regenerated every frame from the camera's position and orientation.
-      .. note:: This is camera_to_world inverted.
+      .. note::
+         
+         Regenerated every frame from the camera's position and orientation.
+
+      .. note::
+      
+         This is camera_to_world inverted.
 
    .. attribute:: useViewport
 
@@ -4283,7 +4379,9 @@ Game Engine  bge.types Module
 			else:
 				# Sphere is outside frustum
 
-      .. note:: when the camera is first initialized the result will be invalid because the projection matrix has not been set.
+      .. note::
+      
+         When the camera is first initialized the result will be invalid because the projection matrix has not been set.
 
    .. method:: boxInsideFrustum(box)
 
@@ -4316,7 +4414,9 @@ Game Engine  bge.types Module
       :type box: list of lists
       :return: INSIDE, OUTSIDE or INTERSECT
 
-      .. note:: when the camera is first initialized the result will be invalid because the projection matrix has not been set.
+      .. note::
+      
+         When the camera is first initialized the result will be invalid because the projection matrix has not been set.
 
    .. method:: pointInsideFrustum(point)
 
@@ -4340,7 +4440,9 @@ Game Engine  bge.types Module
       :return: True if the given point is inside this camera's viewing frustum.
       :rtype: boolean
 
-      .. note:: when the camera is first initialized the result will be invalid because the projection matrix has not been set.
+      .. note::
+      
+         When the camera is first initialized the result will be invalid because the projection matrix has not been set.
 
    .. method:: getCameraToWorld()
 
@@ -4510,7 +4612,9 @@ Game Engine  bge.types Module
 
       :type: :class:`KX_GameObject`.
       
-      .. note:: Currently, the only secondary target is the pole target for IK constraint.
+      .. note::
+      
+         Currently, the only secondary target is the pole target for IK constraint.
 
    .. attribute:: weight
 
@@ -4518,9 +4622,13 @@ Game Engine  bge.types Module
 
       :type: float.
 
-      .. note:: Currently only the IK constraint has a weight. It must be a value between 0 and 1.
+      .. note::
+      
+         Currently only the IK constraint has a weight. It must be a value between 0 and 1.
 
-      .. note:: A weight of 0 disables a constraint while still updating constraint runtime values (see :class:`BL_ArmatureConstraint`)
+      .. note::
+      
+         A weight of 0 disables a constraint while still updating constraint runtime values (see :class:`BL_ArmatureConstraint`)
 
 .. class:: KX_ArmatureSensor(SCA_ISensor)
 
@@ -4568,7 +4676,9 @@ Game Engine  bge.types Module
    Proxy to Armature Constraint. Allows to change constraint on the fly.
    Obtained through :class:`BL_ArmatureObject`.constraints.
 
-   .. note:: not all armature constraints are supported in the GE.
+   .. note::
+   
+      Not all armature constraints are supported in the GE.
 
 
    Constants related to see :data:`type`
@@ -4624,7 +4734,9 @@ Game Engine  bge.types Module
 
       :type: float.
 
-      .. note:: Only used if the target is a bone (i.e target object is an armature.
+      .. note::
+      
+         Only used if the target is a bone (i.e target object is an armature.
 
    .. attribute:: lin_error
 
@@ -4662,9 +4774,11 @@ Game Engine  bge.types Module
 
       True if the constraint is active.
 
-      .. note:: an inactive constraint does not update lin_error and rot_error.
-
       :type: boolean
+      
+      .. note::
+      
+         An inactive constraint does not update lin_error and rot_error.
 
    .. attribute:: ik_weight
 
@@ -4804,8 +4918,13 @@ Game Engine  bge.types Module
 
       :type: vector [X, Y, Z].
 
-      .. note:: You can only move a bone if it is unconnected to its parent. An action playing on the armature may change the value. An IK chain does not update this value, see joint_rotation.
-      .. note:: Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`).
+      .. note::
+      
+         You can only move a bone if it is unconnected to its parent. An action playing on the armature may change the value. An IK chain does not update this value, see joint_rotation.
+
+      .. note::
+      
+         Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`).
 
    .. attribute:: scale
 
@@ -4813,8 +4932,13 @@ Game Engine  bge.types Module
 
       :type: vector [sizeX, sizeY, sizeZ].
 
-      .. note:: An action playing on the armature may change the value.  An IK chain does not update this value, see joint_rotation.
-      .. note:: Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
+      .. note::
+      
+         An action playing on the armature may change the value.  An IK chain does not update this value, see joint_rotation.
+
+      .. note::
+      
+         Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
 
    .. attribute:: rotation
 
@@ -4822,8 +4946,13 @@ Game Engine  bge.types Module
 
       :type: vector [qr, qi, qj, qk].
 
-      .. note:: This field is only used if rotation_mode is 0. An action playing on the armature may change the value.  An IK chain does not update this value, see joint_rotation.
-      .. note:: Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
+      .. note::
+      
+         This field is only used if rotation_mode is 0. An action playing on the armature may change the value.  An IK chain does not update this value, see joint_rotation.
+
+      .. note::
+      
+         Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
 
    .. attribute:: euler_rotation
 
@@ -4831,8 +4960,13 @@ Game Engine  bge.types Module
 
       :type: vector [X, Y, Z].
 
-      .. note:: This field is only used if rotation_mode is > 0. You must always pass the angles in [X, Y, Z] order; the order of applying the angles to the bone depends on rotation_mode. An action playing on the armature may change this field.  An IK chain does not update this value, see joint_rotation.
-      .. note:: Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
+      .. note::
+      
+         This field is only used if rotation_mode is > 0. You must always pass the angles in [X, Y, Z] order; the order of applying the angles to the bone depends on rotation_mode. An action playing on the armature may change this field.  An IK chain does not update this value, see joint_rotation.
+
+      .. note::
+      
+         Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
 
    .. attribute:: rotation_mode
 
@@ -4965,10 +5099,21 @@ Game Engine  bge.types Module
       * 2DoF joint X+Z: treated as a 2DoF joint with rotation axis on the X/Z plane. The x and z values are used as the coordinates of the rotation vector in the X/Z plane.
       * 3DoF joint X+Y+Z: treated as a revolute joint. The [x, y, z] vector represents the equivalent rotation vector to bring the joint from the rest pose to the new pose.
 
-      .. note:: The bone must be part of an IK chain if you want to set the ik_dof_x/ik_dof_y/ik_dof_z attributes via the UI, but this will interfere with this attribute since the IK solver will overwrite the pose. You can stay in control of the armature if you create an IK constraint but do not finalize it (e.g. don't set a target) the IK solver will not run but the IK panel will show up on the UI for each bone in the chain.
-      .. note:: [0, 0, 0] always corresponds to the rest pose.
-      .. note:: You must request the armature pose to update and wait for the next graphic frame to see the effect of setting this attribute (see :data:`BL_ArmatureObject.update`).
-      .. note:: You can read the result of the calculation in rotation or euler_rotation attributes after setting this attribute.
+      .. note::
+      
+         The bone must be part of an IK chain if you want to set the ik_dof_x/ik_dof_y/ik_dof_z attributes via the UI, but this will interfere with this attribute since the IK solver will overwrite the pose. You can stay in control of the armature if you create an IK constraint but do not finalize it (e.g. don't set a target) the IK solver will not run but the IK panel will show up on the UI for each bone in the chain.
+
+      .. note::
+      
+         [0, 0, 0] always corresponds to the rest pose.
+
+      .. note::
+      
+         You must request the armature pose to update and wait for the next graphic frame to see the effect of setting this attribute (see :data:`BL_ArmatureObject.update`).
+
+      .. note::
+      
+         You can read the result of the calculation in rotation or euler_rotation attributes after setting this attribute.
 
 .. class:: BL_ArmatureBone(PyObjectPlus)
 
@@ -5047,7 +5192,9 @@ Game Engine  bge.types Module
 
       :type: matrix [4][4]
 
-      .. note:: This matrix has no scale part. 
+      .. note::
+      
+         This matrix has no scale part. 
 
    .. attribute:: bone_mat
 

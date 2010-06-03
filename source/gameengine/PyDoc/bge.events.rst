@@ -2,6 +2,10 @@
 Game Engine bge.events module
 =============================
 
+*****
+Intro
+*****
+
 This module holds key constants for the SCA_KeyboardSensor.
 
 .. module:: bge.events
@@ -37,6 +41,10 @@ This module holds key constants for the SCA_KeyboardSensor.
 			if key == bge.keys.DKEY:
 				# Activate Right!
 
+*********
+Functions
+*********
+
 .. function:: EventToString(event)
 
    Return the string name of a key event. Will raise a ValueError error if its invalid.
@@ -55,8 +63,31 @@ This module holds key constants for the SCA_KeyboardSensor.
    :arg shift: set to true if shift is held.
    :rtype: string
 
+****************
+Keys (Constants)
+****************
 
-**Alphabet keys**
+.. _mouse-keys:
+
+==========
+Mouse Keys
+==========
+
+.. data:: LEFTMOUSE
+.. data:: MIDDLEMOUSE
+.. data:: RIGHTMOUSE
+.. data:: WHEELUPMOUSE
+.. data:: WHEELDOWNMOUSE
+.. data:: MOUSEX
+.. data:: MOUSEY
+
+=============
+Keyboard Keys
+=============
+
+-------------
+Alphabet keys
+-------------
 
 .. data:: AKEY
 .. data:: BKEY
@@ -85,7 +116,9 @@ This module holds key constants for the SCA_KeyboardSensor.
 .. data:: YKEY
 .. data:: ZKEY
 
-**Number keys**
+-----------
+Number keys
+-----------
 
 .. data:: ZEROKEY
 .. data:: ONEKEY
@@ -98,7 +131,9 @@ This module holds key constants for the SCA_KeyboardSensor.
 .. data:: EIGHTKEY
 .. data:: NINEKEY
 
-**Modifiers**
+--------------
+Modifiers Keys
+--------------
 
 .. data:: CAPSLOCKKEY
 .. data:: LEFTCTRLKEY
@@ -108,14 +143,18 @@ This module holds key constants for the SCA_KeyboardSensor.
 .. data:: RIGHTSHIFTKEY
 .. data:: LEFTSHIFTKEY
 
-**Arrow Keys**
+----------
+Arrow Keys
+----------
 
 .. data:: LEFTARROWKEY
 .. data:: DOWNARROWKEY
 .. data:: RIGHTARROWKEY
 .. data:: UPARROWKEY
 
-**Numberpad Keys**
+--------------
+Numberpad Keys
+--------------
 
 .. data:: PAD0
 .. data:: PAD1
@@ -134,7 +173,9 @@ This module holds key constants for the SCA_KeyboardSensor.
 .. data:: PADENTER
 .. data:: PADPLUSKEY
 
-**Function Keys**
+-------------
+Function Keys
+-------------
 
 .. data:: F1KEY
 .. data:: F2KEY
@@ -156,7 +197,9 @@ This module holds key constants for the SCA_KeyboardSensor.
 .. data:: F18KEY
 .. data:: F19KEY
 
-**Other Keys**
+----------
+Other Keys
+----------
 
 .. data:: ACCENTGRAVEKEY
 .. data:: BACKSLASHKEY
@@ -182,13 +225,3 @@ This module holds key constants for the SCA_KeyboardSensor.
 .. data:: SLASHKEY
 .. data:: SPACEKEY
 .. data:: TABKEY
-
-**Mouse Events**
-
-.. data:: LEFTMOUSE
-.. data:: MIDDLEMOUSE
-.. data:: RIGHTMOUSE
-.. data:: WHEELUPMOUSE
-.. data:: WHEELDOWNMOUSE
-.. data:: MOUSEX
-.. data:: MOUSEY
