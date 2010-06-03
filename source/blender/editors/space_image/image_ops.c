@@ -1663,6 +1663,7 @@ static int sample_line_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
 	
 	int x_start= RNA_int_get(op->ptr, "xstart");
 	int y_start= RNA_int_get(op->ptr, "ystart");
@@ -1677,6 +1678,7 @@ static int sample_line_exec(bContext *C, wmOperator *op)
 	int x1, y1, x2, y2;
 	int i, x, y;
 	float *fp;
+	float rgb[3];
 	unsigned char *cp;
 	
 	if (ibuf == NULL) {
@@ -1710,10 +1712,16 @@ static int sample_line_exec(bContext *C, wmOperator *op)
 		} else {
 			if (ibuf->rect_float) {
 				fp= (ibuf->rect_float + (ibuf->channels)*(y*ibuf->x + x));
-				hist->data_r[i] = fp[0];
-				hist->data_g[i] = fp[1];
-				hist->data_b[i] = fp[2];
-				hist->data_luma[i] = (0.299f*fp[0] + 0.587f*fp[1] + 0.114f*fp[2]);
+
+				if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+					linearrgb_to_srgb_v3_v3(rgb, fp);
+				else
+					copy_v3_v3(rgb, fp);
+
+				hist->data_r[i] = rgb[0];
+				hist->data_g[i] = rgb[1];
+				hist->data_b[i] = rgb[2];
+				hist->data_luma[i] = (0.299f*rgb[0] + 0.587f*rgb[1] + 0.114f*rgb[2]);
 			}
 			else if (ibuf->rect) {
 				cp= (unsigned char *)(ibuf->rect + y*ibuf->x + x);
