@@ -161,13 +161,13 @@ EnumPropertyItem image_type_items[] = {
 
 #include "BLI_threads.h"
 #include "BLI_editVert.h"
+#include "BLI_blenlib.h"
 
 #include "WM_api.h"
 
 #include "ED_info.h"
 #include "ED_node.h"
 #include "ED_view3d.h"
-#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_keyframing.h"
 
@@ -220,8 +220,8 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 		return;
 	}
 
-	/* as long as ED_base_object_free_and_unlink calls free_libblock_us, we don't have to decrement ob->id.us */
-	ED_base_object_free_and_unlink(scene, base);
+	BLI_remlink(&scene->base, base);
+	ob->id.us--;
 
 	/* needed otherwise the depgraph will contain free'd objects which can crash, see [#20958] */
 	DAG_scene_sort(scene);
