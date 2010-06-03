@@ -432,6 +432,12 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Clamp Y", "Disable texture repeating vertically");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
+	prop= RNA_def_property(srna, "bindcode", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "bindcode");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Bindcode", "OpenGL bindcode");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+
 	/*
 	   Image.has_data and Image.depth are temporary,
 	   Update import_obj.py when they are replaced (Arystan)
