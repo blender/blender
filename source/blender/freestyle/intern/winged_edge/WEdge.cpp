@@ -626,7 +626,12 @@ WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial)
   // allocate the new face
   WFace *face = instanciateFace();
 
-  return MakeFace(iVertexList, iMaterial, face);
+  WFace *result = MakeFace(iVertexList, iMaterial, face);
+  if (0 == result) {
+    delete face;
+    return 0;
+  }
+  return result;
 }
 
 WFace * WShape::MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList, unsigned iMaterial)
