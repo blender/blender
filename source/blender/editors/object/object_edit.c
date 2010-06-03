@@ -2151,6 +2151,7 @@ static int game_property_new(bContext *C, wmOperator *op)
 	BLI_addtail(&ob->prop, prop);
 	unique_property(NULL, prop, 0); // make_unique_prop_names(prop->name);
 
+	WM_event_add_notifier(C, NC_LOGIC, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -2183,6 +2184,8 @@ static int game_property_remove(bContext *C, wmOperator *op)
 	if(prop) {
 		BLI_remlink(&ob->prop, prop);
 		free_property(prop);
+
+		WM_event_add_notifier(C, NC_LOGIC, NULL);
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -2208,13 +2211,11 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 
 #define COPY_PROPERTIES_REPLACE	1
 #define COPY_PROPERTIES_MERGE	2
-#define COPY_PROPERTIES_CLEAR	3
-#define COPY_PROPERTIES_COPY	4
+#define COPY_PROPERTIES_COPY	3
 
 static EnumPropertyItem game_properties_copy_operations[] ={
 	{COPY_PROPERTIES_REPLACE, "REPLACE", 0, "Replace Properties", ""},
 	{COPY_PROPERTIES_MERGE, "MERGE", 0, "Merge Properties", ""},
-	{COPY_PROPERTIES_CLEAR, "CLEAR", 0, "Clear All", ""},
 	{COPY_PROPERTIES_COPY, "COPY", 0, "Copy a Property", ""},
 	{0, NULL, 0, NULL, NULL}};
 
@@ -2264,7 +2265,7 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 			} CTX_DATA_END;
 		}
 	}
-	else if (ELEM3(type, COPY_PROPERTIES_REPLACE, COPY_PROPERTIES_MERGE, COPY_PROPERTIES_CLEAR)) {
+	else if (ELEM(type, COPY_PROPERTIES_REPLACE, COPY_PROPERTIES_MERGE)) {
 		CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
 			if (ob != ob_iter) {
 				if (ob->data != ob_iter->data){
@@ -2272,7 +2273,7 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 						for(prop = ob->prop.first; prop; prop= prop->next ) {
 							set_ob_property(ob_iter, prop);
 						}
-					} else /* replace or clear */
+					} else /* replace */
 						copy_properties( &ob_iter->prop, &ob->prop );
 				}
 			}
@@ -2301,6 +2302,33 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 	prop=RNA_def_enum(ot->srna, "property", gameprops_items, 0, "Property", "Properties to copy");
 	RNA_def_enum_funcs(prop, gameprops_itemf);
 	ot->prop=prop;
+}
+
+static int game_property_clear_exec(bContext *C, wmOperator *op)
+{
+	Object *ob=ED_object_active_context(C);
+	bProperty *prop;
+
+	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
+		free_properties(&ob_iter->prop);
+	}
+	CTX_DATA_END;
+
+	WM_event_add_notifier(C, NC_LOGIC, NULL);
+	return OPERATOR_FINISHED;
+}
+void OBJECT_OT_game_property_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Game Property";
+	ot->idname= "OBJECT_OT_game_property_clear";
+
+	/* api callbacks */
+	ot->exec= game_property_clear_exec;
+	ot->poll= ED_operator_object_active_editable;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************************ Copy Logic Bricks ***********************/

@@ -184,6 +184,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_game_property_new);
 	WM_operatortype_append(OBJECT_OT_game_property_remove);
 	WM_operatortype_append(OBJECT_OT_game_property_copy);
+	WM_operatortype_append(OBJECT_OT_game_property_clear);
 	WM_operatortype_append(OBJECT_OT_logic_bricks_copy);
 
 	WM_operatortype_append(OBJECT_OT_shape_key_add);
