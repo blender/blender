@@ -216,9 +216,14 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	unsigned numFaces = 0;
 	float v1[3], v2[3], v3[3], v4[3];
 	int clip_1[3], clip_2[3];
+	int wire_material = 0;
 	for(int a=0; a < obr->totvlak; a++) {
 		if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
 		else vlr++;
+		if (vlr->mat->material_type == MA_TYPE_WIRE) {
+			wire_material = 1;
+			continue;
+		}
 		copy_v3_v3(v1, vlr->v1->co);
 		copy_v3_v3(v2, vlr->v2->co);
 		copy_v3_v3(v3, vlr->v3->co);
@@ -237,6 +242,8 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		if (vlr->v4)
 			numFaces += countClippedFaces(v1, v3, v4, clip_2);
 	}
+	if (wire_material)
+		cout << "Warning: some faces have wire materials (ignored)" << endl;
 //	cout <<"numFaces " <<numFaces<<endl;
 	if (numFaces == 0)
 		return;
