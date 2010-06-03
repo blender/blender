@@ -1,3 +1,26 @@
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Jan Diederich, Tod Liverseed.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -638,8 +661,8 @@ public:
 			source.setAccessorCount(totuv);
 			source.setAccessorStride(2);
 			COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-			param.push_back("X");
-			param.push_back("Y");
+			param.push_back("S");
+			param.push_back("T");
 			
 			source.prepareToAppendValues();
 			
@@ -908,7 +931,7 @@ public:
 		Object *ob_arm = get_assigned_armature(ob);
 		bArmature *arm = (bArmature*)ob_arm->data;
 
-		const std::string& controller_id = get_controller_id(ob_arm);
+		const std::string& controller_id = get_controller_id(ob_arm, ob);
 
 		COLLADASW::InstanceController ins(mSW);
 		ins.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, controller_id));
@@ -1051,9 +1074,9 @@ private:
 		TransformWriter::add_node_transform(node, mat, NULL);
 	}
 
-	std::string get_controller_id(Object *ob_arm)
+	std::string get_controller_id(Object *ob_arm, Object *ob)
 	{
-		return translate_id(id_name(ob_arm)) + SKIN_CONTROLLER_ID_SUFFIX;
+		return translate_id(id_name(ob_arm)) + "_" + translate_id(id_name(ob)) + SKIN_CONTROLLER_ID_SUFFIX;
 	}
 
 	// ob should be of type OB_MESH
@@ -1087,7 +1110,7 @@ private:
 		if (!me->dvert) return;
 
 		std::string controller_name = id_name(ob_arm);
-		std::string controller_id = get_controller_id(ob_arm);
+		std::string controller_id = get_controller_id(ob_arm, ob);
 
 		openSkin(controller_id, controller_name,
 				 COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob)));
