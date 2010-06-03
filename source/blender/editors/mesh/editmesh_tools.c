@@ -485,7 +485,7 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	int count = removedoublesflag(em,1,0,RNA_float_get(op->ptr, "limit"));
 	
 	if(count)
-		BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", cnt);
+		BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
