@@ -1059,7 +1059,7 @@ void BL_ConvertActuators(char* maggiename,
 
 				KX_SteeringActuator *tmpstact
 					= new KX_SteeringActuator(gameobj, mode, targetob, navmeshob,
-												stAct->movement, stAct->dist);
+												stAct->velocity, stAct->dist, scene->GetObstacleSimulation());
 				baseact = tmpstact;
 				break;
 			}

@@ -41,6 +41,8 @@
 
 class KX_GameObject;
 class KX_NavMeshObject;
+struct KX_Obstacle;
+class KX_ObstacleSimulation;
 
 class KX_SteeringActuator : public SCA_IActuator
 {
@@ -49,10 +51,14 @@ class KX_SteeringActuator : public SCA_IActuator
 	/** Target object */
 	KX_GameObject *m_target;
 	KX_NavMeshObject *m_navmesh;
-
 	int	m_mode;
 	MT_Scalar m_distance;
-	MT_Scalar m_movement;
+	MT_Scalar m_velocity;
+	KX_ObstacleSimulation* m_simulation;
+	
+	KX_Obstacle* m_obstacle;
+	double m_updateTime;
+	bool m_isActive;
 public:
 	enum KX_STEERINGACT_MODE
 	{
@@ -68,9 +74,10 @@ public:
 						KX_GameObject *target, 
 						KX_GameObject *navmesh,
 						MT_Scalar movement, 
-						MT_Scalar distance);
+						MT_Scalar distance,
+						KX_ObstacleSimulation* simulation);
 	virtual ~KX_SteeringActuator();
-	virtual bool Update();
+	virtual bool Update(double curtime, bool frame);
 
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();

@@ -83,6 +83,7 @@ class SCA_JoystickManager;
 class btCollisionShape;
 class KX_BlenderSceneConverter;
 struct KX_ClientObjectInfo;
+class KX_ObstacleSimulation;
 
 /* for ID freeing */
 #define IS_TAGGED(_id) ((_id) && (((ID *)_id)->flag & LIB_DOIT))
@@ -276,6 +277,8 @@ protected:
 	struct Scene* m_blenderScene;
 
 	RAS_2DFilterManager m_filtermanager;
+
+	KX_ObstacleSimulation* m_obstacleSimulation;
 
 public:	
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
@@ -540,6 +543,8 @@ public:
 	*/
 	void Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
 	void Render2DFilters(RAS_ICanvas* canvas);
+
+	KX_ObstacleSimulation* GetObstacleSimulation() {return m_obstacleSimulation;};
 
 #ifndef DISABLE_PYTHON
 	/* --------------------------------------------------------------------- */

@@ -218,7 +218,7 @@ typedef struct bSteeringActuator {
 	char pad[4];
 	int type;		/* 0=seek, 1=flee, 2=path following */
 	float dist;
-	float movement;
+	float velocity;
 	struct Object *target;
 	struct Object *navmesh;
 } bSteeringActuator;

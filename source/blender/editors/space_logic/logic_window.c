@@ -4272,7 +4272,7 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 
 	row = uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "distance", 0, NULL, 0);
-	uiItemR(row, ptr, "movement", 0, NULL, 0);
+	uiItemR(row, ptr, "velocity", 0, NULL, 0);
 }
 
 

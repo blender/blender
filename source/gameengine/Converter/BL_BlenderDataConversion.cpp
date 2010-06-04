@@ -173,6 +173,7 @@ extern "C" {
 #include "BL_DeformableGameObject.h"
 
 #include "KX_NavMeshObject.h"
+#include "KX_ObstacleSimulation.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -2638,6 +2639,20 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	converter->RegisterWorldInfo(worldinfo);
 	kxscene->SetWorldInfo(worldinfo);
 
+	//create object representations for obstacle simulation
+	KX_ObstacleSimulation* obssimulation = kxscene->GetObstacleSimulation();
+	if (obssimulation)
+	{
+		for ( i=0;i<objectlist->GetCount();i++)
+		{
+			KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
+			if (gameobj->IsDynamic())
+			{
+				obssimulation->AddObstacleForObj(gameobj);
+			}
+		}
+	}
+
 #define CONVERT_LOGIC
 #ifdef CONVERT_LOGIC
 	// convert logic bricks, sensors, controllers and actuators
@@ -2689,9 +2704,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			pathfinder->BuildNavMesh();
 			pathfinder->SetVisible(0, true);
 		}
-	}		
-	
-
+	}
 	
 	// Calculate the scene btree -
 	// too slow - commented out.

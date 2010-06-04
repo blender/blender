@@ -85,6 +85,7 @@
 #include "BL_DeformableGameObject.h"
 #include "KX_SoftBodyDeformer.h"
 
+#include "KX_ObstacleSimulation.h"
 // to get USE_BULLET!
 #include "KX_ConvertPhysicsObject.h"
 
@@ -210,6 +211,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	m_bucketmanager=new RAS_BucketManager();
 
+	m_obstacleSimulation = new KX_ObstacleSimulationTOI;//KX_ObstacleSimulation;
+
 #ifndef DISABLE_PYTHON
 	m_attr_dict = PyDict_New(); /* new ref */
 	m_draw_call_pre = NULL;
@@ -221,6 +224,9 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 KX_Scene::~KX_Scene()
 {
+	if (m_obstacleSimulation)
+		delete m_obstacleSimulation;
+
 	// The release of debug properties used to be in SCA_IScene::~SCA_IScene
 	// It's still there but we remove all properties here otherwise some
 	// reference might be hanging and causing late release of objects
@@ -1460,6 +1466,10 @@ void KX_Scene::LogicBeginFrame(double curtime)
 			// all object is the tempObjectList should have a clock
 		}
 	}
+
+	//prepare obstacle simulation for new frame
+	m_obstacleSimulation->UpdateObstacles();
+
 	m_logicmgr->BeginFrame(curtime, 1.0/KX_KetsjiEngine::GetTicRate());
 }
 

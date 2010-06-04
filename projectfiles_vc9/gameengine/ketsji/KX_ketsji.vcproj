@@ -556,6 +556,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_ObstacleSimulation.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PhysicsObjectWrapper.cpp"
 				>
 			</File>
@@ -862,6 +866,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_NavMeshObject.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_ObstacleSimulation.h"
 				>
 			</File>
 			<File
