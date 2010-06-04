@@ -218,6 +218,23 @@ void arrows_move_cursor(unsigned short event)
 
 /* *********************** GESTURE AND LASSO ******************* */
 
+static int view3d_selectable_data(bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+	
+	if (!ED_operator_view3d_active(C))
+		return 0;
+	
+	if (!CTX_data_edit_object(C))
+		if (ob && ob->mode & OB_MODE_SCULPT)
+			return 0;
+		if (ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT) && !paint_facesel_test(ob))
+			return 0;
+	
+	return 1;
+}
+
+
 /* helper also for borderselect */
 static int edge_fully_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
 {
@@ -778,7 +795,7 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 	ot->invoke= WM_gesture_lasso_invoke;
 	ot->modal= WM_gesture_lasso_modal;
 	ot->exec= view3d_lasso_select_exec;
-	ot->poll= WM_operator_winactive;
+	ot->poll= view3d_selectable_data;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
@@ -1706,8 +1723,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= view3d_borderselect_exec;
 	ot->modal= WM_border_select_modal;
-	
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= view3d_selectable_data;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
@@ -2113,7 +2129,7 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;
 	ot->exec= view3d_circle_select_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= view3d_selectable_data;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
