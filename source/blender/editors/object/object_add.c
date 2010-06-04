@@ -1055,7 +1055,7 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 
 static EnumPropertyItem convert_target_items[]= {
 	{OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
-	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Mesh", ""},
+	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static void curvetomesh(Scene *scene, Object *ob) 
