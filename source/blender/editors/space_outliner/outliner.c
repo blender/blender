@@ -2457,7 +2457,13 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 					if(obedit) 
 						ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 					else {
-						ED_object_enter_editmode(C, EM_WAITCURSOR);
+						Object *ob= CTX_data_active_object(C);
+
+						/* Don't allow edit mode if the object is hide!
+						 * check the bug #22153 and #21609
+						 */
+						if (ob && (!(ob->restrictflag & OB_RESTRICT_VIEW)))
+							ED_object_enter_editmode(C, EM_WAITCURSOR);
 						// XXX extern_set_butspace(F9KEY, 0);
 					}
 				} else {	// rest of types
@@ -4862,6 +4868,16 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 	Base *base;
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
+	Object *obedit= CTX_data_edit_object(C);
+
+	/* Don't allow hide an objet in edit mode,
+	 * check the bug #22153 and #21609
+	 */
+	if (obedit && obedit == ob) {
+		if (ob->restrictflag & OB_RESTRICT_VIEW)
+			ob->restrictflag &= ~OB_RESTRICT_VIEW;
+		return;
+	}
 	
 	/* deselect objects that are invisible */
 	if (ob->restrictflag & OB_RESTRICT_VIEW) {
