@@ -1380,7 +1380,7 @@ static unsigned int free_localbit(void)
 	return 0;
 }
 
-int ED_view3d_scene_layer_set(int lay, const int *values)
+int ED_view3d_scene_layer_set(int lay, const int *values, int *active)
 {
 	int i, tot= 0;
 	
@@ -1393,8 +1393,26 @@ int ED_view3d_scene_layer_set(int lay, const int *values)
 		return lay;
 	
 	for(i=0; i<20; i++) {
-		if(values[i]) lay |= (1<<i);
+		
+		if (active) {
+			/* if this value has just been switched on, make that layer active */
+			if (values[i] && (lay & (1<<i))==0) {
+				*active = (1<<i);
+			}
+		}
+			
+		if (values[i]) lay |= (1<<i);
 		else lay &= ~(1<<i);
+	}
+	
+	/* ensure always an active layer */
+	if (active && (lay & *active)==0) {
+		for(i=0; i<20; i++) {
+			if(lay & (1<<i)) {
+				*active= 1<<i;
+				break;
+			}
+		}
 	}
 	
 	return lay;

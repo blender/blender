@@ -755,9 +755,11 @@ typedef struct Scene {
 	float cursor[3];			/* 3d cursor location */
 	float twcent[3];			/* center for transform widget */
 	float twmin[3], twmax[3];	/* boundbox of selection for transform widget */
-	unsigned int lay;
 	
-
+	unsigned int lay;			/* bitflags for layer visibility */
+	int layact;		/* active layer */
+	int pad1;
+	
 	short flag;								/* various settings */
 	
 	short use_nodes;

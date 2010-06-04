@@ -10852,6 +10852,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
 		Object *ob;
+		Scene *scene;
 		bScreen *sc;
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
@@ -10908,6 +10909,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+		
+		/* initialise scene active layer */
+		for (scene= main->scene.first; scene; scene=scene->id.next) {
+			int i;
+			for(i=0; i<20; i++) {
+				if(scene->lay & (1<<i)) {
+					scene->layact= 1<<i;
+					break;
+				}
+			}
+		}
+
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

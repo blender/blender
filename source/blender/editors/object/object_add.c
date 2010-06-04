@@ -212,12 +212,13 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 				for(a=0; a<32; a++)
 					values[a]= (layer & (1<<a));
 			} else {
-				layer = v3d->layact;
+				layer = (v3d->scenelock)?scene->layact:v3d->layact;
+
 				for(a=0; a<32; a++)
 					values[a]= (layer & (1<<a));
 			}
 		} else {
-			layer = scene->lay;
+			layer = scene->layact;
 			for(a=0; a<32; a++)
 				values[a]= (layer & (1<<a));
 		}

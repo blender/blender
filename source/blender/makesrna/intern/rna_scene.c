@@ -272,7 +272,7 @@ static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 {
 	Scene *scene= (Scene*)ptr->data;
 
-	scene->lay= ED_view3d_scene_layer_set(scene->lay, values);
+	scene->lay= ED_view3d_scene_layer_set(scene->lay, values, &scene->layact);
 }
 
 static void rna_Scene_view3d_update(Main *bmain, Scene *unused, PointerRNA *ptr)
@@ -734,7 +734,7 @@ static int rna_RenderSettings_use_game_engine_get(PointerRNA *ptr)
 static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 {
 	SceneRenderLayer *rl= (SceneRenderLayer*)ptr->data;
-	rl->lay= ED_view3d_scene_layer_set(rl->lay, values);
+	rl->lay= ED_view3d_scene_layer_set(rl->lay, values, NULL);
 }
 
 static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *unused, PointerRNA *ptr)

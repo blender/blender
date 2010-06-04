@@ -303,7 +303,7 @@ static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const int *values)
 {
 	View3D *v3d= (View3D*)(ptr->data);
 	
-	v3d->lay= ED_view3d_scene_layer_set(v3d->lay, values);
+	v3d->lay= ED_view3d_scene_layer_set(v3d->lay, values, &v3d->layact);
 }
 
 static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
