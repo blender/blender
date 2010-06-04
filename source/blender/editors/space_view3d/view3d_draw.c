@@ -2043,6 +2043,8 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	glPopMatrix();
 
 	glColor4ub(255, 255, 255, 255); // XXX, without this the sequencer flickers with opengl draw enabled, need to find out why - campbell
+
+	G.f &= ~G_RENDER_OGL;
 }
 
 /* utility func for ED_view3d_draw_offscreen */
