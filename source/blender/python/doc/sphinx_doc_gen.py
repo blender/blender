@@ -657,10 +657,10 @@ def rna2sphinx(BASEPATH):
                 py_descr2sphinx("   ", fw, descr, "bpy.types", _BPY_STRUCT_FAKE, key)
 
 
-    # oeprators
+    # operators
     def write_ops():
+        API_BASEURL='https://svn.blender.org/svnroot/bf-blender/trunk/blender/release/scripts'
         fw = None
-        
         last_mod = ''
         
         for op_key in sorted(ops.keys()):
@@ -688,7 +688,7 @@ def rna2sphinx(BASEPATH):
 
             location = op.get_location()
             if location != (None, None):
-                fw("   *python operator source --- `%s:%d`* \n\n" % location)
+                fw("   :file: `%s <%s/%s>`_:%d\n\n" % (location[0],API_BASEURL,location[0],location[1]))
     
     write_ops()
 
