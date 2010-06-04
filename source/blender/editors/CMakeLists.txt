@@ -24,78 +24,39 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC */*.c)
-
-SET(INC ../windowmanager
-	../editors/include ../editors/interface
-	../../../intern/guardedalloc ../../../intern/memutil
-	../blenlib ../makesdna ../makesrna ../blenkernel
-	../include ../imbuf ../render/extern/include
-	../../../intern/bsp/extern
-	../../../intern/decimation/extern ../blenloader ../python
-	../../kernel/gen_system ../readstreamglue
-	../../../intern/elbeem/extern
-	../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include ../../../intern/smoke/extern
-	../../../intern/audaspace/intern
-	../nodes
-	../gpu
-	../blenfont
-	../ikplugin
-)
-
-ADD_DEFINITIONS(-DGLEW_STATIC)
-
-IF(WITH_GAMEENGINE)
-	ADD_DEFINITIONS(-DGAMEBLENDER)
-ENDIF(WITH_GAMEENGINE)
-
-IF(WITH_INTERNATIONAL)
-	ADD_DEFINITIONS(-DINTERNATIONAL)
-ENDIF(WITH_INTERNATIONAL)
-
-IF(WITH_OPENEXR)
-	ADD_DEFINITIONS(-DWITH_OPENEXR)
-ENDIF(WITH_OPENEXR)
-
-IF(WITH_TIFF)
-	ADD_DEFINITIONS(-DWITH_TIFF)
-ENDIF(WITH_TIFF)
-
-IF(WITH_OPENJPEG)
-	ADD_DEFINITIONS(-DWITH_OPENJPEG)
-ENDIF(WITH_OPENJPEG)
-
-IF(WITH_QUICKTIME)
-	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
-	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
-
-IF(WITH_FFMPEG)
-	SET(INC ${INC} ${FFMPEG_INC})
-	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
-
-IF(WITH_OPENMP)
-		ADD_DEFINITIONS(-DPARALLEL=1)
-ENDIF(WITH_OPENMP)
-
-IF(NOT WITH_ELBEEM)
-	ADD_DEFINITIONS(-DDISABLE_ELBEEM)
-ENDIF(NOT WITH_ELBEEM)
-
-IF(WITH_PYTHON)
-	SET(INC ${INC} ${PYTHON_INC})
-ELSE(WITH_PYTHON)
-	ADD_DEFINITIONS(-DDISABLE_PYTHON)
-ENDIF(WITH_PYTHON)
-
-IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
-ENDIF(WIN32)
-
-IF(WITH_BUILDINFO)
-	ADD_DEFINITIONS(-DNAN_BUILDINFO)
-ENDIF(WITH_BUILDINFO)
-
-BLENDERLIB_NOLIST(bf_editors "${SRC}" "${INC}")
-
+ADD_SUBDIRECTORY(animation)
+ADD_SUBDIRECTORY(armature)
+ADD_SUBDIRECTORY(curve)
+ADD_SUBDIRECTORY(datafiles)
+ADD_SUBDIRECTORY(gpencil)
+ADD_SUBDIRECTORY(interface)
+ADD_SUBDIRECTORY(mesh)
+ADD_SUBDIRECTORY(metaball)
+ADD_SUBDIRECTORY(object)
+ADD_SUBDIRECTORY(physics)
+ADD_SUBDIRECTORY(render)
+ADD_SUBDIRECTORY(screen)
+ADD_SUBDIRECTORY(sculpt_paint)
+ADD_SUBDIRECTORY(sound)
+ADD_SUBDIRECTORY(space_action)
+ADD_SUBDIRECTORY(space_api)
+ADD_SUBDIRECTORY(space_buttons)
+ADD_SUBDIRECTORY(space_console)
+ADD_SUBDIRECTORY(space_file)
+ADD_SUBDIRECTORY(space_graph)
+ADD_SUBDIRECTORY(space_image)
+ADD_SUBDIRECTORY(space_info)
+ADD_SUBDIRECTORY(space_logic)
+ADD_SUBDIRECTORY(space_nla)
+ADD_SUBDIRECTORY(space_node)
+ADD_SUBDIRECTORY(space_outliner)
+ADD_SUBDIRECTORY(space_script)
+ADD_SUBDIRECTORY(space_sequencer)
+ADD_SUBDIRECTORY(space_sound)
+ADD_SUBDIRECTORY(space_text)
+ADD_SUBDIRECTORY(space_time)
+ADD_SUBDIRECTORY(space_userpref)
+ADD_SUBDIRECTORY(space_view3d)
+ADD_SUBDIRECTORY(transform)
+ADD_SUBDIRECTORY(util)
+ADD_SUBDIRECTORY(uvedit)

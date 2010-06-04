@@ -345,7 +345,7 @@ ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_editors blender_render)
+SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager blender_render)
 
 IF(WITH_ELBEEM)
 	SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} bf_elbeem)
@@ -359,7 +359,45 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	# Sort libraries
 	SET(BLENDER_SORTED_LIBS
 		bf_windowmanager
-		bf_editors
+
+        bf_editor_space_api
+        bf_editor_space_action
+        bf_editor_space_buttons
+        bf_editor_space_console
+        bf_editor_space_file
+        bf_editor_space_graph
+        bf_editor_space_image
+        bf_editor_space_info
+        bf_editor_space_logic
+        bf_editor_space_nla
+        bf_editor_space_node
+        bf_editor_space_outliner
+        bf_editor_space_script
+        bf_editor_space_sequencer
+        bf_editor_space_sound
+        bf_editor_space_time
+        bf_editor_space_userpref
+        bf_editor_space_view3d
+
+        bf_editor_text
+        bf_editor_transform
+        bf_editor_util
+        bf_editor_uvedit
+        bf_editor_curve
+        bf_editor_armature
+        bf_editor_gpencil
+        bf_editor_interface
+        bf_editor_mesh
+        bf_editor_metaball
+        bf_editor_object
+        bf_editor_physics
+        bf_editor_render
+        bf_editor_screen
+        bf_editor_sculpt_paint
+        bf_editor_sound
+        bf_editor_animation
+        bf_editor_datafiles
+
 		blender_BSP 
 		bf_ghost 
 		bf_string 
@@ -429,6 +467,7 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_blenfont
 		bf_audaspace
 		bf_decimation
+
 	)
 
 	IF(WITH_CXX_GUARDEDALLOC)
