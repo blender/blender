@@ -70,12 +70,6 @@ public:
 	  */
 	
 	virtual std::vector<NG_NetworkMessage*> RetrieveNetworkMessages()=0;
-
-	/**
-	  * number of messages in device hash for this frame
-	  */
-
-	virtual STR_String GetNetworkVersion(void)=0;
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC

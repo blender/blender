@@ -362,7 +362,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels, ReportList *reports)
 	}
 
 	if (c->pix_fmt != PIX_FMT_BGR32) {
-		sws_scale(img_convert_ctx, (const uint8_t * const*) rgb_frame->data,
+		sws_scale(img_convert_ctx, (uint8_t **) rgb_frame->data,
 			  rgb_frame->linesize, 0, c->height, 
 			  current_frame->data, current_frame->linesize);
 		delete_picture(rgb_frame);

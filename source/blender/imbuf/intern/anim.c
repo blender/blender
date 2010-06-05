@@ -816,7 +816,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 					unsigned char* top;
 
 					sws_scale(anim->img_convert_ctx,
-						  (const uint8_t * const *)input->data,
+						  (uint8_t **)input->data,
 						  input->linesize,
 						  0,
 						  anim->pCodecCtx->height,
@@ -875,7 +875,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 					unsigned char* r;
 	
 					sws_scale(anim->img_convert_ctx,
-						  (const uint8_t * const *)input->data,
+						  (uint8_t **)input->data,
 						  input->linesize,
 						  0,
 						  anim->pCodecCtx->height,

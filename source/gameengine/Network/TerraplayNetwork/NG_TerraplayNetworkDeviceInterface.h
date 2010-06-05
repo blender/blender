@@ -56,8 +56,6 @@ public:
 
 	void SendNetworkMessage(NG_NetworkMessage* nwmsg);
 	vector<NG_NetworkMessage*> RetrieveNetworkMessages(void);
-	
-	STR_String GetNetworkVersion(void);
 
 	int mytest(void);
 };

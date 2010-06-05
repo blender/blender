@@ -676,7 +676,7 @@ error:
 	// Return a empty buffer to avoid a crash in Python 3.1
 	// The bug is fixed in Python SVN 77916, as soon as the python revision used by Blender is
 	// updated, you can simply return -1 and set the error
-	static char* buf = "";
+	static char* buf = (char *)"";
     ret = PyBuffer_FillInfo(view, (PyObject*)self, buf, 0, 0, flags);
     if (ret >= 0)
         self->m_image->m_exports++;

@@ -132,8 +132,7 @@ static void error(const char *dummy, ...) {}
 static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int startx, int *starty);
 static void outliner_do_object_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *));
-static void outliner_do_group_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
- 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *));
+
 static int group_select_flag(Group *gr);
 
 /* ******************** PERSISTANT DATA ***************** */
@@ -3326,31 +3325,6 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 		}
 		if((tselem->flag & TSE_CLOSED)==0) {
 			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb);
-		}
-	}
-}
-
-static void outliner_do_group_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
- 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *))
- {
- 	TreeElement *te;
- 	TreeStoreElem *tselem;
- 	
- 	for(te=lb->first; te; te= te->next) {
- 		tselem= TREESTORE(te);
- 		if(tselem->flag & TSE_SELECTED) {
- 			if(tselem->type==0 && te->idcode==ID_GR) {
- 				/* when objects selected in other scenes... dunno if that should be allowed */
- 				Scene *sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
- 				if(sce && scene != sce) {
- 					ED_screen_set_scene(C, sce);
- 				}
- 				
- 				operation_cb(C, scene, te, NULL, tselem);
- 			}
- 		}
-		if((tselem->flag & TSE_CLOSED)==0) {
- 			outliner_do_group_operation(C, scene, soops, &te->subtree, operation_cb);
 		}
 	}
 }

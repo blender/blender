@@ -23,7 +23,9 @@ http://www.gnu.org/copyleft/lesser.txt.
 #ifdef WITH_FFMPEG
 
 // INT64_C fix for some linux machines (C99ism)
+#ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS
+#endif
 #include <stdint.h>
 
 
@@ -937,7 +939,6 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 		if (position != m_curPosition + 1) 
 		{ 
 			int64_t pos = (int64_t)((position - m_preseek) / (m_baseFrameRate*timeBase));
-			int seekres;
 
 			if (pos < 0)
 				pos = 0;
