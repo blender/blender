@@ -35,8 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLO_readfile.h"
-		
+#include "BLO_readfile.h" /* get the ID name for dnd*/
+
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
