@@ -310,7 +310,7 @@ Scene *add_scene(char *name)
 	int a;
 
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
-	sce->lay= 1;
+	sce->lay= sce->layact= 1;
 	
 	sce->r.mode= R_GAMMA|R_OSA|R_SHADOW|R_SSS|R_ENVMAP|R_RAYTRACE;
 	sce->r.cfra= 1;
