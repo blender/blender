@@ -119,8 +119,9 @@ def setup_staticlibs(lenv):
 	]
 
 	libincs = []
-	if lenv['OURPLATFORM'] != 'linuxcross':
-		libincs.append('/usr/lib')
+
+	if lenv['WITH_BF_FFMPEG']:
+		libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
 
 	libincs.extend([
 		lenv['BF_OPENGL_LIBPATH'],
@@ -136,8 +137,6 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_PYTHON_LIBPATH'])
 	if lenv['WITH_BF_SDL']:
 		libincs += Split(lenv['BF_SDL_LIBPATH'])
-	if lenv['WITH_BF_FFMPEG']:
-		libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
 	if lenv['WITH_BF_JACK']:
 		libincs += Split(lenv['BF_JACK_LIBPATH'])
 	if lenv['WITH_BF_SNDFILE']:
@@ -177,6 +176,9 @@ def setup_staticlibs(lenv):
 		if lenv['OURPLATFORM'] == 'linuxcross':
 			libincs += Split(lenv['BF_OPENMP_LIBPATH'])
 
+	# setting this last so any overriding of manually libs could be handled
+	if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
+		libincs.append('/usr/lib')
 
 	return statlibs, libincs
 
