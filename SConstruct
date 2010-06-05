@@ -201,6 +201,7 @@ if not env['WITHOUT_BF_INSTALL'] and not env['WITHOUT_BF_OVERWRITE_INSTALL']:
 
 SetOption('num_jobs', int(env['BF_NUMJOBS']))
 print B.bc.OKGREEN + "Build with parallel jobs%s: %s" % (B.bc.ENDC, GetOption('num_jobs'))
+print B.bc.OKGREEN + "Build with debug symbols%s: %s" % (B.bc.ENDC, env['BF_DEBUG'])
 
 # BLENDERPATH is a unix only option to enable typical style paths this is
 # spesifically a data-dir, which is used a lot but cant replace BF_INSTALLDIR
