@@ -1172,6 +1172,12 @@ void BLI_join_dirfile(char *string, const char *dir, const char *file)
 	}
 }
 
+/* like pythons os.path.basename( ) */
+char *BLI_path_basename(char *path)
+{
+	const char *filename= BLI_last_slash(path);
+	return filename ? filename + 1 : path;
+}
 
 /*
   Produce image export path.

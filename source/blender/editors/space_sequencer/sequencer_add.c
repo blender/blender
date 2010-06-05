@@ -421,7 +421,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 		RNA_END;
 	}
 	else {
-		BLI_split_dirfile(seq_load.path, NULL, se->name);
+		BLI_strncpy(se->name, BLI_path_basename(seq_load.path), sizeof(se->name));
 		if(seq_load.start_frame < seq_load.end_frame) {
 			seq->endstill= seq_load.end_frame - seq_load.start_frame;
 		}

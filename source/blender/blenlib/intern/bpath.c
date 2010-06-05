@@ -661,7 +661,7 @@ void findMissingFiles(char *basepath, char *str) {
 	char filepath[FILE_MAX], *libpath;
 	int filesize, recur_depth;
 	
-	char dirname[FILE_MAX], filename[FILE_MAX], filename_new[FILE_MAX];
+	char dirname[FILE_MAX], filename_new[FILE_MAX];
 	
 	//XXX waitcursor( 1 );
 	
@@ -686,9 +686,8 @@ void findMissingFiles(char *basepath, char *str) {
 				/* can the dir be opened? */
 				filesize = -1;
 				recur_depth = 0;
-				BLI_split_dirfile(filepath, NULL, filename); /* the file to find */
 				
-				findFileRecursive(filename_new, dirname, filename, &filesize, &recur_depth);
+				findFileRecursive(filename_new, dirname, BLI_path_basename(filepath), &filesize, &recur_depth);
 				if (filesize == -1) { /* could not open dir */
 					printf("Could not open dir \"%s\"\n", dirname);
 					return;

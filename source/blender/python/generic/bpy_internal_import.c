@@ -34,6 +34,7 @@
 #include "BKE_main.h"
 #include "BKE_global.h" /* grr, only for G.sce */
 #include "BLI_listbase.h"
+#include "BLI_path_util.h"
 #include <stddef.h>
 
 static Main *bpy_import_main= NULL;
@@ -129,8 +130,8 @@ PyObject *bpy_text_import_name( char *name, int *found )
 PyObject *bpy_text_reimport( PyObject *module, int *found )
 {
 	Text *text;
-	const char *txtname;
 	const char *name;
+	char *filepath;
 	char *buf = NULL;
 //XXX	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie= bpy_import_main;
@@ -143,14 +144,14 @@ PyObject *bpy_text_reimport( PyObject *module, int *found )
 	*found= 0;
 	
 	/* get name, filename from the module itself */
+	if((name= PyModule_GetName(module)) == NULL)
+		return NULL;
 
-	txtname = PyModule_GetFilename( module );
-	name = PyModule_GetName( module );
-	if( !txtname || !name)
+	if((filepath= (char *)PyModule_GetFilename(module)) == NULL)
 		return NULL;
 
 	/* look up the text object */
-	text= BLI_findstring(&maggie->text, txtname, offsetof(ID, name) + 2);
+	text= BLI_findstring(&maggie->text, BLI_path_basename(filepath), offsetof(ID, name) + 2);
 
 	/* uh-oh.... didn't find it */
 	if( !text )

@@ -862,7 +862,6 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else if (BKE_write_ibuf(scene, ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
-			char *name;
 
 			if(relative)
 				BLI_path_rel(path, G.sce); /* only after saving */
@@ -895,10 +894,8 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 					ima->type= IMA_TYPE_IMAGE;
 				}
 
-				name = BLI_last_slash(path);
-
 				/* name image as how we saved it */
-				rename_id(&ima->id, name ? name + 1 : path);
+				rename_id(&ima->id, BLI_path_basename(path));
 			}
 		} 
 		else
