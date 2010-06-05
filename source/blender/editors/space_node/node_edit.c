@@ -1046,19 +1046,37 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 	}
 		
 	if(node) {
-		bNodeSocket *sock;
-		
-		/* get a good socket to view from */
-		for(sock= tonode->outputs.first; sock; sock= sock->next)
-			if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
-				break;
+		bNodeLink *link;
+		bNodeSocket *sock= NULL;
+
+		/* try to find an already connected socket to cycle to the next */
+		for(link= snode->edittree->links.first; link; link= link->next)
+			if(link->tonode==node && link->fromnode==tonode)
+				if(link->tosock==node->inputs.first)
+					break;
+
+		if(link) {
+			/* unlink existing connection */
+			sock= link->fromsock;
+			nodeRemLink(snode->edittree, link);
+
+			/* find a socket after the previously connected socket */
+			for(sock=sock->next; sock; sock= sock->next)
+				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
+					break;
+		}
+
+		/* find a socket starting from the first socket */
+		if(!sock) {
+			for(sock= tonode->outputs.first; sock; sock= sock->next)
+				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
+					break;
+		}
 		
 		if(sock) {
-			bNodeLink *link;
-			
 			/* get link to viewer */
 			for(link= snode->edittree->links.first; link; link= link->next)
-				if(link->tonode==node)
+				if(link->tonode==node && link->tosock==node->inputs.first)
 					break;
 			
 			if(link==NULL) {
