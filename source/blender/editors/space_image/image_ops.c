@@ -1705,7 +1705,7 @@ static int sample_line_exec(bContext *C, wmOperator *op)
 		y= (int)(0.5f + y1 + (float)i*(y2-y1)/255.0f);
 		
 		if (x<0 || y<0 || x>=ibuf->x || y>=ibuf->y) {
-			hist->data_r[i] = hist->data_g[i]= hist->data_b[i] = 0.0f;
+			hist->data_luma[i] = hist->data_r[i] = hist->data_g[i]= hist->data_b[i] = 0.0f;
 		} else {
 			if (ibuf->rect_float) {
 				fp= (ibuf->rect_float + (ibuf->channels)*(y*ibuf->x + x));
