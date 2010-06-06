@@ -30,6 +30,7 @@ SET(INC
 	../../imbuf
 	../include
 	../../../../intern/guardedalloc
+	../../../../extern/glew/include
 	../../makesdna
 	../../makesrna
 	../../python
