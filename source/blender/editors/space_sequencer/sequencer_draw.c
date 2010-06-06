@@ -932,6 +932,33 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 		draw_seq_strip(scene, ar, sseq, last_seq, 120, pixelx);
 }
 
+static void seq_draw_sfra_efra(const bContext *C, SpaceSeq *sseq, ARegion *ar)
+{
+	View2D *v2d= UI_view2d_fromcontext(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	glEnable(GL_BLEND);
+	
+	/* draw darkened area outside of active timeline 
+	 * frame range used is preview range or scene range */
+	UI_ThemeColorShadeAlpha(TH_BACK, -25, -100);
+
+	if (PSFRA < PEFRA) {
+		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
+		glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+	}
+	else {
+		glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+	}
+
+	UI_ThemeColorShade(TH_BACK, -60);
+	/* thin lines where the actual frames are */
+	fdrawline((float)PSFRA, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
+	fdrawline((float)PEFRA, v2d->cur.ymin, (float)PEFRA, v2d->cur.ymax);
+	
+	glDisable(GL_BLEND);
+}
+
 /* Draw Timeline/Strip Editor Mode for Sequencer */
 void draw_timeline_seq(const bContext *C, ARegion *ar)
 {
@@ -965,7 +992,8 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	
 	/* regular grid-pattern over the rest of the view (i.e. frame grid lines) */
 	UI_view2d_constant_grid_draw(C, v2d);
-	
+
+	seq_draw_sfra_efra(C, sseq, ar);	
 
 	/* sequence strips (if there is data available to be drawn) */
 	if (ed) {
