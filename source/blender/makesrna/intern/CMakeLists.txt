@@ -32,14 +32,28 @@ LIST(REMOVE_ITEM DEFSRC ${APISRC})
 STRING(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).c" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.c" GENSRC "${DEFSRC}")
 
 SET(SRC
-		makesrna.c
-		rna_define.c
-		${DEFSRC}
-		${APISRC}
-		../../../../intern/guardedalloc/intern/mallocn.c
-		../../../../intern/guardedalloc/intern/mmap_win.c)
+	makesrna.c
+	rna_define.c
+	${DEFSRC}
+	${APISRC}
+	../../../../intern/guardedalloc/intern/mallocn.c
+	../../../../intern/guardedalloc/intern/mmap_win.c)
 
-INCLUDE_DIRECTORIES(../../../../intern/audaspace/intern ../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../ikplugin ../../windowmanager ../../editors/include ../../gpu ../../imbuf ../../render/extern/include .)
+INCLUDE_DIRECTORIES(
+	../../../../intern/audaspace/intern
+	../../../../intern/guardedalloc
+	..
+	../../makesdna
+	../../blenkernel
+	../../blenlib
+	../../ikplugin
+	../../windowmanager
+	../../editors/include
+	../../gpu
+	../../imbuf
+	../../render/extern/include
+	. )
+
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 
 IF(NOT WITH_PYTHON)
@@ -79,6 +93,11 @@ IF(WITH_FFMPEG)
 	SET(INC ${INC} ${FFMPEG_INC})
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
+
+IF(WITH_LCMS)
+	SET(INC ${INC} ${LCMS_INCLUDE_DIR})
+	ADD_DEFINITIONS(-DWITH_LCMS)
+ENDIF(WITH_LCMS)
 
 IF(NOT WITH_ELBEEM)
 	ADD_DEFINITIONS(-DDISABLE_ELBEEM)

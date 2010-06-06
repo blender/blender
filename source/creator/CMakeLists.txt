@@ -29,24 +29,19 @@ CMAKE_POLICY(SET CMP0005 NEW)
 
 SETUP_LIBDIRS()
 
-INCLUDE_DIRECTORIES(../../intern/guardedalloc
+INCLUDE_DIRECTORIES(
+	../../intern/guardedalloc
 	../blender/blenlib
 	../blender/blenkernel
 	../blender/editors/include
 	../blender/makesrna
-	../blender/makesrna/intern
-	../blender/nodes
-	../blender/include
-	../blender/blenloader
 	../blender/imbuf
-	../blender/renderconverter
 	../blender/render/extern/include
 	../blender/makesdna
 	../blender/gpu
 	../blender/windowmanager
 	../kernel/gen_messaging
 	../kernel/gen_system
-	../../extern/glew/include
 )
 
 IF(WIN32)
