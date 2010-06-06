@@ -1709,7 +1709,7 @@ public:
 				// most widespread de-facto standard.
 				texture.setProfileName("FCOLLADA");
 				texture.setChildElementName("bump");				
-				ep.setExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
+				ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
 			}
 		}
 		// performs the actual writing
