@@ -1675,6 +1675,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_duplicate(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Duplicate";
 	ot->description = "Duplicate selected objects";
@@ -1689,7 +1691,8 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	
 	/* to give to transform */
 	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	prop= RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* **************** add named object, for dragdrop ************* */
