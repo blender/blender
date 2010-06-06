@@ -700,7 +700,9 @@ void FEdgeXDetector::processMaterialBoundaryShape(WXShape* iWShape) {
 void FEdgeXDetector::ProcessMaterialBoundaryEdge(WXEdge *iEdge)
 {
   // check whether the edge is a material boundary?
-  if(iEdge->GetaFace()->frs_materialIndex() != iEdge->GetbFace()->frs_materialIndex()){
+  WFace *aFace = iEdge->GetaFace();
+  WFace *bFace = iEdge->GetbFace();
+  if(aFace && bFace && aFace->frs_materialIndex() != bFace->frs_materialIndex()){
     iEdge->AddNature(Nature::MATERIAL_BOUNDARY);
   }
 }
