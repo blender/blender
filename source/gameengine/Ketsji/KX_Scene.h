@@ -84,6 +84,10 @@ class btCollisionShape;
 class KX_BlenderSceneConverter;
 struct KX_ClientObjectInfo;
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 /* for ID freeing */
 #define IS_TAGGED(_id) ((_id) && (((ID *)_id)->flag & LIB_DOIT))
 
@@ -610,8 +614,6 @@ public:
 	//void PrintStats(int verbose_level) {
 	//	m_bucketmanager->PrintStats(verbose_level)
 	//}
-
-
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

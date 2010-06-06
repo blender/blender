@@ -50,18 +50,17 @@
 
 #include "script_intern.h"	// own include
 
-
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h" /* BPY_run_python_script */
+#endif
 
 static int run_pyfile_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
-	
-
 	char path[512];
 	RNA_string_get(op->ptr, "path", path);
 #ifndef DISABLE_PYTHON
 	if(BPY_run_python_script(C, path, NULL, op->reports)) {
+		ARegion *ar= CTX_wm_region(C);
 		ED_region_tag_redraw(ar);
 		return OPERATOR_FINISHED;
 	}
