@@ -1578,18 +1578,27 @@ public:
 		else {
 			ep.setIndexOfRefraction(1.0f);
 		}
+	
+		COLLADASW::ColorOrTexture cot;
+
 		// transparency
-		ep.setTransparency(ma->alpha);
-		// emission
-		COLLADASW::ColorOrTexture cot = getcol(0.0f, 0.0f, 0.0f, 1.0f);
-		ep.setEmission(cot);
+		// Tod: because we are in A_ONE mode transparency is calculated like this:
+		ep.setTransparency(1.0f);
+		cot = getcol(0.0f, 0.0f, 0.0f, ma->alpha);
 		ep.setTransparent(cot);
+
+		// emission
+		cot=getcol(ma->emit, ma->emit, ma->emit, 1.0f);
+		ep.setEmission(cot);
+
 		// diffuse 
 		cot = getcol(ma->r, ma->g, ma->b, 1.0f);
 		ep.setDiffuse(cot);
+
 		// ambient
 		cot = getcol(ma->ambr, ma->ambg, ma->ambb, 1.0f);
 		ep.setAmbient(cot);
+
 		// reflective, reflectivity
 		if (ma->mode & MA_RAYMIRROR) {
 			cot = getcol(ma->mirr, ma->mirg, ma->mirb, 1.0f);
@@ -1597,15 +1606,16 @@ public:
 			ep.setReflectivity(ma->ray_mirror);
 		}
 		else {
-			cot = getcol(0.0f, 0.0f, 0.0f, 1.0f);
+			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
 			ep.setReflective(cot);
-			ep.setReflectivity(0.0f);
+			ep.setReflectivity(ma->spec);
 		}
+
 		// specular
 		if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
 			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
 			ep.setSpecular(cot);
-		}
+		}	
 
 		// XXX make this more readable if possible
 
@@ -1714,7 +1724,19 @@ public:
 		}
 		// performs the actual writing
 		ep.addProfileElements();
+		bool twoSided = false;
+		if (ob->type == OB_MESH && ob->data) {
+			Mesh *me = (Mesh*)ob->data;
+			if (me->flag & ME_TWOSIDED)
+				twoSided = true;
+		}
+		if (twoSided)
+			ep.addExtraTechniqueParameter("GOOGLEEARTH", "double_sided", 1);
+		ep.addExtraTechniques(mSW);
+
 		ep.closeProfile();
+		if (twoSided)
+			mSW->appendTextBlock("<extra><technique profile=\"MAX3D\"><double_sided>1</double_sided></technique></extra>");
 		closeEffect();	
 	}
 	
