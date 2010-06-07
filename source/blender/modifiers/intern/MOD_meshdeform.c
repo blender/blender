@@ -180,13 +180,13 @@ static void meshdeformModifier_do(
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDeformWeight *dw;
-	MVert *cagemvert;
 	MDefInfluence *influences;
 	int *offsets;
 	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
 	float weight, totweight, fac, co[3], (*dco)[3], (*bindcagecos)[3];
 	int a, b, totvert, totcagevert, defgrp_index;
-	
+	float (*cagecos)[3];
+
 	if(!mmd->object || (!mmd->bindcagecos && !mmd->bindfunc))
 		return;
 	
@@ -251,8 +251,10 @@ static void meshdeformModifier_do(
 		return;
 	}
 
+	cagecos= MEM_callocN(sizeof(*cagecos)*totcagevert, "meshdeformModifier vertCos");
+
 	/* setup deformation data */
-	cagemvert= cagedm->getVertArray(cagedm);
+	cagedm->getVertCos(cagedm, cagecos);
 	influences= mmd->bindinfluences;
 	offsets= mmd->bindoffsets;
 	bindcagecos= (float(*)[3])mmd->bindcagecos;
@@ -260,7 +262,7 @@ static void meshdeformModifier_do(
 	dco= MEM_callocN(sizeof(*dco)*totcagevert, "MDefDco");
 	for(a=0; a<totcagevert; a++) {
 		/* get cage vertex in world space with binding transform */
-		copy_v3_v3(co, cagemvert[a].co);
+		copy_v3_v3(co, cagecos[a]);
 
 		if(G.rt != 527) {
 			mul_m4_v3(mmd->bindmat, co);
@@ -331,6 +333,7 @@ static void meshdeformModifier_do(
 
 	/* release cage derivedmesh */
 	MEM_freeN(dco);
+	MEM_freeN(cagecos);
 	cagedm->release(cagedm);
 }
 
