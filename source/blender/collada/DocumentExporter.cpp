@@ -2482,6 +2482,9 @@ protected:
 				}
 			}
 		}
+
+		// keep the keys in ascending order
+		std::sort(fra.begin(), fra.end());
 	}
 
 	void find_rotation_frames(Object *ob, std::vector<float> &fra, const char *prefix, int rotmode)
