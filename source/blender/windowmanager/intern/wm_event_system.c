@@ -1658,7 +1658,7 @@ void wm_event_do_handlers(bContext *C)
 									
 									/* does polls for drop regions and checks uibuts */
 									/* need to be here to make sure region context is true */
-									if(event->type==MOUSEMOVE) {
+									if(ELEM(event->type, MOUSEMOVE, EVT_DROP)) {
 										wm_region_mouse_co(C, event);
 										wm_drags_check_ops(C, event);
 									}
