@@ -1725,9 +1725,9 @@ static void rna_def_modifier_smoke(BlenderRNA *brna)
 	
 	static EnumPropertyItem prop_smoke_type_items[] = {
 			{0, "NONE", 0, "None", ""},
-			{MOD_SMOKE_TYPE_DOMAIN, "TYPE_DOMAIN", 0, "Domain", ""},
-			{MOD_SMOKE_TYPE_FLOW, "TYPE_FLOW", 0, "Flow", "Inflow/Outflow"},
-			{MOD_SMOKE_TYPE_COLL, "TYPE_COLL", 0, "Collision", ""},
+			{MOD_SMOKE_TYPE_DOMAIN, "DOMAIN", 0, "Domain", ""},
+			{MOD_SMOKE_TYPE_FLOW, "FLOW", 0, "Flow", "Inflow/Outflow"},
+			{MOD_SMOKE_TYPE_COLL, "COLLISION", 0, "Collision", ""},
 			{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SmokeModifier", "Modifier");
