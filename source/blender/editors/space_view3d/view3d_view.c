@@ -358,7 +358,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		v3d->lens = sms->new_lens*step + sms->orig_lens*step_inv;
 	}
 	
-	ED_region_tag_redraw(CTX_wm_region(C));
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 	
 	return OPERATOR_FINISHED;
 }

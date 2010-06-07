@@ -1879,6 +1879,7 @@ class VIEW3D_PT_view3d_properties(bpy.types.Panel):
         scene = context.scene
 
         col = layout.column()
+        col.active = view.region_3d.view_perspective != 'CAMERA'
         col.prop(view, "lens")
         col.label(text="Lock to Object:")
         col.prop(view, "lock_object", text="")
