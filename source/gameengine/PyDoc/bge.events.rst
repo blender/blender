@@ -81,6 +81,8 @@ Mouse Keys
 .. data:: MOUSEX
 .. data:: MOUSEY
 
+.. _keyboard-keys:
+
 =============
 Keyboard Keys
 =============

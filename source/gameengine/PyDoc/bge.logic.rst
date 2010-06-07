@@ -337,6 +337,19 @@ Constants
 Sensors
 ======= 
 
+.. _sensor-status:
+
+-------------
+Sensor Status
+-------------
+
+.. data:: KX_SENSOR_INACTIVE
+.. data:: KX_SENSOR_JUST_ACTIVATED
+.. data:: KX_SENSOR_ACTIVE
+.. data:: KX_SENSOR_JUST_DEACTIVATED
+
+.. _logic-property-sensor:
+
 ---------------
 Property Sensor
 ---------------
@@ -345,21 +358,31 @@ Property Sensor
 
    Activate when the property is equal to the sensor value.
 
+   :value: 1
+
 .. data:: KX_PROPSENSOR_NOTEQUAL
 
    Activate when the property is not equal to the sensor value.
+   
+   :value: 2
 
 .. data:: KX_PROPSENSOR_INTERVAL
 
    Activate when the property is between the specified limits.
-
+   
+   :value: 3
+   
 .. data:: KX_PROPSENSOR_CHANGED
 
-   Activate when the property changes
+   Activate when the property changes   
+
+   :value: 4
 
 .. data:: KX_PROPSENSOR_EXPRESSION
 
    Activate when the expression matches
+   
+   :value: 5
 
 ------------
 Radar Sensor
@@ -392,6 +415,8 @@ See :class:`bge.types.KX_RaySensor`
 Actuators
 =========
 
+.. _action-actuator:
+
 ---------------
 Action Actuator
 ---------------
@@ -408,7 +433,43 @@ See :class:`bge.types.BL_ActionActuator`
 Constraint Actuator
 -------------------
 
-See :class:`bge.types.KX_ConstraintActuator`
+.. _constraint-actuator-option:
+
+See :class:`bge.types.KX_ConstraintActuator.option`
+
+* Applicable to Distance constraint:
+
+  .. data:: KX_ACT_CONSTRAINT_NORMAL
+
+     Activate alignment to surface
+   
+  .. data:: KX_ACT_CONSTRAINT_DISTANCE
+
+     Activate distance control
+
+  .. data:: KX_ACT_CONSTRAINT_LOCAL
+
+     Direction of the ray is along the local axis
+
+* Applicable to Force field constraint:
+
+  .. data:: KX_ACT_CONSTRAINT_DOROTFH
+
+     Force field act on rotation as well
+
+* Applicable to both:
+
+  .. data:: KX_ACT_CONSTRAINT_MATERIAL
+
+     Detect material rather than property
+   
+  .. data:: KX_ACT_CONSTRAINT_PERMANENT
+
+     No deactivation if ray does not hit target
+
+.. _constraint-actuator-limit:
+
+See :class:`bge.types.KX_ConstraintActuator.limit`
 
 .. data:: KX_CONSTRAINTACT_LOCX
 
@@ -493,13 +554,6 @@ See :class:`bge.types.KX_ConstraintActuator`
 .. data:: KX_ACT_CONSTRAINT_FHPZ
 
    Set force field along positive Z axis
-   
-.. data:: KX_ACT_CONSTRAINT_DISTANCE
-.. data:: KX_ACT_CONSTRAINT_DOROTFH
-.. data:: KX_ACT_CONSTRAINT_LOCAL
-.. data:: KX_ACT_CONSTRAINT_MATERIAL
-.. data:: KX_ACT_CONSTRAINT_NORMAL
-.. data:: KX_ACT_CONSTRAINT_PERMANENT
 
 ----------------
 Dynamic Actuator
@@ -513,6 +567,8 @@ See :class:`bge.types.KX_SCA_DynamicActuator`
 .. data:: KX_DYN_DISABLE_RIGID_BODY
 .. data:: KX_DYN_SET_MASS
 
+.. _game-actuator:
+
 -------------
 Game Actuator
 -------------
@@ -525,6 +581,8 @@ See :class:`bge.types.KX_GameActuator`
 .. data:: KX_GAME_QUIT
 .. data:: KX_GAME_SAVECFG
 .. data:: KX_GAME_LOADCFG
+
+.. _ipo-actuator:
 
 ------------
 IPO Actuator
@@ -545,6 +603,8 @@ Parent Actuator
 
 .. data:: KX_PARENT_REMOVE
 .. data:: KX_PARENT_SET
+
+.. _logic-random-distributions:
 
 --------------------
 Random Distributions
@@ -578,28 +638,64 @@ See :class:`bge.types.KX_SceneActuator`
 .. data:: KX_SCENE_SUSPEND
 .. data:: KX_SCENE_RESUME
 
+.. _shape-action-actuator:
+
+---------------------
+Shape Action Actuator
+---------------------
+
+See :class:`bge.types.BL_ActionActuator`
+
+.. data:: KX_ACTIONACT_PLAY
+.. data:: KX_ACTIONACT_FLIPPER
+.. data:: KX_ACTIONACT_LOOPSTOP
+.. data:: KX_ACTIONACT_LOOPEND
+.. data:: KX_ACTIONACT_PROPERTY
+
+.. _logic-sound-actuator:
+
 --------------
 Sound Actuator
 --------------
-
+      
 See :class:`bge.types.KX_SoundActuator`
 
 .. data:: KX_SOUNDACT_PLAYSTOP
+
+   :value: 1
+   
 .. data:: KX_SOUNDACT_PLAYEND
+
+   :value: 2
+   
 .. data:: KX_SOUNDACT_LOOPSTOP
+
+   :value: 3
+   
 .. data:: KX_SOUNDACT_LOOPEND
+
+   :value: 4
+   
 .. data:: KX_SOUNDACT_LOOPBIDIRECTIONAL
+
+   :value: 5
+   
 .. data:: KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP
+
+   :value: 6
+   
 
 =======
 Various
 =======
 
+.. _input-status:
+
 ------------
 Input Status
 ------------
 
-See :class:`bge.types.SCA_MouseSensor`
+See :class:`bge.types.SCA_PythonKeyboard`, :class:`bge.types.SCA_PythonMouse`, :class:`bge.types.SCA_MouseSensor`, :class:`bge.types.SCA_KeyboardSensor`
 
 .. data:: KX_INPUT_NONE
 .. data:: KX_INPUT_JUST_ACTIVATED
@@ -652,31 +748,111 @@ See :class:`bge.types.KX_StateActuator`
 .. data:: KX_STATE28
 .. data:: KX_STATE29
 .. data:: KX_STATE30
+
+.. _state-actuator-operation:
+
+See :class:`bge.types.KX_StateActuator.operation`
+
 .. data:: KX_STATE_OP_CLR
+
+   Substract bits to state mask
+   
+   :value: 0
+
 .. data:: KX_STATE_OP_CPY
+
+   Copy state mask
+   
+   :value: 1
+   
 .. data:: KX_STATE_OP_NEG
+
+   Invert bits to state mask
+   
+   :value: 2
+   
 .. data:: KX_STATE_OP_SET
+
+   Add bits to state mask
+   
+   :value: 3
+   
+.. _Two-D-FilterActuator-mode:
 
 ---------
 2D Filter
 ---------
 
 .. data:: RAS_2DFILTER_BLUR
+
+   :value: 2
+   
 .. data:: RAS_2DFILTER_CUSTOMFILTER
+
+   Customer filter, the code code is set via shaderText property.
+   
+   :value: 12
+   
 .. data:: RAS_2DFILTER_DILATION
+
+   :value: 4
+   
 .. data:: RAS_2DFILTER_DISABLED
+
+   Disable the filter that is currently active
+
+   :value: -1
+   
 .. data:: RAS_2DFILTER_ENABLED
+
+   Enable the filter that was previously disabled
+
+   :value: -2
+   
 .. data:: RAS_2DFILTER_EROSION
+
+   :value: 5
+   
 .. data:: RAS_2DFILTER_GRAYSCALE
+
+   :value: 9
+   
 .. data:: RAS_2DFILTER_INVERT
+
+   :value: 11
+   
 .. data:: RAS_2DFILTER_LAPLACIAN
+
+   :value: 6
+   
 .. data:: RAS_2DFILTER_MOTIONBLUR
+
+   Create and enable preset filters
+
+   :value: 1
+   
 .. data:: RAS_2DFILTER_NOFILTER
+
+   Disable and destroy the filter that is currently active
+
+   :value: 0
+   
 .. data:: RAS_2DFILTER_PREWITT
+
+   :value: 8
+   
 .. data:: RAS_2DFILTER_SEPIA
+
+   :value: 10
+   
 .. data:: RAS_2DFILTER_SHARPEN
+
+   :value: 3
+   
 .. data:: RAS_2DFILTER_SOBEL
 
+   :value: 7
+   
 ------
 Shader
 ------
