@@ -1286,6 +1286,7 @@ void multires_load_old(Object *ob, Mesh *me)
 	ModifierData *md;
 	MultiresModifierData *mmd;
 	DerivedMesh *dm, *orig;
+	CustomDataLayer *l;
 	int i;
 
 	/* Load original level into the mesh */
@@ -1330,6 +1331,14 @@ void multires_load_old(Object *ob, Mesh *me)
 	multires_dm_mark_as_modified(dm);
 	dm->release(dm);
 	orig->release(orig);
+
+	/* Copy the first-level data to the mesh */
+	for(i = 0, l = me->mr->vdata.layers; i < me->mr->vdata.totlayer; ++i, ++l)
+		CustomData_add_layer(&me->vdata, l->type, CD_REFERENCE, l->data, me->totvert);
+	for(i = 0, l = me->mr->fdata.layers; i < me->mr->fdata.totlayer; ++i, ++l)
+		CustomData_add_layer(&me->fdata, l->type, CD_REFERENCE, l->data, me->totface);
+	memset(&me->mr->vdata, 0, sizeof(CustomData));
+	memset(&me->mr->fdata, 0, sizeof(CustomData));
 
 	/* Remove the old multires */
 	multires_free(me->mr);
