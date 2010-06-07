@@ -245,7 +245,7 @@ void init_colorband(ColorBand *coba, int rangetype)
 		coba->data[0].b= 0.0;
 		coba->data[0].a= 0.0;
 		
-		coba->data[1].r= 0.0;
+		coba->data[1].r= 1.0;
 		coba->data[1].g= 1.0;
 		coba->data[1].b= 1.0;
 		coba->data[1].a= 1.0;
@@ -1149,7 +1149,8 @@ void BKE_free_pointdensity(PointDensity *pd)
 void BKE_free_voxeldatadata(struct VoxelData *vd)
 {
 	if (vd->dataset) {
-		MEM_freeN(vd->dataset);
+		if(vd->file_format != TEX_VD_SMOKE)
+			MEM_freeN(vd->dataset);
 		vd->dataset = NULL;
 	}
 
@@ -1173,6 +1174,8 @@ struct VoxelData *BKE_add_voxeldata(void)
 	vd->int_multiplier = 1.0;
 	vd->extend = TEX_CLIP;
 	vd->object = NULL;
+	vd->cachedframe = -1;
+	vd->ok = 0;
 	
 	return vd;
  }

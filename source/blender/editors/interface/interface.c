@@ -1633,7 +1633,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 				bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), but->drawstr, ui_get_but_scale_unit(but, 1.0), scene->unit.system, unit_type);
 			}
 
-			if(BPY_button_eval(C, str_unit_convert, &value)) {
+			if(BPY_eval_button(C, str_unit_convert, &value)) {
 				value = ui_get_but_val(but); /* use its original value */
 
 				if(str[0])
@@ -2376,7 +2376,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		}
 	}
 
-	if((block->flag & UI_BLOCK_LOOP) || ELEM7(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU))
+	if((block->flag & UI_BLOCK_LOOP) || ELEM8(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR))
 		but->flag |= (UI_TEXT_LEFT|UI_ICON_LEFT);
 	else if(but->type==BUT_TOGDUAL)
 		but->flag |= UI_ICON_LEFT;

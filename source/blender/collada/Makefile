@@ -37,6 +37,6 @@ CPPFLAGS += -I../makesdna -I../blenlib -I../blenkernel -I../editors/include
 CPPFLAGS += -I../windowmanager -I../makesrna
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(BF_OPENCOLLADA)/include/COLLADABaseUtils
-CPPFLAGS += -I$(BF_OPENCOLLADA)/include/COLLADAFrameWork
+CPPFLAGS += -I$(BF_OPENCOLLADA)/include/COLLADAFramework
 CPPFLAGS += -I$(BF_OPENCOLLADA)/include/COLLADAStreamWriter
 CPPFLAGS += -I$(BF_OPENCOLLADA)/include/COLLADASaxFrameworkLoader

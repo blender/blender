@@ -68,6 +68,10 @@ button {
 	display: none;
 }
 
+.other {
+	display: none;
+}
+
 .rules {
 	width: 60em;
 	text-align: left;

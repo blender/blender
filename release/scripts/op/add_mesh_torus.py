@@ -102,6 +102,10 @@ class AddTorus(bpy.types.Operator):
             description="Total Interior Radius of the torus",
             default=0.5, min=0.01, max=100.0)
 
+    # generic transform props
+    location = FloatVectorProperty(name="Location")
+    rotation = FloatVectorProperty(name="Rotation")
+
     def execute(self, context):
         props = self.properties
 
@@ -120,36 +124,10 @@ class AddTorus(bpy.types.Operator):
         mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
         mesh.verts.foreach_set("co", verts_loc)
         mesh.faces.foreach_set("verts_raw", faces)
-
-        scene = context.scene
-
-        # ugh
-        for ob in scene.objects:
-            ob.selected = False
-
         mesh.update()
-        ob_new = bpy.data.objects.new("Torus", mesh)
-        scene.objects.link(ob_new)
-        ob_new.selected = True
 
-        ob_new.location = scene.cursor_location
-
-        obj_act = scene.objects.active
-
-        if obj_act and obj_act.mode == 'EDIT':
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-            obj_act.selected = True
-            scene.update() # apply location
-            #scene.objects.active = ob_new
-
-            bpy.ops.object.join() # join into the active.
-
-            bpy.ops.object.mode_set(mode='EDIT')
-        else:
-            scene.objects.active = ob_new
-            if context.user_preferences.edit.enter_edit_mode:
-                bpy.ops.object.mode_set(mode='EDIT')
+        import add_object_utils
+        add_object_utils.add_object_data(context, mesh, operator=self)
 
         return {'FINISHED'}
 

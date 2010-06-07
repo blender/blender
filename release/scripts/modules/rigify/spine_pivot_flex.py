@@ -177,11 +177,11 @@ def main(obj, bone_definition, base_names, options):
     # copy the pelvis, offset to make MCH-spine_rotate and MCH-ribcage_hinge
     ex.ribcage_hinge_e = copy_bone_simple(arm, mt.pelvis, "MCH-%s_hinge" % base_names[mt.ribcage])
     ex.ribcage_hinge = ex.ribcage_hinge_e.name
-    ex.ribcage_hinge_e.translate(Vector(0.0, spine_chain_segment_length / 4.0, 0.0))
+    ex.ribcage_hinge_e.translate(Vector((0.0, spine_chain_segment_length / 4.0, 0.0)))
 
     ex.spine_rotate_e = copy_bone_simple(arm, mt.ribcage, "MCH-%s_rotate" % spine_chain_basename)
     ex.spine_rotate = ex.spine_rotate_e.name
-    ex.spine_rotate_e.translate(Vector(0.0, spine_chain_segment_length / 2.0, 0.0))
+    ex.spine_rotate_e.translate(Vector((0.0, spine_chain_segment_length / 2.0, 0.0)))
     ex.spine_rotate_e.connected = False
     ex.spine_rotate_e.parent = ex.pelvis_copy_e
 
@@ -294,7 +294,7 @@ def main(obj, bone_definition, base_names, options):
     con.subtarget = ex.pelvis_copy
 
     # add driver
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'
@@ -350,7 +350,7 @@ def main(obj, bone_definition, base_names, options):
     rib_driver_path = ex.ribcage_copy_p.path_from_id()
 
     ex.ribcage_copy_p["bend_tot"] = 0.0
-    fcurve = ex.ribcage_copy_p.driver_add('["bend_tot"]', 0)
+    fcurve = ex.ribcage_copy_p.driver_add('["bend_tot"]')
     driver = fcurve.driver
     driver.type = 'SUM'
     fcurve.modifiers.remove(0) # grr dont need a modifier
@@ -385,7 +385,7 @@ def main(obj, bone_definition, base_names, options):
         del spine_p
 
         # add driver
-        fcurve = con.driver_add("influence", 0)
+        fcurve = con.driver_add("influence")
         driver = fcurve.driver
         driver.type = 'SCRIPTED'
         driver.expression = "bend/bend_tot"
@@ -440,7 +440,7 @@ def main(obj, bone_definition, base_names, options):
         if i == spine_chain_len:
             con.head_tail = 1.0
 
-        fcurve = con.driver_add("influence", 0)
+        fcurve = con.driver_add("influence")
         driver = fcurve.driver
         var = driver.variables.new()
         driver.type = 'AVERAGE'

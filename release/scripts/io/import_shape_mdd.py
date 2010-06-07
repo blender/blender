@@ -104,7 +104,7 @@ from bpy.props import *
 
 class importMDD(bpy.types.Operator):
     '''Import MDD vertex keyframe file to shape keys'''
-    bl_idname = "import.mdd"
+    bl_idname = "import_shape.mdd"
     bl_label = "Import MDD"
 
     # get first scene to get min and max properties for frames, fps

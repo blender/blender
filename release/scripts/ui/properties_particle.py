@@ -25,7 +25,7 @@ from properties_physics_common import effector_weights_ui
 from properties_physics_common import basic_force_field_settings_ui
 from properties_physics_common import basic_force_field_falloff_ui
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 def particle_panel_enabled(context, psys):
@@ -269,10 +269,9 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
         return psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.hair_dynamics)
 
     def draw(self, context):
-
         psys = context.particle_system
 
-        point_cache_ui(self, context, psys.point_cache, particle_panel_enabled(context, psys), not psys.hair_dynamics, 0)
+        point_cache_ui(self, context, psys.point_cache, True, 'HAIR' if psys.hair_dynamics else 'PSYS')
 
 
 class PARTICLE_PT_velocity(ParticleButtonsPanel):
@@ -389,7 +388,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
             row.prop(part, "physics_type", expand=True)
         else:
             row.prop(part, "physics_type", text="")
-            
+
         if part.physics_type != 'NO':
             row = layout.row()
             col = row.column(align=True)
@@ -706,12 +705,6 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
             sub = split.column()
             sub.prop(part, "velocity_length")
         elif part.ren_as == 'PATH':
-
-            if part.type != 'HAIR' and part.physics_type != 'KEYED' and (psys.point_cache.baked is False):
-                box = layout.box()
-                box.label(text="Baked or keyed particles needed for correct rendering.")
-                return
-
             sub.prop(part, "render_strand")
             subsub = sub.column()
             subsub.active = (part.render_strand is False)
@@ -862,11 +855,6 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
             return
 
         path = (part.ren_as == 'PATH' and part.draw_as == 'RENDER') or part.draw_as == 'PATH'
-
-        if path and part.type != 'HAIR' and part.physics_type != 'KEYED' and psys.point_cache.baked is False:
-            box = layout.box()
-            box.label(text="Baked or keyed particles needed for correct drawing.")
-            return
 
         row = layout.row()
         row.prop(part, "display", slider=True)

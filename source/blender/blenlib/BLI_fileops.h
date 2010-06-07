@@ -54,7 +54,6 @@ char *BLI_last_slash(const char *string);
 int	  BLI_add_slash(char *string);
 void  BLI_del_slash(char *string);
 char *first_slash(char *string);
-const char *BLI_short_filename(const char *string);
 
 /* only for the sane unix world: direct calls to system functions :( */
 #ifndef WIN32

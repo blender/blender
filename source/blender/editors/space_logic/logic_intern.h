@@ -54,6 +54,7 @@ void LOGIC_OT_links_cut(struct wmOperatorType *ot);
 
 /* logic_window.c */
 void logic_buttons(struct bContext *C, struct ARegion *ar);
+void make_unique_prop_names(struct bContext *C, char *str);
 
 #endif /* ED_LOGIC_INTERN_H */
 

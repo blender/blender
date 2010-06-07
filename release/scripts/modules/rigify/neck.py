@@ -222,7 +222,7 @@ def main(obj, bone_definition, base_names, options):
 
     hinge_driver_path = pb[neck_ctrl].path_from_id() + '["hinge"]'
 
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'
@@ -256,7 +256,7 @@ def main(obj, bone_definition, base_names, options):
 
     hinge_driver_path = pb[head_ctrl].path_from_id() + '["hinge"]'
 
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'
@@ -301,7 +301,7 @@ def main(obj, bone_definition, base_names, options):
         if i < (len(neck_head)-1):
             inf = (i+1) / len(neck_head)
 
-            fcurve = con.driver_add("influence", 0)
+            fcurve = con.driver_add("influence")
             driver = fcurve.driver
             var = driver.variables.new()
             var.name = "ext"

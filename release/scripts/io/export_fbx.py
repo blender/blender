@@ -75,7 +75,7 @@ def copy_images(dest_dir, textures):
 
     image_paths = set()
     for tex in textures:
-        image_paths.add(Blender.sys.expandpath(tex.filename))
+        image_paths.add(bpy.utils.expandpath(tex.filepath))
 
     # Now copy images
     copyCount = 0
@@ -1255,7 +1255,7 @@ def write(filename, batch_objects = None, \
         file.write('\n\t}')
 
     def copy_image(image):
-        fn = bpy.utils.expandpath(image.filename)
+        fn = bpy.utils.expandpath(image.filepath)
         fn_strip = os.path.basename(fn)
 
         if EXP_IMAGE_COPY:
@@ -1282,7 +1282,7 @@ def write(filename, batch_objects = None, \
             Property: "Height", "int", "",0''')
         if tex:
             fname_rel, fname_strip = copy_image(tex)
-# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filepath, basepath, EXP_IMAGE_COPY)
         else:
             fname = fname_strip = fname_rel = ''
 
@@ -1347,7 +1347,7 @@ def write(filename, batch_objects = None, \
 
         if tex:
             fname_rel, fname_strip = copy_image(tex)
-# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filepath, basepath, EXP_IMAGE_COPY)
         else:
             fname = fname_strip = fname_rel = ''
 
@@ -1504,17 +1504,14 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\tPolygonVertexIndex: ')
         i=-1
         for f in me.faces:
-            fi = [v for v in f.verts]
-            # fi = [v_index for j, v_index in enumerate(f.verts) if v_index != 0 or j != 3]
-# 			fi = [v.index for v in f]
+            fi = f.verts[:]
 
-            # flip the last index, odd but it looks like
-            # this is how fbx tells one face from another
-            fi[-1] = -(fi[-1]+1)
+            # last index XORd w. -1 indicates end of face
+            fi[-1] = fi[-1] ^ -1
             fi = tuple(fi)
+
             if i==-1:
                 if len(fi) == 3:	file.write('%i,%i,%i' % fi )
-# 				if len(f) == 3:		file.write('%i,%i,%i' % fi )
                 else:				file.write('%i,%i,%i,%i' % fi )
                 i=0
             else:
@@ -1522,9 +1519,25 @@ def write(filename, batch_objects = None, \
                     file.write('\n\t\t')
                     i=0
                 if len(fi) == 3:	file.write(',%i,%i,%i' % fi )
-# 				if len(f) == 3:		file.write(',%i,%i,%i' % fi )
                 else:				file.write(',%i,%i,%i,%i' % fi )
             i+=1
+
+        # write loose edges as faces.
+        for ed in me.edges:
+            if ed.loose:
+                ed_val = ed.verts[:]
+                ed_val = ed_val[0], ed_val[-1] ^ -1
+
+                if i==-1:
+                    file.write('%i,%i' % ed_val)
+                    i=0
+                else:
+                    if i==13:
+                        file.write('\n\t\t')
+                        i=0
+                    file.write(',%i,%i' % ed_val)
+            i+=1
+
 
         file.write('\n\t\tEdges: ')
         i=-1
@@ -2960,8 +2973,7 @@ Takes:  {''')
     # --------------------------- Footer
     if world:
         m = world.mist
-        has_mist = m.enabled
-# 		has_mist = world.mode & 1
+        has_mist = m.use_mist
         mist_intense = m.intensity
         mist_start = m.start
         mist_end = m.depth
@@ -3402,7 +3414,7 @@ class ExportFBX(bpy.types.Operator):
 
 
 # if __name__ == "__main__":
-# 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
+# 	bpy.ops.EXPORT_OT_ply(path="/tmp/test.ply")
 
 
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
@@ -3429,7 +3441,7 @@ class ExportFBX(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".fbx")
+    default_path = bpy.data.filepath.replace(".blend", ".fbx")
     self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").path = default_path
 
 

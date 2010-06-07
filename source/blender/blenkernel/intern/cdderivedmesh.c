@@ -74,6 +74,7 @@ typedef struct {
 
 	/* Cached */
 	struct PBVH *pbvh;
+	int pbvh_draw;
 	/* Mesh connectivity */
 	struct ListBase *fmap;
 	struct IndexNode *fmap_mem;
@@ -188,6 +189,7 @@ static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
 static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+	Mesh *me= (ob)? ob->data: NULL;
 
 	if(!ob) {
 		cddm->pbvh= NULL;
@@ -196,13 +198,17 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 
 	if(!ob->sculpt)
 		return NULL;
-	if(ob->sculpt->pbvh)
+	if(ob->sculpt->pbvh) {
 		cddm->pbvh= ob->sculpt->pbvh;
+		cddm->pbvh_draw = (cddm->mvert == me->mvert);
+	}
 
+	/* always build pbvh from original mesh, and only use it for drawing if
+	   this derivedmesh is just original mesh. it's the multires subsurf dm
+	   that this is actually for, to support a pbvh on a modified mesh */
 	if(!cddm->pbvh && ob->type == OB_MESH) {
-		Mesh *me= ob->data;
-
 		cddm->pbvh = BLI_pbvh_new();
+		cddm->pbvh_draw = (cddm->mvert == me->mvert);
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 				   me->totface, me->totvert);
 	}
@@ -417,7 +423,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 	glVertex3fv(mvert[index].co);	\
 }
 
-	if(cddm->pbvh) {
+	if(cddm->pbvh && cddm->pbvh_draw) {
 		if(dm->numFaceData) {
 			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 

@@ -155,6 +155,13 @@ static void rna_DriverTarget_update_name(Main *bmain, Scene *scene, PointerRNA *
 
 /* ----------- */
 
+/* note: this function exists only to avoid id refcounting */
+static void rna_DriverTarget_id_set(PointerRNA *ptr, PointerRNA value)
+{
+    DriverTarget *dtar= (DriverTarget*)ptr->data;
+    dtar->id= value.data;
+}
+
 static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
 {
 	DriverTarget *dtar= (DriverTarget*)ptr->data;
@@ -539,6 +546,11 @@ static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTri
 	delete_fcurve_key(fcu, index, !do_fast);
 }
 
+static void rna_fcurve_range(FCurve *fcu, float range[2])
+{
+	calc_fcurve_range(fcu, range, range+1);
+}
+
 #else
 
 static void rna_def_fmodifier_generator(BlenderRNA *brna)
@@ -845,7 +857,7 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Phase", "A random seed for the noise effect");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "depth");
 	RNA_def_property_ui_text(prop, "Depth", "Amount of fine level detail present in the noise");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
@@ -976,7 +988,8 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_editable");
-	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_DriverTarget_id_typef");
+    /* note: custom set function is ONLY to avoid rna setting a user for this. */
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_DriverTarget_id_set", "rna_DriverTarget_id_typef");
 	RNA_def_property_ui_text(prop, "ID", "ID-block that the specific property used can be found from (id_type property must be set first)");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
@@ -1149,7 +1162,7 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
 	
 	/* Vector value */
-	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_XYZ);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
@@ -1313,7 +1326,9 @@ static void rna_def_fcurve(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
 	static EnumPropertyItem prop_mode_extend_items[] = {
 		{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear", ""},
@@ -1415,8 +1430,23 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "FModifier");
 	RNA_def_property_ui_text(prop, "Modifiers", "Modifiers affecting the shape of the F-Curve");
-
 	rna_def_fcurve_modifiers(brna, prop);
+
+	/* Functions */
+	func= RNA_def_function(srna, "evaluate", "evaluate_fcurve"); /* calls the C/API direct */
+	RNA_def_function_ui_description(func, "Evaluate fcurve.");
+	parm= RNA_def_float(func, "frame", 1.0f, -FLT_MAX, FLT_MAX, "Frame", "Evaluate fcurve at given frame", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return value */
+	parm= RNA_def_float(func, "position", 0, -FLT_MAX, FLT_MAX, "Position", "Fcurve position", -FLT_MAX, FLT_MAX);
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "range", "rna_fcurve_range");
+	RNA_def_function_ui_description(func, "Get the time extents for F-Curve.");
+	/* return value */
+	parm= RNA_def_float_vector(func, "range", 2, NULL, -FLT_MAX, FLT_MAX, "Range", "Min/Max values", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_function_output(func, parm);
 }
 
 /* *********************** */

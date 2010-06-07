@@ -30,6 +30,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_string.h"
 
@@ -39,6 +40,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "ED_screen.h"
@@ -51,6 +53,8 @@
 
 #include "UI_interface.h"
 #include "interface_intern.h"
+
+#include "BLF_api.h"
 
 void ui_template_fix_linking()
 {
@@ -169,7 +173,7 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 					continue;
 
 			if(BLI_strcasestr(id->name+2, str)) {
-				iconid= ui_id_icon_get((bContext*)C, id, 0);
+				iconid= ui_id_icon_get((bContext*)C, id, 1);
                 
 				if(!uiSearchItemAdd(items, id->name+2, id, iconid))
 					break;
@@ -939,77 +943,6 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 	ED_object_constraint_set_active(ob_v, con_v);
 }
 
-
-/* some commonly used macros in the constraints drawing code */
-#define is_armature_target(target) (target && target->type==OB_ARMATURE)
-#define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE))
-#define is_geom_target(target) (target && (ELEM(target->type, OB_MESH, OB_LATTICE)) )
-
-/* Helper function for draw constraint - draws constraint space stuff 
- * This function should not be called if no menus are required 
- * owner/target: -1 = don't draw menu; 0= not posemode, 1 = posemode 
- */
-static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short xco, short yco, short owner, short target)
-{
-	short tarx, ownx, iconx;
-	short bwidth;
-	short iconwidth = 20;
-	
-	/* calculate sizes and placement of menus */
-	if (owner == -1) {
-		bwidth = 125;
-		tarx = 120;
-		ownx = 0;
-	}
-	else if (target == -1) {
-		bwidth = 125;
-		tarx = 0;
-		ownx = 120;
-	}
-	else {
-		bwidth = 100;
-		tarx = 85;
-		iconx = tarx + bwidth + 5;
-		ownx = tarx + bwidth + iconwidth + 10;
-	}
-	
-	
-	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Convert:", xco, yco, 80,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
-	/* Target-Space */
-	if (target == 1) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
-												tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
-	}
-	else if (target == 0) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
-										tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
-	}
-	
-	if ((target != -1) && (owner != -1))
-		uiDefIconBut(block, LABEL, 0, ICON_ARROW_LEFTRIGHT,
-			iconx, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "");
-	
-	/* Owner-Space */
-	if (owner == 1) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
-												ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
-	}
-	else if (owner == 0) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Local (Without Parent) Space %x1", 
-										ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
-	}
-}
-
-static void test_obpoin_but(bContext *C, char *name, ID **idpp)
-{
-	ID *id= BLI_findstring(&CTX_data_main(C)->object, name, offsetof(ID, name) + 2);
-	*idpp= id; /* can be NULL */
-	
-	if(id)
-		id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
-}
-
 /* draw panel showing settings for a constraint */
 static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 {
@@ -1017,7 +950,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	bConstraintTypeInfo *cti;
 	uiBlock *block;
 	uiLayout *result= NULL, *col, *box, *row, *subrow;
-	uiBut *but;
 	PointerRNA ptr;
 	char typestr[32];
 	short width = 265;
@@ -1058,7 +990,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	block= uiLayoutGetBlock(box);
 
 	subrow= uiLayoutRow(row, 0);
-	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
+	//uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
 
 	/* Draw constraint header */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -1084,7 +1016,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		uiItemL(subrow, con->name, 0);
 
 	subrow= uiLayoutRow(row, 0);
-	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
+	//uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
 	
 	/* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
 	if (proxy_protected) {
@@ -1142,109 +1074,19 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	/* Set but-locks for protected settings (magic numbers are used here!) */
 	if (proxy_protected)
 		uiBlockSetButLock(block, 1, "Cannot edit Proxy-Protected Constraint");
-	
+
+		
 	/* Draw constraint data */
+	
 	if ((con->flag & CONSTRAINT_EXPAND) == 0) {
 		(yco) -= 21;
 	}
 	else {
 		box= uiLayoutBox(col);
 		block= uiLayoutAbsoluteBlock(box);
-
-		switch (con->type) {
-#ifndef DISABLE_PYTHON
-		case CONSTRAINT_TYPE_PYTHON:
-			{
-				bPythonConstraint *data = con->data;
-				bConstraintTarget *ct;
-				// uiBut *but2;
-				int tarnum, theight;
-				// static int pyconindex=0;
-				// char *menustr;
-				
-				theight = (data->tarnum)? (data->tarnum * 38) : (38);
-				
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Script:", xco+60, yco-24, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
-				/* do the scripts menu */
-				/* XXX menustr = buildmenu_pyconstraints(data->text, &pyconindex);
-				but2 = uiDefButI(block, MENU, B_CONSTRAINT_TEST, menustr,
-					  xco+120, yco-24, 150, 20, &pyconindex,
-					  0, 0, 0, 0, "Set the Script Constraint to use");
-				uiButSetFunc(but2, validate_pyconstraint_cb, data, &pyconindex);
-				MEM_freeN(menustr);	 */
-				
-				/* draw target(s) */
-				if (data->flag & PYCON_USETARGETS) {
-					/* Draw target parameters */ 
-					for (ct=data->targets.first, tarnum=1; ct; ct=ct->next, tarnum++) {
-						char tarstr[32];
-						short yoffset= ((tarnum-1) * 38);
-	
-						/* target label */
-						sprintf(tarstr, "Target %d:", tarnum);
-						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, xco+45, yco-(48+yoffset), 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-						
-						/* target space-selector - per target */
-						if (is_armature_target(ct->tar)) {
-							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
-															xco+10, yco-(66+yoffset), 100, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
-						}
-						else {
-							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
-															xco+10, yco-(66+yoffset), 100, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
-						}
-						
-						uiBlockBeginAlign(block);
-							/* target object */
-							uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", xco+120, yco-(48+yoffset), 150, 18, &ct->tar, "Target Object"); 
-							
-							/* subtarget */
-							if (is_armature_target(ct->tar)) {
-								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", xco+120, yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-								//uiButSetCompleteFunc(but, autocomplete_bone, (void *)ct->tar);
-							}
-							else if (is_geom_target(ct->tar)) {
-								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", xco+120, yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-								//uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ct->tar);
-							}
-							else {
-								strcpy(ct->subtarget, "");
-							}
-						uiBlockEndAlign(block);
-					}
-				}
-				else {
-					/* Draw indication that no target needed */
-					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", xco+60, yco-48, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Not Applicable", xco+120, yco-48, 150, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				}
-				
-				/* settings */
-				uiBlockBeginAlign(block);
-					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Options", xco, yco-(52+theight), (width/2),18, NULL, 0, 24, 0, 0, "Change some of the constraint's settings.");
-					// XXX uiButSetFunc(but, BPY_pyconstraint_settings, data, NULL);
-					
-					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Refresh", xco+((width/2)+10), yco-(52+theight), (width/2),18, NULL, 0, 24, 0, 0, "Force constraint to refresh it's settings");
-				uiBlockEndAlign(block);
-				
-				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, xco, yco-(73+theight), is_armature_owner(ob), -1);
-			}
-			break;
-#endif 
-
-		case CONSTRAINT_TYPE_NULL:
-			{
-				uiItemL(box, "", 0);
-			}
-			break;
-		default:
-			result= box;
-			break;
+		result= box;
 		}
-	}
-	
+
 	/* clear any locks set up for proxies/lib-linking */
 	uiBlockClearButLock(block);
 
@@ -1437,6 +1279,33 @@ static void colorband_pos_cb(bContext *C, void *cb_v, void *coba_v)
 static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
 {
 	ColorBand *coba= coba_v;
+
+	if(coba->tot > 0) {
+		CBData *xnew, *x1, *x2;
+		float col[4];
+
+		xnew= &coba->data[coba->tot];
+
+		if(coba->tot > 1) {
+			if(coba->cur > 0) {
+				x1= &coba->data[coba->cur-1];
+				x2= &coba->data[coba->cur];
+			}
+			else {
+				x1= &coba->data[coba->cur];
+				x2= &coba->data[coba->cur+1];
+			}
+
+			xnew->pos = x1->pos + ((x2->pos - x1->pos) / 2);
+		}
+
+		do_colorband(coba, xnew->pos, col);
+
+		xnew->r= col[0];
+		xnew->g= col[1];
+		xnew->b= col[2];
+		xnew->a= col[3];
+	}
 
 	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
 	coba->cur= coba->tot-1;
@@ -2557,65 +2426,91 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
-
+	void *owner;
+	int handle_event;
+	
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetCurLayout(block, layout);
 
 	uiBlockSetHandleFunc(block, do_running_jobs, NULL);
 
 	if(sa->spacetype==SPACE_NODE) {
-		if(WM_jobs_test(wm, sa))
-			uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Composite", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop composite");
+		owner = sa;
+		handle_event= B_STOPCOMPO;
+	} else {
+		owner = scene;
+		handle_event= B_STOPRENDER;
 	}
-	else {
-		if(WM_jobs_test(wm, scene))
-			uiDefIconTextBut(block, BUT, B_STOPRENDER, ICON_CANCEL, "Render", 0,0,75,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop rendering");
-		if(WM_jobs_test(wm, screen))
-			uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
-		if(screen->animtimer)
-			uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+
+	if(WM_jobs_test(wm, owner)) {
+		uiLayout *abs;
+		
+		abs = uiLayoutAbsolute(layout, 0);
+		
+		uiDefIconBut(block, BUT, handle_event, ICON_PANEL_CLOSE, 
+				0, UI_UNIT_Y*0.1, UI_UNIT_X*0.8, UI_UNIT_Y*0.8, NULL, 0.0f, 0.0f, 0, 0, "Stop this job");
+		uiDefBut(block, PROGRESSBAR, 0, WM_jobs_name(wm, owner), 
+				UI_UNIT_X, 0, 100, UI_UNIT_Y, NULL, 0.0f, 0.0f, WM_jobs_progress(wm, owner), 0, "Progress");
+		
+		uiLayoutRow(layout, 0);
 	}
+	if(WM_jobs_test(wm, screen))
+		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
+	if(screen->animtimer)
+		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
 }
 
 /************************* Reports for Last Operator Template **************************/
 
-void uiTemplateReportsBanner(uiLayout *layout, bContext *C, wmOperator *op)
+void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 {
-	ReportList *reports = op->reports;
-	uiLayout *box;
+	ReportList *reports = CTX_wm_reports(C);
+	Report *report= BKE_reports_last_displayable(reports);
+	ReportTimerInfo *rti;
 	
-	/* sanity checks */
-	if (ELEM(NULL, op, reports)) {
-		printf("uiTemplateReportsBanner: no operator with reports!\n");
-		return;
-	}
+	uiLayout *abs;
+	uiBlock *block;
+	uiBut *but;
+	uiStyle *style= U.uistyles.first;
+	int width;
+	float hsv[3];
+	
+	/* if the report display has timed out, don't show */
+	if (!reports->reporttimer) return;
+	
+	rti= (ReportTimerInfo *)reports->reporttimer->customdata;
+	
+	if (!rti || rti->widthfac==0.0 || !report) return;
+	
+	abs = uiLayoutAbsolute(layout, 0);
+	block= uiLayoutGetBlock(abs);
+
+	rgb_to_hsv(rti->col[0], rti->col[1], rti->col[2], hsv+0, hsv+1, hsv+2);
+	
+	width = BLF_width(style->widget.uifont_id, report->message);
+	width = MIN2(rti->widthfac*width, width);
+	width = MAX2(width, 10);
 	
 	/* make a box around the report to make it stand out */
-	box = uiLayoutBox(layout);
-	uiLayoutSetScaleY(box, 0.48); /* experimentally determined value to reduce execessive padding... */
+	uiBlockBeginAlign(block);
+	but= uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X+10, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	copy_v3_v3(but->hsv, hsv);			/* set the report's bg colour in but->hsv - ROUNDBOX feature */
 	
-	/* if more than one report, we need to show the popup when user clicks on the temp label... */
-	if (reports->list.first != reports->list.last) {
-		int numReports = BLI_countlist(&reports->list);
-		char buf[64];
-		
-		// XXX: we need uiItem* to return uiBut pointer so that we can use it to set callbacks
-		// used to call uiPupMenuReports... as alternative, we could fall back to the "old ways"
-		//sprintf(buf, "Last Operator had %d errors. Click to see more...", numReports);
-		sprintf(buf, "Last Operator had %d errors", numReports);
-		uiItemL(box, buf, ICON_INFO);
-	}
-	else {
-		/* single report, so show report directly */
-		// XXX: what if the report is too long? should we truncate the text?
-		Report *report= (Report *)reports->list.first;
-		
-		if(report->type >= RPT_ERROR)
-			uiItemL(box, report->message, ICON_ERROR);
-		else if(report->type >= RPT_WARNING)
-			uiItemL(box, report->message, ICON_ERROR);
-		else if(report->type >= RPT_INFO)
-			uiItemL(box, report->message, ICON_INFO);
-	}
+	but= uiDefBut(block, ROUNDBOX, 0, "", UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	but->hsv[0] = but->hsv[1] = 0.0;	/* set a greyscale bg colour in but->hsv - ROUNDBOX feature */
+	but->hsv[2] = rti->greyscale;
+	uiBlockEndAlign(block);
+	
+	
+	/* icon and report message on top */
+	if(report->type & RPT_ERROR_ALL)
+		uiDefIconBut(block, LABEL, 0, ICON_ERROR, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	else if(report->type & RPT_WARNING_ALL)
+		uiDefIconBut(block, LABEL, 0, ICON_ERROR, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	else if(report->type & RPT_INFO_ALL)
+		uiDefIconBut(block, LABEL, 0, ICON_INFO, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+	
+	uiDefBut(block, LABEL, 0, report->message, UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+
 }
 

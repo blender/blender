@@ -37,6 +37,8 @@
  * $Id$
  */
 
+#include <stdlib.h>
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "math.h"

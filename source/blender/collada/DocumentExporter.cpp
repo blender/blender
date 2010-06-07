@@ -1,3 +1,26 @@
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Jan Diederich, Tod Liverseed.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -638,8 +661,8 @@ public:
 			source.setAccessorCount(totuv);
 			source.setAccessorStride(2);
 			COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-			param.push_back("X");
-			param.push_back("Y");
+			param.push_back("S");
+			param.push_back("T");
 			
 			source.prepareToAppendValues();
 			
@@ -908,7 +931,7 @@ public:
 		Object *ob_arm = get_assigned_armature(ob);
 		bArmature *arm = (bArmature*)ob_arm->data;
 
-		const std::string& controller_id = get_controller_id(ob_arm);
+		const std::string& controller_id = get_controller_id(ob_arm, ob);
 
 		COLLADASW::InstanceController ins(mSW);
 		ins.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, controller_id));
@@ -1051,9 +1074,9 @@ private:
 		TransformWriter::add_node_transform(node, mat, NULL);
 	}
 
-	std::string get_controller_id(Object *ob_arm)
+	std::string get_controller_id(Object *ob_arm, Object *ob)
 	{
-		return translate_id(id_name(ob_arm)) + SKIN_CONTROLLER_ID_SUFFIX;
+		return translate_id(id_name(ob_arm)) + "_" + translate_id(id_name(ob)) + SKIN_CONTROLLER_ID_SUFFIX;
 	}
 
 	// ob should be of type OB_MESH
@@ -1087,7 +1110,7 @@ private:
 		if (!me->dvert) return;
 
 		std::string controller_name = id_name(ob_arm);
-		std::string controller_id = get_controller_id(ob_arm);
+		std::string controller_id = get_controller_id(ob_arm, ob);
 
 		openSkin(controller_id, controller_name,
 				 COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob)));
@@ -1555,18 +1578,27 @@ public:
 		else {
 			ep.setIndexOfRefraction(1.0f);
 		}
+	
+		COLLADASW::ColorOrTexture cot;
+
 		// transparency
-		ep.setTransparency(ma->alpha);
-		// emission
-		COLLADASW::ColorOrTexture cot = getcol(0.0f, 0.0f, 0.0f, 1.0f);
-		ep.setEmission(cot);
+		// Tod: because we are in A_ONE mode transparency is calculated like this:
+		ep.setTransparency(1.0f);
+		cot = getcol(0.0f, 0.0f, 0.0f, ma->alpha);
 		ep.setTransparent(cot);
+
+		// emission
+		cot=getcol(ma->emit, ma->emit, ma->emit, 1.0f);
+		ep.setEmission(cot);
+
 		// diffuse 
 		cot = getcol(ma->r, ma->g, ma->b, 1.0f);
 		ep.setDiffuse(cot);
+
 		// ambient
 		cot = getcol(ma->ambr, ma->ambg, ma->ambb, 1.0f);
 		ep.setAmbient(cot);
+
 		// reflective, reflectivity
 		if (ma->mode & MA_RAYMIRROR) {
 			cot = getcol(ma->mirr, ma->mirg, ma->mirb, 1.0f);
@@ -1574,15 +1606,16 @@ public:
 			ep.setReflectivity(ma->ray_mirror);
 		}
 		else {
-			cot = getcol(0.0f, 0.0f, 0.0f, 1.0f);
+			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
 			ep.setReflective(cot);
-			ep.setReflectivity(0.0f);
+			ep.setReflectivity(ma->spec);
 		}
+
 		// specular
 		if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
 			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
 			ep.setSpecular(cot);
-		}
+		}	
 
 		// XXX make this more readable if possible
 
@@ -1686,12 +1719,24 @@ public:
 				// most widespread de-facto standard.
 				texture.setProfileName("FCOLLADA");
 				texture.setChildElementName("bump");				
-				ep.setExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
+				ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
 			}
 		}
 		// performs the actual writing
 		ep.addProfileElements();
+		bool twoSided = false;
+		if (ob->type == OB_MESH && ob->data) {
+			Mesh *me = (Mesh*)ob->data;
+			if (me->flag & ME_TWOSIDED)
+				twoSided = true;
+		}
+		if (twoSided)
+			ep.addExtraTechniqueParameter("GOOGLEEARTH", "double_sided", 1);
+		ep.addExtraTechniques(mSW);
+
 		ep.closeProfile();
+		if (twoSided)
+			mSW->appendTextBlock("<extra><technique profile=\"MAX3D\"><double_sided>1</double_sided></technique></extra>");
 		closeEffect();	
 	}
 	

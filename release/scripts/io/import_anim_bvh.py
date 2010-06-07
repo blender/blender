@@ -458,13 +458,11 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
             pose_bone = pose_bones[bone_name]
             pose_bone.rotation_mode = eul_order_lookup[tuple(bvh_node.rot_order)]
 
-    elif ROT_MODE == 'XYZ':
-        print(2)
+    elif ROT_MODE != 'QUATERNION':
         for pose_bone in pose_bones:
-            pose_bone.rotation_mode = 'XYZ'
+            pose_bone.rotation_mode = ROT_MODE
     else:
         # Quats default
-        print(3)
         pass
 
     context.scene.update()
@@ -520,13 +518,13 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
             lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current + 1]
 
             if bvh_node.has_rot:
-                bone_rotation_matrix = Euler(rx, ry, rz).to_matrix().resize4x4()
+                bone_rotation_matrix = Euler((rx, ry, rz)).to_matrix().resize4x4()
                 bone_rotation_matrix = bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix
 
                 if ROT_MODE == 'QUATERNION':
                     pose_bone.rotation_quaternion = bone_rotation_matrix.to_quat()
                 else:
-                    euler = bone_rotation_matrix.to_euler('XYZ', prev_euler[i]) # pose_bone.rotation_mode # TODO, XYZ default for now
+                    euler = bone_rotation_matrix.to_euler(pose_bone.rotation_mode, prev_euler[i])
                     pose_bone.rotation_euler = euler
                     prev_euler[i] = euler
 
@@ -569,17 +567,17 @@ class BvhImporter(bpy.types.Operator):
     loop = BoolProperty(name="Loop", description="Loop the animation playback", default=False)
     rotate_mode = EnumProperty(items=(
             ('QUATERNION', "Quaternion", "Convert rotations to quaternions"),
-            # ('NATIVE', "Euler (Native)", "Use the rotation order defined in the BVH file"),
+            ('NATIVE', "Euler (Native)", "Use the rotation order defined in the BVH file"),
             ('XYZ', "Euler (XYZ)", "Convert rotations to euler XYZ"),
-            # ('XZY', "Euler (XZY)", "Convert rotations to euler XZY"),
-            # ('YXZ', "Euler (YXZ)", "Convert rotations to euler YXZ"),
-            # ('YZX', "Euler (YZX)", "Convert rotations to euler YZX"),
-            # ('ZXY', "Euler (ZXY)", "Convert rotations to euler ZXY"),
-            # ('ZYX', "Euler (ZYX)", "Convert rotations to euler ZYX")),
+            ('XZY', "Euler (XZY)", "Convert rotations to euler XZY"),
+            ('YXZ', "Euler (YXZ)", "Convert rotations to euler YXZ"),
+            ('YZX', "Euler (YZX)", "Convert rotations to euler YZX"),
+            ('ZXY', "Euler (ZXY)", "Convert rotations to euler ZXY"),
+            ('ZYX', "Euler (ZYX)", "Convert rotations to euler ZYX"),
             ),
                 name="Rotation",
                 description="Rotation conversion.",
-                default='QUATERNION')
+                default='NATIVE')
 
     def execute(self, context):
         # print("Selected: " + context.active_object.name)

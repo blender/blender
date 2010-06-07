@@ -117,30 +117,6 @@ DerivedMesh *get_cddm(struct Scene *scene, Object *ob, struct EditMesh *em, Deri
 	return dm;
 }
 
-
-static int is_last_displist(Object *ob)
-{
-	Curve *cu = ob->data;
-	static int curvecount=0, totcurve=0;
-
-	if(curvecount == 0){
-		DispList *dl;
-
-		totcurve = 0;
-		for(dl=cu->disp.first; dl; dl=dl->next)
-			totcurve++;
-	}
-
-	curvecount++;
-
-	if(curvecount == totcurve){
-		curvecount = 0;
-		return 1;
-	}
-
-	return 0;
-}
-
 /* returns a derived mesh if dm == NULL, for deforming modifiers that need it */
 DerivedMesh *get_dm(struct Scene *scene, Object *ob, struct EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
 {
@@ -160,9 +136,7 @@ DerivedMesh *get_dm(struct Scene *scene, Object *ob, struct EditMesh *em, Derive
 			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
 	}
 	else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)) {
-		if(is_last_displist(ob)) {
-			dm= CDDM_from_curve(ob);
-		}
+		dm= CDDM_from_curve(ob);
 	}
 
 	return dm;

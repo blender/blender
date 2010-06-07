@@ -399,9 +399,9 @@ static void rna_def_library(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Library", "External .blend file from which data is linked");
 	RNA_def_struct_ui_icon(srna, ICON_LIBRARY_DATA_DIRECT);
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Filename", "Path to the library .blend file");
+	RNA_def_property_ui_text(prop, "File Path", "Path to the library .blend file");
 	/* TODO - lib->filename isnt updated, however the outliner also skips this, probably only needed on read. */
 	
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);

@@ -4317,6 +4317,10 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 		if(eve->f & SELECT) {
 			if(eve->f1) {
 				
+				int xaxis= RNA_boolean_get(op->ptr, "xaxis");
+				int yaxis= RNA_boolean_get(op->ptr, "yaxis");
+				int zaxis= RNA_boolean_get(op->ptr, "zaxis");
+				
 				if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
 					eve_mir= editmesh_get_x_mirror_vert(obedit, em, eve, eve->co, index);
 				}
@@ -4324,9 +4328,12 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 				adr = eve->tmp.p;
 				fac= 0.5/(float)eve->f1;
 				
-				eve->co[0]= 0.5*eve->co[0]+fac*adr[0];
-				eve->co[1]= 0.5*eve->co[1]+fac*adr[1];
-				eve->co[2]= 0.5*eve->co[2]+fac*adr[2];
+				if(xaxis)
+					eve->co[0]= 0.5*eve->co[0]+fac*adr[0];
+				if(yaxis)
+					eve->co[1]= 0.5*eve->co[1]+fac*adr[1];
+				if(zaxis)
+					eve->co[2]= 0.5*eve->co[2]+fac*adr[2];
 				
 				
 				/* clip if needed by mirror modifier */
@@ -4395,6 +4402,9 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_int(ot->srna, "repeat", 1, 1, 100, "Smooth Iterations", "", 1, INT_MAX);
+	RNA_def_boolean(ot->srna, "xaxis", 1, "X-Axis", "Smooth along the X axis.");
+	RNA_def_boolean(ot->srna, "yaxis", 1, "Y-Axis", "Smooth along the Y axis.");
+	RNA_def_boolean(ot->srna, "zaxis", 1, "Z-Axis", "Smooth along the Z axis.");
 }
 
 void vertexnoise(Object *obedit, EditMesh *em)

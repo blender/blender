@@ -1033,9 +1033,13 @@ static int modify_key_op_poll(bContext *C)
 	if (ELEM(NULL, sa, scene)) 
 		return 0;
 	
-	/* if Outliner, only allow in DataBlocks view */
-	if (so && (so->outlinevis != SO_DATABLOCKS))
-		return 0;
+	/* if Outliner, don't allow in some views */
+	if (so) {
+		if (ELEM4(so->outlinevis, SO_GROUPS, SO_LIBRARIES, SO_VERSE_SESSION, SO_VERSE_SESSION))
+			return 0;
+		if (ELEM3(so->outlinevis, SO_SEQUENCE, SO_USERDEF, SO_KEYMAP))
+			return 0;
+	}
 	
 	/* TODO: checks for other space types can be added here */
 	
@@ -1100,6 +1104,8 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 
 void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Insert Keyframe";
 	ot->idname= "ANIM_OT_keyframe_insert";
@@ -1115,11 +1121,13 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 	/* keyingset to use
 	 *	- here the type is int not enum, since many of the indicies here are determined dynamically
 	 */
-	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+	prop= RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	/* confirm whether a keyframe was added by showing a popup 
 	 *	- by default, this is enabled, since this operator is assumed to be called independently
 	 */
-	RNA_def_boolean(ot->srna, "confirm_success", 1, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	prop= RNA_def_boolean(ot->srna, "confirm_success", 1, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* Insert Key Operator (With Menu) ------------------------ */
@@ -1148,6 +1156,8 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
  
 void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Insert Keyframe Menu";
 	ot->idname= "ANIM_OT_keyframe_insert_menu";
@@ -1163,17 +1173,20 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	/* keyingset to use
 	 *	- here the type is int not enum, since many of the indicies here are determined dynamically
 	 */
-	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+	prop= RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	/* confirm whether a keyframe was added by showing a popup 
 	 *	- by default, this is disabled so that if a menu is shown, this doesn't come up too
 	 */
 	// XXX should this just be always on?
-	RNA_def_boolean(ot->srna, "confirm_success", 0, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	prop= RNA_def_boolean(ot->srna, "confirm_success", 0, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	/* whether the menu should always be shown 
 	 *	- by default, the menu should only be shown when there is no active Keying Set (2.5 behaviour),
 	 *	  although in some cases it might be useful to always shown (pre 2.5 behaviour)
 	 */
-	RNA_def_boolean(ot->srna, "always_prompt", 0, "Always Show Menu", "");
+	prop= RNA_def_boolean(ot->srna, "always_prompt", 0, "Always Show Menu", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* Delete Key Operator ------------------------ */

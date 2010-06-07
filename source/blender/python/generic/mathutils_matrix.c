@@ -1126,13 +1126,16 @@ static PyObject* Matrix_inv(MatrixObject *self)
 
 /*-----------------PROTOCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Matrix_SeqMethods = {
-	(lenfunc) Matrix_len,					/* sq_length */
-	(binaryfunc) 0,							/* sq_concat */
-	(ssizeargfunc) 0,							/* sq_repeat */
-	(ssizeargfunc) Matrix_item,				/* sq_item */
-	(ssizessizeargfunc) Matrix_slice,			/* sq_slice */
-	(ssizeobjargproc) Matrix_ass_item,		/* sq_ass_item */
-	(ssizessizeobjargproc) Matrix_ass_slice,	/* sq_ass_slice */
+	(lenfunc) Matrix_len,						/* sq_length */
+	(binaryfunc) NULL,							/* sq_concat */
+	(ssizeargfunc) NULL,						/* sq_repeat */
+	(ssizeargfunc) Matrix_item,					/* sq_item */
+	(ssizessizeargfunc) Matrix_slice,			/* sq_slice, deprecated TODO, replace */
+	(ssizeobjargproc) Matrix_ass_item,			/* sq_ass_item */
+	(ssizessizeobjargproc) Matrix_ass_slice,	/* sq_ass_slice, deprecated TODO, replace */
+	(objobjproc) NULL,							/* sq_contains */
+	(binaryfunc) NULL,							/* sq_inplace_concat */
+	(ssizeargfunc) NULL,						/* sq_inplace_repeat */
 };
 
 

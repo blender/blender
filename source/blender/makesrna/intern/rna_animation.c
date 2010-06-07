@@ -557,7 +557,7 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_string(func, "data_path", "", 256, "Data-Path", "RNA-Path to destination property."); // xxx hopefully this is long enough
 		RNA_def_property_flag(parm, PROP_REQUIRED);
 		/* index (defaults to -1 for entire array) */
-	parm=RNA_def_int(func, "index", -1, 0, INT_MAX, "Index", "The index of the destination property (i.e. axis of Location/Rotation/etc.), or -1 for the entire array.", 0, INT_MAX);
+	parm=RNA_def_int(func, "index", -1, -1, INT_MAX, "Index", "The index of the destination property (i.e. axis of Location/Rotation/etc.), or -1 for the entire array.", 0, INT_MAX);
 		/* grouping */
 	parm=RNA_def_enum(func, "grouping_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME, "Grouping Method", "Method used to define which Group-name to use.");
 	parm=RNA_def_string(func, "group_name", "", 64, "Group Name", "Name of Action Group to assign destination to (only if grouping mode is to use this name).");
@@ -596,7 +596,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type_info", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyingSetInfo");
 	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_typeinfo_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Type Info", "Callback function defines for builtin Keying Sets");
+	RNA_def_property_ui_text(prop, "Type Info", "Callback function defines for built-in Keying Sets");
 	
 	/* Paths */
 	prop= RNA_def_property(srna, "paths", PROP_COLLECTION, PROP_NONE);

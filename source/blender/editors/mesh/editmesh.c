@@ -60,9 +60,6 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
-#include "LBM_fluidsim.h"
-
-
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_retopo.h"

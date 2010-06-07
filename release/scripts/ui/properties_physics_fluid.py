@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class PhysicButtonsPanel(bpy.types.Panel):
@@ -42,7 +42,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
         md = context.fluid
         wide_ui = context.region.width > narrowui
 
-        split = layout.split(percentage=0.5)
+        split = layout.split()
 
         if md:
             # remove modifier + settings

@@ -76,5 +76,8 @@ struct LinkNode *BLI_read_file_as_lines(char *name);
 	 */
 void BLI_free_file_lines(struct LinkNode *lines);
 
+	/* Compare if one was last modified before the other */
+int		BLI_file_older(const char *file1, const char *file2);
+
 #endif /* BLI_STORAGE_H */
 

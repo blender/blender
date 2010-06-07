@@ -790,7 +790,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 						
 						fdrawline((float)(v2d->cur.xmax-offset), yminc, 
 								  (float)(v2d->cur.xmax-offset), ymaxc);
-						offset += 16;;
+						offset += 16;
 						
 						/* 'tweaking action' indicator - not a button */
 						UI_icon_draw((float)(v2d->cur.xmax-offset), ydatac, ICON_EDIT); 
@@ -805,7 +805,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 						glEnd(); // GL_LINES
 						
 						/* 'push down' icon for normal active-actions */
-						UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, ICON_FREEZE);
+						UI_icon_draw((float)v2d->cur.xmax-offset, ydatac, ICON_FREEZE);
 					}
 				}
 				

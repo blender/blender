@@ -95,7 +95,7 @@ public:
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_RayCast"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_RayCast"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };
@@ -134,7 +134,7 @@ public:
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_RayCast::Callback"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_RayCast::Callback"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

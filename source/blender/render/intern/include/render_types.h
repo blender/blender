@@ -234,8 +234,8 @@ struct Render
 	
 	void (*stats_draw)(void *handle, RenderStats *ri);
 	void *sdh;
-	void (*timecursor)(void *handle, int i);
-	void *tch;
+	void (*progress)(void *handle, float i);
+	void *prh;
 	
 	int (*test_break)(void *handle);
 	void *tbh;

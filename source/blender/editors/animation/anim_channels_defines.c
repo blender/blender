@@ -2334,8 +2334,8 @@ static void dummy_olddraw_gpencil ()
 				case SPACE_VIEW3D:
 				{
 					/* this shouldn't cause any overflow... */
-					//sprintf(name, "3DView:%s", view3d_get_name(sa->spacedata.first)); // XXX missing func..
-					strcpy(name, "3dView");
+					//sprintf(name, "View3D:%s", view3d_get_name(sa->spacedata.first)); // XXX missing func..
+					strcpy(name, "View3D");
 					special= ICON_VIEW3D;
 				}
 					break;

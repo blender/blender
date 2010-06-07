@@ -232,7 +232,6 @@ int reopen_text(Text *text)
 	int i, llen, len, res;
 	unsigned char *buffer;
 	TextLine *tmp;
-	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	struct stat st;
 
@@ -240,7 +239,6 @@ int reopen_text(Text *text)
 	
 	BLI_strncpy(str, text->name, FILE_MAXDIR+FILE_MAXFILE);
 	BLI_path_abs(str, G.sce);
-	BLI_split_dirfile(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return 0;
@@ -331,19 +329,17 @@ Text *add_text(char *file, const char *relpath)
 	unsigned char *buffer;
 	TextLine *tmp;
 	Text *ta;
-	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	struct stat st;
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
 	if (relpath) /* can be NULL (bg mode) */
 		BLI_path_abs(str, relpath);
-	BLI_split_dirfile(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return NULL;
 	
-	ta= alloc_libblock(&G.main->text, ID_TXT, sfile);
+	ta= alloc_libblock(&G.main->text, ID_TXT, BLI_path_basename(str));
 	ta->id.us= 1;
 
 	ta->lines.first= ta->lines.last= NULL;

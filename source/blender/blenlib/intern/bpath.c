@@ -62,7 +62,7 @@
 /* for sequence */
 //XXX #include "BSE_sequence.h"
 //XXX define below from BSE_sequence.h - otherwise potentially odd behaviour
-#define SEQ_HAS_PATH(seq) (seq->type==SEQ_MOVIE || seq->type==SEQ_IMAGE)
+#define SEQ_HAS_PATH(_seq) ( (_seq)->type==SEQ_MOVIE || (_seq)->type==SEQ_IMAGE || (_seq)->type==SEQ_SOUND )
 
 
 
@@ -132,6 +132,7 @@ void BLI_bpathIterator_getPathExpanded( struct BPathIterator *bpi, char *path_ex
 	} else { /* local data, use the blend files path */
 		BLI_path_abs(path_expanded, bpi->base_path);
 	}
+	BLI_cleanup_file(NULL, path_expanded);
 }
 char* BLI_bpathIterator_getLib( struct BPathIterator *bpi) {
 	return bpi->lib;
@@ -261,7 +262,7 @@ static void seq_getpath(struct BPathIterator *bpi, char *path) {
 	path[0] = '\0'; /* incase we cant get the path */
 	if (seq==NULL) return;
 	if (SEQ_HAS_PATH(seq)) {
-		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
+		if (ELEM3(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_SOUND)) {
 			BLI_strncpy(path, seq->strip->dir, FILE_MAX);
 			BLI_add_slash(path); /* incase its missing */
 			if (seq->strip->stripdata) { /* should always be true! */
@@ -280,7 +281,7 @@ static void seq_setpath(struct BPathIterator *bpi, char *path) {
 	if (seq==NULL) return; 
 	
 	if (SEQ_HAS_PATH(seq)) {
-		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
+		if (ELEM3(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_SOUND)) {
 			BLI_split_dirfile(path, seq->strip->dir, seq->strip->stripdata->name);
 		} else {
 			/* simple case */
@@ -334,7 +335,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				Image *ima = (Image *)bpi->data;
 				
-				bpi->lib = ima->id.lib ? ima->id.lib->filename : NULL;
+				bpi->lib = ima->id.lib ? ima->id.lib->filepath : NULL;
 				bpi->path = ima->name;
 				bpi->name = ima->id.name+2;
 				bpi->len = sizeof(ima->name);
@@ -355,7 +356,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				bSound *snd = (bSound *)bpi->data;
 				
-				bpi->lib = snd->id.lib ? snd->id.lib->filename : NULL;
+				bpi->lib = snd->id.lib ? snd->id.lib->filepath : NULL;
 				bpi->path = snd->name;
 				bpi->name = snd->id.name+2;
 				bpi->len = sizeof(snd->name);
@@ -376,7 +377,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				VFont *vf = (VFont *)bpi->data;
 				
-				bpi->lib = vf->id.lib ? vf->id.lib->filename : NULL;
+				bpi->lib = vf->id.lib ? vf->id.lib->filepath : NULL;
 				bpi->path = vf->name;
 				bpi->name = vf->id.name+2;
 				bpi->len = sizeof(vf->name);
@@ -423,7 +424,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 
 			if (bpi->data) {
 				Mesh *me = (Mesh *)bpi->data;
-				bpi->lib = me->id.lib ? me->id.lib->filename : NULL;
+				bpi->lib = me->id.lib ? me->id.lib->filepath : NULL;
 				bpi->path = me->fdata.external->filename;
 				bpi->name = me->id.name+2;
 				bpi->len = sizeof(me->fdata.external->filename);
@@ -622,7 +623,7 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 	
 	while ((de = readdir(dir)) != NULL) {
 		
-		if (strncmp(".", de->d_name, 2)==0 || strncmp("..", de->d_name, 3)==0)
+		if (strcmp(".", de->d_name)==0 || strcmp("..", de->d_name)==0)
 			continue;
 		
 		BLI_join_dirfile(path, dirname, de->d_name);
@@ -660,7 +661,7 @@ void findMissingFiles(char *basepath, char *str) {
 	char filepath[FILE_MAX], *libpath;
 	int filesize, recur_depth;
 	
-	char dirname[FILE_MAX], filename[FILE_MAX], filename_new[FILE_MAX];
+	char dirname[FILE_MAX], filename_new[FILE_MAX];
 	
 	//XXX waitcursor( 1 );
 	
@@ -685,9 +686,8 @@ void findMissingFiles(char *basepath, char *str) {
 				/* can the dir be opened? */
 				filesize = -1;
 				recur_depth = 0;
-				BLI_split_dirfile(filepath, NULL, filename); /* the file to find */
 				
-				findFileRecursive(filename_new, dirname, filename, &filesize, &recur_depth);
+				findFileRecursive(filename_new, dirname, BLI_path_basename(filepath), &filesize, &recur_depth);
 				if (filesize == -1) { /* could not open dir */
 					printf("Could not open dir \"%s\"\n", dirname);
 					return;

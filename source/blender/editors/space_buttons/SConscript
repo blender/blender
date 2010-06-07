@@ -9,7 +9,4 @@ incs += ' ../../makesrna ../../render/extern/include'
 
 defs = []
 
-if env['WITH_BF_GAMEENGINE']:
-	defs.append('GAMEBLENDER=1')
-
 env.BlenderLib ( 'bf_editors_space_buttons', sources, Split(incs), defs, libtype=['core'], priority=[120] )

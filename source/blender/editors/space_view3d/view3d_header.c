@@ -137,6 +137,7 @@ static void handle_view3d_lock(bContext *C)
 		if(v3d->localvd==NULL && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
 			/* copy to scene */
 			scene->lay= v3d->lay;
+			scene->layact= v3d->layact;
 			scene->camera= v3d->camera;
 
 			/* not through notifiery, listener don't have context
@@ -439,7 +440,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlock *block;
 	uiLayout *row;
 	
-	RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);	
+	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);	
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
 	RNA_pointer_create(&scene->id, &RNA_Scene, scene, &sceneptr);
 

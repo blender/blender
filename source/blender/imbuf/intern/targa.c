@@ -33,14 +33,12 @@
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "IMB_allocimbuf.h"
-#include "IMB_cmap.h"
-#include "IMB_targa.h"
+#include "IMB_filetype.h"
 
 
 /* this one is only def-ed once, strangely... related to GS? */
@@ -234,11 +232,10 @@ static int dumptarga(struct ImBuf * ibuf, FILE * file)
 }
 
 
-short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
+int imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 {
 	char buf[20];
 	FILE *fildes;
-	int i;
 	short ok = 0;
 
 	if (ibuf == 0) return (0);
@@ -249,19 +246,7 @@ short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 	/* buf[0] = 0;  length string */
 
 	buf[16] = (ibuf->depth + 0x7 ) & ~0x7;
-	if (ibuf->cmap) {
-		buf[1] = 1;
-		buf[2] = 9;
-		buf[3] = ibuf->mincol & 0xff;
-		buf[4] = ibuf->mincol >> 8;
-		buf[5] = ibuf->maxcol & 0xff;
-		buf[6] = ibuf->maxcol >> 8;
-		buf[7] = 24;
-		if ((flags & IB_ttob) == 0) {
-			IMB_flipy(ibuf);
-			buf[17] = 0x20;
-		}
-	} else if (ibuf->depth > 8 ){
+	if (ibuf->depth > 8 ){
 		buf[2] = 10;
 	} else{
 		buf[2] = 11;
@@ -269,17 +254,15 @@ short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 
 	if (ibuf->ftype == RAWTGA) buf[2] &= ~8;
 	
-	buf[8] = ibuf->xorig & 0xff;
-	buf[9] = ibuf->xorig >> 8;
-	buf[10] = ibuf->yorig & 0xff;
-	buf[11] = ibuf->yorig >> 8;
+	buf[8] = 0;
+	buf[9] = 0;
+	buf[10] = 0;
+	buf[11] = 0;
 
 	buf[12] = ibuf->x & 0xff;
 	buf[13] = ibuf->x >> 8;
 	buf[14] = ibuf->y & 0xff;
 	buf[15] = ibuf->y >> 8;
-
-	if (flags & IB_ttob) buf[17] ^= 0x20;
 
 	/* Don't forget to indicate that your 32 bit
 	 * targa uses 8 bits for the alpha channel! */
@@ -294,17 +277,6 @@ short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 		return (0);
 	}
 
-	if (ibuf->cmap){
-		for (i = 0 ; i<ibuf->maxcol ; i++){
-			if (fwrite(((uchar *)(ibuf->cmap + i)) + 1,1,3,fildes) != 3) {
-				fclose(fildes);
-				return (0);
-			}
-		}
-	}
-	
-	if (ibuf->cmap && (flags & IB_cmap) == 0) IMB_converttocmap(ibuf);
-	
 	if (ibuf->ftype == RAWTGA) {
 		ok = dumptarga(ibuf, fildes);
 	} else {		
@@ -365,7 +337,7 @@ static int checktarga(TARGA *tga, unsigned char *mem)
 	return(1);
 }
 
-int imb_is_a_targa(void *buf) {
+int imb_is_a_targa(unsigned char *buf) {
 	TARGA tga;
 	
 	return checktarga(&tga, buf);
@@ -559,7 +531,7 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int mem_size, int flags)
 	TARGA tga;
 	struct ImBuf * ibuf;
 	int col, count, size;
-	unsigned int * rect;
+	unsigned int *rect, *cmap= NULL, mincol= 0, maxcol= 0;
 	uchar * cp = (uchar *) &col;
 	
 	if (checktarga(&tga,mem) == 0) return(0);
@@ -570,19 +542,18 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int mem_size, int flags)
 	if (ibuf == 0) return(0);
 	ibuf->ftype = TGA;
 	ibuf->profile = IB_PROFILE_SRGB;
-	ibuf->xorig = tga.xorig;
-	ibuf->yorig = tga.yorig;
 	mem = mem + 18 + tga.numid;
 	
 	cp[0] = 0xff;
 	cp[1] = cp[2] = 0;
 	
 	if (tga.mapsize){
-		ibuf->mincol = tga.maporig;
-		ibuf->maxcol = tga.mapsize;
-		imb_addcmapImBuf(ibuf);
-		ibuf->cbits = 8;
-		for (count = 0 ; count < ibuf->maxcol ; count ++) {
+		/* load color map */
+		mincol = tga.maporig;
+		maxcol = tga.mapsize;
+		cmap = MEM_callocN(sizeof(unsigned int)*maxcol, "targa cmap");
+
+		for (count = 0 ; count < maxcol ; count ++) {
 			switch (tga.mapbits >> 3) {
 				case 4:
 					cp[0] = mem[3];
@@ -606,21 +577,24 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int mem_size, int flags)
 					col = *mem++;
 					break;
 			}
-			ibuf->cmap[count] = col;
+			cmap[count] = col;
 		}
 		
 		size = 0;
-		for (col = ibuf->maxcol - 1; col > 0; col >>= 1) size++;
+		for (col = maxcol - 1; col > 0; col >>= 1) size++;
 		ibuf->depth = size;
 
 		if (tga.mapbits != 32) {	/* set alpha bits  */
-			ibuf->cmap[0] &= BIG_LONG(0x00ffffff);
+			cmap[0] &= BIG_LONG(0x00ffffff);
 		}
 	}
 	
 	if (flags & IB_test) return (ibuf);
 
-	if (tga.imgtyp != 1 && tga.imgtyp != 9) IMB_freecmapImBuf(ibuf); /* happens sometimes (beuh) */
+	if (tga.imgtyp != 1 && tga.imgtyp != 9) { /* happens sometimes (beuh) */
+		MEM_freeN(cmap); 
+		cmap= NULL;
+	}
 
 	switch(tga.imgtyp){
 	case 1:
@@ -641,11 +615,18 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int mem_size, int flags)
 		break;
 	}
 	
-	if (ibuf->cmap){
-		if ((flags & IB_cmap) == 0) IMB_applycmap(ibuf);
+	if(cmap) {
+		/* apply color map */
+		rect = ibuf->rect;
+		for(size = ibuf->x * ibuf->y; size>0; --size, ++rect) {
+			col = *rect;
+			if (col >= 0 && col < maxcol) *rect = cmap[col];
+		}
+
+		MEM_freeN(cmap);
 	}
 	
-	if (tga.pixsize == 16 && ibuf->cmap == 0){
+	if (tga.pixsize == 16) {
 		rect = ibuf->rect;
 		for (size = ibuf->x * ibuf->y; size > 0; --size, ++rect){
 			col = *rect;
@@ -679,13 +660,10 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int mem_size, int flags)
 		}
 	}
 	
-	if (flags & IB_ttob) tga.imgdes ^= 0x20;
 	if (tga.imgdes & 0x20) IMB_flipy(ibuf);
 
-	if (ibuf) {
-		if (ibuf->rect && (flags & IB_cmap)==0) 
-			IMB_convert_rgba_to_abgr(ibuf);
-	}
+	if (ibuf && ibuf->rect)
+		IMB_convert_rgba_to_abgr(ibuf);
 	
 	return(ibuf);
 }

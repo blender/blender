@@ -80,31 +80,6 @@ char *BLI_last_slash(const char *string) {
 	else return lfslash;
 }
 
-static const char *last_slash_len(const char *string, int len) {
-	int a;
-
-	for(a=len-1; a>=0; a--)
-		if(string[a] == '/' || string[a] == '\\')
-			return &string[a];
-	
-	return NULL;
-}
-
-const char *BLI_short_filename(const char *string) {
-	const char *ls, *lls;
-	
-	ls= last_slash_len(string, strlen(string));
-	if(!ls)
-		return string;
-	
-	lls= last_slash_len(string, ls-string);
-
-	if(lls)
-		return lls+1;
-	else
-		return ls+1;
-}
-
 /* adds a slash if there isnt one there alredy */
 int BLI_add_slash(char *string) {
 	int len = strlen(string);

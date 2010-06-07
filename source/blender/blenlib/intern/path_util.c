@@ -354,8 +354,6 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 
 void BLI_path_rel(char *file, const char *relfile)
 {
-	char * p;
-	char * q;
 	char * lslash;
 	char temp[FILE_MAXDIR+FILE_MAXFILE];
 	char res[FILE_MAXDIR+FILE_MAXFILE];
@@ -403,11 +401,18 @@ void BLI_path_rel(char *file, const char *relfile)
 	{	
 		/* find the prefix of the filename that is equal for both filenames.
 		   This is replaced by the two slashes at the beginning */
-		p = temp;
-		q = file;
-		while (*p == *q) {
+		char *p= temp;
+		char *q= file;
+
+		while ((*p == *q)) {
 			++p; ++q;
+			/* dont search beyond the end of the string
+			 * in the rare case they match */
+			if ((*p=='\0') || (*q=='\0')) {
+				break;
+			}
 		}
+
 		/* we might have passed the slash when the beginning of a dir matches 
 		   so we rewind. Only check on the actual filename
 		*/
@@ -839,11 +844,12 @@ static int gethome_path_local(char *targetpath, char *folder_name)
 	i = s - bprogname + 1;
 	BLI_strncpy(bprogdir, bprogname, i);
 
-	/* try release/folder_name (CWD relative) */
-	if(test_data_path(targetpath, BLI_getwdN(cwd), "release", folder_name))
+	/* try release/folder_name (BIN relative) */
+	if(test_data_path(targetpath, bprogdir, "release", folder_name))
 		return 1;
 
-	if(test_data_path(targetpath, bprogdir, "release", folder_name))
+	/* try release/folder_name (CWD relative) */
+	if(test_data_path(targetpath, BLI_getwdN(cwd), "release", folder_name))
 		return 1;
 
 	/* try ./.blender/folder_name */
@@ -1109,6 +1115,24 @@ int BLI_testextensie(const char *str, const char *ext)
 	return (retval);
 }
 
+int BLI_replace_extension(char *path, int maxlen, const char *ext)
+{
+	int a;
+
+	for(a=strlen(path)-1; a>=0; a--)
+		if(path[a] == '.' || path[a] == '/' || path[a] == '\\')
+			break;
+	
+	if(path[a] != '.')
+		a= strlen(path);
+
+	if(a + strlen(ext) >= maxlen)
+		return 0;
+
+	strcpy(path+a, ext);
+	return 1;
+}
+
 /* Converts "/foo/bar.txt" to "/foo/" and "bar.txt"
  * - wont change 'string'
  * - wont create any directories
@@ -1148,6 +1172,12 @@ void BLI_join_dirfile(char *string, const char *dir, const char *file)
 	}
 }
 
+/* like pythons os.path.basename( ) */
+char *BLI_path_basename(char *path)
+{
+	char *filename= BLI_last_slash(path);
+	return filename ? filename + 1 : path;
+}
 
 /*
   Produce image export path.

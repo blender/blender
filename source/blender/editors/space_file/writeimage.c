@@ -143,10 +143,11 @@ void save_image_filesel_str(Scene *scene, char *str)
 		case R_BMP:
 			strcpy(str, "Save BMP");
 			break;
+#ifdef WITH_TIFF
 		case R_TIFF:
-			if (G.have_libtiff)
-				strcpy(str, "Save TIFF");
+			strcpy(str, "Save TIFF");
 			break;
+#endif
 #ifdef WITH_OPENEXR
 		case R_OPENEXR:
 			strcpy(str, "Save OpenEXR");
@@ -183,7 +184,6 @@ void save_image_filesel_str(Scene *scene, char *str)
 #endif
 			/* default we save jpeg, also for all movie formats */
 		case R_JPEG90:
-		case R_MOVIE:
 		case R_AVICODEC:
 		case R_AVIRAW:
 		case R_AVIJPEG:

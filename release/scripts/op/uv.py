@@ -123,7 +123,7 @@ class ExportUVLayout(bpy.types.Operator):
             fw('  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
             fw('<svg width="%dpx" height="%dpx" viewBox="0px 0px %dpx %dpx"\n' % (image_width, image_height, image_width, image_height))
             fw('     xmlns="http://www.w3.org/2000/svg" version="1.1">\n')
-            desc = "%s, %s, %s (Blender %s)" % (basename(bpy.data.filename), obj.name, mesh.name, bpy.app.version_string)
+            desc = "%s, %s, %s (Blender %s)" % (basename(bpy.data.filepath), obj.name, mesh.name, bpy.app.version_string)
             fw('<desc>%s</desc>\n' % escape(desc))
 
             # svg colors
@@ -167,18 +167,34 @@ class ExportUVLayout(bpy.types.Operator):
             fw('1 setlinewidth\n')
             fw('1 setlinejoin\n')
             fw('1 setlinecap\n')
+            fw('/DRAW {')
+            # can remove from here to next comment to disable filling, aparently alpha is not supported
+            fw('gsave\n')
+            fw('0.7 setgray\n')
+            fw('fill\n')
+            fw('grestore\n')
+            fw('0 setgray\n')
+            # remove to here
+            fw('stroke\n')
+            fw('} def\n')
             fw('newpath\n')
-
+            
+            firstline = True
             for i, uvs in self._face_uv_iter(context):
                 for j, uv in enumerate(uvs):
                     x, y = uv[0], uv[1]
                     if j == 0:
+                        if not firstline:
+                            fw('closepath\n')
+                            fw('DRAW\n')
+                            fw('newpath\n')
+                        firstline = False
                         fw('%.5f %.5f moveto\n' % (x * image_width, y * image_height))
                     else:
                         fw('%.5f %.5f lineto\n' % (x * image_width, y * image_height))
 
             fw('closepath\n')
-            fw('stroke\n')
+            fw('DRAW\n')
             fw('showpage\n')
             fw('%%EOF\n')
 
@@ -194,7 +210,7 @@ class ExportUVLayout(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".svg")
+    default_path = bpy.data.filepath.replace(".blend", ".svg")
     self.layout.operator(ExportUVLayout.bl_idname).path = default_path
 
 
@@ -203,7 +219,7 @@ def register():
     bpy.types.IMAGE_MT_uvs.append(menu_func)
 
 
-def unreguster():
+def unregister():
     bpy.types.unregister(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.remove(menu_func)
 

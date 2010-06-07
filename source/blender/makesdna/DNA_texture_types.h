@@ -190,8 +190,12 @@ typedef struct VoxelData {
 	float int_multiplier;	
 	int still_frame;
 	char source_path[240];
+
+	/* temporary data */
 	float *dataset;
- 
+	int cachedframe;
+	int ok;
+	
 } VoxelData;
 
 typedef struct Tex {

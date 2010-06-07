@@ -36,6 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_bpath.h"
 
 #include "BKE_context.h"
@@ -299,4 +300,101 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE);
+}
+
+/********************* report box operator *********************/
+
+/* Hard to decide whether to keep this as an operator, 
+ * or turn it into a hardcoded ui control feature, 
+ * handling TIMER events for all regions in interface_handlers.c
+ * Not sure how good that is to be accessing UI data from 
+ * inactive regions, so use this for now. --matt
+ */
+
+#define INFO_TIMEOUT		5.0
+#define INFO_COLOR_TIMEOUT	3.0
+#define ERROR_TIMEOUT		10.0
+#define ERROR_COLOR_TIMEOUT	6.0
+#define COLLAPSE_TIMEOUT	0.2
+static int update_reports_display_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	ReportList *reports= CTX_wm_reports(C);
+	Report *report;
+	ReportTimerInfo *rti;
+	float progress=0.0, color_progress=0.0;
+	float neutral_col[3] = {0.35, 0.35, 0.35};
+	float neutral_grey= 0.6;
+	float timeout=0.0, color_timeout=0.0;
+	
+	/* escape if not our timer */
+	if(reports->reporttimer==NULL || reports->reporttimer != event->customdata)
+		return OPERATOR_PASS_THROUGH;
+	
+	report= BKE_reports_last_displayable(reports);
+	rti = (ReportTimerInfo *)reports->reporttimer->customdata;
+	
+	timeout = (report->type & RPT_ERROR_ALL)?ERROR_TIMEOUT:INFO_TIMEOUT;
+	color_timeout = (report->type & RPT_ERROR_ALL)?ERROR_COLOR_TIMEOUT:INFO_COLOR_TIMEOUT;
+	
+	/* clear the report display after timeout */
+	if (reports->reporttimer->duration > timeout) {
+		WM_event_remove_timer(wm, NULL, reports->reporttimer);
+		reports->reporttimer = NULL;
+		
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
+		
+		return (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH);
+	}
+
+	if (rti->widthfac == 0.0) {
+		/* initialise colours based on report type */
+		if(report->type & RPT_ERROR_ALL) {
+			rti->col[0] = 1.0;
+			rti->col[1] = 0.2;
+			rti->col[2] = 0.0;
+		} else if(report->type & RPT_WARNING_ALL) {
+			rti->col[0] = 1.0;
+			rti->col[1] = 1.0;
+			rti->col[2] = 0.0;
+		} else if(report->type & RPT_INFO_ALL) {
+			rti->col[0] = 0.3;
+			rti->col[1] = 0.45;
+			rti->col[2] = 0.7;
+		}
+		rti->greyscale = 0.75;
+		rti->widthfac=1.0;
+	}
+	
+	progress = reports->reporttimer->duration / timeout;
+	color_progress = reports->reporttimer->duration / color_timeout;
+	
+	/* fade colours out sharply according to progress through fade-out duration */
+	interp_v3_v3v3(rti->col, rti->col, neutral_col, color_progress);
+	rti->greyscale = interpf(neutral_grey, rti->greyscale, color_progress);
+
+	/* collapse report at end of timeout */
+	if (progress*timeout > timeout - COLLAPSE_TIMEOUT) {
+		rti->widthfac = (progress*timeout - (timeout - COLLAPSE_TIMEOUT)) / COLLAPSE_TIMEOUT;
+		rti->widthfac = 1.0 - rti->widthfac;
+	}
+	
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
+	
+	return (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH);
+}
+
+void INFO_OT_reports_display_update(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Update Reports Display";
+	ot->idname= "INFO_OT_reports_display_update";
+	
+	/* api callbacks */
+	ot->invoke= update_reports_display_invoke;
+	
+	/* flags */
+	ot->flag= 0;
+	
+	/* properties */
 }

@@ -32,14 +32,13 @@ class VIEW3D_HT_header(bpy.types.Header):
         obj = context.active_object
         toolsettings = context.tool_settings
 
-        row = layout.row()
+        row = layout.row(align=True)
         row.template_header()
-
-        sub = row.row(align=True)
 
         # Menus
         if context.area.show_menus:
-
+            sub = row.row(align=True)
+			
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
@@ -54,6 +53,7 @@ class VIEW3D_HT_header(bpy.types.Header):
             else:
                 sub.menu("VIEW3D_MT_object")
 
+        row = layout.row()
         row.template_header_3D()
 
         # do in C for now since these buttons cant be both toggle AND exclusive.
@@ -453,8 +453,8 @@ class VIEW3D_MT_select_particle(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("particle.select_first", text="Roots")
-        layout.operator("particle.select_last", text="Tips")
+        layout.operator("particle.select_roots", text="Roots")
+        layout.operator("particle.select_tips", text="Tips")
 
 
 class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
@@ -523,7 +523,7 @@ class VIEW3D_MT_select_edit_curve(bpy.types.Menu):
         layout.operator("curve.select_all", text="Select/Deselect All")
         layout.operator("curve.select_inverse")
         layout.operator("curve.select_random")
-        layout.operator("curve.select_every_nth")
+        layout.operator("curve.select_nth", text="Every Nth Number of Points")
 
         layout.separator()
 
@@ -552,7 +552,7 @@ class VIEW3D_MT_select_edit_surface(bpy.types.Menu):
         layout.operator("curve.select_all", text="Select/Deselect All")
         layout.operator("curve.select_inverse")
         layout.operator("curve.select_random")
-        layout.operator("curve.select_every_nth")
+        layout.operator("curve.select_nth", text="Every Nth Number of Points")
 
         layout.separator()
 
@@ -678,6 +678,11 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_object_game_properties")
+        layout.menu("VIEW3D_MT_object_game_logicbricks")
+
+        layout.separator()
+
         layout.operator("object.join_uvs")
         layout.operator("object.join")
 
@@ -706,14 +711,13 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
 
     def poll(self, context):
         # add more special types
-        obj = context.object
-        return bool(obj and obj.type == 'LAMP')
+        return context.object
 
     def draw(self, context):
         layout = self.layout
 
         obj = context.object
-        if obj and obj.type == 'LAMP':
+        if obj.type == 'LAMP':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             props = layout.operator("wm.context_modal_mouse", text="Spot Size")
@@ -735,6 +739,10 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
             props.path_iter = "selected_editable_objects"
             props.path_item = "data.shadow_buffer_clip_end"
             props.input_scale = 0.05
+
+            layout.separator()
+
+        props = layout.operator("object.isolate_type_render")
 
 
 class VIEW3D_MT_object_apply(bpy.types.Menu):
@@ -793,6 +801,7 @@ class VIEW3D_MT_object_constraints(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("object.constraint_add_with_targets")
+        layout.operator("object.constraints_copy")
         layout.operator("object.constraints_clear")
 
 
@@ -835,10 +844,31 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_menu_enum("object.make_links_scene", "type", text="Objects to Scene...")
-        layout.operator_menu_enum("marker.make_links_scene", "type", text="Markers to Scene...")
+        layout.operator_menu_enum("object.make_links_scene", "scene", text="Objects to Scene...")
+        layout.operator_menu_enum("marker.make_links_scene", "scene", text="Markers to Scene...")
         layout.operator_enums("object.make_links_data", "type") # inline
 
+
+class VIEW3D_MT_object_game_properties(bpy.types.Menu):
+    bl_label = "Game Properties"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.game_property_copy", text="Replace").operation="REPLACE"
+        layout.operator("object.game_property_copy", text="Merge").operation="MERGE"
+        layout.operator_menu_enum("object.game_property_copy", "property", text="Copy...")
+        layout.separator()
+        layout.operator("object.game_property_clear")
+
+
+class VIEW3D_MT_object_game_logicbricks(bpy.types.Menu):
+    bl_label = "Logic Bricks"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.logic_bricks_copy", text="Copy")
 
 # ********** Vertex paint menu **********
 
@@ -993,8 +1023,8 @@ class VIEW3D_MT_particle_specials(bpy.types.Menu):
         layout.separator()
         if particle_edit.selection_mode == 'POINT':
             layout.operator("particle.subdivide")
-            layout.operator("particle.select_first")
-            layout.operator("particle.select_last")
+            layout.operator("particle.select_roots")
+            layout.operator("particle.select_tips")
 
         layout.operator("particle.remove_doubles")
 
@@ -1145,6 +1175,7 @@ class VIEW3D_MT_pose_constraints(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("pose.constraint_add_with_targets", text="Add (With Targets)...")
+        layout.operator("pose.constraints_copy")
         layout.operator("pose.constraints_clear")
 
 
@@ -1832,7 +1863,7 @@ class VIEW3D_MT_edit_armature_roll(bpy.types.Menu):
 # ********** Panel **********
 
 
-class VIEW3D_PT_3dview_properties(bpy.types.Panel):
+class VIEW3D_PT_view3d_properties(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "View"
@@ -1867,7 +1898,7 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         layout.column().prop(view, "cursor_location")
 
 
-class VIEW3D_PT_3dview_name(bpy.types.Panel):
+class VIEW3D_PT_view3d_name(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Item"
@@ -1891,7 +1922,7 @@ class VIEW3D_PT_3dview_name(bpy.types.Panel):
                 row.prop(bone, "name", text="")
 
 
-class VIEW3D_PT_3dview_display(bpy.types.Panel):
+class VIEW3D_PT_view3d_display(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Display"
@@ -1959,7 +1990,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
             row.prop(region, "box_clip")
 
 
-class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
+class VIEW3D_PT_view3d_meshdisplay(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Mesh Display"
@@ -1995,7 +2026,7 @@ class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
         col.prop(mesh, "draw_face_area")
 
 
-class VIEW3D_PT_3dview_curvedisplay(bpy.types.Panel):
+class VIEW3D_PT_view3d_curvedisplay(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Curve Display"
@@ -2208,6 +2239,8 @@ classes = [
     VIEW3D_MT_object_showhide,
     VIEW3D_MT_make_single_user,
     VIEW3D_MT_make_links,
+    VIEW3D_MT_object_game_properties,
+    VIEW3D_MT_object_game_logicbricks,
 
     VIEW3D_MT_hook,
     VIEW3D_MT_vertex_group,
@@ -2263,11 +2296,11 @@ classes = [
     VIEW3D_MT_armature_specials, # Only as a menu for keybindings
 
    # Panels
-    VIEW3D_PT_3dview_properties,
-    VIEW3D_PT_3dview_display,
-    VIEW3D_PT_3dview_name,
-    VIEW3D_PT_3dview_meshdisplay,
-    VIEW3D_PT_3dview_curvedisplay,
+    VIEW3D_PT_view3d_properties,
+    VIEW3D_PT_view3d_display,
+    VIEW3D_PT_view3d_name,
+    VIEW3D_PT_view3d_meshdisplay,
+    VIEW3D_PT_view3d_curvedisplay,
     VIEW3D_PT_background_image,
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_etch_a_ton,

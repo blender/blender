@@ -51,7 +51,10 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_select_linked_to);
 	WM_operatortype_append(NODE_OT_select_linked_from);
 	WM_operatortype_append(NODE_OT_select_border);
-	
+	WM_operatortype_append(NODE_OT_select_same_type);
+	WM_operatortype_append(NODE_OT_select_same_type_next);
+	WM_operatortype_append(NODE_OT_select_same_type_prev);
+
 	WM_operatortype_append(NODE_OT_view_all);
 	WM_operatortype_append(NODE_OT_visibility_toggle);
 	WM_operatortype_append(NODE_OT_mute);
@@ -77,6 +80,8 @@ void node_operatortypes(void)
 	
 	WM_operatortype_append(NODE_OT_backimage_move);
 	WM_operatortype_append(NODE_OT_backimage_zoom);
+	
+	WM_operatortype_append(NODE_OT_add_file);
 }
 
 void ED_operatormacros_node(void)
@@ -147,10 +152,14 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "NODE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_linked_to", LKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_linked_from", LKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_select_same_type", GKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_select_same_type_next", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_select_same_type_prev", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "NODE_OT_group_make", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_group_ungroup", GKEY, KM_PRESS, KM_ALT, 0);

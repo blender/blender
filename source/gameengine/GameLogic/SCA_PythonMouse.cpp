@@ -32,8 +32,8 @@
 
 SCA_PythonMouse::SCA_PythonMouse(SCA_IInputDevice* mouse, RAS_ICanvas* canvas)
 : PyObjectPlus(),
-m_canvas(canvas),
-m_mouse(mouse)
+m_mouse(mouse),
+m_canvas(canvas)
 {
 }
 

@@ -32,6 +32,8 @@
 
 #include "stddef.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_smoke.h"
@@ -50,6 +52,14 @@ static void initData(ModifierData *md)
 	smd->coll = NULL;
 	smd->type = 0;
 	smd->time = -1;
+}
+
+static void copyData(ModifierData *md, ModifierData *target)
+{
+	SmokeModifierData *smd  = (SmokeModifierData*)md;
+	SmokeModifierData *tsmd = (SmokeModifierData*)target;
+	
+	smokeModifier_copy(smd, tsmd);
 }
 
 static void freeData(ModifierData *md)
@@ -117,7 +127,7 @@ ModifierTypeInfo modifierType_Smoke = {
 							| eModifierTypeFlag_UsesPointCache
 							| eModifierTypeFlag_Single,
 
-	/* copyData */          0,
+	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
 	/* deformVertsEM */     0,
 	/* deformMatricesEM */  0,

@@ -559,7 +559,7 @@ static int layerRead_mdisps(CDataFile *cdf, void *data, int count)
 			d[i].disps = MEM_callocN(sizeof(float)*3*d[i].totdisp, "mdisps read");
 
 		if(!cdf_read_data(cdf, d[i].totdisp*3*sizeof(float), d[i].disps)) {
-			printf("failed to read %d/%d %d\n", i, count, d[i].totdisp);
+			printf("failed to read multires displacement %d/%d %d\n", i, count, d[i].totdisp);
 			return 0;
 		}
 	}
@@ -574,7 +574,7 @@ static int layerWrite_mdisps(CDataFile *cdf, void *data, int count)
 
 	for(i = 0; i < count; ++i) {
 		if(!cdf_write_data(cdf, d[i].totdisp*3*sizeof(float), d[i].disps)) {
-			printf("failed to write %d/%d %d\n", i, count, d[i].totdisp);
+			printf("failed to write multires displacement %d/%d %d\n", i, count, d[i].totdisp);
 			return 0;
 		}
 	}
@@ -798,10 +798,12 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
-	"CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
-	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
-	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV",
-	"CDMloopCol", "CDTangent", "CDMDisps", "CDWeightMCol", "CDClothOrco"};
+	/*   0-4 */ "CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace",
+	/*   5-9 */ "CDMTFace", "CDMCol", "CDOrigIndex", "CDNormal", "CDFlags",
+	/* 10-14 */ "CDMFloatProperty", "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco",
+	/* 15-19 */ "CDMTexPoly", "CDMLoopUV", "CDMloopCol", "CDTangent", "CDMDisps",
+	/* 20-23 */"CDWeightMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco"
+};
 
 const CustomDataMask CD_MASK_BAREMESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE;
@@ -2314,10 +2316,29 @@ int CustomData_verify_versions(struct CustomData *data, int index)
 
 static void customdata_external_filename(char filename[FILE_MAX], ID *id, CustomDataExternal *external)
 {
-	char *path = (id->lib)? id->lib->filename: G.sce;
+	char *path = (id->lib)? id->lib->filepath: G.sce;
 
 	BLI_strncpy(filename, external->filename, FILE_MAX);
 	BLI_path_abs(filename, path);
+}
+
+void CustomData_external_reload(CustomData *data, ID *id, CustomDataMask mask, int totelem)
+{
+	CustomDataLayer *layer;
+	const LayerTypeInfo *typeInfo;
+	int i;
+
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		typeInfo = layerType_getInfo(layer->type);
+
+		if(!(mask & (1<<layer->type)));
+		else if((layer->flag & CD_FLAG_EXTERNAL) && (layer->flag & CD_FLAG_IN_MEMORY)) {
+			if(typeInfo->free)
+				typeInfo->free(layer->data, totelem, typeInfo->size);
+			layer->flag &= ~CD_FLAG_IN_MEMORY;
+		}
+	}
 }
 
 void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int totelem)
@@ -2487,9 +2508,9 @@ void CustomData_external_add(CustomData *data, ID *id, int type, int totelem, co
 
 	if(!external) {
 		external= MEM_callocN(sizeof(CustomDataExternal), "CustomDataExternal");
-		BLI_strncpy(external->filename, filename, sizeof(external->filename));
 		data->external= external;
 	}
+	BLI_strncpy(external->filename, filename, sizeof(external->filename));
 
 	layer->flag |= CD_FLAG_EXTERNAL|CD_FLAG_IN_MEMORY;
 }

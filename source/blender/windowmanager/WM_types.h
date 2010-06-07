@@ -158,6 +158,7 @@ typedef struct wmNotifier {
 #define ND_FILESAVE			(2<<16)
 #define ND_DATACHANGED		(3<<16)
 #define ND_HISTORY			(4<<16)
+#define ND_JOB				(5<<16)
 
 	/* NC_SCREEN screen */
 #define ND_SCREENBROWSE		(1<<16)

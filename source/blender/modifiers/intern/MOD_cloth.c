@@ -123,15 +123,19 @@ static void copyData(ModifierData *md, ModifierData *target)
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
 	ClothModifierData *tclmd = (ClothModifierData*) target;
-	
-	if(tclmd->sim_parms)
+
+	if(tclmd->sim_parms) {
+		if(tclmd->sim_parms->effector_weights)
+			MEM_freeN(tclmd->sim_parms->effector_weights);
 		MEM_freeN(tclmd->sim_parms);
+	}
+
 	if(tclmd->coll_parms)
 		MEM_freeN(tclmd->coll_parms);
 	
 	BKE_ptcache_free_list(&tclmd->ptcaches);
 	tclmd->point_cache = NULL;
-	
+
 	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
 	if(clmd->sim_parms->effector_weights)
 		tclmd->sim_parms->effector_weights = MEM_dupallocN(clmd->sim_parms->effector_weights);

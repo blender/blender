@@ -178,6 +178,18 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strcpy(tsmd->defgrp_name, smd->defgrp_name);
 }
 
+static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+{
+	SolidifyModifierData *smd = (SolidifyModifierData*) md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(smd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+
 static DerivedMesh *applyModifier(ModifierData *md,
 						   Object *ob, 
 						   DerivedMesh *dm,
@@ -637,7 +649,7 @@ ModifierTypeInfo modifierType_Solidify = {
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   applyModifierEM,
 	/* initData */          initData,
-	/* requiredDataMask */  0,
+	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          0,
 	/* isDisabled */        0,
 	/* updateDepgraph */    0,

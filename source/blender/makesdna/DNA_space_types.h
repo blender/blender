@@ -187,7 +187,7 @@ typedef struct SpaceFile {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
-	int pad;
+	int scroll_offset;
 
 	struct FileSelectParams *params; /* config and input for file select */
 	
@@ -203,7 +203,7 @@ typedef struct SpaceFile {
 	*/
 	struct wmOperator *op; 
 
-	struct wmTimer *loadimage_timer;
+	struct wmTimer *smoothscroll_timer;
 
 	struct FileLayout *layout;
 	
@@ -628,6 +628,7 @@ typedef struct SpaceUserPref {
 #define BUTS_ACT_LINK		256
 #define BUTS_SENS_STATE		512
 #define BUTS_ACT_STATE		1024
+#define BUTS_CONT_INIT_STATE	2048
 
 /* FileSelectParams.display */
 enum FileDisplayTypeE {

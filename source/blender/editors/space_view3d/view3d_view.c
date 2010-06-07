@@ -138,37 +138,32 @@ static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, f
 * 
 * The dist is not modified for this function, if NULL its assimed zero
 * */
-static void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
-{	
-	float bmat[4][4];
-	float imat[4][4];
-	float tmat[3][3];
-	
+void view3d_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
+{
 	if (!ob) return;
-	
+
 	/* Offset */
 	if (ofs)
 		negate_v3_v3(ofs, ob->obmat[3]);
 
 	/* Quat */
 	if (quat) {
-		copy_m4_m4(bmat, ob->obmat);
-		normalize_m4(bmat);
-		invert_m4_m4(imat, bmat);
-		copy_m3_m4(tmat, imat);
-		mat3_to_quat( quat,tmat);
+		float imat[4][4];
+		invert_m4_m4(imat, ob->obmat);
+		mat4_to_quat(quat, imat);
 	}
-	
+
 	if (dist) {
-		float vec[3];
-		copy_m3_m4(tmat, ob->obmat);
-		
-		vec[0]= vec[1] = 0.0;
-		vec[2]= -(*dist);
-		mul_m3_v3(tmat, vec);
+		float vec[3] = {0.0f, 0.0f, -(*dist)};
+		float tquat[4];
+
+		mat4_to_quat(tquat, ob->obmat);
+
+		mul_qt_v3(tquat, vec);
+
 		sub_v3_v3(ofs, vec);
 	}
-	
+
 	/* Lens */
 	if (lens)
 		object_lens_clip_settings(ob, lens, NULL, NULL);
@@ -212,7 +207,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 	if(lens) sms.new_lens= *lens;
 	
 	if (camera) {
-		view_settings_from_ob(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
+		view3d_settings_from_ob(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
 		sms.to_camera= 1; /* restore view3d values in end */
 	}
 	
@@ -259,7 +254,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 			/* original values */
 			if (oldcamera) {
 				sms.orig_dist= rv3d->dist; // below function does weird stuff with it...
-				view_settings_from_ob(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
+				view3d_settings_from_ob(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
 			}
 			else {
 				VECCOPY(sms.orig_ofs, rv3d->ofs);
@@ -1122,7 +1117,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 			rv3d->persp=RV3D_PERSP;
 			rv3d->dist= 0.0;
 			
-			view_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
+			view3d_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
 			smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 			
 			rv3d->persp=RV3D_CAMOB; /* just to be polite, not needed */
@@ -1385,7 +1380,7 @@ static unsigned int free_localbit(void)
 	return 0;
 }
 
-int ED_view3d_scene_layer_set(int lay, const int *values)
+int ED_view3d_scene_layer_set(int lay, const int *values, int *active)
 {
 	int i, tot= 0;
 	
@@ -1398,8 +1393,26 @@ int ED_view3d_scene_layer_set(int lay, const int *values)
 		return lay;
 	
 	for(i=0; i<20; i++) {
-		if(values[i]) lay |= (1<<i);
+		
+		if (active) {
+			/* if this value has just been switched on, make that layer active */
+			if (values[i] && (lay & (1<<i))==0) {
+				*active = (1<<i);
+			}
+		}
+			
+		if (values[i]) lay |= (1<<i);
 		else lay &= ~(1<<i);
+	}
+	
+	/* ensure always an active layer */
+	if (active && (lay & *active)==0) {
+		for(i=0; i<20; i++) {
+			if(lay & (1<<i)) {
+				*active= 1<<i;
+				break;
+			}
+		}
 	}
 	
 	return lay;
@@ -1719,7 +1732,8 @@ int ED_view3d_context_activate(bContext *C)
 	ARegion *ar;
 	RegionView3D *rv3d;
 
-	if(sa->spacetype != SPACE_VIEW3D)
+	/* sa can be NULL when called from python */
+	if(sa==NULL || sa->spacetype != SPACE_VIEW3D)
 		for(sa=sc->areabase.first; sa; sa= sa->next)
 			if(sa->spacetype==SPACE_VIEW3D)
 				break;
@@ -2687,7 +2701,7 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 		VECCOPY(orig_ofs, rv3d->ofs);
 		rv3d->persp= RV3D_PERSP;
 		rv3d->dist= 0.0;
-		view_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
+		view3d_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);
 		smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 	} else {
 		if (rv3d->persp==RV3D_CAMOB) rv3d->persp= RV3D_PERSP; /* switch out of camera mode */

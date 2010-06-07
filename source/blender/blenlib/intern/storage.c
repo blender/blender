@@ -500,3 +500,14 @@ void BLI_free_file_lines(LinkNode *lines)
 {
 	BLI_linklist_free(lines, (void(*)(void*)) MEM_freeN);
 }
+
+int BLI_file_older(const char *file1, const char *file2)
+{
+	struct stat st1, st2;
+
+	if(stat(file1, &st1)) return 0;
+	if(stat(file2, &st2)) return 0;
+
+	return (st1.st_mtime < st2.st_mtime);
+}
+

@@ -650,7 +650,7 @@ void *copy_libblock(void *rt)
 	ID *idn, *id;
 	ListBase *lb;
 	char *cp, *cpn;
-	int idn_len;
+	size_t idn_len;
 	
 	id= rt;
 
@@ -1225,7 +1225,7 @@ static void image_fix_relative_path(Image *ima)
 {
 	if(ima->id.lib==NULL) return;
 	if(strncmp(ima->name, "//", 2)==0) {
-		BLI_path_abs(ima->name, ima->id.lib->filename);
+		BLI_path_abs(ima->name, ima->id.lib->filepath);
 		BLI_path_rel(ima->name, G.sce);
 	}
 }

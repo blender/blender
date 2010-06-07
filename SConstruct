@@ -182,7 +182,7 @@ if os.path.exists(userconfig):
 else:
 	print B.bc.WARNING + userconfig + " not found, no user overrides" + B.bc.ENDC
 
-opts = btools.read_opts(optfiles, B.arguments)
+opts = btools.read_opts(env, optfiles, B.arguments)
 opts.Update(env)
 
 if not env['BF_FANCY']:
@@ -201,6 +201,7 @@ if not env['WITHOUT_BF_INSTALL'] and not env['WITHOUT_BF_OVERWRITE_INSTALL']:
 
 SetOption('num_jobs', int(env['BF_NUMJOBS']))
 print B.bc.OKGREEN + "Build with parallel jobs%s: %s" % (B.bc.ENDC, GetOption('num_jobs'))
+print B.bc.OKGREEN + "Build with debug symbols%s: %s" % (B.bc.ENDC, env['BF_DEBUG'])
 
 # BLENDERPATH is a unix only option to enable typical style paths this is
 # spesifically a data-dir, which is used a lot but cant replace BF_INSTALLDIR
@@ -268,6 +269,7 @@ if 'blenderlite' in B.targets:
 	target_env_defs['WITH_BF_GAMEENGINE'] = False
 	target_env_defs['WITH_BF_OPENAL'] = False
 	target_env_defs['WITH_BF_OPENEXR'] = False
+	target_env_defs['WITH_BF_OPENMP'] = False
 	target_env_defs['WITH_BF_ICONV'] = False
 	target_env_defs['WITH_BF_INTERNATIONAL'] = False
 	target_env_defs['WITH_BF_OPENJPEG'] = False
@@ -457,8 +459,6 @@ if  env['OURPLATFORM']!='darwin':
 				if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + dp.split(os.sep)[2:]))	# skip bin/.blender
 				else:					dir= os.path.join(*([BLENDERPATH] + dp.split(os.sep)[1:]))	# skip bin
 				
-				# print dir+ os.sep + f
-				print dir
 				dottargetlist.append(dir + os.sep + f)
 					
 
@@ -569,10 +569,12 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
 
 	#currently win64-vc doesn't appear to have libpng.dll
 	if env['OURPLATFORM'] != 'win64-vc':
-		dllsources += ['${BF_PNG_LIBPATH}/libpng.dll',
-				'${BF_ZLIB_LIBPATH}/zlib.dll']
+		dllsources += ['${BF_PNG_LIBPATH}/libpng.dll']
 
-	dllsources += ['${BF_TIFF_LIBPATH}/${BF_TIFF_LIB}.dll']
+	dllsources += ['${BF_ZLIB_LIBPATH}/zlib.dll']
+	# Used when linking to libtiff was dynamic
+	# keep it here until compilation on all platform would be ok
+	# dllsources += ['${BF_TIFF_LIBPATH}/${BF_TIFF_LIB}.dll']
 
 	if env['OURPLATFORM'] != 'linuxcross':
 		# pthreads library is already added

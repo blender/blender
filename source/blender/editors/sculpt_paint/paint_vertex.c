@@ -1260,7 +1260,7 @@ static char *wpaint_make_validmap(Mesh *me, Object *ob)
 	bPose *pose;
 	bPoseChannel *chan;
 	ArmatureModifierData *amd;
-	GHash *gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+	GHash *gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "wpaint_make_validmap gh");
 	int i = 0, step1=1;
 
 	/*add all names to a hash table*/

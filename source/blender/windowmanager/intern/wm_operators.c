@@ -1202,23 +1202,20 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	split = uiLayoutSplit(layout, 0, 0);
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Links", 0);
-	uiItemO(col, NULL, ICON_URL, "HELP_OT_release_logs");
-	uiItemO(col, NULL, ICON_URL, "HELP_OT_manual");
-	uiItemO(col, NULL, ICON_URL, "HELP_OT_blender_website");
-	uiItemO(col, NULL, ICON_URL, "HELP_OT_user_community");
-	uiItemO(col, NULL, ICON_URL, "HELP_OT_python_api");
+	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-250/");
+	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:Manual");
+	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
+	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/");
+	uiItemStringO(col, "Python API Reference", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/documentation/250PythonDoc/contents.html");
 	uiItemL(col, "", 0);
 	
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Recent", 0);
 	for(recent = G.recent_files.first, i=0; (i<5) && (recent); recent = recent->next, i++) {
-		char *display_name= BLI_last_slash(recent->filename);
-		if(display_name)	display_name++; /* skip the slash */
-		else				display_name= recent->filename;
-		uiItemStringO(col, display_name, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
+		uiItemStringO(col, BLI_path_basename(recent->filename), ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
 	}
 	uiItemS(col);
-	uiItemO(col, NULL, ICON_HELP, "WM_OT_recover_last_session");
+	uiItemO(col, NULL, ICON_RECOVER_LAST, "WM_OT_recover_last_session");
 	uiItemL(col, "", 0);
 	
 	uiCenteredBoundsBlock(block, 0.0f);
@@ -1518,7 +1515,7 @@ static void wm_link_make_library_local(Main *main, const char *libname)
 
 	/* and now find the latest append lib file */
 	for(lib= main->library.first; lib; lib=lib->id.next)
-		if(BLI_streq(libname, lib->filename))
+		if(BLI_streq(libname, lib->filepath))
 			break;
 	
 	/* make local */
@@ -3252,7 +3249,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 }
 
 /* Generic itemf's for operators that take library args */
-static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, ID *id)
+static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, ID *id, int local)
 {
 	EnumPropertyItem *item= NULL, item_tmp;
 	int totitem= 0;
@@ -3261,9 +3258,11 @@ static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, I
 	memset(&item_tmp, 0, sizeof(item_tmp));
 
 	for( ; id; id= id->next) {
-		item_tmp.identifier= item_tmp.name= id->name+2;
-		item_tmp.value= i++;
-		RNA_enum_item_add(&item, &totitem, &item_tmp);
+		if(local==FALSE || id->lib==NULL) {
+			item_tmp.identifier= item_tmp.name= id->name+2;
+			item_tmp.value= i++;
+			RNA_enum_item_add(&item, &totitem, &item_tmp);
+		}
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -3275,17 +3274,36 @@ static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, I
 /* can add more as needed */
 EnumPropertyItem *RNA_action_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->action.first : NULL);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->action.first : NULL, FALSE);
 }
+EnumPropertyItem *RNA_action_local_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->action.first : NULL, TRUE);
+}
+
 EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->group.first : NULL);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->group.first : NULL, FALSE);
 }
+EnumPropertyItem *RNA_group_local_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->group.first : NULL, TRUE);
+}
+
 EnumPropertyItem *RNA_image_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->image.first : NULL);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->image.first : NULL, FALSE);
 }
+EnumPropertyItem *RNA_image_local_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->image.first : NULL, TRUE);
+}
+
 EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->scene.first : NULL);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, FALSE);
+}
+EnumPropertyItem *RNA_scene_local_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, TRUE);
 }

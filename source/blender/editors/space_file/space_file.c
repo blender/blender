@@ -195,13 +195,35 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
 	if (filelist_empty(sfile->files))
 	{
+		thumbnails_stop(sfile->files, C);
 		filelist_readdir(sfile->files);
-		thumbnails_start(sfile->files, C);
+		if(params->sort!=FILE_SORT_NONE) {
+			filelist_sort(sfile->files, params->sort);
+		}
 		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
+		if(params->display == FILE_IMGDISPLAY) {
+			thumbnails_start(sfile->files, C);
+		}
 	} else {
-		filelist_filter(sfile->files);
+		if(params->sort!=FILE_SORT_NONE) {
+			thumbnails_stop(sfile->files, C);
+			filelist_sort(sfile->files, params->sort);
+			if(params->display == FILE_IMGDISPLAY) {
+				thumbnails_start(sfile->files, C);
+			}
+		} else {
+			if(params->display == FILE_IMGDISPLAY) {
+				if (!thumbnails_running(sfile->files,C)) {
+					thumbnails_start(sfile->files, C);
+				}
+			} else {
+				/* stop any running thumbnail jobs if we're not 
+				 displaying them - speedup for NFS */
+				thumbnails_stop(sfile->files, C);
+			}
+			filelist_filter(sfile->files);
+		}
 	}
-	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
 	
 	if (params->renamefile[0] != '\0') {
 		int idx = filelist_find(sfile->files, params->renamefile);
@@ -353,6 +375,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_directory_new);
 	WM_operatortype_append(FILE_OT_delete);
 	WM_operatortype_append(FILE_OT_rename);
+	WM_operatortype_append(FILE_OT_smoothscroll);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -370,6 +393,9 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0);  /* XXX needs button */
 	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_delete", BACKSPACEKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_verify_item(keymap, "FILE_OT_smoothscroll", TIMER1, KM_ANY, KM_ANY, 0);
 
 	/* keys for main area */
 	keymap= WM_keymap_find(keyconf, "File Browser Main", SPACE_FILE, 0);
@@ -397,6 +423,7 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	RNA_int_set(kmi->ptr, "increment", -10);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	RNA_int_set(kmi->ptr, "increment",-100);
+	
 	
 	/* keys for button area (top) */
 	keymap= WM_keymap_find(keyconf, "File Browser Buttons", SPACE_FILE, 0);
@@ -442,7 +469,12 @@ static void file_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void file_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	wmKeyMap *keymap;
+	
 	ED_region_header_init(ar);
+	
+	keymap= WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);	
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 static void file_header_area_draw(const bContext *C, ARegion *ar)

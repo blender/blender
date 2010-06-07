@@ -660,7 +660,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		eed->tmp.fp = 0.0; 
 	
 	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
-	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife_cut_exec gh");
 	for(eve=em->verts.first; eve; eve=eve->next){
 		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
 		VECCOPY(co, eve->co);

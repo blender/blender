@@ -119,8 +119,9 @@ def setup_staticlibs(lenv):
 	]
 
 	libincs = []
-	if lenv['OURPLATFORM'] != 'linuxcross':
-		libincs.append('/usr/lib')
+
+	if lenv['WITH_BF_FFMPEG']:
+		libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
 
 	libincs.extend([
 		lenv['BF_OPENGL_LIBPATH'],
@@ -136,8 +137,6 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_PYTHON_LIBPATH'])
 	if lenv['WITH_BF_SDL']:
 		libincs += Split(lenv['BF_SDL_LIBPATH'])
-	if lenv['WITH_BF_FFMPEG']:
-		libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
 	if lenv['WITH_BF_JACK']:
 		libincs += Split(lenv['BF_JACK_LIBPATH'])
 	if lenv['WITH_BF_SNDFILE']:
@@ -146,6 +145,8 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENEXR']:
 			statlibs += Split(lenv['BF_OPENEXR_LIB_STATIC'])
+	if lenv['WITH_BF_TIFF']:
+		libincs += Split(lenv['BF_TIFF_LIBPATH'])
 	if lenv['WITH_BF_FFTW3']:
 		libincs += Split(lenv['BF_FFTW3_LIBPATH'])
 	if lenv['WITH_BF_INTERNATIONAL']:
@@ -175,6 +176,9 @@ def setup_staticlibs(lenv):
 		if lenv['OURPLATFORM'] == 'linuxcross':
 			libincs += Split(lenv['BF_OPENMP_LIBPATH'])
 
+	# setting this last so any overriding of manually libs could be handled
+	if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
+		libincs.append('/usr/lib')
 
 	return statlibs, libincs
 
@@ -208,6 +212,8 @@ def setup_syslibs(lenv):
 	if lenv['WITH_BF_OPENEXR']:
 		if not lenv['WITH_BF_STATICOPENEXR']:
 			syslibs += Split(lenv['BF_OPENEXR_LIB'])
+	if lenv['WITH_BF_TIFF']:
+			syslibs += Split(lenv['BF_TIFF_LIB'])
 	if lenv['WITH_BF_FFMPEG']:
 		syslibs += Split(lenv['BF_FFMPEG_LIB'])
 		if lenv['WITH_BF_OGG']:
@@ -352,7 +358,11 @@ class CompZipFile(zipfile.ZipFile):
 	"""Partial copy of python2.6's zipfile.ZipFile (see http://www.python.org)
 	to get a extractall() that works on py2.5 and probably earlier distributions."""
 	def __init__(self, file, mode="r", compression=zipfile.ZIP_STORED, allowZip64=False):
-		zipfile.ZipFile.__init__(self, file, mode, compression, allowZip64)
+		if sys.version_info < (2, 6):
+			zipfile.ZipFile.__init__(self, file, mode, compression)
+		else:
+			zipfile.ZipFile.__init__(self, file, mode, compression, allowZip64)
+
 		if not hasattr(self,"extractall"): # use our method 
 			print "Debug: Using comp_extractall!"
 			self.extractall= self.comp_extractall

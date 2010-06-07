@@ -131,17 +131,26 @@ static int thread_break(void *unused)
 static void result_nothing(void *unused, RenderResult *rr) {}
 static void result_rcti_nothing(void *unused, RenderResult *rr, volatile struct rcti *rect) {}
 static void stats_nothing(void *unused, RenderStats *rs) {}
-static void int_nothing(void *unused, int val) {}
+static void float_nothing(void *unused, float val) {}
 static void print_error(void *unused, char *str) {printf("ERROR: %s\n", str);}
 static int default_break(void *unused) {return G.afbreek == 1;}
 
 static void stats_background(void *unused, RenderStats *rs)
 {
-	uintptr_t mem_in_use= MEM_get_memory_in_use();
-	float megs_used_memory= mem_in_use/(1024.0*1024.0);
 	char str[400], *spos= str;
-	
-	spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", rs->cfra, megs_used_memory);
+	uintptr_t mem_in_use, mmap_in_use, peak_memory;
+	float megs_used_memory, mmap_used_memory, megs_peak_memory;
+
+	mem_in_use= MEM_get_memory_in_use();
+	mmap_in_use= MEM_get_mapped_memory_in_use();
+	peak_memory = MEM_get_peak_memory();
+
+	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
+	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
+	megs_peak_memory = (peak_memory)/(1024.0*1024.0);
+
+	spos+= sprintf(spos, "Fra:%d Mem:%.2fM (%.2fM, peak %.2fM) ", rs->cfra,
+				   megs_used_memory, mmap_used_memory, megs_peak_memory);
 	
 	if(rs->curfield)
 		spos+= sprintf(spos, "Field %d ", rs->curfield);
@@ -918,12 +927,16 @@ static int read_render_result_from_file(char *filename, RenderResult *rr)
 	int rectx, recty;
 
 	if(IMB_exr_begin_read(exrhandle, filename, &rectx, &recty)==0) {
+		printf("failed being read %s\n", filename);
 		IMB_exr_close(exrhandle);
 		return 0;
 	}
-	
+
 	if(rr == NULL || rectx!=rr->rectx || recty!=rr->recty) {
-		printf("error in reading render result\n");
+		if(rr)
+			printf("error in reading render result: dimensions don't match\n");
+		else
+			printf("error in reading render result: NULL result pointer\n");
 		IMB_exr_close(exrhandle);
 		return 0;
 	}
@@ -1149,7 +1162,7 @@ Render *RE_NewRender(const char *name)
 	re->display_init= result_nothing;
 	re->display_clear= result_nothing;
 	re->display_draw= result_rcti_nothing;
-	re->timecursor= int_nothing;
+	re->progress= float_nothing;
 	re->test_break= default_break;
 	re->error= print_error;
 	if(G.background)
@@ -1157,7 +1170,7 @@ Render *RE_NewRender(const char *name)
 	else
 		re->stats_draw= stats_nothing;
 	/* clear callback handles */
-	re->dih= re->dch= re->ddh= re->sdh= re->tch= re->tbh= re->erh= NULL;
+	re->dih= re->dch= re->ddh= re->sdh= re->prh= re->tbh= re->erh= NULL;
 	
 	/* init some variables */
 	re->ycor= 1.0f;
@@ -1361,10 +1374,10 @@ void RE_stats_draw_cb(Render *re, void *handle, void (*f)(void *handle, RenderSt
 	re->stats_draw= f;
 	re->sdh= handle;
 }
-void RE_timecursor_cb(Render *re, void *handle, void (*f)(void *handle, int))
+void RE_progress_cb(Render *re, void *handle, void (*f)(void *handle, float))
 {
-	re->timecursor= f;
-	re->tch= handle;
+	re->progress= f;
+	re->prh= handle;
 }
 
 void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
@@ -1681,6 +1694,7 @@ static void threaded_tile_processor(Render *re)
 					free_render_result(&pa->fullresult, pa->result);
 					pa->result= NULL;
 					re->i.partsdone++;
+					re->progress(re->prh, re->i.partsdone / (float)re->i.totpart);
 					hasdrawn= 1;
 				}
 			}
@@ -2363,8 +2377,11 @@ static void do_render_composite_fields_blur_3d(Render *re)
 			if(!re->test_break(re->tbh)) {
 				ntree->stats_draw= render_composit_stats;
 				ntree->test_break= re->test_break;
+				ntree->progress= re->progress;
 				ntree->sdh= re->sdh;
 				ntree->tbh= re->tbh;
+				ntree->prh= re->prh;
+				
 				/* in case it was never initialized */
 				R.sdh= re->sdh;
 				R.stats_draw= re->stats_draw;
@@ -2380,7 +2397,8 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				
 				ntree->stats_draw= NULL;
 				ntree->test_break= NULL;
-				ntree->tbh= ntree->sdh= NULL;
+				ntree->progress= NULL;
+				ntree->tbh= ntree->sdh= ntree->prh= NULL;
 			}
 		}
 		else if(re->r.scemode & R_FULL_SAMPLE)
@@ -2727,6 +2745,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned i
 	scene->r.cfra= frame;
 	
 	if(render_initialize_from_scene(re, scene, srl, lay, 0, 0)) {
+		MEM_reset_peak_memory();
 		do_render_all_options(re);
 	}
 	

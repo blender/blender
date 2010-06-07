@@ -557,12 +557,15 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
 //-----------------PROTCOL DECLARATIONS--------------------------
 static PySequenceMethods Euler_SeqMethods = {
 	(lenfunc) Euler_len,					/* sq_length */
-	(binaryfunc) 0,							/* sq_concat */
-	(ssizeargfunc) 0,						/* sq_repeat */
+	(binaryfunc) NULL,						/* sq_concat */
+	(ssizeargfunc) NULL,					/* sq_repeat */
 	(ssizeargfunc) Euler_item,				/* sq_item */
 	(ssizessizeargfunc) NULL,				/* sq_slice, deprecated  */
 	(ssizeobjargproc) Euler_ass_item,		/* sq_ass_item */
 	(ssizessizeobjargproc) NULL,			/* sq_ass_slice, deprecated */
+	(objobjproc) NULL,						/* sq_contains */
+	(binaryfunc) NULL,						/* sq_inplace_concat */
+	(ssizeargfunc) NULL,					/* sq_inplace_repeat */
 };
 
 static PyMappingMethods Euler_AsMapping = {

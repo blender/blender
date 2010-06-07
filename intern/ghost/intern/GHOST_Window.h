@@ -192,6 +192,17 @@ public:
 	virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect& bounds);
 
 	/**
+     * Sets the progress bar value displayed in the window/application icon
+	 * @param progress The progress % (0.0 to 1.0)
+	 */
+	virtual GHOST_TSuccess setProgressBar(float progress) {return GHOST_kFailure;};
+	
+	/**
+	 * Hides the progress bar in the icon
+	 */
+	virtual GHOST_TSuccess endProgressBar() {return GHOST_kFailure;};
+	
+	/**
 	 * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
 	 */
 	virtual void setAcceptDragOperation(bool canAccept);
@@ -313,6 +324,9 @@ protected:
 	/** The current shape of the cursor */
 	GHOST_TStandardCursor m_cursorShape;
     
+	/** The presence of progress indicator with the application icon */
+	bool m_progressBarVisible;
+	
 	/** The acceptance of the "drop candidate" of the current drag'n'drop operation */
 	bool m_canAcceptDragOperation;
 	

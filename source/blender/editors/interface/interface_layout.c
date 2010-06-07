@@ -1107,7 +1107,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 				continue;
 
 		if(itemptr.type && RNA_struct_is_ID(itemptr.type))
-			iconid= ui_id_icon_get((bContext*)C, itemptr.data, 0);
+			iconid= ui_id_icon_get((bContext*)C, itemptr.data, 1);
         else
             iconid = 0;
 		

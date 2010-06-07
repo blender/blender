@@ -57,58 +57,72 @@
 #include "texture.h"
 #include "voxeldata.h"
 
-static int load_frame_blendervoxel(FILE *fp, float *F, int size, int frame, int offset)
+static int load_frame_blendervoxel(VoxelData *vd, FILE *fp, int frame)
 {	
-	if(fseek(fp,frame*size*sizeof(float)+offset,0) == -1)
+	size_t offset = sizeof(VoxelDataHeader);
+	int size = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
+	
+	vd->dataset = MEM_mapallocN(sizeof(float)*size, "voxel dataset");
+	
+	if(fseek(fp, frame*size*sizeof(float)+offset, 0) == -1)
 		return 0;
-	if(fread(F,sizeof(float),size,fp) != size)
+	if(fread(vd->dataset, sizeof(float), size, fp) != size)
 		return 0;
 	
+	vd->cachedframe = frame;
+	vd->ok = 1;
 	return 1;
 }
 
-static int load_frame_raw8(FILE *fp, float *F, int size, int frame)
+static int load_frame_raw8(VoxelData *vd, FILE *fp, int frame)
 {
-	char *tmp;
+	int size = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
+	char *data_c;
 	int i;
 	
-	tmp = (char *)MEM_mallocN(sizeof(char)*size, "temporary voxel file reading storage");
+	vd->dataset = MEM_mapallocN(sizeof(float)*size, "voxel dataset");
+	data_c = (char *)MEM_mallocN(sizeof(char)*size, "temporary voxel file reading storage");
 	
 	if(fseek(fp,(frame-1)*size*sizeof(char),0) == -1) {
-		MEM_freeN(tmp);
+		MEM_freeN(data_c);
 		return 0;
 	}
-	if(fread(tmp, sizeof(char), size, fp) != size) {
-		MEM_freeN(tmp);
+	if(fread(data_c, sizeof(char), size, fp) != size) {
+		MEM_freeN(data_c);
 		return 0;
 	}
 	
 	for (i=0; i<size; i++) {
-		F[i] = (float)tmp[i] / 256.f;
+		vd->dataset[i] = (float)data_c[i] / 255.f;
 	}
-	MEM_freeN(tmp);
+	MEM_freeN(data_c);
+	
+	vd->cachedframe = frame;
+	vd->ok = 1;
 	return 1;
 }
 
-static void load_frame_image_sequence(Render *re, VoxelData *vd, Tex *tex)
+static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 {
 	ImBuf *ibuf;
 	Image *ima = tex->ima;
-	ImageUser *iuser = &tex->iuser;
+	ImageUser *tiuser = &tex->iuser;
+	ImageUser iuser = *(tiuser);
 	int x=0, y=0, z=0;
 	float *rf;
 
-	if (!ima || !iuser) return;
+	if (!ima || !tiuser) return;
+	if (iuser.frames == 0) return;
 	
 	ima->source = IMA_SRC_SEQUENCE;
-	iuser->framenr = 1 + iuser->offset;
+	iuser.framenr = 1 + iuser.offset;
 
 	/* find the first valid ibuf and use it to initialise the resolution of the data set */
 	/* need to do this in advance so we know how much memory to allocate */
-	ibuf= BKE_image_get_ibuf(ima, iuser);
-	while (!ibuf && (iuser->framenr < iuser->frames)) {
-		iuser->framenr++;
-		ibuf= BKE_image_get_ibuf(ima, iuser);
+	ibuf= BKE_image_get_ibuf(ima, &iuser);
+	while (!ibuf && (iuser.framenr < iuser.frames)) {
+		iuser.framenr++;
+		ibuf= BKE_image_get_ibuf(ima, &iuser);
 	}
 	if (!ibuf) return;
 	if (!ibuf->rect_float) IMB_float_from_rect(ibuf);
@@ -116,15 +130,15 @@ static void load_frame_image_sequence(Render *re, VoxelData *vd, Tex *tex)
 	vd->flag |= TEX_VD_STILL;
 	vd->resol[0] = ibuf->x;
 	vd->resol[1] = ibuf->y;
-	vd->resol[2] = iuser->frames;
+	vd->resol[2] = iuser.frames;
 	vd->dataset = MEM_mapallocN(sizeof(float)*(vd->resol[0])*(vd->resol[1])*(vd->resol[2]), "voxel dataset");
 	
-	for (z=0; z < iuser->frames; z++)
+	for (z=0; z < iuser.frames; z++)
 	{	
 		/* get a new ibuf for each frame */
 		if (z > 0) {
-			iuser->framenr++;
-			ibuf= BKE_image_get_ibuf(ima, iuser);
+			iuser.framenr++;
+			ibuf= BKE_image_get_ibuf(ima, &iuser);
 			if (!ibuf) break;
 			if (!ibuf->rect_float) IMB_float_from_rect(ibuf);
 		}
@@ -134,14 +148,17 @@ static void load_frame_image_sequence(Render *re, VoxelData *vd, Tex *tex)
 		{
 			for (x=0; x < ibuf->x; x++)
 			{
-				/* currently converted to monchrome */
+				/* currently averaged to monchrome */
 				vd->dataset[ V_I(x, y, z, vd->resol) ] = (rf[0] + rf[1] + rf[2])*0.333f;
 				rf +=4;
 			}
 		}
 		
-		BKE_image_free_anim_ibufs(ima, iuser->framenr);
+		BKE_image_free_anim_ibufs(ima, iuser.framenr);
 	}
+	
+	vd->ok = 1;
+	return;
 }
 
 static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
@@ -162,7 +179,7 @@ static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 	return 1;
 }
 
-static void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
+static void init_frame_smoke(VoxelData *vd, Tex *tex)
 {
 	Object *ob;
 	ModifierData *md;
@@ -232,53 +249,65 @@ static void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
 			} // end of fluid condition
 		}
 	}
+	
+	vd->ok = 1;
+	return;
 }
 
 static void cache_voxeldata(struct Render *re,Tex *tex)
 {	
 	VoxelData *vd = tex->vd;
 	FILE *fp;
-	int size;
 	int curframe;
 	
 	if (!vd) return;
 	
-	/* image sequence gets special treatment */
-	if (vd->file_format == TEX_VD_IMAGE_SEQUENCE) {
-		load_frame_image_sequence(re, vd, tex);
-		return;
-	} else if (vd->file_format == TEX_VD_SMOKE) {
-		init_frame_smoke(re, vd, tex);
-		return;
-	}
-
-	if (!BLI_exists(vd->source_path)) return;
-	fp = fopen(vd->source_path,"rb");
-	if (!fp) return;
-
-	if (vd->file_format == TEX_VD_BLENDERVOXEL) {
-		if(!read_voxeldata_header(fp, vd)) {
-			fclose(fp);
-			return;
-		}
-	}
+	/* only re-cache if dataset needs updating */
+	if ((vd->flag & TEX_VD_STILL) || (vd->cachedframe == re->r.cfra))
+		if (vd->ok) return;
 	
-	size = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
-	vd->dataset = MEM_mapallocN(sizeof(float)*size, "voxel dataset");
-		
-	if (vd->flag & TEX_VD_STILL) curframe = vd->still_frame;
-	else curframe = re->r.cfra;
+	/* clear out old cache, ready for new */
+	if (vd->dataset) {
+		if(vd->file_format != TEX_VD_SMOKE)
+			MEM_freeN(vd->dataset);
+		vd->dataset = NULL;
+	}
+
+	if (vd->flag & TEX_VD_STILL)
+		curframe = vd->still_frame;
+	else
+		curframe = re->r.cfra;
 	
 	switch(vd->file_format) {
+		case TEX_VD_IMAGE_SEQUENCE:
+			load_frame_image_sequence(vd, tex);
+			return;
+		case TEX_VD_SMOKE:
+			init_frame_smoke(vd, tex);
+			return;
 		case TEX_VD_BLENDERVOXEL:
-			load_frame_blendervoxel(fp, vd->dataset, size, curframe-1, sizeof(VoxelDataHeader));
-			break;
+			if (!BLI_exists(vd->source_path)) return;
+			fp = fopen(vd->source_path,"rb");
+			if (!fp) return;
+			
+			if(read_voxeldata_header(fp, vd))
+				load_frame_blendervoxel(vd, fp, curframe-1);
+			else
+				fclose(fp);
+			
+			return;
 		case TEX_VD_RAW_8BIT:
-			load_frame_raw8(fp, vd->dataset, size, curframe);
-			break;
+			if (!BLI_exists(vd->source_path)) return;
+			fp = fopen(vd->source_path,"rb");
+			if (!fp) return;
+			
+			if (load_frame_raw8(vd, fp, curframe))
+				;
+			else	
+				fclose(fp);
+			
+			return;
 	}
-	
-	fclose(fp);
 }
 
 void make_voxeldata(struct Render *re)
@@ -298,29 +327,6 @@ void make_voxeldata(struct Render *re)
 	re->i.infostr= NULL;
 	re->stats_draw(re->sdh, &re->i);
 	
-}
-
-static void free_voxeldata_one(Render *re, Tex *tex)
-{
-	VoxelData *vd = tex->vd;
-	
-	if (vd->dataset) {
-		if(vd->file_format != TEX_VD_SMOKE)
-			MEM_freeN(vd->dataset);
-		vd->dataset = NULL;
-	}
-}
-
-
-void free_voxeldata(Render *re)
-{
-	Tex *tex;
-	
-	for (tex= G.main->tex.first; tex; tex= tex->id.next) {
-		if(tex->id.us && tex->type==TEX_VOXELDATA) {
-			free_voxeldata_one(re, tex);
-		}
-	}
 }
 
 int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)

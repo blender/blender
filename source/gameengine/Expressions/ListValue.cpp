@@ -362,8 +362,8 @@ PyObject* listvalue_buffer_slice(PyObject* self,Py_ssize_t ilow, Py_ssize_t ihig
 
 	if (ihigh >= n)
 		ihigh = n;
-    if (ihigh < ilow)
-        ihigh = ilow;
+	if (ihigh < ilow)
+		ihigh = ilow;
 
 	newlist = PyList_New(ihigh - ilow);
 	if (!newlist)
@@ -491,6 +491,8 @@ static  PySequenceMethods listvalue_as_sequence = {
  	NULL, /*sq_ass_item*/
  	NULL, /*sq_ass_slice*/
 	(objobjproc)listvalue_buffer_contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 

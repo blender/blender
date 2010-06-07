@@ -154,7 +154,7 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
         con.target = obj
         con.subtarget = to_bone_name
 
-        fcurve = con.driver_add("influence", 0)
+        fcurve = con.driver_add("influence")
         driver = fcurve.driver
         driver.type = 'AVERAGE'
         fcurve.modifiers.remove(0) # grr dont need a modifier
@@ -204,12 +204,12 @@ def add_pole_target_bone(obj, base_bone_name, name, mode='CROSS'):
         offset.length = distance
     elif mode == 'ZAVERAGE':
         # between both bones Z axis
-        z_axis_a = base_ebone.matrix.copy().rotation_part() * Vector(0.0, 0.0, -1.0)
-        z_axis_b = parent_ebone.matrix.copy().rotation_part() * Vector(0.0, 0.0, -1.0)
+        z_axis_a = base_ebone.matrix.copy().rotation_part() * Vector((0.0, 0.0, -1.0))
+        z_axis_b = parent_ebone.matrix.copy().rotation_part() * Vector((0.0, 0.0, -1.0))
         offset = (z_axis_a + z_axis_b).normalize() * distance
     else:
         # preset axis
-        offset = Vector(0, 0, 0)
+        offset = Vector((0.0, 0.0, 0.0))
         if mode[0] == "+":
             val = distance
         else:

@@ -691,8 +691,15 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (U.uiflag & USER_AUTOPERSP)
 			vod->rv3d->persp= RV3D_PERSP;
-		else if(vod->rv3d->persp==RV3D_CAMOB)
+		else if(vod->rv3d->persp==RV3D_CAMOB) {
+
+			/* changed since 2.4x, use the camera view */
+			View3D *v3d = CTX_wm_view3d(C);
+			if(v3d->camera)
+				view3d_settings_from_ob(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+
 			vod->rv3d->persp= RV3D_PERSP;
+		}
 		ED_region_tag_redraw(vod->ar);
 	}
 	
@@ -1157,8 +1164,8 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			else {
 				
 				/* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
-				vod->origy = vod->oldy = event->x;
-				viewzoom_apply(vod, event->x, event->prevx, USER_ZOOM_DOLLY);
+				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
+				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY);
 			}
 			request_depth_update(CTX_wm_region_view3d(C));
 			
@@ -1893,7 +1900,8 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 					if(v3d->camera==NULL) {
 						v3d->camera= scene_find_camera(scene);
-						/*handle_view3d_lock();*/
+						if (v3d->camera == NULL)
+							return OPERATOR_CANCELLED;
 					}
 					rv3d->persp= RV3D_CAMOB;
 					smooth_view(C, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);

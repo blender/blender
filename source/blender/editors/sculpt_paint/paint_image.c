@@ -5488,7 +5488,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	int h= settings->imapaint.screen_grab_size[1];
 	int maxsize;
 
-	RNA_string_get(op->ptr, "filename", filename);
+	RNA_string_get(op->ptr, "filepath", filename);
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxsize);
 
@@ -5541,5 +5541,5 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
 
-	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file");
+	RNA_def_string_file_name(ot->srna, "filepath", "", FILE_MAX, "File Path", "Name of the file");
 }

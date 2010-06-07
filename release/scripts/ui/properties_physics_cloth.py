@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 from properties_physics_common import point_cache_ui
@@ -75,7 +75,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'CLOTH'
             if wide_ui:
-                split.column()
+                split.label()
 
         if md:
             cloth = md.settings
@@ -142,7 +142,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 
     def draw(self, context):
         md = context.cloth
-        point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 0, 0)
+        point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 'CLOTH')
 
 
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):

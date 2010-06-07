@@ -86,6 +86,7 @@ int					folderlist_clear_next(struct SpaceFile* sfile);
 
 void				thumbnails_stop(struct FileList* filelist, const struct bContext* C);
 void				thumbnails_start(struct FileList* filelist, const struct bContext* C);
+int					thumbnails_running(struct FileList* filelist, const struct bContext* C);
 
 #ifdef __cplusplus
 }

@@ -69,10 +69,10 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
         # normalize the vector by dividing by the number of connected verts
         tot_con = len(con[i])
-        
+
         if tot_con == 0:
             continue
-        
+
         vec /= tot_con
 
         # angle is the acos of the dot product between vert and connected verts normals

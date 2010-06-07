@@ -130,7 +130,7 @@ from bpy.props import *
 
 
 class BakeAction(bpy.types.Operator):
-    '''Add a torus mesh'''
+    '''Bake animation to an Action'''
     bl_idname = "nla.bake"
     bl_label = "Bake Action"
     bl_options = {'REGISTER', 'UNDO'}

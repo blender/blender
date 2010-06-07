@@ -38,6 +38,9 @@
 #define TRUE 1
 #endif
 
+/* Macro to convert a value to string in the preprocessor */
+#define QUOTE(x) #x
+
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in DNA_space_types.h */
 #ifndef FILE_MAXDIR
@@ -105,6 +108,7 @@
 #define AVG2(x, y)		( 0.5 * ((x) + (y)) )
 
 #define FTOCHAR(val) ((val)<=0.0f)? 0 : (((val)>(1.0f-0.5f/255.0f))? 255 : (char)((255.0f*(val))+0.5f))
+#define FTOUSHORT(val) ((val >= 1.0f-0.5f/65535)? 65535: (val <= 0.0f)? 0: (unsigned short)(val*65535.0f + 0.5f))
 
 #define VECCOPY(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2);}
 #define VECCOPY2D(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1);}
@@ -162,7 +166,7 @@
 #define IMAG MAKE_ID('I','M','A','G')
 
 #define DNA1 MAKE_ID('D','N','A','1')
-#define TEST MAKE_ID('T','E','S','T')
+#define TEST MAKE_ID('T','E','S','T') /* used as preview between 'REND' and 'GLOB' */
 #define REND MAKE_ID('R','E','N','D')
 #define USER MAKE_ID('U','S','E','R')
 

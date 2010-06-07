@@ -64,13 +64,16 @@ static int Buffer_ass_slice( PyObject * self, int begin, int end,
 				 PyObject * seq );
 
 static PySequenceMethods Buffer_SeqMethods = {
-	( lenfunc ) Buffer_len,	/*sq_length */
-	( binaryfunc ) 0,	/*sq_concat */
-	( ssizeargfunc ) 0,	/*sq_repeat */
-	( ssizeargfunc ) Buffer_item,	/*sq_item */
-	( ssizessizeargfunc ) Buffer_slice,	/*sq_slice */
-	( ssizeobjargproc ) Buffer_ass_item,	/*sq_ass_item */
-	( ssizessizeobjargproc ) Buffer_ass_slice,	/*sq_ass_slice */
+	( lenfunc ) Buffer_len,						/*sq_length */
+	( binaryfunc ) NULL,						/*sq_concat */
+	( ssizeargfunc ) NULL,						/*sq_repeat */
+	( ssizeargfunc ) Buffer_item,				/*sq_item */
+	( ssizessizeargfunc ) Buffer_slice,			/*sq_slice, deprecated TODO, replace */
+	( ssizeobjargproc ) Buffer_ass_item,		/*sq_ass_item */
+	( ssizessizeobjargproc ) Buffer_ass_slice,	/*sq_ass_slice, deprecated TODO, replace */
+	(objobjproc) NULL,							/* sq_contains */
+	(binaryfunc) NULL,							/* sq_inplace_concat */
+	(ssizeargfunc) NULL,						/* sq_inplace_repeat */
 };
 
 static void Buffer_dealloc( PyObject * self );

@@ -85,6 +85,12 @@ void CURVE_OT_tilt_clear(struct wmOperatorType *ot);
 void CURVE_OT_smooth(struct wmOperatorType *ot);
 void CURVE_OT_smooth_radius(struct wmOperatorType *ot);
 
+void CURVE_OT_primitive_bezier_curve_add(struct wmOperatorType *ot);
+void CURVE_OT_primitive_bezier_circle_add(struct wmOperatorType *ot);
+void CURVE_OT_primitive_nurbs_curve_add(struct wmOperatorType *ot);
+void CURVE_OT_primitive_nurbs_circle_add(struct wmOperatorType *ot);
+void CURVE_OT_primitive_nurbs_path_add(struct wmOperatorType *ot);
+
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
 void CURVE_OT_de_select_last(struct wmOperatorType *ot);
 void CURVE_OT_select_all(struct wmOperatorType *ot);
@@ -96,7 +102,7 @@ void CURVE_OT_select_previous(struct wmOperatorType *ot);
 void CURVE_OT_select_more(struct wmOperatorType *ot);
 void CURVE_OT_select_less(struct wmOperatorType *ot);
 void CURVE_OT_select_random(struct wmOperatorType *ot);
-void CURVE_OT_select_every_nth(struct wmOperatorType *ot);
+void CURVE_OT_select_nth(struct wmOperatorType *ot);
 
 void CURVE_OT_switch_direction(struct wmOperatorType *ot);
 void CURVE_OT_subdivide(struct wmOperatorType *ot);

@@ -33,11 +33,6 @@
 #ifndef BLI_UTIL_H
 #define BLI_UTIL_H
 
-/* XXX doesn't seem to be used, marded for removal
-#define mallocstructN(x,y,name) (x*)MEM_mallocN((y)* sizeof(x),name)
-#define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
-*/
-
 struct ListBase;
 struct direntry;
 
@@ -58,9 +53,11 @@ void BLI_make_exist(char *dir);
 void BLI_make_existing_file(char *name);
 void BLI_split_dirfile(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
+char *BLI_path_basename(char *path);
 int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir);
 void BLI_getlastdir(const char* dir, char *last, int maxlen);
 int BLI_testextensie(const char *str, const char *ext);
+int BLI_replace_extension(char *path, int maxlen, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len);
 void BLI_newname(char * name, int add);
 int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);

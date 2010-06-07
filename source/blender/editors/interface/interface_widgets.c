@@ -283,10 +283,10 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	float maxxi= maxx - 1.0f;
 	float minyi= miny + 1.0f;
 	float maxyi= maxy - 1.0f;
-	float facxi= 1.0f/(maxxi-minxi); /* for uv */
-	float facyi= 1.0f/(maxyi-minyi);
+	float facxi= (maxxi!=minxi) ? 1.0f/(maxxi-minxi) : 0.0f; /* for uv, can divide by zero */
+	float facyi= (maxyi!=minyi) ? 1.0f/(maxyi-minyi) : 0.0f;
 	int a, tot= 0, minsize;
-	
+
 	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
 	
 	if(2.0f*rad > minsize)
@@ -1276,6 +1276,19 @@ static struct uiWidgetColors wcol_scroll= {
 	5, -5
 };
 
+static struct uiWidgetColors wcol_progress= {
+	{0, 0, 0, 255},
+	{190, 190, 190, 255},
+	{100, 100, 100, 180},
+	{68, 68, 68, 255},
+	
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	
+	0,
+	0, 0
+};
+
 static struct uiWidgetColors wcol_list_item= {
 	{0, 0, 0, 255},
 	{0, 0, 0, 0},
@@ -1322,6 +1335,7 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_box= wcol_box;
 	tui->wcol_scroll= wcol_scroll;
 	tui->wcol_list_item= wcol_list_item;
+	tui->wcol_progress= wcol_progress;
 
 	tui->wcol_state= wcol_state;
 }
@@ -1954,6 +1968,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 	uiWidgetBase wtb;
 	float rad;
 	int horizontal;
+	short outline=0;
 
 	widget_init(&wtb);
 
@@ -1995,6 +2010,10 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 		/* draw */
 		wtb.emboss= 0; /* only emboss once */
 		
+		/* exception for progress bar */
+		if (state & UI_SCROLL_NO_OUTLINE)	
+			SWAP(short, outline, wtb.outline);
+		
 		round_box_edges(&wtb, 15, slider, rad); 
 		
 		if(state & UI_SCROLL_ARROWS) {
@@ -2013,6 +2032,9 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 			}
 		}
 		widgetbase_draw(&wtb, wcol);
+		
+		if (state & UI_SCROLL_NO_OUTLINE)
+			SWAP(short, outline, wtb.outline);
 	}	
 }
 
@@ -2077,9 +2099,35 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	uiWidgetScrollDraw(wcol, rect, &rect1, state);
 }
 
+static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	rcti rect_prog = *rect, rect_bar = *rect;
+	float value = but->a1;
+	float w, min;
+	
+	/* make the progress bar a proportion of the original height */
+	/* hardcoded 4px high for now */
+	rect_prog.ymax = rect_prog.ymin + 4;
+	rect_bar.ymax = rect_bar.ymin + 4;
+	
+	w = value * (rect_prog.xmax - rect_prog.xmin);
+	
+	/* ensure minimium size */
+	min= rect_prog.ymax - rect_prog.ymin;
+	w = MAX2(w, min);
+	
+	rect_bar.xmax = rect_bar.xmin + w;
+		
+	uiWidgetScrollDraw(wcol, &rect_prog, &rect_bar, UI_SCROLL_NO_OUTLINE);
+	
+	/* raise text a bit */
+	rect->ymin += 6;
+	rect->xmin -= 6;
+}
+
 static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-
+	
 	if(but->flag & UI_SELECT) {
 		rcti rectlink;
 		
@@ -2093,7 +2141,6 @@ static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state,
 		ui_draw_link_bezier(&rectlink);
 	}
 }
-
 
 static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
@@ -2321,8 +2368,20 @@ static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
+	char old_col[3];
 	
 	widget_init(&wtb);
+	
+	VECCOPY(old_col, wcol->inner);
+	
+	/* abuse but->hsv - if it's non-zero, use this colour as the box's background */
+	if ((but->hsv[0] != 0.0) || (but->hsv[1] != 0.0) || (but->hsv[2] != 0.0)) {
+		float rgb[3];
+		hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], rgb+0, rgb+1, rgb+2);
+		wcol->inner[0] = rgb[0] * 255;
+		wcol->inner[1] = rgb[1] * 255;
+		wcol->inner[2] = rgb[2] * 255;
+	}
 	
 	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
@@ -2332,6 +2391,8 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, 
 	/* store the box bg as gl clearcolor, to retrieve later when drawing semi-transparent rects
 	 * over the top to indicate disabled buttons */
 	glClearColor(wcol->inner[0]/255.0, wcol->inner[1]/255.0, wcol->inner[2]/255.0, 1.0);
+	
+	VECCOPY(wcol->inner, old_col);
 }
 
 static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
@@ -2540,6 +2601,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 		case UI_WTYPE_LISTITEM:
 			wt.wcol_theme= &btheme->tui.wcol_list_item;
 			wt.draw= widget_list_itembut;
+			break;
+			
+		case UI_WTYPE_PROGRESSBAR:
+			wt.wcol_theme= &btheme->tui.wcol_progress;
+			wt.custom= widget_progressbar;
 			break;
 	}
 	
@@ -2755,6 +2821,11 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 					
 			case BUT_CURVE:
 				ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
+				break;
+				
+			case PROGRESSBAR:
+				wt= widget_type(UI_WTYPE_PROGRESSBAR);
+				fstyle= &style->widgetlabel;
 				break;
 
 			case SCROLL:

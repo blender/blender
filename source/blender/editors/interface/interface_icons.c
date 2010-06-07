@@ -480,7 +480,7 @@ static void init_internal_icons()
 		}
 	}
 	if(bbuf==NULL)
-		bbuf = IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
+		bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
 
 	if(bbuf) {
 		/* free existing texture if any */

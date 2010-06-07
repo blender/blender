@@ -124,7 +124,7 @@ int PE_hair_poll(bContext *C)
 	return (edit && edit->psys);
 }
 
-int PE_poll_3dview(bContext *C)
+int PE_poll_view3d(bContext *C)
 {
 	return PE_poll(C) && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
 		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
@@ -160,7 +160,7 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
 		edit->emitter_field= 0;
 	}
 
-	psys_free_path_cache(NULL, edit);
+	psys_free_path_cache(edit->psys, edit);
 
 	MEM_freeN(edit);
 }
@@ -1380,11 +1380,14 @@ int PE_mouse_particles(bContext *C, short *mval, int extend)
 
 static void select_root(PEData *data, int point_index)
 {
+	if (data->edit->points[point_index].flag & PEP_HIDE)
+		return;
+	
 	data->edit->points[point_index].keys->flag |= PEK_SELECT;
 	data->edit->points[point_index].flag |= PEP_EDIT_RECALC; /* redraw selection only */
 }
 
-static int select_first_exec(bContext *C, wmOperator *op)
+static int select_roots_exec(bContext *C, wmOperator *op)
 {
 	PEData data;
 
@@ -1397,14 +1400,14 @@ static int select_first_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_select_first(wmOperatorType *ot)
+void PARTICLE_OT_select_roots(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select First";
-	ot->idname= "PARTICLE_OT_select_first";
+	ot->name= "Select Roots";
+	ot->idname= "PARTICLE_OT_select_roots";
 	
 	/* api callbacks */
-	ot->exec= select_first_exec;
+	ot->exec= select_roots_exec;
 	ot->poll= PE_poll;
 
 	/* flags */
@@ -1416,11 +1419,15 @@ void PARTICLE_OT_select_first(wmOperatorType *ot)
 static void select_tip(PEData *data, int point_index)
 {
 	PTCacheEditPoint *point = data->edit->points + point_index;
+	
+	if (point->flag & PEP_HIDE)
+		return;
+	
 	point->keys[point->totkey - 1].flag |= PEK_SELECT;
 	point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
 }
 
-static int select_last_exec(bContext *C, wmOperator *op)
+static int select_tips_exec(bContext *C, wmOperator *op)
 {
 	PEData data;
 
@@ -1433,14 +1440,14 @@ static int select_last_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_select_last(wmOperatorType *ot)
+void PARTICLE_OT_select_tips(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Last";
-	ot->idname= "PARTICLE_OT_select_last";
+	ot->name= "Select Tips";
+	ot->idname= "PARTICLE_OT_select_tips";
 	
 	/* api callbacks */
-	ot->exec= select_last_exec;
+	ot->exec= select_tips_exec;
 	ot->poll= PE_poll;
 
 	/* flags */
@@ -1494,7 +1501,7 @@ void PARTICLE_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_linked_exec;
 	ot->invoke= select_linked_invoke;
-	ot->poll= PE_poll_3dview;
+	ot->poll= PE_poll_view3d;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2449,7 +2456,7 @@ static void toggle_particle_cursor(bContext *C, int enable)
 		pset->paintcursor = NULL;
 	}
 	else if(enable)
-		pset->paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), PE_poll_3dview, brush_drawcursor, NULL);
+		pset->paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), PE_poll_view3d, brush_drawcursor, NULL);
 }
 
 /********************* radial control operator *********************/
@@ -3609,7 +3616,7 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 	ot->invoke= brush_edit_invoke;
 	ot->modal= brush_edit_modal;
 	ot->cancel= brush_edit_cancel;
-	ot->poll= PE_poll_3dview;
+	ot->poll= PE_poll_view3d;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;

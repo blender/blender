@@ -230,7 +230,7 @@ void RE_display_init_cb	(struct Render *re, void *handle, void (*f)(void *handle
 void RE_display_clear_cb(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr));
 void RE_display_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr, volatile struct rcti *rect));
 void RE_stats_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderStats *rs));
-void RE_timecursor_cb	(struct Render *re, void *handle, void (*f)(void *handle, int));
+void RE_progress_cb	(struct Render *re, void *handle, void (*f)(void *handle, float));
 void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
 void RE_error_cb		(struct Render *re, void *handle, void (*f)(void *handle, char *str));
 

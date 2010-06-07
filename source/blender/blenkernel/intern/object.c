@@ -1140,12 +1140,13 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	}
 
 	BLI_duplicatelist(&psysn->targets, &psys->targets);
-	
+
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
 	psysn->frand= NULL;
 	psysn->pdd= NULL;
+	psysn->effectors= NULL;
 	
 	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
 	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
@@ -1282,7 +1283,7 @@ Object *copy_object(Object *ob)
 			armature_rebuild_pose(obn, obn->data);
 	}
 	defgroup_copy_list(&obn->defbase, &ob->defbase);
-	copy_constraints(&obn->constraints, &ob->constraints);
+	copy_constraints(&obn->constraints, &ob->constraints, TRUE);
 
 	obn->mode = 0;
 	obn->sculpt = NULL;
@@ -2878,15 +2879,18 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, char *name, int from_m
 		newkey= 1;
 	}
 
-	kb= add_keyblock(key, name);
-
 	if(newkey || from_mix==FALSE) {
 		/* create from mesh */
+		kb= add_keyblock(key, name);
 		mesh_to_key(me, kb);
 	}
 	else {
 		/* copy from current values */
-		kb->data= do_ob_key(scene, ob);
+		float *data= do_ob_key(scene, ob);
+
+		/* create new block with prepared data */
+		kb= add_keyblock(key, name);
+		kb->data= data;
 		kb->totelem= me->totvert;
 	}
 
@@ -2906,16 +2910,20 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, char *name, int from_m
 		newkey= 1;
 	}
 
-	kb= add_keyblock(key, name);
-
 	if(newkey || from_mix==FALSE) {
+		kb= add_keyblock(key, name);
+
 		/* create from lattice */
 		latt_to_key(lt, kb);
 	}
 	else {
 		/* copy from current values */
+		float *data= do_ob_key(scene, ob);
+
+		/* create new block with prepared data */
+		kb= add_keyblock(key, name);
 		kb->totelem= lt->pntsu*lt->pntsv*lt->pntsw;
-		kb->data= do_ob_key(scene, ob);
+		kb->data= data;
 	}
 
 	return kb;
@@ -2935,16 +2943,19 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_
 		newkey= 1;
 	}
 
-	kb= add_keyblock(key, name);
-
 	if(newkey || from_mix==FALSE) {
 		/* create from curve */
+		kb= add_keyblock(key, name);
 		curve_to_key(cu, kb, lb);
 	}
 	else {
 		/* copy from current values */
+		float *data= do_ob_key(scene, ob);
+
+		/* create new block with prepared data */
+		kb= add_keyblock(key, name);
 		kb->totelem= count_curveverts(lb);
-		kb->data= do_ob_key(scene, ob);
+		kb->data= data;
 	}
 
 	return kb;

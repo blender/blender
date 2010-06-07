@@ -212,12 +212,13 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 				for(a=0; a<32; a++)
 					values[a]= (layer & (1<<a));
 			} else {
-				layer = v3d->layact;
+				layer = (v3d->scenelock)?scene->layact:v3d->layact;
+
 				for(a=0; a<32; a++)
 					values[a]= (layer & (1<<a));
 			}
 		} else {
-			layer = scene->lay;
+			layer = scene->layact;
 			for(a=0; a<32; a++)
 				values[a]= (layer & (1<<a));
 		}
@@ -466,97 +467,6 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 
 
 /* ***************** add primitives *************** */
-
-static EnumPropertyItem prop_curve_types[] = {
-	{CU_BEZIER|CU_PRIM_CURVE, "BEZIER_CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", ""},
-	{CU_BEZIER|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", ICON_CURVE_BEZCIRCLE, "Bezier Circle", ""},
-	{CU_NURBS|CU_PRIM_CURVE, "NURBS_CURVE", ICON_CURVE_NCURVE, "NURBS Curve", ""},
-	{CU_NURBS|CU_PRIM_CIRCLE, "NURBS_CIRCLE", ICON_CURVE_NCIRCLE, "NURBS Circle", ""},
-	{CU_NURBS|CU_PRIM_PATH, "PATH", ICON_CURVE_PATH, "Path", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static int object_add_curve_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb;
-	Nurb *nu;
-	int newob= 0, type= RNA_enum_get(op->ptr, "type");
-	int enter_editmode;
-	unsigned int layer;
-	float loc[3], rot[3];
-	float mat[4][4];
-	
-	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
-	
-	if(obedit==NULL || obedit->type!=OB_CURVE) {
-		Curve *cu;
-		obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
-		newob = 1;
-
-		cu= (Curve*)obedit->data;
-		cu->flag |= CU_DEFORM_FILL;
-		if(type & CU_PRIM_PATH)
-			cu->flag |= CU_PATH|CU_3D;
-	}
-	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
-	
-	ED_object_new_primitive_matrix(C, loc, rot, mat);
-	
-	nu= add_nurbs_primitive(C, mat, type, newob);
-	editnurb= curve_get_editcurve(obedit);
-	BLI_addtail(editnurb, nu);
-	
-	/* userdef */
-	if (newob && !enter_editmode) {
-		ED_object_exit_editmode(C, EM_FREEDATA);
-	}
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
-	
-	return OPERATOR_FINISHED;
-}
-
-static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	object_add_generic_invoke_options(C, op);
-
-	pup= uiPupMenuBegin(C, op->type->name, 0);
-	layout= uiPupMenuLayout(pup);
-	if(!obedit || obedit->type == OB_CURVE)
-		uiItemsEnumO(layout, op->type->idname, "type");
-	else
-		uiItemsEnumO(layout, "OBJECT_OT_surface_add", "type");
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_CANCELLED;
-}
-
-void OBJECT_OT_curve_add(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Add Curve";
-	ot->description = "Add a curve object to the scene";
-	ot->idname= "OBJECT_OT_curve_add";
-	
-	/* api callbacks */
-	ot->invoke= object_add_curve_invoke;
-	ot->exec= object_add_curve_exec;
-	
-	ot->poll= ED_operator_scene_editable;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	RNA_def_enum(ot->srna, "type", prop_curve_types, 0, "Primitive", "");
-
-	ED_object_add_generic_props(ot, TRUE);
-}
 
 static EnumPropertyItem prop_surface_types[]= {
 	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", ICON_SURFACE_NCURVE, "NURBS Curve", ""},
@@ -850,7 +760,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 
 static int group_instance_add_exec(bContext *C, wmOperator *op)
 {
-	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "type"));
+	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "group"));
 
 	int enter_editmode;
 	unsigned int layer;
@@ -895,7 +805,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "");
 	RNA_def_enum_funcs(prop, RNA_group_itemf);
 	ot->prop= prop;
 	ED_object_add_generic_props(ot, FALSE);
@@ -1145,7 +1055,7 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 
 static EnumPropertyItem convert_target_items[]= {
 	{OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
-	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Mesh", ""},
+	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static void curvetomesh(Scene *scene, Object *ob) 
@@ -1765,6 +1675,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_duplicate(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Duplicate";
 	ot->description = "Duplicate selected objects";
@@ -1779,7 +1691,8 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	
 	/* to give to transform */
 	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	prop= RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* **************** add named object, for dragdrop ************* */

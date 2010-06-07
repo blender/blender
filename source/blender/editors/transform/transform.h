@@ -151,6 +151,9 @@ typedef struct TransDataExtension {
 typedef struct TransData2D {
 	float loc[3];		/* Location of data used to transform (x,y,0) */
 	float *loc2d;		/* Pointer to real 2d location of data */
+
+	float *h1, *h2;     /* Pointer to handle locations, if handles aren't being moved independantly*/
+	float ih1[2], ih2[2];
 } TransData2D;
 
 /* we need to store 2 handles for each transdata incase the other handle wasnt selected */
@@ -427,6 +430,8 @@ typedef struct TransInfo {
 #define TD_NOTIMESNAP		(1 << 14)	/* for Graph Editor autosnap, indicates that point should not undergo autosnapping */
 #define TD_INTVALUES	 	(1 << 15) 	/* for Graph Editor - curves that can only have int-values need their keyframes tagged with this */
 #define TD_MIRROR_EDGE	 	(1 << 16) 	/* For editmode mirror, clamp to x = 0 */
+#define TD_MOVEHANDLE1		(1 << 17)	/* For fcurve handles, move them along with their keyframes */
+#define TD_MOVEHANDLE2		(1 << 18)
 
 /* transsnap->status */
 #define SNAP_FORCED		1

@@ -799,7 +799,7 @@ static void rna_def_material_diffuse(StructRNA *srna)
 	prop= RNA_def_property(srna, "diffuse_fresnel_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "param[0]");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
-	RNA_def_property_ui_text(prop, "Diffuse Fresnel Factor", "Blending factor of Frensel");
+	RNA_def_property_ui_text(prop, "Diffuse Fresnel Factor", "Blending factor of Fresnel");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "darkness", PROP_FLOAT, PROP_NONE);
@@ -870,7 +870,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Gloss Threshold", "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "ray_depth");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Depth", "Maximum allowed number of light inter-reflections");
@@ -935,7 +935,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Gloss Threshold", "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "ray_depth_tra");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Depth", "Maximum allowed number of light inter-refractions");
@@ -1352,7 +1352,7 @@ static void rna_def_material_specularity(StructRNA *srna)
 	prop= RNA_def_property(srna, "specular_toon_smooth", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "param[3]");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Specular Toon Smooth", "Ssmoothness of specular toon area");
+	RNA_def_property_ui_text(prop, "Specular Toon Smooth", "Smoothness of specular toon area");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "specular_slope", PROP_FLOAT, PROP_NONE);
@@ -1448,7 +1448,7 @@ static void rna_def_material_physics(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "friction");
 	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "Friction", "Coulomb friction coeffecient, when inside the physics distance area");
+	RNA_def_property_ui_text(prop, "Friction", "Coulomb friction coefficient, when inside the physics distance area");
 
 	prop= RNA_def_property(srna, "force", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fh");

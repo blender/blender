@@ -167,7 +167,7 @@ extern "C" {
 	else if ([[draggingPBoard types] containsObject:NSStringPboardType]) m_draggedObjectType = GHOST_kDragnDropTypeString;
 	else return NSDragOperationNone;
 	
-	associatedWindow->setAcceptDragOperation(FALSE); //Drag operation needs to be accepted explicitly by the event manager
+	associatedWindow->setAcceptDragOperation(TRUE); //Drag operation is accepted by default
 	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingEntered, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
 	return NSDragOperationCopy;
 }
@@ -1019,6 +1019,66 @@ GHOST_TSuccess GHOST_WindowCocoa::invalidate()
 	[pool drain];
 	return GHOST_kSuccess;
 }
+
+#pragma mark Progress bar
+
+GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	if ((progress >=0.0) && (progress <=1.0)) {
+		NSImage* dockIcon = [[NSImage alloc] initWithSize:NSMakeSize(128,128)];
+		
+		[dockIcon lockFocus];
+        NSRect progressBox = {{4, 4}, {120, 16}};
+
+        [[NSImage imageNamed:@"NSApplicationIcon"] dissolveToPoint:NSZeroPoint fraction:1.0];
+        
+        // Track & Outline
+        [[NSColor blackColor] setFill];
+        NSRectFill(progressBox);
+        
+        [[NSColor whiteColor] set];
+        NSFrameRect(progressBox);
+        
+        // Progress fill
+        progressBox = NSInsetRect(progressBox, 1, 1);
+        [[NSColor knobColor] setFill];
+        progressBox.size.width = progressBox.size.width * progress;
+		NSRectFill(progressBox);
+		
+		[dockIcon unlockFocus];
+		
+		[NSApp setApplicationIconImage:dockIcon];
+		[dockIcon release];
+		
+		m_progressBarVisible = true;
+	}
+	
+	[pool drain];
+	return GHOST_kSuccess;
+}
+
+
+GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
+{
+	if (!m_progressBarVisible) return GHOST_kFailure;
+	m_progressBarVisible = false;
+	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	NSImage* dockIcon = [[NSImage alloc] initWithSize:NSMakeSize(128,128)];
+	[dockIcon lockFocus];
+	[[NSImage imageNamed:@"NSApplicationIcon"] dissolveToPoint:NSZeroPoint fraction:1.0];
+	[dockIcon unlockFocus];
+	[NSApp setApplicationIconImage:dockIcon];
+	[dockIcon release];
+	
+	[pool drain];
+	return GHOST_kSuccess;
+}
+
+
 
 #pragma mark Cursor handling
 

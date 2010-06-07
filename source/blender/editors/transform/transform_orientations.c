@@ -517,6 +517,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	case V3D_MANIP_GIMBAL:
 		unit_m3(t->spacemtx);
 		if (gimbal_axis(ob, t->spacemtx)) {
+			strcpy(t->spacename, "gimbal");
 			break;
 		}
 		/* no gimbal fallthrough to normal */

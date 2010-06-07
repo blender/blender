@@ -296,15 +296,15 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Image", "Image datablock referencing an external or packed image");
 	RNA_def_struct_ui_icon(srna, ICON_IMAGE_DATA);
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name");
+	RNA_def_property_ui_text(prop, "File Name", "Image/Movie file name");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_reload_update");
 
 	/* eek. this is horrible but needed so we can save to a new name without blanking the data :( */
-	prop= RNA_def_property(srna, "filename_raw", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "filepath_raw", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name (without data refreshing)");
+	RNA_def_property_ui_text(prop, "File Name", "Image/Movie file name (without data refreshing)");
 
 	prop= RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, image_type_items);
@@ -338,11 +338,6 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_FIELDS);
 	RNA_def_property_ui_text(prop, "Fields", "Use fields of the image");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_fields_update");
-
-	prop= RNA_def_property(srna, "antialias", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANTIALI);
-	RNA_def_property_ui_text(prop, "Anti-alias", "Toggles image anti-aliasing, only works with solid colors");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_DO_PREMUL);
@@ -437,6 +432,12 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Clamp Y", "Disable texture repeating vertically");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
+	prop= RNA_def_property(srna, "bindcode", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "bindcode");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Bindcode", "OpenGL bindcode");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+
 	/*
 	   Image.has_data and Image.depth are temporary,
 	   Update import_obj.py when they are replaced (Arystan)
@@ -446,7 +447,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Has data", "True if this image has data");
 
-	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Image_depth_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Depth", "Image bit depth");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

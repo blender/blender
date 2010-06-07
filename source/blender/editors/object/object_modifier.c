@@ -399,7 +399,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 	if (ob->type==OB_MESH) {
 		DerivedMesh *dm;
 		Mesh *me = ob->data;
-		MultiresModifierData *mmd= find_multires_modifier(ob);
+		MultiresModifierData *mmd= find_multires_modifier(scene, ob);
 
 		if( me->key) {
 			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
@@ -413,7 +413,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 			multires_force_update(ob);
 
 		if (mmd && mti->type==eModifierTypeType_OnlyDeform) {
-			multiresModifier_reshapeFromDeformMod (mmd, ob, md);
+			multiresModifier_reshapeFromDeformMod (scene, mmd, ob, md);
 		} else {
 			dm = mesh_create_derived_for_modifier(scene, ob, md);
 			if (!dm) {
@@ -954,6 +954,7 @@ void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 static int multires_reshape_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= ED_object_active_context(C), *secondob= NULL;
+	Scene *scene= CTX_data_scene(C);
 	MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(C, op, ob, eModifierType_Multires);
 
 	if (!mmd)
@@ -971,15 +972,15 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Second selected mesh object require to copy shape from.");
 		return OPERATOR_CANCELLED;
 	}
-	
-	if(!multiresModifier_reshape(mmd, ob, secondob)) {
+
+	if(!multiresModifier_reshape(scene, mmd, ob, secondob)) {
 		BKE_report(op->reports, RPT_ERROR, "Objects do not have the same number of vertices.");
 		return OPERATOR_CANCELLED;
 	}
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1021,8 +1022,8 @@ static int multires_save_external_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	RNA_string_get(op->ptr, "path", path);
-	if(G.save_over)
-		BLI_path_rel(path, G.sce);
+
+	/* BLI_path_rel(path, G.sce); */ /* TODO, relative path operator option */
 
 	CustomData_external_add(&me->fdata, &me->id, CD_MDISPS, me->totface, path);
 	CustomData_external_write(&me->fdata, &me->id, CD_MASK_MESH, me->totface, 0);
@@ -1124,14 +1125,14 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 	if (!mmd)
 		return OPERATOR_CANCELLED;
 
-	if(mmd->bindcos) {
+	if(mmd->bindcagecos) {
 		if(mmd->bindweights) MEM_freeN(mmd->bindweights);
-		if(mmd->bindcos) MEM_freeN(mmd->bindcos);
+		if(mmd->bindcagecos) MEM_freeN(mmd->bindcagecos);
 		if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
 		if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
 		if(mmd->dynverts) MEM_freeN(mmd->dynverts);
 		mmd->bindweights= NULL;
-		mmd->bindcos= NULL;
+		mmd->bindcagecos= NULL;
 		mmd->dyngrid= NULL;
 		mmd->dyninfluences= NULL;
 		mmd->dynverts= NULL;
@@ -1175,7 +1176,7 @@ static int meshdeform_bind_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return meshdeform_bind_exec(C, op);
-	else
+	else 
 		return OPERATOR_CANCELLED;
 }
 

@@ -77,6 +77,7 @@
 #include "ED_space_api.h"
 #include "ED_screen_types.h"
 #include "ED_transform.h"
+#include "ED_gpencil.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -1656,7 +1657,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->zbuf= TRUE;
 	glEnable(GL_DEPTH_TEST);
 
-	draw_gpencil_3dview_ext(scene, ar, 1);
+	draw_gpencil_view3d_ext(scene, ar, 1);
 	
 	v3d->zbuf= zbuf;
 
@@ -1964,7 +1965,10 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 
 	/* set flags */
 	G.f |= G_RENDER_OGL;
-	GPU_free_images();
+
+	/* free images which can have changed on frame-change
+	 * warning! can be slow so only free animated images - campbell */
+	GPU_free_images_anim();
 
 	/* set background color, fallback on the view background color */
 	if(scene->world) {
@@ -2022,14 +2026,15 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	}
 
 	/* draw grease-pencil stuff */
-	draw_gpencil_3dview_ext(scene, ar, 1);
+	draw_gpencil_view3d_ext(scene, ar, 1);
 
 	ED_region_pixelspace(ar);
 
 	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-	draw_gpencil_3dview_ext(scene, ar, 0);
+	draw_gpencil_view3d_ext(scene, ar, 0);
 
-	GPU_free_images();
+	/* freeing the images again here could be done after the operator runs, leaving for now */
+	GPU_free_images_anim();
 
 	/* restore size */
 	ar->winx= bwinx;
@@ -2038,6 +2043,8 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	glPopMatrix();
 
 	glColor4ub(255, 255, 255, 255); // XXX, without this the sequencer flickers with opengl draw enabled, need to find out why - campbell
+
+	G.f &= ~G_RENDER_OGL;
 }
 
 /* utility func for ED_view3d_draw_offscreen */
@@ -2343,7 +2350,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		/* draw grease-pencil stuff (3d-space strokes) */
 		//if (v3d->flag2 & V3D_DISPGP)
-			draw_gpencil_3dview((bContext *)C, 1);
+			draw_gpencil_view3d((bContext *)C, 1);
 
 		BDR_drawSketch(C);
 	}
@@ -2362,7 +2369,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
 	//	if (v3d->flag2 & V3D_DISPGP)
-			draw_gpencil_3dview((bContext *)C, 0);
+			draw_gpencil_view3d((bContext *)C, 0);
 
 		drawcursor(scene, ar, v3d);
 	}

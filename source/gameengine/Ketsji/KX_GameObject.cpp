@@ -1355,12 +1355,9 @@ static int mathutils_kxgameob_vector_set(BaseMathObject *bmo, int subtype)
 
 static int mathutils_kxgameob_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
-	float f[4];
 	/* lazy, avoid repeteing the case statement */
 	if(!mathutils_kxgameob_vector_get(bmo, subtype))
 		return 0;
-	
-	bmo->data[index]= f[index];
 	return 1;
 }
 
@@ -1742,6 +1739,8 @@ PySequenceMethods KX_GameObject::Sequence = {
 	NULL,		/* sq_ass_item */
 	NULL,		/* sq_ass_slice */
 	(objobjproc)Seq_Contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 PyTypeObject KX_GameObject::Type = {
@@ -2736,7 +2735,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	KX_RayCast::Callback<KX_GameObject> callback(this,spc);
 	KX_RayCast::RayTest(pe, fromPoint, toPoint, callback);
 
-    if (m_pHitObject)
+	if (m_pHitObject)
 		return m_pHitObject->GetProxy();
 	
 	Py_RETURN_NONE;

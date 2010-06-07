@@ -125,11 +125,15 @@ void info_operatortypes(void)
 	WM_operatortype_append(FILE_OT_make_paths_absolute);
 	WM_operatortype_append(FILE_OT_report_missing_files);
 	WM_operatortype_append(FILE_OT_find_missing_files);
+	
+	WM_operatortype_append(INFO_OT_reports_display_update);
 }
 
 void info_keymap(struct wmKeyConfig *keyconf)
 {
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
 	
+	WM_keymap_verify_item(keymap, "INFO_OT_reports_display_update", TIMER, KM_ANY, KM_ANY, 0);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -154,6 +158,10 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_SCREEN:
 			if(ELEM(wmn->data, ND_SCREENCAST, ND_ANIMPLAY))
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_WM:	
+			if(wmn->data == ND_JOB)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCENE:

@@ -177,6 +177,7 @@ static void nla_keymap_channels (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		/* delete tracks */
 	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", BACKSPACEKEY, KM_PRESS, 0, 0);
 	
 	/* General Animation Channels keymap (see anim_channels.c) ----------------------- */
 	/* selection */
@@ -246,6 +247,7 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		/* delete */
 	WM_keymap_add_item(keymap, "NLA_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 	
 		/* split */
 	WM_keymap_add_item(keymap, "NLA_OT_split", YKEY, KM_PRESS, 0, 0);

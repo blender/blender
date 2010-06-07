@@ -324,6 +324,8 @@ PySequenceMethods KX_PythonSeq_as_sequence = {
 	NULL,		/* sq_ass_item */
 	NULL,		/* sq_ass_slice */
 	(objobjproc)KX_PythonSeq_contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 static PyMappingMethods KX_PythonSeq_as_mapping = {

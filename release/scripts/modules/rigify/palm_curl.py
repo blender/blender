@@ -254,7 +254,7 @@ def main(obj, bone_definition, base_names, options):
         child_pbone_02 = obj.pose.bones[children[1]].bone
 
         rel_vec = child_pbone_01.head - child_pbone_02.head
-        x_vec = child_pbone_01.matrix.rotation_part() * Vector(1.0, 0.0, 0.0)
+        x_vec = child_pbone_01.matrix.rotation_part() * Vector((1.0, 0.0, 0.0))
 
         return degrees(rel_vec.angle(x_vec)) > 90.0
 
