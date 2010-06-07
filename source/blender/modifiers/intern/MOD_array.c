@@ -211,9 +211,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	/* need to avoid infinite recursion here */
 	if(amd->start_cap && amd->start_cap != ob)
-		start_cap = amd->start_cap->derivedFinal;
+		start_cap = mesh_get_derived_final(scene, amd->start_cap, 0);
 	if(amd->end_cap && amd->end_cap != ob)
-		end_cap = amd->end_cap->derivedFinal;
+		end_cap = mesh_get_derived_final(scene, amd->end_cap, 0);
 
 	unit_m4(offset);
 

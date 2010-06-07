@@ -85,7 +85,7 @@ static DerivedMesh *applyModifier(
   int useRenderParams, int isFinalCalc)
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
-	DerivedMesh *dm = bmd->object->derivedFinal;
+	DerivedMesh *dm = mesh_get_derived_final(md->scene, bmd->object, 0);
 
 	/* we do a quick sanity check */
 	if(dm && (derivedData->getNumFaces(derivedData) > 3)
