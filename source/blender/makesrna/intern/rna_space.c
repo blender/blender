@@ -1161,7 +1161,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	/* region */
 
-	srna= RNA_def_struct(brna, "RegionView3D", "Region");
+	srna= RNA_def_struct(brna, "RegionView3D", NULL);
 	RNA_def_struct_sdna(srna, "RegionView3D");
 	RNA_def_struct_ui_text(srna, "3D View Region", "3D View region data");
 
