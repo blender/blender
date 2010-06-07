@@ -43,6 +43,10 @@ Remove the CMakeCache.txt file and try again from another folder, e.g.:
 ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+# quiet output for Makefiles, 'make -s' helps too
+SET_PROPERTY(GLOBAL PROPERTY RULE_MESSAGES OFF)
+
 PROJECT(Blender)
 
 #-----------------------------------------------------------------------------
@@ -144,7 +148,6 @@ INCLUDE(CMake/macros.cmake)
 
 IF(UNIX AND NOT APPLE)
 
-
 	IF(WITH_OPENAL)
 		FIND_PACKAGE(OpenAL)
 		IF(NOT OPENAL_FOUND)
@@ -166,20 +169,23 @@ IF(UNIX AND NOT APPLE)
 	SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
 	ENDIF(WITH_SNDFILE)
 
-	FIND_LIBRARY(INTL_LIBRARY
-		NAMES intl
-		PATHS
-		/sw/lib
-	)
-	FIND_LIBRARY(ICONV_LIBRARY
-		NAMES iconv
-		PATHS
-		/sw/lib
-	)
-  
-	IF(INTL_LIBRARY AND ICONV_LIBRARY)
-		SET(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
-	ENDIF(INTL_LIBRARY AND ICONV_LIBRARY)
+	IF(WITH_INTERNATIONAL)
+		FIND_LIBRARY(INTL_LIBRARY
+			NAMES intl
+			PATHS
+			/sw/lib
+		)
+
+		FIND_LIBRARY(ICONV_LIBRARY
+			NAMES iconv
+			PATHS
+			/sw/lib
+		)
+
+		IF(INTL_LIBRARY AND ICONV_LIBRARY)
+			SET(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
+		ENDIF(INTL_LIBRARY AND ICONV_LIBRARY)
+	ENDIF(WITH_INTERNATIONAL)
 
 	FIND_PACKAGE(Freetype)
 	# UNSET(FREETYPE_INCLUDE_DIRS CACHE) # cant use
@@ -323,10 +329,12 @@ IF(WIN32)
 	
 	ADD_DEFINITIONS(-DWIN32)
 
-	SET(ICONV ${LIBDIR}/iconv)
-	SET(ICONV_INC ${ICONV}/include)
-	SET(ICONV_LIB iconv)
-	SET(ICONV_LIBPATH ${ICONV}/lib)
+	IF(WITH_INTERNATIONAL)
+		SET(ICONV ${LIBDIR}/iconv)
+		SET(ICONV_INC ${ICONV}/include)
+		SET(ICONV_LIB iconv)
+		SET(ICONV_LIBPATH ${ICONV}/lib)
+	ENDIF(WITH_INTERNATIONAL)
 
 	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
 	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
@@ -404,14 +412,16 @@ IF(WIN32)
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp ")
 		ENDIF(WITH_OPENMP)
 		
-		SET(GETTEXT ${LIBDIR}/gettext)
-		SET(GETTEXT_INC ${GETTEXT}/include)
-		SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
-		IF(CMAKE_CL_64)
-			SET(GETTEXT_LIB gettext)
-		ELSE(CMAKE_CL_64)
-			SET(GETTEXT_LIB gnu_gettext)
-		ENDIF(CMAKE_CL_64)
+		IF(WITH_INTERNATIONAL)
+			SET(GETTEXT ${LIBDIR}/gettext)
+			SET(GETTEXT_INC ${GETTEXT}/include)
+			SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
+			IF(CMAKE_CL_64)
+				SET(GETTEXT_LIB gettext)
+			ELSE(CMAKE_CL_64)
+				SET(GETTEXT_LIB gnu_gettext)
+			ENDIF(CMAKE_CL_64)
+		ENDIF(WITH_INTERNATIONAL)
 
 		IF(CMAKE_CL_64)
 			SET(PNG_LIBRARIES libpng)
@@ -526,10 +536,12 @@ IF(WIN32)
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 		ENDIF(WITH_OPENMP)
 
-		SET(GETTEXT ${LIBDIR}/gcc/gettext)
-		SET(GETTEXT_INC ${GETTEXT}/include)
-		SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
-		SET(GETTEXT_LIB intl)
+		IF(WITH_INTERNATIONAL)
+			SET(GETTEXT ${LIBDIR}/gcc/gettext)
+			SET(GETTEXT_INC ${GETTEXT}/include)
+			SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
+			SET(GETTEXT_LIB intl)
+		ENDIF(WITH_INTERNATIONAL)
 
 		SET(JPEG_LIBRARY jpeg)
 		SET(PNG_LIBRARIES png)
@@ -818,10 +830,11 @@ ENDIF(WITH_BUILDINFO)
 	
 #-----------------------------------------------------------------------------
 # Common.
-
-set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
-set(OPENJPEG_INC ${OPENJPEG})
-set(OPENJPEG_LIb extern_libopenjpeg)
+IF(WITH_OPENJPEG)
+	set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
+	set(OPENJPEG_INC ${OPENJPEG})
+	set(OPENJPEG_LIb extern_libopenjpeg)
+ENDIF(WITH_OPENJPEG)
 
 #-----------------------------------------------------------------------------
 # Blender WebPlugin
