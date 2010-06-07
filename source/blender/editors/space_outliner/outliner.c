@@ -439,8 +439,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
 {
-	TreeStoreElem *tselem= TREESTORE(tenla);
-	TreeElement *te;
+	TreeStoreElem *tselem = NULL;
+	TreeElement *te = NULL;
 
 	/* log stuff is to convert bitflags (powers of 2) to small integers,
 	 * in order to not overflow short tselem->nr */
@@ -450,6 +450,7 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->directdata= &srl->passflag;
 	
 	/* save cpu cycles, but we add the first to invoke an open/close triangle */
+	tselem = TREESTORE(tenla);
 	if(tselem->flag & TSE_CLOSED)
 		return;
 	
