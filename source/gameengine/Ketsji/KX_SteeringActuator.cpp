@@ -175,6 +175,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 					steervec = -vectotarg;
 					steervec.normalize();
 				}
+				break;
 			case KX_STEERING_PATHFOLLOWING:
 				if (m_navmesh && vectotarg.length2()>m_distance*m_distance)
 				{
@@ -205,7 +206,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 			//adjust velocity to avoid obstacles
 			if (m_simulation && m_obstacle)
 			{
-				m_simulation->AdjustObstacleVelocity(m_obstacle, newvel);
+				m_simulation->AdjustObstacleVelocity(m_obstacle, m_navmesh, newvel);
 			}
 
 			//temporary solution: set 2D steering velocity directly to obj

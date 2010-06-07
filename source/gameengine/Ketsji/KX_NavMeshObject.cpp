@@ -307,6 +307,11 @@ bool KX_NavMeshObject::BuildNavMesh()
 	return true;
 }
 
+dtStatNavMesh* KX_NavMeshObject::GetNavMesh()
+{
+	return m_navMesh;
+}
+
 void KX_NavMeshObject::DrawNavMesh()
 {
 	if (!m_navMesh)

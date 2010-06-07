@@ -42,12 +42,29 @@
 #include "MT_Point3.h"
 
 class KX_GameObject;
+class KX_NavMeshObject;
+
+enum KX_OBSTACLE_TYPE
+{	
+	KX_OBSTACLE_OBJ, 
+	KX_OBSTACLE_NAV_MESH,
+};
+
+enum KX_OBSTACLE_SHAPE
+{	
+	KX_OBSTACLE_CIRCLE, 
+	KX_OBSTACLE_SEGMENT,
+};
 
 struct KX_Obstacle
 {
+	KX_OBSTACLE_TYPE m_type;
+	KX_OBSTACLE_SHAPE m_shape;
 	MT_Point3 m_pos;
+	MT_Point3 m_pos2;
 	MT_Scalar m_rad;
 	MT_Vector2 m_vel;
+	
 	KX_GameObject* m_gameObj;
 };
 
@@ -55,14 +72,20 @@ class KX_ObstacleSimulation
 {
 protected:
 	std::vector<KX_Obstacle*>	m_obstacles;
+
+	virtual KX_Obstacle* CreateObstacle();
 public:
 	KX_ObstacleSimulation();
 	virtual ~KX_ObstacleSimulation();
 
-	virtual void AddObstacleForObj(KX_GameObject* gameobj);
+	void DrawObstacles();
+
+	void AddObstacleForObj(KX_GameObject* gameobj);
+	void AddObstaclesForNavMesh(KX_NavMeshObject* navmesh);
 	KX_Obstacle* GetObstacle(KX_GameObject* gameobj);
 	void UpdateObstacles();	
-	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, MT_Vector3& velocity);
+	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+										MT_Vector3& velocity);
 
 }; /* end of class KX_ObstacleSimulation*/
 
@@ -88,11 +111,12 @@ protected:
 	float m_collisionWeight;		// Sample selection collision weight
 
 	std::vector<TOICircle*>	m_toiCircles; // TOI circles (one per active agent)
+	virtual KX_Obstacle* CreateObstacle();
 public:
 	KX_ObstacleSimulationTOI();
 	~KX_ObstacleSimulationTOI();
-	virtual void AddObstacleForObj(KX_GameObject* gameobj);
-	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, MT_Vector3& velocity);
+	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+										MT_Vector3& velocity);
 };
 
 #endif

@@ -2639,6 +2639,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	converter->RegisterWorldInfo(worldinfo);
 	kxscene->SetWorldInfo(worldinfo);
 
+
 	//create object representations for obstacle simulation
 	KX_ObstacleSimulation* obssimulation = kxscene->GetObstacleSimulation();
 	if (obssimulation)
@@ -2650,6 +2651,21 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			{
 				obssimulation->AddObstacleForObj(gameobj);
 			}
+		}
+	}
+
+	//build navigation mesh
+	for ( i=0;i<objectlist->GetCount();i++)
+	{
+		KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
+		struct Object* blenderobject = gameobj->GetBlenderObject();
+		if (blenderobject->type==OB_MESH && (blenderobject->gameflag & OB_NAVMESH))
+		{
+			KX_NavMeshObject* navmesh = static_cast<KX_NavMeshObject*>(gameobj);
+			navmesh->BuildNavMesh();
+			navmesh->SetVisible(0, true);
+			if (obssimulation)
+				obssimulation->AddObstaclesForNavMesh(navmesh);
 		}
 	}
 
@@ -2693,19 +2709,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 	logicbrick_conversionlist->Release();
 	
-	//build navigation mesh
-	for ( i=0;i<objectlist->GetCount();i++)
-	{
-		KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
-		struct Object* blenderobject = gameobj->GetBlenderObject();
-		if (blenderobject->type==OB_MESH && (blenderobject->gameflag & OB_NAVMESH))
-		{
-			KX_NavMeshObject* pathfinder = static_cast<KX_NavMeshObject*>(gameobj);
-			pathfinder->BuildNavMesh();
-			pathfinder->SetVisible(0, true);
-		}
-	}
-	
+
 	// Calculate the scene btree -
 	// too slow - commented out.
 	//kxscene->SetNodeTree(tf.MakeTree());

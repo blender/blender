@@ -55,6 +55,7 @@ public:
 
 
 	bool BuildNavMesh();
+	dtStatNavMesh* GetNavMesh();
 	int FindPath(const MT_Point3& from, const MT_Point3& to, float* path, int maxPathLen);
 	float Raycast(const MT_Point3& from, const MT_Point3& to);
 	void DrawNavMesh();
