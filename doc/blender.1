@@ -1,0 +1,232 @@
+.TH "BLENDER" "1" "June 06, 2010" "Blender 2\&.5\&.2"
+.SH NAME
+blender \- a 3D modelling and rendering package
+.SH SYNOPSIS
+.B blender [args ...] [file] [args ...]
+
+
+.br
+.SH DESCRIPTION
+.PP
+.B blender
+is a 3D modelling and rendering package. It is the in-house software of a high quality animation studio, Blender has proven to be an extremely fast and versatile design instrument. The software has a personal touch, offering a unique approach to the world of Three Dimensions.
+
+Use Blender to create TV commercials, to make technical visualizations, business graphics, to do some morphing, or design user interfaces. You can easy build and manage complex environments. The renderer is versatile and extremely fast. All basic animation principles (curves & keys) are well implemented.
+
+http://www.blender.org
+.SH OPTIONS
+.SS "Render options:"
+
+.TP
+.B \-b, \-\-background <file>
+Load <file> in background (often used for UI-less rendering)
+
+.TP
+.B \-a, \-\-render-anim 
+Render frames from start to end (inclusive)
+
+.TP
+.B \-S, \-\-scene <name>
+Set the active scene <name> for rendering
+
+.TP
+.B \-f, \-\-render-frame <frame>
+Render frame <frame> and save it
+
+.TP
+.B \-s, \-\-frame-start <frame>
+Set start to frame <frame> (use before the \-a argument)
+
+.TP
+.B \-e, \-\-frame-end <frame>
+Set end to frame <frame> (use before the \-a argument)
+
+.TP
+.B \-j, \-\-frame-jump <frames>
+Set number of frames to step forward after each rendered frame
+
+.TP
+.B \-o, --render-output <path>
+Set the render path and file name.
+.IP
+Use // at the start of the path to render relative to the blend file.
+.IP
+The # characters are replaced by the frame number, and used to define zero padding.
+.IP
+    ani_##_test.png becomes ani_01_test.png
+    test-######.png becomes test-000001.png
+    When the filename does not contain #, The suffix #### is added to the filename
+.IP
+The frame number will be added at the end of the filename.
+    eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a
+    //render_ becomes //render_####, writing frames as //render_0001.png//
+
+.HP
+.B \-E, \-\-engine <engine>
+Specify the render engine
+use \fI\-E help\fR to list available engines
+
+.SS "Format options:"
+
+.TP
+.B \-F, \-\-render-format <format>
+Set the render format, valid options are...
+.IP
+TGA IRIS JPEG MOVIE IRIZ RAWTGA
+AVIRAW AVIJPEG PNG BMP FRAMESERVER
+.IP
+(formats that can be compiled into blender, not available on all systems)
+.IP
+HDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS
+
+.TP
+.B \-x, \-\-use-extension <bool>
+Set option to add the file extension to the end of the file
+
+.TP
+.B \-t, \-\-threads <threads>
+Use amount of <threads> for rendering in background
+[1-BLENDER_MAX_THREADS], 0 for systems processor count.
+
+.SS "Animation options:"
+
+.TP
+.B \-a <options> <file(s)>
+Playback <file(s)>, only operates this way when not running in background.
+.IP
+\-p <sx> <sy> \-\- Open with lower left corner at <sx>, <sy>
+.br
+\-m  \-\- Read from disk (Don't buffer)
+.br
+\-f <fps> <fps-base> \-\- Specify FPS to start with
+.br
+\-j <frame> \-\- Set frame step to <frame>
+
+.SS "Window options:"
+
+.TP
+.B \-w, \-\-window-border
+Force opening with borders (default)
+
+.TP
+.B \-W, \-\-window-borderless
+Force opening with without borders
+
+.TP
+.B \-p, --window-geometry <sx> <sy> <w> <h>
+Open with lower left corner at <sx>, <sy> and width and height <w>, <h>
+
+.SS "Game Engine specific options:"
+.TP
+.B \-g fixedtime
+Run on 50 hertz without dropping frames
+.TP
+.B \-g vertexarrays
+Use Vertex Arrays for rendering (usually faster)
+.TP
+.B \-g nomipmap
+No Texture Mipmapping
+.TP
+.B \-g linearmipmap
+Linear Texture Mipmapping instead of Nearest (default)
+.SS "Misc options:"
+.TP
+.B \-d, \-\-debug
+Turn debugging on
+.IP
+Prints every operator call and their arguments
+.br
+Disables mouse grab (to interact with a debugger in some cases)
+.br
+Keeps python sys.stdin rather then setting it to None
+
+.TP
+.B \--debug-fpe 
+Enable floating point exceptions
+
+.TP
+.B \-noaudio
+Disable audio on systems that support audio
+
+.TP
+.B \-nojoystick 
+Disable joystick support
+
+.TP
+.B \-noglsl 
+Disable GLSL shading
+
+.TP
+.B \-y, \-\-enable-autoexec 
+Enable automatic python script execution (default)
+
+.TP
+.B \-Y, \-\-disable-autoexec 
+Disable automatic python script execution (pydrivers, pyconstraints, pynodes)
+
+.TP
+.B \-P <filename>
+Run the given Python script (filename or Blender Text)
+
+.TP
+.B \-\-python-console 
+Run blender with an interactive console
+
+.TP
+.B \-v, \-\-version 
+Print Blender version and exit
+
+.TP
+.B \-\- 
+Ends option processing, following arguments passed unchanged. Access via python's sys.argv
+
+.TP
+.B \-h, \-\-help 
+Show a summary of options.
+
+.SH "ENVIRONMENT VARIABLES"
+
+.PP
+\fIHOME\fR
+.RS 4
+Store files such as .blender/ .B.blend .Bfs .Blog here.
+.RE
+
+.PP
+\fIBLENDERPATH\fR
+.RS 4
+System directory to use for data files and scripts.
+For this build of blender the default BLENDERPATH is...
+"/usr/share/blender"
+setting the $BLENDERPATH will override this
+.RE
+
+.PP
+\fITMP\fR or \fITMPDIR\fR
+.RS 4
+Store temporary files here.
+.RE
+
+.PP
+\fISDL_AUDIODRIVER\fR
+.RS 4
+LibSDL audio driver - alsa, esd, alsa, dma.
+.RE
+
+.PP
+\fIPYTHONHOME\fR
+.RS 4
+Path to the python directory, eg. /usr/lib/python.
+.RE
+
+.br
+.SH SEE ALSO
+.B yafaray(1)
+
+.br
+.SH AUTHORS
+This manpage was written for a Debian GNU/Linux system by Daniel Mester
+<mester@uni-bremen.de> and updated by Cyril Brulebois
+<cyril.brulebois@enst-bretagne.fr> and Dan Eicher <dan@trollwerks.org>.
+
+
