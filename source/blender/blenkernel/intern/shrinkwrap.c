@@ -355,11 +355,16 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 
 			if(calc->vert)
 			{
-				VECCOPY(tmp_co, calc->vert[i].co);
-				if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
+				/* calc->vert contains verts from derivedMesh  */
+				/* this coordinated are deformed by vertexCos only for normal projection (to get correct normals) */
+				/* for other cases calc->varts contains undeformed coordinates and vertexCos should be used */
+				if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
+					VECCOPY(tmp_co, calc->vert[i].co);
 					normal_short_to_float_v3(tmp_no, calc->vert[i].no);
-				else
+				} else {
+					VECCOPY(tmp_co, co);
 					VECCOPY(tmp_no, proj_axis);
+				}
 			}
 			else
 			{
