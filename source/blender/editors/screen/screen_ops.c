@@ -1326,6 +1326,9 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, char edge)
 	 * prevents dragging regions into other opposite regions */
 	for (ar=sa->regionbase.first; ar; ar=ar->next)
 	{
+		if (ar == scalear)
+			continue;
+		
 		if (scalear->alignment == RGN_ALIGN_TOP && ar->alignment == RGN_ALIGN_BOTTOM)
 			dist -= ar->winy;
 		else if (scalear->alignment == RGN_ALIGN_BOTTOM && ar->alignment == RGN_ALIGN_TOP)
@@ -1334,8 +1337,15 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, char edge)
 			dist -= ar->winx;
 		else if (scalear->alignment == RGN_ALIGN_RIGHT && ar->alignment == RGN_ALIGN_LEFT)
 			dist -= ar->winx;
+		
+		/* case of regions in regions, like operator properties panel */
+		/* these can sit on top of other regions such as headers, so account for this */
+		else if (edge == 'b' && scalear->alignment & RGN_ALIGN_TOP && ar->alignment == RGN_ALIGN_TOP && ar->regiontype == RGN_TYPE_HEADER)
+			dist -= ar->winy;
+		else if (edge == 't' && scalear->alignment & RGN_ALIGN_BOTTOM && ar->alignment == RGN_ALIGN_BOTTOM && ar->regiontype == RGN_TYPE_HEADER)
+			dist -= ar->winy;
 	}
-	
+
 	return dist;
 }
 
