@@ -679,8 +679,8 @@ void *add_camera(char *name)
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;
 	cam->ortho_scale= 6.0;
-	cam->flag |= CAM_SHOWTITLESAFE;
-	cam->passepartalpha = 0.2f;
+	cam->flag |= CAM_SHOWPASSEPARTOUT;
+	cam->passepartalpha = 0.5f;
 	
 	return cam;
 }
