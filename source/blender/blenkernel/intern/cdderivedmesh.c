@@ -200,7 +200,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		return NULL;
 	if(ob->sculpt->pbvh) {
 		cddm->pbvh= ob->sculpt->pbvh;
-		cddm->pbvh_draw = (cddm->mvert == me->mvert);
+		cddm->pbvh_draw = (cddm->mvert == me->mvert) || ob->sculpt->kb;
 	}
 
 	/* always build pbvh from original mesh, and only use it for drawing if
@@ -208,7 +208,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	   that this is actually for, to support a pbvh on a modified mesh */
 	if(!cddm->pbvh && ob->type == OB_MESH) {
 		cddm->pbvh = BLI_pbvh_new();
-		cddm->pbvh_draw = (cddm->mvert == me->mvert);
+		cddm->pbvh_draw = (cddm->mvert == me->mvert) || ob->sculpt->kb;
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 				   me->totface, me->totvert);
 	}
