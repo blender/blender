@@ -7113,6 +7113,9 @@ static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
+	/* recalc outside so that joining doesn't create a hole */
+	EM_recalc_normal_direction(em, 0, 1);
+	
 	join_triangles(em);
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
