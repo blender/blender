@@ -38,6 +38,22 @@ class Context(StructRNA):
         return new_context
 
 
+class Texture(bpy_types.ID):
+    __slots__ = ()
+
+    @property
+    def users_material(self):
+        """Materials that use this texture"""
+        import bpy
+        return tuple(mat for mat in bpy.data.materials if self in [slot.texture for slot in mat.texture_slots if slot])
+
+    @property
+    def users_object_modifier(self):
+        """Object modifiers that use this texture"""
+        import bpy
+        return tuple(obj for obj in bpy.data.objects if self in [mod.texture for mod in obj.modifiers if mod.type == 'DISPLACE'])
+
+
 class Group(bpy_types.ID):
     __slots__ = ()
 
