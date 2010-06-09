@@ -739,13 +739,14 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         else:
             col = layout.column()
             col.prop(con, "use_relative_position")
-            if con.use_relative_position:  
+            if con.use_relative_position:
                 col.prop(con, "offset", text="Relative Pivot Point")
             else:
                 col.prop(con, "offset", text="Absolute Pivot Point")
 
         col = layout.column()
         col.prop(con, "enabled_rotation_range", text="Pivot When")
+
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
     bl_label = "Object Constraints"

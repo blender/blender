@@ -46,6 +46,7 @@ class LOGIC_PT_properties(bpy.types.Panel):
             row.prop(prop, "debug", text="", toggle=True, icon='INFO')
             row.operator("object.game_property_remove", text="", icon='X').index = i
 
+
 class LOGIC_MT_logicbricks_add(bpy.types.Menu):
     bl_label = "Add"
 

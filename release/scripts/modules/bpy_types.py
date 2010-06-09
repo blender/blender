@@ -433,7 +433,7 @@ class Mesh(bpy_types.ID):
         closed loops have matching start and end values.
         """
         line_polys = []
-        
+
         # Get edges not used by a face
         if edges is None:
             edges = self.edges
@@ -441,10 +441,10 @@ class Mesh(bpy_types.ID):
         if not hasattr(edges, "pop"):
             edges = edges[:]
 
-        edge_dict= dict((ed.key, ed) for ed in self.edges if ed.selected)
-        
+        edge_dict = dict((ed.key, ed) for ed in self.edges if ed.selected)
+
         while edges:
-            current_edge= edges.pop()
+            current_edge = edges.pop()
             vert_end, vert_start = current_edge.verts[:]
             line_poly = [vert_start, vert_end]
 
@@ -462,7 +462,7 @@ class Mesh(bpy_types.ID):
                         vert_end = line_poly[-1]
                         ok = 1
                         del edges[i]
-                        #break
+                        # break
                     elif v2 == vert_end:
                         line_poly.append(v1)
                         vert_end = line_poly[-1]
@@ -474,7 +474,7 @@ class Mesh(bpy_types.ID):
                         vert_start = line_poly[0]
                         ok = 1
                         del edges[i]
-                        #break    
+                        # break
                     elif v2 == vert_start:
                         line_poly.insert(0, v1)
                         vert_start = line_poly[0]
@@ -484,7 +484,6 @@ class Mesh(bpy_types.ID):
             line_polys.append(line_poly)
 
         return line_polys
-
 
 
 class MeshEdge(StructRNA):

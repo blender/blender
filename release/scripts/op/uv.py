@@ -178,7 +178,7 @@ class ExportUVLayout(bpy.types.Operator):
             fw('stroke\n')
             fw('} def\n')
             fw('newpath\n')
-            
+
             firstline = True
             for i, uvs in self._face_uv_iter(context):
                 for j, uv in enumerate(uvs):

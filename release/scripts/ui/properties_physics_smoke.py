@@ -183,7 +183,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
 
         md = context.smoke.domain_settings
         wide_ui = context.region.width > narrowui
-        
+
         layout.active = md.highres
 
         split = layout.split()

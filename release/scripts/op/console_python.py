@@ -121,7 +121,7 @@ def execute(context):
         # unlikely, but this can happen with unicode errors for example.
         import traceback
         stderr.write(traceback.format_exc())
-        
+
 
     stdout.seek(0)
     stderr.seek(0)
@@ -180,7 +180,7 @@ def autocomplete(context):
     # note: unlikely stdin would be used for autocomp. but its possible.
     stdin_backup = sys.stdin
     sys.stdin = None
-    
+
     scrollback = ""
     scrollback_error = ""
 
