@@ -210,7 +210,7 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Base_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Base *base= (Base*)ptr->id.data;
+	Base *base= (Base*)ptr->data;
 	Object *ob= (Object*)base->object;
 
 	rna_Object_layer_update__internal(scene, base, ob);
