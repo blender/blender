@@ -320,6 +320,7 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 		ob->recalc |= OB_RECALC;
 	}
 }
+
 void unlink_object(Scene *scene, Object *ob)
 {
 	Object *obt;
@@ -334,6 +335,8 @@ void unlink_object(Scene *scene, Object *ob)
 	bConstraint *con;
 	//bActionStrip *strip; // XXX animsys 
 	ModifierData *md;
+	ARegion *ar;
+	RegionView3D *rv3d;
 	int a;
 	
 	unlink_controllers(&ob->controllers);
@@ -606,17 +609,27 @@ void unlink_object(Scene *scene, Object *ob)
 		while(sa) {
 			SpaceLink *sl;
 
+			if (sa->spacetype == SPACE_VIEW3D) {
+				for (ar= sa->regionbase.first; ar; ar= ar->next) {
+					if (ar->regiontype==RGN_TYPE_WINDOW) {
+						rv3d= (RegionView3D *)ar->regiondata;
+						if (rv3d->persp == RV3D_CAMOB)
+							rv3d->persp= RV3D_PERSP;
+						if (rv3d->localvd && rv3d->localvd->persp == RV3D_CAMOB)
+							rv3d->localvd->persp= RV3D_PERSP;
+					}
+				}
+			}
+
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
 
 					if(v3d->camera==ob) {
 						v3d->camera= NULL;
-						// XXX if(v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
 					}
 					if(v3d->localvd && v3d->localvd->camera==ob ) {
 						v3d->localvd->camera= NULL;
-						// XXX if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
 					}
 				}
 				else if(sl->spacetype==SPACE_OUTLINER) {
