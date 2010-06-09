@@ -106,6 +106,48 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 
+static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *values)
+{
+	HairKey *hkey= (HairKey *)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	ModifierData *md;
+	ParticleSystemModifierData *psmd=NULL;
+	ParticleSystem *psys;
+	ParticleData *pa;
+	int i;
+	float hairmat[4][4];
+	
+	for (md = ob->modifiers.first; md; md=md->next) {
+		if (md->type == eModifierType_ParticleSystem)
+			psmd= (ParticleSystemModifierData*) md;
+	}
+	
+	psys = psmd->psys;
+	
+	if (!psmd || !psmd->dm || !psys) {
+		values[0] = values[1] = values[2] = 0.f;
+		return;
+	}
+
+	/* not a very efficient way of getting hair key location data, 
+	 * but it's the best we've got at the present */
+	
+	/* find the particle that corresponds with this HairKey */
+	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++) {
+		
+		/* hairkeys are stored sequentially in memory, so we can find if 
+		 * it's the same particle by comparing pointers, without having 
+		 * to iterate over them all */
+		if ((hkey >= pa->hair) && (hkey < pa->hair + pa->totkey))
+			break;
+	}
+	
+	psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, pa, hairmat);
+	
+	copy_v3_v3(values, hkey->co);
+	mul_m4_v3(hairmat, values);
+}
+
 /* property update functions */
 static void particle_recalc(Main *bmain, Scene *scene, PointerRNA *ptr, short flag)
 {
@@ -637,6 +679,7 @@ static void rna_ParticleVGroup_name_set_9(PointerRNA *ptr, const char *value) { 
 static void rna_ParticleVGroup_name_set_10(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 10); }
 static void rna_ParticleVGroup_name_set_11(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 11); }
 
+
 #else
 
 static void rna_def_particle_hair_key(BlenderRNA *brna)
@@ -648,16 +691,22 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "HairKey");
 	RNA_def_struct_ui_text(srna, "Particle Hair Key", "Particle key for hair particle system");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "co");
-	RNA_def_property_ui_text(prop, "Location", "Key location");
-
 	prop= RNA_def_property(srna, "time", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(prop, "Time", "Relative time of key over hair length");
 
 	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Weight", "Weight for cloth simulation");
+	
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Location (Object Space)", "Location of the hair key in object space");
+	RNA_def_property_float_funcs(prop, "rna_ParticleHairKey_location_object_get", NULL, NULL); 
+	
+	prop= RNA_def_property(srna, "location_hairspace", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "co");
+	RNA_def_property_ui_text(prop, "Location", "Location of the hair key in its internal coordinate system, relative to the emitting face");
 }
 
 static void rna_def_particle_key(BlenderRNA *brna)
