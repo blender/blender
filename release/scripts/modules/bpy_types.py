@@ -38,6 +38,24 @@ class Context(StructRNA):
         return new_context
 
 
+class Library(bpy_types.ID):
+    __slots__ = ()
+
+    @property
+    def users_id(self):
+        """ID datablocks which use this library"""
+        import bpy
+
+        # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE, we could make this an attribute in rna.
+        attr_links = "actions", "armatures", "brushes", "cameras", \
+                "curves", "gpencil", "groups", "images", \
+                "lamps", "lattices", "materials", "metaballs", \
+                "meshes", "node_groups", "objects", "scenes", \
+                "sounds", "textures", "texts", "fonts", "worlds"
+
+        return tuple(id_block for attr in attr_links for id_block in getattr(bpy.data, attr) if id_block.library == self)
+
+
 class Texture(bpy_types.ID):
     __slots__ = ()
 
