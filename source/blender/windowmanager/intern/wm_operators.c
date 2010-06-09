@@ -784,7 +784,7 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* default properties for fileselect */
-void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, short action)
+void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, short action, short flag)
 {
 	PropertyRNA *prop;
 
@@ -822,6 +822,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file",
 		FILE_LOADLIB, FILE_SPECIAL);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	if(flag & FILE_RELPATH)
+		RNA_def_boolean(ot->srna, "relative_path", 0, "Relative Path", "Select the file relative to the blend file");
 }
 
 void WM_operator_properties_select_all(wmOperatorType *ot) {
@@ -1472,7 +1475,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->exec= wm_open_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, 0);
 
 	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file");
 	RNA_def_boolean(ot->srna, "use_scripts", 1, "Trusted Source", "Allow blend file execute scripts automatically, default available from system preferences");
@@ -1643,13 +1646,12 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	
 	ot->flag |= OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE, FILE_RELPATH);
 	
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending");
 	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
 	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer");
 	RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup");
-	RNA_def_boolean(ot->srna, "relative_path", 1, "Relative Paths", "Store the library path as a relative path to current .blend file");
 
 	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 }	
@@ -1728,7 +1730,7 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 	ot->invoke= wm_recover_auto_save_invoke;
 	ot->poll= WM_operator_winactive;
 
-	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, 0);
 }
 
 /* *************** save file as **************** */
@@ -1811,7 +1813,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, 0);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
 }
@@ -1860,7 +1862,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= NULL;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, 0);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
 }
@@ -1909,7 +1911,7 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->exec= wm_collada_export_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_SAVE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_SAVE, 0);
 }
 
 /* function used for WM_OT_save_mainfile too */
@@ -1937,7 +1939,7 @@ static void WM_OT_collada_import(wmOperatorType *ot)
 	ot->exec= wm_collada_import_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|COLLADAFILE, FILE_BLENDER, FILE_OPENFILE, 0);
 }
 
 #endif

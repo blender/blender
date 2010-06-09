@@ -157,8 +157,8 @@ void OBJECT_OT_modifier_copy(struct wmOperatorType *ot);
 void OBJECT_OT_multires_subdivide(struct wmOperatorType *ot);
 void OBJECT_OT_multires_reshape(struct wmOperatorType *ot);
 void OBJECT_OT_multires_higher_levels_delete(struct wmOperatorType *ot);
-void OBJECT_OT_multires_save_external(struct wmOperatorType *ot);
-void OBJECT_OT_multires_pack_external(struct wmOperatorType *ot);
+void OBJECT_OT_multires_external_save(struct wmOperatorType *ot);
+void OBJECT_OT_multires_external_pack(struct wmOperatorType *ot);
 void OBJECT_OT_meshdeform_bind(struct wmOperatorType *ot);
 void OBJECT_OT_explode_refresh(struct wmOperatorType *ot);
 

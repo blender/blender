@@ -913,9 +913,7 @@ void TEXTURE_OT_envmap_save(wmOperatorType *ot)
 	
 	/* properties */
 	//RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE);
-	
-	RNA_def_boolean(ot->srna, "relative_path", 0, "Relative Path", "Save image with relative path to current .blend file");
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE, FILE_RELPATH);
 }
 
 static int envmap_clear_exec(bContext *C, wmOperator *op)

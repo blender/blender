@@ -754,9 +754,7 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE);
-
-	RNA_def_boolean(ot->srna, "relative_path", 0, "Relative Path", "Load image with relative path to current .blend file");
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, FILE_RELPATH);
 }
 
 /******************** replace image operator ********************/
@@ -809,7 +807,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, 0); //XXX TODO, relative_path
 }
 
 /******************** save image as operator ********************/
@@ -997,9 +995,8 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE, FILE_RELPATH);
 
-	RNA_def_boolean(ot->srna, "relative_path", 0, "Relative Path", "Save image with relative path to current .blend file");
 	RNA_def_boolean(ot->srna, "copy", 0, "Copy", "Create a new image file without modifying the current image in blender");
 }
 

@@ -153,7 +153,7 @@ BF_OPENGL_LIBINC = '${BF_OPENGL}/lib'
 BF_OPENGL_LIB = 'opengl32 glu32'
 BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a']
 
-WITH_BF_OPENMP = True
+WITH_BF_OPENMP = False
 BF_OPENMP = LIBDIR + '/gcc/gomp'
 BF_OPENMP_INC = '${BF_OPENMP}/include'
 BF_OPENMP_LIBPATH = '${BF_OPENMP}/lib'
