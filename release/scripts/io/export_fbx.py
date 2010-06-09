@@ -2011,9 +2011,8 @@ def write(filename, batch_objects = None, \
 
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
-                #if ob_base.type == 'Armature':
-                ob_base.make_display_list(scene)
-# 				ob_base.makeDisplayList()
+                if ob_base.type == 'ARMATURE':
+                    ob_base.update(scene)
 
             # This causes the makeDisplayList command to effect the mesh
             scene.set_frame(scene.frame_current)
@@ -2187,9 +2186,7 @@ def write(filename, batch_objects = None, \
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
                 if ob_base.type == 'ARMATURE':
-# 				if ob_base.type == 'Armature':
-                    ob_base.make_display_list(scene)
-# 					ob_base.makeDisplayList()
+                    ob_base.update(scene)
             # This causes the makeDisplayList command to effect the mesh
             scene.set_frame(scene.frame_current)
 # 			Blender.Set('curframe', Blender.Get('curframe'))

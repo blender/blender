@@ -272,16 +272,23 @@ static void rna_Object_add_vertex_to_group(Object *ob, int vertex_index, bDeform
 	ED_vgroup_vert_add(ob, def, vertex_index, weight, assignmode);
 }
 
-/* copied from old API Object.makeDisplayList (Object.c) */
-static void rna_Object_make_display_list(Object *ob, Scene *sce)
+/* copied from old API Object.makeDisplayList (Object.c)
+ * use _ suffix because this exists for internal rna */
+static void rna_Object_update(Object *ob, Scene *sce, int object, int data, int time)
 {
+	int flag= 0;
+
 	if (ob->type == OB_FONT) {
 		Curve *cu = ob->data;
 		freedisplist(&cu->disp);
 		BKE_text_to_curve(sce, ob, CU_LEFT);
 	}
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	if(object) flag |= OB_RECALC_OB;
+	if(data) flag |= OB_RECALC_DATA;
+	if(time) flag |= OB_RECALC_TIME;
+
+	DAG_id_flush_update(&ob->id, flag);
 }
 
 static Object *rna_Object_find_armature(Object *ob)
@@ -515,10 +522,13 @@ void RNA_api_object(StructRNA *srna)
 
 	
 	/* DAG */
-	func= RNA_def_function(srna, "make_display_list", "rna_Object_make_display_list");
-	RNA_def_function_ui_description(func, "Update object's display data."); /* XXX describe better */
+	func= RNA_def_function(srna, "update", "rna_Object_update");
+	RNA_def_function_ui_description(func, "Tag the object to update its display data.");
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_boolean(func, "object", 1, "", "Tag the object for updating");
+	RNA_def_boolean(func, "data", 1, "", "Tag the objects display data for updating");
+	RNA_def_boolean(func, "time", 1, "", "Tag the object time related data for updating");
 
 	/* View */
 	func= RNA_def_function(srna, "is_visible", "rna_Object_is_visible");
