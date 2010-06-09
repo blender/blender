@@ -1995,6 +1995,10 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
 
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
+
+			if(toggle_flag== NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW)==0)
+				continue;
+
 			if(node->flag & toggle_flag)
 				tot_eq++;
 			else
@@ -2003,6 +2007,10 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
 	}
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
+
+			if(toggle_flag== NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW)==0)
+				continue;
+
 			if( (tot_eq && tot_neq) || tot_eq==0)
 				node->flag |= toggle_flag;
 			else
