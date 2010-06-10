@@ -566,7 +566,7 @@ void calc_sequence(Scene *scene, Sequence *seq)
 	}
 }
 
-/* note: caller should run calc_sequence(scene, seq) */
+/* note: caller should run calc_sequence(scene, seq) after */
 void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 {
 	char str[FILE_MAXDIR+FILE_MAXFILE];

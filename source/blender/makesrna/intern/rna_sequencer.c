@@ -348,10 +348,21 @@ static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Sequence, ms->parseq);
 }
 
+/* TODO, expose seq path setting as a higher level sequencer BKE function */
 static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Sequence *seq= (Sequence*)(ptr->data);
 	char dir[FILE_MAX], name[FILE_MAX];
+
+	if(seq->type == SEQ_SOUND && seq->sound) {
+		/* for sound strips we need to update the sound as well.
+		 * arguably, this could load in a new sound rather then modify an existing one.
+		 * but while using the sequencer its most likely your not using the sound in the game engine too.
+		 */
+		PointerRNA id_ptr;
+		RNA_id_pointer_create((ID *)seq->sound, &id_ptr);
+		RNA_string_set(&id_ptr, "filepath", value);
+	}
 
 	BLI_split_dirfile(value, dir, name);
 	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
