@@ -215,10 +215,10 @@ static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 }
 
 
-
 static int rna_Nurb_length(PointerRNA *ptr)
 {
 	Nurb *nu= (Nurb*)ptr->data;
+	if(nu->type == CU_BEZIER) return 0;
 	return nu->pntsv>0 ? nu->pntsu*nu->pntsv : nu->pntsu;
 }
 
