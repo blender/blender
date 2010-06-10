@@ -451,10 +451,11 @@ typedef struct GameData {
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
 	*/
-	short mode, flag, matmode, pad[3];
+	short mode, flag, matmode, pad[6];
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;
 	short ticrate, maxlogicstep, physubstep, maxphystep;
+	short obstacleSimulation;
 
 	/*  standalone player */
 	struct GameFraming framing;
@@ -487,6 +488,10 @@ typedef struct GameData {
 #define WOPHY_DYNAMO	3
 #define WOPHY_ODE		4
 #define WOPHY_BULLET	5
+
+/* obstacleSimulation */
+#define OBSTSIMULATION_NONE		0
+#define OBSTSIMULATION_TOI		1
 
 /* GameData.flag */
 #define GAME_ENABLE_ALL_FRAMES				(1 << 1)

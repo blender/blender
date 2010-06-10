@@ -1028,6 +1028,7 @@ Object *add_only_object(int type, char *name)
 	ob->margin = 0.0;
 	/* ob->pad3 == Contact Processing Threshold */
 	ob->m_contactProcessingThreshold = 1.;
+	ob->obstacleRad = 1.;
 	
 	/* NT fluid sim defaults */
 	ob->fluidsimFlag = 0;

@@ -36,8 +36,11 @@
 #include "KX_NavMeshObject.h"
 #include "KX_PythonInit.h"
 #include "DNA_object_types.h"
-#include "math.h"
-#define M_PI       3.14159265358979323846
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI		3.14159265358979323846
+#endif
 
 int sweepCircleCircle(const MT_Vector3& pos0, const MT_Scalar r0, const MT_Vector2& v,
 					  const MT_Vector3& pos1, const MT_Scalar r1,
@@ -168,7 +171,7 @@ void KX_ObstacleSimulation::AddObstacleForObj(KX_GameObject* gameobj)
 	struct Object* blenderobject = gameobj->GetBlenderObject();
 	obstacle->m_type = KX_OBSTACLE_OBJ;
 	obstacle->m_shape = KX_OBSTACLE_CIRCLE;
-	obstacle->m_rad = blenderobject->inertia; //.todo use radius of collision shape bound sphere 
+	obstacle->m_rad = blenderobject->obstacleRad;
 	obstacle->m_gameObj = gameobj;
 	
 }
@@ -235,12 +238,21 @@ void KX_ObstacleSimulation::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_N
 void KX_ObstacleSimulation::DrawObstacles()
 {
 	static const MT_Vector3 bluecolor(0,0,1);
+	static const MT_Vector3 normal(0.,0.,1.);
+	static const int SECTORS_NUM = 32;
 	for (size_t i=0; i<m_obstacles.size(); i++)
 	{
 		if (m_obstacles[i]->m_shape==KX_OBSTACLE_SEGMENT)
 		{
 			KX_RasterizerDrawDebugLine(m_obstacles[i]->m_pos, m_obstacles[i]->m_pos2, bluecolor);
 		}
+/*
+		else if (m_obstacles[i]->m_shape==KX_OBSTACLE_CIRCLE)
+		{
+			KX_RasterizerDrawDebugCircle(m_obstacles[i]->m_pos, m_obstacles[i]->m_rad, bluecolor,
+										normal.normalized(), SECTORS_NUM);
+		}*/
+
 	}	
 }
 

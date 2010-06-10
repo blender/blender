@@ -1269,6 +1269,15 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "bsoft");
 	RNA_def_property_ui_text(prop, "Soft Body Settings", "Settings for Bullet soft body simulation");
 
+	prop= RNA_def_property(srna, "create_obstacle", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_HASOBSTACLE);
+	RNA_def_property_ui_text(prop, "Create obstacle", "Create representation for obstacle simulation");
+
+	prop= RNA_def_property(srna, "obstacle_radius", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
+	RNA_def_property_float_sdna(prop, NULL, "obstacleRad");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Obstacle Radius", "Radius of object representation in obstacle simulation");
+
 	/* state */
 
 	prop= RNA_def_property(srna, "state", PROP_BOOLEAN, PROP_LAYER_MEMBER);

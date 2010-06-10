@@ -472,6 +472,8 @@ Scene *add_scene(char *name)
 	sce->gm.flag = GAME_DISPLAY_LISTS;
 	sce->gm.matmode = GAME_MAT_MULTITEX;
 
+	sce->gm.obstacleSimulation= OBSTSIMULATION_NONE;
+
 	sound_create_scene(sce);
 
 	return sce;

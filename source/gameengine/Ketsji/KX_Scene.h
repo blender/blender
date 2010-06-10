@@ -558,6 +558,7 @@ public:
 	KX_PYMETHOD_DOC(KX_Scene, suspend);
 	KX_PYMETHOD_DOC(KX_Scene, resume);
 	KX_PYMETHOD_DOC(KX_Scene, get);
+	KX_PYMETHOD_DOC(KX_Scene, drawObstacleSimulation);
 
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

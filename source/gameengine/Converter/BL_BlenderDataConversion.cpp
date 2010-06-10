@@ -2647,7 +2647,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		for ( i=0;i<objectlist->GetCount();i++)
 		{
 			KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
-			if (gameobj->IsDynamic())
+			struct Object* blenderobject = gameobj->GetBlenderObject();
+			if (blenderobject->gameflag & OB_HASOBSTACLE)
 			{
 				obssimulation->AddObstacleForObj(gameobj);
 			}

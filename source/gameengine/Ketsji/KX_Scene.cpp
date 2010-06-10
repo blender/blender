@@ -211,7 +211,15 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	m_bucketmanager=new RAS_BucketManager();
 
-	m_obstacleSimulation = new KX_ObstacleSimulationTOI;//KX_ObstacleSimulation;
+	switch (scene->gm.obstacleSimulation)
+	{
+	case OBSTSIMULATION_TOI:
+		m_obstacleSimulation = new KX_ObstacleSimulationTOI;
+		break;
+	default:
+		m_obstacleSimulation = NULL;
+	}
+	
 
 #ifndef DISABLE_PYTHON
 	m_attr_dict = PyDict_New(); /* new ref */
@@ -1468,7 +1476,8 @@ void KX_Scene::LogicBeginFrame(double curtime)
 	}
 
 	//prepare obstacle simulation for new frame
-	m_obstacleSimulation->UpdateObstacles();
+	if (m_obstacleSimulation)
+		m_obstacleSimulation->UpdateObstacles();
 
 	m_logicmgr->BeginFrame(curtime, 1.0/KX_KetsjiEngine::GetTicRate());
 }
@@ -1899,9 +1908,11 @@ PyMethodDef KX_Scene::Methods[] = {
 	KX_PYMETHODTABLE(KX_Scene, replace),
 	KX_PYMETHODTABLE(KX_Scene, suspend),
 	KX_PYMETHODTABLE(KX_Scene, resume),
+	KX_PYMETHODTABLE(KX_Scene, drawObstacleSimulation),
 	
 	/* dict style access */
 	KX_PYMETHODTABLE(KX_Scene, get),
+
 	
 	{NULL,NULL} //Sentinel
 };
@@ -2222,6 +2233,16 @@ KX_PYMETHODDEF_DOC(KX_Scene, resume,
 {
 	Resume();
 	
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, drawObstacleSimulation,
+				   "drawObstacleSimulation()\n"
+				   "Draw debug visualization of obstacle simulation.\n")
+{
+	if (GetObstacleSimulation())
+		GetObstacleSimulation()->DrawObstacles();
+
 	Py_RETURN_NONE;
 }
 

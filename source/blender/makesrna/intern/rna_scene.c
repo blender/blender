@@ -1511,6 +1511,11 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{GAME_MAT_GLSL, "GLSL", 0, "GLSL", "OpenGL shading language shaders"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem obstacle_simulation_items[] = {
+		{OBSTSIMULATION_NONE, "NONE", 0, "None", ""},
+		{OBSTSIMULATION_TOI, "TOI", 0, "TOI", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "SceneGameData", NULL);
 	RNA_def_struct_sdna(srna, "GameData");
 	RNA_def_struct_nested(brna, srna, "Scene");
@@ -1748,6 +1753,13 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_EXTRA_TEX);
 	RNA_def_property_ui_text(prop, "GLSL Extra Textures", "Use extra textures like normal or specular maps for GLSL rendering");
 	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
+
+	/* obstacle simulation */
+	prop= RNA_def_property(srna, "obstacle_simulation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "obstacleSimulation");
+	RNA_def_property_enum_items(prop, obstacle_simulation_items);
+	RNA_def_property_ui_text(prop, "Obstacle simulation", "Simulation used for obstacle avoidance in the game engine");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 }
 
 static void rna_def_scene_render_layer(BlenderRNA *brna)
