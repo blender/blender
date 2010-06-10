@@ -773,9 +773,7 @@ static void drawshadbuflimits(Lamp *la, float mat[][4])
 {
 	float sta[3], end[3], lavec[3];
 
-	lavec[0]= -mat[2][0];
-	lavec[1]= -mat[2][1];
-	lavec[2]= -mat[2][2];
+	negate_v3_v3(lavec, mat[2]);
 	normalize_v3(lavec);
 
 	sta[0]= mat[3][0]+ la->clipsta*lavec[0];
@@ -1077,17 +1075,20 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		/* draw the circle/square at the end of the cone */
 		glTranslatef(0.0, 0.0 ,  x);
 		if(la->mode & LA_SQUARE) {
-			vvec[0]= fabs(z);
-			vvec[1]= fabs(z);
-			vvec[2]= 0.0;
+			float tvec[3];
+			float z_abs= fabs(z);
+
+			tvec[0]= tvec[1]= z_abs;
+			tvec[2]= 0.0;
+
 			glBegin(GL_LINE_LOOP);
-				glVertex3fv(vvec);
-				vvec[1]= -fabs(z);
-				glVertex3fv(vvec);
-				vvec[0]= -fabs(z);
-				glVertex3fv(vvec);
-				vvec[1]= fabs(z);
-				glVertex3fv(vvec);
+				glVertex3fv(tvec);
+				tvec[1]= -z_abs; /* neg */
+				glVertex3fv(tvec);
+				tvec[0]= -z_abs; /* neg */
+				glVertex3fv(tvec);
+				tvec[1]= z_abs; /* pos */
+				glVertex3fv(tvec);
 			glEnd();
 		}
 		else circ(0.0, 0.0, fabs(z));
@@ -1104,6 +1105,22 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 
 		if(drawcone)
 			draw_transp_spot_volume(la, x, z);
+
+		/* draw clip start, useful for wide cones where its not obvious where the start is */
+		glTranslatef(0.0, 0.0 , -x); /* reverse translation above */
+		if(la->type==LA_SPOT && (la->mode & LA_SHAD_BUF) ) {
+			float lvec_clip[3];
+			float vvec_clip[3];
+			float clipsta_fac= la->clipsta / -x;
+
+			interp_v3_v3v3(lvec_clip, vec, lvec, clipsta_fac);
+			interp_v3_v3v3(vvec_clip, vec, vvec, clipsta_fac);
+
+			glBegin(GL_LINE_STRIP);
+				glVertex3fv(lvec_clip);
+				glVertex3fv(vvec_clip);
+			glEnd();
+		}
 	}
 	else if ELEM(la->type, LA_HEMI, LA_SUN) {
 		
