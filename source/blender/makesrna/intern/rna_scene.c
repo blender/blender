@@ -212,15 +212,20 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 {
 	Base *base= object_in_scene(ob, scene);
 	if (!base) {
-		BKE_report(reports, RPT_ERROR, "Object is not in this scene.");
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' is not in this scene '%s'.", ob->id.name+2, scene->id.name+2);
 		return;
 	}
 	if (base==scene->basact && ob->mode != OB_MODE_OBJECT) {
-		BKE_report(reports, RPT_ERROR, "Object must be in 'Object Mode' to unlink.");
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' must be in 'Object Mode' to unlink.", ob->id.name+2);
 		return;
+	}
+	if(scene->basact==base) {
+		scene->basact= NULL;
 	}
 
 	BLI_remlink(&scene->base, base);
+	MEM_freeN(base);
+
 	ob->id.us--;
 
 	/* needed otherwise the depgraph will contain free'd objects which can crash, see [#20958] */
