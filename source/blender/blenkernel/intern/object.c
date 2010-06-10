@@ -1280,7 +1280,7 @@ Object *copy_object(Object *ob)
 	
 	for (md=ob->modifiers.first; md; md=md->next) {
 		ModifierData *nmd = modifier_new(md->type);
-		modifier_unique_name(&obn->modifiers, nmd);
+		BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
 		modifier_copyData(md, nmd);
 		BLI_addtail(&obn->modifiers, nmd);
 	}
