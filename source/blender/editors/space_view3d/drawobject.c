@@ -868,25 +868,17 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 
 static void draw_spot_cone(Lamp *la, float x, float z)
 {
-	float vec[3];
-
 	z= fabs(z);
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0.0f, 0.0f, -x);
 
 	if(la->mode & LA_SQUARE) {
-		vec[0]= z;
-		vec[1]= z;
-		vec[2]= 0.0;
-
-		glVertex3fv(vec);
-		vec[1]= -z;
-		glVertex3fv(vec);
-		vec[0]= -z;
-		glVertex3fv(vec);
-		vec[1]= z;
-		glVertex3fv(vec);
+		glVertex3f(z, z, 0);
+		glVertex3f(-z, z, 0);
+		glVertex3f(-z, -z, 0);
+		glVertex3f(z, -z, 0);
+		glVertex3f(z, z, 0);
 	}
 	else {
 		float angle;
