@@ -44,10 +44,15 @@ using namespace std;
 #define RAS_MAX_TEXCO	8	// match in BL_Material
 #define RAS_MAX_ATTRIB	16	// match in BL_BlenderShader
 
-struct	OglDebugLine
+struct	OglDebugShape
 {
-	MT_Vector3	m_from;
-	MT_Vector3	m_to;
+	enum SHAPE_TYPE{
+		LINE, CIRCLE
+	};
+	SHAPE_TYPE  m_type;
+	MT_Vector3	m_pos;
+	MT_Vector3	m_param;
+	MT_Vector3	m_param2;
 	MT_Vector3	m_color;
 };
 
@@ -249,18 +254,13 @@ public:
 
 	virtual void	SetPolygonOffset(float mult, float add);
 
-	virtual	void	FlushDebugLines();
+	virtual	void	FlushDebugShapes();
+	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color);
+	virtual	void	DrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
+									const MT_Vector3& normal, int nsector);
 
-	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
-	{
-		OglDebugLine line;
-		line.m_from = from;
-		line.m_to = to;
-		line.m_color = color;
-		m_debugLines.push_back(line);
-	}
 
-	std::vector <OglDebugLine>	m_debugLines;
+	std::vector <OglDebugShape>	m_debugShapes;
 
 	virtual void SetTexCoordNum(int num);
 	virtual void SetAttribNum(int num);

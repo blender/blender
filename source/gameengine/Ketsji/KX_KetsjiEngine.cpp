@@ -341,7 +341,7 @@ void KX_KetsjiEngine::RenderDome()
 			m_rendertools->MotionBlur(m_rasterizer);
 			scene->Render2DFilters(m_canvas);
 			// no RunDrawingCallBacks
-			// no FlushDebugLines
+			// no FlushDebugShapes
 		}
 		m_dome->BindImages(i);
 	}	
@@ -1336,7 +1336,7 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 #ifndef DISABLE_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
 #endif
-	m_rasterizer->FlushDebugLines();
+	m_rasterizer->FlushDebugShapes();
 }
 
 void KX_KetsjiEngine::StopEngine()

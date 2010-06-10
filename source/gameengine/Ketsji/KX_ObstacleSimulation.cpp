@@ -246,13 +246,11 @@ void KX_ObstacleSimulation::DrawObstacles()
 		{
 			KX_RasterizerDrawDebugLine(m_obstacles[i]->m_pos, m_obstacles[i]->m_pos2, bluecolor);
 		}
-/*
 		else if (m_obstacles[i]->m_shape==KX_OBSTACLE_CIRCLE)
 		{
 			KX_RasterizerDrawDebugCircle(m_obstacles[i]->m_pos, m_obstacles[i]->m_rad, bluecolor,
 										normal.normalized(), SECTORS_NUM);
-		}*/
-
+		}
 	}	
 }
 
