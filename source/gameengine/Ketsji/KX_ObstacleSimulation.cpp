@@ -36,13 +36,12 @@
 #include "KX_NavMeshObject.h"
 #include "KX_PythonInit.h"
 #include "DNA_object_types.h"
-#include <math.h>
+#include "BLI_math.h"
 
-#ifndef M_PI
-#define M_PI		3.14159265358979323846
-#endif
+inline float perp(const MT_Vector2& a, const MT_Vector2& b) { return a.x()*b.y() - a.y()*b.x(); }
+inline float lerp(float a, float b, float t) { return a + (b-a)*t; }
 
-int sweepCircleCircle(const MT_Vector3& pos0, const MT_Scalar r0, const MT_Vector2& v,
+static int sweepCircleCircle(const MT_Vector3& pos0, const MT_Scalar r0, const MT_Vector2& v,
 					  const MT_Vector3& pos1, const MT_Scalar r1,
 					  float& tmin, float& tmax)
 {
@@ -64,10 +63,7 @@ int sweepCircleCircle(const MT_Vector3& pos0, const MT_Scalar r0, const MT_Vecto
 	return 1;
 }
 
-inline float perp(const MT_Vector2& a, const MT_Vector2& b) { return a.x()*b.y() - a.y()*b.x(); }
-
-
-int sweepCircleSegment(const MT_Vector3& pos0, const MT_Scalar r0, const MT_Vector2& v,
+static int sweepCircleSegment(const MT_Vector3& pos0, const MT_Scalar r0, const MT_Vector2& v,
 					   const MT_Vector3& pa, const MT_Vector3& pb, const MT_Scalar sr,
 					   float& tmin, float &tmax)
 {
@@ -143,6 +139,32 @@ int sweepCircleSegment(const MT_Vector3& pos0, const MT_Scalar r0, const MT_Vect
 	return 1;
 }
 
+static bool inBetweenAngle(float a, float amin, float amax, float& t)
+{
+	if (amax < amin) amax += (float)M_PI*2;
+	if (a < amin-(float)M_PI) a += (float)M_PI*2;
+	if (a > amin+(float)M_PI) a -= (float)M_PI*2;
+	if (a >= amin && a < amax)
+	{
+		t = (a-amin) / (amax-amin);
+		return true;
+	}
+	return false;
+}
+
+static float interpolateToi(float a, const float* dir, const float* toi, const int ntoi)
+{
+	for (int i = 0; i < ntoi; ++i)
+	{
+		int next = (i+1) % ntoi;
+		float t;
+		if (inBetweenAngle(a, dir[i], dir[next], t))
+		{
+			return lerp(toi[i], toi[next], t);
+		}
+	}
+	return 0;
+}
 
 KX_ObstacleSimulation::KX_ObstacleSimulation()
 {
@@ -231,7 +253,7 @@ KX_Obstacle* KX_ObstacleSimulation::GetObstacle(KX_GameObject* gameobj)
 }
 
 void KX_ObstacleSimulation::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
-													MT_Vector3& velocity)
+										MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle)
 {
 }
 
@@ -282,7 +304,8 @@ KX_Obstacle* KX_ObstacleSimulationTOI::CreateObstacle()
 	return obstacle;
 }
 
-void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, MT_Vector3& velocity)
+void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+										MT_Vector3& velocity, MT_Scalar maxDeltaSpeed, MT_Scalar maxDeltaAngle)
 {
 	int nobs = m_obstacles.size();
 	int obstidx = std::find(m_obstacles.begin(), m_obstacles.end(), activeObst) - m_obstacles.begin();
@@ -387,9 +410,34 @@ void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, K
 		tc->toie[iter] = tmine;
 	}
 
+	if (activeObst->m_vel.length() > 0.1)
+	{
+		// Constrain max turn rate.
+		float cura = atan2(activeObst->m_vel.y(),activeObst->m_vel.x());
+		float da = bestDir - cura;
+		if (da < -M_PI) da += (float)M_PI*2;
+		if (da > M_PI) da -= (float)M_PI*2;
+		if (da < -maxDeltaAngle)
+		{
+			bestDir = cura - maxDeltaAngle;
+			bestToi = min(bestToi, interpolateToi(bestDir, tc->dir, tc->toi, tc->n));
+		}
+		else if (da > maxDeltaAngle)
+		{
+			bestDir = cura + maxDeltaAngle;
+			bestToi = min(bestToi, interpolateToi(bestDir, tc->dir, tc->toi, tc->n));
+		}
+	}
+
 	// Adjust speed when time of impact is less than min TOI.
 	if (bestToi < m_minToi)
 		vmax *= bestToi/m_minToi;
+
+	// Constrain velocity change.
+	const float curSpeed = (float) activeObst->m_vel.length();
+	float deltaSpeed =  vmax - curSpeed; 
+	CLAMP(deltaSpeed, -maxDeltaSpeed, maxDeltaSpeed);
+	vmax = curSpeed + deltaSpeed;
 
 	// New steering velocity.
 	vel.x() = cosf(bestDir) * vmax;

@@ -416,6 +416,7 @@ void init_actuator(bActuator *act)
 	bObjectActuator *oa;
 	bRandomActuator *ra;
 	bSoundActuator *sa;
+	bSteeringActuator *sta;
 	
 	if(act->data) MEM_freeN(act->data);
 	act->data= 0;
@@ -491,6 +492,9 @@ void init_actuator(bActuator *act)
 		break;
 	case ACT_STEERING:
 		act->data = MEM_callocN(sizeof( bSteeringActuator), "steering act");
+		sta = act->data;
+		sta->acceleration = 3;
+		sta->turnspeed = 120;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */

@@ -1872,6 +1872,18 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Velocity", "Velocity magnitude");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	prop= RNA_def_property(srna, "acceleration", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "acceleration");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Acceleration", "Max acceleration");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "turnspeed", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "turnspeed");
+	RNA_def_property_range(prop, 0.0, 720.0);
+	RNA_def_property_ui_text(prop, "Turn speed", "Max turn speed");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
 	RNA_def_property_range(prop, 0.0, 1000.0);

@@ -54,6 +54,8 @@ class KX_SteeringActuator : public SCA_IActuator
 	int	m_mode;
 	MT_Scalar m_distance;
 	MT_Scalar m_velocity;
+	MT_Scalar m_acceleration;									
+	MT_Scalar m_turnspeed;
 	KX_ObstacleSimulation* m_simulation;
 	
 	KX_Obstacle* m_obstacle;
@@ -73,8 +75,10 @@ public:
 						int mode,
 						KX_GameObject *target, 
 						KX_GameObject *navmesh,
-						MT_Scalar movement, 
 						MT_Scalar distance,
+						MT_Scalar velocity, 
+						MT_Scalar acceleration,									
+						MT_Scalar turnspeed,
 						KX_ObstacleSimulation* simulation);
 	virtual ~KX_SteeringActuator();
 	virtual bool Update(double curtime, bool frame);

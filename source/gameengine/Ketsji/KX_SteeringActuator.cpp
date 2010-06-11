@@ -32,10 +32,13 @@
 * ***** END GPL LICENSE BLOCK *****
 */
 
+#include "BLI_math.h"
 #include "KX_SteeringActuator.h"
 #include "KX_GameObject.h"
 #include "KX_NavMeshObject.h"
 #include "KX_ObstacleSimulation.h"
+#include "KX_PythonInit.h"
+
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -45,14 +48,18 @@ KX_SteeringActuator::KX_SteeringActuator(SCA_IObject *gameobj,
 									int mode,
 									KX_GameObject *target,
 									KX_GameObject *navmesh,
-									MT_Scalar velocity, 
 									MT_Scalar distance,
+									MT_Scalar velocity, 
+									MT_Scalar acceleration,									
+									MT_Scalar turnspeed,
 									KX_ObstacleSimulation* simulation)	 : 
 	SCA_IActuator(gameobj, KX_ACT_STEERING),
 	m_mode(mode),
 	m_target(target),
-	m_velocity(velocity),
 	m_distance(distance),
+	m_velocity(velocity),
+	m_acceleration(acceleration),
+	m_turnspeed(turnspeed),
 	m_updateTime(0),
 	m_isActive(false),
 	m_simulation(simulation),
@@ -157,7 +164,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 		const MT_Point3& targpos = m_target->NodeGetWorldPosition();
 		MT_Vector3 vectotarg = targpos - mypos;
 		MT_Vector3 steervec = MT_Vector3(0, 0, 0);
-		bool apply_steerforce = false;
+		bool apply_steerforce = true;
 
 		switch (m_mode) {
 			case KX_STEERING_SEEK:
@@ -204,9 +211,12 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 			MT_Vector3 newvel = m_velocity*steervec;
 
 			//adjust velocity to avoid obstacles
-			if (m_simulation && m_obstacle)
+			if (m_simulation && m_obstacle && !newvel.fuzzyZero())
 			{
-				m_simulation->AdjustObstacleVelocity(m_obstacle, m_navmesh, newvel);
+				KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(1.,0.,0.));
+				m_simulation->AdjustObstacleVelocity(m_obstacle, m_navmesh, newvel, 
+								m_acceleration*delta, m_turnspeed/180.0f*M_PI*delta);
+				KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(0.,1.,0.));
 			}
 
 			//temporary solution: set 2D steering velocity directly to obj

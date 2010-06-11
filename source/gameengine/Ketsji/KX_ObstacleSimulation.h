@@ -85,7 +85,7 @@ public:
 	KX_Obstacle* GetObstacle(KX_GameObject* gameobj);
 	void UpdateObstacles();	
 	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
-										MT_Vector3& velocity);
+								MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);
 
 }; /* end of class KX_ObstacleSimulation*/
 
@@ -116,7 +116,7 @@ public:
 	KX_ObstacleSimulationTOI();
 	~KX_ObstacleSimulationTOI();
 	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
-										MT_Vector3& velocity);
+									MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);
 };
 
 #endif
