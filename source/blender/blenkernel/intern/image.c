@@ -440,10 +440,8 @@ Image *BKE_add_image_imbuf(ImBuf *ibuf)
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima;
-	char filename[sizeof(ibuf->name)];
 
-	BLI_split_dirfile(ibuf->name, NULL, filename);
-	ima= image_alloc(filename, IMA_SRC_FILE, IMA_TYPE_IMAGE);
+	ima= image_alloc(BLI_path_basename(ibuf->name), IMA_SRC_FILE, IMA_TYPE_IMAGE);
 
 	if (ima) {
 		BLI_strncpy(ima->name, ibuf->name, FILE_MAX);

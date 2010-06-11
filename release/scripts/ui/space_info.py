@@ -66,7 +66,7 @@ class INFO_HT_header(bpy.types.Header):
         layout.template_running_jobs()
 
         layout.template_reports_banner()
-        
+
         layout.label(text=scene.statistics())
 
         # XXX: this should be right-aligned to the RHS of the region
@@ -198,6 +198,7 @@ class INFO_MT_mesh_add(bpy.types.Menu):
         layout.operator("mesh.primitive_grid_add", icon='MESH_GRID', text="Grid")
         layout.operator("mesh.primitive_monkey_add", icon='MESH_MONKEY', text="Monkey")
 
+
 class INFO_MT_curve_add(bpy.types.Menu):
     bl_idname = "INFO_MT_curve_add"
     bl_label = "Curve"
@@ -210,6 +211,7 @@ class INFO_MT_curve_add(bpy.types.Menu):
         layout.operator("curve.primitive_nurbs_curve_add", icon='CURVE_NCURVE', text="Nurbs Curve")
         layout.operator("curve.primitive_nurbs_circle_add", icon='CURVE_NCIRCLE', text="Nurbs Circle")
         layout.operator("curve.primitive_nurbs_path_add", icon='CURVE_PATH', text="Path")
+
 
 class INFO_MT_armature_add(bpy.types.Menu):
     bl_idname = "INFO_MT_armature_add"

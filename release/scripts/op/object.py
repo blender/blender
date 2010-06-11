@@ -515,9 +515,9 @@ class IsolateTypeRender(bpy.types.Operator):
 
     def execute(self, context):
         act_type = context.object.type
-        
+
         for obj in context.visible_objects:
-            
+
             if obj.selected:
                 obj.restrict_render = False
             else:

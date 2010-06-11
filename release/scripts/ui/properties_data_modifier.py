@@ -452,12 +452,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = layout.column()
         row = col.row()
         if md.external:
-            row.operator("object.multires_pack_external", text="Pack External")
+            row.operator("object.multires_external_pack", text="Pack External")
             row.label()
             row = col.row()
             row.prop(md, "filepath", text="")
         else:
-            row.operator("object.multires_save_external", text="Save External...")
+            row.operator("object.multires_external_save", text="Save External...")
             row.label()
 
     def PARTICLE_INSTANCE(self, layout, ob, md, wide_ui):

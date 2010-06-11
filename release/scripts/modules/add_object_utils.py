@@ -21,6 +21,7 @@
 import bpy
 import mathutils
 
+
 def add_object_align_init(context, operator):
 
     if operator and operator.properties.is_property_set("location") and operator.properties.is_property_set("rotation"):

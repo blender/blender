@@ -63,11 +63,6 @@ void NG_LoopBackNetworkDeviceInterface::NextFrame()
 	m_currentQueue=1-m_currentQueue;
 }
 
-STR_String NG_LoopBackNetworkDeviceInterface::GetNetworkVersion()
-{
-	return LOOPBACK_NETWORK_VERSION;
-}
-
 void NG_LoopBackNetworkDeviceInterface::SendNetworkMessage(NG_NetworkMessage* nwmsg)
 {
 #ifdef NAN_NET_DEBUG

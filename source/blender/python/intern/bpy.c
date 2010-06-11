@@ -143,6 +143,7 @@ static void bpy_import_test(char *modname)
 void BPy_init_modules( void )
 {
 	extern BPy_StructRNA *bpy_context_module;
+	PointerRNA ctx_ptr;
 	PyObject *mod;
 
 	/* Needs to be first since this dir is needed for future modules */
@@ -184,9 +185,12 @@ void BPy_init_modules( void )
 	PyModule_AddObject( mod, "app", BPY_app_struct() );
 
 	/* bpy context */
-	bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
-	RNA_pointer_create(NULL, &RNA_Context, BPy_GetContext(), &bpy_context_module->ptr);
-	bpy_context_module->freeptr= 0;
+	RNA_pointer_create(NULL, &RNA_Context, BPy_GetContext(), &ctx_ptr);
+	bpy_context_module= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
+	/* odd that this is needed, 1 ref on creation and another for the module
+	 * but without we get a crash on exit */
+	Py_INCREF(bpy_context_module);
+
 	PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 
 	/* utility func's that have nowhere else to go */

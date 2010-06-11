@@ -1188,6 +1188,29 @@ enum {
 	MAKE_LINKS_MODIFIERS
 };
 
+/* Return 1 if make link data is allow, zero otherwise */
+static int allow_make_links_data(int ev, Object *ob, Object *obt)
+{
+	if (ev == MAKE_LINKS_OBDATA) {
+		if (ob->type == OB_MESH && obt->type == OB_MESH)
+			return(1);
+	}
+	else if (ev == MAKE_LINKS_MATERIALS) {
+		if ((ob->type == OB_MESH || ob->type == OB_CURVE || ob->type == OB_FONT || ob->type == OB_SURF || ob->type == OB_MBALL) &&
+		    (obt->type == OB_MESH || obt->type == OB_CURVE || obt->type == OB_FONT || obt->type == OB_SURF || obt->type == OB_MBALL))
+			return(1);
+	}
+	else if (ev == MAKE_LINKS_ANIMDATA)
+		return(1);
+	else if (ev == MAKE_LINKS_DUPLIGROUP)
+		return(1);
+	else if (ev == MAKE_LINKS_MODIFIERS) {
+		if (ob->type != OB_EMPTY && obt->type != OB_EMPTY)
+			return(1);
+	}
+	return(0);
+}
+
 static int make_links_data_exec(bContext *C, wmOperator *op)
 {
 	int event = RNA_int_get(op->ptr, "type");
@@ -1199,43 +1222,45 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN(C, Object*, obt, selected_editable_objects) {
 		if(ob != obt) {
-			switch(event) {
-			case MAKE_LINKS_OBDATA: /* obdata */
-				id= obt->data;
-				id->us--;
+			if (allow_make_links_data(event, ob, obt)) {
+				switch(event) {
+				case MAKE_LINKS_OBDATA: /* obdata */
+					id= obt->data;
+					id->us--;
 
-				id= ob->data;
-				id_us_plus(id);
-				obt->data= id;
+					id= ob->data;
+					id_us_plus(id);
+					obt->data= id;
 
-				/* if amount of material indices changed: */
-				test_object_materials(obt->data);
+					/* if amount of material indices changed: */
+					test_object_materials(obt->data);
 
-				obt->recalc |= OB_RECALC_DATA;
-				break;
-			case MAKE_LINKS_MATERIALS:
-				/* new approach, using functions from kernel */
-				for(a=0; a<ob->totcol; a++) {
-					Material *ma= give_current_material(ob, a+1);
-					assign_material(obt, ma, a+1);	/* also works with ma==NULL */
+					obt->recalc |= OB_RECALC_DATA;
+					break;
+				case MAKE_LINKS_MATERIALS:
+					/* new approach, using functions from kernel */
+					for(a=0; a<ob->totcol; a++) {
+						Material *ma= give_current_material(ob, a+1);
+						assign_material(obt, ma, a+1);	/* also works with ma==NULL */
+					}
+					break;
+				case MAKE_LINKS_ANIMDATA:
+					BKE_copy_animdata_id((ID *)obt, (ID *)ob);
+					BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data);
+					break;
+				case MAKE_LINKS_DUPLIGROUP:
+					if(ob->dup_group) ob->dup_group->id.us--;
+					obt->dup_group= ob->dup_group;
+					if(obt->dup_group) {
+						id_us_plus((ID *)obt->dup_group);
+						obt->transflag |= OB_DUPLIGROUP;
+					}
+					break;
+				case MAKE_LINKS_MODIFIERS:
+					object_link_modifiers(obt, ob);
+					obt->recalc |= OB_RECALC;
+					break;
 				}
-				break;
-			case MAKE_LINKS_ANIMDATA:
-				BKE_copy_animdata_id((ID *)obt, (ID *)ob);
-				BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data);
-				break;
-			case MAKE_LINKS_DUPLIGROUP:
-				if(ob->dup_group) ob->dup_group->id.us--;
-				obt->dup_group= ob->dup_group;
-				if(obt->dup_group) {
-					id_us_plus((ID *)obt->dup_group);
-					obt->transflag |= OB_DUPLIGROUP;
-				}
-				break;
-			case MAKE_LINKS_MODIFIERS:
-				object_link_modifiers(obt, ob);
-				obt->recalc |= OB_RECALC;
-				break;
 			}
 		}
 	}

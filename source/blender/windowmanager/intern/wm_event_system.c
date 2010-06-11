@@ -392,11 +392,13 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 	if(retval & OPERATOR_FINISHED) {
 		if(G.f & G_DEBUG)
 			wm_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
-			
-		/* Report the python string representation of the operator */
-		buf = WM_operator_pystring(C, op->type, op->ptr, 1);
-		BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
-		MEM_freeN(buf);
+		
+		if (op->type->flag & OPTYPE_REGISTER) {
+			/* Report the python string representation of the operator */
+			buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+			BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+			MEM_freeN(buf);
+		}
 	}
 
 	if (op->reports->list.first) {
@@ -1656,7 +1658,7 @@ void wm_event_do_handlers(bContext *C)
 									
 									/* does polls for drop regions and checks uibuts */
 									/* need to be here to make sure region context is true */
-									if(event->type==MOUSEMOVE) {
+									if(ELEM(event->type, MOUSEMOVE, EVT_DROP)) {
 										wm_region_mouse_co(C, event);
 										wm_drags_check_ops(C, event);
 									}

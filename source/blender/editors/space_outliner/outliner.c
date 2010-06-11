@@ -132,8 +132,7 @@ static void error(const char *dummy, ...) {}
 static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int startx, int *starty);
 static void outliner_do_object_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *));
-static void outliner_do_group_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
- 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *));
+
 static int group_select_flag(Group *gr);
 
 /* ******************** PERSISTANT DATA ***************** */
@@ -440,8 +439,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
 {
-	TreeStoreElem *tselem= TREESTORE(tenla);
-	TreeElement *te;
+	TreeStoreElem *tselem = NULL;
+	TreeElement *te = NULL;
 
 	/* log stuff is to convert bitflags (powers of 2) to small integers,
 	 * in order to not overflow short tselem->nr */
@@ -451,6 +450,7 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->directdata= &srl->passflag;
 	
 	/* save cpu cycles, but we add the first to invoke an open/close triangle */
+	tselem = TREESTORE(tenla);
 	if(tselem->flag & TSE_CLOSED)
 		return;
 	
@@ -2457,7 +2457,13 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 					if(obedit) 
 						ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 					else {
-						ED_object_enter_editmode(C, EM_WAITCURSOR);
+						Object *ob= CTX_data_active_object(C);
+
+						/* Don't allow edit mode if the object is hide!
+						 * check the bug #22153 and #21609
+						 */
+						if (ob && (!(ob->restrictflag & OB_RESTRICT_VIEW)))
+							ED_object_enter_editmode(C, EM_WAITCURSOR);
 						// XXX extern_set_butspace(F9KEY, 0);
 					}
 				} else {	// rest of types
@@ -3320,31 +3326,6 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 		}
 		if((tselem->flag & TSE_CLOSED)==0) {
 			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb);
-		}
-	}
-}
-
-static void outliner_do_group_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
- 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *))
- {
- 	TreeElement *te;
- 	TreeStoreElem *tselem;
- 	
- 	for(te=lb->first; te; te= te->next) {
- 		tselem= TREESTORE(te);
- 		if(tselem->flag & TSE_SELECTED) {
- 			if(tselem->type==0 && te->idcode==ID_GR) {
- 				/* when objects selected in other scenes... dunno if that should be allowed */
- 				Scene *sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
- 				if(sce && scene != sce) {
- 					ED_screen_set_scene(C, sce);
- 				}
- 				
- 				operation_cb(C, scene, te, NULL, tselem);
- 			}
- 		}
-		if((tselem->flag & TSE_CLOSED)==0) {
- 			outliner_do_group_operation(C, scene, soops, &te->subtree, operation_cb);
 		}
 	}
 }
@@ -4857,6 +4838,16 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 	Base *base;
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
+	Object *obedit= CTX_data_edit_object(C);
+
+	/* Don't allow hide an objet in edit mode,
+	 * check the bug #22153 and #21609
+	 */
+	if (obedit && obedit == ob) {
+		if (ob->restrictflag & OB_RESTRICT_VIEW)
+			ob->restrictflag &= ~OB_RESTRICT_VIEW;
+		return;
+	}
 	
 	/* deselect objects that are invisible */
 	if (ob->restrictflag & OB_RESTRICT_VIEW) {

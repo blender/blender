@@ -33,6 +33,8 @@
 
 #include "RNA_define.h"
 
+#include "BIF_gl.h"
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_image.h"
@@ -127,30 +129,43 @@ static void rna_Image_update(Image *image, ReportList *reports)
 	IMB_rect_from_float(ibuf);
 }
 
-static void rna_Image_gl_load(Image *image, ReportList *reports)
+static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int mag)
 {
 	ImBuf *ibuf;
 	unsigned int *bind = &image->bindcode;
+	int error = GL_NO_ERROR;
 
 	if(*bind)
-		return;
+		return error;
 
 	ibuf= BKE_image_get_ibuf(image, NULL);
 
-	if(ibuf == NULL || ibuf->rect == NULL) {
+ 	if(ibuf == NULL || ibuf->rect == NULL ) {
 		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name+2);
-		return;
+		return (int)GL_INVALID_OPERATION;
 	}
 
 	/* could be made into a function? */
-	glGenTextures( 1, ( GLuint * ) bind );
-	glBindTexture( GL_TEXTURE_2D, *bind );
+	glGenTextures(1, (GLuint*)bind);
+	glBindTexture(GL_TEXTURE_2D, *bind);
 
-	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	if (filter != GL_NEAREST && filter != GL_LINEAR)
+		error = (int)gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_INT, ibuf->rect);
+
+	if (!error) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLint)filter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLint)mag);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_INT, ibuf->rect); 
+		error = (int)glGetError();
+	}
+
+	if (error) {
+		glDeleteTextures(1, (GLuint*)bind);
+		image->bindcode = 0;
+	}
+
+	return error;
 }
 
 static void rna_Image_gl_free(Image *image)
@@ -189,6 +204,11 @@ void RNA_api_image(StructRNA *srna)
 	func= RNA_def_function(srna, "gl_load", "rna_Image_gl_load");
 	RNA_def_function_ui_description(func, "Load the image into OpenGL graphics memory");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_int(func, "filter", GL_LINEAR_MIPMAP_NEAREST, -INT_MAX, INT_MAX, "Filter", "The texture minifying function", -INT_MAX, INT_MAX);
+	parm= RNA_def_int(func, "mag", GL_LINEAR, -INT_MAX, INT_MAX, "Magnification", "The texture magnification function", -INT_MAX, INT_MAX);
+	/* return value */
+	parm= RNA_def_int(func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
+	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "gl_free", "rna_Image_gl_free");
 	RNA_def_function_ui_description(func, "Free the image from OpenGL graphics memory");

@@ -65,7 +65,7 @@ WITH_BF_DDS = True
 WITH_BF_JPEG = True
 BF_JPEG = LIBDIR + '/jpeg'
 BF_JPEG_INC = '${BF_JPEG}/include'
-BF_JPEG_LIB = 'jpeg'
+BF_JPEG_LIB = 'libjpeg'
 BF_JPEG_LIBPATH = '${BF_JPEG}/lib'
 
 WITH_BF_PNG = True
@@ -83,7 +83,7 @@ BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 WITH_BF_ZLIB = True
 BF_ZLIB = LIBDIR + '/zlib'
 BF_ZLIB_INC = '${BF_ZLIB}/include'
-#BF_ZLIB_LIB = 'z'
+BF_ZLIB_LIB = 'libz'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = True
@@ -151,11 +151,9 @@ BF_OPENGL = 'C:\\MingW'
 BF_OPENGL_INC = '${BF_OPENGL}/include'
 BF_OPENGL_LIBINC = '${BF_OPENGL}/lib'
 BF_OPENGL_LIB = 'opengl32 glu32'
-BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a',
-             '${BF_OPENGL}/lib/libXmu.a', '${BF_OPENGL}/lib/libXext.a',
-             '${BF_OPENGL}/lib/libX11.a', '${BF_OPENGL}/lib/libXi.a' ]
+BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a']
 
-WITH_BF_OPENMP = True
+WITH_BF_OPENMP = False
 BF_OPENMP = LIBDIR + '/gcc/gomp'
 BF_OPENMP_INC = '${BF_OPENMP}/include'
 BF_OPENMP_LIBPATH = '${BF_OPENMP}/lib'

@@ -161,13 +161,13 @@ EnumPropertyItem image_type_items[] = {
 
 #include "BLI_threads.h"
 #include "BLI_editVert.h"
+#include "BLI_blenlib.h"
 
 #include "WM_api.h"
 
 #include "ED_info.h"
 #include "ED_node.h"
 #include "ED_view3d.h"
-#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_keyframing.h"
 
@@ -212,16 +212,21 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 {
 	Base *base= object_in_scene(ob, scene);
 	if (!base) {
-		BKE_report(reports, RPT_ERROR, "Object is not in this scene.");
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' is not in this scene '%s'.", ob->id.name+2, scene->id.name+2);
 		return;
 	}
 	if (base==scene->basact && ob->mode != OB_MODE_OBJECT) {
-		BKE_report(reports, RPT_ERROR, "Object must be in 'Object Mode' to unlink.");
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' must be in 'Object Mode' to unlink.", ob->id.name+2);
 		return;
 	}
+	if(scene->basact==base) {
+		scene->basact= NULL;
+	}
 
-	/* as long as ED_base_object_free_and_unlink calls free_libblock_us, we don't have to decrement ob->id.us */
-	ED_base_object_free_and_unlink(scene, base);
+	BLI_remlink(&scene->base, base);
+	MEM_freeN(base);
+
+	ob->id.us--;
 
 	/* needed otherwise the depgraph will contain free'd objects which can crash, see [#20958] */
 	DAG_scene_sort(scene);
@@ -272,7 +277,7 @@ static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 {
 	Scene *scene= (Scene*)ptr->data;
 
-	scene->lay= ED_view3d_scene_layer_set(scene->lay, values);
+	scene->lay= ED_view3d_scene_layer_set(scene->lay, values, &scene->layact);
 }
 
 static void rna_Scene_view3d_update(Main *bmain, Scene *unused, PointerRNA *ptr)
@@ -734,7 +739,7 @@ static int rna_RenderSettings_use_game_engine_get(PointerRNA *ptr)
 static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 {
 	SceneRenderLayer *rl= (SceneRenderLayer*)ptr->data;
-	rl->lay= ED_view3d_scene_layer_set(rl->lay, values);
+	rl->lay= ED_view3d_scene_layer_set(rl->lay, values, NULL);
 }
 
 static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *unused, PointerRNA *ptr)
@@ -2996,7 +3001,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene");
 	RNA_def_property_update(prop, NC_SCENE|NC_WORLD, NULL);
 
-	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ|PROP_UNIT_LENGTH);
+	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "cursor");
 	RNA_def_property_ui_text(prop, "Cursor Location", "3D cursor location");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);

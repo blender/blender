@@ -165,11 +165,11 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub.enabled = view.show_mini_axis
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
-        
+
         col.separator()
         col.separator()
         col.separator()
-        
+
         col.label(text="Properties Window:")
         col.prop(view, "properties_width_check")
 
@@ -561,7 +561,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             ui = theme.user_interface.wcol_scroll
             col.label(text="Scroll Bar:")
             ui_items_general(col, ui)
-            
+
             ui = theme.user_interface.wcol_progress
             col.label(text="Progress Bar:")
             ui_items_general(col, ui)
@@ -1234,7 +1234,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                             split.operator("wm.url_open", text="Link to the Wiki", icon='HELP').url = info["wiki_url"]
                         if info["tracker_url"]:
                             split.operator("wm.url_open", text="Report a Bug", icon='URL').url = info["tracker_url"]
-                        
+
                         if info["wiki_url"] and info["tracker_url"]:
                             split.separator()
                         else:

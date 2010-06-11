@@ -144,7 +144,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             _loaded.append(mod)
 
     if reload_scripts:
-        
+
         # TODO, this is broken but should work, needs looking into
         '''
         # reload modules that may not be directly included
@@ -369,7 +369,7 @@ def smpte_from_seconds(time, fps=None):
         time = time % 60.0
 
     seconds = int(time)
-    frames= int(round(math.floor(((time - seconds) * fps))))
+    frames = int(round(math.floor(((time - seconds) * fps))))
 
     return "%s%02d:%02d:%02d:%02d" % (neg, hours, minutes, seconds, frames)
 

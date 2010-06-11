@@ -59,10 +59,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
-#endif
-
 #include "screen_intern.h"
 
 /* general area and region code */

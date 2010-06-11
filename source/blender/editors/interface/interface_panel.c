@@ -656,6 +656,10 @@ static int find_highest_panel(const void *a1, const void *a2)
 {
 	const PanelSort *ps1=a1, *ps2=a2;
 	
+	/* stick uppermost header-less panels to the top of the region -
+	 * prevent them from being sorted */
+	if (ps1->pa->sortorder < ps2->pa->sortorder && ps1->pa->type->flag & PNL_NO_HEADER) return -1;
+	
 	if(ps1->pa->ofsy+ps1->pa->sizey < ps2->pa->ofsy+ps2->pa->sizey) return 1;
 	else if(ps1->pa->ofsy+ps1->pa->sizey > ps2->pa->ofsy+ps2->pa->sizey) return -1;
 	else if(ps1->pa->sortorder > ps2->pa->sortorder) return 1;
@@ -1055,7 +1059,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				inside= 1;
 		
 		if(inside && event->val==KM_PRESS) {
-			if(event->type == AKEY) {
+			if(event->type == AKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift)) {
 				
 				if(pa->flag & PNL_CLOSEDY) {
 					if((block->maxy <= my) && (block->maxy+PNL_HEADER >= my))

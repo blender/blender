@@ -3074,6 +3074,7 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 			for(; pt; pt=pt->next)
 				pt->ob=newlibadr(fd, id->lib, pt->ob);
 
+			psys->parent= newlibadr_us(fd, id->lib, psys->parent);
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
 
 			if(psys->clmd) {
@@ -3143,7 +3144,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->childcachebufs.first = psys->childcachebufs.last = NULL;
 		psys->frand = NULL;
 		psys->pdd = NULL;
-
+		
 		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache);
 
 		if(psys->clmd) {
@@ -10857,6 +10858,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
 		Object *ob;
+		Scene *scene;
 		bScreen *sc;
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
@@ -10913,6 +10915,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+		
+		/* initialise scene active layer */
+		for (scene= main->scene.first; scene; scene=scene->id.next) {
+			int i;
+			for(i=0; i<20; i++) {
+				if(scene->lay & (1<<i)) {
+					scene->layact= 1<<i;
+					break;
+				}
+			}
+		}
+
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

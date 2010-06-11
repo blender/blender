@@ -1046,19 +1046,37 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 	}
 		
 	if(node) {
-		bNodeSocket *sock;
-		
-		/* get a good socket to view from */
-		for(sock= tonode->outputs.first; sock; sock= sock->next)
-			if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
-				break;
+		bNodeLink *link;
+		bNodeSocket *sock= NULL;
+
+		/* try to find an already connected socket to cycle to the next */
+		for(link= snode->edittree->links.first; link; link= link->next)
+			if(link->tonode==node && link->fromnode==tonode)
+				if(link->tosock==node->inputs.first)
+					break;
+
+		if(link) {
+			/* unlink existing connection */
+			sock= link->fromsock;
+			nodeRemLink(snode->edittree, link);
+
+			/* find a socket after the previously connected socket */
+			for(sock=sock->next; sock; sock= sock->next)
+				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
+					break;
+		}
+
+		/* find a socket starting from the first socket */
+		if(!sock) {
+			for(sock= tonode->outputs.first; sock; sock= sock->next)
+				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
+					break;
+		}
 		
 		if(sock) {
-			bNodeLink *link;
-			
 			/* get link to viewer */
 			for(link= snode->edittree->links.first; link; link= link->next)
-				if(link->tonode==node)
+				if(link->tonode==node && link->tosock==node->inputs.first)
 					break;
 			
 			if(link==NULL) {
@@ -1970,49 +1988,140 @@ void NODE_OT_group_make(wmOperatorType *ot)
 
 /* ****************** Hide operator *********************** */
 
+static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
+{
+	int tot_eq= 0, tot_neq= 0;
+	bNode *node;
+
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+
+			if(toggle_flag== NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW)==0)
+				continue;
+
+			if(node->flag & toggle_flag)
+				tot_eq++;
+			else
+				tot_neq++;
+		}
+	}
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+
+			if(toggle_flag== NODE_PREVIEW && (node->typeinfo->flag & NODE_PREVIEW)==0)
+				continue;
+
+			if( (tot_eq && tot_neq) || tot_eq==0)
+				node->flag |= toggle_flag;
+			else
+				node->flag &= ~toggle_flag;
+		}
+	}
+}
+
 static int node_hide_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
-	bNode *node;
-	int nothidden=0, ishidden=0;
 	
 	/* sanity checking (poll callback checks this already) */
 	if((snode == NULL) || (snode->edittree == NULL))
 		return OPERATOR_CANCELLED;
 	
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(node->flag & SELECT) {
-			if(node->flag & NODE_HIDDEN)
-				ishidden++;
-			else
-				nothidden++;
-		}
-	}
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(node->flag & SELECT) {
-			if( (ishidden && nothidden) || ishidden==0)
-				node->flag |= NODE_HIDDEN;
-			else 
-				node->flag &= ~NODE_HIDDEN;
-		}
-	}
+	node_flag_toggle_exec(snode, NODE_HIDDEN);
 	
 	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
 
-void NODE_OT_hide(wmOperatorType *ot)
+void NODE_OT_hide_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hide";
-	ot->description= "Toggle hiding of the nodes";
-	ot->idname= "NODE_OT_hide";
+	ot->description= "Toggle hiding of selected nodes";
+	ot->idname= "NODE_OT_hide_toggle";
 	
 	/* callbacks */
 	ot->exec= node_hide_exec;
 	ot->poll= ED_operator_node_active;
-	
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int node_preview_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+
+	/* sanity checking (poll callback checks this already) */
+	if((snode == NULL) || (snode->edittree == NULL))
+		return OPERATOR_CANCELLED;
+
+	node_flag_toggle_exec(snode, NODE_PREVIEW);
+
+	snode_notify(C, snode);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_preview_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Node Preview";
+	ot->description= "Toggle preview display for selected nodes";
+	ot->idname= "NODE_OT_preview_toggle";
+
+	/* callbacks */
+	ot->exec= node_preview_exec;
+	ot->poll= ED_operator_node_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int node_socket_toggle_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNode *node;
+	int hidden= 0;
+
+	/* sanity checking (poll callback checks this already) */
+	if((snode == NULL) || (snode->edittree == NULL))
+		return OPERATOR_CANCELLED;
+
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			if(node_has_hidden_sockets(node)) {
+				hidden= 1;
+				break;
+			}
+		}
+	}
+
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			node_set_hidden_sockets(snode, node, !hidden);
+		}
+	}
+
+	node_tree_verify_groups(snode->nodetree);
+
+	snode_notify(C, snode);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_hide_socket_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Hidden Node Sockets";
+	ot->description= "Toggle unused node socket display";
+	ot->idname= "NODE_OT_hide_socket_toggle";
+
+	/* callbacks */
+	ot->exec= node_socket_toggle_exec;
+	ot->poll= ED_operator_node_active;
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -2042,12 +2151,12 @@ static int node_mute_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NODE_OT_mute(wmOperatorType *ot)
+void NODE_OT_mute_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mute";
+	ot->name= "Toggle Node Mute";
 	ot->description= "Toggle muting of the nodes";
-	ot->idname= "NODE_OT_mute";
+	ot->idname= "NODE_OT_mute_toggle";
 	
 	/* callbacks */
 	ot->exec= node_mute_exec;
@@ -2203,7 +2312,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, 0);  //XXX TODO, relative_path
 	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign.");
 }
 

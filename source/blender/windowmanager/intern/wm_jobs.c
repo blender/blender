@@ -449,12 +449,15 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 		}
 	}
 	
-	/* if there are running jobs, set the global progress indicator */
-	if (jobs_progress > 0) {
-		float progress = total_progress / (float)jobs_progress;
-		WM_progress_set(wm->winactive, progress);
-	} else {
-		WM_progress_clear(wm->winactive);
+	/* on file load 'winactive' can be NULL, possibly it should not happen but for now do a NULL check - campbell */
+	if(wm->winactive) {
+		/* if there are running jobs, set the global progress indicator */
+		if (jobs_progress > 0) {
+			float progress = total_progress / (float)jobs_progress;
+			WM_progress_set(wm->winactive, progress);
+		} else {
+			WM_progress_clear(wm->winactive);
+		}
 	}
 }
 

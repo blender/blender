@@ -1269,6 +1269,7 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 	Object *obedit= CTX_data_edit_object(C);
 	int newob = 0;
 	float mat[4][4];
+	int scale;
 
 	if(obedit==NULL || obedit->type!=OB_MESH) {
 		obedit= ED_object_add_type(C, OB_MESH, loc, rot, FALSE, layer);
@@ -1279,8 +1280,10 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 
-	dia *= ED_object_new_primitive_matrix(C, loc, rot, mat);
-	depth *= ED_object_new_primitive_matrix(C, loc, rot, mat);
+	scale= ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
+
+	dia *= scale;
+	depth *= scale;
 
 	make_prim(obedit, type, mat, tot, seg, subdiv, dia, depth, ext, fill);
 

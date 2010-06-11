@@ -121,18 +121,21 @@ extern "C" {
 	#include "BLO_readfile.h"
 }
 
-
 #include "NG_NetworkScene.h" //Needed for sendMessage()
 
-static void setSandbox(TPythonSecurityLevel level);
-
 // 'local' copy of canvas ptr, for window height/width python scripts
+
+#ifndef DISABLE_PYTHON
+
 static RAS_ICanvas* gp_Canvas = NULL;
+static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
+static char gp_GamePythonPathOrig[FILE_MAXDIR + FILE_MAXFILE] = ""; // not super happy about this, but we need to remember the first loaded file for the global/dict load save
+
+#endif // DISABLE_PYTHON
+
 static KX_Scene*	gp_KetsjiScene = NULL;
 static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
-static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
-static char gp_GamePythonPathOrig[FILE_MAXDIR + FILE_MAXFILE] = ""; // not super happy about this, but we need to remember the first loaded file for the global/dict load save
 
 void KX_SetActiveScene(class KX_Scene* scene)
 {
@@ -1704,7 +1707,7 @@ static PyMethodDef meth_import[] = {{ "import", KXpy_import, METH_VARARGS, "our 
 //static PyObject *g_oldimport = 0;
 //static int g_security = 0;
 
-void setSandbox(TPythonSecurityLevel level)
+static void setSandbox(TPythonSecurityLevel level)
 {
     PyObject *m = PyImport_AddModule("__builtin__");
     PyObject *d = PyModule_GetDict(m);

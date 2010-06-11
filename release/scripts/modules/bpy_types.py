@@ -29,13 +29,50 @@ class Context(StructRNA):
     __slots__ = ()
 
     def copy(self):
+        from types import BuiltinMethodType
         new_context = {}
-        generic_keys = StructRNA.__dict__.keys()
-        for item in dir(self):
-            if item not in generic_keys:
-                new_context[item] = getattr(self, item)
+        generic_attrs = list(StructRNA.__dict__.keys()) + ["bl_rna", "rna_type", "copy"]
+        for attr in dir(self):
+            if not (attr.startswith("_") or attr in generic_attrs):
+                value = getattr(self, attr)
+                if type(value) != BuiltinMethodType:
+                    new_context[attr] = value
 
         return new_context
+
+
+class Library(bpy_types.ID):
+    __slots__ = ()
+
+    @property
+    def users_id(self):
+        """ID datablocks which use this library"""
+        import bpy
+
+        # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE, we could make this an attribute in rna.
+        attr_links = "actions", "armatures", "brushes", "cameras", \
+                "curves", "gpencil", "groups", "images", \
+                "lamps", "lattices", "materials", "metaballs", \
+                "meshes", "node_groups", "objects", "scenes", \
+                "sounds", "textures", "texts", "fonts", "worlds"
+
+        return tuple(id_block for attr in attr_links for id_block in getattr(bpy.data, attr) if id_block.library == self)
+
+
+class Texture(bpy_types.ID):
+    __slots__ = ()
+
+    @property
+    def users_material(self):
+        """Materials that use this texture"""
+        import bpy
+        return tuple(mat for mat in bpy.data.materials if self in [slot.texture for slot in mat.texture_slots if slot])
+
+    @property
+    def users_object_modifier(self):
+        """Object modifiers that use this texture"""
+        import bpy
+        return tuple(obj for obj in bpy.data.objects if self in [mod.texture for mod in obj.modifiers if mod.type == 'DISPLACE'])
 
 
 class Group(bpy_types.ID):
@@ -399,7 +436,7 @@ class Mesh(bpy_types.ID):
         closed loops have matching start and end values.
         """
         line_polys = []
-        
+
         # Get edges not used by a face
         if edges is None:
             edges = self.edges
@@ -407,10 +444,10 @@ class Mesh(bpy_types.ID):
         if not hasattr(edges, "pop"):
             edges = edges[:]
 
-        edge_dict= dict((ed.key, ed) for ed in self.edges if ed.selected)
-        
+        edge_dict = dict((ed.key, ed) for ed in self.edges if ed.selected)
+
         while edges:
-            current_edge= edges.pop()
+            current_edge = edges.pop()
             vert_end, vert_start = current_edge.verts[:]
             line_poly = [vert_start, vert_end]
 
@@ -428,7 +465,7 @@ class Mesh(bpy_types.ID):
                         vert_end = line_poly[-1]
                         ok = 1
                         del edges[i]
-                        #break
+                        # break
                     elif v2 == vert_end:
                         line_poly.append(v1)
                         vert_end = line_poly[-1]
@@ -440,7 +477,7 @@ class Mesh(bpy_types.ID):
                         vert_start = line_poly[0]
                         ok = 1
                         del edges[i]
-                        #break    
+                        # break
                     elif v2 == vert_start:
                         line_poly.insert(0, v1)
                         vert_start = line_poly[0]
@@ -450,7 +487,6 @@ class Mesh(bpy_types.ID):
             line_polys.append(line_poly)
 
         return line_polys
-
 
 
 class MeshEdge(StructRNA):

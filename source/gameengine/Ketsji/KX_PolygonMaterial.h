@@ -143,6 +143,7 @@ public:
 	static PyObject*	pyattr_get_specular(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	
 	static int			pyattr_set_specular(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 #endif
+
 };
 
 #endif // __KX_POLYGONMATERIAL_H__

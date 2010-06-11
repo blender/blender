@@ -118,6 +118,7 @@ typedef enum PropertySubType {
 	PROP_QUATERNION = 27,
 	PROP_AXISANGLE = 28,
 	PROP_XYZ = 29,
+	PROP_XYZ_LENGTH = 29|PROP_UNIT_LENGTH,
 	PROP_COLOR_GAMMA = 30,
 
 	/* booleans */

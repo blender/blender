@@ -53,6 +53,7 @@ void BLI_make_exist(char *dir);
 void BLI_make_existing_file(char *name);
 void BLI_split_dirfile(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
+char *BLI_path_basename(char *path);
 int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir);
 void BLI_getlastdir(const char* dir, char *last, int maxlen);
 int BLI_testextensie(const char *str, const char *ext);

@@ -303,7 +303,7 @@ static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const int *values)
 {
 	View3D *v3d= (View3D*)(ptr->data);
 	
-	v3d->lay= ED_view3d_scene_layer_set(v3d->lay, values);
+	v3d->lay= ED_view3d_scene_layer_set(v3d->lay, values, &v3d->layact);
 }
 
 static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
@@ -976,7 +976,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "localvd");
 	RNA_def_property_ui_text(prop, "Local View", "Display an isolated sub-set of objects, apart from the scene visibility");
 	
-	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ|PROP_UNIT_LENGTH);
+	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ_LENGTH);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_View3D_CursorLocation_get", "rna_View3D_CursorLocation_set", NULL);
 	RNA_def_property_ui_text(prop, "3D Cursor Location", "3D cursor location for this view (dependent on local view setting)");
@@ -1161,7 +1161,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	/* region */
 
-	srna= RNA_def_struct(brna, "RegionView3D", "Region");
+	srna= RNA_def_struct(brna, "RegionView3D", NULL);
 	RNA_def_struct_sdna(srna, "RegionView3D");
 	RNA_def_struct_ui_text(srna, "3D View Region", "3D View region data");
 
@@ -1557,7 +1557,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "tabnumber");
 	RNA_def_property_range(prop, 2, 8);
 	RNA_def_property_ui_text(prop, "Tab Width", "Number of spaces to display tabs with");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
+	RNA_def_property_update(prop, NC_TEXT|NA_EDITED, NULL);
 
 	prop= RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "lheight");

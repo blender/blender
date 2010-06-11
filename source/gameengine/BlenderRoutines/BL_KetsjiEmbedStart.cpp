@@ -166,7 +166,9 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool animation_record = (SYS_GetCommandLineInt(syshandle, "animation_record", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
+#ifndef DISABLE_PYTHON
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
+#endif
 		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		if(animation_record) usefixed= true; /* override since you's always want fixed time for sim recording */
 

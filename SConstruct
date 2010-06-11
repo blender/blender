@@ -201,6 +201,7 @@ if not env['WITHOUT_BF_INSTALL'] and not env['WITHOUT_BF_OVERWRITE_INSTALL']:
 
 SetOption('num_jobs', int(env['BF_NUMJOBS']))
 print B.bc.OKGREEN + "Build with parallel jobs%s: %s" % (B.bc.ENDC, GetOption('num_jobs'))
+print B.bc.OKGREEN + "Build with debug symbols%s: %s" % (B.bc.ENDC, env['BF_DEBUG'])
 
 # BLENDERPATH is a unix only option to enable typical style paths this is
 # spesifically a data-dir, which is used a lot but cant replace BF_INSTALLDIR
@@ -268,6 +269,7 @@ if 'blenderlite' in B.targets:
 	target_env_defs['WITH_BF_GAMEENGINE'] = False
 	target_env_defs['WITH_BF_OPENAL'] = False
 	target_env_defs['WITH_BF_OPENEXR'] = False
+	target_env_defs['WITH_BF_OPENMP'] = False
 	target_env_defs['WITH_BF_ICONV'] = False
 	target_env_defs['WITH_BF_INTERNATIONAL'] = False
 	target_env_defs['WITH_BF_OPENJPEG'] = False

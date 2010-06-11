@@ -163,14 +163,9 @@ Game Engine  bge.types Module
 
    .. attribute:: status
 
-      The status of the sensor. (read-only).
-      
-      :type: int from 0-3.
+      The status of the sensor (read-only): can be one of :ref:`these constants<sensor-status>`.
 
-      * KX_SENSOR_INACTIVE
-      * KX_SENSOR_JUST_ACTIVATED
-      * KX_SENSOR_ACTIVE
-      * KX_SENSOR_JUST_DEACTIVATED
+      :type: int
 
       .. note::
       
@@ -294,7 +289,7 @@ Game Engine  bge.types Module
 
    .. attribute:: mode
 
-      The operation mode of the actuator. KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND.
+      The operation mode of the actuator. Can be one of :ref:`these constants<action-actuator>`.
 
       :type: integer
 
@@ -597,7 +592,7 @@ Game Engine  bge.types Module
 
    .. attribute:: mode
 
-      The operation mode of the actuator in [KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND].
+      The operation mode of the actuator. Can be one of :ref:`these constants<shape-action-actuator>`.
 
       :type: integer
 
@@ -653,12 +648,14 @@ Game Engine  bge.types Module
 
       Since object names are not always unique, the id of an object can be used to get an object from the CValueList.
 
-      Example.
+      Example:
 
-      ``myObID=id(gameObject)``
-      ``ob= scene.objects.from_id(myObID)``
+      .. code-block:: python
+        
+         myObID=id(gameObject)
+         ob= scene.objects.from_id(myObID)
 
-      Where myObID is an int or long from the id function.
+      Where ``myObID`` is an int or long from the id function.
 
       This has the advantage that you can store the id in places you could not store a gameObject.
 
@@ -752,13 +749,9 @@ Game Engine  bge.types Module
 
       :type: :class:`KX_GameObject` or None
 
-   @author: snail
-
 .. class:: KX_ConstraintActuator(SCA_IActuator)
 
    A constraint actuator limits the position, rotation, distance or orientation of an object.
-
-   Properties:
 
    .. attribute:: damp
 
@@ -780,19 +773,9 @@ Game Engine  bge.types Module
 
    .. attribute:: option
 
-      Binary combination of the following values.
+      Binary combination of :ref:`these constants <constraint-actuator-option>`
 
       :type: integer
-
-      * Applicable to Distance constraint
-         * KX_ACT_CONSTRAINT_NORMAL    (  64) : Activate alignment to surface
-         * KX_ACT_CONSTRAINT_DISTANCE  ( 512) : Activate distance control
-         * KX_ACT_CONSTRAINT_LOCAL      (1024) : direction of the ray is along the local axis
-      * Applicable to Force field constraint:
-         * KX_ACT_CONSTRAINT_DOROTFH   (2048) : Force field act on rotation as well
-      * Applicable to both:
-         * KX_ACT_CONSTRAINT_MATERIAL  ( 128) : Detect material rather than property
-         * KX_ACT_CONSTRAINT_PERMANENT ( 256) : No deactivation if ray does not hit target
 
    .. attribute:: time
 
@@ -832,22 +815,7 @@ Game Engine  bge.types Module
 
    .. attribute:: limit
 
-      type of constraint.
-      
-      Use one of the following constant: :data:`~bge.logic.KX_CONSTRAINTACT_LOCX`, 
-      :data:`~bge.logic.KX_CONSTRAINTACT_LOCY`, :data:`~bge.logic.KX_CONSTRAINTACT_LOCZ`, 
-      :data:`~bge.logic.KX_CONSTRAINTACT_ROTX`, :data:`~bge.logic.KX_CONSTRAINTACT_ROTY`, 
-      :data:`~bge.logic.KX_CONSTRAINTACT_ROTZ`, :data:`~bge.logic.KX_CONSTRAINTACT_DIRPX`, 
-      :data:`~bge.logic.KX_CONSTRAINTACT_DIRPY`, :data:`~bge.logic.KX_CONSTRAINTACT_DIRPZ`, 
-      :data:`~bge.logic.KX_CONSTRAINTACT_DIRNX`, :data:`~bge.logic.KX_CONSTRAINTACT_DIRNY`, 
-      :data:`~bge.logic.KX_CONSTRAINTACT_DIRNZ`, :data:`~bge.logic.KX_CONSTRAINTACT_ORIX`, 
-      :data:`~bge.logic.KX_CONSTRAINTACT_ORIY`, :data:`~bge.logic.KX_CONSTRAINTACT_ORIZ`, 
-      :data:`~bge.logic.KX_ACT_CONSTRAINT_FHPX`, :data:`~bge.logic.KX_ACT_CONSTRAINT_FHPY`, 
-      :data:`~bge.logic.KX_ACT_CONSTRAINT_FHPZ`, :data:`~bge.logic.KX_ACT_CONSTRAINT_FHNX`, 
-      :data:`~bge.logic.KX_ACT_CONSTRAINT_FHNY`, :data:`~bge.logic.KX_ACT_CONSTRAINT_FHNZ`, 
-      :data:`~bge.logic.KX_ACT_CONSTRAINT_DISTANCE`, :data:`~bge.logic.KX_ACT_CONSTRAINT_DOROTFH`, 
-      :data:`~bge.logic.KX_ACT_CONSTRAINT_LOCAL`, :data:`~bge.logic.KX_ACT_CONSTRAINT_MATERIAL`, 
-      :data:`~bge.logic.KX_ACT_CONSTRAINT_NORMAL`, :data:`~bge.logic.KX_ACT_CONSTRAINT_PERMANENT`
+      type of constraint. Use one of the :ref:`these constants <constraint-actuator-limit>`
 
       :type: integer.
 
@@ -867,8 +835,6 @@ Game Engine  bge.types Module
 
    The game actuator loads a new .blend file, restarts the current .blend file or quits the game.
 
-   Properties:
-
    .. attribute:: fileName
 
       the new .blend file to load.
@@ -877,11 +843,9 @@ Game Engine  bge.types Module
 
    .. attribute:: mode
 
-      The mode of this actuator.
+      The mode of this actuator. Can be on of :ref:`these constants <game-actuator>`
 
-      :type: Constant in :data:`~bge.logic.KX_GAME_LOAD`, :data:`~bge.logic.KX_GAME_START`, 
-      :data:`~bge.logic.KX_GAME_RESTART`, :data:`~bge.logic.KX_GAME_QUIT`, 
-      :data:`~bge.logic.KX_GAME_SAVECFG`, :data:`~bge.logic.KX_GAME_LOADCFG`
+      :type: Int
 
 .. class:: KX_GameObject(SCA_IObject)
 
@@ -1584,7 +1548,7 @@ Game Engine  bge.types Module
 
    .. attribute:: mode
 
-      Play mode for the ipo. (In GameLogic.KX_IPOACT_PLAY, KX_IPOACT_PINGPONG, KX_IPOACT_FLIPPER, KX_IPOACT_LOOPSTOP, KX_IPOACT_LOOPEND, KX_IPOACT_FROM_PROP).
+      Play mode for the ipo. Can be on of :ref:`these constants <ipo-actuator>`
 
       :type: integer
 
@@ -1822,8 +1786,6 @@ Game Engine  bge.types Module
 
    Mouse Sensor logic brick.
 
-   Properties:
-
    .. attribute:: position
 
       current [x, y] coordinates of the mouse, in frame coordinates (pixels).
@@ -1846,11 +1808,11 @@ Game Engine  bge.types Module
    .. method:: getButtonStatus(button)
 
       Get the mouse button status.
-
-      :arg button: value in GameLogic members KX_MOUSE_BUT_LEFT, KX_MOUSE_BUT_MIDDLE, KX_MOUSE_BUT_RIGHT
-      :type button: integer
-      :return: value in GameLogic members KX_INPUT_NONE, KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED
-      :rtype: integer
+ 
+      :arg button: The code that represents the key you want to get the state of, use one of :ref:`these constants<mouse-keys>`
+      :type button: int
+      :return: The state of the given key, can be one of :ref:`these constants<input-status>`
+      :rtype: int
 
 .. class:: KX_MouseFocusSensor(SCA_MouseSensor)
 
@@ -2167,8 +2129,8 @@ Game Engine  bge.types Module
 
    .. attribute:: ghost
 
-      whether the object should be made ghost when parenting
-                Effective only if the shape is not added to the parent compound shape.
+      Whether the object should be made ghost when parenting
+      Effective only if the shape is not added to the parent compound shape.
 
       :type: boolean
 
@@ -2267,8 +2229,8 @@ Game Engine  bge.types Module
 
    .. attribute:: v4
 
-      vertex index of the fourth vertex of the polygon, 0 if polygon has only 3 vertex
-             use this to retrieve vertex proxy from mesh proxy.
+      Vertex index of the fourth vertex of the polygon, 0 if polygon has only 3 vertex
+      Use this to retrieve vertex proxy from mesh proxy.
 
       :type: integer
 
@@ -2603,26 +2565,26 @@ Game Engine  bge.types Module
 
       Sets texture render state.
 
-      .. code-block:: python
-
-         mat.setTexture(mat.tface)
-
       :arg tface: Texture face
       :type tface: CObject
 
+      .. code-block:: python
+
+         mat.setTexture(mat.tface)
+         
    .. method:: activate(rasty, cachingInfo)
 
       Sets material parameters for this object for rendering.
 
       Material Parameters set:
 
-         #. Texture
-         #. Backface culling
-         #. Line drawing
-         #. Specular Colour
-         #. Shininess
-         #. Diffuse Colour
-         #. Polygon Offset.
+      #. Texture
+      #. Backface culling
+      #. Line drawing
+      #. Specular Colour
+      #. Shininess
+      #. Diffuse Colour
+      #. Polygon Offset.
 
       :arg rasty: Rasterizer instance.
       :type rasty: CObject
@@ -2642,45 +2604,48 @@ Game Engine  bge.types Module
       It should return True to render the mesh, or False if you are finished.  You should
       clean up any state Blender does not set before returning False.
 
-      Activate Method Definition::
-      `def activate(self, rasty, cachingInfo, material):`
+      Activate Method Definition:
 
-		.. code-block:: python
-
-			class PyMaterial:
-				def __init__(self):
-					self.pass_no = -1
-				
-				def activate(self, rasty, cachingInfo, material):
-					# Activate the material here.
-					#
-					# The activate method will be called until it returns False.
-					# Every time the activate method returns True the mesh will
-					# be rendered.
-					#
-					# rasty is a CObject for passing to material.updateTexture() 
-					#       and material.activate()
-					# cachingInfo is a CObject for passing to material.activate()
-					# material is the KX_PolygonMaterial instance this material
-					#          was added to
-					
-					# default material properties:
-					self.pass_no += 1
-					if self.pass_no == 0:
-						material.activate(rasty, cachingInfo)
-						# Return True to do this pass
-						return True
-					
-					# clean up and return False to finish.
-					self.pass_no = -1
-					return False
-			
-			# Create a new Python Material and pass it to the renderer.
-			mat.setCustomMaterial(PyMaterial())
+      .. code-block:: python
+      
+         def activate(self, rasty, cachingInfo, material):
 
       :arg material: The material object.
       :type material: instance
 
+      .. code-block:: python
+
+         class PyMaterial:
+           def __init__(self):
+             self.pass_no = -1
+           
+           def activate(self, rasty, cachingInfo, material):
+             # Activate the material here.
+             #
+             # The activate method will be called until it returns False.
+             # Every time the activate method returns True the mesh will
+             # be rendered.
+             #
+             # rasty is a CObject for passing to material.updateTexture() 
+             #       and material.activate()
+             # cachingInfo is a CObject for passing to material.activate()
+             # material is the KX_PolygonMaterial instance this material
+             #          was added to
+             
+             # default material properties:
+             self.pass_no += 1
+             if self.pass_no == 0:
+               material.activate(rasty, cachingInfo)
+               # Return True to do this pass
+               return True
+             
+             # clean up and return False to finish.
+             self.pass_no = -1
+             return False
+         
+         # Create a new Python Material and pass it to the renderer.
+         mat.setCustomMaterial(PyMaterial())
+         
 .. class:: KX_RadarSensor(KX_NearSensor)
 
    Radar sensor is a near sensor with a conical sensor object.
@@ -2796,9 +2761,9 @@ Game Engine  bge.types Module
 
       An Add Object actuator will be ignored if at game start, the linked object doesn't exist (or is empty) or the linked object is in an active layer.
 
-      This will genereate a warning in the console:
+      .. code-block:: none
 
-      ``Error: GameObject 'Name' has a AddObjectActuator 'ActuatorName' without object (in 'nonactive' layer)``
+         Error: GameObject 'Name' has a AddObjectActuator 'ActuatorName' without object (in 'nonactive' layer) 
       
    .. attribute:: object
 
@@ -2873,51 +2838,53 @@ Game Engine  bge.types Module
 
       This will generate a warning in the console
 
-      ``Error: GameObject 'Name' ReplaceMeshActuator 'ActuatorName' without object``
+      .. code-block:: none
+      
+         Error: GameObject 'Name' ReplaceMeshActuator 'ActuatorName' without object
 
    .. code-block:: python
 
-		# Level-of-detail
-		# Switch a game object's mesh based on its depth in the camera view.
-		# +----------+     +-----------+     +-------------------------------------+
-		# | Always   +-----+ Python    +-----+ Edit Object (Replace Mesh) LOD.Mesh |
-		# +----------+     +-----------+     +-------------------------------------+
-		import GameLogic
+      # Level-of-detail
+      # Switch a game object's mesh based on its depth in the camera view.
+      # +----------+     +-----------+     +-------------------------------------+
+      # | Always   +-----+ Python    +-----+ Edit Object (Replace Mesh) LOD.Mesh |
+      # +----------+     +-----------+     +-------------------------------------+
+      import GameLogic
 
-		# List detail meshes here
-		# Mesh (name, near, far)
-		# Meshes overlap so that they don't 'pop' when on the edge of the distance.
-		meshes = ((".Hi", 0.0, -20.0),
-				  (".Med", -15.0, -50.0),
-				  (".Lo", -40.0, -100.0)
-				)
-		
-		co = GameLogic.getCurrentController()
-		obj = co.owner
-		act = co.actuators["LOD." + obj.name]
-		cam = GameLogic.getCurrentScene().active_camera
-		
-		def Depth(pos, plane):
-			return pos[0]*plane[0] + pos[1]*plane[1] + pos[2]*plane[2] + plane[3]
-		
-		# Depth is negative and decreasing further from the camera
-		depth = Depth(obj.position, cam.world_to_camera[2])
-		
-		newmesh = None
-		curmesh = None
-		# Find the lowest detail mesh for depth
-		for mesh in meshes:
-			if depth < mesh[1] and depth > mesh[2]:
-				newmesh = mesh
-			if "ME" + obj.name + mesh[0] == act.getMesh():
-				curmesh = mesh
-		
-		if newmesh != None and "ME" + obj.name + newmesh[0] != act.getMesh():
-			# The mesh is a different mesh - switch it.
-			# Check the current mesh is not a better fit.
-			if curmesh == None or curmesh[1] < depth or curmesh[2] > depth:
-				act.mesh = obj.getName() + newmesh[0]
-				GameLogic.addActiveActuator(act, True)
+      # List detail meshes here
+      # Mesh (name, near, far)
+      # Meshes overlap so that they don't 'pop' when on the edge of the distance.
+      meshes = ((".Hi", 0.0, -20.0),
+            (".Med", -15.0, -50.0),
+            (".Lo", -40.0, -100.0)
+          )
+      
+      co = GameLogic.getCurrentController()
+      obj = co.owner
+      act = co.actuators["LOD." + obj.name]
+      cam = GameLogic.getCurrentScene().active_camera
+      
+      def Depth(pos, plane):
+        return pos[0]*plane[0] + pos[1]*plane[1] + pos[2]*plane[2] + plane[3]
+      
+      # Depth is negative and decreasing further from the camera
+      depth = Depth(obj.position, cam.world_to_camera[2])
+      
+      newmesh = None
+      curmesh = None
+      # Find the lowest detail mesh for depth
+      for mesh in meshes:
+        if depth < mesh[1] and depth > mesh[2]:
+          newmesh = mesh
+        if "ME" + obj.name + mesh[0] == act.getMesh():
+            curmesh = mesh
+      
+      if newmesh != None and "ME" + obj.name + newmesh[0] != act.getMesh():
+        # The mesh is a different mesh - switch it.
+        # Check the current mesh is not a better fit.
+        if curmesh == None or curmesh[1] < depth or curmesh[2] > depth:
+          act.mesh = obj.getName() + newmesh[0]
+          GameLogic.addActiveActuator(act, True)
 
    .. attribute:: mesh
 
@@ -3108,7 +3075,9 @@ Game Engine  bge.types Module
 
       This will generate a warning in the console:
 
-      ``Error: GameObject 'Name' has a SceneActuator 'ActuatorName' (SetScene) without scene``
+      .. code-block:: none
+      
+         Error: GameObject 'Name' has a SceneActuator 'ActuatorName' (SetScene) without scene
 
    .. attribute:: scene
 
@@ -3194,43 +3163,29 @@ Game Engine  bge.types Module
 
    .. attribute:: mode
 
-      The operation mode of the actuator.
+      The operation mode of the actuator. Can be one of :ref:`these constants<logic-sound-actuator>`
 
       :type: integer
-      
-      You can use one of the following constants:
-      * KX_SOUNDACT_PLAYSTOP               (1)
-      * KX_SOUNDACT_PLAYEND                (2)
-      * KX_SOUNDACT_LOOPSTOP               (3)
-      * KX_SOUNDACT_LOOPEND                (4)
-      * KX_SOUNDACT_LOOPBIDIRECTIONAL      (5)
-      * KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP (6) 
 
 .. class:: KX_StateActuator(SCA_IActuator)
 
    State actuator changes the state mask of parent object.
 
-   Property:
-
    .. attribute:: operation
 
-      type of bit operation to be applied on object state mask.
-
-      You can use one of the following constant:
-
-      * KX_STATE_OP_CPY (0) : Copy state mask
-      * KX_STATE_OP_SET (1) : Add bits to state mask
-      * KX_STATE_OP_CLR (2) : Substract bits to state mask
-      * KX_STATE_OP_NEG (3) : Invert bits to state mask.
+      Type of bit operation to be applied on object state mask.
+      
+      You can use one of :ref:`these constants <state-actuator-operation>`
 
       :type: integer
 
    .. attribute:: mask
 
-      value that defines the bits that will be modified by the operation.
-           The bits that are 1 in the mask will be updated in the object state, 
-            the bits that are 0 are will be left unmodified expect for the Copy operation
-            which copies the mask to the object state.
+      Value that defines the bits that will be modified by the operation.
+
+      The bits that are 1 in the mask will be updated in the object state.
+
+      The bits that are 0 are will be left unmodified expect for the Copy operation which copies the mask to the object state.
 
       :type: integer
 
@@ -3244,7 +3199,9 @@ Game Engine  bge.types Module
 
       This will generate a warning in the console:
 
-      ``Error: GameObject 'Name' no object in EditObjectActuator 'ActuatorName'``
+      .. code-block:: none
+
+         GameObject 'Name' no object in EditObjectActuator 'ActuatorName'
 
    .. attribute:: object
 
@@ -3650,13 +3607,11 @@ Game Engine  bge.types Module
 
    Create, enable and disable 2D filters
 
-   Properties:
-
    The following properties don't have an immediate effect.
    You must active the actuator to get the result.
    The actuator is not persistent: it automatically stops itself after setting up the filter
    but the filter remains active. To stop a filter you must activate the actuator with 'type'
-   set to RAS_2DFILTER_DISABLED or RAS_2DFILTER_NOFILTER.
+   set to :data:`~bge.logic.RAS_2DFILTER_DISABLED` or :data:`~bge.logic.RAS_2DFILTER_NOFILTER`.
 
    .. attribute:: shaderText
 
@@ -3672,23 +3627,7 @@ Game Engine  bge.types Module
 
    .. attribute:: mode
 
-      type of 2D filter, use one of the following constants:
-
-      * RAS_2DFILTER_ENABLED      (-2) : enable the filter that was previously disabled
-      * RAS_2DFILTER_DISABLED     (-1) : disable the filter that is currently active
-      * RAS_2DFILTER_NOFILTER      (0) : disable and destroy the filter that is currently active
-      * RAS_2DFILTER_MOTIONBLUR    (1) : create and enable preset filters
-      * RAS_2DFILTER_BLUR          (2)
-      * RAS_2DFILTER_SHARPEN       (3)
-      * RAS_2DFILTER_DILATION      (4)
-      * RAS_2DFILTER_EROSION       (5)
-      * RAS_2DFILTER_LAPLACIAN     (6)
-      * RAS_2DFILTER_SOBEL         (7)
-      * RAS_2DFILTER_PREWITT       (8)
-      * RAS_2DFILTER_GRAYSCALE     (9)
-      * RAS_2DFILTER_SEPIA        (10)
-      * RAS_2DFILTER_INVERT       (11)
-      * RAS_2DFILTER_CUSTOMFILTER (12) : customer filter, the code code is set via shaderText property.
+      Type of 2D filter, use one of :ref:`these constants <Two-D-FilterActuator-mode>`
 
       :type: integer
 
@@ -3718,8 +3657,6 @@ Game Engine  bge.types Module
    It generates a positive pulse if the corresponding actuator is activated
    and a negative pulse if the actuator is deactivated.
 
-   Properties:
-
    .. attribute:: actuator
 
       the name of the actuator that the sensor is monitoring.
@@ -3741,8 +3678,6 @@ Game Engine  bge.types Module
    The sensor runs the OFF-ON cycle once unless the repeat option is set: the OFF-ON cycle repeats indefinately (or the OFF cycle if duration is 0).
 
    Use :class:`SCA_ISensor.reset` at any time to restart sensor.
-
-   Properties:
 
    .. attribute:: delay
 
@@ -3767,8 +3702,6 @@ Game Engine  bge.types Module
 .. class:: SCA_JoystickSensor(SCA_ISensor)
 
    This sensor detects player joystick events.
-
-   Properties:
 
    .. attribute:: axisValues
 
@@ -3938,24 +3871,16 @@ Game Engine  bge.types Module
 
       a list of pressed keys that have either been pressed, or just released, or are active this frame. (read-only).
 
-      :type: list [[keycode, status], ...]
-
-      * 'keycode' matches the values in :mod:`bge.keys`.
-      * 'status' uses...
-
-         * :mod:`bge.logic.KX_INPUT_NONE`
-         * :mod:`bge.logic.KX_INPUT_JUST_ACTIVATED`
-         * :mod:`bge.logic.KX_INPUT_ACTIVE`
-         * :mod:`bge.logic.KX_INPUT_JUST_RELEASED`
+      :type: list [[:ref:`keycode<keyboard-keys>`, :ref:`status<input-status>`], ...]
 
    .. method:: getKeyStatus(keycode)
 
       Get the status of a key.
 
-      :arg keycode: The code that represents the key you want to get the state of
+      :arg keycode: The code that represents the key you want to get the state of, use one of :ref:`these constants<keyboard-keys>`
       :type keycode: integer
-      :return: The state of the given key
-      :rtype: key state :mod:`bge.logic` members (KX_INPUT_NONE, KX_INPUT_JUST_ACTIVATED, KX_INPUT_ACTIVE, KX_INPUT_JUST_RELEASED)
+      :return: The state of the given key, can be one of :ref:`these constants<input-status>`
+      :rtype: int
 
 .. class:: SCA_NANDController(SCA_IController)
 
@@ -3979,8 +3904,6 @@ Game Engine  bge.types Module
 
    Property Actuator
 
-   Properties:
-
    .. attribute:: propName
 
       the property on which to operate.
@@ -4003,19 +3926,11 @@ Game Engine  bge.types Module
 
    Activates when the game object property matches.
 
-   Properties:
-
    .. attribute:: mode
 
-      Type of check on the property.
+      Type of check on the property. Can be one of :ref:`these constants <logic-property-sensor>`
 
-      :type: integer
-
-      * KX_PROPSENSOR_EQUAL(1)
-      * KX_PROPSENSOR_NOTEQUAL(2)
-      * KX_PROPSENSOR_INTERVAL(3)
-      * KX_PROPSENSOR_CHANGED(4)
-      * KX_PROPSENSOR_EXPRESSION(5) 
+      :type: integer.
 
    .. attribute:: propName
 
@@ -4045,8 +3960,6 @@ Game Engine  bge.types Module
 
    A Python controller uses a Python script to activate it's actuators, 
    based on it's sensors.
-
-   Properties:
 
    .. attribute:: script
 
@@ -4088,8 +4001,6 @@ Game Engine  bge.types Module
 
    Random Actuator
 
-   Properties:
-
    .. attribute:: seed
 
       Seed of the random number generator.
@@ -4116,20 +4027,9 @@ Game Engine  bge.types Module
 
    .. attribute:: distribution
 
-      distribution type. (read-only).
+      Distribution type. (read-only). Can be one of :ref:`these constants <logic-random-distributions>`
 
       :type: integer
-
-      * KX_RANDOMACT_BOOL_CONST
-      * KX_RANDOMACT_BOOL_UNIFORM
-      * KX_RANDOMACT_BOOL_BERNOUILLI
-      * KX_RANDOMACT_INT_CONST
-      * KX_RANDOMACT_INT_UNIFORM
-      * KX_RANDOMACT_INT_POISSON
-      * KX_RANDOMACT_FLOAT_CONST
-      * KX_RANDOMACT_FLOAT_UNIFORM
-      * KX_RANDOMACT_FLOAT_NORMAL
-      * KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL
 
    .. attribute:: propName
 
@@ -4267,17 +4167,17 @@ Game Engine  bge.types Module
 
    A Camera object.
 
-   .. attribute:: INSIDE
+   .. data:: INSIDE
 
-      see :data:`sphereInsideFrustum` and :data:`boxInsideFrustum`
+      See :data:`sphereInsideFrustum` and :data:`boxInsideFrustum`
 
-   .. attribute:: INTERSECT
+   .. data:: INTERSECT
 
-      see :data:`sphereInsideFrustum` and :data:`boxInsideFrustum`
+      See :data:`sphereInsideFrustum` and :data:`boxInsideFrustum`
 
-   .. attribute:: OUTSIDE
+   .. data:: OUTSIDE
 
-      see :data:`sphereInsideFrustum` and :data:`boxInsideFrustum`
+      See :data:`sphereInsideFrustum` and :data:`boxInsideFrustum`
 
    .. attribute:: lens
 
@@ -4363,77 +4263,64 @@ Game Engine  bge.types Module
       :type centre: list [x, y, z]
       :arg radius: the radius of the sphere
       :type radius: float
-      :return: INSIDE, OUTSIDE or INTERSECT
+      :return: :data:`~bge.types.KX_Camera.INSIDE`, :data:`~bge.types.KX_Camera.OUTSIDE` or :data:`~bge.types.KX_Camera.INTERSECT`
       :rtype: integer
+
+      .. note::
+
+         When the camera is first initialized the result will be invalid because the projection matrix has not been set.
 
       .. code-block:: python
 
-			import GameLogic
-			co = GameLogic.getCurrentController()
-			cam = co.owner
-			
-			# A sphere of radius 4.0 located at [x, y, z] = [1.0, 1.0, 1.0]
-			if (cam.sphereInsideFrustum([1.0, 1.0, 1.0], 4) != cam.OUTSIDE):
-				# Sphere is inside frustum !
-				# Do something useful !
-			else:
-				# Sphere is outside frustum
-
-      .. note::
-      
-         When the camera is first initialized the result will be invalid because the projection matrix has not been set.
+         import GameLogic
+         co = GameLogic.getCurrentController()
+         cam = co.owner
+         
+         # A sphere of radius 4.0 located at [x, y, z] = [1.0, 1.0, 1.0]
+         if (cam.sphereInsideFrustum([1.0, 1.0, 1.0], 4) != cam.OUTSIDE):
+             # Sphere is inside frustum !
+             # Do something useful !
+         else:
+             # Sphere is outside frustum
 
    .. method:: boxInsideFrustum(box)
 
       Tests the given box against the view frustum.
 
-      .. code-block:: python
-
-			import GameLogic
-			co = GameLogic.getCurrentController()
-			cam = co.owner
-
-			# Box to test...
-			box = []
-			box.append([-1.0, -1.0, -1.0])
-			box.append([-1.0, -1.0,  1.0])
-			box.append([-1.0,  1.0, -1.0])
-			box.append([-1.0,  1.0,  1.0])
-			box.append([ 1.0, -1.0, -1.0])
-			box.append([ 1.0, -1.0,  1.0])
-			box.append([ 1.0,  1.0, -1.0])
-			box.append([ 1.0,  1.0,  1.0])
-			
-			if (cam.boxInsideFrustum(box) != cam.OUTSIDE):
-				# Box is inside/intersects frustum !
-				# Do something useful !
-			else:
-				# Box is outside the frustum !
-
       :arg box: Eight (8) corner points of the box (in world coordinates.)
       :type box: list of lists
-      :return: INSIDE, OUTSIDE or INTERSECT
+      :return: :data:`~bge.types.KX_Camera.INSIDE`, :data:`~bge.types.KX_Camera.OUTSIDE` or :data:`~bge.types.KX_Camera.INTERSECT`
 
       .. note::
       
          When the camera is first initialized the result will be invalid because the projection matrix has not been set.
 
+      .. code-block:: python
+
+         import GameLogic
+         co = GameLogic.getCurrentController()
+         cam = co.owner
+
+         # Box to test...
+         box = []
+         box.append([-1.0, -1.0, -1.0])
+         box.append([-1.0, -1.0,  1.0])
+         box.append([-1.0,  1.0, -1.0])
+         box.append([-1.0,  1.0,  1.0])
+         box.append([ 1.0, -1.0, -1.0])
+         box.append([ 1.0, -1.0,  1.0])
+         box.append([ 1.0,  1.0, -1.0])
+         box.append([ 1.0,  1.0,  1.0])
+         
+         if (cam.boxInsideFrustum(box) != cam.OUTSIDE):
+           # Box is inside/intersects frustum !
+           # Do something useful !
+         else:
+           # Box is outside the frustum !
+           
    .. method:: pointInsideFrustum(point)
 
       Tests the given point against the view frustum.
-
-      .. code-block:: python
-
-			import GameLogic
-			co = GameLogic.getCurrentController()
-			cam = co.owner
-	
-			# Test point [0.0, 0.0, 0.0]
-			if (cam.pointInsideFrustum([0.0, 0.0, 0.0])):
-				# Point is inside frustum !
-				# Do something useful !
-			else:
-				# Box is outside the frustum !
 
       :arg point: The point to test (in world coordinates.)
       :type point: 3D Vector
@@ -4443,6 +4330,19 @@ Game Engine  bge.types Module
       .. note::
       
          When the camera is first initialized the result will be invalid because the projection matrix has not been set.
+
+      .. code-block:: python
+
+         import GameLogic
+         co = GameLogic.getCurrentController()
+         cam = co.owner
+
+         # Test point [0.0, 0.0, 0.0]
+         if (cam.pointInsideFrustum([0.0, 0.0, 0.0])):
+           # Point is inside frustum !
+           # Do something useful !
+         else:
+           # Box is outside the frustum !
 
    .. method:: getCameraToWorld()
 
@@ -4497,12 +4397,6 @@ Game Engine  bge.types Module
 
       Gets the vector from the camera position in the screen coordinate direction.
 
-      .. code-block:: python
-
-         # Gets the vector of the camera front direction:
-         m_vect = camera.getScreenVect(0.5, 0.5)
-
-
       :arg x: X Axis
       :type x: float
       :arg y: Y Axis
@@ -4510,15 +4404,15 @@ Game Engine  bge.types Module
       :rtype: 3D Vector
       :return: The vector from screen coordinate.
 
+      .. code-block:: python
+
+         # Gets the vector of the camera front direction:
+         m_vect = camera.getScreenVect(0.5, 0.5)
+
    .. method:: getScreenRay(x, y, dist=inf, property=None)
 
       Look towards a screen coordinate (x, y) and find first object hit within dist that matches prop.
       The ray is similar to KX_GameObject->rayCastTo.
-
-      .. code-block:: python
-
-         # Gets an object with a property "wall" in front of the camera within a distance of 100:
-         target = camera.getScreenRay(0.5, 0.5, 100, "wall")
 
       :arg x: X Axis
       :type x: float
@@ -4531,6 +4425,11 @@ Game Engine  bge.types Module
       :rtype: :class:`KX_GameObject`
       :return: the first object hit or None if no object or object does not match prop
 
+      .. code-block:: python
+
+         # Gets an object with a property "wall" in front of the camera within a distance of 100:
+         target = camera.getScreenRay(0.5, 0.5, 100, "wall")
+         
 .. class:: BL_ArmatureObject(KX_GameObject)
 
    An armature object.
@@ -4562,35 +4461,45 @@ Game Engine  bge.types Module
 
    Armature Actuators change constraint condition on armatures.
 
-   .. attribute:: KX_ACT_ARMATURE_RUN
+   .. _armatureactuator-constants-type:
+   
+   Constants related to :data:`~bge.types.BL_ArmatureActuator.type`
+   
+   .. data:: KX_ACT_ARMATURE_RUN
 
-      see type
+      Just make sure the armature will be updated on the next graphic frame. This is the only persistent mode of the actuator: it executes automatically once per frame until stopped by a controller
+      
+      :value: 0
 
-   .. attribute:: KX_ACT_ARMATURE_ENABLE
+   .. data:: KX_ACT_ARMATURE_ENABLE
 
-      see type
+      Enable the constraint.
+            
+      :value: 1
 
-   .. attribute:: KX_ACT_ARMATURE_DISABLE
+   .. data:: KX_ACT_ARMATURE_DISABLE
 
-      see type
+      Disable the constraint (runtime constraint values are not updated).
+            
+      :value: 2
 
-   .. attribute:: KX_ACT_ARMATURE_SETTARGET
+   .. data:: KX_ACT_ARMATURE_SETTARGET
 
-      see type
+      Change target and subtarget of constraint.
+      
+      :value: 3
 
-   .. attribute:: KX_ACT_ARMATURE_SETWEIGHT
+   .. data:: KX_ACT_ARMATURE_SETWEIGHT
 
-      see type
+      Change weight of (only for IK constraint).
 
-    .. attribute:: type
+      :value: 4
+
+   .. attribute:: type
 
       The type of action that the actuator executes when it is active.
 
-      * KX_ACT_ARMATURE_RUN(0) just make sure the armature will be updated on the next graphic frame. This is the only persistent mode of the actuator: it executes automatically once per frame until stopped by a controller
-      * KX_ACT_ARMATURE_ENABLE(1) enable the constraint.
-      * KX_ACT_ARMATURE_DISABLE(2) disable the constraint (runtime constraint values are not updated).
-      * KX_ACT_ARMATURE_SETTARGET(3) change target and subtarget of constraint.
-      * KX_ACT_ARMATURE_SETWEIGHT(4) change weight of (only for IK constraint).
+      Can be one of :ref:`these constants <armatureactuator-constants-type>`
 
       :type: integer
 
@@ -4634,25 +4543,47 @@ Game Engine  bge.types Module
 
    Armature sensor detect conditions on armatures.
 
-   See :data:`type`
+   .. _armaturesensor-type:
+
+   Constants related to :data:`type`
 
    .. data:: KX_ARMSENSOR_STATE_CHANGED
-   .. data:: KX_ARMSENSOR_LIN_ERROR_BELOW
-   .. data:: KX_ARMSENSOR_LIN_ERROR_ABOVE
-   .. data:: KX_ARMSENSOR_ROT_ERROR_BELOW
-   .. data:: KX_ARMSENSOR_ROT_ERROR_ABOVE
+   
+      Detect that the constraint is changing state (active/inactive)
 
+      :value: 0
+      
+   .. data:: KX_ARMSENSOR_LIN_ERROR_BELOW
+   
+      Detect that the constraint linear error is above a threshold
+      
+      :value: 1
+      
+   .. data:: KX_ARMSENSOR_LIN_ERROR_ABOVE
+   
+      Detect that the constraint linear error is below a threshold
+
+      :value: 2
+      
+   .. data:: KX_ARMSENSOR_ROT_ERROR_BELOW
+   
+      Detect that the constraint rotation error is above a threshold
+      
+      :value: 3
+      
+   .. data:: KX_ARMSENSOR_ROT_ERROR_ABOVE
+   
+      Detect that the constraint rotation error is below a threshold
+      
+      :value: 4
+      
    .. attribute:: type
 
       The type of measurement that the sensor make when it is active.
+      
+      Can be one of :ref:`these constants <armaturesensor-type>`
 
       :type: integer.
-
-      * KX_ARMSENSOR_STATE_CHANGED(0) detect that the constraint is changing state (active/inactive)
-      * KX_ARMSENSOR_LIN_ERROR_BELOW(1) detect that the constraint linear error is above a threshold
-      * KX_ARMSENSOR_LIN_ERROR_ABOVE(2) detect that the constraint linear error is below a threshold
-      * KX_ARMSENSOR_ROT_ERROR_BELOW(3) detect that the constraint rotation error is above a threshold
-      * KX_ARMSENSOR_ROT_ERROR_ABOVE(4) detect that the constraint rotation error is below a threshold
 
    .. attribute:: constraint
 
@@ -4662,8 +4593,6 @@ Game Engine  bge.types Module
 
    .. attribute:: value
    
-      :type: float
-
       The threshold used in the comparison with the constraint error
       The linear error is only updated on CopyPose/Distance IK constraint with iTaSC solver
       The rotation error is only updated on CopyPose+rotation IK constraint with iTaSC solver
@@ -4671,6 +4600,8 @@ Game Engine  bge.types Module
       The rotation error on CopyPose is always >= 0: it is the norm of the equivalent rotation vector between the bone and the target orientations
       The linear error on Distance can be positive if the distance between the bone and the target is greater than the desired distance, and negative if the distance is smaller.
 
+      :type: float
+      
 .. class:: BL_ArmatureConstraint(PyObjectPlus)
 
    Proxy to Armature Constraint. Allows to change constraint on the fly.
@@ -4680,8 +4611,9 @@ Game Engine  bge.types Module
    
       Not all armature constraints are supported in the GE.
 
+   .. _armatureconstraint-constants-type:
 
-   Constants related to see :data:`type`
+   Constants related to :data:`type`
 
    .. data:: CONSTRAINT_TYPE_TRACKTO
    .. data:: CONSTRAINT_TYPE_KINEMATIC
@@ -4695,23 +4627,78 @@ Game Engine  bge.types Module
    .. data:: CONSTRAINT_TYPE_TRANSFORM
    .. data:: CONSTRAINT_TYPE_DISTLIMIT
 
+   .. _armatureconstraint-constants-ik-type:
 
-   Constants related to see :data:`ik_type`
-
+   Constants related to :data:`ik_type`
+      
    .. data:: CONSTRAINT_IK_COPYPOSE
+      
+      constraint is trying to match the position and eventually the rotation of the target.
+      
+      :value: 0
+   
    .. data:: CONSTRAINT_IK_DISTANCE
-   .. data:: CONSTRAINT_IK_MODE_INSIDE
-   .. data:: CONSTRAINT_IK_MODE_OUTSIDE
-   .. data:: CONSTRAINT_IK_MODE_ONSURFACE
-   .. data:: CONSTRAINT_IK_FLAG_TIP
-   .. data:: CONSTRAINT_IK_FLAG_ROT
-   .. data:: CONSTRAINT_IK_FLAG_STRETCH
-   .. data:: CONSTRAINT_IK_FLAG_POS
+      
+      Constraint is maintaining a certain distance to target subject to ik_mode
+      
+      :value: 1
 
+   .. _armatureconstraint-constants-ik-flag:
+
+   Constants related to :data:`ik_flag`
+
+   .. data:: CONSTRAINT_IK_FLAG_TIP
+      
+      Set when the constraint operates on the head of the bone and not the tail
+      
+      :value: 1
+      
+   .. data:: CONSTRAINT_IK_FLAG_ROT
+      
+      Set when the constraint tries to match the orientation of the target
+      
+      :value: 2
+      
+   .. data:: CONSTRAINT_IK_FLAG_STRETCH
+      
+      Set when the armature is allowed to stretch (only the bones with stretch factor > 0.0)
+      
+      :value: 16
+      
+   .. data:: CONSTRAINT_IK_FLAG_POS
+      
+      Set when the constraint tries to match the position of the target.
+      
+      :value: 32
+      
+   .. _armatureconstraint-constants-ik-mode:
+
+   Constants related to :data:`ik_mode`
+   
+   .. data:: CONSTRAINT_IK_MODE_INSIDE
+      
+      The constraint tries to keep the bone within ik_dist of target
+      
+      :value: 0
+      
+   .. data:: CONSTRAINT_IK_MODE_OUTSIDE
+      
+      The constraint tries to keep the bone outside ik_dist of the target
+      
+      :value: 1
+      
+   .. data:: CONSTRAINT_IK_MODE_ONSURFACE
+      
+      The constraint tries to keep the bone exactly at ik_dist of the target.
+      
+      :value: 2
+      
    .. attribute:: type
 
       Type of constraint, (read-only).
 
+      Use one of :ref:`these constants<armatureconstraint-constants-type>`.
+      
       :type: integer, one of CONSTRAINT_TYPE_* constants
 
    .. attribute:: name
@@ -4792,19 +4779,15 @@ Game Engine  bge.types Module
 
       Type of IK constraint, (read-only).
 
+      Use one of :ref:`these constants<armatureconstraint-constants-ik-type>`.
+      
       :type: integer.
-
-      * CONSTRAINT_IK_COPYPOSE(0) constraint is trying to match the position and eventually the rotation of the target.
-      * CONSTRAINT_IK_DISTANCE(1) constraint is maintaining a certain distance to target subject to ik_mode
 
    .. attribute:: ik_flag
 
-      Combination of IK constraint option flags, read-only
-
-      * CONSTRAINT_IK_FLAG_TIP(1) : set when the constraint operates on the head of the bone and not the tail
-      * CONSTRAINT_IK_FLAG_ROT(2) : set when the constraint tries to match the orientation of the target
-      * CONSTRAINT_IK_FLAG_STRETCH(16) : set when the armature is allowed to stretch (only the bones with stretch factor > 0.0)
-      * CONSTRAINT_IK_FLAG_POS(32) : set when the constraint tries to match the position of the target.
+      Combination of IK constraint option flags, read-only.
+      
+      Use one of :ref:`these constants<armatureconstraint-constants-ik-flag>`.
 
       :type: integer
 
@@ -4816,11 +4799,9 @@ Game Engine  bge.types Module
 
    .. attribute:: ik_mode
 
+      Use one of :ref:`these constants<armatureconstraint-constants-ik-mode>`.
+      
       Additional mode for IK constraint. Currently only used for Distance constraint:
-
-      * CONSTRAINT_IK_MODE_INSIDE(0) : the constraint tries to keep the bone within ik_dist of target
-      * CONSTRAINT_IK_MODE_OUTSIDE(1) : the constraint tries to keep the bone outside ik_dist of the target
-      * CONSTRAINT_IK_MODE_ONSURFACE(2) : the constraint tries to keep the bone exactly at ik_dist of the target.
 
       :type: integer
 
@@ -5086,8 +5067,6 @@ Game Engine  bge.types Module
 
       Control bone rotation in term of joint angle (for robotic applications), read-write.
 
-      :type: vector [x, y, z]
-
       When writing to this attribute, you pass a [x, y, z] vector and an appropriate set of euler angles or quaternion is calculated according to the rotation_mode.
 
       When you read this attribute, the current pose matrix is converted into a [x, y, z] vector representing the joint angles.
@@ -5099,6 +5078,8 @@ Game Engine  bge.types Module
       * 2DoF joint X+Z: treated as a 2DoF joint with rotation axis on the X/Z plane. The x and z values are used as the coordinates of the rotation vector in the X/Z plane.
       * 3DoF joint X+Y+Z: treated as a revolute joint. The [x, y, z] vector represents the equivalent rotation vector to bring the joint from the rest pose to the new pose.
 
+      :type: vector [x, y, z]
+      
       .. note::
       
          The bone must be part of an IK chain if you want to set the ik_dof_x/ik_dof_y/ik_dof_z attributes via the UI, but this will interfere with this attribute since the IK solver will overwrite the pose. You can stay in control of the armature if you create an IK constraint but do not finalize it (e.g. don't set a target) the IK solver will not run but the IK panel will show up on the UI for each bone in the chain.

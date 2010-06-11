@@ -137,9 +137,8 @@ void ED_object_base_init_transform(bContext *C, Base *base, float *loc, float *r
 
 /* uses context to figure out transform for primitive */
 /* returns standard diameter */
-float ED_object_new_primitive_matrix(bContext *C, float *loc, float *rot, float primmat[][4])
+float ED_object_new_primitive_matrix(bContext *C, Object *obedit, float *loc, float *rot, float primmat[][4])
 {
-	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d =CTX_wm_view3d(C);
 	float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
 	
@@ -155,8 +154,8 @@ float ED_object_new_primitive_matrix(bContext *C, float *loc, float *rot, float 
 	copy_m4_m3(primmat, imat);
 	
 	/* center */
-	VECCOPY(primmat[3], loc);
-	VECSUB(primmat[3], primmat[3], obedit->obmat[3]);
+	copy_v3_v3(primmat[3], loc);
+	sub_v3_v3v3(primmat[3], primmat[3], obedit->obmat[3]);
 	invert_m3_m3(imat, mat);
 	mul_m3_v3(imat, primmat[3]);
 	
@@ -212,12 +211,13 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 				for(a=0; a<32; a++)
 					values[a]= (layer & (1<<a));
 			} else {
-				layer = v3d->layact;
+				layer = (v3d->scenelock)?scene->layact:v3d->layact;
+
 				for(a=0; a<32; a++)
 					values[a]= (layer & (1<<a));
 			}
 		} else {
-			layer = scene->lay;
+			layer = scene->layact;
 			for(a=0; a<32; a++)
 				values[a]= (layer & (1<<a));
 		}
@@ -365,7 +365,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 
 		((Curve*)ob->data)->flag |= CU_PATH|CU_3D;
 		ED_object_enter_editmode(C, 0);
-		ED_object_new_primitive_matrix(C, loc, rot, mat);
+		ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
 		BLI_addtail(curve_get_editcurve(ob), add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_PATH, 1));
 
 		if(!enter_editmode)
@@ -497,7 +497,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	ED_object_new_primitive_matrix(C, loc, rot, mat);
+	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	
 	nu= add_nurbs_primitive(C, mat, RNA_enum_get(op->ptr, "type"), newob);
 	editnurb= curve_get_editcurve(obedit);
@@ -562,7 +562,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	ED_object_new_primitive_matrix(C, loc, rot, mat);
+	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	
 	elem= (MetaElem*)add_metaball_primitive(C, mat, RNA_enum_get(op->ptr, "type"), newob);
 	mball= (MetaBall*)obedit->data;
@@ -833,14 +833,13 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
 
 		if(base->object->type==OB_LAMP) islamp= 1;
-		
 		/* remove from current scene only */
 		ED_base_object_free_and_unlink(scene, base);
 	}
 	CTX_DATA_END;
 
 	if(islamp) reshadeall_displist(scene);	/* only frees displist */
-	
+
 	DAG_scene_sort(scene);
 	DAG_ids_flush_update(0);
 	
@@ -1054,7 +1053,7 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 
 static EnumPropertyItem convert_target_items[]= {
 	{OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
-	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Mesh", ""},
+	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static void curvetomesh(Scene *scene, Object *ob) 
@@ -1674,6 +1673,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_duplicate(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Duplicate";
 	ot->description = "Duplicate selected objects";
@@ -1688,7 +1689,8 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	
 	/* to give to transform */
 	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
-	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	prop= RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* **************** add named object, for dragdrop ************* */

@@ -1547,11 +1547,17 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 static void rna_def_modifier_particlesystem(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ParticleSystemModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "ParticleSystem Modifier", "Particle system simulation modifier");
 	RNA_def_struct_sdna(srna, "ParticleSystemModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_PARTICLES);
+	
+	prop= RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "psys");
+	RNA_def_property_ui_text(prop, "Particle System", "Particle System that this modifier controls");
 }
 
 static void rna_def_modifier_particleinstance(BlenderRNA *brna)
@@ -1719,9 +1725,9 @@ static void rna_def_modifier_smoke(BlenderRNA *brna)
 	
 	static EnumPropertyItem prop_smoke_type_items[] = {
 			{0, "NONE", 0, "None", ""},
-			{MOD_SMOKE_TYPE_DOMAIN, "TYPE_DOMAIN", 0, "Domain", ""},
-			{MOD_SMOKE_TYPE_FLOW, "TYPE_FLOW", 0, "Flow", "Inflow/Outflow"},
-			{MOD_SMOKE_TYPE_COLL, "TYPE_COLL", 0, "Collision", ""},
+			{MOD_SMOKE_TYPE_DOMAIN, "DOMAIN", 0, "Domain", ""},
+			{MOD_SMOKE_TYPE_FLOW, "FLOW", 0, "Flow", "Inflow/Outflow"},
+			{MOD_SMOKE_TYPE_COLL, "COLLISION", 0, "Collision", ""},
 			{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SmokeModifier", "Modifier");

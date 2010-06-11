@@ -199,9 +199,9 @@ char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 /* this callback gets called when the 'refresh' button of a pyconstraint gets pressed */
 void update_pyconstraint_cb (void *arg1, void *arg2)
 {
+#ifndef DISABLE_PYTHON
 	Object *owner= (Object *)arg1;
 	bConstraint *con= (bConstraint *)arg2;
-#ifndef DISABLE_PYTHON
 	if (owner && con)
 		BPY_pyconstraint_update(owner, con);
 #endif
@@ -1286,9 +1286,9 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 			
 		case CONSTRAINT_TYPE_PYTHON: // FIXME: this code is not really valid anymore
 		{
+#ifndef DISABLE_PYTHON
 			char *menustr;
 			int scriptint= 0;
-#ifndef DISABLE_PYTHON
 			/* popup a list of usable scripts */
 			menustr = buildmenu_pyconstraints(NULL, &scriptint);
 			// XXX scriptint = pupmenu(menustr);

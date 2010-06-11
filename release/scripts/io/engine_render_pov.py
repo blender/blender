@@ -762,12 +762,22 @@ class PovrayRender(bpy.types.RenderEngine):
 
         if 1:
             # TODO, when povray isnt found this gives a cryptic error, would be nice to be able to detect if it exists
-            self._process = subprocess.Popen([pov_binary, self._temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            try:
+                self._process = subprocess.Popen([pov_binary, self._temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            except OSError:
+                # TODO, report api
+                print("POVRAY: could not execute povray, possibly povray isn't installed: '%s'" % pov_binary)
+                import traceback
+                traceback.print_exc()
+                print ("***-DONE-***")
+                return False
+
         else:
             # This works too but means we have to wait until its done
             os.system('%s %s' % (pov_binary, self._temp_file_ini))
 
         print ("***-DONE-***")
+        return True
 
     def _cleanup(self):
         for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
@@ -783,7 +793,10 @@ class PovrayRender(bpy.types.RenderEngine):
         self.update_stats("", "POVRAY: Exporting data from Blender")
         self._export(scene)
         self.update_stats("", "POVRAY: Parsing File")
-        self._render()
+
+        if not self._render():
+            self.update_stats("", "POVRAY: Not found")
+            return
 
         r = scene.render
 

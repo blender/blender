@@ -2306,9 +2306,6 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 
 static int game_property_clear_exec(bContext *C, wmOperator *op)
 {
-	Object *ob=ED_object_active_context(C);
-	bProperty *prop;
-
 	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
 		free_properties(&ob_iter->prop);
 	}

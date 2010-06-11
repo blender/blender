@@ -38,7 +38,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         # Menus
         if context.area.show_menus:
             sub = row.row(align=True)
-			
+
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
@@ -855,8 +855,8 @@ class VIEW3D_MT_object_game_properties(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.game_property_copy", text="Replace").operation="REPLACE"
-        layout.operator("object.game_property_copy", text="Merge").operation="MERGE"
+        layout.operator("object.game_property_copy", text="Replace").operation = 'REPLACE'
+        layout.operator("object.game_property_copy", text="Merge").operation = 'MERGE'
         layout.operator_menu_enum("object.game_property_copy", "property", text="Copy...")
         layout.separator()
         layout.operator("object.game_property_clear")
@@ -1879,6 +1879,7 @@ class VIEW3D_PT_view3d_properties(bpy.types.Panel):
         scene = context.scene
 
         col = layout.column()
+        col.active = view.region_3d.view_perspective != 'CAMERA'
         col.prop(view, "lens")
         col.label(text="Lock to Object:")
         col.prop(view, "lock_object", text="")

@@ -283,10 +283,10 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	float maxxi= maxx - 1.0f;
 	float minyi= miny + 1.0f;
 	float maxyi= maxy - 1.0f;
-	float facxi= 1.0f/(maxxi-minxi); /* for uv */
-	float facyi= 1.0f/(maxyi-minyi);
+	float facxi= (maxxi!=minxi) ? 1.0f/(maxxi-minxi) : 0.0f; /* for uv, can divide by zero */
+	float facyi= (maxyi!=minyi) ? 1.0f/(maxyi-minyi) : 0.0f;
 	int a, tot= 0, minsize;
-	
+
 	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
 	
 	if(2.0f*rad > minsize)

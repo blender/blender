@@ -1077,6 +1077,21 @@ static int emDM_getNumFaces(DerivedMesh *dm)
 	return BLI_countlist(&emdm->em->faces);
 }
 
+static void emDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditVert *eve;
+	int i;
+
+	for (i=0,eve= emdm->em->verts.first; eve; i++,eve=eve->next) {
+		if (emdm->vertexCos) {
+			copy_v3_v3(cos_r[i], emdm->vertexCos[i]);
+		} else {
+			copy_v3_v3(cos_r[i], eve->co);
+		}
+	}
+}
+
 static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 {
 	EditVert *ev = ((EditMeshDerivedMesh *)dm)->em->verts.first;
@@ -1308,6 +1323,8 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 	emdm->dm.getNumVerts = emDM_getNumVerts;
 	emdm->dm.getNumEdges = emDM_getNumEdges;
 	emdm->dm.getNumFaces = emDM_getNumFaces;
+
+	emdm->dm.getVertCos = emDM_getVertCos;
 
 	emdm->dm.getVert = emDM_getVert;
 	emdm->dm.getEdge = emDM_getEdge;

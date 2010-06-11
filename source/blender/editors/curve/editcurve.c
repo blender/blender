@@ -5283,7 +5283,7 @@ static int curve_prim_add(bContext *C, wmOperator *op, int type){
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	ED_object_new_primitive_matrix(C, loc, rot, mat);
+	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	
 	nu= add_nurbs_primitive(C, mat, type, newob);
 	editnurb= curve_get_editcurve(obedit);

@@ -139,8 +139,10 @@ class NODE_MT_node(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("node.hide")
-        layout.operator("node.mute")
+        layout.operator("node.hide_toggle")
+        layout.operator("node.mute_toggle")
+        layout.operator("node.preview_toggle")
+        layout.operator("node.hide_socket_toggle")
 
         # XXX
         # layout.operator("node.rename")
