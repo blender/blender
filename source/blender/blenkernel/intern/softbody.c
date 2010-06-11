@@ -3584,7 +3584,11 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 		setgoal= 1;
 		
 	for(nu= cu->nurb.first; nu; nu= nu->next) {
-		if(nu->bezt) {
+		if(nu->bezt) { 
+			/* bezier case ; this is nicly said naive; who ever wrote this part, it was not me (JOW) :) */
+			/* a: never ever make tangent handles (sub) and or (ob)ject to collision */ 
+			/* b: rather calculate them using some C2 (C2= continous in second derivate -> no jump in bending ) condition */
+			/* not too hard to do, but needs some more code to care for;  some one may want look at it  JOW 2010/06/12*/
 			for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++, bp+=3, curindex+=3) {
 				if(setgoal) {
 					bp->goal= bezt->weight;
