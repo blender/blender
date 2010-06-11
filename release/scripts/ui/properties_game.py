@@ -458,7 +458,7 @@ class WORLD_PT_game_mist(WorldButtonsPanel):
     def draw_header(self, context):
         world = context.world
 
-        self.layout.prop(world.mist, "enabled", text="")
+        self.layout.prop(world.mist, "use_mist", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -466,7 +466,7 @@ class WORLD_PT_game_mist(WorldButtonsPanel):
         world = context.world
         wide_ui = context.region.width > narrowui
 
-        layout.active = world.mist.enabled
+        layout.active = world.mist.use_mist
         split = layout.split()
 
         col = split.column()
