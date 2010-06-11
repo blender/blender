@@ -224,6 +224,21 @@ static int find_specialvar(char *string)
 	return i;
 }
 
+static int find_bool(char *string) 
+{
+	int i = 0;
+	/* Check for "False" */
+	if(string[0]=='F' && string[1]=='a' && string[2]=='l' && string[3]=='s' && string[4]=='e')
+		i = 5;
+	/* Check for "True" */
+	else if(string[0]=='T' && string[1]=='r' && string[2]=='u' && string[3]=='e')
+		i = 4;
+	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	if(i==0 || text_check_identifier(string[i]))
+		return -1;
+	return i;
+}
+
 /* Ensures the format string for the given line is long enough, reallocating
  as needed. Allocation is done here, alone, to ensure consistency. */
 int text_check_format_len(TextLine *line, unsigned int len)
@@ -335,6 +350,17 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 			/* Numbers (digits not part of an identifier and periods followed by digits) */
 			else if((prev != 'q' && text_check_digit(*str)) || (*str == '.' && text_check_digit(*(str+1))))
 				*fmt = 'n';
+			/* Booleans */
+			else if(prev != 'q' && (i=find_bool(str)) != -1)
+				if(i>0) {
+					while(i>1) {
+						*fmt = 'n'; fmt++; str++;
+						i--;
+					}
+					*fmt = 'n';
+				}
+				else
+					*fmt = 'q';
 			/* Punctuation */
 			else if(text_check_delim(*str))
 				*fmt = '!';

@@ -118,15 +118,13 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_TEXT:
-			if(!wmn->reference || wmn->reference == st->text) {
+			if(!wmn->reference || wmn->reference == st->text || wmn->data == ND_DISPLAY || wmn->action == NA_EDITED) {
 				ED_area_tag_redraw(sa);
 
 				if(wmn->action == NA_EDITED)
 					if(st->text)
 						text_update_edited(st->text);
 			}
-			else if(wmn->data == ND_DISPLAY)
-				ED_area_tag_redraw(sa);
 
 			break;
 		case NC_SPACE:

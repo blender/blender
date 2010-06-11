@@ -1557,7 +1557,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "tabnumber");
 	RNA_def_property_range(prop, 2, 8);
 	RNA_def_property_ui_text(prop, "Tab Width", "Number of spaces to display tabs with");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
+	RNA_def_property_update(prop, NC_TEXT|NA_EDITED, NULL);
 
 	prop= RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "lheight");
