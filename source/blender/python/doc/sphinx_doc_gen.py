@@ -54,6 +54,9 @@ EXAMPLE_SET_USED = set()
 _BPY_STRUCT_FAKE = "bpy_struct"
 _BPY_FULL_REBUILD = False
 
+undocumented_message = "Undocumented (`suggest a description " \
+    "<http://wiki.blender.org/index.php/Dev:2.5/Py/API/Documentation/Contribute>`_)\n\n"
+
 def range_str(val):
     if val < -10000000:	return '-inf'
     if val >  10000000:	return 'inf'
@@ -130,7 +133,7 @@ def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
 def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):    
     doc = descr.__doc__
     if not doc:
-        doc = "Undocumented"
+        doc = undocumented_message
     
     if type(descr) == GetSetDescriptorType:
         fw(ident + ".. attribute:: %s\n\n" % identifier)
@@ -154,8 +157,7 @@ def py_c_func2sphinx(ident, fw, identifier, py_func, is_class=True):
         fw("\n")
     else:
         fw(ident + ".. function:: %s()\n\n" % identifier)
-        fw(ident + "   Undocumented function.\n\n" % identifier)
-
+        fw(ident + "   " + undocumented_message)
 
 def pyprop2sphinx(ident, fw, identifier, py_prop):
     '''
@@ -641,10 +643,10 @@ def rna2sphinx(BASEPATH):
         if subclass_ids:
             fw("subclasses --- \n" + ", ".join([(":class:`%s`" % s) for s in sorted(subclass_ids)]) + "\n\n")
 
-        fw(".. class:: %s\n" % _BPY_STRUCT_FAKE)
-        fw("\n")
-        fw("   built-in base class for all classes in bpy.types, note that bpy.types.%s is not actually available from within blender, it only exists for the purpose of documentation.\n" % _BPY_STRUCT_FAKE)
-        fw("\n")
+        fw(".. class:: %s\n\n" % _BPY_STRUCT_FAKE)
+        fw("   built-in base class for all classes in bpy.types.\n\n")
+        fw("   .. note::\n\n")
+        fw("      Note that bpy.types.%s is not actually available from within blender, it only exists for the purpose of documentation.\n\n" % _BPY_STRUCT_FAKE)
 
         descr_items = [(key, descr) for key, descr in sorted(bpy.types.Struct.__bases__[0].__dict__.items()) if not key.startswith("__")]
 
@@ -679,8 +681,15 @@ def rna2sphinx(BASEPATH):
 
             args_str = ", ".join([prop.get_arg_default(force=True) for prop in op.args])
             fw(".. function:: %s(%s)\n\n" % (op.func_name, args_str))
-            if op.description:
-                fw("   %s\n\n" % op.description)
+
+            # if the description isn't valid, we output the standard warning 
+            # with a link to the wiki so that people can help
+            if not op.description or op.description == "(undocumented operator)":
+                operator_description = undocumented_message
+            else:
+                operator_description = op.description
+
+            fw("   %s\n\n" % operator_description)
             for prop in op.args:
                 write_param("   ", fw, prop)
             if op.args:

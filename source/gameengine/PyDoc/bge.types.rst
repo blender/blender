@@ -2309,7 +2309,7 @@ Game Engine  bge.types Module
       :return: mesh proxy
       :rtype: :class:`MeshProxy`
 
-.. class:: KX_PolygonMaterial
+.. class:: KX_PolygonMaterial(PyObjectPlus)
 
    This is the interface to materials in the game engine.
 
