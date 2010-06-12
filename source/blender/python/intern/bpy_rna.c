@@ -924,15 +924,10 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, v
 		}
 		case PROP_STRING:
 		{
-			Py_ssize_t param_len;
-			int param_maxlen= RNA_property_string_maxlength(prop) - 1;
-			char *param = _PyUnicode_AsStringAndSize(value, &param_len);
+			char *param = _PyUnicode_AsString(value);
 
 			if (param==NULL) {
 				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected a string type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
-				return -1;
-			} else if (param_maxlen != -1 && param_len > param_maxlen) { /* -1 because it includes the \0 */
-				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s string is length %d, expected maximum of %d", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), (int)param_len, param_maxlen);
 				return -1;
 			}
 			else {

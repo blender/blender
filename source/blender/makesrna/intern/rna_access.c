@@ -961,7 +961,7 @@ int RNA_property_int_clamp(PointerRNA *ptr, PropertyRNA *prop, int *value)
 }
 
 /* this is the max length including \0 terminator.
- * -1 used when their is no maximum */
+ * '0' used when their is no maximum */
 int RNA_property_string_maxlength(PropertyRNA *prop)
 {
 	StringPropertyRNA *sprop= (StringPropertyRNA*)rna_ensure_property(prop);
@@ -1830,18 +1830,15 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 	IDProperty *idprop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr)))
-		IDP_AssignString(idprop, (char*)value);
+		IDP_AssignString(idprop, (char*)value, RNA_property_string_maxlength(prop) - 1);
 	else if(sprop->set)
-		sprop->set(ptr, value);
+		sprop->set(ptr, value); /* set function needs to clamp its self */
 	else if(prop->flag & PROP_EDITABLE) {
-		IDPropertyTemplate val = {0};
 		IDProperty *group;
-
-		val.str= (char*)value;
 
 		group= RNA_struct_idproperties(ptr, 1);
 		if(group)
-			IDP_AddToGroup(group, IDP_New(IDP_STRING, val, (char*)prop->identifier));
+			IDP_AddToGroup(group, IDP_NewString((char*)value, (char*)prop->identifier, RNA_property_string_maxlength(prop) - 1));
 	}
 }
 
