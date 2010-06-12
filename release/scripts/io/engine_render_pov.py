@@ -766,7 +766,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 self._process = subprocess.Popen([pov_binary, self._temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
             except OSError:
                 # TODO, report api
-                print("POVRAY: could not execute povray, possibly povray isn't installed: '%s'" % pov_binary)
+                print("POVRAY: could not execute '%s', possibly povray isn't installed" % pov_binary)
                 import traceback
                 traceback.print_exc()
                 print ("***-DONE-***")

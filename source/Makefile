@@ -478,7 +478,7 @@ debug debuglink::
 clean:: linkclean debuglinkclean
 
 link: $(BINTARGETS)
-	@echo "****> Build $(MAKE_START) - `date '+%H:%M:%S %d-%b-%Y'`"
+	@echo "****> Build SVN rev $(BUILD_REV), $(MAKE_START) - `date '+%H:%M:%S %d-%b-%Y'`"
 ifdef NANENV
 	@for n in $(NANENV); do \
 	    echo "      $$n"; \
