@@ -960,7 +960,8 @@ int RNA_property_int_clamp(PointerRNA *ptr, PropertyRNA *prop, int *value)
 	}
 }
 
-/* this is the max length including \0 terminator */
+/* this is the max length including \0 terminator.
+ * -1 used when their is no maximum */
 int RNA_property_string_maxlength(PropertyRNA *prop)
 {
 	StringPropertyRNA *sprop= (StringPropertyRNA*)rna_ensure_property(prop);
