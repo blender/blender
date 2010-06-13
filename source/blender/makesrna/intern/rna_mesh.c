@@ -33,6 +33,8 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_scene_types.h"
@@ -1806,6 +1808,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "all_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_ALLEDGES);
 	RNA_def_property_ui_text(prop, "All Edges", "Displays all edges for wireframe in all view modes in the 3D view");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "draw_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWFACES);
