@@ -5281,7 +5281,12 @@ static int curve_prim_add(bContext *C, wmOperator *op, int type){
 		if(type & CU_PRIM_PATH)
 			cu->flag |= CU_PATH|CU_3D;
 	}
+	else if(obedit==NULL || obedit->type!=OB_SURF) {
+		obedit= ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
+		newob = 1;
+	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	
 	
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	
@@ -5298,6 +5303,7 @@ static int curve_prim_add(bContext *C, wmOperator *op, int type){
 	
 	return OPERATOR_FINISHED;
 }
+/* ******************** Curves ******************* */
 
 static int add_primitive_bezier_exec(bContext *C, wmOperator *op)
 {
@@ -5414,7 +5420,144 @@ void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
+/* **************** NURBS surfaces ********************** */
+static int add_primitive_nurbs_surface_curve_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_PRIM_CURVE|CU_NURBS);
+}
 
+void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Surface Curve";
+	ot->description= "Construct a Nurbs surface Curve";
+	ot->idname= "SURFACE_OT_primitive_nurbs_surface_curve_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_nurbs_surface_curve_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_nurbs_surface_circle_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_PRIM_CIRCLE|CU_NURBS);
+}
+
+void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Surface Circle";
+	ot->description= "Construct a Nurbs surface Circle";
+	ot->idname= "SURFACE_OT_primitive_nurbs_surface_circle_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_nurbs_surface_circle_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_nurbs_surface_surface_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_PRIM_PATCH|CU_NURBS);
+}
+
+void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Surface Patch";
+	ot->description= "Construct a Nurbs surface Patch";
+	ot->idname= "SURFACE_OT_primitive_nurbs_surface_surface_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_nurbs_surface_surface_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_nurbs_surface_tube_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_PRIM_TUBE|CU_NURBS);
+}
+
+void SURFACE_OT_primitive_nurbs_surface_tube_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Surface Tube";
+	ot->description= "Construct a Nurbs surface Tube";
+	ot->idname= "SURFACE_OT_primitive_nurbs_surface_tube_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_nurbs_surface_tube_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_nurbs_surface_sphere_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_PRIM_SPHERE|CU_NURBS);
+}
+
+void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Surface Sphere";
+	ot->description= "Construct a Nurbs surface Sphere";
+	ot->idname= "SURFACE_OT_primitive_nurbs_surface_sphere_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_nurbs_surface_sphere_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
+static int add_primitive_nurbs_surface_donut_exec(bContext *C, wmOperator *op)
+{
+	return curve_prim_add(C, op, CU_PRIM_DONUT|CU_NURBS);
+}
+
+void SURFACE_OT_primitive_nurbs_surface_donut_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Surface Donut";
+	ot->description= "Construct a Nurbs surface Donut";
+	ot->idname= "SURFACE_OT_primitive_nurbs_surface_donut_add";
+	
+	/* api callbacks */
+	ot->invoke= ED_object_add_generic_invoke;
+	ot->exec= add_primitive_nurbs_surface_donut_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
 
 /***************** clear tilt operator ********************/
 
