@@ -864,6 +864,7 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	Mesh *me= get_mesh(ob);
 	int index;
 	short mval[2] = {0, 0}, sco[2];
+	int vgroup= ob->actdef-1;
 
 	if (!me) return;
 	
@@ -938,7 +939,6 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 		}
 		else {
 			DerivedMesh *dm;
-			MDeformWeight *dw;
 			float w1, w2, w3, w4, co[3], fac;
 			
 			dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
@@ -968,21 +968,17 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 				
 				fac= MIN4(w1, w2, w3, w4);
 				if(w1==fac) {
-					dw= defvert_find_index(me->dvert+mface->v1, ob->actdef-1);
-					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
+					ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v1, vgroup);
 				}
 				else if(w2==fac) {
-					dw= defvert_find_index(me->dvert+mface->v2, ob->actdef-1);
-					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
+					ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v2, vgroup);
 				}
 				else if(w3==fac) {
-					dw= defvert_find_index(me->dvert+mface->v3, ob->actdef-1);
-					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
+					ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v3, vgroup);
 				}
 				else if(w4==fac) {
 					if(mface->v4) {
-						dw= defvert_find_index(me->dvert+mface->v4, ob->actdef-1);
-						if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
+						ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v4, vgroup);
 					}
 				}
 			}
