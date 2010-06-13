@@ -2104,6 +2104,11 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_RIM);
 	RNA_def_property_ui_text(prop, "Fill Rim", "Create edge loops between the inner and outer surfaces on face edges (slow, disable when not needed)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
+	prop= RNA_def_property(srna, "use_rim_material", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_RIM_MATERIAL);
+	RNA_def_property_ui_text(prop, "Rim Material", "Use in the next material for rim faces");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "use_even_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_EVEN);
@@ -2119,6 +2124,8 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_VGROUP_INV);
 	RNA_def_property_ui_text(prop, "Vertex Group Invert", "Invert the vertex group influence");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
+	
 }
 
 static void rna_def_modifier_screw(BlenderRNA *brna)
