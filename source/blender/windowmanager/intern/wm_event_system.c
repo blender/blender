@@ -1212,7 +1212,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			{
 				/* XXX validate area and region? */
 				bScreen *screen= CTX_wm_screen(C);
-				char *path= RNA_string_get_alloc(handler->op->ptr, "path", NULL, 0);
+				char *path= RNA_string_get_alloc(handler->op->ptr, "filepath", NULL, 0);
 				
 				if(screen != handler->filescreen)
 					ED_screen_full_prevspace(C, CTX_wm_area(C));

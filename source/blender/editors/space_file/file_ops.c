@@ -576,7 +576,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			if(RNA_boolean_get(op->ptr, "relative_path"))
 				BLI_path_rel(name, G.sce);
 
-		RNA_string_set(op->ptr, "path", name);
+		RNA_string_set(op->ptr, "filepath", name);
 		
 		/* some ops have multiple files to select */
 		{

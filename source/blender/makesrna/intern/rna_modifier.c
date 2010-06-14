@@ -1605,7 +1605,7 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Children", "Create instances from child particles");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "path", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_path", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Path);
 	RNA_def_property_ui_text(prop, "Path", "Create instances along particle paths");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");

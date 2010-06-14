@@ -498,7 +498,7 @@ typedef struct wmDropBox {
 
 typedef struct RecentFile {
 	struct RecentFile *next, *prev;
-	char *filename;
+	char *filepath;
 } RecentFile;
 
 

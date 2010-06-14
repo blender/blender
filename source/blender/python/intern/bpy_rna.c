@@ -1854,7 +1854,7 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject *kw,  const char *parse_str, const char *error_prefix,
 	char **path_full, int *index, float *cfra, char **group_name) /* return values */
 {
-	static char *kwlist[] = {"path", "index", "frame", "group", NULL};
+	static char *kwlist[] = {"datapath", "index", "frame", "group", NULL};
 	char *path;
 
 	/* note, parse_str MUST start with 's|ifs' */
@@ -1871,12 +1871,12 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject
 }
 
 static char pyrna_struct_keyframe_insert_doc[] =
-".. method:: keyframe_insert(path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
+".. method:: keyframe_insert(datapath, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
 "\n"
 "   Insert a keyframe on the property given, adding fcurves and animation data when necessary.\n"
 "\n"
-"   :arg path: path to the property to key, analogous to the fcurve's data path.\n"
-"   :type path: string\n"
+"   :arg datapath: path to the property to key, analogous to the fcurve's data path.\n"
+"   :type datapath: string\n"
 "   :arg index: array index of the property to key. Defaults to -1 which will key all indicies or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is inserted, defaulting to the current frame.\n"
@@ -1905,12 +1905,12 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *arg
 }
 
 static char pyrna_struct_keyframe_delete_doc[] =
-".. method:: keyframe_delete(path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
+".. method:: keyframe_delete(datapath, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
 "\n"
 "   Remove a keyframe from this properties fcurve.\n"
 "\n"
-"   :arg path: path to the property to remove a key, analogous to the fcurve's data path.\n"
-"   :type path: string\n"
+"   :arg datapath: path to the property to remove a key, analogous to the fcurve's data path.\n"
+"   :type datapath: string\n"
 "   :arg index: array index of the property to remove a key. Defaults to -1 removing all indicies or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is deleted, defaulting to the current frame.\n"

@@ -1037,7 +1037,7 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 
-	RNA_string_get(op->ptr, "path", path);
+	RNA_string_get(op->ptr, "filepath", path);
 
 	scene= ac.scene;	/* current scene */
 

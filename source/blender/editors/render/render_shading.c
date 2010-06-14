@@ -847,7 +847,7 @@ static int envmap_save_exec(bContext *C, wmOperator *op)
 	int imtype = scene->r.imtype;
 	char path[FILE_MAX];
 	
-	RNA_string_get(op->ptr, "path", path);
+	RNA_string_get(op->ptr, "filepath", path);
 	
 	if(scene->r.scemode & R_EXTENSION)  {
 		BKE_add_image_extension(path, imtype);
@@ -871,12 +871,12 @@ static int envmap_save_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 	
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return envmap_save_exec(C, op);
 
 	//RNA_enum_set(op->ptr, "file_type", scene->r.imtype);
 	
-	RNA_string_set(op->ptr, "path", G.sce);
+	RNA_string_set(op->ptr, "filepath", G.sce);
 	WM_event_add_fileselect(C, op);
 	
 	return OPERATOR_RUNNING_MODAL;

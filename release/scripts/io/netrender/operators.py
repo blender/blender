@@ -77,7 +77,7 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
 
         bpy.ops.ptcache.bake_all()
 
-        #bpy.ops.wm.save_mainfile(path = path + os.sep + root + "_baked.blend")
+        #bpy.ops.wm.save_mainfile(filepath = path + os.sep + root + "_baked.blend")
 
         return {'FINISHED'}
 

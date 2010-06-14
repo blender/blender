@@ -127,8 +127,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		else
 			params->type = FILE_SPECIAL;
 
-		if (RNA_property_is_set(op->ptr, "path")) {
-			RNA_string_get(op->ptr, "path", name);
+		if (RNA_property_is_set(op->ptr, "filepath")) {
+			RNA_string_get(op->ptr, "filepath", name);
 			if (params->type == FILE_LOADLIB) {
 				BLI_strncpy(params->dir, name, sizeof(params->dir));
 				BLI_cleanup_dir(G.sce, params->dir);	

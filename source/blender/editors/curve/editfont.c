@@ -384,7 +384,7 @@ static int paste_file_exec(bContext *C, wmOperator *op)
 	char *path;
 	int retval;
 	
-	path= RNA_string_get_alloc(op->ptr, "path", NULL, 0);
+	path= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
 	retval= paste_file(C, op->reports, path);
 	MEM_freeN(path);
 
@@ -393,7 +393,7 @@ static int paste_file_exec(bContext *C, wmOperator *op)
 
 static int paste_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return paste_file_exec(C, op);
 
 	WM_event_add_fileselect(C, op); 
@@ -1564,7 +1564,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	PointerRNA idptr;
 	char str[FILE_MAX];
 	
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 
 	font = load_vfont(str);
 	
@@ -1613,12 +1613,12 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	path = (font && font->name)? font->name: U.fontdir;
 	 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
 	
 	open_init(C, op);
 	
-	RNA_string_set(op->ptr, "path", path);
+	RNA_string_set(op->ptr, "filepath", path);
 	WM_event_add_fileselect(C, op); 
 
 	return OPERATOR_RUNNING_MODAL;

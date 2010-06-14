@@ -480,10 +480,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         layout.separator()
 
-        layout.prop(md, "path", text="Create Along Paths")
+        layout.prop(md, "use_path", text="Create Along Paths")
 
         split = layout.split()
-        split.active = md.path
+        split.active = md.use_path
         col = split.column()
         col.row().prop(md, "axis", expand=True)
         col.prop(md, "keep_shape")

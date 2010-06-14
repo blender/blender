@@ -133,13 +133,13 @@ class INFO_MT_file_open_recent(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
 
-        path = os.path.join(bpy.app.home, ".Blog")
+        filepath = os.path.join(bpy.app.home, ".Blog")
 
-        if os.path.isfile(path):
-            file = open(path, "rU")
+        if os.path.isfile(filepath):
+            file = open(filepath, "rU")
             for line in file:
                 line = line.rstrip()
-                layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').path = line
+                layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').filepath = line
             file.close()
         else:
             layout.label(text='No recent files')

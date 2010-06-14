@@ -202,7 +202,7 @@ static void free_openrecent(void)
 	struct RecentFile *recent;
 	
 	for(recent = G.recent_files.first; recent; recent=recent->next)
-		MEM_freeN(recent->filename);
+		MEM_freeN(recent->filepath);
 	
 	BLI_freelistN(&(G.recent_files));
 }

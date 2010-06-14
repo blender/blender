@@ -654,7 +654,7 @@ static const EnumPropertyItem image_file_type_items[] = {
 
 static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
-	RNA_string_set(op->ptr, "path", path);
+	RNA_string_set(op->ptr, "filepath", path);
 	WM_event_add_fileselect(C, op); 
 }
 
@@ -685,7 +685,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	Image *ima= NULL;
 	char str[FILE_MAX];
 
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 	/* default to frame 1 if there's no scene in context */
 	ima= BKE_add_image_file(str, scene ? scene->r.cfra : 1);
 
@@ -729,7 +729,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
 	
 	open_init(C, op);
@@ -767,7 +767,7 @@ static int replace_exec(bContext *C, wmOperator *op)
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
 	
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)-1); /* we cant do much if the str is longer then 240 :/ */
 
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
@@ -784,7 +784,7 @@ static int replace_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return replace_exec(C, op);
 
 	image_filesel(C, op, path);
@@ -918,7 +918,7 @@ static int save_as_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	sima->imtypenr= RNA_enum_get(op->ptr, "file_type");
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 
 	save_image_doit(C, sima, scene, op, str);
 
@@ -936,7 +936,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return save_as_exec(C, op);
 	
 	if(!ima)

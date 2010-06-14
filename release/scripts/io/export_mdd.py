@@ -159,7 +159,7 @@ class ExportMDD(bpy.types.Operator):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    path = StringProperty(name="File Path", description="File path used for exporting the MDD file", maxlen=1024)
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the MDD file", maxlen=1024)
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
     fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
     frame_start = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
@@ -170,9 +170,9 @@ class ExportMDD(bpy.types.Operator):
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
-        if not self.properties.path:
+        if not self.properties.filepath:
             raise Exception("filename not set")
-        write(self.properties.path, context.scene, context.active_object,
+        write(self.properties.filepath, context.scene, context.active_object,
             self.properties.frame_start, self.properties.frame_end, self.properties.fps)
         return {'FINISHED'}
 
@@ -184,7 +184,7 @@ class ExportMDD(bpy.types.Operator):
 
 def menu_func(self, context):
     default_path = bpy.data.filepath.replace(".blend", ".mdd")
-    self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)").path = default_path
+    self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)").filepath = default_path
 
 
 def register():

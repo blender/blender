@@ -83,12 +83,12 @@ class USERPREF_HT_header(bpy.types.Header):
 
         if userpref.active_section == 'INPUT':
             op = layout.operator("wm.keyconfig_export")
-            op.path = "keymap.py"
+            op.filepath = "keymap.py"
             op = layout.operator("wm.keyconfig_import")
-            op.path = "keymap.py"
+            op.filepath = "keymap.py"
         elif userpref.active_section == 'ADDONS':
             op = layout.operator("wm.addon_install")
-            op.path = "*.py"
+            op.filepath = "*.py"
         elif userpref.active_section == 'THEMES':
             op = layout.operator("ui.reset_default_theme")
 
@@ -1343,7 +1343,7 @@ class WM_OT_addon_install(bpy.types.Operator):
 
     module = StringProperty(name="Module", description="Module name of the addon to disable")
 
-    path = StringProperty(name="File Path", description="File path to write file to")
+    filepath = StringProperty(name="File Path", description="File path to write file to")
     filename = StringProperty(name="File Name", description="Name of the file")
     directory = StringProperty(name="Directory", description="Directory of the file")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
@@ -1352,7 +1352,7 @@ class WM_OT_addon_install(bpy.types.Operator):
     def execute(self, context):
         import traceback
         import zipfile
-        pyfile = self.properties.path
+        pyfile = self.properties.filepath
 
         path_addons = bpy.utils.script_paths("addons")[-1]
 

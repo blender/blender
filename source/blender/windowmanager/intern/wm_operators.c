@@ -774,7 +774,7 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
 int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (RNA_property_is_set(op->ptr, "path")) {
+	if (RNA_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call(C, op);
 	} 
 	else {
@@ -788,7 +788,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 {
 	PropertyRNA *prop;
 
-	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "File Path", "Path to file");
+	RNA_def_string_file_path(ot->srna, "filepath", "", FILE_MAX, "File Path", "Path to file");
 	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file");
 	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file");
 
@@ -1215,7 +1215,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Recent", 0);
 	for(recent = G.recent_files.first, i=0; (i<5) && (recent); recent = recent->next, i++) {
-		uiItemStringO(col, BLI_path_basename(recent->filename), ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
+		uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
 	}
 	uiItemS(col);
 	uiItemO(col, NULL, ICON_RECOVER_LAST, "WM_OT_recover_last_session");
@@ -1429,7 +1429,7 @@ static void open_set_use_scripts(wmOperator *op)
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	RNA_string_set(op->ptr, "path", G.sce);
+	RNA_string_set(op->ptr, "filepath", G.sce);
 	open_set_load_ui(op);
 	open_set_use_scripts(op);
 
@@ -1442,7 +1442,7 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
 
-	RNA_string_get(op->ptr, "path", path);
+	RNA_string_get(op->ptr, "filepath", path);
 	open_set_load_ui(op);
 	open_set_use_scripts(op);
 
@@ -1488,12 +1488,12 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
-	if(RNA_property_is_set(op->ptr, "path")) {
+	if(RNA_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call(C, op);
 	} 
 	else {
 		/* XXX TODO solve where to get last linked library from */
-		RNA_string_set(op->ptr, "path", G.lib);
+		RNA_string_set(op->ptr, "filepath", G.lib);
 		WM_event_add_fileselect(C, op);
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -1693,7 +1693,7 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
 
-	RNA_string_get(op->ptr, "path", path);
+	RNA_string_get(op->ptr, "filepath", path);
 
 	G.fileflags |= G_FILE_RECOVER;
 
@@ -1714,7 +1714,7 @@ static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	char filename[FILE_MAX];
 
 	wm_autosave_location(filename);
-	RNA_string_set(op->ptr, "path", filename);
+	RNA_string_set(op->ptr, "filepath", filename);
 	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -1765,7 +1765,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
-	RNA_string_set(op->ptr, "path", name);
+	RNA_string_set(op->ptr, "filepath", name);
 	
 	WM_event_add_fileselect(C, op);
 
@@ -1780,8 +1780,8 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 
 	save_set_compress(op);
 	
-	if(RNA_property_is_set(op->ptr, "path"))
-		RNA_string_get(op->ptr, "path", path);
+	if(RNA_property_is_set(op->ptr, "filepath"))
+		RNA_string_get(op->ptr, "filepath", path);
 	else {
 		BLI_strncpy(path, G.sce, FILE_MAX);
 		untitled(path);
@@ -1833,7 +1833,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
-	RNA_string_set(op->ptr, "path", name);
+	RNA_string_set(op->ptr, "filepath", name);
 	
 	if (RNA_struct_find_property(op->ptr, "check_existing"))
 		if (RNA_boolean_get(op->ptr, "check_existing")==0)
@@ -1875,9 +1875,9 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {	
-	if(!RNA_property_is_set(op->ptr, "path")) {
+	if(!RNA_property_is_set(op->ptr, "filepath")) {
 		char *path = BLI_replacestr(G.sce, ".blend", ".dae");
-		RNA_string_set(op->ptr, "path", path);
+		RNA_string_set(op->ptr, "filepath", path);
 		MEM_freeN(path);
 	}
 
@@ -1891,12 +1891,12 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	
-	if(!RNA_property_is_set(op->ptr, "path")) {
+	if(!RNA_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
 	}
 	
-	RNA_string_get(op->ptr, "path", filename);
+	RNA_string_get(op->ptr, "filepath", filename);
 	collada_export(CTX_data_scene(C), filename);
 	
 	return OPERATOR_FINISHED;
@@ -1919,12 +1919,12 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
 	
-	if(!RNA_property_is_set(op->ptr, "path")) {
+	if(!RNA_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
 	}
 
-	RNA_string_get(op->ptr, "path", filename);
+	RNA_string_get(op->ptr, "filepath", filename);
 	collada_import(C, filename);
 	
 	return OPERATOR_FINISHED;
@@ -3201,47 +3201,47 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "LOGIC_EDITOR");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F3KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "NODE_EDITOR");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F4KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was data browser */
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "CONSOLE");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F5KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "VIEW_3D");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F6KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "GRAPH_EDITOR");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F7KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "PROPERTIES");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F8KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "SEQUENCE_EDITOR");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "OUTLINER");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F10KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "IMAGE_EDITOR");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F11KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "TEXT_EDITOR");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F12KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "DOPESHEET_EDITOR");
 
 	gesture_circle_modal_keymap(keyconf);

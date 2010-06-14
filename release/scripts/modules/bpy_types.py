@@ -614,7 +614,7 @@ class Menu(StructRNA, _GenericUI):
 
     def path_menu(self, searchpaths, operator, props_default={}):
         layout = self.layout
-        # hard coded to set the operators 'path' to the filename.
+        # hard coded to set the operators 'filepath' to the filename.
 
         import os
         import bpy.utils
@@ -623,12 +623,12 @@ class Menu(StructRNA, _GenericUI):
 
         # collect paths
         files = []
-        for path in searchpaths:
-            files.extend([(f, os.path.join(path, f)) for f in os.listdir(path)])
+        for directory in searchpaths:
+            files.extend([(f, os.path.join(directory, f)) for f in os.listdir(directory)])
 
         files.sort()
 
-        for f, path in files:
+        for f, filepath in files:
 
             if f.startswith("."):
                 continue
@@ -639,7 +639,7 @@ class Menu(StructRNA, _GenericUI):
             for attr, value in props_default.items():
                 setattr(props, attr, value)
 
-            props.path = path
+            props.filepath = filepath
             if operator == "script.execute_preset":
                 props.menu_idname = self.bl_idname
                 props.preset_name = preset_name
