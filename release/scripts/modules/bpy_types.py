@@ -79,10 +79,10 @@ class Group(bpy_types.ID):
     __slots__ = ()
 
     @property
-    def users_dupli_object(self):
-        """The dupli group this group is used in, XXX, TODO, WHY DOESNT THIS WORK???"""
+    def users_dupli_group(self):
+        """The dupli group this group is used in"""
         import bpy
-        return tuple(obj for obj in bpy.data.objects if self == obj.dupli_object)
+        return tuple(obj for obj in bpy.data.objects if self == obj.dupli_group)
 
 
 class Object(bpy_types.ID):

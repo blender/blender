@@ -2818,6 +2818,28 @@ void WM_OT_radial_control_partial(wmOperatorType *ot)
 
 /* uses no type defines, fully local testing function anyway... ;) */
 
+static void redraw_timer_window_swap(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+	ScrArea *sa;
+
+	for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next)
+		ED_area_tag_redraw(sa);
+	wm_draw_update(C);
+
+	CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
+}
+
+static EnumPropertyItem redraw_timer_type_items[] = {
+	{0, "DRAW", 0, "Draw Region", "Draw Region"},
+	{1, "DRAW_SWAP", 0, "Draw Region + Swap", "Draw Region and Swap"},
+	{2, "DRAW_WIN", 0, "Draw Window", "Draw Window"},
+	{3, "DRAW_WIN_SWAP", 0, "Draw Window + Swap", "Draw Window and Swap"},
+	{4, "ANIM_STEP", 0, "Anim Step", "Animation Steps"},
+	{5, "ANIM_PLAY", 0, "Anim Play", "Animation Playback"},
+	{6, "UNDO", 0, "Undo/Redo", "Undo/Redo"},
+	{0, NULL, 0, NULL, NULL}};
+
 static int redraw_timer_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
@@ -2826,7 +2848,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 	int iter = RNA_int_get(op->ptr, "iterations");
 	int a;
 	float time;
-	char *infostr= "";
+	const char *infostr= "";
 	
 	WM_cursor_wait(1);
 
@@ -2867,14 +2889,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 			CTX_wm_region_set(C, ar_back);
 		}
 		else if (type==3) {
-			wmWindow *win= CTX_wm_window(C);
-			ScrArea *sa;
-
-			for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next)
-				ED_area_tag_redraw(sa);
-			wm_draw_update(C);
-			
-			CTX_wm_window_set(C, win);	/* XXX context manipulation warning! */
+			redraw_timer_window_swap(C);
 		}
 		else if (type==4) {
 			Scene *scene= CTX_data_scene(C);
@@ -2883,23 +2898,34 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 			else scene->r.cfra++;
 			scene_update_for_newframe(scene, scene->lay);
 		}
-		else {
+		else if (type==5) {
+
+			/* play anim, return on same frame as started with */
+			Scene *scene= CTX_data_scene(C);
+			int tot= (scene->r.efra - scene->r.sfra) + 1;
+
+			while(tot--) {
+				/* todo, ability to escape! */
+				scene->r.cfra++;
+				if(scene->r.cfra > scene->r.efra)
+					scene->r.cfra= scene->r.sfra;
+
+				scene_update_for_newframe(scene, scene->lay);
+				redraw_timer_window_swap(C);
+			}
+		}
+		else { /* 6 */
 			ED_undo_pop(C);
 			ED_undo_redo(C);
 		}
 	}
 	
 	time= ((PIL_check_seconds_timer()-stime)*1000);
-	
-	if(type==0) infostr= "Draw Region";
-	if(type==1) infostr= "Draw Region and Swap";
-	if(type==2) infostr= "Draw Window";
-	if(type==3) infostr= "Draw Window and Swap";
-	if(type==4) infostr= "Animation Steps";
-	if(type==5) infostr= "Undo/Redo";
-	
+
+	RNA_enum_description(redraw_timer_type_items, type, &infostr);
+
 	WM_cursor_wait(0);
-	
+
 	BKE_reportf(op->reports, RPT_WARNING, "%d x %s: %.2f ms,  average: %.4f", iter, infostr, time, time/iter);
 	
 	return OPERATOR_FINISHED;
@@ -2907,24 +2933,15 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_redraw_timer(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_type_items[] = {
-	{0, "DRAW", 0, "Draw Region", ""},
-	{1, "DRAW_SWAP", 0, "Draw Region + Swap", ""},
-	{2, "DRAW_WIN", 0, "Draw Window", ""},
-	{3, "DRAW_WIN_SWAP", 0, "Draw Window + Swap", ""},
-	{4, "ANIM_STEP", 0, "Anim Step", ""},
-	{5, "UNDO", 0, "Undo/Redo", ""},
-	{0, NULL, 0, NULL, NULL}};
-	
 	ot->name= "Redraw Timer";
 	ot->idname= "WM_OT_redraw_timer";
 	ot->description="Simple redraw timer to test the speed of updating the interface";
-	
+
 	ot->invoke= WM_menu_invoke;
 	ot->exec= redraw_timer_exec;
 	ot->poll= WM_operator_winactive;
-	
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_type_items, 0, "Type", "");
+
+	ot->prop= RNA_def_enum(ot->srna, "type", redraw_timer_type_items, 0, "Type", "");
 	RNA_def_int(ot->srna, "iterations", 10, 1,INT_MAX, "Iterations", "Number of times to redraw", 1,1000);
 
 }
