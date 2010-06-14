@@ -2299,7 +2299,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 	}
 	else if ((prop = RNA_struct_find_property(&self->ptr, name))) {
 		  ret = pyrna_prop_to_py(&self->ptr, prop);
-	  }
+	}
 	/* RNA function only if callback is declared (no optional functions) */
 	else if ((func = RNA_struct_find_function(&self->ptr, name)) && RNA_function_defined(func)) {
 		ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self, func);
@@ -2393,17 +2393,43 @@ static int pyrna_struct_pydict_contains(PyObject *self, PyObject *pyname)
 static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObject *value )
 {
 	char *name = _PyUnicode_AsString(pyname);
-	PropertyRNA *prop = RNA_struct_find_property(&self->ptr, name);
-	
-	if (prop==NULL) {
-		return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
-	} else if (!RNA_property_editable_flag(&self->ptr, prop)) {
-		PyErr_Format( PyExc_AttributeError, "bpy_struct: attribute \"%.200s\" from \"%.200s\" is read-only", RNA_property_identifier(prop), RNA_struct_identifier(self->ptr.type) );
-		return -1;
+	PropertyRNA *prop= NULL;
+
+	if (name[0] != '_' && (prop= RNA_struct_find_property(&self->ptr, name))) {
+		if (!RNA_property_editable_flag(&self->ptr, prop)) {
+			PyErr_Format( PyExc_AttributeError, "bpy_struct: attribute \"%.200s\" from \"%.200s\" is read-only", RNA_property_identifier(prop), RNA_struct_identifier(self->ptr.type) );
+			return -1;
+		}
 	}
-		
+	else if (self->ptr.type == &RNA_Context) {
+		/* code just raises correct error, context prop's cant be set, unless its apart of the py class */
+		bContext *C = self->ptr.data;
+		if(C==NULL) {
+			PyErr_Format(PyExc_AttributeError, "bpy_struct: Context is 'NULL', can't set \"%.200s\" from context", name);
+			return -1;
+		}
+		else {
+			PointerRNA newptr;
+			ListBase newlb;
+			short newtype;
+
+			int done= CTX_data_get(C, name, &newptr, &newlb, &newtype);
+
+			if(done==1) {
+				PyErr_Format(PyExc_AttributeError, "bpy_struct: Context property \"%.200s\" is read-only", name);
+				BLI_freelistN(&newlb);
+				return -1;
+			}
+
+			BLI_freelistN(&newlb);
+		}
+	}
+
 	/* pyrna_py_to_prop sets its own exceptions */
-	return pyrna_py_to_prop(&self->ptr, prop, NULL, NULL, value, "bpy_struct: item.attr = val:");
+	if(prop)
+		return pyrna_py_to_prop(&self->ptr, prop, NULL, NULL, value, "bpy_struct: item.attr = val:");
+	else
+		return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
 }
 
 static PyObject *pyrna_prop_dir(BPy_PropertyRNA *self)
