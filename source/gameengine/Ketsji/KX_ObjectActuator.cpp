@@ -445,9 +445,7 @@ static int mathutils_obactu_vector_set_index(BaseMathObject *bmo, int subtype, i
 		return 0;
 
 	bmo->data[index]= f;
-	mathutils_obactu_vector_set(bmo, subtype);
-
-	return 1;
+	return mathutils_obactu_vector_set(bmo, subtype);
 }
 
 Mathutils_Callback mathutils_obactu_vector_cb = {
