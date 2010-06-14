@@ -234,8 +234,15 @@ void wm_event_do_notifiers(bContext *C)
 			}
 		}
 		if(do_anim) {
-			/* depsgraph gets called, might send more notifiers */
-			ED_update_for_newframe(C, 1);
+
+			/* XXX, quick frame changes can cause a crash if framechange and rendering
+			 * collide (happens on slow scenes), scene_update_for_newframe can be called
+			 * twice which can depgraph update the same object at once */
+			if(!G.rendering) {
+
+				/* depsgraph gets called, might send more notifiers */
+				ED_update_for_newframe(C, 1);
+			}
 		}
 	}
 	
