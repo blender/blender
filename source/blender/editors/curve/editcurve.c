@@ -5269,7 +5269,9 @@ static int curve_prim_add(bContext *C, wmOperator *op, int type){
 	float mat[4][4];
 	
 	//object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer);
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+		return OPERATOR_CANCELLED;
+
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
 		Curve *cu;
