@@ -184,25 +184,22 @@ static void gp_get_3d_reference (tGPsdata *p, float *vec)
 /* check if the current mouse position is suitable for adding a new point */
 static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
 {
-	int dx= abs(mval[0] - pmval[0]);
-	int dy= abs(mval[1] - pmval[1]);
-	
 	/* if buffer is empty, just let this go through (i.e. so that dots will work) */
 	if (p->gpd->sbuffer_size == 0)
 		return 1;
+	else {
+		/* check if the distance since the last point is significant enough
+		   no need for abs() or sqrt(), and don't bother checking Manhattan distance (ok?) */
+
+		int dx= mval[0] - pmval[0];
+		int dy= mval[1] - pmval[1];
 	
-	/* check if mouse moved at least certain distance on both axes (best case) */
-	else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX))
-		return 1;
-	
-	/* check if the distance since the last point is significant enough */
-	// future optimisation: sqrt here may be too slow?
-	else if (sqrt(dx*dx + dy*dy) > MIN_EUCLIDEAN_PX)
-		return 1;
-	
-	/* mouse 'didn't move' */
-	else
-		return 0;
+		if ((dx*dx + dy*dy) > (MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX))
+			return 1;
+	}
+
+	/* pencil 'didn't move' if we make it this far */
+	return 0;
 }
 
 /* convert screen-coordinates to buffer-coordinates */
@@ -349,29 +346,43 @@ static short gp_stroke_addpoint (tGPsdata *p, int mval[2], float pressure)
 /* smooth a stroke (in buffer) before storing it */
 static void gp_stroke_smooth (tGPsdata *p)
 {
-	bGPdata *gpd= p->gpd;
-	int i=0, cmx=gpd->sbuffer_size;
-	
 	/* only smooth if smoothing is enabled, and we're not doing a straight line */
 	if (!(U.gp_settings & GP_PAINT_DOSMOOTH) || (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT))
 		return;
-	
-	/* don't try if less than 2 points in buffer */
-	if ((cmx <= 2) || (gpd->sbuffer == NULL))
-		return;
-	
-	/* apply weighting-average (note doing this along path sequentially does introduce slight error) */
-	for (i=0; i < gpd->sbuffer_size; i++) {
-		tGPspoint *pc= (((tGPspoint *)gpd->sbuffer) + i);
-		tGPspoint *pb= (i-1 > 0)?(pc-1):(pc);
-		tGPspoint *pa= (i-2 > 0)?(pc-2):(pb);
-		tGPspoint *pd= (i+1 < cmx)?(pc+1):(pc);
-		tGPspoint *pe= (i+2 < cmx)?(pc+2):(pd);
+	else {
+		bGPdata *gpd= p->gpd;
+		int num_points=gpd->sbuffer_size;
 		
-		pc->x= (short)(0.1*pa->x + 0.2*pb->x + 0.4*pc->x + 0.2*pd->x + 0.1*pe->x);
-		pc->y= (short)(0.1*pa->y + 0.2*pb->y + 0.4*pc->y + 0.2*pd->y + 0.1*pe->y);
+		/* don't try if less than 5 points in buffer */
+		if ((num_points <= 5) || (gpd->sbuffer == NULL))
+			return;
+		else {
+			/* apply weighting-average (avoiding errors from sequential processing) */
+			
+			tGPspoint *begin = (tGPspoint*)gpd->sbuffer + 2;
+			tGPspoint *end = (tGPspoint*)gpd->sbuffer + num_points - 2;
+
+			tGPspoint orig_a = *(begin - 2);
+			tGPspoint orig_b = *(begin - 1);
+			
+			tGPspoint *c = begin;
+			tGPspoint *d = begin + 1;
+			tGPspoint *e = begin + 2;
+			
+			
+			for (; c < end; ++c, ++d, ++e) {
+				tGPspoint orig_c = *c;
+
+				c->x= (short)(0.1*orig_a.x + 0.2*orig_b.x + 0.4*orig_c.x + 0.2*d->x + 0.1*e->x);
+				c->y= (short)(0.1*orig_a.y + 0.2*orig_b.y + 0.4*orig_c.y + 0.2*d->y + 0.1*e->y);		
+
+				orig_a = orig_b;
+				orig_b = orig_c;
+			}
+		}
 	}
 }
+
 
 /* simplify a stroke (in buffer) before storing it 
  *	- applies a reverse Chaikin filter
@@ -385,12 +396,12 @@ static void gp_stroke_simplify (tGPsdata *p)
 	short flag= gpd->sbuffer_sflag;
 	short i, j;
 	
-	/* only simplify if simlification is enabled, and we're not doing a straight line */
+	/* only simplify if simplification is enabled, and we're not doing a straight line */
 	if (!(U.gp_settings & GP_PAINT_DOSIMPLIFY) || (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT))
 		return;
 	
 	/* don't simplify if less than 4 points in buffer */
-	if ((num_points <= 2) || (old_points == NULL))
+	if ((num_points < 4) || (old_points == NULL))
 		return;
 		
 	/* clear buffer (but don't free mem yet) so that we can write to it 
@@ -1283,8 +1294,10 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 		
 		tablet= (wmtab->Active != EVT_TABLET_NONE);
 		p->pressure= wmtab->Pressure;
-		//if (wmtab->Active == EVT_TABLET_ERASER)
+		if (wmtab->Active == EVT_TABLET_ERASER)
 			// TODO... this should get caught by the keymaps which call drawing in the first place
+			// .. but until that's possible, duct tape the eraser function back on
+			p->paintmode = GP_PAINTMODE_ERASER;
 	}
 	else
 		p->pressure= 1.0f;
@@ -1515,8 +1528,6 @@ static EnumPropertyItem prop_gpencil_drawmodes[] = {
 
 void GPENCIL_OT_draw (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Grease Pencil Draw";
 	ot->idname= "GPENCIL_OT_draw";
@@ -1533,8 +1544,6 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* settings for drawing */
-	prop= RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
-	
+	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
