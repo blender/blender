@@ -626,13 +626,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 		}
 	}
 	
-//	if(GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {	XXX
-//		float zoomx= curarea->winx/(float)(G.v2d->cur.xmax-G.v2d->cur.xmin);
-//		float zoomy= curarea->winy/(float)(G.v2d->cur.ymax-G.v2d->cur.ymin);
-//		glPixelZoom(zoomx*xscale, zoomy*yscale);
-//	}
-//	else
-		glPixelZoom(xscale, yscale);
+	glPixelZoom(xscale, yscale);
 
 	glEnable(GL_BLEND);
 	glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );	/* premul graphics */
@@ -660,6 +654,19 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	View2D *v2d = &ar->v2d;
 	bNodeTree *ntree = snode->nodetree;
 	PointerRNA ptr;
+	
+	/* hurmf... another candidate for callback, have to see how this works first */
+	if(node->id && node->block && snode->treetype==NTREE_SHADER)
+		nodeShaderSynchronizeID(node, 0);
+	
+	/* skip if out of view */
+	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
+			node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax) {
+		
+		uiEndBlock(C, node->block);
+		node->block= NULL;
+		return;
+	}
 	
 	uiSetRoundBox(15-4);
 	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
@@ -760,10 +767,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	if(node->flag & NODE_MUTED)
 		node_draw_mute_line(v2d, snode, node);
 
-	
-	/* hurmf... another candidate for callback, have to see how this works first */
-	if(node->id && node->block && snode->treetype==NTREE_SHADER)
-		nodeShaderSynchronizeID(node, 0);
 	
 	/* socket inputs, buttons */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
