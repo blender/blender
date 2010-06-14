@@ -592,10 +592,32 @@ static int acf_object_icon(bAnimListElem *ale)
 	Object *ob= base->object;
 	
 	/* icon depends on object-type */
-	if (ob->type == OB_ARMATURE)
-		return ICON_ARMATURE_DATA;
-	else	
-		return ICON_OBJECT_DATA;
+
+	switch (ob->type) {
+		case OB_LAMP:
+			return ICON_OUTLINER_OB_LAMP;
+		case OB_MESH: 
+			return ICON_OUTLINER_OB_MESH;
+		case OB_CAMERA: 
+			return ICON_OUTLINER_OB_CAMERA;
+		case OB_CURVE: 
+			return ICON_OUTLINER_OB_CURVE;
+		case OB_MBALL: 
+			return ICON_OUTLINER_OB_META;
+		case OB_LATTICE: 
+			return ICON_OUTLINER_OB_LATTICE;
+		case OB_ARMATURE: 
+			return ICON_OUTLINER_OB_ARMATURE;
+		case OB_FONT: 
+			return ICON_OUTLINER_OB_FONT;
+		case OB_SURF: 
+			return ICON_OUTLINER_OB_SURFACE;
+		case OB_EMPTY: 
+			return ICON_OUTLINER_OB_EMPTY;
+		default:
+			return ICON_OBJECT_DATA;
+	}
+	
 }
 
 /* name for object */
