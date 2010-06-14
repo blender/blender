@@ -126,7 +126,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
             sub.prop(curve, "use_deform_fill")
 
         col.label(text="Textures:")
-#       col.prop(curve, "uv_orco")
+        col.prop(curve, "map_along_length")
         col.prop(curve, "auto_texspace")
 
 
