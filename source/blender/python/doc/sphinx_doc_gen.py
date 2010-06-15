@@ -24,7 +24,7 @@ run this script from blenders root path once you have compiled blender
     ./blender.bin -b -P /b/source/blender/python/doc/sphinx_doc_gen.py
 
 This will generate python files in "./source/blender/python/doc/sphinx-in"
-Generate html docs  by running...
+Generate html docs by running...
     
     sphinx-build source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
 
@@ -54,10 +54,19 @@ EXAMPLE_SET_USED = set()
 _BPY_STRUCT_FAKE = "bpy_struct"
 _BPY_FULL_REBUILD = False
 
-undocumented_message = "Undocumented (`suggest a description " \
-    "<http://wiki.blender.org/index.php/Dev:2.5/Py/API/Documentation/Contribute>`_)\n\n"
+def undocumented_message(module_name, type_name, identifier):
+    message = "Undocumented (`contribute " \
+        "<http://wiki.blender.org/index.php/Dev:2.5/Py/API/Documentation/Contribute" \
+        "&action=edit&section=new&preload=Dev:2.5/Py/API/Documentation/Contribute/Howto-message" \
+        "&preloadtitle=%s.%s.%s>`_)\n\n" % (module_name, type_name, identifier)
+    return message
+
 
 def range_str(val):
+    '''
+    Converts values to strings for the range directive.
+    (unused function it seems)
+    '''
     if val < -10000000:	return '-inf'
     if val >  10000000:	return 'inf'
     if type(val)==float:
@@ -66,9 +75,9 @@ def range_str(val):
         return str(val)
 
 
-def write_example_ref(ident, fw, example_id, ext=".py"):
+def write_example_ref(ident, fw, example_id, ext="py"):
     if example_id in EXAMPLE_SET:
-        fw("%s.. literalinclude:: ../examples/%s%s\n\n" % (ident, example_id, ext))
+        fw("%s.. literalinclude:: ../examples/%s.%s\n\n" % (ident, example_id, ext))
         EXAMPLE_SET_USED.add(example_id)
     else:
         if bpy.app.debug:
@@ -76,6 +85,9 @@ def write_example_ref(ident, fw, example_id, ext=".py"):
 
 
 def write_indented_lines(ident, fn, text, strip=True):
+    '''
+    Apply same indentation to all lines in a multilines text.
+    '''
     if text is None:
         return
     for l in text.split("\n"):
@@ -131,14 +143,15 @@ def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
 
 
 def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):    
+
     doc = descr.__doc__
     if not doc:
-        doc = undocumented_message
+        doc = undocumented_message(module_name, type_name, identifier)
     
     if type(descr) == GetSetDescriptorType:
         fw(ident + ".. attribute:: %s\n\n" % identifier)
         write_indented_lines(ident + "   ", fw, doc, False)
-    elif type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+    elif type(descr) == MethodDescriptorType: # GetSetDescriptorType's are not documented yet
         write_indented_lines(ident, fw, doc, False)
     else:
         raise TypeError("type was not GetSetDescriptorType or MethodDescriptorType")
@@ -146,7 +159,8 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
     write_example_ref(ident, fw, module_name + "." + type_name + "." + identifier)
     fw("\n")
 
-def py_c_func2sphinx(ident, fw, identifier, py_func, is_class=True):
+
+def py_c_func2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_class=True):
     '''
     c defined function to sphinx.
     '''
@@ -157,7 +171,8 @@ def py_c_func2sphinx(ident, fw, identifier, py_func, is_class=True):
         fw("\n")
     else:
         fw(ident + ".. function:: %s()\n\n" % identifier)
-        fw(ident + "   " + undocumented_message)
+        fw(ident + "   " + undocumented_message(module_name, type_name, identifier))
+
 
 def pyprop2sphinx(ident, fw, identifier, py_prop):
     '''
@@ -221,7 +236,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             elif value_type in (types.BuiltinMethodType, types.BuiltinFunctionType): # both the same at the moment but to be future proof
                 # note: can't get args from these, so dump the string as is
                 # this means any module used like this must have fully formatted docstrings.
-                py_c_func2sphinx("", fw, attribute, value, is_class=False)
+                py_c_func2sphinx("", fw, module_name, module, attribute, value, is_class=False)
             elif value_type == type:
                 classes.append((attribute, value))
             elif value_type in (bool, int, float, str, tuple):
@@ -249,7 +264,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("__")]
 
         for key, descr in descr_items:
-            if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+            if type(descr) == MethodDescriptorType: # GetSetDescriptorType's are not documented yet
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
         for key, descr in descr_items:
@@ -685,7 +700,7 @@ def rna2sphinx(BASEPATH):
             # if the description isn't valid, we output the standard warning 
             # with a link to the wiki so that people can help
             if not op.description or op.description == "(undocumented operator)":
-                operator_description = undocumented_message
+                operator_description = undocumented_message('bpy.ops',op.module_name,op.func_name)
             else:
                 operator_description = op.description
 
