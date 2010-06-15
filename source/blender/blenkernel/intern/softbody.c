@@ -83,7 +83,7 @@ static int (*SB_localInterruptCallBack)(void) = NULL;
 
 /* ********** soft body engine ******* */
 
-typedef	enum {SB_EDGE=1,SB_BEND=2,SB_STIFFQUAD=3} type_spring;
+typedef	enum {SB_EDGE=1,SB_BEND=2,SB_STIFFQUAD=3,SB_HANDLE=4} type_spring;
 
 typedef struct BodySpring {
 	int v1, v2;
@@ -2129,6 +2129,7 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float fo
 	kw = kw * kw;
 	switch (bs->springtype){
 		case SB_EDGE:
+		case SB_HANDLE:
 			forcefactor *=  kw;
 			break;
 		case SB_BEND:
@@ -3607,21 +3608,21 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 
 				if(totspring) {
 					if(a>0) {
-						bs->v1= curindex-1;
+						bs->v1= curindex-3;
 						bs->v2= curindex;
-						bs->springtype=SB_EDGE;
-						bs->len= globallen( (bezt-1)->vec[2], bezt->vec[0], ob );
+						bs->springtype=SB_HANDLE;
+						bs->len= globallen( (bezt-1)->vec[0], bezt->vec[0], ob );
 						bs++;
 					}
 					bs->v1= curindex;
 					bs->v2= curindex+1;
-					bs->springtype=SB_EDGE;
+					bs->springtype=SB_HANDLE;
 					bs->len= globallen( bezt->vec[0], bezt->vec[1], ob );
 					bs++;
 
 					bs->v1= curindex+1;
 					bs->v2= curindex+2;
-					bs->springtype=SB_EDGE;
+					bs->springtype=SB_HANDLE;
 					bs->len= globallen( bezt->vec[1], bezt->vec[2], ob );
 					bs++;
 				}
