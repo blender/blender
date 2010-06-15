@@ -331,6 +331,7 @@ def rna2sphinx(BASEPATH):
     fw("   \n")
     fw("   The following areas are subject to change.\n")
     fw("      * operator names and arguments\n")
+    fw("      * render api\n")
     fw("      * function calls with the data api (any function calls with values accessed from bpy.data), including functions for importing and exporting meshes\n")
     fw("      * class registration (Operator, Panels, Menus, Headers)\n")
     fw("      * modules: bpy.props, blf)\n")
