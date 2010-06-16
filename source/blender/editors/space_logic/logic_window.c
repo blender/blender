@@ -4393,38 +4393,6 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	uiItemR(row, &logic_ptr, "controllers_show_active_objects", 0, "Act", 0);
 	uiItemR(row, &logic_ptr, "controllers_show_linked_controller", 0, "Link", 0);
 
-	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
-
-	split= uiLayoutSplit(layout, 0.05, 0);
-	uiItemR(split, &settings_ptr, "show_state_panel", UI_ITEM_R_NO_BG, "", ICON_DISCLOSURE_TRI_RIGHT);
-
-	row = uiLayoutRow(split, 1);
-	uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide controllers");
-	uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", 0);
-
-	if (RNA_boolean_get(&settings_ptr, "show_state_panel")) {
-
-		box= uiLayoutBox(layout);
-		uiLayoutSetAlignment(box, UI_LAYOUT_ALIGN_CENTER); //XXX doesn't seem to work
-		split= uiLayoutSplit(box, 0.2, 0);
-
-		col= uiLayoutColumn(split, 0);
-		uiItemL(col, "Visible", 0);
-		uiItemL(col, "Initial", 0);
-
-		subsplit= uiLayoutSplit(split, 0.85, 0);
-		col= uiLayoutColumn(subsplit, 0);
-		row= uiLayoutRow(col, 0);
-		uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "all_states")==0);
-		uiTemplateLayers(row, &settings_ptr, "state", &settings_ptr, "used_state", 0);
-		row= uiLayoutRow(col, 0);
-		uiTemplateLayers(row, &settings_ptr, "initial_state", &settings_ptr, "used_state", 0);
-
-		col= uiLayoutColumn(subsplit, 0);
-		uiItemR(col, &settings_ptr, "all_states", UI_ITEM_R_TOGGLE, NULL, 0);
-		uiItemR(col, &settings_ptr, "debug_state", 0, "", 0); 
-	}
-
 	for(a=0; a<count; a++) {
 		bController *cont;
 		PointerRNA ptr;
@@ -4432,9 +4400,45 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		int iact;
 		
 		ob= (Object *)idar[a];
-		
+	
+		/* Drawing the Controller Header common to all Selected Objects */
+
+		RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
+
+		split= uiLayoutSplit(layout, 0.05, 0);
+		uiItemR(split, &settings_ptr, "show_state_panel", UI_ITEM_R_NO_BG, "", ICON_DISCLOSURE_TRI_RIGHT);
+
+		row = uiLayoutRow(split, 1);
+		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide controllers");
+		uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", 0);
+
+		if (RNA_boolean_get(&settings_ptr, "show_state_panel")) {
+
+			box= uiLayoutBox(layout);
+			split= uiLayoutSplit(box, 0.2, 0);
+
+			col= uiLayoutColumn(split, 0);
+			uiItemL(col, "Visible", 0);
+			uiItemL(col, "Initial", 0);
+
+			subsplit= uiLayoutSplit(split, 0.85, 0);
+			col= uiLayoutColumn(subsplit, 0);
+			row= uiLayoutRow(col, 0);
+			uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "all_states")==0);
+			uiTemplateLayers(row, &settings_ptr, "state", &settings_ptr, "used_state", 0);
+			row= uiLayoutRow(col, 0);
+			uiTemplateLayers(row, &settings_ptr, "initial_state", &settings_ptr, "used_state", 0);
+
+			col= uiLayoutColumn(subsplit, 0);
+			uiItemR(col, &settings_ptr, "all_states", UI_ITEM_R_TOGGLE, NULL, 0);
+			uiItemR(col, &settings_ptr, "debug_state", 0, "", 0); 
+		}
+
+		/* End of Drawing the Controller Header common to all Selected Objects */
+
 		if (!(ob->scavisflag & OB_VIS_CONT) || !(ob->scaflag & OB_SHOWCONT)) continue;
 		
+
 		uiItemS(layout);
 		
 		for(cont= ob->controllers.first; cont; cont=cont->next) {
@@ -4498,15 +4502,15 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	uiItemR(row, &logic_ptr, "sensors_show_linked_controller", 0, "Link", 0);
 	uiItemR(row, &logic_ptr, "sensors_show_active_states", 0, "State", 0);
 	
-	row = uiLayoutRow(layout, 1);
-	uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
-	uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", 0);
-	
 	for(a=0; a<count; a++) {
 		bSensor *sens;
 		PointerRNA ptr;
 		
 		ob= (Object *)idar[a];
+
+		row = uiLayoutRow(layout, 1);
+		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
+		uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", 0);
 		
 		if (!(ob->scavisflag & OB_VIS_SENS) || !(ob->scaflag & OB_SHOWSENS)) continue;
 		
@@ -4557,16 +4561,16 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	uiItemR(row, &logic_ptr, "actuators_show_linked_controller", 0, "Link", 0);
 	uiItemR(row, &logic_ptr, "actuators_show_active_states", 0, "State", 0);
 	
-	row = uiLayoutRow(layout, 1);
-	uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
-	uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", 0);
-	
 	for(a=0; a<count; a++) {
 		bActuator *act;
 		PointerRNA ptr;
 		
 		ob= (Object *)idar[a];
-		
+
+		row = uiLayoutRow(layout, 1);
+		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
+		uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", 0);
+
 		if (!(ob->scavisflag & OB_VIS_ACT) || !(ob->scaflag & OB_SHOWACT)) continue;
 		
 		uiItemS(layout);
