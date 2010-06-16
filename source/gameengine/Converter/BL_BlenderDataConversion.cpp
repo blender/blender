@@ -2655,18 +2655,28 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 	}
 
-	//build navigation mesh
-	for ( i=0;i<objectlist->GetCount();i++)
+	//process navigation mesh objects
+	for ( i=0; i<objectlist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
 		struct Object* blenderobject = gameobj->GetBlenderObject();
 		if (blenderobject->type==OB_MESH && (blenderobject->gameflag & OB_NAVMESH))
 		{
 			KX_NavMeshObject* navmesh = static_cast<KX_NavMeshObject*>(gameobj);
-			navmesh->BuildNavMesh();
 			navmesh->SetVisible(0, true);
+			navmesh->BuildNavMesh();
 			if (obssimulation)
 				obssimulation->AddObstaclesForNavMesh(navmesh);
+		}
+	}
+	for ( i=0; i<inactivelist->GetCount();i++)
+	{
+		KX_GameObject* gameobj = static_cast<KX_GameObject*>(inactivelist->GetValue(i));
+		struct Object* blenderobject = gameobj->GetBlenderObject();
+		if (blenderobject->type==OB_MESH && (blenderobject->gameflag & OB_NAVMESH))
+		{
+			KX_NavMeshObject* navmesh = static_cast<KX_NavMeshObject*>(gameobj);
+			navmesh->SetVisible(0, true);
 		}
 	}
 

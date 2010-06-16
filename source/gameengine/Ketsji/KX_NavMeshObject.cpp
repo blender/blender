@@ -42,6 +42,7 @@ extern "C" {
 #include "Value.h"
 #include "Recast.h"
 #include "DetourStatNavMeshBuilder.h"
+#include "KX_ObstacleSimulation.h"
 
 static const int MAX_PATH_LEN = 256;
 static const float polyPickExt[3] = {2, 4, 2};
@@ -91,7 +92,13 @@ CValue* KX_NavMeshObject::GetReplica()
 void KX_NavMeshObject::ProcessReplica()
 {
 	KX_GameObject::ProcessReplica();
+
 	BuildNavMesh();
+	KX_Scene* scene = KX_GetActiveScene();
+	KX_ObstacleSimulation* obssimulation = scene->GetObstacleSimulation();
+	if (obssimulation)
+		obssimulation->AddObstaclesForNavMesh(this);
+
 }
 
 bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices, int& nverts,
@@ -171,7 +178,16 @@ bool KX_NavMeshObject::BuildNavMesh()
 		return false;
 	
 	//prepare vertices and indices
-	MT_Transform worldTransform = GetSGNode()->GetWorldTransform();
+	struct Object* blenderobject = GetBlenderObject();	
+	MT_Point3 posobj;
+	posobj.setValue(blenderobject->loc[0]+blenderobject->dloc[0],
+					blenderobject->loc[1]+blenderobject->dloc[1],
+					blenderobject->loc[2]+blenderobject->dloc[2]);
+	MT_Vector3 eulxyzobj(blenderobject->rot);
+	MT_Vector3 scaleobj(blenderobject->size);
+	MT_Matrix3x3 rotMatrix(eulxyzobj);
+	MT_Transform worldTransform(posobj, rotMatrix.scaled(scaleobj[0], scaleobj[1], scaleobj[2])); 
+	
 	MT_Point3 pos;
 	for (int i=0; i<nverts; i++)
 	{

@@ -195,7 +195,21 @@ void KX_ObstacleSimulation::AddObstacleForObj(KX_GameObject* gameobj)
 	obstacle->m_shape = KX_OBSTACLE_CIRCLE;
 	obstacle->m_rad = blenderobject->obstacleRad;
 	obstacle->m_gameObj = gameobj;
-	
+	gameobj->RegisterObstacle(obstacle);
+}
+
+void KX_ObstacleSimulation::DestroyObstacle(KX_Obstacle* obstacle)
+{
+	for (size_t i=0; i<m_obstacles.size(); i++)
+	{
+		if (m_obstacles[i] == obstacle)
+		{
+			obstacle->m_gameObj->UnregisterObstacle();
+			m_obstacles[i] = m_obstacles.back();
+			m_obstacles.pop_back();
+			delete obstacle;
+		}
+	}
 }
 
 void KX_ObstacleSimulation::AddObstaclesForNavMesh(KX_NavMeshObject* navmeshobj)

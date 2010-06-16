@@ -81,6 +81,7 @@ public:
 	void DrawObstacles();
 
 	void AddObstacleForObj(KX_GameObject* gameobj);
+	void DestroyObstacle(KX_Obstacle* obstacle);
 	void AddObstaclesForNavMesh(KX_NavMeshObject* navmesh);
 	KX_Obstacle* GetObstacle(KX_GameObject* gameobj);
 	void UpdateObstacles();	

@@ -59,6 +59,7 @@ class KX_IPhysicsController;
 class PHY_IGraphicController;
 class PHY_IPhysicsEnvironment;
 struct Object;
+struct KX_Obstacle;
 
 #ifndef DISABLE_PYTHON
 /* utility conversion function */
@@ -107,6 +108,8 @@ protected:
 	SG_Node*							m_pSGNode;
 
 	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
+
+	KX_Obstacle*						m_pObstacle;
 	
 public:
 	bool								m_isDeformable;
@@ -790,12 +793,24 @@ public:
 		}
 		m_bSuspendDynamics = false;
 	}
+
+	void RegisterObstacle(KX_Obstacle* obstacle)
+	{
+		m_pObstacle = obstacle;
+	}
 	
+	void UnregisterObstacle()
+	{
+		m_pObstacle = NULL;
+	}
+		
+
 	KX_ClientObjectInfo* getClientInfo() { return m_pClient_info; }
 	
 	CListValue* GetChildren();
 	CListValue* GetChildrenRecursive();
 
+	
 #ifndef DISABLE_PYTHON
 	/**
 	 * @section Python interface functions.

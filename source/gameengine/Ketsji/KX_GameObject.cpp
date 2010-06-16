@@ -67,6 +67,7 @@ typedef unsigned long uint_ptr;
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"
 #include "NG_NetworkScene.h" //Needed for sendMessage()
+#include "KX_ObstacleSimulation.h"
 
 #include "PyObjectPlus.h" /* python stuff */
 
@@ -101,6 +102,7 @@ KX_GameObject::KX_GameObject(
 	m_pGraphicController(NULL),
 	m_xray(false),
 	m_pHitObject(NULL),
+	m_pObstacle(NULL),
 	m_isDeformable(false)
 #ifndef DISABLE_PYTHON
 	, m_attr_dict(NULL)
@@ -148,6 +150,14 @@ KX_GameObject::~KX_GameObject()
 	{
 		delete m_pGraphicController;
 	}
+
+	if (m_pObstacle)
+	{
+		KX_Scene *scene = KX_GetActiveScene();
+		KX_ObstacleSimulation* obstacleSimulation = scene->GetObstacleSimulation();
+		obstacleSimulation->DestroyObstacle(m_pObstacle);
+	}
+
 #ifndef DISABLE_PYTHON
 	if (m_attr_dict) {
 		PyDict_Clear(m_attr_dict); /* incase of circular refs or other weired cases */
@@ -347,6 +357,14 @@ void KX_GameObject::ProcessReplica()
 	m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	m_pClient_info->m_gameobject = this;
 	m_state = 0;
+
+	KX_Scene* scene = KX_GetActiveScene();
+	KX_ObstacleSimulation* obssimulation = scene->GetObstacleSimulation();
+	struct Object* blenderobject = GetBlenderObject();
+	if (obssimulation && (blenderobject->gameflag & OB_HASOBSTACLE))
+	{
+		obssimulation->AddObstacleForObj(this);
+	}
 
 #ifndef DISABLE_PYTHON
 	if(m_attr_dict)

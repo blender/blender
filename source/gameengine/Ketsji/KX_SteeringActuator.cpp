@@ -105,13 +105,13 @@ bool KX_SteeringActuator::UnlinkObject(SCA_IObject* clientobj)
 {
 	if (clientobj == m_target)
 	{
-		// this object is being deleted, we cannot continue to track it.
+		// this object is being deleted, we cannot continue to use it.
 		m_target = NULL;
 		return true;
 	}
 	else if (clientobj == m_navmesh)
 	{
-		// this object is being deleted, we cannot continue to track it.
+		// this object is being deleted, we cannot continue to useit.
 		m_navmesh = NULL;
 		return true;
 	}
@@ -158,6 +158,9 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 
 		if (bNegativeEvent || !delta)
 			return false; // do nothing on negative events
+
+		if (!m_target)
+			return false;
 
 		KX_GameObject *obj = (KX_GameObject*) GetParent();
 		const MT_Point3& mypos = obj->NodeGetWorldPosition();
