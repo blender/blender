@@ -1010,8 +1010,8 @@ void BLI_make_exist(char *dir) {
 
 void BLI_make_existing_file(char *name)
 {
-	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
-	
+	char di[FILE_MAXDIR+FILE_MAXFILE], fi[FILE_MAXFILE];
+
 	strcpy(di, name);
 	BLI_splitdirstring(di, fi);
 	
