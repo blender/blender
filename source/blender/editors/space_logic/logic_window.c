@@ -3507,6 +3507,7 @@ void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr, bContext *C)
 static void draw_controller_header(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *box, *row;
+	char name[3]; //XXX provisorly for state number
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
@@ -3514,6 +3515,11 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "expanded", UI_ITEM_R_NO_BG, "", 0);
 	uiItemR(row, ptr, "type", 0, "", 0);
 	uiItemR(row, ptr, "name", 0, "", 0);
+
+	/* XXX provisory: state number */
+	sprintf(name, "%d", RNA_int_get(ptr, "state_number"));
+	uiItemL(row, name, 0);
+
 	uiItemR(row, ptr, "priority", 0, "", 0);
 	uiItemO(row, "", ICON_X, "LOGIC_OT_controller_remove");
 }
@@ -4425,7 +4431,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			col= uiLayoutColumn(subsplit, 0);
 			row= uiLayoutRow(col, 0);
 			uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "all_states")==0);
-			uiTemplateLayers(row, &settings_ptr, "state", &settings_ptr, "used_state", 0);
+			uiTemplateLayers(row, &settings_ptr, "visible_state", &settings_ptr, "used_state", 0);
 			row= uiLayoutRow(col, 0);
 			uiTemplateLayers(row, &settings_ptr, "initial_state", &settings_ptr, "used_state", 0);
 

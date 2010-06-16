@@ -484,7 +484,6 @@ static int actuator_add_exec(bContext *C, wmOperator *op)
 	PropertyRNA *prop;
 	const char *act_name;
 	char  name[32];
-	//XXX RNA_string_get is not using maxlen, it's using UserPreferencesFilePaths_python_scripts_directory_get instead (what limits the string copy to 160 chars in this case and CRASHES Blender).
 	int type= RNA_enum_get(op->ptr, "type");
 
 	act= new_actuator(type);
