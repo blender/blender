@@ -197,7 +197,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 
 
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
-    bl_label = "Soft Body Collision"
+    bl_label = "Soft Body Self Collision"
     bl_default_closed = True
 
     def poll(self, context):
@@ -218,7 +218,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 
         layout.active = softbody.self_collision and softbody_panel_enabled(md)
 
-        layout.label(text="Collision Type:")
+        layout.label(text="Collision Ball Size Calculation:")
         if wide_ui:
             layout.prop(softbody, "collision_type", expand=True)
         else:
