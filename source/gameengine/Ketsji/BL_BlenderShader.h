@@ -56,6 +56,13 @@ public:
 	void ReloadMaterial();
 	int GetBlendMode();
 
+	void SetScene(KX_Scene *scene)
+	{
+		mScene = scene;
+		mBlenderScene = scene->GetBlenderScene();
+		ReloadMaterial();
+	}
+
 	bool Equals(BL_BlenderShader *blshader);
 	
 	

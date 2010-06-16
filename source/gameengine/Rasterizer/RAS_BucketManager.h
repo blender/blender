@@ -63,7 +63,7 @@ public:
 	void RemoveMaterial(RAS_IPolyMaterial * mat); // freeing scenes only
 
 	/* for merging */
-	void MergeBucketManager(RAS_BucketManager *other);
+	void MergeBucketManager(RAS_BucketManager *other, SCA_IScene *scene);
 	BucketList & GetSolidBuckets() {return m_SolidBuckets;};
 	BucketList & GetAlphaBuckets() {return m_AlphaBuckets;};
 
