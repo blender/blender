@@ -77,9 +77,6 @@ static int edit_actuator_poll(bContext *C)
 	return 1;
 }
 
-/* this is the nice py-api-compatible way to do it, like modifiers, 
-   but not entirely working yet..
- 
 static void edit_sensor_properties(wmOperatorType *ot)
 {
 	RNA_def_string(ot->srna, "sensor", "", 32, "Sensor", "Name of the sensor to edit");
@@ -105,7 +102,7 @@ static int edit_sensor_invoke_properties(bContext *C, wmOperator *op)
 	return 0;
 }
 
-static bSensor *edit_sensor_property_get(bContext *C, wmOperator *op, Object *ob)
+static bSensor *edit_sensor_property_get(bContext *C, wmOperator *op, Object **ob)
 {
 	char sensor_name[32];
 	char ob_name[32];
@@ -114,15 +111,14 @@ static bSensor *edit_sensor_property_get(bContext *C, wmOperator *op, Object *ob
 	RNA_string_get(op->ptr, "sensor", sensor_name);
 	RNA_string_get(op->ptr, "object", ob_name);
 	
-	ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
-	if (!ob)
+	*ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
+	if (!*ob)
 		return NULL;
 	
-	sens = BLI_findstring(&(ob->sensors), sensor_name, offsetof(bSensor, name));	
+	sens = BLI_findstring(&((*ob)->sensors), sensor_name, offsetof(bSensor, name));	
 	return sens;
 }
- */
-/*
+
 static void edit_controller_properties(wmOperatorType *ot)
 {
 	RNA_def_string(ot->srna, "controller", "", 32, "Controller", "Name of the controller to edit");
@@ -148,7 +144,7 @@ static int edit_controller_invoke_properties(bContext *C, wmOperator *op)
 	return 0;
 }
 
-static bController *edit_controller_property_get(bContext *C, wmOperator *op, Object *ob)
+static bController *edit_controller_property_get(bContext *C, wmOperator *op, Object **ob)
 {
 	char controller_name[32];
 	char ob_name[32];
@@ -157,11 +153,11 @@ static bController *edit_controller_property_get(bContext *C, wmOperator *op, Ob
 	RNA_string_get(op->ptr, "controller", controller_name);
 	RNA_string_get(op->ptr, "object", ob_name);
 	
-	ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
-	if (!ob)
+	*ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
+	if (!*ob)
 		return NULL;
 	
-	cont = BLI_findstring(&(ob->controllers), controller_name, offsetof(bController, name));	
+	cont = BLI_findstring(&((*ob)->controllers), controller_name, offsetof(bController, name));	
 	return cont;
 }
 
@@ -190,7 +186,7 @@ static int edit_actuator_invoke_properties(bContext *C, wmOperator *op)
 	return 0;
 }
 
-static bController *edit_actuator_property_get(bContext *C, wmOperator *op, Object *ob)
+static bController *edit_actuator_property_get(bContext *C, wmOperator *op, Object **ob)
 {
 	char actuator_name[32];
 	char ob_name[32];
@@ -199,24 +195,20 @@ static bController *edit_actuator_property_get(bContext *C, wmOperator *op, Obje
 	RNA_string_get(op->ptr, "actuator", actuator_name);
 	RNA_string_get(op->ptr, "object", ob_name);
 	
-	ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
-	if (!ob)
+	*ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
+	if (!*ob)
 		return NULL;
 	
-	cont = BLI_findstring(&(ob->actuators), actuator_name, offsetof(bActuator, name));	
+	act = BLI_findstring(&((*ob)->actuators), actuator_name, offsetof(bActuator, name));	
 	return act;
 }
-*/
 
 /* ************* Add/Remove Sensor Operator ************* */
 
 static int sensor_remove_exec(bContext *C, wmOperator *op)
 {
-	/*	Object *ob;
-	bSensor *sens = edit_sensor_property_get(C, op, ob);	*/
-	PointerRNA ptr = CTX_data_pointer_get_type(C, "sensor", &RNA_Sensor);
-	Object *ob= ptr.id.data;
-	bSensor *sens= ptr.data;
+	Object *ob=NULL;
+	bSensor *sens = edit_sensor_property_get(C, op, &ob);
 	
 	if (!sens)
 		return OPERATOR_CANCELLED;
@@ -229,8 +221,6 @@ static int sensor_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-
-/* commented along with above stuff
  static int sensor_remove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (edit_sensor_invoke_properties(C, op))
@@ -238,7 +228,6 @@ static int sensor_remove_exec(bContext *C, wmOperator *op)
 	else
 		return OPERATOR_CANCELLED;
 }
- */
 
 void LOGIC_OT_sensor_remove(wmOperatorType *ot)
 {
@@ -246,13 +235,13 @@ void LOGIC_OT_sensor_remove(wmOperatorType *ot)
 	ot->description= "Remove a sensor from the active object";
 	ot->idname= "LOGIC_OT_sensor_remove";
 	
-	//ot->invoke= sensor_remove_invoke;
+	ot->invoke= sensor_remove_invoke;
 	ot->exec= sensor_remove_exec;
 	ot->poll= edit_sensor_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	//edit_sensor_properties(ot);
+	edit_sensor_properties(ot);
 }
 
 static int sensor_add_exec(bContext *C, wmOperator *op)
@@ -315,11 +304,8 @@ void LOGIC_OT_sensor_add(wmOperatorType *ot)
 
 static int controller_remove_exec(bContext *C, wmOperator *op)
 {
-	/*	Object *ob;
-	bController *cont = edit_controller_property_get(C, op, ob);	*/
-	PointerRNA ptr = CTX_data_pointer_get_type(C, "controller", &RNA_Controller);
-	Object *ob= ptr.id.data;
-	bController *cont= ptr.data;
+	Object *ob = NULL;
+	bController *cont = edit_controller_property_get(C, op, &ob);
 	
 	if (!cont)
 		return OPERATOR_CANCELLED;
@@ -334,7 +320,7 @@ static int controller_remove_exec(bContext *C, wmOperator *op)
 }
 
 
-/* commented along with above stuff
+/* commented along with above stuff */
  static int controller_remove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (edit_controller_invoke_properties(C, op))
@@ -342,7 +328,6 @@ static int controller_remove_exec(bContext *C, wmOperator *op)
 	else
 		return OPERATOR_CANCELLED;
 }
- */
 
 void LOGIC_OT_controller_remove(wmOperatorType *ot)
 {
@@ -350,13 +335,13 @@ void LOGIC_OT_controller_remove(wmOperatorType *ot)
 	ot->description= "Remove a controller from the active object";
 	ot->idname= "LOGIC_OT_controller_remove";
 	
-	//ot->invoke= controller_remove_invoke;
+	ot->invoke= controller_remove_invoke;
 	ot->exec= controller_remove_exec;
 	ot->poll= edit_controller_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	//edit_controller_properties(ot);
+	edit_controller_properties(ot);
 }
 
 static int controller_add_exec(bContext *C, wmOperator *op)
@@ -432,11 +417,8 @@ void LOGIC_OT_controller_add(wmOperatorType *ot)
 
 static int actuator_remove_exec(bContext *C, wmOperator *op)
 {
-	/*	Object *ob;
-	bActuator *cont = edit_actuator_property_get(C, op, ob);	*/
-	PointerRNA ptr = CTX_data_pointer_get_type(C, "actuator", &RNA_Actuator);
-	Object *ob= ptr.id.data;
-	bActuator *act= ptr.data;
+	Object *ob=NULL;
+	bActuator *act = edit_actuator_property_get(C, op, &ob);
 	
 	if (!act)
 		return OPERATOR_CANCELLED;
@@ -450,16 +432,13 @@ static int actuator_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-
-/* commented along with above stuff
- static int actuator_remove_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int actuator_remove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (edit_actuator_invoke_properties(C, op))
 		return actuator_remove_exec(C, op);
 	else
 		return OPERATOR_CANCELLED;
 }
- */
 
 void LOGIC_OT_actuator_remove(wmOperatorType *ot)
 {
@@ -467,13 +446,13 @@ void LOGIC_OT_actuator_remove(wmOperatorType *ot)
 	ot->description= "Remove a actuator from the active object";
 	ot->idname= "LOGIC_OT_actuator_remove";
 	
-	//ot->invoke= actuator_remove_invoke;
+	ot->invoke= actuator_remove_invoke;
 	ot->exec= actuator_remove_exec;
 	ot->poll= edit_actuator_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	//edit_controller_properties(ot);
+	edit_actuator_properties(ot);
 }
 
 static int actuator_add_exec(bContext *C, wmOperator *op)
