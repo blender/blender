@@ -110,8 +110,14 @@ static bSensor *edit_sensor_property_get(bContext *C, wmOperator *op, Object **o
 	
 	RNA_string_get(op->ptr, "sensor", sensor_name);
 	RNA_string_get(op->ptr, "object", ob_name);
-	
-	*ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
+
+	/* if ob_name is valid try to find the object with this name
+	otherwise gets the active object */
+	if (ob_name[0] != '\0' )
+		*ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
+	else
+		*ob= ED_object_active_context(C);
+
 	if (!*ob)
 		return NULL;
 	
@@ -152,8 +158,14 @@ static bController *edit_controller_property_get(bContext *C, wmOperator *op, Ob
 	
 	RNA_string_get(op->ptr, "controller", controller_name);
 	RNA_string_get(op->ptr, "object", ob_name);
-	
-	*ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
+
+	/* if ob_name is valid try to find the object with this name
+	otherwise gets the active object */
+	if (ob_name[0] != '\0' )
+		*ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
+	else
+		*ob= ED_object_active_context(C);
+
 	if (!*ob)
 		return NULL;
 	
@@ -194,8 +206,14 @@ static bController *edit_actuator_property_get(bContext *C, wmOperator *op, Obje
 	
 	RNA_string_get(op->ptr, "actuator", actuator_name);
 	RNA_string_get(op->ptr, "object", ob_name);
-	
-	*ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
+
+	/* if ob_name is valid try to find the object with this name
+	otherwise gets the active object */
+	if (ob_name[0] != '\0' )
+		*ob = BLI_findstring(&(CTX_data_main(C)->object), ob_name, offsetof(ID, name) + 2);
+	else
+		*ob= ED_object_active_context(C);
+
 	if (!*ob)
 		return NULL;
 	
