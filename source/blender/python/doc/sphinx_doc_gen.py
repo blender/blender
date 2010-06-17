@@ -57,7 +57,7 @@ _BPY_FULL_REBUILD = False
 def undocumented_message(module_name, type_name, identifier):
     message = "Undocumented (`contribute " \
         "<http://wiki.blender.org/index.php/Dev:2.5/Py/API/Documentation/Contribute" \
-        "&action=edit&section=new&preload=Dev:2.5/Py/API/Documentation/Contribute/Howto-message" \
+        "?action=edit&section=new&preload=Dev:2.5/Py/API/Documentation/Contribute/Howto-message" \
         "&preloadtitle=%s.%s.%s>`_)\n\n" % (module_name, type_name, identifier)
     return message
 

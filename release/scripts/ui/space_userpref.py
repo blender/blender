@@ -1200,10 +1200,25 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     arrow.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
 
                 row.label(text=info["name"])
-                row.operator("wm.addon_disable" if is_enabled else "wm.addon_enable").module = module_name
+                
+                if is_enabled: operator = "wm.addon_disable"
+                else: operator = "wm.addon_enable"
+
+                if info["warning"]: button_icon='ERROR'
+                else: button_icon='BLENDER'
+
+                row.operator(operator, icon=button_icon).module = module_name
 
                 # Expanded UI (only if additional infos are available)
                 if info["expanded"]:
+                    if info["description"]:
+                        split = column.row().split(percentage=0.15)
+                        split.label(text='Description:')
+                        split.label(text=info["description"])
+                    if info["location"]:
+                        split = column.row().split(percentage=0.15)
+                        split.label(text='Location:')
+                        split.label(text=info["location"])
                     if info["author"]:
                         split = column.row().split(percentage=0.15)
                         split.label(text='Author:')
@@ -1212,14 +1227,10 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         split = column.row().split(percentage=0.15)
                         split.label(text='Version:')
                         split.label(text=info["version"])
-                    if info["location"]:
+                    if info["warning"]:
                         split = column.row().split(percentage=0.15)
-                        split.label(text='Location:')
-                        split.label(text=info["location"])
-                    if info["description"]:
-                        split = column.row().split(percentage=0.15)
-                        split.label(text='Description:')
-                        split.label(text=info["description"])
+                        split.label(text="Warning:")
+                        split.label(text='  ' + info["warning"], icon = 'ERROR')
                     if info["wiki_url"] or info["tracker_url"]:
                         split = column.row().split(percentage=0.15)
                         split.label(text="Internet:")
@@ -1256,7 +1267,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "expanded": False}):
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "expanded": False}):
     addon_info = getattr(mod, "bl_addon_info", {})
 
     # avoid re-initializing
