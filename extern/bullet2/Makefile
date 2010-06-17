@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -17,56 +19,47 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# The Original Code is Copyright (C) 2002 by Hans Lambermont
 # All rights reserved.
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s):
 #
 # ***** END GPL LICENSE BLOCK *****
-#
-
 LIBNAME = bullet2
+include nan_definitions.mk
+SOURCEDIR = extern/$(LIBNAME)
 DIR = $(OCGDIR)/extern/$(LIBNAME)
+DIRS = src
+DISTDIR = src
 
 BULLETDIRS = \
 LinearMath \
 BulletCollision/BroadphaseCollision \
 BulletCollision/CollisionShapes \
 BulletCollision/NarrowPhaseCollision \
-BulletCollision/CollisionDispatch \
 BulletCollision/Gimpact \
+BulletCollision//CollisionDispatch \
 BulletDynamics/ConstraintSolver \
 BulletDynamics/Vehicle \
 BulletDynamics/Dynamics \
 BulletSoftBody
 
-CCSRCS = $(wildcard \
-LinearMath/*.cpp \
-BulletCollision/BroadphaseCollision/*.cpp \
-BulletCollision/CollisionShapes/*.cpp \
-BulletCollision/NarrowPhaseCollision/*.cpp \
-BulletCollision/CollisionDispatch/*.cpp \
-BulletCollision/Gimpact/*.cpp \
-BulletDynamics/ConstraintSolver/*.cpp \
-BulletDynamics/Vehicle/*.cpp \
-BulletDynamics/Dynamics/*.cpp \
-BulletSoftBody/*.cpp)
+include nan_subdirs.mk
 
-CPPFLAGS += -D_LIB -I. -IBulletCollision -IBulletDynamics -ILinearMath
+CP = $(NANBLENDERHOME)/intern/tools/cpifdiff.sh
 
-all debug:: objdirs
-
-include nan_compile.mk
-
-.PHONY: objdirs clean
-objdirs:
+install: $(ALL_OR_DEBUG)
+	@[ -d $(NAN_BULLET2) ] || mkdir -p $(NAN_BULLET2)
+	@[ -d $(NAN_BULLET2)/include ] || mkdir -p $(NAN_BULLET2)/include
 	@for i in $(BULLETDIRS); do \
-	[ -d $(DIR)/$(DEBUG_DIR)$$i ] || mkdir -p $(DIR)/$(DEBUG_DIR)$$i; \
+	[ -d $(NAN_BULLET2)/include/$$i ] || mkdir -p $(NAN_BULLET2)/include/$$i; \
+	$(CP) $(DISTDIR)/$$i/*.h $(NAN_BULLET2)/include/$$i; \
 	done
-
-clean::
-	rm -rf $(DIR)
-	rm -rf $(NAN_BULLET2)/lib/libbullet2.a
-	rm -rf $(NAN_BULLET2)/include
+	@[ -d $(NAN_BULLET2)/lib ] || mkdir -p $(NAN_BULLET2)/lib
+	@$(CP) $(DISTDIR)/*.h $(NAN_BULLET2)/include
+	@$(CP) $(OCGDIR)/extern/bullet2/libbullet2.a $(NAN_BULLET2)/lib
+ifeq ($(OS),darwin)
+	ranlib $(NAN_BULLET2)/lib/libbullet2.a
+endif
