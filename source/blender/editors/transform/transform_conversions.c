@@ -2896,7 +2896,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 	 * (if any keyframes were found, or the whole curve wasn't affected) 
 	 */
 	if ((len) && (len != fcu->totvert)) {
-		for (i = 0; i < fcu->totvert; i++) {
+		for (i= fcu->totvert-1; i >= 0; i--) {
 			BezTriple *bezt= &fcu->bezt[i];
 			
 			if (BEZSELECTED(bezt) == 0) {
@@ -2906,7 +2906,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 						delete_fcurve_key(fcu, i, 0);
 						break;
 					}
-					else if (bezt->vec[1][0] > selcache[index])
+					else if (bezt->vec[1][0] < selcache[index])
 						break;
 				}
 			}
