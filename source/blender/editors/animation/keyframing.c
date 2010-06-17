@@ -130,8 +130,11 @@ bAction *verify_adt_action (ID *id, short add)
 		
 	/* init action if none available yet */
 	// TODO: need some wizardry to handle NLA stuff correct
-	if ((adt->action == NULL) && (add))
-		adt->action= add_empty_action("Action");
+	if ((adt->action == NULL) && (add)) {
+		char actname[sizeof(id->name)-2];
+		BLI_snprintf(actname, sizeof(actname), "%sAction", id->name+2);
+		adt->action= add_empty_action(actname);
+	}
 		
 	/* return the action */
 	return adt->action;
