@@ -1715,7 +1715,10 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 	
 	/* is there a PackedFile with this image ? */
 	if (ima->packedfile) {
-		ibuf = IMB_ibImageFromMemory((unsigned char*)ima->packedfile->data, ima->packedfile->size, IB_rect|IB_multilayer);
+		flag = IB_rect|IB_multilayer;
+		if(ima->flag & IMA_DO_PREMUL) flag |= IB_premul;
+		
+		ibuf = IMB_ibImageFromMemory((unsigned char*)ima->packedfile->data, ima->packedfile->size, flag);
 	} 
 	else {
 		flag= IB_rect|IB_multilayer|IB_metadata;
