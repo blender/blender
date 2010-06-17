@@ -233,6 +233,9 @@ static int find_bool(char *string)
 	/* Check for "True" */
 	else if(string[0]=='T' && string[1]=='r' && string[2]=='u' && string[3]=='e')
 		i = 4;
+	/* Check for "None" */
+	else if(string[0]=='N' && string[1]=='o' && string[2]=='n' && string[3]=='e')
+		i = 4;
 	/* If next source char is an identifier (eg. 'i' in "definate") no match */
 	if(i==0 || text_check_identifier(string[i]))
 		return -1;
