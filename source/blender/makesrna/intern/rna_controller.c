@@ -94,7 +94,7 @@ static int rna_Controller_state_number_get(struct PointerRNA *ptr)
 	return 0;
 }
 
-static int rna_Controller_state_number_set(struct PointerRNA *ptr, const int value)
+static void rna_Controller_state_number_set(struct PointerRNA *ptr, const int value)
 {
 	bController *cont= (bController *)ptr->data;
 	if (value < 1 || value > OB_MAX_STATES)
