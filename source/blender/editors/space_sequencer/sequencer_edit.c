@@ -2218,6 +2218,43 @@ void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 }
 
+
+static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
+{
+	RenderData *r= &CTX_data_scene(C)->r;
+	View2D *v2d= UI_view2d_fromcontext(C);
+
+	float ratio= RNA_float_get(op->ptr, "ratio");
+
+	float winx= (int)(r->size * r->xsch)/100;
+	float winy= (int)(r->size * r->ysch)/100;
+
+	float facx= (v2d->mask.xmax - v2d->mask.xmin) / winx;
+	float facy= (v2d->mask.ymax - v2d->mask.ymin) / winy;
+
+	BLI_resize_rctf(&v2d->cur, winx*facx*ratio, winy*facy*ratio);
+
+	ED_region_tag_redraw(CTX_wm_region(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Sequencer View Zoom Ratio";
+	ot->idname= "SEQUENCER_OT_view_zoom_ratio";
+
+	/* api callbacks */
+	ot->exec= sequencer_view_zoom_ratio_exec;
+	ot->poll= ED_operator_sequencer_active;
+
+	/* properties */
+	RNA_def_float(ot->srna, "ratio", 1.0f, 0.0f, FLT_MAX,
+		"Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out.", -FLT_MAX, FLT_MAX);
+}
+
+
 #if 0
 static EnumPropertyItem view_type_items[] = {
 		{SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},

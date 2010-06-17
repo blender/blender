@@ -703,7 +703,7 @@ int BLI_path_cwd(char *path)
 }
 
 
-/* copy di to fi, filename only */
+/* 'di's filename component is moved into 'fi', di is made a dir path */
 void BLI_splitdirstring(char *di, char *fi)
 {
 	char *lslash= BLI_last_slash(di);
