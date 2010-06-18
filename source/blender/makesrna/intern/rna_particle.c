@@ -205,7 +205,7 @@ static void particle_recalc(Main *bmain, Scene *scene, PointerRNA *ptr, short fl
 	else
 		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|flag);
 
-	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 static void rna_Particle_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -269,7 +269,7 @@ static void rna_Particle_target_reset(Main *bmain, Scene *scene, PointerRNA *ptr
 		DAG_scene_sort(scene);
 	}
 
-	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 
 static void rna_Particle_target_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -281,7 +281,7 @@ static void rna_Particle_target_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 		psys->recalc = PSYS_RECALC_REDO;
 
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 	}
 }
 
@@ -297,7 +297,7 @@ static void rna_Particle_hair_dynamics(Main *bmain, Scene *scene, PointerRNA *pt
 		rna_Particle_redo(bmain, scene, ptr);
 	}
 	else
-		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
 {

@@ -900,7 +900,7 @@ class ExportOBJ(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    path = StringProperty(name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the OBJ file", maxlen= 1024, default= "")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     # context group
@@ -932,11 +932,11 @@ class ExportOBJ(bpy.types.Operator):
 
     def execute(self, context):
 
-        path = self.properties.path
-        if not path.lower().endswith(".obj"):
-            path += ".obj"
+        filepath = self.properties.filepath
+        if not filepath.lower().endswith(".obj"):
+            filepath += ".obj"
 
-        do_export(path, context,
+        do_export(filepath, context,
                   EXPORT_TRI=self.properties.use_triangles,
                   EXPORT_EDGES=self.properties.use_edges,
                   EXPORT_NORMALS=self.properties.use_normals,
@@ -965,7 +965,7 @@ class ExportOBJ(bpy.types.Operator):
 
 def menu_func(self, context):
     default_path = bpy.data.filepath.replace(".blend", ".obj")
-    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)").path = default_path
+    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)").filepath = default_path
 
 
 def register():

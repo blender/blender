@@ -3335,7 +3335,7 @@ class ExportFBX(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default="")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the FBX file", maxlen= 1024, default="")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
@@ -3369,8 +3369,8 @@ class ExportFBX(bpy.types.Operator):
         return context.active_object
 
     def execute(self, context):
-        if not self.properties.path:
-            raise Exception("path not set")
+        if not self.properties.filepath:
+            raise Exception("filepath not set")
 
         GLOBAL_MATRIX = mtx4_identity
         GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.properties.TX_SCALE
@@ -3378,7 +3378,7 @@ class ExportFBX(bpy.types.Operator):
         if self.properties.TX_YROT90: GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
         if self.properties.TX_ZROT90: GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
 
-        write(self.properties.path,
+        write(self.properties.filepath,
               None, # XXX
               context,
               self.properties.EXP_OBS_SELECTED,
@@ -3411,7 +3411,7 @@ class ExportFBX(bpy.types.Operator):
 
 
 # if __name__ == "__main__":
-# 	bpy.ops.EXPORT_OT_ply(path="/tmp/test.ply")
+# 	bpy.ops.EXPORT_OT_ply(filepath="/tmp/test.ply")
 
 
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
@@ -3439,7 +3439,7 @@ class ExportFBX(bpy.types.Operator):
 
 def menu_func(self, context):
     default_path = bpy.data.filepath.replace(".blend", ".fbx")
-    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").path = default_path
+    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").filepath = default_path
 
 
 def register():

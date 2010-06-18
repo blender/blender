@@ -480,10 +480,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         layout.separator()
 
-        layout.prop(md, "path", text="Create Along Paths")
+        layout.prop(md, "use_path", text="Create Along Paths")
 
         split = layout.split()
-        split.active = md.path
+        split.active = md.use_path
         col = split.column()
         col.row().prop(md, "axis", expand=True)
         col.prop(md, "keep_shape")
@@ -643,12 +643,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
         colsub.active = (md.vertex_group is not "")
         colsub.prop(md, "invert", text="Invert")
 
-        if wide_ui:
-            col.label(text="")
-
-        col.prop(md, "use_rim")
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
+
+        col.prop(md, "use_rim")
+        colsub = col.column()
+        colsub.active = md.use_rim
+        colsub.prop(md, "use_rim_material")
 
         # col = layout.column()
         # col.label(text="Vertex Group:")

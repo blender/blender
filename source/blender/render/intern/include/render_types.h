@@ -566,13 +566,6 @@ typedef struct LampRen {
 	
 	/* passes & node shader support: all shadow info for a pixel */
 	LampShadowSample *shadsamp;
-		
-	/* yafray: photonlight params */
-	int YF_numphotons, YF_numsearch;
-	short YF_phdepth, YF_useqmc, YF_bufsize;
-	float YF_causticblur, YF_ltradius;
-	float YF_glowint, YF_glowofs;
-	short YF_glowtype;
 	
 	/* ray optim */
 	struct RayObject *last_hit[BLENDER_MAX_THREADS];

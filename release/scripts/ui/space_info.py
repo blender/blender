@@ -133,13 +133,13 @@ class INFO_MT_file_open_recent(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
 
-        path = os.path.join(bpy.app.home, ".Blog")
+        filepath = os.path.join(bpy.app.home, ".Blog")
 
-        if os.path.isfile(path):
-            file = open(path, "rU")
+        if os.path.isfile(filepath):
+            file = open(filepath, "rU")
             for line in file:
                 line = line.rstrip()
-                layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').path = line
+                layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').filepath = line
             file.close()
         else:
             layout.label(text='No recent files')
@@ -212,6 +212,19 @@ class INFO_MT_curve_add(bpy.types.Menu):
         layout.operator("curve.primitive_nurbs_circle_add", icon='CURVE_NCIRCLE', text="Nurbs Circle")
         layout.operator("curve.primitive_nurbs_path_add", icon='CURVE_PATH', text="Path")
 
+class INFO_MT_surface_add(bpy.types.Menu):
+    bl_idname = "INFO_MT_surface_add"
+    bl_label = "Surface"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("surface.primitive_nurbs_surface_curve_add", icon='SURFACE_NCURVE', text="NURBS Curve")
+        layout.operator("surface.primitive_nurbs_surface_circle_add", icon='SURFACE_NCIRCLE', text="NURBS Circle")
+        layout.operator("surface.primitive_nurbs_surface_surface_add", icon='SURFACE_NSURFACE', text="NURBS Surface")
+        layout.operator("surface.primitive_nurbs_surface_tube_add", icon='SURFACE_NTUBE', text="NURBS Tube")
+        layout.operator("surface.primitive_nurbs_surface_sphere_add", icon='SURFACE_NSPHERE', text="NURBS Sphere")
+        layout.operator("surface.primitive_nurbs_surface_donut_add", icon='SURFACE_NDONUT', text="NURBS Torus")
 
 class INFO_MT_armature_add(bpy.types.Menu):
     bl_idname = "INFO_MT_armature_add"
@@ -236,7 +249,8 @@ class INFO_MT_add(bpy.types.Menu):
 
         #layout.operator_menu_enum("object.curve_add", "type", text="Curve", icon='OUTLINER_OB_CURVE')
         layout.menu("INFO_MT_curve_add", icon='OUTLINER_OB_CURVE')
-        layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='OUTLINER_OB_SURFACE')
+        #layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='OUTLINER_OB_SURFACE')
+        layout.menu("INFO_MT_surface_add", icon='OUTLINER_OB_SURFACE')
         layout.operator_menu_enum("object.metaball_add", "type", text="Metaball", icon='OUTLINER_OB_META')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
         layout.separator()
@@ -367,6 +381,7 @@ classes = [
     INFO_MT_add,
     INFO_MT_mesh_add,
     INFO_MT_curve_add,
+    INFO_MT_surface_add,
     INFO_MT_armature_add,
     INFO_MT_game,
     INFO_MT_render,

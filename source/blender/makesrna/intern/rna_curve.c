@@ -693,9 +693,9 @@ static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna)
 	PropertyRNA *prop;
 	
 	/* flags */
-	prop= RNA_def_property(srna, "uv_orco", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_along_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UV_ORCO);
-	RNA_def_property_ui_text(prop, "UV Orco", "Forces to use UV coordinates for texture mapping 'orco'");
+	RNA_def_property_ui_text(prop, "Map Along Length", "Generate texture mapping coordinates following the curve direction, rather than the local bounding box");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "vertex_normal_flip", PROP_BOOLEAN, PROP_NONE);
@@ -1199,6 +1199,11 @@ static void rna_def_curve(BlenderRNA *brna)
 	 RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
 	 RNA_def_property_editable_func(prop, texspace_editable);
 	 RNA_def_property_update(prop, 0, "rna_Curve_update_data");*/
+	
+	prop= RNA_def_property(srna, "map_along_length", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UV_ORCO);
+	RNA_def_property_ui_text(prop, "Map Along Length", "Generate texture mapping coordinates following the curve direction, rather than the local bounding box");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	/* materials */
 	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);

@@ -77,7 +77,7 @@ PyObject *bpy_home_paths(PyObject *self, PyObject *args)
 static char bpy_blend_paths_doc[] =
 ".. function:: blend_paths(absolute=False)\n"
 "\n"
-"   Returns a list of paths assosiated with this blend file.\n"
+"   Returns a list of paths associated with this blend file.\n"
 "\n"
 "   :arg absolute: When true the paths returned are made absolute.\n"
 "   :type absolute: boolean\n"

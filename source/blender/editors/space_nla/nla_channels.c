@@ -116,7 +116,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 				if (adt) adt->flag |= ADT_UI_SELECTED;
 			}
 			
-			notifierFlags |= ND_ANIMCHAN_SELECT;
+			notifierFlags |= (ND_ANIMCHAN|NA_SELECTED);
 		}
 			break;
 		case ANIMTYPE_OBJECT:
@@ -157,7 +157,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 					adt->flag |= ADT_UI_ACTIVE;
 				
 				/* notifiers - channel was selected */
-				notifierFlags |= ND_ANIMCHAN_SELECT;
+				notifierFlags |= (ND_ANIMCHAN|NA_SELECTED);
 			}
 		}
 			break;
@@ -194,7 +194,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 					ale->adt->flag |= ADT_UI_ACTIVE;
 			}
 			
-			notifierFlags |= ND_ANIMCHAN_SELECT;
+			notifierFlags |= (ND_ANIMCHAN|NA_SELECTED);
 		}	
 			break;
 			
@@ -220,21 +220,21 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 				nlt->flag ^= NLATRACK_PROTECTED;
 				
 				/* notifier flags - channel was edited */
-				notifierFlags |= ND_ANIMCHAN_EDIT;
+				notifierFlags |= (ND_ANIMCHAN|NA_EDITED);
 			}
 			else if (x >= (v2d->cur.xmax-2*NLACHANNEL_BUTTON_WIDTH)) {
 				/* toggle mute */
 				nlt->flag ^= NLATRACK_MUTED;
 				
 				/* notifier flags - channel was edited */
-				notifierFlags |= ND_ANIMCHAN_EDIT;
+				notifierFlags |= (ND_ANIMCHAN|NA_EDITED);
 			}
 			else if (x <= ((NLACHANNEL_BUTTON_WIDTH*2)+offset)) {
 				/* toggle 'solo' */
 				BKE_nlatrack_solo_toggle(adt, nlt);
 				
 				/* notifier flags - channel was edited */
-				notifierFlags |= ND_ANIMCHAN_EDIT;
+				notifierFlags |= (ND_ANIMCHAN|NA_EDITED);
 			}
 			else if (nlaedit_is_tweakmode_on(ac) == 0) {
 				/* set selection */
@@ -253,7 +253,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nlt, ANIMTYPE_NLATRACK);
 					
 				/* notifier flags - channel was selected */
-				notifierFlags |= ND_ANIMCHAN_SELECT;
+				notifierFlags |= (ND_ANIMCHAN|NA_SELECTED);
 			}
 		}
 			break;
@@ -406,7 +406,7 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -462,7 +462,7 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;

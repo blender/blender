@@ -75,7 +75,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 		ImBuf *ibuf;
 		char path[FILE_MAX];
 	
-		RNA_string_get(op->ptr, "path", path);
+		RNA_string_get(op->ptr, "filepath", path);
 	
 		strcpy(G.ima, path);
 		BLI_path_abs(path, G.sce);
@@ -147,10 +147,10 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		scd->dumprect= dumprect;
 		op->customdata= scd;
 		
-		if(RNA_property_is_set(op->ptr, "path"))
+		if(RNA_property_is_set(op->ptr, "filepath"))
 			return screenshot_exec(C, op);
 		
-		RNA_string_set(op->ptr, "path", G.ima);
+		RNA_string_set(op->ptr, "filepath", G.ima);
 		
 		WM_event_add_fileselect(C, op);
 	
@@ -341,7 +341,7 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_property(ot->srna, "path", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property(ot->srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
 }
 

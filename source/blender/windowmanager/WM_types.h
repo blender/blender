@@ -183,7 +183,6 @@ typedef struct wmNotifier {
 #define ND_KEYINGSET		(12<<16)
 #define ND_TOOLSETTINGS		(13<<16)
 #define ND_LAYER			(14<<16)
-#define	ND_SEQUENCER_SELECT	(15<<16)
 
 	/* NC_OBJECT Object */
 #define	ND_TRANSFORM		(16<<16)
@@ -192,11 +191,10 @@ typedef struct wmNotifier {
 #define ND_BONE_ACTIVE		(19<<16)
 #define ND_BONE_SELECT		(20<<16)
 #define ND_DRAW				(21<<16)
-#define ND_MODIFIER			(22<<16) /* modifiers edited */
+#define ND_MODIFIER			(22<<16)
 #define ND_KEYS				(23<<16)
-#define ND_CONSTRAINT		(24<<16) /* constraints edited */
-#define ND_PARTICLE_DATA	(25<<16) /* particles edited */
-#define ND_PARTICLE_SELECT	(26<<16) /* particles selecting change */
+#define ND_CONSTRAINT		(24<<16)
+#define ND_PARTICLE			(25<<16)
 
 	/* NC_MATERIAL Material */
 #define	ND_SHADING			(30<<16)
@@ -215,15 +213,12 @@ typedef struct wmNotifier {
 #define ND_DISPLAY			(51<<16)
 	
 	/* NC_ANIMATION Animato */
-#define ND_KEYFRAME_SELECT	(70<<16)
-#define ND_KEYFRAME_EDIT	(71<<16)
-#define ND_KEYFRAME_PROP	(72<<16)
-#define ND_ANIMCHAN_SELECT	(73<<16)
-#define ND_ANIMCHAN_EDIT	(74<<16)
-#define ND_NLA_SELECT		(75<<16)
-#define ND_NLA_EDIT			(76<<16)
-#define ND_NLA_ACTCHANGE	(77<<16)
-#define ND_FCURVES_ORDER	(78<<16)
+#define ND_KEYFRAME			(70<<16)
+#define ND_KEYFRAME_PROP	(71<<16)
+#define ND_ANIMCHAN			(72<<16)
+#define ND_NLA				(73<<16)
+#define ND_NLA_ACTCHANGE	(74<<16)
+#define ND_FCURVES_ORDER	(75<<16)
 
 	/* NC_GEOM Geometry */
 	/* Mesh, Curve, MetaBall, Armature, .. */
@@ -231,7 +226,6 @@ typedef struct wmNotifier {
 #define ND_DATA				(91<<16)
 
 	/* NC_NODE Nodes */
-#define ND_NODE_SELECT			(1<<16)
 
 	/* NC_SPACE */
 #define ND_SPACE_CONSOLE		(1<<16) /* general redraw */
@@ -279,6 +273,7 @@ typedef struct wmNotifier {
 #define NA_ADDED			3
 #define NA_REMOVED			4
 #define NA_RENAME			5
+#define NA_SELECTED			6
 
 /* ************** Gesture Manager data ************** */
 
@@ -498,7 +493,7 @@ typedef struct wmDropBox {
 
 typedef struct RecentFile {
 	struct RecentFile *next, *prev;
-	char *filename;
+	char *filepath;
 } RecentFile;
 
 

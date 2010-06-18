@@ -40,6 +40,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_modifier.h"
@@ -1353,10 +1354,13 @@ Object **get_collisionobjects(Scene *scene, Object *self, Group *group, int *num
 			add_collision_object(&objs, &numobj, &maxobj, go->ob, self, 0);
 	}
 	else {
+		Scene *sce; /* for SETLOOPER macro */
 		/* add objects in same layer in scene */
-		for(base = scene->base.first; base; base = base->next)
-			if(base->lay & self->lay) 
+		for(SETLOOPER(scene, base)) {
+			if(base->lay & self->lay)
 				add_collision_object(&objs, &numobj, &maxobj, base->object, self, 0);
+
+		}
 	}
 
 	*numcollobj= numobj;
@@ -1400,7 +1404,6 @@ static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self,
 
 ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
 {
-	Base *base;
 	GroupObject *go;
 	ListBase *objs= NULL;
 	
@@ -1410,9 +1413,15 @@ ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
 			add_collider_cache_object(&objs, go->ob, self, 0);
 	}
 	else {
-		for(base = scene->base.first; base; base = base->next)
-			if(!self || (base->lay & self->lay)) 
+		Scene *sce; /* for SETLOOPER macro */
+		Base *base;
+
+		/* add objects in same layer in scene */
+		for(SETLOOPER(scene, base)) {
+			if(!self || (base->lay & self->lay))
 				add_collider_cache_object(&objs, base->object, self, 0);
+
+		}
 	}
 
 	return objs;

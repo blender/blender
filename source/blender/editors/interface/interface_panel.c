@@ -1059,7 +1059,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				inside= 1;
 		
 		if(inside && event->val==KM_PRESS) {
-			if(event->type == AKEY && !ELEM3(1, event->ctrl, event->oskey, event->shift)) {
+			if(event->type == AKEY && !ELEM4(1, event->ctrl, event->oskey, event->shift, event->alt)) {
 				
 				if(pa->flag & PNL_CLOSEDY) {
 					if((block->maxy <= my) && (block->maxy+PNL_HEADER >= my))

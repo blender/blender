@@ -65,19 +65,6 @@ from geometry import PolyFill
 # try:		import os
 # except:		os= False
 
-# Generic path functions
-def stripFile(path):
-    '''Return directory, where the file is'''
-    lastSlash= max(path.rfind('\\'), path.rfind('/'))
-    if lastSlash != -1:
-        path= path[:lastSlash]
-    return '%s%s' % (path, os.sep)
-# 	return '%s%s' % (path, sys.sep)
-
-def stripPath(path):
-    '''Strips the slashes from the back of a string'''
-    return path.split('/')[-1].split('\\')[-1]
-
 def stripExt(name): # name is a string
     '''Strips the prefix off the name before writing'''
     index= name.rfind('.')
@@ -360,7 +347,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     Create all the used materials in this obj,
     assign colors and images to the materials from all referenced material libs
     '''
-    DIR= stripFile(filepath)
+    DIR= os.path.dirname(filepath)
 
     #==================================================================================#
     # This function sets textures defined in .mtl file                                 #
@@ -431,7 +418,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
 
     # Add an MTL with the same name as the obj if no MTLs are spesified.
-    temp_mtl= stripExt(stripPath(filepath))+ '.mtl'
+    temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + '.mtl'
 
     if os.path.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
 # 	if sys.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
@@ -523,7 +510,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, 
     (verts_loc, faces, unique_materials, dataname)
     '''
 
-    filename = stripExt(stripPath(filepath))
+    filename = os.path.splitext((os.path.basename(filepath)))[0]
 
     if not SPLIT_OB_OR_GROUP and not SPLIT_MATERIALS:
         # use the filename for the object name since we arnt chopping up the mesh.
@@ -1576,7 +1563,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    path = StringProperty(name="File Path", description="File path used for importing the OBJ file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen= 1024, default= "")
 
     CREATE_SMOOTH_GROUPS = BoolProperty(name="Smooth Groups", description="Surround smooth groups by sharp edges", default= True)
     CREATE_FGONS = BoolProperty(name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default= True)
@@ -1596,7 +1583,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
 
-        load_obj(self.properties.path,
+        load_obj(self.properties.filepath,
                  context,
                  self.properties.CLAMP_SIZE,
                  self.properties.CREATE_FGONS,

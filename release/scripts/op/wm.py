@@ -46,10 +46,10 @@ rna_relative_prop = BoolProperty(name="Relative",
         default=False)
 
 
-def context_path_validate(context, path):
+def context_path_validate(context, data_path):
     import sys
     try:
-        value = eval("context.%s" % path)
+        value = eval("context.%s" % data_path)
     except AttributeError:
         if "'NoneType'" in str(sys.exc_info()[1]):
             # One of the items in the rna path is None, just ignore this
@@ -62,13 +62,13 @@ def context_path_validate(context, path):
 
 
 def execute_context_assign(self, context):
-    if context_path_validate(context, self.properties.path) is Ellipsis:
+    if context_path_validate(context, self.properties.data_path) is Ellipsis:
         return {'PASS_THROUGH'}
 
     if getattr(self.properties, "relative", False):
-        exec("context.%s+=self.properties.value" % self.properties.path)
+        exec("context.%s+=self.properties.value" % self.properties.data_path)
     else:
-        exec("context.%s=self.properties.value" % self.properties.path)
+        exec("context.%s=self.properties.value" % self.properties.data_path)
 
     return {'FINISHED'}
 
@@ -79,7 +79,7 @@ class WM_OT_context_set_boolean(bpy.types.Operator):
     bl_label = "Context Set Boolean"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
     value = BoolProperty(name="Value",
             description="Assignment value", default=True)
 
@@ -92,7 +92,7 @@ class WM_OT_context_set_int(bpy.types.Operator): # same as enum
     bl_label = "Context Set"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
     value = IntProperty(name="Value", description="Assign value", default=0)
     relative = rna_relative_prop
 
@@ -105,18 +105,18 @@ class WM_OT_context_scale_int(bpy.types.Operator): # same as enum
     bl_label = "Context Set"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
     value = FloatProperty(name="Value", description="Assign value", default=1.0)
     always_step = BoolProperty(name="Always Step",
         description="Always adjust the value by a minimum of 1 when 'value' is not 1.0.",
         default=True)
 
     def execute(self, context):
-        if context_path_validate(context, self.properties.path) is Ellipsis:
+        if context_path_validate(context, self.properties.data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
         value = self.properties.value
-        path = self.properties.path
+        data_path = self.properties.data_path
 
         if value == 1.0: # nothing to do
             return {'CANCELLED'}
@@ -128,9 +128,9 @@ class WM_OT_context_scale_int(bpy.types.Operator): # same as enum
             else:
                 add = "-1"
                 func = "min"
-            exec("context.%s = %s(round(context.%s * value), context.%s + %s)" % (path, func, path, path, add))
+            exec("context.%s = %s(round(context.%s * value), context.%s + %s)" % (data_path, func, data_path, data_path, add))
         else:
-            exec("context.%s *= value" % self.properties.path)
+            exec("context.%s *= value" % self.properties.data_path)
 
         return {'FINISHED'}
 
@@ -141,7 +141,7 @@ class WM_OT_context_set_float(bpy.types.Operator): # same as enum
     bl_label = "Context Set Float"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
     value = FloatProperty(name="Value",
             description="Assignment value", default=0.0)
     relative = rna_relative_prop
@@ -155,7 +155,7 @@ class WM_OT_context_set_string(bpy.types.Operator): # same as enum
     bl_label = "Context Set String"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
     value = StringProperty(name="Value",
             description="Assign value", maxlen=1024, default="")
 
@@ -168,7 +168,7 @@ class WM_OT_context_set_enum(bpy.types.Operator):
     bl_label = "Context Set Enum"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
     value = StringProperty(name="Value",
             description="Assignment value (as a string)",
             maxlen=1024, default="")
@@ -182,15 +182,15 @@ class WM_OT_context_set_value(bpy.types.Operator):
     bl_label = "Context Set Value"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
     value = StringProperty(name="Value",
             description="Assignment value (as a string)",
             maxlen=1024, default="")
 
     def execute(self, context):
-        if context_path_validate(context, self.properties.path) is Ellipsis:
+        if context_path_validate(context, self.properties.data_path) is Ellipsis:
             return {'PASS_THROUGH'}
-        exec("context.%s=%s" % (self.properties.path, self.properties.value))
+        exec("context.%s=%s" % (self.properties.data_path, self.properties.value))
         return {'FINISHED'}
 
 
@@ -200,15 +200,15 @@ class WM_OT_context_toggle(bpy.types.Operator):
     bl_label = "Context Toggle"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
 
     def execute(self, context):
 
-        if context_path_validate(context, self.properties.path) is Ellipsis:
+        if context_path_validate(context, self.properties.data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
         exec("context.%s=not (context.%s)" %
-            (self.properties.path, self.properties.path))
+            (self.properties.data_path, self.properties.data_path))
 
         return {'FINISHED'}
 
@@ -219,7 +219,7 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
     bl_label = "Context Toggle Values"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
     value_1 = StringProperty(name="Value", \
                 description="Toggle enum", maxlen=1024, default="")
 
@@ -228,12 +228,12 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 
     def execute(self, context):
 
-        if context_path_validate(context, self.properties.path) is Ellipsis:
+        if context_path_validate(context, self.properties.data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
         exec("context.%s = ['%s', '%s'][context.%s!='%s']" % \
-            (self.properties.path, self.properties.value_1,\
-             self.properties.value_2, self.properties.path,
+            (self.properties.data_path, self.properties.value_1,\
+             self.properties.value_2, self.properties.data_path,
              self.properties.value_2))
 
         return {'FINISHED'}
@@ -246,12 +246,12 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
     bl_label = "Context Int Cycle"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
     reverse = rna_reverse_prop
 
     def execute(self, context):
-        path = self.properties.path
-        value = context_path_validate(context, path)
+        data_path = self.properties.data_path
+        value = context_path_validate(context, data_path)
         if value is Ellipsis:
             return {'PASS_THROUGH'}
 
@@ -260,16 +260,16 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
         else:
             value += 1
 
-        exec("context.%s=value" % path)
+        exec("context.%s=value" % data_path)
 
-        if value != eval("context.%s" % path):
+        if value != eval("context.%s" % data_path):
             # relies on rna clamping int's out of the range
             if self.properties.reverse:
                 value = (1 << 32)
             else:
                 value = - (1 << 32)
 
-            exec("context.%s=value" % path)
+            exec("context.%s=value" % data_path)
 
         return {'FINISHED'}
 
@@ -280,19 +280,19 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
     bl_label = "Context Enum Cycle"
     bl_options = {'UNDO'}
 
-    path = rna_path_prop
+    data_path = rna_path_prop
     reverse = rna_reverse_prop
 
     def execute(self, context):
 
-        value = context_path_validate(context, self.properties.path)
+        value = context_path_validate(context, self.properties.data_path)
         if value is Ellipsis:
             return {'PASS_THROUGH'}
 
         orig_value = value
 
         # Have to get rna enum values
-        rna_struct_str, rna_prop_str = self.properties.path.rsplit('.', 1)
+        rna_struct_str, rna_prop_str = self.properties.data_path.rsplit('.', 1)
         i = rna_prop_str.find('[')
 
         # just incse we get "context.foo.bar[0]"
@@ -322,7 +322,7 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
                 advance_enum = enums[orig_index + 1]
 
         # set the new value
-        exec("context.%s=advance_enum" % self.properties.path)
+        exec("context.%s=advance_enum" % self.properties.data_path)
         return {'FINISHED'}
 
 doc_id = StringProperty(name="Doc ID",
@@ -337,27 +337,27 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
     bl_idname = "wm.context_modal_mouse"
     bl_label = "Context Modal Mouse"
 
-    path_iter = StringProperty(description="The path relative to the context, must point to an iterable.")
-    path_item = StringProperty(description="The path from each iterable to the value (int or float)")
+    data_path_iter = StringProperty(description="The data path relative to the context, must point to an iterable.")
+    data_path_item = StringProperty(description="The data path from each iterable to the value (int or float)")
     input_scale = FloatProperty(default=0.01, description="Scale the mouse movement by this value before applying the delta")
     invert = BoolProperty(default=False, description="Invert the mouse input")
     initial_x = IntProperty(options={'HIDDEN'})
 
     def _values_store(self, context):
-        path_iter = self.properties.path_iter
-        path_item = self.properties.path_item
+        data_path_iter = self.properties.data_path_iter
+        data_path_item = self.properties.data_path_item
 
         self._values = values = {}
 
-        for item in getattr(context, path_iter):
+        for item in getattr(context, data_path_iter):
             try:
-                value_orig = eval("item." + path_item)
+                value_orig = eval("item." + data_path_item)
             except:
                 continue
 
             # check this can be set, maybe this is library data.
             try:
-                exec("item.%s = %s" % (path_item, value_orig))
+                exec("item.%s = %s" % (data_path_item, value_orig))
             except:
                 continue
 
@@ -368,17 +368,17 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
         if self.properties.invert:
             delta = - delta
 
-        path_item = self.properties.path_item
+        data_path_item = self.properties.data_path_item
         for item, value_orig in self._values.items():
             if type(value_orig) == int:
-                exec("item.%s = int(%d)" % (path_item, round(value_orig + delta)))
+                exec("item.%s = int(%d)" % (data_path_item, round(value_orig + delta)))
             else:
-                exec("item.%s = %f" % (path_item, value_orig + delta))
+                exec("item.%s = %f" % (data_path_item, value_orig + delta))
 
     def _values_restore(self):
-        path_item = self.properties.path_item
+        data_path_item = self.properties.data_path_item
         for item, value_orig in self._values.items():
-            exec("item.%s = %s" % (path_item, value_orig))
+            exec("item.%s = %s" % (data_path_item, value_orig))
 
         self._values.clear()
 
@@ -407,7 +407,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
 
         if not self._values:
             self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" %
-                    (self.properties.path_iter, self.properties.path_item))
+                    (self.properties.data_path_iter, self.properties.data_path_item))
 
             return {'CANCELLED'}
         else:

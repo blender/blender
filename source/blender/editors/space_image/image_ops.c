@@ -25,6 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -654,7 +655,7 @@ static const EnumPropertyItem image_file_type_items[] = {
 
 static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
-	RNA_string_set(op->ptr, "path", path);
+	RNA_string_set(op->ptr, "filepath", path);
 	WM_event_add_fileselect(C, op); 
 }
 
@@ -685,7 +686,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	Image *ima= NULL;
 	char str[FILE_MAX];
 
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 	/* default to frame 1 if there's no scene in context */
 	ima= BKE_add_image_file(str, scene ? scene->r.cfra : 1);
 
@@ -729,7 +730,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
 	
 	open_init(C, op);
@@ -767,7 +768,7 @@ static int replace_exec(bContext *C, wmOperator *op)
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
 	
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)-1); /* we cant do much if the str is longer then 240 :/ */
 
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
@@ -784,7 +785,7 @@ static int replace_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return replace_exec(C, op);
 
 	image_filesel(C, op, path);
@@ -918,7 +919,7 @@ static int save_as_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	sima->imtypenr= RNA_enum_get(op->ptr, "file_type");
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 
 	save_image_doit(C, sima, scene, op, str);
 
@@ -936,7 +937,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return save_as_exec(C, op);
 	
 	if(!ima)
@@ -1285,6 +1286,8 @@ static int pack_exec(bContext *C, wmOperator *op)
 	else
 		ima->packedfile= newPackedFile(op->reports, ima->name);
 
+	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -1315,12 +1318,12 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Pack";
+	ot->description= "Pack an image as embedded data into the .blend file"; 
 	ot->idname= "IMAGE_OT_pack";
 	
 	/* api callbacks */
 	ot->exec= pack_exec;
 	ot->invoke= pack_invoke;
-	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1331,12 +1334,14 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 
 /********************* unpack operator *********************/
 
-void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, PackedFile *pf)
+void unpack_menu(bContext *C, char *opname, Image *ima, char *folder, PackedFile *pf)
 {
+	PointerRNA props_ptr;
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	char line[FILE_MAXDIR + FILE_MAXFILE + 100];
 	char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
+	char *abs_name = ima->name;
 	
 	strcpy(local_name, abs_name);
 	BLI_splitdirstring(local_name, fi);
@@ -1351,17 +1356,33 @@ void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, Packed
 		switch(checkPackedFile(local_name, pf)) {
 			case PF_NOFILE:
 				sprintf(line, "Create %s", local_name);
-				uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_LOCAL);
+				props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+				RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
+				RNA_string_set(&props_ptr, "image", ima->id.name+2);
+	
 				break;
 			case PF_EQUAL:
 				sprintf(line, "Use %s (identical)", local_name);
-				uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
+				//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
+				props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+				RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
+				RNA_string_set(&props_ptr, "image", ima->id.name+2);
+				
 				break;
 			case PF_DIFFERS:
 				sprintf(line, "Use %s (differs)", local_name);
-				uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
+				//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
+				props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+				RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
+				RNA_string_set(&props_ptr, "image", ima->id.name);
+				
 				sprintf(line, "Overwrite %s", local_name);
-				uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_LOCAL);
+				//uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_LOCAL);
+				props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+				RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
+				RNA_string_set(&props_ptr, "image", ima->id.name+2);
+				
+				
 				break;
 		}
 	}
@@ -1369,17 +1390,30 @@ void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, Packed
 	switch(checkPackedFile(abs_name, pf)) {
 		case PF_NOFILE:
 			sprintf(line, "Create %s", abs_name);
-			uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
+			//uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
+			props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
+			RNA_string_set(&props_ptr, "image", ima->id.name+2);
 			break;
 		case PF_EQUAL:
 			sprintf(line, "Use %s (identical)", abs_name);
-			uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
+			//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
+			props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
+			RNA_string_set(&props_ptr, "image", ima->id.name+2);
 			break;
 		case PF_DIFFERS:
 			sprintf(line, "Use %s (differs)", local_name);
-			uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
+			//uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
+			props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
+			RNA_string_set(&props_ptr, "image", ima->id.name+2);
+			
 			sprintf(line, "Overwrite %s", local_name);
-			uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
+			//uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
+			props_ptr= uiItemFullO(layout, opname, line, 0, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+			RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
+			RNA_string_set(&props_ptr, "image", ima->id.name+2);
 			break;
 	}
 
@@ -1391,6 +1425,14 @@ static int unpack_exec(bContext *C, wmOperator *op)
 	Image *ima= CTX_data_edit_image(C);
 	int method= RNA_enum_get(op->ptr, "method");
 
+	/* find the suppplied image by name */
+	if (RNA_property_is_set(op->ptr, "image")) {
+		char imaname[22];
+		RNA_string_get(op->ptr, "image", imaname);
+		ima = BLI_findstring(&CTX_data_main(C)->image, imaname, offsetof(ID, name) + 2);
+		if (!ima) ima = CTX_data_edit_image(C);
+	}
+	
 	if(!ima || !ima->packedfile)
 		return OPERATOR_CANCELLED;
 
@@ -1401,8 +1443,10 @@ static int unpack_exec(bContext *C, wmOperator *op)
 
 	if(G.fileflags & G_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
-	
+		
 	unpackImage(op->reports, ima, method);
+	
+	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 
 	return OPERATOR_FINISHED;
 }
@@ -1411,6 +1455,9 @@ static int unpack_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Image *ima= CTX_data_edit_image(C);
 
+	if(RNA_property_is_set(op->ptr, "image"))
+		return unpack_exec(C, op);
+		
 	if(!ima || !ima->packedfile)
 		return OPERATOR_CANCELLED;
 
@@ -1422,7 +1469,7 @@ static int unpack_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(G.fileflags & G_AUTOPACK)
 		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
 	
-	unpack_menu(C, "IMAGE_OT_unpack", ima->name, "textures", ima->packedfile);
+	unpack_menu(C, "IMAGE_OT_unpack", ima, "textures", ima->packedfile);
 
 	return OPERATOR_FINISHED;
 }
@@ -1431,18 +1478,19 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Unpack";
+	ot->description= "Save an image packed in the .blend file to disk"; 
 	ot->idname= "IMAGE_OT_unpack";
 	
 	/* api callbacks */
 	ot->exec= unpack_exec;
 	ot->invoke= unpack_invoke;
-	ot->poll= space_image_buffer_exists_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack.");
+	RNA_def_string(ot->srna, "image", "", 21, "Image Name", "Image datablock name to unpack.");
 }
 
 /******************** sample image operator ********************/

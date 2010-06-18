@@ -28,7 +28,7 @@
 #include "RNA_define.h"
 
 #include "rna_internal.h"
-
+#include "DNA_object_types.h"
 #include "DNA_controller_types.h"
 
 EnumPropertyItem controller_type_items[] ={
@@ -82,6 +82,60 @@ static void rna_Controller_type_set(struct PointerRNA *ptr, int value)
 	}
 }
 
+static int rna_Controller_state_number_get(struct PointerRNA *ptr)
+{
+	bController *cont= (bController *)ptr->data;
+	int bit;
+
+	for (bit=0; bit<32; bit++) {
+		if (cont->state_mask & (1<<bit))
+			return bit+1;
+	}
+	return 0;
+}
+
+static void rna_Controller_state_number_set(struct PointerRNA *ptr, const int value)
+{
+	bController *cont= (bController *)ptr->data;
+	if (value < 1 || value > OB_MAX_STATES)
+		return;
+
+	cont->state_mask = (1 << (value - 1));
+}
+
+static void rna_Controller_state_get(PointerRNA *ptr, int *values)
+{
+	bController *cont= (bController *)ptr->data;
+	int i;
+
+	memset(values, 0, sizeof(int)*OB_MAX_STATES);
+	for(i=0; i<OB_MAX_STATES; i++)
+		values[i] = (cont->state_mask & (1<<i));
+}
+
+static void rna_Controller_state_set(PointerRNA *ptr, const int *values)
+{
+	bController *cont= (bController *)ptr->data;
+	int i, tot= 0;
+
+	/* ensure we always have some state selected */
+	for(i=0; i<OB_MAX_STATES; i++)
+		if(values[i])
+			tot++;
+	
+	if(tot==0)
+		return;
+
+	/* only works for one state at once */
+	if(tot>1)
+		return;
+
+	for(i=0; i<OB_MAX_STATES; i++) {
+		if(values[i]) cont->state_mask |= (1<<i);
+		else cont->state_mask &= ~(1<<i);
+	}
+}
+
 #else
 
 void RNA_def_controller(BlenderRNA *brna)
@@ -122,6 +176,24 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONT_PRIO);
 	RNA_def_property_ui_text(prop, "Priority", "Mark controller for execution before all non-marked controllers (good for startup scripts)");
 	RNA_def_property_ui_icon(prop, ICON_BOOKMARKS, 1);
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	/* State */
+	
+	// array of OB_MAX_STATES
+	prop= RNA_def_property(srna, "state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_array(prop, OB_MAX_STATES);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "", "Set Controller state index (1 to 30)");
+	RNA_def_property_boolean_funcs(prop, "rna_Controller_state_get", "rna_Controller_state_set");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	// number of the state
+	prop= RNA_def_property(srna, "state_number", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "state_mask");
+	RNA_def_property_range(prop, 1, OB_MAX_STATES);
+	RNA_def_property_ui_text(prop, "", "Set Controller state index (1 to 30)");
+	RNA_def_property_int_funcs(prop, "rna_Controller_state_number_get", "rna_Controller_state_number_set", NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* Expression Controller */

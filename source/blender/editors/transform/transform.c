@@ -311,14 +311,14 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		//SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
-		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	}
 	else if(t->spacetype == SPACE_NODE)
 	{
@@ -344,7 +344,7 @@ static void viewRedrawPost(TransInfo *t)
 	if(t->spacetype == SPACE_VIEW3D) {
 		/* if autokeying is enabled, send notifiers that keyframes were added */
 		if (IS_AUTOKEY_ON(t->scene))
-			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	
 #if 0 // TRANSFORM_FIX_ME

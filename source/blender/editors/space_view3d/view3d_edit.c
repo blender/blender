@@ -1111,7 +1111,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	else {
 		if(rv3d->persp==RV3D_CAMOB) {
 			rv3d->camzoom+= 10;
-			if(rv3d->camzoom>300) rv3d->camzoom= 300;
+			if(rv3d->camzoom>600) rv3d->camzoom= 600;
 		}
 		else if(rv3d->dist> 0.001*v3d->grid) {
 			view_zoom_mouseloc(CTX_wm_region(C), .83333f, mx, my);

@@ -561,7 +561,7 @@ class BvhImporter(bpy.types.Operator):
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"
 
-    path = StringProperty(name="File Path", description="File path used for importing the OBJ file", maxlen=1024, default="")
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen=1024, default="")
     scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=0.1)
     frame_start = IntProperty(name="Start Frame", description="Starting frame for the animation", default=1)
     loop = BoolProperty(name="Loop", description="Loop the animation playback", default=False)
@@ -585,7 +585,7 @@ class BvhImporter(bpy.types.Operator):
         t1 = time.time()
         print('\tparsing bvh...', end="")
 
-        bvh_nodes = read_bvh(context, self.properties.path,
+        bvh_nodes = read_bvh(context, self.properties.filepath,
                 ROT_MODE=self.properties.rotate_mode,
                 GLOBAL_SCALE=self.properties.scale)
 

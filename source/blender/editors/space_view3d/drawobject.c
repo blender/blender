@@ -2725,7 +2725,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 		
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_SOLID)==0)
-			dm->drawEdges(dm, (dt==OB_WIRE || totface==0), 0);
+			dm->drawEdges(dm, (dt==OB_WIRE || totface==0), me->drawflag & ME_ALLEDGES);
 
 		if (dt!=OB_WIRE && draw_wire==2) {
 			glDepthMask(1);

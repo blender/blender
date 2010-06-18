@@ -540,7 +540,7 @@ static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 static void image_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	/* copy drag path to properties */
-	RNA_string_set(drop->ptr, "path", drag->path);
+	RNA_string_set(drop->ptr, "filepath", drag->path);
 }
 
 /* area+region dropbox definition */

@@ -454,7 +454,7 @@ static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 	if(id)
 		RNA_string_set(drop->ptr, "name", id->name+2);
 	if(drag->path[0]) 
-		RNA_string_set(drop->ptr, "path", drag->path);
+		RNA_string_set(drop->ptr, "filepath", drag->path);
 }
 
 
@@ -523,12 +523,18 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_ANIMATION:
 			switch(wmn->data) {
-				case ND_KEYFRAME_EDIT:
 				case ND_KEYFRAME_PROP:
-				case ND_NLA_EDIT:
 				case ND_NLA_ACTCHANGE:
-				case ND_ANIMCHAN_SELECT:
 					ED_region_tag_redraw(ar);
+					break;
+				case ND_NLA:
+				case ND_KEYFRAME:
+					if (wmn->action == NA_EDITED)
+						ED_region_tag_redraw(ar);
+					break;
+				case ND_ANIMCHAN:
+					if (wmn->action == NA_SELECTED)
+						ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
@@ -557,8 +563,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_MODIFIER:
 				case ND_CONSTRAINT:
 				case ND_KEYS:
-				case ND_PARTICLE_SELECT:
-				case ND_PARTICLE_DATA:
+				case ND_PARTICLE:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -709,12 +714,15 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_ANIMATION:
 			switch(wmn->data) {
-				case ND_KEYFRAME_EDIT:
 				case ND_KEYFRAME_PROP:
-				case ND_NLA_EDIT:
 				case ND_NLA_ACTCHANGE:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_NLA:
+				case ND_KEYFRAME:
+					if (wmn->action == NA_EDITED)
+						ED_region_tag_redraw(ar);
+					break;	
 			}
 			break;
 		case NC_SCENE:

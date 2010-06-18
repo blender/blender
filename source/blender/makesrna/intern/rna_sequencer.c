@@ -690,17 +690,17 @@ static void rna_def_sequence(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
 	RNA_def_property_ui_text(prop, "Selected", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER_SELECT, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER|NA_SELECTED, NULL);
 
 	prop= RNA_def_property(srna, "left_handle_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_LEFTSEL);
 	RNA_def_property_ui_text(prop, "Left Handle Selected", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER_SELECT, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER|NA_SELECTED, NULL);
 
 	prop= RNA_def_property(srna, "right_handle_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_RIGHTSEL);
 	RNA_def_property_ui_text(prop, "Right Handle Selected", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER_SELECT, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER|NA_SELECTED, NULL);
 
 	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MUTE);

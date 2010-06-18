@@ -1,6 +1,6 @@
 /**
- * BKE_softbody.h 
- *	
+ * BKE_softbody.h
+ *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -43,7 +43,7 @@ typedef struct BodyPoint {
 	int nofsprings; int *springs;
 	float choke,choke2,frozen;
 	float colball;
-	short flag;
+	short loc_flag; //reserved by locale module specific states
 	//char octantflag;
 	float mass;
 	float springweight;

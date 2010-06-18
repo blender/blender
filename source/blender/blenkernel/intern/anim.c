@@ -475,7 +475,7 @@ void calc_curvepath(Object *ob)
 	bl= cu->bev.first;
 	if(bl==NULL || !bl->nr) return;
 
-	cu->path=path= MEM_callocN(sizeof(Path), "path");
+	cu->path=path= MEM_callocN(sizeof(Path), "calc_curvepath");
 	
 	/* if POLY: last vertice != first vertice */
 	cycl= (bl->poly!= -1);

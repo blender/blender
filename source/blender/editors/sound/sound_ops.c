@@ -80,7 +80,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	PointerRNA idptr;
 	AUD_SoundInfo info;
 
-	RNA_string_get(op->ptr, "path", path);
+	RNA_string_get(op->ptr, "filepath", path);
 	sound = sound_new_file(CTX_data_main(C), path);
 
 	if(!op->customdata)
@@ -127,7 +127,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 	
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
 	
 	open_init(C, op);

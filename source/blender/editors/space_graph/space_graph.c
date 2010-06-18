@@ -382,8 +382,11 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
 				case ND_MARKERS:
-				case ND_SEQUENCER_SELECT:
 					ED_region_tag_redraw(ar);
+					break;
+				case ND_SEQUENCER:
+					if (wmn->action == NA_SELECTED)
+						ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
@@ -401,13 +404,9 @@ static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
 			}
 			break;
 		case NC_NODE:
-			switch(wmn->data) {
-				case ND_NODE_SELECT:
-					ED_region_tag_redraw(ar);
-					break;
-			}
 			switch(wmn->action) {
 				case NA_EDITED:
+				case NA_SELECTED:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -432,7 +431,7 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 	switch (wmn->category) {
 		case NC_ANIMATION:
 			/* for selection changes of animation data, we can just redraw... otherwise autocolor might need to be done again */
-			if (ELEM(wmn->data, ND_KEYFRAME_SELECT, ND_ANIMCHAN_SELECT))
+			if (ELEM(wmn->data, ND_KEYFRAME, ND_ANIMCHAN) && (wmn->action == NA_SELECTED))
 				ED_area_tag_redraw(sa);
 			else
 				ED_area_tag_refresh(sa);

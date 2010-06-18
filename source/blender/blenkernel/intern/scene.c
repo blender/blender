@@ -894,68 +894,38 @@ float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in objec
 	return ctime;
 }
 
-static void scene_update_newframe(Scene *scene, int cfra, unsigned int lay)
+static void scene_update_tagged_recursive(Scene *scene, Scene *scene_parent)
 {
 	Base *base;
-	Object *ob;
-	int cfra_back= scene->r.cfra;
-	scene->r.cfra= cfra;
-	
+
+	/* sets first, we allow per definition current scene to have
+	   dependencies on sets, but not the other way around. */
+	if(scene->set)
+		scene_update_tagged_recursive(scene->set, scene_parent);
+
 	for(base= scene->base.first; base; base= base->next) {
-		ob= base->object;
-		
-		object_handle_update(scene, ob);   // bke_object.h
+		Object *ob= base->object;
+
+		object_handle_update(scene_parent, ob);
 
 		if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
-			group_handle_recalc_and_update(scene, ob, ob->dup_group);
-		
-		/* only update layer when an ipo */
-			// XXX old animation system
-		//if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
-		//	base->lay= ob->lay;
-		//}
+			group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
 	}
-
-	scene->r.cfra= cfra_back;
 }
 
 /* this is called in main loop, doing tagged updates before redraw */
 void scene_update_tagged(Scene *scene)
 {
-	Scene *sce;
-	Base *base;
-	Object *ob;
-	float ctime = frame_to_float(scene, scene->r.cfra); 
-
 	scene->physics_settings.quick_cache_step= 0;
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
 	   by depgraph or manual, no layer check here, gets correct flushed */
 
-	/* sets first, we allow per definition current scene to have
-	   dependencies on sets, but not the other way around. */
-	if(scene->set) {
-		for(SETLOOPER(scene->set, base)) {
-			ob= base->object;
-
-			object_handle_update(scene, ob);
-
-			if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
-				group_handle_recalc_and_update(scene, ob, ob->dup_group);
-		}
-	}
-	
-	for(base= scene->base.first; base; base= base->next) {
-		ob= base->object;
-
-		object_handle_update(scene, ob);
-
-		if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
-			group_handle_recalc_and_update(scene, ob, ob->dup_group);
-	}
+	scene_update_tagged_recursive(scene, scene);
 
 	/* recalc scene animation data here (for sequencer) */
 	{
+		float ctime = frame_to_float(scene, scene->r.cfra); 
 		AnimData *adt= BKE_animdata_from_id(&scene->id);
 
 		if(adt && (adt->recalc & ADT_RECALC_ANIM))
@@ -985,7 +955,7 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 
 
 	/* Following 2 functions are recursive
-	 * so dont call within 'scene_update_newframe' */
+	 * so dont call within 'scene_update_tagged_recursive' */
 	DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
 
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,
@@ -997,13 +967,8 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	BKE_animsys_evaluate_all_animation(G.main, ctime);
 	/*...done with recusrive funcs */
 
-
-	/* sets first, we allow per definition current scene to have dependencies on sets */
-	for(sce_iter= sce->set; sce_iter; sce_iter= sce_iter->set) {
-		scene_update_newframe(sce_iter, sce->r.cfra, lay);
-    }
-
-	scene_update_newframe(sce, sce->r.cfra, lay);
+	/* object_handle_update() on all objects, groups and sets */
+	scene_update_tagged_recursive(sce, sce);
 }
 
 /* return default layer, also used to patch old files */

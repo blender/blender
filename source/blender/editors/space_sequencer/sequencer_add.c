@@ -135,7 +135,7 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 
 	RNA_string_get(op->ptr, "name", seq_load->name+2);
 
-	RNA_string_get(op->ptr, "path", seq_load->path); /* full path, file is set by the caller */
+	RNA_string_get(op->ptr, "filepath", seq_load->path); /* full path, file is set by the caller */
 
 	if (RNA_struct_find_property(op->ptr, "frame_end")) {
 		seq_load->end_frame = RNA_int_get(op->ptr, "frame_end");
@@ -545,7 +545,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 	if (seq->type==SEQ_PLUGIN) {
 		char path[FILE_MAX];
-		RNA_string_get(op->ptr, "path", path);
+		RNA_string_get(op->ptr, "filepath", path);
 
 		sh.init_plugin(seq, path);
 

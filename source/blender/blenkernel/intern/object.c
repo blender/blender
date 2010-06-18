@@ -337,7 +337,7 @@ void unlink_object(Scene *scene, Object *ob)
 	ModifierData *md;
 	ARegion *ar;
 	RegionView3D *rv3d;
-	int a;
+	int a, found;
 	
 	unlink_controllers(&ob->controllers);
 	unlink_actuators(&ob->actuators);
@@ -609,27 +609,36 @@ void unlink_object(Scene *scene, Object *ob)
 		while(sa) {
 			SpaceLink *sl;
 
-			if (sa->spacetype == SPACE_VIEW3D) {
-				for (ar= sa->regionbase.first; ar; ar= ar->next) {
-					if (ar->regiontype==RGN_TYPE_WINDOW) {
-						rv3d= (RegionView3D *)ar->regiondata;
-						if (rv3d->persp == RV3D_CAMOB)
-							rv3d->persp= RV3D_PERSP;
-						if (rv3d->localvd && rv3d->localvd->persp == RV3D_CAMOB)
-							rv3d->localvd->persp= RV3D_PERSP;
-					}
-				}
-			}
-
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
 
+					found= 0;
 					if(v3d->camera==ob) {
 						v3d->camera= NULL;
+						found= 1;
 					}
 					if(v3d->localvd && v3d->localvd->camera==ob ) {
 						v3d->localvd->camera= NULL;
+						found += 2;
+					}
+
+					if (found) {
+						if (sa->spacetype == SPACE_VIEW3D) {
+							for (ar= sa->regionbase.first; ar; ar= ar->next) {
+								if (ar->regiontype==RGN_TYPE_WINDOW) {
+									rv3d= (RegionView3D *)ar->regiondata;
+									if (found == 1 || found == 3) {
+										if (rv3d->persp == RV3D_CAMOB)
+											rv3d->persp= RV3D_PERSP;
+									}
+									if (found == 2 || found == 3) {
+										if (rv3d->localvd && rv3d->localvd->persp == RV3D_CAMOB)
+											rv3d->localvd->persp= RV3D_PERSP;
+									}
+								}
+							}
+						}
 					}
 				}
 				else if(sl->spacetype==SPACE_OUTLINER) {

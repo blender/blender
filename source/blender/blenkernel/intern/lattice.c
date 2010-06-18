@@ -845,26 +845,20 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 		use_vgroups = 0;
 	
 	if(vgroup && vgroup[0] && use_vgroups) {
-		bDeformGroup *curdef;
 		Mesh *me = target->data;
-		int index = 0;
-		
-		/* find the group (weak loop-in-loop) */
-		for(curdef = target->defbase.first; curdef;
-			curdef = curdef->next, index++)
-			if(!strcmp(curdef->name, vgroup)) break;
+		int index = defgroup_name_index(target, vgroup);
+		float weight;
 
-		if(curdef && (me->dvert || dm)) {
+		if(index >= 0 && (me->dvert || dm)) {
 			MDeformVert *dvert = me->dvert;
-			int j;
 			
 			for(a = 0; a < numVerts; a++, dvert++) {
 				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
-				for(j = 0; j < dvert->totweight; j++) {
-					if (dvert->dw[j].def_nr == index) {
-						calc_latt_deform(laOb, vertexCos[a], dvert->dw[j].weight);
-					}
-				}
+
+				weight= defvert_find_weight(dvert, index);
+
+				if(weight > 0.0f)
+					calc_latt_deform(laOb, vertexCos[a], weight);
 			}
 		}
 	} else {

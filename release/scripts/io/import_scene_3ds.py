@@ -1012,7 +1012,7 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    path = StringProperty(name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the 3DS file", maxlen= 1024, default= "")
     filename = StringProperty(name="File Name", description="Name of the file.")
     directory = StringProperty(name="Directory", description="Directory of the file.")
 
@@ -1021,7 +1021,7 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
 # 	apply_matrix = BoolProperty(name="Transform Fix", description="Workaround for object transformations importing incorrectly", default=False),
 
     def execute(self, context):
-        load_3ds(self.properties.path, context, 0.0, False, False)
+        load_3ds(self.properties.filepath, context, 0.0, False, False)
         return {'FINISHED'}
 
     def invoke(self, context, event):

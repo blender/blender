@@ -1022,7 +1022,7 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
 	if(CustomData_external_test(&me->fdata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 	
-	RNA_string_get(op->ptr, "path", path);
+	RNA_string_get(op->ptr, "filepath", path);
 
 	if(relative)
 		BLI_path_rel(path, G.sce);
@@ -1054,13 +1054,13 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, wmEvent *e
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return multires_external_save_exec(C, op);
 	
 	op->customdata= me;
 
 	BLI_snprintf(path, sizeof(path), "//%s.btx", me->id.name+2);
-	RNA_string_set(op->ptr, "path", path);
+	RNA_string_set(op->ptr, "filepath", path);
 	
 	WM_event_add_fileselect(C, op);
 

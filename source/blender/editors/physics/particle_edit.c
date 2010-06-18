@@ -1321,7 +1321,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	}
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1371,7 +1371,7 @@ int PE_mouse_particles(bContext *C, short *mval, int extend)
 	for_mouse_hit_keys(&data, toggle_key_select, 1);  /* nearest only */
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1395,7 +1395,7 @@ static int select_roots_exec(bContext *C, wmOperator *op)
 	foreach_point(&data, select_root);
 
 	PE_update_selection(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1435,7 +1435,7 @@ static int select_tips_exec(bContext *C, wmOperator *op)
 	foreach_point(&data, select_tip);
 
 	PE_update_selection(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1475,7 +1475,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 
 	for_mouse_hit_keys(&data, select_keys, 1);  /* nearest only */
 	PE_update_selection(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1541,7 +1541,7 @@ int PE_border_select(bContext *C, rcti *rect, int select, int extend)
 	for_mouse_hit_keys(&data, select_key, 0);
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1566,7 +1566,7 @@ int PE_circle_select(bContext *C, int selecting, short *mval, float rad)
 	for_mouse_hit_keys(&data, select_key, 0);
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1632,7 +1632,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short select)
 	}
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1666,7 +1666,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	}
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1708,7 +1708,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 	}
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1766,7 +1766,7 @@ static int select_less_exec(bContext *C, wmOperator *op)
 	foreach_point(&data, select_less_keys);
 
 	PE_update_selection(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1827,7 +1827,7 @@ static int select_more_exec(bContext *C, wmOperator *op)
 	foreach_point(&data, select_more_keys);
 
 	PE_update_selection(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1864,7 +1864,7 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 	}
 
 	PE_update_selection(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1955,7 +1955,7 @@ static int rekey_exec(bContext *C, wmOperator *op)
 	
 	recalc_lengths(data.edit);
 	PE_update_object(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -2260,7 +2260,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	
 	recalc_lengths(data.edit);
 	PE_update_object(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -2348,7 +2348,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	BKE_reportf(op->reports, RPT_INFO, "Remove %d double particles.", totremoved);
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -2398,7 +2398,7 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -2575,7 +2575,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_flush_update(&data.ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -2734,7 +2734,7 @@ static int mirror_exec(bContext *C, wmOperator *op)
 	PE_mirror_x(scene, ob, 0);
 
 	update_world_cos(ob, edit);
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
@@ -3519,7 +3519,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		else
 			PE_update_object(scene, ob, 1);
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 		
 		bedit->lastmouse[0]= mouse[0];
 		bedit->lastmouse[1]= mouse[1];
@@ -4138,7 +4138,7 @@ static int clear_edited_exec(bContext *C, wmOperator *op)
 			psys->flag &= ~PSYS_EDITED;
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
-			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}

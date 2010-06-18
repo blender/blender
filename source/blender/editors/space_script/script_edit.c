@@ -58,7 +58,7 @@
 static int run_pyfile_exec(bContext *C, wmOperator *op)
 {
 	char path[512];
-	RNA_string_get(op->ptr, "path", path);
+	RNA_string_get(op->ptr, "filepath", path);
 #ifndef DISABLE_PYTHON
 	if(BPY_run_python_script(C, path, NULL, op->reports)) {
 		ARegion *ar= CTX_wm_region(C);
@@ -81,7 +81,7 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 	ot->exec= run_pyfile_exec;
 	ot->poll= ED_operator_areaactive;
 
-	RNA_def_string_file_path(ot->srna, "path", "", 512, "Path", "");
+	RNA_def_string_file_path(ot->srna, "filepath", "", 512, "Path", "");
 }
 
 

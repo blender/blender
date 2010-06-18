@@ -2244,10 +2244,10 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	int ntype=0;
 
 	/* check input variables */
-	if (RNA_property_is_set(op->ptr, "path"))
+	if (RNA_property_is_set(op->ptr, "filepath"))
 	{
 		char path[FILE_MAX];
-		RNA_string_get(op->ptr, "path", path);
+		RNA_string_get(op->ptr, "filepath", path);
 		ima= BKE_add_image_file(path, scene ? scene->r.cfra : 1);
 	}
 	else if(RNA_property_is_set(op->ptr, "name"))
@@ -2291,7 +2291,7 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
 							 &snode->mx, &snode->my);
 	
-	if (RNA_property_is_set(op->ptr, "path") || RNA_property_is_set(op->ptr, "name"))
+	if (RNA_property_is_set(op->ptr, "filepath") || RNA_property_is_set(op->ptr, "name"))
 		return node_add_file_exec(C, op);
 	else
 		return WM_operator_filesel(C, op, event);

@@ -184,7 +184,7 @@ int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEven
 int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-		/* invoke callback, file selector "path" unset + exec */
+		/* invoke callback, file selector "filepath" unset + exec */
 int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);

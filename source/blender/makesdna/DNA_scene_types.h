@@ -349,16 +349,6 @@ typedef struct RenderData {
 	short bake_osa, bake_filter, bake_mode, bake_flag;
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
-	
-	/* yafray: global panel params. TODO: move elsewhere */
-	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
-	short YF_AA, YFexportxml, YF_nobump, YF_clamprgb, yfpad1;
-	int GIdepth, GIcausdepth, GIpixelspersample;
-	int GIphotoncount, GImixphotons;
-	float GIphotonradius;
-	int YF_raydepth, YF_AApasses, YF_AAsamples, yfpad2;
-	float GIshadowquality, GIrefinement, GIpower, GIindirpower;
-	float YF_gamma, YF_exposure, YF_raybias, YF_AApixelsize, YF_AAthreshold;
 
 	/* paths to backbufffer, output, ftype */
 	char backbuf[160], pic[160];

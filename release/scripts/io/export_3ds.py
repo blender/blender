@@ -1123,11 +1123,11 @@ class Export3DS(bpy.types.Operator):
 
 
     # filename = StringProperty(name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
-    path = StringProperty(name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the 3DS file", maxlen= 1024, default= "")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     def execute(self, context):
-        save_3ds(self.properties.path, context)
+        save_3ds(self.properties.filepath, context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -1142,7 +1142,7 @@ class Export3DS(bpy.types.Operator):
 # Add to a menu
 def menu_func(self, context):
     default_path = bpy.data.filepath.replace(".blend", ".3ds")
-    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").path = default_path
+    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").filepath = default_path
 
 
 def register():

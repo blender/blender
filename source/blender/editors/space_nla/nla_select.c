@@ -176,7 +176,7 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 		deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_ADD);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -313,7 +313,7 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 	borderselect_nla_strips(&ac, rect, mode, selectmode);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -570,7 +570,7 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	}
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_SELECTED, NULL);
 	
 	/* for tweak grab to work */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;

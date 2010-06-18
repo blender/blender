@@ -2194,7 +2194,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			seq->scene->markers.first= seq->scene->markers.last= NULL;
 #endif
 
-			if(sequencer_view3d_cb && doseq_gl && (seq->scene == scene || have_seq==0)) {
+			if(sequencer_view3d_cb && doseq_gl && (seq->scene == scene || have_seq==0) && seq->scene->camera) {
 				/* opengl offscreen render */
 				scene_update_for_newframe(seq->scene, seq->scene->lay);
 				se->ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, scene->r.seq_prev_type);

@@ -2222,7 +2222,7 @@ static int tree_element_active_psys(bContext *C, Scene *scene, TreeElement *te, 
 	if(set) {
 		Object *ob= (Object *)tselem->id;
 		
-		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 		
 // XXX		extern_set_butspace(F7KEY, 0);
 	}

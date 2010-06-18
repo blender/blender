@@ -960,7 +960,8 @@ int RNA_property_int_clamp(PointerRNA *ptr, PropertyRNA *prop, int *value)
 	}
 }
 
-/* this is the max length including \0 terminator */
+/* this is the max length including \0 terminator.
+ * '0' used when their is no maximum */
 int RNA_property_string_maxlength(PropertyRNA *prop)
 {
 	StringPropertyRNA *sprop= (StringPropertyRNA*)rna_ensure_property(prop);
@@ -1079,6 +1080,17 @@ int RNA_enum_name(EnumPropertyItem *item, const int value, const char **name)
 	for (; item->identifier; item++) {
 		if(item->identifier[0] && item->value==value) {
 			*name = item->name;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int RNA_enum_description(EnumPropertyItem *item, const int value, const char **description)
+{
+	for (; item->identifier; item++) {
+		if(item->identifier[0] && item->value==value) {
+			*description = item->description;
 			return 1;
 		}
 	}
@@ -1829,18 +1841,15 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 	IDProperty *idprop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr)))
-		IDP_AssignString(idprop, (char*)value);
+		IDP_AssignString(idprop, (char*)value, RNA_property_string_maxlength(prop) - 1);
 	else if(sprop->set)
-		sprop->set(ptr, value);
+		sprop->set(ptr, value); /* set function needs to clamp its self */
 	else if(prop->flag & PROP_EDITABLE) {
-		IDPropertyTemplate val = {0};
 		IDProperty *group;
-
-		val.str= (char*)value;
 
 		group= RNA_struct_idproperties(ptr, 1);
 		if(group)
-			IDP_AddToGroup(group, IDP_New(IDP_STRING, val, (char*)prop->identifier));
+			IDP_AddToGroup(group, IDP_NewString((char*)value, (char*)prop->identifier, RNA_property_string_maxlength(prop) - 1));
 	}
 }
 

@@ -407,10 +407,10 @@ void read_Blog(void)
 			
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
-			recent->filename = (char*)MEM_mallocN(sizeof(char)*(strlen(line)+1), "name of file");
-			recent->filename[0] = '\0';
+			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(line)+1), "name of file");
+			recent->filepath[0] = '\0';
 			
-			strcpy(recent->filename, line);
+			strcpy(recent->filepath, line);
 			num++;
 		}
 	}
@@ -433,29 +433,29 @@ static void writeBlog(void)
 
 	recent = G.recent_files.first;
 	/* refresh .Blog of recent opened files, when current file was changed */
-	if(!(recent) || (strcmp(recent->filename, G.sce)!=0)) {
+	if(!(recent) || (strcmp(recent->filepath, G.sce)!=0)) {
 		fp= fopen(name, "w");
 		if (fp) {
 			/* add current file to the beginning of list */
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
-			recent->filename = (char*)MEM_mallocN(sizeof(char)*(strlen(G.sce)+1), "name of file");
-			recent->filename[0] = '\0';
-			strcpy(recent->filename, G.sce);
+			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(G.sce)+1), "name of file");
+			recent->filepath[0] = '\0';
+			strcpy(recent->filepath, G.sce);
 			BLI_addhead(&(G.recent_files), recent);
 			/* write current file to .Blog */
-			fprintf(fp, "%s\n", recent->filename);
+			fprintf(fp, "%s\n", recent->filepath);
 			recent = recent->next;
 			i=1;
 			/* write rest of recent opened files to .Blog */
 			while((i<U.recent_files) && (recent)){
 				/* this prevents to have duplicities in list */
-				if (strcmp(recent->filename, G.sce)!=0) {
-					fprintf(fp, "%s\n", recent->filename);
+				if (strcmp(recent->filepath, G.sce)!=0) {
+					fprintf(fp, "%s\n", recent->filepath);
 					recent = recent->next;
 				}
 				else {
 					next_recent = recent->next;
-					MEM_freeN(recent->filename);
+					MEM_freeN(recent->filepath);
 					BLI_freelinkN(&(G.recent_files), recent);
 					recent = next_recent;
 				}

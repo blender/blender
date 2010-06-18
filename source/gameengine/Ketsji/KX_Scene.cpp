@@ -1754,7 +1754,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	}
 
 
-	GetBucketManager()->MergeBucketManager(other->GetBucketManager());
+	GetBucketManager()->MergeBucketManager(other->GetBucketManager(), this);
 
 	/* move materials across, assume they both use the same scene-converters */
 	GetSceneConverter()->MergeScene(this, other);
