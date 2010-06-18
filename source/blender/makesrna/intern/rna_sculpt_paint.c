@@ -137,7 +137,7 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 		Object *ob = (pset->scene->basact)? pset->scene->basact->object: NULL;
 		if(ob) {
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-			WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+			WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 		}
 	}
 

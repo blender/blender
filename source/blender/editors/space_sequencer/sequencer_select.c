@@ -239,7 +239,7 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -277,7 +277,7 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -505,7 +505,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 #endif
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 
 	/* allowing tweaks */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
@@ -595,7 +595,7 @@ static int sequencer_select_more_exec(bContext *C, wmOperator *op)
 	if(!select_more_less_seq__internal(scene, 0, 0))
 		return OPERATOR_CANCELLED;
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -626,7 +626,7 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *op)
 	if(!select_more_less_seq__internal(scene, 1, 0))
 		return OPERATOR_CANCELLED;
  
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -681,7 +681,7 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEv
 		selected = select_more_less_seq__internal(scene, 1, 1);
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -716,7 +716,7 @@ static int sequencer_select_linked_exec(bContext *C, wmOperator *op)
 		selected = select_more_less_seq__internal(scene, 1, 1);
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -766,7 +766,7 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -803,7 +803,7 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 
 	select_active_side(ed->seqbasep, RNA_enum_get(op->ptr, "side"), seq_act->machine, seq_act->startdisp);
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -865,7 +865,7 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 
 	return OPERATOR_FINISHED;
 } 

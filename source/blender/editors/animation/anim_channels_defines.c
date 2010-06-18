@@ -2858,7 +2858,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 /* callback for (normal) widget settings - send notifiers */
 static void achannel_setting_widget_cb(bContext *C, void *poin, void *poin2)
 {
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 }
 
 /* callback for widget settings that need flushing */
@@ -2872,7 +2872,7 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	short on = 0;
 	
 	/* send notifiers before doing anything else... */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	/* verify animation context */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -2936,7 +2936,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 		done= insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
 		
 		if (done)
-			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	}
 }
 
@@ -2978,7 +2978,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 		done= insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
 		
 		if (done)
-			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	}
 	
 	/* free the path */

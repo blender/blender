@@ -83,7 +83,7 @@ static void rna_Boids_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 	else
 		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
-	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 static void rna_Boids_reset_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -99,7 +99,7 @@ static void rna_Boids_reset_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	DAG_scene_sort(scene);
 
-	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 
 static StructRNA* rna_BoidRule_refine(struct PointerRNA *ptr)
