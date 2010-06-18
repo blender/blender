@@ -166,7 +166,8 @@ static float interpolateToi(float a, const float* dir, const float* toi, const i
 	return 0;
 }
 
-KX_ObstacleSimulation::KX_ObstacleSimulation()
+KX_ObstacleSimulation::KX_ObstacleSimulation(MT_Scalar levelHeight)
+:	m_levelHeight(levelHeight)
 {
 
 }
@@ -285,12 +286,51 @@ void KX_ObstacleSimulation::DrawObstacles()
 		else if (m_obstacles[i]->m_shape==KX_OBSTACLE_CIRCLE)
 		{
 			KX_RasterizerDrawDebugCircle(m_obstacles[i]->m_pos, m_obstacles[i]->m_rad, bluecolor,
-										normal.normalized(), SECTORS_NUM);
+										normal, SECTORS_NUM);
 		}
 	}	
 }
 
-KX_ObstacleSimulationTOI::KX_ObstacleSimulationTOI():
+static MT_Point3 nearestPointToObstacle(MT_Point3& pos ,KX_Obstacle* obstacle)
+{
+	switch (obstacle->m_shape)
+	{
+	case KX_OBSTACLE_SEGMENT :
+	{
+		MT_Vector3 ab = obstacle->m_pos2 - obstacle->m_pos;
+		if (!ab.fuzzyZero())
+		{
+			MT_Vector3 abdir = ab.normalized();
+			MT_Vector3  v = pos - obstacle->m_pos;
+			MT_Scalar proj = abdir.dot(v);
+			CLAMP(proj, 0, ab.length());
+			MT_Point3 res = obstacle->m_pos + abdir*proj;
+			return res;
+		}		
+	}
+	case KX_OBSTACLE_CIRCLE :
+	default:
+		return obstacle->m_pos;
+	}
+}
+
+bool KX_ObstacleSimulation::FilterObstacle(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, KX_Obstacle* otherObst)
+{
+	//filter obstacles by type
+	if ( (otherObst == activeObst) ||
+		(otherObst->m_type==KX_OBSTACLE_NAV_MESH && otherObst->m_gameObj!=activeNavMeshObj)	)
+		return false;
+
+	//filter obstacles by position
+	MT_Point3 p = nearestPointToObstacle(activeObst->m_pos, otherObst);
+	if ( fabs(activeObst->m_pos.z() - p.z()) > m_levelHeight)
+		return false;
+
+	return true;
+}
+
+KX_ObstacleSimulationTOI::KX_ObstacleSimulationTOI(MT_Scalar levelHeight):
+	KX_ObstacleSimulation(levelHeight),
 	m_avoidSteps(32),
 	m_minToi(0.5f),
 	m_maxToi(1.2f),
@@ -360,10 +400,10 @@ void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, K
 		for (int i = 0; i < nobs; ++i)
 		{
 			KX_Obstacle* ob = m_obstacles[i];
-			if ( (ob==activeObst) ||
-				 (ob->m_type==KX_OBSTACLE_NAV_MESH && ob->m_gameObj!=activeNavMeshObj)	)
+			bool res = FilterObstacle(activeObst, activeNavMeshObj, ob);
+			if (!res)
 				continue;
-
+			
 			float htmin,htmax;
 
 			if (ob->m_type == KX_OBSTACLE_CIRCLE)

@@ -544,6 +544,9 @@ class WORLD_PT_game_physics_obstacles(WorldButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         layout.prop(gs, "obstacle_simulation", text = "Type")
+        if gs.obstacle_simulation != 'None':
+            layout.prop(gs, "level_height", text="Level height")
+			
 
 classes = [
     PHYSICS_PT_game_physics,

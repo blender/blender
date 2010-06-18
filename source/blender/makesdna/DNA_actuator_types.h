@@ -215,12 +215,14 @@ typedef struct bArmatureActuator {
 } bArmatureActuator;
 
 typedef struct bSteeringActuator {
-	char pad[4];
+	char pad[7];
+	char flag;
 	int type;		/* 0=seek, 1=flee, 2=path following */
 	float dist;
 	float velocity;
 	float acceleration;
 	float turnspeed;
+	int updateTime;
 	struct Object *target;
 	struct Object *navmesh;
 } bSteeringActuator;
@@ -518,6 +520,8 @@ typedef struct FreeCamera {
 #define ACT_STEERING_SEEK   0
 #define ACT_STEERING_FLEE   1
 #define ACT_STEERING_PATHFOLLOWING   2
+/* steeringactuator->flag */
+#define ACT_STEERING_SELFTERMINATED   1
 
 #endif
 

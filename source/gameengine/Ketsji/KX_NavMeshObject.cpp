@@ -333,32 +333,53 @@ void KX_NavMeshObject::DrawNavMesh()
 	if (!m_navMesh)
 		return;
 	MT_Vector3 color(0.f, 0.f, 0.f);
-
-	for (int i = 0; i < m_navMesh->getPolyDetailCount(); ++i)
+	
+	enum RenderMode {DETAILED_TRIS, WALLS};
+	static const RenderMode renderMode = DETAILED_TRIS;
+	switch (renderMode)
 	{
-		const dtStatPoly* p = m_navMesh->getPoly(i);
-		const dtStatPolyDetail* pd = m_navMesh->getPolyDetail(i);
-
-		for (int j = 0; j < pd->ntris; ++j)
+	case WALLS : 
+		for (int pi=0; pi<m_navMesh->getPolyCount(); pi++)
 		{
-			const unsigned char* t = m_navMesh->getDetailTri(pd->tbase+j);
-			MT_Vector3 tri[3];
-			for (int k = 0; k < 3; ++k)
-			{
-				const float* v;
-				if (t[k] < p->nv)
-					v = m_navMesh->getVertex(p->v[t[k]]);
-				else
-					v =  m_navMesh->getDetailVertex(pd->vbase+(t[k]-p->nv));
-				float pos[3];
-				vcopy(pos, v);
-				flipAxes(pos);
-				tri[k].setValue(pos);
-			}
+			const dtStatPoly* poly = m_navMesh->getPoly(pi);
 
-			for (int k=0; k<3; k++)
-				KX_RasterizerDrawDebugLine(tri[k], tri[(k+1)%3], color);
+			for (int i = 0, j = (int)poly->nv-1; i < (int)poly->nv; j = i++)
+			{	
+				if (poly->n[j]) continue;
+				const float* vj = m_navMesh->getVertex(poly->v[j]);
+				const float* vi = m_navMesh->getVertex(poly->v[i]);
+				KX_RasterizerDrawDebugLine(MT_Vector3(vj[0], vj[2], vj[1]), MT_Vector3(vi[0], vi[2], vi[1]), color);
+			}
 		}
+		break;
+	case DETAILED_TRIS : 
+		for (int i = 0; i < m_navMesh->getPolyDetailCount(); ++i)
+		{
+			const dtStatPoly* p = m_navMesh->getPoly(i);
+			const dtStatPolyDetail* pd = m_navMesh->getPolyDetail(i);
+
+			for (int j = 0; j < pd->ntris; ++j)
+			{
+				const unsigned char* t = m_navMesh->getDetailTri(pd->tbase+j);
+				MT_Vector3 tri[3];
+				for (int k = 0; k < 3; ++k)
+				{
+					const float* v;
+					if (t[k] < p->nv)
+						v = m_navMesh->getVertex(p->v[t[k]]);
+					else
+						v =  m_navMesh->getDetailVertex(pd->vbase+(t[k]-p->nv));
+					float pos[3];
+					vcopy(pos, v);
+					flipAxes(pos);
+					tri[k].setValue(pos);
+				}
+
+				for (int k=0; k<3; k++)
+					KX_RasterizerDrawDebugLine(tri[k], tri[(k+1)%3], color);
+			}
+		}
+		break;
 	}
 }
 

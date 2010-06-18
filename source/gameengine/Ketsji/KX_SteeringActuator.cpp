@@ -52,6 +52,8 @@ KX_SteeringActuator::KX_SteeringActuator(SCA_IObject *gameobj,
 									MT_Scalar velocity, 
 									MT_Scalar acceleration,									
 									MT_Scalar turnspeed,
+									bool  isSelfTerminated,
+									int pathUpdatePeriod,
 									KX_ObstacleSimulation* simulation)	 : 
 	SCA_IActuator(gameobj, KX_ACT_STEERING),
 	m_mode(mode),
@@ -60,10 +62,14 @@ KX_SteeringActuator::KX_SteeringActuator(SCA_IObject *gameobj,
 	m_velocity(velocity),
 	m_acceleration(acceleration),
 	m_turnspeed(turnspeed),
+	m_isSelfTerminated(isSelfTerminated),
+	m_pathUpdatePeriod(pathUpdatePeriod),
 	m_updateTime(0),
-	m_isActive(false),
-	m_simulation(simulation),
-	m_obstacle(NULL)
+	m_isActive(false),	
+	m_simulation(simulation),	
+	m_obstacle(NULL),
+	m_pathLen(0),
+	m_wayPointIdx(-1)
 {
 	m_navmesh = static_cast<KX_NavMeshObject*>(navmesh);
 	if (m_navmesh)
@@ -147,6 +153,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 		if (m_posevent && !m_isActive)
 		{
 			delta = 0;
+			m_pathUpdateTime = -1;
 			m_updateTime = curtime;
 			m_isActive = true;
 		}
@@ -156,61 +163,89 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 
 		RemoveAllEvents();
 
-		if (bNegativeEvent || !delta)
-			return false; // do nothing on negative events
+		if (!delta)
+			return true;
 
-		if (!m_target)
-			return false;
+		if (bNegativeEvent || !m_target)
+			return false; // do nothing on negative events
 
 		KX_GameObject *obj = (KX_GameObject*) GetParent();
 		const MT_Point3& mypos = obj->NodeGetWorldPosition();
 		const MT_Point3& targpos = m_target->NodeGetWorldPosition();
 		MT_Vector3 vectotarg = targpos - mypos;
 		MT_Vector3 steervec = MT_Vector3(0, 0, 0);
-		bool apply_steerforce = true;
+		bool apply_steerforce = false;
+		bool terminate = true;
 
 		switch (m_mode) {
 			case KX_STEERING_SEEK:
 				if (vectotarg.length2()>m_distance*m_distance)
 				{
-					apply_steerforce = true;
+					terminate = false;
 					steervec = vectotarg;
 					steervec.normalize();
+					apply_steerforce = true;
 				}
 				break;
 			case KX_STEERING_FLEE:
 				if (vectotarg.length2()<m_distance*m_distance)
 				{
-					apply_steerforce = true;
+					terminate = false;
 					steervec = -vectotarg;
 					steervec.normalize();
+					apply_steerforce = true;
 				}
 				break;
 			case KX_STEERING_PATHFOLLOWING:
 				if (m_navmesh && vectotarg.length2()>m_distance*m_distance)
 				{
-					static const int MAX_PATH_LENGTH  = 128;
-					static const MT_Vector3 PATH_COLOR(1,0,0);
+					terminate = false;
 
-					float path[MAX_PATH_LENGTH*3];
-					int pathlen = m_navmesh->FindPath(mypos, targpos, path, MAX_PATH_LENGTH);
-					if (pathlen > 1)
+					static const MT_Scalar WAYPOINT_RADIUS(1.);
+
+					if (m_pathUpdateTime<0 || (m_pathUpdatePeriod>=0 && 
+												curtime - m_pathUpdateTime>((double)m_pathUpdatePeriod/1000)))
 					{
-						//debug draw
-						m_navmesh->DrawPath(path, pathlen, PATH_COLOR);
-
-						apply_steerforce = true;
-						MT_Vector3 waypoint(&path[3]);
-						steervec = waypoint - mypos;
-						steervec.z() = 0;
-						steervec.normalize();
+						m_pathUpdateTime = curtime;
+						m_pathLen = m_navmesh->FindPath(mypos, targpos, m_path, MAX_PATH_LENGTH);
+						m_wayPointIdx = m_pathLen > 1 ? 1 : -1;
 					}
+
+					if (m_wayPointIdx>0)
+					{
+						MT_Vector3 waypoint(&m_path[3*m_wayPointIdx]);
+						if ((waypoint-mypos).length2()<WAYPOINT_RADIUS*WAYPOINT_RADIUS)
+						{
+							m_wayPointIdx++;
+							if (m_wayPointIdx>=m_pathLen)
+							{
+								m_wayPointIdx = -1;
+								terminate = true;
+							}
+							else
+								waypoint.setValue(&m_path[3*m_wayPointIdx]);
+						}
+
+						steervec = waypoint - mypos;
+						apply_steerforce = true;
+
+						//debug draw
+						static const MT_Vector3 PATH_COLOR(1,0,0);
+						m_navmesh->DrawPath(m_path, m_pathLen, PATH_COLOR);
+
+					}	
+					
 				}
 				break;
 		}
 
 		if (apply_steerforce)
 		{
+			bool isdyna = obj->IsDynamic();
+			if (isdyna)
+				steervec.z() = 0;
+			if (!steervec.fuzzyZero())
+				steervec.normalize();
 			MT_Vector3 newvel = m_velocity*steervec;
 
 			//adjust velocity to avoid obstacles
@@ -222,14 +257,23 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 				KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(0.,1.,0.));
 			}
 
-			//temporary solution: set 2D steering velocity directly to obj
-			//correct way is to apply physical force
-			//MT_Vector3 movement = delta*m_velocity*steervec;
-			//obj->ApplyMovement(movement, false);
-			MT_Vector3 curvel = obj->GetLinearVelocity();
-			newvel.z() = curvel.z();			
-			obj->setLinearVelocity(newvel, false);
+			if (isdyna)
+			{
+				//temporary solution: set 2D steering velocity directly to obj
+				//correct way is to apply physical force
+				MT_Vector3 curvel = obj->GetLinearVelocity();
+				newvel.z() = curvel.z();			
+				obj->setLinearVelocity(newvel, false);
+			}
+			else
+			{
+				MT_Vector3 movement = delta*newvel;
+				obj->ApplyMovement(movement, false);
+			}
 		}
+
+		if (terminate && m_isSelfTerminated)
+			return false;
 	}
 
 	return true;

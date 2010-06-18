@@ -43,6 +43,7 @@ class KX_GameObject;
 class KX_NavMeshObject;
 struct KX_Obstacle;
 class KX_ObstacleSimulation;
+const int MAX_PATH_LENGTH  = 128;
 
 class KX_SteeringActuator : public SCA_IActuator
 {
@@ -61,6 +62,12 @@ class KX_SteeringActuator : public SCA_IActuator
 	KX_Obstacle* m_obstacle;
 	double m_updateTime;
 	bool m_isActive;
+	bool m_isSelfTerminated;
+	float m_path[MAX_PATH_LENGTH*3];
+	int m_pathLen;
+	int m_pathUpdatePeriod;
+	double m_pathUpdateTime;
+	int m_wayPointIdx;
 public:
 	enum KX_STEERINGACT_MODE
 	{
@@ -79,6 +86,8 @@ public:
 						MT_Scalar velocity, 
 						MT_Scalar acceleration,									
 						MT_Scalar turnspeed,
+						bool  isSelfTerminated,
+						int pathUpdatePeriod,
 						KX_ObstacleSimulation* simulation);
 	virtual ~KX_SteeringActuator();
 	virtual bool Update(double curtime, bool frame);

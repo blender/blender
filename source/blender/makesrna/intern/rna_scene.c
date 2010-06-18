@@ -1760,6 +1760,13 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, obstacle_simulation_items);
 	RNA_def_property_ui_text(prop, "Obstacle simulation", "Simulation used for obstacle avoidance in the game engine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "level_height", PROP_FLOAT, PROP_ACCELERATION);
+	RNA_def_property_float_sdna(prop, NULL, "levelHeight");
+	RNA_def_property_range(prop, 0.0f, 200.0f);
+	RNA_def_property_ui_text(prop, "Level height", "Max difference in heights of obstacles to enable their interaction");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+	
 }
 
 static void rna_def_scene_render_layer(BlenderRNA *brna)

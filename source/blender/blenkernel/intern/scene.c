@@ -473,6 +473,7 @@ Scene *add_scene(char *name)
 	sce->gm.matmode = GAME_MAT_MULTITEX;
 
 	sce->gm.obstacleSimulation= OBSTSIMULATION_NONE;
+	sce->gm.levelHeight = 2.f;
 
 	sound_create_scene(sce);
 

@@ -451,11 +451,12 @@ typedef struct GameData {
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
 	*/
-	short mode, flag, matmode, pad[6];
+	short mode, flag, matmode/*, pad[2]*/;
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;
 	short ticrate, maxlogicstep, physubstep, maxphystep;
 	short obstacleSimulation;
+	float levelHeight;
 
 	/*  standalone player */
 	struct GameFraming framing;

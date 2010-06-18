@@ -1057,10 +1057,12 @@ void BL_ConvertActuators(char* maggiename,
 					break;
 				}
 
+				bool selfTerminated = (stAct->flag & ACT_STEERING_SELFTERMINATED) !=0;
 				KX_SteeringActuator *tmpstact
 					= new KX_SteeringActuator(gameobj, mode, targetob, navmeshob,stAct->dist, 
-											stAct->velocity, stAct->acceleration, stAct->turnspeed,
-											scene->GetObstacleSimulation());
+								stAct->velocity, stAct->acceleration, stAct->turnspeed, 
+								selfTerminated, stAct->updateTime,
+								scene->GetObstacleSimulation());
 				baseact = tmpstact;
 				break;
 			}
