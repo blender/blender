@@ -2316,7 +2316,7 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	ds= BLI_dynstr_new();
 
 	for(report=reports->list.first; report; report=report->next) {
-		if(report->type <= reports->printlevel)
+		if(report->type < reports->printlevel)
 			; /* pass */
 		else if(report->type >= RPT_ERROR)
 			BLI_dynstr_appendf(ds, "Error %%i%d%%t|%s", ICON_ERROR, report->message);
