@@ -65,7 +65,6 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
-#include "BKE_ipo.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
@@ -286,10 +285,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	if (!G.background) {
 		//setscreen(G.curscreen);
 	}
-	
-	// XXX temporarily here
-	if(G.main->versionfile < 250)
-		do_versions_ipos_to_animato(G.main); // XXX fixme... complicated versionpatching
 	
 	if(recover && bfd->filename[0] && G.relbase_valid) {
 		/* in case of autosave or quit.blend, use original filename instead
