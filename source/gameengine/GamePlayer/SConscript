@@ -1,3 +1,0 @@
-#!/usr/bin/python
-SConscript(['common/SConscript',
-            'ghost/SConscript'])

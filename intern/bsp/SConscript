@@ -1,9 +1,0 @@
-#!/usr/bin/python
-Import ('env')
-
-sources = env.Glob('intern/*.cpp')
-
-incs = 'intern ../container ../moto/include ../memutil'
-
-env.BlenderLib ('blender_BSP', sources, Split(incs), [], libtype='core', priority=200 )
-
