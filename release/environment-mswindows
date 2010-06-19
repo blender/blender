@@ -1,0 +1,18 @@
+# This is a Blender Environment Variable config file.
+#
+# Comment lines start with "#", other lines will be split at the "="
+# and the part before will be used as env var name and the part after
+# as env var value. The value can make reference to previous or
+# prelaunch variables with "%%" and the content will be replaced.
+# Once set, values of variables will not be overwritten.
+#
+# BLENDER_SHARE should be COMMON_APPDATA\\Blender Foundation\\Blender for typical installs.
+# BLENDER_VERSION will be set by the program before processing this file.
+BLENDER_USER_BASE=%USERPROFILE%\\Blender Foundation\\Blender\\%BLENDER_VERSION%
+BLENDER_SYSTEM_BASE=%BLENDER_SHARE%\\%BLENDER_VERSION%
+BLENDER_USER_DATAFILES=%USERPROFILE%\\Blender Foundation\\%BLENDER_VERSION%\\datafiles
+BLENDER_SYSTEM_DATAFILES=%BLENDER_SHARE%\\%BLENDER_VERSION%\\datafiles
+BLENDER_USER_PY=%USERPROFILE%\\Blender Foundation\\%BLENDER_VERSION%\\py
+BLENDER_SYSTEM_PY=%BLENDER_SHARE%\\%BLENDER_VERSION%\\py
+BLENDER_USER_PLUGINS=%USERPROFILE%\\Blender Foundation\\%BLENDER_VERSION%\\plugins
+BLENDER_SYSTEM_PLUGINS=%BLENDER_SHARE%\\%BLENDER_VERSION%\\plugins

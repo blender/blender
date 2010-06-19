@@ -1,0 +1,19 @@
+#!/usr/bin/python
+Import ('env')
+
+source_files = ['dds_api.cpp', 'DirectDrawSurface.cpp', 'Stream.cpp', 'BlockDXT.cpp', 'ColorBlock.cpp', 'Image.cpp']
+
+incs = ['.',
+	'../../',
+	'../..',
+	'..',
+	'../../../makesdna',
+	'../../../blenkernel',
+	'../../../blenlib',
+	'intern/include',
+	'#/intern/guardedalloc']
+
+
+defs = ['WITH_DDS']
+
+env.BlenderLib ('bf_dds', source_files, incs, defs, libtype=['core','player'], priority = [230,190])

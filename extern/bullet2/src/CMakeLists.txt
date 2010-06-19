@@ -1,0 +1,4 @@
+ADD_SUBDIRECTORY(BulletCollision)
+ADD_SUBDIRECTORY(BulletDynamics)
+ADD_SUBDIRECTORY(LinearMath)
+ADD_SUBDIRECTORY(BulletSoftBody )

@@ -1,0 +1,1239 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="bullet2"
+	ProjectGUID="{FFD3C64A-30E2-4BC7-BC8F-51818C320400}"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\src"
+				PreprocessorDefinitions="_DEBUG;_LIB;WIN32;BUM_INLINED;USE_ALGEBRAIC"
+				ExceptionHandling="FALSE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\extern\bullet\debug\Bullet.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\extern\bullet\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\extern\bullet\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\extern\bullet\debug\"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="4"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\extern\debug\Bullet.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\BroadphaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionDispatch MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\Gimpact MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\ConstraintSolver MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Vehicle MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\LinearMath MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletSoftBody MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
+
+XCOPY /Y ..\..\src\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\src\BulletSoftBody\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
+XCOPY /Y ..\..\src\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+XCOPY /Y ..\..\src\BulletCollision\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
+XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+XCOPY /Y ..\..\src\BulletCollision\CollisionDispatch\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
+XCOPY /Y ..\..\src\BulletCollision\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+XCOPY /Y ..\..\src\BulletCollision\Gimpact\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
+XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
+XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
+XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
+
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\extern\bullet"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\extern\bullet"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\src"
+				PreprocessorDefinitions="NDEBUG;_LIB;WIN32;BUM_INLINED;USE_ALGEBRAIC"
+				StringPooling="TRUE"
+				ExceptionHandling="FALSE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\extern\bullet\Bullet.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\extern\bullet\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\extern\bullet\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\extern\bullet\"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="2"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\extern\Bullet.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\BroadphaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionDispatch MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\Gimpact MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\ConstraintSolver MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Vehicle MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\LinearMath MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletSoftBody MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
+
+XCOPY /Y ..\..\src\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\src\BulletSoftBody\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
+XCOPY /Y ..\..\src\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+XCOPY /Y ..\..\src\BulletCollision\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
+XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+XCOPY /Y ..\..\src\BulletCollision\CollisionDispatch\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
+XCOPY /Y ..\..\src\BulletCollision\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+XCOPY /Y ..\..\src\BulletCollision\Gimpact\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
+XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
+XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
+XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
+
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\src"
+				PreprocessorDefinitions="_DEBUG;_LIB;WIN32;BUM_INLINED;USE_ALGEBRAIC"
+				ExceptionHandling="FALSE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\Bullet.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="4"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\extern\mtdll\debug\Bullet.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\BroadphaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionDispatch MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\Gimpact MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\ConstraintSolver MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Vehicle MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\LinearMath MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletSoftBody MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
+
+XCOPY /Y ..\..\src\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\src\BulletSoftBody\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
+XCOPY /Y ..\..\src\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+XCOPY /Y ..\..\src\BulletCollision\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
+XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+XCOPY /Y ..\..\src\BulletCollision\CollisionDispatch\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
+XCOPY /Y ..\..\src\BulletCollision\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+XCOPY /Y ..\..\src\BulletCollision\Gimpact\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
+XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
+XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
+XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
+
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\src"
+				PreprocessorDefinitions="NDEBUG;_LIB;WIN32;BUM_INLINED;USE_ALGEBRAIC"
+				StringPooling="TRUE"
+				ExceptionHandling="FALSE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\Bullet.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="2"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\extern\mtdll\Bullet.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\BroadphaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionDispatch MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\Gimpact MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\ConstraintSolver MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Vehicle MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\LinearMath MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletSoftBody MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
+
+XCOPY /Y ..\..\src\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\src\BulletSoftBody\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
+XCOPY /Y ..\..\src\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+XCOPY /Y ..\..\src\BulletCollision\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
+XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
+XCOPY /Y ..\..\src\BulletCollision\CollisionDispatch\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
+XCOPY /Y ..\..\src\BulletCollision\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+XCOPY /Y ..\..\src\BulletCollision\Gimpact\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
+XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
+XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
+XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
+
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="src"
+			Filter="">
+			<File
+				RelativePath="..\..\src\btBulletCollisionCommon.h">
+			</File>
+			<File
+				RelativePath="..\..\src\btBulletDynamicsCommon.h">
+			</File>
+			<File
+				RelativePath="..\..\src\Bullet-C-Api.h">
+			</File>
+			<Filter
+				Name="BulletDynamics"
+				Filter="">
+				<Filter
+					Name="ConstraintSolver"
+					Filter="">
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btConstraintSolver.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btContactConstraint.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btContactConstraint.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btContactSolverInfo.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btGeneric6DofConstraint.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btGeneric6DofConstraint.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btHingeConstraint.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btHingeConstraint.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btJacobianEntry.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btPoint2PointConstraint.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btPoint2PointConstraint.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSequentialImpulseConstraintSolver.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSliderConstraint.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSliderConstraint.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSolve2LinearConstraint.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSolve2LinearConstraint.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSolverBody.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSolverConstraint.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btTypedConstraint.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btTypedConstraint.h">
+					</File>
+				</Filter>
+				<Filter
+					Name="Dynamics"
+					Filter="">
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btContinuousDynamicsWorld.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btContinuousDynamicsWorld.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btDynamicsWorld.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btRigidBody.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btRigidBody.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\Bullet-C-API.cpp">
+					</File>
+				</Filter>
+				<Filter
+					Name="Vehicle"
+					Filter="">
+					<File
+						RelativePath="..\..\src\BulletDynamics\Vehicle\btRaycastVehicle.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Vehicle\btRaycastVehicle.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Vehicle\btVehicleRaycaster.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Vehicle\btWheelInfo.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Vehicle\btWheelInfo.h">
+					</File>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="BulletCollision"
+				Filter="">
+				<Filter
+					Name="BroadphaseCollision"
+					Filter="">
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btAxisSweep3.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btAxisSweep3.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btBroadphaseInterface.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btBroadphaseProxy.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btBroadphaseProxy.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btDbvt.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btDbvt.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btDbvtBroadphase.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btDbvtBroadphase.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btDispatcher.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btDispatcher.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btMultiSapBroadphase.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btMultiSapBroadphase.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btOverlappingPairCache.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btOverlappingPairCache.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btOverlappingPairCallback.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btQuantizedBvh.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btQuantizedBvh.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btSimpleBroadphase.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\BroadphaseCollision\btSimpleBroadphase.h">
+					</File>
+				</Filter>
+				<Filter
+					Name="NarrowPhaseCollision"
+					Filter="">
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btContinuousConvexCollision.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btContinuousConvexCollision.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btConvexCast.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btConvexCast.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btConvexPenetrationDepthSolver.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btDiscreteCollisionDetectorInterface.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btGjkConvexCast.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btGjkConvexCast.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btGjkEpa.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btGjkEpa.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btGjkEpa2.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btGjkEpa2.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btGjkEpaPenetrationDepthSolver.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btGjkEpaPenetrationDepthSolver.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btGjkPairDetector.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btGjkPairDetector.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btManifoldPoint.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btMinkowskiPenetrationDepthSolver.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btMinkowskiPenetrationDepthSolver.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btPersistentManifold.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btPersistentManifold.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btPointCollector.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btRaycastCallback.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btRaycastCallback.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btSimplexSolverInterface.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btSubSimplexConvexCast.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btSubSimplexConvexCast.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btVoronoiSimplexSolver.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\NarrowPhaseCollision\btVoronoiSimplexSolver.h">
+					</File>
+				</Filter>
+				<Filter
+					Name="CollisionDispatch"
+					Filter="">
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btBoxBoxCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btBoxBoxCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btBoxBoxDetector.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btBoxBoxDetector.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btCollisionConfiguration.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btCollisionCreateFunc.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btCollisionDispatcher.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btCollisionDispatcher.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btCollisionObject.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btCollisionObject.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btCollisionWorld.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btCollisionWorld.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btCompoundCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btCompoundCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btConvexConcaveCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btConvexConcaveCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btConvexConvexAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btConvexConvexAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btConvexPlaneCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btConvexPlaneCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btDefaultCollisionConfiguration.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btDefaultCollisionConfiguration.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btEmptyCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btEmptyCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btManifoldResult.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btManifoldResult.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btSimulationIslandManager.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btSimulationIslandManager.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btSphereBoxCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btSphereBoxCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btSphereSphereCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btSphereSphereCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btSphereTriangleCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btSphereTriangleCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btUnionFind.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\btUnionFind.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\SphereTriangleDetector.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionDispatch\SphereTriangleDetector.h">
+					</File>
+				</Filter>
+				<Filter
+					Name="CollisionShapes"
+					Filter="">
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btBoxShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btBoxShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCapsuleShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCapsuleShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCollisionMargin.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCollisionShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCollisionShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCompoundShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCompoundShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConcaveShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConcaveShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConeShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConeShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexHullShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexHullShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexInternalShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexInternalShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexTriangleMeshShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btConvexTriangleMeshShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCylinderShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCylinderShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btEmptyShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btEmptyShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btHeightfieldTerrainShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btHeightfieldTerrainShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btMaterial.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btMinkowskiSumShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btMinkowskiSumShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btMultimaterialTriangleMeshShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btMultimaterialTriangleMeshShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btMultiSphereShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btMultiSphereShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btOptimizedBvh.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btOptimizedBvh.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btPolyhedralConvexShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btPolyhedralConvexShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btScaledBvhTriangleMeshShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btShapeHull.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btShapeHull.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btSphereShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btSphereShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btStaticPlaneShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btStaticPlaneShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btStridingMeshInterface.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btStridingMeshInterface.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTetrahedronShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTetrahedronShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleBuffer.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleBuffer.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleCallback.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleCallback.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleIndexVertexArray.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleIndexVertexArray.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleIndexVertexMaterialArray.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleIndexVertexMaterialArray.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleMesh.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleMesh.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleMeshShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleMeshShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btTriangleShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btUniformScalingShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btUniformScalingShape.h">
+					</File>
+				</Filter>
+				<Filter
+					Name="Gimpact"
+					Filter="">
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btBoxCollision.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btClipPolygon.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btContactProcessing.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btContactProcessing.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGenericPoolAllocator.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGenericPoolAllocator.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGeometryOperations.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactBvh.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactBvh.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactMassUtil.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactQuantizedBvh.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactQuantizedBvh.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btQuantization.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btTriangleShapeEx.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btTriangleShapeEx.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_array.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_basic_geometry_operations.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_bitset.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_box_collision.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_box_set.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_box_set.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_clip_polygon.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_contact.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_contact.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_geom_types.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_geometry.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_hash_table.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_linear_math.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_math.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_memory.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_memory.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_radixsort.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_tri_collision.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_tri_collision.h">
+					</File>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="LinearMath"
+				Filter="">
+				<File
+					RelativePath="..\..\src\LinearMath\btAabbUtil2.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btAlignedAllocator.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btAlignedAllocator.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btAlignedObjectArray.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btConvexHull.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btConvexHull.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btDefaultMotionState.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btGeometryUtil.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btGeometryUtil.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btHashMap.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btIDebugDraw.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btList.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btMatrix3x3.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btMinMax.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btMotionState.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btPoint3.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btPoolAllocator.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btQuadWord.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btQuaternion.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btQuickprof.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btQuickprof.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btRandom.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btScalar.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btStackAlloc.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btTransform.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btTransformUtil.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btVector3.h">
+				</File>
+			</Filter>
+			<Filter
+				Name="BulletSoftBody"
+				Filter="">
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftBody.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftBody.h">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftBodyConcaveCollisionAlgorithm.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftBodyConcaveCollisionAlgorithm.h">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftBodyHelpers.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftBodyHelpers.h">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftBodyInternals.h">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftBodyRigidBodyCollisionConfiguration.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftBodyRigidBodyCollisionConfiguration.h">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftRigidCollisionAlgorithm.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftRigidCollisionAlgorithm.h">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftRigidDynamicsWorld.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftRigidDynamicsWorld.h">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftSoftCollisionAlgorithm.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSoftSoftCollisionAlgorithm.h">
+				</File>
+				<File
+					RelativePath="..\..\src\BulletSoftBody\btSparseSDF.h">
+				</File>
+			</Filter>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

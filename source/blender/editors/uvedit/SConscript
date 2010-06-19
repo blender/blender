@@ -1,0 +1,10 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.c')
+
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
+incs += ' ../../makesrna #/intern/opennl/extern ../../gpu'
+
+env.BlenderLib ( 'bf_editors_uvedit', sources, Split(incs), [], libtype=['core'], priority=[45] )

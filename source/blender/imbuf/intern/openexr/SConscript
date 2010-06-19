@@ -1,0 +1,18 @@
+#!/usr/bin/python
+Import ('env')
+
+source_files = ['openexr_api.cpp']
+
+incs = ['.',
+	'../../../blenkernel',
+	'../../',
+	'..',
+	'../../../blenlib',
+	'intern/include',
+	'#/intern/guardedalloc',
+	'../../../makesdna']
+incs += Split(env['BF_OPENEXR_INC'])
+
+defs = ['WITH_OPENEXR']
+
+env.BlenderLib ('bf_openexr', source_files, incs, defs, libtype=['core','player'], priority = [225,180])

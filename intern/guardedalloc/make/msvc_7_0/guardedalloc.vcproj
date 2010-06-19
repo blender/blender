@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="guardedalloc"
+	ProjectGUID="{1CC733F1-6AB5-4904-8F63-C08C46B79DD9}"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\guardedalloc"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\guardedalloc"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\.."
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\guardedalloc\guardedalloc.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\guardedalloc\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\guardedalloc\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\guardedalloc\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\libguardedalloc.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying MEM files library to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include MKDIR ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\guardedalloc\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\guardedalloc\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\.."
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\guardedalloc\debug\guardedalloc.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\guardedalloc\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\guardedalloc\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\guardedalloc\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\libguardedalloc.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying MEM files library (debug target) to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include MKDIR ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\.."
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll\guardedalloc.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libguardedalloc.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying MEM files library to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include MKDIR ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\.."
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll\debug\guardedalloc.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\guardedalloc\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libguardedalloc.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying MEM files library (debug target) to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include MKDIR ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\guardedalloc\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\intern\mallocn.c">
+			</File>
+			<File
+				RelativePath="..\..\intern\mmap_win.c">
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl">
+			<Filter
+				Name="extern"
+				Filter="">
+				<File
+					RelativePath="..\..\BLO_sys_types.h">
+				</File>
+				<File
+					RelativePath="..\..\MEM_guardedalloc.h">
+				</File>
+				<File
+					RelativePath="..\..\mmap_win.h">
+				</File>
+			</Filter>
+			<Filter
+				Name="intern"
+				Filter="">
+			</Filter>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

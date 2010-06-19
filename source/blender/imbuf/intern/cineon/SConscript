@@ -1,0 +1,17 @@
+#!/usr/bin/python
+Import ('env')
+
+source_files = env.Glob('*.c')
+
+incs = ['.',
+    '../../../blenkernel',
+    '../../',
+    '..',
+    '../../../blenlib',
+    'intern/include',
+    '#/intern/guardedalloc',
+    '../../../makesdna']
+
+defs = []
+
+env.BlenderLib ('bf_cineon', source_files, incs, defs, libtype=['core','player'], priority = [220,175])

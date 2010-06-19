@@ -1,0 +1,12 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.c') + env.Glob('superlu/*.c')
+
+incs = 'extern superlu'
+
+if (env['OURPLATFORM'] == 'win32-mingw'):
+    env.BlenderLib ('blender_ONL', sources, Split(incs), [], libtype=['core','intern'], priority=[1,80] )
+else:
+    env.BlenderLib ('blender_ONL', sources, Split(incs), [], libtype=['core'], priority=[55] )
+

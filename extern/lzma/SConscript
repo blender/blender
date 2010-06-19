@@ -1,0 +1,9 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('./*.c')
+
+defs = ''
+incs = ' . ' 
+
+env.BlenderLib ('bf_lzma', sources, Split(incs), Split(defs), libtype=['intern'], priority=[40] )

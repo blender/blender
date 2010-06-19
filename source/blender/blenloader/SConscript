@@ -1,0 +1,14 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.c')
+
+incs = '. #/intern/guardedalloc ../blenlib ../blenkernel'
+incs += ' ../makesdna ../readblenfile ../editors/include'
+incs += ' ../render/extern/include ../makesrna'
+
+incs += ' ' + env['BF_ZLIB_INC']
+
+defs = []
+
+env.BlenderLib ( 'bf_blenloader', sources, Split(incs), defs, libtype=['core','player'], priority = [167,30] )

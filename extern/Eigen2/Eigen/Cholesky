@@ -1,0 +1,65 @@
+#ifndef EIGEN_CHOLESKY_MODULE_H
+#define EIGEN_CHOLESKY_MODULE_H
+
+#include "Core"
+
+#include "src/Core/util/DisableMSVCWarnings.h"
+
+// Note that EIGEN_HIDE_HEAVY_CODE has to be defined per module
+#if (defined EIGEN_EXTERN_INSTANTIATIONS) && (EIGEN_EXTERN_INSTANTIATIONS>=2)
+  #ifndef EIGEN_HIDE_HEAVY_CODE
+  #define EIGEN_HIDE_HEAVY_CODE
+  #endif
+#elif defined EIGEN_HIDE_HEAVY_CODE
+  #undef EIGEN_HIDE_HEAVY_CODE
+#endif
+
+namespace Eigen {
+
+/** \defgroup Cholesky_Module Cholesky module
+  *
+  * \nonstableyet
+  *
+  * This module provides two variants of the Cholesky decomposition for selfadjoint (hermitian) matrices.
+  * Those decompositions are accessible via the following MatrixBase methods:
+  *  - MatrixBase::llt(),
+  *  - MatrixBase::ldlt()
+  *
+  * \code
+  * #include <Eigen/Cholesky>
+  * \endcode
+  */
+
+#include "src/Array/CwiseOperators.h"
+#include "src/Array/Functors.h"
+#include "src/Cholesky/LLT.h"
+#include "src/Cholesky/LDLT.h"
+
+} // namespace Eigen
+
+#define EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(MATRIXTYPE,PREFIX) \
+  PREFIX template class LLT<MATRIXTYPE>; \
+  PREFIX template class LDLT<MATRIXTYPE>
+
+#define EIGEN_CHOLESKY_MODULE_INSTANTIATE(PREFIX) \
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(Matrix2f,PREFIX); \
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(Matrix2d,PREFIX); \
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(Matrix3f,PREFIX); \
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(Matrix3d,PREFIX); \
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(Matrix4f,PREFIX); \
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(Matrix4d,PREFIX); \
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(MatrixXf,PREFIX); \
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(MatrixXd,PREFIX); \
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(MatrixXcf,PREFIX); \
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE_TYPE(MatrixXcd,PREFIX)
+
+#ifdef EIGEN_EXTERN_INSTANTIATIONS
+
+namespace Eigen {
+  EIGEN_CHOLESKY_MODULE_INSTANTIATE(extern);
+} // namespace Eigen
+#endif
+
+#include "src/Core/util/EnableMSVCWarnings.h"
+
+#endif // EIGEN_CHOLESKY_MODULE_H

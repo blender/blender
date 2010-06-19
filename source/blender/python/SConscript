@@ -1,0 +1,21 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.c')
+
+incs = '. ../editors/include ../makesdna ../makesrna ../blenlib ../blenkernel ../nodes'
+incs += ' ../imbuf ../blenloader ../render/extern/include ../windowmanager'
+incs += ' #intern/guardedalloc #intern/memutil #extern/glew/include'
+incs += ' ' + env['BF_PYTHON_INC']
+
+defs = []
+
+if env['OURPLATFORM'] in ('win32-mingw', 'win32-vc','win64-vc') and env['BF_DEBUG']:
+	defs.append('_DEBUG')
+
+env.BlenderLib( libname = 'bf_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [361,160])
+
+
+# generic
+sources = env.Glob('generic/*.c')
+env.BlenderLib( libname = 'bf_gen_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [362,165]) # ketsji is 360

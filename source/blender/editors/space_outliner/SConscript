@@ -1,0 +1,10 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.c')
+
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs += ' ../../windowmanager #/intern/guardedalloc ../../makesrna'
+incs += ' #/extern/glew/include'
+
+env.BlenderLib ( 'bf_editors_space_outliner', sources, Split(incs), [], libtype=['core'], priority=[60] )

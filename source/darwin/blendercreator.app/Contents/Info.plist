@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+
+	<key>CFBundleExecutable</key>
+	<string>blendercreator</string>
+
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+
+	<key>CFBundleIconFile</key>
+	<string>blender creator icon.icns</string>
+
+	<key>CFBundleName</key>
+	<string>BlenderCreator</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.nantechnologies.blendercreator</string>
+	
+	<key>CFBundleVersion</key>
+	<string>VERSION, DATE, Copyright NaN Technologies BV</string>
+	<key>CFBundleShortVersionString</key>
+	<string>VERSION</string>
+	<key>CFBundleGetInfoString</key>
+	<string>VERSION, DATE, Copyright NaN Technologies BV</string>
+
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeIconFile</key>
+			<string>blender file icon.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Blender File</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>BLND</string>
+			</array>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>blend</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSIsAppleDefaultForType</key>
+			<true/>			
+		</dict>
+	</array>
+</dict>
+</plist>

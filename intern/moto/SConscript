@@ -1,0 +1,8 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.cpp')
+
+incs = 'include'
+
+env.BlenderLib ('bf_moto', sources, Split(incs), [], libtype=['intern','player'], priority = [130,95] )

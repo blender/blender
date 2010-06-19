@@ -1,0 +1,8 @@
+#!/usr/bin/python
+
+Import('env')
+
+sources = env.Glob('intern/*.c')
+incs = '.'
+
+env.BlenderLib ('bf_guardedalloc', sources, Split(incs), defines=[], libtype=['intern','player'], priority = [5,150] )

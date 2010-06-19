@@ -1,0 +1,1393 @@
+Blender Foundation Members 
+
+Special thanks to the following people, who have supported the Blender Foundation
+by donating at least USD 50 to pay for opening the Blender sources: 
+(in chronological order):
+
+Bradley Keyes 
+Robert Knop 
+Thomas Brown 
+Adam Goodenough 
+Steven Tally 
+Jason Tally 
+Alan Taylor 
+Pascal COMPAGNON 
+Christopher Koppler 
+Matthew P. Carter
+Gideon Vaala 
+F.O. Bossert 
+Frank Mayhar 
+Peter Volgyesi 
+Mark E. Nelmes
+Peter Lammers 
+Craig Maloney 
+daniel e vertseegh
+Freek Zijlmans 
+Anthony Ogden 
+Anders Dys 
+Gerald Saunders 
+Fernando Cordas 
+Joshua Smith 
+Max R. Huskins
+imarend
+Olaf Arnold 
+Eric Van Hensbergen
+Christian Reichlin 
+brian moore 
+Anthony Walker 
+Carsten Höfer 
+Raymond Fordham 
+David Megginson 
+Jason Schmidt 
+Christopher Walden 
+Robert van Straten
+Daniel Schwartz 
+ekzakt
+Jellybean
+Streit Eric 
+Bob Ippolito 
+Keith Frederick 
+Ryan Heimbuch 
+Martin Hess 
+Shigeo Yoshida 
+Rens Houben 
+Jun IIO 
+Derek Gladding 
+Adam Wendt 
+Habib Loew 
+Jani Turkia 
+Warren Landon 
+Chip Lynch 
+Hans Ruedisueli 
+Keith Jones 
+Eugenio Mario Longo
+Philippe Tanguay 
+nekurai
+Ricardo Kustner 
+Peter Van Loock
+Jun-ichi OKAMURA 
+alain dejoux 
+dario trombino 
+Kenneth Johansson 
+Felix Schwarz 
+Eugenio Diaz 
+Aoki Katsutoshi 
+Norman J. Harman Jr. 
+Ralf Habel 
+Ken Payne 
+DEBEUX Sylvain 
+Douglas Philips 
+Lai Che Hung
+Johan Bolmsjö 
+Aaron Mitchell 
+Teinye Horsfall 
+Martin Marbach 
+Jason Poole 
+Cesar Delgado 
+Gareth Clay 
+Paul Wasserman 
+Joeri Sebrechts 
+Johannes Lehtinen 
+Marcio L. Teixeira
+James A. Peltier
+George E. Nimmer III 
+Matthew Fite 
+Ken Sedgwick 
+Gary Baltzell 
+lukas schroeder 
+Dan Lyke 
+Mark Thorpe 
+A.D. Arul Nirai Selvan 
+Herbert Pötzl 
+Andy Payne 
+LAFFITTE Benoit (KenjForce)
+James Ertle 
+Tom Turelinckx 
+Rigo Ketelings 
+Bryan Green 
+Suzuki Akihiro 
+Mason Staugler 
+Guillaume Randon 
+francois Gombault 
+Harald Thelen 
+Graziano Roccon 
+Jonathan DuBois 
+Jason Luros 
+Drew M. Snyder
+Jesse DeFer 
+Michael Keith 
+Gaetano Tinat 
+Ferris McCormick 
+Sherman Boyd 
+Thomas C Anth Jr 
+Joseph Catto 
+Damian Soto 
+John Walsh 
+Stephen Rosman 
+Ross Hopkins 
+Robert Wenzlaff 
+Joe Galat 
+LinuxFrench.NET
+Thomas Erichsen 
+Gary E. Deschaines
+Denis McCarthy 
+Michael Dowman 
+John (J5) Palmieri
+alphawolf
+Peter Paul Fink
+Charles F. McKnight
+Avi Schwartz 
+Jim Witte 
+Jens Ansorg 
+William Bate 
+Ron Romano 
+Marc Schraffenberger 
+Steve Thompson 
+Martin Whitaker 
+Kendall Dugger 
+Brice Due 
+Simon Vogl 
+Bernd Koestler 
+clément CORDIER 
+CreationAnimation.com
+Pete Carss 
+HERSEN Antoine 
+Charles R. Tersteeg
+James T Burnett
+Shawn Legrand 
+David Choice 
+patrick amaru 
+David Eck 
+Gabriel Welsche 
+Henning von Zitzewitz
+Chris Impink 
+Den Giles 
+Jon Cisewski 
+Ricki Myers 
+Luis Collado 
+Robert G. Watkins
+Rainer Perl 
+YAGI, Toshiki 
+Bruno Nitrosso 
+Athalyba / Blender Brasil 
+Dave Whittington 
+Darryl Luscombe 
+Benjamin A Moore
+Andreas Kollegger 
+Stamatis Logos 
+Ray Kelm 
+Albrecht Jacobs 
+Mirko Horstmann 
+Ranjit Mathew 
+Jaron Blackburn 
+Antonio Hui 
+Scott Moore 
+CSN media 
+Scott Carle 
+Ted Milker 
+Lars Brinkhoff 
+Louise Edwards 
+Alex Ruano 
+Art Rozenbaum 
+Manuel Hossfeld 
+Brandon Ehle 
+Lou Bruce 
+ROMASZEWSKI
+cadic jean-yves 
+Ralf Pietersz 
+KAZY
+serge Jadot 
+Hervé LOUINET 
+Tom Houtman 
+Magnus Kööhler 
+Martin Sinnaeve 
+Kevin Yank 
+Tomoichi Iriyama 
+THIBAULT
+Dr Steven J. Baines 
+Hans-Peter Berger 
+Jeffrey D. Holland
+Philip XP Talbot
+Peter Haight 
+Krister Bruhwel 
+the Smoos 
+Hohenegger Michael 
+Alejandro Gabriel y Galan 
+Boyer
+Alwin Eilers 
+Tyberghein Jorrit 
+Jaroslav Benkovsky 
+Gianluigi Belli 
+Naoki Abe 
+NOTTE Jean-Pierre 
+Jack Way 
+Björn Westlin 
+Mitch Magee 
+wizoptic
+Jake Edge 
+David Hoover 
+Xabier Goñi 
+Daniel Fort 
+Erik Noteboom 
+Pavel Vostatek 
+Javier Belanche Alonso
+Jeffrey Blank 
+Nathan Ryan 
+Peter Wrangell 
+Josef Sieß 
+Timm Krumnack 
+Steve Martin 
+Shigeru Matsumoto 
+Marko Kohtala 
+Aleix Conchillo 
+Curtis Smith 
+Tatjana Svizensky 
+Matt Graham 
+Karo Launonen 
+Nikolaj Brandt Jensen
+Jean-Michel Smith 
+Nathan Clegg 
+Joaquim Carvalho 
+Bomholt
+Martin Imobersteg 
+Jordan
+Justin Warwick 
+barussaud
+Eric Molbert 
+Ben Berck 
+Jacco van Beek
+Dominic Agoro-Ombaka 
+Colin Foster 
+Sascha Adler 
+Stuart Duncan 
+Brendon Smith 
+Sébastien COLLETTE 
+Clemens Auer 
+Kay Fricke 
+Fabian Fagerholm 
+Norman Lin 
+Aaron Digulla 
+Camilo Moreno 
+Detlev Reppin 
+Denis NICOLAS 
+Armin Antons 
+Darren Heighington 
+Mario Latronico 
+Frank Meier 
+Joerg Frochte 
+Matthew Ingle 
+Anters
+Bjoern C. Schaefer
+STEMax
+Jeff Cox 
+Trevor Ratliff 
+Matt Henley 
+François VALETTE 
+Rob Saunders 
+Mike Luethi 
+Rami Aubourg-Kaires 
+Matthew Thomas 
+Allan Jacobsen 
+Adam Lowe 
+David Hostetler 
+Loïc Vigneras 
+Dan Reiland 
+Pedro Díaz del Arco 
+Pierre Beyssac 
+Chris Davey 
+YOSHIAKI Nishino 
+Cyber Perk 
+Fabrizio Cali 
+Harunobu Yoda 
+Gerrit Jan Baarda
+LarstiQ
+Ico Doornekamp 
+Emiel den Biesen
+Willem Zwarthoed 
+Carl Giesberts 
+Buzz
+lieve vanderschaeve 
+Margreet de Brie
+hans verwaal 
+Saskia van Dijk
+Martin Gosch 
+Alexander Konopka 
+Thomas Gebert 
+Gerard de Vries
+Hans Lambermont 
+Kim Beumer 
+Kay Thust 
+Alexander Jung 
+Tony Corlett 
+Olivier Thouverey 
+Hideo Nomoto 
+Giel Peters 
+Ray Poynter 
+Edoardo Galvagno 
+Pim Feijen 
+Hua-lun Li 
+William Reynish 
+Bryan Carpenter 
+Jim Scott 
+NGUYEN Fabien 
+Dave Stone 
+Andy Kugyelka 
+Andrew Ross 
+MerieJean-Christophe
+Marko Mestrovic 
+Jack
+Lars Gunnar West
+Wile E. Coyote
+Rick Clark 
+Carlos A. Duque
+Franck Barnier 
+Matt Shirley 
+Viktor Zacek 
+Peter Williamson 
+Chema Celorio 
+Paul Cleveland 
+Guo-Rong Koh 
+Andrew Potter 
+Daniel Smeltzer 
+Cativo
+Dmitri Bichko 
+Jeremy Brinkley 
+Stephen Saville 
+Michael Proto 
+Kurt Korbatits 
+Ruan Muller 
+Mike Beggs 
+Beat Schiess 
+Sven Marcel Buchholz
+Enrique Monfort 
+Simon Posnjak 
+Steven Ahkim 
+theGyre
+William Marble 
+Allen Smith 
+Joshua SS Miller
+Mike Edwards (PinkFreud)
+Mark D. Butala
+Auriea Harvey&Michael Samyn
+Randy Newman 
+Leslie Spring 
+Marc Schefer 
+Dean Edmonds 
+David Whitehouse 
+Tim Humphrey 
+Phillip Richdale 
+Jason McHugh 
+Claudio de Sario
+Artur Kedzierski 
+Richard Garcia 
+Isaac Rivas Alvarez
+Kiernan Holland 
+Holger Malessa 
+Masanori Okuda 
+Andrea Maracci 
+Kai-Peter Bäckman 
+Gregg Patton 
+Luis M Ibarra
+Julian Green 
+Christian Bender 
+Mark Winkelman 
+Ebbe L. Nielsen
+Carlos Orozco 
+magnetHead
+Krückel Oliver 
+Thomas Ingham 
+Wes Devauld 
+Uwe Steinmann 
+Jesus Gonzalez 
+DenMeridiS
+Marc Hofer 
+Marko Mestrovic 
+Leslie Owen Everett
+Knut Bueltemann 
+Eric Garaventa 
+Wolfram Schwenzer 
+Edwin Brouwer 
+mauro ujetto 
+Franck Vibert 
+Daniel Pacheco 
+Justin Shumaker 
+Steve Wallace 
+Forensic Engineering Inc.
+Steve Mackay 
+NDNWarrior
+Christopher Gray 
+Darius Clarke (Socinian)
+Jean-Sébastien SEVESTRE 
+Douglas Fellows 
+Craig Symons 
+Quincin Gonjon 
+Brian B. Kelley
+Kie Brooks 
+Scott Whitney 
+kwbrads
+Keijiro Takahashi 
+Geno Ruffalo 
+Zzeb
+Peter Dohnt 
+Jeff E Schram
+ernst bunders 
+Nobutoshi Shigemori 
+Mariano Aured 
+Rab Gordon 
+Kurt Maurer 
+Ron Cavagnaro (doogs)
+Johan Bjorklund 
+Cyril M. Hansen
+JOSEPH GRACI 
+Rafael Rubio 
+fabrice meynard 
+Emilio Aguirre 
+Mark Lewis 
+Markus Q. Roberts
+Christoher Bartak 
+Peter Truog 
+Eric Dynowski 
+Philipp Gühring 
+Pierre-Yves RANNO 
+Jason Nollan (Cluh)
+Launay Jean-Claude 
+Wayne Buckhanan 
+Jan Magne Landsvik
+Douglas Dragan Njegovan
+Brian David Hale
+Randal Walser 
+Matthew A. Nicholson
+Thomas
+Phillip Kinsley 
+Jerome Zago 
+David Rosky 
+TROJANI Cedric 
+David Polston 
+Patrick Mullen 
+Tetsuya Okuno 
+Bodo Jäger 
+Leon Brooks 
+Cedric Adjih 
+Michael L. Fisher
+Dan Tomalesky 
+Sky Schulz 
+Scott Brickert 
+James Purdon 
+Miles Langham 
+N Yiannakoulias 
+Stephen Swaney 
+www.artwave.nl
+Take Vos 
+sspickle
+Denis Oliver Kropp
+Gustavo
+rodgers whittington jr
+George Dvorak 
+Norman J Davis, Jr. 
+Javier Velazquez 
+John Tougas 
+John Howland 
+Steve Organek 
+Jano Lukac 
+David Cardon 
+Mick Balaban 
+Michael Kaufman 
+Viper Expo 
+Chassoulier
+Sjoerd Zaalberg van Zelst 
+B. Douglas Hilton
+Benoit CANTAGREL 
+Kai Fischer 
+Mark Osborne 
+Michael Hollenbeck 
+iconjunky
+luca de giorgi
+Jonathan Mullen 
+Javier Fernandez-Ivern 
+Reuben Burgess 
+Olivier Scalbert 
+claudio luis Rogers
+Jeremy Peterson 
+Mark Streutker 
+Lourens Veen 
+Neil Davis 
+John McGurk 
+Stephen Teegarden 
+Dave LeCompte 
+Michael Lang 
+Mortal_Enemy
+Arigo Stanescu 
+Vincent Stoessel 
+Adrian Virnig 
+Chris Dixon 
+Travis Cole 
+Mårten Mårtensson 
+Evan Scott 
+Mark Coletti 
+Ken Burke 
+Karl Holland 
+ScRaze
+Wilco Wilbrink 
+chris montijn 
+Michael Wagenmann 
+Viktor Pracht 
+henrik wilming 
+Jim Evins 
+Christophe Massaloux 
+Marc Sommer 
+Luc Stepniewski 
+Eric M. Clark
+Iain Russell 
+Thomas Bleicher 
+Anthony Zishka 
+Jefferson Dubrule 
+Esa Piirilä 
+Bill Thiede 
+William Anderson 
+Alexander Kittel 
+Joe Tennies 
+Sam Cable 
+Christian Peper 
+Joshua Frederick 
+Steve Sutton 
+Pete Toscano 
+Michael Zucchi 
+Peter Degenhardt 
+Horizont Entertainment 
+Olivier Bornet 
+Richard D. Laudenslager
+sha
+John DiLauro 
+John Miller 
+Frederic Crozat 
+Matt Welland 
+Paul Calcé 
+Joe Prochilo 
+Justin Shafer 
+Joe Croft 
+Detlef Mueller 
+Raschbacher Thomas 
+Alain Gallo 
+Phuoc Ngo 
+Krabat
+Derek Harmison 
+Sébastien Devine 
+Kenneth P. Stox
+Wade Felde 
+Kai Groshert 
+Michael Soibelman 
+janine dalisda-davis 
+Philippe Raxhon 
+Daniel Sheridan 
+Michael Pressler 
+Daniel Lundqvist 
+Tim Oertel 
+James Ahlschwede 
+William Henstrom 
+PETIT-PHAR Patrice 
+Marc-Aurele DARCHE 
+Wei-ju Wu 
+Robert Wilson 
+Gerald Severs 
+Alejandro Conty Estevez
+Tetsuya Yatagai 
+David Dolder 
+Luigi Cristiano 
+Posse Press / Romain Canonge
+Vania Smrkovski 
+Bartosch Pixa 
+Dr. Jens Rosenboom
+Gunnar Stahl 
+Robert Kroeger 
+Martin Forisch 
+Guillermina Manon 
+Randal D. Adams
+Kevin Reagh (kevin3D)
+Wolfgang Kühn 
+BEAUSOLEIL Arnaud 
+Stan Jakubek 
+Klaus Brand 
+Holger Mueller 
+Fankhauser
+Jon McCallum 
+Rob Olsen 
+Joel Davis 
+Kenneth Bledsoe 
+James F. Campanella
+Jens Kilian 
+wim hendrix 
+Karri Kaksonen 
+Luis Roldan 
+Jason L. Shiffer
+Jacco Marks 
+Dale Schoeck 
+Agustin Catalan 
+A. T. Meinen
+Kamiel Wanrooij 
+Samuel Seay 
+Mike Schaudies 
+Robert Sherwood 
+Fernando Villalon Panzano
+Jörg Roschke 
+Carl Symons 
+Peter Pichler 
+Alan Heckart 
+seth nagy 
+pelletier
+Jeff Kowalczyk 
+LIONEL ALLORGE 
+Bhishma Patel 
+Richard Rowell 
+Barbara Seaton 
+Aschwin van der Woude 
+William J Black
+Kars Meyboom 
+Glen Nakamura 
+Jim Belcher 
+Tim Scott 
+mea van amstel
+Robert-Reinder Nederhoed 
+Neil Hunt 
+WizardNx
+Brad Choate 
+scott schoen 
+Dan Merillat 
+Martin Krueger 
+Samuel Greenfeld 
+Damon Tkoch 
+Colin Millar 
+Mike Roseman 
+Patrick Trussell 
+Hans-Peter Bock 
+Daniel Haertle 
+Wiremu Te Kani
+Joep Mathijssen 
+LATRY
+Witold Hazuka 
+geoff marshall 
+dave howard 
+Jan Zielinski 
+Fernando Buelna Sanchez
+Timo Mihaljov 
+Allard Willem van den Brul
+T.J.T van Kooten
+Thijs van der Vossen 
+Antonio de Santis
+Jama Poulsen 
+Robert Emanuele 
+Timothy Lord 
+Tom Parker 
+Jarrod Willard 
+Leon Merts 
+Tom Dow 
+Eric Anholt 
+mercier
+Marc van Kempen
+wim van hoydonck
+Joe Hacobian 
+Jose Luis Fresquet Febrer 
+toni calmardo 
+Sam Littlewood 
+Charles Wardlaw 
+Javier Rodriguez 
+Michael C. Schwab
+Corey Bell 
+Emmanuel Preveraud de La Boutresse
+Davide Desogus 
+Larry Phillips 
+Marko Teiste 
+John Roesink 
+Legrand Johan 
+Jeff Boody 
+James Turner 
+Peter Petrakis 
+Ravi Ravindran 
+dickie
+Rene Geerlings 
+Richard Braakman 
+Arthur Frenslich 
+Carsten Schmidt 
+Ronny Martin 
+Erwin Kuiper 
+Lopez-Garcia, Juan-Carlos 
+Rau, Bernhard 
+Stephen Uithoven 
+Ken Beyer 
+Matjaz Jakopec 
+Eckhard M. Jäger
+Mike Siebach 
+John Harger 
+Justin W. Carper
+Markus Weber 
+Elena Grandi 
+Arndt Heuvel 
+Miguel Cancela Da Fonseca 
+Kirk Lancaster 
+Phillip Elliott 
+Chris Halsall 
+Andre Voitel 
+benjamin scheers 
+Robinder S. Bains
+David Brunton 
+David Brown 
+Craig Duncan 
+du Song 
+Ben Wart 
+Eryk Kedzierski 
+Ronald Hayden 
+Raymond de Vries
+David Johnson 
+Kenichi Fujihiro 
+WANG
+Chris Weber 
+Christian Lehmann 
+DENDIEVEL Stephane 
+Bryan Jaycox 
+Karl Bartel 
+Ralph Howes 
+Matthew J. Stott
+Omar Priego 
+Åke Westerström 
+Imago Viva 
+James E Hill
+Rune Myrland 
+James Hill 
+Nick
+Ramiro Santos 
+Giuseppe Chiesa 
+Philippe Ney 
+Tom Woodyard 
+Jim Gray 
+Jim Newman 
+Robert I Black III 
+Peter Marouelli 
+Ian Roberts 
+Guy Van Rentergem
+Jose Luis Perez Rubio 
+Gabriel Mainberger 
+Klein Poelhuis 
+Luke Sargeant 
+Edomaur
+robert stok 
+Karl J. Smith
+Harry Splinter 
+Paul Boese 
+Dave Mata 
+piet visser 
+Nicolas Christin 
+Erik Zidowecki 
+Markus Michael Egger
+Edward R. Helwig
+Alyx Flannery 
+raphael betemps 
+Masahiro Takahata 
+Claude Bilat 
+Mario Palomo 
+Neipi
+Grethus Bode 
+Jan Müller 
+Mark Pearson 
+Stanislav Osicka 
+DataCare Solutions AG
+Russell Elliott 
+Antonio Campos 
+bordeaux samuel 
+Herman Vereycken 
+Sergio Avila 
+George Dobrozemsky 
+Ocie Mitchell 
+Ryuuji Kusajima 
+Nick Austin 
+Edward Wei 
+Gregg Tavares 
+Aaron Bredon 
+Hideki Suzuki 
+josef radinger 
+Robert Friemer 
+Jörg Zastrau 
+Burton Bicksler 
+Kimmo Mösö 
+Robert F Johnson
+Mark Johnson 
+Avi Bercovich 
+Mike Armitage 
+Roy Jones 
+Kathleen Sinnott 
+Per-Erik Westerberg 
+Reid Ellis 
+Phillip J. Birmingham
+Ken Jordan 
+Duffaud
+Marco Ardito 
+Simon Suter 
+Tobias Huelsdau 
+Winfried Engländer 
+Stephen Groundwater 
+Joel Ray Holveck
+Mag. Tibor Rudas
+Hartmut Wolf 
+Douglas Jones 
+brett hartshorn 
+Beat Mägert 
+Javon Prince 
+bri
+James Klicman 
+Harvey Fong 
+jeroen v.d. Meulen
+Wim Vandersmissen 
+Carlos Moreno Rodríguez
+Trausti Kristjansson 
+Larry Snyder 
+olivier
+jip
+Thomas Hintz 
+Daan van der Munnik 
+gideon
+jared
+Erick I. Jimenez Alvarado 
+John Martinez 
+Daniel Stephens 
+Alaric Haag 
+Michael Edwards 
+Sam Tregillus 
+Joe Pribele 
+Jeffry Archambeault 
+robert schiffers 
+shane smith 
+elout de kok
+Felix Esser 
+Dietrich Lange 
+Richard Clark 
+errol garner 
+Jose M Cerqueira Esteves 
+Jeroen Janssen 
+Sven Meyer 
+Mike Bayer 
+Arash Vahdat 
+Bernd Hoppe 
+Tobias Geiger 
+Ronnie Stevens 
+W. van Ophoven
+Artem Baguinski 
+Peter Morse 
+Nicholas Phillips 
+Leo Mannhart 
+philippe eygonnet 
+Hans Klerk 
+wes uchida 
+Guido Winkelmann 
+Doug Ferguson 
+Robert Lindsay 
+John Lovgren 
+Rogers Cadenhead 
+Philippe Crassous 
+Dirk Krause 
+lexpattison
+Fred Roberts 
+Njin-Zu Chen 
+GUILLON Marc 
+Felix Klock 
+Ernesto Salas Rodríguez
+Pavel Roskin 
+Jaap
+Stefan Maass 
+Adam Bower 
+Gary Thomas 
+Chris Gottbrath 
+seyssel claude 
+Chris Winberry 
+Chip Collier 
+Balint Reczey 
+Nuno Sucena Almeida
+Landon Bradshaw 
+Chua Mei Ling
+JC Hythloday 
+Dustin Knie 
+artshow
+Ralf Gauglitz 
+Ted Schundler 
+Bernard Hurley 
+delerue
+Dirk Behrens 
+Doc Holiday 
+Wouter Kerkhoven 
+Andreas Büttner 
+James Black 
+Nicholas Ward 
+David Oberbeck 
+The Shizit 
+Erich Moog 
+James Amendolagine 
+Alex Penner 
+Dieter Finkenzeller 
+giol franco 
+Tobias Regenbrecht 
+Ryan Dewalt 
+Spencer Cathey 
+Benoit SERRA 
+System Impuls 
+Jason Tranter 
+macherb
+LCC Consulting AG
+Ivan So 
+Cori Verschoor 
+Henauer Pascal 
+Chris Bilderback 
+Eddie Sheffield 
+DEHEN Pierre 
+henk van den toorn 
+Ian Whitworth 
+Ruud H.G. van Tol 
+Pierre Lo Cicero
+Srinivas Digumarty 
+digitalvelocity®
+Alan J Booth
+Tony OBrien 
+Douglas Toltzman 
+Christophe BOUCHET 
+Paul Robertson 
+SCHNEIDER Philippe 
+Jason Cunliffe 
+Dick Damian 
+Charles Hakari 
+jeff knowlton 
+Kevyn Shortell 
+robin
+Craig Spitzer 
+Jeffrey Van Ness
+Lucas Vergnettes 
+Wolfgang Michaelis 
+Luis Jiménez Linares
+Julian Eden 
+Ms Lilo von Hanffstengel 
+Kurt B. Kaiser
+Mark Ping 
+Combée
+Diego Matho 
+MELIN Philippe 
+Damian Sobieralski 
+Luigino Masarati 
+Leonard Wikberg III
+Tom Howsman 
+Christopher R Marquard
+Claus Munk 
+Chris D'Iorio 
+Graphics Solutions Pty Ltd 
+Bernd Stein 
+Jose Angel Vallejo Pinto 
+Matthew William Turner
+Kelly A. Flinn
+Hai T. Nguyen
+Tim Formica 
+Kevin Purrington 
+Andreas Lindenblatt 
+Brian Musker 
+Diego Silvio Novo
+Close Pierre-Yves 
+Wayne Pierce 
+Hattan Lee 
+Didier PEYRET 
+Jacquelin GAZEAU 
+Kenneth Balmer 
+Robert Hwang 
+Gaertner, Klaus 
+Peter Gumieniak 
+Simon Pigot 
+Ian Thompson 
+Jason Southwell 
+Stephan
+Robert Kuehn 
+IUT Mesures Physiques:gilbert Garnier CAEN France 
+Nigel I Phillip
+powermacg4
+Joan Touzet 
+Mike Mormando 
+katsuhiko ebisawa 
+Baheux Tony 
+Randi Joseph 
+Rick Comeau 
+michiel van der kley 
+Thijs Seelen 
+Robert Roos 
+ton
+david seccombe 
+Joshua Eckert 
+Joshua Newman 
+Paolo Sammicheli 
+Gentilini Bruno 
+Martin Herren 
+STRAPPAZON Mathias 
+Steven Gibbs 
+Florian Kruesch 
+Wesley Blijlevens 
+Fabianne Balvedi 
+Colin Henry 
+Mark Deepak Puttnam
+LE GOULVEN 
+evolutie
+Stephane Portha 
+Robert Gentner 
+David B. Camhy
+René Foucart 
+Coyok Drio 
+Mark Ng 
+klein michael 
+Antonin Kral 
+Edward Jomisko 
+Wouter de Mik
+Matteo De Simone
+Gal Barak 
+Thomas Dyar 
+Nathan Allworth 
+Dean Giberson 
+Larry Cummings 
+Eric Augustine 
+IngieBee
+Michael Velikanje 
+Andre M. Czausov
+H@dj
+Thorsten Burghaus 
+Renzo Lauper 
+Martin White 
+Ferdinand Strixner 
+Neil Mannall 
+Maxime Wacker 
+Gal Buki 
+Rene Christen 
+Andreas Neukoetter 
+DAVID JOHNSON 
+John Walton 
+Volker Mische 
+Michel Vilain 
+Luigi/Blender Brasil 
+Clifton A. Cross
+Kent B. Mein (SirDude)
+Anne Postma 
+Matt Runion 
+Bob Tackett 
+stanislas nanchen 
+Jorge Monteiro 
+S68
+Ville Kaajakari 
+Adrien Rebollo 
+Al Curatolo 
+Frank Rutten 
+Dierk Dohmann 
+Roel Spruit 
+Rob Coldwell 
+Yann Vernier 
+Haunt_House (PH) 
+Ravinder Singh Bhara
+Erik Augustijns 
+Ryan Earle Freckleton
+Andreas Sturm 
+matt mullin 
+MOREAUX Denis 
+Brendan Stromberger 
+Hideki Saito 
+Christian Ullrich 
+Courty Didier 
+Steve Newton 
+Brecht Van Lommel
+Jasper Op de Coul 
+Stuart MacKinnon 
+Dietrich Dietz - the IMaGiNation project (IMGN)
+Tina Hirsch 
+John R Thorp
+Frédéric Bouvier 
+LINETTE
+Felix Rabe 
+Chay Adamou 
+nick harron 
+stephen john ford
+Kino
+Daniel Sjölie 
+Matthias Derer 
+Alain VALLETON 
+Kervin Pierre 
+Mike Laughton 
+Frank van Puffelen
+Andreas Dluzewski 
+Christofer Edvardsen 
+Maciek Szczyglowski 
+Rakesh Ravuri 
+Robert Schouwenburg 
+Bob Bayens 
+Devas73
+Mika Saari 
+Robert Ives 
+Adam McBride 
+IAN ROSS 
+Uriah Liggett 
+stefan fischer 
+Didac Miro 
+Tim Barlow 
+G. T. Blackwell
+Tim Weaver 
+Dalet
+Erwin Vervacke 
+Benjamin Eduardo Rodriguez Berumen 
+Ozono Multimedia s.l.l.
+James Kersey 
+Michael DeLuca 
+Mark Swann 
+Andreas Altenburger 
+John Smith 
+Simon de Haan
+David Gregory 
+Harald Krummeck 
+E Warren McNee
+Marc-Andre Levesque 
+Satoshi Yamasaki 
+Rolf-Dieter Klein 
+J. Deetman 
+Helge Walter 
+Roland Strålberg 
+Nicolas Morenas (Caronte)
+Simon Clarke 
+Maigrot Michel 
+Rod Robinson 
+Kevin Cozens 
+Germán Alonso (taz)
+Martin Stegeman 
+Henrik Jordfald Olsen
+Mitchell Skinner 
+Michael Lei 
+Spiridon G. Kontarakis
+Bas Denissen 
+Loic Dachary 
+Michael Rutter 
+Thorsten Schlüter 
+hijothema
+Andreas Hauser 
+Holger Haase 
+Danilo Duina 
+Matthias Thurau 
+Flavio Curti 
+Ian Beardslee 
+Cristina Lozano Ballester
+Jason Roberson 
+Victor Lim 
+andreas palsson 
+Richard Charvat 
+James Ezell 
+Florian Eggenberger 
+John J. Marshall
+Paul Lunneberg 
+Peter Wolkerstorfer 
+Gerhard Siegesmund 
+Nat Budin 
+NDNChief
+Dave Leeak 
+Michael Siebecker 
+Jan Walter 
+John Aughey 
+Corey Rice 
+Darren F. Coolen
+tony principali 
+Joe Kimmes 
+Pekka Karvonen 
+Rick Kimball 
+Christopher Capoccia 
+Bertram Zeller 
+Vanpoucke Alexandre 
+Bassam Kurdali 
+Michael Baker 
+Michael Schwemmle 
+Ford "fullback" Roberts
+Lama Angelo 
+Kevin Roeder 
+oliv
+pinhead_66
+Zach Millis 
+Ryan C. Stallings
+Adam LaJeunesse 
+Satish Goda 
+Erik Haagsman 
+Lorenzo Moro 
+Nathan Letwory 
+stephan f. haupt
+Alex Papadopoulos 
+Gianluigi Berrone 
+andrea casentini 
+David Randall Simpson
+Jason Oppel 
+Mark Bloomfield 
+Alexander Ehrath 
+Owen Swerkstrom 
+Aurelio Caliaro 
+Karsten Dambekalns 
+Eddy MOUSSA 
+Bernd Roetter 
+Roland Hess 
+Luis Eduardo P. Gervasio 
+Pierre-Luc Robert (bedsitter)
+Andreu Cuartiella 
+Nathan Vegdahl 
+Scott Ross 
+Jacob Kafka 
+Mario Bolte 
+Wolfgang Draxinger 
+Starr Kline 
+John Lullie 
+Chiffi Cosimo 
+Morgan McMillian 
+Stefan Hübner 
+Loic de MONTAIGNAC
+Andrés Castillo 
+Francesco Anselmo 
+Ingo Guenther 
+James C. Davis, Jr. 
+Claudio Andaur 
+Caleb Williams 
+Orest Dubay 
+Adam Casto 
+David
+Joost Burger 
+Ken Hahn 
+Mark Herring 
+Stig Oeveraas 
+Robert Rainthorpe 
+Martin Middleton 
+Simon Sedgwick 
+Joseph Firestine 
+Miguel Melo 
+Wooster Dennis 
+Gary Lucas 
+Johannes Schwarz 
+Mark Dalton 
+Mike Norton 
+Michael Schardt 
+jean-michel soler 
+Chris Bracewell 
+Ross Dawson 
+Tim De Graeve
+Adam Wiseman 
+Luiz Olsson Barbosa
+Donna Carey 
+Auke van Balen
+Mike Birdsong 
+Martin Curran 
+Shawn M. Murray
+Roy Simmons 
+Malik
+Teguh Pangestu 
+Mats Holmberg 
+Julien Jehannet 
+Michael A. Nelson
+Axel Cushing 
+erik vogan 
+Datenflug GmbH 
+KC Roeyer 
+Ryan J. Parker
+Robert E. Meuse
+Alex Heizer 
+Netsail Ltd / Mats Holmberg
+Jonathan Lawman 
+Seikoh Hokama 
+Perry Faulkner 
+Will Hanson 
+Lyubomir Pavlov Kovachev
+Ennio Quattrini 
+Marcelo "xfer" Alves
+Joseph Winston IV
+Jorge Otero Rueda
+Timothy Murakami 
+Matthew Johnson 
+Erik Rombouts 
+Petr Vlk 
+Thomas Dammann 
+Henrik Turkerud 
+Erlend Hamberg 
+Arnaud Lebegue 
+Kevin O'Brien 
+Michael Buettner 
+Engel A. Sanchez
+Alexander Hilgert 
+FAUGE Thierry 
+Wulf Huesken 
+John M. Adams
+Dell'Aiera Pol 
+Waylena McCully 
+Russell Smith 
+Luke Titley 
+marinus meijers 
+Henry Kaminski 
+Alistair Riddoch 
+Daniel Nümm 
+Matthew Meadows 
+Bjoern Paschen 
+Paul Fredrickson 
+Gavin Baker 
+Jan Illetschko 
+Aaron C. McLeod
+Thomas Muldowney 
+Cheyenne Cloud, LLC
+Helmut A. Goettl
+Martin A. Boegelund
+Benoît Cousson 
+Scott Brooks 
+Ferlet Patrice 
+Aaron Porterfield 
+Ivan Florentin 
+Scott Isaacson 
+Rui Paulo Sanguinheira Diogo 
+Jason Saville 
+Active-Websight GbR 
+Bryon Roche 
+Gustavo Muñoz 
+Christopher Gillanders 
+Phil Frost Tate
+Gilles Gonon 
+Kay
+James C. Franklin
+Luis Enrique Caamaño Navas 
+Alexander "estartu" Felder
+Marc Ledermann 
+vrijschrift.org
+Holger Weihe 
+Peter Cammaert 
+Andres Meyer 
+Tony Arnett 
+Adam Hughes 
+Tony Farley 
+Dmitriy Teresh 
+Maickel Swart 
+Peter den Bak
+Steve Bennett 
+Romain Rubi 
+John Bolt 
+Michael Gaston 
+Philip Brown 
+Wasi
+Mike Hirst 
+Lloyd J Robinson, Jr 
+Charles Rinker 
+Nick Vogtmann 
+Frank van Beek
+Bruce Mitchener 
+ROBERTO A. RUIZ VIAL 
+Maurizio Sibaud 
+Ron Bolger 
+Nathan Parton 
+Andrew Fry 
+VINCENT Stéphane 
+Yan Yan 
+Justin L Graham
+Wade Beasley 
+Salvador Mata Rodriguez
+Jan Tiemersma 
+Luis A. R. Fernandez 
+Jacob Moy 
+Stefano Francesi 
+Jochen Hanne 
+David Stephenson 
+Brent O'Dell 
+Mike Kasprzak 
+Tom Thompson 
+David Fung 
+Radoslav Dejanovic 
+James H. Cloos, Jr. 
+Karl Erlandsen (LethalSideParting)
+Kari Pulli
+Dave Shemano

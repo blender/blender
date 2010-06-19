@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="GP_ghost"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\bin\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\ghost\debug"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\ghost\include;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\build\msvc_7\intern\openal\include;..\..\..\..\..\build\msvc_7\intern\opennl\include;..\..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\..\..\build\msvc_7\intern\SoundSystem\include;..\..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\blender\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\blenkernel;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenloader;..\..\..\..\source\blender\readblenfile;..\..\..\..\source\blender\render\extern\include;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Physics;..\..\..\..\source\gameengine\network;..\..\..\..\source\gameengine\rasterizer;..\..\..\..\source\gameengine\converter;..\..\..\..\source\gameengine\gamelogic;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\scenegraph;..\..\..\..\source\gameengine\Physics\Ode;..\..\..\..\source\gameengine\soundsystem;..\..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\..\source\gameengine\gameplayer\common;..\..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\source\gameengine\network\loopbacknetwork;..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer;..\..\..\..\source\gameengine\gameplayer\common\windows;..\..\..\..\source\sumo\include;..\..\..\..\source\sumo\fuzzics\include;..\..\..\..\source\blender\gpu;..\..\..\..\..\build\msvc_7\intern\guardedalloc\include"
+				PreprocessorDefinitions="WIN32,_CONSOLE,dSINGLE, _DEBUG"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\ghost\debug\GP_ghost.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\ghost\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\ghost\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\ghost\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386
+"
+				AdditionalDependencies="libguardedalloc.lib libstring.lib libghost.lib odelib.lib fmodvc.lib libbmfont.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib openal_static.lib libjpeg.lib dxguid.lib libeay32.lib libpng.lib libz.lib libmoto.lib libSoundSystem.lib qtmlClient.lib libDummySoundSystem.lib libOpenALSoundSystem.lib SDL.lib solid.lib freetype2ST.lib Bullet.lib libdecimation.lib python25_d.lib pthreadVSE2.lib pthreadVC2.lib verse.lib libopennl.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib glew.lib libiksolver.lib"
+				ShowProgress="0"
+				OutputFile="..\..\..\..\bin\debug\blenderplayer.exe"
+				LinkIncremental="2"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\lib;..\..\..\..\..\lib\windows\zlib\lib;..\..\..\..\..\lib\windows\ode\lib;..\..\..\..\..\lib\windows\png\lib;..\..\..\..\..\lib\windows\jpeg\lib;..\..\..\..\..\lib\windows\fmod\lib;..\..\..\..\..\lib\windows\openal\lib;..\..\..\..\..\lib\windows\freetype\lib;..\..\..\..\..\lib\windows\python\lib;..\..\..\..\..\lib\windows\openssl\lib;..\..\..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\..\..\build\msvc_7\libs\intern\debug;..\..\..\..\..\build\msvc_7\libs\extern\debug;..\..\..\..\..\lib\windows\pthreads\lib;..\..\..\..\..\lib\windows\ffmpeg\lib"
+				IgnoreDefaultLibraryNames="libc.lib;libcmt.lib;msvcrt.lib;libcd.lib;msvcrtd.lib"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="..\..\..\..\..\build\msvc_7\libs\debug\blenderplayer.pdb"
+				SubSystem="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName=".\..\..\..\..\obj\windows\debug/GP_ghost.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Moving libraries and export definitions...
+MOVE /Y ..\..\..\..\bin\debug\blenderplayer.lib ..\..\..\..\..\build\msvc_7\libs\debug
+MOVE /Y ..\..\..\..\bin\debug\blenderplayer.exp ..\..\..\..\..\build\msvc_7\libs\debug
+MOVE /Y ..\..\..\..\bin\debug\blenderplayer.ilk ..\..\..\..\..\build\msvc_7\libs\debug
+ECHO Copying required 3rd party dlls...
+XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\lib25_vs2003\python25_d.dll ..\..\..\..\bin\debug
+XCOPY /Y ..\..\..\..\..\lib\windows\sdl\lib\SDL.dll ..\..\..\..\bin\debug
+XCOPY /Y ..\..\..\..\..\lib\windows\png\lib\libpng.dll ..\..\..\..\bin\debug
+XCOPY /Y ..\..\..\..\..\lib\windows\zlib\lib\zlib.dll ..\..\..\..\bin\debug
+XCOPY /Y ..\..\..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\..\..\bin\debug
+XCOPY /Y ..\..\..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\..\..\bin\debug
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\bin"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\ghost"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\ghost\include;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\build\msvc_7\intern\openal\include;..\..\..\..\..\build\msvc_7\intern\opennl\include;..\..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\..\..\build\msvc_7\intern\SoundSystem\include;..\..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\source\blender\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\blenkernel;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\blenloader;..\..\..\..\source\blender\readblenfile;..\..\..\..\source\blender\render\extern\include;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Physics;..\..\..\..\source\gameengine\network;..\..\..\..\source\gameengine\rasterizer;..\..\..\..\source\gameengine\converter;..\..\..\..\source\gameengine\gamelogic;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\scenegraph;..\..\..\..\source\gameengine\Physics\Ode;..\..\..\..\source\gameengine\soundsystem;..\..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\..\source\gameengine\gameplayer\common;..\..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\source\gameengine\network\loopbacknetwork;..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer;..\..\..\..\source\gameengine\gameplayer\common\windows;..\..\..\..\source\sumo\include;..\..\..\..\source\sumo\fuzzics\include;..\..\..\..\source\blender\gpu;..\..\..\..\..\build\msvc_7\intern\guardedalloc\include"
+				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\ghost\GP_ghost.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\ghost\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\ghost\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\ghost\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="libguardedalloc.lib libstring.lib libghost.lib odelib.lib fmodvc.lib libbmfont.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib openal_static.lib libjpeg.lib dxguid.lib libeay32.lib libpng.lib libz.lib libmoto.lib libSoundSystem.lib qtmlClient.lib libDummySoundSystem.lib libOpenALSoundSystem.lib SDL.lib solid.lib freetype2ST.lib Bullet.lib libdecimation.lib python25.lib pthreadVSE2.lib pthreadVC2.lib verse.lib libopennl.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib glew.lib libiksolver.lib"
+				OutputFile="..\..\..\..\bin\blenderplayer.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\lib;..\..\..\..\..\lib\windows\zlib\lib;..\..\..\..\..\lib\windows\ode\lib;..\..\..\..\..\lib\windows\png\lib;..\..\..\..\..\lib\windows\jpeg\lib;..\..\..\..\..\lib\windows\fmod\lib;..\..\..\..\..\lib\windows\openal\lib;..\..\..\..\..\lib\windows\freetype\lib;..\..\..\..\..\lib\windows\python\lib;..\..\..\..\..\lib\windows\openssl\lib;..\..\..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\..\..\build\msvc_7\libs\intern;..\..\..\..\..\build\msvc_7\libs\extern;..\..\..\..\..\lib\windows\pthreads\lib;..\..\..\..\..\lib\windows\ffmpeg\lib"
+				IgnoreDefaultLibraryNames="libc.lib, msvcrt.lib, libcd.lib, libcmtd.lib, msvcrtd.lib"
+				ProgramDatabaseFile="..\..\..\..\..\build\msvc_7\libs\blenderplayer.pdb"
+				SubSystem="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName=".\..\..\..\..\obj\windows/GP_ghost.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Moving libraries and export definitions...
+MOVE /Y ..\..\..\..\bin\blenderplayer.lib ..\..\..\..\..\build\msvc_7\libs
+MOVE /Y ..\..\..\..\bin\blenderplayer.exp ..\..\..\..\..\build\msvc_7\libs
+ECHO Copying required 3rd party dlls...
+XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\lib25_vs2003\python25.dll ..\..\..\..\bin
+XCOPY /Y ..\..\..\..\..\lib\windows\sdl\lib\SDL.dll ..\..\..\..\bin
+XCOPY /Y ..\..\..\..\..\lib\windows\png\lib\libpng.dll ..\..\..\..\bin
+XCOPY /Y ..\..\..\..\..\lib\windows\zlib\lib\zlib.dll ..\..\..\..\bin
+XCOPY /Y ..\..\..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\..\..\bin
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\..\..\source\blender\makesdna\intern\dna.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_Application.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_Canvas.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_ghost.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_KeyboardDevice.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_System.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\blender\blenkernel\bad_level_call_stubs\stubs.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\icons\winplayer.rc">
+				<FileConfiguration
+					Name="BlenderPlayer Debug|Win32">
+					<Tool
+						Name="VCResourceCompilerTool"
+						AdditionalIncludeDirectories="\blenderdev\blender.test2\source\icons;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="BlenderPlayer Release|Win32">
+					<Tool
+						Name="VCResourceCompilerTool"
+						AdditionalIncludeDirectories="\blenderdev\blender.test2\source\icons;$(NoInherit)"/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_Application.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_Canvas.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_KeyboardDevice.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_System.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			<File
+				RelativePath="..\..\..\..\source\icons\winplayer.ico">
+			</File>
+		</Filter>
+		<File
+			RelativePath="..\..\..\..\source\gameengine\GamePlayer\ghost\Makefile">
+		</File>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
