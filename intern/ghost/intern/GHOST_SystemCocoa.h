@@ -251,13 +251,27 @@ protected:
 	virtual GHOST_TSuccess init();
 
     /**
-     * Handles a tablet event.
+     * Handles a tablet pen event.
      * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
-	 * @param eventType The type of the event. It needs to be passed separately as it can be either directly in the event type, or as a subtype if combined with a mouse button event
      * @return Indication whether the event was handled. 
      */
-    GHOST_TSuccess handleTabletEvent(void *eventPtr, short eventType);
+    GHOST_TSuccess handleTabletEvent(void *eventPtr);
     
+	/**
+     * Handles a tablet proximity event. Sets pen or mouse ID for later events.
+     * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
+     * @return Indication whether the event was handled. 
+     */
+    GHOST_TSuccess handleTabletProximity(void *eventPtr);
+
+	/** Tablet Mouse and Pen IDs, used to correlate events with the tool that caused them. */
+	int m_tablet_mouse_id;
+	int m_tablet_pen_id;
+
+	static const int TOOL_ID_NONE = -1;
+
+	GHOST_TTabletMode m_tablet_pen_mode;
+
 	/**
      * Handles a mouse event.
      * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)

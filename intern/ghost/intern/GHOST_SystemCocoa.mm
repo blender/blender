@@ -31,6 +31,7 @@
 
 /*For the currently not ported to Cocoa keyboard layout functions (64bit & 10.6 compatible)*/
 #include <Carbon/Carbon.h>
+//#include <HIToolbox/Events.h>
 
 #include <sys/time.h>
 #include <sys/types.h>
@@ -553,6 +554,9 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	m_isGestureInProgress = false;
 	m_cursorDelta_x=0;
 	m_cursorDelta_y=0;
+	m_tablet_mouse_id = TOOL_ID_NONE;
+	m_tablet_pen_id = TOOL_ID_NONE;
+	m_tablet_pen_mode = GHOST_kTabletModeNone;
 	m_outsideLoopEventProcessed = false;
 	m_needDelayedApplicationBecomeActiveEventProcessing = false;
 	m_displayManager = new GHOST_DisplayManagerCocoa ();
@@ -575,10 +579,9 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	sysctl( mib, 2, rstring, &len, NULL, 0 );
 	
 	//Hack on MacBook revision, as multitouch avail. function missing
-	if (strstr(rstring,"MacBookAir") ||
-		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')))
-		m_hasMultiTouchTrackpad = true;
-	else m_hasMultiTouchTrackpad = false;
+	m_hasMultiTouchTrackpad =
+		(strstr(rstring,"MacBookAir") ||
+		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')));
 	
 	free( rstring );
 	rstring = NULL;
@@ -593,7 +596,6 @@ GHOST_SystemCocoa::~GHOST_SystemCocoa()
 
 GHOST_TSuccess GHOST_SystemCocoa::init()
 {
-	
     GHOST_TSuccess success = GHOST_System::init();
     if (success) {
 		//ProcessSerialNumber psn;
@@ -879,104 +881,116 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 {
 	bool anyProcessed = false;
 	NSEvent *event;
-	
-	//	SetMouseCoalescingEnabled(false, NULL);
+	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
 	//TODO : implement timer ??
 	
-	/*do {
-		GHOST_TimerManager* timerMgr = getTimerManager();
+	do {
+		event = [NSApp nextEventMatchingMask:NSAnyEventMask
+									untilDate:[NSDate distantPast]
+									  inMode:NSDefaultRunLoopMode
+									 dequeue:YES];
+		if (event==nil)
+			break;
 		
-		 if (waitForEvent) {
-		 GHOST_TUns64 next = timerMgr->nextFireTime();
-		 double timeOut;
-		 
-		 if (next == GHOST_kFireTimeNever) {
-		 timeOut = kEventDurationForever;
-		 } else {
-		 timeOut = (double)(next - getMilliSeconds())/1000.0;
-		 if (timeOut < 0.0)
-		 timeOut = 0.0;
-		 }
-		 
-		 ::ReceiveNextEvent(0, NULL, timeOut, false, &event);
-		 }
-		 
-		 if (timerMgr->fireTimers(getMilliSeconds())) {
-		 anyProcessed = true;
-		 }*/
+		anyProcessed = true;
 		
-		do {
-			NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-			event = [NSApp nextEventMatchingMask:NSAnyEventMask
-									   untilDate:[NSDate distantPast]
-										  inMode:NSDefaultRunLoopMode
-										 dequeue:YES];
-			if (event==nil) {
-				[pool drain];
+		switch ([event type]) {
+			case NSKeyDown:
+			case NSKeyUp:
+			case NSFlagsChanged:
+				handleKeyEvent(event);
+				// resend to ensure Mac-wide events are handled
+				[NSApp sendEvent:event];
 				break;
-			}
-			
-			anyProcessed = true;
-			
-			switch ([event type]) {
-				case NSKeyDown:
-				case NSKeyUp:
-				case NSFlagsChanged:
-					handleKeyEvent(event);
-					
-					/* Support system-wide keyboard shortcuts, like Expos√©, ...) =>included in always NSApp sendEvent */
-					/*		if (([event modifierFlags] & NSCommandKeyMask) || [event type] == NSFlagsChanged) {
-					 [NSApp sendEvent:event];
-					 }*/
-					break;
-					
-				case NSLeftMouseDown:
-				case NSLeftMouseUp:
-				case NSRightMouseDown:
-				case NSRightMouseUp:
-				case NSMouseMoved:
-				case NSLeftMouseDragged:
-				case NSRightMouseDragged:
-				case NSScrollWheel:
-				case NSOtherMouseDown:
-				case NSOtherMouseUp:
-				case NSOtherMouseDragged:
-				case NSEventTypeMagnify:
-				case NSEventTypeRotate:
-				case NSEventTypeBeginGesture:
-				case NSEventTypeEndGesture:
-					handleMouseEvent(event);
-					break;
-					
-				case NSTabletPoint:
-				case NSTabletProximity:
-					handleTabletEvent(event,[event type]);
-					break;
-					
-					/* Trackpad features, fired only from OS X 10.5.2
-					 case NSEventTypeGesture:
-					 case NSEventTypeSwipe:
-					 break; */
-					
-					/*Unused events
-					 NSMouseEntered       = 8,
-					 NSMouseExited        = 9,
-					 NSAppKitDefined      = 13,
-					 NSSystemDefined      = 14,
-					 NSApplicationDefined = 15,
-					 NSPeriodic           = 16,
-					 NSCursorUpdate       = 17,*/
-					
-				default:
-					break;
-			}
-			//Resend event to NSApp to ensure Mac wide events are handled
-			[NSApp sendEvent:event];
-			[pool drain];
-		} while (event!= nil);		
-	//} while (waitForEvent && !anyProcessed); Needed only for timer implementation
+				
+			case NSLeftMouseDown:
+			case NSLeftMouseUp:
+			case NSLeftMouseDragged:
+
+			case NSRightMouseDown:
+			case NSRightMouseUp:
+			case NSRightMouseDragged:
+
+			case NSOtherMouseDown:
+			case NSOtherMouseUp:
+			case NSOtherMouseDragged:
+
+			case NSMouseMoved:
+				switch ([event subtype])
+					{
+					case NSMouseEventSubtype:
+						handleMouseEvent(event);
+						break;
+					case NSTabletPointEventSubtype:
+						handleTabletEvent(event);
+						break;
+					case NSTabletProximityEventSubtype:
+						// I think only LMB down/up sends this
+						handleTabletProximity(event);
+						break;
+
+					// Mac OS 10.6 introduces a Touch subtype
+					// that we ignore for now.
+					}
+				break;
+
+			case NSScrollWheel:
+				handleMouseEvent(event);
+				break;
+				
+			case NSTabletProximity:
+				handleTabletProximity(event);
+				break;
+
+			case NSTabletPoint:
+				if ([event deviceID] == m_tablet_pen_id)
+					handleTabletEvent(event);
+				else {
+					// Treat tablet mouse like any other mouse.
+					// TODO: teach Windows and Linux the same trick
+
+					// It continues to send events even when still, to mimic the pen's
+					// ability to vary pressure without moving. Since the mouse is
+					// unable to vary its pressure, filter them out as noise!
+
+					bool didMove = [event deltaX] != 0 and [event deltaY] != 0;
+					if (didMove)
+						handleMouseEvent(event);
+					// NSLeftMouseDown gets sent for the initial point, so this is safe.
+				}
+				break;
+				
+			case NSEventTypeMagnify:
+			case NSEventTypeRotate:
+			case NSEventTypeBeginGesture:
+			case NSEventTypeEndGesture:
+				handleMouseEvent(event);
+				// break out into handleGestureEvent?
+				break;
+
+			/* Trackpad features, fired only from OS X 10.5.2
+				 case NSEventTypeGesture:
+				 case NSEventTypeSwipe:
+				 break; */
+				
+			default:
+				break;
+			/*	Unused events:
+				NSMouseEntered       = 8,
+				NSMouseExited        = 9,
+				NSAppKitDefined      = 13,
+				NSSystemDefined      = 14,
+				NSApplicationDefined = 15,
+				NSPeriodic           = 16,
+				NSCursorUpdate       = 17,*/
+		}
+	} while (event != nil);		
 	
-	if (m_needDelayedApplicationBecomeActiveEventProcessing) handleApplicationBecomeActiveEvent();
+	[pool drain];
+	
+	if (m_needDelayedApplicationBecomeActiveEventProcessing)
+		handleApplicationBecomeActiveEvent();
 	
 	if (m_outsideLoopEventProcessed) {
 		m_outsideLoopEventProcessed = false;
@@ -985,6 +999,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 	
     return anyProcessed;
 }
+
 
 //Note: called from NSApplication delegate
 GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
@@ -1360,57 +1375,81 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 	else return NO;
 }
 
-GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventType)
+GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
-	GHOST_IWindow* window;
-	
-	window = m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
+	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)
+		m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
+
 	if (!window) {
 		//printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
 	}
 	
-	GHOST_TabletData& ct=((GHOST_WindowCocoa*)window)->GetCocoaTabletData();
-	
-	switch (eventType) {
-		case NSTabletPoint:
-			ct.Pressure = [event pressure];
-			ct.Xtilt = [event tilt].x;
-			ct.Ytilt = [event tilt].y;
+	GHOST_TabletData& ct = window->GetCocoaTabletData();
+
+	GHOST_TTabletMode active_tool;
+	int* tool_id_ptr;
+
+	switch ([event pointingDeviceType])
+		{
+		case NSPenPointingDevice:
+			active_tool = GHOST_kTabletModeStylus;
+			tool_id_ptr = &m_tablet_pen_id;
 			break;
-		
-		case NSTabletProximity:
-			ct.Pressure = 0;
-			ct.Xtilt = 0;
-			ct.Ytilt = 0;
-			if ([event isEnteringProximity])
-			{
-				//pointer is entering tablet area proximity
-				switch ([event pointingDeviceType]) {
-					case NSPenPointingDevice:
-						ct.Active = GHOST_kTabletModeStylus;
-						break;
-					case NSEraserPointingDevice:
-						ct.Active = GHOST_kTabletModeEraser;
-						break;
-					case NSCursorPointingDevice:
-					case NSUnknownPointingDevice:
-					default:
-						ct.Active = GHOST_kTabletModeNone;
-						break;
-				}
-			} else {
-				// pointer is leaving - return to mouse
-				ct.Active = GHOST_kTabletModeNone;
-			}
+		case NSEraserPointingDevice:
+			active_tool = GHOST_kTabletModeEraser;
+			tool_id_ptr = &m_tablet_pen_id;
 			break;
-		
+		case NSCursorPointingDevice:
+			active_tool = GHOST_kTabletModeNone;
+			tool_id_ptr = &m_tablet_mouse_id;
+			break;
 		default:
-			GHOST_ASSERT(FALSE,"GHOST_SystemCocoa::handleTabletEvent : unknown event received");
-			return GHOST_kFailure;
-			break;
+			return GHOST_kFailure; // fail on unknown device
+		}
+
+	if ([event isEnteringProximity]) {
+		*tool_id_ptr = [event deviceID];
+
+		ct.Active = active_tool;
+		ct.Pressure = (active_tool == GHOST_kTabletModeNone) ? /*mouse*/ 1 : /*pen*/ 0;
+		ct.Xtilt = 0;
+		ct.Ytilt = 0;
+
+		// this is a good place to remember the tool's capabilities
+		// (later though, after tablet mouse is fixed and coalescing is in place)
+		}
+	else {
+		*tool_id_ptr = TOOL_ID_NONE;
+
+		ct.Active = GHOST_kTabletModeNone;
+		ct.Pressure = 0;
+		ct.Xtilt = 0;
+		ct.Ytilt = 0;
+		}
+
+	return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
+{
+	NSEvent *event = (NSEvent *)eventPtr;
+	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)
+		m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
+
+	if (!window) {
+		//printf("\nW failure for event 0x%x",[event type]);
+		return GHOST_kFailure;
 	}
+	
+	GHOST_TabletData& ct = window->GetCocoaTabletData();
+	
+	ct.Pressure = [event pressure];
+	NSPoint tilt = [event tilt];
+	ct.Xtilt = tilt.x;
+	ct.Ytilt = tilt.y;
+
 	return GHOST_kSuccess;
 }
 
@@ -1418,9 +1457,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
-    GHOST_Window* window;
-	
-	window = (GHOST_Window*)m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
+	GHOST_Window* window =
+		(GHOST_Window*)m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
+
 	if (!window) {
 		//printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
@@ -1432,53 +1471,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSRightMouseDown:
 		case NSOtherMouseDown:
 			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
-			//Handle tablet events combined with mouse events
-			switch ([event subtype]) {
-				case NX_SUBTYPE_TABLET_POINT:
-					handleTabletEvent(eventPtr, NSTabletPoint);
-					break;
-				case NX_SUBTYPE_TABLET_PROXIMITY:
-					handleTabletEvent(eventPtr, NSTabletProximity);
-					break;
-				default:
-					//No tablet event included : do nothing
-					break;
-			}
 			break;
 						
 		case NSLeftMouseUp:
 		case NSRightMouseUp:
 		case NSOtherMouseUp:
 			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonUp, window, convertButton([event buttonNumber])));
-			//Handle tablet events combined with mouse events
-			switch ([event subtype]) {
-				case NX_SUBTYPE_TABLET_POINT:
-					handleTabletEvent(eventPtr, NSTabletPoint);
-					break;
-				case NX_SUBTYPE_TABLET_PROXIMITY:
-					handleTabletEvent(eventPtr, NSTabletProximity);
-					break;
-				default:
-					//No tablet event included : do nothing
-					break;
-			}
 			break;
-			
-		case NSLeftMouseDragged:
-		case NSRightMouseDragged:
-		case NSOtherMouseDragged:				
-			//Handle tablet events combined with mouse events
-			switch ([event subtype]) {
-				case NX_SUBTYPE_TABLET_POINT:
-					handleTabletEvent(eventPtr, NSTabletPoint);
-					break;
-				case NX_SUBTYPE_TABLET_PROXIMITY:
-					handleTabletEvent(eventPtr, NSTabletProximity);
-					break;
-				default:
-					//No tablet event included : do nothing
-					break;
-			}
 			
 		case NSMouseMoved:
 				switch (window->getCursorGrabMode()) {
@@ -1501,6 +1500,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						NSPoint mousePos = [event locationInWindow];
 						GHOST_TInt32 x_mouse= mousePos.x;
 						GHOST_TInt32 y_mouse= mousePos.y;
+						GHOST_TInt32 event_dx = [event deltaX];
+						GHOST_TInt32 event_dy = -[event deltaY]; //Strange Apple implementation (inverted coordinates for the deltaY) ...
 						GHOST_TInt32 x_accum, y_accum, x_cur, y_cur;
 						GHOST_Rect bounds, windowBounds, correctedBounds;
 						
@@ -1508,7 +1509,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						if(window->getCursorGrabBounds(bounds)==GHOST_kFailure)
 							window->getClientBounds(bounds);
 						
-						//Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
+						//Switch back to Cocoa coordinates orientation (y=0 at bottom,the same as blender internal btw!), and to client coordinates
 						window->getClientBounds(windowBounds);
 						window->screenToClient(bounds.m_l,bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
 						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);
@@ -1517,14 +1518,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						
 						//Update accumulation counts
 						window->getCursorGrabAccum(x_accum, y_accum);
-						x_accum += [event deltaX]-m_cursorDelta_x;
-						y_accum += -[event deltaY]-m_cursorDelta_y; //Strange Apple implementation (inverted coordinates for the deltaY) ...
+						x_accum += event_dx - m_cursorDelta_x;
+						y_accum += event_dy - m_cursorDelta_y; 
 						window->setCursorGrabAccum(x_accum, y_accum);
 						
 						
 						//Warp mouse cursor if needed
-						x_mouse += [event deltaX]-m_cursorDelta_x;
-						y_mouse += -[event deltaY]-m_cursorDelta_y;
+						x_mouse += event_dx - m_cursorDelta_x;
+						y_mouse += event_dy - m_cursorDelta_y;
 						correctedBounds.wrapPoint(x_mouse, y_mouse, 2);
 						
 						//Compensate for mouse moved event taking cursor position set into account
@@ -1555,16 +1556,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSScrollWheel:
 			{
 				/* Send trackpad event if inside a trackpad gesture, send wheel event otherwise */
-				if (!m_hasMultiTouchTrackpad || !m_isGestureInProgress) {
-					GHOST_TInt32 delta;
-					
-					double deltaF = [event deltaY];
-					if (deltaF == 0.0) break; //discard trackpad delta=0 events
-					
-					delta = deltaF > 0.0 ? 1 : -1;
-					pushEvent(new GHOST_EventWheel([event timestamp]*1000, window, delta));
-				}
-				else {
+				if (m_hasMultiTouchTrackpad and m_isGestureInProgress) {
 					NSPoint mousePos = [event locationInWindow];
 					double dx = [event deltaX];
 					double dy = -[event deltaY];
@@ -1584,22 +1576,29 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
 					pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventScroll, mousePos.x, mousePos.y, dx, dy));
 				}
+				else {
+					GHOST_TInt32 delta;
+					
+					double deltaF = [event deltaY];
+					if (deltaF == 0.0) break; //discard trackpad delta=0 events
+					
+					delta = deltaF > 0.0 ? 1 : -1;
+					pushEvent(new GHOST_EventWheel([event timestamp]*1000, window, delta));
+				}
 			}
 			break;
 			
 		case NSEventTypeMagnify:
 			{
 				NSPoint mousePos = [event locationInWindow];
-				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, mousePos.x, mousePos.y,
-												  [event magnification]*250.0 + 0.1, 0));
+				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, mousePos.x, mousePos.y, [event magnification]*250.0 + 0.1, 0));
 			}
 			break;
 
 		case NSEventTypeRotate:
 			{
 				NSPoint mousePos = [event locationInWindow];
-				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, mousePos.x, mousePos.y,
-												  -[event rotation] * 5.0, 0));
+				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, mousePos.x, mousePos.y, -[event rotation] * 5.0, 0));
 			}
 		case NSEventTypeBeginGesture:
 			m_isGestureInProgress = true;
