@@ -476,6 +476,12 @@ void rna_def_actuator(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Actuator_type_set", "rna_Actuator_type_itemf");
 	RNA_def_property_ui_text(prop, "Type", "");
 
+	prop= RNA_def_property(srna, "pinned", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_PIN);
+	RNA_def_property_ui_text(prop, "Pinned", "Display when not linked to a visible states controller");
+	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_SHOW);
 	RNA_def_property_ui_text(prop, "Expanded", "Set actuator expanded in the user interface");

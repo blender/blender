@@ -2202,7 +2202,7 @@ static void rna_def_space_logic(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "sensors_show_active_states", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "scaflag", BUTS_SENS_STATE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_SENS_STATE);
 	RNA_def_property_ui_text(prop, "Show Active States", "Show only sensors connected to active states");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -2239,7 +2239,7 @@ static void rna_def_space_logic(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "actuators_show_active_states", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "scaflag", BUTS_ACT_STATE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", BUTS_ACT_STATE);
 	RNA_def_property_ui_text(prop, "Show Active States", "Show only actuators connected to active states");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
