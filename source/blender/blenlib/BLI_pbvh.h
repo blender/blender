@@ -114,6 +114,12 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 void BLI_pbvh_grids_update(PBVH *bvh, struct DMGridData **grids,
 	struct DMGridAdjacency *gridadj, void **gridfaces);
 
+/* vertex deformer */
+float (*BLI_pbvh_get_vertCos(struct PBVH *pbvh))[3];
+void BLI_pbvh_apply_vertCos(struct PBVH *pbvh, float (*vertCos)[3]);
+int BLI_pbvh_isDeformed(struct PBVH *pbvh);
+
+
 /* Vertex Iterator */
 
 /* this iterator has quite a lot of code, but it's designed to:

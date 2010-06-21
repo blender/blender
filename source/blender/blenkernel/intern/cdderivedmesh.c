@@ -186,6 +186,16 @@ static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
 	return cddm->fmap;
 }
 
+static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+	Mesh *me= (ob)? ob->data: NULL;
+
+	if(ob->sculpt->modifiers_active) return 0;
+
+	return (cddm->mvert == me->mvert) || ob->sculpt->kb;
+}
+
 static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -200,7 +210,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		return NULL;
 	if(ob->sculpt->pbvh) {
 		cddm->pbvh= ob->sculpt->pbvh;
-		cddm->pbvh_draw = (cddm->mvert == me->mvert) || ob->sculpt->kb;
+		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 	}
 
 	/* always build pbvh from original mesh, and only use it for drawing if
@@ -208,7 +218,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	   that this is actually for, to support a pbvh on a modified mesh */
 	if(!cddm->pbvh && ob->type == OB_MESH) {
 		cddm->pbvh = BLI_pbvh_new();
-		cddm->pbvh_draw = (cddm->mvert == me->mvert) || ob->sculpt->kb;
+		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 				   me->totface, me->totvert);
 	}

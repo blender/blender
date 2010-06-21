@@ -2286,9 +2286,6 @@ void DAG_id_flush_update(ID *id, short flag)
 			/* no point in trying in this cases */
 			if(!id || id->us <= 1)
 				id= NULL;
-			/* for locked shape keys we make an exception */
-			else if(ob_get_key(ob) && (ob->shapeflag & OB_SHAPE_LOCK))
-				id= NULL;
 		}
 	}
 
