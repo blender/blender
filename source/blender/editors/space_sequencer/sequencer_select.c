@@ -166,7 +166,7 @@ void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING B
 	
 	if(deselect_all)
 		deselect_all_seq(scene);
-	active_seq_set(scene, seq);
+	seq_active_set(scene, seq);
 
 	if((seq->type==SEQ_IMAGE) || (seq->type==SEQ_MOVIE)) {
 		if(seq->strip)
@@ -185,7 +185,7 @@ void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING B
 
 void select_neighbor_from_last(Scene *scene, int lr)
 {
-	Sequence *seq= active_seq_get(scene);
+	Sequence *seq= seq_active_get(scene);
 	Sequence *neighbor;
 	int change = 0;
 	if (seq) {
@@ -392,7 +392,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			deselect_all_seq(scene);
 	
 		if(seq) {
-			active_seq_set(scene, seq);
+			seq_active_set(scene, seq);
 	
 			if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
 				if(seq->strip) {
@@ -794,7 +794,7 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, 0);
-	Sequence *seq_act= active_seq_get(scene);
+	Sequence *seq_act= seq_active_get(scene);
 
 	if (ed==NULL || seq_act==NULL)
 		return OPERATOR_CANCELLED;

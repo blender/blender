@@ -73,6 +73,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_next_edit);
 	WM_operatortype_append(SEQUENCER_OT_previous_edit);
 	WM_operatortype_append(SEQUENCER_OT_swap);
+	WM_operatortype_append(SEQUENCER_OT_swap_data);
 	WM_operatortype_append(SEQUENCER_OT_rendersize);
 
 	WM_operatortype_append(SEQUENCER_OT_view_all);

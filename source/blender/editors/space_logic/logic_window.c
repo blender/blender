@@ -4361,7 +4361,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	
 	PointerRNA logic_ptr, settings_ptr;
 	
-	uiLayout *layout, *row, *split, *subsplit, *box, *col;
+	uiLayout *layout, *row, *box;
 	uiBlock *block;
 	uiBut *but;
 	char name[32];

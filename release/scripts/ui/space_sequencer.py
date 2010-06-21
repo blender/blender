@@ -291,6 +291,10 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
         layout.operator_menu_enum("sequencer.swap", "side")
 
+        layout.separator()
+
+        layout.operator("sequencer.swap_data")
+
 
 class SequencerButtonsPanel(bpy.types.Panel):
     bl_space_type = 'SEQUENCE_EDITOR'

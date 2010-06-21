@@ -191,6 +191,7 @@ int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test, struct Scene 
 int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);
 void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);
+int seq_swap(struct Sequence *seq_a, struct Sequence *seq_b);
 
 void seq_update_sound(struct Scene* scene, struct Sequence *seq);
 void seq_update_muting(struct Scene* scene, struct Editing *ed);
@@ -200,8 +201,9 @@ void clear_scene_in_allseqs(struct Scene *sce);
 
 struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);
 
-struct Sequence *active_seq_get(struct Scene *scene);
-void active_seq_set(struct Scene *scene, struct Sequence *seq);
+struct Sequence *seq_active_get(struct Scene *scene);
+void seq_active_set(struct Scene *scene, struct Sequence *seq);
+int seq_active_pair_get(struct Scene *scene, struct Sequence **seq_act, struct Sequence **seq_other);
 
 /* api for adding new sequence strips */
 typedef struct SeqLoadInfo {

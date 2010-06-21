@@ -900,7 +900,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	SpaceSeq *sseq= CTX_wm_space_seq(C);
 	View2D *v2d= &ar->v2d;
-	Sequence *last_seq = active_seq_get(scene);
+	Sequence *last_seq = seq_active_get(scene);
 	int sel = 0, j;
 	float pixelx = (v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
 	

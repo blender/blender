@@ -75,10 +75,6 @@
 /* own include */
 #include "sequencer_intern.h"
 
-/* XXX */
-//static Sequence *_last_seq=0;
-//static int _last_seq_init=0;
-/* XXX */
 static void error(const char *dummy) {}
 static void waitcursor(int val) {}
 static void activate_fileselect(int d1, char *d2, char *d3, void *d4) {}
@@ -167,7 +163,7 @@ static void change_plugin_seq(Scene *scene, char *str)	/* called from fileselect
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	struct SeqEffectHandle sh;
-	Sequence *last_seq= active_seq_get(scene);
+	Sequence *last_seq= seq_active_get(scene);
 
 	if(last_seq && last_seq->type != SEQ_PLUGIN) return;
 
@@ -441,7 +437,7 @@ static void reload_sound_strip(Scene *scene, char *name)
 	Editing *ed;
 	Sequence *seq, *seqact;
 	SpaceFile *sfile;
-	Sequence *last_seq= active_seq_get(scene);
+	Sequence *last_seq= seq_active_get(scene);
 
 	ed= scene->ed;
 
@@ -483,7 +479,7 @@ static void reload_image_strip(Scene *scene, char *name)
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq=NULL, *seqact;
 	SpaceFile *sfile=NULL;
-	Sequence *last_seq= active_seq_get(scene);
+	Sequence *last_seq= seq_active_get(scene);
 
 
 
@@ -519,7 +515,7 @@ static void reload_image_strip(Scene *scene, char *name)
 void change_sequence(Scene *scene)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *last_seq= active_seq_get(scene);
+	Sequence *last_seq= seq_active_get(scene);
 	Scene *sce;
 	short event;
 
@@ -621,7 +617,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 	*error_str= NULL;
 
 	if (!activeseq)
-		seq2= active_seq_get(scene);
+		seq2= seq_active_get(scene);
 
 	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
 		if(seq->flag & SELECT) {
@@ -684,7 +680,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 void reassign_inputs_seq_effect(Scene *scene)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *seq1, *seq2, *seq3, *last_seq = active_seq_get(scene);
+	Sequence *seq1, *seq2, *seq3, *last_seq = seq_active_get(scene);
 	char *error_msg;
 
 	if(last_seq==0 || !(last_seq->type & SEQ_EFFECT)) return;
@@ -753,7 +749,7 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
 static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short deleteall)
 {
 	Sequence *seq, *seqn;
-	Sequence *last_seq = active_seq_get(scene);
+	Sequence *last_seq = seq_active_get(scene);
 
 	seq= lb->first;
 	while(seq) {
@@ -763,7 +759,7 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 				seq->sound->id.us--;
 
 			BLI_remlink(lb, seq);
-			if(seq==last_seq) active_seq_set(scene, NULL);
+			if(seq==last_seq) seq_active_set(scene, NULL);
 			if(seq->type==SEQ_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
 			if(seq->ipo) seq->ipo->id.us--;
 			seq_free_sequence(scene, seq);
@@ -873,7 +869,7 @@ static void recurs_dupli_seq(Scene *scene, ListBase *old, ListBase *new, int do_
 {
 	Sequence *seq;
 	Sequence *seqn = 0;
-	Sequence *last_seq = active_seq_get(scene);
+	Sequence *last_seq = seq_active_get(scene);
 
 	for(seq= old->first; seq; seq= seq->next) {
 		seq->tmp= NULL;
@@ -891,7 +887,7 @@ static void recurs_dupli_seq(Scene *scene, ListBase *old, ListBase *new, int do_
 				
 				if(do_context) {
 					if (seq == last_seq) {
-						active_seq_set(scene, seqn);
+						seq_active_set(scene, seqn);
 					}
 				}
 			}
@@ -1190,7 +1186,7 @@ void set_filter_seq(Scene *scene)
 
 void seq_remap_paths(Scene *scene)
 {
-	Sequence *seq, *last_seq = active_seq_get(scene);
+	Sequence *seq, *last_seq = seq_active_get(scene);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	char from[FILE_MAX], to[FILE_MAX], stripped[FILE_MAX];
 	
@@ -1751,7 +1747,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 	MetaStack *ms;
 	int nothingSelected = TRUE;
 
-	seq=active_seq_get(scene);
+	seq=seq_active_get(scene);
 	if (seq && seq->flag & SELECT) { /* avoid a loop since this is likely to be selected */
 		nothingSelected = FALSE;
 	} else {
@@ -1918,7 +1914,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *last_seq= active_seq_get(scene);
+	Sequence *last_seq= seq_active_get(scene);
 	MetaStack *ms;
 
 	if(last_seq && last_seq->type==SEQ_META && last_seq->flag & SELECT) {
@@ -1930,7 +1926,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 
 		ed->seqbasep= &last_seq->seqbase;
 
-		active_seq_set(scene, NULL);
+		seq_active_set(scene, NULL);
 
 	}
 	else {
@@ -1950,7 +1946,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 		for(seq= ed->seqbasep->first; seq; seq= seq->next)
 			calc_sequence(scene, seq);
 
-		active_seq_set(scene, ms->parseq);
+		seq_active_set(scene, ms->parseq);
 
 		ms->parseq->flag |= SELECT;
 		recurs_sel_seq(ms->parseq);
@@ -2020,7 +2016,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	seqm->strip->len= seqm->len;
 	seqm->strip->us= 1;
 	
-	active_seq_set(scene, seqm);
+	seq_active_set(scene, seqm);
 
 	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm, scene);
 
@@ -2065,7 +2061,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	Sequence *seq, *last_seq = active_seq_get(scene); /* last_seq checks ed==NULL */
+	Sequence *seq, *last_seq = seq_active_get(scene); /* last_seq checks ed==NULL */
 
 	if(last_seq==NULL || last_seq->type!=SEQ_META)
 		return OPERATOR_CANCELLED;
@@ -2521,7 +2517,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *active_seq = active_seq_get(scene);
+	Sequence *active_seq = seq_active_get(scene);
 	Sequence *seq, *iseq;
 	int side= RNA_enum_get(op->ptr, "side");
 
@@ -2597,7 +2593,7 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *op)
 {
 	int retval = OPERATOR_CANCELLED;
 	Scene *scene= CTX_data_scene(C);
-	Sequence *active_seq = active_seq_get(scene);
+	Sequence *active_seq = seq_active_get(scene);
 
 	if(active_seq==NULL)
 		return OPERATOR_CANCELLED;
@@ -2756,3 +2752,45 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
 
 	/* properties */
 }
+
+static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Sequence *seq_act;
+	Sequence *seq_other;
+
+	if(seq_active_pair_get(scene, &seq_act, &seq_other) == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Must select 2 strips");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(seq_swap(seq_act, seq_other) == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Strips were not compatible");
+		return OPERATOR_CANCELLED;
+	}
+
+	calc_sequence(scene, seq_act);
+	calc_sequence(scene, seq_other);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_swap_data(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Sequencer Swap Data";
+	ot->idname= "SEQUENCER_OT_swap_data";
+	ot->description="Swap 2 sequencer strips";
+
+	/* api callbacks */
+	ot->exec= sequencer_swap_data_exec;
+	ot->poll= ED_operator_sequencer_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+}
+

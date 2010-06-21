@@ -203,7 +203,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
 		deselect_all_seq(scene);
-		active_seq_set(scene, seq);
+		seq_active_set(scene, seq);
 		seq->flag |= SELECT;
 	}
 	
@@ -572,7 +572,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
 		deselect_all_seq(scene);
-		active_seq_set(scene, seq);
+		seq_active_set(scene, seq);
 		seq->flag |= SELECT;
 	}
 
