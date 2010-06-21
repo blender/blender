@@ -3812,7 +3812,8 @@ int seq_swap(Sequence *seq_a, Sequence *seq_b)
 	SWAP(int, seq_a->startstill, seq_b->startstill);
 	SWAP(int, seq_a->endstill, seq_b->endstill);
 	SWAP(int, seq_a->machine, seq_b->machine);
-	SWAP(int, seq_a->startdisp, seq_b->enddisp);
+	SWAP(int, seq_a->startdisp, seq_b->startdisp);
+	SWAP(int, seq_a->enddisp, seq_b->enddisp);
 
 	return 1;
 }

@@ -34,6 +34,7 @@
 struct ID;
 struct IDProperty;
 struct SDNA;
+struct Sequence;
 
 /* Data structures used during define */
 
@@ -232,6 +233,7 @@ void RNA_api_object_base(struct StructRNA *srna);
 void RNA_api_pose_channel(struct StructRNA *srna);
 void RNA_api_scene(struct StructRNA *srna);
 void RNA_api_scene_render(struct StructRNA *srna);
+void RNA_api_sequence_strip(StructRNA *srna);
 void RNA_api_text(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
@@ -339,6 +341,7 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 
 int rna_parameter_size(struct PropertyRNA *parm);
 int rna_parameter_size_alloc(struct PropertyRNA *parm);
+
 
 #endif /* RNA_INTERNAL_H */
 
