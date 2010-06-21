@@ -1,5 +1,5 @@
 /**
- * $Id: rna_sequencer.c 29537 2010-06-18 04:39:32Z broken $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
