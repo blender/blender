@@ -2486,8 +2486,9 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "color_management", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "color_mgt_flag", R_COLOR_MANAGEMENT);
-	RNA_def_property_ui_text(prop, "Color Management", "Use color profiles and gamma corrected imaging pipeline");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_MATERIAL|ND_SHADING_DRAW, "rna_RenderSettings_color_management_update");
+	RNA_def_property_ui_text(prop, "Color Management", "Use linear workflow - gamma corrected imaging pipeline");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_RenderSettings_color_management_update");
+
 	
 	prop= RNA_def_property(srna, "use_file_extension", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXTENSION);
