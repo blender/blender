@@ -370,6 +370,10 @@ static void makeraytree_single(Render *re)
 		if(has_special_rayobject(re, obi))
 		{
 			RayObject *obj = makeraytree_object(re, obi);
+
+			if(test_break(re))
+				break;
+
 			RE_rayobject_add( re->raytree, obj );
 		}
 		else
