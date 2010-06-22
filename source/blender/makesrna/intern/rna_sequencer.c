@@ -163,7 +163,7 @@ static void rna_Sequence_anim_endofs_final_set(PointerRNA *ptr, int value)
 	rna_Sequence_frame_change_update(scene, seq);
 }
 
-static void rna_Sequence_length_set(PointerRNA *ptr, int value)
+static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
 {
 	Sequence *seq= (Sequence*)ptr->data;
 	Scene *scene= (Scene*)ptr->id.data;
@@ -172,7 +172,7 @@ static void rna_Sequence_length_set(PointerRNA *ptr, int value)
 	rna_Sequence_frame_change_update(scene, seq);
 }
 
-static int rna_Sequence_length_get(PointerRNA *ptr)
+static int rna_Sequence_frame_length_get(PointerRNA *ptr)
 {
 	Sequence *seq= (Sequence*)ptr->data;
 	return seq_tx_get_final_right(seq, 0)-seq_tx_get_final_left(seq, 0);
@@ -718,13 +718,18 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	/* strip positioning */
 
-	prop= RNA_def_property(srna, "length", PROP_INT, PROP_TIME);
-	RNA_def_property_int_sdna(prop, NULL, "len");
+	prop= RNA_def_property(srna, "frame_final_length", PROP_INT, PROP_TIME);
 	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Length", "The length of the contents of this strip before the handles are applied");
-	RNA_def_property_int_funcs(prop, "rna_Sequence_length_get", "rna_Sequence_length_set",NULL);
+	RNA_def_property_int_funcs(prop, "rna_Sequence_frame_length_get", "rna_Sequence_frame_length_set",NULL);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "frame_length", PROP_INT, PROP_TIME);
+	RNA_def_property_int_sdna(prop, NULL, "len");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE|PROP_ANIMATABLE);
+	RNA_def_property_range(prop, 1, MAXFRAME);
+	RNA_def_property_ui_text(prop, "Length", "The length of the contents of this strip before the handles are applied");
 	
 	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");

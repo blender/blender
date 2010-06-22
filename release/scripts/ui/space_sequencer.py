@@ -358,8 +358,8 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col.prop(strip, "channel")
         col.prop(strip, "frame_start")
         subrow = col.split(percentage=0.66)
-        subrow.prop(strip, "length")
-        subrow.label(text="%.2f sec" % (strip.length / (render.fps / render.fps_base)))
+        subrow.prop(strip, "frame_length_final")
+        subrow.label(text="%.2f sec" % (strip.frame_length_final / (render.fps / render.fps_base)))
 
         col = layout.column(align=True)
         col.label(text="Offset:")
