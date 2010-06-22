@@ -378,25 +378,25 @@ class DATA_PT_textboxes(DataButtonsPanel):
             
             boxy = layout.box()
             
-            split = boxy.split()
+            row = boxy.row()
             
-            col = split.column()
-                
-            col2 = col.column(align=True)
-            col2.label(text="Dimensions:")
-            col2.prop(box, "width", text="Width")
-            col2.prop(box, "height", text="Height")
+            split = row.split()
+            
+            col = split.column(align=True)
+
+            col.label(text="Dimensions:")
+            col.prop(box, "width", text="Width")
+            col.prop(box, "height", text="Height")
 
             if wide_ui:
-                col = split.column()
+                col = split.column(align=True)
                 
-            row = col.row()
-            row.label(text="Offset:")
-            row.operator("font.textbox_remove", text='', icon='X').index = i
+            col.label(text="Offset:")
+            col.prop(box, "x", text="X")
+            col.prop(box, "y", text="Y")
             
-            col2 = col.column(align=True)
-            col2.prop(box, "x", text="X")
-            col2.prop(box, "y", text="Y")        
+            row.operator("font.textbox_remove", text='', icon='X').index = i     
+    
 
 classes = [
     DATA_PT_context_curve,
