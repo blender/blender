@@ -169,8 +169,6 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime, ARegion *ar)
 	Object *ob = CTX_data_active_object(C);
 	PTCacheID *pid;
 	ListBase pidlist;
-	float *fp;
-	int i;
 	
 	time_cache_free(stime);
 	
@@ -183,6 +181,8 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime, ARegion *ar)
 	 * add spacetimecache and vertex array for each */
 	for(pid=pidlist.first; pid; pid=pid->next) {
 		SpaceTimeCache *stc;
+		float *fp, *array;
+		int i, len;
 		
 		switch(pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
@@ -211,11 +211,12 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime, ARegion *ar)
 		
 		/* first allocate with maximum number of frames needed */
 		BKE_ptcache_id_time(pid, CTX_data_scene(C), 0, &stc->startframe, &stc->endframe, NULL);
-		stc->len = (stc->endframe - stc->startframe + 1)*4;
-		fp = stc->array = MEM_callocN(stc->len*2*sizeof(float), "SpaceTimeCache array");
-
+		len = (stc->endframe - stc->startframe + 1)*4;
+		fp = array = MEM_callocN(len*2*sizeof(float), "temporary timeline cache array");
+		
 		/* fill the vertex array with a quad for each cached frame */
 		for (i=stc->startframe; i<=stc->endframe; i++) {
+			
 			if (BKE_ptcache_id_exist(pid, i)) {
 				fp[0] = (float)i;
 				fp[1] = 0.0;
@@ -236,7 +237,11 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime, ARegion *ar)
 		}
 		/* update with final number of frames */
 		stc->len = i*4;
-		stc->array = MEM_reallocN(stc->array, stc->len*2*sizeof(float));
+		stc->array = MEM_mallocN(stc->len*2*sizeof(float), "SpaceTimeCache array");
+		memcpy(stc->array, array, stc->len*2*sizeof(float));
+		
+		MEM_freeN(array);
+		array = NULL;
 		
 		stc->ok = 1;
 		
