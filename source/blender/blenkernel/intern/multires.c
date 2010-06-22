@@ -459,6 +459,7 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int updat
 
 		/* create subsurf DM from original mesh at high level */
 		cddm = CDDM_from_mesh(me, NULL);
+		DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 		highdm = subsurf_dm_create_local(ob, cddm, totlvl, simple, 0);
 
 		/* create multires DM from original mesh at low level */
@@ -656,6 +657,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 			/* create subsurf DM from original mesh at high level */
 			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
 			else cddm = CDDM_from_mesh(me, NULL);
+			DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 
 			highdm = subsurf_dm_create_local(ob, cddm, totlvl, mmd->simple, 0);
 
@@ -709,6 +711,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 
 			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
 			else cddm = CDDM_from_mesh(me, NULL);
+			DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 
 			subdm = subsurf_dm_create_local(ob, cddm, mmd->totlvl, mmd->simple, 0);
 			cddm->release(cddm);
