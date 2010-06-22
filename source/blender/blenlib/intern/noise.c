@@ -199,8 +199,15 @@ float hashvectf[768]= {
 /*  IMPROVED PERLIN NOISE */
 /**************************/
 
-#define lerp(t, a, b) ((a)+(t)*((b)-(a)))
-#define npfade(t) ((t)*(t)*(t)*((t)*((t)*6-15)+10))
+static float lerp(float t, float a, float b)
+{
+	return (a+t*(b-a));
+}
+
+static float npfade(float t)
+{
+	return (t*t*t*(t*(t*6.0f-15.0f)+10.0f));
+}
 
 static float grad(int hash, float x, float y, float z)
 {
