@@ -10857,13 +10857,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				SpaceLink *sl;
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if (sl->spacetype == SPACE_NODE) {
-						SpaceNode *snode;
-
-						snode= (SpaceNode *)sl;
+						SpaceNode *snode= (SpaceNode *)sl;
+						
 						if (snode->v2d.minzoom > 0.09f)
 							snode->v2d.minzoom= 0.09f;
 						if (snode->v2d.maxzoom < 2.31f)
 							snode->v2d.maxzoom= 2.31f;
+					}
+					else if (sl->spacetype == SPACE_TIME) {
+						SpaceTime *stime= (SpaceTime *)sl;
+						
+						/* enable all cache display */
+						stime->cache_display |= TIME_CACHE_DISPLAY;
+						stime->cache_display |= (TIME_CACHE_SOFTBODY|TIME_CACHE_PARTICLES);
+						stime->cache_display |= (TIME_CACHE_CLOTH|TIME_CACHE_SMOKE);
 					}
 				}
 			}

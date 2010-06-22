@@ -31,6 +31,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_particle_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -40,6 +41,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
+#include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
@@ -82,6 +84,169 @@ static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar
 	/* thin lines where the actual frames are */
 	fdrawline((float)PSFRA, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
 	fdrawline((float)PEFRA, v2d->cur.ymin, (float)PEFRA, v2d->cur.ymax);
+}
+
+#define CACHE_DRAW_HEIGHT	3.0f
+
+static void time_draw_cache(const bContext *C, SpaceTime *stime, ARegion *ar)
+{
+	SpaceTimeCache *stc;
+	float yoffs=0.f;
+	
+	if (!(stime->cache_display & TIME_CACHE_DISPLAY))
+		return;
+	
+	for (stc= stime->caches.first; stc; stc=stc->next) {
+		float col[4];
+		
+		if (!stc->array || !stc->ok)
+			continue;
+		
+		glPushMatrix();
+		glTranslatef(0.0, (float)V2D_SCROLL_HEIGHT+yoffs, 0.0);
+		glScalef(1.0, CACHE_DRAW_HEIGHT, 0.0);
+		
+		switch(stc->type) {
+			case PTCACHE_TYPE_SOFTBODY:
+				col[0] = 1.0;	col[1] = 0.4;	col[2] = 0.02;
+				col[3] = 0.1;
+				break;
+			case PTCACHE_TYPE_PARTICLES:
+				col[0] = 1.0;	col[1] = 0.1;	col[2] = 0.02;
+				col[3] = 0.1;
+				break;
+			case PTCACHE_TYPE_CLOTH:
+				col[0] = 0.1;	col[1] = 0.1;	col[2] = 0.75;
+				col[3] = 0.1;
+				break;
+			case PTCACHE_TYPE_SMOKE_DOMAIN:
+			case PTCACHE_TYPE_SMOKE_HIGHRES:
+				col[0] = 0.2;	col[1] = 0.2;	col[2] = 0.2;
+				col[3] = 0.1;
+				break;
+		}
+		glColor4fv(col);
+		
+		glEnable(GL_BLEND);
+		
+		glRectf((float)stc->startframe, 0.0, (float)stc->endframe, 1.0);
+		
+		col[3] = 0.4;
+		if (stc->flag & PTCACHE_BAKED) {
+			col[0] -= 0.4;	col[1] -= 0.4;	col[2] -= 0.4;
+		}
+		glColor4fv(col);
+		
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_FLOAT, 0, stc->array);
+		glDrawArrays(GL_QUADS, 0, stc->len);
+		glDisableClientState(GL_VERTEX_ARRAY);
+		
+		glDisable(GL_BLEND);
+		
+		glPopMatrix();
+		
+		yoffs += CACHE_DRAW_HEIGHT;
+	}
+}
+
+static void time_cache_free(SpaceTime *stime)
+{
+	SpaceTimeCache *stc;
+	
+	for (stc= stime->caches.first; stc; stc=stc->next) {
+		if (stc->array) {
+			MEM_freeN(stc->array);
+			stc->array = NULL;
+		}
+	}
+	
+	BLI_freelistN(&stime->caches);
+}
+
+static void time_cache_refresh(const bContext *C, SpaceTime *stime, ARegion *ar)
+{
+	Object *ob = CTX_data_active_object(C);
+	PTCacheID *pid;
+	ListBase pidlist;
+	float *fp;
+	int i;
+	
+	time_cache_free(stime);
+	
+	if (!(stime->cache_display & TIME_CACHE_DISPLAY) || (!ob))
+		return;
+	
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	
+	/* iterate over pointcaches on the active object, 
+	 * add spacetimecache and vertex array for each */
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		SpaceTimeCache *stc;
+		
+		switch(pid->type) {
+			case PTCACHE_TYPE_SOFTBODY:
+				if (!(stime->cache_display & TIME_CACHE_SOFTBODY)) continue;
+				break;
+			case PTCACHE_TYPE_PARTICLES:
+				if (!(stime->cache_display & TIME_CACHE_PARTICLES))	continue;
+				break;
+			case PTCACHE_TYPE_CLOTH:
+				if (!(stime->cache_display & TIME_CACHE_CLOTH))	continue;
+				break;
+			case PTCACHE_TYPE_SMOKE_DOMAIN:
+			case PTCACHE_TYPE_SMOKE_HIGHRES:
+				if (!(stime->cache_display & TIME_CACHE_SMOKE))	continue;
+				break;
+		}
+		
+		stc= MEM_callocN(sizeof(SpaceTimeCache), "spacetimecache");
+		
+		stc->type = pid->type;
+		
+		if (pid->cache->flag & PTCACHE_BAKED)
+			stc->flag |= PTCACHE_BAKED;
+		if (pid->cache->flag & PTCACHE_DISK_CACHE)
+			stc->flag |= PTCACHE_DISK_CACHE;
+		
+		/* first allocate with maximum number of frames needed */
+		BKE_ptcache_id_time(pid, CTX_data_scene(C), 0, &stc->startframe, &stc->endframe, NULL);
+		stc->len = (stc->endframe - stc->startframe + 1)*4;
+		fp = stc->array = MEM_callocN(stc->len*2*sizeof(float), "SpaceTimeCache array");
+
+		/* fill the vertex array with a quad for each cached frame */
+		for (i=stc->startframe; i<=stc->endframe; i++) {
+			if (BKE_ptcache_id_exist(pid, i)) {
+				fp[0] = (float)i;
+				fp[1] = 0.0;
+				fp+=2;
+				
+				fp[0] = (float)i;
+				fp[1] = 1.0;
+				fp+=2;
+				
+				fp[0] = (float)(i+1);
+				fp[1] = 1.0;
+				fp+=2;
+				
+				fp[0] = (float)(i+1);
+				fp[1] = 0.0;
+				fp+=2;
+			}
+		}
+		/* update with final number of frames */
+		stc->len = i*4;
+		stc->array = MEM_reallocN(stc->array, stc->len*2*sizeof(float));
+		
+		stc->ok = 1;
+		
+		BLI_addtail(&stime->caches, stc);
+	}
+	
+	/* todo: sort time->caches list for consistent order */
+	// ...
+	
+	BLI_freelistN(&pidlist);
 }
 
 /* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
@@ -206,6 +371,52 @@ static void time_draw_keyframes(const bContext *C, SpaceTime *stime, ARegion *ar
 
 /* ---------------- */
 
+static void time_refresh(const bContext *C, ScrArea *sa)
+{
+	SpaceTime *stime = (SpaceTime *)sa->spacedata.first;
+	ARegion *ar;
+	
+	/* find the main timeline region and refresh cache display*/
+	for (ar= sa->regionbase.first; ar; ar= ar->next) {
+		if (ar->regiontype==RGN_TYPE_WINDOW) {
+			time_cache_refresh(C, stime, ar);
+			break;
+		}
+	}
+}
+
+/* editor level listener */
+static void time_listener(ScrArea *sa, wmNotifier *wmn)
+{
+
+	/* mainly for updating cache display */
+	switch (wmn->category) {
+		case NC_OBJECT:
+			switch (wmn->data) {
+				case ND_POINTCACHE:
+					ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
+					break;
+			}
+			break;
+		case NC_SCENE:
+			switch (wmn->data) {	
+				case ND_OB_ACTIVE:
+				case ND_FRAME:
+					ED_area_tag_refresh(sa);
+					break;
+			}
+		case NC_SPACE:
+			switch (wmn->data) {	
+				case ND_SPACE_CHANGED:
+					ED_area_tag_refresh(sa);
+					break;
+			}
+	}
+}
+
+/* ---------------- */
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -235,7 +446,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* start and end frame */
 	time_draw_sfra_efra(C, stime, ar);
-
+	
 	/* grid */
 	unit= (stime->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
 	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
@@ -253,6 +464,9 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	/* markers */
 	UI_view2d_view_orthoSpecial(C, v2d, 1);
 	draw_markers_time(C, 0);
+	
+	/* caches */
+	time_draw_cache(C, stime, ar);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
@@ -277,7 +491,6 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		
 		case NC_SCENE:
-			/* any scene change for now */
 			ED_region_tag_redraw(ar);
 			break;
 		
@@ -377,19 +590,31 @@ static SpaceLink *time_new(const bContext *C)
 /* not spacelink itself */
 static void time_free(SpaceLink *sl)
 {
+	SpaceTime *stime= (SpaceTime *)sl;
+	
+	time_cache_free(stime);
 }
 /* spacetype; init callback in ED_area_initialize() */
 /* init is called to (re)initialize an existing editor (file read, screen changes) */
 /* validate spacedata, add own area level handlers */
 static void time_init(wmWindowManager *wm, ScrArea *sa)
 {
+	SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
 	
+	time_cache_free(stime);
+	
+	/* enable all cache display */
+	stime->cache_display |= TIME_CACHE_DISPLAY;
+	stime->cache_display |= (TIME_CACHE_SOFTBODY|TIME_CACHE_PARTICLES);
+	stime->cache_display |= (TIME_CACHE_CLOTH|TIME_CACHE_SMOKE);
 }
 
 static SpaceLink *time_duplicate(SpaceLink *sl)
 {
 	SpaceTime *stime= (SpaceTime *)sl;
 	SpaceTime *stimen= MEM_dupallocN(stime);
+	
+	time_cache_free(stimen);
 	
 	return (SpaceLink *)stimen;
 }
@@ -410,6 +635,8 @@ void ED_spacetype_time(void)
 	st->duplicate= time_duplicate;
 	st->operatortypes= time_operatortypes;
 	st->keymap= NULL;
+	st->listener= time_listener;
+	st->refresh= time_refresh;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
