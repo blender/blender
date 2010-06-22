@@ -351,7 +351,6 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
         row = layout.row()
         row.prop(strip, "lock")
-        row.prop(strip, "frame_locked", text="Frame Lock")
 
         col = layout.column()
         col.enabled = not strip.lock

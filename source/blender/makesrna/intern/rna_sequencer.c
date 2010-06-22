@@ -706,11 +706,6 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mute", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_mute_update");
 
-	prop= RNA_def_property(srna, "frame_locked", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_IPO_FRAME_LOCKED);
-	RNA_def_property_ui_text(prop, "Frame Locked", "Lock the animation curve to the global frame counter");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
-
 	prop= RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_LOCK);
 	RNA_def_property_ui_text(prop, "Lock", "Lock strip so that it can't be transformed");
