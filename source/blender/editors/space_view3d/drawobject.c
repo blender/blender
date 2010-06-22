@@ -3927,6 +3927,20 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		cd2=cdata2=0;
 
 		glLineWidth(1.0f);
+
+		if((part->draw & PART_DRAW_NUM) && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0){
+			cache=psys->pathcache;
+
+			for(a=0, pa=psys->particles; a<totpart; a++, pa++){
+				float vec_txt[3];
+				val[0]= '\0';
+
+				sprintf(val, "%i", a);
+				/* use worldspace beause object matrix is alredy applied */
+				mul_v3_m4v3(vec_txt, ob->imat, cache[a]->co);
+				view3d_cached_text_draw_add(vec_txt[0],  vec_txt[1],  vec_txt[2], val, 10, V3D_CACHE_TEXT_WORLDSPACE);
+			}
+		}
 	}
 	else if(pdd && ELEM(draw_as, 0, PART_DRAW_CIRC)==0){
 		glDisableClientState(GL_COLOR_ARRAY);
