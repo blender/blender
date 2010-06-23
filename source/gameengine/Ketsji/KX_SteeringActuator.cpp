@@ -201,7 +201,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 				{
 					terminate = false;
 
-					static const MT_Scalar WAYPOINT_RADIUS(1.);
+					static const MT_Scalar WAYPOINT_RADIUS(0.25);
 
 					if (m_pathUpdateTime<0 || (m_pathUpdatePeriod>=0 && 
 												curtime - m_pathUpdateTime>((double)m_pathUpdatePeriod/1000)))
@@ -252,8 +252,8 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 			if (m_simulation && m_obstacle && !newvel.fuzzyZero())
 			{
 				KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(1.,0.,0.));
-				m_simulation->AdjustObstacleVelocity(m_obstacle, m_navmesh, newvel, 
-								m_acceleration*delta, m_turnspeed/180.0f*M_PI*delta);
+				m_simulation->AdjustObstacleVelocity(m_obstacle, m_mode!=KX_STEERING_PATHFOLLOWING ? m_navmesh : NULL, 
+								newvel, m_acceleration*delta, m_turnspeed/180.0f*M_PI*delta);
 				KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(0.,1.,0.));
 			}
 
