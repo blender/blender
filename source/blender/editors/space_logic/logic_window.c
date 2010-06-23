@@ -3174,7 +3174,7 @@ static int is_sensor_linked(uiBlock *block, bSensor *sens)
 
 static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *logic_ptr)
 {
-	uiLayout *box, *row;
+	uiLayout *box, *row, *subrow;
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
@@ -3183,9 +3183,10 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 	uiItemR(row, ptr, "type", 0, "", 0);
 	uiItemR(row, ptr, "name", 0, "", 0);
 
-	// XXX in 2.49 we make the pin to dis/appear. In 2.50 may be better to simply enable/disable it
-	if (RNA_boolean_get(logic_ptr, "sensors_show_active_states") && (RNA_boolean_get(ptr, "expanded") || RNA_boolean_get(ptr, "pinned")))
-		uiItemR(row, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
+	subrow= uiLayoutRow(row, 0);
+	uiLayoutSetActive(subrow, (RNA_boolean_get(logic_ptr, "sensors_show_active_states")
+							&& RNA_boolean_get(ptr, "expanded") || RNA_boolean_get(ptr, "pinned")));
+	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
 
 	uiItemO(row, "", ICON_X, "LOGIC_OT_sensor_remove");
 }
@@ -3591,7 +3592,7 @@ void draw_brick_controller(uiLayout *layout, PointerRNA *ptr)
 /* Actuator code */
 static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *logic_ptr)
 {
-	uiLayout *box, *row;
+	uiLayout *box, *row, *subrow;
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
@@ -3600,9 +3601,10 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *
 	uiItemR(row, ptr, "type", 0, "", 0);
 	uiItemR(row, ptr, "name", 0, "", 0);
 
-	// XXX in 2.49 we make the pin to dis/appear. In 2.50 may be better to simply enable/disable it
-	if (RNA_boolean_get(logic_ptr, "actuators_show_active_states") && (RNA_boolean_get(ptr, "expanded") || RNA_boolean_get(ptr, "pinned")))
-		uiItemR(row, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
+	subrow= uiLayoutRow(row, 0);
+	uiLayoutSetActive(subrow, (RNA_boolean_get(logic_ptr, "actuators_show_active_states")
+							&& RNA_boolean_get(ptr, "expanded") || RNA_boolean_get(ptr, "pinned")));
+	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
 
 	uiItemO(row, "", ICON_X, "LOGIC_OT_actuator_remove");
 }
