@@ -4872,6 +4872,7 @@ static int paint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			paint_exit(C, op);
 			return OPERATOR_FINISHED;
 		case MOUSEMOVE:
+		case INBETWEEN_MOUSEMOVE:
 			paint_apply_event(C, op, event);
 			break;
 		case TIMER:

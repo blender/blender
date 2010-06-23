@@ -275,7 +275,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		MEM_freeN(stroke);
 		return OPERATOR_FINISHED;
 	}
-	else if(first || event->type == MOUSEMOVE || (event->type == TIMER && (event->customdata == stroke->timer))) {
+	else if(first || ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (event->type == TIMER && (event->customdata == stroke->timer))) {
 		if(stroke->stroke_started) {
 			if(paint_smooth_stroke(stroke, mouse, event)) {
 				if(paint_space_stroke_enabled(stroke->brush)) {
