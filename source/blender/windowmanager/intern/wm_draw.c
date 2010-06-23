@@ -642,6 +642,13 @@ static int wm_draw_update_test_window(wmWindow *win)
 {
 	ScrArea *sa;
 	ARegion *ar;
+
+	for(ar= win->screen->regionbase.first; ar; ar= ar->next) {
+		if(ar->do_draw_overlay) {
+			wm_tag_redraw_overlay(win, ar);
+			ar->do_draw_overlay= 0;
+		}
+	}
 	
 	if(win->screen->do_refresh)
 		return 1;
@@ -687,8 +694,11 @@ static int wm_automatic_draw_method(wmWindow *win)
 void wm_tag_redraw_overlay(wmWindow *win, ARegion *ar)
 {
 	/* for draw triple gestures, paint cursors don't need region redraw */
-	if(ar && win && wm_automatic_draw_method(win) != USER_DRAW_TRIPLE)
-		ED_region_tag_redraw(ar);
+	if(ar && win) {
+		if(wm_automatic_draw_method(win) != USER_DRAW_TRIPLE)
+			ED_region_tag_redraw(ar);
+		win->screen->do_draw_paintcursor= 1;
+	}
 }
 
 void wm_draw_update(bContext *C)

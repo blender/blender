@@ -372,6 +372,12 @@ void ED_region_tag_redraw(ARegion *ar)
 	}
 }
 
+void ED_region_tag_redraw_overlay(ARegion *ar)
+{
+	if(ar)
+		ar->do_draw_overlay= RGN_DRAW;
+}
+
 void ED_region_tag_redraw_partial(ARegion *ar, rcti *rct)
 {
 	if(ar) {
