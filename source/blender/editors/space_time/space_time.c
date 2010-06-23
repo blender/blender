@@ -236,7 +236,7 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime, ARegion *ar)
 			}
 		}
 		/* update with final number of frames */
-		stc->len = i*4;
+		stc->len = (i-stc->startframe)*4;
 		stc->array = MEM_mallocN(stc->len*2*sizeof(float), "SpaceTimeCache array");
 		memcpy(stc->array, array, stc->len*2*sizeof(float));
 		
