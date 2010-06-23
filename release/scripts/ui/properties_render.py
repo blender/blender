@@ -522,6 +522,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel):
 
         row = layout.row()
         row.prop(rd, "motion_blur_samples")
+        row.prop(rd, "motion_blur_shutter")
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
