@@ -539,7 +539,7 @@ int write_crash_blend(void)
 	char path[FILE_MAX];
 	BLI_strncpy(path, G.sce, sizeof(path));
 	BLI_replace_extension(path, sizeof(path), "_crash.blend");
-	if(BLO_write_file(G.main, G.sce, G.fileflags, NULL, NULL)) {
+	if(BLO_write_file(G.main, path, G.fileflags, NULL, NULL)) {
 		printf("written: %s\n", path);
 		return 1;
 	}

@@ -2465,7 +2465,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 			node= getExecutableNode(ntree);
 			if(node) {
 				
-				if(ntree->progress)
+				if(ntree->progress && totnode)
 					ntree->progress(ntree->prh, (1.0 - curnode/(float)totnode));
 				if(ntree->stats_draw) {
 					char str[64];
