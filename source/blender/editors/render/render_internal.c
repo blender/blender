@@ -221,7 +221,7 @@ void screen_set_image_output(bContext *C, int mx, int my)
 		sa= CTX_wm_area(C);
 	}
 	else if(scene->r.displaymode==R_OUTPUT_SCREEN) {
-		if (CTX_wm_area(C)->spacetype == SPACE_IMAGE)
+		if (CTX_wm_area(C) && CTX_wm_area(C)->spacetype == SPACE_IMAGE)
 			area_was_image = 1;
 
 		/* this function returns with changed context */
