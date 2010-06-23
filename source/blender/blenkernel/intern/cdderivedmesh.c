@@ -744,7 +744,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				if( flag != lastFlag ) {
 					if( startFace < i ) {
 						if( lastFlag != 0 ) { /* if the flag is 0 it means the face is hidden or invisible */
-							if (lastFlag==1 && mcol)
+							if (lastFlag==1 && col)
 								GPU_color_switch(1);
 							else
 								GPU_color_switch(0);
@@ -757,7 +757,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			}
 			if( startFace < dm->drawObject->nelements/3 ) {
 				if( lastFlag != 0 ) { /* if the flag is 0 it means the face is hidden or invisible */
-					if (lastFlag==1 && mcol)
+					if (lastFlag==1 && col)
 						GPU_color_switch(1);
 					else
 						GPU_color_switch(0);
