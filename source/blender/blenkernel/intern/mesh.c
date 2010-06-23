@@ -1186,6 +1186,12 @@ void mesh_to_curve(Scene *scene, Object *ob)
 
 	if (needsFree) {
 		ob->derivedFinal = NULL;
+
+		/* curve object could have got bounding box only in special cases */
+		if(ob->bb) {
+			MEM_freeN(ob->bb);
+			ob->bb= NULL;
+		}
 	}
 }
 

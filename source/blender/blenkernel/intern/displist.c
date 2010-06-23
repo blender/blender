@@ -1855,6 +1855,12 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 		DM_set_object_boundbox (ob, ob->derivedFinal);
 	} else {
 		boundbox_displist (ob);
+
+		/* if there is no derivedMesh, object's boundbox is unneeded */
+		if (ob->bb) {
+			MEM_freeN(ob->bb);
+			ob->bb= NULL;
+		}
 	}
 }
 
