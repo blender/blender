@@ -1927,7 +1927,8 @@ static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *so
 	
 	/* we search for the object parent */
 	ob= (Object *)outliner_search_back(soops, te, ID_OB);
-	if(ob==NULL || ob!=OBACT) return 0;	// just paranoia
+	// note: ob->matbits can be NULL when a local object points to a library mesh.
+	if(ob==NULL || ob!=OBACT || ob->matbits==NULL) return 0;	// just paranoia
 	
 	/* searching in ob mat array? */
 	tes= te->parent;
