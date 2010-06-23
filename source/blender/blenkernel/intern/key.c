@@ -1868,3 +1868,54 @@ void vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		}
 	}
 }
+
+void offset_to_key(Object *ob, KeyBlock *kb, float (*ofs)[3])
+{
+	int a;
+	float *co= (float*)ofs, *fp= kb->data;
+
+	if(ELEM(ob->type, OB_MESH, OB_LATTICE)) {
+		for (a= 0; a<kb->totelem; a++, fp+=3, co+=3) {
+			add_v3_v3(fp, co);
+		}
+	} else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		Curve *cu= (Curve*)ob->data;
+		Nurb *nu= cu->nurb.first;
+		BezTriple *bezt;
+		BPoint *bp;
+
+		while (nu) {
+			if(nu->bezt) {
+				int i;
+				bezt= nu->bezt;
+				a= nu->pntsu;
+
+				while (a--) {
+					for (i= 0; i<3; i++) {
+						add_v3_v3(fp, co);
+						fp+= 3; co+= 3;
+					}
+
+					fp+= 3; /* skip alphas */
+
+					bezt++;
+				}
+			}
+			else {
+				bp= nu->bp;
+				a= nu->pntsu*nu->pntsv;
+
+				while (a--) {
+					add_v3_v3(fp, co);
+
+					fp+= 4;
+					co+= 3;
+
+					bp++;
+				}
+			}
+
+			nu= nu->next;
+		}
+	}
+}

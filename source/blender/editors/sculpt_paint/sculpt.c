@@ -91,6 +91,11 @@
 /* Number of vertices to average in order to determine the flatten distance */
 #define FLATTEN_SAMPLE_SIZE 10
 
+/* ==== FORWARD DEFINITIONS =====
+ *
+ */
+static void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
+
 /* ===== STRUCTS =====
  *
  */
@@ -364,7 +369,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 					swap_v3_v3(vertCos[index[i]], unode->co[i]);
 
 				/* propagate new coords to keyblock */
-				vertcos_to_key(ob, ss->kb, vertCos);
+				sculpt_vertcos_to_key(ob, ss->kb, vertCos);
 
 				/* pbvh uses it's own mvert array, so coords should be */
 				/* propagated to pbvh here */
@@ -1408,13 +1413,64 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, PBVHNode **node
 	}
 }
 
+static void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
+{
+	Mesh *me= (Mesh*)ob->data;
+	float (*ofs)[3]= NULL;
+	int a, is_basis= 0;
+	KeyBlock *currkey;
+
+	/* for relative keys editing of base should update other keys */
+	if (me->key->type == KEY_RELATIVE)
+		for (currkey = me->key->block.first; currkey; currkey= currkey->next)
+			if(ob->shapenr-1 == currkey->relative) {
+				is_basis= 1;
+				break;
+			}
+
+	if (is_basis) {
+		ofs= key_to_vertcos(ob, kb);
+
+		/* calculate key coord offsets (from previous location) */
+		for (a= 0; a < me->totvert; a++) {
+			VECSUB(ofs[a], vertCos[a], ofs[a]);
+		}
+
+		/* apply offsets on other keys */
+		currkey = me->key->block.first;
+		while (currkey) {
+			int apply_offset = ((currkey != kb) && (ob->shapenr-1 == currkey->relative));
+
+			if (apply_offset)
+				offset_to_key(ob, currkey, ofs);
+
+			currkey= currkey->next;
+		}
+
+		MEM_freeN(ofs);
+	}
+
+	/* modifying of basis key should update mesh */
+	if (kb == me->key->refkey) {
+		MVert *mvert= me->mvert;
+
+		for (a= 0; a < me->totvert; a++, mvert++)
+			VECCOPY(mvert->co, vertCos[a]);
+
+		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	}
+
+	/* apply new coords on active key block */
+	vertcos_to_key(ob, kb, vertCos);
+}
+
 /* copy the modified vertices from bvh to the active key */
 static void sculpt_update_keyblock(SculptSession *ss)
 {
 	float (*vertCos)[3]= BLI_pbvh_get_vertCos(ss->pbvh);
 
 	if (vertCos) {
-		vertcos_to_key(ss->ob, ss->kb, vertCos);
+		sculpt_vertcos_to_key(ss->ob, ss->kb, vertCos);
 		MEM_freeN(vertCos);
 	}
 }

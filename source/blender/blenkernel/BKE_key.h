@@ -77,6 +77,7 @@ void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb)
 void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 float (*key_to_vertcos(struct Object *ob, struct KeyBlock *kb))[3];
 void vertcos_to_key(struct Object *ob, struct KeyBlock *kb, float (*vertCos)[3]);
+void offset_to_key(struct Object *ob, struct KeyBlock *kb, float (*ofs)[3]);
 
 #ifdef __cplusplus
 };
