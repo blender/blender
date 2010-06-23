@@ -592,8 +592,10 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int mem_size, int flags)
 	if (flags & IB_test) return (ibuf);
 
 	if (tga.imgtyp != 1 && tga.imgtyp != 9) { /* happens sometimes (beuh) */
-		MEM_freeN(cmap); 
-		cmap= NULL;
+		if(cmap) {
+			MEM_freeN(cmap); 
+			cmap= NULL;
+		}
 	}
 
 	switch(tga.imgtyp){
