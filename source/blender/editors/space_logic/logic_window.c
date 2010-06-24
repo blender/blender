@@ -4426,7 +4426,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
 	row = uiLayoutRow(layout, 1);
 	
-	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco, 70, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
 	uiItemR(row, &logic_ptr, "controllers_show_selected_objects", 0, "Sel", 0);
 	uiItemR(row, &logic_ptr, "controllers_show_active_objects", 0, "Act", 0);
@@ -4439,6 +4439,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		int iact;
 		
 		ob= (Object *)idar[a];
+
+		/* only draw the controller common header if "visible" */
+		if( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
 	
 		/* Drawing the Controller Header common to all Selected Objects */
 
@@ -4475,7 +4478,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 		/* End of Drawing the Controller Header common to all Selected Objects */
 
-		if (!(ob->scavisflag & OB_VIS_CONT) || !(ob->scaflag & OB_SHOWCONT)) continue;
+		if ((ob->scaflag & OB_SHOWCONT) == 0) continue;
 		
 
 		uiItemS(layout);
@@ -4524,7 +4527,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
 	row = uiLayoutRow(layout, 1);
 	
-	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco, 70, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
 	uiItemR(row, &logic_ptr, "sensors_show_selected_objects", 0, "Sel", 0);
 	uiItemR(row, &logic_ptr, "sensors_show_active_objects", 0, "Act", 0);
@@ -4537,11 +4540,14 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		
 		ob= (Object *)idar[a];
 
+		/* only draw the sensor common header if "visible" */
+		if((ob->scavisflag & OB_VIS_SENS) == 0) continue;
+
 		row = uiLayoutRow(layout, 1);
 		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
 		uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", 0);
 		
-		if (!(ob->scavisflag & OB_VIS_SENS) || !(ob->scaflag & OB_SHOWSENS)) continue;
+		if ((ob->scaflag & OB_SHOWSENS) == 0) continue;
 		
 		uiItemS(layout);
 		
@@ -4583,7 +4589,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
 	row = uiLayoutRow(layout, 1);
 	
-	uiDefBlockBut(block, sensor_menu, NULL, "Actuators", xco-10, yco, 70, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
 	uiItemR(row, &logic_ptr, "actuators_show_selected_objects", 0, "Sel", 0);
 	uiItemR(row, &logic_ptr, "actuators_show_active_objects", 0, "Act", 0);
@@ -4596,11 +4602,14 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		
 		ob= (Object *)idar[a];
 
+		/* only draw the actuator common header if "visible" */
+		if( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
+
 		row = uiLayoutRow(layout, 1);
 		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
 		uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", 0);
 
-		if (!(ob->scavisflag & OB_VIS_ACT) || !(ob->scaflag & OB_SHOWACT)) continue;
+		if ((ob->scaflag & OB_SHOWACT) == 0) continue;
 		
 		uiItemS(layout);
 		
