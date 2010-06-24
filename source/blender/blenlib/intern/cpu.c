@@ -30,8 +30,13 @@ int BLI_cpu_support_sse2(void)
 	return 1;
 #elif defined(__GNUC__) && defined(i386)
 	/* for GCC x86 we check cpuid */
-	unsigned int a, b, c, d;
-	__asm__("cpuid": "=a"(a), "=b"(b), "=c"(c), "=d"(d): "a"(1));
+	unsigned int d;
+	__asm__(
+		"pushl %%ebx\n\t"
+		"cpuid\n\t"
+		"popl %%ebx\n\t"
+	      : "=d"(d)
+		  : "a"(1));
 	return (d & 0x04000000) != 0;
 #elif (defined(_MSC_VER) && defined(_M_IX86))
 	/* also check cpuid for MSVC x86 */
