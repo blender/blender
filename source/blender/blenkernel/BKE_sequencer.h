@@ -191,12 +191,15 @@ int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test, struct Scene 
 int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);
 void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);
+struct Sequence	*seq_dupli_recursive(struct Scene *scene, struct Sequence * seq);
 int seq_swap(struct Sequence *seq_a, struct Sequence *seq_b);
 
 void seq_update_sound(struct Scene* scene, struct Sequence *seq);
 void seq_update_muting(struct Scene* scene, struct Editing *ed);
 void seqbase_sound_reload(Scene *scene, ListBase *seqbase);
 void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
+void seqbase_dupli_recursive(struct Scene *scene, ListBase *nseqbase, ListBase *seqbase, int do_context);
+
 void clear_scene_in_allseqs(struct Scene *sce);
 
 struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);

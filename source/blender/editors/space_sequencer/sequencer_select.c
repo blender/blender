@@ -231,7 +231,7 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if (desel) {
-			seq->flag &= SEQ_DESEL;
+			seq->flag &= ~SEQ_ALLSEL;
 		}
 		else {
 			seq->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -269,7 +269,7 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
 
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if (seq->flag & SELECT) {
-			seq->flag &= SEQ_DESEL;
+			seq->flag &= ~SEQ_ALLSEL;
 		}
 		else {
 			seq->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -409,7 +409,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				switch(hand) {
 				case SEQ_SIDE_NONE:
 					if (linked_handle==0)
-						seq->flag &= SEQ_DESEL;
+						seq->flag &= ~SEQ_ALLSEL;
 					break;
 				case SEQ_SIDE_LEFT:
 					seq->flag ^= SEQ_LEFTSEL;
@@ -860,7 +860,7 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 		
 		if(BLI_isect_rctf(&rq, &rectf, 0)) {
 			if(selecting)		seq->flag |= SELECT;
-			else				seq->flag &= SEQ_DESEL;
+			else				seq->flag &= ~SEQ_ALLSEL;
 			recurs_sel_seq(seq);
 		}
 	}

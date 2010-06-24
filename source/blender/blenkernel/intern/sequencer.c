@@ -4086,3 +4086,130 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	return seq;
 }
+
+
+static Sequence *dupli_seq(struct Scene *scene, Sequence *seq)
+{
+	Sequence *seqn = MEM_dupallocN(seq);
+
+	seq->tmp = seqn;
+	seqn->strip= MEM_dupallocN(seq->strip);
+
+	// XXX: add F-Curve duplication stuff?
+
+	seqn->strip->tstripdata = 0;
+	seqn->strip->tstripdata_startstill = 0;
+	seqn->strip->tstripdata_endstill = 0;
+	seqn->strip->ibuf_startstill = 0;
+	seqn->strip->ibuf_endstill = 0;
+
+	if (seq->strip->crop) {
+		seqn->strip->crop = MEM_dupallocN(seq->strip->crop);
+	}
+
+	if (seq->strip->transform) {
+		seqn->strip->transform = MEM_dupallocN(seq->strip->transform);
+	}
+
+	if (seq->strip->proxy) {
+		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
+	}
+
+	if (seq->strip->color_balance) {
+		seqn->strip->color_balance
+			= MEM_dupallocN(seq->strip->color_balance);
+	}
+
+	if(seq->type==SEQ_META) {
+		seqn->strip->stripdata = 0;
+
+		seqn->seqbase.first= seqn->seqbase.last= 0;
+		/* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
+		/* - seq_dupli_recursive(&seq->seqbase,&seqn->seqbase);*/
+	} else if(seq->type == SEQ_SCENE) {
+		seqn->strip->stripdata = 0;
+		if(seq->scene_sound)
+			seqn->scene_sound = sound_scene_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+	} else if(seq->type == SEQ_MOVIE) {
+		seqn->strip->stripdata =
+				MEM_dupallocN(seq->strip->stripdata);
+		seqn->anim= 0;
+	} else if(seq->type == SEQ_SOUND) {
+		seqn->strip->stripdata =
+				MEM_dupallocN(seq->strip->stripdata);
+		if(seq->scene_sound)
+			seqn->scene_sound = sound_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+
+		seqn->sound->id.us++;
+	} else if(seq->type == SEQ_IMAGE) {
+		seqn->strip->stripdata =
+				MEM_dupallocN(seq->strip->stripdata);
+	} else if(seq->type >= SEQ_EFFECT) {
+		if(seq->seq1 && seq->seq1->tmp) seqn->seq1= seq->seq1->tmp;
+		if(seq->seq2 && seq->seq2->tmp) seqn->seq2= seq->seq2->tmp;
+		if(seq->seq3 && seq->seq3->tmp) seqn->seq3= seq->seq3->tmp;
+
+		if (seq->type & SEQ_EFFECT) {
+			struct SeqEffectHandle sh;
+			sh = get_sequence_effect(seq);
+			if(sh.copy)
+				sh.copy(seq, seqn);
+		}
+
+		seqn->strip->stripdata = 0;
+
+	} else {
+		fprintf(stderr, "Aiiiiekkk! sequence type not "
+				"handled in duplicate!\nExpect a crash"
+						" now...\n");
+	}
+
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seqn);
+
+	return seqn;
+}
+
+Sequence * seq_dupli_recursive(struct Scene *scene, Sequence * seq)
+{
+	Sequence * seqn = dupli_seq(scene, seq);
+	if (seq->type == SEQ_META) {
+		Sequence * s;
+		for(s= seq->seqbase.first; s; s = s->next) {
+			Sequence *n = seq_dupli_recursive(scene, s);
+			if (n) {
+				BLI_addtail(&seqn->seqbase, n);
+			}
+		}
+	}
+	return seqn;
+}
+
+void seqbase_dupli_recursive(Scene *scene, ListBase *nseqbase, ListBase *seqbase, int do_context)
+{
+	Sequence *seq;
+	Sequence *seqn = 0;
+	Sequence *last_seq = seq_active_get(scene);
+
+	for(seq= seqbase->first; seq; seq= seq->next) {
+		seq->tmp= NULL;
+		if(seq->flag & SELECT) {
+			seqn = dupli_seq(scene, seq);
+			if (seqn) { /*should never fail */
+				if(do_context) {
+					seq->flag &= ~SEQ_ALLSEL;
+					seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL+SEQ_LOCK);
+				}
+
+				BLI_addtail(nseqbase, seqn);
+				if(seq->type==SEQ_META)
+					seqbase_dupli_recursive(scene, &seqn->seqbase, &seq->seqbase, do_context);
+
+				if(do_context) {
+					if (seq == last_seq) {
+						seq_active_set(scene, seqn);
+					}
+				}
+			}
+		}
+	}
+}

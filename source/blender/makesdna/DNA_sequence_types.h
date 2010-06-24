@@ -276,6 +276,9 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_PROXY_CUSTOM_FILE             2097152
 #define SEQ_USE_EFFECT_DEFAULT_FADE           4194304
 
+/* convenience define for all selection flags */
+#define SEQ_ALLSEL	(SELECT+SEQ_LEFTSEL+SEQ_RIGHTSEL)
+
 /* deprecated, dont use a flag anymore*/
 /*#define SEQ_ACTIVE                            1048576*/
 

@@ -146,8 +146,6 @@ enum {
 };
 
 /* defines used internally */
-#define SEQ_ALLSEL	(SELECT+SEQ_LEFTSEL+SEQ_RIGHTSEL)
-#define SEQ_DESEL	~SEQ_ALLSEL
 #define SCE_MARKERS 0 // XXX - dummy
 
 /* sequencer_ops.c */
