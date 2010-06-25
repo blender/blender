@@ -780,7 +780,6 @@ static int replace_exec(bContext *C, wmOperator *op)
 static int replace_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
-	char *path= (sima->image)? sima->image->name: U.textudir;
 
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
@@ -788,7 +787,10 @@ static int replace_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(RNA_property_is_set(op->ptr, "filepath"))
 		return replace_exec(C, op);
 
-	image_filesel(C, op, path);
+	if(!RNA_property_is_set(op->ptr, "relative_path"))
+		RNA_boolean_set(op->ptr, "relative_path", (strncmp(sima->image->name, "//", 2))==0);
+
+	image_filesel(C, op, sima->image->name);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -808,7 +810,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, 0); //XXX TODO, relative_path
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, FILE_RELPATH);
 }
 
 /******************** save image as operator ********************/

@@ -198,6 +198,10 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
 	}
 	
+	if(sce->r.ffcodecdata.properties) { /* intentionally check scen not sce. */
+		scen->r.ffcodecdata.properties= IDP_CopyProperty(scen->r.ffcodecdata.properties);
+	}
+
 	/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
 	 * are done outside of blenkernel with ED_objects_single_users! */
 
@@ -211,6 +215,12 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 		if(scen->world) {
 			id_us_plus((ID *)scen->world);
 			scen->world= copy_world(scen->world);
+		}
+
+		if(sce->ed) {
+			scen->ed= MEM_callocN( sizeof(Editing), "addseq");
+			scen->ed->seqbasep= &scen->ed->seqbase;
+			seqbase_dupli_recursive(sce, &scen->ed->seqbase, &sce->ed->seqbase, 0);
 		}
 	}
 
