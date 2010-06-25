@@ -685,9 +685,21 @@ static int render_frame(int argc, char **argv, void *data)
 		Scene *scene= CTX_data_scene(C);
 
 		if (argc > 1) {
-			int frame = atoi(argv[1]);
 			Render *re = RE_NewRender(scene->id.name);
+			int frame;
 			ReportList reports;
+
+			if(*argv[1]) {
+			case '+':
+				frame= scene->r.sfra + atoi(argv[1]+1);
+				break;
+			case '-':
+				frame= (scene->r.efra - atoi(argv[1]+1)) + 1;
+				break;
+			default:
+				frame= atoi(argv[1]);
+				break;
+			}
 
 			BKE_reports_init(&reports, RPT_PRINT);
 
@@ -966,7 +978,7 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 	/* fourth pass: processing arguments */
 	BLI_argsAdd(ba, 4, "-g", NULL, game_doc, set_ge_parameters, syshandle);
-	BLI_argsAdd(ba, 4, "-f", "--render-frame", "<frame>\n\tRender frame <frame> and save it", render_frame, C);
+	BLI_argsAdd(ba, 4, "-f", "--render-frame", "<frame>\n\tRender frame <frame> and save it.\n\t+<frame> start frame relative, -<frame> end frame relative.", render_frame, C);
 	BLI_argsAdd(ba, 4, "-a", "--render-anim", "\n\tRender frames from start to end (inclusive)", render_animation, C);
 	BLI_argsAdd(ba, 4, "-S", "--scene", "<name>\n\tSet the active scene <name> for rendering", set_scene, NULL);
 	BLI_argsAdd(ba, 4, "-s", "--frame-start", "<frame>\n\tSet start to frame <frame> (use before the -a argument)", set_start_frame, C);
