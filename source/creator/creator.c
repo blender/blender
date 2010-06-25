@@ -689,7 +689,7 @@ static int render_frame(int argc, char **argv, void *data)
 			int frame;
 			ReportList reports;
 
-			if(*argv[1]) {
+			switch(*argv[1]) {
 			case '+':
 				frame= scene->r.sfra + atoi(argv[1]+1);
 				break;
