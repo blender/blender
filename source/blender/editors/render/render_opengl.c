@@ -60,6 +60,7 @@
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_image.h"
 
 #include "RE_pipeline.h"
 #include "IMB_imbuf_types.h"
@@ -328,6 +329,9 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	else {
 		scene_camera_switch_update(scene);
 	}
+
+	/* update animated image textures for gpu, etc */
+	ED_image_update_frame(C);
 
 	/* render into offscreen buffer */
 	screen_opengl_render_apply(oglrender);
