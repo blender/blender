@@ -116,6 +116,8 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 		uiItemR(row, ptr, "display_armature", 0, "", 0);
 	if (mainptr && mainptr->particle.first)
 		uiItemR(row, ptr, "display_particle", 0, "", 0);
+	if (mainptr && mainptr->linestyle.first)
+		uiItemR(row, ptr, "display_linestyle", 0, "", 0);
 	
 	/* group-based filtering (only when groups are available */
 	if (mainptr && mainptr->group.first) {
@@ -2137,7 +2139,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, ptr, "use_textures", i, 0, 0, 0, 0,  NULL);
 	}
-	else if(RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {
+	else if(RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer) || itemptr->type == &RNA_FreestyleLineSet) {
 		uiItemL(sub, name, icon);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "enabled", 0, 0, 0, 0, 0,  NULL);

@@ -1787,6 +1787,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	TransformOrientation *ts;
 	SceneRenderLayer *srl;
 	FreestyleModuleConfig *fmc;
+	FreestyleLineSet *fls;
 	ToolSettings *tos;
 	
 	sce= scebase->first;
@@ -1918,6 +1919,11 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 				writestruct(wd, DATA, "FreestyleModuleConfig", 1, fmc);
 			}
 			
+			for(fls= srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
+				writestruct(wd, DATA, "FreestyleLineSet", 1, fls);
+				writestruct(wd, DATA, "FreestyleLineStyle", 1, fls->linestyle);
+			}
+
 		}
 		
 		if(sce->nodetree) {
@@ -2368,6 +2374,17 @@ static void write_scripts(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_linestyles(WriteData *wd, ListBase *idbase)
+{
+	FreestyleLineStyle *linestyle;
+	
+	for(linestyle=idbase->first; linestyle; linestyle= linestyle->id.next) {
+		if(linestyle->id.us>0 || wd->current) {
+			writestruct(wd, ID_LS, "FreestyleLineStyle", 1, linestyle);
+		}
+	}
+}
+
 /* context is usually defined by WM, two cases where no WM is available:
  * - for forward compatibility, curscreen has to be saved
  * - for undofile, curscene needs to be saved */
@@ -2457,6 +2474,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_brushes  (wd, &mainvar->brush);
 	write_scripts  (wd, &mainvar->script);
 	write_gpencils (wd, &mainvar->gpencil);
+	write_linestyles(wd, &mainvar->linestyle);
 	write_libraries(wd,  mainvar->next);
 
 	if (write_user_block) {

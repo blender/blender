@@ -4132,6 +4132,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 	Base *base, *next;
 	Sequence *seq;
 	SceneRenderLayer *srl;
+	FreestyleLineSet *fls;
 	TimeMarker *marker;
 	
 	sce= main->scene.first;
@@ -4213,6 +4214,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 			for(srl= sce->r.layers.first; srl; srl= srl->next) {
 				srl->mat_override= newlibadr_us(fd, sce->id.lib, srl->mat_override);
 				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
+				for(fls=srl->freestyleConfig.linesets.first; fls; fls= fls->next) {
+					fls->linestyle= newlibadr_us(fd, sce->id.lib, fls->linestyle);
+				}
 			}
 			/*Game Settings: Dome Warp Text*/
 			sce->gm.dome.warptext= newlibadr(fd, sce->id.lib, sce->gm.dome.warptext);
@@ -4432,6 +4436,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 	for(srl= sce->r.layers.first; srl; srl= srl->next) {
 		link_list(fd, &(srl->freestyleConfig.modules));
+	}
+	for(srl= sce->r.layers.first; srl; srl= srl->next) {
+		link_list(fd, &(srl->freestyleConfig.linesets));
 	}
 	
 	sce->nodetree= newdataadr(fd, sce->nodetree);
@@ -5362,6 +5369,14 @@ static void lib_link_group(FileData *fd, Main *main)
 	}
 }
 
+/* ************ READ LINE STYLE ***************** */
+
+static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
+{
+
+}
+
+
 /* ************** GENERAL & MAIN ******************** */
 
 
@@ -5395,6 +5410,7 @@ static char *dataname(short id_code)
 		case ID_BR: return "Data from BR";
 		case ID_PA: return "Data from PA";
 		case ID_GD: return "Data from GD";
+		case ID_LS: return "Data from LS";
 	}
 	return "Data from Lib Block";
 	
@@ -5560,6 +5576,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_GD:
 			direct_link_gpencil(fd, (bGPdata *)id);
+			break;
+		case ID_LS:
+			direct_link_linestyle(fd, (FreestyleLineStyle *)id);
 			break;
 	}
 	
@@ -11878,6 +11897,11 @@ static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 	expand_doit(fd, mainvar, snd->ipo); // XXX depreceated - old animation system
 }
 
+static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *linestyle)
+{
+
+}
+
 
 static void expand_main(FileData *fd, Main *mainvar)
 {
@@ -11958,6 +11982,10 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_PA:
 						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
+						break;
+					case ID_LS:
+						expand_linestyle(fd, mainvar, (FreestyleLineStyle *)id);
+						break;
 					}
 
 					doit= 1;

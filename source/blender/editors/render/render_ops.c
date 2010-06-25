@@ -59,8 +59,11 @@ void ED_operatortypes_render(void)
 
 	WM_operatortype_append(SCENE_OT_freestyle_module_add);
 	WM_operatortype_append(SCENE_OT_freestyle_module_remove);
-	WM_operatortype_append(SCENE_OT_freestyle_module_move_up);
-	WM_operatortype_append(SCENE_OT_freestyle_module_move_down);
+	WM_operatortype_append(SCENE_OT_freestyle_module_move);
+	WM_operatortype_append(SCENE_OT_freestyle_lineset_add);
+	WM_operatortype_append(SCENE_OT_freestyle_lineset_remove);
+	WM_operatortype_append(SCENE_OT_freestyle_lineset_move);
+	WM_operatortype_append(SCENE_OT_freestyle_linestyle_new);
 
 #if (defined(WITH_QUICKTIME) && !defined(USE_QTKIT))
 	WM_operatortype_append(SCENE_OT_render_data_set_quicktime_codec);

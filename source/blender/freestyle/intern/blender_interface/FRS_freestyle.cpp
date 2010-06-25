@@ -17,6 +17,9 @@ extern "C" {
 #include "DNA_camera_types.h"
 #include "DNA_freestyle_types.h"
 
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -310,15 +313,26 @@ extern "C" {
 	{		
 		FreestyleConfig* config = &srl->freestyleConfig;
 		
+		config->mode = FREESTYLE_CONTROL_SCRIPT_MODE;
+
 		config->modules.first = config->modules.last = NULL;
 		config->flags = 0;
 		config->sphere_radius = 1.0;
 		config->dkr_epsilon = 0.001;
 		config->crease_angle = 134.43;
+
+		config->linesets.first = config->linesets.last = NULL;
 	}
 	
 	void FRS_free_freestyle_config( SceneRenderLayer* srl )
 	{		
+		FreestyleLineSet *lineset;
+
+		for(lineset=(FreestyleLineSet *)srl->freestyleConfig.linesets.first; lineset; lineset=lineset->next) {
+			lineset->linestyle->id.us--;
+			lineset->linestyle = NULL;
+		}
+		BLI_freelistN( &srl->freestyleConfig.linesets );
 		BLI_freelistN( &srl->freestyleConfig.modules );
 	}
 
@@ -336,16 +350,100 @@ extern "C" {
 		BLI_freelinkN(&config->modules, module_conf);
 	}
 	
-	void FRS_move_up_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
+	void FRS_move_module_up(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
 	{
 		BLI_remlink(&config->modules, module_conf);
-		BLI_insertlink(&config->modules, module_conf->prev->prev, module_conf);
+		BLI_insertlinkbefore(&config->modules, module_conf->prev, module_conf);
 	}
 	
-	void FRS_move_down_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
+	void FRS_move_module_down(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
 	{			
 		BLI_remlink(&config->modules, module_conf);
-		BLI_insertlink(&config->modules, module_conf->next, module_conf);
+		BLI_insertlinkafter(&config->modules, module_conf->next, module_conf);
+	}
+
+	void FRS_add_lineset(FreestyleConfig *config)
+	{
+		int lineset_index = BLI_countlist(&config->linesets);
+
+		FreestyleLineSet *lineset = (FreestyleLineSet *) MEM_callocN( sizeof(FreestyleLineSet), "Freestyle line set");
+		BLI_addtail(&config->linesets, (void *) lineset);
+		FRS_set_active_lineset_index(config, lineset_index);
+
+		lineset->linestyle = FRS_new_linestyle("LineStyle", NULL);
+		lineset->flags |= FREESTYLE_LINESET_ENABLED;
+		if (lineset_index > 0)
+			sprintf(lineset->name, "LineSet %i", lineset_index+1);
+		else
+			strcpy(lineset->name, "LineSet");
+		BLI_uniquename(&config->linesets, lineset, "FreestyleLineSet", '.', offsetof(FreestyleLineSet, name), sizeof(lineset->name));
+	}
+
+	void FRS_delete_active_lineset(FreestyleConfig *config)
+	{
+		FreestyleLineSet *lineset = FRS_get_active_lineset(config);
+
+		if (lineset) {
+			lineset->linestyle->id.us--;
+			lineset->linestyle = NULL;
+			BLI_remlink(&config->linesets, lineset);
+			MEM_freeN(lineset);
+			FRS_set_active_lineset_index(config, 0);
+		}
+	}
+
+	void FRS_move_active_lineset_up(FreestyleConfig *config)
+	{
+		FreestyleLineSet *lineset = FRS_get_active_lineset(config);
+
+		if (lineset) {
+			BLI_remlink(&config->linesets, lineset);
+			BLI_insertlinkbefore(&config->linesets, lineset->prev, lineset);
+		}
+	}
+
+	void FRS_move_active_lineset_down(FreestyleConfig *config)
+	{
+		FreestyleLineSet *lineset = FRS_get_active_lineset(config);
+
+		if (lineset) {
+			BLI_remlink(&config->linesets, lineset);
+			BLI_insertlinkafter(&config->linesets, lineset->next, lineset);
+		}
+	}
+
+	FreestyleLineSet *FRS_get_active_lineset(FreestyleConfig *config)
+	{
+		FreestyleLineSet *lineset;
+
+		for(lineset=(FreestyleLineSet *)config->linesets.first; lineset; lineset=lineset->next)
+			if(lineset->flags & FREESTYLE_LINESET_CURRENT)
+				return lineset;
+		return NULL;
+	}
+
+	short FRS_get_active_lineset_index(FreestyleConfig *config)
+	{
+		FreestyleLineSet *lineset;
+		short i;
+
+		for(lineset=(FreestyleLineSet *)config->linesets.first, i=0; lineset; lineset=lineset->next, i++)
+			if(lineset->flags & FREESTYLE_LINESET_CURRENT)
+				return i;
+		return 0;
+	}
+
+	void FRS_set_active_lineset_index(FreestyleConfig *config, short index)
+	{
+		FreestyleLineSet *lineset;
+		short i;
+
+		for(lineset=(FreestyleLineSet *)config->linesets.first, i=0; lineset; lineset=lineset->next, i++) {
+			if(i == index)
+				lineset->flags |= FREESTYLE_LINESET_CURRENT;
+			else
+				lineset->flags &= ~FREESTYLE_LINESET_CURRENT;
+		}
 	}
 
 #ifdef __cplusplus

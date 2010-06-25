@@ -466,6 +466,7 @@ void BKE_animdata_main_cb (Main *main, ID_AnimData_Edit_Callback func, void *use
 	ANIMDATA_IDS_CB(main->particle.first);	/* particles */
 	ANIMDATA_IDS_CB(main->object.first);	/* objects */
 	ANIMDATA_IDS_CB(main->world.first);		/* worlds */
+	ANIMDATA_IDS_CB(main->linestyle.first);	/* linestyles */
 
 	/* scenes */
 	for (id= main->scene.first; id; id= id->next) {
@@ -541,6 +542,9 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 	
 	/* worlds */
 	RENAMEFIX_ANIM_IDS(mainptr->world.first);
+	
+	/* linestyles */
+	RENAMEFIX_ANIM_IDS(mainptr->linestyle.first);
 	
 	/* scenes */
 	for (id= mainptr->scene.first; id; id= id->next) {
@@ -1889,6 +1893,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	
 	/* particles */
 	EVAL_ANIM_IDS(main->particle.first, ADT_RECALC_ANIM);
+	
+	/* linestyles */
+	EVAL_ANIM_IDS(main->linestyle.first, ADT_RECALC_ANIM);
 	
 	/* objects */
 		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 

@@ -52,6 +52,7 @@ INCLUDE_DIRECTORIES(
 	../../gpu
 	../../imbuf
 	../../render/extern/include
+	../../freestyle
 	. )
 
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)

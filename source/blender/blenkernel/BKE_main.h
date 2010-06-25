@@ -78,6 +78,7 @@ typedef struct Main {
 	ListBase particle;
 	ListBase wm;
 	ListBase gpencil;
+	ListBase linestyle;
 } Main;
 
 

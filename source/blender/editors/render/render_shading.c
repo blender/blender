@@ -761,70 +761,164 @@ void SCENE_OT_freestyle_module_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int freestyle_module_move_up_exec(bContext *C, wmOperator *op)
+static int freestyle_module_move_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
 	FreestyleModuleConfig *module= ptr.data;
-	int active = RNA_boolean_get(op->ptr, "active");
+	int dir= RNA_enum_get(op->ptr, "direction");
 
-	if(active)
-		FRS_move_up_module(&srl->freestyleConfig, module);
+	if (dir == 1) {
+		FRS_move_module_up(&srl->freestyleConfig, module);
+	} else {
+		FRS_move_module_down(&srl->freestyleConfig, module);
+	}
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_freestyle_module_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem direction_items[] = {
+		{1, "UP", 0, "Up", ""},
+		{-1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Move Freestyle Module";
+	ot->idname= "SCENE_OT_freestyle_module_move";
+	ot->description="Change the position of the style module within in the list of style modules.";
+	
+	/* api callbacks */
+	ot->exec= freestyle_module_move_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to move, UP or DOWN");
+}
+
+static int freestyle_lineset_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
+
+	FRS_add_lineset(&srl->freestyleConfig);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 	
 	return OPERATOR_FINISHED;
 }
 
-void SCENE_OT_freestyle_module_move_up(wmOperatorType *ot)
+void SCENE_OT_freestyle_lineset_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Up Freestyle Module";
-	ot->idname= "SCENE_OT_freestyle_module_move_up";
-	ot->description="Move the style module up in the stack.";
+	ot->name= "Add Line Set";
+	ot->idname= "SCENE_OT_freestyle_lineset_add";
+	ot->description="Add a line set into the list of line sets.";
 	
 	/* api callbacks */
-	ot->exec= freestyle_module_move_up_exec;
+	ot->exec= freestyle_lineset_add_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* props */
-	RNA_def_boolean(ot->srna, "active", 0, "Active", "True if the operator is enabled.");
 }
 
-static int freestyle_module_move_down_exec(bContext *C, wmOperator *op)
+static int freestyle_lineset_remove_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
-	FreestyleModuleConfig *module= ptr.data;
-	int active = RNA_boolean_get(op->ptr, "active");
 
-	if(active)
-		FRS_move_down_module(&srl->freestyleConfig, module);
+	FRS_delete_active_lineset(&srl->freestyleConfig);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 	
 	return OPERATOR_FINISHED;
 }
 
-void SCENE_OT_freestyle_module_move_down(wmOperatorType *ot)
+void SCENE_OT_freestyle_lineset_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Move Down Freestyle Module";
-	ot->idname= "SCENE_OT_freestyle_module_move_down";
-	ot->description="Move the style module down in the stack.";
+	ot->name= "Remove Line Set";
+	ot->idname= "SCENE_OT_freestyle_lineset_remove";
+	ot->description="Remove the active line set from the list of line sets.";
 	
 	/* api callbacks */
-	ot->exec= freestyle_module_move_down_exec;
+	ot->exec= freestyle_lineset_remove_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int freestyle_lineset_move_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
+	int dir= RNA_enum_get(op->ptr, "direction");
+
+	if (dir == 1) {
+		FRS_move_active_lineset_up(&srl->freestyleConfig);
+	} else {
+		FRS_move_active_lineset_down(&srl->freestyleConfig);
+	}
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_freestyle_lineset_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem direction_items[] = {
+		{1, "UP", 0, "Up", ""},
+		{-1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Move Line Set";
+	ot->idname= "SCENE_OT_freestyle_lineset_move";
+	ot->description="Change the position of the active line set within the list of line sets.";
+	
+	/* api callbacks */
+	ot->exec= freestyle_lineset_move_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "active", 0, "Active", "True if the operator is enabled.");
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to move, UP or DOWN");
+}
+
+static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
+	FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+
+	lineset->linestyle->id.us--;
+	lineset->linestyle = FRS_new_linestyle("LineStyle", NULL);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_freestyle_linestyle_new(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New Line Style";
+	ot->idname= "SCENE_OT_freestyle_linestyle_new";
+	ot->description="Create a new line style, reusable by multiple line sets.";
+	
+	/* api callbacks */
+	ot->exec= freestyle_linestyle_new_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int texture_slot_move(bContext *C, wmOperator *op)

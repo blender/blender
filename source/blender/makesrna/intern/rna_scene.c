@@ -173,6 +173,8 @@ EnumPropertyItem image_type_items[] = {
 
 #include "RE_pipeline.h"
 
+#include "FRS_freestyle.h"
+
 static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
@@ -904,6 +906,49 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *m
 	MEM_freeN(marker);
 }
 
+static PointerRNA rna_FreestyleLineSet_linestyle_get(PointerRNA *ptr)
+{
+	FreestyleLineSet *lineset= (FreestyleLineSet *)ptr->data;
+
+	return rna_pointer_inherit_refine(ptr, &RNA_FreestyleLineStyle, lineset->linestyle);
+}
+
+static void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value)
+{
+	FreestyleLineSet *lineset= (FreestyleLineSet*)ptr->data;
+
+	lineset->linestyle->id.us--;
+	lineset->linestyle = (FreestyleLineStyle *)value.data;
+	lineset->linestyle->id.us++;
+}
+
+static PointerRNA rna_FreestyleSettings_active_lineset_get(PointerRNA *ptr)
+{
+	FreestyleConfig *config= (FreestyleConfig *)ptr->data;
+	FreestyleLineSet *lineset= FRS_get_active_lineset(config);
+	return rna_pointer_inherit_refine(ptr, &RNA_FreestyleLineSet, lineset);
+}
+
+static void rna_FreestyleSettings_active_lineset_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	FreestyleConfig *config= (FreestyleConfig *)ptr->data;
+	*min= 0;
+	*max= BLI_countlist(&config->linesets)-1;
+	*max= MAX2(0, *max);
+}
+
+static int rna_FreestyleSettings_active_lineset_index_get(PointerRNA *ptr)
+{
+	FreestyleConfig *config= (FreestyleConfig *)ptr->data;
+	return FRS_get_active_lineset_index(config);
+}
+
+static void rna_FreestyleSettings_active_lineset_index_set(PointerRNA *ptr, int value)
+{
+	FreestyleConfig *config= (FreestyleConfig *)ptr->data;
+	FRS_set_active_lineset_index(config, value);
+}
+
 #else
 
 static void rna_def_transform_orientation(BlenderRNA *brna)
@@ -1490,6 +1535,41 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem freestyle_ui_mode_items[] = {
+		{FREESTYLE_CONTROL_SCRIPT_MODE, "SCRIPT", 0, "Python Scripting Mode", "Advanced mode for using style modules in Python"},
+		{FREESTYLE_CONTROL_EDITOR_MODE, "EDITOR", 0, "Parameter Editor Mode", "Basic mode for interactive style parameter editing"},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* FreestyleLineSet */
+
+	srna= RNA_def_struct(brna, "FreestyleLineSet", NULL);
+	RNA_def_struct_ui_text(srna, "Freestyle Line Set", "Line set for associating lines and style parameters.");
+
+	/* access to line style settings is redirected through functions */
+	/* to allow proper id-buttons functionality */
+	prop= RNA_def_property(srna, "linestyle", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "FreestyleLineStyle");
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_FreestyleLineSet_linestyle_get", "rna_FreestyleLineSet_linestyle_set", NULL);
+	RNA_def_property_ui_text(prop, "Line Style", "Line style settings");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "Line Set Name", "Line set name");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_struct_name_property(srna, prop);
+
+	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_LINESET_ENABLED);
+	RNA_def_property_ui_text(prop, "Enabled", "Enable or disable the line set.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "objects", NULL);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_ui_text(prop, "Target objects", "A list of objects on which stylized lines are drawn.");
+
 	/* FreestyleModuleSettings */
 
 	srna= RNA_def_struct(brna, "FreestyleModuleSettings", NULL);
@@ -1517,6 +1597,12 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "modules", NULL);
 	RNA_def_property_struct_type(prop, "FreestyleModuleSettings");
 	RNA_def_property_ui_text(prop, "Style modules", "A list of style modules (to be applied from top to bottom).");
+
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, freestyle_ui_mode_items);
+	RNA_def_property_ui_text(prop, "Control Mode", "Select the Freestyle control mode");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "suggestive_contours", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_SUGGESTIVE_CONTOURS_FLAG);
@@ -1549,6 +1635,22 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "crease_angle");
 	RNA_def_property_range(prop, 0.0, 180.0);
 	RNA_def_property_ui_text(prop, "Crease Angle", "Angular threshold in degrees (between 0 and 180) for detecting crease edges.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "linesets", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "linesets", NULL);
+	RNA_def_property_struct_type(prop, "FreestyleLineSet");
+	RNA_def_property_ui_text(prop, "Line Sets", "Line sets for associating lines and style parameters");
+
+	prop= RNA_def_property(srna, "active_lineset", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "FreestyleLineSet");
+	RNA_def_property_pointer_funcs(prop, "rna_FreestyleSettings_active_lineset_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Line Set", "Active line set being displayed");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "active_lineset_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_FreestyleSettings_active_lineset_index_get", "rna_FreestyleSettings_active_lineset_index_set", "rna_FreestyleSettings_active_lineset_index_range");
+	RNA_def_property_ui_text(prop, "Active Line Set Index", "Index of active line set slot");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 }
 

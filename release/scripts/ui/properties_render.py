@@ -69,6 +69,27 @@ class RENDER_PT_render(RenderButtonsPanel):
         layout.prop(rd, "display_mode", text="Display")
 
 
+class RENDER_PT_freestyle_linestyle(RenderButtonsPanel):
+    bl_label = "Freestyle Line Style"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def poll(self, context):
+        rd = context.scene.render
+        rl = rd.layers[rd.active_layer_index]
+        return rl and rl.freestyle and rl.freestyle_settings.active_lineset
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+        rl = rd.layers[rd.active_layer_index]
+        linestyle = rl.freestyle_settings.active_lineset.linestyle
+
+        split = layout.split()
+        col = split.column()
+        col.prop(linestyle, "name")
+
+
 class RENDER_PT_layers(RenderButtonsPanel):
     bl_label = "Layers"
     bl_default_closed = True
@@ -182,26 +203,55 @@ class RENDER_PT_layers(RenderButtonsPanel):
             col = split.column()
             col.label(text="Freestyle:")
             freestyle = rl.freestyle_settings
-            col.prop(freestyle, "crease_angle", text="Crease Angle")
-            col.prop(freestyle, "sphere_radius", text="Sphere Radius")
-            col.prop(freestyle, "ridges_and_valleys", text="Ridges and Valleys")
-            col.prop(freestyle, "suggestive_contours", text="Suggestive Contours")
-            col.prop(freestyle, "material_boundaries", text="Material Boundaries")
-            col.prop(freestyle, "dkr_epsilon", text="Dkr Epsilon")
+            col.prop(freestyle, "mode", text="Control Mode")
+            if freestyle.mode == "EDITOR":
 
-            col.operator("scene.freestyle_module_add", text="Add Style Module")
+                lineset = freestyle.active_lineset
 
-            for i, module in enumerate(freestyle.modules):
-                    box = layout.box()
-                    box.set_context_pointer("freestyle_module", module)
-                    row = box.row(align=True)
-                    row.prop(module, "is_displayed", text="")
-                    row.prop(module, "module_path", text="")
-                    row.operator("scene.freestyle_module_remove", icon='X', text="")
-                    props = row.operator("scene.freestyle_module_move_up", icon='MOVE_UP_VEC', text="")
-                    props.active = (i > 0)
-                    props = row.operator("scene.freestyle_module_move_down", icon='MOVE_DOWN_VEC', text="")
-                    props.active = (i < len(freestyle.modules) - 1)
+                col.label(text="Line Sets:")
+
+                row = col.row()
+                rows = 2
+                if lineset:
+                    rows = 5
+                # FIXME: scrollbar does not work correctly
+                row.template_list(freestyle, "linesets", freestyle, "active_lineset_index", rows=rows)
+
+                sub = row.column()
+
+                subsub = sub.column(align=True)
+                subsub.operator("scene.freestyle_lineset_add", icon='ZOOMIN', text="")
+                subsub.operator("scene.freestyle_lineset_remove", icon='ZOOMOUT', text="")
+
+                if lineset:
+                    sub.separator()
+
+                    subsub = sub.column(align=True)
+                    subsub.operator("scene.freestyle_lineset_move", icon='TRIA_UP', text="").direction = 'UP'
+                    subsub.operator("scene.freestyle_lineset_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+                    col.prop(lineset, "name")
+                    col.template_ID(lineset, "linestyle", new="scene.freestyle_linestyle_new")
+
+            else:
+                col.prop(freestyle, "crease_angle", text="Crease Angle")
+                col.prop(freestyle, "sphere_radius", text="Sphere Radius")
+                col.prop(freestyle, "ridges_and_valleys", text="Ridges and Valleys")
+                col.prop(freestyle, "suggestive_contours", text="Suggestive Contours")
+                col.prop(freestyle, "material_boundaries", text="Material Boundaries")
+                col.prop(freestyle, "dkr_epsilon", text="Dkr Epsilon")
+
+                col.operator("scene.freestyle_module_add", text="Add Style Module")
+
+                for i, module in enumerate(freestyle.modules):
+                        box = layout.box()
+                        box.set_context_pointer("freestyle_module", module)
+                        row = box.row(align=True)
+                        row.prop(module, "is_displayed", text="")
+                        row.prop(module, "module_path", text="")
+                        row.operator("scene.freestyle_module_remove", icon='X', text="")
+                        row.operator("scene.freestyle_module_move", icon='TRIA_UP', text="").direction = 'UP'
+                        row.operator("scene.freestyle_module_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
 
 class RENDER_PT_shading(RenderButtonsPanel):
@@ -706,6 +756,7 @@ classes = [
     RENDER_MT_ffmpeg_presets,
     RENDER_PT_render,
     RENDER_PT_layers,
+    RENDER_PT_freestyle_linestyle,
     RENDER_PT_dimensions,
     RENDER_PT_antialiasing,
     RENDER_PT_motion_blur,

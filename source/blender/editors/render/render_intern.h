@@ -52,8 +52,11 @@ void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_add(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_remove(struct wmOperatorType *ot);
-void SCENE_OT_freestyle_module_move_up(struct wmOperatorType *ot);
-void SCENE_OT_freestyle_module_move_down(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_module_move(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_lineset_add(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_lineset_remove(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_lineset_move(struct wmOperatorType *ot);
+void SCENE_OT_freestyle_linestyle_new(struct wmOperatorType *ot);
 
 
 void TEXTURE_OT_slot_copy(struct wmOperatorType *ot);

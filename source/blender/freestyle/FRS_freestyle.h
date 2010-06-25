@@ -28,9 +28,18 @@ extern "C" {
 	// Panel configuration
 	void FRS_add_module(FreestyleConfig *config);
 	void FRS_delete_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
-	void FRS_move_up_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
-	void FRS_move_down_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
+	void FRS_move_module_up(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
+	void FRS_move_module_down(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
 	
+	void FRS_add_lineset(FreestyleConfig *config);
+	void FRS_delete_active_lineset(FreestyleConfig *config);
+	void FRS_move_active_lineset_up(FreestyleConfig *config);
+	void FRS_move_active_lineset_down(FreestyleConfig *config);
+
+	FreestyleLineSet *FRS_get_active_lineset(FreestyleConfig *config);
+	short FRS_get_active_lineset_index(FreestyleConfig *config);
+	void FRS_set_active_lineset_index(FreestyleConfig *config, short index);
+
 #ifdef __cplusplus
 }
 #endif

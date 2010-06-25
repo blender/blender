@@ -343,6 +343,7 @@ typedef struct ExtensionRNA {
 #define MainLamps		Main
 #define MainLattices		Main
 #define MainLibraries		Main
+#define MainLineStyles		Main
 #define MainMaterials		Main
 #define MainMeshes		Main
 #define MainMetaBalls		Main

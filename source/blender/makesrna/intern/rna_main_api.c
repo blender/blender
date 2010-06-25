@@ -57,6 +57,7 @@
 #include "BKE_particle.h"
 #include "BKE_font.h"
 #include "BKE_node.h"
+#include "BKE_linestyle.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -448,6 +449,22 @@ void rna_Main_particles_remove(Main *bmain, ReportList *reports, ParticleSetting
 		free_libblock(&bmain->particle, part);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Particle Settings \"%s\" must have zero users to be removed, found %d.", part->id.name+2, ID_REAL_USERS(part));
+
+	/* XXX python now has invalid pointer? */
+}
+
+FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, char* name)
+{
+	FreestyleLineStyle *linestyle = FRS_new_linestyle(name, bmain);
+	linestyle->id.us--;
+	return linestyle;
+}
+void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, FreestyleLineStyle *linestyle)
+{
+	if(ID_REAL_USERS(linestyle) <= 0)
+		free_libblock(&bmain->linestyle, linestyle);
+	else
+		BKE_reportf(reports, RPT_ERROR, "Line style \"%s\" must have zero users to be removed, found %d.", linestyle->id.name+2, ID_REAL_USERS(linestyle));
 
 	/* XXX python now has invalid pointer? */
 }
@@ -1014,6 +1031,30 @@ void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop)
 void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 {
 
+}
+void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "MainLineStyles");
+	srna= RNA_def_struct(brna, "MainLineStyles", NULL);
+	RNA_def_struct_ui_text(srna, "Main Line Styles", "Collection of line styles");
+
+	func= RNA_def_function(srna, "new", "rna_Main_linestyles_new");
+	RNA_def_function_ui_description(func, "Add a new line style instance to the main database");
+	parm= RNA_def_string(func, "name", "FreestyleLineStyle", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "New line style datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_linestyles_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a line style instance from the current blendfile.");
+	parm= RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "Line style to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif

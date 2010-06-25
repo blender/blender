@@ -99,6 +99,7 @@
 #include "BKE_particle.h"
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
+#include "BKE_linestyle.h"
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -226,6 +227,8 @@ int id_make_local(ID *id, int test)
 			return 0; /* can't be linked */
 		case ID_GD:
 			return 0; /* not implemented */
+		case ID_LS:
+			return 0; /* not implemented */
 	}
 
 	return 0;
@@ -314,6 +317,8 @@ int id_copy(ID *id, ID **newid, int test)
 		case ID_WM:
 			return 0; /* can't be copied from here */
 		case ID_GD:
+			return 0; /* not implemented */
+		case ID_LS:
 			return 0; /* not implemented */
 	}
 	
@@ -413,6 +418,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->wm);
 		case ID_GD:
 			return &(mainlib->gpencil);
+		case ID_LS:
+			return &(mainlib->linestyle);
 	}
 	return 0;
 }
@@ -493,6 +500,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->library);
 	lb[a++]= &(main->wm);
 	lb[a++]= &(main->gpencil);
+	lb[a++]= &(main->linestyle);
 	
 	lb[a]= NULL;
 
@@ -600,6 +608,9 @@ static ID *alloc_libblock_notest(short type)
 			  break;
 		case ID_GD:
 			id = MEM_callocN(sizeof(bGPdata), "Grease Pencil");
+			break;
+		case ID_LS:
+			id = MEM_callocN(sizeof(FreestyleLineStyle), "Freestyle Line Style");
 			break;
 	}
 	return id;
@@ -805,6 +816,9 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_GD:
 			free_gpencil_data((bGPdata *)id);
+			break;
+		case ID_LS:
+			FRS_free_linestyle((FreestyleLineStyle *)id);
 			break;
 	}
 

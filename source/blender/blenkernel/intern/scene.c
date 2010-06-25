@@ -266,7 +266,7 @@ void free_scene(Scene *sce)
 	}
 	
 	for(srl= sce->r.layers.first; srl; srl= srl->next) {
-		BLI_freelistN( &srl->freestyleConfig.modules);
+		FRS_free_freestyle_config(srl);
 	}
 	
 	BLI_freelistN(&sce->markers);
