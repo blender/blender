@@ -199,7 +199,7 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 	}
 	
 	if(sce->r.ffcodecdata.properties) { /* intentionally check scen not sce. */
-		scen->r.ffcodecdata.properties= IDP_CopyProperty(scen->r.ffcodecdata.properties);
+		scen->r.ffcodecdata.properties= IDP_CopyProperty(sce->r.ffcodecdata.properties);
 	}
 
 	/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
