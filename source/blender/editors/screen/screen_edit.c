@@ -1737,6 +1737,10 @@ void ED_update_for_newframe(const bContext *C, int mute)
 
 	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
+	/* update animated image textures for gpu, etc,
+	 * call before scene_update_for_newframe so modifiers with textuers dont lag 1 frame */
+	ED_image_update_frame(C);
+
 	/* this function applies the changes too */
 	/* XXX future: do all windows */
 	scene_update_for_newframe(scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
@@ -1753,9 +1757,6 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	/* composite */
 	if(scene->use_nodes && scene->nodetree)
 		ntreeCompositTagAnimated(scene->nodetree);
-	
-	/* update animated image textures for gpu, etc */
-	ED_image_update_frame(C);
 	
 	/* update animated texture nodes */
 	{

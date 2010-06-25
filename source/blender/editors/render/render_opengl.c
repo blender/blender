@@ -305,6 +305,10 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	int ok= 0;
 	int view_context = (oglrender->v3d != NULL);
 
+	/* update animated image textures for gpu, etc,
+	 * call before scene_update_for_newframe so modifiers with textuers dont lag 1 frame */
+	ED_image_update_frame(C);
+
 	/* go to next frame */
 	while(CFRA<oglrender->nfra) {
 		unsigned int lay= screen_opengl_layers(oglrender);
@@ -329,9 +333,6 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	else {
 		scene_camera_switch_update(scene);
 	}
-
-	/* update animated image textures for gpu, etc */
-	ED_image_update_frame(C);
 
 	/* render into offscreen buffer */
 	screen_opengl_render_apply(oglrender);
