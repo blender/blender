@@ -66,6 +66,7 @@ typedef enum ModifierType {
 	eModifierType_ShapeKey,
 	eModifierType_Solidify,
 	eModifierType_Screw,
+	eModifierType_NavMesh,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -335,6 +336,7 @@ typedef struct DecimateModifierData {
 	float percent;
 	int faceCount;
 } DecimateModifierData;
+
 
 /* Smooth modifier flags */
 #define MOD_SMOOTH_X (1<<1)
@@ -721,5 +723,24 @@ typedef struct ScrewModifierData {
 #define MOD_SCREW_OBJECT_OFFSET	(1<<2)
 // #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
 
+
+typedef struct NavMeshModifierData {
+	ModifierData modifier;
+	char pad[4];
+	float cellsize;
+	float cellheight;
+	float agentmaxslope;
+	float agentmaxclimb;
+	float agentheight;
+	float agentradius;
+	float edgemaxlen;
+	float edgemaxerror;
+	float regionminsize;
+	float regionmergesize;
+	int vertsperpoly;
+	float detailsampledist;
+	float detailsamplemaxerror;
+
+} NavMeshModifierData;
 
 #endif

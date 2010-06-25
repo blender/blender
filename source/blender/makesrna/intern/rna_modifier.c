@@ -60,6 +60,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
+	{eModifierType_NavMesh, "NAVMESH", ICON_MOD_DECIM, "Navigation mesh", ""},
 	{0, "", 0, "Deform", ""},
 	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
 	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
@@ -168,6 +169,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_SolidifyModifier;
 		case eModifierType_Screw:
 			return &RNA_ScrewModifier;
+		case eModifierType_NavMesh:
+			return &RNA_NavMeshModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -2190,6 +2193,84 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 }
 
+static void rna_def_modifier_navmesh(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "NavMeshModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "NavMesh Modifier", "NavMesh modifier");
+	RNA_def_struct_sdna(srna, "NavMeshModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_DECIM);
+
+	prop= RNA_def_property(srna, "cellsize", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 1, 0.01, 2);
+	RNA_def_property_ui_text(prop, "Cell size", "Rasterized cell size");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "cellheight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 1, 0.01, 2);
+	RNA_def_property_ui_text(prop, "Cell height", "Rasterized cell height");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "agentheight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 5, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Agent height", "Minimum height where the agent can still walk");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "agentradius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 5, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Agent radius", "Radius of the agent");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "agentmaxclimb", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 5, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Max climb", "Maximum height between grid cells the agent can climb");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "agentmaxslope", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_ui_range(prop, 0, 90, 1, 2);
+	RNA_def_property_ui_text(prop, "Max slope", "Maximum walkable slope angle in degrees");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+
+	prop= RNA_def_property(srna, "regionminsize", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0, 150, 1, 2);
+	RNA_def_property_ui_text(prop, "Min region size", "Minimum regions size. Smaller regions will be deleted");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "regionmergesize", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0, 150, 1, 2);
+	RNA_def_property_ui_text(prop, "Merged region size", "Minimum regions size. Smaller regions will be merged");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "edgemaxlen", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0, 50, 1, 2);
+	RNA_def_property_ui_text(prop, "Max edge length", "Maximum contour edge length");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "edgemaxerror", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 3.0, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Max edge error", "Maximum distance error from contour to cells");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "vertsperpoly", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 3, 12, 1, 0);
+	RNA_def_property_ui_text(prop, "Verts per poly", "Max number of vertices per polygon");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "detailsampledist", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.0, 16.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Sample Distance", "Detail mesh sample spacing");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "detailsamplemaxerror", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.0, 16.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Max Sample Error", "Detail mesh simplification max sample error");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2280,6 +2361,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_smoke(brna);
 	rna_def_modifier_solidify(brna);
 	rna_def_modifier_screw(brna);
+	rna_def_modifier_navmesh(brna);
 }
 
 #endif

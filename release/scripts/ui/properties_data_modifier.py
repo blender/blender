@@ -460,6 +460,67 @@ class DATA_PT_modifiers(DataButtonsPanel):
             row.operator("object.multires_save_external", text="Save External...")
             row.label()
 
+    def NAVMESH(self, layout, ob, md, wide_ui):
+        layout.label(text="Rasterization:")
+        split = layout.split()
+
+        col = split.column()
+        col.prop(md, "cellsize")
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "cellheight")
+
+        layout.separator()
+
+        layout.label(text="Agent:")
+        split = layout.split()
+        col = split.column()
+        row = col.row()
+        row.prop(md, "agentheight")
+        row = col.row()
+        row.prop(md, "agentradius")
+        if wide_ui:
+            col = split.column()
+        row = col.row()
+        row.prop(md, "agentmaxslope")
+        row = col.row()
+        row.prop(md, "agentmaxclimb")
+
+        layout.separator()
+
+        layout.label(text="Region:")
+        split = layout.split()
+        col = split.column()
+        col.prop(md, "regionminsize")
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "regionmergesize")
+
+        layout.separator()
+
+        layout.label(text="Polygonization:")
+        split = layout.split()
+        col = split.column()
+        row = col.row()
+        row.prop(md, "edgemaxlen")
+        row = col.row()
+        row.prop(md, "edgemaxerror")
+        if wide_ui:
+            col = split.column()
+        row = col.row()
+        row.prop(md, "vertsperpoly")
+
+        layout.separator()
+
+        layout.label(text="Detail Mesh:")
+        split = layout.split()
+        col = split.column()
+        col.prop(md, "detailsampledist")
+        if wide_ui:
+            col = split.column()
+        col.prop(md, "detailsamplemaxerror")
+
+
     def PARTICLE_INSTANCE(self, layout, ob, md, wide_ui):
         layout.prop(md, "object")
         layout.prop(md, "particle_system_number", text="Particle System")

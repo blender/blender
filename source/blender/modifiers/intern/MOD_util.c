@@ -182,5 +182,6 @@ void modifier_type_init(ModifierTypeInfo *types[], ModifierType type)
 	INIT_TYPE(ShapeKey);
 	INIT_TYPE(Solidify);
 	INIT_TYPE(Screw);
+	INIT_TYPE(NavMesh);
 #undef INIT_TYPE
 }

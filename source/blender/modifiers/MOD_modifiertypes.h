@@ -67,6 +67,7 @@ extern ModifierTypeInfo modifierType_Smoke;
 extern ModifierTypeInfo modifierType_ShapeKey;
 extern ModifierTypeInfo modifierType_Solidify;
 extern ModifierTypeInfo modifierType_Screw;
+extern ModifierTypeInfo modifierType_NavMesh;
 
 /* MOD_util.c */
 void modifier_type_init(ModifierTypeInfo *types[], ModifierType type);

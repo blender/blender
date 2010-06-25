@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="BL_modifiers"
 	ProjectGUID="{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}"
 	RootNamespace="BL_modifiers"
@@ -392,6 +392,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\modifiers\intern\MOD_multires.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\modifiers\intern\MOD_navmesh.c"
 				>
 			</File>
 			<File
