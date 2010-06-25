@@ -281,6 +281,12 @@ public:
 	 * @return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const = 0;
+	
+	/**
+	 * Requests input at a certain fidelity. Certain tools want very smooth input, others don't care.
+	 * @param hint		Desired fidelity of mouse and pen events.
+	 */
+	void setInputFidelity(InputFidelity hint);
 
 	/**
 	 * Returns the selection buffer
@@ -354,6 +360,8 @@ protected:
 
 	/** Settings of the display before the display went fullscreen. */
 	GHOST_DisplaySetting m_preFullScreenSetting;
+	
+	InputFidelity m_input_fidelity_hint;
 };
 
 inline GHOST_TimerManager* GHOST_System::getTimerManager() const

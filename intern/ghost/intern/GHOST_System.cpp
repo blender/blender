@@ -48,7 +48,7 @@
 
 
 GHOST_System::GHOST_System()
-: m_displayManager(0), m_timerManager(0), m_windowManager(0), m_eventManager(0), m_ndofManager(0)
+: m_displayManager(0), m_timerManager(0), m_windowManager(0), m_eventManager(0), m_ndofManager(0), m_input_fidelity_hint(NORMAL_FI)
 {
 }
 
@@ -269,6 +269,11 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButtonMask mask, bool& isDown
 		isDown = buttons.get(mask);
 	}
 	return success;
+}
+
+void GHOST_System::setInputFidelity(InputFidelity hint)
+{
+	m_input_fidelity_hint = hint;
 }
 
 GHOST_TSuccess GHOST_System::init()

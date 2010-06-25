@@ -353,7 +353,15 @@ public:
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const = 0;
 
-	
+	/** Fidelity of mouse and pen input (this definition will probably live somewhere else)*/
+	typedef enum { LO_FI, NORMAL_FI, HI_FI } InputFidelity;
+
+	/**
+	 * Requests input at a certain fidelity. Certain tools want very smooth input, others don't care.
+	 * @param hint		Desired fidelity of mouse and pen events.
+	 */
+	virtual void setInputFidelity(InputFidelity hint) = 0;
+
 	/***************************************************************************************
 	 ** Access to clipboard.
 	 ***************************************************************************************/
