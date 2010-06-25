@@ -182,7 +182,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenkernel\intern;..\..\..\source\blender\makesdna;..\..\..\source\blender\modifiers;..\..\..\source\blender\render\extern\include"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenkernel\intern;..\..\..\source\blender\makesdna;..\..\..\source\blender\modifiers;..\..\..\source\blender\render\extern\include;..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_LZO;WITH_LZMA"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -395,7 +395,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\modifiers\intern\MOD_navmesh.c"
+				RelativePath="..\..\..\source\blender\modifiers\intern\MOD_navmesh.cpp"
 				>
 			</File>
 			<File

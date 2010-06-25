@@ -115,8 +115,6 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 	MFace *mface = dm->getFaceArray(dm);
 	int numpolys = dm->getNumFaces(dm);
 	int numverts = dm->getNumVerts(dm);
-	int* index = (int*)dm->getFaceDataArray(dm, CD_ORIGINDEX);
-	MTFace *tface = (MTFace *)dm->getFaceDataArray(dm, CD_MTFACE);
 
 	nverts = numverts;
 	if (nverts >= 0xffff)
