@@ -2964,7 +2964,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Frame", "First frame of the playback/rendering range");
-	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_FRAME_RANGE, NULL);
 	
 	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -2972,7 +2972,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End Frame", "Final frame of the playback/rendering range");
-	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_FRAME_RANGE, NULL);
 	
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
