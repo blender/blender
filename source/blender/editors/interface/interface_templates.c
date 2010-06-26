@@ -1929,14 +1929,6 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 	
 	if (value_slider)
 		uiDefButR(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, propname, -1, softmin, softmax, 9, 0, "");
-
-	/* maybe a switch for this?
-	row= uiLayoutRow(col, 0);
-	if(ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA) && RNA_property_array_length(ptr, prop) == 4) {
-		but= uiDefAutoButR(block, ptr, prop, 3, "A:", 0, 0, 0, WHEEL_SIZE+20, UI_UNIT_Y);
-	}
-	*/
-	
 }
 
 

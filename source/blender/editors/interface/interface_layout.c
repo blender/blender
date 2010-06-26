@@ -431,11 +431,6 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 					but->type= TOG;
 			}
 		}
-		else if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && len == 4) {
-			but= uiDefAutoButR(block, ptr, prop, 3, "A:", 0, 0, 0, w, UI_UNIT_Y);
-			if(slider && but->type==NUM)
-				but->type= NUMSLI;
-		}
 	}
 
 	uiBlockSetCurLayout(block, layout);

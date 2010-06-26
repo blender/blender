@@ -608,14 +608,67 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	/* backdrop non AA */
 	if(wtb->inner) {
 		if(wcol->shaded==0) {
-			
-			/* filled center, solid */
-			glColor4ubv((unsigned char*)wcol->inner);
-			glBegin(GL_POLYGON);
-			for(a=0; a<wtb->totvert; a++)
-				glVertex2fv(wtb->inner_v[a]);
-			glEnd();
+			if (wcol->alpha_check) {
+				GLubyte checker_stipple_sml[32*32/8] =
+				{
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+				};
 
+				float x_mid= 0.0f; /* used for dumb clamping of values */
+
+				/* dark checkers */
+				glColor4ub(100, 100, 100, 255);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++) {
+					glVertex2fv(wtb->inner_v[a]);
+				}
+				glEnd();
+
+				/* light checkers */
+				glEnable(GL_POLYGON_STIPPLE);
+				glColor4ub(160, 160, 160, 255);
+				glPolygonStipple(checker_stipple_sml);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++) {
+					glVertex2fv(wtb->inner_v[a]);
+				}
+				glEnd();
+				glDisable(GL_POLYGON_STIPPLE);
+
+				/* alpha fill */
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+				glColor4ubv((unsigned char*)wcol->inner);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++) {
+					glVertex2fv(wtb->inner_v[a]);
+					x_mid += wtb->inner_v[a][0];
+				}
+				x_mid /= wtb->totvert;
+				glEnd();
+
+				/* 1/2 solid color */
+				glColor4ub(wcol->inner[0], wcol->inner[1], wcol->inner[2], 255);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++)
+					glVertex2f(MIN2(wtb->inner_v[a][0], x_mid), wtb->inner_v[a][1]);
+				glEnd();
+			}
+			else {
+				/* simple fill */
+				glColor4ubv((unsigned char*)wcol->inner);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++)
+					glVertex2fv(wtb->inner_v[a]);
+				glEnd();
+			}
 		}
 		else {
 			char col1[4], col2[4];
@@ -2208,9 +2261,15 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	float col[4];
 	int color_profile = but->block->color_profile;
 	
+	col[3]= 1.0f;
+
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 			color_profile = BLI_PR_NONE;
+
+		if(RNA_property_array_length(&but->rnapoin, but->rnaprop)==4) {
+			col[3]= RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
+		}
 	}
 	
 	widget_init(&wtb);
@@ -2226,8 +2285,10 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	wcol->inner[0]= FTOCHAR(col[0]);
 	wcol->inner[1]= FTOCHAR(col[1]);
 	wcol->inner[2]= FTOCHAR(col[2]);
+	wcol->inner[3]= FTOCHAR(col[3]);
 	wcol->shaded = 0;
-	
+	wcol->alpha_check = (wcol->inner[3] < 255);
+
 	widgetbase_draw(&wtb, wcol);
 	
 }
