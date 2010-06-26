@@ -228,7 +228,7 @@ inline void GHOST_Rect::unionPoint(GHOST_TInt32 x, GHOST_TInt32 y)
 	if (y < m_t) m_t = y;
 	if (y > m_b) m_b = y;
 }
-#include <stdio.h>
+
 inline void GHOST_Rect::wrapPoint(GHOST_TInt32 &x, GHOST_TInt32 &y, GHOST_TInt32 ofs)
 {
 	GHOST_TInt32 w= getWidth();
