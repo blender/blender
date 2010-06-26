@@ -495,34 +495,30 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
         row = split.row()
 
-        subsplit = row.split(percentage=0.95) 
-        
-        padding = subsplit.split(percentage=0.15)
-        colsub1 = padding.column()
-        colsub1 = padding.column()
-        
-        subsplit = row.split(percentage=0.85) 
-        
-        padding = subsplit.split(percentage=0.15)
-        colsub2 = padding.column()
-        colsub2 = padding.column()
+        subsplit = row.split(percentage=0.95)
 
-        props_color = []
-        props_other = []
+        padding1 = subsplit.split(percentage=0.15)
+        padding1.column()
+
+        subsplit = row.split(percentage=0.85) 
+
+        padding2 = subsplit.split(percentage=0.15)
+        padding2.column()
+
+        colsub_pair = padding1.column(), padding2.column()
+
+        props_type = {}
 
         for i, prop in enumerate(themedata.rna_type.properties):
             attr = prop.identifier
             if attr == "rna_type":
                 continue
 
-            if prop.subtype == 'COLOR':
-                props_color.append(prop.identifier)
-            else:
-                props_other.append(prop.identifier)
+            props_type.setdefault((prop.type, prop.subtype), []).append(prop.identifier)
 
-        for props_ls in props_color, props_other:
+        for props_type, props_ls in sorted(props_type.items()):
             for i, attr in enumerate(props_ls):
-                (colsub2 if i % 2 else colsub1).row().prop(themedata, attr)
+                colsub_pair[i % 2].row().prop(themedata, attr)
 
     def poll(self, context):
         userpref = context.user_preferences
