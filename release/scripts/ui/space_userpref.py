@@ -21,40 +21,6 @@ import bpy
 import os
 import shutil
 
-def ui_theme_layout_general(split, themedata):
-
-    row = split.row()
-
-    subsplit = row.split(percentage=0.95) 
-    
-    padding = subsplit.split(percentage=0.15)
-    colsub1 = padding.column()
-    colsub1 = padding.column()
-    
-    subsplit = row.split(percentage=0.85) 
-    
-    padding = subsplit.split(percentage=0.15)
-    colsub2 = padding.column()
-    colsub2 = padding.column()
-
-#    for i, attr in enumerate(dir(themedata)):
-    props_color = []
-    props_other = []
-    for i, prop in enumerate(themedata.rna_type.properties):
-        if prop.subtype == 'COLOR':
-            props_color.append(prop)
-        else:
-            props_other.append(prop)
-    
-    for props_ls in props_color, props_other:
-        for i, prop in enumerate(props_ls):
-            attr = prop.identifier
-            if attr == "rna_type":
-                continue
-            if not i % 2:  
-                colsub1.row().prop(themedata, attr)
-            else:
-                colsub2.row().prop(themedata, attr)
 
 def ui_items_general(col, context):
     """ General UI Theme Settings (User Interface)
@@ -524,6 +490,40 @@ class USERPREF_PT_theme(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
+    @staticmethod
+    def _theme_generic(split, themedata):
+
+        row = split.row()
+
+        subsplit = row.split(percentage=0.95) 
+        
+        padding = subsplit.split(percentage=0.15)
+        colsub1 = padding.column()
+        colsub1 = padding.column()
+        
+        subsplit = row.split(percentage=0.85) 
+        
+        padding = subsplit.split(percentage=0.15)
+        colsub2 = padding.column()
+        colsub2 = padding.column()
+
+        props_color = []
+        props_other = []
+
+        for i, prop in enumerate(themedata.rna_type.properties):
+            attr = prop.identifier
+            if attr == "rna_type":
+                continue
+
+            if prop.subtype == 'COLOR':
+                props_color.append(prop.identifier)
+            else:
+                props_other.append(prop.identifier)
+
+        for props_ls in props_color, props_other:
+            for i, attr in enumerate(props_ls):
+                (colsub2 if i % 2 else colsub1).row().prop(themedata, attr)
+
     def poll(self, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'THEMES')
@@ -643,88 +643,9 @@ class USERPREF_PT_theme(bpy.types.Panel):
             layout.separator()
             layout.separator()
 
+        else:
+            self._theme_generic(split, getattr(theme, theme.theme_area.lower()))
 
-        elif theme.theme_area == 'VIEW_3D':
-            v3d = theme.view_3d
-            
-            ui_theme_layout_general(split, v3d)
-
-        elif theme.theme_area == 'GRAPH_EDITOR':
-            graph = theme.graph_editor
-            
-            ui_theme_layout_general(split, graph)
-
-        elif theme.theme_area == 'FILE_BROWSER':
-            file_browse = theme.file_browser
-            
-            ui_theme_layout_general(split, file_browse)
-
-        elif theme.theme_area == 'NLA_EDITOR':
-            nla = theme.nla_editor
-            
-            ui_theme_layout_general(split, nla)
-
-        elif theme.theme_area == 'DOPESHEET_EDITOR':
-            dope = theme.dopesheet_editor
-            
-            ui_theme_layout_general(split, dope)
-            
-        elif theme.theme_area == 'IMAGE_EDITOR':
-            image = theme.image_editor
-            
-            ui_theme_layout_general(split, image)
-
-        elif theme.theme_area == 'SEQUENCE_EDITOR':
-            seq = theme.sequence_editor
-            
-            ui_theme_layout_general(split, seq)
-
-        elif theme.theme_area == 'PROPERTIES':
-            prop = theme.properties
-            
-            ui_theme_layout_general(split, prop)
-
-        elif theme.theme_area == 'TEXT_EDITOR':
-            text = theme.text_editor
-            
-            ui_theme_layout_general(split, text)
-
-        elif theme.theme_area == 'TIMELINE':
-            time = theme.timeline
-            
-            ui_theme_layout_general(split, time)
-
-        elif theme.theme_area == 'NODE_EDITOR':
-            node = theme.node_editor
-            
-            ui_theme_layout_general(split, node)
-
-        elif theme.theme_area == 'LOGIC_EDITOR':
-            logic = theme.logic_editor
-            
-            ui_theme_layout_general(split, logic)
-
-        elif theme.theme_area == 'OUTLINER':
-            out = theme.outliner
-
-            ui_theme_layout_general(split, out)
-
-        elif theme.theme_area == 'INFO':
-            info = theme.info
-            
-            ui_theme_layout_general(split, info)
-
-        elif theme.theme_area == 'USER_PREFERENCES':
-            prefs = theme.user_preferences
-            
-            ui_theme_layout_general(split, prefs)
-           
-        elif theme.theme_area == 'CONSOLE':
-            console = theme.console
-            
-            ui_theme_layout_general(split, console)
-            
-            
 
 class USERPREF_PT_file(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
