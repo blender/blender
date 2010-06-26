@@ -47,7 +47,9 @@ def update(job):
     
     new_path = path + ".remap" + ext 
     
-    all = main_file.filepath == main_file.original_path 
+    # Disable for now. Partial repath should work anyway
+    #all = main_file.filepath != main_file.original_path
+    all = False 
     
     for rfile in job.files[1:]:
         if all or rfile.original_path != rfile.filepath:

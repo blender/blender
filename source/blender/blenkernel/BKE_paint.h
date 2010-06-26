@@ -70,7 +70,7 @@ typedef struct SculptSession {
 	int totvert, totface;
 	float *face_normals;
 	struct Object *ob;
-	struct KeyBlock *kb, *refkb;
+	struct KeyBlock *kb;
 	
 	/* Mesh connectivity */
 	struct ListBase *fmap;
@@ -94,6 +94,8 @@ typedef struct SculptSession {
 	struct StrokeCache *cache;
 
 	struct GPUDrawObject *drawobject;
+
+	int modifiers_active;
 } SculptSession;
 
 void free_sculptsession(struct Object *ob);

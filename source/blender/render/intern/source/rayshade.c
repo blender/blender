@@ -41,9 +41,10 @@
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_cpu.h"
 #include "BLI_jitter.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "PIL_time.h"
@@ -98,7 +99,7 @@ RayObject*  RE_rayobject_create(Render *re, int type, int size)
 		//TODO
 		//if(detect_simd())
 #ifdef __SSE__
-		type = R_RAYSTRUCTURE_SIMD_SVBVH;
+		type = BLI_cpu_support_sse2()? R_RAYSTRUCTURE_SIMD_SVBVH: R_RAYSTRUCTURE_VBVH;
 #else
 		type = R_RAYSTRUCTURE_VBVH;
 #endif
@@ -370,6 +371,10 @@ static void makeraytree_single(Render *re)
 		if(has_special_rayobject(re, obi))
 		{
 			RayObject *obj = makeraytree_object(re, obi);
+
+			if(test_break(re))
+				break;
+
 			RE_rayobject_add( re->raytree, obj );
 		}
 		else

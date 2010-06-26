@@ -652,6 +652,14 @@ void unlink_object(Scene *scene, Object *ob)
 						}
 					}
 				}
+				else if(sl->spacetype==SPACE_BUTS) {
+					SpaceButs *sbuts= (SpaceButs *)sl;
+
+					if(sbuts->pinid==(ID *)ob) {
+						sbuts->flag&= ~SB_PIN_CONTEXT;
+						sbuts->pinid= NULL;
+					}
+				}
 			}
 
 			sa= sa->next;

@@ -1614,7 +1614,7 @@ void wm_event_do_handlers(bContext *C)
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
 
-			if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
+			if((G.f & G_DEBUG) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))
 				printf("pass on evt %d val %d\n", event->type, event->val); 
 			
 			wm_eventemulation(event);
@@ -2138,6 +2138,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 		case GHOST_kEventCursorMove: {
 			if(win->active) {
 				GHOST_TEventCursorData *cd= customdata;
+				wmEvent *lastevent= win->queue.last;
 				
 #if defined(__APPLE__) && defined(GHOST_COCOA)
 				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
@@ -2155,6 +2156,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 				event.y= evt->y;
 
 				event.type= MOUSEMOVE;
+
+				/* some painting operators want accurate mouse events, they can
+				   handle inbetween mouse move moves, others can happily ignore
+				   them for better performance */
+				if(lastevent && lastevent->type == MOUSEMOVE)
+					lastevent->type = INBETWEEN_MOUSEMOVE;
 
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);

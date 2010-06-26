@@ -110,7 +110,7 @@ OPTION(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON
 OPTION(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
 
 # Misc
-OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" OFF) 
+OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 

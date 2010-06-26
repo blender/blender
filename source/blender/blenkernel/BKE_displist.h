@@ -99,7 +99,7 @@ extern void shadeMeshMCol(struct Scene *scene, struct Object *ob, struct Mesh *m
 int surfindex_displist(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
 void imagestodisplist(void);
 void reshadeall_displist(struct Scene *scene);
-void filldisplist(struct ListBase *dispbase, struct ListBase *to);
+void filldisplist(struct ListBase *dispbase, struct ListBase *to, int flipnormal);
 
 void fastshade_free_render(void);
 

@@ -138,7 +138,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
-
+#include "BKE_ipo.h"
 #include "BKE_sound.h"
 
 //XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
@@ -5173,6 +5173,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				}
 				snode->nodetree= snode->edittree= NULL;
 			}
+			else if(sl->spacetype==SPACE_TIME) {
+				SpaceTime *stime= (SpaceTime *)sl;
+				stime->caches.first= stime->caches.last= NULL;
+			}
 			else if(sl->spacetype==SPACE_LOGIC) {
 				SpaceLogic *slogic= (SpaceLogic *)sl;
 					
@@ -9758,11 +9762,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_versions_gpencil_2_50(main, screen);
 		}
 		
-		/* old Animation System (using IPO's) needs to be converted to the new Animato system 
-		 * (NOTE: conversion code in blenkernel/intern/ipo.c for now)
-		 */
-		//do_versions_ipos_to_animato(main);
-		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
 		 */
@@ -10886,13 +10885,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				SpaceLink *sl;
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if (sl->spacetype == SPACE_NODE) {
-						SpaceNode *snode;
-
-						snode= (SpaceNode *)sl;
+						SpaceNode *snode= (SpaceNode *)sl;
+						
 						if (snode->v2d.minzoom > 0.09f)
 							snode->v2d.minzoom= 0.09f;
 						if (snode->v2d.maxzoom < 2.31f)
 							snode->v2d.maxzoom= 2.31f;
+					}
+					else if (sl->spacetype == SPACE_TIME) {
+						SpaceTime *stime= (SpaceTime *)sl;
+						
+						/* enable all cache display */
+						stime->cache_display |= TIME_CACHE_DISPLAY;
+						stime->cache_display |= (TIME_CACHE_SOFTBODY|TIME_CACHE_PARTICLES);
+						stime->cache_display |= (TIME_CACHE_CLOTH|TIME_CACHE_SMOKE);
 					}
 				}
 			}
@@ -10952,6 +10958,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
 	/* don't forget to set version number in blender.c! */
+}
+
+static void do_versions_after_linking(FileData *fd, Library *lib, Main *main)
+{
+	/* old Animation System (using IPO's) needs to be converted to the new Animato system
+	 */
+	if(main->versionfile < 250)
+		do_versions_ipos_to_animato(main);
 }
 
 static void lib_link_all(FileData *fd, Main *main)
@@ -11100,6 +11114,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filename)
 	blo_join_main(&fd->mainlist);
 
 	lib_link_all(fd, bfd->main);
+	do_versions_after_linking(fd, NULL, bfd->main);
 	lib_verify_nodetree(bfd->main, 1);
 	fix_relpaths_library(fd->relabase, bfd->main); /* make all relative paths, relative to the open blend file */
 	

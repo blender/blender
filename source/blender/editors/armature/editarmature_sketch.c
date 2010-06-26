@@ -2154,7 +2154,7 @@ void sk_applyGesture(bContext *C, SK_Sketch *sketch)
 /********************************************/
 
 
-void sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int extend)
+int sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int extend)
 {
 	ViewContext vc;
 	rcti rect;
@@ -2199,7 +2199,10 @@ void sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int extend)
 
 
 		}
+		return 1;
 	}
+
+	return 0;
 }
 
 void sk_queueRedrawSketch(SK_Sketch *sketch)
@@ -2301,7 +2304,7 @@ void sk_drawSketch(Scene *scene, View3D *v3d, SK_Sketch *sketch, int with_names)
 		}
 	}
 
-#if 1
+#if 0
 	if (sketch->depth_peels.first != NULL)
 	{
 		float colors[8][3] = {
@@ -2471,7 +2474,8 @@ void BIF_sk_selectStroke(bContext *C, short mval[2], short extend)
 
 	if (sketch != NULL && ts->bone_sketching & BONE_SKETCHING)
 	{
-		sk_selectStroke(C, sketch, mval, extend);
+		if (sk_selectStroke(C, sketch, mval, extend))
+			ED_area_tag_redraw(CTX_wm_area(C));
 	}
 }
 
@@ -2558,6 +2562,17 @@ SK_Sketch* viewcontextSketch(ViewContext *vc, int create)
 	return sketch;
 }
 
+static int sketch_convert(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch != NULL)
+	{
+		sk_convert(C, sketch);
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+	return OPERATOR_FINISHED;
+}
+
 static int sketch_cancel(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
@@ -2590,8 +2605,8 @@ static int sketch_select(bContext *C, wmOperator *op, wmEvent *event)
 	if (sketch)
 	{
 		short extend = 0;
-		sk_selectStroke(C, sketch, event->mval, extend);
-		ED_area_tag_redraw(CTX_wm_area(C));
+		if (sk_selectStroke(C, sketch, event->mval, extend))
+			ED_area_tag_redraw(CTX_wm_area(C));
 	}
 
 	return OPERATOR_FINISHED;
@@ -2857,6 +2872,21 @@ void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
 
 	/* flags */
 //	ot->flag= OPTYPE_UNDO;
+}
+
+void SKETCH_OT_convert(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "convert";
+	ot->idname= "SKETCH_OT_convert";
+
+	/* api callbacks */
+	ot->invoke= sketch_convert;
+
+	ot->poll= ED_operator_sketch_full_mode;
+
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
 }
 
 void SKETCH_OT_finish_stroke(wmOperatorType *ot)

@@ -124,7 +124,7 @@ static int isDisabled(ModifierData *md, int useRenderParams)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 
-	return !dmd->texture;
+	return (!dmd->texture || dmd->strength == 0.0f);
 }
 
 static void updateDepgraph(

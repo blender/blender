@@ -75,10 +75,6 @@
 /* own include */
 #include "sequencer_intern.h"
 
-/* XXX */
-//static Sequence *_last_seq=0;
-//static int _last_seq_init=0;
-/* XXX */
 static void error(const char *dummy) {}
 static void waitcursor(int val) {}
 static void activate_fileselect(int d1, char *d2, char *d3, void *d4) {}
@@ -167,7 +163,7 @@ static void change_plugin_seq(Scene *scene, char *str)	/* called from fileselect
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	struct SeqEffectHandle sh;
-	Sequence *last_seq= active_seq_get(scene);
+	Sequence *last_seq= seq_active_get(scene);
 
 	if(last_seq && last_seq->type != SEQ_PLUGIN) return;
 
@@ -393,7 +389,7 @@ void deselect_all_seq(Scene *scene)
 	if(ed==NULL) return;
 
 	SEQP_BEGIN(ed, seq) {
-		seq->flag &= SEQ_DESEL;
+		seq->flag &= ~SEQ_ALLSEL;
 	}
 	SEQ_END
 		
@@ -406,9 +402,9 @@ void recurs_sel_seq(Sequence *seqm)
 	seq= seqm->seqbase.first;
 	while(seq) {
 
-		if(seqm->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL)) seq->flag &= SEQ_DESEL;
+		if(seqm->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL)) seq->flag &= ~SEQ_ALLSEL;
 		else if(seqm->flag & SELECT) seq->flag |= SELECT;
-		else seq->flag &= SEQ_DESEL;
+		else seq->flag &= ~SEQ_ALLSEL;
 
 		if(seq->seqbase.first) recurs_sel_seq(seq);
 
@@ -441,7 +437,7 @@ static void reload_sound_strip(Scene *scene, char *name)
 	Editing *ed;
 	Sequence *seq, *seqact;
 	SpaceFile *sfile;
-	Sequence *last_seq= active_seq_get(scene);
+	Sequence *last_seq= seq_active_get(scene);
 
 	ed= scene->ed;
 
@@ -483,7 +479,7 @@ static void reload_image_strip(Scene *scene, char *name)
 	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq=NULL, *seqact;
 	SpaceFile *sfile=NULL;
-	Sequence *last_seq= active_seq_get(scene);
+	Sequence *last_seq= seq_active_get(scene);
 
 
 
@@ -519,7 +515,7 @@ static void reload_image_strip(Scene *scene, char *name)
 void change_sequence(Scene *scene)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *last_seq= active_seq_get(scene);
+	Sequence *last_seq= seq_active_get(scene);
 	Scene *sce;
 	short event;
 
@@ -621,7 +617,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 	*error_str= NULL;
 
 	if (!activeseq)
-		seq2= active_seq_get(scene);
+		seq2= seq_active_get(scene);
 
 	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
 		if(seq->flag & SELECT) {
@@ -684,7 +680,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 void reassign_inputs_seq_effect(Scene *scene)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *seq1, *seq2, *seq3, *last_seq = active_seq_get(scene);
+	Sequence *seq1, *seq2, *seq3, *last_seq = seq_active_get(scene);
 	char *error_msg;
 
 	if(last_seq==0 || !(last_seq->type & SEQ_EFFECT)) return;
@@ -753,7 +749,7 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
 static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short deleteall)
 {
 	Sequence *seq, *seqn;
-	Sequence *last_seq = active_seq_get(scene);
+	Sequence *last_seq = seq_active_get(scene);
 
 	seq= lb->first;
 	while(seq) {
@@ -763,7 +759,7 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 				seq->sound->id.us--;
 
 			BLI_remlink(lb, seq);
-			if(seq==last_seq) active_seq_set(scene, NULL);
+			if(seq==last_seq) seq_active_set(scene, NULL);
 			if(seq->type==SEQ_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
 			if(seq->ipo) seq->ipo->id.us--;
 			seq_free_sequence(scene, seq);
@@ -772,132 +768,6 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 	}
 }
 
-static Sequence *dupli_seq(struct Scene *scene, Sequence *seq)
-{
-	Sequence *seqn = MEM_dupallocN(seq);
-
-	seq->tmp = seqn;
-	seqn->strip= MEM_dupallocN(seq->strip);
-
-	// XXX: add F-Curve duplication stuff?
-		
-	seqn->strip->tstripdata = 0;
-	seqn->strip->tstripdata_startstill = 0;
-	seqn->strip->tstripdata_endstill = 0;
-	seqn->strip->ibuf_startstill = 0;
-	seqn->strip->ibuf_endstill = 0;
-
-	if (seq->strip->crop) {
-		seqn->strip->crop = MEM_dupallocN(seq->strip->crop);
-	}
-
-	if (seq->strip->transform) {
-		seqn->strip->transform = MEM_dupallocN(seq->strip->transform);
-	}
-
-	if (seq->strip->proxy) {
-		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
-	}
-
-	if (seq->strip->color_balance) {
-		seqn->strip->color_balance 
-			= MEM_dupallocN(seq->strip->color_balance);
-	}
-	
-	if(seq->type==SEQ_META) {
-		seqn->strip->stripdata = 0;
-
-		seqn->seqbase.first= seqn->seqbase.last= 0;
-		/* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
-		/* - recurs_dupli_seq(&seq->seqbase,&seqn->seqbase);*/
-	} else if(seq->type == SEQ_SCENE) {
-		seqn->strip->stripdata = 0;
-		if(seq->scene_sound)
-			seqn->scene_sound = sound_scene_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
-	} else if(seq->type == SEQ_MOVIE) {
-		seqn->strip->stripdata = 
-				MEM_dupallocN(seq->strip->stripdata);
-		seqn->anim= 0;
-	} else if(seq->type == SEQ_SOUND) {
-		seqn->strip->stripdata =
-				MEM_dupallocN(seq->strip->stripdata);
-		if(seq->scene_sound)
-			seqn->scene_sound = sound_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
-
-		seqn->sound->id.us++;
-	} else if(seq->type == SEQ_IMAGE) {
-		seqn->strip->stripdata = 
-				MEM_dupallocN(seq->strip->stripdata);
-	} else if(seq->type >= SEQ_EFFECT) {
-		if(seq->seq1 && seq->seq1->tmp) seqn->seq1= seq->seq1->tmp;
-		if(seq->seq2 && seq->seq2->tmp) seqn->seq2= seq->seq2->tmp;
-		if(seq->seq3 && seq->seq3->tmp) seqn->seq3= seq->seq3->tmp;
-
-		if (seq->type & SEQ_EFFECT) {
-			struct SeqEffectHandle sh;
-			sh = get_sequence_effect(seq);
-			if(sh.copy)
-				sh.copy(seq, seqn);
-		}
-
-		seqn->strip->stripdata = 0;
-		
-	} else {
-		fprintf(stderr, "Aiiiiekkk! sequence type not "
-				"handled in duplicate!\nExpect a crash"
-						" now...\n");
-	}
-
-	seqbase_unique_name_recursive(&scene->ed->seqbase, seqn);
-
-	return seqn;
-}
-
-static Sequence * deep_dupli_seq(struct Scene *scene, Sequence * seq)
-{
-	Sequence * seqn = dupli_seq(scene, seq);
-	if (seq->type == SEQ_META) {
-		Sequence * s;
-		for(s= seq->seqbase.first; s; s = s->next) {
-			Sequence * n = deep_dupli_seq(scene, s);
-			if (n) { 
-				BLI_addtail(&seqn->seqbase, n);
-			}
-		}
-	}
-	return seqn;
-}
-
-
-static void recurs_dupli_seq(Scene *scene, ListBase *old, ListBase *new, int do_context)
-{
-	Sequence *seq;
-	Sequence *seqn = 0;
-	Sequence *last_seq = active_seq_get(scene);
-
-	for(seq= old->first; seq; seq= seq->next) {
-		seq->tmp= NULL;
-		if(seq->flag & SELECT) {
-			seqn = dupli_seq(scene, seq);
-			if (seqn) { /*should never fail */
-				if(do_context) {
-					seq->flag &= SEQ_DESEL;
-					seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL+SEQ_LOCK);
-				}
-
-				BLI_addtail(new, seqn);
-				if(seq->type==SEQ_META)
-					recurs_dupli_seq(scene, &seq->seqbase,&seqn->seqbase, do_context);
-				
-				if(do_context) {
-					if (seq == last_seq) {
-						active_seq_set(scene, seqn);
-					}
-				}
-			}
-		}
-	}
-}
 
 static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 {
@@ -951,7 +821,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = deep_dupli_seq(scene, seq);
+		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME);
 	}
 	
 	if (seqn) { 
@@ -1040,7 +910,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = deep_dupli_seq(scene, seq);
+		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME);
 	}
 	
 	if (seqn) { 
@@ -1190,7 +1060,7 @@ void set_filter_seq(Scene *scene)
 
 void seq_remap_paths(Scene *scene)
 {
-	Sequence *seq, *last_seq = active_seq_get(scene);
+	Sequence *seq, *last_seq = seq_active_get(scene);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	char from[FILE_MAX], to[FILE_MAX], stripped[FILE_MAX];
 	
@@ -1625,11 +1495,11 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 			SEQP_BEGIN(ed, seq) {
 				if (cut_side==SEQ_SIDE_LEFT) {
 					if ( seq->startdisp >= cut_frame ) {
-						seq->flag &= SEQ_DESEL;
+						seq->flag &= ~SEQ_ALLSEL;
 					}
 				} else {
 					if ( seq->enddisp <= cut_frame ) {
-						seq->flag &= SEQ_DESEL;
+						seq->flag &= ~SEQ_ALLSEL;
 					}
 				}
 			}
@@ -1691,17 +1561,17 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	ListBase new= {NULL, NULL};
+	ListBase nseqbase= {NULL, NULL};
 
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	recurs_dupli_seq(scene, ed->seqbasep, &new, TRUE);
+	seqbase_dupli_recursive(scene, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME|SEQ_DUPE_CONTEXT);
 
-	if(new.first) {
-		Sequence * seq= new.first;
-		/* rely on the new list being added at the end */
-		addlisttolist(ed->seqbasep, &new);
+	if(nseqbase.first) {
+		Sequence * seq= nseqbase.first;
+		/* rely on the nseqbase list being added at the end */
+		addlisttolist(ed->seqbasep, &nseqbase);
 
 		for( ; seq; seq= seq->next)
 			seqbase_unique_name_recursive(&ed->seqbase, seq);
@@ -1751,7 +1621,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 	MetaStack *ms;
 	int nothingSelected = TRUE;
 
-	seq=active_seq_get(scene);
+	seq=seq_active_get(scene);
 	if (seq && seq->flag & SELECT) { /* avoid a loop since this is likely to be selected */
 		nothingSelected = FALSE;
 	} else {
@@ -1918,7 +1788,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *last_seq= active_seq_get(scene);
+	Sequence *last_seq= seq_active_get(scene);
 	MetaStack *ms;
 
 	if(last_seq && last_seq->type==SEQ_META && last_seq->flag & SELECT) {
@@ -1930,7 +1800,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 
 		ed->seqbasep= &last_seq->seqbase;
 
-		active_seq_set(scene, NULL);
+		seq_active_set(scene, NULL);
 
 	}
 	else {
@@ -1950,7 +1820,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 		for(seq= ed->seqbasep->first; seq; seq= seq->next)
 			calc_sequence(scene, seq);
 
-		active_seq_set(scene, ms->parseq);
+		seq_active_set(scene, ms->parseq);
 
 		ms->parseq->flag |= SELECT;
 		recurs_sel_seq(ms->parseq);
@@ -2020,7 +1890,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	seqm->strip->len= seqm->len;
 	seqm->strip->us= 1;
 	
-	active_seq_set(scene, seqm);
+	seq_active_set(scene, seqm);
 
 	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm, scene);
 
@@ -2065,7 +1935,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	Sequence *seq, *last_seq = active_seq_get(scene); /* last_seq checks ed==NULL */
+	Sequence *seq, *last_seq = seq_active_get(scene); /* last_seq checks ed==NULL */
 
 	if(last_seq==NULL || last_seq->type!=SEQ_META)
 		return OPERATOR_CANCELLED;
@@ -2521,7 +2391,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *active_seq = active_seq_get(scene);
+	Sequence *active_seq = seq_active_get(scene);
 	Sequence *seq, *iseq;
 	int side= RNA_enum_get(op->ptr, "side");
 
@@ -2597,7 +2467,7 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *op)
 {
 	int retval = OPERATOR_CANCELLED;
 	Scene *scene= CTX_data_scene(C);
-	Sequence *active_seq = active_seq_get(scene);
+	Sequence *active_seq = seq_active_get(scene);
 
 	if(active_seq==NULL)
 		return OPERATOR_CANCELLED;
@@ -2670,7 +2540,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	recurs_dupli_seq(scene, ed->seqbasep, &seqbase_clipboard, FALSE);
+	seqbase_dupli_recursive(scene, &seqbase_clipboard, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME);
 	seqbase_clipboard_frame= scene->r.cfra;
 
 	/* Need to remove anything that references the current scene */
@@ -2717,23 +2587,23 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, TRUE); /* create if needed */
-	ListBase new = {NULL, NULL};
+	ListBase nseqbase = {NULL, NULL};
 	int ofs;
 	Sequence *iseq;
 
 	deselect_all_seq(scene);
 	ofs = scene->r.cfra - seqbase_clipboard_frame;
 
-	recurs_dupli_seq(scene, &seqbase_clipboard, &new, FALSE);
+	seqbase_dupli_recursive(scene, &nseqbase, &seqbase_clipboard, SEQ_DUPE_UNIQUE_NAME);
 
 	/* transform pasted strips before adding */
 	if(ofs) {
-		for(iseq= new.first; iseq; iseq= iseq->next) {
+		for(iseq= nseqbase.first; iseq; iseq= iseq->next) {
 			seq_offset(scene, iseq, ofs);
 		}
 	}
 
-	addlisttolist(ed->seqbasep, &new);
+	addlisttolist(ed->seqbasep, &nseqbase);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
@@ -2756,3 +2626,45 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
 
 	/* properties */
 }
+
+static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Sequence *seq_act;
+	Sequence *seq_other;
+
+	if(seq_active_pair_get(scene, &seq_act, &seq_other) == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Must select 2 strips");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(seq_swap(seq_act, seq_other) == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Strips were not compatible");
+		return OPERATOR_CANCELLED;
+	}
+
+	calc_sequence(scene, seq_act);
+	calc_sequence(scene, seq_other);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_swap_data(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Sequencer Swap Data";
+	ot->idname= "SEQUENCER_OT_swap_data";
+	ot->description="Swap 2 sequencer strips";
+
+	/* api callbacks */
+	ot->exec= sequencer_swap_data_exec;
+	ot->poll= ED_operator_sequencer_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+}
+

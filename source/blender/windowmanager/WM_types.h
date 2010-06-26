@@ -195,6 +195,7 @@ typedef struct wmNotifier {
 #define ND_KEYS				(23<<16)
 #define ND_CONSTRAINT		(24<<16)
 #define ND_PARTICLE			(25<<16)
+#define ND_POINTCACHE		(26<<16)
 
 	/* NC_MATERIAL Material */
 #define	ND_SHADING			(30<<16)

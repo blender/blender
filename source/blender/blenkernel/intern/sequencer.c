@@ -3790,6 +3790,34 @@ ListBase *seq_seqbase(ListBase *seqbase, Sequence *seq)
 	return NULL;
 }
 
+int seq_swap(Sequence *seq_a, Sequence *seq_b)
+{
+	if(seq_a->len != seq_b->len)
+		return 0;
+
+	/* type checking, could be more advanced but disalow sound vs non-sound copy */
+	if(seq_a->type != seq_b->type) {
+		if(seq_a->type == SEQ_SOUND || seq_b->type == SEQ_SOUND) {
+			return 0;
+		}
+	}
+
+	SWAP(Sequence, *seq_a, *seq_b);
+	SWAP(void *, seq_a->prev, seq_b->prev);
+	SWAP(void *, seq_a->next, seq_b->next);
+
+	SWAP(int, seq_a->start, seq_b->start);
+	SWAP(int, seq_a->startofs, seq_b->startofs);
+	SWAP(int, seq_a->endofs, seq_b->endofs);
+	SWAP(int, seq_a->startstill, seq_b->startstill);
+	SWAP(int, seq_a->endstill, seq_b->endstill);
+	SWAP(int, seq_a->machine, seq_b->machine);
+	SWAP(int, seq_a->startdisp, seq_b->startdisp);
+	SWAP(int, seq_a->enddisp, seq_b->enddisp);
+
+	return 1;
+}
+
 /* XXX - hackish function needed for transforming strips! TODO - have some better solution */
 void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 {
@@ -3832,19 +3860,48 @@ Sequence *get_seq_by_name(ListBase *seqbase, const char *name, int recursive)
 }
 
 
-Sequence *active_seq_get(Scene *scene)
+Sequence *seq_active_get(Scene *scene)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	if(ed==NULL) return NULL;
 	return ed->act_seq;
 }
 
-void active_seq_set(Scene *scene, Sequence *seq)
+void seq_active_set(Scene *scene, Sequence *seq)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	if(ed==NULL) return;
 
 	ed->act_seq= seq;
+}
+
+int seq_active_pair_get(Scene *scene, Sequence **seq_act, Sequence **seq_other)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+
+	*seq_act= seq_active_get(scene);
+
+	if(*seq_act == NULL) {
+		return 0;
+	}
+	else {
+		Sequence *seq;
+
+		*seq_other= NULL;
+
+		for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+			if(seq->flag & SELECT && (seq != (*seq_act))) {
+				if(*seq_other) {
+					return 0;
+				}
+				else {
+					*seq_other= seq;
+				}
+			}
+		}
+
+		return (*seq_other != NULL);
+	}
 }
 
 /* api like funcs for adding */
@@ -3861,7 +3918,7 @@ void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 
 		if(seq_load->flag & SEQ_LOAD_REPLACE_SEL) {
 			seq_load->flag |= SELECT;
-			active_seq_set(scene, seq);
+			seq_active_set(scene, seq);
 		}
 
 		if(seq_load->flag & SEQ_LOAD_SOUND_CACHE) {
@@ -3934,7 +3991,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	AUD_SoundInfo info;
 
-	sound = sound_new_file(CTX_data_main(C), seq_load->path);
+	sound = sound_new_file(CTX_data_main(C), seq_load->path); /* handles relative paths */
 
 	if (sound==NULL || sound->playback_handle == NULL) {
 		//if(op)
@@ -3982,6 +4039,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
 	Scene *scene= CTX_data_scene(C); /* only for sound */
+	char path[sizeof(seq_load->path)];
 
 	Sequence *seq, *soundseq;	/* generic strip vars */
 	Strip *strip;
@@ -3989,7 +4047,10 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	struct anim *an;
 
-	an = openanim(seq_load->path, IB_rect);
+	BLI_strncpy(path, seq_load->path, sizeof(path));
+	BLI_path_abs(path, G.sce);
+
+	an = openanim(path, IB_rect);
 
 	if(an==NULL)
 		return NULL;
@@ -4028,4 +4089,132 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	seq_load_apply(scene, seq, seq_load);
 
 	return seq;
+}
+
+
+static Sequence *seq_dupli(struct Scene *scene, Sequence *seq, int dupe_flag)
+{
+	Sequence *seqn = MEM_dupallocN(seq);
+
+	seq->tmp = seqn;
+	seqn->strip= MEM_dupallocN(seq->strip);
+
+	// XXX: add F-Curve duplication stuff?
+
+	seqn->strip->tstripdata = 0;
+	seqn->strip->tstripdata_startstill = 0;
+	seqn->strip->tstripdata_endstill = 0;
+	seqn->strip->ibuf_startstill = 0;
+	seqn->strip->ibuf_endstill = 0;
+
+	if (seq->strip->crop) {
+		seqn->strip->crop = MEM_dupallocN(seq->strip->crop);
+	}
+
+	if (seq->strip->transform) {
+		seqn->strip->transform = MEM_dupallocN(seq->strip->transform);
+	}
+
+	if (seq->strip->proxy) {
+		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
+	}
+
+	if (seq->strip->color_balance) {
+		seqn->strip->color_balance
+			= MEM_dupallocN(seq->strip->color_balance);
+	}
+
+	if(seq->type==SEQ_META) {
+		seqn->strip->stripdata = 0;
+
+		seqn->seqbase.first= seqn->seqbase.last= 0;
+		/* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
+		/* - seq_dupli_recursive(&seq->seqbase,&seqn->seqbase);*/
+	} else if(seq->type == SEQ_SCENE) {
+		seqn->strip->stripdata = 0;
+		if(seq->scene_sound)
+			seqn->scene_sound = sound_scene_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+	} else if(seq->type == SEQ_MOVIE) {
+		seqn->strip->stripdata =
+				MEM_dupallocN(seq->strip->stripdata);
+		seqn->anim= 0;
+	} else if(seq->type == SEQ_SOUND) {
+		seqn->strip->stripdata =
+				MEM_dupallocN(seq->strip->stripdata);
+		if(seq->scene_sound)
+			seqn->scene_sound = sound_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+
+		seqn->sound->id.us++;
+	} else if(seq->type == SEQ_IMAGE) {
+		seqn->strip->stripdata =
+				MEM_dupallocN(seq->strip->stripdata);
+	} else if(seq->type >= SEQ_EFFECT) {
+		if(seq->seq1 && seq->seq1->tmp) seqn->seq1= seq->seq1->tmp;
+		if(seq->seq2 && seq->seq2->tmp) seqn->seq2= seq->seq2->tmp;
+		if(seq->seq3 && seq->seq3->tmp) seqn->seq3= seq->seq3->tmp;
+
+		if (seq->type & SEQ_EFFECT) {
+			struct SeqEffectHandle sh;
+			sh = get_sequence_effect(seq);
+			if(sh.copy)
+				sh.copy(seq, seqn);
+		}
+
+		seqn->strip->stripdata = 0;
+
+	} else {
+		fprintf(stderr, "Aiiiiekkk! sequence type not "
+				"handled in duplicate!\nExpect a crash"
+						" now...\n");
+	}
+
+	if(dupe_flag & SEQ_DUPE_UNIQUE_NAME)
+		seqbase_unique_name_recursive(&scene->ed->seqbase, seqn);
+
+	return seqn;
+}
+
+Sequence * seq_dupli_recursive(struct Scene *scene, Sequence * seq, int dupe_flag)
+{
+	Sequence * seqn = seq_dupli(scene, seq, dupe_flag);
+	if (seq->type == SEQ_META) {
+		Sequence *s;
+		for(s= seq->seqbase.first; s; s = s->next) {
+			Sequence *n = seq_dupli_recursive(scene, s, dupe_flag);
+			if (n) {
+				BLI_addtail(&seqn->seqbase, n);
+			}
+		}
+	}
+	return seqn;
+}
+
+void seqbase_dupli_recursive(Scene *scene, ListBase *nseqbase, ListBase *seqbase, int dupe_flag)
+{
+	Sequence *seq;
+	Sequence *seqn = 0;
+	Sequence *last_seq = seq_active_get(scene);
+
+	for(seq= seqbase->first; seq; seq= seq->next) {
+		seq->tmp= NULL;
+		if(seq->flag & SELECT) {
+			seqn = seq_dupli(scene, seq, dupe_flag);
+			if (seqn) { /*should never fail */
+				if(dupe_flag & SEQ_DUPE_CONTEXT) {
+					seq->flag &= ~SEQ_ALLSEL;
+					seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL+SEQ_LOCK);
+				}
+
+				BLI_addtail(nseqbase, seqn);
+				if(seq->type==SEQ_META)
+					seqbase_dupli_recursive(scene, &seqn->seqbase, &seq->seqbase, dupe_flag);
+
+				if(dupe_flag & SEQ_DUPE_CONTEXT) {
+					if (seq == last_seq) {
+						seq_active_set(scene, seqn);
+					}
+				}
+			}
+		}
+	}
 }

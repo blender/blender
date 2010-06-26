@@ -1242,7 +1242,17 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 			minmax_object(base->object, min, max);
 		}
 	}
-	if(!onedone) return OPERATOR_FINISHED; /* TODO - should this be cancel? */
+	if(!onedone) {
+		ED_region_tag_redraw(ar);
+		/* TODO - should this be cancel?
+		 * I think no, because we always move the cursor, with or without
+		 * object, but in this case there is no change in the scene,
+		 * only the cursor so I choice a ED_region_tag like
+		 * smooth_view do for the center_cursor.
+		 * See bug #22640
+		 */
+		return OPERATOR_FINISHED;
+	}
 
 	afm[0]= (max[0]-min[0]);
 	afm[1]= (max[1]-min[1]);

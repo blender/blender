@@ -60,6 +60,7 @@
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_image.h"
 
 #include "RE_pipeline.h"
 #include "IMB_imbuf_types.h"
@@ -303,6 +304,10 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	int ok= 0;
 	int view_context = (oglrender->v3d != NULL);
+
+	/* update animated image textures for gpu, etc,
+	 * call before scene_update_for_newframe so modifiers with textuers dont lag 1 frame */
+	ED_image_update_frame(C);
 
 	/* go to next frame */
 	while(CFRA<oglrender->nfra) {

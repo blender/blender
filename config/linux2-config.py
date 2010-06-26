@@ -168,7 +168,7 @@ BF_EXPAT_LIBPATH = '/usr/lib'
 WITH_BF_OPENMP = True
 
 #Ray trace optimization
-WITH_BF_RAYOPTIMIZATION = False
+WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-pthread']
 
 ##

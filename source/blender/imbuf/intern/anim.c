@@ -589,9 +589,9 @@ static int startffmpeg(struct anim * anim) {
 	anim->duration = pFormatCtx->duration * pCodecCtx->frame_rate 
 		/ pCodecCtx->frame_rate_base / AV_TIME_BASE;
 #else
-	anim->duration = pFormatCtx->duration 
+	anim->duration = ceil(pFormatCtx->duration
 		* av_q2d(pFormatCtx->streams[videoStream]->r_frame_rate) 
-		/ AV_TIME_BASE;
+		/ AV_TIME_BASE);
 
 #endif
 	anim->params = 0;

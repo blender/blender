@@ -30,6 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 
@@ -129,6 +130,10 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_string_set(op->ptr, "filepath", str);
 	MEM_freeN(str);
 
+	if(RNA_struct_find_property(op->ptr, "relative_path"))
+		if(!RNA_property_is_set(op->ptr, "relative_path"))
+			RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+
 	WM_event_add_fileselect(C, op); 
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -147,6 +152,6 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 	ot->cancel= file_browse_cancel;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, 0);
+	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, FILE_RELPATH);
 }
 

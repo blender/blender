@@ -84,6 +84,7 @@ extern "C" {
 #include "BLI_blenlib.h"
 #include "BLO_readfile.h"
 #include "DNA_scene_types.h"
+#include "BKE_ipo.h"
 	/***/
 
 #include "AUD_C-API.h"
@@ -120,7 +121,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 {
 	/* context values */
 	struct wmWindow *win= CTX_wm_window(C);
-	struct Scene *scene= CTX_data_scene(C);
+	struct Scene *startscene= CTX_data_scene(C);
 	struct Main* maggie1= CTX_data_main(C);
 
 
@@ -133,7 +134,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
 	Main* blenderdata = maggie1;
 
-	char* startscenename = scene->id.name+2;
+	char* startscenename = startscene->id.name+2;
 	char pathname[FILE_MAXDIR+FILE_MAXFILE], oldsce[FILE_MAXDIR+FILE_MAXFILE];
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
@@ -220,12 +221,12 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 #endif
 
 		//lock frame and camera enabled - storing global values
-		int tmp_lay= scene->lay;
-		Object *tmp_camera = scene->camera;
+		int tmp_lay= startscene->lay;
+		Object *tmp_camera = startscene->camera;
 
 		if (v3d->scenelock==0){
-			scene->lay= v3d->lay;
-			scene->camera= v3d->camera;
+			startscene->lay= v3d->lay;
+			startscene->camera= v3d->camera;
 		}
 
 		// some blender stuff
@@ -246,7 +247,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		}
 		
 		if(rv3d->persp==RV3D_CAMOB) {
-			if(scene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
+			if(startscene->gm.framing.type == SCE_GAMEFRAMING_BARS) { /* Letterbox */
 				camzoom = 1.0f;
 			}
 			else {
@@ -317,22 +318,22 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			}
 		}
 
-		Scene *blscene= bfd ? bfd->curscene : (Scene *)BLI_findstring(&blenderdata->scene, startscenename, offsetof(ID, name) + 2);
+		Scene *scene= bfd ? bfd->curscene : (Scene *)BLI_findstring(&blenderdata->scene, startscenename, offsetof(ID, name) + 2);
 
-		if (blscene)
+		if (scene)
 		{
-			int startFrame = blscene->r.cfra;
+			int startFrame = scene->r.cfra;
 			ketsjiengine->SetAnimRecordMode(animation_record, startFrame);
 			
 			// Quad buffered needs a special window.
-			if(blscene->gm.stereoflag == STEREO_ENABLED){
-				if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-					rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
+			if(scene->gm.stereoflag == STEREO_ENABLED){
+				if (scene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+					rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) scene->gm.stereomode);
 
-				rasterizer->SetEyeSeparation(blscene->gm.eyeseparation);
+				rasterizer->SetEyeSeparation(scene->gm.eyeseparation);
 			}
 
-			rasterizer->SetBackColor(blscene->gm.framing.col[0], blscene->gm.framing.col[1], blscene->gm.framing.col[2], 0.0f);
+			rasterizer->SetBackColor(scene->gm.framing.col[0], scene->gm.framing.col[1], scene->gm.framing.col[2], 0.0f);
 		}
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
@@ -361,19 +362,19 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 
 			if(GPU_glsl_support())
 				useglslmat = true;
-			else if(blscene->gm.matmode == GAME_MAT_GLSL)
+			else if(scene->gm.matmode == GAME_MAT_GLSL)
 				usemat = false;
 
-            if(usemat && (blscene->gm.matmode != GAME_MAT_TEXFACE))
+			if(usemat && (scene->gm.matmode != GAME_MAT_TEXFACE))
 				sceneconverter->SetMaterials(true);
-			if(useglslmat && (blscene->gm.matmode == GAME_MAT_GLSL))
+			if(useglslmat && (scene->gm.matmode == GAME_MAT_GLSL))
 				sceneconverter->SetGLSLMaterials(true);
 					
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
 				networkdevice,
 				startscenename,
-				blscene,
+				scene,
 				canvas);
 
 #ifndef DISABLE_PYTHON
@@ -383,13 +384,13 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 #endif // DISABLE_PYTHON
 
 			//initialize Dome Settings
-			if(blscene->gm.stereoflag == STEREO_DOME)
-				ketsjiengine->InitDome(blscene->gm.dome.res, blscene->gm.dome.mode, blscene->gm.dome.angle, blscene->gm.dome.resbuf, blscene->gm.dome.tilt, blscene->gm.dome.warptext);
+			if(scene->gm.stereoflag == STEREO_DOME)
+				ketsjiengine->InitDome(scene->gm.dome.res, scene->gm.dome.mode, scene->gm.dome.angle, scene->gm.dome.resbuf, scene->gm.dome.tilt, scene->gm.dome.warptext);
 
 			// initialize 3D Audio Settings
-			AUD_set3DSetting(AUD_3DS_SPEED_OF_SOUND, blscene->audio.speed_of_sound);
-			AUD_set3DSetting(AUD_3DS_DOPPLER_FACTOR, blscene->audio.doppler_factor);
-			AUD_set3DSetting(AUD_3DS_DISTANCE_MODEL, blscene->audio.distance_model);
+			AUD_set3DSetting(AUD_3DS_SPEED_OF_SOUND, scene->audio.speed_of_sound);
+			AUD_set3DSetting(AUD_3DS_DOPPLER_FACTOR, scene->audio.doppler_factor);
+			AUD_set3DSetting(AUD_3DS_DISTANCE_MODEL, scene->audio.distance_model);
 
 			if (sceneconverter)
 			{
@@ -505,8 +506,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		}
 		//lock frame and camera enabled - restoring global values
 		if (v3d->scenelock==0){
-			scene->lay= tmp_lay;
-			scene->camera= tmp_camera;
+			startscene->lay= tmp_lay;
+			startscene->camera= tmp_camera;
 		}
 
 		// set the cursor back to normal

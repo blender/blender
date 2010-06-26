@@ -168,7 +168,7 @@ static char M_Mathutils_RotationMatrix_doc[] =
 "\n"
 "   Create a matrix representing a rotation.\n"
 "\n"
-"   :arg angle: The angle of rotation desired.\n"
+"   :arg angle: The angle of rotation desired, in radians.\n"
 "   :type angle: float\n"
 "   :arg size: The size of the rotation matrix to construct [2, 4].\n"
 "   :type size: int\n"

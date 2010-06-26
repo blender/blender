@@ -2163,6 +2163,7 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
             col.prop(toolsettings, "etch_autoname")
             col.prop(toolsettings, "etch_number")
             col.prop(toolsettings, "etch_side")
+            col.operator("sketch.convert", text="Convert")
 
 
 class VIEW3D_PT_context_properties(bpy.types.Panel):

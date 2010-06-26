@@ -27,7 +27,6 @@ SET(INC
 	../../blenlib
 	../../makesdna
 	../../makesrna
-	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
 	../../../../intern/opennl/extern

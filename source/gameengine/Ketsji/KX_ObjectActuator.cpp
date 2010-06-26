@@ -467,6 +467,8 @@ int KX_ObjectActuator::pyattr_set_linV(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	if (!PyVecTo(value, self->m_linear_velocity))
 		return PY_SET_ATTR_FAIL;
 
+	self->UpdateFuzzyFlags();
+
 	return PY_SET_ATTR_SUCCESS;
 }
 
@@ -480,6 +482,8 @@ int KX_ObjectActuator::pyattr_set_angV(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	KX_ObjectActuator* self= static_cast<KX_ObjectActuator*>(self_v);
 	if (!PyVecTo(value, self->m_angular_velocity))
 		return PY_SET_ATTR_FAIL;
+
+	self->UpdateFuzzyFlags();
 
 	return PY_SET_ATTR_SUCCESS;
 }

@@ -169,7 +169,7 @@ BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader Open
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib ${BF_ICONV_LIBPATH}'
 
 #Ray trace optimization
-WITH_BF_RAYOPTIMIZATION = False
+WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse']
 
 CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]

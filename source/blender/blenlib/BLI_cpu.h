@@ -1,4 +1,5 @@
-/**
+/*
+ *
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -17,40 +18,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: some of this file.
- *
  * ***** END GPL LICENSE BLOCK *****
- * */
+ */
 
-#ifndef BLI_MATH_INLINE_H
-#define BLI_MATH_INLINE_H
+#ifndef BLI_CPU_H
+#define BLI_CPU_H 
 
-#ifdef __cplusplus
-extern "C" {
+int BLI_cpu_support_sse2(void);
+
 #endif
-
-/* add platform/compiler checks here if it is not supported */
-#define BLI_MATH_INLINE
-
-#ifdef BLI_MATH_INLINE
-#ifdef _MSC_VER
-#define MINLINE static __forceinline
-#define MALWAYS_INLINE MINLINE
-#else
-#define MINLINE static inline
-#define MALWAYS_INLINE static __attribute__((always_inline))
-#endif
-#else
-#define MINLINE
-#define MALWAYS_INLINE
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* BLI_MATH_INLINE_H */
 
