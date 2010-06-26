@@ -220,7 +220,9 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 						if(win->active)
 							wm->winactive= win;
 
-						GHOST_SetWindowUserData(win->ghostwin, win);	/* pointer back */
+						if(!G.background) /* file loading in background mode still calls this */
+							GHOST_SetWindowUserData(win->ghostwin, win);	/* pointer back */
+
 						oldwin->ghostwin= NULL;
 						
 						win->eventstate= oldwin->eventstate;
