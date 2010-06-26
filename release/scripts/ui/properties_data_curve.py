@@ -395,7 +395,7 @@ class DATA_PT_textboxes(DataButtonsPanel):
             col.prop(box, "x", text="X")
             col.prop(box, "y", text="Y")
             
-            row.operator("font.textbox_remove", text='', icon='X').index = i     
+            row.operator("font.textbox_remove", text='', icon='X', emboss=False).index = i     
     
 
 classes = [

@@ -170,7 +170,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
                 row = col.box().row()
                 row.prop(group, "name", text="")
-                row.operator("object.group_remove", text="", icon='X')
+                row.operator("object.group_remove", text="", icon='X', emboss=False)
 
                 split = col.box().split()
 
