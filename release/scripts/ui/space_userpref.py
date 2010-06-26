@@ -533,13 +533,16 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
         theme = context.user_preferences.themes[0]
 
+        split_themes = layout.split(percentage=0.2)
+        split_themes.prop(theme, "theme_area", expand=True)
+        
         split = layout.split(percentage=0.4)
-        split.prop(theme, "theme_area", text="")
+        
         
         layout.separator()
         layout.separator()
         
-        split = layout.split()
+        split = split_themes.split()
 
         if theme.theme_area == 'USER_INTERFACE':
             col = split.column()
@@ -737,7 +740,7 @@ class USERPREF_PT_input(InputKeyMapPanel):
         sub.label(text="Presets:")
         subrow = sub.row(align=True)
         subrow.menu("USERPREF_MT_interaction_presets", text=bpy.types.USERPREF_MT_interaction_presets.bl_label)
-        subrow.operator("wm.interaction_preset_add", text="", icon="ZOOMIN")
+        subrow.operator("wm.interaction_preset_add", text="", icon='ZOOMIN')
         sub.separator()
 
         sub.label(text="Mouse:")
@@ -883,27 +886,16 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 column = box.column()
                 row = column.row()
 
-                # Arrow #
-                # If there are Infos or UI is expanded
-                if info["expanded"]:
-                    row.operator("wm.addon_expand", icon="TRIA_DOWN").module = module_name
-                elif info["author"] or info["version"] or info["wiki_url"] or info["location"]:
-                    row.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
+                row.operator("wm.addon_expand", icon='TRIA_DOWN' if info["expanded"] else 'TRIA_RIGHT', emboss=False).module = module_name
+
+                rowsub = row.row()
+                rowsub.active = is_enabled
+                rowsub.label(text=info["name"], icon='ERROR' if info["warning"] else 'BLENDER')
+
+                if is_enabled:
+                    row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
                 else:
-                    # Else, block UI
-                    arrow = row.column()
-                    arrow.enabled = False
-                    arrow.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
-
-                row.label(text=info["name"])
-                
-                if is_enabled: operator = "wm.addon_disable"
-                else: operator = "wm.addon_enable"
-
-                if info["warning"]: button_icon='ERROR'
-                else: button_icon='BLENDER'
-
-                row.operator(operator, icon=button_icon).module = module_name
+                    row.operator("wm.addon_enable", icon='CHECKBOX_DEHLT', text="", emboss=False).module = module_name
 
                 # Expanded UI (only if additional infos are available)
                 if info["expanded"]:
@@ -957,7 +949,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 column = box.column()
                 row = column.row()
 
-                row.label(text=ext, icon="ERROR")
+                row.label(text=ext, icon='ERROR')
                 row.operator("wm.addon_disable").module = ext
 
 from bpy.props import *

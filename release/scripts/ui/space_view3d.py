@@ -2125,7 +2125,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
             layout.active = view.display_background_images
             box = layout.box()
             row = box.row(align=True)
-            row.prop(bg, "show_expanded", text="", no_bg=True)
+            row.prop(bg, "show_expanded", text="", emboss=False)
             row.label(text=getattr(bg.image, "name", "Not Set"))
             row.operator("view3d.remove_background_image", text="", icon='X').index = i
 

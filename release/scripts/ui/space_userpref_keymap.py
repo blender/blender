@@ -167,7 +167,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         col = self.indented_layout(layout, level)
 
         row = col.row()
-        row.prop(km, "children_expanded", text="", no_bg=True)
+        row.prop(km, "children_expanded", text="", emboss=False)
         row.label(text=km.name)
 
         row.label()
@@ -186,7 +186,7 @@ class InputKeyMapPanel(bpy.types.Panel):
                 # equal in hierarchy to the other children categories
                 subcol = self.indented_layout(col, level + 1)
                 subrow = subcol.row()
-                subrow.prop(km, "items_expanded", text="", no_bg=True)
+                subrow.prop(km, "items_expanded", text="", emboss=False)
                 subrow.label(text="%s (Global)" % km.name)
             else:
                 km.items_expanded = True
@@ -227,11 +227,11 @@ class InputKeyMapPanel(bpy.types.Panel):
 
         # header bar
         row = split.row()
-        row.prop(kmi, "expanded", text="", no_bg=True)
+        row.prop(kmi, "expanded", text="", emboss=False)
 
         row = split.row()
         row.enabled = km.user_defined
-        row.prop(kmi, "active", text="", no_bg=True)
+        row.prop(kmi, "active", text="", emboss=False)
 
         if km.modal:
             row.prop(kmi, "propvalue", text="")

@@ -35,7 +35,7 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, char *name, int icon, int expand, int slider, int toggle, int icon_only, int event, int full_event, int no_bg, int index)
+static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, char *name, int icon, int expand, int slider, int toggle, int icon_only, int event, int full_event, int emboss, int index)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	int flag= 0;
@@ -51,14 +51,16 @@ static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, char 
 	flag |= (icon_only)? UI_ITEM_R_ICON_ONLY: 0;
 	flag |= (event)? UI_ITEM_R_EVENT: 0;
 	flag |= (full_event)? UI_ITEM_R_FULL_EVENT: 0;
-	flag |= (no_bg)? UI_ITEM_R_NO_BG: 0;
+	flag |= (emboss)? 0: UI_ITEM_R_NO_BG;
 
 	uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon);
 }
 
-static PointerRNA rna_uiItemO(uiLayout *layout, char *opname, char *name, int icon)
+static PointerRNA rna_uiItemO(uiLayout *layout, char *opname, char *name, int icon, int emboss)
 {
-	return uiItemFullO(layout, opname, name, icon, NULL, uiLayoutGetOperatorContext(layout), UI_ITEM_O_RETURN_PROPS);
+	int flag= UI_ITEM_O_RETURN_PROPS;
+	flag |= (emboss)? 0: UI_ITEM_R_NO_BG;
+	return uiItemFullO(layout, opname, name, icon, NULL, uiLayoutGetOperatorContext(layout), flag);
 }
 
 #else
@@ -85,7 +87,7 @@ static void api_ui_item_op(FunctionRNA *func)
 {
 	PropertyRNA *parm;
 	parm= RNA_def_string(func, "operator", "", 0, "", "Identifier of the operator.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);	
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 static void api_ui_item_op_common(FunctionRNA *func)
@@ -160,7 +162,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "icon_only", 0, "", "Draw only icons in buttons, no text.");
 	RNA_def_boolean(func, "event", 0, "", "Use button to input key events.");
 	RNA_def_boolean(func, "full_event", 0, "", "Use button to input full events including modifiers.");
-	RNA_def_boolean(func, "no_bg", 0, "", "Don't draw the button itself, just the icon/text.");
+	RNA_def_boolean(func, "emboss", 1, "", "Draw the button itself, just the icon/text.");
 	RNA_def_int(func, "index", -1, -2, INT_MAX, "", "The index of this button, when set a single member of an array can be accessed, when set to -1 all array members are used.", -2, INT_MAX); /* RNA_NO_INDEX == -1 */
 
 	func= RNA_def_function(srna, "props_enum", "uiItemsEnumR");
@@ -186,6 +188,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func= RNA_def_function(srna, "operator", "rna_uiItemO");
 	api_ui_item_op_common(func);
+	RNA_def_boolean(func, "emboss", 1, "", "Draw the button itself, just the icon/text.");
 	parm= RNA_def_pointer(func, "properties", "OperatorProperties", "", "Operator properties to fill in, return when 'properties' is set to true.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
