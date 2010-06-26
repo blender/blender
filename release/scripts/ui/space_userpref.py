@@ -21,29 +21,71 @@ import bpy
 import os
 import shutil
 
+def ui_theme_layout_general(split, themedata):
+
+    row = split.row()
+
+    subsplit = row.split(percentage=0.95) 
+    
+    padding = subsplit.split(percentage=0.15)
+    colsub1 = padding.column()
+    colsub1 = padding.column()
+    
+    subsplit = row.split(percentage=0.85) 
+    
+    padding = subsplit.split(percentage=0.15)
+    colsub2 = padding.column()
+    colsub2 = padding.column()
+
+#    for i, attr in enumerate(dir(themedata)):
+    props_color = []
+    props_other = []
+    for i, prop in enumerate(themedata.rna_type.properties):
+        if prop.subtype == 'COLOR':
+            props_color.append(prop)
+        else:
+            props_other.append(prop)
+    
+    for props_ls in props_color, props_other:
+        for i, prop in enumerate(props_ls):
+            attr = prop.identifier
+            if attr == "rna_type":
+                continue
+            if not i % 2:  
+                colsub1.row().prop(themedata, attr)
+            else:
+                colsub2.row().prop(themedata, attr)
 
 def ui_items_general(col, context):
     """ General UI Theme Settings (User Interface)
     """
+    
     row = col.row()
-    sub = row.column()
-    sub.prop(context, "outline")
-    sub.prop(context, "item", slider=True)
-    sub = row.column()
-    sub.prop(context, "inner", slider=True)
-    sub.prop(context, "inner_sel", slider=True)
-    sub = row.column()
-    sub.prop(context, "text")
-    sub.prop(context, "text_sel")
-    sub = row.column()
-    sub.prop(context, "shaded")
-    subsub = sub.column(align=True)
+
+    subsplit = row.split(percentage=0.95) 
+    
+    padding = subsplit.split(percentage=0.15)
+    colsub = padding.column()
+    colsub = padding.column()
+    colsub.row().prop(context, "outline")
+    colsub.row().prop(context, "item", slider=True)
+    colsub.row().prop(context, "inner", slider=True)
+    colsub.row().prop(context, "inner_sel", slider=True)
+    
+    subsplit = row.split(percentage=0.85) 
+    
+    padding = subsplit.split(percentage=0.15)
+    colsub = padding.column()
+    colsub = padding.column()
+    colsub.row().prop(context, "text")
+    colsub.row().prop(context, "text_sel")
+    colsub.prop(context, "shaded")
+    subsub = colsub.column(align=True)
     subsub.active = context.shaded
     subsub.prop(context, "shadetop")
     subsub.prop(context, "shadedown")
 
     col.separator()
-
 
 def opengl_lamp_buttons(column, lamp):
     split = column.split(percentage=0.1)
@@ -491,10 +533,13 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
         theme = context.user_preferences.themes[0]
 
-        split_themes = layout.split(percentage=0.2)
-        split_themes.prop(theme, "theme_area", expand=True)
-
-        split = split_themes.split()
+        split = layout.split(percentage=0.4)
+        split.prop(theme, "theme_area", text="")
+        
+        layout.separator()
+        layout.separator()
+        
+        split = layout.split()
 
         if theme.theme_area == 'USER_INTERFACE':
             col = split.column()
@@ -565,24 +610,35 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             ui = theme.user_interface.wcol_state
             col.label(text="State:")
-
+            
             row = col.row()
-            sub = row.column()
-            sub.prop(ui, "inner_anim")
-            sub.prop(ui, "inner_anim_sel")
-            sub = row.column()
-            sub.prop(ui, "inner_driven")
-            sub.prop(ui, "inner_driven_sel")
-            sub = row.column()
-            sub.prop(ui, "inner_key")
-            sub.prop(ui, "inner_key_sel")
-            sub = row.column()
-            sub.prop(ui, "blend")
+
+            subsplit = row.split(percentage=0.95) 
+            
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "inner_anim")
+            colsub.row().prop(ui, "inner_anim_sel")
+            colsub.row().prop(ui, "inner_driven")
+            colsub.row().prop(ui, "inner_driven_sel")
+            
+            subsplit = row.split(percentage=0.85) 
+            
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "inner_key")
+            colsub.row().prop(ui, "inner_key_sel")
+            colsub.row().prop(ui, "blend")
+
 
             ui = theme.user_interface
             col.separator()
             col.separator()
-            col.prop(ui, "icon_file")
+            
+            split= col.split(percentage=0.93)
+            split.prop(ui, "icon_file")
 
             layout.separator()
             layout.separator()
@@ -590,366 +646,85 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
         elif theme.theme_area == 'VIEW_3D':
             v3d = theme.view_3d
-
-            col = split.column()
-            col.prop(v3d, "back")
-            col.prop(v3d, "button")
-            col.prop(v3d, "button_title")
-            col.prop(v3d, "button_text")
-            col.prop(v3d, "header")
-
-            col = split.column()
-            col.prop(v3d, "grid")
-            col.prop(v3d, "wire")
-            col.prop(v3d, "lamp", slider=True)
-            col.prop(v3d, "editmesh_active", slider=True)
-
-            col = split.column()
-            col.prop(v3d, "object_selected")
-            col.prop(v3d, "object_active")
-            col.prop(v3d, "object_grouped")
-            col.prop(v3d, "object_grouped_active")
-            col.prop(v3d, "transform")
-            col.prop(v3d, "nurb_uline")
-            col.prop(v3d, "nurb_vline")
-            col.prop(v3d, "nurb_sel_uline")
-            col.prop(v3d, "nurb_sel_vline")
-            col.prop(v3d, "handle_free")
-            col.prop(v3d, "handle_auto")
-            col.prop(v3d, "handle_vect")
-            col.prop(v3d, "handle_align")
-            col.prop(v3d, "handle_sel_free")
-            col.prop(v3d, "handle_sel_auto")
-            col.prop(v3d, "handle_sel_vect")
-            col.prop(v3d, "handle_sel_align")
-            col.prop(v3d, "act_spline")
-            col.prop(v3d, "lastsel_point")
-
-            col = split.column()
-            col.prop(v3d, "vertex")
-            col.prop(v3d, "face", slider=True)
-            col.prop(v3d, "normal")
-            col.prop(v3d, "vertex_normal")
-            col.prop(v3d, "bone_solid")
-            col.prop(v3d, "bone_pose")
-            col.prop(v3d, "edge_seam")
-            col.prop(v3d, "edge_select")
-            col.prop(v3d, "edge_facesel")
-            col.prop(v3d, "edge_sharp")
-            col.prop(v3d, "edge_crease")
+            
+            ui_theme_layout_general(split, v3d)
 
         elif theme.theme_area == 'GRAPH_EDITOR':
             graph = theme.graph_editor
-
-            col = split.column()
-            col.prop(graph, "back")
-            col.prop(graph, "button")
-            col.prop(graph, "button_title")
-            col.prop(graph, "button_text")
-
-            col = split.column()
-            col.prop(graph, "header")
-            col.prop(graph, "grid")
-            col.prop(graph, "list")
-            col.prop(graph, "channel_group")
-
-            col = split.column()
-            col.prop(graph, "active_channels_group")
-            col.prop(graph, "dopesheet_channel")
-            col.prop(graph, "dopesheet_subchannel")
-            col.prop(graph, "frame_current")
-
-            col = split.column()
-            col.prop(graph, "vertex")
-            col.prop(graph, "handle_vertex")
-            col.prop(graph, "handle_vertex_select")
-            col.separator()
-            col.prop(graph, "handle_vertex_size")
-            col.separator()
-            col.separator()
-            col.prop(graph, "handle_free")
-            col.prop(graph, "handle_auto")
-            col.prop(graph, "handle_vect")
-            col.prop(graph, "handle_align")
-            col.prop(graph, "handle_sel_free")
-            col.prop(graph, "handle_sel_auto")
-            col.prop(graph, "handle_sel_vect")
-            col.prop(graph, "handle_sel_align")
+            
+            ui_theme_layout_general(split, graph)
 
         elif theme.theme_area == 'FILE_BROWSER':
             file_browse = theme.file_browser
-
-            col = split.column()
-            col.prop(file_browse, "back")
-            col.prop(file_browse, "text")
-            col.prop(file_browse, "text_hi")
-
-            col = split.column()
-            col.prop(file_browse, "header")
-            col.prop(file_browse, "list")
-
-            col = split.column()
-            col.prop(file_browse, "selected_file")
-            col.prop(file_browse, "tiles")
-
-            col = split.column()
-            col.prop(file_browse, "active_file")
-            col.prop(file_browse, "active_file_text")
+            
+            ui_theme_layout_general(split, file_browse)
 
         elif theme.theme_area == 'NLA_EDITOR':
             nla = theme.nla_editor
-
-            col = split.column()
-            col.prop(nla, "back")
-            col.prop(nla, "button")
-            col.prop(nla, "button_title")
-
-            col = split.column()
-            col.prop(nla, "button_text")
-            col.prop(nla, "text")
-            col.prop(nla, "header")
-
-            col = split.column()
-            col.prop(nla, "grid")
-            col.prop(nla, "bars")
-            col.prop(nla, "bars_selected")
-
-            col = split.column()
-            col.prop(nla, "strips")
-            col.prop(nla, "strips_selected")
-            col.prop(nla, "frame_current")
+            
+            ui_theme_layout_general(split, nla)
 
         elif theme.theme_area == 'DOPESHEET_EDITOR':
             dope = theme.dopesheet_editor
-
-            col = split.column()
-            col.prop(dope, "back")
-            col.prop(dope, "list")
-            col.prop(dope, "text")
-            col.prop(dope, "header")
-
-            col = split.column()
-            col.prop(dope, "grid")
-            col.prop(dope, "channels")
-            col.prop(dope, "channels_selected")
-            col.prop(dope, "channel_group")
-
-            col = split.column()
-            col.prop(dope, "active_channels_group")
-            col.prop(dope, "long_key")
-            col.prop(dope, "long_key_selected")
-
-            col = split.column()
-            col.prop(dope, "frame_current")
-            col.prop(dope, "dopesheet_channel")
-            col.prop(dope, "dopesheet_subchannel")
-
+            
+            ui_theme_layout_general(split, dope)
+            
         elif theme.theme_area == 'IMAGE_EDITOR':
             image = theme.image_editor
-
-            col = split.column()
-            col.prop(image, "back")
-            col.prop(image, "scope_back")
-            col.prop(image, "button")
-
-            col = split.column()
-            col.prop(image, "button_title")
-            col.prop(image, "button_text")
-
-            col = split.column()
-            col.prop(image, "header")
-
-            col = split.column()
-            col.prop(image, "editmesh_active", slider=True)
+            
+            ui_theme_layout_general(split, image)
 
         elif theme.theme_area == 'SEQUENCE_EDITOR':
             seq = theme.sequence_editor
-
-            col = split.column()
-            col.prop(seq, "back")
-            col.prop(seq, "button")
-            col.prop(seq, "button_title")
-            col.prop(seq, "button_text")
-            col.prop(seq, "text")
-
-            col = split.column()
-            col.prop(seq, "header")
-            col.prop(seq, "grid")
-            col.prop(seq, "movie_strip")
-            col.prop(seq, "image_strip")
-            col.prop(seq, "scene_strip")
-
-            col = split.column()
-            col.prop(seq, "audio_strip")
-            col.prop(seq, "effect_strip")
-            col.prop(seq, "plugin_strip")
-            col.prop(seq, "transition_strip")
-
-            col = split.column()
-            col.prop(seq, "meta_strip")
-            col.prop(seq, "frame_current")
-            col.prop(seq, "keyframe")
-            col.prop(seq, "draw_action")
+            
+            ui_theme_layout_general(split, seq)
 
         elif theme.theme_area == 'PROPERTIES':
             prop = theme.properties
-
-            col = split.column()
-            col.prop(prop, "back")
-
-            col = split.column()
-            col.prop(prop, "title")
-
-            col = split.column()
-            col.prop(prop, "text")
-
-            col = split.column()
-            col.prop(prop, "header")
+            
+            ui_theme_layout_general(split, prop)
 
         elif theme.theme_area == 'TEXT_EDITOR':
             text = theme.text_editor
-
-            col = split.column()
-            col.prop(text, "back")
-            col.prop(text, "button")
-            col.prop(text, "button_title")
-            col.prop(text, "button_text")
-
-            col = split.column()
-            col.prop(text, "text")
-            col.prop(text, "text_hi")
-            col.prop(text, "header")
-            col.prop(text, "line_numbers_background")
-
-            col = split.column()
-            col.prop(text, "selected_text")
-            col.prop(text, "cursor")
-            col.prop(text, "syntax_builtin")
-            col.prop(text, "syntax_special")
-
-            col = split.column()
-            col.prop(text, "syntax_comment")
-            col.prop(text, "syntax_string")
-            col.prop(text, "syntax_numbers")
+            
+            ui_theme_layout_general(split, text)
 
         elif theme.theme_area == 'TIMELINE':
             time = theme.timeline
-
-            col = split.column()
-            col.prop(time, "back")
-            col.prop(time, "text")
-
-            col = split.column()
-            col.prop(time, "header")
-
-            col = split.column()
-            col.prop(time, "grid")
-
-            col = split.column()
-            col.prop(time, "frame_current")
+            
+            ui_theme_layout_general(split, time)
 
         elif theme.theme_area == 'NODE_EDITOR':
             node = theme.node_editor
-
-            col = split.column()
-            col.prop(node, "back")
-            col.prop(node, "button")
-            col.prop(node, "button_title")
-            col.prop(node, "button_text")
-
-            col = split.column()
-            col.prop(node, "text")
-            col.prop(node, "text_hi")
-            col.prop(node, "header")
-            col.prop(node, "wires")
-
-            col = split.column()
-            col.prop(node, "wire_select")
-            col.prop(node, "selected_text")
-            col.prop(node, "node_backdrop", slider=True)
-            col.prop(node, "in_out_node")
-
-            col = split.column()
-            col.prop(node, "converter_node")
-            col.prop(node, "operator_node")
-            col.prop(node, "group_node")
+            
+            ui_theme_layout_general(split, node)
 
         elif theme.theme_area == 'LOGIC_EDITOR':
             logic = theme.logic_editor
-
-            col = split.column()
-            col.prop(logic, "back")
-            col.prop(logic, "button")
-
-            col = split.column()
-            col.prop(logic, "button_title")
-            col.prop(logic, "button_text")
-
-            col = split.column()
-            col.prop(logic, "text")
-            col.prop(logic, "header")
-
-            col = split.column()
-            col.prop(logic, "panel")
+            
+            ui_theme_layout_general(split, logic)
 
         elif theme.theme_area == 'OUTLINER':
             out = theme.outliner
 
-            col = split.column()
-            col.prop(out, "back")
-
-            col = split.column()
-            col.prop(out, "text")
-
-            col = split.column()
-            col.prop(out, "text_hi")
-
-            col = split.column()
-            col.prop(out, "header")
+            ui_theme_layout_general(split, out)
 
         elif theme.theme_area == 'INFO':
             info = theme.info
-
-            col = split.column()
-            col.prop(info, "back")
-
-            col = split.column()
-            col.prop(info, "header")
-
-            col = split.column()
-            col.prop(info, "header_text")
-
-            col = split.column()
+            
+            ui_theme_layout_general(split, info)
 
         elif theme.theme_area == 'USER_PREFERENCES':
             prefs = theme.user_preferences
-
-            col = split.column()
-            col.prop(prefs, "back")
-
-            col = split.column()
-            col.prop(prefs, "text")
-
-            col = split.column()
-            col.prop(prefs, "header")
-
-            col = split.column()
-            col.prop(prefs, "header_text")
-
+            
+            ui_theme_layout_general(split, prefs)
+           
         elif theme.theme_area == 'CONSOLE':
             console = theme.console
-
-            col = split.column()
-            col.prop(console, "back")
-            col.prop(console, "header")
-
-            col = split.column()
-            col.prop(console, "line_output")
-            col.prop(console, "line_input")
-            col.prop(console, "line_info")
-            col.prop(console, "line_error")
-            col.prop(console, "cursor")
-
+            
+            ui_theme_layout_general(split, console)
+            
+            
 
 class USERPREF_PT_file(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
