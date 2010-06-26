@@ -94,6 +94,11 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer(){
 		_textureManager = 0;
 	}
 
+	// The freestyle_scene object is not released here.  Instead,
+	// the scene is released in free_all_freestyle_renders() in
+	// source/blender/render/intern/source/pipeline.c, after the
+	// compositor has finished.
+
 	// release objects and data blocks
 	Base *b = (Base *)freestyle_scene->base.first;
 	while(b) {
