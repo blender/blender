@@ -509,8 +509,6 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     bl_label = "Import Key Configuration..."
 
     filepath = StringProperty(name="File Path", description="Filepath to write file to")
-    filename = StringProperty(name="File Name", description="Name of the file")
-    directory = StringProperty(name="Directory", description="Directory of the file")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
@@ -570,8 +568,6 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     bl_label = "Export Key Configuration..."
 
     filepath = StringProperty(name="File Path", description="Filepath to write file to")
-    filename = StringProperty(name="File Name", description="Name of the file")
-    directory = StringProperty(name="Directory", description="Directory of the file")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})

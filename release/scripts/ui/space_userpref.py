@@ -1039,8 +1039,6 @@ class WM_OT_addon_install(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to disable")
 
     filepath = StringProperty(name="File Path", description="File path to write file to")
-    filename = StringProperty(name="File Name", description="Name of the file")
-    directory = StringProperty(name="Directory", description="Directory of the file")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
