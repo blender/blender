@@ -275,6 +275,19 @@ int is_basis_mball(Object *ob)
 	return 1;
 }
 
+/* return nonzero if ob1 is a basis mball for ob */
+int is_mball_basis_for(Object *ob1, Object *ob2)
+{
+	int basis1nr, basis2nr;
+	char basis1name[32], basis2name[32];
+
+	splitIDname(ob1->id.name+2, basis1name, &basis1nr);
+	splitIDname(ob2->id.name+2, basis2name, &basis2nr);
+
+	if(!strcmp(basis1name, basis2name)) return is_basis_mball(ob1);
+	else return 0;
+}
+
 /* \brief copy some properties from object to other metaball object with same base name
  *
  * When some properties (wiresize, threshold, update flags) of metaball are changed, then this properties

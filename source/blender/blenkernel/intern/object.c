@@ -404,6 +404,9 @@ void unlink_object(Scene *scene, Object *ob)
 				if(pchan->custom==ob)
 					pchan->custom= NULL;
 			}
+		} else if(ELEM(OB_MBALL, ob->type, obt->type)) {
+			if(is_mball_basis_for(obt, ob))
+				obt->recalc|= OB_RECALC_DATA;
 		}
 		
 		sca_remove_ob_poin(obt, ob);
@@ -536,13 +539,7 @@ void unlink_object(Scene *scene, Object *ob)
 		}
 		tex= tex->id.next;
 	}
-	
-	/* mballs (scene==NULL when called from library.c) */
-	if(scene && ob->type==OB_MBALL) {
-		obt= find_basis_mball(scene, ob);
-		if(obt) freedisplist(&obt->disp);
-	}
-	
+
 	/* worlds */
 	wrld= G.main->world.first;
 	while(wrld) {

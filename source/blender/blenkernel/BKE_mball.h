@@ -168,6 +168,7 @@ float *make_orco_mball(struct Object *ob);
 void copy_mball_properties(struct Scene *scene, struct Object *active_object);
 struct Object *find_basis_mball(struct Scene *scene, struct Object *ob);
 int is_basis_mball(struct Object *ob);
+int is_mball_basis_for(struct Object *ob1, struct Object *ob2);
 void metaball_polygonize(struct Scene *scene, struct Object *ob);
 void calc_mballco(struct MetaElem *ml, float *vec);
 float densfunc(struct MetaElem *ball, float x, float y, float z);
