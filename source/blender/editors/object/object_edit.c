@@ -1792,6 +1792,11 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	return (done)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
+static int shade_poll(bContext *C)
+{
+	return (ED_operator_object_active_editable(C) && !ED_operator_editmesh(C));
+}
+
 void OBJECT_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1799,7 +1804,7 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shade_flat";
 	
 	/* api callbacks */
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= shade_poll;
 	ot->exec= shade_smooth_exec;
 
 	/* flags */
@@ -1813,7 +1818,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= shade_poll;
 	ot->exec= shade_smooth_exec;
 	
 	/* flags */
