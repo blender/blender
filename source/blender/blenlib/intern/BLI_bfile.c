@@ -34,6 +34,7 @@
 #else
  #include <io.h>
  #include "BLI_winstuff.h"
+ static char* find_in_pathlist(char* filename, char* pathlist);
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -66,7 +67,6 @@
 static void chomp(char* line);
 static void expand_envvars(char* src, char* dst);
 static void fill_paths(BFILE *bfile, const char *path, const char *relpath);
-static char* find_in_pathlist(char* filename, char* pathlist);
 static void init_vars_from_file(const char* path);
 static void free_paths(BFILE* bfile);
 static void setup_temp();
@@ -481,6 +481,8 @@ static void expand_envvars(char* src, char* dst) {
 #else
  #define SEPARATOR ':'
 #endif
+
+#ifdef WIN32
 static char* find_in_pathlist(char* filename, char* pathlist) {
 	char first[FILE_MAX + 10];
 	char* rest = NULL;
@@ -510,7 +512,7 @@ static char* find_in_pathlist(char* filename, char* pathlist) {
 		return NULL;
 	}
 }
-
+#endif
 
 /**
  Setup fpath and tpath based in the needs of the bfile.
