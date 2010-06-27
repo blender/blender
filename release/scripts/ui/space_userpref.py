@@ -818,7 +818,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
         userpref = context.user_preferences
         return (userpref.active_section == 'ADDONS')
 
-    def _addon_list(self):
+    @staticmethod
+    def _addon_list():
         import sys
         modules = []
         loaded_modules = set()
@@ -843,17 +844,19 @@ class USERPREF_PT_addons(bpy.types.Panel):
         cats = {info["category"] for mod, info in addons}
         cats.discard("")
 
-        cats = ['All', 'Disabled', 'Enabled'] + sorted(cats)
+        cats = ["All", "Enabled", "Disabled"] + sorted(cats)
 
         bpy.types.Scene.EnumProperty(items=[(cat, cat, str(i)) for i, cat in enumerate(cats)],
             name="Category", attr="addon_filter", description="Filter add-ons by category")
         bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
             description="Search within the selected filter")
 
-        row = layout.row()
-        row.prop(context.scene, "addon_filter", text="Filter")
-        row.prop(context.scene, "addon_search", text="Search", icon='VIEWZOOM')
-        layout.separator()
+        split = layout.split(percentage=0.2)
+        col = split.column()
+        col.prop(context.scene, "addon_filter", text="Filter", expand=True)
+        col.prop(context.scene, "addon_search", text="", icon='VIEWZOOM')
+
+        col = split.column()
 
         filter = context.scene.addon_filter
         search = context.scene.addon_search.lower()
@@ -878,9 +881,9 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         continue
 
                 # Addon UI Code
-                box = layout.column().box()
-                column = box.column()
-                row = column.row()
+                box = col.column().box()
+                colsub = box.column()
+                row = colsub.row()
 
                 row.operator("wm.addon_expand", icon='TRIA_DOWN' if info["expanded"] else 'TRIA_RIGHT', emboss=False).module = module_name
 
@@ -896,27 +899,27 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 # Expanded UI (only if additional infos are available)
                 if info["expanded"]:
                     if info["description"]:
-                        split = column.row().split(percentage=0.15)
+                        split = colsub.row().split(percentage=0.15)
                         split.label(text='Description:')
                         split.label(text=info["description"])
                     if info["location"]:
-                        split = column.row().split(percentage=0.15)
+                        split = colsub.row().split(percentage=0.15)
                         split.label(text='Location:')
                         split.label(text=info["location"])
                     if info["author"]:
-                        split = column.row().split(percentage=0.15)
+                        split = colsub.row().split(percentage=0.15)
                         split.label(text='Author:')
                         split.label(text=info["author"])
                     if info["version"]:
-                        split = column.row().split(percentage=0.15)
+                        split = colsub.row().split(percentage=0.15)
                         split.label(text='Version:')
                         split.label(text=info["version"])
                     if info["warning"]:
-                        split = column.row().split(percentage=0.15)
+                        split = colsub.row().split(percentage=0.15)
                         split.label(text="Warning:")
                         split.label(text='  ' + info["warning"], icon = 'ERROR')
                     if info["wiki_url"] or info["tracker_url"]:
-                        split = column.row().split(percentage=0.15)
+                        split = colsub.row().split(percentage=0.15)
                         split.label(text="Internet:")
                         if info["wiki_url"]:
                             split.operator("wm.url_open", text="Link to the Wiki", icon='HELP').url = info["wiki_url"]
@@ -935,15 +938,15 @@ class USERPREF_PT_addons(bpy.types.Panel):
         missing_modules = {ext for ext in used_ext if ext not in module_names}
 
         if missing_modules and filter in ("All", "Enabled"):
-            layout.column().separator()
-            layout.column().label(text="Missing script files")
+            col.column().separator()
+            col.column().label(text="Missing script files")
 
             module_names = {mod.__name__ for mod, info in addons}
             for ext in sorted(missing_modules):
                 # Addon UI Code
-                box = layout.column().box()
-                column = box.column()
-                row = column.row()
+                box = col.column().box()
+                colsub = box.column()
+                row = colsub.row()
 
                 row.label(text=ext, icon='ERROR')
                 row.operator("wm.addon_disable").module = ext
