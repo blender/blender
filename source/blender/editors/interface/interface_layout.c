@@ -1296,8 +1296,10 @@ static void ui_item_menu(uiLayout *layout, char *name, int icon, uiMenuCreateFun
 
 	if(layout->root->type == UI_LAYOUT_HEADER)
 		uiBlockSetEmboss(block, UI_EMBOSS);
-	else if(layout->root->type == UI_LAYOUT_PANEL)
+	else if(layout->root->type == UI_LAYOUT_PANEL) {
 		but->type= MENU;
+		but->flag |= UI_TEXT_LEFT;
+	}
 }
 
 void uiItemM(uiLayout *layout, bContext *C, char *menuname, char *name, int icon)
