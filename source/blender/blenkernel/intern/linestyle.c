@@ -38,6 +38,11 @@
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
 
+static void default_linestyle_settings(FreestyleLineStyle *linestyle)
+{
+
+}
+
 FreestyleLineStyle *FRS_new_linestyle(char *name, struct Main *main)
 {
 	FreestyleLineStyle *linestyle;
@@ -47,7 +52,7 @@ FreestyleLineStyle *FRS_new_linestyle(char *name, struct Main *main)
 
 	linestyle = (FreestyleLineStyle *)alloc_libblock(&main->linestyle, ID_LS, name);
 	
-	/* todo: default parameter settings */
+	default_linestyle_settings(linestyle);
 
 	return linestyle;
 }

@@ -69,27 +69,6 @@ class RENDER_PT_render(RenderButtonsPanel):
         layout.prop(rd, "display_mode", text="Display")
 
 
-class RENDER_PT_freestyle_linestyle(RenderButtonsPanel):
-    bl_label = "Freestyle Line Style"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def poll(self, context):
-        rd = context.scene.render
-        rl = rd.layers[rd.active_layer_index]
-        return rl and rl.freestyle and rl.freestyle_settings.active_lineset
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-        rl = rd.layers[rd.active_layer_index]
-        linestyle = rl.freestyle_settings.active_lineset.linestyle
-
-        split = layout.split()
-        col = split.column()
-        col.prop(linestyle, "name")
-
-
 class RENDER_PT_layers(RenderButtonsPanel):
     bl_label = "Layers"
     bl_default_closed = True
@@ -195,63 +174,126 @@ class RENDER_PT_layers(RenderButtonsPanel):
         row.prop(rl, "pass_refraction")
         row.prop(rl, "pass_refraction_exclude", text="")
 
-        if rl.freestyle:
-            layout.separator()
 
-            split = layout.split()
+class RENDER_PT_freestyle(RenderButtonsPanel):
+    bl_label = "Freestyle"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-            col = split.column()
-            col.label(text="Freestyle:")
-            freestyle = rl.freestyle_settings
-            col.prop(freestyle, "mode", text="Control Mode")
-            if freestyle.mode == "EDITOR":
+    def poll(self, context):
+        rd = context.scene.render
+        rl = rd.layers[rd.active_layer_index]
+        return rl and rl.freestyle
 
-                lineset = freestyle.active_lineset
+    def draw(self, context):
+        layout = self.layout
 
-                col.label(text="Line Sets:")
+        rd = context.scene.render
+        rl = rd.layers[rd.active_layer_index]
+        freestyle = rl.freestyle_settings
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(freestyle, "mode", text="Control Mode")
+
+        if freestyle.mode == "EDITOR":
+
+            lineset = freestyle.active_lineset
+
+            col.label(text="Line Sets:")
+            row = col.row()
+            rows = 2
+            if lineset:
+                rows = 5
+            # FIXME: scrollbar does not work correctly
+            row.template_list(freestyle, "linesets", freestyle, "active_lineset_index", rows=rows)
+
+            sub = row.column()
+            subsub = sub.column(align=True)
+            subsub.operator("scene.freestyle_lineset_add", icon='ZOOMIN', text="")
+            subsub.operator("scene.freestyle_lineset_remove", icon='ZOOMOUT', text="")
+            if lineset:
+                sub.separator()
+                subsub = sub.column(align=True)
+                subsub.operator("scene.freestyle_lineset_move", icon='TRIA_UP', text="").direction = 'UP'
+                subsub.operator("scene.freestyle_lineset_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+            if lineset:
+                col.prop(lineset, "name")
 
                 row = col.row()
-                rows = 2
-                if lineset:
-                    rows = 5
-                # FIXME: scrollbar does not work correctly
-                row.template_list(freestyle, "linesets", freestyle, "active_lineset_index", rows=rows)
-
                 sub = row.column()
+                sub.prop(lineset, "select_silhouette")
+                sub.prop(lineset, "select_border")
+                sub.prop(lineset, "select_crease")
+                sub.prop(lineset, "select_ridge")
+                sub.prop(lineset, "select_valley")
+                sub.prop(lineset, "select_suggestive_contour")
+                sub.prop(lineset, "select_material_boundary")
+                sub = row.column()
+                sub.prop(lineset, "select_contour")
+                sub.prop(lineset, "select_external_contour")
+                sub.prop(lineset, "select_visibility")
+                col.prop(lineset, "crease_angle")
+                col.prop(lineset, "sphere_radius")
+                if lineset.select_suggestive_contour:
+                    col.label(text="Suggestive Contours:")
+                    col.prop(lineset, "dkr_epsilon")
+                if lineset.select_visibility:
+                    col.label(text="Visibility:")
+                    sub = col.row(align=True)
+                    sub.prop(lineset, "visibility", expand=True)
+                    if lineset.visibility == "RANGE":
+                        sub = col.row(align=True)
+                        sub.prop(lineset, "qi_start")
+                        sub.prop(lineset, "qi_end")
 
-                subsub = sub.column(align=True)
-                subsub.operator("scene.freestyle_lineset_add", icon='ZOOMIN', text="")
-                subsub.operator("scene.freestyle_lineset_remove", icon='ZOOMOUT', text="")
+        else: # freestyle.mode == "SCRIPT"
 
-                if lineset:
-                    sub.separator()
+            col.prop(freestyle, "crease_angle")
+            col.prop(freestyle, "sphere_radius")
+            col.prop(freestyle, "ridges_and_valleys")
+            col.prop(freestyle, "suggestive_contours")
+            sub = col.row()
+            sub.prop(freestyle, "dkr_epsilon")
+            sub.active = freestyle.suggestive_contours
+            col.prop(freestyle, "material_boundaries")
+            col.operator("scene.freestyle_module_add")
 
-                    subsub = sub.column(align=True)
-                    subsub.operator("scene.freestyle_lineset_move", icon='TRIA_UP', text="").direction = 'UP'
-                    subsub.operator("scene.freestyle_lineset_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+            for i, module in enumerate(freestyle.modules):
+                    box = layout.box()
+                    box.set_context_pointer("freestyle_module", module)
+                    row = box.row(align=True)
+                    row.prop(module, "is_displayed", text="")
+                    row.prop(module, "module_path", text="")
+                    row.operator("scene.freestyle_module_remove", icon='X', text="")
+                    row.operator("scene.freestyle_module_move", icon='TRIA_UP', text="").direction = 'UP'
+                    row.operator("scene.freestyle_module_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-                    col.prop(lineset, "name")
-                    col.template_ID(lineset, "linestyle", new="scene.freestyle_linestyle_new")
 
-            else:
-                col.prop(freestyle, "crease_angle", text="Crease Angle")
-                col.prop(freestyle, "sphere_radius", text="Sphere Radius")
-                col.prop(freestyle, "ridges_and_valleys", text="Ridges and Valleys")
-                col.prop(freestyle, "suggestive_contours", text="Suggestive Contours")
-                col.prop(freestyle, "material_boundaries", text="Material Boundaries")
-                col.prop(freestyle, "dkr_epsilon", text="Dkr Epsilon")
+class RENDER_PT_freestyle_linestyle(RenderButtonsPanel):
+    bl_label = "Freestyle: Line Style"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-                col.operator("scene.freestyle_module_add", text="Add Style Module")
+    def poll(self, context):
+        rd = context.scene.render
+        rl = rd.layers[rd.active_layer_index]
+        if rl and rl.freestyle:
+            freestyle = rl.freestyle_settings
+            return freestyle.mode == "EDITOR" and freestyle.active_lineset
+        return False
 
-                for i, module in enumerate(freestyle.modules):
-                        box = layout.box()
-                        box.set_context_pointer("freestyle_module", module)
-                        row = box.row(align=True)
-                        row.prop(module, "is_displayed", text="")
-                        row.prop(module, "module_path", text="")
-                        row.operator("scene.freestyle_module_remove", icon='X', text="")
-                        row.operator("scene.freestyle_module_move", icon='TRIA_UP', text="").direction = 'UP'
-                        row.operator("scene.freestyle_module_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+        rl = rd.layers[rd.active_layer_index]
+        lineset = rl.freestyle_settings.active_lineset
+        linestyle = lineset.linestyle
+
+        split = layout.split()
+        col = split.column()
+        col.template_ID(lineset, "linestyle", new="scene.freestyle_linestyle_new")
 
 
 class RENDER_PT_shading(RenderButtonsPanel):
@@ -757,6 +799,7 @@ classes = [
     RENDER_MT_ffmpeg_presets,
     RENDER_PT_render,
     RENDER_PT_layers,
+    RENDER_PT_freestyle,
     RENDER_PT_freestyle_linestyle,
     RENDER_PT_dimensions,
     RENDER_PT_antialiasing,

@@ -17,6 +17,23 @@
 #define FREESTYLE_LINESET_CURRENT  1
 #define FREESTYLE_LINESET_ENABLED  2
 
+/* FreestyleLineSet::selection */
+#define FREESTYLE_SEL_SILHOUETTE          1
+#define FREESTYLE_SEL_BORDER              2
+#define FREESTYLE_SEL_CREASE              4
+#define FREESTYLE_SEL_RIDGE               8
+#define FREESTYLE_SEL_VALLEY              16
+#define FREESTYLE_SEL_SUGGESTIVE_CONTOUR  32
+#define FREESTYLE_SEL_MATERIAL_BOUNDARY   64
+#define FREESTYLE_SEL_CONTOUR             128
+#define FREESTYLE_SEL_EXTERNAL_CONTOUR    256
+#define FREESTYLE_SEL_VISIBILITY          512
+
+/* FreestyleLineSet::qi */
+#define FREESTYLE_QI_VISIBLE  1
+#define FREESTYLE_QI_HIDDEN   2
+#define FREESTYLE_QI_RANGE    3
+
 typedef struct FreestyleLineStyle {
 	ID id;
 
@@ -27,7 +44,14 @@ typedef struct FreestyleLineSet {
 
 	char name[32]; /* line set name */
 	int flags;
-	int pad;
+	int selection; /* feature edge selection */
+
+	float crease_angle;
+	float sphere_radius;
+	float dkr_epsilon;
+	short qi; /* quantitative invisibility */
+	short pad;
+	int qi_start, qi_end;
 
 	FreestyleLineStyle *linestyle; /* line style */
 

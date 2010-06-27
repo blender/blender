@@ -1540,6 +1540,12 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 		{FREESTYLE_CONTROL_EDITOR_MODE, "EDITOR", 0, "Parameter Editor Mode", "Basic mode for interactive style parameter editing"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem visibility_items[] ={
+		{FREESTYLE_QI_VISIBLE, "VISIBLE", 0, "Visible", "Select visible edges."},
+		{FREESTYLE_QI_HIDDEN, "HIDDEN", 0, "Hidden", "Select hidden edges."},
+		{FREESTYLE_QI_RANGE, "RANGE", 0, "QI Range", "Select edges within a range of quantitative invisibility (QI) values."},
+		{0, NULL, 0, NULL, NULL}};
+
 	/* FreestyleLineSet */
 
 	srna= RNA_def_struct(brna, "FreestyleLineSet", NULL);
@@ -1568,7 +1574,93 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "objects", NULL);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_ui_text(prop, "Target objects", "A list of objects on which stylized lines are drawn.");
+	RNA_def_property_ui_text(prop, "Target Objects", "A list of objects on which stylized lines are drawn.");
+
+	prop= RNA_def_property(srna, "select_silhouette", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_SILHOUETTE);
+	RNA_def_property_ui_text(prop, "Silhouette", "Select silhouette edges.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "select_border", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_BORDER);
+	RNA_def_property_ui_text(prop, "Border", "Select border edges.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "select_crease", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_CREASE);
+	RNA_def_property_ui_text(prop, "Crease", "Select crease edges.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "select_ridge", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_RIDGE);
+	RNA_def_property_ui_text(prop, "Ridge", "Select ridges.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "select_valley", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_VALLEY);
+	RNA_def_property_ui_text(prop, "Valley", "Select valleys.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "select_suggestive_contour", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_SUGGESTIVE_CONTOUR);
+	RNA_def_property_ui_text(prop, "Suggestive Contour", "Select suggestive contours.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "select_material_boundary", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_MATERIAL_BOUNDARY);
+	RNA_def_property_ui_text(prop, "Material Boundary", "Select edges at material boundaries.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "select_contour", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_CONTOUR);
+	RNA_def_property_ui_text(prop, "Contour", "Select contours.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "select_external_contour", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_EXTERNAL_CONTOUR);
+	RNA_def_property_ui_text(prop, "External Contour", "Select external contours.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "select_visibility", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_VISIBILITY);
+	RNA_def_property_ui_text(prop, "Visibility", "Select edges based on visibility.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "crease_angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "crease_angle");
+	RNA_def_property_range(prop, 0.0, 180.0);
+	RNA_def_property_ui_text(prop, "Crease Angle", "Angular threshold in degrees (between 0 and 180) for detecting crease edges.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "sphere_radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sphere_radius");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Sphere Radius", "Sphere radius for computing curvatures.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "dkr_epsilon", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dkr_epsilon");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Kr Derivative Epsilon", "Kr derivative epsilon for computing suggestive contours.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "visibility", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "qi");
+	RNA_def_property_enum_items(prop, visibility_items);
+	RNA_def_property_ui_text(prop, "Visibility", "Select edges based on visibility.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "qi_start", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "qi_start");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_ui_text(prop, "Start", "First QI value of the QI range");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "qi_end", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "qi_end");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_ui_text(prop, "End", "Last QI value of the QI range");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* FreestyleModuleSettings */
 
@@ -1616,19 +1708,19 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "material_boundaries", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_MATERIAL_BOUNDARIES_FLAG);
-	RNA_def_property_ui_text(prop, "Material boundaries", "Enable material boundaries.");
+	RNA_def_property_ui_text(prop, "Material Boundaries", "Enable material boundaries.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "sphere_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sphere_radius");
 	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Sphere Radius", "*TBD*");
+	RNA_def_property_ui_text(prop, "Sphere Radius", "Sphere radius for computing curvatures.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "dkr_epsilon", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dkr_epsilon");
 	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Dkr Epsilon", "*TBD*");
+	RNA_def_property_ui_text(prop, "Kr Derivative Epsilon", "Kr derivative epsilon for computing suggestive contours.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "crease_angle", PROP_FLOAT, PROP_NONE);

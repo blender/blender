@@ -317,9 +317,9 @@ extern "C" {
 
 		config->modules.first = config->modules.last = NULL;
 		config->flags = 0;
-		config->sphere_radius = 1.0;
-		config->dkr_epsilon = 0.001;
-		config->crease_angle = 134.43;
+		config->sphere_radius = 1.0f;
+		config->dkr_epsilon = 0.001f;
+		config->crease_angle = 134.43f;
 
 		config->linesets.first = config->linesets.last = NULL;
 	}
@@ -372,6 +372,14 @@ extern "C" {
 
 		lineset->linestyle = FRS_new_linestyle("LineStyle", NULL);
 		lineset->flags |= FREESTYLE_LINESET_ENABLED;
+		lineset->selection = 0;
+		lineset->crease_angle = 134.43f;
+		lineset->sphere_radius = 1.0f;
+		lineset->dkr_epsilon = 0.001f;
+		lineset->qi = FREESTYLE_QI_VISIBLE;
+		lineset->qi_start = 0;
+		lineset->qi_end = 100;
+		lineset->objects.first = lineset->objects.last = NULL;
 		if (lineset_index > 0)
 			sprintf(lineset->name, "LineSet %i", lineset_index+1);
 		else
