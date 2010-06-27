@@ -986,7 +986,7 @@ static char *get_obdata_defname(int type)
 	case OB_MESH: return "Mesh";
 	case OB_CURVE: return "Curve";
 	case OB_SURF: return "Surf";
-	case OB_FONT: return "Font";
+	case OB_FONT: return "Text";
 	case OB_MBALL: return "Mball";
 	case OB_CAMERA: return "Camera";
 	case OB_LAMP: return "Lamp";

@@ -671,6 +671,19 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
+static char *get_lamp_defname(int type)
+{
+	switch (type) {
+		case LA_LOCAL: return "Point";
+		case LA_SUN: return "Sun";
+		case LA_SPOT: return "Spot";
+		case LA_HEMI: return "Hemi";
+		case LA_AREA: return "Area";
+		default:
+			return "Lamp";
+	}
+}
+
 static int object_lamp_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob;
@@ -686,6 +699,9 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
 	if(ob && ob->data)
 		((Lamp*)ob->data)->type= type;
+	
+	rename_id((ID *)ob, get_lamp_defname(type));
+	rename_id((ID *)ob->data, get_lamp_defname(type));
 	
 	return OPERATOR_FINISHED;
 }
