@@ -1191,24 +1191,25 @@ enum {
 /* Return 1 if make link data is allow, zero otherwise */
 static int allow_make_links_data(int ev, Object *ob, Object *obt)
 {
-	if (ev == MAKE_LINKS_OBDATA) {
-		if (ob->type == OB_MESH && obt->type == OB_MESH)
-			return(1);
+	switch(ev) {
+		case MAKE_LINKS_OBDATA:
+			if (ob->type == obt->type && ob->type != OB_EMPTY)
+				return 1;
+			break;
+		case MAKE_LINKS_MATERIALS:
+			if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL) &&
+				ELEM5(obt->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL))
+				return 1;
+			break;
+		case MAKE_LINKS_ANIMDATA:
+		case MAKE_LINKS_DUPLIGROUP:
+			return 1;
+		case MAKE_LINKS_MODIFIERS:
+			if (ob->type != OB_EMPTY && obt->type != OB_EMPTY)
+				return 1;
+			break;
 	}
-	else if (ev == MAKE_LINKS_MATERIALS) {
-		if ((ob->type == OB_MESH || ob->type == OB_CURVE || ob->type == OB_FONT || ob->type == OB_SURF || ob->type == OB_MBALL) &&
-		    (obt->type == OB_MESH || obt->type == OB_CURVE || obt->type == OB_FONT || obt->type == OB_SURF || obt->type == OB_MBALL))
-			return(1);
-	}
-	else if (ev == MAKE_LINKS_ANIMDATA)
-		return(1);
-	else if (ev == MAKE_LINKS_DUPLIGROUP)
-		return(1);
-	else if (ev == MAKE_LINKS_MODIFIERS) {
-		if (ob->type != OB_EMPTY && obt->type != OB_EMPTY)
-			return(1);
-	}
-	return(0);
+	return 0;
 }
 
 static int make_links_data_exec(bContext *C, wmOperator *op)
