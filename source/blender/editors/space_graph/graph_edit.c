@@ -1582,6 +1582,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 		
 		/* take the average values, rounding to the nearest int for the current frame */
 		CFRA= (int)floor((ked.f1 / ked.i1) + 0.5f);
+		SUBFRA= 0.f;
 		sipo->cursorVal= ked.f2 / (float)ked.i1;
 	}
 	

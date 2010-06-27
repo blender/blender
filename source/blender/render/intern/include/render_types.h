@@ -189,7 +189,8 @@ struct Render
 	ListBase strandsurface;
 	
 	/* use this instead of R.r.cfra */
-	float cfra;	
+	float cfra;
+	float mblur_offs, field_offs;
 	
 	/* render database */
 	int totvlak, totvert, tothalo, totstrand, totlamp;

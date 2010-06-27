@@ -257,7 +257,7 @@ short fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
  * Checks whether a keyframe exists for the given ID-block one the given frame.
  *  - It is recommended to call this method over the other keyframe-checkers directly,
  * 	  in case some detail of the implementation changes...
- *	- frame: the value of this is quite often result of frame_to_float(CFRA)
+ *	- frame: the value of this is quite often result of BKE_curframe()
  */
 short id_frame_has_keyframe(struct ID *id, float frame, short filter);
 

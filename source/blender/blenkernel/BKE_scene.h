@@ -80,6 +80,8 @@ void scene_select_base(struct Scene *sce, struct Base *selbase);
 /* checks for cycle, returns 1 if it's all OK */
 int scene_check_setscene(struct Scene *sce);
 
+float BKE_curframe(struct Scene *scene);
+
 void scene_update_tagged(struct Scene *sce);
 void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 

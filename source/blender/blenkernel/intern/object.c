@@ -1605,19 +1605,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 
 /* there is also a timing calculation in drawobject() */
 
-float bluroffs= 0.0f, fieldoffs= 0.0f;
 int no_speed_curve= 0;
-
-/* ugly calls from render */
-void set_mblur_offs(float blur)
-{
-	bluroffs= blur;
-}
-
-void set_field_offs(float field)
-{
-	fieldoffs= field;
-}
 
 void disable_speed_curve(int val)
 {
@@ -1628,11 +1616,9 @@ void disable_speed_curve(int val)
 /* ob can be NULL */
 float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 {
-	/* returns float ( see frame_to_float in ipo.c) */
+	/* returns float ( see BKE_curframe in scene.c) */
+	cfra += scene->r.subframe;
 	
-	/* bluroffs and fieldoffs are ugly globals that are set by render */
-	cfra+= bluroffs+fieldoffs;
-
 	/* global time */
 	if (scene)
 		cfra*= scene->r.framelen;	

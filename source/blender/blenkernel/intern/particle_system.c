@@ -3925,7 +3925,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if(!psys_check_enabled(ob, psys))
 		return;
 
-	cfra= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0f);
+	cfra= BKE_curframe(scene);
 	sim.psmd= psys_get_modifier(ob, psys);
 
 	/* system was already updated from modifier stack */
