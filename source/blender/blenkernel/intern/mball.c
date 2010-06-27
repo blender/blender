@@ -876,11 +876,11 @@ CORNER *setcorner (PROCESS* p, int i, int j, int k)
 	c = (CORNER *) new_pgn_element(sizeof(CORNER));
 
 	c->i = i; 
-	c->x = ((float)i-0.5f)*p->size;
+	c->x = ((float)i-0.5f)*p->size/p->scale[0];
 	c->j = j; 
-	c->y = ((float)j-0.5f)*p->size;
+	c->y = ((float)j-0.5f)*p->size/p->scale[1];
 	c->k = k; 
-	c->z = ((float)k-0.5f)*p->size;
+	c->z = ((float)k-0.5f)*p->size/p->scale[2];
 	c->value = p->function(c->x, c->y, c->z);
 	
 	c->next = p->corners[index];
@@ -1409,9 +1409,9 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 					workp_v = in_v;
 					max_len = sqrt((out.x-in.x)*(out.x-in.x) + (out.y-in.y)*(out.y-in.y) + (out.z-in.z)*(out.z-in.z));
 
-					nx = abs((out.x - in.x)/mbproc->size);
-					ny = abs((out.y - in.y)/mbproc->size);
-					nz = abs((out.z - in.z)/mbproc->size);
+					nx = abs((out.x - in.x)/mbproc->size*mbproc->scale[0]);
+					ny = abs((out.y - in.y)/mbproc->size*mbproc->scale[1]);
+					nz = abs((out.z - in.z)/mbproc->size*mbproc->scale[2]);
 					
 					MAXN = MAX3(nx,ny,nz);
 					if(MAXN!=0.0f) {
@@ -1430,9 +1430,9 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 							if((tmp_v<0.0 && workp_v>=0.0)||(tmp_v>0.0 && workp_v<=0.0)) {
 
 								/* indexes of CUBE, which includes "first point" */
-								c_i= (int)floor(workp.x/mbproc->size);
-								c_j= (int)floor(workp.y/mbproc->size);
-								c_k= (int)floor(workp.z/mbproc->size);
+								c_i= (int)floor(workp.x/mbproc->size*mbproc->scale[0]);
+								c_j= (int)floor(workp.y/mbproc->size*mbproc->scale[1]);
+								c_k= (int)floor(workp.z/mbproc->size*mbproc->scale[2]);
 								
 								/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
 								 * this cube includes found point of Implicit Surface */
@@ -2082,12 +2082,15 @@ void metaball_polygonize(Scene *scene, Object *ob)
 	DispList *dl;
 	int a, nr_cubes;
 	float *ve, *no, totsize, width;
-	
+	float smat[3][3];
+
 	mb= ob->data;
 
 	if(totelem==0) return;
 	if(!(G.rendering) && (mb->flag==MB_UPDATE_NEVER)) return;
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
+
+	object_scale_to_mat3(ob, smat);
 
 	freedisplist(&ob->disp);
 	curindex= totindex= 0;
@@ -2130,6 +2133,7 @@ void metaball_polygonize(Scene *scene, Object *ob)
 		width= mb->wiresize;
 		if(G.moving && mb->flag==MB_UPDATE_HALFRES) width*= 2;
 	}
+
 	/* nr_cubes is just for safety, minimum is totsize */
 	nr_cubes= (int)(0.5+totsize/width);
 
@@ -2139,6 +2143,11 @@ void metaball_polygonize(Scene *scene, Object *ob)
 	mbproc.bounds = nr_cubes;
 	mbproc.cubes= 0;
 	mbproc.delta = width/(float)(RES*RES);
+
+	/* to keep constant resolution for any motherball scale */
+	mbproc.scale[0]= smat[0][0];
+	mbproc.scale[1]= smat[1][1];
+	mbproc.scale[2]= smat[2][2];
 
 	polygonize(&mbproc, mb);
 	
