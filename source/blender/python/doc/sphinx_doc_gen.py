@@ -178,7 +178,11 @@ def pyprop2sphinx(ident, fw, identifier, py_prop):
     '''
     python property to sphinx
     '''
-    fw(ident + ".. attribute:: %s\n\n" % identifier)
+    # readonly properties use "data" directive, variables use "attribute" directive
+    if py_prop.fset is None:
+        fw(ident + ".. data:: %s\n\n" % identifier)
+    else:
+        fw(ident + ".. attribute:: %s\n\n" % identifier)
     write_indented_lines(ident + "   ", fw, py_prop.__doc__)
     if py_prop.fset is None:
         fw(ident + "   (readonly)\n\n")
@@ -420,9 +424,9 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("This module is used for all blender/python access.\n")
     fw("\n")
-    fw("   .. literalinclude:: ../examples/bpy.data.py\n")
+    fw(".. literalinclude:: ../examples/bpy.data.py\n")
     fw("\n")
-    fw("   .. data:: data\n")
+    fw(".. data:: data\n")
     fw("\n")
     fw("   Access to blenders internal data\n")
     fw("\n")
@@ -547,12 +551,21 @@ def rna2sphinx(BASEPATH):
             fw(".. class:: %s\n\n" % struct.identifier)
 
         fw("   %s\n\n" % struct.description)
-
-        for prop in struct.properties:
-            fw("   .. attribute:: %s\n\n" % prop.identifier)
+        
+        # properties sorted in alphabetical order
+        zip_props_ids = zip(struct.properties, [prop.identifier for prop in struct.properties])
+        zip_props_ids = sorted(zip_props_ids, key=lambda p: p[1])
+        sorted_struct_properties = [x[0] for x in zip_props_ids]
+        
+        for prop in sorted_struct_properties:
+            type_descr = prop.get_type_description(class_fmt=":class:`%s`")
+            # readonly properties use "data" directive, variables properties use "attribute" directive
+            if 'readonly' in type_descr:
+                fw("   .. data:: %s\n\n" % prop.identifier)
+            else:
+                fw("   .. attribute:: %s\n\n" % prop.identifier)
             if prop.description:
                 fw("      %s\n\n" % prop.description)
-            type_descr = prop.get_type_description(class_fmt=":class:`%s`")
             fw("      :type: %s\n\n" % type_descr)
         
         # python attributes
