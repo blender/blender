@@ -23,12 +23,12 @@ AnimVizMotionPaths.highlight_keyframes -> show_keyframe_highlight
 AnimVizMotionPaths.search_all_action_keyframes -> use_keyframe_action_all
 AnimVizMotionPaths.show_frame_numbers -> show_frame_numbers
 AnimVizMotionPaths.show_keyframe_numbers -> show_keyframe_numbers
-AnimVizOnionSkinning.only_selected -> showonly_selected
+AnimVizOnionSkinning.only_selected -> show_only_selected
 Area.show_menus -> show_menus
 AreaLamp.dither -> use_dither
 AreaLamp.jitter -> use_jitter
-AreaLamp.only_shadow -> useonly_shadow
-AreaLamp.shadow_layer -> useonly_shadow_layer
+AreaLamp.only_shadow -> use_only_shadow
+AreaLamp.shadow_layer -> use_only_shadow_layer
 AreaLamp.umbra -> use_umbra
 Armature.auto_ik -> use_auto_ik
 Armature.deform_bbone_rest -> use_deform_b_bone_rest
@@ -40,7 +40,7 @@ Armature.draw_axes -> show_axes
 Armature.draw_custom_bone_shapes -> show_bone_custom
 Armature.draw_group_colors -> show_group_colors
 Armature.draw_names -> show_names
-Armature.ghost_only_selected -> showonly_ghost_selected
+Armature.ghost_only_selected -> show_only_ghost_selected
 Armature.layer -> layer
 Armature.layer_protection -> layer_protect
 Armature.x_axis_mirror -> use_mirror_x
@@ -56,7 +56,7 @@ ArrayModifier.merge_adjacent_vertices -> use_merge_vertex
 ArrayModifier.merge_end_vertices -> use_merge_vertex_end
 ArrayModifier.relative_offset -> use_relative_offset
 BackgroundImage.show_expanded -> show_expanded
-BevelModifier.only_vertices -> useonly_vertex
+BevelModifier.only_vertices -> use_only_vertex
 BezierSplinePoint.hidden -> hide
 BezierSplinePoint.selected_control_point -> select_control_point
 BezierSplinePoint.selected_handle1 -> select_left_handle
@@ -220,8 +220,8 @@ DopeSheet.display_texture -> show_texture
 DopeSheet.display_transforms -> show_transforms
 DopeSheet.display_world -> show_world
 DopeSheet.include_missing_nla -> show_missing_nla
-DopeSheet.only_group_objects -> showonly_group_objects
-DopeSheet.only_selected -> showonly_selected
+DopeSheet.only_group_objects -> show_only_group_objects
+DopeSheet.only_selected -> show_only_selected
 Driver.invalid -> is_valid
 Driver.show_debug_info -> show_debug_info
 DriverTarget.use_local_space_transforms -> use_local_space_transform
@@ -369,7 +369,7 @@ GameSoftBodySettings.bending_const -> use_bending_constraint
 GameSoftBodySettings.cluster_rigid_to_softbody -> use_cluster_rigid_to_softbody
 GameSoftBodySettings.cluster_soft_to_softbody -> use_cluster_soft_to_softbody
 GameSoftBodySettings.shape_match -> use_shape_match
-GlowSequence.only_boost -> useonly_boost
+GlowSequence.only_boost -> use_only_boost
 GreasePencil.use_stroke_endpoints -> use_stroke_endpoints
 Group.layer -> layer
 ID.fake_user -> use_fake_user
@@ -1558,7 +1558,7 @@ ToolSettings.snap_align_rotation -> use_snap_align_rotation
 ToolSettings.snap_peel_object -> use_snap_peel_object
 ToolSettings.snap_project -> use_snap_project
 ToolSettings.use_auto_keying -> use_keyframe_insert_auto
-* ToolSettings.uv_local_view -> showonly_uv_local_view
+* ToolSettings.uv_local_view -> show_only_uv_local_view
 ToolSettings.uv_sync_selection -> use_uv_sync_selection
 
 
@@ -1614,7 +1614,7 @@ UserPreferencesEdit.use_visual_keying -> show_visual_keying
 
 UserPreferencesFilePaths.auto_save_temporary_files -> use_auto_save_temporary_files
 UserPreferencesFilePaths.compress_file -> use_file_compression
-UserPreferencesFilePaths.filter_file_extensions -> showonly_file_extensions
+UserPreferencesFilePaths.filter_file_extensions -> show_only_file_extensions
 UserPreferencesFilePaths.hide_dot_files_datablocks -> show_dot_files_datablocks
 UserPreferencesFilePaths.load_ui -> use_load_ui
 UserPreferencesFilePaths.save_preview_images -> use_save_preview_images
