@@ -1,0 +1,1692 @@
+
+ActionActuator.continue_last_frame -> continue_last_frame
+ActionGroup.expanded -> show_expanded
+ActionGroup.locked -> use_lock
+ActionGroup.selected -> select
+Actuator.expanded -> show_expanded
+AnimData.nla_enabled -> use_nla
+AnimVizMotionPaths.highlight_keyframes -> show_keyframe_highlight
+AnimVizMotionPaths.search_all_action_keyframes -> use_keyframe_action_all
+AnimVizMotionPaths.show_frame_numbers -> show_frame_numbers
+AnimVizMotionPaths.show_keyframe_numbers -> show_keyframe_numbers
+AnimVizOnionSkinning.only_selected -> showonly_selected
+Area.show_menus -> show_menus
+AreaLamp.dither -> use_dither
+AreaLamp.jitter -> use_jitter
+AreaLamp.only_shadow -> useonly_shadow
+AreaLamp.shadow_layer -> useonly_shadow_layer
+AreaLamp.umbra -> use_umbra
+Armature.auto_ik -> use_auto_ik
+Armature.deform_bbone_rest -> use_deform_b_bone_rest
+Armature.deform_envelope -> use_deform_envelope
+Armature.deform_quaternion -> use_deform_quaternion
+Armature.deform_vertexgroups -> use_deform_vertexgroups
+Armature.delay_deform -> use_deform_delay
+Armature.draw_axes -> show_axes
+Armature.draw_custom_bone_shapes -> show_bone_custom
+Armature.draw_group_colors -> show_group_colors
+Armature.draw_names -> show_names
+Armature.ghost_only_selected -> showonly_ghost_selected
+Armature.layer -> layer
+Armature.layer_protection -> layer_protection
+Armature.x_axis_mirror -> use_mirror_x
+ArmatureModifier.b_bone_rest -> use_b_bone_rest
+ArmatureModifier.invert -> use_vertex_group_invert
+ArmatureModifier.multi_modifier -> use_multi_modifier
+ArmatureModifier.quaternion -> use_preserve_volume
+ArmatureModifier.use_bone_envelopes -> use_bone_envelopes
+ArmatureModifier.use_vertex_groups -> use_vertex_groups
+ArrayModifier.add_offset_object -> use_object_offset
+ArrayModifier.constant_offset -> use_constant_offset
+ArrayModifier.merge_adjacent_vertices -> use_merge_vertex
+ArrayModifier.merge_end_vertices -> use_merge_vertex_end
+ArrayModifier.relative_offset -> use_relative_offset
+BackgroundImage.show_expanded -> show_expanded
+BevelModifier.only_vertices -> useonly_vertex
+BezierSplinePoint.hidden -> hide
+BezierSplinePoint.selected_control_point -> select_control_point
+BezierSplinePoint.selected_handle1 -> select_handle_before
+BezierSplinePoint.selected_handle2 -> select_handle_after
+BoidRule.in_air -> use_in_air
+BoidRule.on_land -> use_on_land
+BoidRuleAvoid.predict -> use_predict
+BoidRuleAvoidCollision.boids -> use_avoid
+BoidRuleAvoidCollision.deflectors -> use_deflect
+BoidRuleFollowLeader.line -> use_line
+BoidRuleGoal.predict -> use_predict
+BoidSettings.allow_climb -> use_climb
+BoidSettings.allow_flight -> use_flight
+BoidSettings.allow_land -> use_land
+Bone.connected -> use_connect
+Bone.cyclic_offset -> use_cyclic_offset
+Bone.deform -> use_deform
+Bone.draw_wire -> show_wire
+Bone.hidden -> hide
+Bone.hinge -> use_hinge
+Bone.inherit_scale -> use_inherit_scale
+Bone.layer -> layer
+Bone.local_location -> use_local_location
+Bone.multiply_vertexgroup_with_envelope -> use_envelope_multiply
+* Bone.restrict_select -> restrict_select
+Bone.selected -> select
+BooleanProperty.default -> default
+BooleanProperty.default_array -> default_array
+Brush.use_accumulate -> use_accumulate
+Brush.use_airbrush -> use_airbrush
+Brush.use_alpha -> use_alpha
+Brush.use_anchor -> use_anchor
+Brush.use_jitter_pressure -> use_jitter_pressure
+Brush.use_persistent -> use_persistent
+Brush.use_rake -> use_rake
+Brush.use_size_pressure -> use_size_pressure
+Brush.use_smooth_stroke -> use_smooth_stroke
+Brush.use_space -> use_space
+Brush.use_spacing_pressure -> use_spacing_pressure
+Brush.use_strength_pressure -> use_strength_pressure
+Brush.use_wrap -> use_wrap
+BuildModifier.randomize -> use_random
+Camera.panorama -> use_panorama
+Camera.show_limits -> show_limits
+Camera.show_mist -> show_mist
+Camera.show_name -> show_name
+Camera.show_passepartout -> show_passepartout
+Camera.show_title_safe -> show_title_safe
+CastModifier.from_radius -> use_radius_as_size
+CastModifier.use_transform -> use_transform
+CastModifier.x -> use_x
+CastModifier.y -> use_y
+CastModifier.z -> use_z
+ChildOfConstraint.use_location_x -> use_location_x
+ChildOfConstraint.use_location_y -> use_location_y
+ChildOfConstraint.use_location_z -> use_location_z
+ChildOfConstraint.use_rotation_x -> use_rotation_x
+ChildOfConstraint.use_rotation_y -> use_rotation_y
+ChildOfConstraint.use_rotation_z -> use_rotation_z
+ChildOfConstraint.use_scale_x -> use_scale_x
+ChildOfConstraint.use_scale_y -> use_scale_y
+ChildOfConstraint.use_scale_z -> use_scale_z
+ClampToConstraint.cyclic -> use_cyclic
+ClothCollisionSettings.enable_collision -> use_collision
+ClothCollisionSettings.enable_self_collision -> use_self_collision
+ClothSettings.pin_cloth -> use_pin_cloth
+ClothSettings.stiffness_scaling -> use_stiffness_scale
+* CollisionSensor.collision_type -> collision_type
+CollisionSensor.pulse -> use_pulse
+CollisionSettings.enabled -> use_collision
+CollisionSettings.kill_particles -> use_particle_kill
+CompositorNodeAlphaOver.convert_premul -> use_convert_premultiply
+CompositorNodeBlur.bokeh -> use_bokeh
+CompositorNodeBlur.gamma -> use_gamma_correct
+CompositorNodeBlur.relative -> use_relative
+CompositorNodeColorSpill.unspill -> use_unspill
+CompositorNodeCrop.crop_size -> use_crop_size
+CompositorNodeDBlur.wrap -> use_wrap
+CompositorNodeDefocus.gamma_correction -> use_gamma_correct
+CompositorNodeDefocus.preview -> use_preview
+CompositorNodeDefocus.use_zbuffer -> use_zbuffer
+CompositorNodeGlare.rotate_45 -> use_rotate_45
+CompositorNodeImage.auto_refresh -> use_auto_refresh
+CompositorNodeImage.cyclic -> use_cyclic
+CompositorNodeInvert.alpha -> use_alpha
+CompositorNodeInvert.rgb -> invert_rgb
+CompositorNodeLensdist.fit -> use_fit
+CompositorNodeLensdist.jitter -> use_jitter
+CompositorNodeLensdist.projector -> use_projector
+CompositorNodeMapValue.use_max -> use_max
+CompositorNodeMapValue.use_min -> use_min
+CompositorNodeMixRGB.alpha -> use_alpha
+CompositorNodeOutputFile.exr_half -> use_exr_half
+CompositorNodeVecBlur.curved -> use_curve
+* Constraint.active -> active
+Constraint.disabled -> is_valid
+Constraint.expanded -> show_expanded
+Constraint.proxy_local -> is_proxy_local
+ConstraintActuator.detect_material -> use_material_detect
+ConstraintActuator.fh_normal -> use_fh_normal
+ConstraintActuator.fh_paralel_axis -> use_fh_paralel_axis
+ConstraintActuator.force_distance -> use_force_distance
+ConstraintActuator.local -> use_local
+ConstraintActuator.normal -> use_normal
+ConstraintActuator.persistent -> use_persistent
+ControlFluidSettings.active -> active
+ControlFluidSettings.reverse_frames -> use_frame_reverse
+Controller.expanded -> show_expanded
+Controller.priority -> use_priority
+Controller.state -> state
+CopyLocationConstraint.invert_x -> invert_x
+CopyLocationConstraint.invert_y -> invert_y
+CopyLocationConstraint.invert_z -> invert_z
+CopyLocationConstraint.use_offset -> use_offset
+CopyLocationConstraint.use_x -> use_x
+CopyLocationConstraint.use_y -> use_y
+CopyLocationConstraint.use_z -> use_z
+CopyRotationConstraint.invert_x -> invert_x
+CopyRotationConstraint.invert_y -> invert_y
+CopyRotationConstraint.invert_z -> invert_z
+CopyRotationConstraint.use_offset -> use_offset
+CopyRotationConstraint.use_x -> use_x
+CopyRotationConstraint.use_y -> use_y
+CopyRotationConstraint.use_z -> use_z
+CopyScaleConstraint.use_offset -> use_offset
+CopyScaleConstraint.use_x -> use_x
+CopyScaleConstraint.use_y -> use_y
+CopyScaleConstraint.use_z -> use_z
+Curve.auto_texspace -> use_auto_texspace
+Curve.back -> use_fill_back
+Curve.draw_handles -> show_handles
+Curve.draw_normals -> show_normals
+Curve.front -> use_fill_front
+Curve.map_along_length -> use_texture_map_length
+Curve.use_deform_fill -> use_fill_deform
+Curve.use_path -> use_path
+Curve.use_path_follow -> use_path_follow
+Curve.use_radius -> use_radius
+Curve.use_stretch -> use_stretch
+Curve.use_time_offset -> use_time_offset
+CurveMapPoint.selected -> select
+CurveMapping.clip -> use_clip
+DelaySensor.repeat -> use_repeat
+DomainFluidSettings.generate_speed_vectors -> use_speed_vectors
+DomainFluidSettings.override_time -> use_time_override
+DomainFluidSettings.reverse_frames -> use_frame_reverse
+*negate* DopeSheet.collapse_summary -> show_expanded_summary
+DopeSheet.display_armature -> show_armature
+DopeSheet.display_camera -> show_camera
+DopeSheet.display_curve -> show_curve
+DopeSheet.display_lamp -> show_lamp
+DopeSheet.display_material -> show_material
+DopeSheet.display_mesh -> show_mesh
+DopeSheet.display_metaball -> show_metaball
+DopeSheet.display_node -> show_node
+DopeSheet.display_particle -> show_particle
+DopeSheet.display_scene -> show_scene
+DopeSheet.display_shapekeys -> show_shapekeys
+DopeSheet.display_summary -> show_summary
+DopeSheet.display_texture -> show_texture
+DopeSheet.display_transforms -> show_transforms
+DopeSheet.display_world -> show_world
+DopeSheet.include_missing_nla -> show_missing_nla
+DopeSheet.only_group_objects -> showonly_group_objects
+DopeSheet.only_selected -> showonly_selected
+Driver.invalid -> is_valid
+Driver.show_debug_info -> show_debug_info
+DriverTarget.use_local_space_transforms -> use_local_space_transform
+EdgeSplitModifier.use_edge_angle -> use_edge_angle
+EdgeSplitModifier.use_sharp -> use_edge_sharp
+EditBone.connected -> is_connected
+EditBone.cyclic_offset -> use_cyclic_offset
+EditBone.deform -> use_deform
+EditBone.draw_wire -> show_wire
+EditBone.hidden -> hide
+EditBone.hinge -> use_hinge
+EditBone.inherit_scale -> use_inherit_scale
+EditBone.layer -> layer
+EditBone.local_location -> use_local_location
+EditBone.locked -> use_lock
+EditBone.multiply_vertexgroup_with_envelope -> use_envelope_multiply
+EditBone.restrict_select -> restrict_select
+EditBone.selected -> select
+EditBone.selected_head -> select_head
+EditBone.selected_tail -> select_tail
+EditObjectActuator.enable_3d_tracking -> use_track_3d
+EditObjectActuator.local_angular_velocity -> use_local_angular_velocity
+EditObjectActuator.local_linear_velocity -> use_local_linear_velocity
+EditObjectActuator.replace_display_mesh -> use_display_mesh
+EditObjectActuator.replace_physics_mesh -> use_physics_mesh
+EffectSequence.convert_float -> use_float
+EffectSequence.de_interlace -> use_deinterlace
+EffectSequence.flip_x -> use_flip_x
+EffectSequence.flip_y -> use_flip_y
+EffectSequence.premultiply -> use_premultiply
+EffectSequence.proxy_custom_directory -> use_proxy_custom_directory
+EffectSequence.proxy_custom_file -> use_proxy_custom_file
+EffectSequence.reverse_frames -> use_frame_reverse
+EffectSequence.use_color_balance -> use_color_balance
+EffectSequence.use_crop -> use_crop
+EffectSequence.use_proxy -> use_proxy
+EffectSequence.use_translation -> use_translation
+EffectorWeights.do_growing_hair -> use_hair_grow
+EnvironmentMap.ignore_layers -> layer_ignore
+EnvironmentMapTexture.use_filter_size_min -> filter_size_minimum
+EnvironmentMapTexture.mipmap -> use_mipmap
+EnvironmentMapTexture.mipmap_gauss -> use_mipmap_gauss
+Event.alt -> alt
+Event.ctrl -> ctrl
+Event.oskey -> oskey
+Event.shift -> shift
+ExplodeModifier.alive -> show_alive
+ExplodeModifier.dead -> show_dead
+ExplodeModifier.size -> use_size
+ExplodeModifier.split_edges -> use_edge_split
+ExplodeModifier.unborn -> show_unborn
+FCurve.auto_clamped_handles -> use_auto_handle_clamp
+*negate* FCurve.disabled -> enabled
+FCurve.locked -> use_lock
+FCurve.muted -> use_mute
+FCurve.selected -> select
+*negate* FCurve.visible -> hide
+FCurveSample.selected -> select
+FModifier.active -> active
+*negate* FModifier.disabled -> enabled
+FModifier.expanded -> show_expanded
+FModifier.muted -> use_mute
+FModifierFunctionGenerator.additive -> use_additive
+FModifierGenerator.additive -> use_additive
+FModifierLimits.use_maximum_x -> use_x_max
+FModifierLimits.use_maximum_y -> use_y_max
+FModifierLimits.use_minimum_x -> use_x_min
+FModifierLimits.use_minimum_y -> use_y_min
+FModifierStepped.use_frame_end -> use_frame_end
+FModifierStepped.use_frame_start -> use_frame_start
+FcurveActuator.add -> use_additive
+FcurveActuator.child -> use_child
+FcurveActuator.force -> use_force
+FcurveActuator.local -> use_local
+FieldSettings.do_absorption -> use_absorption
+FieldSettings.do_location -> use_location
+FieldSettings.do_rotation -> use_rotation
+FieldSettings.force_2d -> use_force_2d
+FieldSettings.global_coordinates -> use_coordinates_global
+FieldSettings.guide_path_add -> use_guide_path_add
+FieldSettings.multiple_springs -> use_multiple_springs
+FieldSettings.root_coordinates -> use_coordinates_root
+FieldSettings.use_coordinates -> use_coordinates_object
+FieldSettings.use_guide_path_weight -> use_guide_path_weight
+FieldSettings.use_max_distance -> use_distance_min
+FieldSettings.use_min_distance -> use_distance_max
+FieldSettings.use_radial_max -> use_radial_max
+FieldSettings.use_radial_min -> use_radial_min
+FileSelectParams.do_filter -> use_filter
+FileSelectParams.filter_blender -> use_filter_blender
+FileSelectParams.filter_folder -> use_filter_folder
+FileSelectParams.filter_font -> use_filter_font
+FileSelectParams.filter_image -> use_filter_image
+FileSelectParams.filter_movie -> use_filter_movie
+FileSelectParams.filter_script -> use_filter_script
+FileSelectParams.filter_sound -> use_filter_sound
+FileSelectParams.filter_text -> use_filter_text
+FileSelectParams.hide_dot -> show_hidden
+Filter2DActuator.enable_motion_blur -> use_motion_blur
+FloorConstraint.sticky -> use_sticky
+FloorConstraint.use_rotation -> use_rotation
+FluidFluidSettings.active -> active
+FluidFluidSettings.export_animated_mesh -> use_animated_mesh
+FollowPathConstraint.use_curve_follow -> use_curve_follow
+FollowPathConstraint.use_curve_radius -> use_curve_radius
+FollowPathConstraint.use_fixed_position -> use_fixed_position
+Function.registered -> registered
+Function.registered_optional -> registered_optional
+GPencilFrame.paint_lock -> lock_paint
+GPencilFrame.selected -> select
+GPencilLayer.active -> active
+GPencilLayer.frame_lock -> lock_frame
+GPencilLayer.hide -> hide
+GPencilLayer.locked -> use_lock
+GPencilLayer.selected -> select
+GPencilLayer.show_points -> show_points
+GPencilLayer.use_onion_skinning -> use_onion_skin
+GameBooleanProperty.value -> value
+GameObjectSettings.actor -> use_actor
+GameObjectSettings.all_states -> states_all
+GameObjectSettings.anisotropic_friction -> use_anisotropic_friction
+GameObjectSettings.collision_compound -> use_collision_compound
+GameObjectSettings.debug_state -> show_state_debug
+GameObjectSettings.ghost -> use_ghost
+GameObjectSettings.initial_state -> initial_state
+GameObjectSettings.lock_x_axis -> lock_location_x
+GameObjectSettings.lock_x_rot_axis -> lock_rotation_x
+GameObjectSettings.lock_y_axis -> lock_location_y
+GameObjectSettings.lock_y_rot_axis -> lock_rotation_y
+GameObjectSettings.lock_z_axis -> lock_location_z
+GameObjectSettings.lock_z_rot_axis -> lock_rotation_z
+GameObjectSettings.material_physics -> use_material_physics
+*negate* GameObjectSettings.no_sleeping -> use_sleep
+GameObjectSettings.rotate_from_normal -> use_rotate_from_normal
+GameObjectSettings.show_actuators -> show_actuators
+GameObjectSettings.show_controllers -> show_controllers
+GameObjectSettings.show_sensors -> show_sensors
+GameObjectSettings.show_state_panel -> show_state_panel
+GameObjectSettings.use_activity_culling -> use_activity_culling
+GameObjectSettings.use_collision_bounds -> use_collision_bounds
+GameObjectSettings.used_state -> state_used
+GameObjectSettings.visible_state -> state_visible
+GameProperty.debug -> use_debug
+GameSoftBodySettings.bending_const -> use_bending_constraint
+GameSoftBodySettings.cluster_rigid_to_softbody -> use_cluster_rigid_to_softbody
+GameSoftBodySettings.cluster_soft_to_softbody -> use_cluster_soft_to_softbody
+GameSoftBodySettings.shape_match -> use_shape_match
+GlowSequence.only_boost -> useonly_boost
+GreasePencil.use_stroke_endpoints -> use_stroke_endpoints
+Group.layer -> layer
+ID.fake_user -> use_fake_user
+ID.tag -> tag
+Image.animated -> use_snimation
+Image.clamp_x -> use_clamp_x
+Image.clamp_y -> use_clamp_y
+Image.dirty -> is_dirty
+Image.fields -> use_fields
+Image.has_data -> is_data
+Image.premultiply -> use_premultiply
+Image.tiles -> use_tiles
+ImagePaint.invert_stencil -> invert_stencil
+ImagePaint.show_brush -> show_brush
+ImagePaint.show_brush_draw -> show_brush_draw
+ImagePaint.use_backface_cull -> use_backface_cull
+ImagePaint.use_clone_layer -> use_clone_layer
+ImagePaint.use_normal_falloff -> use_normal_falloff
+ImagePaint.use_occlude -> use_occlude
+ImagePaint.use_projection -> use_projection
+ImagePaint.use_stencil_layer -> use_stencil_layer
+ImageSequence.convert_float -> use_float
+ImageSequence.de_interlace -> use_deinterlace
+ImageSequence.flip_x -> use_flip_x
+ImageSequence.flip_y -> use_flip_y
+ImageSequence.premultiply -> use_premultiply
+ImageSequence.proxy_custom_directory -> use_proxy_custom_directory
+ImageSequence.proxy_custom_file -> use_proxy_custom_file
+ImageSequence.reverse_frames -> use_frame_reverse
+ImageSequence.use_color_balance -> use_color_balance
+ImageSequence.use_crop -> use_crop
+ImageSequence.use_proxy -> use_proxy
+ImageSequence.use_translation -> use_translation
+ImageTexture.calculate_alpha -> use_rgb_alpha
+ImageTexture.checker_even -> use_checker_even
+ImageTexture.checker_odd -> use_checker_odd
+ImageTexture.filter_size_minimum -> use_filter_size_min
+ImageTexture.flip_axis -> use_flip_axis
+
+
+ImageTexture.interpolation -> use_interpolation
+ImageTexture.invert_alpha -> invert_alpha
+ImageTexture.mipmap -> use_mipmap
+ImageTexture.mipmap_gauss -> use_mipmap_gauss
+ImageTexture.mirror_x -> use_mirror_x
+ImageTexture.mirror_y -> use_mirror_y
+ImageTexture.normal_map -> use_normal_map
+ImageTexture.use_alpha -> use_use_alpha
+ImageUser.auto_refresh -> use_auto_refresh
+ImageUser.cyclic -> use_cyclic
+* would use is_ * InflowFluidSettings.active -> active
+InflowFluidSettings.export_animated_mesh -> use_export_animated_mesh
+InflowFluidSettings.local_coordinates -> use_local_coordinates
+Itasc.auto_step -> use_auto_step
+
+
+JoystickSensor.all_events -> use_all_events
+
+
+Key.relative -> use_relative
+* would use is_ * KeyConfig.user_defined -> user_defined
+KeyMap.children_expanded -> show_expanded_children
+KeyMap.items_expanded -> show_expanded_items
+* would use is_ * KeyMap.modal -> modal
+KeyMap.user_defined -> use_user_defined
+KeyMapItem.active -> use_active
+* would use is_pressed * KeyMapItem.alt -> alt
+* would use is_pressed * KeyMapItem.any -> any
+* would use is_pressed * KeyMapItem.ctrl -> ctrl
+KeyMapItem.expanded -> show_expanded
+* would use is_pressed * KeyMapItem.oskey -> oskey
+* would use is_pressed * KeyMapItem.shift -> shift
+
+
+* KeyboardSensor.all_keys -> all_keys
+
+
+* would use is_ * Keyframe.selected -> selected
+* would use is_ * Keyframe.selected_handle1 -> selected_handle1
+* would use is_ * Keyframe.selected_handle2 -> selected_handle2
+
+
+KeyingSet.absolute -> use_absolute
+KeyingSet.insertkey_needed -> use_insertkey_needed
+KeyingSet.insertkey_visual -> use_insertkey_visual
+KeyingSet.insertkey_xyz_to_rgb -> use_insertkey_xyz_to_rgb
+
+
+KeyingSetInfo.insertkey_needed -> use_insertkey_needed
+KeyingSetInfo.insertkey_visual -> use_insertkey_visual
+KeyingSetInfo.insertkey_xyz_to_rgb -> use_insertkey_xyz_to_rgb
+
+
+KeyingSetPath.entire_array -> use_entire_array
+KeyingSetPath.insertkey_needed -> use_insertkey_needed
+KeyingSetPath.insertkey_visual -> use_insertkey_visual
+KeyingSetPath.insertkey_xyz_to_rgb -> use_insertkey_xyz_to_rgb
+
+
+KinematicConstraint.pos_lock_x -> use_lock_pos_x
+KinematicConstraint.pos_lock_y -> use_lock_pos_y
+KinematicConstraint.pos_lock_z -> use_lock_pos_z
+KinematicConstraint.rot_lock_x -> use_lock_rot_x
+KinematicConstraint.rot_lock_y -> use_lock_rot_y
+KinematicConstraint.rot_lock_z -> use_lock_rot_z
+KinematicConstraint.use_position -> use_position
+KinematicConstraint.use_rotation -> use_rotation
+KinematicConstraint.use_stretch -> use_stretch
+KinematicConstraint.use_tail -> use_tail
+KinematicConstraint.use_target -> use_target
+
+
+
+
+Lamp.diffuse -> use_diffuse
+Lamp.layer -> use_own_layer
+Lamp.negative -> use_negative
+Lamp.specular -> use_specular
+LampSkySettings.use_atmosphere -> use_atmosphere
+LampSkySettings.use_sky -> use_sky
+LampTextureSlot.map_color -> use_map_color
+LampTextureSlot.map_shadow -> use_map_shadow
+Lattice.outside -> use_outside
+LimitLocationConstraint.limit_transform -> limit_transform
+LimitLocationConstraint.use_maximum_x -> use_maximum_x
+LimitLocationConstraint.use_maximum_y -> use_maximum_y
+LimitLocationConstraint.use_maximum_z -> use_maximum_z
+LimitLocationConstraint.use_minimum_x -> use_minimum_x
+LimitLocationConstraint.use_minimum_y -> use_minimum_y
+LimitLocationConstraint.use_minimum_z -> use_minimum_z
+LimitRotationConstraint.limit_transform -> limit_transform
+LimitRotationConstraint.use_limit_x -> use_limit_x
+LimitRotationConstraint.use_limit_y -> use_limit_y
+LimitRotationConstraint.use_limit_z -> use_limit_z
+LimitScaleConstraint.limit_transform -> limit_transform
+LimitScaleConstraint.use_maximum_x -> use_maximum_x
+LimitScaleConstraint.use_maximum_y -> use_maximum_y
+LimitScaleConstraint.use_maximum_z -> use_maximum_z
+LimitScaleConstraint.use_minimum_x -> use_minimum_x
+LimitScaleConstraint.use_minimum_y -> use_minimum_y
+LimitScaleConstraint.use_minimum_z -> use_minimum_z
+
+
+Main.debug -> show_debug
+Main.file_is_saved -> is_saved
+
+
+* MaskModifier.invert -> invert
+
+
+Material.cast_approximate -> use_cast_approximate
+Material.cast_buffer_shadows -> use_cast_buffer_shadows
+Material.cast_shadows_only -> use_cast_shadows_only
+Material.cubic -> use_cubic
+Material.exclude_mist -> use_exclude_mist
+Material.face_texture -> use_face_texture
+Material.face_texture_alpha -> use_face_texture_alpha
+Material.full_oversampling -> use_full_oversampling
+Material.invert_z -> use_invert_z
+Material.light_group_exclusive -> use_light_group_exclusive
+Material.object_color -> use_object_color
+Material.only_shadow -> use_shadow_only
+Material.ray_shadow_bias -> use_ray_shadow_bias
+Material.receive_transparent_shadows -> use_receive_transparent_shadows
+Material.shadeless -> use_shadeless
+Material.shadows -> use_shadows
+Material.tangent_shading -> use_tangent_shading
+Material.traceable -> use_traceable
+Material.transparency -> use_transparency
+Material.use_diffuse_ramp -> use_diffuse_ramp
+Material.use_nodes -> use_nodes
+Material.use_sky -> use_sky
+Material.use_specular_ramp -> use_specular_ramp
+Material.use_textures -> use_textures
+Material.vertex_color_light -> use_vertex_color_light
+Material.vertex_color_paint -> use_vertex_color_paint
+
+
+MaterialHalo.flare_mode -> use_flare_mode
+MaterialHalo.lines -> use_lines
+MaterialHalo.ring -> use_ring
+MaterialHalo.shaded -> use_shaded
+MaterialHalo.soft -> use_soft
+MaterialHalo.star -> use_star
+MaterialHalo.texture -> use_texture
+MaterialHalo.vertex_normal -> use_vertex_normal
+MaterialHalo.xalpha -> use_xalpha
+
+
+MaterialPhysics.align_to_normal -> use_align_to_normal
+
+
+* MaterialRaytraceMirror.enabled -> enabled
+
+
+MaterialStrand.blender_units -> use_blender_units
+MaterialStrand.surface_diffuse -> use_surface_diffuse
+MaterialStrand.tangent_shading -> use_tangent_shading
+
+
+* MaterialSubsurfaceScattering.enabled -> enabled
+
+
+* MaterialTextureSlot.enabled -> enabled
+MaterialTextureSlot.from_dupli -> use_from_dupli
+MaterialTextureSlot.from_original -> use_from_original
+MaterialTextureSlot.map_alpha -> use_map_alpha
+MaterialTextureSlot.map_ambient -> use_map_ambient
+MaterialTextureSlot.map_colordiff -> use_map_colordiff
+MaterialTextureSlot.map_coloremission -> use_map_coloremission
+MaterialTextureSlot.map_colorreflection -> use_map_colorreflection
+MaterialTextureSlot.map_colorspec -> use_map_colorspec
+MaterialTextureSlot.map_colortransmission -> use_map_colortransmission
+MaterialTextureSlot.map_density -> use_map_density
+MaterialTextureSlot.map_diffuse -> use_map_diffuse
+MaterialTextureSlot.map_displacement -> use_map_displacement
+MaterialTextureSlot.map_emission -> use_map_emission
+MaterialTextureSlot.map_emit -> use_map_emit
+MaterialTextureSlot.map_hardness -> use_map_hardness
+MaterialTextureSlot.map_mirror -> use_map_mirror
+MaterialTextureSlot.map_normal -> use_map_normal
+MaterialTextureSlot.map_raymir -> use_map_raymir
+MaterialTextureSlot.map_reflection -> use_map_reflect
+MaterialTextureSlot.map_scattering -> use_map_scatter
+MaterialTextureSlot.map_specular -> use_map_specular
+MaterialTextureSlot.map_translucency -> use_map_translucency
+MaterialTextureSlot.map_warp -> use_map_warp
+MaterialTextureSlot.new_bump -> use_new_bump
+
+
+MaterialVolume.external_shadows -> use_external_shadows
+MaterialVolume.light_cache -> use_light_cache
+
+
+Mesh.all_edges -> show_all_edges
+Mesh.auto_texspace -> use_auto_texspace
+Mesh.autosmooth -> use_autosmooth
+Mesh.double_sided -> use_double_sided
+Mesh.draw_bevel_weights -> show_bevel_weights
+Mesh.draw_creases -> show_creases
+Mesh.draw_edge_angle -> show_edge_angle
+Mesh.draw_edge_lenght -> show_edge_lenght
+Mesh.draw_edges -> show_edges
+Mesh.draw_face_area -> show_face_area
+Mesh.draw_faces -> show_faces
+Mesh.draw_normals -> show_normals
+Mesh.draw_seams -> show_seams
+Mesh.draw_sharp -> show_sharp
+Mesh.draw_vertex_normals -> show_vertex_normals
+Mesh.use_mirror_topology -> use_mirror_topology
+Mesh.use_mirror_x -> use_mirror_x
+Mesh.use_paint_mask -> use_paint_mask
+Mesh.vertex_normal_flip -> use_vertex_normal_flip
+
+
+MeshColorLayer.active -> use_active
+MeshColorLayer.active_render -> use_active_render
+
+
+MeshDeformModifier.dynamic -> dynamic
+MeshDeformModifier.invert -> invert
+MeshDeformModifier.is_bound -> is_bound
+
+
+MeshEdge.fgon -> is_fgon
+* MeshEdge.hidden -> hide
+MeshEdge.loose -> use_loose
+MeshEdge.seam -> use_seam
+* MeshEdge.selected -> select
+MeshEdge.sharp -> use_sharp
+
+
+* would use is_ * MeshFace.hidden -> hide
+* would use is_ * MeshFace.selected -> selected
+* would use is_ * MeshFace.smooth -> smooth
+
+
+MeshTextureFace.alpha_sort -> use_alpha_sort
+MeshTextureFace.billboard -> use_billboard
+MeshTextureFace.collision -> use_collision
+MeshTextureFace.halo -> use_halo
+* would use is_ * MeshTextureFace.invisible -> invisible
+MeshTextureFace.light -> use_light
+MeshTextureFace.object_color -> use_object_color
+MeshTextureFace.shadow -> use_shadow_face
+MeshTextureFace.shared -> use_blend_shared
+MeshTextureFace.tex -> use_render_texture
+MeshTextureFace.text -> use_bitmap_text
+MeshTextureFace.twoside -> use_twoside
+MeshTextureFace.uv_pinned -> use_uv_pinned
+MeshTextureFace.uv_selected -> use_uv_select
+* MeshTextureFaceLayer.active -> active
+* MeshTextureFaceLayer.active_clone -> active_clone
+* MeshTextureFaceLayer.active_render -> active_render
+
+
+* MeshVertex.hidden -> hide
+* would use is_ * MeshVertex.selected -> select
+
+
+MetaBall.auto_texspace -> use_auto_texspace
+
+
+* MetaElement.hide -> hide
+* would use is_ * MetaElement.negative -> negative
+
+
+MetaSequence.convert_float -> use_convert_float
+MetaSequence.de_interlace -> use_deinterlace
+MetaSequence.flip_x -> use_flip_x
+MetaSequence.flip_y -> use_flip_y
+MetaSequence.premultiply -> use_convert_premultiply
+MetaSequence.proxy_custom_directory -> use_proxy_custom_directory
+MetaSequence.proxy_custom_file -> use_proxy_custom_file
+MetaSequence.reverse_frames -> use_reverse_frames
+MetaSequence.use_color_balance -> use_color_balance
+MetaSequence.use_crop -> use_crop
+MetaSequence.use_proxy -> use_proxy
+MetaSequence.use_translation -> use_translation
+
+
+MirrorModifier.clip -> use_clipping
+MirrorModifier.mirror_u -> use_mirror_u
+MirrorModifier.mirror_v -> use_mirror_v
+MirrorModifier.mirror_vertex_groups -> use_mirror_vertex_groups
+MirrorModifier.x -> use_x
+MirrorModifier.y -> use_y
+MirrorModifier.z -> use_z
+
+
+Modifier.editmode -> use_in_editmode
+Modifier.expanded -> show_expanded
+Modifier.on_cage -> use_on_cage
+Modifier.realtime -> show_realtime
+Modifier.render -> use_render
+
+
+* MotionPath.editing -> editing
+* MotionPath.use_bone_head -> use_bone_head
+* would use is_ * MotionPathVert.selected -> select
+
+
+MovieSequence.convert_float -> use_convert_float
+MovieSequence.de_interlace -> use_deinterlace
+MovieSequence.flip_x -> use_flip_x
+MovieSequence.flip_y -> use_flip_y
+MovieSequence.premultiply -> use_convert_premultiply
+MovieSequence.proxy_custom_directory -> use_proxy_custom_directory
+MovieSequence.proxy_custom_file -> use_proxy_custom_file
+* MovieSequence.reverse_frames -> use_reverse_frames
+MovieSequence.use_color_balance -> use_color_balance
+MovieSequence.use_crop -> use_crop
+MovieSequence.use_proxy -> use_proxy
+MovieSequence.use_translation -> use_translation
+
+
+MulticamSequence.convert_float -> use_convert_float
+MulticamSequence.de_interlace -> use_deinterlace
+MulticamSequence.flip_x -> use_flip_x
+MulticamSequence.flip_y -> use_flip_y
+MulticamSequence.premultiply -> use_convert_premultiply
+MulticamSequence.proxy_custom_directory -> use_proxy_custom_directory
+MulticamSequence.proxy_custom_file -> use_proxy_custom_file
+* MulticamSequence.reverse_frames -> use_reverse_frames
+MulticamSequence.use_color_balance -> use_color_balance
+MulticamSequence.use_crop -> use_crop
+MulticamSequence.use_proxy -> use_proxy
+MulticamSequence.use_translation -> use_translation
+
+
+MultiresModifier.external -> use_external
+MultiresModifier.optimal_display -> show_optimal
+
+
+
+
+
+
+NetRenderSettings.master_broadcast -> use_master_broadcast
+NetRenderSettings.master_clear -> use_master_clear
+NetRenderSettings.slave_clear -> use_slave_clear
+NetRenderSettings.slave_outputlog -> use_slave_outputlog
+NetRenderSettings.slave_thumb -> use_slave_thumb
+
+
+* I'd use is_ * NlaStrip.active -> active
+NlaStrip.animated_influence -> use_animated_influence
+NlaStrip.animated_time -> use_animated_time
+NlaStrip.animated_time_cyclic -> use_animated_time_cyclic
+NlaStrip.auto_blending -> use_auto_blend
+* I'd use is_ * NlaStrip.muted -> muted
+* I'd use is_ * NlaStrip.reversed -> reversed
+* I'd use is_ * NlaStrip.selected -> select
+
+
+* I'd use is_ * NlaTrack.active -> active
+* I'd use is_ * NlaTrack.locked -> lock
+* I'd use is_ * NlaTrack.muted -> muted
+* I'd use is_ * NlaTrack.selected -> select
+NlaTrack.solo -> is_solo
+
+
+Object.draw_axis -> show_axis
+Object.draw_bounds -> show_bounds
+Object.draw_name -> show_name
+Object.draw_texture_space -> show_texture_space
+Object.draw_transparent -> show_transparent
+Object.draw_wire -> show_wire
+* Object.duplis_used -> is_duplis_used
+* Object.layers -> layers
+Object.lock_location -> lock_location
+Object.lock_rotation -> lock_rotation
+Object.lock_rotation_w -> lock_rotation_w
+Object.lock_rotations_4d -> lock_rotations_4d
+Object.lock_scale -> lock_scale
+* Object.restrict_render -> use_limit_render
+* Object.restrict_select -> use_limit_select
+* Object.restrict_view -> use_limit_view
+* Object.selected -> select
+Object.shape_key_edit_mode -> use_shape_key_edit_mode
+Object.shape_key_lock -> show_shape_key
+Object.slow_parent -> use_slow_parent
+Object.time_offset_add_parent -> use_time_offset_add_parent
+Object.time_offset_edit -> use_time_offset_edit
+Object.time_offset_parent -> use_time_offset_parent
+Object.time_offset_particle -> use_time_offset_particle
+Object.use_dupli_faces_scale -> use_dupli_faces_scale
+Object.use_dupli_frames_speed -> use_dupli_frames_speed
+Object.use_dupli_verts_rotation -> use_dupli_verts_rotation
+Object.x_ray -> show_x_ray
+
+
+* ObjectActuator.add_linear_velocity -> add_linear_velocity
+ObjectActuator.local_angular_velocity -> use_local_angular_velocity
+ObjectActuator.local_force -> use_local_force
+ObjectActuator.local_linear_velocity -> use_local_linear_velocity
+ObjectActuator.local_location -> use_local_location
+ObjectActuator.local_rotation -> use_local_rotation
+ObjectActuator.local_torque -> use_local_torque
+* ObjectActuator.servo_limit_x -> use_limit_servo_x
+* ObjectActuator.servo_limit_y -> use_limit_servo_y
+* ObjectActuator.servo_limit_z -> use_limit_servo_z
+
+
+* ObjectBase.layers -> layers
+* ObjectBase.selected -> select
+* ObjectBase.selected_user -> is_select_user
+
+
+* could be is_ * ObstacleFluidSettings.active -> use_active
+ObstacleFluidSettings.export_animated_mesh -> use_export_animated_mesh
+
+
+* Operator.has_reports -> has_reports
+OperatorStrokeElement.flip -> use_flip
+
+
+OutflowFluidSettings.active -> use_active
+OutflowFluidSettings.export_animated_mesh -> use_export_animated_mesh
+
+
+Paint.fast_navigate -> show_low_resolution
+Paint.show_brush -> show_brush
+
+* Panel.bl_default_closed -> bl_default_closed
+* Panel.bl_show_header -> bl_show_header
+
+
+ParentActuator.compound -> use_compound
+ParentActuator.ghost -> use_ghost
+
+
+* Particle.no_disp -> no_disp
+* Particle.rekey -> rekey
+* Particle.unexist -> unexist
+
+
+ParticleBrush.use_puff_volume -> use_puff_volume
+
+
+ParticleEdit.add_interpolate -> use_add_interpolate
+ParticleEdit.auto_velocity -> use_auto_velocity
+ParticleEdit.draw_particles -> show_particles
+ParticleEdit.editable -> is_editable
+ParticleEdit.emitter_deflect -> use_emitter_deflect
+ParticleEdit.fade_time -> use_fade_time
+* ParticleEdit.hair -> hair
+ParticleEdit.keep_lengths -> use_keep_lengths
+ParticleEdit.keep_root -> use_keep_root
+
+
+ParticleFluidSettings.drops -> show_drops
+ParticleFluidSettings.floats -> show_floats
+ParticleFluidSettings.tracer -> show_tracer
+
+
+ParticleInstanceModifier.alive -> show_alive
+ParticleInstanceModifier.children -> use_children
+ParticleInstanceModifier.dead -> show_dead
+ParticleInstanceModifier.keep_shape -> use_keep_shape
+ParticleInstanceModifier.normal -> use_normal
+ParticleInstanceModifier.size -> use_size
+ParticleInstanceModifier.unborn -> show_unborn
+ParticleInstanceModifier.use_path -> use_path
+
+
+ParticleSettings.abs_path_time -> use_abs_path_time
+ParticleSettings.animate_branching -> use_animate_branching
+ParticleSettings.billboard_lock -> lock_billboard
+ParticleSettings.boids_2d -> lock_boids_to_surface
+ParticleSettings.branching -> use_branching
+ParticleSettings.child_effector -> use_child_effector
+ParticleSettings.child_guide -> use_child_guide
+ParticleSettings.child_render -> use_child_render
+ParticleSettings.die_on_collision -> use_die_on_collision
+ParticleSettings.died -> show_died
+ParticleSettings.draw_health -> show_health
+ParticleSettings.emitter -> use_emitter
+ParticleSettings.enable_simplify -> use_simplify
+ParticleSettings.even_distribution -> use_even_distribution
+ParticleSettings.grid_invert -> invert_grid
+ParticleSettings.hair_bspline -> use_hair_bspline
+* ParticleSettings.hair_geometry -> hair_geometry
+ParticleSettings.material_color -> show_material_color
+ParticleSettings.num -> use_number
+ParticleSettings.parent -> use_parent
+ParticleSettings.rand_group -> use_random_group
+ParticleSettings.react_multiple -> use_react_multiple
+ParticleSettings.react_start_end -> use_react_start_end
+ParticleSettings.render_adaptive -> show_path_steps
+ParticleSettings.render_strand -> use_render_strand
+ParticleSettings.rotation_dynamic -> use_rotation_dynamic
+ParticleSettings.self_effect -> use_self_effect
+ParticleSettings.show_size -> show_size
+ParticleSettings.size_deflect -> use_size_deflect
+ParticleSettings.sizemass -> use_multiply_size_mass
+ParticleSettings.symmetric_branching -> use_symmetric_branching
+ParticleSettings.trand -> use_emit_random
+ParticleSettings.unborn -> show_unborn
+ParticleSettings.use_global_dupli -> use_global_dupli
+ParticleSettings.use_group_count -> use_group_count
+ParticleSettings.velocity -> show_velocity
+ParticleSettings.velocity_length -> use_velocity_length
+* ParticleSettings.viewport -> viewport
+ParticleSettings.whole_group -> use_whole_group
+
+
+ParticleSystem.editable -> is_editable
+ParticleSystem.edited -> is_edited
+* ParticleSystem.global_hair -> global_hair
+ParticleSystem.hair_dynamics -> use_hair_dynamics
+ParticleSystem.keyed_timing -> use_keyed_timing
+* ParticleSystem.multiple_caches -> multiple_caches
+ParticleSystem.vertex_group_clump_negate -> invert_vertex_group_clump
+ParticleSystem.vertex_group_density_negate -> invert_vertex_group_density
+ParticleSystem.vertex_group_field_negate -> invert_vertex_group_field
+ParticleSystem.vertex_group_kink_negate -> invert_vertex_group_kink
+ParticleSystem.vertex_group_length_negate -> invert_vertex_group_length
+ParticleSystem.vertex_group_rotation_negate -> invert_vertex_group_rotation
+ParticleSystem.vertex_group_roughness1_negate -> invert_vertex_group_roughness1
+ParticleSystem.vertex_group_roughness2_negate -> invert_vertex_group_roughness2
+ParticleSystem.vertex_group_roughness_end_negate -> invert_vertex_group_roughness_end
+ParticleSystem.vertex_group_size_negate -> invert_vertex_group_size
+ParticleSystem.vertex_group_tangent_negate -> invert_vertex_group_tangent
+ParticleSystem.vertex_group_velocity_negate -> invert_vertex_group_velocity
+
+
+* ParticleTarget.valid -> valid
+
+
+PivotConstraint.use_relative_position -> use_relative_position
+
+
+PointCache.baked -> is_baked
+* PointCache.baking -> baking
+PointCache.disk_cache -> use_disk_cache
+PointCache.external -> use_external
+* PointCache.frames_skipped -> frames_skipped
+PointCache.outdated -> is_outdated
+PointCache.quick_cache -> use_quick_cache
+PointCache.use_library_path -> use_library_path
+
+
+PointDensity.turbulence -> use_turbulence
+
+
+PointLamp.only_shadow -> use_shadow_only
+PointLamp.shadow_layer -> use_shadow_own_layer
+PointLamp.sphere -> use_sphere
+
+
+PoseBone.has_ik -> is_in_ik_chain
+* PoseBone.ik_dof_x -> ik_dof_x
+* PoseBone.ik_dof_y -> ik_dof_y
+* PoseBone.ik_dof_z -> ik_dof_z
+PoseBone.ik_limit_x -> lock_ik_x
+PoseBone.ik_limit_y -> lock_ik_y
+PoseBone.ik_limit_z -> lock_ik_z
+PoseBone.ik_lin_control -> use_ik_lin_control
+PoseBone.ik_rot_control -> use_ik_rot_control
+PoseBone.lock_location -> lock_location
+PoseBone.lock_rotation -> lock_rotation
+PoseBone.lock_rotation_w -> lock_rotation_w
+PoseBone.lock_rotations_4d -> lock_rotations_4d
+PoseBone.lock_scale -> lock_scale
+* PoseBone.selected -> select
+
+
+PoseTemplateSettings.generate_def_rig -> use_generate_def_rig
+
+
+Property.is_never_none -> is_never_none
+Property.is_readonly -> is_readonly
+Property.is_required -> is_required
+Property.registered -> is_registered
+Property.registered_optional -> is_registered_optional
+Property.use_output -> is_output
+
+
+* PythonConstraint.script_error -> is_script_error
+PythonConstraint.use_targets -> use_targets
+
+
+PythonController.debug -> use_debug
+
+
+RandomActuator.always_true -> use_always_true
+
+
+RaySensor.x_ray_mode -> use_x_ray_mode
+
+
+RegionView3D.box_clip -> use_box_clip
+RegionView3D.box_preview -> show_synced_view
+RegionView3D.lock_rotation -> lock_rotation
+
+
+* RenderEngine.bl_postprocess -> use_bl_postprocess
+* RenderEngine.bl_preview -> use_bl_preview
+
+
+* RenderLayer.all_z -> all_z
+* RenderLayer.edge -> edge
+* RenderLayer.enabled -> enabled
+* RenderLayer.halo -> halo
+* RenderLayer.pass_ao -> pass_ao
+* RenderLayer.pass_ao_exclude -> pass_ao_exclude
+* RenderLayer.pass_color -> pass_color
+* RenderLayer.pass_combined -> pass_combined
+* RenderLayer.pass_diffuse -> pass_diffuse
+* RenderLayer.pass_emit -> pass_emit
+* RenderLayer.pass_emit_exclude -> pass_emit_exclude
+* RenderLayer.pass_environment -> pass_environment
+* RenderLayer.pass_environment_exclude -> pass_environment_exclude
+* RenderLayer.pass_indirect -> pass_indirect
+* RenderLayer.pass_indirect_exclude -> pass_indirect_exclude
+* RenderLayer.pass_mist -> pass_mist
+* RenderLayer.pass_normal -> pass_normal
+* RenderLayer.pass_object_index -> pass_object_index
+* RenderLayer.pass_reflection -> pass_reflection
+* RenderLayer.pass_reflection_exclude -> pass_reflection_exclude
+* RenderLayer.pass_refraction -> pass_refraction
+* RenderLayer.pass_refraction_exclude -> pass_refraction_exclude
+* RenderLayer.pass_shadow -> pass_shadow
+* RenderLayer.pass_shadow_exclude -> pass_shadow_exclude
+* RenderLayer.pass_specular -> pass_specular
+* RenderLayer.pass_specular_exclude -> pass_specular_exclude
+* RenderLayer.pass_uv -> pass_uv
+* RenderLayer.pass_vector -> pass_vector
+* RenderLayer.pass_z -> pass_z
+* RenderLayer.sky -> sky
+* RenderLayer.solid -> solid
+* RenderLayer.strand -> strand
+* RenderLayer.visible_layers -> visible_layers
+* RenderLayer.zmask -> zmask
+* RenderLayer.zmask_layers -> zmask_layers
+* RenderLayer.zmask_negate -> zmask_negate
+* RenderLayer.ztransp -> ztransp
+
+
+RenderSettings.backbuf -> use_backbuf
+RenderSettings.bake_active -> use_bake_active
+RenderSettings.bake_clear -> use_bake_clear
+RenderSettings.bake_enable_aa -> use_bake_enable_aa
+RenderSettings.bake_normalized -> use_bake_normalized
+RenderSettings.cineon_log -> use_cineon_log
+RenderSettings.color_management -> use_color_management
+RenderSettings.crop_to_border -> use_crop_to_border
+RenderSettings.edge -> edge
+RenderSettings.exr_half -> use_exr_half
+RenderSettings.exr_preview -> use_exr_preview
+RenderSettings.exr_zbuf -> use_exr_zbuf
+RenderSettings.ffmpeg_autosplit -> use_ffmpeg_autosplit
+RenderSettings.fields -> use_fields
+RenderSettings.fields_still -> use_fields_still
+RenderSettings.free_image_textures -> use_free_image_textures
+RenderSettings.free_unused_nodes -> use_free_unused_nodes
+RenderSettings.full_sample -> use_full_sample
+RenderSettings.is_movie_format -> is_movie_format
+RenderSettings.jpeg2k_ycc -> use_jpeg2k_ycc
+RenderSettings.motion_blur -> use_motion_blur
+* RenderSettings.multiple_engines -> multiple_engines
+RenderSettings.render_antialiasing -> use_render_antialiasing
+* doubled?* RenderSettings.render_stamp -> render_stamp
+RenderSettings.save_buffers -> use_save_buffers
+RenderSettings.simplify_triangulate -> use_simplify_triangulate
+RenderSettings.single_layer -> use_active_layer
+RenderSettings.stamp_camera -> use_stamp_camera
+RenderSettings.stamp_date -> use_stamp_date
+RenderSettings.stamp_filename -> use_stamp_filename
+RenderSettings.stamp_frame -> use_stamp_frame
+RenderSettings.stamp_marker -> use_stamp_marker
+RenderSettings.stamp_note -> use_stamp_note
+RenderSettings.stamp_render_time -> use_stamp_render_time
+RenderSettings.stamp_scene -> use_stamp_scene
+RenderSettings.stamp_sequencer_strip -> use_stamp_sequencer_strip
+RenderSettings.stamp_time -> use_stamp_time
+RenderSettings.tiff_bit -> use_tiff_bit
+RenderSettings.use_border -> use_border
+RenderSettings.use_compositing -> use_compositing
+RenderSettings.use_envmaps -> use_envmaps
+RenderSettings.use_file_extension -> use_file_extension
+RenderSettings.use_game_engine -> use_game_engine
+RenderSettings.use_instances -> use_instances
+RenderSettings.use_local_coords -> use_local_coords
+RenderSettings.use_overwrite -> use_overwrite
+RenderSettings.use_placeholder -> use_placeholder
+RenderSettings.use_radiosity -> use_radiosity
+RenderSettings.use_raytracing -> use_raytrace
+RenderSettings.use_sequencer -> use_sequencer
+RenderSettings.use_sequencer_gl_preview -> use_sequencer_gl_preview
+RenderSettings.use_sequencer_gl_render -> use_sequencer_gl_render
+RenderSettings.use_shadows -> use_shadows
+RenderSettings.use_simplify -> use_simplify
+RenderSettings.use_sss -> use_sss
+RenderSettings.use_textures -> use_textures
+
+
+RigidBodyJointConstraint.disable_linked_collision -> use_disable_linked_collision
+RigidBodyJointConstraint.draw_pivot -> show_pivot
+
+
+Scene.frame_drop -> use_frame_drop
+* Scene.layers -> layers
+* Scene.mute_audio -> mute_audio
+* Scene.nla_tweakmode_on -> is_nla_tweakmode_on
+Scene.pov_radio_always_sample -> use_pov_radio_always_sample
+Scene.pov_radio_display_advanced -> show_pov_radio_advanced
+Scene.pov_radio_enable -> use_pov_radio_enable
+Scene.pov_radio_media -> use_pov_radio_media
+Scene.pov_radio_normal -> use_pov_radio_normal
+Scene.scrub_audio -> use_scrub_audio
+Scene.sync_audio -> use_sync_audio
+Scene.use_gravity -> use_gravity
+Scene.use_nodes -> use_nodes
+Scene.use_preview_range -> use_preview_range
+
+
+SceneGameData.activity_culling -> use_activity_culling
+SceneGameData.auto_start -> use_auto_start
+SceneGameData.fullscreen -> show_fullscreen
+SceneGameData.glsl_extra_textures -> use_glsl_extra_textures
+SceneGameData.glsl_lights -> use_glsl_lights
+SceneGameData.glsl_nodes -> use_glsl_nodes
+SceneGameData.glsl_ramps -> use_glsl_ramps
+SceneGameData.glsl_shaders -> use_glsl_shaders
+SceneGameData.glsl_shadows -> use_glsl_shadows
+SceneGameData.show_debug_properties -> show_debug_properties
+SceneGameData.show_framerate_profile -> show_framerate_profile
+SceneGameData.show_physics_visualization -> show_physics_visualization
+SceneGameData.use_animation_record -> use_animation_record
+SceneGameData.use_deprecation_warnings -> use_deprecation_warnings
+SceneGameData.use_display_lists -> use_display_lists
+SceneGameData.use_frame_rate -> use_frame_rate
+SceneGameData.use_occlusion_culling -> use_occlusion_culling
+
+
+SceneRenderLayer.all_z -> use_all_z
+SceneRenderLayer.edge -> use_edge
+* SceneRenderLayer.enabled -> enabled
+SceneRenderLayer.halo -> use_halo
+SceneRenderLayer.pass_ao -> use_pass_ao
+SceneRenderLayer.pass_ao_exclude -> use_pass_ao_exclude
+SceneRenderLayer.pass_color -> use_pass_color
+SceneRenderLayer.pass_combined -> use_pass_combined
+SceneRenderLayer.pass_diffuse -> use_pass_diffuse
+SceneRenderLayer.pass_emit -> use_pass_emit
+SceneRenderLayer.pass_emit_exclude -> use_pass_emit_exclude
+SceneRenderLayer.pass_environment -> use_pass_environment
+SceneRenderLayer.pass_environment_exclude -> use_pass_environment_exclude
+SceneRenderLayer.pass_indirect -> use_pass_indirect
+SceneRenderLayer.pass_indirect_exclude -> use_pass_indirect_exclude
+SceneRenderLayer.pass_mist -> use_pass_mist
+SceneRenderLayer.pass_normal -> use_pass_normal
+SceneRenderLayer.pass_object_index -> use_pass_object_index
+SceneRenderLayer.pass_reflection -> use_pass_reflection
+SceneRenderLayer.pass_reflection_exclude -> use_pass_reflection_exclude
+SceneRenderLayer.pass_refraction -> use_pass_refraction
+SceneRenderLayer.pass_refraction_exclude -> use_pass_refraction_exclude
+SceneRenderLayer.pass_shadow -> use_pass_shadow
+SceneRenderLayer.pass_shadow_exclude -> use_pass_shadow_exclude
+SceneRenderLayer.pass_specular -> use_pass_specular
+SceneRenderLayer.pass_specular_exclude -> use_pass_specular_exclude
+SceneRenderLayer.pass_uv -> use_pass_uv
+SceneRenderLayer.pass_vector -> use_pass_vector
+SceneRenderLayer.pass_z -> use_pass_z
+SceneRenderLayer.sky -> use_sky
+SceneRenderLayer.solid -> use_solid
+SceneRenderLayer.strand -> use_strand
+SceneRenderLayer.visible_layers -> visible_layers
+SceneRenderLayer.zmask -> use_zmask
+SceneRenderLayer.zmask_layers -> use_zmask_layers
+SceneRenderLayer.zmask_negate -> use_zmask_negate
+SceneRenderLayer.ztransp -> use_ztransp
+
+
+* SceneSequence.convert_float -> convert_float
+* SceneSequence.de_interlace -> de_interlace
+* SceneSequence.flip_x -> flip_x
+* SceneSequence.flip_y -> flip_y
+* SceneSequence.premultiply -> premultiply
+* SceneSequence.proxy_custom_directory -> proxy_custom_directory
+* SceneSequence.proxy_custom_file -> proxy_custom_file
+* SceneSequence.reverse_frames -> reverse_frames
+* SceneSequence.use_color_balance -> use_color_balance
+* SceneSequence.use_crop -> use_crop
+* SceneSequence.use_proxy -> use_proxy
+* SceneSequence.use_translation -> use_translation
+
+
+Scopes.use_full_resolution -> use_full_resolution
+
+
+Screen.animation_playing -> is_animation_playing
+Screen.fullscreen -> is_fullscreen
+
+
+ScrewModifier.use_normal_calculate -> use_normal_calculate
+ScrewModifier.use_normal_flip -> use_normal_flip
+ScrewModifier.use_object_screw_offset -> use_object_screw_offset
+
+
+Sculpt.lock_x -> lock_x
+Sculpt.lock_y -> lock_y
+Sculpt.lock_z -> lock_z
+Sculpt.symmetry_x -> use_symmetry_x
+Sculpt.symmetry_y -> use_symmetry_y
+Sculpt.symmetry_z -> use_symmetry_z
+
+
+Sensor.expanded -> show_expanded
+* Sensor.invert -> invert
+* Sensor.level -> level
+Sensor.pulse_false_level -> use_pulse_false_level
+Sensor.pulse_true_level -> use_pulse_true_level
+Sensor.tap -> use_tap
+
+
+* Sequence.frame_locked -> frame_locked
+* Sequence.left_handle_selected -> left_handle_select
+* Sequence.lock -> lock
+* Sequence.mute -> mute
+* Sequence.right_handle_selected -> right_handle_select
+* Sequence.selected -> select
+* Sequence.use_effect_default_fade -> use_effect_default_fade
+
+
+SequenceColorBalance.inverse_gain -> invert_gain
+SequenceColorBalance.inverse_gamma -> invert_gamma
+SequenceColorBalance.inverse_lift -> invert_lift
+
+
+ShaderNodeExtendedMaterial.diffuse -> use_diffuse
+ShaderNodeExtendedMaterial.invert_normal -> invert_normal
+ShaderNodeExtendedMaterial.specular -> use_specular
+
+
+ShaderNodeMapping.clamp_maximum -> use_clamp_to_maximum
+ShaderNodeMapping.clamp_minimum -> use_clamp_to_minimum
+
+
+ShaderNodeMaterial.diffuse -> use_diffuse
+ShaderNodeMaterial.invert_normal -> invert_normal
+ShaderNodeMaterial.specular -> use_specular
+
+
+ShaderNodeMixRGB.alpha -> use_alpha
+
+
+ShapeActionActuator.continue_last_frame -> use_continue_last_frame
+
+
+* ShapeKey.mute -> mute
+
+
+* see below * ShrinkwrapConstraint.use_x -> use_x
+* see below* ShrinkwrapConstraint.use_y -> use_y
+* see below* ShrinkwrapConstraint.use_z -> use_z
+ShrinkwrapModifier.cull_back_faces -> use_cull_back_faces
+ShrinkwrapModifier.cull_front_faces -> use_cull_front_faces
+ShrinkwrapModifier.keep_above_surface -> use_keep_above_surface
+* ShrinkwrapModifier.negative -> negative
+* ShrinkwrapModifier.positive -> positive
+ShrinkwrapModifier.x -> use_x
+ShrinkwrapModifier.y -> use_y
+ShrinkwrapModifier.z -> use_z
+
+
+SimpleDeformModifier.lock_x_axis -> lock_axis_x
+SimpleDeformModifier.lock_y_axis -> lock_axis_y
+SimpleDeformModifier.relative -> use_relative
+
+
+SmokeDomainSettings.dissolve_smoke -> use_dissolve_smoke
+SmokeDomainSettings.dissolve_smoke_log -> use_dissolve_smoke_log
+SmokeDomainSettings.highres -> use_highres
+SmokeDomainSettings.initial_velocity -> use_initial_velocity
+SmokeDomainSettings.viewhighres -> show_highres
+
+
+*negate* SmokeFlowSettings.outflow -> use_outflow
+
+
+SmoothModifier.x -> use_x
+SmoothModifier.y -> use_y
+SmoothModifier.z -> use_z
+
+
+SoftBodySettings.auto_step -> use_auto_step
+SoftBodySettings.diagnose -> use_diagnose
+SoftBodySettings.edge_collision -> use_edge_collision
+SoftBodySettings.estimate_matrix -> use_estimate_matrix
+SoftBodySettings.face_collision -> use_face_collision
+SoftBodySettings.new_aero -> use_new_aero
+SoftBodySettings.self_collision -> use_self_collision
+SoftBodySettings.stiff_quads -> use_stiff_quads
+SoftBodySettings.use_edges -> use_edges
+SoftBodySettings.use_goal -> use_goal
+
+
+* SolidifyModifier.invert -> invert_vertex_groups_influence
+SolidifyModifier.use_even_offset -> use_even_offset
+SolidifyModifier.use_quality_normals -> use_quality_normals
+SolidifyModifier.use_rim -> use_rim
+SolidifyModifier.use_rim_material -> use_rim_material
+
+
+Sound.caching -> use_ram_cache
+
+
+SoundActuator.enable_sound_3d -> use_sound_3d
+
+
+SpaceConsole.show_report_debug -> show_report_debug
+SpaceConsole.show_report_error -> show_report_error
+SpaceConsole.show_report_info -> show_report_info
+SpaceConsole.show_report_operator -> show_report_operator
+SpaceConsole.show_report_warn -> show_report_warn
+
+
+SpaceDopeSheetEditor.automerge_keyframes -> show_automerge_keyframes
+SpaceDopeSheetEditor.realtime_updates -> use_realtime_updates
+SpaceDopeSheetEditor.show_cframe_indicator -> show_cframe_indicator
+SpaceDopeSheetEditor.show_seconds -> show_seconds
+SpaceDopeSheetEditor.show_sliders -> show_sliders
+SpaceDopeSheetEditor.use_marker_sync -> use_marker_sync
+
+
+SpaceGraphEditor.automerge_keyframes -> show_automerge_keyframes
+* SpaceGraphEditor.has_ghost_curves -> has_ghost_curves
+SpaceGraphEditor.only_selected_curves_handles -> use_only_selected_curves_handles
+SpaceGraphEditor.only_selected_keyframe_handles -> use_only_selected_keyframe_handles
+SpaceGraphEditor.realtime_updates -> use_realtime_updates
+SpaceGraphEditor.show_cframe_indicator -> show_cframe_indicator
+SpaceGraphEditor.show_cursor -> show_cursor
+SpaceGraphEditor.show_handles -> show_handles
+SpaceGraphEditor.show_seconds -> show_seconds
+SpaceGraphEditor.show_sliders -> show_sliders
+
+
+SpaceImageEditor.draw_repeated -> show_repeated
+SpaceImageEditor.image_painting -> use_image_paint
+SpaceImageEditor.image_pin -> show_image_pin
+SpaceImageEditor.show_paint -> show_paint
+SpaceImageEditor.show_render -> show_render
+SpaceImageEditor.show_uvedit -> show_uvedit
+SpaceImageEditor.update_automatically -> use_update_automatically
+SpaceImageEditor.use_grease_pencil -> use_grease_pencil
+
+
+SpaceLogicEditor.actuators_show_active_objects -> show_actuators_active_objects
+SpaceLogicEditor.actuators_show_active_states -> show_actuators_active_states
+SpaceLogicEditor.actuators_show_linked_controller -> show_actuators_linked_controller
+SpaceLogicEditor.actuators_show_selected_objects -> show_actuators_selected_objects
+SpaceLogicEditor.controllers_show_active_objects -> show_controllers_active_objects
+SpaceLogicEditor.controllers_show_linked_controller -> show_controllers_linked_controller
+SpaceLogicEditor.controllers_show_selected_objects -> show_controllers_selected_objects
+SpaceLogicEditor.sensors_show_active_objects -> show_sensors_active_objects
+SpaceLogicEditor.sensors_show_active_states -> show_sensors_active_states
+SpaceLogicEditor.sensors_show_linked_controller -> show_sensors_linked_controller
+SpaceLogicEditor.sensors_show_selected_objects -> show_sensors_selected_objects
+
+
+SpaceNLA.realtime_updates -> use_realtime_updates
+SpaceNLA.show_cframe_indicator -> show_cframe_indicator
+SpaceNLA.show_seconds -> show_seconds
+SpaceNLA.show_strip_curves -> show_strip_curves
+
+
+SpaceNodeEditor.backdrop -> show_backdrop
+
+
+SpaceOutliner.match_case_sensitive -> use_match_case_sensitive
+SpaceOutliner.match_complete -> use_match_complete
+SpaceOutliner.show_restriction_columns -> show_restriction_columns
+
+
+SpaceProperties.brush_texture -> show_brush_texture
+SpaceProperties.use_pin_id -> use_pin_id
+
+
+* SpaceSequenceEditor.draw_frames -> draw_frames
+* SpaceSequenceEditor.draw_safe_margin -> draw_safe_margin
+* SpaceSequenceEditor.separate_color_preview -> separate_color_preview
+* SpaceSequenceEditor.show_cframe_indicator -> show_cframe_indicator
+* SpaceSequenceEditor.use_grease_pencil -> use_grease_pencil
+* SpaceSequenceEditor.use_marker_sync -> use_marker_sync
+
+
+SpaceTextEditor.find_all -> use_find_all
+SpaceTextEditor.find_wrap -> use_find_wrap
+SpaceTextEditor.line_numbers -> show_line_numbers
+SpaceTextEditor.live_edit -> use_live_edit
+SpaceTextEditor.overwrite -> use_overwrite
+SpaceTextEditor.syntax_highlight -> use_syntax_highlight
+SpaceTextEditor.word_wrap -> use_word_wrap
+
+
+SpaceTimeline.only_selected -> use_only_selected
+SpaceTimeline.play_all_3d -> use_play_all_3d
+SpaceTimeline.play_anim -> use_play_anim
+SpaceTimeline.play_buttons -> use_play_buttons
+SpaceTimeline.play_image -> use_play_image
+SpaceTimeline.play_nodes -> use_play_nodes
+SpaceTimeline.play_sequencer -> use_play_sequencer
+SpaceTimeline.play_top_left -> use_play_top_left
+SpaceTimeline.show_cframe_indicator -> show_cframe_indicator
+
+
+SpaceUVEditor.constrain_to_image_bounds -> use_constrain_to_image_bounds
+SpaceUVEditor.draw_modified_edges -> show_modified_edges
+SpaceUVEditor.draw_other_objects -> show_other_objects
+SpaceUVEditor.draw_smooth_edges -> show_smooth_edges
+SpaceUVEditor.draw_stretch -> show_stretch
+SpaceUVEditor.live_unwrap -> use_live_unwrap
+SpaceUVEditor.normalized_coordinates -> show_normalized_coordinates
+SpaceUVEditor.snap_to_pixels -> use_snap_to_pixels
+
+
+SpaceView3D.all_object_origins -> show_all_objects_origin
+SpaceView3D.display_background_images -> show_background_images
+SpaceView3D.display_floor -> show_floor
+SpaceView3D.display_render_override -> show_render_override
+SpaceView3D.display_x_axis -> show_axis_x
+SpaceView3D.display_y_axis -> show_axis_y
+SpaceView3D.display_z_axis -> show_axis_z
+* SpaceView3D.layers -> layers
+SpaceView3D.lock_camera_and_layers -> lock_camera_and_layers
+SpaceView3D.manipulator -> use_manipulator
+SpaceView3D.manipulator_rotate -> use_manipulator_rotate
+SpaceView3D.manipulator_scale -> use_manipulator_scale
+SpaceView3D.manipulator_translate -> use_manipulator_translate
+SpaceView3D.occlude_geometry -> use_occlude_geometry
+SpaceView3D.outline_selected -> show_outline_selected
+SpaceView3D.pivot_point_align -> use_pivot_point_align
+SpaceView3D.relationship_lines -> show_relationship_lines
+SpaceView3D.textured_solid -> show_textured_solid
+* SpaceView3D.used_layers -> used_layers
+
+
+SpeedControlSequence.curve_compress_y -> use_curve_compress_y
+SpeedControlSequence.curve_velocity -> use_curve_velocity
+SpeedControlSequence.frame_blending -> use_frame_blend
+
+
+Spline.bezier_u -> use_bezier_u
+Spline.bezier_v -> use_bezier_v
+Spline.cyclic_u -> use_cyclic_u
+Spline.cyclic_v -> use_cyclic_v
+Spline.endpoint_u -> use_endpoint_u
+Spline.endpoint_v -> use_endpoint_v
+* Spline.hide -> hide
+Spline.smooth -> use_smooth
+
+
+
+
+
+
+SplineIKConstraint.chain_offset -> use_chain_offset
+* SplineIKConstraint.even_divisions -> use_even_divisions
+SplineIKConstraint.use_curve_radius -> use_curve_radius
+SplineIKConstraint.y_stretch -> use_y_stretch
+
+
+* SplinePoint.hidden -> hide
+* SplinePoint.selected -> select
+
+
+SpotLamp.auto_clip_end -> use_auto_clip_end
+SpotLamp.auto_clip_start -> use_auto_clip_start
+SpotLamp.halo -> use_halo
+SpotLamp.only_shadow -> use_shadow_only
+SpotLamp.shadow_layer -> use_shadow_own_layer
+SpotLamp.show_cone -> show_cone
+SpotLamp.sphere -> use_sphere
+SpotLamp.square -> use_square
+
+
+* StateActuator.state -> state
+
+
+SubsurfModifier.optimal_display -> show_optimal
+SubsurfModifier.subsurf_uv -> use_subsurf_uv
+
+
+SunLamp.only_shadow -> use_shadow_only
+SunLamp.shadow_layer -> use_shadow_own_layer
+
+
+SurfaceCurve.map_along_length -> use_map_along_length
+SurfaceCurve.vertex_normal_flip -> use_vertex_normal_flip
+
+
+TexMapping.has_maximum -> use_clip_to_maximum
+TexMapping.has_minimum -> use_clip_to_minimum
+
+
+Text.dirty -> is_dirty
+Text.memory -> is_in_memory
+Text.modified -> is_modified
+Text.tabs_as_spaces -> use_tabs_as_spaces
+Text.use_module -> use_module
+
+
+TextCharacterFormat.bold -> use_bold
+TextCharacterFormat.italic -> use_italic
+TextCharacterFormat.style -> use_style
+TextCharacterFormat.underline -> use_underline
+TextCharacterFormat.wrap -> use_wrap
+
+
+TextCurve.fast -> use_fast_editing
+TextCurve.map_along_length -> use_map_along_length
+TextCurve.vertex_normal_flip -> use_vertex_normal_flip
+
+
+TextMarker.edit_all -> use_edit_all
+* TextMarker.temporary -> is_temporary
+
+
+Texture.use_color_ramp -> use_color_ramp
+Texture.use_nodes -> use_nodes
+Texture.use_preview_alpha -> use_preview_alpha
+TextureNodeMixRGB.alpha -> use_alpha
+TextureSlot.negate -> use_negate
+TextureSlot.rgb_to_intensity -> use_rgb_to_intensity
+TextureSlot.stencil -> use_stencil
+
+
+ThemeBoneColorSet.colored_constraints -> show_colored_constraints
+ThemeWidgetColors.shaded -> show_shaded
+
+
+* TimelineMarker.selected -> select
+
+
+ToolSettings.auto_normalize -> use_auto_normalize
+ToolSettings.automerge_editing -> use_automerge_editing
+ToolSettings.bone_sketching -> use_bone_sketching
+ToolSettings.etch_autoname -> use_etch_autoname
+ToolSettings.etch_overdraw -> use_etch_overdraw
+ToolSettings.etch_quick -> use_etch_quick
+ToolSettings.mesh_selection_mode -> use_mesh_selection_mode
+ToolSettings.record_with_nla -> use_record_with_nla
+ToolSettings.snap -> use_snap
+ToolSettings.snap_align_rotation -> use_snap_align_rotation
+ToolSettings.snap_peel_object -> use_snap_peel_object
+ToolSettings.snap_project -> use_snap_project
+ToolSettings.use_auto_keying -> use_keyframe_insert_auto
+* ToolSettings.uv_local_view -> showonly_uv_local_view
+ToolSettings.uv_sync_selection -> use_uv_sync_selection
+
+
+TrackToConstraint.target_z -> use_target_z
+
+
+TransformConstraint.extrapolate_motion -> use_motion_extrapolate
+TransformSequence.uniform_scale -> use_uniform_scale
+
+
+UILayout.active -> active
+UILayout.enabled -> enabled
+
+
+UVProjectModifier.override_image -> show_override_image
+
+
+UnitSettings.use_separate -> use_separate
+
+
+UserPreferencesEdit.auto_keyframe_insert_available -> use_keyframe_insert_auto_available
+UserPreferencesEdit.auto_keyframe_insert_keyingset -> use_keyframe_insert_auto_keyingset
+UserPreferencesEdit.drag_immediately -> use_drag_immediately
+UserPreferencesEdit.duplicate_action -> use_duplicate_action
+UserPreferencesEdit.duplicate_armature -> use_duplicate_armature
+UserPreferencesEdit.duplicate_curve -> use_duplicate_curve
+UserPreferencesEdit.duplicate_fcurve -> use_duplicate_fcurve
+UserPreferencesEdit.duplicate_lamp -> use_duplicate_lamp
+UserPreferencesEdit.duplicate_material -> use_duplicate_material
+UserPreferencesEdit.duplicate_mesh -> use_duplicate_mesh
+UserPreferencesEdit.duplicate_metaball -> use_duplicate_metaball
+UserPreferencesEdit.duplicate_particle -> use_duplicate_particle
+UserPreferencesEdit.duplicate_surface -> use_duplicate_surface
+UserPreferencesEdit.duplicate_text -> use_duplicate_text
+UserPreferencesEdit.duplicate_texture -> use_duplicate_texture
+UserPreferencesEdit.enter_edit_mode -> use_enter_edit_mode
+UserPreferencesEdit.global_undo -> use_global_undo
+UserPreferencesEdit.grease_pencil_simplify_stroke -> use_grease_pencil_simplify_stroke
+UserPreferencesEdit.grease_pencil_smooth_stroke -> use_grease_pencil_smooth_stroke
+UserPreferencesEdit.insertkey_xyz_to_rgb -> show_insertkey_xyz_to_rgb
+UserPreferencesEdit.keyframe_insert_needed -> use_keyframe_insert_needed
+UserPreferencesEdit.snap_rotate -> use_snap_grid_rotate
+UserPreferencesEdit.snap_scale -> use_snap_grid_scale
+UserPreferencesEdit.snap_translate -> use_snap_grid_translate
+UserPreferencesEdit.use_auto_keying -> use_auto_keying
+UserPreferencesEdit.use_negative_frames -> use_negative_frames
+UserPreferencesEdit.use_visual_keying -> show_visual_keying
+
+
+
+
+
+
+UserPreferencesFilePaths.auto_save_temporary_files -> use_auto_save_temporary_files
+UserPreferencesFilePaths.compress_file -> use_file_compression
+UserPreferencesFilePaths.filter_file_extensions -> showonly_file_extensions
+UserPreferencesFilePaths.hide_dot_files_datablocks -> show_dot_files_datablocks
+UserPreferencesFilePaths.load_ui -> use_load_ui
+UserPreferencesFilePaths.save_preview_images -> use_save_preview_images
+UserPreferencesFilePaths.use_relative_paths -> use_relative_paths
+
+
+UserPreferencesInput.continuous_mouse -> use_continuous_mouse
+UserPreferencesInput.emulate_3_button_mouse -> use_emulate_3_button_mouse
+UserPreferencesInput.emulate_numpad -> use_emulate_numpad
+UserPreferencesInput.invert_zoom_direction -> invert_zoom
+
+
+UserPreferencesSystem.auto_execute_scripts -> use_scripts_auto_execute
+UserPreferencesSystem.enable_all_codecs -> use_preview_images
+UserPreferencesSystem.international_fonts -> use_fonts_international
+UserPreferencesSystem.tabs_as_spaces -> use_tabs_as_spaces
+UserPreferencesSystem.translate_buttons -> show_translate_buttons
+UserPreferencesSystem.translate_toolbox -> show_translate_toolbox
+UserPreferencesSystem.translate_tooltips -> show_translate_tooltips
+UserPreferencesSystem.use_antialiasing -> show_antialiasing
+UserPreferencesSystem.use_mipmaps -> use_mipmaps
+UserPreferencesSystem.use_textured_fonts -> show_fonts_textured
+UserPreferencesSystem.use_vbos -> use_vertex_buffer_objects
+UserPreferencesSystem.use_weight_color_range -> show_weight_color_range
+
+
+UserPreferencesView.auto_depth -> use_mouse_auto_depth
+UserPreferencesView.auto_perspective -> show_auto_perspective
+UserPreferencesView.directional_menus -> show_directional_menus
+UserPreferencesView.display_object_info -> show_object_info
+UserPreferencesView.global_pivot -> show_global_pivot
+UserPreferencesView.global_scene -> show_global_scene
+UserPreferencesView.open_mouse_over -> use_mouse_over_open
+UserPreferencesView.pin_floating_panels -> show_pin_floating_panels
+UserPreferencesView.rotate_around_selection -> use_rotate_around_selection
+UserPreferencesView.show_mini_axis -> show_mini_axis
+UserPreferencesView.show_playback_fps -> show_playback_fps
+UserPreferencesView.show_splash -> show_splash
+UserPreferencesView.show_view_name -> show_view_name
+UserPreferencesView.tooltips -> use_tooltips
+UserPreferencesView.use_column_layout -> show_column_layout
+UserPreferencesView.use_large_cursors -> show_large_cursors
+UserPreferencesView.use_manipulator -> show_manipulator
+UserPreferencesView.use_middle_mouse_paste -> use_mouse_mmb_paste
+UserPreferencesView.wheel_invert_zoom -> invert_mouse_wheel_zoom
+UserPreferencesView.zoom_to_mouse -> use_zoom_ato_mouse
+
+
+* UserSolidLight.enabled -> use
+
+
+VertexPaint.all_faces -> use_all_faces
+VertexPaint.normals -> use_normals
+VertexPaint.spray -> use_spray
+
+
+VisibilityActuator.children -> show_occluded_children
+VisibilityActuator.occlusion -> show_occluded
+VisibilityActuator.visible -> show
+
+
+VoxelData.still -> use_still
+
+
+WaveModifier.cyclic -> use_cyclic
+WaveModifier.normals -> show_normals
+WaveModifier.x -> use_x
+WaveModifier.x_normal -> use_normal_x
+WaveModifier.y -> use_y
+WaveModifier.y_normal -> use_normal_y
+WaveModifier.z_normal -> use_normal_z
+
+
+World.blend_sky -> use_sky_blend
+World.paper_sky -> use_sky_paper
+World.real_sky -> use_sky_real
+WorldLighting.falloff -> use_falloff
+WorldLighting.pixel_cache -> use_ao_pixel_cache
+WorldLighting.use_ambient_occlusion -> use_ao
+WorldLighting.use_environment_lighting -> use_environment_lighting
+WorldLighting.use_indirect_lighting -> use_indirect_lighting
+WorldMistSettings.use_mist -> use_mist
+WorldStarsSettings.use_stars -> use_stars
+WorldTextureSlot.map_blend -> use_map_blend
+WorldTextureSlot.map_horizon -> use_map_horizon
+WorldTextureSlot.map_zenith_down -> use_map_zenith_down
+WorldTextureSlot.map_zenith_up -> use_map_zenith_up
