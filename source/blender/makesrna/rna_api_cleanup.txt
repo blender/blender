@@ -15,7 +15,7 @@ Camera.panorama -> use_panorama
 # booleans
 ActionActuator.continue_last_frame -> continue_last_frame
 ActionGroup.expanded -> show_expanded
-ActionGroup.locked -> use_lock
+ActionGroup.locked -> lock
 ActionGroup.selected -> select
 Actuator.expanded -> show_expanded
 AnimData.nla_enabled -> use_nla
@@ -59,8 +59,8 @@ BackgroundImage.show_expanded -> show_expanded
 BevelModifier.only_vertices -> useonly_vertex
 BezierSplinePoint.hidden -> hide
 BezierSplinePoint.selected_control_point -> select_control_point
-BezierSplinePoint.selected_handle1 -> select_handle_before
-BezierSplinePoint.selected_handle2 -> select_handle_after
+BezierSplinePoint.selected_handle1 -> select_left_handle
+BezierSplinePoint.selected_handle2 -> select_right_handle
 BoidRule.in_air -> use_in_air
 BoidRule.on_land -> use_on_land
 BoidRuleAvoid.predict -> use_predict
@@ -236,7 +236,7 @@ EditBone.hinge -> use_hinge
 EditBone.inherit_scale -> use_inherit_scale
 EditBone.layer -> layer
 EditBone.local_location -> use_local_location
-EditBone.locked -> use_lock
+EditBone.locked -> lock
 EditBone.multiply_vertexgroup_with_envelope -> use_envelope_multiply
 EditBone.restrict_select -> restrict_select
 EditBone.selected -> select
@@ -275,7 +275,7 @@ ExplodeModifier.split_edges -> use_edge_split
 ExplodeModifier.unborn -> show_unborn
 FCurve.auto_clamped_handles -> use_auto_handle_clamp
 *negate* FCurve.disabled -> enabled
-FCurve.locked -> use_lock
+FCurve.locked -> lock
 FCurve.muted -> use_mute
 FCurve.selected -> select
 *negate* FCurve.visible -> hide
@@ -335,7 +335,7 @@ GPencilFrame.selected -> select
 GPencilLayer.active -> active
 GPencilLayer.frame_lock -> lock_frame
 GPencilLayer.hide -> hide
-GPencilLayer.locked -> use_lock
+GPencilLayer.locked -> lock
 GPencilLayer.selected -> select
 GPencilLayer.show_points -> show_points
 GPencilLayer.use_onion_skinning -> use_onion_skin
@@ -435,7 +435,7 @@ KeyMap.children_expanded -> show_expanded_children
 KeyMap.items_expanded -> show_expanded_items
 * would use is_ * KeyMap.modal -> modal
 KeyMap.user_defined -> use_user_defined
-KeyMapItem.active -> use_active
+KeyMapItem.active -> active
 * would use is_pressed * KeyMapItem.alt -> alt
 * would use is_pressed * KeyMapItem.any -> any
 * would use is_pressed * KeyMapItem.ctrl -> ctrl
@@ -447,9 +447,9 @@ KeyMapItem.expanded -> show_expanded
 * KeyboardSensor.all_keys -> all_keys
 
 
-* would use is_ * Keyframe.selected -> selected
-* would use is_ * Keyframe.selected_handle1 -> selected_handle1
-* would use is_ * Keyframe.selected_handle2 -> selected_handle2
+* would use is_ * Keyframe.selected -> select
+* would use is_ * Keyframe.selected_handle1 -> select_left_handle
+* would use is_ * Keyframe.selected_handle2 -> select_right_handle
 
 
 KeyingSet.absolute -> use_absolute
@@ -623,8 +623,8 @@ Mesh.use_paint_mask -> use_paint_mask
 Mesh.vertex_normal_flip -> use_vertex_normal_flip
 
 
-MeshColorLayer.active -> use_active
-MeshColorLayer.active_render -> use_active_render
+MeshColorLayer.active -> active
+MeshColorLayer.active_render -> active_render
 
 
 MeshDeformModifier.dynamic -> dynamic
@@ -641,7 +641,7 @@ MeshEdge.sharp -> use_sharp
 
 
 * would use is_ * MeshFace.hidden -> hide
-* would use is_ * MeshFace.selected -> selected
+* would use is_ * MeshFace.selected -> select
 * would use is_ * MeshFace.smooth -> smooth
 
 
@@ -657,8 +657,8 @@ MeshTextureFace.shared -> use_blend_shared
 MeshTextureFace.tex -> use_render_texture
 MeshTextureFace.text -> use_bitmap_text
 MeshTextureFace.twoside -> use_twoside
-MeshTextureFace.uv_pinned -> use_uv_pinned
-MeshTextureFace.uv_selected -> use_uv_select
+MeshTextureFace.uv_pinned -> uv_pin
+MeshTextureFace.uv_selected -> uv_select
 * MeshTextureFaceLayer.active -> active
 * MeshTextureFaceLayer.active_clone -> active_clone
 * MeshTextureFaceLayer.active_render -> active_render
@@ -817,7 +817,7 @@ ObjectActuator.local_torque -> use_local_torque
 * ObjectBase.selected_user -> is_select_user
 
 
-* could be is_ * ObstacleFluidSettings.active -> use_active
+* could be is_ * ObstacleFluidSettings.active -> active
 ObstacleFluidSettings.export_animated_mesh -> use_export_animated_mesh
 
 
@@ -825,7 +825,7 @@ ObstacleFluidSettings.export_animated_mesh -> use_export_animated_mesh
 OperatorStrokeElement.flip -> use_flip
 
 
-OutflowFluidSettings.active -> use_active
+OutflowFluidSettings.active -> active
 OutflowFluidSettings.export_animated_mesh -> use_export_animated_mesh
 
 
@@ -1227,10 +1227,10 @@ Sensor.tap -> use_tap
 
 
 * Sequence.frame_locked -> frame_locked
-* Sequence.left_handle_selected -> left_handle_select
+* Sequence.left_handle_selected -> select_left_handle
 * Sequence.lock -> lock
 * Sequence.mute -> mute
-* Sequence.right_handle_selected -> right_handle_select
+* Sequence.right_handle_selected -> select_right_handle
 * Sequence.selected -> select
 * Sequence.use_effect_default_fade -> use_effect_default_fade
 
