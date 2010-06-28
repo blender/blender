@@ -4559,6 +4559,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 		if(sc->id.flag & LIB_NEEDLINK) {
 			sc->id.us= 1;
 			sc->scene= newlibadr(fd, sc->id.lib, sc->scene);
+			sc->animtimer= NULL; /* saved in rare cases */
 			
 			sa= sc->areabase.first;
 			while(sa) {
