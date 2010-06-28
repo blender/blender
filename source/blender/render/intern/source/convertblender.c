@@ -851,25 +851,23 @@ static void autosmooth(Render *re, ObjectRen *obr, float mat[][4], int degr)
 static float *get_object_orco(Render *re, Object *ob)
 {
 	float *orco;
-	
+
 	if (!re->orco_hash)
 		re->orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "get_object_orco gh");
-	
+
 	orco = BLI_ghash_lookup(re->orco_hash, ob);
-	
+
 	if (!orco) {
 		if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
 			orco = make_orco_curve(re->scene, ob);
 		} else if (ob->type==OB_SURF) {
 			orco = make_orco_surf(ob);
-		} else if (ob->type==OB_MBALL) {
-			orco = make_orco_mball(ob);
 		}
-		
+
 		if (orco)
 			BLI_ghash_insert(re->orco_hash, ob, orco);
 	}
-	
+
 	return orco;
 }
 
@@ -2369,6 +2367,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	Material *ma;
 	float *data, *nors, *orco, mat[4][4], imat[3][3], xn, yn, zn;
 	int a, need_orco, vlakindex, *index;
+	ListBase dispbase= {NULL, NULL};
 
 	if (ob!=find_basis_mball(re->scene, ob))
 		return;
@@ -2383,14 +2382,22 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	if(ma->texco & TEXCO_ORCO) {
 		need_orco= 1;
 	}
-	
-	makeDispListMBall(re->scene, ob);
-	dl= ob->disp.first;
+
+	makeDispListMBall_forRender(re->scene, ob, &dispbase);
+	dl= dispbase.first;
 	if(dl==0) return;
 
 	data= dl->verts;
 	nors= dl->nors;
-	orco= get_object_orco(re, ob);
+	if(need_orco) {
+		orco= get_object_orco(re, ob);
+
+		if (!orco) {
+			/* orco hasn't been found in cache - create new one and add to cache */
+			orco= make_orco_mball(ob, &dispbase);
+			set_object_orco(re, ob, orco);
+		}
+	}
 
 	for(a=0; a<dl->nr; a++, data+=3, nors+=3, orco+=3) {
 
@@ -2447,10 +2454,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	}
 
 	/* enforce display lists remade */
-	freedisplist(&ob->disp);
-	
-	/* this enforces remake for real, orco displist is small (in scale) */
-	ob->recalc |= OB_RECALC_DATA;
+	freedisplist(&dispbase);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -4545,7 +4549,6 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 
 void RE_Database_Free(Render *re)
 {
-	Object *ob = NULL;
 	LampRen *lar;
 	
 	/* statistics for debugging render memory usage */
@@ -4572,21 +4575,8 @@ void RE_Database_Free(Render *re)
 	BLI_freelistN(&re->lights);
 
 	free_renderdata_tables(re);
-	
-	/* free orco. check all objects because of duplis and sets */
-	ob= G.main->object.first;
-	while(ob) {
-		if(ob->type==OB_MBALL) {
-			if(ob->disp.first && ob->disp.first!=ob->disp.last) {
-				DispList *dl= ob->disp.first;
-				BLI_remlink(&ob->disp, dl);
-				freedisplist(&ob->disp);
-				BLI_addtail(&ob->disp, dl);
-			}
-		}
-		ob= ob->id.next;
-	}
 
+	/* free orco */
 	free_mesh_orco_hash(re);
 #if 0	/* radio can be redone better */
 	end_radio_render();

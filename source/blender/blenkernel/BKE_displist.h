@@ -93,6 +93,7 @@ extern void makeDispListCurveTypes(struct Scene *scene, struct Object *ob, int f
 extern void makeDispListCurveTypes_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, struct DerivedMesh **derivedFinal, int forOrco);
 extern void makeDispListCurveTypes_forOrco(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
 extern void makeDispListMBall(struct Scene *scene, struct Object *ob);
+extern void makeDispListMBall_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
 extern void shadeDispList(struct Scene *scene, struct Base *base);
 extern void shadeMeshMCol(struct Scene *scene, struct Object *ob, struct Mesh *me);
 

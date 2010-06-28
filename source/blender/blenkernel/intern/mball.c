@@ -226,7 +226,7 @@ void tex_space_mball(Object *ob)
 	boundbox_set_from_min_max(bb, min, max);
 }
 
-float *make_orco_mball(Object *ob)
+float *make_orco_mball(Object *ob, ListBase *dispbase)
 {
 	BoundBox *bb;
 	DispList *dl;
@@ -243,7 +243,7 @@ float *make_orco_mball(Object *ob)
 	loc[2]= (bb->vec[0][2]+bb->vec[1][2])/2.0f;
 	size[2]= bb->vec[1][2]-loc[2];
 
-	dl= ob->disp.first;
+	dl= dispbase->first;
 	orcodata= MEM_mallocN(sizeof(float)*3*dl->nr, "MballOrco");
 
 	data= dl->verts;
@@ -2088,7 +2088,7 @@ void init_metaball_octal_tree(int depth)
 	subdivide_metaball_octal_node(node, size[0], size[1], size[2], metaball_tree->depth);
 }
 
-void metaball_polygonize(Scene *scene, Object *ob)
+void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 {
 	PROCESS mbproc;
 	MetaBall *mb;
@@ -2105,7 +2105,6 @@ void metaball_polygonize(Scene *scene, Object *ob)
 
 	object_scale_to_mat3(ob, smat);
 
-	freedisplist(&ob->disp);
 	curindex= totindex= 0;
 	indices= 0;
 	thresh= mb->thresh;
@@ -2174,9 +2173,8 @@ void metaball_polygonize(Scene *scene, Object *ob)
 	}
 
 	if(curindex) {
-	
 		dl= MEM_callocN(sizeof(DispList), "mbaldisp");
-		BLI_addtail(&ob->disp, dl);
+		BLI_addtail(dispbase, dl);
 		dl->type= DL_INDEX4;
 		dl->nr= mbproc.vertices.count;
 		dl->parts= curindex;
