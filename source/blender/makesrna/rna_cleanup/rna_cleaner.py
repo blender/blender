@@ -255,8 +255,8 @@ def main():
 
     sort_choices = ['note','changed','class','from','to','kw']
     default_sort_choice = sort_choices[0]
-    kw_prefixes = ['invert','is','lock','show','showonly','use','useonly']
-    kw = ['hidden','selected','layer','state']
+    kw_prefixes = ['invert','is','lock','show','show_only','use','use_only']
+    kw = ['hide', 'select', 'layer', 'state']
 
     input_filename, sort_priority = check_commandline()
     props_list,props_length_max = read_file(input_filename)
