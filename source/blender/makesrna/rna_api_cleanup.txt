@@ -1,4 +1,18 @@
+# non booleans, (much todo)
+ParticleSettings.child_nbr -> child_display_percent
+ParticleSettings.rendered_child_nbr -> child_render_percent
+ParticleSettings.child_random_size -> child_size_random
+ParticleSettings.clumppow -> clump_power
+ParticleSettings.enable_simplify -> use_simplify
+ParticleSettings.rand_group -> use_group_random
+ParticleSettings.ren_as -> render_type
+ParticleSettings.sizemass -> use_size_mass
+ParticleSettings.unborn -> use_unborn
+ParticleSettings.viewport -> use_simplify_viewport
+BuildModifier.randomize -> use_random
+Camera.panorama -> use_panorama
 
+# booleans
 ActionActuator.continue_last_frame -> continue_last_frame
 ActionGroup.expanded -> show_expanded
 ActionGroup.locked -> use_lock
@@ -28,7 +42,7 @@ Armature.draw_group_colors -> show_group_colors
 Armature.draw_names -> show_names
 Armature.ghost_only_selected -> showonly_ghost_selected
 Armature.layer -> layer
-Armature.layer_protection -> layer_protection
+Armature.layer_protection -> layer_protect
 Armature.x_axis_mirror -> use_mirror_x
 ArmatureModifier.b_bone_rest -> use_b_bone_rest
 ArmatureModifier.invert -> use_vertex_group_invert
@@ -247,7 +261,7 @@ EffectSequence.use_proxy -> use_proxy
 EffectSequence.use_translation -> use_translation
 EffectorWeights.do_growing_hair -> use_hair_grow
 EnvironmentMap.ignore_layers -> layer_ignore
-EnvironmentMapTexture.use_filter_size_min -> filter_size_minimum
+EnvironmentMapTexture.use_filter_size_min -> filter_size_min
 EnvironmentMapTexture.mipmap -> use_mipmap
 EnvironmentMapTexture.mipmap_gauss -> use_mipmap_gauss
 Event.alt -> alt
@@ -313,7 +327,7 @@ FluidFluidSettings.active -> active
 FluidFluidSettings.export_animated_mesh -> use_animated_mesh
 FollowPathConstraint.use_curve_follow -> use_curve_follow
 FollowPathConstraint.use_curve_radius -> use_curve_radius
-FollowPathConstraint.use_fixed_position -> use_fixed_position
+FollowPathConstraint.use_fixed_position -> use_fixed_location
 Function.registered -> registered
 Function.registered_optional -> registered_optional
 GPencilFrame.paint_lock -> lock_paint
@@ -455,19 +469,17 @@ KeyingSetPath.insertkey_visual -> use_insertkey_visual
 KeyingSetPath.insertkey_xyz_to_rgb -> use_insertkey_xyz_to_rgb
 
 
-KinematicConstraint.pos_lock_x -> use_lock_pos_x
-KinematicConstraint.pos_lock_y -> use_lock_pos_y
-KinematicConstraint.pos_lock_z -> use_lock_pos_z
-KinematicConstraint.rot_lock_x -> use_lock_rot_x
-KinematicConstraint.rot_lock_y -> use_lock_rot_y
-KinematicConstraint.rot_lock_z -> use_lock_rot_z
-KinematicConstraint.use_position -> use_position
+KinematicConstraint.pos_lock_x -> lock_location_x
+KinematicConstraint.pos_lock_y -> lock_location_y
+KinematicConstraint.pos_lock_z -> lock_location_z
+KinematicConstraint.rot_lock_x -> lock_rotation_x
+KinematicConstraint.rot_lock_y -> lock_rotation_y
+KinematicConstraint.rot_lock_z -> lock_rotation_z
+KinematicConstraint.use_position -> use_location
 KinematicConstraint.use_rotation -> use_rotation
 KinematicConstraint.use_stretch -> use_stretch
 KinematicConstraint.use_tail -> use_tail
 KinematicConstraint.use_target -> use_target
-
-
 
 
 Lamp.diffuse -> use_diffuse
@@ -480,23 +492,23 @@ LampTextureSlot.map_color -> use_map_color
 LampTextureSlot.map_shadow -> use_map_shadow
 Lattice.outside -> use_outside
 LimitLocationConstraint.limit_transform -> limit_transform
-LimitLocationConstraint.use_maximum_x -> use_maximum_x
-LimitLocationConstraint.use_maximum_y -> use_maximum_y
-LimitLocationConstraint.use_maximum_z -> use_maximum_z
-LimitLocationConstraint.use_minimum_x -> use_minimum_x
-LimitLocationConstraint.use_minimum_y -> use_minimum_y
-LimitLocationConstraint.use_minimum_z -> use_minimum_z
+LimitLocationConstraint.use_maximum_x -> use_x_max
+LimitLocationConstraint.use_maximum_y -> use_y_max
+LimitLocationConstraint.use_maximum_z -> use_z_max
+LimitLocationConstraint.use_minimum_x -> use_x_min
+LimitLocationConstraint.use_minimum_y -> use_y_min
+LimitLocationConstraint.use_minimum_z -> use_z_min
 LimitRotationConstraint.limit_transform -> limit_transform
-LimitRotationConstraint.use_limit_x -> use_limit_x
-LimitRotationConstraint.use_limit_y -> use_limit_y
-LimitRotationConstraint.use_limit_z -> use_limit_z
+LimitRotationConstraint.use_limit_x -> use_x_limit
+LimitRotationConstraint.use_limit_y -> use_y_limit
+LimitRotationConstraint.use_limit_z -> use_z_limit
 LimitScaleConstraint.limit_transform -> limit_transform
-LimitScaleConstraint.use_maximum_x -> use_maximum_x
-LimitScaleConstraint.use_maximum_y -> use_maximum_y
-LimitScaleConstraint.use_maximum_z -> use_maximum_z
-LimitScaleConstraint.use_minimum_x -> use_minimum_x
-LimitScaleConstraint.use_minimum_y -> use_minimum_y
-LimitScaleConstraint.use_minimum_z -> use_minimum_z
+LimitScaleConstraint.use_maximum_x -> use_x_max
+LimitScaleConstraint.use_maximum_y -> use_y_max
+LimitScaleConstraint.use_maximum_z -> use_z_max
+LimitScaleConstraint.use_minimum_x -> use_x_min
+LimitScaleConstraint.use_minimum_y -> use_y_min
+LimitScaleConstraint.use_minimum_z -> use_z_min
 
 
 Main.debug -> show_debug
@@ -926,7 +938,7 @@ ParticleSystem.vertex_group_velocity_negate -> invert_vertex_group_velocity
 * ParticleTarget.valid -> valid
 
 
-PivotConstraint.use_relative_position -> use_relative_position
+PivotConstraint.use_relative_position -> use_relative_location
 
 
 PointCache.baked -> is_baked
@@ -1233,8 +1245,8 @@ ShaderNodeExtendedMaterial.invert_normal -> invert_normal
 ShaderNodeExtendedMaterial.specular -> use_specular
 
 
-ShaderNodeMapping.clamp_maximum -> use_clamp_to_maximum
-ShaderNodeMapping.clamp_minimum -> use_clamp_to_minimum
+ShaderNodeMapping.clamp_maximum -> use_clamp_to_max
+ShaderNodeMapping.clamp_minimum -> use_clamp_to_min
 
 
 ShaderNodeMaterial.diffuse -> use_diffuse
@@ -1433,7 +1445,7 @@ SpaceView3D.outline_selected -> show_outline_selected
 SpaceView3D.pivot_point_align -> use_pivot_point_align
 SpaceView3D.relationship_lines -> show_relationship_lines
 SpaceView3D.textured_solid -> show_textured_solid
-* SpaceView3D.used_layers -> used_layers
+* SpaceView3D.used_layers -> layers_used
 
 
 SpeedControlSequence.curve_compress_y -> use_curve_compress_y
@@ -1490,8 +1502,8 @@ SurfaceCurve.map_along_length -> use_map_along_length
 SurfaceCurve.vertex_normal_flip -> use_vertex_normal_flip
 
 
-TexMapping.has_maximum -> use_clip_to_maximum
-TexMapping.has_minimum -> use_clip_to_minimum
+TexMapping.has_maximum -> use_clip_to_max
+TexMapping.has_minimum -> use_clip_to_min
 
 
 Text.dirty -> is_dirty
