@@ -158,11 +158,7 @@ def get_props_from_py(input_filename):
     """
     If the file is *.py, the script assumes it contains a python list (as "rna_api=[...]")
     This means that this script executes the text in the py file with an exec(text).
-    """
-    file=open(input_filename,'r')
-    file_text=file.read()
-    file.close()
-    
+    """    
     # adds the list "rna_api" to this function's scope
     rna_api = __import__(input_filename[:-3]).rna_api
 
@@ -177,7 +173,7 @@ def get_props_from_py(input_filename):
     return (rna_api,props_length_max)
 
 
-def read_file(input_filename):
+def get_props(input_filename):
     if input_filename[-4:] == '.txt':
         props_list,props_length_max = get_props_from_txt(input_filename)
     elif input_filename[-3:] == '.py':
@@ -210,7 +206,7 @@ def write_files(props_list, props_length_max):
       * rna_api.py: unformatted, just as final output
     """
 
-    # horrible :) will use os.path more properly, I'm being lazy
+    # if needed will use os.path
     if input_filename[-4:] == '.txt':
         if input_filename[-9:] == '_work.txt':
             base_filename = input_filename[:-9]
@@ -228,21 +224,25 @@ def write_files(props_list, props_length_max):
 
     # reminder: props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
     # [comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align rotation with the snapping target]
-    rna = '#    "NOTE", "CHANGED", "CLASS", "FROM", "TO", "KEYWORD-CHECK", "TYPE", "DESCRIPTION" \n'
-    py = '#    "NOTE"                     , "CHANGED", "CLASS"                       , "FROM"                              , "TO"                                , "KEYWORD-CHECK"            , "TYPE"    , "DESCRIPTION" \n'
-    txt = 'NOTE * CLASS.FROM -> TO:   TYPE  DESCRIPTION \n'
+    rna = py = txt = ''
+    props_list = [['NOTE', 'CHANGED', 'CLASS', 'FROM', 'TO', 'KEYWORD-CHECK', 'TYPE', 'DESCRIPTION']] + props_list
     for props in props_list:
         #txt
-        txt +=  '%s * %s.%s -> %s:   %s  %s\n' % tuple(props[:1] + props[2:5] + props[6:]) # awful I'll do it smarter later
+        if props[0] != '': txt +=  '%s * ' % props[0]   # comment
+        txt +=  '%s.%s -> %s:   %s  %s\n' % tuple(props[2:5] + props[6:])   # skipping keyword-check
         # rna_api
-        rna += '    ("%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s"),\n' % tuple(props)    
+        if props[0] == 'NOTE': indent = '#   '
+        else: indent = '    '
+        rna += indent + '("%s", "%s", "%s", "%s", "%s"),\n' % tuple(props[2:5] + props[6:])    
         # py
+        if props[0] == 'NOTE': indent = '#   '
+        else: indent = '    '
         blanks = [' '* (x[0]-x[1]) for x in zip(props_length_max,list(map(len,props)))]
         props = ['"%s"%s'%(x[0],x[1]) for x in zip(props,blanks)]
-        py += '    (%s, %s, %s, %s, %s, %s, %s, %s),\n' % tuple(props)
+        py += indent + '(%s, %s, %s, %s, %s, %s, %s, %s),\n' % tuple(props)
     f_txt.write(txt)
-    f_py.write("rna_api = [\n%s    ]\n" % py)
-    f_rna.write("rna_api = [\n%s    ]\n" % rna)
+    f_py.write("rna_api = [\n%s]\n" % py)
+    f_rna.write("rna_api = [\n%s]\n" % rna)
 
     print ('\nSaved %s, %s and %s.\n' % (font_bold(f_txt.name), font_bold(f_py.name), font_bold(f_rna.name) ) )
 
@@ -255,11 +255,11 @@ def main():
 
     sort_choices = ['note','changed','class','from','to','kw']
     default_sort_choice = sort_choices[0]
-    kw_prefixes = ['invert','is','lock','show','show_only','use','use_only']
-    kw = ['hide', 'select', 'layer', 'state']
+    kw_prefixes = ['invert','is','lock','show','showonly','use','useonly']
+    kw = ['hidden','selected','layer','state']
 
     input_filename, sort_priority = check_commandline()
-    props_list,props_length_max = read_file(input_filename)
+    props_list,props_length_max = get_props(input_filename)
     props_list = sort(props_list,sort_priority)
     write_files(props_list,props_length_max)
 
