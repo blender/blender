@@ -186,10 +186,11 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         sub.active = softbody.stiff_quads
         sub.prop(softbody, "shear")
 
-        col.prop(softbody, "new_aero", text="Aero")
+        col.label(text="Extra Aerodynamics:")
+        col.prop(softbody, "aero", text="Factor")
         sub = col.column()
-        sub.enabled = softbody.new_aero
-        sub.prop(softbody, "aero", text="Factor")
+        sub.enabled = softbody.aero > 0
+        sub.prop(softbody, "new_aero", text="Straw Dynamics")
 
         col.label(text="Collision:")
         col.prop(softbody, "edge_collision", text="Edge")
