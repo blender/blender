@@ -885,7 +885,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 				else
 					orig = actualFace;
 
-				if(setDrawOptions && !setDrawOptions(userData, orig, &drawSmooth))
+				if(draw && setDrawOptions && !setDrawOptions(userData, orig, &drawSmooth))
 					draw = 0;
 
 				/* Goal is to draw as long of a contiguous triangle
