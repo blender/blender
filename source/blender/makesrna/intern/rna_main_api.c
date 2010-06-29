@@ -253,10 +253,10 @@ void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 	/* XXX python now has invalid pointer? */
 }
 
-Image *rna_Main_images_new(Main *bmain, char* name, int width, int height, int float_buffer)
+Image *rna_Main_images_new(Main *bmain, char* name, int width, int height, int alpha, int float_buffer)
 {
 	float color[4]= {0.0, 0.0, 0.0, 1.0};
-	Image *image= BKE_add_image_size(width, height, name, float_buffer, 0, color);
+	Image *image= BKE_add_image_size(width, height, name, alpha ? 32:24, float_buffer, 0, color);
 	image->id.us--;
 	return image;
 }
@@ -685,6 +685,7 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "width", 1024, 1, INT_MAX, "", "Width of the image.", 0, INT_MAX);
 	parm= RNA_def_int(func, "height", 1024, 1, INT_MAX, "", "Height of the image.", 0, INT_MAX);
+	parm= RNA_def_boolean(func, "alpha", 0, "Alpha", "Use alpha channel");
 	parm= RNA_def_boolean(func, "float_buffer", 0, "Float Buffer", "Create an image with floating point color");
 	/* return type */
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image datablock.");

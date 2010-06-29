@@ -1182,7 +1182,7 @@ static int new_exec(bContext *C, wmOperator *op)
 	PropertyRNA *prop;
 	char name[22];
 	float color[4];
-	int width, height, floatbuf, uvtestgrid;
+	int width, height, floatbuf, uvtestgrid, alpha;
 
 	/* retrieve state */
 	sima= CTX_wm_space_image(C);
@@ -1195,12 +1195,15 @@ static int new_exec(bContext *C, wmOperator *op)
 	floatbuf= RNA_boolean_get(op->ptr, "float");
 	uvtestgrid= RNA_boolean_get(op->ptr, "uv_test_grid");
 	RNA_float_get_array(op->ptr, "color", color);
-	color[3]= RNA_float_get(op->ptr, "alpha");
+	alpha= RNA_boolean_get(op->ptr, "alpha");
 	
 	if (!floatbuf && scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
 		linearrgb_to_srgb_v3_v3(color, color);
 
-	ima = BKE_add_image_size(width, height, name, floatbuf, uvtestgrid, color);
+	if(!alpha)
+		color[3]= 1.0f;
+
+	ima = BKE_add_image_size(width, height, name, alpha ? 32 : 24, floatbuf, uvtestgrid, color);
 
 	if(!ima)
 		return OPERATOR_CANCELLED;
@@ -1228,6 +1231,9 @@ static int new_exec(bContext *C, wmOperator *op)
 
 void IMAGE_OT_new(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	float default_color[4]= {0.0f, 0.0f, 0.0f, 1.0f};
+	
 	/* identifiers */
 	ot->name= "New";
 	ot->idname= "IMAGE_OT_new";
@@ -1243,8 +1249,9 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "name", "Untitled", 21, "Name", "Image datablock name.");
 	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width.", 1, 16384);
 	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height.", 1, 16384);
-	RNA_def_float_color(ot->srna, "color", 3, NULL, 0.0f, FLT_MAX, "Color", "Default fill color.", 0.0f, 1.0f);
-	RNA_def_float(ot->srna, "alpha", 1.0f, 0.0f, 1.0f, "Alpha", "Default fill alpha.", 0.0f, 1.0f);
+	prop= RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color.", 0.0f, 1.0f);
+	RNA_def_property_float_array_default(prop, default_color);
+	RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel.");
 	RNA_def_boolean(ot->srna, "uv_test_grid", 0, "UV Test Grid", "Fill the image with a grid for UV map testing.");
 	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth.");
 }
