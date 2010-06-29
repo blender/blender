@@ -24,6 +24,7 @@
  */
 
 #include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -2223,7 +2224,6 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 	softmax= but->softmax;
 	softrange= softmax - softmin;
 
-
 	if(ui_is_a_warp_but(but)) {
 		/* Mouse location isn't screen clamped to the screen so use a linear mapping
 		 * 2px == 1-int, or 1px == 1-ClickStep */
@@ -2283,15 +2283,18 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		/* Use a non-linear mapping of the mouse drag especially for large floats (normal behavior) */
 		deler= 500;
 		if(!ui_is_but_float(but)) {
-			if((softrange)<100) deler= 200.0;
-			if((softrange)<25) deler= 50.0;
+			/* prevent large ranges from getting too out of control */
+			if (softrange > 600) deler = powf(softrange, 0.75);
+			
+			if (softrange < 100) deler= 200.0;
+			if (softrange < 25) deler= 50.0;
 		}
 		deler /= fac;
 
-		if(ui_is_but_float(but) && softrange > 11) {
+		if(softrange > 11) {
 			/* non linear change in mouse input- good for high precicsion */
 			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.002);
-		} else if (!ui_is_but_float(but) && softrange > 129) { /* only scale large int buttons */
+		} else if (softrange > 129) { /* only scale large int buttons */
 			/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
 			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.004);
 		} else {
@@ -2299,8 +2302,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 			data->dragf+= ((float)(mx-data->draglastx))/deler ;
 		}
 	
-		if(data->dragf>1.0) data->dragf= 1.0;
-		if(data->dragf<0.0) data->dragf= 0.0;
+		CLAMP(data->dragf, 0.0, 1.0);
 		data->draglastx= mx;
 		tempf= (softmin + data->dragf*softrange);
 
@@ -2312,7 +2314,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 
 			CLAMP(temp, softmin, softmax);
 			lvalue= (int)data->value;
-
+			
 			if(temp != lvalue) {
 				data->dragchange= 1;
 				data->value= (double)temp;
