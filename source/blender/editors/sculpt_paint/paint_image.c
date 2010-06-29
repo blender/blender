@@ -3552,16 +3552,18 @@ static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2,
 	cp[3]= mfac*cp1[3] + fac*cp2[3];
 }
 
-static void blend_color_mix_rgb(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
+static void blend_color_mix_accum(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
 {
 	/* this and other blending modes previously used >>8 instead of /255. both
 	   are not equivalent (>>8 is /256), and the former results in rounding
 	   errors that can turn colors black fast after repeated blending */
 	const int mfac= 255-fac;
+	const int alpha= cp1[3] + ((fac * cp2[3]) / 255);
 
 	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
 	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
 	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
+	cp[3]= alpha > 255 ? 255 : alpha;
 }
 
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask)
@@ -3732,7 +3734,8 @@ static void *do_projectpaint_thread(void *ph_v)
 				bicubic_interpolation_color(ps->reproject_ibuf, projPixel->newColor.ch, NULL, projPixel->projCoSS[0], projPixel->projCoSS[1]);
 				if(projPixel->newColor.ch[3]) {
 					mask = ((float)projPixel->mask)/65535.0f;
-					blend_color_mix_rgb(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (mask*projPixel->newColor.ch[3]));
+					blend_color_mix_accum(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (mask*projPixel->newColor.ch[3]));
+
 				}
 			}
 		}
