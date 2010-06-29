@@ -214,7 +214,7 @@ class OBJECT_PT_display(ObjectButtonsPanel):
         col.prop(ob, "draw_name", text="Name")
         col.prop(ob, "draw_axis", text="Axis")
         col.prop(ob, "draw_wire", text="Wire")
-        col.prop(ob, "color", text="")
+        col.prop(ob, "color", text="Object Color")
 
         if wide_ui:
             col = split.column()
