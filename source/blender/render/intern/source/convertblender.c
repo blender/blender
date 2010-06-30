@@ -4959,6 +4959,11 @@ void RE_Database_FromScene(Render *re, Scene *scene, unsigned int lay, int use_c
 	
 	/* if no camera, viewmat should have been set! */
 	if(use_camera_view && re->scene->camera) {
+		/* called before but need to call again incase of lens animation from the
+		 * above call to scene_update_for_newframe, fixes bug. [#22702].
+		 * following calls dont depend on 'RE_SetCamera' */
+		RE_SetCamera(re, scene->camera);
+
 		normalize_m4(re->scene->camera->obmat);
 		invert_m4_m4(mat, re->scene->camera->obmat);
 		RE_SetView(re, mat);
