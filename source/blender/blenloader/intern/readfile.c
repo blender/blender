@@ -10863,11 +10863,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if (sl->spacetype == SPACE_NODE) {
 						SpaceNode *snode= (SpaceNode *)sl;
-						
+						ListBase *regionbase;
+						ARegion *ar;
+
+						if (sl == sa->spacedata.first)
+							regionbase = &sa->regionbase;
+						else
+							regionbase = &sl->regionbase;
+
 						if (snode->v2d.minzoom > 0.09f)
 							snode->v2d.minzoom= 0.09f;
 						if (snode->v2d.maxzoom < 2.31f)
 							snode->v2d.maxzoom= 2.31f;
+
+						for (ar= regionbase->first; ar; ar= ar->next) {
+							if (ar->regiontype == RGN_TYPE_WINDOW) {
+								if (ar->v2d.minzoom > 0.09f)
+									ar->v2d.minzoom= 0.09f;
+								if (ar->v2d.maxzoom < 2.31f)
+									ar->v2d.maxzoom= 2.31f;
+							}
+						}
 					}
 					else if (sl->spacetype == SPACE_TIME) {
 						SpaceTime *stime= (SpaceTime *)sl;
