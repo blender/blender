@@ -55,22 +55,22 @@ def check_commandline():
     # Usage
     if len(sys.argv)==1 or len(sys.argv)>3:
         usage()
-    if sys.argv[1]!= '-h':
-        input_filename = sys.argv[1]
-    else:
+    if sys.argv[1] == '-h':
         help()
-    if not (input_filename[-4:] == '.txt' or input_filename[-3:] == '.py'):
+    elif not (sys.argv[1][-4:] == '.txt' or sys.argv[1][-3:] == '.py'):
         print ('\nBad input file extension... exiting.')
         usage()
-    if len(sys.argv)==2:
-        order_priority = default_sort_choice
-        print ('\nSecond parameter missing: choosing to order by %s.' % font_bold(order_priority))
+    else:
+        inputfile = sys.argv[1]
+    if len(sys.argv) == 2:
+        sort_priority = default_sort_choice
+        print ('\nSecond parameter missing: choosing to order by %s.' % font_bold(sort_priority))
     elif len(sys.argv)==3:
-        order_priority = sys.argv[2]
-        if order_priority not in sort_choices:
-            print('\nWrong order_priority... exiting.')
+        sort_priority = sys.argv[2]
+        if sort_priority not in sort_choices:
+            print('\nWrong sort_priority... exiting.')
             usage()
-    return (input_filename, order_priority)
+    return (inputfile, sort_priority)
 
 
 def check_prefix(prop):
@@ -163,11 +163,11 @@ def get_props_from_py(input_filename):
     rna_api = __import__(input_filename[:-3]).rna_api
 
     props_length_max = [0 for i in rna_api[0]] # this way if the vector will take more elements we are safe
-    for props in rna_api:
+    for index,props in enumerate(rna_api):
         [comment, changed, bclass, bfrom, bto, kwcheck, btype, description] = props
         kwcheck = check_prefix(bto)   # keyword-check
         changed = check_if_changed(bfrom, bto)  # changed?
-        props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
+        rna_api[index] = [comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
         props_length = list(map(len,props)) # lengths
         props_length_max = list(map(max,zip(props_length_max,props_length)))    # max lengths
     return (rna_api,props_length_max)
@@ -198,14 +198,7 @@ def sort(props_list, sort_priority):
     return props_list
 
 
-def write_files(props_list, props_length_max):
-    """
-    Writes in 3 files:
-      * output_filename_txt: formatted as txt input file
-      * output_filename_py:  formatted for readability (could be worked on)
-      * rna_api.py: unformatted, just as final output
-    """
-
+def file_basename(input_filename):
     # if needed will use os.path
     if input_filename[-4:] == '.txt':
         if input_filename[-9:] == '_work.txt':
@@ -217,10 +210,20 @@ def write_files(props_list, props_length_max):
             base_filename = input_filename[:-8]
         else:
             base_filename = input_filename[:-3]
+    return base_filename
+
+
+def write_files(basename, props_list, props_length_max):
+    """
+    Writes in 3 files:
+      * output_filename_work.txt: formatted as txt input file (can be edited)
+      * output_filename_work.py:  formatted for readability (can be edited)
+      * rna_api.py: unformatted, just as final output
+    """
 
     f_rna = open("rna_api.py",'w')
-    f_txt = open(base_filename+'_work.txt','w')
-    f_py = open(base_filename+'_work.py','w')
+    f_txt = open(basename + '_work.txt','w')
+    f_py = open(basename + '_work.py','w')
 
     # reminder: props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
     # [comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align rotation with the snapping target]
@@ -249,7 +252,6 @@ def write_files(props_list, props_length_max):
 
 def main():
 
-    global input_filename
     global sort_choices, default_sort_choice
     global kw_prefixes, kw
 
@@ -261,7 +263,9 @@ def main():
     input_filename, sort_priority = check_commandline()
     props_list,props_length_max = get_props(input_filename)
     props_list = sort(props_list,sort_priority)
-    write_files(props_list,props_length_max)
+
+    output_basename = file_basename(input_filename)
+    write_files(output_basename, props_list,props_length_max)
 
 
 if __name__=='__main__':
