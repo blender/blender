@@ -121,7 +121,18 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 	
 	if ((flag & SEQPROP_ENDFRAME) && RNA_property_is_set(op->ptr, "frame_end")==0)
 		RNA_int_set(op->ptr, "frame_end", (int)mval_v2d[0] + 25); // XXX arbitary but ok for now.
-	
+
+	if(RNA_struct_find_property(op->ptr, "filepath")) {
+		Scene *scene= CTX_data_scene(C);
+		Sequence *last_seq= seq_active_get(scene);
+		if(last_seq && last_seq->strip && SEQ_HAS_PATH(last_seq)) {
+			RNA_string_set(op->ptr, "filepath", last_seq->strip->dir);
+		}
+		// // TODO
+		// else {
+		// 	RNA_string_set(op->ptr, "filepath", ed->act_imagedir);
+		// }
+	}
 }
 
 static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
@@ -318,7 +329,10 @@ static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, wmEvent
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
 	sequencer_generic_invoke_xy__internal(C, op, event, 0);
-	return WM_operator_filesel(C, op, event);
+
+	WM_event_add_fileselect(C, op);
+	return OPERATOR_RUNNING_MODAL;
+
 	//return sequencer_add_movie_strip_exec(C, op);
 }
 
@@ -363,7 +377,10 @@ static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
 	sequencer_generic_invoke_xy__internal(C, op, event, 0);
-	return WM_operator_filesel(C, op, event);
+
+	WM_event_add_fileselect(C, op);
+	return OPERATOR_RUNNING_MODAL;
+
 	//return sequencer_add_sound_strip_exec(C, op);
 }
 
@@ -457,7 +474,10 @@ static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, wmEvent
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
 	sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_ENDFRAME);
-	return WM_operator_filesel(C, op, event);	
+
+	WM_event_add_fileselect(C, op);
+	return OPERATOR_RUNNING_MODAL;
+
 	//return sequencer_add_image_strip_exec(C, op);
 }
 
