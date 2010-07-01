@@ -234,6 +234,15 @@ void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 #define SEL_DESELECT	2
 #define SEL_INVERT		3
 
+
+/* flags for WM_operator_properties_filesel */
+#define WM_FILESEL_RELPATH		(1 << 0)
+
+#define WM_FILESEL_DIRECTORY	(1 << 1)
+#define WM_FILESEL_FILENAME		(1 << 2)
+#define WM_FILESEL_FILEPATH		(1 << 3)
+
+
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
 void		WM_operator_bl_idname(char *to, const char *from);
