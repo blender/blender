@@ -30,6 +30,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h" /* for mesh_calc_normals */
+#include "BKE_global.h" /* for mesh_calc_normals */
 
 #include "gpu_buffers.h"
 
@@ -350,12 +351,14 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 		if(node->face_vert_indices[i] < 0)
 			node->face_vert_indices[i]= -node->face_vert_indices[i] + node->uniq_verts - 1;
 
-	node->draw_buffers =
-		GPU_build_mesh_buffers(map, bvh->verts, bvh->faces,
+	if(!G.background) {
+		node->draw_buffers =
+			GPU_build_mesh_buffers(map, bvh->verts, bvh->faces,
 				  node->prim_indices,
 				  node->totprim, node->vert_indices,
 				  node->uniq_verts,
 				  node->uniq_verts + node->face_verts);
+	}
 
 	node->flag |= PBVH_UpdateDrawBuffers;
 
@@ -364,10 +367,11 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 {
-	node->draw_buffers =
-		GPU_build_grid_buffers(bvh->grids, node->prim_indices,
+	if(!G.background) {
+		node->draw_buffers =
+			GPU_build_grid_buffers(bvh->grids, node->prim_indices,
 				node->totprim, bvh->gridsize);
-
+	}
 	node->flag |= PBVH_UpdateDrawBuffers;
 }
 
