@@ -233,7 +233,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 
 	rr= RE_AcquireResultWrite(oglrender->re);
 	if(rr->rectf==NULL)
-		rr->rectf= MEM_mallocN(sizeof(float)*4*sizex*sizey, "32 bits rects");
+		rr->rectf= MEM_callocN(sizeof(float)*4*sizex*sizey, "screen_opengl_render_init rect");
 	RE_ReleaseResult(oglrender->re);
 
 	return 1;
@@ -402,9 +402,10 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 			return OPERATOR_RUNNING_MODAL;
 	}
 
-	ret= screen_opengl_render_anim_step(C, op);
-
+	/* run first because screen_opengl_render_anim_step can free oglrender */
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);
+	
+	ret= screen_opengl_render_anim_step(C, op);
 
 	/* stop at the end or on error */
 	if(ret == 0) {
