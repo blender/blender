@@ -304,6 +304,10 @@ IF(UNIX AND NOT APPLE)
 
 	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -Wno-char-subscripts")
 
+	IF(WITH_RAYOPTIMIZATION)
+		SET(PLATFORM_CFLAGS " -msse ${PLATFORM_CFLAGS}")
+	ENDIF(WITH_RAYOPTIMIZATION)
+
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
 	# Better warnings
