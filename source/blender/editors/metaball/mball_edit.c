@@ -123,23 +123,17 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int new
 	case MB_BALL:
 		ml->type = MB_BALL;
 		ml->expx= ml->expy= ml->expz= 1.0;
-			
-		rename_id((ID *)obedit, "Meta Ball");
-		rename_id((ID *)obedit->data, "Meta Ball");
+
 		break;
 	case MB_TUBE:
 		ml->type = MB_TUBE;
 		ml->expx= ml->expy= ml->expz= 1.0;
-			
-		rename_id((ID *)obedit, "Meta Tube");
-		rename_id((ID *)obedit->data, "Meta Tube");
+
 		break;
 	case MB_PLANE:
 		ml->type = MB_PLANE;
 		ml->expx= ml->expy= ml->expz= 1.0;
-			
-		rename_id((ID *)obedit, "Meta Plane");
-		rename_id((ID *)obedit->data, "Meta Plane");
+
 		break;
 	case MB_ELIPSOID:
 		ml->type = MB_ELIPSOID;
@@ -147,15 +141,11 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int new
 		ml->expy= 0.8f;
 		ml->expz= 1.0;
 		
-		rename_id((ID *)obedit, "Meta Ellipsoid");
-		rename_id((ID *)obedit->data, "Meta Ellipsoid");
 		break;
 	case MB_CUBE:
 		ml->type = MB_CUBE;
 		ml->expx= ml->expy= ml->expz= 1.0;
-			
-		rename_id((ID *)obedit, "Meta Cube");
-		rename_id((ID *)obedit->data, "Meta Cube");
+
 		break;
 	default:
 		break;
