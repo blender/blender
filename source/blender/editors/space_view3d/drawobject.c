@@ -6158,7 +6158,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		}
 	}
 
-	if(dt<OB_SHADED) {
+	if(dt<OB_SHADED && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		if((ob->gameflag & OB_DYNAMIC) || 
 			((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE))) {
 			float imat[4][4], vec[3];
