@@ -3909,7 +3909,7 @@ int seq_active_pair_get(Scene *scene, Sequence **seq_act, Sequence **seq_other)
 void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 {
 	if(seq) {
-		strcpy(seq->name, seq_load->name);
+		BLI_strncpy(seq->name+2, seq_load->name, sizeof(seq->name)-2);
 		seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 
 		if(seq_load->flag & SEQ_LOAD_FRAME_ADVANCE) {
@@ -3963,8 +3963,6 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
 	seq->type= SEQ_IMAGE;
-	BLI_strncpy(seq->name+2, "Image", SEQ_NAME_MAXSTR-2);
-	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 	
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
@@ -3972,8 +3970,8 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	strip->len = seq->len = seq_load->len ? seq_load->len : 1;
 	strip->us= 1;
 	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-	BLI_split_dirfile(seq_load->path, strip->dir, se->name);
-	
+	BLI_strncpy(strip->dir, seq_load->path, sizeof(strip->dir));
+
 	seq_load_apply(scene, seq, seq_load);
 
 	return seq;
@@ -4084,6 +4082,9 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 		seq_load->start_frame= start_frame_back;
 		seq_load->channel--;
 	}
+
+	if(seq_load->name[0] == '\0')
+		BLI_strncpy(seq_load->name, se->name, sizeof(seq_load->name));
 
 	/* can be NULL */
 	seq_load_apply(scene, seq, seq_load);

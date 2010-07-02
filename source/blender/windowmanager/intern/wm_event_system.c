@@ -1219,7 +1219,6 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			{
 				/* XXX validate area and region? */
 				bScreen *screen= CTX_wm_screen(C);
-				char *path= RNA_string_get_alloc(handler->op->ptr, "filepath", NULL, 0);
 				
 				if(screen != handler->filescreen)
 					ED_screen_full_prevspace(C, CTX_wm_area(C));
@@ -1238,8 +1237,11 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 					/* XXX also extension code in image-save doesnt work for this yet */
 					if (RNA_struct_find_property(handler->op->ptr, "check_existing") && 
 							RNA_boolean_get(handler->op->ptr, "check_existing")) {
+						char *path= RNA_string_get_alloc(handler->op->ptr, "filepath", NULL, 0);
 						/* this gives ownership to pupmenu */
 						uiPupMenuSaveOver(C, handler->op, (path)? path: "");
+						if(path)
+							MEM_freeN(path);
 					}
 					else {
 						int retval;
@@ -1299,8 +1301,6 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				CTX_wm_area_set(C, NULL);
 				
 				wm_event_free_handler(handler);
-				if(path)
-					MEM_freeN(path);
 				
 				action= WM_HANDLER_BREAK;
 			}

@@ -107,20 +107,14 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 			if (found) break;
 		}
 	}
-	if (found){
+	if (found) {
 		if (tail) strcpy(tail, &string[nume+1]);
-		if (head) {
-			strcpy(head,string);
-			head[nums]=0;
-		}
+		if (head) BLI_strncpy(head, string, nums);
 		if (numlen) *numlen = nume-nums+1;
 		return ((int)atoi(&(string[nums])));
 	}
 	if (tail) strcpy(tail, string + len);
-	if (head) {
-		strncpy(head, string, len);
-		head[len] = '\0';
-	}
+	if (head) BLI_strncpy(head, string, nums);
 	if (numlen) *numlen=0;
 	return 0;
 }

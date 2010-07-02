@@ -231,6 +231,8 @@ void BPY_start_python( int argc, char **argv )
 	
 	BPY_start_python_path(); /* allow to use our own included python */
 
+	// Py_SetProgramName(); // extern char bprogname[FILE_MAXDIR+FILE_MAXFILE];
+
 	Py_Initialize(  );
 	
 	// PySys_SetArgv( argc, argv); // broken in py3, not a huge deal
