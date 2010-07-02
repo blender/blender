@@ -2268,6 +2268,7 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 	
 	switch(event->type) {
 		case MOUSEMOVE:
+		case INBETWEEN_MOUSEMOVE:
 			
 			wm_subwindow_getorigin(window, gesture->swinid, &sx, &sy);
 			
@@ -2398,6 +2399,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 	
 	switch(event->type) {
 		case MOUSEMOVE:
+		case INBETWEEN_MOUSEMOVE:
 			
 			wm_gesture_tag_redraw(C);
 			

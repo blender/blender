@@ -2679,6 +2679,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 		RNA_boolean_set(op->ptr, "snap", snap);
 		break;
 	case MOUSEMOVE:
+	case INBETWEEN_MOUSEMOVE:
 		dd->mval[0] = event->mval[0];
 		dd->mval[1] = event->mval[1];
 		sk_draw_stroke(C, sketch, stk, dd, snap);
