@@ -962,7 +962,7 @@ FileData *blo_openblenderfile(char *name, ReportList *reports)
 	
 	gzfile= gzopen(name, "rb");
 
-	if (NULL == gzfile) {
+	if (gzfile == Z_NULL) {
 		BKE_report(reports, RPT_ERROR, "Unable to open");
 		return NULL;
 	} else {

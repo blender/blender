@@ -328,13 +328,6 @@ Image *BKE_add_image_file(const char *name, int frame)
 	const char *libname;
 	char str[FILE_MAX], strtest[FILE_MAX];
 	
-	/* escape when name is directory */
-	len= strlen(name);
-	if(len) {
-		if(name[len-1]=='/' || name[len-1]=='\\')
-			return NULL;
-	}
-	
 	BLI_strncpy(str, name, sizeof(str));
 	BLI_path_abs(str, G.sce);
 	

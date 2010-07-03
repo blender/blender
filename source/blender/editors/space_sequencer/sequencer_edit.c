@@ -761,7 +761,8 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 			BLI_remlink(lb, seq);
 			if(seq==last_seq) seq_active_set(scene, NULL);
 			if(seq->type==SEQ_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
-			if(seq->ipo) seq->ipo->id.us--;
+			/* if(seq->ipo) seq->ipo->id.us--; */
+			/* XXX, remove fcurve */
 			seq_free_sequence(scene, seq);
 		}
 		seq= seqn;
@@ -1700,10 +1701,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	int start_ofs, cfra, frame_end;
 	int step= RNA_int_get(op->ptr, "length");
 
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
-
-	seq= ed->seqbasep->first;
+	seq= ed->seqbasep->first; /* poll checks this is valid */
 
 	while (seq) {
 		if((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
@@ -1711,7 +1709,8 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 			see seq_free_sequence below for the real free'ing */
 			seq_next = seq->next;
 			BLI_remlink(ed->seqbasep, seq);
-			if(seq->ipo) seq->ipo->id.us--;
+			/* if(seq->ipo) seq->ipo->id.us--; */
+			/* XXX, remove fcurve and assign to split image strips */
 
 			start_ofs = cfra = seq_tx_get_final_left(seq, 0);
 			frame_end = seq_tx_get_final_right(seq, 0);
@@ -1735,11 +1734,16 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
 				strncpy(se_new->name, se->name, FILE_MAXFILE-1);
 				calc_sequence(scene, seq_new);
-				seq_new->flag &= ~SEQ_OVERLAP;
-				if (seq_test_overlap(ed->seqbasep, seq_new)) {
-					shuffle_seq(ed->seqbasep, seq_new, scene);
+
+				if(step > 1) {
+					seq_new->flag &= ~SEQ_OVERLAP;
+					if (seq_test_overlap(ed->seqbasep, seq_new)) {
+						shuffle_seq(ed->seqbasep, seq_new, scene);
+					}
 				}
 
+				/* XXX, COPY FCURVES */
+				strncpy(seq_new->name+2, seq->name+2, sizeof(seq->name)-2);
 				seqbase_unique_name_recursive(&scene->ed->seqbase, seq_new);
 
 				cfra++;

@@ -30,6 +30,7 @@
 	 */
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
@@ -261,6 +262,9 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 {
 	int retval;
 
+	/* so we can get the error message */
+	errno = 0;
+
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
@@ -317,7 +321,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		BKE_write_undo(C, "Import file");
 	else if(retval == -1) {
 		if(reports)
-			BKE_reportf(reports, RPT_ERROR, "Can't read file \"%s\".", name);
+			BKE_reportf(reports, RPT_ERROR, "Can't read file: \"%s\", %s.", name, errno ? strerror(errno) : "Incompatible file format");
 	}
 }
 

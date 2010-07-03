@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -688,10 +689,14 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", str);
 	/* default to frame 1 if there's no scene in context */
+
+	errno= 0;
+
 	ima= BKE_add_image_file(str, scene ? scene->r.cfra : 1);
 
 	if(!ima) {
 		if(op->customdata) MEM_freeN(op->customdata);
+		BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", str, errno ? strerror(errno) : "Unsupported image format");
 		return OPERATOR_CANCELLED;
 	}
 	

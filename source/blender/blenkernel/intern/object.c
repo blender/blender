@@ -1724,10 +1724,8 @@ void object_to_mat4(Object *ob, float mat[][4])
 	object_to_mat3(ob, tmat);
 	
 	copy_m4_m3(mat, tmat);
-	
-	mat[3][0]= ob->loc[0] + ob->dloc[0];
-	mat[3][1]= ob->loc[1] + ob->dloc[1];
-	mat[3][2]= ob->loc[2] + ob->dloc[2];
+
+	add_v3_v3v3(mat[3], ob->loc, ob->dloc);
 }
 
 int enable_cu_speed= 1;
