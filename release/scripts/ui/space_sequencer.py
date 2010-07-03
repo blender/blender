@@ -279,6 +279,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
         layout.separator()
         layout.operator("sequencer.reload")
+        layout.operator("sequencer.reassign_inputs")
         layout.separator()
         layout.operator("sequencer.lock")
         layout.operator("sequencer.unlock")
