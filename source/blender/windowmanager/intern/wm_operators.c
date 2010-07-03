@@ -1027,9 +1027,8 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if(op->type->exec) {
 		retval= op->type->exec(C, op);
-		
-		if(op->type->flag & OPTYPE_UNDO)
-			ED_undo_push_op(C, op);
+
+		/* ED_undo_push_op(C, op), called by wm_operator_finished now. */
 	}
 
 	if(retval != OPERATOR_CANCELLED)
