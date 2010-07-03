@@ -213,6 +213,8 @@ void seq_free_strip(Strip *strip)
 	MEM_freeN(strip);
 }
 
+static void seq_free_animdata(Scene *scene, Sequence *seq);
+
 void seq_free_sequence(Scene *scene, Sequence *seq)
 {
 	if(seq->strip) seq_free_strip(seq->strip);
@@ -235,6 +237,8 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 		if(seq->scene_sound)
 			sound_remove_scene_sound(scene, seq->scene_sound);
 	}
+
+	seq_free_animdata(scene, seq);
 
 	MEM_freeN(seq);
 }
@@ -3838,6 +3842,33 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 				bezt->vec[1][0] += ofs;
 				bezt->vec[2][0] += ofs;
 			}
+		}
+	}
+}
+
+/* XXX - hackish function needed to remove all fcurves belonging to a sequencer strip */
+static void seq_free_animdata(Scene *scene, Sequence *seq)
+{
+	char str[32];
+	FCurve *fcu;
+
+	if(scene->adt==NULL || scene->adt->action==NULL)
+		return;
+
+	sprintf(str, "[\"%s\"]", seq->name+2);
+
+	fcu= scene->adt->action->curves.first; 
+
+	while (fcu) {
+		if(strstr(fcu->rna_path, "sequence_editor.sequences_all[") && strstr(fcu->rna_path, str)) {
+			FCurve *next_fcu = fcu->next;
+			
+			BLI_remlink(&scene->adt->action->curves, fcu);
+			free_fcurve(fcu);
+
+			fcu = next_fcu;
+		} else {
+			fcu = fcu->next;
 		}
 	}
 }
