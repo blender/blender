@@ -444,15 +444,23 @@ typedef struct {
    GHOST_TUns64 delta;
 } GHOST_TEventNDOFData;
 
+typedef struct {
+   /** N-degree of freedom device data v3 [GSoC 2010]*/
+
+   // Fairly close to raw device data.
+   // Each component normally ranges from -1 to +1, but can exceed that.
+   // rot axis = (rx,ry,rz).normalized
+   // rot amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
+
+   float tx, ty, tz;   /** -x left, +y forward, -z up */
+   float rx, ry, rz;
+   GHOST_TInt16 buttons;
+} GHOST_TEventNDOFData_3;
+
+// [mce] consider scrapping these, in favor of built-in SpaceNav handling.
 typedef int     (*GHOST_NDOFLibraryInit_fp)();
 typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
 typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
-
-// original patch windows callback. In mac os X version the callback is internal to the plug-in and post an event to main thead.
-// not necessary faster, but better integration with other events. 
-
-//typedef int     (*GHOST_NDOFEventHandler_fp)(float* result7, void* deviceHandle, unsigned int message, unsigned int* wParam, unsigned long* lParam);
-//typedef void     (*GHOST_NDOFCallBack_fp)(GHOST_TEventNDOFDataV2 *VolDatas);
 
 typedef struct {
 	/** The key code. */
