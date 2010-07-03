@@ -659,7 +659,9 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 				success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 			}
 			else {
+#ifdef GHOST_DEBUG
 				printf("Failed to get a context....\n");
+#endif
 				success = GHOST_kFailure;
 			}
 		}
@@ -694,7 +696,9 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 				success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 			}
 			else {
+#ifdef GHOST_DEBUG
 				printf("Failed to get a context....\n");
+#endif
 				success = GHOST_kFailure;
 			}
 					
@@ -1160,5 +1164,3 @@ static int EnumPixelFormats(HDC hdc) {
 	}
 	return iPixelFormat;
 }
-
-

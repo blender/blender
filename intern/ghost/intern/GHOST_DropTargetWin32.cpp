@@ -377,7 +377,9 @@ int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char * &out)
 	out = (char*)::malloc(size);
 	if (!out)
 	{
+#ifdef GHOST_DEBUG
 		::printf("\nmalloc failed!!!");
+#endif
 		return 0;
 	}
 
