@@ -270,6 +270,7 @@ protected:
 
 	static const int TOOL_ID_NONE = -1;
 
+	/** Which end of the pen is active: tip or eraser? */
 	GHOST_TTabletMode m_tablet_pen_mode;
 
 	/**
@@ -292,7 +293,7 @@ protected:
 	 * @param y			The y-coordinate of the cursor.
 	 * @return			Indication of success.
 	 */
-	GHOST_TSuccess setMouseCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
+	GHOST_TSuccess setMouseCursorPosition(float x, float y);
 
 	/** Start time at initialization. */
 	GHOST_TUns64 m_start_time;

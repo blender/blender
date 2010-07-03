@@ -1,4 +1,4 @@
-/**
+﻿/**
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -23,6 +23,7 @@
  *
  * Contributor(s):	Maarten Gribnau 05/2001
  *					Damien Plisson 09/2009
+ *					Mike Erwin 06/2010
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -587,6 +588,8 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	rstring = NULL;
 	
 	m_ignoreWindowSizedMessages = false;
+	
+	m_input_fidelity_hint = HI_FI; // just for testing...
 }
 
 GHOST_SystemCocoa::~GHOST_SystemCocoa()
@@ -825,9 +828,9 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 	return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
+GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(float xf, float yf)
 {
-	float xf=(float)x, yf=(float)y;
+//	float xf=(float)x, yf=(float)y;
 	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
 	if (!window) return GHOST_kFailure;
 
@@ -897,6 +900,9 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		
 		switch ([event type]) {
 			case NSKeyDown:
+				if ([event isARepeat])
+					break;
+				// else fall through
 			case NSKeyUp:
 			case NSFlagsChanged:
 				handleKeyEvent(event);
@@ -907,15 +913,12 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 			case NSLeftMouseDown:
 			case NSLeftMouseUp:
 			case NSLeftMouseDragged:
-
 			case NSRightMouseDown:
 			case NSRightMouseUp:
 			case NSRightMouseDragged:
-
 			case NSOtherMouseDown:
 			case NSOtherMouseUp:
 			case NSOtherMouseDragged:
-
 			case NSMouseMoved:
 				switch ([event subtype])
 					{
@@ -923,11 +926,15 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 						handleMouseEvent(event);
 						break;
 					case NSTabletPointEventSubtype:
-						handleTabletEvent(event);
+						if ([event deviceID] == m_tablet_mouse_id)
+							handleMouseEvent(event);
+						else
+							handleTabletEvent(event);
 						break;
 					case NSTabletProximityEventSubtype:
-						// I think only LMB down/up sends this
-						handleTabletProximity(event);
+						// I think only LMB down/up sends this.
+						// Always preceded by a real NSTabletProximity event, so it's redundant.
+						// handleTabletProximity(event);
 						break;
 
 					// Mac OS 10.6 introduces a Touch subtype
@@ -957,7 +964,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 					bool didMove = [event deltaX] != 0 and [event deltaY] != 0;
 					if (didMove)
 						handleMouseEvent(event);
-					// NSLeftMouseDown gets sent for the initial point, so this is safe.
+					// LMB Down gets sent for the initial point (and LMB Up for the final), so this is safe.
 				}
 				break;
 				
@@ -1377,12 +1384,13 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 
 GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 {
+	printf("tablet prox: ");
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)
 		m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
 
 	if (!window) {
-		//printf("\nW failure for event 0x%x",[event type]);
+		printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
 	}
 	
@@ -1394,22 +1402,27 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 	switch ([event pointingDeviceType])
 		{
 		case NSPenPointingDevice:
+			printf("pen ");
 			active_tool = GHOST_kTabletModeStylus;
 			tool_id_ptr = &m_tablet_pen_id;
 			break;
 		case NSEraserPointingDevice:
+			printf("eraser ");
 			active_tool = GHOST_kTabletModeEraser;
 			tool_id_ptr = &m_tablet_pen_id;
 			break;
 		case NSCursorPointingDevice:
+			printf("cursor ");
 			active_tool = GHOST_kTabletModeNone;
 			tool_id_ptr = &m_tablet_mouse_id;
 			break;
 		default:
+			printf("<!> unknown device %d\n", [event pointingDeviceType]);
 			return GHOST_kFailure; // fail on unknown device
 		}
 
 	if ([event isEnteringProximity]) {
+		printf("entering\n");
 		*tool_id_ptr = [event deviceID];
 
 		ct.Active = active_tool;
@@ -1418,9 +1431,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 		ct.Ytilt = 0;
 
 		// this is a good place to remember the tool's capabilities
-		// (later though, after tablet mouse is fixed and coalescing is in place)
+		// (later though, after tablet mouse is fixed and (not) coalescing is in place)
 		}
 	else {
+		printf("leaving\n");
 		*tool_id_ptr = TOOL_ID_NONE;
 
 		ct.Active = GHOST_kTabletModeNone;
@@ -1434,7 +1448,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 
 GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 {
-	NSEvent *event = (NSEvent *)eventPtr;
+	puts("tablet point");
+	NSEvent *event = (NSEvent*)eventPtr;
 	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)
 		m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
 
@@ -1442,7 +1457,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 		//printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
 	}
-	
+
 	GHOST_TabletData& ct = window->GetCocoaTabletData();
 	
 	ct.Pressure = [event pressure];
@@ -1450,46 +1465,107 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 	ct.Xtilt = tilt.x;
 	ct.Ytilt = tilt.y;
 
+	switch ([event type])
+		{
+		case NSLeftMouseDown:
+			if (m_input_fidelity_hint == HI_FI)
+				{
+				printf("hi-fi on\n");
+				[NSEvent setMouseCoalescingEnabled:NO];
+				}
+			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
+			break;
+		case NSLeftMouseUp:
+			if (m_input_fidelity_hint == HI_FI)
+				{
+				printf("hi-fi off\n");
+				[NSEvent setMouseCoalescingEnabled:YES];
+				}
+			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonUp, window, convertButton([event buttonNumber])));
+			break;
+		default:
+			{
+			NSPoint pos = [event locationInWindow];
+			pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, pos.x, pos.y));
+			break;
+			}
+		}
+
 	return GHOST_kSuccess;
 }
 
 
 GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
+	printf("mouse ");
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_Window* window =
 		(GHOST_Window*)m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
 
 	if (!window) {
-		//printf("\nW failure for event 0x%x",[event type]);
+		printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
 	}
-	
+
+	static float warp_dx = 0, warp_dy = 0; // need to reset these. e.g. each grab operation should get its own.
+		// ^^ not currently useful, try m_cursorDelta_* instead.
+
 	switch ([event type])
     {
 		case NSLeftMouseDown:
 		case NSRightMouseDown:
 		case NSOtherMouseDown:
+			printf("button down\n");
+			if (m_input_fidelity_hint == HI_FI)
+				{
+				printf("hi-fi on\n");
+				[NSEvent setMouseCoalescingEnabled:NO];
+				}
 			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
 			break;
 						
 		case NSLeftMouseUp:
 		case NSRightMouseUp:
 		case NSOtherMouseUp:
+			printf("button up\n");
+			if (m_input_fidelity_hint == HI_FI)
+				{
+				printf("hi-fi off\n");
+				[NSEvent setMouseCoalescingEnabled:YES];
+				}
 			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonUp, window, convertButton([event buttonNumber])));
+			// cheap hack, should reset when grab ends.
+			warp_dx = warp_dy = 0;
 			break;
 			
+		case NSLeftMouseDragged:
+		case NSRightMouseDragged:
+		case NSOtherMouseDragged:
 		case NSMouseMoved:
+			{
+			NSPoint mousePos = [event locationInWindow];
+			float event_dx = [event deltaX];
+			float event_dy = [event deltaY];
+
+			bool coalesced = [NSEvent isMouseCoalescingEnabled];
+			if (not coalesced)
+				printf("[hi-fi] ");
+			printf("move <%.2f,%.2f> to (%.2f,%.2f)\n", event_dx, event_dy, mousePos.x, mousePos.y);
+
+			event_dy = -event_dy; //Strange Apple implementation (inverted coordinates for the deltaY) ...
+
+
 				switch (window->getCursorGrabMode()) {
 					case GHOST_kGrabHide: //Cursor hidden grab operation : no cursor move
 					{
+						printf(" - grab hide\n");
 						GHOST_TInt32 x_warp, y_warp, x_accum, y_accum;
 						
 						window->getCursorGrabInitPos(x_warp, y_warp);
 						
 						window->getCursorGrabAccum(x_accum, y_accum);
-						x_accum += [event deltaX];
-						y_accum += -[event deltaY]; //Strange Apple implementation (inverted coordinates for the deltaY) ...
+						x_accum += event_dx;
+						y_accum += event_dy;
 						window->setCursorGrabAccum(x_accum, y_accum);
 						
 						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum));
@@ -1500,8 +1576,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						NSPoint mousePos = [event locationInWindow];
 						GHOST_TInt32 x_mouse= mousePos.x;
 						GHOST_TInt32 y_mouse= mousePos.y;
-						GHOST_TInt32 event_dx = [event deltaX];
-						GHOST_TInt32 event_dy = -[event deltaY]; //Strange Apple implementation (inverted coordinates for the deltaY) ...
 						GHOST_TInt32 x_accum, y_accum, x_cur, y_cur;
 						GHOST_Rect bounds, windowBounds, correctedBounds;
 						
@@ -1509,7 +1583,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						if(window->getCursorGrabBounds(bounds)==GHOST_kFailure)
 							window->getClientBounds(bounds);
 						
-						//Switch back to Cocoa coordinates orientation (y=0 at bottom,the same as blender internal btw!), and to client coordinates
+						//Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
 						window->getClientBounds(windowBounds);
 						window->screenToClient(bounds.m_l,bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
 						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);
@@ -1519,7 +1593,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						//Update accumulation counts
 						window->getCursorGrabAccum(x_accum, y_accum);
 						x_accum += event_dx - m_cursorDelta_x;
-						y_accum += event_dy - m_cursorDelta_y; 
+						y_accum += event_dy - m_cursorDelta_y;
 						window->setCursorGrabAccum(x_accum, y_accum);
 						
 						
@@ -1544,15 +1618,18 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					default:
 					{
 						//Normal cursor operation: send mouse position in window
-						NSPoint mousePos = [event locationInWindow];
 						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
 						m_cursorDelta_x=0;
 						m_cursorDelta_y=0; //Mouse motion occured between two cursor warps, so we can reset the delta counter
+
+						warp_dx = 0;
+						warp_dy = 0;
 					}
 						break;
 				}
 				break;
-			
+			}
+
 		case NSScrollWheel:
 			{
 				/* Send trackpad event if inside a trackpad gesture, send wheel event otherwise */
@@ -1607,8 +1684,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			m_isGestureInProgress = false;
 			break;
 		default:
+			printf("<!> unknown event type %d\n", [event type]);
 			return GHOST_kFailure;
-			break;
 		}
 	
 	return GHOST_kSuccess;
