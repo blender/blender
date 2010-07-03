@@ -427,9 +427,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             '''
 
             if contextMatrix_rot:
-                # ob.matrix = [x for row in contextMatrix_rot for x in row]
-                ob.matrix = contextMatrix_rot
-# 				ob.setMatrix(contextMatrix_rot)
+                ob.matrix_world = contextMatrix_rot
 
             importedObjects.append(ob)
             bmesh.update()
@@ -892,7 +890,7 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
 # 			me = ob.getData(mesh=1)
 # 			me.verts.delete([me.verts[0],])
 # 			if not APPLY_MATRIX:
-# 				me.transform(ob.matrixWorld.copy().invert())
+# 				me.transform(ob.matrix_world.copy().invert())
 
     # Done DUMMYVERT
     """
@@ -950,7 +948,7 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
 # 			SCALE_MAT = Blender.mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
 
             for ob in importedObjects:
-                ob.setMatrix(ob.matrixWorld * SCALE_MAT)
+                ob.matrix_world =  ob.matrix_world * SCALE_MAT
 
         # Done constraining to bounds.
 

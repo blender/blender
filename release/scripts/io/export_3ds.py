@@ -82,7 +82,7 @@ def create_derived_objects(scene, ob):
         ob.create_dupli_list(scene)
         return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
     else:
-        return False, [(ob, ob.matrix)]
+        return False, [(ob, ob.matrix_world)]
 
 # also used by X3D exporter
 def free_derived_objects(ob):
