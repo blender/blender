@@ -60,6 +60,10 @@ SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
 SET(BLENDER_VERSION  2.5)
 
 #-----------------------------------------------------------------------------
+# Load some macros.
+INCLUDE(CMake/macros.cmake)
+
+#-----------------------------------------------------------------------------
 # Set default config options
 
 # Blender internal features
@@ -114,7 +118,7 @@ OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the rayt
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 
-IF (APPLE)
+IF(APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	OPTION(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	OPTION(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
@@ -128,6 +132,8 @@ IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 
+TEST_SSE_SUPPORT()
+
 # disabled for now, not supported
 # OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 
@@ -138,10 +144,6 @@ ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 #   cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.1/lib/python3.1/config -G Xcode ../blender
 #
 # When changing any of this remember to update the notes in doc/blender-cmake.txt
-
-#-----------------------------------------------------------------------------
-# Load some macros.
-INCLUDE(CMake/macros.cmake)
 
 #-----------------------------------------------------------------------------
 #Platform specifics
@@ -308,9 +310,11 @@ IF(UNIX AND NOT APPLE)
 
 	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -Wno-char-subscripts")
 
-	IF(WITH_RAYOPTIMIZATION)
-		SET(PLATFORM_CFLAGS " -msse ${PLATFORM_CFLAGS}")
-	ENDIF(WITH_RAYOPTIMIZATION)
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
@@ -395,6 +399,11 @@ IF(WIN32)
 		SET(QUICKTIME_LIB qtmlClient)
 		SET(QUICKTIME_LIBPATH ${QUICKTIME}/Libraries)
 	ENDIF(WITH_QUICKTIME)
+
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	IF(MSVC)
 		IF(CMAKE_CL_64)
@@ -796,6 +805,12 @@ IF(APPLE)
 		SET(TIFF_LIBRARY tiff)
 		SET(TIFF_LIBPATH ${TIFF}/lib)
 	ENDIF(WITH_TIFF)
+
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	SET(EXETYPE MACOSX_BUNDLE)
 
