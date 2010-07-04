@@ -324,7 +324,8 @@ typedef struct SpeedControlVars {
    otherwise, you can't really blend, right :) !)
 */
 
-#define SEQ_HAS_PATH(_seq) ( (_seq)->type==SEQ_MOVIE || (_seq)->type==SEQ_IMAGE || (_seq)->type==SEQ_SOUND )
+
+#define SEQ_HAS_PATH(_seq) (ELEM5((_seq)->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_SOUND, SEQ_RAM_SOUND, SEQ_HD_SOUND))
 
 #endif
 

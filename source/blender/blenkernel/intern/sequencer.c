@@ -3994,6 +3994,7 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
 	seq->type= SEQ_IMAGE;
+	seq->blend_mode= SEQ_CROSS; /* so alpha adjustment fade to the strip below */
 	
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
@@ -4085,8 +4086,9 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 		return NULL;
 
 	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
-
 	seq->type= SEQ_MOVIE;
+	seq->blend_mode= SEQ_CROSS; /* so alpha adjustment fade to the strip below */
+
 	seq->anim= an;
 	seq->anim_preseek = IMB_anim_get_preseek(an);
 	BLI_strncpy(seq->name+2, "Movie", SEQ_NAME_MAXSTR-2);

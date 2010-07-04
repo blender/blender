@@ -246,31 +246,31 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 
 	for (seq= seqm->seqbase.first; seq; seq= seq->next) {
 		if((seq->startdisp > x2 || seq->enddisp < x1) == 0) {
-			float ym= (seq->machine - chan_min) / (float)(chan_range) * draw_range;
+			float y_chan= (seq->machine - chan_min) / (float)(chan_range) * draw_range;
+			float x1_chan= seq->startdisp;
+			float x2_chan= seq->enddisp;
+			float y1_chan, y2_chan;
 
-			float x1m= seq->startdisp;
-			float x2m= seq->enddisp;
-			float y1m, y2m;
-			
 			if((seqm->flag & SEQ_MUTE) == 0 && (seq->flag & SEQ_MUTE))
 				drawmeta_stipple(1);
-			
+
 			get_seq_color3ubv(scene, seq, col);
 
 			glColor4ubv((GLubyte *)col);
 			
-			if(x1m < x1) x1m= x1;
-			if(x2m > x2) x2m= x2;
-			
-			y1m= y1 + ym + (draw_height * SEQ_STRIP_OFSBOTTOM);
-			y2m= y1 + ym + (draw_height * SEQ_STRIP_OFSTOP);
+			/* clamp within parent sequence strip bounds */
+			if(x1_chan < x1) x1_chan= x1;
+			if(x2_chan > x2) x2_chan= x2;
 
-			glRectf(x1m,  y1m, x2m,  y2m);
+			y1_chan= y1 + y_chan + (draw_height * SEQ_STRIP_OFSBOTTOM);
+			y2_chan= y1 + y_chan + (draw_height * SEQ_STRIP_OFSTOP);
+
+			glRectf(x1_chan,  y1_chan, x2_chan,  y2_chan);
 
 			UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -30);
 			glColor4ubv((GLubyte *)col);
-			fdrawbox(x1m,  y1m, x2m,  y2m);
-			
+			fdrawbox(x1_chan,  y1_chan, x2_chan,  y2_chan);
+
 			if((seqm->flag & SEQ_MUTE) == 0 && (seq->flag & SEQ_MUTE))
 				drawmeta_stipple(0);
 		}
