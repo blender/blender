@@ -281,7 +281,6 @@ void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
 void fsmenu_read_system(struct FSMenu* fsmenu)
 {
 	char line[256];
-	FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
 	FILE *fp;
 
 #ifdef WIN32
@@ -459,15 +458,14 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 #else
 	/* unix */
 	{
-		char dir[FILE_MAXDIR];
 		char *home= BLI_gethome();
 
 		if(home) {
-			BLI_snprintf(dir, FILE_MAXDIR, "%s/", home);
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
-			BLI_snprintf(dir, FILE_MAXDIR, "%s/Desktop/", home);
-			if (BLI_exists(dir)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
+			BLI_snprintf(line, FILE_MAXDIR, "%s/", home);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			BLI_snprintf(line, FILE_MAXDIR, "%s/Desktop/", home);
+			if (BLI_exists(line)) {
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 			}
 		}
 
@@ -476,7 +474,6 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 #ifdef __linux__
 			/* loop over mount points */
 			struct mntent *mnt;
-			FILE *fp;
 			int len;
 
 			fp = setmntent (MOUNTED, "r");
@@ -491,8 +488,8 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 
 					len= strlen(mnt->mnt_dir);
 					if(len && mnt->mnt_dir[len-1] != '/') {
-						BLI_snprintf(dir, FILE_MAXDIR, "%s/", mnt->mnt_dir);
-						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, dir, 1, 0);
+						BLI_snprintf(line, FILE_MAXDIR, "%s/", mnt->mnt_dir);
+						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, 1, 0);
 					}
 					else
 						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, mnt->mnt_dir, 1, 0);
