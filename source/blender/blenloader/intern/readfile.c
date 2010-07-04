@@ -10953,13 +10953,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* don't forget to set version number in blender.c! */
 }
 
+#if 0 // XXX: disabled for now... we still don't have this in the right place in the loading code for it to work
 static void do_versions_after_linking(FileData *fd, Library *lib, Main *main)
 {
-	/* old Animation System (using IPO's) needs to be converted to the new Animato system
-	 */
+	/* old Animation System (using IPO's) needs to be converted to the new Animato system */
 	if(main->versionfile < 250)
 		do_versions_ipos_to_animato(main);
 }
+#endif
 
 static void lib_link_all(FileData *fd, Main *main)
 {
@@ -11107,7 +11108,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filename)
 	blo_join_main(&fd->mainlist);
 
 	lib_link_all(fd, bfd->main);
-	do_versions_after_linking(fd, NULL, bfd->main);
+	//do_versions_after_linking(fd, NULL, bfd->main); // XXX: not here (or even in this function at all)! this causes crashes on many files - Aligorith (July 04, 2010)
 	lib_verify_nodetree(bfd->main, 1);
 	fix_relpaths_library(fd->relabase, bfd->main); /* make all relative paths, relative to the open blend file */
 	
