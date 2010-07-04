@@ -152,6 +152,8 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_IMMEDIATE	(1<<26)
 #define UI_BUT_NO_TOOLTIP	(1<<27)
 
+#define UI_BUT_VEC_SIZE_LOCK (1<<28) /* used to flag if color hsv-circle should keep luminance */
+
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
 
@@ -683,7 +685,7 @@ void uiTemplateHistogram(uiLayout *layout, struct PointerRNA *ptr, char *propnam
 void uiTemplateWaveform(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
 void uiTemplateVectorscope(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *propname, int type, int levels, int brush);
-void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider, int lock);
+void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider, int lock, int lock_luminosity);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname,
 			  PointerRNA *used_ptr, char *used_propname, int active_layer);

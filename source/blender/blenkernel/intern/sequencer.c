@@ -49,6 +49,7 @@
 #include "RNA_access.h"
 #include "RE_pipeline.h"
 
+#include "BLI_math.h"
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
@@ -1528,32 +1529,35 @@ static void make_cb_table_byte(float lift, float gain, float gamma,
 				   unsigned char * table, float mul)
 {
 	int y;
+	/* matches 'LooksBuilder', generally looks nice too */
+	if(lift >= 1.0f)	lift= 0.0f;
+	else lift=			(1.0f - lift) * (1.0f - lift);
+	/* end modif's */
 
 	for (y = 0; y < 256; y++) {
-			float v = 1.0 * y / 255;
+		float v = (float)y * (1.0 / 255.0f);
 		v *= gain;
-		v += lift; 
+		v = pow(v, lift);
 		v = pow(v, gamma);
 		v *= mul;
-		if ( v > 1.0) {
-			v = 1.0;
-		} else if (v < 0.0) {
-			v = 0.0;
-		}
+		CLAMP(v, 0.0f, 1.0f);
 		table[y] = v * 255;
 	}
-
 }
 
 static void make_cb_table_float(float lift, float gain, float gamma,
 				float * table, float mul)
 {
 	int y;
+	/* matches 'LooksBuilder', generally looks nice too */
+	if(lift >= 1.0f)	lift= 0.0f;
+	else lift=			(1.0f - lift) * (1.0f - lift);
+	/* end modif's */
 
 	for (y = 0; y < 256; y++) {
-			float v = (float) y * 1.0 / 255.0;
+		float v = (float)y * (1.0 / 255.0f);
 		v *= gain;
-		v += lift;
+		v = pow(v, lift);
 		v = pow(v, gamma);
 		v *= mul;
 		table[y] = v;

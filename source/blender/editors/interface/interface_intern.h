@@ -173,6 +173,7 @@ struct uiBut {
 	float hardmin, hardmax, softmin, softmax;
 	float a1, a2, hsv[3];	// hsv is temp memory for hsv buttons
 	float aspect;
+	float color_lum; /* used only for color buttons so far */
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -184,8 +185,11 @@ struct uiBut {
 
 	struct bContextStore *context;
 
+	/* not ysed yet, was used in 2.4x for ui_draw_pulldown_round & friends */
+	/*
 	void (*embossfunc)(int , int , float, float, float, float, float, int);
 	void (*sliderfunc)(int , float, float, float, float, float, float, int);
+	*/
 
 	uiButCompleteFunc autocomplete_func;
 	void *autofunc_arg;
@@ -228,12 +232,12 @@ struct uiBut {
 
 	/* Operator data */
 	struct wmOperatorType *optype;
-	int opcontext;
 	struct IDProperty *opproperties;
 	struct PointerRNA *opptr;
+	short opcontext;
 	
 	/* Draggable data, type is WM_DRAG_... */
-	int dragtype;
+	short dragtype;
 	void *dragpoin;
 	struct ImBuf *imb;
 	float imb_scale;

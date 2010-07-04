@@ -1949,11 +1949,12 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, i
 
 #define WHEEL_SIZE	100
 
-void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int value_slider, int lock)
+void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int value_slider, int lock, int lock_luminosity)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiLayout *col, *row;
+	uiBut *but;
 	float softmin, softmax, step, precision;
 	
 	if (!prop) {
@@ -1966,8 +1967,15 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 	col = uiLayoutColumn(layout, 0);
 	row= uiLayoutRow(col, 1);
 	
-	uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, lock, "");
-	
+	but= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, lock, "");
+
+	if(lock_luminosity) {
+		float color[4]; /* incase of alpha */
+		but->flag |= UI_BUT_VEC_SIZE_LOCK;
+		RNA_property_float_get_array(ptr, prop, color);
+		but->color_lum= len_v3(color); /* abuse the soft-max though this is a kind of soft-max */
+	}
+
 	uiItemS(row);
 	
 	if (value_slider)

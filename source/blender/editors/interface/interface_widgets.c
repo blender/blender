@@ -1674,6 +1674,7 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		float co= cos(ang);
 		
 		ui_hsvcircle_vals_from_pos(hsv, hsv+1, rect, centx + co*radius, centy + si*radius);
+		CLAMP(hsv[2], 0.0f, 1.0f); /* for display only */
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		glColor3fv(col);
 		glVertex2f( centx + co*radius, centy + si*radius);
@@ -1688,7 +1689,7 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH );
 	glColor3ubv((unsigned char*)wcol->outline);
-	glutil_draw_lined_arc(0.0f, M_PI*2.0, radius, tot);
+	glutil_draw_lined_arc(0.0f, M_PI*2.0, radius, tot + 1);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH );
 	glPopMatrix();

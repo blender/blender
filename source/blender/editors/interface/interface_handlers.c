@@ -236,7 +236,7 @@ static uiBut *ui_but_last(uiBlock *block)
 static int ui_is_a_warp_but(uiBut *but)
 {
 	if(U.uiflag & USER_CONTINUOUS_MOUSE)
-		if(ELEM(but->type, NUM, NUMABS))
+		if(ELEM3(but->type, NUM, NUMABS, HSVCIRCLE))
 			return TRUE;
 
 	return FALSE;
@@ -3064,10 +3064,22 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	if (but->a2 == 1) { // lock
 		if (hsv[2] == 0.f) hsv[2] = 0.0001f;
 	}
+
+	if(U.uiflag & USER_CONTINUOUS_MOUSE) {
+		/* slow down the mouse, this is fairly picky */
+		mx = (data->dragstartx*0.9 + mx*0.1);
+		my = (data->dragstarty*0.9 + my*0.1);
+	}
 		
 	ui_hsvcircle_vals_from_pos(hsv, hsv+1, &rect, (float)mx, (float)my);
 	
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
+
+	if(but->flag & UI_BUT_VEC_SIZE_LOCK) {
+		normalize_v3(rgb);
+		mul_v3_fl(rgb, but->color_lum);
+	}
+
 	ui_set_but_vectorf(but, rgb);
 	
 	data->draglastx= mx;

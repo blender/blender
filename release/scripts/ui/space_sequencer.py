@@ -753,11 +753,11 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
             col.row().prop(strip.color_balance, "lift")
             col.prop(strip.color_balance, "inverse_lift", text="Inverse")
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "gamma", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "gamma", value_slider=False, lock_luminosity=True)
             col.row().prop(strip.color_balance, "gamma")
             col.prop(strip.color_balance, "inverse_gamma", text="Inverse")
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "gain", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "gain", value_slider=False, lock_luminosity=True)
             col.row().prop(strip.color_balance, "gain")
             col.prop(strip.color_balance, "inverse_gain", text="Inverse")
 
