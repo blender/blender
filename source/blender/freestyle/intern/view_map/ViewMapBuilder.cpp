@@ -241,8 +241,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, Grid* iGrid
 	  maxIndex = tmpQI;
 	}
       }
-      else
-	FindOccludee(fe, iGrid, epsilon, &aFace, timestamp++);
+      FindOccludee(fe, iGrid, epsilon, &aFace, timestamp++);
 
       if(aFace) { 
 	fe->setaFace(*aFace);
@@ -361,8 +360,7 @@ void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, Grid* i
 	    maxIndex = tmpQI;
 	  }
 	}
-	else
-	  FindOccludee(fe, iGrid, epsilon, &aFace, timestamp++);
+        FindOccludee(fe, iGrid, epsilon, &aFace, timestamp++);
 
         if(aFace)
         { 

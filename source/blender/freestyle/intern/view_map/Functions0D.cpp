@@ -38,16 +38,9 @@ namespace Functions0D {
     Interface0DIterator prev = it, next = it;
     ++next;
     int count = 1;
-    while((!prev.isBegin()) && (count < 3))
-      { 
-        --prev;
-        ++count;
-      }
-    while((!next.isEnd()) && (count < 3))
-      {
-        ++next;
-        ++count;
-      } 
+    if (!it.isBegin() && !next.isEnd()) {
+      count = 3;
+    } 
     if(count < 3)
       {
         // if we only have 2 vertices
@@ -296,9 +289,13 @@ namespace Functions0D {
   int MaterialF0D::operator()(Interface0DIterator& iter) {
     FEdge *fe1, *fe2;
     getFEdges(iter,fe1,fe2);
-    
-    if(fe1 == 0)
+
+    if(fe1 == 0) {
+      // DEBUG
       getFEdges(iter, fe1, fe2);
+      return 1;
+    }
+
     if(fe1->isSmooth())
       result = ((FEdgeSmooth*)fe1)->frs_material();
     else

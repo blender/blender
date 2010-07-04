@@ -938,10 +938,18 @@ Stroke* createStroke(Interface1D& inter) {
       stroke_vertex = new StrokeVertex(cp);
     current = stroke_vertex->point2d();
     Vec3r vec_tmp(current - previous);
-    currentCurvilignAbscissa += vec_tmp.norm();
-    stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
-    stroke->push_back(stroke_vertex);
-    previous = current;
+    real vec_tmp_norm = vec_tmp.norm();
+    if((stroke->strokeVerticesSize() > 0) && (vec_tmp_norm < 1.e-06)){
+      // The point we just created is superimposed with the 
+      // previous one. We remove it to avoid having to deal
+      // with this kind of singularities in the strip creation
+      delete stroke_vertex;
+    }else{
+      currentCurvilignAbscissa += vec_tmp.norm();
+      stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
+      stroke->push_back(stroke_vertex);
+      previous = current;
+    }
     ++it;
   } while((it != itend) && (it != itfirst));
 
@@ -959,9 +967,17 @@ Stroke* createStroke(Interface1D& inter) {
       stroke_vertex = new StrokeVertex(cp);
     current = stroke_vertex->point2d();
     Vec3r vec_tmp(current - previous);
-    currentCurvilignAbscissa += vec_tmp.norm();
-    stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
-    stroke->push_back(stroke_vertex);
+    real vec_tmp_norm = vec_tmp.norm();
+    if((stroke->strokeVerticesSize() > 0) && (vec_tmp_norm < 1.e-06)){
+      // The point we just created is superimposed with the 
+      // previous one. We remove it to avoid having to deal
+      // with this kind of singularities in the strip creation
+      delete stroke_vertex;
+    }else{
+      currentCurvilignAbscissa += vec_tmp.norm();
+      stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
+      stroke->push_back(stroke_vertex);
+    }
   }
   stroke->setLength(currentCurvilignAbscissa);
   return stroke;
