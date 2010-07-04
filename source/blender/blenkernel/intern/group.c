@@ -328,6 +328,11 @@ void group_handle_recalc_and_update(Scene *scene, Object *parent, Group *group)
 {
 	GroupObject *go;
 	
+#if 0 /* warning, isnt clearing the recalc flag on the object which causes it to run all the time,
+	   * not just on frame change.
+	   * This isnt working because the animation data is only re-evalyated on frame change so commenting for now
+	   * but when its enabled at some point it will need to be changed so as not to update so much - campbell */
+
 	/* if animated group... */
 	if(give_timeoffset(parent) != 0.0f || parent->nlastrips.first) {
 		int cfrao;
@@ -353,7 +358,9 @@ void group_handle_recalc_and_update(Scene *scene, Object *parent, Group *group)
 		/* restore */
 		scene->r.cfra= cfrao;
 	}
-	else {
+	else
+#endif
+	{
 		/* only do existing tags, as set by regular depsgraph */
 		for(go= group->gobject.first; go; go= go->next) {
 			if(go->ob) {
