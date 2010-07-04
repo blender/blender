@@ -403,7 +403,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	Render *re= RE_NewRender(scene->id.name);
 	Image *ima;
 	View3D *v3d= CTX_wm_view3d(C);
-	int lay= (v3d)? v3d->lay|scene->lay: scene->lay;
+	int lay= (v3d)? v3d->lay: scene->lay;
 
 	if(re==NULL) {
 		re= RE_NewRender(scene->id.name);
@@ -666,7 +666,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->scene= scene;
 	rj->win= CTX_wm_window(C);
 	rj->srl = srl;
-	rj->lay = (v3d)? v3d->lay|scene->lay: scene->lay;
+	rj->lay = (v3d)? v3d->lay: scene->lay;
 	rj->anim= RNA_boolean_get(op->ptr, "animation");
 	rj->iuser.scene= scene;
 	rj->iuser.ok= 1;
