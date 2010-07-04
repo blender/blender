@@ -393,8 +393,6 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
         bf_editor_datafiles
 
 		blender_BSP 
-		bf_ghost 
-		bf_string 
 		blender_render 
 		blender_ONL 
 		bf_python 
@@ -405,9 +403,11 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_nodes
 		bf_gpu
 		bf_blenloader
+		bf_blenlib
+		bf_ghost
+		bf_string
 		bf_blenpluginapi 
 		bf_imbuf 
-		bf_blenlib 
 		bf_avi 
 		bf_cineon 
 		bf_openexr 
