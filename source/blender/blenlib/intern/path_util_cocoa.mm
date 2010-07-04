@@ -1,9 +1,7 @@
-/* path_util_cocoa.m
+/*
+ * $Id$
  *
  * Functions specific to osx that use API available only in Objective-C
- *
- *
- * $Id: util_cocoa.m 25007 2009-11-29 19:16:52Z kazanbas $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
