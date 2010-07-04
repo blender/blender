@@ -2681,6 +2681,10 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 	calc_sequence(scene, seq_act);
 	calc_sequence(scene, seq_other);
 
+	/* sound needs to be moved */
+	if(seq_act->scene_sound) calc_sequence_disp(scene, seq_act);
+	if(seq_other->scene_sound) calc_sequence_disp(scene, seq_other);
+
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
