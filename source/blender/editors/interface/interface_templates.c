@@ -952,7 +952,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con,
 	uiLayout *result= NULL, *col, *col1, *col2, *box, *row, *subrow, *split;
 	PointerRNA ptr;
 	char typestr[32];
-	short width = 265;
 	short proxy_protected, xco=0, yco=0;
 	int rb_col;
 
@@ -2444,13 +2443,13 @@ static void do_running_jobs(bContext *C, void *arg, int event)
 			G.afbreek= 1;
 			break;
 		case B_STOPCAST:
-			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C));
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C), NULL);
 			break;
 		case B_STOPANIM:
 			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
 		case B_STOPCOMPO:
-			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C));
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
 			break;
 	}
 }

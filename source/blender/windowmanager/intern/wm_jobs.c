@@ -339,28 +339,25 @@ void WM_jobs_stop_all(wmWindowManager *wm)
 	
 }
 
-/* signal job(s) from this owner to stop, timer is required to get handled */
-void WM_jobs_stop(wmWindowManager *wm, void *owner)
+/* signal job(s) from this owner or callback to stop, timer is required to get handled */
+void WM_jobs_stop(wmWindowManager *wm, void *owner, void *startjob)
 {
 	wmJob *steve;
 	
 	for(steve= wm->jobs.first; steve; steve= steve->next)
-		if(steve->owner==owner)
+		if(steve->owner==owner || steve->startjob==startjob)
 			if(steve->running)
 				steve->stop= 1;
 }
 
 /* actually terminate thread and job timer */
-void WM_jobs_kill(wmWindowManager *wm, void *owner)
+void WM_jobs_kill(wmWindowManager *wm, void *owner, void *startjob)
 {
 	wmJob *steve;
 	
 	for(steve= wm->jobs.first; steve; steve= steve->next)
-		if(steve->owner==owner)
-			break;
-	
-	if (steve) 
-		wm_jobs_kill_job(wm, steve);
+		if(steve->owner==owner || steve->startjob==startjob)
+			wm_jobs_kill_job(wm, steve);
 }
 
 
