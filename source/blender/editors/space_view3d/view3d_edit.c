@@ -1309,8 +1309,8 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 static int viewhome_poll(bContext *C)
 {
 	if(ED_operator_view3d_active(C)) {
-		RegionView3D *rv3d= CTX_wm_region_view3d(C);
-		if(rv3d->persp!=RV3D_CAMOB) {
+		RegionView3D *rv3d= CTX_wm_region_view3d(C); //XXX, when accessed from a header menu this doesnt work!
+		if(rv3d && rv3d->persp!=RV3D_CAMOB) {
 			return 1;
 		}
 	}
