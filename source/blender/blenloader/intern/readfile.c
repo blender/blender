@@ -959,11 +959,11 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 FileData *blo_openblenderfile(char *name, ReportList *reports)
 {
 	gzFile gzfile;
-	
+	errno= 0;
 	gzfile= gzopen(name, "rb");
 
 	if (gzfile == Z_NULL) {
-		BKE_report(reports, RPT_ERROR, "Unable to open");
+		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", name, errno ? strerror(errno) : "Unknown erro reading file");
 		return NULL;
 	} else {
 		FileData *fd = filedata_new();
@@ -996,7 +996,7 @@ FileData *blo_openblendermemory(void *mem, int memsize, ReportList *reports)
 FileData *blo_openblendermemfile(MemFile *memfile, ReportList *reports)
 {
 	if (!memfile) {
-		BKE_report(reports, RPT_ERROR, "Unable to open");
+		BKE_report(reports, RPT_ERROR, "Unable to open blend <memory>");
 		return NULL;
 	} else {
 		FileData *fd= filedata_new();

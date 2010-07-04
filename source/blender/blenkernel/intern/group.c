@@ -280,6 +280,7 @@ int group_is_animated(Object *parent, Group *group)
 	return 0;
 }
 
+#if 0 // add back when timeoffset & animsys work again
 /* only replaces object strips or action when parent nla instructs it */
 /* keep checking nla.c though, in case internal structure of strip changes */
 static void group_replaces_nla(Object *parent, Object *target, char mode)
@@ -319,6 +320,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 		}
 	}
 }
+#endif
 
 /* puts all group members in local timing system, after this call
 you can draw everything, leaves tags in objects to signal it needs further updating */
