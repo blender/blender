@@ -88,6 +88,8 @@
 #include "GHOST_WindowWin32.h"
 #include "GHOST_NDOFManager.h"
 
+#include <shlobj.h>
+
 // Key code values not found in winuser.h
 #ifndef VK_MINUS
 #define VK_MINUS 0xBD
@@ -1091,4 +1093,40 @@ void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	} else {
 		return;
 	}
+}
+
+const GHOST_TUns8* GHOST_SystemWin32::getSystemDir() const
+{
+	static char knownpath[MAX_PATH];
+	HRESULT hResult = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath);
+
+	if (hResult == S_OK)
+	{
+		return (GHOST_TUns8*)knownpath;
+	}
+
+	return NULL;
+}
+
+const GHOST_TUns8* GHOST_SystemWin32::getUserDir() const
+{
+	static char knownpath[MAX_PATH];
+	HRESULT hResult = SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath);
+
+	if (hResult == S_OK)
+	{
+		return (GHOST_TUns8*)knownpath;
+	}
+
+	return NULL;
+}
+
+const GHOST_TUns8* GHOST_SystemWin32::getBinaryDir() const
+{
+	static char fullname[MAX_PATH];
+	if(GetModuleFileName(0, fullname, MAX_PATH)) {
+		return (GHOST_TUns8*)fullname;
+	}
+
+	return NULL;
 }

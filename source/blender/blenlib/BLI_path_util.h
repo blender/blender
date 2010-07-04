@@ -100,6 +100,11 @@ char *BLI_get_folder_create(int folder_id, char *subfolder);
 #define BLENDER_BOOKMARK_FILE	"bookmarks.txt"
 #define BLENDER_HISTORY_FILE	"recent-files.txt"
 
+#ifdef WIN32
+#define BLENDER_BASE_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#else
+#define BLENDER_BASE_FORMAT			"%s/.blender/%s"
+#endif
 
 void BLI_setenv(const char *env, const char *val);
 void BLI_setenv_if_new(const char *env, const char* val);

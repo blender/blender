@@ -1458,3 +1458,23 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 			fprintf(stderr, "failed to own primary\n");
 	}
 }
+
+const GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
+{
+	return (GHOST_TUns8*)"/usr/share/";
+}
+
+const GHOST_TUns8* GHOST_SystemX11::getUserDir() const
+{
+	char* env = getenv("HOME");
+	if(env) {
+		return (GHOST_TUns8*) env;
+	} else {
+		return NULL;
+	}
+}
+
+const GHOST_TUns8* GHOST_SystemX11::getBinaryDir() const
+{
+	return NULL;
+}

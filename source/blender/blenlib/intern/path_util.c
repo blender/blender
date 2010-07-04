@@ -46,8 +46,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"	// BLENDER_VERSION
 
-
-
+#include "GHOST_Path-api.h"
 
 
 #ifdef WIN32
@@ -916,7 +915,7 @@ char *BLI_gethome_folder(char *folder_name, int flag)
 /* ************************************************************* */
 /* ************************************************************* */
 
-#define PATH_DEBUG2
+// #define PATH_DEBUG2
 
 static char *blender_version_decimal(void)
 {
@@ -1004,54 +1003,20 @@ static int get_path_local(char *targetpath, char *folder_name)
 	return 0;
 }
 
-#ifdef WIN32
-static int get_knownfolder_path(char *path, int folder) 
-{
-	static char knownpath[MAXPATHLEN];
-	HRESULT hResult = SHGetFolderPath(NULL, folder, NULL, SHGFP_TYPE_CURRENT, knownpath);
-	
-	if (hResult == S_OK)
-	{
-		if (BLI_exists(knownpath)) { /* from fop, also below... */
-			BLI_strncpy(path, knownpath, FILE_MAX);
-			return 1;
-		}
-	}
-	return 0;
-}
-#endif
-
-#if defined(__APPLE__)
-#ifndef WITH_COCOA
-const char* BLI_osx_getBasePath(basePathesTypes pathType)
-{
-	return "/tmp/";
-}
-#endif
-#endif
-
 static int get_path_user(char *targetpath, char *folder_name, char *envvar)
 {
 	char user_path[FILE_MAX];
-#if defined(WIN32)
-	char appdata[FILE_MAX];
-#endif
-
+	const char *user_base_path;
+	
 	user_path[0] = '\0';
 
 	if (test_env_path(targetpath, envvar))
 		return 1;
-
-#if defined(__APPLE__)
-	BLI_snprintf(user_path, FILE_MAX, "%s/%s", BLI_osx_getBasePath(BasePath_BlenderUser), blender_version_decimal());
-#elif defined(WIN32)
-	if (get_knownfolder_path(appdata, CSIDL_APPDATA)) {	
-		BLI_snprintf(user_path, FILE_MAX, "%s\\Blender Foundation\\Blender\\%s", appdata, blender_version_decimal());
+	
+	user_base_path = (const char *)GHOST_getUserDir();
+	if (user_base_path) {
+		BLI_snprintf(user_path, FILE_MAX, BLENDER_BASE_FORMAT, user_base_path, blender_version_decimal());
 	}
-#else /* UNIX */
-	/* XXX example below - replace with OS API */
-	BLI_snprintf(user_path, FILE_MAX, "%s/.blender/%s", BLI_gethome(), blender_version_decimal());
-#endif
 
 	if(!user_path[0])
 		return 0;
@@ -1067,23 +1032,17 @@ static int get_path_user(char *targetpath, char *folder_name, char *envvar)
 static int get_path_system(char *targetpath, char *folder_name, char *envvar)
 {
 	char system_path[FILE_MAX];
-#if defined(WIN32)
-	char appdata[FILE_MAX];
-#endif
+	const char *system_base_path;
+
+	system_path[0] = '\0';
 
 	if (test_env_path(targetpath, envvar))
 		return 1;
-	
-#if defined(__APPLE__)
-	BLI_snprintf(system_path, FILE_MAX, "%s/%s", BLI_osx_getBasePath(BasePath_ApplicationBundle), blender_version_decimal());
-#elif defined(WIN32)
-	if (get_knownfolder_path(appdata, CSIDL_COMMON_APPDATA)) {	
-		BLI_snprintf(system_path, FILE_MAX, "%s\\Blender Foundation\\Blender\\%s", appdata, blender_version_decimal());
+
+	system_base_path = (const char *)GHOST_getSystemDir();
+	if (system_base_path) {
+		BLI_snprintf(system_path, FILE_MAX, BLENDER_BASE_FORMAT, system_base_path, blender_version_decimal());
 	}
-#else /* UNIX */
-	/* XXX example below - replace with OS API */
-	BLI_snprintf(system_path, FILE_MAX, "/usr/share/blender/%s", blender_version_decimal());
-#endif
 	
 	if(!system_path[0])
 		return 0;
