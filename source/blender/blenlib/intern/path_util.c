@@ -1015,6 +1015,15 @@ static int get_knownfolder_path(char *path, int folder)
 }
 #endif
 
+#if defined(__APPLE__)
+#ifndef WITH_COCOA
+const char* BLI_osx_getBasePath(basePathesTypes pathType)
+{
+	return "/tmp/";
+}
+#endif
+#endif
+
 static int get_path_user(char *targetpath, char *folder_name, char *envvar)
 {
 	char user_path[FILE_MAX];
