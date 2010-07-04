@@ -28,7 +28,7 @@
  */
 
 #include "intern/GHOST_Debug.h"
-#include "GHOST_path-api.h"
+#include "GHOST_Path-api.h"
 #include "GHOST_ISystem.h"
 
 const GHOST_TUns8* GHOST_getSystemDir()
