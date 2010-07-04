@@ -549,8 +549,8 @@ void calc_sequence(Scene *scene, Sequence *seq)
 		if(seq->type==SEQ_META) {
 			seqm= seq->seqbase.first;
 			if(seqm) {
-				min= 1000000;
-				max= -1000000;
+				min=  MAXFRAME * 2;
+				max= -MAXFRAME * 2;
 				while(seqm) {
 					if(seqm->startdisp < min) min= seqm->startdisp;
 					if(seqm->enddisp > max) max= seqm->enddisp;

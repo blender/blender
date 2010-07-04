@@ -2678,12 +2678,17 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	sound_remove_scene_sound(scene, seq_act->scene_sound);
+	sound_remove_scene_sound(scene, seq_other->scene_sound);
+
+	seq_act->scene_sound= NULL;
+	seq_other->scene_sound= NULL;
+
 	calc_sequence(scene, seq_act);
 	calc_sequence(scene, seq_other);
 
-	/* sound needs to be moved */
-	if(seq_act->scene_sound) calc_sequence_disp(scene, seq_act);
-	if(seq_other->scene_sound) calc_sequence_disp(scene, seq_other);
+	if(seq_act->sound)		sound_add_scene_sound(scene, seq_act, seq_act->startdisp, seq_act->enddisp, seq_act->startofs + seq_act->anim_startofs);
+	if(seq_other->sound)	sound_add_scene_sound(scene, seq_other, seq_other->startdisp, seq_other->enddisp, seq_other->startofs + seq_other->anim_startofs);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
