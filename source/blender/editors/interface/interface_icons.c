@@ -457,25 +457,20 @@ static void init_internal_icons()
 	ImBuf *bbuf= NULL;
 	int x, y, icontype;
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
-	char filenamestr[FILE_MAXFILE+16];	// 16 == strlen(".blender/icons/")+1
 	
 	if ((btheme!=NULL) && (strlen(btheme->tui.iconfile) > 0)) {
-	
-#ifdef WIN32
-		sprintf(filenamestr, "icons/%s", btheme->tui.iconfile);
-#else
-		sprintf(filenamestr, ".blender/icons/%s", btheme->tui.iconfile);
-#endif
-		
-		BLI_make_file_string("/", iconfilestr, BLI_gethome(), filenamestr);
-		
-		if (BLI_exists(iconfilestr)) {
-			bbuf = IMB_loadiffname(iconfilestr, IB_rect);
-			if(bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H) {
-				if (G.f & G_DEBUG)
-					printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
-				IMB_freeImBuf(bbuf);
-				bbuf= NULL;
+		char *datadir= BLI_get_folder(BLENDER_DATAFILES, NULL);
+		if (datadir) {
+			BLI_make_file_string("/", iconfilestr, datadir, btheme->tui.iconfile);
+			
+			if (BLI_exists(iconfilestr)) {
+				bbuf = IMB_loadiffname(iconfilestr, IB_rect);
+				if(bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H) {
+					if (G.f & G_DEBUG)
+						printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
+					IMB_freeImBuf(bbuf);
+					bbuf= NULL;
+				}
 			}
 		}
 	}
@@ -555,14 +550,14 @@ static void init_iconfile_list(struct ListBase *list)
 	char icondirstr[FILE_MAX];
 	char iconfilestr[FILE_MAX+16]; /* allow 256 chars for file+dir */
 	char olddir[FILE_MAX];
-	
-	list->first = list->last = NULL;
+	char *datadir= NULL;
 
-#ifdef WIN32
-	BLI_make_file_string("/", icondirstr, BLI_gethome(), "icons");
-#else
-	BLI_make_file_string("/", icondirstr, BLI_gethome(), ".blender/icons");
-#endif
+	list->first = list->last = NULL;
+	datadir = BLI_get_folder(BLENDER_DATAFILES, NULL);
+
+	if (!datadir) return;
+
+	BLI_make_file_string("/", icondirstr, datadir, "");
 	
 	if(BLI_exists(icondirstr)==0)
 		return;

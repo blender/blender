@@ -103,7 +103,7 @@
 #include "wm_window.h"
 #include "wm_event_system.h"
 
-static void writeBlog(void);
+static void write_history(void);
 
 /* To be able to read files without windows closing, opening, moving 
    we try to prepare for worst case:
@@ -298,7 +298,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		if (retval!=0) {
 			G.relbase_valid = 1;
 			if(!G.background) /* assume automated tasks with background, dont write recent file list */
-				writeBlog();
+				write_history();
 		}
 
 // XXX		undo_editmode_clear();
@@ -333,17 +333,23 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 {
 	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
-	char *home= BLI_gethome();
 	int from_memory= op?RNA_boolean_get(op->ptr, "factory"):0;
 	int success;
-		
-	BLI_clean(home);
 	
 	free_ttfont(); /* still weird... what does it here? */
 		
 	G.relbase_valid = 0;
 	if (!from_memory) {
-		BLI_make_file_string(G.sce, tstr, home, ".B25.blend");
+		char *cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
+		if (cfgdir) {
+			BLI_make_file_string(G.sce, tstr, cfgdir, BLENDER_STARTUP_FILE);
+		} else {
+			tstr[0] = '\0';
+			from_memory = 1;
+			if (op) {
+				BKE_report(op->reports, RPT_INFO, "Config directory with startup.blend file found."); 
+			}
+		}
 	}
 	strcpy(scestr, G.sce);	/* temporary store */
 	
@@ -391,15 +397,19 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 }
 
 
-void read_Blog(void)
+void read_history(void)
 {
 	char name[FILE_MAX];
 	LinkNode *l, *lines;
 	struct RecentFile *recent;
 	char *line;
 	int num;
+	char *cfgdir = BLI_get_folder(BLENDER_CONFIG, NULL);
 
-	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
+	if (!cfgdir) return;
+
+	BLI_make_file_string("/", name, cfgdir, BLENDER_HISTORY_FILE);
+
 	lines= BLI_read_file_as_lines(name);
 
 	G.recent_files.first = G.recent_files.last = NULL;
@@ -428,14 +438,14 @@ void read_Blog(void)
 
 }
 
-static void writeBlog(void)
+static void write_history(void)
 {
 	struct RecentFile *recent, *next_recent;
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	FILE *fp;
 	int i;
 
-	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
+	BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_HISTORY_FILE);
 
 	recent = G.recent_files.first;
 	/* refresh .Blog of recent opened files, when current file was changed */
@@ -620,7 +630,7 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 		if(fileflags & G_FILE_AUTOPLAY) G.fileflags |= G_FILE_AUTOPLAY;
 		else G.fileflags &= ~G_FILE_AUTOPLAY;
 
-		writeBlog();
+		write_history();
 
 		/* run this function after because the file cant be written before the blend is */
 		if (ibuf_thumb) {
@@ -652,7 +662,8 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	if(win->screen->full == SCREENTEMP)
 		wm_window_close(C, wm, win);
 	
-	BLI_make_file_string("/", tstr, BLI_gethome(), ".B25.blend");
+	BLI_make_file_string("/", tstr, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
+	printf("trying to save homefile at %s \n", tstr);
 	
 	/*  force save as regular blend file */
 	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN);

@@ -2502,7 +2502,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 			makeFilesAbsolute(G.sce, NULL);
 	}
 
-	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B25.blend");
+	BLI_make_file_string(G.sce, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	write_user_block= BLI_streq(dir, userfilename);
 
 	if(write_flags & G_FILE_RELATIVE_REMAP)

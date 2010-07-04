@@ -33,6 +33,10 @@ SET(INC
 	${ZLIB_INC}
 )
 
+IF(APPLE)
+	SET(SRC ${SRC} intern/path_util_cocoa.m)
+ENDIF(APPLE)
+
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 SET(INC
 	${INC}

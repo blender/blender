@@ -1458,22 +1458,3 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 			fprintf(stderr, "failed to own primary\n");
 	}
 }
-
-const GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
-{
-	return (GHOST_TUns8*)"/usr/share/blender";
-}
-
-const GHOST_TUns8* GHOST_SystemX11::getUserDir() const
-{
-	static char path[256];
-	char* env = getenv("HOME");
-	if(env) {
-		strncpy(path, env, 245);
-		path[245]=0;
-		strcat(path, "/.blender/");
-		return (GHOST_TUns8*) path;
-	} else {
-		return NULL;
-	}
-}

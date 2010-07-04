@@ -124,27 +124,6 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("wm.exit_blender", text="Quit", icon='QUIT')
 
 
-class INFO_MT_file_open_recent(bpy.types.Menu):
-    bl_idname = "INFO_MT_file_open_recent"
-    bl_label = "Open Recent..."
-
-    def draw(self, context):
-        import os
-        layout = self.layout
-        layout.operator_context = 'EXEC_AREA'
-
-        filepath = os.path.join(bpy.app.home, ".Blog")
-
-        if os.path.isfile(filepath):
-            file = open(filepath, "rU")
-            for line in file:
-                line = line.rstrip()
-                layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').filepath = line
-            file.close()
-        else:
-            layout.label(text='No recent files')
-
-
 class INFO_MT_file_import(bpy.types.Menu):
     bl_idname = "INFO_MT_file_import"
     bl_label = "Import"
@@ -374,7 +353,6 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 classes = [
     INFO_HT_header,
     INFO_MT_file,
-    INFO_MT_file_open_recent,
     INFO_MT_file_import,
     INFO_MT_file_export,
     INFO_MT_file_external_data,

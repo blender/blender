@@ -44,6 +44,7 @@
 #include "BLI_storage_types.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_blender.h"	// BLENDER_VERSION
 
 
 
@@ -62,11 +63,6 @@
 #include "BLI_winstuff.h"
 
 #else /* non windows */
-
-#ifdef __APPLE__
-#include <sys/param.h>
-#include <CoreFoundation/CoreFoundation.h>
-#endif
 
 #ifdef __linux__
 #include "binreloc.h"
@@ -759,7 +755,11 @@ char *BLI_gethome(void) {
 		}
 
 				
-		/* add user profile support for WIN 2K / NT */
+		/* add user profile support for WIN 2K / NT.
+		 * This is %APPDATA%, which translates to either
+		 * %USERPROFILE%\Application Data or since Vista
+		 * to %USERPROFILE%\AppData\Roaming
+		 */
 		hResult = SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
 		
 		if (hResult == S_OK)
@@ -794,7 +794,7 @@ char *BLI_gethome(void) {
 /* this function returns the path to a blender folder, if it exists
  * utility functions for BLI_gethome_folder */
 
-/* #define PATH_DEBUG */ /* for testing paths that are checked */
+// #define PATH_DEBUG /* for testing paths that are checked */
 
 static int test_data_path(char *targetpath, char *path_base, char *path_sep, char *folder_name)
 {
@@ -904,6 +904,303 @@ char *BLI_gethome_folder(char *folder_name, int flag)
 	
 	return NULL;
 }
+
+
+/* NEW stuff, to be cleaned up when fully migrated */
+/* ************************************************************* */
+/* ************************************************************* */
+
+#define PATH_DEBUG2
+
+static char *blender_version_decimal(void)
+{
+	static char version_str[5];
+	sprintf(version_str, "%d.%02d", BLENDER_VERSION/100, BLENDER_VERSION%100);
+	return version_str;
+}
+
+static int test_path(char *targetpath, char *path_base, char *path_sep, char *folder_name)
+{
+	char tmppath[FILE_MAX];
+	
+	if(path_sep)	BLI_join_dirfile(tmppath, path_base, path_sep);
+	else			BLI_strncpy(tmppath, path_base, sizeof(tmppath));
+	
+	BLI_make_file_string("/", targetpath, tmppath, folder_name);
+	
+	if (BLI_exists(targetpath)) {
+#ifdef PATH_DEBUG2
+		printf("\tpath found: %s\n", targetpath);
+#endif
+		return 1;
+	}
+	else {
+#ifdef PATH_DEBUG2
+		printf("\tpath missing: %s\n", targetpath);
+#endif
+		//targetpath[0] = '\0';
+		return 0;
+	}
+}
+
+static int test_env_path(char *path, char *envvar)
+{
+	char *env = envvar?getenv(envvar):NULL;
+	if (!env) return 0;
+	
+	if (BLI_exists(env)) {
+		BLI_strncpy(path, env, FILE_MAX);
+		return 1;
+	} else {
+		path[0] = '\0';
+		return 0;
+	}
+}
+
+static int get_path_local(char *targetpath, char *folder_name)
+{
+	extern char bprogname[]; /* argv[0] from creator.c */
+	char bprogdir[FILE_MAX];
+	char cwd[FILE_MAX];
+	char *s;
+	int i;
+	
+#ifdef PATH_DEBUG2
+	printf("get_path_local...\n");
+#endif
+	
+	
+	/* use argv[0] (bprogname) to get the path to the executable */
+	s = BLI_last_slash(bprogname);
+	i = s - bprogname + 1;
+	BLI_strncpy(bprogdir, bprogname, i);
+	
+	/* try EXECUTABLE_DIR/folder_name */
+	if(test_path(targetpath, bprogdir, "", folder_name))
+		return 1;
+	
+	/* try CWD/release/folder_name */
+	if(test_path(targetpath, BLI_getwdN(cwd), "release", folder_name))
+		return 1;
+	
+	/* try EXECUTABLE_DIR/release/folder_name */
+	if(test_path(targetpath, bprogdir, "release", folder_name))
+		return 1;
+	
+	/* try EXECUTABLE_DIR/2.5/folder_name - new default directory for local blender installed files */
+	if(test_path(targetpath, bprogdir, blender_version_decimal(), folder_name))
+		return 1;
+
+	/* try ./.blender/folder_name -- DEPRECATED, need to update build systems */
+	if(test_path(targetpath, bprogdir, ".blender", folder_name))
+		return 1;
+
+	return 0;
+}
+
+#ifdef WIN32
+static int get_knownfolder_path(char *path, int folder) 
+{
+	static char knownpath[MAXPATHLEN];
+	HRESULT hResult = SHGetFolderPath(NULL, folder, NULL, SHGFP_TYPE_CURRENT, knownpath);
+	
+	if (hResult == S_OK)
+	{
+		if (BLI_exists(knownpath)) { /* from fop, also below... */
+			BLI_strncpy(path, knownpath, FILE_MAX);
+			return 1;
+		}
+	}
+	return 0;
+}
+#endif
+
+static int get_path_user(char *targetpath, char *folder_name, char *envvar)
+{
+	char user_path[FILE_MAX];
+#if defined(WIN32)
+	char appdata[FILE_MAX];
+#endif
+
+	user_path[0] = '\0';
+
+	if (test_env_path(targetpath, envvar))
+		return 1;
+
+#if defined(__APPLE__)
+	BLI_snprintf(user_path, FILE_MAX, "%s/%s", BLI_osx_getBasePath(BasePath_BlenderUser), blender_version_decimal());
+#elif defined(WIN32)
+	if (get_knownfolder_path(appdata, CSIDL_APPDATA)) {	
+		BLI_snprintf(user_path, FILE_MAX, "%s\\Blender Foundation\\Blender\\%s", appdata, blender_version_decimal());
+	}
+#else /* UNIX */
+	/* XXX example below - replace with OS API */
+	BLI_snprintf(user_path, FILE_MAX, "%s/.blender/%s", BLI_gethome(), blender_version_decimal());
+#endif
+
+	if(!user_path[0])
+		return 0;
+	
+#ifdef PATH_DEBUG2
+	printf("get_path_user: %s\n", user_path);
+#endif
+	
+	/* try $HOME/folder_name */
+	return test_path(targetpath, user_path, NULL, folder_name);
+}
+
+static int get_path_system(char *targetpath, char *folder_name, char *envvar)
+{
+	char system_path[FILE_MAX];
+#if defined(WIN32)
+	char appdata[FILE_MAX];
+#endif
+
+	if (test_env_path(targetpath, envvar))
+		return 1;
+	
+#if defined(__APPLE__)
+	BLI_snprintf(system_path, FILE_MAX, "%s/%s", BLI_osx_getBasePath(BasePath_ApplicationBundle), blender_version_decimal());
+#elif defined(WIN32)
+	if (get_knownfolder_path(appdata, CSIDL_COMMON_APPDATA)) {	
+		BLI_snprintf(system_path, FILE_MAX, "%s\\Blender Foundation\\Blender\\%s", appdata, blender_version_decimal());
+	}
+#else /* UNIX */
+	/* XXX example below - replace with OS API */
+	BLI_snprintf(system_path, FILE_MAX, "/usr/share/blender/%s", blender_version_decimal());
+#endif
+	
+	if(!system_path[0])
+		return 0;
+	
+#ifdef PATH_DEBUG2
+	printf("get_path_system: %s\n", system_path);
+#endif
+	
+	/* try $BLENDERPATH/folder_name */
+	return test_path(targetpath, system_path, NULL, folder_name);
+}
+
+/* get a folder out of the 'folder_id' presets for paths */
+/* returns the path if found, NULL string if not */
+char *BLI_get_folder(int folder_id, char *subfolder)
+{
+	static char path[FILE_MAX] = "";
+	char search_path[FILE_MAX];
+	
+	switch (folder_id) {
+		case BLENDER_DATAFILES:		/* general case */
+			BLI_join_dirfile(search_path, "datafiles", subfolder);
+			if (get_path_user(path, search_path, "BLENDER_USER_DATAFILES"))	break;
+			if (get_path_local(path, search_path)) break;
+			if (get_path_system(path, search_path, "BLENDER_SYSTEM_DATAFILES")) break;
+			return NULL;
+			
+		case BLENDER_USER_DATAFILES:		
+			BLI_join_dirfile(search_path, "datafiles", subfolder);
+			if (get_path_user(path, search_path, "BLENDER_USER_DATAFILES"))	break;
+			return NULL;
+			
+		case BLENDER_SYSTEM_DATAFILES:
+			BLI_join_dirfile(search_path, "datafiles", subfolder);
+			if (get_path_system(path, search_path, "BLENDER_SYSTEM_DATAFILES"))	break;
+			return NULL;
+			
+		case BLENDER_CONFIG:		/* general case */
+			BLI_join_dirfile(search_path, "config", subfolder);
+			if (get_path_user(path, search_path, "BLENDER_USER_CONFIG")) break;
+			if (get_path_local(path, search_path)) break;
+			if (get_path_system(path, search_path, "BLENDER_SYSTEM_CONFIG")) break;
+			return NULL;
+			
+		case BLENDER_USER_CONFIG:
+			BLI_join_dirfile(search_path, "config", subfolder);
+			if (get_path_user(path, search_path, "BLENDER_USER_CONFIG")) break;
+			return NULL;
+			
+		case BLENDER_SYSTEM_CONFIG:
+			BLI_join_dirfile(search_path, "config", subfolder);
+			if (get_path_system(path, search_path, "BLENDER_SYSTEM_CONFIG")) break;
+			return NULL;
+			
+		case BLENDER_SCRIPTS:		/* general case */
+			BLI_join_dirfile(search_path, "scripts", subfolder);
+			if (get_path_user(path, search_path, "BLENDER_USER_SCRIPTS")) break;		
+			if (get_path_local(path, search_path)) break;
+			if (get_path_system(path, search_path, "BLENDER_SYSTEM_SCRIPTS")) break;
+			return NULL;
+			
+		case BLENDER_USER_SCRIPTS:
+			BLI_join_dirfile(search_path, "scripts", subfolder);
+			if (get_path_user(path, search_path, "BLENDER_USER_SCRIPTS")) break;
+			return NULL;
+			
+		case BLENDER_SYSTEM_SCRIPTS:
+			BLI_join_dirfile(search_path, "scripts", subfolder);
+			if (get_path_system(path, search_path, "BLENDER_SYSTEM_SCRIPTS")) break;
+			return NULL;
+			
+		case BLENDER_PYTHON:		/* general case */
+			BLI_join_dirfile(search_path, "python", subfolder);
+			if (get_path_local(path, search_path)) break;
+			if (get_path_system(path, search_path, "BLENDER_SYSTEM_PYTHON")) break;
+			return NULL;
+			
+		case BLENDER_SYSTEM_PYTHON:
+			BLI_join_dirfile(search_path, "scripts", subfolder);
+			
+			if (get_path_system(path, search_path, "BLENDER_SYSTEM_PYTHON")) break;
+			return NULL;
+	}
+	
+	return path;
+}
+
+static char *BLI_get_user_folder_notest(int folder_id, char *subfolder)
+{
+	static char path[FILE_MAX] = "";
+	char search_path[FILE_MAX];
+
+	switch (folder_id) {
+		case BLENDER_USER_DATAFILES:
+			BLI_join_dirfile(search_path, "datafiles", subfolder);
+			get_path_user(path, search_path, "BLENDER_USER_DATAFILES");
+			break;
+		case BLENDER_USER_CONFIG:
+			BLI_join_dirfile(search_path, "config", subfolder);
+			get_path_user(path, search_path, "BLENDER_USER_CONFIG");
+			break;
+	}
+	if ('\0' == path[0]) {
+		return NULL;
+	}
+	return path;
+}
+
+char *BLI_get_folder_create(int folder_id, char *subfolder)
+{
+	char *path;
+
+	/* only for user folders */
+	if (!ELEM(folder_id, BLENDER_USER_DATAFILES, BLENDER_USER_CONFIG))
+		return NULL;
+	
+	path = BLI_get_folder(folder_id, subfolder);
+	
+	if (!path) {
+		path = BLI_get_user_folder_notest(folder_id, subfolder);
+		if (path) BLI_recurdir_fileops(path);
+	}
+	
+	return path;
+}
+
+
+/* End new stuff */
+/* ************************************************************* */
+/* ************************************************************* */
+
+
 
 #ifdef PATH_DEBUG
 #undef PATH_DEBUG
@@ -1158,6 +1455,9 @@ void BLI_join_dirfile(char *string, const char *dir, const char *file)
 	
 	if(string != dir) /* compare pointers */
 		BLI_strncpy(string, dir, FILE_MAX);
+
+	if (!file)
+		return;
 	
 	sl_dir= BLI_add_slash(string);
 	
@@ -1464,26 +1764,6 @@ char *get_install_dir(void) {
 		return NULL;
 	}
 }
-
-/* 
- * returns absolute path to the app bundle
- * only useful on OS X 
- */
-#ifdef __APPLE__
-char* BLI_getbundle(void) {
-	CFURLRef bundleURL;
-	CFStringRef pathStr;
-	static char path[MAXPATHLEN];
-	CFBundleRef mainBundle = CFBundleGetMainBundle();
-
-	bundleURL = CFBundleCopyBundleURL(mainBundle);
-	pathStr = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
-	CFStringGetCString(pathStr, path, MAXPATHLEN, kCFStringEncodingASCII);
-	CFRelease(pathStr);
-	CFRelease(bundleURL);
-	return path;
-}
-#endif
 
 #ifdef WITH_ICONV
 

@@ -55,6 +55,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_path_util.h"
 
 #include "IMB_imbuf.h"
 
@@ -368,7 +369,7 @@ int BKE_read_file(bContext *C, char *dir, void *unused, ReportList *reports)
 	BlendFileData *bfd;
 	int retval= 1;
 
-	if(strstr(dir, ".B25.blend")==0) /* dont print user-pref loading */
+	if(strstr(dir, BLENDER_STARTUP_FILE)==0) /* dont print user-pref loading */
 		printf("read blend: %s\n", dir);
 
 	bfd= BLO_read_from_file(dir, reports);

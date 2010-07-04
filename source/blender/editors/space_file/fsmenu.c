@@ -248,7 +248,37 @@ void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
 	fclose(fp);
 }
 
-void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
+void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
+{
+	char line[256];
+	FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
+	FILE *fp;
+
+	fp = fopen(filename, "r");
+	if (!fp) return;
+
+	while ( fgets ( line, 256, fp ) != NULL ) /* read a line */
+	{
+		if (strncmp(line, "[Bookmarks]", 11)==0){
+			category = FS_CATEGORY_BOOKMARKS;
+		} else if (strncmp(line, "[Recent]", 8)==0){
+			category = FS_CATEGORY_RECENT;
+		} else {
+			int len = strlen(line);
+			if (len>0) {
+				if (line[len-1] == '\n') {
+					line[len-1] = '\0';
+				}
+				if (BLI_exist(line)) {
+					fsmenu_insert_entry(fsmenu, category, line, 0, 1);
+				}
+			}
+		}
+	}
+	fclose(fp);
+}
+
+void fsmenu_read_system(struct FSMenu* fsmenu)
 {
 	char line[256];
 	FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
@@ -482,30 +512,8 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 	}
 #endif
 #endif
-
-	fp = fopen(filename, "r");
-	if (!fp) return;
-
-	while ( fgets ( line, 256, fp ) != NULL ) /* read a line */
-	{
-		if (strncmp(line, "[Bookmarks]", 11)==0){
-			category = FS_CATEGORY_BOOKMARKS;
-		} else if (strncmp(line, "[Recent]", 8)==0){
-			category = FS_CATEGORY_RECENT;
-		} else {
-			int len = strlen(line);
-			if (len>0) {
-				if (line[len-1] == '\n') {
-					line[len-1] = '\0';
-				}
-				if (BLI_exist(line)) {
-					fsmenu_insert_entry(fsmenu, category, line, 0, 1);
-				}
-			}
-		}
-	}
-	fclose(fp);
 }
+
 
 static void fsmenu_free_category(struct FSMenu* fsmenu, FSMenuCategory category)
 {

@@ -437,6 +437,8 @@ else:
 #-- .blender
 #- dont do .blender and scripts for darwin, it is already in the bundle
 dotblendlist = []
+datafileslist = []
+datafilestargetlist = []
 dottargetlist = []
 scriptinstall = []
 
@@ -455,15 +457,24 @@ if  env['OURPLATFORM']!='darwin':
 					if f.endswith('.ttf'):
 						continue
 				
-				dotblendlist.append(os.path.join(dp, f))
-				if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + dp.split(os.sep)[2:]))	# skip bin/.blender
-				else:					dir= os.path.join(*([BLENDERPATH] + dp.split(os.sep)[1:]))	# skip bin
-				
-				dottargetlist.append(dir + os.sep + f)
-					
+				if 'locale' in dp:
+					datafileslist.append(os.path.join(dp,f))
+					if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + ['datafiles'] + dp.split(os.sep)[2:]))	# skip bin/.blender
+					else:					dir= os.path.join(*([BLENDERPATH] + ['.blender'] + ['datafiles'] + dp.split(os.sep)[1:]))	# skip bin
+					datafilestargetlist.append(dir + os.sep + f)
 
+				else:
+					dotblendlist.append(os.path.join(dp, f))
+					if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + ['config'] + dp.split(os.sep)[2:]))	# skip bin/.blender
+					else:					dir= os.path.join(*([BLENDERPATH] + ['.blender'] + ['config'] + dp.split(os.sep)[1:]))	# skip bin
+					
+					dottargetlist.append(dir + os.sep + f)
+					
 		dotblenderinstall = []
 		for targetdir,srcfile in zip(dottargetlist, dotblendlist):
+			td, tf = os.path.split(targetdir)
+			dotblenderinstall.append(env.Install(dir=td, source=srcfile))
+		for targetdir,srcfile in zip(datafilestargetlist, datafileslist):
 			td, tf = os.path.split(targetdir)
 			dotblenderinstall.append(env.Install(dir=td, source=srcfile))
 		

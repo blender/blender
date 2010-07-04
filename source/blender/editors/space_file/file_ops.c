@@ -391,7 +391,7 @@ static int bookmark_add_exec(bContext *C, wmOperator *op)
 		char name[FILE_MAX];
 	
 		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, 0, 1);
-		BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+		BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu, name);
 	}
 
@@ -423,7 +423,7 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 			char name[FILE_MAX];
 			
 			fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
-			BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+			BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 			fsmenu_write_file(fsmenu, name);
 			ED_area_tag_redraw(sa);
 		}
@@ -619,7 +619,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		folderlist_free(sfile->folders_next);
 
 		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
-		BLI_make_file_string(G.sce, filepath, BLI_gethome(), ".Bfs");
+		BLI_make_file_string(G.sce, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 
