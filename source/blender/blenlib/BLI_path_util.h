@@ -33,6 +33,10 @@
 #ifndef BLI_UTIL_H
 #define BLI_UTIL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ListBase;
 struct direntry;
 
@@ -189,6 +193,10 @@ void BLI_where_is_temp(char *fullname, int usertemp);
 
 #ifdef WITH_ICONV
 void BLI_string_to_utf8(char *original, char *utf_8, const char *code);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

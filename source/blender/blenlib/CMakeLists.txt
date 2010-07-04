@@ -34,7 +34,7 @@ SET(INC
 )
 
 IF(APPLE)
-	SET(SRC ${SRC} intern/path_util_cocoa.m)
+	SET(SRC ${SRC} intern/path_util_cocoa.mm)
 ENDIF(APPLE)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
