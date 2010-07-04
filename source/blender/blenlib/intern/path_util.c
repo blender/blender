@@ -1156,7 +1156,7 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			return NULL;
 			
 		case BLENDER_SYSTEM_PYTHON:
-			BLI_join_dirfile(search_path, "scripts", subfolder);
+			BLI_join_dirfile(search_path, "python", subfolder);
 			
 			if (get_path_system(path, search_path, "BLENDER_SYSTEM_PYTHON")) break;
 			return NULL;
