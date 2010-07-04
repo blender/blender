@@ -5557,6 +5557,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if (ob!=scene->obedit) {
 		if (ob->restrictflag & OB_RESTRICT_VIEW) 
 			return;
+		if ((ob->restrictflag & OB_RESTRICT_RENDER) && 
+			(v3d->flag2 & V3D_RENDER_OVERRIDE))
+			return;
 	}
 
 	/* XXX particles are not safe for simultaneous threaded render */
