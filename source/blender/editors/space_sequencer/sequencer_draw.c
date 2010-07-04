@@ -200,46 +200,86 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, f
 	}
 }
 
-static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, float x2, float y2)
+static void drawmeta_stipple(int value)
 {
-	/* Note, this used to use WHILE_SEQ, but it messes up the seq->depth value, (needed by transform when doing overlap checks)
-	 * so for now, just use the meta's immediate children, could be fixed but its only drawing - Campbell */
-	Sequence *seq;
-	float dx;
-	int nr;
-	char col[3];
-	
-	nr= BLI_countlist(&seqm->seqbase);
-
-	dx= (x2-x1)/nr;
-
-	if (seqm->flag & SEQ_MUTE) {
+	if(value) {
 		glEnable(GL_POLYGON_STIPPLE);
 		glPolygonStipple(stipple_halftone);
 		
 		glEnable(GL_LINE_STIPPLE);
 		glLineStipple(1, 0x8888);
 	}
-	
-	for (seq= seqm->seqbase.first; seq; seq= seq->next) {
-		get_seq_color3ubv(scene, seq, col);
-		
-		glColor3ubv((GLubyte *)col);
-
-		glRectf(x1,  y1,  x1+0.9*dx,  y2);
-		
-		UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -30);
-		glColor3ubv((GLubyte *)col);
-
-		fdrawbox(x1,  y1,  x1+0.9*dx,  y2);
-		
-		x1+= dx;
-	}
-	
-	if (seqm->flag & SEQ_MUTE) {
+	else {
 		glDisable(GL_POLYGON_STIPPLE);
 		glDisable(GL_LINE_STIPPLE);
 	}
+}
+
+static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, float x2, float y2)
+{
+	/* Note, this used to use WHILE_SEQ, but it messes up the seq->depth value, (needed by transform when doing overlap checks)
+	 * so for now, just use the meta's immediate children, could be fixed but its only drawing - Campbell */
+	Sequence *seq;
+	char col[4];
+
+	int chan_min= MAXSEQ;
+	int chan_max= 0;
+	int chan_range= 0;
+	float draw_range= y2 - y1;
+	float draw_height;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	if(seqm->flag & SEQ_MUTE)
+		drawmeta_stipple(1);
+
+	for (seq= seqm->seqbase.first; seq; seq= seq->next) {
+		chan_min= MIN2(chan_min, seq->machine);
+		chan_max= MAX2(chan_max, seq->machine);
+	}
+
+	chan_range= (chan_max - chan_min) + 1;
+	draw_height= draw_range / chan_range; 
+
+	col[3]= 196; /* alpha, used for all meta children */
+
+	for (seq= seqm->seqbase.first; seq; seq= seq->next) {
+		if((seq->startdisp > x2 || seq->enddisp < x1) == 0) {
+			float ym= (seq->machine - chan_min) / (float)(chan_range) * draw_range;
+
+			float x1m= seq->startdisp;
+			float x2m= seq->enddisp;
+			float y1m, y2m;
+			
+			if((seqm->flag & SEQ_MUTE) == 0 && (seq->flag & SEQ_MUTE))
+				drawmeta_stipple(1);
+			
+			get_seq_color3ubv(scene, seq, col);
+
+			glColor4ubv((GLubyte *)col);
+			
+			if(x1m < x1) x1m= x1;
+			if(x2m > x2) x2m= x2;
+			
+			y1m= y1 + ym + (draw_height * SEQ_STRIP_OFSBOTTOM);
+			y2m= y1 + ym + (draw_height * SEQ_STRIP_OFSTOP);
+
+			glRectf(x1m,  y1m, x2m,  y2m);
+
+			UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -30);
+			glColor4ubv((GLubyte *)col);
+			fdrawbox(x1m,  y1m, x2m,  y2m);
+			
+			if((seqm->flag & SEQ_MUTE) == 0 && (seq->flag & SEQ_MUTE))
+				drawmeta_stipple(0);
+		}
+	}
+
+	if (seqm->flag & SEQ_MUTE)
+		drawmeta_stipple(0);
+	
+	glDisable(GL_BLEND);
 }
 
 /* draw a handle, for each end of a sequence strip */
@@ -619,12 +659,11 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 		glDisable(GL_LINE_STIPPLE);
 	}
 	
+	if(seq->type==SEQ_META) drawmeta_contents(scene, seq, x1, y1, x2, y2);
+	
 	/* calculate if seq is long enough to print a name */
 	x1= seq->startdisp+seq->handsize;
 	x2= seq->enddisp-seq->handsize;
-
-	/* but first the contents of a meta */
-	if(seq->type==SEQ_META) drawmeta_contents(scene, seq, x1, y1+0.15, x2, y2-0.15);
 
 	/* info text on the strip */
 	if(x1<v2d->cur.xmin) x1= v2d->cur.xmin;

@@ -745,7 +745,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
         col.prop(strip, "convert_float")
 
         layout.prop(strip, "use_color_balance")
-        if strip.color_balance: # TODO - need to add this somehow
+        if strip.use_color_balance and strip.color_balance: # TODO - need to add this somehow
             row = layout.row()
             row.active = strip.use_color_balance
             col = row.column()
