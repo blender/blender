@@ -99,13 +99,14 @@ class TIME_MT_view(bpy.types.Menu):
         layout.prop(st, "only_selected")
 
         layout.separator()
-        
+
         layout.menu("TIME_MT_cache")
-        
+
         layout.separator()
 
         layout.operator("marker.camera_bind")
-        
+
+
 class TIME_MT_cache(bpy.types.Menu):
     bl_label = "Cache"
 
@@ -124,6 +125,7 @@ class TIME_MT_cache(bpy.types.Menu):
         col.prop(st, "cache_particles")
         col.prop(st, "cache_cloth")
         col.prop(st, "cache_smoke")
+
 
 class TIME_MT_frame(bpy.types.Menu):
     bl_label = "Frame"

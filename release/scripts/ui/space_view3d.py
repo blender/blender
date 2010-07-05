@@ -732,7 +732,7 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
                 props.data_path_item = "data.dof_distance"
                 props.input_scale = 0.02
 
-        if obj.type in ['CURVE','TEXT']:
+        if obj.type in ('CURVE','TEXT'):
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             props = layout.operator("wm.context_modal_mouse", text="Extrude Size")
@@ -760,7 +760,7 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
             props.data_path_iter = "selected_editable_objects"
             props.data_path_item = "data.energy"
 
-            if obj.data.type in ['SPOT','AREA','POINT']:
+            if obj.data.type in ('SPOT', 'AREA', 'POINT'):
                 props = layout.operator("wm.context_modal_mouse", text="Falloff Distance")
                 props.data_path_iter = "selected_editable_objects"
                 props.data_path_item = "data.distance"

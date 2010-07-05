@@ -43,7 +43,7 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 
         col = layout.column(align=True)
         col.operator("object.origin_set", text="Origin")
-        
+
         col = layout.column(align=True)
         col.label(text="Object:")
         col.operator("object.duplicate_move")

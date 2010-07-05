@@ -435,7 +435,7 @@ class WM_OT_path_open(bpy.types.Operator):
     bl_idname = "wm.path_open"
     bl_label = ""
 
-    filepath = StringProperty(name="File Path", maxlen= 1024)
+    filepath = StringProperty(name="File Path", maxlen=1024)
 
     def execute(self, context):
         import sys
@@ -444,13 +444,13 @@ class WM_OT_path_open(bpy.types.Operator):
 
         filepath = bpy.utils.expandpath(self.properties.filepath)
         filepath = os.path.normpath(filepath)
-        
+
         if not os.path.exists(filepath):
             self.report({'ERROR'}, "File '%s' not found" % filepath)
             return {'CANCELLED'}
-        
+
         if sys.platform == 'win32':
-            subprocess.Popen(['start', filepath], shell= True)
+            subprocess.Popen(['start', filepath], shell=True)
         elif sys.platform == 'darwin':
             subprocess.Popen(['open', filepath])
         else:
@@ -461,7 +461,6 @@ class WM_OT_path_open(bpy.types.Operator):
                 pass
 
         return {'FINISHED'}
-
 
 
 class WM_OT_doc_view(bpy.types.Operator):
