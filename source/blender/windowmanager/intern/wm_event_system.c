@@ -1433,6 +1433,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			/* test for double click first */
 			if ((PIL_check_seconds_timer() - win->eventstate->prevclicktime) * 1000 < U.dbl_click_time) {
 				event->val = KM_DBL_CLICK;
+				event->x = win->eventstate->prevclickx;
+				event->y = win->eventstate->prevclicky;
 				action |= wm_handlers_do(C, event, handlers);
 			}
 
@@ -1719,6 +1721,8 @@ void wm_event_do_handlers(bContext *C)
 						/* set click time on first click (press -> release) */
 						if (win->eventstate->prevval == KM_PRESS && event->val == KM_RELEASE) {
 							win->eventstate->prevclicktime = PIL_check_seconds_timer();
+							win->eventstate->prevclickx = event->x;
+							win->eventstate->prevclicky = event->y;
 						}
 					} else {
 						/* reset click time if event type not the same */
@@ -1731,6 +1735,8 @@ void wm_event_do_handlers(bContext *C)
 					win->eventstate->prevtype = event->type;
 					win->eventstate->prevval = event->val;
 					win->eventstate->prevclicktime = PIL_check_seconds_timer();
+					win->eventstate->prevclickx = event->x;
+					win->eventstate->prevclicky = event->y;
 				} else { /* reset if not */
 					win->eventstate->prevtype = -1;
 					win->eventstate->prevval = 0;
