@@ -2303,8 +2303,10 @@ void DAG_id_flush_update(ID *id, short flag)
 			id= ob->data;
 
 			/* no point in trying in this cases */
-			if(!id || id->us <= 1)
+			if(id && id->us <= 1) {
+				dag_editors_update(bmain, id);
 				id= NULL;
+			}
 		}
 	}
 
