@@ -1493,15 +1493,15 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 	StripColorBalance cb = *cb_;
 	int c;
 
-	if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
-		for (c = 0; c < 3; c++) {
-			cb.lift[c] = 1.0 - cb.lift[c];
-		}
-	} else {
-		for (c = 0; c < 3; c++) {
-			cb.lift[c] = -(1.0 - cb.lift[c]);
-		}
+	for (c = 0; c < 3; c++) {
+		cb.lift[c] = 2.0f - pow(cb.lift[c], 2);
 	}
+
+	if(cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
+		negate_v3(cb.lift);
+	}
+
+
 	if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_GAIN) {
 		for (c = 0; c < 3; c++) {
 			if (cb.gain[c] != 0.0) {
@@ -1525,21 +1525,20 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 	return cb;
 }
 
+/* compiler should inline */
+MINLINE float color_balance_fl(float v, float lift, float gain, float gamma, float mul)
+{
+	return pow(pow(v * gain, lift), gamma) * mul;
+}
+
+
 static void make_cb_table_byte(float lift, float gain, float gamma,
 				   unsigned char * table, float mul)
 {
 	int y;
-	/* matches 'LooksBuilder', generally looks nice too */
-	if(lift >= 1.0f)	lift= 0.0f;
-	else lift=			(1.0f - lift) * (1.0f - lift);
-	/* end modif's */
 
 	for (y = 0; y < 256; y++) {
-		float v = (float)y * (1.0 / 255.0f);
-		v *= gain;
-		v = pow(v, lift);
-		v = pow(v, gamma);
-		v *= mul;
+		float v= color_balance_fl((float)y * (1.0 / 255.0f), lift, gain, gamma, mul);
 		CLAMP(v, 0.0f, 1.0f);
 		table[y] = v * 255;
 	}
@@ -1549,17 +1548,9 @@ static void make_cb_table_float(float lift, float gain, float gamma,
 				float * table, float mul)
 {
 	int y;
-	/* matches 'LooksBuilder', generally looks nice too */
-	if(lift >= 1.0f)	lift= 0.0f;
-	else lift=			(1.0f - lift) * (1.0f - lift);
-	/* end modif's */
 
 	for (y = 0; y < 256; y++) {
-		float v = (float)y * (1.0 / 255.0f);
-		v *= gain;
-		v = pow(v, lift);
-		v = pow(v, gamma);
-		v *= mul;
+		float v= color_balance_fl((float)y * (1.0 / 255.0f), lift, gain, gamma, mul);
 		table[y] = v;
 	}
 }
@@ -1630,8 +1621,7 @@ static void color_balance_float_float(Sequence * seq, TStripElem* se, float mul)
 	while (p < e) {
 		int c;
 		for (c = 0; c < 3; c++) {
-			p[c] = pow(p[c] * cb.gain[c] + cb.lift[c], 
-				   cb.gamma[c]) * mul;
+			p[c]= color_balance_fl(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
 		}
 		p += 4;
 	}
