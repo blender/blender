@@ -1535,6 +1535,16 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem selection_negation_items[] = {
+		{0, "INCLUSIVE", 0, "Inclusive", "Select feature edges satisfying the given selection criteria."},
+		{FREESTYLE_LINESET_SEL_NOT, "EXCLUSIVE", 0, "Exclusive", "Select feature edges not satisfying the given selection criteria."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem selection_combination_items[] = {
+		{0, "AND", 0, "Logical AND", "Combine selection criteria by logical AND (logical conjunction)."},
+		{FREESTYLE_LINESET_SEL_OR, "OR", 0, "Logical OR", "Combine selection criteria by logical OR (logical disjunction)."},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem freestyle_ui_mode_items[] = {
 		{FREESTYLE_CONTROL_SCRIPT_MODE, "SCRIPT", 0, "Python Scripting Mode", "Advanced mode for using style modules in Python"},
 		{FREESTYLE_CONTROL_EDITOR_MODE, "EDITOR", 0, "Parameter Editor Mode", "Basic mode for interactive style parameter editing"},
@@ -1569,6 +1579,18 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_LINESET_ENABLED);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable or disable the line set.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "selection_negation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
+	RNA_def_property_enum_items(prop, selection_negation_items);
+	RNA_def_property_ui_text(prop, "Selection Negation", "Set the negation operation for selection criteria.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "selection_combination", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
+	RNA_def_property_enum_items(prop, selection_combination_items);
+	RNA_def_property_ui_text(prop, "Selection Combination", "Set the combination operation for selection criteria.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);

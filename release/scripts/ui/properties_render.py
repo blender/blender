@@ -222,6 +222,11 @@ class RENDER_PT_freestyle(RenderButtonsPanel):
                 col.prop(lineset, "name")
 
                 row = col.row()
+                row.prop(lineset, "selection_negation", expand=True)
+                row = col.row()
+                row.prop(lineset, "selection_combination", expand=True)
+
+                row = col.row()
                 sub = row.column()
                 sub.prop(lineset, "select_silhouette")
                 sub.prop(lineset, "select_border")
