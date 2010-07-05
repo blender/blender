@@ -47,7 +47,8 @@ void multires_force_external_reload(struct Object *ob);
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,
 	int local_mmd, struct DerivedMesh*, struct Object *, int, int);
 
-struct MultiresModifierData *find_multires_modifier(struct Scene *scene, struct Object *ob);
+struct MultiresModifierData *find_multires_modifier_before(struct Scene *scene,
+	struct ModifierData *lastmd);
 struct DerivedMesh *get_multires_dm(struct Scene *scene, struct MultiresModifierData *mmd,
 				struct Object *ob);
 void multiresModifier_join(struct Object *);
