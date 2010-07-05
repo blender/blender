@@ -3206,6 +3206,7 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 		 */
 		if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_SHAPEKEY)) {
 			/* adjust offset */
+			// TODO: make slider width dynamic, so that they can be easier to use when the view is wide enough
 			offset += SLIDER_WIDTH;
 			
 			/* need backdrop behind sliders... */

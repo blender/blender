@@ -810,7 +810,7 @@ void recalcData(TransInfo *t)
 				/* sets recalc flags fully, instead of flushing existing ones 
 				 * otherwise proxies don't function correctly
 				 */
-				DAG_id_flush_update(&ob->id, OB_RECALC);  
+				DAG_id_flush_update(&ob->id, OB_RECALC_ALL); // XXX: OB_RECALC_OB only?  
 			}
 		}
 		

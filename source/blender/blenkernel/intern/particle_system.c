@@ -3943,7 +3943,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	BKE_animsys_evaluate_animdata(&part->id, part->adt, cfra, ADT_RECALC_DRIVERS);
 
 	/* TODO: only free child paths in case of PSYS_RECALC_CHILD */
-	if(psys->recalc & PSYS_RECALC || ob->recalc & OB_RECALC)
+	if(psys->recalc & PSYS_RECALC || ob->recalc & OB_RECALC_ALL)
 		psys_free_path_cache(psys, NULL);
 
 	if(psys->recalc & PSYS_RECALC_CHILD)

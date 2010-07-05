@@ -4826,7 +4826,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			// fixme... some of this stuff is not good
 			if (ob) {
 				if (ob->pose || ob_get_key(ob))
-					DAG_id_flush_update(&ob->id, OB_RECALC);
+					DAG_id_flush_update(&ob->id, OB_RECALC_ALL);
 				else
 					DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 			}

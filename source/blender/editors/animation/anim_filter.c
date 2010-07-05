@@ -946,6 +946,13 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 	FCurve *lastchan=NULL;
 	int items = 0;
 	
+	/* don't include anything from this action if it is linked in from another file,
+	 * and we're getting stuff for editing...
+	 */
+	// TODO: need a way of tagging other channels that may also be affected...
+	if ((filter_mode & ANIMFILTER_FOREDIT) && (act->id.lib))
+		return 0;
+	
 	/* loop over groups */
 	// TODO: in future, should we expect to need nested groups?
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {

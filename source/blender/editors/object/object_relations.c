@@ -193,7 +193,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(ob != obedit) {
-			ob->recalc |= OB_RECALC;
+			ob->recalc |= OB_RECALC_ALL;
 			par= obedit->parent;
 			
 			while(par) {
@@ -339,7 +339,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		
 		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
-		DAG_id_flush_update(&newob->id, OB_RECALC);
+		DAG_id_flush_update(&newob->id, OB_RECALC_ALL);
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, newob);
 	}
 	else {
@@ -427,7 +427,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 		else if(type == 2)
 			unit_m4(ob->parentinv);
 
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_ALL;
 	}
 	CTX_DATA_END;
 	
@@ -869,7 +869,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		
 		/* remove track-object for old track */
 		ob->track= NULL;
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_ALL;
 		
 		/* also remove all tracking constraints */
 		for (con= ob->constraints.last; con; con= pcon) {
@@ -935,7 +935,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA)
@@ -954,7 +954,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
@@ -975,7 +975,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
@@ -1259,7 +1259,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 					break;
 				case MAKE_LINKS_MODIFIERS:
 					object_link_modifiers(obt, ob);
-					obt->recalc |= OB_RECALC;
+					obt->recalc |= OB_RECALC_ALL;
 					break;
 				}
 			}
