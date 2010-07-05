@@ -1525,12 +1525,11 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 	return cb;
 }
 
-/* compiler should inline */
-MINLINE float color_balance_fl(float v, float lift, float gain, float gamma, float mul)
+/* pow(p[c] * cb.gain[c] + cb.lift[c], cb.gamma[c]) * mul;*/
+MINLINE float color_balance_fl(const float v, const float lift, const float gain, const float gamma, const float mul)
 {
-	return pow(pow(v * gain, lift), gamma) * mul;
+	return powf(powf(v * gain, lift), gamma) * mul;
 }
-
 
 static void make_cb_table_byte(float lift, float gain, float gamma,
 				   unsigned char * table, float mul)
