@@ -10855,6 +10855,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		Scene *scene;
 		bScreen *sc;
+		Tex *tex;
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
@@ -10943,6 +10944,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					break;
 				}
 			}
+		}
+
+		for(tex= main->tex.first; tex; tex= tex->id.next) {
+			/* if youre picky, this isn't correct until we do a version bump
+			 * since you could set saturation to be 0.0*/
+			if(tex->saturation==0.0f)
+				tex->saturation= 1.0f;
 		}
 
 	}
