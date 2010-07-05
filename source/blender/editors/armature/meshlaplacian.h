@@ -78,7 +78,7 @@ void rigid_deform_end(int cancel);
 
 /* Harmonic Coordinates */
 
-void mesh_deform_bind(struct Scene *scene, struct DerivedMesh *dm,
+void mesh_deform_bind(struct Scene *scene,
 	struct MeshDeformModifierData *mmd,
 	float *vertexcos, int totvert, float cagemat[][4]);
 
