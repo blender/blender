@@ -1498,9 +1498,10 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 	}
 
 	if(cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
-		negate_v3(cb.lift);
+		for (c = 0; c < 3; c++) {
+			cb.lift[c] = 2.0f - cb.lift[c];
+		}
 	}
-
 
 	if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_GAIN) {
 		for (c = 0; c < 3; c++) {
