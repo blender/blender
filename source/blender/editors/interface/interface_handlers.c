@@ -3047,7 +3047,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx, int my)
+static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx, int my, int shift)
 {
 	rcti rect;
 	int changed= 1;
@@ -3061,23 +3061,24 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	
 	/* exception, when using color wheel in 'locked' value state:
 	 * allow choosing a hue for black values, by giving a tiny increment */
-	if (but->a2 == 1) { // lock
+	if (but->flag & UI_BUT_COLOR_LOCK) { // lock
 		if (hsv[2] == 0.f) hsv[2] = 0.0001f;
 	}
 
 	if(U.uiflag & USER_CONTINUOUS_MOUSE) {
+		float fac= shift ? 0.02 : 0.1;
 		/* slow down the mouse, this is fairly picky */
-		mx = (data->dragstartx*0.9 + mx*0.1);
-		my = (data->dragstarty*0.9 + my*0.1);
+		mx = (data->dragstartx*(1.0f-fac) + mx*fac);
+		my = (data->dragstarty*(1.0f-fac) + my*fac);
 	}
-		
+
 	ui_hsvcircle_vals_from_pos(hsv, hsv+1, &rect, (float)mx, (float)my);
 	
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 
-	if(but->flag & UI_BUT_VEC_SIZE_LOCK) {
+	if((but->flag & UI_BUT_VEC_SIZE_LOCK) && (rgb[0] || rgb[1] || rgb[2])) {
 		normalize_v3(rgb);
-		mul_v3_fl(rgb, but->color_lum);
+		mul_v3_fl(rgb, but->a2);
 	}
 
 	ui_set_but_vectorf(but, rgb);
@@ -3106,7 +3107,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 			
 			/* also do drag the first time */
-			if(ui_numedit_but_HSVCIRCLE(but, data, mx, my))
+			if(ui_numedit_but_HSVCIRCLE(but, data, mx, my, event->shift))
 				ui_numedit_apply(C, block, but, data);
 			
 			return WM_UI_HANDLER_BREAK;
@@ -3157,7 +3158,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 		else if(event->type == MOUSEMOVE) {
 			if(mx!=data->draglastx || my!=data->draglasty) {
-				if(ui_numedit_but_HSVCIRCLE(but, data, mx, my))
+				if(ui_numedit_but_HSVCIRCLE(but, data, mx, my, event->shift))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}

@@ -1656,10 +1656,10 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	copy_v3_v3(hsvo, hsv);
 	
-	/* exception: if 'lock' is set (stored in but->a2),
+	/* exception: if 'lock' is set
 	 * lock the value of the color wheel to 1.
 	 * Useful for color correction tools where you're only interested in hue. */
-	if (but->a2) hsv[2] = 1.f;
+	if (but->flag & UI_BUT_COLOR_LOCK) hsv[2] = 1.f;
 	
 	hsv_to_rgb(0.f, 0.f, hsv[2], colcent, colcent+1, colcent+2);
 	

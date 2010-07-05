@@ -173,7 +173,6 @@ struct uiBut {
 	float hardmin, hardmax, softmin, softmax;
 	float a1, a2, hsv[3];	// hsv is temp memory for hsv buttons
 	float aspect;
-	float color_lum; /* used only for color buttons so far */
 
 	uiButHandleFunc func;
 	void *func_arg1;

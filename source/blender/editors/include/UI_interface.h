@@ -142,7 +142,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_ALIGN_DOWN	(1<<17)
 
 #define UI_BUT_DISABLED		(1<<18)
-#define UI_BUT_UNUSED		(1<<19)
+#define UI_BUT_COLOR_LOCK	(1<<19)
 #define UI_BUT_ANIMATED		(1<<20)
 #define UI_BUT_ANIMATED_KEY	(1<<21)
 #define UI_BUT_DRIVEN		(1<<22)

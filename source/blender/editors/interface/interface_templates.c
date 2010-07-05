@@ -1965,19 +1965,23 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 		printf("uiTemplateColorWheel: property not found: %s\n", propname);
 		return;
 	}
-	
+
 	RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
 	
 	col = uiLayoutColumn(layout, 0);
 	row= uiLayoutRow(col, 1);
 	
-	but= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, lock, "");
+	but= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
+
+	if(lock) {
+		but->flag |= UI_BUT_COLOR_LOCK;
+	}
 
 	if(lock_luminosity) {
 		float color[4]; /* incase of alpha */
 		but->flag |= UI_BUT_VEC_SIZE_LOCK;
 		RNA_property_float_get_array(ptr, prop, color);
-		but->color_lum= len_v3(color); /* abuse the soft-max though this is a kind of soft-max */
+		but->a2= len_v3(color);
 	}
 
 	uiItemS(row);
