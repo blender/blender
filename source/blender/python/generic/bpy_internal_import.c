@@ -237,16 +237,11 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
  * our reload() module, to handle reloading in-memory scripts
  */
 
-static PyObject *blender_reload( PyObject * self, PyObject * args )
+static PyObject *blender_reload( PyObject * self, PyObject * module )
 {
 	PyObject *exception, *err, *tb;
-	PyObject *module = NULL;
 	PyObject *newmodule = NULL;
 	int found= 0;
-	
-	/* check for a module arg */
-	if( !PyArg_ParseTuple( args, "O:bpy_reload_meth", &module ) )
-		return NULL;
 
 	/* try reimporting from file */
 	newmodule = PyImport_ReloadModule( module );
@@ -280,7 +275,7 @@ static PyObject *blender_reload( PyObject * self, PyObject * args )
 }
 
 PyMethodDef bpy_import_meth[] = { {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"} };
-PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", (PyCFunction)blender_reload, METH_VARARGS, "blenders reload"} };
+PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"} };
 
 
 /* Clear user modules.

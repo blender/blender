@@ -430,6 +430,40 @@ class WM_OT_url_open(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class WM_OT_path_open(bpy.types.Operator):
+    "Open a path in a file browser"
+    bl_idname = "wm.path_open"
+    bl_label = ""
+
+    filepath = StringProperty(name="File Path", maxlen= 1024)
+
+    def execute(self, context):
+        import sys
+        import os
+        import subprocess
+
+        filepath = bpy.utils.expandpath(self.properties.filepath)
+        filepath = os.path.normpath(filepath)
+        
+        if not os.path.exists(filepath):
+            self.report({'ERROR'}, "File '%s' not found" % filepath)
+            return {'CANCELLED'}
+        
+        if sys.platform == 'win32':
+            subprocess.Popen(['start', filepath], shell= True)
+        elif sys.platform == 'darwin':
+            subprocess.Popen(['open', filepath])
+        else:
+            try:
+                subprocess.Popen(['xdg-open', filepath])
+            except OSError:
+                # xdg-open *should* be supported by recent Gnome, KDE, Xfce
+                pass
+
+        return {'FINISHED'}
+
+
+
 class WM_OT_doc_view(bpy.types.Operator):
     '''Load online reference docs'''
     bl_idname = "wm.doc_view"
@@ -562,6 +596,7 @@ classes = [
     WM_OT_context_modal_mouse,
 
     WM_OT_url_open,
+    WM_OT_path_open,
 
     WM_OT_doc_view,
     WM_OT_doc_edit,

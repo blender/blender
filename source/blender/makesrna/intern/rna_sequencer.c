@@ -308,8 +308,8 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 		case SEQ_MUL:
 		case SEQ_OVERDROP:
 			return &RNA_EffectSequence;
-                case SEQ_MULTICAM:
-                        return &RNA_MulticamSequence;
+		case SEQ_MULTICAM:
+			return &RNA_MulticamSequence;
 		case SEQ_PLUGIN:
 			return &RNA_PluginSequence;
 		case SEQ_WIPE:

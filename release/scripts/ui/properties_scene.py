@@ -230,8 +230,6 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
     bl_label = "Export Keying Set..."
 
     filepath = bpy.props.StringProperty(name="File Path", description="Filepath to write file to.")
-    filename = bpy.props.StringProperty(name="File Name", description="Name of the file.")
-    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file.")
     filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})

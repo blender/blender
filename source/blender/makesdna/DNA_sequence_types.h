@@ -72,8 +72,8 @@ typedef struct StripColorBalance {
 	float gain[3];
 	int flag;
 	int pad;
-	float exposure;
-	float saturation;
+	// float exposure;
+	// float saturation;
 } StripColorBalance;
 
 typedef struct StripProxy {
@@ -323,6 +323,9 @@ typedef struct SpeedControlVars {
    to the table above. (Only those effects that handle _exactly_ two inputs,
    otherwise, you can't really blend, right :) !)
 */
+
+
+#define SEQ_HAS_PATH(_seq) (ELEM5((_seq)->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_SOUND, SEQ_RAM_SOUND, SEQ_HD_SOUND))
 
 #endif
 

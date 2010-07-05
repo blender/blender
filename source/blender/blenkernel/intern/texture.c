@@ -451,6 +451,7 @@ void default_tex(Tex *tex)
 	tex->nabla= 0.025;	// also in do_versions
 	tex->bright= 1.0;
 	tex->contrast= 1.0;
+	tex->saturation= 1.0;
 	tex->filtersize= 1.0;
 	tex->rfac= 1.0;
 	tex->gfac= 1.0;
@@ -1132,6 +1133,7 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->totpoints = 0;
 	pd->object = NULL;
 	pd->psys = 0;
+	pd->psys_cache_space= TEX_PD_WORLDSPACE;
 	return pd;
 } 
 

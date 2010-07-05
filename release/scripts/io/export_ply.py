@@ -111,7 +111,7 @@ def write(filename, scene, ob, \
         raise ("Error, could not get mesh data from active object")
         return
 
-    # mesh.transform(ob.matrixWorld) # XXX
+    # mesh.transform(ob.matrix_world) # XXX
 
     faceUV = (len(mesh.uv_textures) > 0)
     vertexUV = (len(mesh.sticky) > 0)

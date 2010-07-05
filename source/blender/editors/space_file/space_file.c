@@ -591,9 +591,16 @@ void ED_spacetype_file(void)
 
 void ED_file_init(void)
 {
-	char name[FILE_MAX];
-	BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
-	fsmenu_read_file(fsmenu_get(), name);
+	char *cfgdir = BLI_get_folder(BLENDER_CONFIG, NULL);
+	
+	fsmenu_read_system(fsmenu_get());
+
+	if (cfgdir) {
+		char name[FILE_MAX];
+		BLI_make_file_string("/", name, cfgdir, BLENDER_BOOKMARK_FILE);
+		fsmenu_read_bookmarks(fsmenu_get(), name);
+	}
+	
 	filelist_init_icons();
 	IMB_thumb_makedirs();
 }

@@ -134,10 +134,43 @@ void rna_Object_internal_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
 }
 
-void rna_Object_matrix_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat);
 	rna_Object_internal_update(bmain, scene, ptr);
+}
+
+void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
+{
+	Object *ob= ptr->id.data;
+
+	if(ob->parent) {
+		float invmat[4][4]; /* for inverse of parent's matrix */
+		invert_m4_m4(invmat, ob->parent->obmat);
+		mul_m4_m4m4((float(*)[4])values, ob->obmat, invmat);
+	}
+	else {
+		copy_m4_m4((float(*)[4])values, ob->obmat);
+	}
+}
+
+void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
+{
+	Object *ob= ptr->id.data;
+
+	/* localspace matrix is truly relative to the parent, but parameters
+	 * stored in object are relative to parentinv matrix.  Undo the parent
+	 * inverse part before updating obmat and calling apply_obmat() */
+	if(ob->parent) {
+		float invmat[4][4];
+		invert_m4_m4(invmat, ob->parentinv);
+		mul_m4_m4m4(ob->obmat, (float(*)[4])values, invmat);
+	}
+	else {
+		copy_m4_m4(ob->obmat, (float(*)[4])values);
+	}
+
+	object_apply_mat4(ob, ob->obmat);
 }
 
 void rna_Object_internal_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1700,11 +1733,17 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
 
 	/* matrix */
-	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
+	prop= RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "obmat");
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
-	RNA_def_property_ui_text(prop, "Matrix", "Transformation matrix");
-	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_matrix_update");
+	RNA_def_property_ui_text(prop, "Matrix World", "Worldspace transformation matrix");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_matrix_world_update");
+
+	prop= RNA_def_property(srna, "matrix_local", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_ui_text(prop, "Local Matrix", "Parent relative transformation matrix");
+	RNA_def_property_float_funcs(prop, "rna_Object_matrix_local_get", "rna_Object_matrix_local_set", NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	/* collections */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);

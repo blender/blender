@@ -107,7 +107,7 @@ static void node_buts_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
 	
 	col = uiLayoutColumn(layout, 0);
-	uiTemplateColorWheel(col, &sockptr, "default_value", 1, 0);
+	uiTemplateColorWheel(col, &sockptr, "default_value", 1, 0, 0, 0);
 	uiItemR(col, &sockptr, "default_value", 0, "", 0);
 }
 
@@ -947,17 +947,17 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *C, Point
 	
 		split = uiLayoutSplit(layout, 0, 0);
 		col = uiLayoutColumn(split, 0);
-		uiTemplateColorWheel(col, ptr, "lift", 1, 1);
+		uiTemplateColorWheel(col, ptr, "lift", 1, 1, 0, 1);
 		row = uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "lift", 0, NULL, 0);
 		
 		col = uiLayoutColumn(split, 0);
-		uiTemplateColorWheel(col, ptr, "gamma", 1, 1);
+		uiTemplateColorWheel(col, ptr, "gamma", 1, 1, 1, 1);
 		row = uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "gamma", 0, NULL, 0);
 		
 		col = uiLayoutColumn(split, 0);
-		uiTemplateColorWheel(col, ptr, "gain", 1, 1);
+		uiTemplateColorWheel(col, ptr, "gain", 1, 1, 1, 1);
 		row = uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "gain", 0, NULL, 0);
 
@@ -965,17 +965,17 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *C, Point
 		
 		split = uiLayoutSplit(layout, 0, 0);
 		col = uiLayoutColumn(split, 0);
-		uiTemplateColorWheel(col, ptr, "offset", 1, 1);
+		uiTemplateColorWheel(col, ptr, "offset", 1, 1, 0, 1);
 		row = uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "offset", 0, NULL, 0);
 		
 		col = uiLayoutColumn(split, 0);
-		uiTemplateColorWheel(col, ptr, "power", 1, 1);
+		uiTemplateColorWheel(col, ptr, "power", 1, 1, 0, 1);
 		row = uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "power", 0, NULL, 0);
 		
 		col = uiLayoutColumn(split, 0);
-		uiTemplateColorWheel(col, ptr, "slope", 1, 1);
+		uiTemplateColorWheel(col, ptr, "slope", 1, 1, 0, 1);
 		row = uiLayoutRow(col, 0);
 		uiItemR(row, ptr, "slope", 0, NULL, 0);
 	}

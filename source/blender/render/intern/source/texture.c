@@ -98,7 +98,7 @@ void init_render_texture(Render *re, Tex *tex)
 	if(tex->type==TEX_PLUGIN) {
 		if(tex->plugin && tex->plugin->doit) {
 			if(tex->plugin->cfra) {
-				*(tex->plugin->cfra)= (float)cfra; //frame_to_float(re->scene, cfra); // XXX old animsys - timing stuff to be fixed 
+				*(tex->plugin->cfra)= (float)cfra; //BKE_curframe(re->scene); // XXX old animsys - timing stuff to be fixed 
 			}
 		}
 	}

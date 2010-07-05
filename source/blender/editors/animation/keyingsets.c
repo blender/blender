@@ -918,7 +918,7 @@ int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingS
 				{
 					Object *ob= (Object *)ksp->id;
 					
-					ob->recalc |= OB_RECALC;
+					ob->recalc |= OB_RECALC_ALL; // XXX: only object transforms only?
 				}
 					break;
 			}

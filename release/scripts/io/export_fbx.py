@@ -528,7 +528,7 @@ def write(filename, batch_objects = None, \
             self.fbxGroupNames = []
             self.fbxParent = None # set later on IF the parent is in the selection.
             if matrixWorld:		self.matrixWorld = GLOBAL_MATRIX * matrixWorld
-            else:				self.matrixWorld = GLOBAL_MATRIX * ob.matrix
+            else:				self.matrixWorld = GLOBAL_MATRIX * ob.matrix_world
 # 			else:				self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
             self.__anim_poselist = {} # we should only access this
 
@@ -539,8 +539,7 @@ def write(filename, batch_objects = None, \
                 return self.matrixWorld
 
         def setPoseFrame(self, f):
-            self.__anim_poselist[f] =  self.blenObject.matrix.copy()
-# 			self.__anim_poselist[f] =  self.blenObject.matrixWorld.copy()
+            self.__anim_poselist[f] =  self.blenObject.matrix_world.copy()
 
         def getAnimParRelMatrix(self, frame):
             if self.fbxParent:
@@ -646,7 +645,7 @@ def write(filename, batch_objects = None, \
 
         else:
             # This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
-            #if ob and not matrix: matrix = ob.matrixWorld * GLOBAL_MATRIX
+            #if ob and not matrix: matrix = ob.matrix_world * GLOBAL_MATRIX
             if ob and not matrix: raise Exception("error: this should never happen!")
 
             matrix_rot = matrix
@@ -2025,7 +2024,7 @@ def write(filename, batch_objects = None, \
         if ob_base.parent and ob_base.parent.dupli_type != 'NONE':
             continue
 
-        obs = [(ob_base, ob_base.matrix)]
+        obs = [(ob_base, ob_base.matrix_world)]
         if ob_base.dupli_type != 'NONE':
             ob_base.create_dupli_list(scene)
             obs = [(dob.object, dob.matrix) for dob in ob_base.dupli_list]

@@ -68,7 +68,10 @@ void	fsmenu_remove_entry		(struct FSMenu* fsmenu, FSMenuCategory category, int i
 void	fsmenu_write_file		(struct FSMenu* fsmenu, const char *filename);
 	
 	/** reads the 'bookmarks' from the specified file */
-void	fsmenu_read_file		(struct FSMenu* fsmenu, const char *filename);
+void	fsmenu_read_bookmarks	(struct FSMenu* fsmenu, const char *filename);
+
+	/** adds system specific directories */
+void	fsmenu_read_system	(struct FSMenu* fsmenu);
 
 	/** Free's all the memory associated with the fsmenu */
 void	fsmenu_free				(struct FSMenu* fsmenu);

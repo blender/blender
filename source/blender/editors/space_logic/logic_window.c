@@ -3184,8 +3184,8 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 	uiItemR(row, ptr, "name", 0, "", 0);
 
 	subrow= uiLayoutRow(row, 0);
-	uiLayoutSetActive(subrow, (RNA_boolean_get(logic_ptr, "sensors_show_active_states")
-							&& RNA_boolean_get(ptr, "expanded") || RNA_boolean_get(ptr, "pinned")));
+	uiLayoutSetActive(subrow, ((RNA_boolean_get(logic_ptr, "sensors_show_active_states")
+							&& RNA_boolean_get(ptr, "expanded")) || RNA_boolean_get(ptr, "pinned")));
 	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
 
 	uiItemO(row, "", ICON_X, "LOGIC_OT_sensor_remove");
@@ -3602,8 +3602,8 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *
 	uiItemR(row, ptr, "name", 0, "", 0);
 
 	subrow= uiLayoutRow(row, 0);
-	uiLayoutSetActive(subrow, (RNA_boolean_get(logic_ptr, "actuators_show_active_states")
-							&& RNA_boolean_get(ptr, "expanded") || RNA_boolean_get(ptr, "pinned")));
+	uiLayoutSetActive(subrow, ((RNA_boolean_get(logic_ptr, "actuators_show_active_states")
+							&& RNA_boolean_get(ptr, "expanded")) || RNA_boolean_get(ptr, "pinned")));
 	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
 
 	uiItemO(row, "", ICON_X, "LOGIC_OT_actuator_remove");
@@ -4436,7 +4436,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 		bController *cont;
 		PointerRNA ptr;
 		uiLayout *split, *subsplit, *col;
-		int iact;
+
 		
 		ob= (Object *)idar[a];
 

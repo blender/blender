@@ -228,6 +228,12 @@ public:
 	virtual const GHOST_TUns8* getUserDir() const;
 
 	/**
+	  * Determine the directory of the current binary
+	  * @return Unsigned char string pointing to the binary dir
+	  */
+	 virtual const GHOST_TUns8* getBinaryDir() const;
+
+	/**
      * Handles a window event. Called by GHOST_WindowCocoa window delegate
      * @param eventType The type of window event
 	 * @param window The window on which the event occured

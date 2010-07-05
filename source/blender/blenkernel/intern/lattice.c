@@ -869,12 +869,12 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 	end_latt_deform(laOb);
 }
 
-int object_deform_mball(Object *ob)
+int object_deform_mball(Object *ob, ListBase *dispbase)
 {
 	if(ob->parent && ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
 		DispList *dl;
 
-		for (dl=ob->disp.first; dl; dl=dl->next) {
+		for (dl=dispbase->first; dl; dl=dl->next) {
 			lattice_deform_verts(ob->parent, ob, NULL,
 								 (float(*)[3]) dl->verts, dl->nr, NULL);
 		}

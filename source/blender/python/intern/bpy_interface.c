@@ -177,7 +177,7 @@ static PyObject *CreateGlobalDictionary( bContext *C, const char *filename )
 /* must be called before Py_Initialize */
 void BPY_start_python_path(void)
 {
-	char *py_path_bundle= BLI_gethome_folder("python", BLI_GETHOME_ALL);
+	char *py_path_bundle= BLI_get_folder(BLENDER_PYTHON, NULL);
 
 	if(py_path_bundle==NULL)
 		return;
@@ -230,6 +230,8 @@ void BPY_start_python( int argc, char **argv )
 	PyThreadState *py_tstate = NULL;
 	
 	BPY_start_python_path(); /* allow to use our own included python */
+
+	// Py_SetProgramName(); // extern char bprogname[FILE_MAXDIR+FILE_MAXFILE];
 
 	Py_Initialize(  );
 	

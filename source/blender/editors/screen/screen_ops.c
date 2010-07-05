@@ -1504,6 +1504,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	delta = RNA_int_get(op->ptr, "delta");
 
 	CTX_data_scene(C)->r.cfra += delta;
+	CTX_data_scene(C)->r.subframe = 0.f;
 	
 	sound_seek_scene(C);
 

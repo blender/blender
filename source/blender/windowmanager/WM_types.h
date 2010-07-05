@@ -183,6 +183,7 @@ typedef struct wmNotifier {
 #define ND_KEYINGSET		(12<<16)
 #define ND_TOOLSETTINGS		(13<<16)
 #define ND_LAYER			(14<<16)
+#define ND_FRAME_RANGE		(15<<16)
 
 	/* NC_OBJECT Object */
 #define	ND_TRANSFORM		(16<<16)
@@ -325,6 +326,7 @@ typedef struct wmEvent {
 	short prevval;
 	short prevx, prevy;
 	double prevclicktime;
+	short prevclickx, prevclicky;
 	
 	/* modifier states */
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */

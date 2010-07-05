@@ -41,6 +41,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_scene.h"
 
 
 static void initData(ModifierData *md)
@@ -106,7 +107,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		frac = bsystem_time(md->scene, ob, md->scene->r.cfra,
 					bmd->start - 1.0f) / bmd->length;
 	} else {
-		frac = md->scene->r.cfra - bmd->start / bmd->length;
+		frac = BKE_curframe(md->scene) - bmd->start / bmd->length;
 	}
 	CLAMP(frac, 0.0, 1.0);
 

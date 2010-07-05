@@ -193,7 +193,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(ob != obedit) {
-			ob->recalc |= OB_RECALC;
+			ob->recalc |= OB_RECALC_ALL;
 			par= obedit->parent;
 			
 			while(par) {
@@ -339,7 +339,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		
 		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
-		DAG_id_flush_update(&newob->id, OB_RECALC);
+		DAG_id_flush_update(&newob->id, OB_RECALC_ALL);
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, newob);
 	}
 	else {
@@ -427,7 +427,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 		else if(type == 2)
 			unit_m4(ob->parentinv);
 
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_ALL;
 	}
 	CTX_DATA_END;
 	
@@ -869,7 +869,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		
 		/* remove track-object for old track */
 		ob->track= NULL;
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_ALL;
 		
 		/* also remove all tracking constraints */
 		for (con= ob->constraints.last; con; con= pcon) {
@@ -935,7 +935,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA)
@@ -954,7 +954,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
@@ -975,7 +975,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
@@ -1191,24 +1191,25 @@ enum {
 /* Return 1 if make link data is allow, zero otherwise */
 static int allow_make_links_data(int ev, Object *ob, Object *obt)
 {
-	if (ev == MAKE_LINKS_OBDATA) {
-		if (ob->type == OB_MESH && obt->type == OB_MESH)
-			return(1);
+	switch(ev) {
+		case MAKE_LINKS_OBDATA:
+			if (ob->type == obt->type && ob->type != OB_EMPTY)
+				return 1;
+			break;
+		case MAKE_LINKS_MATERIALS:
+			if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL) &&
+				ELEM5(obt->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL))
+				return 1;
+			break;
+		case MAKE_LINKS_ANIMDATA:
+		case MAKE_LINKS_DUPLIGROUP:
+			return 1;
+		case MAKE_LINKS_MODIFIERS:
+			if (ob->type != OB_EMPTY && obt->type != OB_EMPTY)
+				return 1;
+			break;
 	}
-	else if (ev == MAKE_LINKS_MATERIALS) {
-		if ((ob->type == OB_MESH || ob->type == OB_CURVE || ob->type == OB_FONT || ob->type == OB_SURF || ob->type == OB_MBALL) &&
-		    (obt->type == OB_MESH || obt->type == OB_CURVE || obt->type == OB_FONT || obt->type == OB_SURF || obt->type == OB_MBALL))
-			return(1);
-	}
-	else if (ev == MAKE_LINKS_ANIMDATA)
-		return(1);
-	else if (ev == MAKE_LINKS_DUPLIGROUP)
-		return(1);
-	else if (ev == MAKE_LINKS_MODIFIERS) {
-		if (ob->type != OB_EMPTY && obt->type != OB_EMPTY)
-			return(1);
-	}
-	return(0);
+	return 0;
 }
 
 static int make_links_data_exec(bContext *C, wmOperator *op)
@@ -1258,7 +1259,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 					break;
 				case MAKE_LINKS_MODIFIERS:
 					object_link_modifiers(obt, ob);
-					obt->recalc |= OB_RECALC;
+					obt->recalc |= OB_RECALC_ALL;
 					break;
 				}
 			}

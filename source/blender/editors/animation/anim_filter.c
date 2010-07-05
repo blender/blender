@@ -797,7 +797,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 /* ----------------------------------------- */
 
 /* NOTE: when this function returns true, the F-Curve is to be skipped */
-static int skip_fcurve_selected_data(FCurve *fcu, ID *owner_id, int filter_mode)
+static int skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
 {
 	if (GS(owner_id->name) == ID_OB) {
 		Object *ob= (Object *)owner_id;
@@ -814,9 +814,8 @@ static int skip_fcurve_selected_data(FCurve *fcu, ID *owner_id, int filter_mode)
 			
 			/* check whether to continue or skip */
 			if ((pchan) && (pchan->bone)) {
-				/* if only visible channels, skip if bone not visible */
-				// TODO: should we just do this always?
-				if (filter_mode & ANIMFILTER_VISIBLE) {
+				/* if only visible channels, skip if bone not visible unless user wants channels from hidden data too */
+				if ((filter_mode & ANIMFILTER_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
 					bArmature *arm= (bArmature *)ob->data;
 					
 					if ((arm->layer & pchan->bone->layer) == 0)
@@ -887,7 +886,7 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 		 *	- this will also affect things like Drivers, and also works for Bone Constraints
 		 */
 		if ( ((ads) && (ads->filterflag & ADS_FILTER_ONLYSEL)) && (owner_id) ) {
-			if (skip_fcurve_selected_data(fcu, owner_id, filter_mode))
+			if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode))
 				continue;
 		}
 			
@@ -945,6 +944,13 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 	bActionGroup *agrp;
 	FCurve *lastchan=NULL;
 	int items = 0;
+	
+	/* don't include anything from this action if it is linked in from another file,
+	 * and we're getting stuff for editing...
+	 */
+	// TODO: need a way of tagging other channels that may also be affected...
+	if ((filter_mode & ANIMFILTER_FOREDIT) && (act->id.lib))
+		return 0;
 	
 	/* loop over groups */
 	// TODO: in future, should we expect to need nested groups?
@@ -2105,11 +2111,14 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 			
 			/* firstly, check if object can be included, by the following factors:
 			 *	- if only visible, must check for layer and also viewport visibility
+			 *		--> while tools may demand only visible, user setting takes priority
+			 *			as user option controls whether sets of channels get included while
+			 *			tool-flag takes into account collapsed/open channels too
 			 *	- if only selected, must check if object is selected 
 			 *	- there must be animation data to edit
 			 */
 			// TODO: if cache is implemented, just check name here, and then 
-			if (filter_mode & ANIMFILTER_VISIBLE) {
+			if ((filter_mode & ANIMFILTER_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
 				/* layer visibility - we check both object and base, since these may not be in sync yet */
 				if ((sce->lay & (ob->lay|base->lay))==0) continue;
 				

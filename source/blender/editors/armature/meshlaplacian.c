@@ -1922,7 +1922,7 @@ static void heat_weighting_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifie
 }
 #endif
 
-void mesh_deform_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifierData *mmd, float *vertexcos, int totvert, float cagemat[][4])
+void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexcos, int totvert, float cagemat[][4])
 {
 	MeshDeformBind mdb;
 	MVert *mvert;

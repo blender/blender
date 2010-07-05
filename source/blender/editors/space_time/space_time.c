@@ -410,6 +410,20 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_FRAME:
 					ED_area_tag_refresh(sa);
 					break;
+				case ND_FRAME_RANGE:
+					{
+						ARegion *ar;
+						Scene *scene = wmn->reference;
+
+						for (ar= sa->regionbase.first; ar; ar= ar->next) {
+							if (ar->regiontype==RGN_TYPE_WINDOW) {
+								ar->v2d.tot.xmin= (float)(SFRA - 4);
+								ar->v2d.tot.xmax= (float)(EFRA + 4);
+								break;
+							}
+						}
+					}
+					break;
 			}
 		case NC_SPACE:
 			switch (wmn->data) {	

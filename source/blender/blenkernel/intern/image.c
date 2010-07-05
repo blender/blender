@@ -328,13 +328,6 @@ Image *BKE_add_image_file(const char *name, int frame)
 	const char *libname;
 	char str[FILE_MAX], strtest[FILE_MAX];
 	
-	/* escape when name is directory */
-	len= strlen(name);
-	if(len) {
-		if(name[len-1]=='/' || name[len-1]=='\\')
-			return NULL;
-	}
-	
 	BLI_strncpy(str, name, sizeof(str));
 	BLI_path_abs(str, G.sce);
 	
@@ -380,18 +373,18 @@ Image *BKE_add_image_file(const char *name, int frame)
 	return ima;
 }
 
-static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4])
+static ImBuf *add_ibuf_size(int width, int height, char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
 {
 	ImBuf *ibuf;
 	unsigned char *rect= NULL;
 	float *rect_float= NULL;
 	
 	if (floatbuf) {
-		ibuf= IMB_allocImBuf(width, height, 24, IB_rectfloat, 0);
+		ibuf= IMB_allocImBuf(width, height, depth, IB_rectfloat, 0);
 		rect_float= (float*)ibuf->rect_float;
 	}
 	else {
-		ibuf= IMB_allocImBuf(width, height, 24, IB_rect, 0);
+		ibuf= IMB_allocImBuf(width, height, depth, IB_rect, 0);
 		rect= (unsigned char*)ibuf->rect;
 	}
 	
@@ -413,7 +406,7 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4])
+Image *BKE_add_image_size(int width, int height, char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima= image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
@@ -426,7 +419,7 @@ Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short
 		ima->gen_y= height;
 		ima->gen_type= uvtestgrid;
 		
-		ibuf= add_ibuf_size(width, height, name, floatbuf, uvtestgrid, color);
+		ibuf= add_ibuf_size(width, height, name, depth, floatbuf, uvtestgrid, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		
 		ima->ok= IMA_OK_LOADED;
@@ -2075,7 +2068,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 				/* UV testgrid or black or solid etc */
 				if(ima->gen_x==0) ima->gen_x= 1024;
 				if(ima->gen_y==0) ima->gen_y= 1024;
-				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 0, ima->gen_type, color);
+				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, 0, ima->gen_type, color);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok= IMA_OK_LOADED;
 			}

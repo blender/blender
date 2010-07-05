@@ -1706,6 +1706,11 @@ static void rna_def_texture(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.01, 5);
 	RNA_def_property_ui_text(prop, "Contrast", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	prop= RNA_def_property(srna, "saturation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 2);
+	RNA_def_property_ui_text(prop, "Saturation", "");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	/* RGB Factor */
 	prop= RNA_def_property(srna, "factor_red", PROP_FLOAT, PROP_NONE);

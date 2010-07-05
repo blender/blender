@@ -241,7 +241,9 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 			if(is_raytraceable_vlr(re, vlr))
 				faces++;
 		}
-		assert( faces > 0 );
+		
+		if (faces == 0)
+			return NULL;
 
 		//Create Ray cast accelaration structure		
 		raytree = RE_rayobject_create( re,  re->r.raytrace_structure, faces );
@@ -375,7 +377,8 @@ static void makeraytree_single(Render *re)
 			if(test_break(re))
 				break;
 
-			RE_rayobject_add( re->raytree, obj );
+			if (obj)
+				RE_rayobject_add( re->raytree, obj );
 		}
 		else
 		{

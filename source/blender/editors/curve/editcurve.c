@@ -5219,8 +5219,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			float tmp_vec[3] = {0.f, 0.f, 0.f};
 			
 			if(newname) {
-				rename_id((ID *)obedit, "SurfDonut");
-				rename_id((ID *)obedit->data, "SurfDonut");
+				rename_id((ID *)obedit, "SurfTorus");
+				rename_id((ID *)obedit->data, "SurfTorus");
 			}
 
 			xzproj= 1;

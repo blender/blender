@@ -403,7 +403,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	Render *re= RE_NewRender(scene->id.name);
 	Image *ima;
 	View3D *v3d= CTX_wm_view3d(C);
-	int lay= (v3d)? v3d->lay|scene->lay: scene->lay;
+	int lay= (v3d)? v3d->lay: scene->lay;
 
 	if(re==NULL) {
 		re= RE_NewRender(scene->id.name);
@@ -508,11 +508,14 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 
 	rr= RE_AcquireResultRead(rj->re);
 
-	/* malloc OK here, stats_draw is not in tile threads */
-	if(rr->text==NULL)
-		rr->text= MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext");
+	if(rr) {
+		/* malloc OK here, stats_draw is not in tile threads */
+		if(rr->text==NULL)
+			rr->text= MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext");
 
-	make_renderinfo_string(rs, rj->scene, rr->text);
+		make_renderinfo_string(rs, rj->scene, rr->text);
+	}
+
 	RE_ReleaseResult(rj->re);
 
 	/* make jobs timer to send notifier */
@@ -634,7 +637,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	multires_force_render_update(CTX_data_active_object(C));
 
 	/* get editmode results */
-	ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);	/* 0 = does not exit editmode */
+	ED_object_exit_editmode(C, 0);	/* 0 = does not exit editmode */
 
 	// store spare
 	// get view3d layer, local layer, make this nice api call to render
@@ -666,7 +669,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->scene= scene;
 	rj->win= CTX_wm_window(C);
 	rj->srl = srl;
-	rj->lay = (v3d)? v3d->lay|scene->lay: scene->lay;
+	rj->lay = (v3d)? v3d->lay: scene->lay;
 	rj->anim= RNA_boolean_get(op->ptr, "animation");
 	rj->iuser.scene= scene;
 	rj->iuser.ok= 1;

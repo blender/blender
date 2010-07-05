@@ -1172,18 +1172,28 @@ void makeDispListMBall(Scene *scene, Object *ob)
 {
 	if(!ob || ob->type!=OB_MBALL) return;
 
+	// XXX: mball stuff uses plenty of global variables
+	//      while this is unchanged updating during render is unsafe
+	if(G.rendering) return;
+
 	freedisplist(&(ob->disp));
-	
+
 	if(ob->type==OB_MBALL) {
 		if(ob==find_basis_mball(scene, ob)) {
-			metaball_polygonize(scene, ob);
+			metaball_polygonize(scene, ob, &ob->disp);
 			tex_space_mball(ob);
 
-			object_deform_mball(ob);
+			object_deform_mball(ob, &ob->disp);
 		}
 	}
 	
 	boundbox_displist(ob);
+}
+
+void makeDispListMBall_forRender(Scene *scene, Object *ob, ListBase *dispbase)
+{
+	metaball_polygonize(scene, ob, dispbase);
+	object_deform_mball(ob, dispbase);
 }
 
 static ModifierData *curve_get_tesselate_point(Scene *scene, Object *ob, int forRender, int editmode)

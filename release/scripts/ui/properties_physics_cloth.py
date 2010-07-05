@@ -87,7 +87,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             col = split.column()
 
             col.label(text="Presets:")
-            sub = col.row(align=True).split(percentage=0.75)
+            sub = col.row(align=True)
             sub.menu("CLOTH_MT_presets", text=bpy.types.CLOTH_MT_presets.bl_label)
             sub.operator("cloth.preset_add", text="", icon="ZOOMIN")
 

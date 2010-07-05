@@ -1262,6 +1262,23 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 
 /* ********* add primitive operators ************* */
 
+static char *get_mesh_defname(int type)
+{
+	switch (type) {
+		case PRIM_PLANE: return "Plane";
+		case PRIM_CUBE: return "Cube";
+		case PRIM_CIRCLE: return "Circle";
+		case PRIM_CYLINDER: return "Tube";
+		case PRIM_CONE: return "Cone";
+		case PRIM_GRID: return "Grid";
+		case PRIM_UVSPHERE: return "Sphere";
+		case PRIM_ICOSPHERE: return "Icosphere";
+		case PRIM_MONKEY: return "Monkey";
+		default:
+			return "Mesh";
+	}
+}
+
 static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmode, unsigned int layer, 
 		int type, int tot, int seg,
 		int subdiv, float dia, float depth, int ext, int fill)
@@ -1273,6 +1290,9 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 
 	if(obedit==NULL || obedit->type!=OB_MESH) {
 		obedit= ED_object_add_type(C, OB_MESH, loc, rot, FALSE, layer);
+		
+		rename_id((ID *)obedit, get_mesh_defname(type));
+		rename_id((ID *)obedit->data, get_mesh_defname(type));
 		
 		/* create editmode */
 		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */

@@ -183,7 +183,7 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object.", -FLT_MAX, FLT_MAX);
 	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", -FLT_MAX, FLT_MAX);
 	
-	prop = RNA_def_boolean_layer_member(ot->srna, "layer", 32, NULL, "Layer", "");
+	prop = RNA_def_boolean_layer_member(ot->srna, "layer", 20, NULL, "Layer", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
@@ -193,32 +193,28 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 		if (!RNA_property_is_set(op->ptr, "enter_editmode"))
 			RNA_boolean_set(op->ptr, "enter_editmode", U.flag & USER_ADD_EDITMODE);
 	
-	if (!RNA_property_is_set(op->ptr, "location")) {
+	if(!RNA_property_is_set(op->ptr, "location")) {
 		float loc[3];
 		
 		ED_object_location_from_view(C, loc);
 		RNA_float_set_array(op->ptr, "location", loc);
 	}
 	 
-	if (!RNA_property_is_set(op->ptr, "layer")) {
+	if(!RNA_property_is_set(op->ptr, "layer")) {
 		View3D *v3d = CTX_wm_view3d(C);
 		Scene *scene = CTX_data_scene(C);
-		int a, values[32], layer;
+		int a, values[20], layer;
 		
-		if (v3d) {
-			if (v3d->localvd) {
-				layer = v3d->layact + v3d->lay;
-				for(a=0; a<32; a++)
-					values[a]= (layer & (1<<a));
-			} else {
-				layer = (v3d->scenelock)?scene->layact:v3d->layact;
+		if(v3d) {
+			layer = (v3d->scenelock && !v3d->localvd)? scene->layact: v3d->layact;
 
-				for(a=0; a<32; a++)
-					values[a]= (layer & (1<<a));
-			}
-		} else {
+			for(a=0; a<20; a++)
+				values[a]= (layer & (1<<a));
+		}
+		else {
 			layer = scene->layact;
-			for(a=0; a<32; a++)
+
+			for(a=0; a<20; a++)
 				values[a]= (layer & (1<<a));
 		}
 		
@@ -234,7 +230,8 @@ int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer)
 {
-	int a, layer_values[32];
+	View3D *v3d = CTX_wm_view3d(C);
+	int a, layer_values[20];
 	int view_align;
 	
 	*enter_editmode = FALSE;
@@ -245,7 +242,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 	if(RNA_property_is_set(op->ptr, "layer")) {
 		RNA_boolean_get_array(op->ptr, "layer", layer_values);
 
-		for(a=0; a<32; a++) {
+		for(a=0; a<20; a++) {
 			if(layer_values[a])
 				*layer |= (1 << a);
 			else
@@ -257,6 +254,11 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 		Scene *scene = CTX_data_scene(C);
 		*layer = scene->layact;
 	}
+
+	/* in local view we additionally add local view layers,
+	   not part of operator properties */
+	if(v3d && v3d->localvd)
+		*layer |= v3d->lay;
 
 	if (RNA_property_is_set(op->ptr, "view_align"))
 		view_align = RNA_boolean_get(op->ptr, "view_align");
@@ -671,6 +673,19 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
+static char *get_lamp_defname(int type)
+{
+	switch (type) {
+		case LA_LOCAL: return "Point";
+		case LA_SUN: return "Sun";
+		case LA_SPOT: return "Spot";
+		case LA_HEMI: return "Hemi";
+		case LA_AREA: return "Area";
+		default:
+			return "Lamp";
+	}
+}
+
 static int object_lamp_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob;
@@ -686,6 +701,9 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
 	if(ob && ob->data)
 		((Lamp*)ob->data)->type= type;
+	
+	rename_id((ID *)ob, get_lamp_defname(type));
+	rename_id((ID *)ob->data, get_lamp_defname(type));
 	
 	return OPERATOR_FINISHED;
 }
@@ -1051,7 +1069,7 @@ static Base *duplibase_for_convert(Scene *scene, Base *base, Object *ob)
 	}
 
 	obn= copy_object(ob);
-	obn->recalc |= OB_RECALC;
+	obn->recalc |= OB_RECALC_ALL;
 
 	basen= MEM_mallocN(sizeof(Base), "duplibase");
 	*basen= *base;
@@ -1134,7 +1152,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				newob->data= copy_mesh(me);
 			} else {
 				newob = ob;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 			}
 
 			/* make new mesh data from the original copy */
@@ -1195,7 +1213,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					for(ob1= G.main->object.first; ob1; ob1=ob1->id.next) {
 						if(ob1->data==ob->data) {
 							ob1->type= OB_CURVE;
-							ob1->recalc |= OB_RECALC;
+							ob1->recalc |= OB_RECALC_ALL;
 						}
 					}
 				}
@@ -1386,7 +1404,7 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 	}
 	else {
 		obn= copy_object(ob);
-		obn->recalc |= OB_RECALC;
+		obn->recalc |= OB_RECALC_ALL;
 		
 		basen= MEM_mallocN(sizeof(Base), "duplibase");
 		*basen= *base;

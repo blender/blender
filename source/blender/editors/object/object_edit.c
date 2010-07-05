@@ -468,7 +468,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit= ob;
 		ED_armature_to_edit(ob);
 		/* to ensure all goes in restposition and without striding */
-		DAG_id_flush_update(&ob->id, OB_RECALC);
+		DAG_id_flush_update(&ob->id, OB_RECALC_ALL); // XXX: should this be OB_RECALC_DATA?
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, scene);
 	}
@@ -1792,6 +1792,11 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	return (done)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
+static int shade_poll(bContext *C)
+{
+	return (ED_operator_object_active_editable(C) && !ED_operator_editmesh(C));
+}
+
 void OBJECT_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1799,7 +1804,7 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shade_flat";
 	
 	/* api callbacks */
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= shade_poll;
 	ot->exec= shade_smooth_exec;
 
 	/* flags */
@@ -1813,7 +1818,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= shade_poll;
 	ot->exec= shade_smooth_exec;
 	
 	/* flags */

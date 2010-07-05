@@ -240,7 +240,7 @@ static BezTriple *abk_get_bezt_with_value (ActBeztColumn *abk, float value)
 	/* look over each BezTriple in this container */
 	for (i = 0; i < abk->numBezts; i++) {		
 		/* only do exact match for now... */
-		if (i >= sizeof(abk->bezts)/sizeof(BezTriple)) {
+		if (/*i >= MAX_ABK_BUFSIZE*/0) {
 			// TODO: this case needs special handling
 		}
 		else {
@@ -283,7 +283,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, DLRBT_Tree *beztTree,
 	abk= (ActBeztColumn *)BLI_dlrbTree_search_prev(beztTree, compare_abk_bezt, beztn);
 		/* if applicable, the BezTriple with the same value */
 	prev= (abk) ? abk_get_bezt_with_value(abk, beztn->vec[1][1]) : NULL;
-
+	
 	/* check if block needed - same value(s)?
 	 *	-> firstly, handles must have same central value as each other
 	 *	-> secondly, handles which control that section of the curve must be constant

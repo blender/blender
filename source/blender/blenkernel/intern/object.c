@@ -317,7 +317,7 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 
 	if (*obpoin==unlinkOb) {
 		*obpoin = NULL;
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_ALL; // XXX: should this just be OB_RECALC_DATA?
 	}
 }
 
@@ -357,7 +357,7 @@ void unlink_object(Scene *scene, Object *ob)
 		
 		if(obt->parent==ob) {
 			obt->parent= NULL;
-			obt->recalc |= OB_RECALC;
+			obt->recalc |= OB_RECALC_ALL;
 		}
 		
 		modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
@@ -367,15 +367,15 @@ void unlink_object(Scene *scene, Object *ob)
 
 			if(cu->bevobj==ob) {
 				cu->bevobj= NULL;
-				obt->recalc |= OB_RECALC;
+				obt->recalc |= OB_RECALC_ALL;
 			}
 			if(cu->taperobj==ob) {
 				cu->taperobj= NULL;
-				obt->recalc |= OB_RECALC;
+				obt->recalc |= OB_RECALC_ALL;
 			}
 			if(cu->textoncurve==ob) {
 				cu->textoncurve= NULL;
-				obt->recalc |= OB_RECALC;
+				obt->recalc |= OB_RECALC_ALL;
 			}
 		}
 		else if(obt->type==OB_ARMATURE && obt->pose) {
@@ -404,6 +404,9 @@ void unlink_object(Scene *scene, Object *ob)
 				if(pchan->custom==ob)
 					pchan->custom= NULL;
 			}
+		} else if(ELEM(OB_MBALL, ob->type, obt->type)) {
+			if(is_mball_basis_for(obt, ob))
+				obt->recalc|= OB_RECALC_DATA;
 		}
 		
 		sca_remove_ob_poin(obt, ob);
@@ -536,13 +539,7 @@ void unlink_object(Scene *scene, Object *ob)
 		}
 		tex= tex->id.next;
 	}
-	
-	/* mballs (scene==NULL when called from library.c) */
-	if(scene && ob->type==OB_MBALL) {
-		obt= find_basis_mball(scene, ob);
-		if(obt) freedisplist(&obt->disp);
-	}
-	
+
 	/* worlds */
 	wrld= G.main->world.first;
 	while(wrld) {
@@ -986,7 +983,7 @@ static char *get_obdata_defname(int type)
 	case OB_MESH: return "Mesh";
 	case OB_CURVE: return "Curve";
 	case OB_SURF: return "Surf";
-	case OB_FONT: return "Font";
+	case OB_FONT: return "Text";
 	case OB_MBALL: return "Mball";
 	case OB_CAMERA: return "Camera";
 	case OB_LAMP: return "Lamp";
@@ -1090,7 +1087,7 @@ Object *add_object(struct Scene *scene, int type)
 	
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
-	ob->recalc |= OB_RECALC;
+	ob->recalc |= OB_RECALC_ALL;
 
 	return ob;
 }
@@ -1536,7 +1533,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	ob->proxy_group= gob;
 	id_lib_extern(&target->id);
 	
-	ob->recalc= target->recalc= OB_RECALC;
+	ob->recalc= target->recalc= OB_RECALC_ALL;
 	
 	/* copy transform */
 	if(gob) {
@@ -1605,19 +1602,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 
 /* there is also a timing calculation in drawobject() */
 
-float bluroffs= 0.0f, fieldoffs= 0.0f;
 int no_speed_curve= 0;
-
-/* ugly calls from render */
-void set_mblur_offs(float blur)
-{
-	bluroffs= blur;
-}
-
-void set_field_offs(float field)
-{
-	fieldoffs= field;
-}
 
 void disable_speed_curve(int val)
 {
@@ -1628,11 +1613,9 @@ void disable_speed_curve(int val)
 /* ob can be NULL */
 float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 {
-	/* returns float ( see frame_to_float in ipo.c) */
+	/* returns float ( see BKE_curframe in scene.c) */
+	cfra += scene->r.subframe;
 	
-	/* bluroffs and fieldoffs are ugly globals that are set by render */
-	cfra+= bluroffs+fieldoffs;
-
 	/* global time */
 	if (scene)
 		cfra*= scene->r.framelen;	
@@ -1741,10 +1724,8 @@ void object_to_mat4(Object *ob, float mat[][4])
 	object_to_mat3(ob, tmat);
 	
 	copy_m4_m3(mat, tmat);
-	
-	mat[3][0]= ob->loc[0] + ob->dloc[0];
-	mat[3][1]= ob->loc[1] + ob->dloc[1];
-	mat[3][2]= ob->loc[2] + ob->dloc[2];
+
+	add_v3_v3v3(mat[3], ob->loc, ob->dloc);
 }
 
 int enable_cu_speed= 1;
@@ -2493,14 +2474,15 @@ void object_tfm_restore(Object *ob, void *obtfm_pt)
 /* requires flags to be set! */
 void object_handle_update(Scene *scene, Object *ob)
 {
-	if(ob->recalc & OB_RECALC) {
+	if(ob->recalc & OB_RECALC_ALL) {
 		/* speed optimization for animation lookups */
 		if(ob->pose)
 			make_pose_channels_hash(ob->pose);
 
 		/* XXX new animsys warning: depsgraph tag OB_RECALC_DATA should not skip drivers, 
 		   which is only in where_is_object now */
-		if(ob->recalc & OB_RECALC) {
+		// XXX: should this case be OB_RECALC_OB instead?
+		if(ob->recalc & OB_RECALC_ALL) {
 			
 			if (G.f & G_DEBUG)
 				printf("recalcob %s\n", ob->id.name+2);
@@ -2642,7 +2624,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			object_handle_update(scene, ob->proxy);
 		}
 	
-		ob->recalc &= ~OB_RECALC;
+		ob->recalc &= ~OB_RECALC_ALL;
 	}
 
 	/* the case when this is a group proxy, object_update is called in group.c */

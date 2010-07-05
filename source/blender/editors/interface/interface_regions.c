@@ -1795,6 +1795,9 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 		linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
 	}
 	
+	/* sneaky way to check for alpha */
+	rgb[3]= FLT_MAX;
+
 	RNA_property_float_ui_range(ptr, prop, &min, &max, &step, &precision);
 	RNA_property_float_get_array(ptr, prop, rgb);
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
@@ -1835,6 +1838,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+
 	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", 0);
 	// but need to use uiButSetFunc for updating other fake buttons
 	
@@ -1847,7 +1851,15 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, butwidth, UI_UNIT_Y, hsv+2, 0.0, max, 10, 3, "");
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
-	
+
+	if(rgb[3] != FLT_MAX) {
+		bt= uiDefButR(block, NUMSLI, 0, "A ",	0, -120, butwidth, UI_UNIT_Y, ptr, propname, 3, 0.0, 0.0, 0, 0, "");
+		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	}
+	else {
+		rgb[3]= 1.0f;
+	}
+
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(rgb_gamma[0]*255.0), (unsigned int)(rgb_gamma[1]*255.0), (unsigned int)(rgb_gamma[2]*255.0));	

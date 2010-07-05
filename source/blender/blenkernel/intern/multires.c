@@ -75,11 +75,11 @@ DerivedMesh *get_multires_dm(Scene *scene, MultiresModifierData *mmd, Object *ob
 	return dm;
 }
 
-MultiresModifierData *find_multires_modifier(Scene *scene, Object *ob)
+MultiresModifierData *find_multires_modifier_before(Scene *scene, ModifierData *lastmd)
 {
 	ModifierData *md;
 
-	for(md = ob->modifiers.first; md; md = md->next) {
+	for(md = lastmd; md; md = md->prev) {
 		if(md->type == eModifierType_Multires) {
 			if (modifier_isEnabled(scene, md, eModifierMode_Realtime))
 				return (MultiresModifierData*)md;
@@ -248,6 +248,9 @@ int multiresModifier_reshapeFromDeformMod(Scene *scene, MultiresModifierData *mm
 	DerivedMesh *dm, *ndm;
 	int numVerts, result;
 	float (*deformedVerts)[3];
+
+	if(multires_get_level(ob, mmd, 0) == 0)
+		return 0;
 
 	/* Create DerivedMesh for deformation modifier */
 	dm = get_multires_dm(scene, mmd, ob);

@@ -452,7 +452,7 @@ void recalc_all_library_objects(Main *main)
 	/* flag for full recalc */
 	for(ob=main->object.first; ob; ob=ob->id.next)
 		if(ob->id.lib)
-			ob->recalc |= OB_RECALC;
+			ob->recalc |= OB_RECALC_ALL;
 }
 
 /* note: MAX_LIBARRAY define should match this code */

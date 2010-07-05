@@ -1,4 +1,3 @@
-
 import os
 import os.path
 import SCons.Options
@@ -15,6 +14,8 @@ import sys
 
 Variables = SCons.Variables
 BoolVariable = SCons.Variables.BoolVariable
+
+VERSION = '2.52' # This is used in creating the local config directories
 
 def print_arguments(args, bc):
     if len(args):
@@ -73,7 +74,7 @@ def validate_arguments(args, bc):
             'BF_FANCY', 'BF_QUIET', 'BF_LINE_OVERWRITE',
             'BF_X264_CONFIG',
             'BF_XVIDCORE_CONFIG',
-            'WITH_BF_LCMS', 'BF_LCMS_LIB',
+            'WITH_BF_LCMS', 'BF_LCMS', 'BF_LCMS_INC', 'BF_LCMS_LIB', 'BF_LCMS_LIBPATH',
             'WITH_BF_DOCS',
             'BF_NUMJOBS',
             'BF_MSVS',
@@ -261,11 +262,17 @@ def read_opts(env, cfg, args):
         ('BF_PNG_LIB', 'PNG library', ''),
         ('BF_PNG_LIBPATH', 'PNG library path', ''),
 
-	(BoolVariable('WITH_BF_TIFF', 'Use TIFF if true', True)),
+        (BoolVariable('WITH_BF_TIFF', 'Use TIFF if true', True)),
         ('BF_TIFF', 'TIFF base path', ''),
         ('BF_TIFF_INC', 'TIFF include path', ''),
         ('BF_TIFF_LIB', 'TIFF library', ''),
         ('BF_TIFF_LIBPATH', 'TIFF library path', ''),
+
+        (BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
+        ('BF_LCMS', 'LCMS base path', ''),
+        ('BF_LCMS_INC', 'LCMS include path', ''),
+        ('BF_LCMS_LIB', 'LCMS library', ''),
+        ('BF_LCMS_LIBPATH', 'LCMS library path', ''),
 
         (BoolVariable('WITH_BF_ZLIB', 'Use ZLib if true', True)),
         ('BF_ZLIB', 'ZLib base path', ''),
@@ -418,9 +425,6 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_LZO', 'Enable fast LZO pointcache compression', True)),
         (BoolVariable('WITH_BF_LZMA', 'Enable best LZMA pointcache compression', True)),
         
-        (BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
-        ('BF_LCMS_LIB', 'LCMSlibrary', 'lcms'),
-
         ('BF_X264_CONFIG', 'configuration flags for x264', ''),
         ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
         (BoolVariable('WITH_BF_DOCS', 'Generate API documentation', False)),

@@ -479,6 +479,8 @@ static void view_editmove(unsigned short event)
 #define TFM_MODAL_REMOVE_SNAP	17
 /*	18 and 19 used by numinput, defined in transform.h
  * */
+#define TFM_MODAL_PROPSIZE_UP	20
+#define TFM_MODAL_PROPSIZE_DOWN	21
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
@@ -503,6 +505,8 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, "Remove Last Snap Point", ""},
 	{NUM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, "Numinput Increment Up", ""},
 	{NUM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, "Numinput Increment Down", ""},
+	{TFM_MODAL_PROPSIZE_UP, "PROPORTIONAL_SIZE_UP", 0, "Increase Proportional Influence", ""},
+	{TFM_MODAL_PROPSIZE_DOWN, "PROPORTIONAL_SIZE_DOWN", 0, "Decrease Poportional Influence", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -532,6 +536,11 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 
 	WM_modalkeymap_add_item(keymap, UPARROWKEY, KM_PRESS, 0, 0, NUM_MODAL_INCREMENT_UP);
 	WM_modalkeymap_add_item(keymap, DOWNARROWKEY, KM_PRESS, 0, 0, NUM_MODAL_INCREMENT_DOWN);
+	
+	WM_modalkeymap_add_item(keymap, PAGEUPKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
+	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
+	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
+	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
 
 	return keymap;
 }
@@ -707,6 +716,20 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case TFM_MODAL_REMOVE_SNAP:
 				removeSnapPoint(t);
+				t->redraw |= TREDRAW_HARD;
+				break;
+			case TFM_MODAL_PROPSIZE_UP:
+				if(t->flag & T_PROP_EDIT) {
+					t->prop_size*= 1.1f;
+					calculatePropRatio(t);
+				}
+				t->redraw |= TREDRAW_HARD;
+				break;
+			case TFM_MODAL_PROPSIZE_DOWN:
+				if (t->flag & T_PROP_EDIT) {
+					t->prop_size*= 0.90909090f;
+					calculatePropRatio(t);
+				}
 				t->redraw |= TREDRAW_HARD;
 				break;
 			default:
@@ -933,10 +956,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			if (t->flag & T_AUTOIK) {
 				transform_autoik_update(t, 1);
 			}
-			else if(t->flag & T_PROP_EDIT) {
-				t->prop_size*= 1.1f;
-				calculatePropRatio(t);
-			}
 			else view_editmove(event->type);
 			t->redraw= 1;
 			break;
@@ -951,10 +970,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case WHEELUPMOUSE:
 			if (t->flag & T_AUTOIK) {
 				transform_autoik_update(t, -1);
-			}
-			else if (t->flag & T_PROP_EDIT) {
-				t->prop_size*= 0.90909090f;
-				calculatePropRatio(t);
 			}
 			else view_editmove(event->type);
 			t->redraw= 1;

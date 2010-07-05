@@ -211,18 +211,16 @@ IF(WITH_INSTALL)
 			COMMAND cp -Rf ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
 			COMMAND cp -Rf ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
 			COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
-			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/.blender
-			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-			COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/datafiles
+			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
+			COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
 		)
       
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/Resources/
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/Resources/
+				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
 			)
 		ENDIF(WITH_INTERNATIONAL)
       
@@ -234,9 +232,10 @@ IF(WITH_INSTALL)
 			ENDIF(WITH_LIBS10.5)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
-				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/scripts/
+				COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/python/
+				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/python/
+				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/python/
 				COMMAND find ${TARGETDIR}/blender.app -name "*.py?" -prune -exec rm -rf {} "\;"
 			)
 		ENDIF(WITH_PYTHON)      
@@ -396,8 +395,6 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 		bf_freestyle
 		blender_BSP 
-		bf_ghost 
-		bf_string 
 		blender_render 
 		blender_ONL 
 		bf_python 
@@ -408,9 +405,11 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_nodes
 		bf_gpu
 		bf_blenloader
+		bf_blenlib
+		bf_ghost
+		bf_string
 		bf_blenpluginapi 
 		bf_imbuf 
-		bf_blenlib 
 		bf_avi 
 		bf_cineon 
 		bf_openexr 

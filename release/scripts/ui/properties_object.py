@@ -155,9 +155,9 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
         ob = context.object
         wide_ui = context.region.width > narrowui
 
-        split = layout.split(percentage=0.8, align=True)
-        split.operator("object.group_link", text="Add to Group")
-        split.operator("object.group_add", text="", icon='ZOOMIN')
+        row = layout.row(align=True)
+        row.operator("object.group_link", text="Add to Group")
+        row.operator("object.group_add", text="", icon='ZOOMIN')
 
         # XXX, this is bad practice, yes, I wrote it :( - campbell
         index = 0
@@ -170,7 +170,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
                 row = col.box().row()
                 row.prop(group, "name", text="")
-                row.operator("object.group_remove", text="", icon='X')
+                row.operator("object.group_remove", text="", icon='X', emboss=False)
 
                 split = col.box().split()
 
@@ -214,6 +214,7 @@ class OBJECT_PT_display(ObjectButtonsPanel):
         col.prop(ob, "draw_name", text="Name")
         col.prop(ob, "draw_axis", text="Axis")
         col.prop(ob, "draw_wire", text="Wire")
+        col.prop(ob, "color", text="Object Color")
 
         if wide_ui:
             col = split.column()

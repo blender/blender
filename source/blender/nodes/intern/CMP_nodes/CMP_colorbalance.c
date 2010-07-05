@@ -56,8 +56,8 @@ DO_INLINE float colorbalance_cdl(float in, float offset, float power, float slop
 
 DO_INLINE float colorbalance_lgg(float in, float lift, float gamma, float gain)
 {
-	float x = gain*(in+(lift-1)*(1-in));
-	
+	float x= powf(in * gain, lift);
+
 	/* prevent NaN */
 	if (x < 0.f) x = 0.f;
 	
@@ -88,10 +88,10 @@ static void do_colorbalance_cdl_fac(bNode *node, float* out, float *in, float *f
 static void do_colorbalance_lgg(bNode *node, float* out, float *in)
 {
 	NodeColorBalance *n= (NodeColorBalance *)node->storage;
-	
-	out[0] = colorbalance_lgg(in[0], n->lift[0], n->gamma[0], n->gain[0]);
-	out[1] = colorbalance_lgg(in[1], n->lift[1], n->gamma[1], n->gain[1]);
-	out[2] = colorbalance_lgg(in[2], n->lift[2], n->gamma[2], n->gain[2]);
+
+	out[0] = colorbalance_lgg(in[0], n->lift_lgg[0], n->gamma[0], n->gain[0]);
+	out[1] = colorbalance_lgg(in[1], n->lift_lgg[1], n->gamma[1], n->gain[1]);
+	out[2] = colorbalance_lgg(in[2], n->lift_lgg[2], n->gamma[2], n->gain[2]);
 	out[3] = in[3];
 }
 
@@ -99,10 +99,10 @@ static void do_colorbalance_lgg_fac(bNode *node, float* out, float *in, float *f
 {
 	NodeColorBalance *n= (NodeColorBalance *)node->storage;
 	const float mfac= 1.0f - *fac;
-	
-	out[0] = mfac*in[0] + *fac * colorbalance_lgg(in[0], n->lift[0], n->gamma[0], n->gain[0]);
-	out[1] = mfac*in[1] + *fac * colorbalance_lgg(in[1], n->lift[1], n->gamma[1], n->gain[1]);
-	out[2] = mfac*in[2] + *fac * colorbalance_lgg(in[2], n->lift[2], n->gamma[2], n->gain[2]);
+
+	out[0] = mfac*in[0] + *fac * colorbalance_lgg(in[0], n->lift_lgg[0], n->gamma[0], n->gain[0]);
+	out[1] = mfac*in[1] + *fac * colorbalance_lgg(in[1], n->lift_lgg[1], n->gamma[1], n->gain[1]);
+	out[2] = mfac*in[2] + *fac * colorbalance_lgg(in[2], n->lift_lgg[2], n->gamma[2], n->gain[2]);
 	out[3] = in[3];
 }
 
@@ -119,7 +119,15 @@ static void node_composit_exec_colorbalance(void *data, bNode *node, bNodeStack 
 		out[0]->data = pass_on_compbuf(cbuf);
 		return;
 	}
-	
+
+	{
+		NodeColorBalance *n= (NodeColorBalance *)node->storage;
+		int c;
+		for (c = 0; c < 3; c++) {
+			n->lift_lgg[c] = 2.0f - pow(n->lift[c], 2);
+		}
+	}
+
 	if (cbuf) {
 		stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* create output based on image input */
 			

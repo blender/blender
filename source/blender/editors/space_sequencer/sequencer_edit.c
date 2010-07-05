@@ -677,36 +677,6 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 	return 1;
 }
 
-void reassign_inputs_seq_effect(Scene *scene)
-{
-	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *seq1, *seq2, *seq3, *last_seq = seq_active_get(scene);
-	char *error_msg;
-
-	if(last_seq==0 || !(last_seq->type & SEQ_EFFECT)) return;
-	if(ed==NULL) return;
-
-	if(!seq_effect_find_selected(scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg)) {
-		//BKE_report(op->reports, RPT_ERROR, error_msg); // XXX operatorify
-		return;
-	}
-	/* see reassigning would create a cycle */
-	if(	seq_is_predecessor(seq1, last_seq) ||
-		seq_is_predecessor(seq2, last_seq) ||
-		seq_is_predecessor(seq3, last_seq)
-	) {
-		//BKE_report(op->reports, RPT_ERROR, "Can't reassign inputs: no cycles allowed"); // XXX operatorify
-		   return;
-	}
-	
-	last_seq->seq1 = seq1;
-	last_seq->seq2 = seq2;
-	last_seq->seq3 = seq3;
-
-	update_changed_seq_and_deps(scene, last_seq, 1, 1);
-
-}
-
 static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
 {
 	Sequence *seq1, *seq2, *seq3;
@@ -761,7 +731,8 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 			BLI_remlink(lb, seq);
 			if(seq==last_seq) seq_active_set(scene, NULL);
 			if(seq->type==SEQ_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
-			if(seq->ipo) seq->ipo->id.us--;
+			/* if(seq->ipo) seq->ipo->id.us--; */
+			/* XXX, remove fcurve */
 			seq_free_sequence(scene, seq);
 		}
 		seq= seqn;
@@ -1457,6 +1428,67 @@ void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Sequence *seq1, *seq2, *seq3, *last_seq = seq_active_get(scene);
+	char *error_msg;
+
+	if(!seq_effect_find_selected(scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg)) {
+		BKE_report(op->reports, RPT_ERROR, error_msg);
+		return OPERATOR_CANCELLED;
+	}
+	/* see reassigning would create a cycle */
+	if(	seq_is_predecessor(seq1, last_seq) ||
+		seq_is_predecessor(seq2, last_seq) ||
+		seq_is_predecessor(seq3, last_seq)
+	) {
+		BKE_report(op->reports, RPT_ERROR, "Can't reassign inputs: no cycles allowed");
+		return OPERATOR_CANCELLED;
+	}
+
+	last_seq->seq1 = seq1;
+	last_seq->seq2 = seq2;
+	last_seq->seq3 = seq3;
+
+	update_changed_seq_and_deps(scene, last_seq, 1, 1);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+int sequencer_effect_poll(bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
+
+	if(ed) {
+		Sequence *last_seq= seq_active_get(scene);
+		if(last_seq && (last_seq->type & SEQ_EFFECT)) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reassign Inputs";
+	ot->idname= "SEQUENCER_OT_reassign_inputs";
+	ot->description="Reassign the inputs for the effects strip";
+
+	/* api callbacks */
+	ot->exec= sequencer_reassign_inputs_exec;
+	ot->poll= sequencer_effect_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 /* cut operator */
 static EnumPropertyItem prop_cut_types[] = {
 	{SEQ_CUT_SOFT, "SOFT", 0, "Soft", ""},
@@ -1700,10 +1732,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	int start_ofs, cfra, frame_end;
 	int step= RNA_int_get(op->ptr, "length");
 
-	if(ed==NULL)
-		return OPERATOR_CANCELLED;
-
-	seq= ed->seqbasep->first;
+	seq= ed->seqbasep->first; /* poll checks this is valid */
 
 	while (seq) {
 		if((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
@@ -1711,7 +1740,8 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 			see seq_free_sequence below for the real free'ing */
 			seq_next = seq->next;
 			BLI_remlink(ed->seqbasep, seq);
-			if(seq->ipo) seq->ipo->id.us--;
+			/* if(seq->ipo) seq->ipo->id.us--; */
+			/* XXX, remove fcurve and assign to split image strips */
 
 			start_ofs = cfra = seq_tx_get_final_left(seq, 0);
 			frame_end = seq_tx_get_final_right(seq, 0);
@@ -1735,11 +1765,16 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
 				strncpy(se_new->name, se->name, FILE_MAXFILE-1);
 				calc_sequence(scene, seq_new);
-				seq_new->flag &= ~SEQ_OVERLAP;
-				if (seq_test_overlap(ed->seqbasep, seq_new)) {
-					shuffle_seq(ed->seqbasep, seq_new, scene);
+
+				if(step > 1) {
+					seq_new->flag &= ~SEQ_OVERLAP;
+					if (seq_test_overlap(ed->seqbasep, seq_new)) {
+						shuffle_seq(ed->seqbasep, seq_new, scene);
+					}
 				}
 
+				/* XXX, COPY FCURVES */
+				strncpy(seq_new->name+2, seq->name+2, sizeof(seq->name)-2);
 				seqbase_unique_name_recursive(&scene->ed->seqbase, seq_new);
 
 				cfra++;
@@ -1857,8 +1892,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
-	Sequence *seq, *seqm, *next;
-	
+	Sequence *seq, *seqm, *next, *last_seq = seq_active_get(scene);
 	int channel_max= 1;
 
 	if(seqbase_isolated_sel_check(ed->seqbasep)==FALSE) {
@@ -1883,7 +1917,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 		}
 		seq= next;
 	}
-	seqm->machine= channel_max;
+	seqm->machine= last_seq ? last_seq->machine : channel_max;
 	calc_sequence(scene, seqm);
 
 	seqm->strip= MEM_callocN(sizeof(Strip), "metastrip");
@@ -2643,8 +2677,17 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	sound_remove_scene_sound(scene, seq_act->scene_sound);
+	sound_remove_scene_sound(scene, seq_other->scene_sound);
+
+	seq_act->scene_sound= NULL;
+	seq_other->scene_sound= NULL;
+
 	calc_sequence(scene, seq_act);
 	calc_sequence(scene, seq_other);
+
+	if(seq_act->sound)		sound_add_scene_sound(scene, seq_act, seq_act->startdisp, seq_act->enddisp, seq_act->startofs + seq_act->anim_startofs);
+	if(seq_other->sound)	sound_add_scene_sound(scene, seq_other, seq_other->startdisp, seq_other->enddisp, seq_other->startofs + seq_other->anim_startofs);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 

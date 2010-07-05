@@ -28,7 +28,7 @@
 #ifndef WM_FILES_H
 #define WM_FILES_H
 
-extern void read_Blog(void);
+extern void read_history(void);
 extern void delete_autosave(void);
 
 

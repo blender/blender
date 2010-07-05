@@ -24,6 +24,7 @@
  */
 
 #include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -235,7 +236,7 @@ static uiBut *ui_but_last(uiBlock *block)
 static int ui_is_a_warp_but(uiBut *but)
 {
 	if(U.uiflag & USER_CONTINUOUS_MOUSE)
-		if(ELEM(but->type, NUM, NUMABS))
+		if(ELEM3(but->type, NUM, NUMABS, HSVCIRCLE))
 			return TRUE;
 
 	return FALSE;
@@ -2223,7 +2224,6 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 	softmax= but->softmax;
 	softrange= softmax - softmin;
 
-
 	if(ui_is_a_warp_but(but)) {
 		/* Mouse location isn't screen clamped to the screen so use a linear mapping
 		 * 2px == 1-int, or 1px == 1-ClickStep */
@@ -2283,15 +2283,18 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		/* Use a non-linear mapping of the mouse drag especially for large floats (normal behavior) */
 		deler= 500;
 		if(!ui_is_but_float(but)) {
-			if((softrange)<100) deler= 200.0;
-			if((softrange)<25) deler= 50.0;
+			/* prevent large ranges from getting too out of control */
+			if (softrange > 600) deler = powf(softrange, 0.75);
+			
+			if (softrange < 100) deler= 200.0;
+			if (softrange < 25) deler= 50.0;
 		}
 		deler /= fac;
 
-		if(ui_is_but_float(but) && softrange > 11) {
+		if(softrange > 11) {
 			/* non linear change in mouse input- good for high precicsion */
 			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.002);
-		} else if (!ui_is_but_float(but) && softrange > 129) { /* only scale large int buttons */
+		} else if (softrange > 129) { /* only scale large int buttons */
 			/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
 			data->dragf+= (((float)(mx-data->draglastx))/deler) * (fabs(data->dragstartx-mx)*0.004);
 		} else {
@@ -2299,8 +2302,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 			data->dragf+= ((float)(mx-data->draglastx))/deler ;
 		}
 	
-		if(data->dragf>1.0) data->dragf= 1.0;
-		if(data->dragf<0.0) data->dragf= 0.0;
+		CLAMP(data->dragf, 0.0, 1.0);
 		data->draglastx= mx;
 		tempf= (softmin + data->dragf*softrange);
 
@@ -2312,7 +2314,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 
 			CLAMP(temp, softmin, softmax);
 			lvalue= (int)data->value;
-
+			
 			if(temp != lvalue) {
 				data->dragchange= 1;
 				data->value= (double)temp;
@@ -3045,7 +3047,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx, int my)
+static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx, int my, int shift)
 {
 	rcti rect;
 	int changed= 1;
@@ -3059,13 +3061,29 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	
 	/* exception, when using color wheel in 'locked' value state:
 	 * allow choosing a hue for black values, by giving a tiny increment */
-	if (but->a2 == 1) { // lock
+	if (but->flag & UI_BUT_COLOR_LOCK) { // lock
 		if (hsv[2] == 0.f) hsv[2] = 0.0001f;
 	}
-		
+
+	if(U.uiflag & USER_CONTINUOUS_MOUSE) {
+		float fac= shift ? 0.02 : 0.1;
+		/* slow down the mouse, this is fairly picky */
+		mx = (data->dragstartx*(1.0f-fac) + mx*fac);
+		my = (data->dragstarty*(1.0f-fac) + my*fac);
+	}
+
 	ui_hsvcircle_vals_from_pos(hsv, hsv+1, &rect, (float)mx, (float)my);
-	
+
+	if(but->flag & UI_BUT_COLOR_CUBIC)
+		hsv[1]= 1.0f - sqrt3f(1.0f - hsv[1]);
+
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
+
+	if((but->flag & UI_BUT_VEC_SIZE_LOCK) && (rgb[0] || rgb[1] || rgb[2])) {
+		normalize_v3(rgb);
+		mul_v3_fl(rgb, but->a2);
+	}
+
 	ui_set_but_vectorf(but, rgb);
 	
 	data->draglastx= mx;
@@ -3092,7 +3110,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 			
 			/* also do drag the first time */
-			if(ui_numedit_but_HSVCIRCLE(but, data, mx, my))
+			if(ui_numedit_but_HSVCIRCLE(but, data, mx, my, event->shift))
 				ui_numedit_apply(C, block, but, data);
 			
 			return WM_UI_HANDLER_BREAK;
@@ -3143,7 +3161,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 		else if(event->type == MOUSEMOVE) {
 			if(mx!=data->draglastx || my!=data->draglasty) {
-				if(ui_numedit_but_HSVCIRCLE(but, data, mx, my))
+				if(ui_numedit_but_HSVCIRCLE(but, data, mx, my, event->shift))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}

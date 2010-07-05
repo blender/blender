@@ -355,6 +355,7 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+				case ND_FRAME_RANGE:
 				case ND_MARKERS:
 				case ND_SEQUENCER:
 					ED_region_tag_redraw(ar);

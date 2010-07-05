@@ -399,7 +399,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 	if (ob->type==OB_MESH) {
 		DerivedMesh *dm;
 		Mesh *me = ob->data;
-		MultiresModifierData *mmd= find_multires_modifier(scene, ob);
+		MultiresModifierData *mmd= find_multires_modifier_before(scene, md);
 
 		if( me->key) {
 			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
@@ -412,12 +412,15 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		if(md->type == eModifierType_Multires)
 			multires_force_update(ob);
 
-		if (mmd && mti->type==eModifierTypeType_OnlyDeform) {
-			multiresModifier_reshapeFromDeformMod (scene, mmd, ob, md);
+		if (mmd && mmd->totlvl && mti->type==eModifierTypeType_OnlyDeform) {
+			if(!multiresModifier_reshapeFromDeformMod (scene, mmd, ob, md)) {
+				BKE_report(reports, RPT_ERROR, "Multires modifier returned error, skipping apply");
+				return 0;
+			}
 		} else {
 			dm = mesh_create_derived_for_modifier(scene, ob, md);
 			if (!dm) {
-				BKE_report(reports, RPT_ERROR, "Modifier is returned error, skipping apply");
+				BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
 				return 0;
 			}
 
@@ -1081,7 +1084,7 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL, FILE_SAVE, FILE_RELPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
 	edit_modifier_properties(ot);
 }
 

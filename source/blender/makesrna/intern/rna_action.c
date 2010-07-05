@@ -171,6 +171,12 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 0);
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
+	prop= RNA_def_property(srna, "display_hidden", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_INCL_HIDDEN);
+	RNA_def_property_ui_text(prop, "Display Hidden", "Include channels from objects/bone that aren't visible");
+	RNA_def_property_ui_icon(prop, ICON_GHOST_ENABLED, 0);
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
+	
 	/* Object Group Filtering Settings */
 	prop= RNA_def_property(srna, "only_group_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_ONLYOBGROUP);

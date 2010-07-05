@@ -473,7 +473,7 @@ class MakeDupliFace(bpy.types.Operator):
                 linked.setdefault(data, []).append(obj)
 
         for data, objects in linked.items():
-            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix) for axis in v]
+            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix_world) for axis in v]
             faces = list(range(int(len(face_verts) / 3)))
 
             mesh = bpy.data.meshes.new(data.name + "_dupli")

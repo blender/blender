@@ -38,6 +38,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_deform.h"
+#include "BKE_scene.h"
 
 #include "depsgraph_private.h"
 
@@ -247,7 +248,7 @@ static void waveModifier_do(WaveModifierData *md,
 	MVert *mvert = NULL;
 	MDeformVert *dvert = NULL;
 	int defgrp_index;
-	float ctime = bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);
+	float ctime = BKE_curframe(scene);
 	float minfac =
 			(float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;

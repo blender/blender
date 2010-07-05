@@ -1307,6 +1307,8 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
 	re->clipcrop= 1.0f + 2.0f/(float)(re->winx>re->winy?re->winy:re->winx);
 	
+	re->mblur_offs = re->field_offs = 0.f;
+	
 	RE_init_threadcount(re);
 }
 
@@ -1768,6 +1770,7 @@ static void do_render_3d(Render *re)
 	/* internal */
 	
 //	re->cfra= cfra;	/* <- unused! */
+	re->scene->r.subframe = re->mblur_offs + re->field_offs;
 	
 	/* make render verts/faces/halos/lamps */
 	if(render_scene_needs_vector(re))
@@ -1789,6 +1792,8 @@ static void do_render_3d(Render *re)
 		
 	/* free all render verts etc */
 	RE_Database_Free(re);
+	
+	re->scene->r.subframe = 0.f;
 }
 
 /* called by blur loop, accumulate RGBA key alpha */
@@ -1888,7 +1893,7 @@ static void do_render_blur_3d(Render *re)
 	
 	/* do the blur steps */
 	while(blur--) {
-		set_mblur_offs( re->r.blurfac*((float)(re->r.mblur_samples-blur))/(float)re->r.mblur_samples );
+		re->mblur_offs = re->r.blurfac*((float)(re->r.mblur_samples-blur))/(float)re->r.mblur_samples;
 		
 		re->i.curblur= re->r.mblur_samples-blur;	/* stats */
 		
@@ -1906,7 +1911,7 @@ static void do_render_blur_3d(Render *re)
 	re->result= rres;
 	BLI_rw_mutex_unlock(&re->resultmutex);
 	
-	set_mblur_offs(0.0f);
+	re->mblur_offs = 0.0f;
 	re->i.curblur= 0;	/* stats */
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
@@ -1986,15 +1991,17 @@ static void do_render_fields_3d(Render *re)
 		re->i.curfield= 2;	/* stats */
 		
 		re->flag |= R_SEC_FIELD;
-		if((re->r.mode & R_FIELDSTILL)==0) 
-			set_field_offs(0.5f);
+		if((re->r.mode & R_FIELDSTILL)==0) {
+			re->field_offs = 0.5f;
+		}
 		RE_SetCamera(re, re->scene->camera);
 		if(re->r.mode & R_MBLUR)
 			do_render_blur_3d(re);
 		else
 			do_render_3d(re);
 		re->flag &= ~R_SEC_FIELD;
-		set_field_offs(0.0f);
+		
+		re->field_offs = 0.0f;
 		
 		rr2= re->result;
 	}
@@ -2522,7 +2529,7 @@ static void do_render_seq(Render * re)
 
 	if(recurs_depth==0) {
 		/* otherwise sequencer animation isnt updated */
-		BKE_animsys_evaluate_all_animation(G.main, (float)cfra); // XXX, was frame_to_float(re->scene, cfra)
+		BKE_animsys_evaluate_all_animation(G.main, (float)cfra); // XXX, was BKE_curframe(re->scene)
 	}
 
 	recurs_depth++;
@@ -2822,7 +2829,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned i
 		MEM_reset_peak_memory();
 		do_render_all_options(re);
 	}
-	
+		
 	/* UGLY WARNING */
 	G.rendering= 0;
 }
@@ -3030,7 +3037,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int ef
 		mh->end_movie();
 
 	scene->r.cfra= cfrao;
-	
+
 	/* UGLY WARNING */
 	G.rendering= 0;
 }
