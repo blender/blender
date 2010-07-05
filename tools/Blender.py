@@ -526,7 +526,7 @@ def AppIt(target=None, source=None, env=None):
 	cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/'%(builddir, binary, VERSION)
 #	print cmd
 	commands.getoutput(cmd)
-	cmd = builddir + '/%s.app/Contents/MacOS/VERSION'%(binary,VERSION)
+	cmd = builddir + '/%s.app/Contents/MacOS/%s'%(binary,VERSION)
 	shutil.copy(bldroot + '/bin/'+VERSION+'/.bfont.ttf', cmd)
 	shutil.copy(bldroot + '/bin/'+VERSION+'/.Blanguages', cmd)
 	cmd = 'cp -R %s/bin/%s/locale %s/%s.app/Contents/Resources/'%(bldroot,VERSION,builddir,binary)
