@@ -60,6 +60,10 @@
 /* This function is used to free all MetaElems from MetaBall */
 void free_editMball(Object *obedit)
 {
+	MetaBall *mb = (MetaBall*)obedit->data;
+
+	mb->editelems= NULL;
+	mb->lastelem= NULL;
 }
 
 /* This function is called, when MetaBall Object is
@@ -84,10 +88,6 @@ void make_editMball(Object *obedit)
  * from object->data->edit_elems to object->data->elems. */
 void load_editMball(Object *obedit)
 {
-	MetaBall *mb = (MetaBall*)obedit->data;
-	
-	mb->editelems= NULL;
-	mb->lastelem= NULL;
 }
 
 /* Add metaelem primitive to metaball object (which is in edit mode) */
