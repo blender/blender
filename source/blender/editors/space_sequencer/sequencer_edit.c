@@ -1892,8 +1892,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
-	Sequence *seq, *seqm, *next;
-	
+	Sequence *seq, *seqm, *next, *last_seq = seq_active_get(scene);
 	int channel_max= 1;
 
 	if(seqbase_isolated_sel_check(ed->seqbasep)==FALSE) {
@@ -1918,7 +1917,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 		}
 		seq= next;
 	}
-	seqm->machine= channel_max;
+	seqm->machine= last_seq ? last_seq->machine : channel_max;
 	calc_sequence(scene, seqm);
 
 	seqm->strip= MEM_callocN(sizeof(Strip), "metastrip");
