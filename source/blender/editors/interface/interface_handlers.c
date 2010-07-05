@@ -3073,7 +3073,10 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	}
 
 	ui_hsvcircle_vals_from_pos(hsv, hsv+1, &rect, (float)mx, (float)my);
-	
+
+	if(but->flag & UI_BUT_COLOR_CUBIC)
+		hsv[1]= 1.0f - sqrt3f(1.0f - hsv[1]);
+
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 
 	if((but->flag & UI_BUT_VEC_SIZE_LOCK) && (rgb[0] || rgb[1] || rgb[2])) {

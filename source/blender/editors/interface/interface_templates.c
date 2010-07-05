@@ -1953,7 +1953,7 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, i
 
 #define WHEEL_SIZE	100
 
-void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int value_slider, int lock, int lock_luminosity)
+void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int value_slider, int lock, int lock_luminosity, int cubic)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	uiBlock *block= uiLayoutGetBlock(layout);
@@ -1983,6 +1983,9 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 		RNA_property_float_get_array(ptr, prop, color);
 		but->a2= len_v3(color);
 	}
+
+	if(cubic)
+		but->flag |= UI_BUT_COLOR_CUBIC;
 
 	uiItemS(row);
 	

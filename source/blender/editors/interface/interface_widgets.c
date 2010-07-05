@@ -1675,6 +1675,7 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		
 		ui_hsvcircle_vals_from_pos(hsv, hsv+1, rect, centx + co*radius, centy + si*radius);
 		CLAMP(hsv[2], 0.0f, 1.0f); /* for display only */
+
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		glColor3fv(col);
 		glVertex2f( centx + co*radius, centy + si*radius);
@@ -1696,7 +1697,12 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 
 	/* cursor */
 	ang= 2.0f*M_PI*hsvo[0] + 0.5f*M_PI;
-	radius= hsvo[1]*radius;
+
+	if(but->flag & UI_BUT_COLOR_CUBIC)
+		radius= (1.0f - pow(1.0f - hsvo[1], 3.0f)) *radius;
+	else
+		radius= hsvo[1] * radius;
+
 	ui_hsv_cursor(centx + cos(-ang)*radius, centy + sin(-ang)*radius);
 	
 }
