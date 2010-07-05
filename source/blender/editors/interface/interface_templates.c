@@ -80,11 +80,15 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	uiLayout *row= layout;
 	short nlaActive= ((sa) && (sa->spacetype==SPACE_NLA));
 	
-	/* more 'generic' filtering options */
+	/* most 'generic' filtering options */
 	row= uiLayoutRow(layout, 1);
 	
 	uiItemR(row, ptr, "only_selected", 0, "", 0);
-	uiItemR(row, ptr, "display_transforms", 0, "", 0); // xxx: include in another position instead?
+	uiItemR(row, ptr, "display_hidden", 0, "", 0);
+	
+	/* object-level filtering options */
+	row= uiLayoutRow(layout, 1);
+	uiItemR(row, ptr, "display_transforms", 0, "", 0);
 	
 	if (nlaActive)
 		uiItemR(row, ptr, "include_missing_nla", 0, "", 0);
