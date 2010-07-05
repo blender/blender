@@ -177,14 +177,18 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 	float dx= 0.3f*(xmax-xmin);
 	float dy= 0.3f*(ymax-ymin);
 	
-	glColor4ub(255, 255, 255, 80);
+	glColor4ub(255, 255, 255, 180);
 	fdrawline(xmin, ymax, xmax, ymin);
+	glColor4ub(255, 255, 255, 130);
 	fdrawline(xmin, ymax-dy, xmax-dx, ymin);
+	glColor4ub(255, 255, 255, 80);
 	fdrawline(xmin, ymax-2*dy, xmax-2*dx, ymin);
 	
-	glColor4ub(0, 0, 0, 150);
+	glColor4ub(0, 0, 0, 210);
 	fdrawline(xmin, ymax+1, xmax+1, ymin);
+	glColor4ub(0, 0, 0, 180);
 	fdrawline(xmin, ymax-dy+1, xmax-dx+1, ymin);
+	glColor4ub(0, 0, 0, 150);
 	fdrawline(xmin, ymax-2*dy+1, xmax-2*dx+1, ymin);
 }
 
