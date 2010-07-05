@@ -586,14 +586,17 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_ui_text(prop, "Lift", "Color balance lift (shadows)");
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_ui_text(prop, "Gamma", "Color balance gamma (midtones)");
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "gain", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_ui_text(prop, "Gain", "Color balance gain (highlights)");
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "inverse_gain", PROP_BOOLEAN, PROP_NONE);
