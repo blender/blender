@@ -553,18 +553,17 @@ void set_scene_bg(Scene *scene)
 }
 
 /* called from creator.c */
-void set_scene_name(char *name)
+Scene *set_scene_name(char *name)
 {
-	Scene *sce;
-
-	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
-		if (BLI_streq(name, sce->id.name+2)) {
-			set_scene_bg(sce);
-			return;
-		}
+	Scene *sce= (Scene *)find_id("SC", name);
+	if(sce) {
+		set_scene_bg(sce);
+		printf("Scene switch: '%s' in file: '%s'\n", name, G.sce);
+		return sce;
 	}
-	
-	//XXX error("Can't find scene: %s", name);
+
+	printf("Can't find scene: '%s' in file: '%s'\n", name, G.sce);
+	return NULL;
 }
 
 void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)

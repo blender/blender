@@ -34,17 +34,17 @@
 const GHOST_TUns8* GHOST_getSystemDir()
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	return system->getSystemDir();
+	return system ? system->getSystemDir() : NULL;
 }
 
 const GHOST_TUns8* GHOST_getUserDir()
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	return system->getUserDir();
+	return system ? system->getUserDir() : NULL; /* will be NULL in background mode */
 }
 
 const GHOST_TUns8* GHOST_getBinaryDir()
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	return system->getBinaryDir();
+	return system ? system->getBinaryDir() : NULL; /* will be NULL in background mode */
 }
