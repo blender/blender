@@ -12136,6 +12136,7 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, char
 							ob->lay = scene->lay;
 						}
 					}
+					ob->mode= 0;
 					base->lay= ob->lay;
 					base->object= ob;
 					ob->id.us++;
