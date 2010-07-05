@@ -907,6 +907,9 @@ static void scene_update_tagged_recursive(Scene *scene, Scene *scene_parent)
 
 		if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
 			group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
+			
+		/* always update layer, so that animating layers works */
+		base->lay= ob->lay;
 	}
 }
 
