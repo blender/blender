@@ -83,7 +83,8 @@ def validate_arguments(args, bc):
             'BF_GHOST_DEBUG',
             'WITH_BF_RAYOPTIMIZATION',
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
-            'BF_NO_ELBEEM'
+            'BF_NO_ELBEEM',
+            'BF_VCREDIST' # Windows-only, and useful only when creating installer
             ]
     
     # Have options here that scons expects to be lists
@@ -441,20 +442,22 @@ def read_opts(env, cfg, args):
         (BoolVariable('BF_GHOST_DEBUG', 'Make GHOST print events and info to stdout. (very verbose)', False)),
         
         (BoolVariable('WITH_BF_RAYOPTIMIZATION', 'Enable raytracer SSE/SIMD optimization.', False)),
-        ('BF_RAYOPTIMIZATION_SSE_FLAGS', 'SSE flags', '')
+        ('BF_RAYOPTIMIZATION_SSE_FLAGS', 'SSE flags', ''),
+        ('BF_VCREDIST', 'Full path to vcredist', '')
     ) # end of opts.AddOptions()
 
     return localopts
 
 def NSIS_print(target, source, env):
-    return "Creating NSIS installer for Blender 3D"
+    return "Creating NSIS installer for Blender"
 
 def NSIS_Installer(target=None, source=None, env=None):
+    print "="*35
 
     if env['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc'):
         print "NSIS installer is only available on Windows."
         Exit()
-        
+
     start_dir = os.getcwd()
     rel_dir = os.path.join(start_dir,'release','windows','installer')
     install_base_dir = start_dir + os.sep
@@ -466,18 +469,23 @@ def NSIS_Installer(target=None, source=None, env=None):
     rootdirconts = []
     datafiles = ''
     l = len(bf_installdir)
+    
     for dp,dn,df in os.walk(bf_installdir):
         if not doneroot:
             for f in df:
                 rootdirconts.append(os.path.join(dp,f))
             doneroot = True
         else:
-            datafiles += "\n"+r'SetOutPath $BLENDERHOME'+dp[l:]+"\n\n"
+            if len(df)>0:
+                dp_tmp = dp[l:]
+                if dp_tmp.find('python\\lib') > -1:
+                    datafiles += "\n" +r'SetOutPath $INSTDIR'+dp[l:]+"\n\n"
+                else:
+                    datafiles += "\n"+r'SetOutPath $BLENDERHOME'+dp[l:]+"\n\n"
 
-            for f in df:
-                outfile = os.path.join(dp,f)
-                datafiles += '  File '+outfile + "\n"
-
+                for f in df:
+                    outfile = os.path.join(dp,f)
+                    datafiles += '  File '+outfile + "\n"
     
     os.chdir("release")
     v = open("VERSION")
@@ -491,13 +499,13 @@ def NSIS_Installer(target=None, source=None, env=None):
 
     ns = open("00.sconsblender.nsi","r")
 
-
     ns_cnt = str(ns.read())
     ns.close()
 
     # var replacements
-    ns_cnt = string.replace(ns_cnt, "[DISTDIR]", os.path.normpath(inst_dir+"\\"))
+    ns_cnt = string.replace(ns_cnt, "[DISTDIR]", os.path.normpath(inst_dir+os.sep))
     ns_cnt = string.replace(ns_cnt, "[VERSION]", version)
+    ns_cnt = string.replace(ns_cnt, "[SHORTVERSION]", VERSION)
     ns_cnt = string.replace(ns_cnt, "[RELDIR]", os.path.normpath(rel_dir))
 
     # do root
@@ -509,9 +517,6 @@ def NSIS_Installer(target=None, source=None, env=None):
     rootstring += "\n\n"
     ns_cnt = string.replace(ns_cnt, "[ROOTDIRCONTS]", rootstring)
 
-    #print rootstring
-    #print datafiles
-    print "="*50
 
     # do delete items
     delrootlist = []
@@ -523,15 +528,20 @@ def NSIS_Installer(target=None, source=None, env=None):
 
     ns_cnt = string.replace(ns_cnt, "[DODATAFILES]", datafiles)
 
+    # Setup vcredist part
+    vcredist = "File \""+env['BF_VCREDIST'] + "\"\n"
+    vcredist += "  ExecWait '\"$TEMP\\" + os.path.basename(env['BF_VCREDIST']) + "\" /q'\n"
+    vcredist += "  Delete \"$TEMP\\" + os.path.basename(env['BF_VCREDIST'])+"\""
+    ns_cnt = string.replace(ns_cnt, "[VCREDIST]", vcredist)
 
     tmpnsi = os.path.normpath(install_base_dir+os.sep+env['BF_BUILDDIR']+os.sep+"00.blender_tmp.nsi")
     new_nsis = open(tmpnsi, 'w')
     new_nsis.write(ns_cnt)
     new_nsis.close()
-    print "Preparing nsis file looks ok\n"
+    print "NSIS Installer script created"
 
     os.chdir(start_dir)
-    print "try to launch 'makensis' ...make sure it is on the path \n"
+    print "Launching 'makensis'"
 
     cmdline = "makensis " + "\""+tmpnsi+"\""
 
