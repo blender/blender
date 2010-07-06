@@ -65,7 +65,7 @@ UninstallIcon "[RELDIR]\00.installer.ico"
 ;Data
 
 Caption "Blender [VERSION] Installer"
-OutFile "[DISTDIR]\..\blender-[VERSION]-windows.exe"
+OutFile "[DISTDIR]\..\blender-[VERSION]-windows[BITNESS].exe"
 InstallDir "$PROGRAMFILES\Blender Foundation\Blender"
 
 BrandingText "Blender Foundation | http://www.blender.org"

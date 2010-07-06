@@ -457,6 +457,12 @@ def NSIS_Installer(target=None, source=None, env=None):
     if env['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc'):
         print "NSIS installer is only available on Windows."
         Exit()
+    if env['OURPLATFORM'] == 'win32-vc':
+        bitness = '32'
+    elif env['OURPLATFORM'] == 'win64-vc':
+        bitness = '64'
+    else:
+        bitness = '-mingw'
 
     start_dir = os.getcwd()
     rel_dir = os.path.join(start_dir,'release','windows','installer')
@@ -507,6 +513,7 @@ def NSIS_Installer(target=None, source=None, env=None):
     ns_cnt = string.replace(ns_cnt, "[VERSION]", version)
     ns_cnt = string.replace(ns_cnt, "[SHORTVERSION]", VERSION)
     ns_cnt = string.replace(ns_cnt, "[RELDIR]", os.path.normpath(rel_dir))
+    ns_cnt = string.replace(ns_cnt, "[BITNESS]", bitness)
 
     # do root
     rootlist = []
