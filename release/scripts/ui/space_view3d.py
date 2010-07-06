@@ -1550,6 +1550,7 @@ class VIEW3D_MT_edit_mesh_faces(bpy.types.Menu):
         layout.operator("mesh.fill")
         layout.operator("mesh.beautify_fill")
         layout.operator("mesh.solidify")
+        layout.operator("mesh.sort_faces")
 
         layout.separator()
 
