@@ -97,7 +97,6 @@ typedef struct process {		/* parameters, function, storage */
 	CENTERLIST **centers;		/* cube center hash table */
 	CORNER **corners;			/* corner value hash table */
 	EDGELIST **edges;			/* edge and vertex id hash table */
-	float scale[3];
 } PROCESS;
 
 /* dividing scene using octal tree makes polygonisation faster */

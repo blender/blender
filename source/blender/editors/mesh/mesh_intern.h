@@ -241,6 +241,7 @@ void MESH_OT_rip(struct wmOperatorType *ot);
 
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
 void MESH_OT_blend_from_shape(struct wmOperatorType *ot);
+void MESH_OT_sort_faces(struct wmOperatorType *ot);
 
 /* ******************* mesh_data.c */
 

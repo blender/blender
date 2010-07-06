@@ -30,8 +30,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BLI_UTIL_H
-#define BLI_UTIL_H
+#ifndef BLI_PATH_UTIL_H
+#define BLI_PATH_UTIL_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,6 +102,8 @@ char *BLI_get_folder_create(int folder_id, char *subfolder);
 
 #ifdef WIN32
 #define BLENDER_BASE_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#elif __APPLE__
+#define BLENDER_BASE_FORMAT			"%s/Blender/%s"
 #else
 #define BLENDER_BASE_FORMAT			"%s/.blender/%s"
 #endif

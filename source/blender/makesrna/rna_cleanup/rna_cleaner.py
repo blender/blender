@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python3.1
 
 """
 This script is used to help cleaning RNA api.
@@ -238,14 +238,17 @@ def write_files(basename, props_list, props_length_max):
         else: indent = '    '
         rna += indent + '("%s", "%s", "%s", "%s", "%s"),\n' % tuple(props[2:5] + props[6:])    
         # py
-        if props[0] == 'NOTE': indent = '#   '
-        else: indent = '    '
         blanks = [' '* (x[0]-x[1]) for x in zip(props_length_max,list(map(len,props)))]
         props = ['"%s"%s'%(x[0],x[1]) for x in zip(props,blanks)]
         py += indent + '(%s, %s, %s, %s, %s, %s, %s, %s),\n' % tuple(props)
+
     f_txt.write(txt)
     f_py.write("rna_api = [\n%s]\n" % py)
     f_rna.write("rna_api = [\n%s]\n" % rna)
+
+    f_txt.close()
+    f_py.close()
+    f_rna.close()
 
     print ('\nSaved %s, %s and %s.\n' % (font_bold(f_txt.name), font_bold(f_py.name), font_bold(f_rna.name) ) )
 
@@ -257,8 +260,10 @@ def main():
 
     sort_choices = ['note','changed','class','from','to','kw']
     default_sort_choice = sort_choices[0]
-    kw_prefixes = ['invert','is','lock','show','show_only','use','use_only']
-    kw = ['hide','select','layer','state']
+    #kw_prefixes = ['invert','is','lock','show','show_only','use','use_only']
+    #kw = ['hide','select','layer','state']
+    kw_prefixes = ['has','invert','is','lock','layers','show','show_only','states','use','use_only']
+    kw = ['layers','states','value']
 
     input_filename, sort_priority = check_commandline()
     props_list,props_length_max = get_props(input_filename)
@@ -269,5 +274,9 @@ def main():
 
 
 if __name__=='__main__':
-    main()
+    import sys
+    if not sys.version.startswith("3"):
+        print("Incorrect python version, use python 3!")
+    else:
+        main()
 

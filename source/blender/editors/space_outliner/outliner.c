@@ -4210,11 +4210,11 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 	if(arg->x >= arg->xmax) 
 		UI_icon_draw(arg->x, arg->y, icon);
 	else {
-		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, "");
+		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
 		if(arg->id)
 			uiButSetDragID(but, arg->id);
 	}
-	
+
 }
 
 static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te, float alpha)

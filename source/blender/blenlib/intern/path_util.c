@@ -72,6 +72,7 @@
 /* local */
 
 static int add_win32_extension(char *name);
+static char *blender_version_decimal(void);
 
 /* implementation */
 
@@ -745,17 +746,15 @@ char *BLI_gethome(void) {
 
 		ret = getenv("HOME");
 		if(ret) {
-			sprintf(dir, "%s\\.blender", ret);
+			sprintf(dir, "%s\\%s", ret, blender_version_decimal());
 			if (BLI_exists(dir)) return dir;
 		}
 
 		/* else, check install dir (path containing blender.exe) */
 
-		BLI_getInstallationDir(dir);
-
-		if (BLI_exists(dir))
+		if(BLI_getInstallationDir(dir))
 		{
-			strcat(dir,"\\.blender");
+			sprintf(dir, "%s", dir, blender_version_decimal());
 			if (BLI_exists(dir)) return(dir);
 		}
 
@@ -773,7 +772,7 @@ char *BLI_gethome(void) {
 				sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
 				BLI_recurdir_fileops(dir);
 				if (BLI_exists(dir)) {
-					strcat(dir,"\\.blender");
+					sprintf(dir,"%s\\%s", dir, blender_version_decimal());
 					if(BLI_exists(dir)) return(dir);
 				}
 			}
@@ -785,7 +784,7 @@ char *BLI_gethome(void) {
 					sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
 					BLI_recurdir_fileops(dir);
 					if (BLI_exists(dir)) {
-						strcat(dir,"\\.blender");
+						sprintf(dir,"%s\\%s", dir, blender_version_decimal());
 						if(BLI_exists(dir)) return(dir);
 					}
 				}

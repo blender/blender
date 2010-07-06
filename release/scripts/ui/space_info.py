@@ -191,6 +191,7 @@ class INFO_MT_curve_add(bpy.types.Menu):
         layout.operator("curve.primitive_nurbs_circle_add", icon='CURVE_NCIRCLE', text="Nurbs Circle")
         layout.operator("curve.primitive_nurbs_path_add", icon='CURVE_PATH', text="Path")
 
+
 class INFO_MT_surface_add(bpy.types.Menu):
     bl_idname = "INFO_MT_surface_add"
     bl_label = "Surface"
@@ -204,6 +205,7 @@ class INFO_MT_surface_add(bpy.types.Menu):
         layout.operator("surface.primitive_nurbs_surface_tube_add", icon='SURFACE_NTUBE', text="NURBS Tube")
         layout.operator("surface.primitive_nurbs_surface_sphere_add", icon='SURFACE_NSPHERE', text="NURBS Sphere")
         layout.operator("surface.primitive_nurbs_surface_donut_add", icon='SURFACE_NDONUT', text="NURBS Torus")
+
 
 class INFO_MT_armature_add(bpy.types.Menu):
     bl_idname = "INFO_MT_armature_add"

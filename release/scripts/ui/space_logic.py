@@ -38,7 +38,7 @@ class LOGIC_PT_properties(bpy.types.Panel):
         layout.operator("object.game_property_new", text="Add Game Property", icon='ZOOMIN')
 
         for i, prop in enumerate(game.properties):
-            
+
             box = layout.box()
             row = box.row()
             row.prop(prop, "name", text="")

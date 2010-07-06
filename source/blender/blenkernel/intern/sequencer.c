@@ -87,18 +87,27 @@ void printf_strip(Sequence *seq)
 	fprintf(stderr, "\tseq_tx_set_final_left: %d %d\n\n", seq_tx_get_final_left(seq, 0), seq_tx_get_final_right(seq, 0));
 }
 
-void seqbase_recursive_apply(ListBase *seqbase, int (*apply_func)(Sequence *seq, void *), void *arg)
+int seqbase_recursive_apply(ListBase *seqbase, int (*apply_func)(Sequence *seq, void *), void *arg)
 {
 	Sequence *iseq;
 	for(iseq= seqbase->first; iseq; iseq= iseq->next) {
-		seq_recursive_apply(iseq, apply_func, arg);
+		if(seq_recursive_apply(iseq, apply_func, arg) == -1)
+			return -1; /* bail out */
 	}
+	return 1;
 }
 
-void seq_recursive_apply(Sequence *seq, int (*apply_func)(Sequence *, void *), void *arg)
+int seq_recursive_apply(Sequence *seq, int (*apply_func)(Sequence *, void *), void *arg)
 {
-	if(apply_func(seq, arg) && seq->seqbase.first)
-		seqbase_recursive_apply(&seq->seqbase, apply_func, arg);
+	int ret= apply_func(seq, arg);
+
+	if(ret == -1)
+		return -1;  /* bail out */
+
+	if(ret && seq->seqbase.first)
+		ret = seqbase_recursive_apply(&seq->seqbase, apply_func, arg);
+
+	return ret;
 }
 
 /* **********************************************************************
@@ -1494,7 +1503,7 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 	int c;
 
 	for (c = 0; c < 3; c++) {
-		cb.lift[c] = 2.0f - pow(cb.lift[c], 2);
+		cb.lift[c] = 2.0f - cb.lift[c];
 	}
 
 	if(cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
@@ -1526,10 +1535,10 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 	return cb;
 }
 
-/* pow(p[c] * cb.gain[c] + cb.lift[c], cb.gamma[c]) * mul;*/
-MINLINE float color_balance_fl(const float v, const float lift, const float gain, const float gamma, const float mul)
+/* note: lift is actually 2-lift */
+MINLINE float color_balance_fl(float v, const float lift, const float gain, const float gamma, const float mul)
 {
-	return powf(powf(v * gain, lift), gamma) * mul;
+	return powf((((v - 1.0f) * lift) + 1.0f) * gain, gamma) * mul;
 }
 
 static void make_cb_table_byte(float lift, float gain, float gamma,

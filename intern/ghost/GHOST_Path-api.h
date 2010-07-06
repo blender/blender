@@ -45,8 +45,7 @@ extern const GHOST_TUns8* GHOST_getSystemDir();
 
 /**
  * Determine the base dir in which user configuration is stored, not including versioning.
- * If needed, it will create the base directory.
- * @return Unsigned char string pointing to user dir (eg ~/.blender/).
+ * @return Unsigned char string pointing to user dir (eg ~).
  */
 extern const GHOST_TUns8* GHOST_getUserDir();
 

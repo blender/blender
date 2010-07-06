@@ -1238,5 +1238,15 @@ const GHOST_TUns8* GHOST_SystemCarbon::getUserDir() const
 
 const GHOST_TUns8* GHOST_SystemCarbon::getBinaryDir() const
 {
-	return NULL;
+	CFURLRef bundleURL;
+	CFStringRef pathStr;
+	static char path[256];
+	CFBundleRef mainBundle = CFBundleGetMainBundle();
+	
+	bundleURL = CFBundleCopyBundleURL(mainBundle);
+	pathStr = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
+	CFStringGetCString(pathStr, path, 255, kCFStringEncodingASCII);
+	CFRelease(pathStr);
+	CFRelease(bundleURL);
+	return (GHOST_TUns8*)path;
 }

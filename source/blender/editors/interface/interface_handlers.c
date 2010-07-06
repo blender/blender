@@ -3066,7 +3066,7 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	}
 
 	if(U.uiflag & USER_CONTINUOUS_MOUSE) {
-		float fac= shift ? 0.02 : 0.1;
+		float fac= shift ? 0.05 : 1.0f;
 		/* slow down the mouse, this is fairly picky */
 		mx = (data->dragstartx*(1.0f-fac) + mx*fac);
 		my = (data->dragstarty*(1.0f-fac) + my*fac);

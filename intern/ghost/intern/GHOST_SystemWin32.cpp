@@ -37,6 +37,14 @@
 #include "GHOST_SystemWin32.h"
 #include "GHOST_EventDragnDrop.h"
 
+#define WIN32_LEAN_AND_MEAN
+#ifdef _WIN32_IE
+#undef _WIN32_IE
+#endif
+#define _WIN32_IE 0x0501
+#include <windows.h>
+#include <shlobj.h>
+
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
 #ifndef GWL_USERDATA
@@ -87,8 +95,6 @@
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
 #include "GHOST_NDOFManager.h"
-
-#include <shlobj.h>
 
 // Key code values not found in winuser.h
 #ifndef VK_MINUS

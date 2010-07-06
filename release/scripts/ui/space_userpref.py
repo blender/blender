@@ -25,11 +25,11 @@ import shutil
 def ui_items_general(col, context):
     """ General UI Theme Settings (User Interface)
     """
-    
+
     row = col.row()
 
-    subsplit = row.split(percentage=0.95) 
-    
+    subsplit = row.split(percentage=0.95)
+
     padding = subsplit.split(percentage=0.15)
     colsub = padding.column()
     colsub = padding.column()
@@ -37,9 +37,9 @@ def ui_items_general(col, context):
     colsub.row().prop(context, "item", slider=True)
     colsub.row().prop(context, "inner", slider=True)
     colsub.row().prop(context, "inner_sel", slider=True)
-    
-    subsplit = row.split(percentage=0.85) 
-    
+
+    subsplit = row.split(percentage=0.85)
+
     padding = subsplit.split(percentage=0.15)
     colsub = padding.column()
     colsub = padding.column()
@@ -52,6 +52,7 @@ def ui_items_general(col, context):
     subsub.prop(context, "shadedown")
 
     col.separator()
+
 
 def opengl_lamp_buttons(column, lamp):
     split = column.split(percentage=0.1)
@@ -507,7 +508,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
         padding1 = subsplit.split(percentage=0.15)
         padding1.column()
 
-        subsplit = row.split(percentage=0.85) 
+        subsplit = row.split(percentage=0.85)
 
         padding2 = subsplit.split(percentage=0.15)
         padding2.column()
@@ -538,13 +539,13 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
         split_themes = layout.split(percentage=0.2)
         split_themes.prop(theme, "theme_area", expand=True)
-        
+
         split = layout.split(percentage=0.4)
-        
-        
+
+
         layout.separator()
         layout.separator()
-        
+
         split = split_themes.split()
 
         if theme.theme_area == 'USER_INTERFACE':
@@ -616,11 +617,11 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             ui = theme.user_interface.wcol_state
             col.label(text="State:")
-            
+
             row = col.row()
 
-            subsplit = row.split(percentage=0.95) 
-            
+            subsplit = row.split(percentage=0.95)
+
             padding = subsplit.split(percentage=0.15)
             colsub = padding.column()
             colsub = padding.column()
@@ -628,9 +629,9 @@ class USERPREF_PT_theme(bpy.types.Panel):
             colsub.row().prop(ui, "inner_anim_sel")
             colsub.row().prop(ui, "inner_driven")
             colsub.row().prop(ui, "inner_driven_sel")
-            
-            subsplit = row.split(percentage=0.85) 
-            
+
+            subsplit = row.split(percentage=0.85)
+
             padding = subsplit.split(percentage=0.15)
             colsub = padding.column()
             colsub = padding.column()
@@ -642,8 +643,8 @@ class USERPREF_PT_theme(bpy.types.Panel):
             ui = theme.user_interface
             col.separator()
             col.separator()
-            
-            split= col.split(percentage=0.93)
+
+            split = col.split(percentage=0.93)
             split.prop(ui, "icon_file")
 
             layout.separator()
@@ -924,7 +925,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     if info["warning"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Warning:")
-                        split.label(text='  ' + info["warning"], icon = 'ERROR')
+                        split.label(text='  ' + info["warning"], icon='ERROR')
                     if info["wiki_url"] or info["tracker_url"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Internet:")
