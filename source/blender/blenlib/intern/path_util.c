@@ -752,9 +752,9 @@ char *BLI_gethome(void) {
 
 		/* else, check install dir (path containing blender.exe) */
 
-		if(BLI_getInstallationDir(ret))
+		if(BLI_getInstallationDir(dir))
 		{
-			sprintf(dir, "%s", ret, blender_version_decimal());
+			sprintf(dir, "%s", dir, blender_version_decimal());
 			if (BLI_exists(dir)) return(dir);
 		}
 
