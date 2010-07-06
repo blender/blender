@@ -77,7 +77,6 @@ SilentUnInstall normal
 
 Var BLENDERHOME
 Var SHORTVERSION ; This is blender_version_decimal() from path_util.c
-Var DLL_found
 
 ; custom controls
 Var HWND
