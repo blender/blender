@@ -54,9 +54,10 @@ DO_INLINE float colorbalance_cdl(float in, float offset, float power, float slop
 	return powf(x, 1.f/power);
 }
 
-DO_INLINE float colorbalance_lgg(float in, float lift, float gamma, float gain)
-{
-	float x= powf(in * gain, lift);
+/* note: lift_lgg is just 2-lift */
+DO_INLINE float colorbalance_lgg(float in, float lift_lgg, float gamma, float gain)
+{	
+	float x= (((in - 1.0f) * lift_lgg) + 1.0f) * gain;
 
 	/* prevent NaN */
 	if (x < 0.f) x = 0.f;
@@ -124,7 +125,7 @@ static void node_composit_exec_colorbalance(void *data, bNode *node, bNodeStack 
 		NodeColorBalance *n= (NodeColorBalance *)node->storage;
 		int c;
 		for (c = 0; c < 3; c++) {
-			n->lift_lgg[c] = 2.0f - pow(n->lift[c], 2);
+			n->lift_lgg[c] = 2.0f - n->lift[c];
 		}
 	}
 

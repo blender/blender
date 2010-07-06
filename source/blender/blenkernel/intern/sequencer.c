@@ -1494,7 +1494,7 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 	int c;
 
 	for (c = 0; c < 3; c++) {
-		cb.lift[c] = 2.0f - pow(cb.lift[c], 2);
+		cb.lift[c] = 2.0f - cb.lift[c];
 	}
 
 	if(cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
@@ -1526,10 +1526,10 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 	return cb;
 }
 
-/* pow(p[c] * cb.gain[c] + cb.lift[c], cb.gamma[c]) * mul;*/
-MINLINE float color_balance_fl(const float v, const float lift, const float gain, const float gamma, const float mul)
+/* note: lift is actually 2-lift */
+MINLINE float color_balance_fl(float v, const float lift, const float gain, const float gamma, const float mul)
 {
-	return powf(powf(v * gain, lift), gamma) * mul;
+	return powf((((v - 1.0f) * lift) + 1.0f) * gain, gamma) * mul;
 }
 
 static void make_cb_table_byte(float lift, float gain, float gamma,
