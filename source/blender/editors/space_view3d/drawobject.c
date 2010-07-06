@@ -5022,6 +5022,8 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	}
 
 	if(ml==NULL) return 1;
+
+	if(v3d->flag2 & V3D_RENDER_OVERRIDE) return 0;
 	
 	/* in case solid draw, reset wire colors */
 	if(ob->flag & SELECT) {
