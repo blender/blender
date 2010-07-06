@@ -66,7 +66,7 @@ UninstallIcon "[RELDIR]\00.installer.ico"
 
 Caption "Blender [VERSION] Installer"
 OutFile "[DISTDIR]\..\blender-[VERSION]-windows[BITNESS].exe"
-InstallDir "$PROGRAMFILES\Blender Foundation\Blender"
+InstallDir "$PROGRAMFILES[BITNESS]\Blender Foundation\Blender"
 
 BrandingText "Blender Foundation | http://www.blender.org"
 ComponentText "This will install Blender [VERSION] on your computer."
