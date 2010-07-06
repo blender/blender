@@ -732,7 +732,7 @@ static int view3d_camera_active_poll(bContext *C)
 {
 	if(ED_operator_view3d_active(C)) {
 		RegionView3D *rv3d= CTX_wm_region_view3d(C);
-		if(rv3d->persp==RV3D_CAMOB) {
+		if(rv3d && rv3d->persp==RV3D_CAMOB) {
 			return 1;
 		}
 	}
