@@ -274,5 +274,9 @@ def main():
 
 
 if __name__=='__main__':
-    main()
+    import sys
+    if not sys.version.startswith("3"):
+        print("Incorrect python version, use python 3!")
+    else:
+        main()
 
