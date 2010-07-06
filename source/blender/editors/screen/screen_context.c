@@ -69,7 +69,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			"active_base", "active_object", "object", "edit_object",
 			"sculpt_object", "vertex_paint_object", "weight_paint_object",
 			"texture_paint_object", "particle_edit_object",
-			"selected_sequences", "selected_editable_sequences", /* sequencer */
+			"sequences", "selected_sequences", "selected_editable_sequences", /* sequencer */
 			NULL};
 
 		CTX_data_dir_set(result, dir);
@@ -321,7 +321,18 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 		return 1;
 	}
-	else if(CTX_data_equals(member, "selected_strips")) {
+	else if(CTX_data_equals(member, "sequences")) {
+		Editing *ed= seq_give_editing(scene, FALSE);
+		if(ed) {
+			Sequence *seq;
+			for (seq= ed->seqbasep->first; seq; seq= seq->next) {
+				CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
+			}
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+			return 1;
+		}
+	}
+	else if(CTX_data_equals(member, "selected_sequences")) {
 		Editing *ed= seq_give_editing(scene, FALSE);
 		if(ed) {
 			Sequence *seq;
