@@ -483,6 +483,37 @@ static void rna_Sequence_opacity_set(PointerRNA *ptr, float value) {
 	((Sequence*)(ptr->data))->blend_opacity = value * 100.0f;
 }
 
+
+static int colbalance_seq_cmp_cb(Sequence *seq, void *arg_pt)
+{
+	struct { Sequence *seq; void *color_balance; } *data= arg_pt;
+
+	if(seq->strip && seq->strip->color_balance == data->color_balance) {
+		data->seq= seq;
+		return -1; /* done so bail out */
+	}
+	return 1;
+}
+static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
+{
+	Scene *scene= ptr->id.data;
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq;
+
+	struct { Sequence *seq; void *color_balance; } data;
+	data.seq= NULL;
+	data.color_balance= ptr->data;
+
+	/* irritating we need to search for our sequence! */
+	seqbase_recursive_apply(&ed->seqbase, colbalance_seq_cmp_cb, &data);
+	seq= data.seq;
+
+	if (seq && seq->name+2)
+		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].color_balance", seq->name+2);
+	else
+		return BLI_strdup("");
+}
+
 #else
 
 static void rna_def_strip_element(BlenderRNA *brna)
@@ -613,7 +644,9 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_LIFT);
 	RNA_def_property_ui_text(prop, "Inverse Lift", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
-	
+
+	RNA_def_struct_path_func(srna, "rna_SequenceColorBalance_path");
+
 	/* not yet used
 	prop= RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -1320,7 +1353,7 @@ static void rna_def_solid_color(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "ColorSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Color Sequence", "Sequence strip creating an image filled with a single color");
+	RNA_def_struct_ui_text(srna, "Color Sequence", "Sequence strip creating an image filled with a single g");
 	RNA_def_struct_sdna_from(srna, "SolidColorVars", "effectdata");
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);

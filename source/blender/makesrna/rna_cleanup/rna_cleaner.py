@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python3.1
 
 """
 This script is used to help cleaning RNA api.
