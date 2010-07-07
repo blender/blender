@@ -1827,10 +1827,13 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	layer= (iuser)? iuser->layer: 0;
 	pass= (iuser)? iuser->pass: 0;
 
-	if(from_render)
+	if(from_render) {
 		RE_AcquireResultImage(re, &rres);
-	else if(ima->renders[ima->render_slot])
+	}
+	else if(ima->renders[ima->render_slot]) {
 		rres= *(ima->renders[ima->render_slot]);
+		rres.have_combined= rres.rectf != NULL;
+	}
 	else
 		memset(&rres, 0, sizeof(RenderResult));
 	
@@ -1852,10 +1855,10 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	rectz= rres.rectz;
 	dither= iuser->scene->r.dither_intensity;
 
-	/* get compo/seq result by default */
-	if(rres.compo_seq && layer==0);
+	/* combined layer gets added as first layer */
+	if(rres.have_combined && layer==0);
 	else if(rres.layers.first) {
-		RenderLayer *rl= BLI_findlink(&rres.layers, layer-(rres.compo_seq?1:0));
+		RenderLayer *rl= BLI_findlink(&rres.layers, layer-(rres.have_combined?1:0));
 		if(rl) {
 			RenderPass *rpass;
 
