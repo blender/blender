@@ -2479,6 +2479,17 @@ void object_handle_update(Scene *scene, Object *ob)
 		if(ob->pose)
 			make_pose_channels_hash(ob->pose);
 
+		if(ob->recalc & OB_RECALC_DATA) {
+			if(ob->type==OB_ARMATURE) {
+				/* this happens for reading old files and to match library armatures
+				   with poses we do it ahead of where_is_object to ensure animation
+				   is evaluated on the rebuilt pose, otherwise we get incorrect poses
+				   on file load */
+				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
+					armature_rebuild_pose(ob, ob->data);
+			}
+		}
+
 		/* XXX new animsys warning: depsgraph tag OB_RECALC_DATA should not skip drivers, 
 		   which is only in where_is_object now */
 		// XXX: should this case be OB_RECALC_OB instead?
@@ -2541,11 +2552,6 @@ void object_handle_update(Scene *scene, Object *ob)
 				lattice_calc_modifiers(scene, ob);
 			}
 			else if(ob->type==OB_ARMATURE) {
-				/* this happens for reading old files and to match library armatures with poses */
-				// XXX this won't screw up the pose set already...
-				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
-					armature_rebuild_pose(ob, ob->data);
-				
 				/* evaluate drivers */
 				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
 				
