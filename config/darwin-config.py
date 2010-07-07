@@ -279,9 +279,9 @@ else:
 
 CFLAGS = ['-pipe','-funsigned-char']+ARCH_FLAGS
 
-CPPFLAGS = ['-fpascal-strings']+ARCH_FLAGS
-CCFLAGS = ['-pipe','-funsigned-char','-fpascal-strings']+ARCH_FLAGS
-CXXFLAGS = ['-pipe','-funsigned-char', '-fpascal-strings']+ARCH_FLAGS
+CPPFLAGS = []+ARCH_FLAGS
+CCFLAGS = ['-pipe','-funsigned-char']+ARCH_FLAGS
+CXXFLAGS = ['-pipe','-funsigned-char']+ARCH_FLAGS
 
 if WITH_GHOST_COCOA==True:
 	PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
