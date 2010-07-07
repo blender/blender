@@ -1588,6 +1588,18 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 }
 
 /* duplicate operator */
+static int apply_unique_name_cb(Sequence *seq, void *arg_pt)
+{
+	Scene *scene= (Scene *)arg_pt;
+	char name[sizeof(seq->name)-2];
+
+	strcpy(name, seq->name+2);
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
+	seq_dupe_animdata(scene, name, seq->name+2);
+	return 1;
+
+}
+
 static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -1605,12 +1617,8 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 		/* rely on the nseqbase list being added at the end */
 		addlisttolist(ed->seqbasep, &nseqbase);
 
-		for( ; seq; seq= seq->next) {
-			char name[sizeof(seq->name)-2];
-			strcpy(name, seq->name+2);
-			seqbase_unique_name_recursive(&ed->seqbase, seq);
-			seq_dupe_animdata(scene, name, seq->name+2);
-		}
+		for( ; seq; seq= seq->next)
+			seq_recursive_apply(seq, apply_unique_name_cb, scene);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 		return OPERATOR_FINISHED;

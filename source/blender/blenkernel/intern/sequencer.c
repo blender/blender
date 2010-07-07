@@ -3881,7 +3881,6 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 void seq_dupe_animdata(Scene *scene, char *name_from, char *name_to)
 {
 	char str_from[32];
-	char str_to[32];
 	FCurve *fcu;
 	FCurve *fcu_last;
 	FCurve *fcu_cpy;
@@ -3891,7 +3890,6 @@ void seq_dupe_animdata(Scene *scene, char *name_from, char *name_to)
 		return;
 
 	sprintf(str_from, "[\"%s\"]", name_from);
-	sprintf(str_to, "[\"%s\"]", name_to);
 
 	fcu_last= scene->adt->action->curves.last;
 
@@ -4265,10 +4263,8 @@ static Sequence *seq_dupli(struct Scene *scene, Sequence *seq, int dupe_flag)
 						" now...\n");
 	}
 
-	if(dupe_flag & SEQ_DUPE_UNIQUE_NAME) {
+	if(dupe_flag & SEQ_DUPE_UNIQUE_NAME)
 		seqbase_unique_name_recursive(&scene->ed->seqbase, seqn);
-		printf("%s %s\n", seqn->name+2, seq->name+2);
-	}
 
 	if(dupe_flag & SEQ_DUPE_ANIM)
 		seq_dupe_animdata(scene, seq->name+2, seqn->name+2);
