@@ -1536,9 +1536,14 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 }
 
 /* note: lift is actually 2-lift */
-MINLINE float color_balance_fl(float v, const float lift, const float gain, const float gamma, const float mul)
+MINLINE float color_balance_fl(float in, const float lift, const float gain, const float gamma, const float mul)
 {
-	return powf((((v - 1.0f) * lift) + 1.0f) * gain, gamma) * mul;
+	float x= (((in - 1.0f) * lift) + 1.0f) * gain;
+
+	/* prevent NaN */
+	if (x < 0.f) x = 0.f;
+
+	return powf(x, gamma) * mul;
 }
 
 static void make_cb_table_byte(float lift, float gain, float gamma,

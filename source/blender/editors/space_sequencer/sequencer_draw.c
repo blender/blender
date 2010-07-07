@@ -369,17 +369,17 @@ static void draw_seq_extensions(Scene *scene, SpaceSeq *sseq, Sequence *seq)
 {
 	float x1, x2, y1, y2, pixely, a;
 	char col[3], blendcol[3];
-	View2D *v2d;
+	View2D *v2d= &sseq->v2d;
 	
 	if(seq->type >= SEQ_EFFECT) return;
+	if(v2d->mask.ymax == v2d->mask.ymin) return; /* avoid divide by zero */
 
 	x1= seq->startdisp;
 	x2= seq->enddisp;
 	
 	y1= seq->machine+SEQ_STRIP_OFSBOTTOM;
 	y2= seq->machine+SEQ_STRIP_OFSTOP;
-	
-	v2d = &sseq->v2d;
+
 	pixely = (v2d->cur.ymax - v2d->cur.ymin)/(v2d->mask.ymax - v2d->mask.ymin);
 	
 	blendcol[0] = blendcol[1] = blendcol[2] = 120;
