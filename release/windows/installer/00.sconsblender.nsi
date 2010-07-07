@@ -25,6 +25,7 @@ Name "Blender [VERSION]"
 !define MUI_COMPONENTSPAGE_SMALLDESC
 !define MUI_FINISHPAGE_RUN "$INSTDIR\blender.exe"
 !define MUI_CHECKBITMAP "[RELDIR]\00.checked.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "[RELDIR]\01.installer.bmp"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "[DISTDIR]\Copyright.txt"
@@ -86,6 +87,7 @@ Var HWND_INSTDIR
 Var HWND_HOMEDIR
 
 Function .onInit
+  ClearErrors
   StrCpy $SHORTVERSION "[SHORTVERSION]"
 FunctionEnd
 
@@ -162,7 +164,7 @@ Section "Blender-[VERSION] (required)" SecCopyUI
 SectionEnd
 
 Section "Add Start Menu shortcuts" Section2
-  SetOutPath $INSTDIR
+  SetShellVarContext all
   CreateDirectory "$SMPROGRAMS\Blender Foundation\Blender\"
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   CreateShortCut "$SMPROGRAMS\Blender Foundation\Blender\Blender.lnk" "$INSTDIR\Blender.exe" "" "$INSTDIR\blender.exe" 0
@@ -173,14 +175,10 @@ Section "Add Start Menu shortcuts" Section2
 SectionEnd
 
 Section "Add Desktop Blender-[VERSION] shortcut" Section3
-  SetOutPath $INSTDIR
   CreateShortCut "$DESKTOP\Blender.lnk" "$INSTDIR\blender.exe" "" "$INSTDIR\blender.exe" 0
 SectionEnd
 
 Section "Open .blend files with Blender-[VERSION]" Section4
-  SetOutPath $INSTDIR
-  ;ExecShell "open" '"$INSTDIR\blender.exe"' "-R -b"
-  ;do it the manual way! ;)
   
   WriteRegStr HKCR ".blend" "" "blendfile"
   WriteRegStr HKCR "blendfile" "" "Blender .blend File"
@@ -199,6 +197,10 @@ Section "Uninstall"
   ReadRegStr $SHORTVERSION HKLM "SOFTWARE\BlenderFoundation" "ShortVersion"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender"
   DeleteRegKey HKLM "SOFTWARE\BlenderFoundation"
+  SetShellVarContext all
+
+  StrCpy $0 "$SMPROGRAMS\Blender Foundation\"
+  MessageBox MB_OK $0
   ; remove files
   [DELROOTDIRCONTS]
 
@@ -208,10 +210,9 @@ Section "Uninstall"
   RMDir /r "$BLENDERHOME"
 Next:
   ; remove shortcuts, if any.
-  Delete "$SMPROGRAMS\Blender Foundation\Blender\*.*"
   Delete "$DESKTOP\Blender.lnk"
   ; remove all link related directories and files
-  RMDir /r "$SMPROGRAMS\Blender Foundation"
+  RMDir /r "$SMPROGRAMS\Blender Foundation\"
   ; remove entire installation directory, including any file created by the user
   RMDir /r "$INSTDIR"
 SectionEnd
