@@ -187,6 +187,7 @@ void seq_single_fix(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
 struct ListBase *seq_seqbase(struct ListBase *seqbase, struct Sequence *seq);
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
+void seq_dupe_animdata(struct Scene *scene, char *name_from, char *name_to);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test, struct Scene *evil_scene);
 int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);
@@ -232,6 +233,7 @@ typedef struct SeqLoadInfo {
 /* seq_dupli' flags */
 #define SEQ_DUPE_UNIQUE_NAME	1<<0
 #define SEQ_DUPE_CONTEXT		1<<1
+#define SEQ_DUPE_ANIM			1<<2
 
 /* use as an api function */
 typedef struct Sequence *(*SeqLoadFunc)(struct bContext *, ListBase *, struct SeqLoadInfo *);

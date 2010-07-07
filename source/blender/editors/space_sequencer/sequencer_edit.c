@@ -792,7 +792,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME);
+		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
 	if (seqn) { 
@@ -881,7 +881,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME);
+		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
 	if (seqn) { 
@@ -1598,15 +1598,19 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	seqbase_dupli_recursive(scene, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME|SEQ_DUPE_CONTEXT);
+	seqbase_dupli_recursive(scene, &nseqbase, ed->seqbasep, SEQ_DUPE_CONTEXT);
 
 	if(nseqbase.first) {
 		Sequence * seq= nseqbase.first;
 		/* rely on the nseqbase list being added at the end */
 		addlisttolist(ed->seqbasep, &nseqbase);
 
-		for( ; seq; seq= seq->next)
+		for( ; seq; seq= seq->next) {
+			char name[sizeof(seq->name)-2];
+			strcpy(name, seq->name+2);
 			seqbase_unique_name_recursive(&ed->seqbase, seq);
+			seq_dupe_animdata(scene, name, seq->name+2);
+		}
 
 		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 		return OPERATOR_FINISHED;

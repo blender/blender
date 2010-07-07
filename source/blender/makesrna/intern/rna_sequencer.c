@@ -30,6 +30,7 @@
 
 #include "rna_internal.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -270,6 +271,7 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	Scene *scene= (Scene*)ptr->id.data;
 	Sequence *seq= (Sequence*)ptr->data;
 	char oldname[sizeof(seq->name)];
+	AnimData *adt;
 	
 	/* make a copy of the old name first */
 	BLI_strncpy(oldname, seq->name+2, sizeof(seq->name)-2);
@@ -281,7 +283,12 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename("sequence_editor.sequences_all", oldname, seq->name+2);
+
+	/* dont rename everywhere because these are per scene */
+	/* BKE_all_animdata_fix_paths_rename("sequence_editor.sequences_all", oldname, seq->name+2); */
+	adt= BKE_animdata_from_id(&scene->id);
+	if(adt)
+		BKE_animdata_fix_paths_rename(&scene->id, adt, "sequence_editor.sequences_all", oldname, seq->name+2, 0, 0, 1);
 }
 
 static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
