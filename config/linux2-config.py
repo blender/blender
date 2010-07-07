@@ -181,6 +181,9 @@ CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFIL
 
 CPPFLAGS = []
 CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64']
+if WITH_BF_FFMPEG:
+  # libavutil needs UINT64_C()
+  CXXFLAGS += ['-D__STDC_CONSTANT_MACROS', ]
 REL_CFLAGS = ['-O2']
 REL_CCFLAGS = ['-O2']
 ##BF_DEPEND = True
