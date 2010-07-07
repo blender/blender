@@ -3799,6 +3799,8 @@ ListBase *seq_seqbase(ListBase *seqbase, Sequence *seq)
 
 int seq_swap(Sequence *seq_a, Sequence *seq_b)
 {
+	char name[sizeof(seq_a->name)];
+
 	if(seq_a->len != seq_b->len)
 		return 0;
 
@@ -3807,12 +3809,33 @@ int seq_swap(Sequence *seq_a, Sequence *seq_b)
 		if(seq_a->type == SEQ_SOUND || seq_b->type == SEQ_SOUND) {
 			return 0;
 		}
+
+		/* disallow effects to swap with non-effects strips */
+		if((seq_a->type & SEQ_EFFECT) != (seq_b->type & SEQ_EFFECT)) {
+			return 0;
+		}
+
+		if((seq_a->type & SEQ_EFFECT) && (seq_b->type & SEQ_EFFECT)) {
+			if(get_sequence_effect_num_inputs(seq_a->type) != get_sequence_effect_num_inputs(seq_b->type)) {
+				return 0;
+			}
+		}
 	}
 
 	SWAP(Sequence, *seq_a, *seq_b);
+
+	/* swap back names so animation fcurves dont get swapped */
+	strcpy(name, seq_a->name+2);
+	strcpy(seq_a->name+2, seq_b->name+2);
+	strcpy(seq_b->name+2, name);
+
+	/* swap back opacity, and overlay mode */
+	SWAP(int, seq_a->blend_mode, seq_b->blend_mode);
+	SWAP(float, seq_a->blend_opacity, seq_b->blend_opacity);
+
+
 	SWAP(void *, seq_a->prev, seq_b->prev);
 	SWAP(void *, seq_a->next, seq_b->next);
-
 	SWAP(int, seq_a->start, seq_b->start);
 	SWAP(int, seq_a->startofs, seq_b->startofs);
 	SWAP(int, seq_a->endofs, seq_b->endofs);
