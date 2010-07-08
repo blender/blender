@@ -459,7 +459,9 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	se= strip->stripdata;
 
 	RNA_BEGIN(op->ptr, itemptr, "files") {
-		RNA_string_get(&itemptr, "name", se->name);
+		char *filename= RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+		BLI_strncpy(se->name, filename, sizeof(se->name));
+		MEM_freeN(filename);
 		se++;
 	}
 	RNA_END;
