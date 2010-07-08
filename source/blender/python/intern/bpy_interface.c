@@ -166,11 +166,6 @@ static PyObject *CreateGlobalDictionary( bContext *C, const char *filename )
 		Py_DECREF(item);
 	}
 
-	/* add bpy to global namespace */
-	mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
-	PyDict_SetItemString( dict, "bpy", mod );
-	Py_DECREF(mod);
-	
 	return dict;
 }
 

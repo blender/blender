@@ -4299,7 +4299,7 @@ void seqbase_dupli_recursive(Scene *scene, ListBase *nseqbase, ListBase *seqbase
 
 	for(seq= seqbase->first; seq; seq= seq->next) {
 		seq->tmp= NULL;
-		if(seq->flag & SELECT) {
+		if((seq->flag & SELECT) || (dupe_flag & SEQ_DUPE_ALL)) {
 			seqn = seq_dupli(scene, seq, dupe_flag);
 			if (seqn) { /*should never fail */
 				if(dupe_flag & SEQ_DUPE_CONTEXT) {
