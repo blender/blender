@@ -4564,6 +4564,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			{	// gotta check if the current state is visible or not
 				uiLayout *split, *col;
 				
+				/* make as visible, for move operator */
+				sens->flag |= SENS_VISIBLE;
+
 				split = uiLayoutSplit(layout, 0.95, 0);
 				col = uiLayoutColumn(split, 1);
 				uiLayoutSetContextPointer(col, "sensor", &ptr);
@@ -4627,6 +4630,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			{	// gotta check if the current state is visible or not
 				uiLayout *split, *col;
 				
+				/* make as visible, for move operator */
+				act->flag |= ACT_VISIBLE;
+
 				split = uiLayoutSplit(layout, 0.05, 0);
 				
 				/* put inlink button to the left */
