@@ -196,6 +196,10 @@ typedef struct Editing {
 	Sequence *act_seq;
 	char act_imagedir[256];
 	char act_sounddir[256];
+
+	int over_ofs, over_cfra;
+	int over_flag, pad;
+	rctf over_border;
 } Editing;
 
 /* ************* Effect Variable Structs ********* */
@@ -241,6 +245,10 @@ typedef struct SpeedControlVars {
 	int length;
 	int lastValidFrame;
 } SpeedControlVars;
+
+/* Editor->over_flag */
+#define SEQ_EDIT_OVERLAY_SHOW			1
+#define SEQ_EDIT_OVERLAY_ABS			2
 
 #define SEQ_STRIP_OFSBOTTOM		0.2f
 #define SEQ_STRIP_OFSTOP		0.8f

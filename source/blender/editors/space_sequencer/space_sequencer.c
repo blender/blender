@@ -396,7 +396,21 @@ static void sequencer_preview_area_draw(const bContext *C, ARegion *ar)
 	
 	/* XXX temp fix for wrong setting in sseq->mainb */
 	if (sseq->mainb == SEQ_DRAW_SEQUENCE) sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-	draw_image_seq(C, scene, ar, sseq);
+
+	draw_image_seq(C, scene, ar, sseq, scene->r.cfra, 0);
+
+	if(scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		int over_cfra;
+
+		if(scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS)
+			over_cfra= scene->ed->over_cfra;
+		else
+			over_cfra= scene->r.cfra + scene->ed->over_ofs;
+
+		if(over_cfra != scene->r.cfra)
+			draw_image_seq(C, scene, ar, sseq, scene->r.cfra, over_cfra - scene->r.cfra);
+	}
+
 }
 
 static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
