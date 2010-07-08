@@ -158,20 +158,20 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 			tslot->do_thread= do_thread;
 			tslot->avail= 1;
 		}
-		
-		if(thread_levels == 0) {
-			MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
+	}
+	
+	if(thread_levels == 0) {
+		MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
 
 #if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-			/* workaround for Apple gcc 4.2.1 omp vs background thread bug,
-			   we copy gomp thread local storage pointer to setting it again
-			   inside the thread that we start */
-			thread_tls_data = pthread_getspecific(gomp_tls_key);
+		/* workaround for Apple gcc 4.2.1 omp vs background thread bug,
+		   we copy gomp thread local storage pointer to setting it again
+		   inside the thread that we start */
+		thread_tls_data = pthread_getspecific(gomp_tls_key);
 #endif
-		}
-
-		thread_levels++;
 	}
+
+	thread_levels++;
 }
 
 /* amount of available threads */
@@ -287,11 +287,11 @@ void BLI_end_threads(ListBase *threadbase)
 			}
 		}
 		BLI_freelistN(threadbase);
-
-		thread_levels--;
-		if(thread_levels==0)
-			MEM_set_lock_callback(NULL, NULL);
 	}
+
+	thread_levels--;
+	if(thread_levels==0)
+		MEM_set_lock_callback(NULL, NULL);
 }
 
 /* System Information */

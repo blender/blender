@@ -247,8 +247,8 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 
 	/* if the number of verts has changed, remove invalid data */
 	if(tmp.totvert != me->totvert) {
-		if(me->key) me->key->id.us--;
-		me->key = NULL;
+		if(tmp.key) tmp.key->id.us--;
+		tmp.key = NULL;
 	}
 
 	*me = tmp;

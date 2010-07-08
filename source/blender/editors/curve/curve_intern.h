@@ -66,6 +66,9 @@ void FONT_OT_change_spacing(struct wmOperatorType *ot);
 void FONT_OT_open(struct wmOperatorType *ot);
 void FONT_OT_unlink(struct wmOperatorType *ot);
 
+void FONT_OT_textbox_add(struct wmOperatorType *ot);
+void FONT_OT_textbox_remove(struct wmOperatorType *ot);
+
 /* editcurve.c */
 void CURVE_OT_hide(struct wmOperatorType *ot);
 void CURVE_OT_reveal(struct wmOperatorType *ot);

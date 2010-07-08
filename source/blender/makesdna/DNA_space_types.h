@@ -346,6 +346,17 @@ typedef struct SpaceScript {
 	void *but_refs;
 } SpaceScript;
 
+typedef struct SpaceTimeCache {
+	struct SpaceTimeCache *next, *prev;
+	int type;
+	int flag;
+	
+	float *array;
+	int len;
+	int startframe, endframe;
+	int ok;
+} SpaceTimeCache;
+
 typedef struct SpaceTime {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -353,6 +364,9 @@ typedef struct SpaceTime {
 	float blockscale;
 	
 	View2D v2d; /* deprecated, copied to region */
+	
+	ListBase caches;
+	int cache_display, pad;
 	
 	int flag, redraws;
 	
@@ -859,6 +873,13 @@ enum {
 #define TIME_ALL_IMAGE_WIN		64
 #define TIME_CONTINUE_PHYSICS	128
 #define TIME_NODES				256
+
+/* time->cache */
+#define TIME_CACHE_DISPLAY		1
+#define TIME_CACHE_SOFTBODY		2
+#define TIME_CACHE_PARTICLES	4
+#define TIME_CACHE_CLOTH		8
+#define TIME_CACHE_SMOKE		16
 
 /* sseq->mainb */
 #define SEQ_DRAW_SEQUENCE         0

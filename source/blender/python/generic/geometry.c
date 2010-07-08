@@ -419,7 +419,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 	}
 	else if (totpoints) {
 		/* now make the list to return */
-		filldisplist(&dispbase, &dispbase);
+		filldisplist(&dispbase, &dispbase, 0);
 		
 		/* The faces are stored in a new DisplayList
 		thats added to the head of the listbase */

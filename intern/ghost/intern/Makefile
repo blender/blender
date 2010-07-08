@@ -38,7 +38,7 @@ CCSRCS += GHOST_EventManager.cpp GHOST_EventPrinter.cpp GHOST_WindowManager.cpp
 CCSRCS += GHOST_ISystem.cpp GHOST_ModifierKeys.cpp GHOST_TimerManager.cpp
 CCSRCS += GHOST_Rect.cpp GHOST_DisplayManager.cpp GHOST_C-api.cpp
 CCSRCS += GHOST_CallbackEventConsumer.cpp
-CCSRCS += GHOST_NDOFManager.cpp
+CCSRCS += GHOST_NDOFManager.cpp GHOST_Path-api.cpp
 
 ifeq ($(OS),$(findstring $(OS), "darwin"))
     ifeq ($(WITH_COCOA), true)

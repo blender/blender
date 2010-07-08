@@ -224,7 +224,7 @@ void packAll(Main *bmain, ReportList *reports)
 			vf->packedfile = newPackedFile(reports, vf->name);
 
 	for(sound=bmain->sound.first; sound; sound=sound->id.next)
-		if(sound->packedfile == NULL && vf->id.lib==NULL)
+		if(sound->packedfile == NULL && sound->id.lib==NULL)
 			sound->packedfile = newPackedFile(reports, sound->name);
 }
 

@@ -134,7 +134,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
     def exportCamera():
         camera = scene.camera
-        matrix = camera.matrix
+        matrix = camera.matrix_world
 
         # compute resolution
         Qsize = float(render.resolution_x) / float(render.resolution_y)
@@ -155,7 +155,7 @@ def write_pov(filename, scene=None, info_callback=None):
         for ob in lamps:
             lamp = ob.data
 
-            matrix = ob.matrix
+            matrix = ob.matrix_world
 
             color = tuple([c * lamp.energy for c in lamp.color]) # Colour is modified by energy
 
@@ -263,7 +263,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             writeObjectMaterial(material)
 
-            writeMatrix(ob.matrix)
+            writeMatrix(ob.matrix_world)
 
             file.write('}\n')
 
@@ -292,7 +292,7 @@ def write_pov(filename, scene=None, info_callback=None):
             #	continue
             # me = ob.data
 
-            matrix = ob.matrix
+            matrix = ob.matrix_world
             try:
                 uv_layer = me.active_uv_texture.data
             except:

@@ -1219,7 +1219,6 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			{
 				/* XXX validate area and region? */
 				bScreen *screen= CTX_wm_screen(C);
-				char *path= RNA_string_get_alloc(handler->op->ptr, "filepath", NULL, 0);
 				
 				if(screen != handler->filescreen)
 					ED_screen_full_prevspace(C, CTX_wm_area(C));
@@ -1238,8 +1237,11 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 					/* XXX also extension code in image-save doesnt work for this yet */
 					if (RNA_struct_find_property(handler->op->ptr, "check_existing") && 
 							RNA_boolean_get(handler->op->ptr, "check_existing")) {
+						char *path= RNA_string_get_alloc(handler->op->ptr, "filepath", NULL, 0);
 						/* this gives ownership to pupmenu */
 						uiPupMenuSaveOver(C, handler->op, (path)? path: "");
+						if(path)
+							MEM_freeN(path);
 					}
 					else {
 						int retval;
@@ -1299,8 +1301,6 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				CTX_wm_area_set(C, NULL);
 				
 				wm_event_free_handler(handler);
-				if(path)
-					MEM_freeN(path);
 				
 				action= WM_HANDLER_BREAK;
 			}
@@ -1433,6 +1433,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			/* test for double click first */
 			if ((PIL_check_seconds_timer() - win->eventstate->prevclicktime) * 1000 < U.dbl_click_time) {
 				event->val = KM_DBL_CLICK;
+				event->x = win->eventstate->prevclickx;
+				event->y = win->eventstate->prevclicky;
 				action |= wm_handlers_do(C, event, handlers);
 			}
 
@@ -1614,7 +1616,7 @@ void wm_event_do_handlers(bContext *C)
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
 
-			if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
+			if((G.f & G_DEBUG) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))
 				printf("pass on evt %d val %d\n", event->type, event->val); 
 			
 			wm_eventemulation(event);
@@ -1719,6 +1721,8 @@ void wm_event_do_handlers(bContext *C)
 						/* set click time on first click (press -> release) */
 						if (win->eventstate->prevval == KM_PRESS && event->val == KM_RELEASE) {
 							win->eventstate->prevclicktime = PIL_check_seconds_timer();
+							win->eventstate->prevclickx = event->x;
+							win->eventstate->prevclicky = event->y;
 						}
 					} else {
 						/* reset click time if event type not the same */
@@ -1731,6 +1735,8 @@ void wm_event_do_handlers(bContext *C)
 					win->eventstate->prevtype = event->type;
 					win->eventstate->prevval = event->val;
 					win->eventstate->prevclicktime = PIL_check_seconds_timer();
+					win->eventstate->prevclickx = event->x;
+					win->eventstate->prevclicky = event->y;
 				} else { /* reset if not */
 					win->eventstate->prevtype = -1;
 					win->eventstate->prevval = 0;
@@ -2138,6 +2144,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 		case GHOST_kEventCursorMove: {
 			if(win->active) {
 				GHOST_TEventCursorData *cd= customdata;
+				wmEvent *lastevent= win->queue.last;
 				
 #if defined(__APPLE__) && defined(GHOST_COCOA)
 				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
@@ -2155,6 +2162,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 				event.y= evt->y;
 
 				event.type= MOUSEMOVE;
+
+				/* some painting operators want accurate mouse events, they can
+				   handle inbetween mouse move moves, others can happily ignore
+				   them for better performance */
+				if(lastevent && lastevent->type == MOUSEMOVE)
+					lastevent->type = INBETWEEN_MOUSEMOVE;
 
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);

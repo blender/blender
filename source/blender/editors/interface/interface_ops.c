@@ -322,6 +322,8 @@ static int copy_to_selected_list(bContext *C, PointerRNA *ptr, ListBase *lb)
 		*lb = CTX_data_collection_get(C, "selected_editable_bones");
 	else if(RNA_struct_is_a(ptr->type, &RNA_PoseBone))
 		*lb = CTX_data_collection_get(C, "selected_pose_bones");
+	else if(RNA_struct_is_a(ptr->type, &RNA_Sequence))
+		*lb = CTX_data_collection_get(C, "selected_editable_sequences");
 	else
 		return 0;
 	

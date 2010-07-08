@@ -62,9 +62,6 @@
 /* for sequence */
 //XXX #include "BSE_sequence.h"
 //XXX define below from BSE_sequence.h - otherwise potentially odd behaviour
-#define SEQ_HAS_PATH(_seq) ( (_seq)->type==SEQ_MOVIE || (_seq)->type==SEQ_IMAGE || (_seq)->type==SEQ_SOUND )
-
-
 
 #define FILE_MAX			240
 

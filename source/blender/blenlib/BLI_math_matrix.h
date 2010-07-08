@@ -122,6 +122,9 @@ float determinant_m3(
 	float g, float h, float i);
 float determinant_m4(float A[4][4]);
 
+void svd_m4(float U[4][4], float s[4], float V[4][4], float A[4][4]);
+void pseudoinverse_m4_m4(float Ainv[4][4], float A[4][4], float epsilon);
+
 /****************************** Transformations ******************************/
 
 void scale_m3_fl(float R[3][3], float scale);

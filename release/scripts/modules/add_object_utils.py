@@ -61,7 +61,7 @@ def add_object_data(context, obdata, operator=None):
         base.layers_from_view(context.space_data)
 
 
-    obj_new.matrix = add_object_align_init(context, operator)
+    obj_new.matrix_world = add_object_align_init(context, operator)
 
     obj_act = scene.objects.active
 

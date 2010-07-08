@@ -1,3 +1,4 @@
+import bpy
 bpy.context.object.data.sky.atmosphere_turbidity = 2.00000023842
 bpy.context.object.data.sky.sky_blend_type = 'ADD'
 bpy.context.object.data.sky.sky_blend = 1.0

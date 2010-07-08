@@ -392,6 +392,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	{
 		prop= RNA_def_property(ot->srna, "axis", PROP_FLOAT, PROP_DIRECTION);
 		RNA_def_property_array(prop, 3);
+		/* Make this not hidden when there's a nice axis selection widget */
 		RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_ui_text(prop, "Axis", "The axis around which the transformation occurs");
 
@@ -400,9 +401,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	if (flags & P_CONSTRAINT)
 	{
 		prop= RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
-		RNA_def_property_flag(prop, PROP_HIDDEN);
 		prop= RNA_def_property(ot->srna, "constraint_orientation", PROP_ENUM, PROP_NONE);
-		RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation");
 		RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
 

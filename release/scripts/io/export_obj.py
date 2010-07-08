@@ -403,7 +403,7 @@ def write(filepath, objects, scene,
             # XXX debug print
             print(ob_main.name, 'has', len(obs), 'dupli children')
         else:
-            obs = [(ob_main, ob_main.matrix)]
+            obs = [(ob_main, ob_main.matrix_world)]
 
         for ob, ob_mat in obs:
 

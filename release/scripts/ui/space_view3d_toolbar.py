@@ -42,6 +42,9 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
         col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
+        col.operator("object.origin_set", text="Origin")
+
+        col = layout.column(align=True)
         col.label(text="Object:")
         col.operator("object.duplicate_move")
         col.operator("object.delete")

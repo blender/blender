@@ -29,6 +29,8 @@
 #include "BLI_pbvh.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_mesh.h" /* for mesh_calc_normals */
+#include "BKE_global.h" /* for mesh_calc_normals */
 
 #include "gpu_buffers.h"
 
@@ -120,6 +122,9 @@ struct PBVH {
 #ifdef PERFCNTRS
 	int perf_modified;
 #endif
+
+	/* flag are verts/faces deformed */
+	int deformed;
 };
 
 #define STACK_FIXED_DEPTH	100
@@ -346,12 +351,14 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 		if(node->face_vert_indices[i] < 0)
 			node->face_vert_indices[i]= -node->face_vert_indices[i] + node->uniq_verts - 1;
 
-	node->draw_buffers =
-		GPU_build_mesh_buffers(map, bvh->verts, bvh->faces,
+	if(!G.background) {
+		node->draw_buffers =
+			GPU_build_mesh_buffers(map, bvh->verts, bvh->faces,
 				  node->prim_indices,
 				  node->totprim, node->vert_indices,
 				  node->uniq_verts,
 				  node->uniq_verts + node->face_verts);
+	}
 
 	node->flag |= PBVH_UpdateDrawBuffers;
 
@@ -360,10 +367,11 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 {
-	node->draw_buffers =
-		GPU_build_grid_buffers(bvh->grids, node->prim_indices,
+	if(!G.background) {
+		node->draw_buffers =
+			GPU_build_grid_buffers(bvh->grids, node->prim_indices,
 				node->totprim, bvh->gridsize);
-
+	}
 	node->flag |= PBVH_UpdateDrawBuffers;
 }
 
@@ -573,6 +581,15 @@ void BLI_pbvh_free(PBVH *bvh)
 				MEM_freeN(node->vert_indices);
 			if(node->face_vert_indices)
 				MEM_freeN(node->face_vert_indices);
+		}
+	}
+
+	if (bvh->deformed) {
+		if (bvh->verts) {
+			/* if pbvh was deformed, new memory was allocated for verts/faces -- free it */
+
+			MEM_freeN(bvh->verts);
+			MEM_freeN(bvh->faces);
 		}
 	}
 
@@ -1330,3 +1347,55 @@ void BLI_pbvh_grids_update(PBVH *bvh, DMGridData **grids, DMGridAdjacency *grida
 	bvh->gridfaces= gridfaces;
 }
 
+float (*BLI_pbvh_get_vertCos(PBVH *pbvh))[3]
+{
+	int a;
+	float (*vertCos)[3]= NULL;
+
+	if (pbvh->verts) {
+		float *co;
+		MVert *mvert= pbvh->verts;
+
+		vertCos= MEM_callocN(3*pbvh->totvert*sizeof(float), "BLI_pbvh_get_vertCoords");
+		co= (float*)vertCos;
+
+		for (a= 0; a<pbvh->totvert; a++, mvert++, co+= 3) {
+			copy_v3_v3(co, mvert->co);
+		}
+	}
+
+	return vertCos;
+}
+
+void BLI_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
+{
+	int a;
+
+	if (!pbvh->deformed) {
+		if (pbvh->verts) {
+			/* if pbvh is not already deformed, verts/faces points to the */
+			/* original data and applying new coords to this arrays would lead to */
+			/* unneeded deformation -- duplicate verts/faces to avoid this */
+
+			pbvh->verts= MEM_dupallocN(pbvh->verts);
+			pbvh->faces= MEM_dupallocN(pbvh->faces);
+
+			pbvh->deformed= 1;
+		}
+	}
+
+	if (pbvh->verts) {
+		/* copy new verts coords */
+		for (a= 0; a < pbvh->totvert; ++a) {
+			copy_v3_v3(pbvh->verts[a].co, vertCos[a]);
+		}
+
+		/* coordinates are new -- normals should also be updated */
+		mesh_calc_normals(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
+	}
+}
+
+int BLI_pbvh_isDeformed(PBVH *pbvh)
+{
+	return pbvh->deformed;
+}

@@ -5219,8 +5219,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			float tmp_vec[3] = {0.f, 0.f, 0.f};
 			
 			if(newname) {
-				rename_id((ID *)obedit, "SurfDonut");
-				rename_id((ID *)obedit->data, "SurfDonut");
+				rename_id((ID *)obedit, "SurfTorus");
+				rename_id((ID *)obedit->data, "SurfTorus");
 			}
 
 			xzproj= 1;
@@ -5256,54 +5256,62 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	return nu;
 }
 
-static int curve_prim_add(bContext *C, wmOperator *op, int type){
+static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf) {
 	
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb;
 	Nurb *nu;
-	int newob= 0;//, type= RNA_enum_get(op->ptr, "type");
+	int newob= 0;
 	int enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
-	
-	//object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
+
 	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
 		return OPERATOR_CANCELLED;
 
-	
-	if(obedit==NULL || obedit->type!=OB_CURVE) {
-		Curve *cu;
-		obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
-		newob = 1;
+	if (!isSurf) { /* adding curve */
+		if(obedit==NULL || obedit->type!=OB_CURVE) {
+			Curve *cu;
+			obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
+			newob = 1;
 
-		cu= (Curve*)obedit->data;
-		cu->flag |= CU_DEFORM_FILL;
-		if(type & CU_PRIM_PATH)
-			cu->flag |= CU_PATH|CU_3D;
+			cu= (Curve*)obedit->data;
+			cu->flag |= CU_DEFORM_FILL;
+			if(type & CU_PRIM_PATH)
+				cu->flag |= CU_PATH|CU_3D;
+		} else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
+	} else { /* adding surface */
+		if(obedit==NULL || obedit->type!=OB_SURF) {
+			obedit= ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
+			newob = 1;
+		} else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	}
-	else if(obedit==NULL || obedit->type!=OB_SURF) {
-		obedit= ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
-		newob = 1;
-	}
-	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
-	
-	
+
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
-	
+
 	nu= add_nurbs_primitive(C, mat, type, newob);
 	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
-	
+
 	/* userdef */
 	if (newob && !enter_editmode) {
 		ED_object_exit_editmode(C, EM_FREEDATA);
 	}
-	
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
-	
+
 	return OPERATOR_FINISHED;
 }
+
+static int curve_prim_add(bContext *C, wmOperator *op, int type) {
+	return curvesurf_prim_add(C, op, type, 0);
+}
+
+static int surf_prim_add(bContext *C, wmOperator *op, int type) {
+	return curvesurf_prim_add(C, op, type, 1);
+}
+
 /* ******************** Curves ******************* */
 
 static int add_primitive_bezier_exec(bContext *C, wmOperator *op)
@@ -5424,7 +5432,7 @@ void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
 /* **************** NURBS surfaces ********************** */
 static int add_primitive_nurbs_surface_curve_exec(bContext *C, wmOperator *op)
 {
-	return curve_prim_add(C, op, CU_PRIM_CURVE|CU_NURBS);
+	return surf_prim_add(C, op, CU_PRIM_CURVE|CU_NURBS);
 }
 
 void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
@@ -5447,7 +5455,7 @@ void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
 
 static int add_primitive_nurbs_surface_circle_exec(bContext *C, wmOperator *op)
 {
-	return curve_prim_add(C, op, CU_PRIM_CIRCLE|CU_NURBS);
+	return surf_prim_add(C, op, CU_PRIM_CIRCLE|CU_NURBS);
 }
 
 void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
@@ -5470,7 +5478,7 @@ void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
 
 static int add_primitive_nurbs_surface_surface_exec(bContext *C, wmOperator *op)
 {
-	return curve_prim_add(C, op, CU_PRIM_PATCH|CU_NURBS);
+	return surf_prim_add(C, op, CU_PRIM_PATCH|CU_NURBS);
 }
 
 void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
@@ -5493,7 +5501,7 @@ void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
 
 static int add_primitive_nurbs_surface_tube_exec(bContext *C, wmOperator *op)
 {
-	return curve_prim_add(C, op, CU_PRIM_TUBE|CU_NURBS);
+	return surf_prim_add(C, op, CU_PRIM_TUBE|CU_NURBS);
 }
 
 void SURFACE_OT_primitive_nurbs_surface_tube_add(wmOperatorType *ot)
@@ -5516,7 +5524,7 @@ void SURFACE_OT_primitive_nurbs_surface_tube_add(wmOperatorType *ot)
 
 static int add_primitive_nurbs_surface_sphere_exec(bContext *C, wmOperator *op)
 {
-	return curve_prim_add(C, op, CU_PRIM_SPHERE|CU_NURBS);
+	return surf_prim_add(C, op, CU_PRIM_SPHERE|CU_NURBS);
 }
 
 void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
@@ -5539,7 +5547,7 @@ void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
 
 static int add_primitive_nurbs_surface_donut_exec(bContext *C, wmOperator *op)
 {
-	return curve_prim_add(C, op, CU_PRIM_DONUT|CU_NURBS);
+	return surf_prim_add(C, op, CU_PRIM_DONUT|CU_NURBS);
 }
 
 void SURFACE_OT_primitive_nurbs_surface_donut_add(wmOperatorType *ot)

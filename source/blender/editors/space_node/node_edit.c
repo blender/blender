@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -65,6 +66,7 @@
 
 #include "ED_node.h"
 #include "ED_screen.h"
+#include "ED_render.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -548,6 +550,8 @@ static int node_group_edit_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *gnode;
 
+	ED_preview_kill_jobs(C);
+
 	gnode= nodeGetActive(snode->edittree);
 	snode_make_group_editable(snode, gnode);
 
@@ -592,6 +596,8 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *gnode;
+
+	ED_preview_kill_jobs(C);
 
 	/* are we inside of a group? */
 	gnode= node_tree_get_editgroup(snode->nodetree);
@@ -1098,13 +1104,16 @@ static int node_active_link_viewer(bContext *C, wmOperator *op)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node;
 	
-	
 	node= editnode_get_active(snode->edittree);
 	
-	if(node) {
-		node_link_viewer(snode, node);
-		snode_notify(C, snode);
-	}
+	if(!node)
+		return OPERATOR_CANCELLED;
+
+	ED_preview_kill_jobs(C);
+
+	node_link_viewer(snode, node);
+	snode_notify(C, snode);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1466,6 +1475,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
+	ED_preview_kill_jobs(C);
+
 	ntreeCopyTree(snode->edittree, 1);	/* 1 == internally selected nodes */
 	
 	ntreeSolveOrder(snode->edittree);
@@ -1624,7 +1635,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 static int node_link_init(SpaceNode *snode, NodeLinkDrag *nldrag)
 {
 	bNodeLink *link;
-	
+
 	/* output indicated? */
 	if(find_indicated_socket(snode, &nldrag->node, &nldrag->sock, SOCK_OUT)) {
 		if(nodeCountSocketLinks(snode->edittree, nldrag->sock) < nldrag->sock->limit)
@@ -1678,6 +1689,8 @@ static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, 
 							 &snode->mx, &snode->my);
 
+	ED_preview_kill_jobs(C);
+
 	nldrag->in_out= node_link_init(snode, nldrag);
 		
 	if(nldrag->in_out) {
@@ -1723,6 +1736,8 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	int replace = RNA_boolean_get(op->ptr, "replace");
+
+	ED_preview_kill_jobs(C);
 
 	snode_autoconnect(snode, 0, replace);
 
@@ -1787,6 +1802,8 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	
 	if(i>1) {
 		bNodeLink *link, *next;
+
+		ED_preview_kill_jobs(C);
 		
 		for(link= snode->edittree->links.first; link; link= next) {
 			next= link->next;
@@ -1838,6 +1855,8 @@ static int node_read_renderlayers_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *curscene= CTX_data_scene(C), *scene;
 	bNode *node;
+
+	ED_preview_kill_jobs(C);
 
 	/* first tag scenes unread */
 	for(scene= G.main->scene.first; scene; scene= scene->id.next) 
@@ -1955,6 +1974,8 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 	}
+
+	ED_preview_kill_jobs(C);
 	
 	gnode= nodeMakeGroupFromSelected(snode->nodetree);
 	if(gnode==NULL) {
@@ -2057,6 +2078,8 @@ static int node_preview_exec(bContext *C, wmOperator *op)
 	if((snode == NULL) || (snode->edittree == NULL))
 		return OPERATOR_CANCELLED;
 
+	ED_preview_kill_jobs(C);
+
 	node_flag_toggle_exec(snode, NODE_PREVIEW);
 
 	snode_notify(C, snode);
@@ -2088,6 +2111,8 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *op)
 	/* sanity checking (poll callback checks this already) */
 	if((snode == NULL) || (snode->edittree == NULL))
 		return OPERATOR_CANCELLED;
+
+	ED_preview_kill_jobs(C);
 
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
@@ -2137,6 +2162,8 @@ static int node_mute_exec(bContext *C, wmOperator *op)
 	if(node_tree_get_editgroup(snode->nodetree))
 		return OPERATOR_CANCELLED;
 	
+	ED_preview_kill_jobs(C);
+
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
 			if(node->inputs.first && node->outputs.first) {
@@ -2173,6 +2200,8 @@ static int node_delete_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node, *next;
 	
+	ED_preview_kill_jobs(C);
+
 	for(node= snode->edittree->nodes.first; node; node= next) {
 		next= node->next;
 		if(node->flag & SELECT) {
@@ -2248,25 +2277,34 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	{
 		char path[FILE_MAX];
 		RNA_string_get(op->ptr, "filepath", path);
+
+		errno= 0;
+
 		ima= BKE_add_image_file(path, scene ? scene->r.cfra : 1);
+
+		if(!ima) {
+			BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", path, errno ? strerror(errno) : "Unsupported image format");
+			return OPERATOR_CANCELLED;
+		}
 	}
 	else if(RNA_property_is_set(op->ptr, "name"))
 	{
 		char name[32];
 		RNA_string_get(op->ptr, "name", name);
 		ima= (Image *)find_id("IM", name);
+
+		if(!ima) {
+			BKE_reportf(op->reports, RPT_ERROR, "Image named \"%s\", not found.", name);
+			return OPERATOR_CANCELLED;
+		}
 	}
-	
-	if(!ima) {
-		BKE_report(op->reports, RPT_ERROR, "Not an Image.");
-		return OPERATOR_CANCELLED;
-	}
-	
 	
 	node_deselectall(snode);
 	
 	if (snode->nodetree->type==NTREE_COMPOSIT)
 		ntype = CMP_NODE_IMAGE;
+
+	ED_preview_kill_jobs(C);
 	
 	node = node_add_node(snode, scene, ntype, snode->mx, snode->my);
 	
@@ -2312,7 +2350,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, 0);  //XXX TODO, relative_path
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
 	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign.");
 }
 

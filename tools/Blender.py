@@ -31,6 +31,8 @@ import SCons.Builder
 import SCons.Tool
 import bcolors
 bc = bcolors.bcolors()
+import btools
+VERSION = btools.VERSION
 
 Split = SCons.Util.Split
 Action = SCons.Action.Action
@@ -145,6 +147,8 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENEXR']:
 			statlibs += Split(lenv['BF_OPENEXR_LIB_STATIC'])
+	if lenv['WITH_BF_LCMS']:
+		libincs += Split(lenv['BF_LCMS_LIBPATH'])
 	if lenv['WITH_BF_TIFF']:
 		libincs += Split(lenv['BF_TIFF_LIBPATH'])
 	if lenv['WITH_BF_FFTW3']:
@@ -464,7 +468,7 @@ def WinPyBundle(target=None, source=None, env=None):
 	py_target = env.subst( env['BF_INSTALLDIR'] )
 	if py_target[0]=='#':
 		py_target=py_target[1:]
-	py_target+= '/.blender/python/lib/' 
+	py_target = os.path.join(py_target, VERSION, 'python', 'lib')
 	def printexception(func,path,ex):
 		if os.path.exists(path): #do not report if path does not exist. eg on a fresh build.
 			print str(func) + ' failed on ' + str(path)
@@ -519,27 +523,27 @@ def AppIt(target=None, source=None, env=None):
 	commands.getoutput(cmd)
 	cmd = 'cp %s/%s %s/%s.app/Contents/MacOS/%s'%(builddir, binary,builddir, binary, binary)
 	commands.getoutput(cmd)
-	cmd = 'mkdir %s/%s.app/Contents/MacOS/.blender/'%(builddir, binary)
+	cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/'%(builddir, binary, VERSION)
 #	print cmd
 	commands.getoutput(cmd)
-	cmd = builddir + '/%s.app/Contents/MacOS/.blender'%binary
+	cmd = builddir + '/%s.app/Contents/MacOS/%s'%(binary,VERSION)
 	shutil.copy(bldroot + '/bin/.blender/.bfont.ttf', cmd)
 	shutil.copy(bldroot + '/bin/.blender/.Blanguages', cmd)
-	cmd = 'cp -R %s/bin/.blender/locale %s/%s.app/Contents/Resources/'%(bldroot,builddir,binary)
-	commands.getoutput(cmd) 
-	cmd = 'cp -R %s/bin/.blender/locale %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
-	commands.getoutput(cmd) 
-	cmd = 'cp %s/bin/.blender/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,builddir,binary)
-	commands.getoutput(cmd) 
-	cmd = 'mkdir %s/%s.app/Contents/MacOS/.blender/python/'%(builddir,binary)
-	commands.getoutput(cmd) 
-	cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/.blender/python/'%(libdir,python_zip,builddir,binary)
-	commands.getoutput(cmd) 
-	cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
+	cmd = 'cp -R %s/bin/%s/locale %s/%s.app/Contents/Resources/'%(bldroot,VERSION,builddir,binary)
 	commands.getoutput(cmd)
-	cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
+	cmd = 'cp -R %s/bin/%s/locale %s/%s.app/Contents/MacOS/%s/'%(bldroot,VERSION,builddir,binary,VERSION)
 	commands.getoutput(cmd)
-	cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
+	cmd = 'cp %s/bin/%s/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,VERSION,builddir,binary)
+	commands.getoutput(cmd)
+	cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(builddir,binary, VERSION)
+	commands.getoutput(cmd)
+	cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,builddir,binary,VERSION)
+	commands.getoutput(cmd) 
+	cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,builddir,binary,VERSION)
+	commands.getoutput(cmd)
+	cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/%s/'%(bldroot,builddir,binary,VERSION)
+	commands.getoutput(cmd)
+	cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/%s/'%(bldroot,builddir,binary,VERSION)
 	commands.getoutput(cmd)
 	cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
 	commands.getoutput(cmd)
@@ -557,7 +561,7 @@ def my_unixpybundle_print(target, source, env):
 
 def UnixPyBundle(target=None, source=None, env=None):
 	# Any Unix except osx
-	#-- .blender/python/lib/python3.1
+	#-- VERSION/python/lib/python3.1
 	
 	import commands
 	
@@ -566,7 +570,7 @@ def UnixPyBundle(target=None, source=None, env=None):
 		commands.getoutput(cmd)
 	
 	if env['WITH_BF_FHS']:	dir = os.path.join(env['BF_INSTALLDIR'], 'share', 'blender', env['BF_VERSION']) # BLENDERPATH
-	else:					dir = os.path.join(env['BF_INSTALLDIR'], '.blender')
+	else:					dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
 	
 	py_src =	env.subst( env['BF_PYTHON_LIBPATH'] + '/python'+env['BF_PYTHON_VERSION'] )
 	py_target =	env.subst( dir + '/python/lib/python'+env['BF_PYTHON_VERSION'] )

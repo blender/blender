@@ -1153,4 +1153,10 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	WM_jobs_start(CTX_wm_manager(C), steve);
 }
 
+void ED_preview_kill_jobs(const struct bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	if(wm)
+		WM_jobs_kill(wm, NULL, common_preview_startjob);
+}
 

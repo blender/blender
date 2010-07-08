@@ -427,9 +427,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             '''
 
             if contextMatrix_rot:
-                # ob.matrix = [x for row in contextMatrix_rot for x in row]
-                ob.matrix = contextMatrix_rot
-# 				ob.setMatrix(contextMatrix_rot)
+                ob.matrix_world = contextMatrix_rot
 
             importedObjects.append(ob)
             bmesh.update()
@@ -892,7 +890,7 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
 # 			me = ob.getData(mesh=1)
 # 			me.verts.delete([me.verts[0],])
 # 			if not APPLY_MATRIX:
-# 				me.transform(ob.matrixWorld.copy().invert())
+# 				me.transform(ob.matrix_world.copy().invert())
 
     # Done DUMMYVERT
     """
@@ -950,7 +948,7 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
 # 			SCALE_MAT = Blender.mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
 
             for ob in importedObjects:
-                ob.setMatrix(ob.matrixWorld * SCALE_MAT)
+                ob.matrix_world =  ob.matrix_world * SCALE_MAT
 
         # Done constraining to bounds.
 
@@ -1013,8 +1011,6 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
     filepath = StringProperty(name="File Path", description="Filepath used for importing the 3DS file", maxlen= 1024, default= "")
-    filename = StringProperty(name="File Name", description="Name of the file.")
-    directory = StringProperty(name="Directory", description="Directory of the file.")
 
 # 	size_constraint = FloatProperty(name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0),
 # 	search_images = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True),

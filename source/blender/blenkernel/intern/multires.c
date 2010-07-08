@@ -75,11 +75,11 @@ DerivedMesh *get_multires_dm(Scene *scene, MultiresModifierData *mmd, Object *ob
 	return dm;
 }
 
-MultiresModifierData *find_multires_modifier(Scene *scene, Object *ob)
+MultiresModifierData *find_multires_modifier_before(Scene *scene, ModifierData *lastmd)
 {
 	ModifierData *md;
 
-	for(md = ob->modifiers.first; md; md = md->next) {
+	for(md = lastmd; md; md = md->prev) {
 		if(md->type == eModifierType_Multires) {
 			if (modifier_isEnabled(scene, md, eModifierMode_Realtime))
 				return (MultiresModifierData*)md;
@@ -248,6 +248,9 @@ int multiresModifier_reshapeFromDeformMod(Scene *scene, MultiresModifierData *mm
 	DerivedMesh *dm, *ndm;
 	int numVerts, result;
 	float (*deformedVerts)[3];
+
+	if(multires_get_level(ob, mmd, 0) == 0)
+		return 0;
 
 	/* Create DerivedMesh for deformation modifier */
 	dm = get_multires_dm(scene, mmd, ob);
@@ -459,6 +462,7 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int updat
 
 		/* create subsurf DM from original mesh at high level */
 		cddm = CDDM_from_mesh(me, NULL);
+		DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 		highdm = subsurf_dm_create_local(ob, cddm, totlvl, simple, 0);
 
 		/* create multires DM from original mesh at low level */
@@ -560,7 +564,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, int invert, int
 	dGridSize = multires_side_tot[totlvl];
 	dSkip = (dGridSize-1)/(gridSize-1);
 
-	//#pragma omp parallel for private(i) schedule(static)
+	#pragma omp parallel for private(i) if(me->totface*gridSize*gridSize*4 >= CCG_OMP_LIMIT)
 	for(i = 0; i < me->totface; ++i) {
 		const int numVerts = mface[i].v4 ? 4 : 3;
 		MDisps *mdisp = &mdisps[i];
@@ -568,7 +572,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, int invert, int
 
 		/* when adding new faces in edit mode, need to allocate disps */
 		if(!mdisp->disps)
-		//#pragma omp critical
+		#pragma omp critical
 		{
 			multires_reallocate_mdisps(me, mdisps, totlvl);
 		}
@@ -656,6 +660,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 			/* create subsurf DM from original mesh at high level */
 			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
 			else cddm = CDDM_from_mesh(me, NULL);
+			DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 
 			highdm = subsurf_dm_create_local(ob, cddm, totlvl, mmd->simple, 0);
 
@@ -709,6 +714,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 
 			if (ob->derivedDeform) cddm = CDDM_copy(ob->derivedDeform);
 			else cddm = CDDM_from_mesh(me, NULL);
+			DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 
 			subdm = subsurf_dm_create_local(ob, cddm, mmd->totlvl, mmd->simple, 0);
 			cddm->release(cddm);

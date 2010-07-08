@@ -20,6 +20,7 @@
 import bpy
 
 narrowui = bpy.context.user_preferences.view.properties_width_check
+narrowcon = 260
 
 
 class ConstraintButtonsPanel(bpy.types.Panel):
@@ -30,8 +31,9 @@ class ConstraintButtonsPanel(bpy.types.Panel):
     def draw_constraint(self, context, con):
         layout = self.layout
 
-        box = layout.template_constraint(con)
         wide_ui = context.region.width > narrowui
+        compact_con = context.region.width < narrowcon
+        box = layout.template_constraint(con, compact=compact_con)
 
         if box:
             # match enum type to our functions, avoids a lookup table.

@@ -417,7 +417,7 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE, FILE_SPECIAL, FILE_OPENFILE, 0);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);
 }
 
 /******************* paste buffer operator ********************/
@@ -1363,6 +1363,99 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");
 }
 
+
+/*********************** textbox add operator *************************/
+static int textbox_poll(bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+	
+	if (!ED_operator_object_active_editable(C) ) return 0;
+	if (ob->type != OB_FONT) return 0;
+	
+	return 1;
+}
+
+static int textbox_add_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_active_object(C);
+	Curve *cu= obedit->data;
+	int i;
+	
+	if (cu->totbox < 256) {
+		for (i = cu->totbox; i>cu->actbox; i--) cu->tb[i]= cu->tb[i-1];
+		cu->tb[cu->actbox]= cu->tb[cu->actbox-1];
+		cu->actbox++;
+		cu->totbox++;
+	}
+	
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	return OPERATOR_FINISHED;
+}
+
+void FONT_OT_textbox_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Textbox";
+	ot->description= "Add a new text box";
+	ot->idname= "FONT_OT_textbox_add";
+	
+	/* api callbacks */
+	ot->exec= textbox_add_exec;
+	ot->poll= textbox_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	
+}
+
+
+
+/*********************** textbox remove operator *************************/
+
+
+
+static int textbox_remove_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_active_object(C);
+	Curve *cu= obedit->data;
+	int i;
+	int index = RNA_int_get(op->ptr, "index");
+	
+	
+	if (cu->totbox > 1) {
+		for (i = index; i < cu->totbox; i++) cu->tb[i]= cu->tb[i+1];
+		cu->totbox--;
+		if (cu->actbox >= index)
+			cu->actbox--;
+	}
+	
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void FONT_OT_textbox_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Textbox";
+	ot->description= "Remove the textbox";
+	ot->idname= "FONT_OT_textbox_remove";
+	
+	/* api callbacks */
+	ot->exec= textbox_remove_exec;
+	ot->poll= textbox_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "The current text box.", 0, INT_MAX);
+	
+	
+}
+
+
+
 /***************** editmode enter/exit ********************/
 
 void make_editText(Object *obedit)
@@ -1639,7 +1732,7 @@ void FONT_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|FTFONTFILE, FILE_SPECIAL, FILE_OPENFILE, 0);
+	WM_operator_properties_filesel(ot, FOLDERFILE|FTFONTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);
 }
 
 /******************* delete operator *********************/

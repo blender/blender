@@ -717,30 +717,78 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
         layout = self.layout
 
         obj = context.object
+        if obj.type == 'CAMERA':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+
+            props = layout.operator("wm.context_modal_mouse", text="Camera Lens Angle")
+            props.data_path_iter = "selected_editable_objects"
+            props.data_path_item = "data.lens"
+            props.input_scale = 0.1
+
+            if not obj.data.dof_object:
+                #layout.label(text="Test Has DOF obj");
+                props = layout.operator("wm.context_modal_mouse", text="DOF Distance")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.dof_distance"
+                props.input_scale = 0.02
+
+        if obj.type in ('CURVE','TEXT'):
+            layout.operator_context = 'INVOKE_REGION_WIN'
+
+            props = layout.operator("wm.context_modal_mouse", text="Extrude Size")
+            props.data_path_iter = "selected_editable_objects"
+            props.data_path_item = "data.extrude"
+            props.input_scale = 0.01
+
+            props = layout.operator("wm.context_modal_mouse", text="Width Size")
+            props.data_path_iter = "selected_editable_objects"
+            props.data_path_item = "data.width"
+            props.input_scale = 0.01
+
+        if obj.type == 'EMPTY':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+
+            props = layout.operator("wm.context_modal_mouse", text="Empty Draw Size")
+            props.data_path_iter = "selected_editable_objects"
+            props.data_path_item = "empty_draw_size"
+            props.input_scale = 0.01
+
         if obj.type == 'LAMP':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
-            props = layout.operator("wm.context_modal_mouse", text="Spot Size")
+            props = layout.operator("wm.context_modal_mouse", text="Energy")
             props.data_path_iter = "selected_editable_objects"
-            props.data_path_item = "data.spot_size"
-            props.input_scale = 0.01
+            props.data_path_item = "data.energy"
 
-            props = layout.operator("wm.context_modal_mouse", text="Distance")
-            props.data_path_iter = "selected_editable_objects"
-            props.data_path_item = "data.distance"
-            props.input_scale = 0.1
+            if obj.data.type in ('SPOT', 'AREA', 'POINT'):
+                props = layout.operator("wm.context_modal_mouse", text="Falloff Distance")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.distance"
+                props.input_scale = 0.1
 
-            props = layout.operator("wm.context_modal_mouse", text="Clip Start")
-            props.data_path_iter = "selected_editable_objects"
-            props.data_path_item = "data.shadow_buffer_clip_start"
-            props.input_scale = 0.05
+            if obj.data.type == 'SPOT':
+                layout.separator()
+                props = layout.operator("wm.context_modal_mouse", text="Spot Size")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.spot_size"
+                props.input_scale = 0.01
 
-            props = layout.operator("wm.context_modal_mouse", text="Clip End")
-            props.data_path_iter = "selected_editable_objects"
-            props.data_path_item = "data.shadow_buffer_clip_end"
-            props.input_scale = 0.05
+                props = layout.operator("wm.context_modal_mouse", text="Spot Blend")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.spot_blend"
+                props.input_scale = -0.01
 
-            layout.separator()
+                props = layout.operator("wm.context_modal_mouse", text="Clip Start")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.shadow_buffer_clip_start"
+                props.input_scale = 0.05
+
+                props = layout.operator("wm.context_modal_mouse", text="Clip End")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.shadow_buffer_clip_end"
+                props.input_scale = 0.05
+
+        layout.separator()
 
         props = layout.operator("object.isolate_type_render")
 
@@ -1502,6 +1550,7 @@ class VIEW3D_MT_edit_mesh_faces(bpy.types.Menu):
         layout.operator("mesh.fill")
         layout.operator("mesh.beautify_fill")
         layout.operator("mesh.solidify")
+        layout.operator("mesh.sort_faces")
 
         layout.separator()
 
@@ -2077,7 +2126,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
             layout.active = view.display_background_images
             box = layout.box()
             row = box.row(align=True)
-            row.prop(bg, "show_expanded", text="", no_bg=True)
+            row.prop(bg, "show_expanded", text="", emboss=False)
             row.label(text=getattr(bg.image, "name", "Not Set"))
             row.operator("view3d.remove_background_image", text="", icon='X').index = i
 
@@ -2163,6 +2212,7 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
             col.prop(toolsettings, "etch_autoname")
             col.prop(toolsettings, "etch_number")
             col.prop(toolsettings, "etch_side")
+            col.operator("sketch.convert", text="Convert")
 
 
 class VIEW3D_PT_context_properties(bpy.types.Panel):

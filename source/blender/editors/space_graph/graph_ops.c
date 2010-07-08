@@ -71,6 +71,7 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
 	 * NOTE: sync this part of the code with ANIM_OT_change_frame
 	 */
 	CFRA= RNA_int_get(op->ptr, "frame");
+	SUBFRA=0.f;
 	sound_seek_scene(C);
 	
 	/* set the cursor value */

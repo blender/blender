@@ -39,13 +39,14 @@
 #include "BLI_edgehash.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_deform.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
-#include "BKE_deform.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -682,7 +683,7 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 	timestep= psys_get_timestep(&sim);
 
 	//if(part->flag & PART_GLOB_TIME)
-		cfra=bsystem_time(scene, 0,(float)scene->r.cfra,0.0);
+		cfra= BKE_curframe(scene);
 	//else
 	//	cfra=bsystem_time(scene, ob,(float)scene->r.cfra,0.0);
 

@@ -1504,6 +1504,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	delta = RNA_int_get(op->ptr, "delta");
 
 	CTX_data_scene(C)->r.cfra += delta;
+	CTX_data_scene(C)->r.subframe = 0.f;
 	
 	sound_seek_scene(C);
 
@@ -2359,6 +2360,18 @@ void SCREEN_OT_header_toolbox(wmOperatorType *ot)
 
 /* ****************** anim player, with timer ***************** */
 
+static int match_area_with_refresh(int spacetype, int refresh)
+{
+	switch (spacetype) {
+		case SPACE_TIME:
+			if (refresh & SPACE_TIME)
+				return 1;
+			break;
+	}
+	
+	return 0;
+}
+
 static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 {
 	if(regiontype==RGN_TYPE_WINDOW) {
@@ -2505,6 +2518,9 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 					if(match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
 						ED_region_tag_redraw(ar);
 			}
+			
+			if (match_area_with_refresh(sa->spacetype, sad->refresh))
+				ED_area_tag_refresh(sa);
 		}
 		
 		/* update frame rate info too 
@@ -2548,11 +2564,12 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 
 	if(screen->animtimer) {
 		/* stop playback now */
-		ED_screen_animation_timer(C, 0, 0, 0);
+		ED_screen_animation_timer(C, 0, 0, 0, 0);
 		sound_stop_scene(scene);
 	}
 	else {
 		ScrArea *sa= CTX_wm_area(C);
+		int refresh= SPACE_TIME;
 
 		if(mode == 1) // XXX only play audio forwards!?
 			sound_play_scene(scene);
@@ -2561,10 +2578,10 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 		if ((sa) && (sa->spacetype == SPACE_TIME)) {
 			SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
 
-			ED_screen_animation_timer(C, stime->redraws, sync, mode);
+			ED_screen_animation_timer(C, stime->redraws, refresh, sync, mode);
 
 			/* update region if TIME_REGION was set, to leftmost 3d window */
-			ED_screen_animation_timer_update(screen, stime->redraws);
+			ED_screen_animation_timer_update(screen, stime->redraws, refresh);
 		}
 		else {
 			int redraws = TIME_REGION|TIME_ALL_3D_WIN;
@@ -2574,7 +2591,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 				redraws |= TIME_SEQ;
 			}
 
-			ED_screen_animation_timer(C, redraws, sync, mode);
+			ED_screen_animation_timer(C, redraws, refresh, sync, mode);
 
 			if(screen->animtimer) {
 				wmTimer *wt= screen->animtimer;

@@ -587,7 +587,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_BRUSH:
 			if(wmn->action == NA_EDITED)
-				ED_region_tag_redraw(ar);
+				ED_region_tag_redraw_overlay(ar);
 			break;			
 		case NC_MATERIAL:
 			switch(wmn->data) {
@@ -749,6 +749,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_POSE:
 				case ND_DRAW:
 				case ND_KEYS:
+				case ND_MODIFIER:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -760,6 +761,8 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			if (wmn->action == NA_EDITED)
+				ED_region_tag_redraw(ar);
 			break;
 		case NC_TEXTURE:
 			/* for brush textures */

@@ -728,7 +728,19 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
-static int ED_operator_view3d_rotate(bContext *C)
+static int view3d_camera_active_poll(bContext *C)
+{
+	if(ED_operator_view3d_active(C)) {
+		RegionView3D *rv3d= CTX_wm_region_view3d(C);
+		if(rv3d && rv3d->persp==RV3D_CAMOB) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static int view3d_rotate_poll(bContext *C)
 {
 	if (!ED_operator_view3d_active(C)) {
 		return 0;
@@ -754,7 +766,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= viewrotate_invoke;
 	ot->modal= viewrotate_modal;
-	ot->poll= ED_operator_view3d_rotate;
+	ot->poll= view3d_rotate_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -1242,7 +1254,17 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 			minmax_object(base->object, min, max);
 		}
 	}
-	if(!onedone) return OPERATOR_FINISHED; /* TODO - should this be cancel? */
+	if(!onedone) {
+		ED_region_tag_redraw(ar);
+		/* TODO - should this be cancel?
+		 * I think no, because we always move the cursor, with or without
+		 * object, but in this case there is no change in the scene,
+		 * only the cursor so I choice a ED_region_tag like
+		 * smooth_view do for the center_cursor.
+		 * See bug #22640
+		 */
+		return OPERATOR_FINISHED;
+	}
 
 	afm[0]= (max[0]-min[0]);
 	afm[1]= (max[1]-min[1]);
@@ -1284,6 +1306,18 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 	return OPERATOR_FINISHED;
 }
 
+static int viewhome_poll(bContext *C)
+{
+	if(ED_operator_view3d_active(C)) {
+		RegionView3D *rv3d= CTX_wm_region_view3d(C); //XXX, when accessed from a header menu this doesnt work!
+		if(rv3d && rv3d->persp!=RV3D_CAMOB) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 void VIEW3D_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1293,13 +1327,14 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewhome_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= viewhome_poll;
 
 	/* flags */
 	ot->flag= 0;
 
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
+
 
 static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
 {
@@ -1450,16 +1485,10 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	
 	if (rv3d) {
-		if (rv3d->persp==RV3D_CAMOB) {
-			/* center the camera offset */
-			rv3d->camdx= rv3d->camdy= 0.0;
-		}
-		else {
-			/* non camera center */
-			float new_ofs[3];
-			negate_v3_v3(new_ofs, give_cursor(scene, v3d));
-			smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
-		}
+		/* non camera center */
+		float new_ofs[3];
+		negate_v3_v3(new_ofs, give_cursor(scene, v3d));
+		smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
 		
 		if (rv3d->viewlock & RV3D_BOXVIEW)
 			view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
@@ -1479,6 +1508,32 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 	ot->exec= viewcenter_cursor_exec;
 	ot->poll= ED_operator_view3d_active;
 	
+	/* flags */
+	ot->flag= 0;
+}
+
+static int view3d_center_camera_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */
+{
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+
+	rv3d->camdx= rv3d->camdy= 0.0f;
+
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Camera Center";
+	ot->description = "Center the camera view";
+	ot->idname= "VIEW3D_OT_view_center_camera";
+
+	/* api callbacks */
+	ot->exec= view3d_center_camera_exec;
+	ot->poll= view3d_camera_active_poll;
+
 	/* flags */
 	ot->flag= 0;
 }
@@ -1533,15 +1588,6 @@ static int render_border_exec(bContext *C, wmOperator *op)
 
 }
 
-static int view3d_render_border_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
-
-	/* if not in camera view do not exec the operator*/
-	if (rv3d->persp == RV3D_CAMOB) return WM_border_select_invoke(C, op, event);
-	else return OPERATOR_PASS_THROUGH;
-}
-
 void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1550,11 +1596,11 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_render_border";
 
 	/* api callbacks */
-	ot->invoke= view3d_render_border_invoke;
+	ot->invoke= WM_border_select_invoke;
 	ot->exec= render_border_exec;
 	ot->modal= WM_border_select_modal;
 
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= view3d_camera_active_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2000,7 +2046,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= vieworbit_exec;
-	ot->poll= ED_operator_view3d_rotate;
+	ot->poll= view3d_rotate_poll;
 
 	/* flags */
 	ot->flag= 0;

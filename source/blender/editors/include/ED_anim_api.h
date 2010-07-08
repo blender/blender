@@ -102,8 +102,11 @@ typedef struct bAnimListElem {
 	int		flag;			/* copy of elem's flags for quick access */
 	int 	index;			/* for un-named data, the index of the data in it's collection */
 	
-	void	*key_data;		/* motion data - mostly F-Curves, but can be other types too */
+	short	elemFlag;		/* flags for the list elem instance (not the data it represents) */
+	
 	short	datatype;		/* type of motion data to expect */
+	void	*key_data;		/* motion data - mostly F-Curves, but can be other types too */
+	
 	
 	struct ID *id;			/* ID block that channel is attached to */
 	struct AnimData *adt; 	/* source of the animation data attached to ID block (for convenience) */

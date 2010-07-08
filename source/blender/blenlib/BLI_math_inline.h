@@ -38,11 +38,14 @@ extern "C" {
 #ifdef BLI_MATH_INLINE
 #ifdef _MSC_VER
 #define MINLINE static __forceinline
+#define MALWAYS_INLINE MINLINE
 #else
 #define MINLINE static inline
+#define MALWAYS_INLINE static __attribute__((always_inline))
 #endif
 #else
 #define MINLINE
+#define MALWAYS_INLINE
 #endif
 
 #ifdef __cplusplus

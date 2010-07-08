@@ -44,6 +44,7 @@
 #include "DNA_group_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
@@ -197,6 +198,10 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
 	}
 	
+	if(sce->r.ffcodecdata.properties) { /* intentionally check scen not sce. */
+		scen->r.ffcodecdata.properties= IDP_CopyProperty(sce->r.ffcodecdata.properties);
+	}
+
 	/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
 	 * are done outside of blenkernel with ED_objects_single_users! */
 
@@ -210,6 +215,12 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 		if(scen->world) {
 			id_us_plus((ID *)scen->world);
 			scen->world= copy_world(scen->world);
+		}
+
+		if(sce->ed) {
+			scen->ed= MEM_callocN( sizeof(Editing), "addseq");
+			scen->ed->seqbasep= &scen->ed->seqbase;
+			seqbase_dupli_recursive(sce, &scen->ed->seqbase, &sce->ed->seqbase, SEQ_DUPE_ALL);
 		}
 	}
 
@@ -542,18 +553,17 @@ void set_scene_bg(Scene *scene)
 }
 
 /* called from creator.c */
-void set_scene_name(char *name)
+Scene *set_scene_name(char *name)
 {
-	Scene *sce;
-
-	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
-		if (BLI_streq(name, sce->id.name+2)) {
-			set_scene_bg(sce);
-			return;
-		}
+	Scene *sce= (Scene *)find_id("SC", name);
+	if(sce) {
+		set_scene_bg(sce);
+		printf("Scene switch: '%s' in file: '%s'\n", name, G.sce);
+		return sce;
 	}
-	
-	//XXX error("Can't find scene: %s", name);
+
+	printf("Can't find scene: '%s' in file: '%s'\n", name, G.sce);
+	return NULL;
 }
 
 void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
@@ -868,22 +878,16 @@ int scene_check_setscene(Scene *sce)
 	return 1;
 }
 
-/* This (evil) function is needed to cope with two legacy Blender rendering features
-* mblur (motion blur that renders 'subframes' and blurs them together), and fields 
-* rendering. Thus, the use of ugly globals from object.c
-*/
-// BAD... EVIL... JUJU...!!!!
-// XXX moved here temporarily
-float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in object.c */
+/* This function is needed to cope with fractional frames - including two Blender rendering features
+* mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering. */
+
+/* see also bsystem_time in object.c */
+float BKE_curframe(Scene *scene)
 {
-	extern float bluroffs;	/* bad stuff borrowed from object.c */
-	extern float fieldoffs;
-	float ctime;
-	
-	ctime= (float)cfra;
-	ctime+= bluroffs+fieldoffs;
-	ctime*= scene->r.framelen;
-	
+	float ctime = scene->r.cfra;
+	ctime+= scene->r.subframe;
+	ctime*= scene->r.framelen;	
+
 	return ctime;
 }
 
@@ -903,6 +907,9 @@ static void scene_update_tagged_recursive(Scene *scene, Scene *scene_parent)
 
 		if(ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
 			group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
+			
+		/* always update layer, so that animating layers works */
+		base->lay= ob->lay;
 	}
 }
 
@@ -918,7 +925,7 @@ void scene_update_tagged(Scene *scene)
 
 	/* recalc scene animation data here (for sequencer) */
 	{
-		float ctime = frame_to_float(scene, scene->r.cfra); 
+		float ctime = BKE_curframe(scene); 
 		AnimData *adt= BKE_animdata_from_id(&scene->id);
 
 		if(adt && (adt->recalc & ADT_RECALC_ANIM))
@@ -935,7 +942,7 @@ void scene_update_tagged(Scene *scene)
 /* applies changes right away, does all sets too */
 void scene_update_for_newframe(Scene *sce, unsigned int lay)
 {
-	float ctime = frame_to_float(sce, sce->r.cfra);
+	float ctime = BKE_curframe(sce);
 	Scene *sce_iter;
 	
 	/* clear animation overrides */

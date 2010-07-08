@@ -178,7 +178,11 @@ def pyprop2sphinx(ident, fw, identifier, py_prop):
     '''
     python property to sphinx
     '''
-    fw(ident + ".. attribute:: %s\n\n" % identifier)
+    # readonly properties use "data" directive, variables use "attribute" directive
+    if py_prop.fset is None:
+        fw(ident + ".. data:: %s\n\n" % identifier)
+    else:
+        fw(ident + ".. attribute:: %s\n\n" % identifier)
     write_indented_lines(ident + "   ", fw, py_prop.__doc__)
     if py_prop.fset is None:
         fw(ident + "   (readonly)\n\n")
@@ -296,7 +300,7 @@ def rna2sphinx(BASEPATH):
     if bpy.app.build_revision != "Unknown":
         version_string = version_string + " r" + bpy.app.build_revision
     
-    fw("project = 'Blender 3D'\n")
+    fw("project = 'Blender'\n")
     # fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
     fw("version = '%s - UNSTABLE API'\n" % version_string)
@@ -323,7 +327,7 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("This document is an API reference for Blender %s. built %s.\n" % (version_string, bpy.app.build_date))
     fw("\n")
-    fw("An introduction to blender and python can be found at <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>\n")
+    fw("An introduction to Blender and Python can be found at <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>\n")
     fw("\n")
     fw("`A PDF version of this document is also available <blender_python_reference_250.pdf>`__\n")
     fw("\n")
@@ -350,6 +354,7 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
+    fw("   bpy.data.rst\n\n") # note: not actually a module
     fw("   bpy.ops.rst\n\n")
     fw("   bpy.types.rst\n\n")
     
@@ -390,8 +395,8 @@ def rna2sphinx(BASEPATH):
     filepath = os.path.join(BASEPATH, "bpy.ops.rst")
     file = open(filepath, "w")
     fw = file.write
-    fw("Blender Operators (bpy.ops)\n")
-    fw("===========================\n\n")
+    fw("Operators (bpy.ops)\n")
+    fw("===================\n\n")
     fw(".. toctree::\n")
     fw("   :glob:\n\n")
     fw("   bpy.ops.*\n\n")
@@ -400,12 +405,35 @@ def rna2sphinx(BASEPATH):
     filepath = os.path.join(BASEPATH, "bpy.types.rst")
     file = open(filepath, "w")
     fw = file.write
-    fw("Blender Types (bpy.types)\n")
-    fw("=========================\n\n")
+    fw("Types (bpy.types)\n")
+    fw("=================\n\n")
     fw(".. toctree::\n")
     fw("   :glob:\n\n")
     fw("   bpy.types.*\n\n")
     file.close()
+
+
+    # not actually a module, only write this file so we
+    # can reference in the TOC
+    filepath = os.path.join(BASEPATH, "bpy.data.rst")
+    file = open(filepath, "w")
+    fw = file.write
+    fw("Data Access (bpy.data)\n")
+    fw("======================\n\n")
+    fw(".. module:: bpy\n")
+    fw("\n")
+    fw("This module is used for all blender/python access.\n")
+    fw("\n")
+    fw(".. literalinclude:: ../examples/bpy.data.py\n")
+    fw("\n")
+    fw(".. data:: data\n")
+    fw("\n")
+    fw("   Access to blenders internal data\n")
+    fw("\n")
+    fw("   :type: :class:`bpy.types.Main`\n")
+    file.close()
+
+    EXAMPLE_SET_USED.add("bpy.data")
 
 
     # python modules
@@ -424,7 +452,7 @@ def rna2sphinx(BASEPATH):
     del module
 
     import blf as module
-    pymodule2sphinx(BASEPATH, "blf", module, "Blender Font Drawing (blf)")
+    pymodule2sphinx(BASEPATH, "blf", module, "Font Drawing (blf)")
     del module
 
     # game engine
@@ -523,12 +551,21 @@ def rna2sphinx(BASEPATH):
             fw(".. class:: %s\n\n" % struct.identifier)
 
         fw("   %s\n\n" % struct.description)
-
-        for prop in struct.properties:
-            fw("   .. attribute:: %s\n\n" % prop.identifier)
+        
+        # properties sorted in alphabetical order
+        zip_props_ids = zip(struct.properties, [prop.identifier for prop in struct.properties])
+        zip_props_ids = sorted(zip_props_ids, key=lambda p: p[1])
+        sorted_struct_properties = [x[0] for x in zip_props_ids]
+        
+        for prop in sorted_struct_properties:
+            type_descr = prop.get_type_description(class_fmt=":class:`%s`")
+            # readonly properties use "data" directive, variables properties use "attribute" directive
+            if 'readonly' in type_descr:
+                fw("   .. data:: %s\n\n" % prop.identifier)
+            else:
+                fw("   .. attribute:: %s\n\n" % prop.identifier)
             if prop.description:
                 fw("      %s\n\n" % prop.description)
-            type_descr = prop.get_type_description(class_fmt=":class:`%s`")
             fw("      :type: %s\n\n" % type_descr)
         
         # python attributes

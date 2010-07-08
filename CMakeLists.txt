@@ -60,6 +60,10 @@ SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
 SET(BLENDER_VERSION  2.5)
 
 #-----------------------------------------------------------------------------
+# Load some macros.
+INCLUDE(CMake/macros.cmake)
+
+#-----------------------------------------------------------------------------
 # Set default config options
 
 # Blender internal features
@@ -110,11 +114,11 @@ OPTION(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON
 OPTION(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
 
 # Misc
-OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" OFF) 
+OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 
-IF (APPLE)
+IF(APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	OPTION(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	OPTION(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
@@ -128,6 +132,8 @@ IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 
+TEST_SSE_SUPPORT()
+
 # disabled for now, not supported
 # OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 
@@ -138,10 +144,6 @@ ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 #   cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.1/lib/python3.1/config -G Xcode ../blender
 #
 # When changing any of this remember to update the notes in doc/blender-cmake.txt
-
-#-----------------------------------------------------------------------------
-# Load some macros.
-INCLUDE(CMake/macros.cmake)
 
 #-----------------------------------------------------------------------------
 #Platform specifics
@@ -228,6 +230,10 @@ IF(UNIX AND NOT APPLE)
 			/opt/include/OpenEXR
 		)
 		SET(OPENEXR_LIB Half IlmImf Iex Imath)
+		
+		IF(NOT OPENEXR_INC)
+			SET(WITH_OPENEXR OFF)
+		ENDIF(NOT OPENEXR_INC)
 	ENDIF(WITH_OPENEXR)
 
 	IF(WITH_TIFF)
@@ -255,6 +261,7 @@ IF(UNIX AND NOT APPLE)
 		SET(FFMPEG_INC ${FFMPEG}/include)
 		SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
 		SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	ENDIF(WITH_FFMPEG)
 
 	IF(WITH_FFTW3)
@@ -303,6 +310,12 @@ IF(UNIX AND NOT APPLE)
 
 
 	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -Wno-char-subscripts")
+
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
@@ -387,6 +400,11 @@ IF(WIN32)
 		SET(QUICKTIME_LIB qtmlClient)
 		SET(QUICKTIME_LIBPATH ${QUICKTIME}/Libraries)
 	ENDIF(WITH_QUICKTIME)
+
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	IF(MSVC)
 		IF(CMAKE_CL_64)
@@ -707,13 +725,19 @@ IF(APPLE)
 		SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 	ENDIF(WITH_OPENEXR)
 
-    # TODO: IF(WITH_LCMS)
+	IF(WITH_LCMS)
+		SET(LCMS ${LIBDIR}/lcms)
+		SET(LCMS_INCLUDE_DIR ${LCMS}/include)
+		SET(LCMS_LIBRARY lcms)
+		SET(LCMS_LIBPATH ${LCMS}/lib)
+	ENDIF(WITH_LCMS)
 
 	IF(WITH_FFMPEG)
 		SET(FFMPEG ${LIBDIR}/ffmpeg)
 		SET(FFMPEG_INC ${FFMPEG}/include)
 		SET(FFMPEG_LIB avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg)
 		SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	ENDIF(WITH_FFMPEG)
 
 	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
@@ -783,6 +807,12 @@ IF(APPLE)
 		SET(TIFF_LIBRARY tiff)
 		SET(TIFF_LIBPATH ${TIFF}/lib)
 	ENDIF(WITH_TIFF)
+
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	SET(EXETYPE MACOSX_BUNDLE)
 

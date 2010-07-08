@@ -226,7 +226,7 @@ void tex_space_mball(Object *ob)
 	boundbox_set_from_min_max(bb, min, max);
 }
 
-float *make_orco_mball(Object *ob)
+float *make_orco_mball(Object *ob, ListBase *dispbase)
 {
 	BoundBox *bb;
 	DispList *dl;
@@ -243,7 +243,7 @@ float *make_orco_mball(Object *ob)
 	loc[2]= (bb->vec[0][2]+bb->vec[1][2])/2.0f;
 	size[2]= bb->vec[1][2]-loc[2];
 
-	dl= ob->disp.first;
+	dl= dispbase->first;
 	orcodata= MEM_mallocN(sizeof(float)*3*dl->nr, "MballOrco");
 
 	data= dl->verts;
@@ -273,6 +273,19 @@ int is_basis_mball(Object *ob)
 	len= strlen(ob->id.name);
 	if( isdigit(ob->id.name[len-1]) ) return 0;
 	return 1;
+}
+
+/* return nonzero if ob1 is a basis mball for ob */
+int is_mball_basis_for(Object *ob1, Object *ob2)
+{
+	int basis1nr, basis2nr;
+	char basis1name[32], basis2name[32];
+
+	splitIDname(ob1->id.name+2, basis1name, &basis1nr);
+	splitIDname(ob2->id.name+2, basis2name, &basis2nr);
+
+	if(!strcmp(basis1name, basis2name)) return is_basis_mball(ob1);
+	else return 0;
 }
 
 /* \brief copy some properties from object to other metaball object with same base name
@@ -2075,21 +2088,20 @@ void init_metaball_octal_tree(int depth)
 	subdivide_metaball_octal_node(node, size[0], size[1], size[2], metaball_tree->depth);
 }
 
-void metaball_polygonize(Scene *scene, Object *ob)
+void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 {
 	PROCESS mbproc;
 	MetaBall *mb;
 	DispList *dl;
 	int a, nr_cubes;
 	float *ve, *no, totsize, width;
-	
+
 	mb= ob->data;
 
 	if(totelem==0) return;
 	if(!(G.rendering) && (mb->flag==MB_UPDATE_NEVER)) return;
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
-	freedisplist(&ob->disp);
 	curindex= totindex= 0;
 	indices= 0;
 	thresh= mb->thresh;
@@ -2152,9 +2164,8 @@ void metaball_polygonize(Scene *scene, Object *ob)
 	}
 
 	if(curindex) {
-	
 		dl= MEM_callocN(sizeof(DispList), "mbaldisp");
-		BLI_addtail(&ob->disp, dl);
+		BLI_addtail(dispbase, dl);
 		dl->type= DL_INDEX4;
 		dl->nr= mbproc.vertices.count;
 		dl->parts= curindex;

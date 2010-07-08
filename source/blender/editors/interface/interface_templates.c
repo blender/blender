@@ -80,11 +80,15 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	uiLayout *row= layout;
 	short nlaActive= ((sa) && (sa->spacetype==SPACE_NLA));
 	
-	/* more 'generic' filtering options */
+	/* most 'generic' filtering options */
 	row= uiLayoutRow(layout, 1);
 	
 	uiItemR(row, ptr, "only_selected", 0, "", 0);
-	uiItemR(row, ptr, "display_transforms", 0, "", 0); // xxx: include in another position instead?
+	uiItemR(row, ptr, "display_hidden", 0, "", 0);
+	
+	/* object-level filtering options */
+	row= uiLayoutRow(layout, 1);
+	uiItemR(row, ptr, "display_transforms", 0, "", 0);
 	
 	if (nlaActive)
 		uiItemR(row, ptr, "include_missing_nla", 0, "", 0);
@@ -944,7 +948,7 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 }
 
 /* draw panel showing settings for a constraint */
-static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
+static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con, int compact)
 {
 	bPoseChannel *pchan= get_active_posechannel(ob);
 	bConstraintTypeInfo *cti;
@@ -952,7 +956,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiLayout *result= NULL, *col, *box, *row, *subrow;
 	PointerRNA ptr;
 	char typestr[32];
-	short width = 265;
 	short proxy_protected, xco=0, yco=0;
 	int rb_col;
 
@@ -985,38 +988,30 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiLayoutSetContextPointer(col, "constraint", &ptr);
 
 	box= uiLayoutBox(col);
-	row= uiLayoutRow(box, 0);
-
+	row = uiLayoutRow(box, 0);
 	block= uiLayoutGetBlock(box);
 
-	subrow= uiLayoutRow(row, 0);
-	//uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
-
 	/* Draw constraint header */
-	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
 	/* rounded header */
 	rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20;
-	
+
 	/* open/close */
-	uiItemR(subrow, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
-	
-	/* name */	
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	uiItemR(row, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* XXX if (con->flag & CONSTRAINT_DISABLE)
 		uiBlockSetCol(block, TH_REDALERT);*/
 	
+	/* name */
 	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-	
+
 	if(proxy_protected == 0) {
-		uiItemR(subrow, &ptr, "name", 0, "", 0);
+		uiItemR(row, &ptr, "name", 0, "", 0);
 	}
 	else
-		uiItemL(subrow, con->name, 0);
-
-	subrow= uiLayoutRow(row, 0);
-	//uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
+		uiItemL(row, con->name, 0);
 	
 	/* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
 	if (proxy_protected) {
@@ -1050,34 +1045,44 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			
 		show_upbut= ((prev_proxylock == 0) && (con->prev));
 		show_downbut= (con->next) ? 1 : 0;
+
+		/* Code for compact Constraint UI */
+		if (compact) {
+			subrow = uiLayoutRow(box, 0);
+		}
+		else {
+			subrow = row;
+		}
 		
+		uiLayoutSetOperatorContext(subrow, WM_OP_INVOKE_DEFAULT);
+		
+		/* up/down */
 		if (show_upbut || show_downbut) {
 			uiBlockBeginAlign(block);
-				uiBlockSetEmboss(block, UI_EMBOSS);
+			if (show_upbut)
+				uiItemO(subrow, "", ICON_TRIA_UP, "CONSTRAINT_OT_move_up");
 				
-				if (show_upbut)
-					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_up", WM_OP_INVOKE_DEFAULT, ICON_TRIA_UP, xco+width-50, yco, 16, 18, "Move constraint up in constraint stack");
-				
-				if (show_downbut)
-					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_down", WM_OP_INVOKE_DEFAULT, ICON_TRIA_DOWN, xco+width-50+18, yco, 16, 18, "Move constraint down in constraint stack");
+			if (show_downbut)
+				uiItemO(subrow, "", ICON_TRIA_DOWN, "CONSTRAINT_OT_move_down");
 			uiBlockEndAlign(block);
 		}
-	
+		
+		/* enabled */
+		uiItemR(subrow, &ptr, "enabled", 0, "", 0);
+		
+		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
+		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-			uiDefIconButBitS(block, ICONTOGN, CONSTRAINT_OFF, B_CONSTRAINT_TEST, ICON_CHECKBOX_DEHLT, xco+243, yco, 19, 19, &con->flag, 0.0, 0.0, 0.0, 0.0, "enable/disable constraint");
-			
-			uiDefIconButO(block, BUT, "CONSTRAINT_OT_delete", WM_OP_INVOKE_DEFAULT, ICON_X, xco+262, yco, 19, 19, "Delete constraint");
+		uiItemO(row, "", ICON_X, "CONSTRAINT_OT_delete");
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
-	
+
 	/* Set but-locks for protected settings (magic numbers are used here!) */
 	if (proxy_protected)
 		uiBlockSetButLock(block, 1, "Cannot edit Proxy-Protected Constraint");
 
-		
 	/* Draw constraint data */
-	
 	if ((con->flag & CONSTRAINT_EXPAND) == 0) {
 		(yco) -= 21;
 	}
@@ -1093,7 +1098,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	return result;
 }
 
-uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
+uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr, int compact)
 {
 	Object *ob;
 	bConstraint *con;
@@ -1121,7 +1126,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 			return NULL;
 	}
 
-	return draw_constraint(layout, ob, con);
+	return draw_constraint(layout, ob, con, compact);
 }
 
 
@@ -1333,6 +1338,29 @@ static void colorband_del_cb(bContext *C, void *cb_v, void *coba_v)
 	rna_update_cb(C, cb_v, NULL);
 }
 
+static void colorband_flip_cb(bContext *C, void *cb_v, void *coba_v)
+{
+	CBData data_tmp[MAXCOLORBAND];
+
+	ColorBand *coba= coba_v;
+	int a;
+
+	for(a=0; a<coba->tot; a++) {
+		data_tmp[a]= coba->data[coba->tot - (a + 1)];
+	}
+	for(a=0; a<coba->tot; a++) {
+		data_tmp[a].pos = 1.0f - data_tmp[a].pos;
+		coba->data[a]= data_tmp[a];
+	}
+
+	/* may as well flip the cur*/
+	coba->cur= coba->tot - (coba->cur + 1);
+
+	ED_undo_push(C, "Flip colorband");
+
+	rna_update_cb(C, cb_v, NULL);
+}
+
 
 /* offset aligns from bottom, standard width 300, height 115 */
 static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand *coba, int xoffs, int yoffs, RNAUpdateCb *cb)
@@ -1343,11 +1371,16 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 
 	if(coba==NULL) return;
 
-	bt= uiDefBut(block, BUT, 0,	"Add",			0+xoffs,100+yoffs,50,20, 0, 0, 0, 0, 0, "Add a new color stop to the colorband");
+	bt= uiDefBut(block, BUT, 0,	"Add",			0+xoffs,100+yoffs,40,20, 0, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetNFunc(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
 
-	bt= uiDefBut(block, BUT, 0,	"Delete",		60+xoffs,100+yoffs,50,20, 0, 0, 0, 0, 0, "Delete the active position");
+	bt= uiDefBut(block, BUT, 0,	"Delete",		45+xoffs,100+yoffs,45,20, 0, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
+
+
+	/* XXX, todo for later - convert to operator - campbell */
+	bt= uiDefBut(block, BUT, 0,	"F",		95+xoffs,100+yoffs,20,20, 0, 0, 0, 0, 0, "Flip colorband");
+	uiButSetNFunc(bt, colorband_flip_cb, MEM_dupallocN(cb), coba);
 
 	uiDefButS(block, NUM, 0,		"",				120+xoffs,100+yoffs,80, 20, &coba->cur, 0.0, (float)(MAX2(0, coba->tot-1)), 0, 0, "Choose active color stop");
 
@@ -1358,6 +1391,8 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 
 	bt= uiDefBut(block, BUT_COLORBAND, 0, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+
+
 
 	if(coba->tot) {
 		CBData *cbd= coba->data + coba->cur;
@@ -1381,8 +1416,10 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 	uiBlockBeginAlign(block);
 	bt= uiDefBut(block, BUT, 0,	"Add",			xs,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetNFunc(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
-	bt= uiDefBut(block, BUT, 0,	"Delete",		xs+2.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Delete the active position");
+	bt= uiDefBut(block, BUT, 0,	"Delete",		xs+2.0f*unit,butr->ymin+20.0f,1.5f*unit,20,	NULL, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
+	bt= uiDefBut(block, BUT, 0,	"F",		xs+3.5f*unit,butr->ymin+20.0f,0.5f*unit,20,	NULL, 0, 0, 0, 0, "Flip the color ramp");
+	uiButSetNFunc(bt, colorband_flip_cb, MEM_dupallocN(cb), coba);
 	uiBlockEndAlign(block);
 
 	if(coba->tot) {
@@ -1906,37 +1943,44 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, i
 
 #define WHEEL_SIZE	100
 
-void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int value_slider, int lock)
+void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int value_slider, int lock, int lock_luminosity, int cubic)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiLayout *col, *row;
+	uiBut *but;
 	float softmin, softmax, step, precision;
 	
 	if (!prop) {
 		printf("uiTemplateColorWheel: property not found: %s\n", propname);
 		return;
 	}
-	
+
 	RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
 	
 	col = uiLayoutColumn(layout, 0);
 	row= uiLayoutRow(col, 1);
 	
-	uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, lock, "");
-	
+	but= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
+
+	if(lock) {
+		but->flag |= UI_BUT_COLOR_LOCK;
+	}
+
+	if(lock_luminosity) {
+		float color[4]; /* incase of alpha */
+		but->flag |= UI_BUT_VEC_SIZE_LOCK;
+		RNA_property_float_get_array(ptr, prop, color);
+		but->a2= len_v3(color);
+	}
+
+	if(cubic)
+		but->flag |= UI_BUT_COLOR_CUBIC;
+
 	uiItemS(row);
 	
 	if (value_slider)
 		uiDefButR(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, propname, -1, softmin, softmax, 9, 0, "");
-
-	/* maybe a switch for this?
-	row= uiLayoutRow(col, 0);
-	if(ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA) && RNA_property_array_length(ptr, prop) == 4) {
-		but= uiDefAutoButR(block, ptr, prop, 3, "A:", 0, 0, 0, WHEEL_SIZE+20, UI_UNIT_Y);
-	}
-	*/
-	
 }
 
 
@@ -2408,13 +2452,13 @@ static void do_running_jobs(bContext *C, void *arg, int event)
 			G.afbreek= 1;
 			break;
 		case B_STOPCAST:
-			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C));
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C), NULL);
 			break;
 		case B_STOPANIM:
 			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
 		case B_STOPCOMPO:
-			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C));
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
 			break;
 	}
 }

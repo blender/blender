@@ -1,4 +1,3 @@
-
 import bpy
 
 def write_some_data(context, filepath, use_some_setting):

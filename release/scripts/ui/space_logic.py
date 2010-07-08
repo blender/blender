@@ -35,16 +35,17 @@ class LOGIC_PT_properties(bpy.types.Panel):
         ob = context.active_object
         game = ob.game
 
-        layout.operator("object.game_property_new", text="Add Game Property")
+        layout.operator("object.game_property_new", text="Add Game Property", icon='ZOOMIN')
 
         for i, prop in enumerate(game.properties):
 
-            row = layout.row(align=True)
+            box = layout.box()
+            row = box.row()
             row.prop(prop, "name", text="")
             row.prop(prop, "type", text="")
             row.prop(prop, "value", text="", toggle=True) # we dont care about the type. rna will display correctly
             row.prop(prop, "debug", text="", toggle=True, icon='INFO')
-            row.operator("object.game_property_remove", text="", icon='X').index = i
+            row.operator("object.game_property_remove", text="", icon='X', emboss=False).index = i
 
 
 class LOGIC_MT_logicbricks_add(bpy.types.Menu):

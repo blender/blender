@@ -113,7 +113,7 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
     """
 
     check_vertcount(me, numverts)
-    me.transform(mat_flip * ob.matrix)
+    me.transform(mat_flip * ob.matrix_world)
     f.write(pack(">%df" % (numverts * 3), *[axis for v in me.verts for axis in v.co]))
 
     for frame in range(PREF_STARTFRAME, PREF_ENDFRAME + 1):#in order to start at desired frame
@@ -125,7 +125,7 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
         sce.set_frame(frame)
         me = ob.create_mesh(sce, True, 'PREVIEW')
         check_vertcount(me, numverts)
-        me.transform(mat_flip * ob.matrix)
+        me.transform(mat_flip * ob.matrix_world)
 
         # Write the vertex data
         f.write(pack(">%df" % (numverts * 3), *[axis for v in me.verts for axis in v.co]))

@@ -49,7 +49,7 @@ void init_latt_deform(struct Object *oblatt, struct Object *ob);
 void calc_latt_deform(struct Object *, float *co, float weight);
 void end_latt_deform(struct Object *);
 
-int object_deform_mball(struct Object *ob);
+int object_deform_mball(struct Object *ob, struct ListBase *dispbase);
 void outside_lattice(struct Lattice *lt);
 
 void curve_deform_verts(struct Scene *scene, struct Object *cuOb, struct Object *target, 

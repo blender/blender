@@ -1927,7 +1927,8 @@ static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *so
 	
 	/* we search for the object parent */
 	ob= (Object *)outliner_search_back(soops, te, ID_OB);
-	if(ob==NULL || ob!=OBACT) return 0;	// just paranoia
+	// note: ob->matbits can be NULL when a local object points to a library mesh.
+	if(ob==NULL || ob!=OBACT || ob->matbits==NULL) return 0;	// just paranoia
 	
 	/* searching in ob mat array? */
 	tes= te->parent;
@@ -4209,11 +4210,11 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 	if(arg->x >= arg->xmax) 
 		UI_icon_draw(arg->x, arg->y, icon);
 	else {
-		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, "");
+		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
 		if(arg->id)
 			uiButSetDragID(but, arg->id);
 	}
-	
+
 }
 
 static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te, float alpha)

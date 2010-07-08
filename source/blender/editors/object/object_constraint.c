@@ -866,7 +866,7 @@ void CONSTRAINT_OT_move_down (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Constraint Down";
 	ot->idname= "CONSTRAINT_OT_move_down";
-	ot->description= "Move constraint down constraint stack";
+	ot->description= "Move constraint down in constraint stack";
 	
 	/* callbacks */
 	ot->exec= constraint_move_down_exec;
@@ -913,7 +913,7 @@ void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Constraint Up";
 	ot->idname= "CONSTRAINT_OT_move_up";
-	ot->description= "Move constraint up constraint stack";
+	ot->description= "Move constraint up in constraint stack";
 	
 	/* callbacks */
 	ot->exec= constraint_move_up_exec;

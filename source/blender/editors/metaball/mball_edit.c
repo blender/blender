@@ -47,6 +47,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_context.h"
+#include "BKE_library.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -59,6 +60,10 @@
 /* This function is used to free all MetaElems from MetaBall */
 void free_editMball(Object *obedit)
 {
+	MetaBall *mb = (MetaBall*)obedit->data;
+
+	mb->editelems= NULL;
+	mb->lastelem= NULL;
 }
 
 /* This function is called, when MetaBall Object is
@@ -83,10 +88,6 @@ void make_editMball(Object *obedit)
  * from object->data->edit_elems to object->data->elems. */
 void load_editMball(Object *obedit)
 {
-	MetaBall *mb = (MetaBall*)obedit->data;
-	
-	mb->editelems= NULL;
-	mb->lastelem= NULL;
 }
 
 /* Add metaelem primitive to metaball object (which is in edit mode) */
@@ -122,24 +123,29 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int new
 	case MB_BALL:
 		ml->type = MB_BALL;
 		ml->expx= ml->expy= ml->expz= 1.0;
+
 		break;
 	case MB_TUBE:
 		ml->type = MB_TUBE;
 		ml->expx= ml->expy= ml->expz= 1.0;
+
 		break;
 	case MB_PLANE:
 		ml->type = MB_PLANE;
 		ml->expx= ml->expy= ml->expz= 1.0;
+
 		break;
 	case MB_ELIPSOID:
 		ml->type = MB_ELIPSOID;
 		ml->expx= 1.2f;
 		ml->expy= 0.8f;
 		ml->expz= 1.0;
+		
 		break;
 	case MB_CUBE:
 		ml->type = MB_CUBE;
 		ml->expx= ml->expy= ml->expz= 1.0;
+
 		break;
 	default:
 		break;

@@ -1543,7 +1543,7 @@ private:
 			vert += 3;
 		}
 		
-		filldisplist(&dispbase, &dispbase);
+		filldisplist(&dispbase, &dispbase, 0);
 
 		int tottri = 0;
 		dl= (DispList*)dispbase.first;

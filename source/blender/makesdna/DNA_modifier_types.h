@@ -538,7 +538,7 @@ typedef struct MeshDeformModifierData {
 	float *bindcos;					/* deprecated storage of cage coords */
 
 	/* runtime */
-	void (*bindfunc)(struct Scene *scene, struct DerivedMesh *dm,
+	void (*bindfunc)(struct Scene *scene,
 		struct MeshDeformModifierData *mmd,
 		float *vertexcos, int totvert, float cagemat[][4]);
 } MeshDeformModifierData;

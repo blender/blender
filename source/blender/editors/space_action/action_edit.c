@@ -1138,6 +1138,7 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *op)
 	if (ked.i1) {
 		Scene *scene= ac.scene;
 		CFRA= (int)floor((ked.f1 / ked.i1) + 0.5f);
+		SUBFRA= 0.f;
 	}
 	
 	/* set notifier that things have changed */

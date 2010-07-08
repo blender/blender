@@ -166,7 +166,7 @@ void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING B
 	
 	if(deselect_all)
 		deselect_all_seq(scene);
-	active_seq_set(scene, seq);
+	seq_active_set(scene, seq);
 
 	if((seq->type==SEQ_IMAGE) || (seq->type==SEQ_MOVIE)) {
 		if(seq->strip)
@@ -185,7 +185,7 @@ void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING B
 
 void select_neighbor_from_last(Scene *scene, int lr)
 {
-	Sequence *seq= active_seq_get(scene);
+	Sequence *seq= seq_active_get(scene);
 	Sequence *neighbor;
 	int change = 0;
 	if (seq) {
@@ -231,7 +231,7 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if (desel) {
-			seq->flag &= SEQ_DESEL;
+			seq->flag &= ~SEQ_ALLSEL;
 		}
 		else {
 			seq->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -269,7 +269,7 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
 
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if (seq->flag & SELECT) {
-			seq->flag &= SEQ_DESEL;
+			seq->flag &= ~SEQ_ALLSEL;
 		}
 		else {
 			seq->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -392,7 +392,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			deselect_all_seq(scene);
 	
 		if(seq) {
-			active_seq_set(scene, seq);
+			seq_active_set(scene, seq);
 	
 			if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
 				if(seq->strip) {
@@ -409,7 +409,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				switch(hand) {
 				case SEQ_SIDE_NONE:
 					if (linked_handle==0)
-						seq->flag &= SEQ_DESEL;
+						seq->flag &= ~SEQ_ALLSEL;
 					break;
 				case SEQ_SIDE_LEFT:
 					seq->flag ^= SEQ_LEFTSEL;
@@ -794,7 +794,7 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, 0);
-	Sequence *seq_act= active_seq_get(scene);
+	Sequence *seq_act= seq_active_get(scene);
 
 	if (ed==NULL || seq_act==NULL)
 		return OPERATOR_CANCELLED;
@@ -860,7 +860,7 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 		
 		if(BLI_isect_rctf(&rq, &rectf, 0)) {
 			if(selecting)		seq->flag |= SELECT;
-			else				seq->flag &= SEQ_DESEL;
+			else				seq->flag &= ~SEQ_ALLSEL;
 			recurs_sel_seq(seq);
 		}
 	}

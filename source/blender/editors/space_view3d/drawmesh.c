@@ -430,7 +430,7 @@ static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 	} else if (tface && tface->mode&TF_OBCOL) {
 		return 2; /* Don't set color */
 	} else if (!mcol) {
-		return 2; /* Don't set color */
+		return 1; /* Don't set color */
 	} else {
 		return 1; /* Set color from mcol */
 	}
@@ -465,9 +465,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		} else if (tface && tface->mode&TF_OBCOL) {
 			for(j=0;j<4;j++) {
-				finalCol[i*4+j].r = Gtexdraw.obcol[0];
-				finalCol[i*4+j].g = Gtexdraw.obcol[1];
-				finalCol[i*4+j].b = Gtexdraw.obcol[2];
+				finalCol[i*4+j].r = FTOCHAR(Gtexdraw.obcol[0]);
+				finalCol[i*4+j].g = FTOCHAR(Gtexdraw.obcol[1]);
+				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[2]);
 			}
 		} else if (!mcol) {
 			if (tface) {
@@ -486,9 +486,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 					else copy_v3_v3(col, &ma->r);
 					
 					for(j=0;j<4;j++) {
-						finalCol[i*4+j].b = col[2];
-						finalCol[i*4+j].g = col[1];
-						finalCol[i*4+j].r = col[0];
+						finalCol[i*4+j].b = FTOCHAR(col[2]);
+						finalCol[i*4+j].g = FTOCHAR(col[1]);
+						finalCol[i*4+j].r = FTOCHAR(col[0]);
 					}
 				}
 				else
@@ -535,7 +535,7 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 	mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
 	matnr = efa->mat_nr;
 
-	return draw_tface__set_draw(tface, mcol, matnr);
+	return draw_tface__set_draw_legacy(tface, mcol, matnr);
 }
 
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)

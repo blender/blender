@@ -166,6 +166,8 @@ int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
 
 					return 1;
 				}
+				else
+					return 0;
 			}
 			case ID_LT:
 			{

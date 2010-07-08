@@ -368,19 +368,34 @@ class DATA_PT_textboxes(DataButtonsPanel):
         text = context.curve
         wide_ui = context.region.width > narrowui
 
-        for box in text.textboxes:
-            split = layout.box().split()
+        split = layout.split()
+        col = split.column()
+        col.operator("font.textbox_add", icon='ZOOMIN')
+        if wide_ui:
+            col = split.column()
+
+        for i, box in enumerate(text.textboxes):
+
+            boxy = layout.box()
+
+            row = boxy.row()
+
+            split = row.split()
 
             col = split.column(align=True)
+
             col.label(text="Dimensions:")
             col.prop(box, "width", text="Width")
             col.prop(box, "height", text="Height")
 
             if wide_ui:
                 col = split.column(align=True)
+
             col.label(text="Offset:")
             col.prop(box, "x", text="X")
             col.prop(box, "y", text="Y")
+
+            row.operator("font.textbox_remove", text='', icon='X', emboss=False).index = i
 
 
 classes = [
