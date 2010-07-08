@@ -392,6 +392,12 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			AUD_set3DSetting(AUD_3DS_DOPPLER_FACTOR, scene->audio.doppler_factor);
 			AUD_set3DSetting(AUD_3DS_DISTANCE_MODEL, scene->audio.distance_model);
 
+			// from see blender.c:
+			// FIXME: this version patching should really be part of the file-reading code,
+			// but we still get too many unrelated data-corruption crashes otherwise...
+			if (blenderdata->versionfile < 250)
+				do_versions_ipos_to_animato(blenderdata);
+
 			if (sceneconverter)
 			{
 				// convert and add scene
