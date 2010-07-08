@@ -33,7 +33,7 @@ Path* Path::_pInstance = 0;
 Path::Path() {
 	// get the root directory
 	//soc
-	setRootDir( BLI_gethome_folder("scripts", BLI_GETHOME_ALL) );
+	setRootDir( BLI_get_folder(BLENDER_SCRIPTS, NULL) );
 
 	_pInstance = this;
 }
