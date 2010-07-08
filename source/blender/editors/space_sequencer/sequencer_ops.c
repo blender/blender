@@ -114,6 +114,9 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "SequencerCommon", SPACE_SEQ, 0);
 	wmKeyMapItem *kmi;
 
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "scene.sequence_editor.show_overlay");
+
 	/* operators common to sequence and preview view */
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
 
