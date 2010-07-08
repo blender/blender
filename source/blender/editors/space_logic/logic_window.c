@@ -3966,9 +3966,11 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 	Object *ob;
 	PointerRNA settings_ptr;
 	uiLayout *split, *row, *col, *subcol;
+	int physics_type;
 
 	ob = (Object *)ptr->id.data;	
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
+	physics_type = RNA_enum_get(&settings_ptr, "physics_type");
 	
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 	
@@ -3984,33 +3986,32 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(row, ptr, "rot", 0, NULL, 0);
 			uiItemR(split, ptr, "local_rotation", UI_ITEM_R_TOGGLE, NULL, 0);
 			
-			if (RNA_enum_get(&settings_ptr, "physics_type") != OB_BODY_TYPE_DYNAMIC)
-				break;
-			
-			uiItemL(layout, "Dynamic Object Settings:", 0);
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "force", 0, NULL, 0);
-			uiItemR(split, ptr, "local_force", UI_ITEM_R_TOGGLE, NULL, 0);
+			if (ELEM3(physics_type, OB_BODY_TYPE_DYNAMIC, OB_BODY_TYPE_RIGID, OB_BODY_TYPE_SOFT)) {			
+				uiItemL(layout, "Dynamic Object Settings:", 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "force", 0, NULL, 0);
+				uiItemR(split, ptr, "local_force", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "torque", 0, NULL, 0);
-			uiItemR(split, ptr, "local_torque", UI_ITEM_R_TOGGLE, NULL, 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "torque", 0, NULL, 0);
+				uiItemR(split, ptr, "local_torque", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "linear_velocity", 0, NULL, 0);
-			row = uiLayoutRow(split, 1);
-			uiItemR(row, ptr, "local_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
-			uiItemR(row, ptr, "add_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "linear_velocity", 0, NULL, 0);
+				row = uiLayoutRow(split, 1);
+				uiItemR(row, ptr, "local_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+				uiItemR(row, ptr, "add_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "angular_velocity", 0, NULL, 0);
-			uiItemR(split, ptr, "local_angular_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "angular_velocity", 0, NULL, 0);
+				uiItemR(split, ptr, "local_angular_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			uiItemR(layout, ptr, "damping", 0, NULL, 0);
+				uiItemR(layout, ptr, "damping", 0, NULL, 0);
+			}
 			break;
 		case ACT_OBJECT_SERVO:
 			uiItemR(layout, ptr, "reference_object", 0, NULL, 0);
