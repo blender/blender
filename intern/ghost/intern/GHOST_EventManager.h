@@ -109,6 +109,14 @@ public:
 	virtual bool dispatchEvents();
 
 	/**
+	 * Dispatches most events on the stack, consolidating cursor moves into a single move.
+	 * The event stack will be empty afterwards.
+	 * @return Indicates whether all events were handled by some consumer.
+	 */
+	bool dispatchEvents_lo_fi();
+
+
+	/**
 	 * Adds a consumer to the list of event consumers.
 	 * @param consumer The consumer added to the list.
 	 * @return Indication as to whether addition has succeeded.

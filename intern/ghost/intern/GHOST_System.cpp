@@ -198,7 +198,10 @@ bool GHOST_System::dispatchEvents()
 {
 	bool handled;
 	if (m_eventManager) {
-		handled = m_eventManager->dispatchEvents();
+		if (m_input_fidelity_hint == LO_FI)
+			handled = m_eventManager->dispatchEvents_lo_fi();
+		else
+			handled = m_eventManager->dispatchEvents();
 	}
 	else {
 		handled = false;
@@ -283,11 +286,6 @@ GHOST_TSuccess GHOST_System::init()
 	m_eventManager = new GHOST_EventManager ();
     m_ndofManager = new GHOST_NDOFManager();
 
-#if 0
-	if(m_ndofManager)
-		printf("ndof manager \n");
-#endif
-	
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {
 		m_eventPrinter = new GHOST_EventPrinter();

@@ -39,6 +39,7 @@
 #include "GHOST_Buttons.h"
 #include "GHOST_ModifierKeys.h"
 #include "GHOST_EventManager.h"
+
 #ifdef GHOST_DEBUG
 #include "GHOST_EventPrinter.h"
 #endif // GHOST_DEBUG

@@ -38,6 +38,10 @@
 #include <algorithm>
 #include "GHOST_Debug.h"
 
+// for testing lo-fi
+#include "GHOST_EventPrinter.h"
+#include <iostream>
+using namespace std;
 
 GHOST_EventManager::GHOST_EventManager()
 {
@@ -81,7 +85,7 @@ GHOST_TUns32 GHOST_EventManager::getNumEvents(GHOST_TEventType type)
 GHOST_IEvent* GHOST_EventManager::peekEvent()
 {
 	GHOST_IEvent* event = 0;
-	if (m_events.size() > 0) {
+	if (!m_events.empty()) {
 		event = m_events.back();
 	}
 	return event;
@@ -105,6 +109,24 @@ GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent* event)
 
 bool GHOST_EventManager::dispatchEvent(GHOST_IEvent* event)
 {
+	// [mce] this variant switches the "handled" flag to work as described in the header
+	//       it also stops after the first consumer has handled the event
+	bool handled = false;
+	if (event) {
+		TConsumerVector::iterator iter;
+		for (iter = m_consumers.begin(); iter != m_consumers.end(); iter++) {
+			if ((*iter)->processEvent(event)) {
+				handled = true;
+				// break;
+			}
+		}
+	}
+	return handled;
+}
+
+#if 0 // disable to test a variant
+bool GHOST_EventManager::dispatchEvent_original(GHOST_IEvent* event)
+{
 	bool handled;
 	if (event) {
 		handled = true;
@@ -120,7 +142,7 @@ bool GHOST_EventManager::dispatchEvent(GHOST_IEvent* event)
 	}
 	return handled;
 }
-
+#endif
 
 bool GHOST_EventManager::dispatchEvent()
 {
@@ -149,6 +171,51 @@ bool GHOST_EventManager::dispatchEvents()
 		handled = false;
 	}
 	return handled;
+}
+
+
+bool GHOST_EventManager::dispatchEvents_lo_fi()
+{
+	if (m_events.empty())
+		return false;
+
+	bool allHandled = true;
+	GHOST_IEvent* cursorMove = NULL;
+	GHOST_IEvent* event = NULL;
+
+	GHOST_EventPrinter printer;
+
+	// when Pen gets its own event type, track it alongside mouse moves
+	// they probably won't both be active, but you never know
+
+	cout << "\n--- lo-fi dispatch ---";
+	cout << "\ndiscard:";
+	while ((event = popEvent()) != NULL) {
+		if (event->getType() == GHOST_kEventCursorMove) {
+			// just a simple (x,y) pair, nothing much to adjust
+			// discard the older event and keep the latest
+			if (cursorMove) {
+				printer.processEvent(cursorMove);
+				delete cursorMove;
+			}
+			cursorMove = event;
+		}
+		else // not a cursor move event
+			if (!dispatchEvent(event))
+				allHandled = false;
+	}
+		
+	// finally dispatch the single cursor update
+	if (cursorMove) {
+		cout << "\nsend:";
+		printer.processEvent(cursorMove);
+		if (!dispatchEvent(cursorMove))
+			allHandled = false;
+	}
+
+	cout << endl;
+
+	return allHandled;
 }
 
 
