@@ -1,3 +1,4 @@
+import bpy
 
 def main(context):
     obj = context.active_object

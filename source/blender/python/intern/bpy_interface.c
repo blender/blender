@@ -150,7 +150,6 @@ void BPY_update_modules( void )
 *****************************************************************************/
 static PyObject *CreateGlobalDictionary( bContext *C, const char *filename )
 {
-	PyObject *mod;
 	PyObject *item;
 	PyObject *dict = PyDict_New(  );
 	PyDict_SetItemString( dict, "__builtins__", PyEval_GetBuiltins(  ) );
