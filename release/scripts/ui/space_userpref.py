@@ -847,7 +847,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         cats = ["All", "Enabled", "Disabled"] + sorted(cats)
 
-        bpy.types.Scene.EnumProperty(items=[(cat, cat, str(i)) for i, cat in enumerate(cats)],
+        bpy.types.Scene.EnumProperty(items=[(cat, cat, cat + " addons") for cat in cats],
             name="Category", attr="addon_filter", description="Filter add-ons by category")
         bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
             description="Search within the selected filter")
