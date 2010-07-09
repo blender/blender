@@ -222,5 +222,8 @@ void OBJECT_OT_group_remove(struct wmOperatorType *ot);
 /* object_bake.c */
 void OBJECT_OT_bake_image(wmOperatorType *ot);
 
+/* object_navmesh.cpp */
+void OBJECT_OT_create_navmesh(struct wmOperatorType *ot);
+
 #endif /* ED_OBJECT_INTERN_H */
 

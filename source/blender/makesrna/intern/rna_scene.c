@@ -33,6 +33,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
+#include "BLI_math.h"
 
 /* Include for Bake Options */
 #include "RE_pipeline.h"
@@ -1462,6 +1463,83 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
+static void rna_def_scene_game_recast_data(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "SceneGameRecastData", NULL);
+	RNA_def_struct_sdna(srna, "RecastData");
+	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_ui_text(srna, "Recast Data", "Recast data for a Game datablock");
+
+	prop= RNA_def_property(srna, "cellsize", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 1, 0.01, 2);
+	RNA_def_property_ui_text(prop, "Cell size", "Rasterized cell size");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "cellheight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 1, 0.01, 2);
+	RNA_def_property_ui_text(prop, "Cell height", "Rasterized cell height");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "agentheight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 5, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Agent height", "Minimum height where the agent can still walk");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "agentradius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 5, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Agent radius", "Radius of the agent");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "agentmaxclimb", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 5, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Max climb", "Maximum height between grid cells the agent can climb");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "agentmaxslope", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_range(prop, 0, M_PI/2);
+	RNA_def_property_ui_text(prop, "Max slope", "Maximum walkable slope angle in degrees");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+
+	prop= RNA_def_property(srna, "regionminsize", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0, 150, 1, 2);
+	RNA_def_property_ui_text(prop, "Min region size", "Minimum regions size. Smaller regions will be deleted");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "regionmergesize", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0, 150, 1, 2);
+	RNA_def_property_ui_text(prop, "Merged region size", "Minimum regions size. Smaller regions will be merged");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "edgemaxlen", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0, 50, 1, 2);
+	RNA_def_property_ui_text(prop, "Max edge length", "Maximum contour edge length");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "edgemaxerror", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.1, 3.0, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Max edge error", "Maximum distance error from contour to cells");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "vertsperpoly", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 3, 12, 1, 0);
+	RNA_def_property_ui_text(prop, "Verts per poly", "Max number of vertices per polygon");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "detailsampledist", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.0, 16.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Sample Distance", "Detail mesh sample spacing");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "detailsamplemaxerror", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 0.0, 16.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Max Sample Error", "Detail mesh simplification max sample error");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+}
+
 static void rna_def_scene_game_data(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1766,6 +1844,16 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Level height", "Max difference in heights of obstacles to enable their interaction");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	/* Recast Settings */
+	prop= RNA_def_property(srna, "recast_data", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "recastData");
+	RNA_def_property_struct_type(prop, "SceneGameRecastData");
+	RNA_def_property_ui_text(prop, "Recast Data", "");
+
+	/* Nestled Data  */
+	rna_def_scene_game_recast_data(brna);
 	
 }
 

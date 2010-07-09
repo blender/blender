@@ -10912,6 +10912,42 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		//set defaults for recast data
+		{
+			Scene *sce;
+			for(sce = main->scene.first; sce; sce = sce->id.next)
+			{
+				if(sce->unit.scale_length == 0.0f)
+					sce->unit.scale_length= 1.0f;
+				if(sce->gm.recastData.cellsize == 0.0f)
+					sce->gm.recastData.cellsize = 0.3f;
+				if(sce->gm.recastData.cellheight == 0.0f)
+					sce->gm.recastData.cellheight = 0.2f;
+				if(sce->gm.recastData.agentmaxslope == 0.0f)
+					sce->gm.recastData.agentmaxslope = M_PI/4;
+				if(sce->gm.recastData.agentmaxclimb == 0.0f)
+					sce->gm.recastData.agentmaxclimb = 0.9f;
+				if(sce->gm.recastData.agentheight == 0.0f)
+					sce->gm.recastData.agentheight = 2.0f;
+				if(sce->gm.recastData.agentradius == 0.0f)
+					sce->gm.recastData.agentradius = 0.6f;
+				if(sce->gm.recastData.edgemaxlen == 0.0f)
+					sce->gm.recastData.edgemaxlen = 12.0f;
+				if(sce->gm.recastData.edgemaxerror == 0.0f)
+					sce->gm.recastData.edgemaxerror = 1.3f;
+				if(sce->gm.recastData.regionminsize == 0.0f)
+					sce->gm.recastData.regionminsize = 50.f;
+				if(sce->gm.recastData.regionmergesize == 0.0f)
+					sce->gm.recastData.regionmergesize = 20.f;
+				if(sce->gm.recastData.vertsperpoly<3)
+					sce->gm.recastData.vertsperpoly = 6;
+				if(sce->gm.recastData.detailsampledist == 0.0f)
+					sce->gm.recastData.detailsampledist = 6.0f;
+				if(sce->gm.recastData.detailsamplemaxerror == 0.0f)
+					sce->gm.recastData.detailsamplemaxerror = 1.0f;
+			}			
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -335,6 +335,78 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
+class SCENE_PT_navmesh(SceneButtonsPanel):
+    bl_label = "Navmesh"
+    bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.game_data.recast_data
+        wide_ui = context.region.width > narrowui
+
+        layout.operator("object.create_navmesh", text='Build navigation mesh')
+
+        layout.label(text="Rasterization:")
+        split = layout.split()
+
+        col = split.column()
+        col.prop(rd, "cellsize")
+        if wide_ui:
+            col = split.column()
+        col.prop(rd, "cellheight")
+
+        layout.separator()
+
+        layout.label(text="Agent:")
+        split = layout.split()
+        col = split.column()
+        row = col.row()
+        row.prop(rd, "agentheight")
+        row = col.row()
+        row.prop(rd, "agentradius")
+        if wide_ui:
+            col = split.column()
+        row = col.row()
+        row.prop(rd, "agentmaxslope")
+        row = col.row()
+        row.prop(rd, "agentmaxclimb")
+
+        layout.separator()
+
+        layout.label(text="Region:")
+        split = layout.split()
+        col = split.column()
+        col.prop(rd, "regionminsize")
+        if wide_ui:
+            col = split.column()
+        col.prop(rd, "regionmergesize")
+
+        layout.separator()
+
+        layout.label(text="Polygonization:")
+        split = layout.split()
+        col = split.column()
+        row = col.row()
+        row.prop(rd, "edgemaxlen")
+        row = col.row()
+        row.prop(rd, "edgemaxerror")
+        if wide_ui:
+            col = split.column()
+        row = col.row()
+        row.prop(rd, "vertsperpoly")
+
+        layout.separator()
+
+        layout.label(text="Detail Mesh:")
+        split = layout.split()
+        col = split.column()
+        col.prop(rd, "detailsampledist")
+        if wide_ui:
+            col = split.column()
+        col.prop(rd, "detailsamplemaxerror")
+
 
 classes = [
     SCENE_PT_scene,
@@ -343,6 +415,7 @@ classes = [
     SCENE_PT_keying_set_paths,
     SCENE_PT_physics,
     SCENE_PT_simplify,
+	SCENE_PT_navmesh,
 
     SCENE_PT_custom_props,
 

@@ -37,7 +37,10 @@ extern "C"{
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "MEM_guardedalloc.h"
-
+#include "BIF_gl.h"
+#include "gpu_buffers.h"
+#include "GPU_draw.h"
+#include "UI_resources.h"
 
 
 static void initData(ModifierData *md)
@@ -285,6 +288,57 @@ static DerivedMesh *buildNavMesh(NavMeshModifierData *mmd,DerivedMesh *dm)
 	return result;
 }
 
+inline int bit(int a, int b)
+{
+	return (a & (1 << b)) >> b;
+}
+inline void intToCol(int i, float* col)
+{
+	int	r = bit(i, 0) + bit(i, 3) * 2 + 1;
+	int	g = bit(i, 1) + bit(i, 4) * 2 + 1;
+	int	b = bit(i, 2) + bit(i, 5) * 2 + 1;
+	col[0] = 1 - r*63.0f/255.0f;
+	col[1] = 1 - g*63.0f/255.0f;
+	col[2] = 1 - b*63.0f/255.0f;
+}
+
+static void navDM_drawFacesSolid(DerivedMesh *dm,
+								float (*partial_redraw_planes)[4],
+								int fast, int (*setMaterial)(int, void *attribs))
+{
+	int a, glmode;
+	MVert *mvert = (MVert *)CustomData_get_layer(&dm->vertData, CD_MVERT);
+	MFace *mface = (MFace *)CustomData_get_layer(&dm->faceData, CD_MFACE);
+	int* polygonIdx = (int*)CustomData_get_layer(&dm->faceData, CD_PROP_INT);
+	float col[3];
+	col[0] = 1.f;
+	col[1] = 0.f;
+	col[2] = 0.f;
+	if(GPU_buffer_legacy(dm) ) {
+		DEBUG_VBO( "Using legacy code. navDM_drawFacesSolid\n" );
+		//glShadeModel(GL_SMOOTH);
+		glBegin(glmode = GL_QUADS);
+		for(a = 0; a < dm->numFaceData; a++, mface++, polygonIdx++) {
+			int new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
+			intToCol(a, col);
+			//intToCol(*polygonIdx, col);
+
+			if(new_glmode != glmode) {
+				glEnd();
+				glBegin(glmode = new_glmode);
+			}
+			//glColor3fv(col);
+			glVertex3fv(mvert[mface->v1].co);
+			glVertex3fv(mvert[mface->v2].co);
+			glVertex3fv(mvert[mface->v3].co);
+			if(mface->v4) {
+				glVertex3fv(mvert[mface->v4].co);
+			}
+		}
+		glEnd();
+	}
+}
+
 static DerivedMesh *testCreateNavMesh(NavMeshModifierData *mmd,DerivedMesh *dm)
 {
 	int i;
@@ -318,7 +372,16 @@ static DerivedMesh *testCreateNavMesh(NavMeshModifierData *mmd,DerivedMesh *dm)
 	mf->v1 = 0; mf->v2 = 1; mf->v3 = 2;
 */
 
-	result = CDDM_new(maxVerts, maxEdges, maxFaces);
+	int actualFaces = 0;
+	for(i = 0; i < maxFaces; i++) {
+		int* polygonIdx = (int*)CustomData_get(&dm->faceData, i, CD_PROP_INT);
+		if (*polygonIdx==1)
+			actualFaces++;
+	}
+
+
+	result = CDDM_new(maxVerts, maxEdges, maxFaces);//maxFaces actualFaces
+	result->drawFacesSolid = navDM_drawFacesSolid;
 	numVerts = numEdges = numFaces = 0;
 	for(i = 0; i < maxVerts; i++) {
 		MVert inMV;
@@ -326,12 +389,11 @@ static DerivedMesh *testCreateNavMesh(NavMeshModifierData *mmd,DerivedMesh *dm)
 		float co[3];
 		dm->getVert(dm, i, &inMV);
 		copy_v3_v3(co, inMV.co);
-		SWAP(float, co[1], co[2]);
 		*mv = inMV;
 		mv->co[2] +=.5f;
 		numVerts++;
 	}
-
+	
 	for(i = 0; i < maxEdges; i++) {
 		MEdge inMED;
 		MEdge *med = CDDM_get_edge(result, numEdges);
@@ -341,6 +403,11 @@ static DerivedMesh *testCreateNavMesh(NavMeshModifierData *mmd,DerivedMesh *dm)
 	}
 
 	for(i = 0; i < maxFaces; i++) {
+		/*
+		int* polygonIdx = (int*)CustomData_get(&dm->faceData, i, CD_PROP_INT);
+		if (*polygonIdx!=2)
+			continue;*/
+		
 		MFace inMF;
 		MFace *mf = CDDM_get_face(result, numFaces);
 		dm->getFace(dm, i, &inMF);
@@ -360,8 +427,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	NavMeshModifierData *nmmd = (NavMeshModifierData*) md;
 
 	//for test
-	//result = testCreateNavMesh(nmmd, derivedData);
-	result = buildNavMesh(nmmd, derivedData);
+	result = testCreateNavMesh(nmmd, derivedData);
+	//result = buildNavMesh(nmmd, derivedData);
 
 	return result;
 }

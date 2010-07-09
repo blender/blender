@@ -438,6 +438,23 @@ typedef struct GameFraming {
 #define SCE_GAMEFRAMING_EXTEND 1
 #define SCE_GAMEFRAMING_SCALE  2
 
+typedef struct RecastData
+{
+	float cellsize;
+	float cellheight;
+	float agentmaxslope;
+	float agentmaxclimb;
+	float agentheight;
+	float agentradius;
+	float edgemaxlen;
+	float edgemaxerror;
+	float regionminsize;
+	float regionmergesize;
+	int vertsperpoly;
+	float detailsampledist;
+	float detailsamplemaxerror;
+} RecastData;
+
 typedef struct GameData {
 
 	/* physics (it was in world)*/
@@ -466,7 +483,8 @@ typedef struct GameData {
 	/* stereo/dome mode */
 	struct GameDome dome;
 	short stereoflag, stereomode, xsch, ysch; //xsch and ysch can be deleted !!!
-	float eyeseparation, pad1;
+	float eyeseparation;
+	RecastData recastData;
 } GameData;
 
 #define STEREO_NOSTEREO		1
