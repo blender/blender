@@ -45,6 +45,10 @@ extern "C" {
 
 	#include "marshal.h" /* python header for loading/saving dicts */
 }
+
+#define WITH_PYTHON
+#include "AUD_C-API.h"
+
 #endif
 
 #include "KX_PythonInit.h"
@@ -1989,6 +1993,7 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 	initGeometry();
 	initBGL();
 	initBLF();
+	AUD_initPython();
 
 #ifdef WITH_FFMPEG
 	initVideoTexture();

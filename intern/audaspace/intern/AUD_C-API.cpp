@@ -23,11 +23,18 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
+#ifdef WITH_PYTHON
+#include "AUD_PyAPI.h"
+
+Device* g_device;
+bool g_pyinitialized = false;
+#endif
+
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
 
-#ifdef WITH_FFMPEG
+#ifndef __STDC_CONSTANT_MACROS
 // needed for INT64_C
 #define __STDC_CONSTANT_MACROS
 #endif
@@ -78,6 +85,7 @@ extern "C" {
 
 typedef AUD_IFactory AUD_Sound;
 typedef AUD_ReadDevice AUD_Device;
+typedef AUD_Handle AUD_Channel;
 
 #define AUD_CAPI_IMPLEMENTATION
 #include "AUD_C-API.h"
@@ -134,6 +142,17 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 		if(AUD_device->checkCapability(AUD_CAPS_3D_DEVICE))
 			AUD_3ddevice = dynamic_cast<AUD_I3DDevice*>(AUD_device);
 
+#ifdef WITH_PYTHON
+		if(g_pyinitialized)
+		{
+			g_device = (Device*)Device_empty();
+			if(g_device != NULL)
+			{
+				g_device->device = dev;
+			}
+		}
+#endif
+
 		return true;
 	}
 	catch(AUD_Exception)
@@ -160,13 +179,51 @@ int* AUD_enumDevices()
 
 void AUD_exit()
 {
+#ifdef WITH_PYTHON
+	if(g_device)
+	{
+		Py_XDECREF(g_device);
+		g_device = NULL;
+	}
+	else
+#endif
+	if(AUD_device)
+		delete AUD_device;
+	AUD_device = NULL;
+	AUD_3ddevice = NULL;
+}
+
+#ifdef WITH_PYTHON
+static PyObject* AUD_getCDevice(PyObject* self)
+{
+	if(g_device)
+	{
+		Py_INCREF(g_device);
+		return (PyObject*)g_device;
+	}
+	Py_RETURN_NONE;
+}
+
+static PyMethodDef meth_getcdevice[] = {{ "getCDevice", (PyCFunction)AUD_getCDevice, METH_NOARGS, "Returns the C API Device."}};
+
+PyObject* AUD_initPython()
+{
+	PyObject* module = PyInit_aud();
+	PyModule_AddObject(module, "getCDevice", (PyObject *)PyCFunction_New(meth_getcdevice, NULL));
+	PyDict_SetItemString(PySys_GetObject("modules"), "aud", module);
 	if(AUD_device)
 	{
-		delete AUD_device;
-		AUD_device = NULL;
-		AUD_3ddevice = NULL;
+		g_device = (Device*)Device_empty();
+		if(g_device != NULL)
+		{
+			g_device->device = AUD_device;
+		}
 	}
+	g_pyinitialized = true;
+
+	return module;
 }
+#endif
 
 void AUD_lock()
 {
@@ -285,7 +342,7 @@ AUD_Sound* AUD_loopSound(AUD_Sound* sound)
 	}
 }
 
-int AUD_setLoop(AUD_Handle* handle, int loops, float time)
+int AUD_setLoop(AUD_Channel* handle, int loops, float time)
 {
 	if(handle)
 	{
@@ -325,7 +382,7 @@ void AUD_unload(AUD_Sound* sound)
 	delete sound;
 }
 
-AUD_Handle* AUD_play(AUD_Sound* sound, int keep)
+AUD_Channel* AUD_play(AUD_Sound* sound, int keep)
 {
 	assert(AUD_device);
 	assert(sound);
@@ -339,50 +396,50 @@ AUD_Handle* AUD_play(AUD_Sound* sound, int keep)
 	}
 }
 
-int AUD_pause(AUD_Handle* handle)
+int AUD_pause(AUD_Channel* handle)
 {
 	assert(AUD_device);
 	return AUD_device->pause(handle);
 }
 
-int AUD_resume(AUD_Handle* handle)
+int AUD_resume(AUD_Channel* handle)
 {
 	assert(AUD_device);
 	return AUD_device->resume(handle);
 }
 
-int AUD_stop(AUD_Handle* handle)
+int AUD_stop(AUD_Channel* handle)
 {
 	if(AUD_device)
 		return AUD_device->stop(handle);
 	return false;
 }
 
-int AUD_setKeep(AUD_Handle* handle, int keep)
+int AUD_setKeep(AUD_Channel* handle, int keep)
 {
 	assert(AUD_device);
 	return AUD_device->setKeep(handle, keep);
 }
 
-int AUD_seek(AUD_Handle* handle, float seekTo)
+int AUD_seek(AUD_Channel* handle, float seekTo)
 {
 	assert(AUD_device);
 	return AUD_device->seek(handle, seekTo);
 }
 
-float AUD_getPosition(AUD_Handle* handle)
+float AUD_getPosition(AUD_Channel* handle)
 {
 	assert(AUD_device);
 	return AUD_device->getPosition(handle);
 }
 
-AUD_Status AUD_getStatus(AUD_Handle* handle)
+AUD_Status AUD_getStatus(AUD_Channel* handle)
 {
 	assert(AUD_device);
 	return AUD_device->getStatus(handle);
 }
 
-AUD_Handle* AUD_play3D(AUD_Sound* sound, int keep)
+AUD_Channel* AUD_play3D(AUD_Sound* sound, int keep)
 {
 	assert(AUD_device);
 	assert(sound);
@@ -446,7 +503,7 @@ float AUD_get3DSetting(AUD_3DSetting setting)
 	return 0.0f;
 }
 
-int AUD_update3DSource(AUD_Handle* handle, AUD_3DData* data)
+int AUD_update3DSource(AUD_Channel* handle, AUD_3DData* data)
 {
 	if(handle)
 	{
@@ -465,7 +522,7 @@ int AUD_update3DSource(AUD_Handle* handle, AUD_3DData* data)
 	return false;
 }
 
-int AUD_set3DSourceSetting(AUD_Handle* handle,
+int AUD_set3DSourceSetting(AUD_Channel* handle,
 						   AUD_3DSourceSetting setting, float value)
 {
 	if(handle)
@@ -484,7 +541,7 @@ int AUD_set3DSourceSetting(AUD_Handle* handle,
 	return false;
 }
 
-float AUD_get3DSourceSetting(AUD_Handle* handle, AUD_3DSourceSetting setting)
+float AUD_get3DSourceSetting(AUD_Channel* handle, AUD_3DSourceSetting setting)
 {
 	if(handle)
 	{
@@ -502,7 +559,7 @@ float AUD_get3DSourceSetting(AUD_Handle* handle, AUD_3DSourceSetting setting)
 	return 0.0f;
 }
 
-int AUD_setSoundVolume(AUD_Handle* handle, float volume)
+int AUD_setSoundVolume(AUD_Channel* handle, float volume)
 {
 	if(handle)
 	{
@@ -520,7 +577,7 @@ int AUD_setSoundVolume(AUD_Handle* handle, float volume)
 	return false;
 }
 
-int AUD_setSoundPitch(AUD_Handle* handle, float pitch)
+int AUD_setSoundPitch(AUD_Channel* handle, float pitch)
 {
 	if(handle)
 	{
@@ -550,14 +607,14 @@ AUD_Device* AUD_openReadDevice(AUD_DeviceSpecs specs)
 	}
 }
 
-AUD_Handle* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek)
+AUD_Channel* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek)
 {
 	assert(device);
 	assert(sound);
 
 	try
 	{
-		AUD_Handle* handle = device->play(sound);
+		AUD_Channel* handle = device->play(sound);
 		device->seek(handle, seek);
 		return handle;
 	}
@@ -580,7 +637,7 @@ int AUD_setDeviceVolume(AUD_Device* device, float volume)
 	return false;
 }
 
-int AUD_setDeviceSoundVolume(AUD_Device* device, AUD_Handle* handle,
+int AUD_setDeviceSoundVolume(AUD_Device* device, AUD_Channel* handle,
 							 float volume)
 {
 	if(handle)
@@ -789,7 +846,7 @@ void AUD_stopPlayback()
 #endif
 }
 
-void AUD_seekSequencer(AUD_Handle* handle, float time)
+void AUD_seekSequencer(AUD_Channel* handle, float time)
 {
 #ifdef WITH_JACK
 	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device);
@@ -802,7 +859,7 @@ void AUD_seekSequencer(AUD_Handle* handle, float time)
 	}
 }
 
-float AUD_getSequencerPosition(AUD_Handle* handle)
+float AUD_getSequencerPosition(AUD_Channel* handle)
 {
 #ifdef WITH_JACK
 	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device);
