@@ -23,25 +23,33 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_PINGPONGFACTORY
-#define AUD_PINGPONGFACTORY
+#include "AUD_DoubleFactory.h"
+#include "AUD_DoubleReader.h"
 
-#include "AUD_EffectFactory.h"
+AUD_DoubleFactory::AUD_DoubleFactory(AUD_IFactory* factory1, AUD_IFactory* factory2) :
+		m_factory1(factory1), m_factory2(factory2) {}
 
-/**
- * This factory plays another factory first normal, then reversed.
- * \note Readers from the underlying factory must be from the buffer type.
- */
-class AUD_PingPongFactory : public AUD_EffectFactory
+AUD_IReader* AUD_DoubleFactory::createReader()
 {
-public:
-	/**
-	 * Creates a new ping pong factory.
-	 * \param factory The input factory.
-	 */
-	AUD_PingPongFactory(AUD_IFactory* factory = 0);
+	AUD_IReader* reader1 = m_factory1->createReader();
+	if(!reader1)
+		return 0;
+	AUD_IReader* reader2;
+	try
+	{
+		reader2 = m_factory2->createReader();
+		if(!reader2)
+		{
+			delete reader1; AUD_DELETE("reader")
+			return 0;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		delete reader1; AUD_DELETE("reader")
+		throw;
+	}
 
-	virtual AUD_IReader* createReader();
-};
-
-#endif //AUD_PINGPONGFACTORY
+	AUD_IReader* reader = new AUD_DoubleReader(reader1, reader2);
+	return reader;
+}
