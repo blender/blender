@@ -683,3 +683,127 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 		act= act->next;
 	}	
 }
+
+/* ******************** INTERFACE ******************* */
+void sca_move_sensor(bSensor *sens_to_move, Object *ob, int *move_up)
+{
+	bSensor *sens, *tmp;
+
+	int val;
+	val = move_up ? 1:2;
+
+	/* make sure this sensor belongs to this object */
+	sens= ob->sensors.first;
+	while(sens) {
+		if(sens == sens_to_move) break;
+		sens= sens->next;
+	}
+	if(!sens) return;
+
+	/* move up */
+	if( val==1 && sens->prev) {
+		for (tmp=sens->prev; tmp; tmp=tmp->prev) {
+			if (tmp->flag & SENS_VISIBLE)
+				break;
+		}
+		if (tmp) {
+			BLI_remlink(&ob->sensors, sens);
+			BLI_insertlinkbefore(&ob->sensors, tmp, sens);
+		}
+	}
+	/* move down */
+	else if( val==2 && sens->next) {
+		for (tmp=sens->next; tmp; tmp=tmp->next) {
+			if (tmp->flag & SENS_VISIBLE)
+				break;
+		}
+		if (tmp) {
+			BLI_remlink(&ob->sensors, sens);
+			BLI_insertlink(&ob->sensors, tmp, sens);
+		}
+	}
+}
+
+void sca_move_controller(bController *cont_to_move, Object *ob, int move_up)
+{
+	bController *cont, *tmp;
+
+	int val;
+	val = move_up ? 1:2;
+
+	/* make sure this controller belongs to this object */
+	cont= ob->controllers.first;
+	while(cont) {
+		if(cont == cont_to_move) break;
+		cont= cont->next;
+	}
+	if(!cont) return;
+
+	/* move up */
+	if( val==1 && cont->prev) {
+		/* locate the controller that has the same state mask but is earlier in the list */
+		tmp = cont->prev;
+		while(tmp) {
+			if(tmp->state_mask & cont->state_mask) 
+				break;
+			tmp = tmp->prev;
+		}
+		if (tmp) {
+			BLI_remlink(&ob->controllers, cont);
+			BLI_insertlinkbefore(&ob->controllers, tmp, cont);
+		}
+	}
+
+	/* move down */
+	else if( val==2 && cont->next) {
+		tmp = cont->next;
+		while(tmp) {
+			if(tmp->state_mask & cont->state_mask) 
+				break;
+			tmp = tmp->next;
+		}
+		BLI_remlink(&ob->controllers, cont);
+		BLI_insertlink(&ob->controllers, tmp, cont);
+	}
+}
+
+void sca_move_actuator(bActuator *act_to_move, Object *ob, int move_up)
+{
+	bActuator *act, *tmp;
+	int val;
+
+	val = move_up ? 1:2;
+
+	/* make sure this actuator belongs to this object */
+	act= ob->actuators.first;
+	while(act) {
+		if(act == act_to_move) break;
+		act= act->next;
+	}
+	if(!act) return;
+
+	/* move up */
+	if( val==1 && act->prev) {
+		/* locate the first visible actuators before this one */
+		for (tmp = act->prev; tmp; tmp=tmp->prev) {
+			if (tmp->flag & ACT_VISIBLE)
+				break;
+		}
+		if (tmp) {
+			BLI_remlink(&ob->actuators, act);
+			BLI_insertlinkbefore(&ob->actuators, tmp, act);
+		}
+	}
+	/* move down */
+	else if( val==2 && act->next) {
+		/* locate the first visible actuators after this one */
+		for (tmp=act->next; tmp; tmp=tmp->next) {
+			if (tmp->flag & ACT_VISIBLE)
+				break;
+		}
+		if (tmp) {
+			BLI_remlink(&ob->actuators, act);
+			BLI_insertlink(&ob->actuators, tmp, act);
+		}
+	}
+}

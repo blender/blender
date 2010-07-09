@@ -211,6 +211,16 @@ static bActuator *edit_actuator_property_get(bContext *C, wmOperator *op, Object
 	return act;
 }
 
+static int logicbricks_move_property_get(wmOperator *op)
+{
+	int type = RNA_enum_get(op->ptr, "direction");
+
+	if (type == 1)
+		return TRUE;
+	else
+		return FALSE;
+}
+
 /* ************* Add/Remove Sensor Operator ************* */
 
 static int sensor_remove_exec(bContext *C, wmOperator *op)
@@ -530,12 +540,158 @@ void LOGIC_OT_actuator_add(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "object", "", 32, "Object", "Name of the Object to add the Actuator to");
 }
 
+/* ************* Move Logic Bricks Operator ************* */
+static EnumPropertyItem logicbricks_move_direction[] ={
+		{1, "UP", 0, "Move Up", ""},
+		{2, "DOWN", 0, "Move Down", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+
+static int sensor_move_exec(bContext *C, wmOperator *op)
+{
+	Object *ob=NULL;
+	bSensor *sens= edit_sensor_property_get(C, op, &ob);
+	int move_up= logicbricks_move_property_get(op);
+	
+	if (!sens)
+		return OPERATOR_CANCELLED;
+
+	sca_move_sensor(sens, ob, move_up);
+
+	WM_event_add_notifier(C, NC_LOGIC, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int sensor_move_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (edit_sensor_invoke_properties(C, op)) {
+		return sensor_move_exec(C, op);
+	}
+	else
+		return OPERATOR_CANCELLED;
+}
+
+void LOGIC_OT_sensor_move(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Move Sensor";
+	ot->description = "Move Densor";
+	ot->idname= "LOGIC_OT_sensor_move";
+	
+	/* api callbacks */
+	ot->invoke= sensor_move_invoke;
+	ot->exec= sensor_move_exec;
+	ot->poll= edit_sensor_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	edit_sensor_properties(ot);
+	RNA_def_enum(ot->srna, "direction", logicbricks_move_direction, 1, "Direction", "Move Up or Down");
+}
+
+static int controller_move_exec(bContext *C, wmOperator *op)
+{
+	Object *ob=NULL;
+	bController *cont= edit_controller_property_get(C, op, &ob);
+	int move_up= logicbricks_move_property_get(op);
+	
+	if (!cont)
+		return OPERATOR_CANCELLED;
+
+	sca_move_controller(cont, ob, move_up);
+
+	WM_event_add_notifier(C, NC_LOGIC, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int controller_move_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (edit_controller_invoke_properties(C, op)) {
+		return controller_move_exec(C, op);
+	}
+	else
+		return OPERATOR_CANCELLED;
+}
+
+void LOGIC_OT_controller_move(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Move Controller";
+	ot->description = "Move Controller";
+	ot->idname= "LOGIC_OT_controller_move";
+	
+	/* api callbacks */
+	ot->invoke= controller_move_invoke;
+	ot->exec= controller_move_exec;
+	ot->poll= edit_controller_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	edit_controller_properties(ot);
+	RNA_def_enum(ot->srna, "direction", logicbricks_move_direction, 1, "Direction", "Move Up or Down");
+}
+
+static int actuator_move_exec(bContext *C, wmOperator *op)
+{
+	Object *ob=NULL;
+	bActuator *act = edit_actuator_property_get(C, op, &ob);
+	int move_up= logicbricks_move_property_get(op);
+
+	if (!act)
+		return OPERATOR_CANCELLED;
+
+	sca_move_actuator(act, ob, move_up);
+
+	WM_event_add_notifier(C, NC_LOGIC, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int actuator_move_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (edit_actuator_invoke_properties(C, op)) {
+		return actuator_move_exec(C, op);
+	}
+	else
+		return OPERATOR_CANCELLED;
+}
+
+void LOGIC_OT_actuator_move(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Move Actuator";
+	ot->description = "Move Actuator";
+	ot->idname= "LOGIC_OT_actuator_move";
+	
+	/* api callbacks */
+	ot->invoke= actuator_move_invoke;
+	ot->exec= actuator_move_exec;
+	ot->poll= edit_actuator_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	edit_actuator_properties(ot);
+	RNA_def_enum(ot->srna, "direction", logicbricks_move_direction, 1, "Direction", "Move Up or Down");
+}
+
+
 void ED_operatortypes_logic(void)
 {
 	WM_operatortype_append(LOGIC_OT_sensor_remove);
 	WM_operatortype_append(LOGIC_OT_sensor_add);
+	WM_operatortype_append(LOGIC_OT_sensor_move);
 	WM_operatortype_append(LOGIC_OT_controller_remove);
 	WM_operatortype_append(LOGIC_OT_controller_add);
+	WM_operatortype_append(LOGIC_OT_controller_move);
 	WM_operatortype_append(LOGIC_OT_actuator_remove);
 	WM_operatortype_append(LOGIC_OT_actuator_add);
+	WM_operatortype_append(LOGIC_OT_actuator_move);
 }
