@@ -181,36 +181,22 @@ KX_ObstacleSimulation::~KX_ObstacleSimulation()
 	}
 	m_obstacles.clear();
 }
-KX_Obstacle* KX_ObstacleSimulation::CreateObstacle()
+KX_Obstacle* KX_ObstacleSimulation::CreateObstacle(KX_GameObject* gameobj)
 {
 	KX_Obstacle* obstacle = new KX_Obstacle();
+	obstacle->m_gameObj = gameobj;
+	gameobj->RegisterObstacle(this);
 	m_obstacles.push_back(obstacle);
 	return obstacle;
 }
 
 void KX_ObstacleSimulation::AddObstacleForObj(KX_GameObject* gameobj)
 {
-	KX_Obstacle* obstacle = CreateObstacle();
+	KX_Obstacle* obstacle = CreateObstacle(gameobj);
 	struct Object* blenderobject = gameobj->GetBlenderObject();
 	obstacle->m_type = KX_OBSTACLE_OBJ;
 	obstacle->m_shape = KX_OBSTACLE_CIRCLE;
 	obstacle->m_rad = blenderobject->obstacleRad;
-	obstacle->m_gameObj = gameobj;
-	gameobj->RegisterObstacle(obstacle);
-}
-
-void KX_ObstacleSimulation::DestroyObstacle(KX_Obstacle* obstacle)
-{
-	for (size_t i=0; i<m_obstacles.size(); i++)
-	{
-		if (m_obstacles[i] == obstacle)
-		{
-			obstacle->m_gameObj->UnregisterObstacle();
-			m_obstacles[i] = m_obstacles.back();
-			m_obstacles.pop_back();
-			delete obstacle;
-		}
-	}
 }
 
 void KX_ObstacleSimulation::AddObstaclesForNavMesh(KX_NavMeshObject* navmeshobj)
@@ -229,12 +215,11 @@ void KX_ObstacleSimulation::AddObstaclesForNavMesh(KX_NavMeshObject* navmeshobj)
 				const float* vj = navmesh->getVertex(poly->v[j]);
 				const float* vi = navmesh->getVertex(poly->v[i]);
 		
-				KX_Obstacle* obstacle = CreateObstacle();
+				KX_Obstacle* obstacle = CreateObstacle(navmeshobj);
 				obstacle->m_type = KX_OBSTACLE_NAV_MESH;
 				obstacle->m_shape = KX_OBSTACLE_SEGMENT;
-				obstacle->m_gameObj = navmeshobj;
-				obstacle->m_pos = MT_Vector3(vj[0], vj[2], vj[1]);
-				obstacle->m_pos2 = MT_Vector3(vi[0], vi[2], vi[1]);
+				obstacle->m_pos = MT_Point3(vj[0], vj[2], vj[1]);
+				obstacle->m_pos2 = MT_Point3(vi[0], vi[2], vi[1]);
 				obstacle->m_rad = 0;
 				obstacle->m_vel = MT_Vector2(0,0);
 			}
@@ -242,11 +227,28 @@ void KX_ObstacleSimulation::AddObstaclesForNavMesh(KX_NavMeshObject* navmeshobj)
 	}
 }
 
+void KX_ObstacleSimulation::DestroyObstacleForObj(KX_GameObject* gameobj)
+{
+	for (size_t i=0; i<m_obstacles.size(); )
+	{
+		if (m_obstacles[i]->m_gameObj == gameobj)
+		{
+			KX_Obstacle* obstacle = m_obstacles[i];
+			obstacle->m_gameObj->UnregisterObstacle();
+			m_obstacles[i] = m_obstacles.back();
+			m_obstacles.pop_back();
+			delete obstacle;
+		}
+		else
+			i++;
+	}
+}
+
 void KX_ObstacleSimulation::UpdateObstacles()
 {
 	for (size_t i=0; i<m_obstacles.size(); i++)
 	{
-		if (m_obstacles[i]->m_shape==KX_OBSTACLE_NAV_MESH || m_obstacles[i]->m_shape==KX_OBSTACLE_SEGMENT)
+		if (m_obstacles[i]->m_type==KX_OBSTACLE_NAV_MESH || m_obstacles[i]->m_shape==KX_OBSTACLE_SEGMENT)
 			continue;
 
 		KX_Obstacle* obs = m_obstacles[i];
@@ -281,7 +283,17 @@ void KX_ObstacleSimulation::DrawObstacles()
 	{
 		if (m_obstacles[i]->m_shape==KX_OBSTACLE_SEGMENT)
 		{
-			KX_RasterizerDrawDebugLine(m_obstacles[i]->m_pos, m_obstacles[i]->m_pos2, bluecolor);
+			MT_Point3 p1 = m_obstacles[i]->m_pos;
+			MT_Point3 p2 = m_obstacles[i]->m_pos2;
+			//apply world transform
+			if (m_obstacles[i]->m_type == KX_OBSTACLE_NAV_MESH)
+			{
+				KX_NavMeshObject* navmeshobj = static_cast<KX_NavMeshObject*>(m_obstacles[i]->m_gameObj);
+				p1 = navmeshobj->TransformToWorldCoords(p1);
+				p2 = navmeshobj->TransformToWorldCoords(p2);
+			}
+
+			KX_RasterizerDrawDebugLine(p1, p2, bluecolor);
 		}
 		else if (m_obstacles[i]->m_shape==KX_OBSTACLE_CIRCLE)
 		{
@@ -351,9 +363,9 @@ KX_ObstacleSimulationTOI::~KX_ObstacleSimulationTOI()
 	m_toiCircles.clear();
 }
 
-KX_Obstacle* KX_ObstacleSimulationTOI::CreateObstacle()
+KX_Obstacle* KX_ObstacleSimulationTOI::CreateObstacle(KX_GameObject* gameobj)
 {
-	KX_Obstacle* obstacle = KX_ObstacleSimulation::CreateObstacle();
+	KX_Obstacle* obstacle = KX_ObstacleSimulation::CreateObstacle(gameobj);
 	m_toiCircles.push_back(new TOICircle());
 	return obstacle;
 }
@@ -406,7 +418,7 @@ void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, K
 			
 			float htmin,htmax;
 
-			if (ob->m_type == KX_OBSTACLE_CIRCLE)
+			if (ob->m_shape == KX_OBSTACLE_CIRCLE)
 			{
 				MT_Vector2 vab;
 				if (ob->m_vel.length2() < 0.01f*0.01f)
@@ -424,10 +436,19 @@ void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, K
 										vab, ob->m_pos, ob->m_rad, htmin, htmax))
 					continue;
 			}
-			else if (ob->m_type == KX_OBSTACLE_SEGMENT)
+			else if (ob->m_shape == KX_OBSTACLE_SEGMENT)
 			{
+				MT_Point3 p1 = ob->m_pos;
+				MT_Point3 p2 = ob->m_pos2;
+				//apply world transform
+				if (ob->m_type == KX_OBSTACLE_NAV_MESH)
+				{
+					KX_NavMeshObject* navmeshobj = static_cast<KX_NavMeshObject*>(ob->m_gameObj);
+					p1 = navmeshobj->TransformToWorldCoords(p1);
+					p2 = navmeshobj->TransformToWorldCoords(p2);
+				}
 				if (!sweepCircleSegment(activeObst->m_pos, activeObst->m_rad, svel, 
-										ob->m_pos, ob->m_pos2, ob->m_rad, htmin, htmax))
+										p1, p2, ob->m_rad, htmin, htmax))
 					continue;
 			}
 

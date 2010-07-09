@@ -44,8 +44,10 @@ protected:
 	dtStatNavMesh* m_navMesh;
 	
 	bool BuildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices, int& nverts,
-		unsigned short *&faces, int& npolys);
-
+							unsigned short* &polys, int& npolys, unsigned short *&dmeshes, 
+							float *&dvertices, int &ndvertsuniq, unsigned short* &dtris, 
+							int& ndtris, int &vertsPerPoly);
+	
 public:
 	KX_NavMeshObject(void* sgReplicationInfo, SG_Callbacks callbacks);
 	~KX_NavMeshObject();
@@ -61,7 +63,8 @@ public:
 	void DrawNavMesh();
 	void DrawPath(const float *path, int pathLen, const MT_Vector3& color);
 
-
+	MT_Point3 TransformToLocalCoords(const MT_Point3& wpos);
+	MT_Point3 TransformToWorldCoords(const MT_Point3& lpos);
 #ifndef DISABLE_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

@@ -75,7 +75,7 @@ protected:
 
 	MT_Scalar m_levelHeight;
 
-	virtual KX_Obstacle* CreateObstacle();
+	virtual KX_Obstacle* CreateObstacle(KX_GameObject* gameobj);
 	bool FilterObstacle(KX_Obstacle* activeObstacle, KX_NavMeshObject* activeNavMeshObj, KX_Obstacle* otherObstacle);
 public:
 	KX_ObstacleSimulation(MT_Scalar levelHeight);
@@ -84,7 +84,7 @@ public:
 	void DrawObstacles();
 
 	void AddObstacleForObj(KX_GameObject* gameobj);
-	void DestroyObstacle(KX_Obstacle* obstacle);
+	void DestroyObstacleForObj(KX_GameObject* gameobj);
 	void AddObstaclesForNavMesh(KX_NavMeshObject* navmesh);
 	KX_Obstacle* GetObstacle(KX_GameObject* gameobj);
 	void UpdateObstacles();	
@@ -115,7 +115,7 @@ protected:
 	float m_collisionWeight;		// Sample selection collision weight
 
 	std::vector<TOICircle*>	m_toiCircles; // TOI circles (one per active agent)
-	virtual KX_Obstacle* CreateObstacle();
+	virtual KX_Obstacle* CreateObstacle(KX_GameObject* gameobj);
 public:
 	KX_ObstacleSimulationTOI(MT_Scalar levelHeight);
 	~KX_ObstacleSimulationTOI();

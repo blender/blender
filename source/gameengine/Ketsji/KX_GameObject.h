@@ -59,7 +59,7 @@ class KX_IPhysicsController;
 class PHY_IGraphicController;
 class PHY_IPhysicsEnvironment;
 struct Object;
-struct KX_Obstacle;
+class KX_ObstacleSimulation;
 
 #ifndef DISABLE_PYTHON
 /* utility conversion function */
@@ -109,7 +109,7 @@ protected:
 
 	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
 
-	KX_Obstacle*						m_pObstacle;
+	KX_ObstacleSimulation*				m_pObstacleSimulation;
 	
 public:
 	bool								m_isDeformable;
@@ -794,14 +794,14 @@ public:
 		m_bSuspendDynamics = false;
 	}
 
-	void RegisterObstacle(KX_Obstacle* obstacle)
+	void RegisterObstacle(KX_ObstacleSimulation* obstacleSimulation)
 	{
-		m_pObstacle = obstacle;
+		m_pObstacleSimulation = obstacleSimulation;
 	}
 	
 	void UnregisterObstacle()
 	{
-		m_pObstacle = NULL;
+		m_pObstacleSimulation = NULL;
 	}
 		
 

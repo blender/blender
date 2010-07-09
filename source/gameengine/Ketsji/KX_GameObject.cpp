@@ -102,7 +102,7 @@ KX_GameObject::KX_GameObject(
 	m_pGraphicController(NULL),
 	m_xray(false),
 	m_pHitObject(NULL),
-	m_pObstacle(NULL),
+	m_pObstacleSimulation(NULL),
 	m_isDeformable(false)
 #ifndef DISABLE_PYTHON
 	, m_attr_dict(NULL)
@@ -151,11 +151,9 @@ KX_GameObject::~KX_GameObject()
 		delete m_pGraphicController;
 	}
 
-	if (m_pObstacle)
+	if (m_pObstacleSimulation)
 	{
-		KX_Scene *scene = KX_GetActiveScene();
-		KX_ObstacleSimulation* obstacleSimulation = scene->GetObstacleSimulation();
-		obstacleSimulation->DestroyObstacle(m_pObstacle);
+		m_pObstacleSimulation->DestroyObstacleForObj(this);
 	}
 
 #ifndef DISABLE_PYTHON

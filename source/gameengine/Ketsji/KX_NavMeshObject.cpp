@@ -36,6 +36,7 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
+#include "BLI_math_vector.h"
 }
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
@@ -102,65 +103,315 @@ void KX_NavMeshObject::ProcessReplica()
 }
 
 bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices, int& nverts,
-									   unsigned short* &faces, int& npolys)
+									   unsigned short* &polys, int& npolys, unsigned short *&dmeshes,
+									   float *&dvertices, int &ndvertsuniq, unsigned short *&dtris, 
+									   int& ndtris, int &vertsPerPoly)
 {
 	if (!meshobj) 
 	{
 		return false;
 	}
 
-	DerivedMesh* dm = CDDM_from_mesh(meshobj->GetMesh(), NULL);
-
-	MVert *mvert = dm->getVertArray(dm);
-	MFace *mface = dm->getFaceArray(dm);
-	int numpolys = dm->getNumFaces(dm);
-	int numverts = dm->getNumVerts(dm);
-
-	nverts = numverts;
-	if (nverts >= 0xffff)
-		return false;
-	//calculate count of tris
-	npolys = numpolys;
-	for (int p2=0; p2<numpolys; p2++)
+	DerivedMesh* dm = mesh_create_derived_no_virtual(KX_GetActiveScene()->GetBlenderScene(), GetBlenderObject(), 
+													NULL, CD_MASK_MESH);
+	int* recastData = (int*) dm->getFaceDataArray(dm, CD_PROP_INT);
+	if (recastData)
 	{
-		MFace* mf = &mface[p2];
-		if (mf->v4)
-			npolys+=1;
-	}
+		//create from blender mesh using recast data to build navigation 
+		//polygon mesh from detailed triangle mesh
+		MVert *mvert = dm->getVertArray(dm);
+		MFace *mface = dm->getFaceArray(dm);
+		int numfaces = dm->getNumFaces(dm);
+		int numverts = dm->getNumVerts(dm);
 
-	//create verts
-	vertices = new float[nverts*3];
-	for (int vi=0; vi<nverts; vi++)
-	{
-		MVert *v = &mvert[vi];
-		for (int j=0; j<3; j++)
-			vertices[3*vi+j] = v->co[j];
-	}
-	//create tris
-	faces = new unsigned short[npolys*3*2];
-	memset(faces,0xff,sizeof(unsigned short)*3*2*npolys);
-	unsigned short *face = faces;
-	for (int p2=0; p2<numpolys; p2++)
-	{
-		MFace* mf = &mface[p2];
-		face[0]= mf->v1;
-		face[1]= mf->v2;
-		face[2]= mf->v3;
-		face += 6;
-		if (mf->v4)
+		if (numfaces==0)
 		{
-			face[0]= mf->v1;
-			face[1]= mf->v3;
-			face[2]= mf->v4;
-			face += 6;
+			return true;
+		}
+
+		//build detailed mesh adjacency
+		ndtris = numfaces;
+		dtris = new unsigned short[numfaces*3*2];
+		memset(dtris, 0xffff, sizeof(unsigned short)*3*2*numfaces);
+		for (int i=0; i<numfaces;i++)
+		{
+			MFace* mf = &mface[i];
+			dtris[i*3*2+0] = mf->v1;
+			dtris[i*3*2+1] = mf->v2;
+			dtris[i*3*2+2] = mf->v3;
+			
+		}
+		buildMeshAdjacency(dtris, numfaces, numverts, 3);
+
+
+		//assumption: detailed mesh triangles are sorted by polygon idx
+		npolys = recastData[numfaces-1] + 1;
+		
+		dmeshes = new unsigned short[npolys*4];
+		memset(dmeshes, 0, npolys*4*sizeof(unsigned short));
+		unsigned short *dmesh = NULL;
+		int prevpolyidx = -1;
+		for (int i=0; i<numfaces; i++)
+		{
+			int curpolyidx = recastData[i];
+			if (curpolyidx!=prevpolyidx)
+			{
+				if (curpolyidx!=prevpolyidx+1)
+				{
+					//error - wrong order of detailed mesh faces
+					return false;
+				}
+				dmesh = dmesh==NULL ? dmeshes : dmesh+4;
+				dmesh[2] = i;	//tbase
+				dmesh[3] = 0;	//tnum
+				prevpolyidx = curpolyidx;
+			}
+			dmesh[3]++;
+		}
+
+		vertsPerPoly = 6;
+		polys = new unsigned short[npolys*vertsPerPoly*2];
+		memset(polys, 0xff, sizeof(unsigned short)*vertsPerPoly*2*npolys);
+		
+		int curpolytri = 0;
+		
+		for (int polyidx=0; polyidx<npolys; polyidx++)
+		{
+			vector<int> poly;
+			//search border 
+			int btri = -1;
+			int bedge = -1;
+			
+			for (int j=0; j<dmeshes[polyidx*4+3] && btri==-1;j++)
+			{
+				int curpolytri = dmeshes[polyidx*4+2]+j;
+				for (int k=0; k<3; k++)
+				{
+					unsigned short neighbortri = dtris[curpolytri*3*2+3+k];
+					if ( neighbortri==0xffff || recastData[neighbortri]!=polyidx)
+					{
+						btri = curpolytri;
+						bedge = k;
+						break;
+					}
+				}							
+			}
+			if (btri==-1 || bedge==-1)
+			{
+				//can't find triangle with border edge
+				return false;
+			}
+
+			poly.push_back(dtris[btri*3*2+bedge]);
+			//poly.push_back(detailedpolys[btri*3*2+(bedge+1)%3]);
+
+			int tri = btri;
+			int edge = (bedge+1)%3;
+			while (tri!=btri || edge!=bedge)
+			{
+				int neighbortri = dtris[tri*3*2+3+edge];
+				if (neighbortri==0xffff || recastData[neighbortri]!=polyidx)
+				{
+					//add vertex to current edge
+					poly.push_back(dtris[tri*3*2+edge]);
+					//move to next edge					
+					edge = (edge+1)%3;
+				}
+				else
+				{
+					//move to next tri
+					int twinedge = -1;
+					for (int k=0; k<3; k++)
+					{
+						if (dtris[neighbortri*3*2+3+k] == tri)
+						{
+							twinedge = k;
+							break;
+						}
+					}
+					if (twinedge==-1)
+					{
+						//can't find neighbor edge - invalid adjacency info
+						return false;
+					}
+					tri = neighbortri;
+					edge = (twinedge+1)%3;
+				}
+			}
+			
+			//.todo: process poly to remove degenerate vertices
+			if (poly.size()>=vertsPerPoly)
+			{
+				printf("Error! Polygon size exceeds max verts count");
+				return false;
+			}
+
+			for (int i=0; i<poly.size(); i++)
+			{
+				polys[polyidx*vertsPerPoly*2+i] = poly[i];
+			}
+		}
+
+		//assumption: vertices in mesh are stored in following order: 
+		//navigation mesh vertices - unique detailed mesh vertex
+		
+		unsigned short  maxidx = 0;
+		for (int polyidx=0; polyidx<npolys; polyidx++)
+		{
+			for (int i=0; i<vertsPerPoly; i++)
+			{
+				unsigned short idx = polys[polyidx*vertsPerPoly*2+i];
+				if (idx==0xffff)
+					break;
+				if (idx>maxidx)
+					maxidx=idx;
+			}
+		}
+		
+		//create navigation mesh verts
+		nverts = maxidx+1;
+		vertices = new float[nverts*3];
+		for (int vi=0; vi<nverts; vi++)
+		{
+			MVert *v = &mvert[vi];
+			copy_v3_v3(&vertices[3*vi], v->co);
+		}
+		
+		//create unique detailed mesh verts
+		ndvertsuniq = numverts - nverts;
+		if (ndvertsuniq>0)
+		{
+			dvertices = new float[ndvertsuniq*3];
+			for (int vi=0; vi<ndvertsuniq; vi++)
+			{
+				MVert *v = &mvert[nverts+vi];
+				copy_v3_v3(&dvertices[3*vi], v->co);
+			}
+		}
+
+		for (int polyIdx=0; polyIdx<npolys; polyIdx++)
+		{
+			unsigned short *dmesh = &dmeshes[4*polyIdx];
+			unsigned short minvert = 0xffff, maxvert = 0;
+			for (int j=0; j<dmesh[3]; j++)
+			{
+				unsigned short* dtri = &dtris[dmesh[2]*3*2+j];
+				for (int k=0; k<3; k++)
+				{
+					if (dtri[k]<nverts)
+						continue;
+					minvert = std::min(minvert, dtri[k]);
+					maxvert = std::max(maxvert, dtri[k]);
+				}
+			}
+			dmesh[0] = minvert; //vbase
+			dmesh[1] = minvert != 0xffff ? maxvert - minvert + 1 : 0; //vnum
+		}
+
+		//recalculate detailed mesh indices (it must be local)
+		for (int polyIdx=0; polyIdx<npolys; polyIdx++)
+		{
+			unsigned short * poly = &polys[polyIdx*vertsPerPoly*2];
+			int nv=0;
+			for (int vi=0; vi<vertsPerPoly; vi++)
+			{
+				if (poly[vi]==0xffff)
+					break;
+				nv++;
+			}
+			unsigned short *dmesh = &dmeshes[4*polyIdx];
+			for (int j=0; j<dmesh[3]; j++)
+			{
+				unsigned short* dtri = &dtris[(dmesh[2]+j)*3*2];
+				for (int k=0; k<3; k++)
+				{
+					if (dtri[k]<nverts)
+					{
+						//shared vertex from polygon
+						unsigned short idx = 0xffff;
+						for (int vi=0; vi<nv; vi++)
+						{
+							if (poly[vi]==dtri[k])
+							{
+								idx = vi;
+								break;
+							}
+						}
+						if (idx==0xffff)
+						{
+							printf("Can't find vertex in navigation polygon");
+							return false;
+						}
+						dtri[k] = idx;
+					}
+					else
+					{
+						dtri[k] = dtri[k]-dmesh[0]+nv;
+					}
+				}
+			}
 		}
 	}
+	else
+	{
+		//create from RAS_MeshObject (detailed mesh is fake)
+		vertsPerPoly = 3;
+		nverts = meshobj->m_sharedvertex_map.size();
+		if (nverts >= 0xffff)
+			return false;
+		//calculate count of tris
+		int nmeshpolys = meshobj->NumPolygons();
+		npolys = nmeshpolys;
+		for (int p=0; p<nmeshpolys; p++)
+		{
+			int vertcount = meshobj->GetPolygon(p)->VertexCount();
+			npolys+=vertcount-3;
+		}
 
+		//create verts
+		vertices = new float[nverts*3];
+		float* vert = vertices;
+		for (int vi=0; vi<nverts; vi++)
+		{
+			const float* pos = !meshobj->m_sharedvertex_map[vi].empty() ? meshobj->GetVertexLocation(vi) : NULL;
+			if (pos)
+				copy_v3_v3(vert, pos);
+			else
+			{
+				memset(vert, NULL, 3*sizeof(float)); //vertex isn't in any poly, set dummy zero coordinates
+			}
+			vert+=3;		
+		}
+
+		//create tris
+		polys = new unsigned short[npolys*3*2];
+		memset(polys, 0xff, sizeof(unsigned short)*3*2*npolys);
+		unsigned short *poly = polys;
+		RAS_Polygon* raspoly;
+		for (int p=0; p<nmeshpolys; p++)
+		{
+			raspoly = meshobj->GetPolygon(p);
+			for (int v=0; v<raspoly->VertexCount()-2; v++)
+			{
+				poly[0]= raspoly->GetVertex(0)->getOrigIndex();
+				for (size_t i=1; i<3; i++)
+				{
+					poly[i]= raspoly->GetVertex(v+i)->getOrigIndex();
+				}
+				poly += 6;
+			}
+		}
+		dmeshes = NULL;
+		dvertices = NULL;
+		ndvertsuniq = 0;
+		dtris = NULL;
+		ndtris = npolys;
+	}
 	dm->release(dm);
-	dm = NULL;
 	
 	return true;
 }
+
 
 bool KX_NavMeshObject::BuildNavMesh()
 {
@@ -169,42 +420,30 @@ bool KX_NavMeshObject::BuildNavMesh()
 
 	RAS_MeshObject* meshobj = GetMesh(0);
 
-	float* vertices = NULL;
-	unsigned short* faces = NULL;
-	int nverts = 0, npolys = 0;	
-	if (!BuildVertIndArrays(meshobj, vertices, nverts, faces, npolys))
+	float *vertices = NULL, *dvertices = NULL;
+	unsigned short *polys = NULL, *dtris = NULL, *dmeshes = NULL;
+	int nverts = 0, npolys = 0, ndvertsuniq = 0, ndtris = 0;	
+	int vertsPerPoly = 0;
+	if (!BuildVertIndArrays(meshobj, vertices, nverts, polys, npolys, 
+							dmeshes, dvertices, ndvertsuniq, dtris, ndtris, vertsPerPoly ) 
+			|| vertsPerPoly<3)
 		return false;
-	
-	//prepare vertices and indices
-	struct Object* blenderobject = GetBlenderObject();	
-	MT_Point3 posobj;
-	posobj.setValue(blenderobject->loc[0]+blenderobject->dloc[0],
-					blenderobject->loc[1]+blenderobject->dloc[1],
-					blenderobject->loc[2]+blenderobject->dloc[2]);
-	MT_Vector3 eulxyzobj(blenderobject->rot);
-	MT_Vector3 scaleobj(blenderobject->size);
-	MT_Matrix3x3 rotMatrix(eulxyzobj);
-	MT_Transform worldTransform(posobj, rotMatrix.scaled(scaleobj[0], scaleobj[1], scaleobj[2])); 
 	
 	MT_Point3 pos;
 	for (int i=0; i<nverts; i++)
 	{
-		pos.setValue(&vertices[i*3]);
-		//add world transform
-		pos = worldTransform(pos);
-		pos.getValue(&vertices[i*3]);
 		flipAxes(&vertices[i*3]);
 	}
+/*
 	//reorder tris 
 	for (int i=0; i<npolys; i++)
 	{
-		std::swap(faces[6*i+1], faces[6*i+2]);
+		std::swap(polys[6*i+1], polys[6*i+2]);
 	}
-	const int vertsPerPoly = 3;
-	buildMeshAdjacency(faces, npolys, nverts, vertsPerPoly);
+*/
+
+	buildMeshAdjacency(polys, npolys, nverts, vertsPerPoly);
 	
-	int ndtris = npolys;
-	int uniqueDetailVerts = 0;
 	float cs = 0.2f;
 
 	if (!nverts || !npolys)
@@ -228,7 +467,7 @@ bool KX_NavMeshObject::BuildNavMesh()
 	const int polysSize = sizeof(dtStatPoly)*npolys;
 	const int nodesSize = sizeof(dtStatBVNode)*npolys*2;
 	const int detailMeshesSize = sizeof(dtStatPolyDetail)*npolys;
-	const int detailVertsSize = sizeof(float)*3*uniqueDetailVerts;
+	const int detailVertsSize = sizeof(float)*3*ndvertsuniq;
 	const int detailTrisSize = sizeof(unsigned char)*4*ndtris;
 
 	const int dataSize = headerSize + vertsSize + polysSize + nodesSize +
@@ -260,7 +499,7 @@ bool KX_NavMeshObject::BuildNavMesh()
 	header->bmax[1] = bmax[1];
 	header->bmax[2] = bmax[2];
 	header->ndmeshes = npolys;
-	header->ndverts = uniqueDetailVerts;
+	header->ndverts = ndvertsuniq;
 	header->ndtris = ndtris;
 
 	// Store vertices
@@ -275,49 +514,76 @@ bool KX_NavMeshObject::BuildNavMesh()
 	//memcpy(navVerts, vertices, nverts*3*sizeof(float));
 
 	// Store polygons
-	const int nvp = 3;
-	const unsigned short* src = faces;
+	const unsigned short* src = polys;
 	for (int i = 0; i < npolys; ++i)
 	{
 		dtStatPoly* p = &navPolys[i];
 		p->nv = 0;
-		for (int j = 0; j < nvp; ++j)
+		for (int j = 0; j < vertsPerPoly; ++j)
 		{
+			if (src[j] == 0xffff) break;
 			p->v[j] = src[j];
-			p->n[j] = src[nvp+j]+1;
+			p->n[j] = src[vertsPerPoly+j]+1;
 			p->nv++;
 		}
-		src += nvp*2;
+		src += vertsPerPoly*2;
 	}
 
-	header->nnodes = createBVTree(vertsi, nverts, faces, npolys, nvp,
+	header->nnodes = createBVTree(vertsi, nverts, polys, npolys, vertsPerPoly,
 								cs, cs, npolys*2, navNodes);
 	
-	//create fake detail meshes
-	unsigned short vbase = 0;
-	for (int i = 0; i < npolys; ++i)
+	
+	if (dmeshes==NULL)
 	{
-		dtStatPolyDetail& dtl = navDMeshes[i];
-		dtl.vbase = 0;
-		dtl.nverts = 0;
-		dtl.tbase = i;
-		dtl.ntris = 1;
+		//create fake detail meshes
+		for (int i = 0; i < npolys; ++i)
+		{
+			dtStatPolyDetail& dtl = navDMeshes[i];
+			dtl.vbase = 0;
+			dtl.nverts = 0;
+			dtl.tbase = i;
+			dtl.ntris = 1;
+		}
+		// setup triangles.
+		unsigned char* tri = navDTris;
+		for(size_t i=0; i<ndtris; i++)
+		{
+			for (size_t j=0; j<3; j++)
+				tri[4*i+j] = j;
+		}
 	}
-	// setup triangles.
-	unsigned char* tri = navDTris;
-	const unsigned short* face = faces;
-	for(size_t i=0; i<ndtris; i++)
+	else
 	{
-		for (size_t j=0; j<3; j++)
-			tri[4*i+j] = j;
+		//verts
+		memcpy(navDVerts, dvertices, ndvertsuniq*3*sizeof(float));
+		//tris
+		unsigned char* tri = navDTris;
+		for(size_t i=0; i<ndtris; i++)
+		{
+			for (size_t j=0; j<3; j++)
+				tri[4*i+j] = dtris[6*i+j];
+		}
+		//detailed meshes
+		for (int i = 0; i < npolys; ++i)
+		{
+			dtStatPolyDetail& dtl = navDMeshes[i];
+			dtl.vbase = dmeshes[i*4+0];
+			dtl.nverts = dmeshes[i*4+1];
+			dtl.tbase = dmeshes[i*4+2];
+			dtl.ntris = dmeshes[i*4+3];
+		}		
 	}
 
 	m_navMesh = new dtStatNavMesh;
-	m_navMesh->init(data, dataSize, true);
+	m_navMesh->init(data, dataSize, true);	
 
 	delete [] vertices;
-	delete [] faces;
-	
+	delete [] polys;
+	if (dvertices)
+	{
+		delete [] dvertices;
+	}
+
 	return true;
 }
 
@@ -332,10 +598,11 @@ void KX_NavMeshObject::DrawNavMesh()
 		return;
 	MT_Vector3 color(0.f, 0.f, 0.f);
 	
-	enum RenderMode {DETAILED_TRIS, WALLS};
-	static const RenderMode renderMode = DETAILED_TRIS;
+	enum RenderMode {POLYS ,DETAILED_TRIS, WALLS};
+	static const RenderMode renderMode = DETAILED_TRIS;//POLYS;
 	switch (renderMode)
 	{
+	case POLYS :
 	case WALLS : 
 		for (int pi=0; pi<m_navMesh->getPolyCount(); pi++)
 		{
@@ -343,10 +610,15 @@ void KX_NavMeshObject::DrawNavMesh()
 
 			for (int i = 0, j = (int)poly->nv-1; i < (int)poly->nv; j = i++)
 			{	
-				if (poly->n[j]) continue;
-				const float* vj = m_navMesh->getVertex(poly->v[j]);
-				const float* vi = m_navMesh->getVertex(poly->v[i]);
-				KX_RasterizerDrawDebugLine(MT_Vector3(vj[0], vj[2], vj[1]), MT_Vector3(vi[0], vi[2], vi[1]), color);
+				if (poly->n[j] && renderMode==DETAILED_TRIS) 
+					continue;
+				const float* vif = m_navMesh->getVertex(poly->v[i]);
+				const float* vjf = m_navMesh->getVertex(poly->v[j]);
+				MT_Point3 vi(vif[0], vif[2], vif[1]);
+				MT_Point3 vj(vjf[0], vjf[2], vjf[1]);
+				vi = TransformToWorldCoords(vi);
+				vj = TransformToWorldCoords(vj);
+				KX_RasterizerDrawDebugLine(vi, vj, color);
 			}
 		}
 		break;
@@ -359,7 +631,7 @@ void KX_NavMeshObject::DrawNavMesh()
 			for (int j = 0; j < pd->ntris; ++j)
 			{
 				const unsigned char* t = m_navMesh->getDetailTri(pd->tbase+j);
-				MT_Vector3 tri[3];
+				MT_Point3 tri[3];
 				for (int k = 0; k < 3; ++k)
 				{
 					const float* v;
@@ -374,6 +646,9 @@ void KX_NavMeshObject::DrawNavMesh()
 				}
 
 				for (int k=0; k<3; k++)
+					tri[k] = TransformToWorldCoords(tri[k]);
+
+				for (int k=0; k<3; k++)
 					KX_RasterizerDrawDebugLine(tri[k], tri[(k+1)%3], color);
 			}
 		}
@@ -381,13 +656,37 @@ void KX_NavMeshObject::DrawNavMesh()
 	}
 }
 
+MT_Point3 KX_NavMeshObject::TransformToLocalCoords(const MT_Point3& wpos)
+{
+	MT_Matrix3x3 orientation = NodeGetWorldOrientation();
+	const MT_Vector3& scaling = NodeGetWorldScaling();
+	orientation.scale(scaling[0], scaling[1], scaling[2]);
+	MT_Transform worldtr(NodeGetWorldPosition(), orientation); 
+	MT_Transform invworldtr;
+	invworldtr.invert(worldtr);
+	MT_Point3 lpos = invworldtr(wpos);
+	return lpos;
+}
+
+MT_Point3 KX_NavMeshObject::TransformToWorldCoords(const MT_Point3& lpos)
+{
+	MT_Matrix3x3 orientation = NodeGetWorldOrientation();
+	const MT_Vector3& scaling = NodeGetWorldScaling();
+	orientation.scale(scaling[0], scaling[1], scaling[2]);
+	MT_Transform worldtr(NodeGetWorldPosition(), orientation); 
+	MT_Point3 wpos = worldtr(lpos);
+	return wpos;
+}
+
 int KX_NavMeshObject::FindPath(const MT_Point3& from, const MT_Point3& to, float* path, int maxPathLen)
 {
 	if (!m_navMesh)
 		return 0;
+	MT_Point3 localfrom = TransformToLocalCoords(from);
+	MT_Point3 localto = TransformToLocalCoords(to);	
 	float spos[3], epos[3];
-	from.getValue(spos); flipAxes(spos);
-	to.getValue(epos); flipAxes(epos);
+	localfrom.getValue(spos); flipAxes(spos);
+	localto.getValue(epos); flipAxes(epos);
 	dtStatPolyRef sPolyRef = m_navMesh->findNearestPoly(spos, polyPickExt);
 	dtStatPolyRef ePolyRef = m_navMesh->findNearestPoly(epos, polyPickExt);
 
@@ -401,7 +700,12 @@ int KX_NavMeshObject::FindPath(const MT_Point3& from, const MT_Point3& to, float
 		{
 			pathLen = m_navMesh->findStraightPath(spos, epos, polys, npolys, path, maxPathLen);
 			for (int i=0; i<pathLen; i++)
+			{
 				flipAxes(&path[i*3]);
+				MT_Point3 waypoint(&path[i*3]);
+				waypoint = TransformToWorldCoords(waypoint);
+				waypoint.getValue(&path[i*3]);
+			}
 		}
 	}
 
@@ -412,9 +716,11 @@ float KX_NavMeshObject::Raycast(const MT_Point3& from, const MT_Point3& to)
 {
 	if (!m_navMesh)
 		return 0.f;
+	MT_Point3 localfrom = TransformToLocalCoords(from);
+	MT_Point3 localto = TransformToLocalCoords(to);	
 	float spos[3], epos[3];
-	from.getValue(spos); flipAxes(spos);
-	to.getValue(epos); flipAxes(epos);
+	localfrom.getValue(spos); flipAxes(spos);
+	localto.getValue(epos); flipAxes(epos);
 	dtStatPolyRef sPolyRef = m_navMesh->findNearestPoly(spos, polyPickExt);
 	float t=0;
 	static dtStatPolyRef polys[MAX_PATH_LEN];
