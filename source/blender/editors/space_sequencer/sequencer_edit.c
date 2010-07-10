@@ -792,7 +792,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME);
+		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
 	if (seqn) { 
@@ -881,7 +881,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME);
+		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
 	if (seqn) { 
@@ -1117,6 +1117,15 @@ int sequencer_edit_poll(bContext *C)
 	return (seq_give_editing(CTX_data_scene(C), FALSE) != NULL);
 }
 
+int sequencer_view_poll(bContext *C)
+{
+	SpaceSeq *sseq= CTX_wm_space_seq(C);
+	Editing *ed= seq_give_editing(CTX_data_scene(C), FALSE);
+	if (ed && sseq && (sseq->mainb == SEQ_DRAW_IMG_IMBUF))
+		return 1;
+
+	return 0;
+}
 
 /* snap operator*/
 static int sequencer_snap_exec(bContext *C, wmOperator *op)
@@ -1588,6 +1597,18 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 }
 
 /* duplicate operator */
+static int apply_unique_name_cb(Sequence *seq, void *arg_pt)
+{
+	Scene *scene= (Scene *)arg_pt;
+	char name[sizeof(seq->name)-2];
+
+	strcpy(name, seq->name+2);
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
+	seq_dupe_animdata(scene, name, seq->name+2);
+	return 1;
+
+}
+
 static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -1598,7 +1619,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	seqbase_dupli_recursive(scene, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME|SEQ_DUPE_CONTEXT);
+	seqbase_dupli_recursive(scene, &nseqbase, ed->seqbasep, SEQ_DUPE_CONTEXT);
 
 	if(nseqbase.first) {
 		Sequence * seq= nseqbase.first;
@@ -1606,7 +1627,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 		addlisttolist(ed->seqbasep, &nseqbase);
 
 		for( ; seq; seq= seq->next)
-			seqbase_unique_name_recursive(&ed->seqbase, seq);
+			seq_recursive_apply(seq, apply_unique_name_cb, scene);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 		return OPERATOR_FINISHED;
@@ -2711,3 +2732,62 @@ void SEQUENCER_OT_swap_data(wmOperatorType *ot)
 	/* properties */
 }
 
+/* borderselect operator */
+static int view_ghost_border_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
+	View2D *v2d= UI_view2d_fromcontext(C);
+
+	rctf rect;
+
+	/* convert coordinates of rect to 'tot' rect coordinates */
+	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmin"), RNA_int_get(op->ptr, "ymin"), &rect.xmin, &rect.ymin);
+	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmax"), RNA_int_get(op->ptr, "ymax"), &rect.xmax, &rect.ymax);
+
+	if(ed==NULL)
+		return OPERATOR_CANCELLED;
+
+	rect.xmin /=  (float)(ABS(v2d->tot.xmax - v2d->tot.xmin));
+	rect.ymin /=  (float)(ABS(v2d->tot.ymax - v2d->tot.ymin));
+
+	rect.xmax /=  (float)(ABS(v2d->tot.xmax - v2d->tot.xmin));
+	rect.ymax /=  (float)(ABS(v2d->tot.ymax - v2d->tot.ymin));
+
+	rect.xmin+=0.5;
+	rect.xmax+=0.5;
+	rect.ymin+=0.5;
+	rect.ymax+=0.5;
+
+	CLAMP(rect.xmin, 0.0f, 1.0f);
+	CLAMP(rect.ymin, 0.0f, 1.0f);
+	CLAMP(rect.xmax, 0.0f, 1.0f);
+	CLAMP(rect.ymax, 0.0f, 1.0f);
+
+	scene->ed->over_border= rect;
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+/* ****** Border Select ****** */
+void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Border Offset View";
+	ot->idname= "SEQUENCER_OT_view_ghost_border";
+	ot->description="Enable border select mode";
+
+	/* api callbacks */
+	ot->invoke= WM_border_select_invoke;
+	ot->exec= view_ghost_border_exec;
+	ot->modal= WM_border_select_modal;
+	ot->poll= sequencer_view_poll;
+
+	/* flags */
+	ot->flag= 0;
+
+	/* rna */
+	WM_operator_properties_gesture_border(ot, FALSE);
+}

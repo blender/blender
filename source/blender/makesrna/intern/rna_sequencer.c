@@ -30,6 +30,7 @@
 
 #include "rna_internal.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -270,6 +271,7 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	Scene *scene= (Scene*)ptr->id.data;
 	Sequence *seq= (Sequence*)ptr->data;
 	char oldname[sizeof(seq->name)];
+	AnimData *adt;
 	
 	/* make a copy of the old name first */
 	BLI_strncpy(oldname, seq->name+2, sizeof(seq->name)-2);
@@ -281,7 +283,12 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 	
 	/* fix all the animation data which may link to this */
-	BKE_all_animdata_fix_paths_rename("sequence_editor.sequences_all", oldname, seq->name+2);
+
+	/* dont rename everywhere because these are per scene */
+	/* BKE_all_animdata_fix_paths_rename("sequence_editor.sequences_all", oldname, seq->name+2); */
+	adt= BKE_animdata_from_id(&scene->id);
+	if(adt)
+		BKE_animdata_fix_paths_rename(&scene->id, adt, "sequence_editor.sequences_all", oldname, seq->name+2, 0, 0, 1);
 }
 
 static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
@@ -514,6 +521,55 @@ static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
 		return BLI_strdup("");
 }
 
+static void rna_SequenceEditor_overlay_lock_set(PointerRNA *ptr, int value)
+{
+	Scene *scene= ptr->id.data;
+	Editing *ed= seq_give_editing(scene, FALSE);
+
+	if(ed==NULL)
+		return;
+
+	/* convert from abs to relative and back */
+	if((ed->over_flag & SEQ_EDIT_OVERLAY_ABS)==0 && value) {
+		ed->over_cfra= scene->r.cfra + ed->over_ofs;
+		ed->over_flag |= SEQ_EDIT_OVERLAY_ABS;
+	}
+	else if((ed->over_flag & SEQ_EDIT_OVERLAY_ABS) && !value) {
+		ed->over_ofs= ed->over_cfra - scene->r.cfra;
+		ed->over_flag &= ~SEQ_EDIT_OVERLAY_ABS;
+	}
+}
+
+static int rna_SequenceEditor_overlay_frame_get(PointerRNA *ptr)
+{
+	Scene *scene= (Scene *)ptr->id.data;
+	Editing *ed= seq_give_editing(scene, FALSE);
+
+	if(ed==NULL)
+		return scene->r.cfra;
+
+	if(ed->over_flag & SEQ_EDIT_OVERLAY_ABS)
+		return ed->over_cfra - scene->r.cfra;
+	else
+		return ed->over_ofs;
+
+}
+
+static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
+{
+	Scene *scene= (Scene *)ptr->id.data;
+	Editing *ed= seq_give_editing(scene, FALSE);
+
+	if(ed==NULL)
+		return;
+
+
+	if(ed->over_flag & SEQ_EDIT_OVERLAY_ABS)
+		ed->over_cfra= (scene->r.cfra + value);
+	else
+		ed->over_ofs= value;
+}
+
 #else
 
 static void rna_def_strip_element(BlenderRNA *brna)
@@ -527,9 +583,7 @@ static void rna_def_strip_element(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILENAME);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "");
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SequenceElement_filename_set");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
@@ -880,6 +934,22 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 
+	prop= RNA_def_property(srna, "show_overlay", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "over_flag", SEQ_EDIT_OVERLAY_SHOW);
+	RNA_def_property_ui_text(prop, "Draw Axes", "Partial overlay ontop of the sequencer");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
+
+	prop= RNA_def_property(srna, "overlay_lock", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "over_flag", SEQ_EDIT_OVERLAY_ABS);
+	RNA_def_property_ui_text(prop, "Overlay Lock", "");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_SequenceEditor_overlay_lock_set");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
+
+	/* access to fixed and relative frame */
+	prop= RNA_def_property(srna, "overlay_frame", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Overlay Offset", "");
+	RNA_def_property_int_funcs(prop, "rna_SequenceEditor_overlay_frame_get", "rna_SequenceEditor_overlay_frame_set", NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 	RNA_def_property_ui_text(prop, "Active Strip", "Sequencers active strip");
 }
 

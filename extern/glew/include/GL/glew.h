@@ -2702,7 +2702,7 @@ typedef GLenum (GLAPIENTRY * PFNGLCHECKFRAMEBUFFERSTATUSPROC) (GLenum target);
 typedef void (GLAPIENTRY * PFNGLDELETEFRAMEBUFFERSPROC) (GLsizei n, const GLuint* framebuffers);
 typedef void (GLAPIENTRY * PFNGLDELETERENDERBUFFERSPROC) (GLsizei n, const GLuint* renderbuffers);
 typedef void (GLAPIENTRY * PFNGLFRAMEBUFFERRENDERBUFFERPROC) (GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-typedef void (GLAPIENTRY * PFNGLFRAMEBUFFERTEXTURLAYERPROC) (GLenum target,GLenum attachment, GLuint texture,GLint level,GLint layer);
+typedef void (GLAPIENTRY * PFNGLFRAMEBUFFERTEXTURELAYERPROC) (GLenum target,GLenum attachment, GLuint texture,GLint level,GLint layer);
 typedef void (GLAPIENTRY * PFNGLFRAMEBUFFERTEXTURE1DPROC) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 typedef void (GLAPIENTRY * PFNGLFRAMEBUFFERTEXTURE2DPROC) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 typedef void (GLAPIENTRY * PFNGLFRAMEBUFFERTEXTURE3DPROC) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint layer);
@@ -2723,7 +2723,7 @@ typedef void (GLAPIENTRY * PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC) (GLenum targ
 #define glDeleteFramebuffers GLEW_GET_FUN(__glewDeleteFramebuffers)
 #define glDeleteRenderbuffers GLEW_GET_FUN(__glewDeleteRenderbuffers)
 #define glFramebufferRenderbuffer GLEW_GET_FUN(__glewFramebufferRenderbuffer)
-#define glFramebufferTexturLayer GLEW_GET_FUN(__glewFramebufferTexturLayer)
+#define glFramebufferTextureLayer GLEW_GET_FUN(__glewFramebufferTextureLayer)
 #define glFramebufferTexture1D GLEW_GET_FUN(__glewFramebufferTexture1D)
 #define glFramebufferTexture2D GLEW_GET_FUN(__glewFramebufferTexture2D)
 #define glFramebufferTexture3D GLEW_GET_FUN(__glewFramebufferTexture3D)
@@ -8288,7 +8288,6 @@ typedef void (GLAPIENTRY * PFNGLGETVIDEOUI64VNVPROC) (GLuint video_slot, GLenum 
 typedef void (GLAPIENTRY * PFNGLGETVIDEOUIVNVPROC) (GLuint video_slot, GLenum pname, GLuint* params);
 typedef void (GLAPIENTRY * PFNGLPRESENTFRAMEDUALFILLNVPROC) (GLuint video_slot, GLuint64EXT minPresentTime, GLuint beginPresentTimeId, GLuint presentDurationId, GLenum type, GLenum target0, GLuint fill0, GLenum target1, GLuint fill1, GLenum target2, GLuint fill2, GLenum target3, GLuint fill3);
 typedef void (GLAPIENTRY * PFNGLPRESENTFRAMEKEYEDNVPROC) (GLuint video_slot, GLuint64EXT minPresentTime, GLuint beginPresentTimeId, GLuint presentDurationId, GLenum type, GLenum target0, GLuint fill0, GLuint key0, GLenum target1, GLuint fill1, GLuint key1);
-typedef void (GLAPIENTRY * PFNGLVIDEOPARAMETERIVNVPROC) (GLuint video_slot, GLenum pname, const GLint* params);
 
 #define glGetVideoi64vNV GLEW_GET_FUN(__glewGetVideoi64vNV)
 #define glGetVideoivNV GLEW_GET_FUN(__glewGetVideoivNV)
@@ -10563,7 +10562,7 @@ GLEW_FUN_EXPORT PFNGLCHECKFRAMEBUFFERSTATUSPROC __glewCheckFramebufferStatus;
 GLEW_FUN_EXPORT PFNGLDELETEFRAMEBUFFERSPROC __glewDeleteFramebuffers;
 GLEW_FUN_EXPORT PFNGLDELETERENDERBUFFERSPROC __glewDeleteRenderbuffers;
 GLEW_FUN_EXPORT PFNGLFRAMEBUFFERRENDERBUFFERPROC __glewFramebufferRenderbuffer;
-GLEW_FUN_EXPORT PFNGLFRAMEBUFFERTEXTURLAYERPROC __glewFramebufferTexturLayer;
+GLEW_FUN_EXPORT PFNGLFRAMEBUFFERTEXTURELAYERPROC __glewFramebufferTextureLayer;
 GLEW_FUN_EXPORT PFNGLFRAMEBUFFERTEXTURE1DPROC __glewFramebufferTexture1D;
 GLEW_FUN_EXPORT PFNGLFRAMEBUFFERTEXTURE2DPROC __glewFramebufferTexture2D;
 GLEW_FUN_EXPORT PFNGLFRAMEBUFFERTEXTURE3DPROC __glewFramebufferTexture3D;
@@ -11612,7 +11611,6 @@ GLEW_FUN_EXPORT PFNGLGETVIDEOUI64VNVPROC __glewGetVideoui64vNV;
 GLEW_FUN_EXPORT PFNGLGETVIDEOUIVNVPROC __glewGetVideouivNV;
 GLEW_FUN_EXPORT PFNGLPRESENTFRAMEDUALFILLNVPROC __glewPresentFrameDualFillNV;
 GLEW_FUN_EXPORT PFNGLPRESENTFRAMEKEYEDNVPROC __glewPresentFrameKeyedNV;
-GLEW_FUN_EXPORT PFNGLVIDEOPARAMETERIVNVPROC __glewVideoParameterivNV;
 
 GLEW_FUN_EXPORT PFNGLPRIMITIVERESTARTINDEXNVPROC __glewPrimitiveRestartIndexNV;
 GLEW_FUN_EXPORT PFNGLPRIMITIVERESTARTNVPROC __glewPrimitiveRestartNV;

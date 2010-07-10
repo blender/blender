@@ -69,6 +69,14 @@ class SEQUENCER_HT_header(bpy.types.Header):
         else:
             layout.prop(st, "display_channel", text="Channel")
 
+            ed = context.scene.sequence_editor
+            if ed:
+                row = layout.row(align=True)
+                row.prop(ed, "show_overlay", text="", icon='GHOST_ENABLED')
+                if ed.show_overlay:
+                    row.prop(ed, "overlay_frame", text="")
+                    row.prop(ed, "overlay_lock", text="", icon='LOCKED')
+
 
 class SEQUENCER_MT_view_toggle(bpy.types.Menu):
     bl_label = "View Type"
@@ -126,6 +134,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text='Fit preview in window')
             layout.operator_context = 'INVOKE_DEFAULT'
+
+            # # XXX, invokes in the header view
+            # layout.operator("sequencer.view_ghost_border", text='Overlay Border')
+
         layout.operator("sequencer.view_selected")
 
         layout.prop(st, "draw_frames")

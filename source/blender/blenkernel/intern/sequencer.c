@@ -40,6 +40,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -1536,9 +1537,14 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 }
 
 /* note: lift is actually 2-lift */
-MINLINE float color_balance_fl(float v, const float lift, const float gain, const float gamma, const float mul)
+MINLINE float color_balance_fl(float in, const float lift, const float gain, const float gamma, const float mul)
 {
-	return powf((((v - 1.0f) * lift) + 1.0f) * gain, gamma) * mul;
+	float x= (((in - 1.0f) * lift) + 1.0f) * gain;
+
+	/* prevent NaN */
+	if (x < 0.f) x = 0.f;
+
+	return powf(x, gamma) * mul;
 }
 
 static void make_cb_table_byte(float lift, float gain, float gamma,
@@ -2537,6 +2543,10 @@ static TStripElem* do_build_seq_array_recursively(
 	int count;
 	int i;
 	TStripElem* se = 0;
+
+	// XXX for prefetch and overlay offset!..., very bad!!!
+	AnimData *adt= BKE_animdata_from_id(&scene->id);
+	BKE_animsys_evaluate_animdata(&scene->id, adt, cfra, ADT_RECALC_ANIM);
 
 	count = get_shown_sequences(seqbasep, cfra, chanshown, 
 					(Sequence **)&seq_arr);
@@ -3799,6 +3809,8 @@ ListBase *seq_seqbase(ListBase *seqbase, Sequence *seq)
 
 int seq_swap(Sequence *seq_a, Sequence *seq_b)
 {
+	char name[sizeof(seq_a->name)];
+
 	if(seq_a->len != seq_b->len)
 		return 0;
 
@@ -3807,12 +3819,33 @@ int seq_swap(Sequence *seq_a, Sequence *seq_b)
 		if(seq_a->type == SEQ_SOUND || seq_b->type == SEQ_SOUND) {
 			return 0;
 		}
+
+		/* disallow effects to swap with non-effects strips */
+		if((seq_a->type & SEQ_EFFECT) != (seq_b->type & SEQ_EFFECT)) {
+			return 0;
+		}
+
+		if((seq_a->type & SEQ_EFFECT) && (seq_b->type & SEQ_EFFECT)) {
+			if(get_sequence_effect_num_inputs(seq_a->type) != get_sequence_effect_num_inputs(seq_b->type)) {
+				return 0;
+			}
+		}
 	}
 
 	SWAP(Sequence, *seq_a, *seq_b);
+
+	/* swap back names so animation fcurves dont get swapped */
+	strcpy(name, seq_a->name+2);
+	strcpy(seq_a->name+2, seq_b->name+2);
+	strcpy(seq_b->name+2, name);
+
+	/* swap back opacity, and overlay mode */
+	SWAP(int, seq_a->blend_mode, seq_b->blend_mode);
+	SWAP(float, seq_a->blend_opacity, seq_b->blend_opacity);
+
+
 	SWAP(void *, seq_a->prev, seq_b->prev);
 	SWAP(void *, seq_a->next, seq_b->next);
-
 	SWAP(int, seq_a->start, seq_b->start);
 	SWAP(int, seq_a->startofs, seq_b->startofs);
 	SWAP(int, seq_a->endofs, seq_b->endofs);
@@ -3847,6 +3880,35 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 			}
 		}
 	}
+}
+
+void seq_dupe_animdata(Scene *scene, char *name_from, char *name_to)
+{
+	char str_from[32];
+	FCurve *fcu;
+	FCurve *fcu_last;
+	FCurve *fcu_cpy;
+	ListBase lb= {NULL, NULL};
+
+	if(scene->adt==NULL || scene->adt->action==NULL)
+		return;
+
+	sprintf(str_from, "[\"%s\"]", name_from);
+
+	fcu_last= scene->adt->action->curves.last;
+
+	for (fcu= scene->adt->action->curves.first; fcu && fcu->prev != fcu_last; fcu= fcu->next) {
+		if(strstr(fcu->rna_path, "sequence_editor.sequences_all[") && strstr(fcu->rna_path, str_from)) {
+			fcu_cpy= copy_fcurve(fcu);
+			BLI_addtail(&lb, fcu_cpy);
+		}
+	}
+
+	/* notice validate is 0, keep this because the seq may not be added to the scene yet */
+	BKE_animdata_fix_paths_rename(&scene->id, scene->adt, "sequence_editor.sequences_all", name_from, name_to, 0, 0, 0);
+
+	/* add the original fcurves back */
+	addlisttolist(&scene->adt->action->curves, &lb);
 }
 
 /* XXX - hackish function needed to remove all fcurves belonging to a sequencer strip */
@@ -4208,6 +4270,9 @@ static Sequence *seq_dupli(struct Scene *scene, Sequence *seq, int dupe_flag)
 	if(dupe_flag & SEQ_DUPE_UNIQUE_NAME)
 		seqbase_unique_name_recursive(&scene->ed->seqbase, seqn);
 
+	if(dupe_flag & SEQ_DUPE_ANIM)
+		seq_dupe_animdata(scene, seq->name+2, seqn->name+2);
+
 	return seqn;
 }
 
@@ -4234,7 +4299,7 @@ void seqbase_dupli_recursive(Scene *scene, ListBase *nseqbase, ListBase *seqbase
 
 	for(seq= seqbase->first; seq; seq= seq->next) {
 		seq->tmp= NULL;
-		if(seq->flag & SELECT) {
+		if((seq->flag & SELECT) || (dupe_flag & SEQ_DUPE_ALL)) {
 			seqn = seq_dupli(scene, seq, dupe_flag);
 			if (seqn) { /*should never fail */
 				if(dupe_flag & SEQ_DUPE_CONTEXT) {

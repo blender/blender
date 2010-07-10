@@ -1,3 +1,4 @@
+import bpy
 from mathutils import Vector
 from bpy.props import FloatVectorProperty
 

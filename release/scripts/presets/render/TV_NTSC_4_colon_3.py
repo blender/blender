@@ -1,3 +1,4 @@
+import bpy
 bpy.context.scene.render.resolution_x = 720
 bpy.context.scene.render.resolution_y = 486
 bpy.context.scene.render.resolution_percentage = 100

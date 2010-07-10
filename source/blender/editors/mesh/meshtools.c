@@ -82,10 +82,6 @@
 /* own include */
 #include "mesh_intern.h"
 
-/* XXX */
-static int pupmenu(const char *dummy) {return 0;}
-/* XXX */
-
 
 /* * ********************** no editmode!!! *********** */
 

@@ -865,7 +865,7 @@ static void def_cmp_blur(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "relative", 1);
-	RNA_def_property_ui_text(prop, "Relative", "");
+	RNA_def_property_ui_text(prop, "Relative", "Use relative (percent) values to define blur radius");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
@@ -894,12 +894,12 @@ static void def_cmp_blur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "bokeh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bokeh", 1);
-	RNA_def_property_ui_text(prop, "Bokeh", "");
+	RNA_def_property_ui_text(prop, "Bokeh", "Uses circular filter (slower)");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "gamma", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gamma", 1);
-	RNA_def_property_ui_text(prop, "Gamma", "");
+	RNA_def_property_ui_text(prop, "Gamma", "Applies filter on gamma corrected values");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 }
@@ -1176,6 +1176,7 @@ static void def_cmp_scale(StructRNA *srna)
 		{0, "RELATIVE",   0, "Relative",   ""},
 		{1, "ABSOLUTE",   0, "Absolute",   ""},
 		{2, "SCENE_SIZE", 0, "Scene Size", ""},
+		{3, "RENDER_SIZE", 0, "Render Size", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);

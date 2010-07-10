@@ -194,8 +194,9 @@ static void make_unique_prop_names_cb(bContext *C, void *strv, void *redraw_view
 }
 
 
-static void sca_move_sensor(bContext *C, void *datav, void *move_up)
+static void old_sca_move_sensor(bContext *C, void *datav, void *move_up)
 {
+	/* deprecated, no longer using it (moved to sca.c) */
 	Scene *scene= CTX_data_scene(C);
 	bSensor *sens_to_delete= datav;
 	int val;
@@ -246,8 +247,9 @@ static void sca_move_sensor(bContext *C, void *datav, void *move_up)
 	}
 }
 
-static void sca_move_controller(bContext *C, void *datav, void *move_up)
+static void old_sca_move_controller(bContext *C, void *datav, void *move_up)
 {
+	/* deprecated, no longer using it (moved to sca.c) */
 	Scene *scene= CTX_data_scene(C);
 	bController *controller_to_del= datav;
 	int val;
@@ -301,8 +303,9 @@ static void sca_move_controller(bContext *C, void *datav, void *move_up)
 	}
 }
 
-static void sca_move_actuator(bContext *C, void *datav, void *move_up)
+static void old_sca_move_actuator(bContext *C, void *datav, void *move_up)
 {
+	/* deprecated, no longer using it (moved to sca.c) */
 	Scene *scene= CTX_data_scene(C);
 	bActuator *actuator_to_move= datav;
 	int val;
@@ -3188,6 +3191,11 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 							&& RNA_boolean_get(ptr, "expanded")) || RNA_boolean_get(ptr, "pinned")));
 	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
 
+	if(RNA_boolean_get(ptr, "expanded")==0) {
+		uiItemEnumO(row, "LOGIC_OT_sensor_move", "", ICON_TRIA_UP, "direction", 1); // up
+		uiItemEnumO(row, "LOGIC_OT_sensor_move", "", ICON_TRIA_DOWN, "direction", 2); // down
+	}
+
 	uiItemO(row, "", ICON_X, "LOGIC_OT_sensor_remove");
 }
 
@@ -3527,6 +3535,11 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr)
 	uiItemL(row, name, 0);
 
 	uiItemR(row, ptr, "priority", 0, "", 0);
+
+	if(RNA_boolean_get(ptr, "expanded")==0) {
+		uiItemEnumO(row, "LOGIC_OT_controller_move", "", ICON_TRIA_UP, "direction", 1); // up
+		uiItemEnumO(row, "LOGIC_OT_controller_move", "", ICON_TRIA_DOWN, "direction", 2); // down
+	}
 	uiItemO(row, "", ICON_X, "LOGIC_OT_controller_remove");
 }
 
@@ -3606,6 +3619,10 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *
 							&& RNA_boolean_get(ptr, "expanded")) || RNA_boolean_get(ptr, "pinned")));
 	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
 
+	if(RNA_boolean_get(ptr, "expanded")==0) {
+		uiItemEnumO(row, "LOGIC_OT_actuator_move", "", ICON_TRIA_UP, "direction", 1); // up
+		uiItemEnumO(row, "LOGIC_OT_actuator_move", "", ICON_TRIA_DOWN, "direction", 2); // down
+	}
 	uiItemO(row, "", ICON_X, "LOGIC_OT_actuator_remove");
 }
 
@@ -3966,9 +3983,11 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 	Object *ob;
 	PointerRNA settings_ptr;
 	uiLayout *split, *row, *col, *subcol;
+	int physics_type;
 
 	ob = (Object *)ptr->id.data;	
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
+	physics_type = RNA_enum_get(&settings_ptr, "physics_type");
 	
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 	
@@ -3984,33 +4003,32 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(row, ptr, "rot", 0, NULL, 0);
 			uiItemR(split, ptr, "local_rotation", UI_ITEM_R_TOGGLE, NULL, 0);
 			
-			if (RNA_enum_get(&settings_ptr, "physics_type") != OB_BODY_TYPE_DYNAMIC)
-				break;
-			
-			uiItemL(layout, "Dynamic Object Settings:", 0);
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "force", 0, NULL, 0);
-			uiItemR(split, ptr, "local_force", UI_ITEM_R_TOGGLE, NULL, 0);
+			if (ELEM3(physics_type, OB_BODY_TYPE_DYNAMIC, OB_BODY_TYPE_RIGID, OB_BODY_TYPE_SOFT)) {			
+				uiItemL(layout, "Dynamic Object Settings:", 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "force", 0, NULL, 0);
+				uiItemR(split, ptr, "local_force", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "torque", 0, NULL, 0);
-			uiItemR(split, ptr, "local_torque", UI_ITEM_R_TOGGLE, NULL, 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "torque", 0, NULL, 0);
+				uiItemR(split, ptr, "local_torque", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "linear_velocity", 0, NULL, 0);
-			row = uiLayoutRow(split, 1);
-			uiItemR(row, ptr, "local_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
-			uiItemR(row, ptr, "add_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "linear_velocity", 0, NULL, 0);
+				row = uiLayoutRow(split, 1);
+				uiItemR(row, ptr, "local_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+				uiItemR(row, ptr, "add_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "angular_velocity", 0, NULL, 0);
-			uiItemR(split, ptr, "local_angular_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "angular_velocity", 0, NULL, 0);
+				uiItemR(split, ptr, "local_angular_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			uiItemR(layout, ptr, "damping", 0, NULL, 0);
+				uiItemR(layout, ptr, "damping", 0, NULL, 0);
+			}
 			break;
 		case ACT_OBJECT_SERVO:
 			uiItemR(layout, ptr, "reference_object", 0, NULL, 0);
@@ -4563,6 +4581,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			{	// gotta check if the current state is visible or not
 				uiLayout *split, *col;
 				
+				/* make as visible, for move operator */
+				sens->flag |= SENS_VISIBLE;
+
 				split = uiLayoutSplit(layout, 0.95, 0);
 				col = uiLayoutColumn(split, 1);
 				uiLayoutSetContextPointer(col, "sensor", &ptr);
@@ -4626,6 +4647,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			{	// gotta check if the current state is visible or not
 				uiLayout *split, *col;
 				
+				/* make as visible, for move operator */
+				act->flag |= ACT_VISIBLE;
+
 				split = uiLayoutSplit(layout, 0.05, 0);
 				
 				/* put inlink button to the left */
@@ -4818,15 +4842,15 @@ void logic_buttons(bContext *C, ARegion *ar)
 							cpack(0x999999);
 							glRecti(xco+22, yco, xco+width-22,yco+19);
 							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller type");
-							//uiButSetFunc(but, sca_move_controller, cont, NULL);
+							//uiButSetFunc(but, old_sca_move_controller, cont, NULL);
 							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-158), UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller name");
-							//uiButSetFunc(but, sca_move_controller, cont, NULL);
+							//uiButSetFunc(but, old_sca_move_controller, cont, NULL);
 
 							uiBlockBeginAlign(block);
 							but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(110+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
-							uiButSetFunc(but, sca_move_controller, cont, (void *)TRUE);
+							uiButSetFunc(but, old_sca_move_controller, cont, (void *)TRUE);
 							but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(88+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
-							uiButSetFunc(but, sca_move_controller, cont, (void *)FALSE);
+							uiButSetFunc(but, old_sca_move_controller, cont, (void *)FALSE);
 							uiBlockEndAlign(block);
 
 							ycoo= yco;
@@ -4910,15 +4934,15 @@ void logic_buttons(bContext *C, ARegion *ar)
 						set_col_sensor(sens->type, 1);
 						glRecti(xco+22, yco, xco+width-22,yco+19);
 						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, UI_UNIT_Y, sens, 0, 0, 0, 0, "");
-						//uiButSetFunc(but, sca_move_sensor, sens, NULL);
+						//uiButSetFunc(but, old_sca_move_sensor, sens, NULL);
 						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens, 0, 31, 0, 0, "");
-						//uiButSetFunc(but, sca_move_sensor, sens, NULL);
+						//uiButSetFunc(but, old_sca_move_sensor, sens, NULL);
 
 						uiBlockBeginAlign(block);
 						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
-						uiButSetFunc(but, sca_move_sensor, sens, (void *)TRUE);
+						uiButSetFunc(but, old_sca_move_sensor, sens, (void *)TRUE);
 						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
-						uiButSetFunc(but, sca_move_sensor, sens, (void *)FALSE);
+						uiButSetFunc(but, old_sca_move_sensor, sens, (void *)FALSE);
 						uiBlockEndAlign(block);
 					}
 
@@ -4988,15 +5012,15 @@ void logic_buttons(bContext *C, ARegion *ar)
 						set_col_actuator(act->type, 1);
 						glRecti((short)(xco+22), yco, (short)(xco+width-22),(short)(yco+19));
 						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, UI_UNIT_Y, act, 0, 0, 0, 0, "Actuator type");
-						// uiButSetFunc(but, sca_move_actuator, act, NULL);
+						// uiButSetFunc(but, old_sca_move_actuator, act, NULL);
 						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-(pin?156:134)), UI_UNIT_Y, act, 0, 0, 0, 0, "Actuator name");
-						// uiButSetFunc(but, sca_move_actuator, act, NULL);
+						// uiButSetFunc(but, old_sca_move_actuator, act, NULL);
 
 						uiBlockBeginAlign(block);
 						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
-						uiButSetFunc(but, sca_move_actuator, act, (void *)TRUE);
+						uiButSetFunc(but, old_sca_move_actuator, act, (void *)TRUE);
 						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
-						uiButSetFunc(but, sca_move_actuator, act, (void *)FALSE);
+						uiButSetFunc(but, old_sca_move_actuator, act, (void *)FALSE);
 						uiBlockEndAlign(block);
 
 						ycoo= yco;

@@ -1877,26 +1877,19 @@ static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int
 	}
 }
 
-/* flushes all recalc flags in objects down the dependency tree */
-void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
+/* flush layer flags to dependencies */
+static void dag_scene_flush_layers(Scene *sce, int lay)
 {
-	DagNode *firstnode, *node;
+	DagNode *node, *firstnode;
 	DagAdjList *itA;
-	Object *ob;
 	Base *base;
 	int lasttime;
-	
-	if(sce->theDag==NULL) {
-		printf("DAG zero... not allowed to happen!\n");
-		DAG_scene_sort(sce);
-	}
-	
+
 	firstnode= sce->theDag->DagNode.first;  // always scene node
 
 	for(itA = firstnode->child; itA; itA= itA->next)
 		itA->lay= 0;
-	
-	/* first we flush the layer flags */
+
 	sce->theDag->time++;	// so we know which nodes were accessed
 	lasttime= sce->theDag->time;
 
@@ -1930,7 +1923,26 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 	for(itA = firstnode->child; itA; itA= itA->next)
 		if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB) 
 			flush_layer_node(sce, itA->node, lasttime);
+}
+
+/* flushes all recalc flags in objects down the dependency tree */
+void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
+{
+	DagNode *firstnode;
+	DagAdjList *itA;
+	Object *ob;
+	int lasttime;
 	
+	if(sce->theDag==NULL) {
+		printf("DAG zero... not allowed to happen!\n");
+		DAG_scene_sort(sce);
+	}
+	
+	firstnode= sce->theDag->DagNode.first;  // always scene node
+
+	/* first we flush the layer flags */
+	dag_scene_flush_layers(sce, lay);
+
 	/* then we use the relationships + layer info to flush update events */
 	sce->theDag->time++;	// so we know which nodes were accessed
 	lasttime= sce->theDag->time;
@@ -2231,7 +2243,8 @@ void DAG_on_load_update(void)
 	Object *ob;
 	Group *group;
 	GroupObject *go;
-	unsigned int lay;
+	DagNode *node;
+	unsigned int lay, oblay;
 
 	dag_current_scene_layers(bmain, &scene, &lay);
 
@@ -2240,10 +2253,14 @@ void DAG_on_load_update(void)
 		   remade, tag them so they get remade in the scene update loop,
 		   note armature poses or object matrices are preserved and do not
 		   require updates, so we skip those */
+		dag_scene_flush_layers(scene, lay);
+
 		for(SETLOOPER(scene, base)) {
 			ob= base->object;
+			node= (sce->theDag)? dag_get_node(sce->theDag, ob): NULL;
+			oblay= (node)? node->lay: ob->lay;
 
-			if(base->lay & lay) {
+			if(oblay & lay) {
 				if(ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
 					ob->recalc |= OB_RECALC_DATA;
 				if(ob->dup_group) 

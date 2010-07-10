@@ -101,7 +101,7 @@ ifeq ($(OS),darwin)
         REL_CCFLAGS += -O2
     endif
 
-    CPPFLAGS += -D_THREAD_SAFE -fpascal-strings
+    CPPFLAGS += -D_THREAD_SAFE
 
     ifeq ($(WITH_COCOA), true)
         CPPFLAGS += -DGHOST_COCOA

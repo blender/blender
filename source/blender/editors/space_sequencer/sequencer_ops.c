@@ -82,6 +82,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_view_all_preview);
 	WM_operatortype_append(SEQUENCER_OT_view_toggle);
 	WM_operatortype_append(SEQUENCER_OT_view_zoom_ratio);
+	WM_operatortype_append(SEQUENCER_OT_view_ghost_border);
 
 	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_select_all_toggle);
@@ -112,6 +113,9 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "SequencerCommon", SPACE_SEQ, 0);
 	wmKeyMapItem *kmi;
+
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "scene.sequence_editor.show_overlay");
 
 	/* operators common to sequence and preview view */
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
@@ -223,6 +227,10 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_menu(keymap, "SEQUENCER_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", OKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "scene.sequence_editor.overlay_frame");
+	RNA_int_set(kmi->ptr, "value", 0);
+
 	transform_keymap_for_space(keyconf, keymap, SPACE_SEQ);
 
 	keymap= WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
@@ -231,6 +239,8 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 
 	keymap= WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_ghost_border", OKEY, KM_PRESS, 0, 0);
 
 	/* would prefer to use numpad keys for job */
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD8, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 8.0f);

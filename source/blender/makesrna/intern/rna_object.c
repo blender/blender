@@ -1476,7 +1476,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
 		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
 		{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
-		{OB_BOUND_POLYH, "POLYHEDER", 0, "Polyheder", ""},
+		{OB_BOUND_POLYH, "POLYHEDRON", 0, "Polyhedron", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem dupli_items[] = {

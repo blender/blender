@@ -485,8 +485,12 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 
 	int count = removedoublesflag(em,1,0,RNA_float_get(op->ptr, "limit"));
 	
-	if(count)
-		BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
+	if(!count)
+		return OPERATOR_CANCELLED;
+
+	recalc_editnormals(em);
+
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -5860,6 +5864,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 	if(!count)
 		return OPERATOR_CANCELLED;
 
+	recalc_editnormals(em);
 	
 	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s.", count, (count==1)?"ex":"ices");
 
@@ -7116,7 +7121,7 @@ static int sort_faces_exec(bContext *C, wmOperator *op)
 {
 	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= CTX_data_edit_object(C);
 	Scene *scene= CTX_data_scene(C);
 	Mesh *me;
 	CustomDataLayer *layer;
@@ -7125,9 +7130,7 @@ static int sort_faces_exec(bContext *C, wmOperator *op)
 	float reverse = 1;
 	// XXX int ctrl= 0;
 	
-	if(!ob) return OPERATOR_FINISHED;
-	if(ob->type!=OB_MESH) return OPERATOR_FINISHED;
-	if (!v3d) return OPERATOR_FINISHED;
+	if (!v3d) return OPERATOR_CANCELLED;
 
 	/* This operator work in Object Mode, not in edit mode.
 	 * After talk with Cambell we agree that there is no point to port this to EditMesh right now.
@@ -7227,6 +7230,8 @@ static int sort_faces_exec(bContext *C, wmOperator *op)
 
 	/* Return to editmode. */
 	ED_object_enter_editmode(C, 0);
+
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_sort_faces(wmOperatorType *ot)

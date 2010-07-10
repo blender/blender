@@ -830,7 +830,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	if(flag & WM_FILESEL_RELPATH)
-		RNA_def_boolean(ot->srna, "relative_path", 0, "Relative Path", "Select the file relative to the blend file");
+		RNA_def_boolean(ot->srna, "relative_path", (U.flag & USER_RELPATHS) ? 1:0, "Relative Path", "Select the file relative to the blend file");
 }
 
 void WM_operator_properties_select_all(wmOperatorType *ot) {
@@ -1819,7 +1819,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
-	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
+	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative", "Remap relative paths when saving in a different directory");
 }
 
 /* *************** save file directly ******** */
@@ -3141,6 +3141,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "NODE_OT_select_border");
 //	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_select_border");
+	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_view_ghost_border");
 	WM_modalkeymap_assign(keymap, "UV_OT_select_border");
 	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");

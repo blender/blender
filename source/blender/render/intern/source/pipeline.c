@@ -1090,7 +1090,7 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr)
 					rr->rectz= RE_RenderLayerGetPass(rl, SCE_PASS_Z);	
 			}
 
-			rr->compo_seq= (rr->rectf != NULL);
+			rr->have_combined= (re->result->rectf != NULL);
 			rr->layers= re->result->layers;
 		}
 	}

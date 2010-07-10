@@ -813,7 +813,11 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
 	if (!window) return GHOST_kFailure;
 
+	//Cursor and mouse dissociation placed here not to interfere with continuous grab
+	// (in cont. grab setMouseCursorPosition is directly called)
+	CGAssociateMouseAndMouseCursorPosition(false);
 	setMouseCursorPosition(x, y);
+	CGAssociateMouseAndMouseCursorPosition(true);
 	
 	//Force mouse move event (not pushed by Cocoa)
 	window->screenToClient(x, y, wx, wy);

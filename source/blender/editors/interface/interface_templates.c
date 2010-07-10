@@ -955,7 +955,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con,
 	bPoseChannel *pchan= get_active_posechannel(ob);
 	bConstraintTypeInfo *cti;
 	uiBlock *block;
-	uiLayout *result= NULL, *col, *col1, *col2, *box, *row, *subrow, *split;
+	uiLayout *result= NULL, *col, *box, *row, *subrow;
 	PointerRNA ptr;
 	char typestr[32];
 	short proxy_protected, xco=0, yco=0;
@@ -990,37 +990,30 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con,
 	uiLayoutSetContextPointer(col, "constraint", &ptr);
 
 	box= uiLayoutBox(col);
-	split = uiLayoutSplit(box, 0.35, 0);
-	
-	col1= uiLayoutColumn(split, 0);
-	col2= uiLayoutColumn(split, 0);
-	row = uiLayoutRow(col1, 0);
-	subrow = uiLayoutRow(col2, 0);
-
+	row = uiLayoutRow(box, 0);
 	block= uiLayoutGetBlock(box);
 
 	/* Draw constraint header */
-	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
 	/* rounded header */
 	rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20;
-	
+
 	/* open/close */
+	uiBlockSetEmboss(block, UI_EMBOSSN);
 	uiItemR(row, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
-	
-	/* name */	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* XXX if (con->flag & CONSTRAINT_DISABLE)
 		uiBlockSetCol(block, TH_REDALERT);*/
 	
+	/* name */
 	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 	if(proxy_protected == 0) {
-		uiItemR(subrow, &ptr, "name", 0, "", 0);
+		uiItemR(row, &ptr, "name", 0, "", 0);
 	}
 	else
-		uiItemL(subrow, con->name, 0);
+		uiItemL(row, con->name, 0);
 	
 	/* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
 	if (proxy_protected) {
@@ -1054,47 +1047,44 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con,
 			
 		show_upbut= ((prev_proxylock == 0) && (con->prev));
 		show_downbut= (con->next) ? 1 : 0;
+
+		/* Code for compact Constraint UI */
+		if (compact) {
+			subrow = uiLayoutRow(box, 0);
+		}
+		else {
+			subrow = row;
+		}
 		
 		uiLayoutSetOperatorContext(subrow, WM_OP_INVOKE_DEFAULT);
 		
-		if (compact) {
-			/* Draw "Delete" Button in first row, before splitting */
-			uiBlockSetEmboss(block, UI_EMBOSSN);
-			uiItemO(subrow, "", ICON_X, "CONSTRAINT_OT_delete");
-			uiBlockSetEmboss(block, UI_EMBOSS);
-
-			subrow = uiLayoutRow(col2, 0);
-		}
-		
+		/* up/down */
 		if (show_upbut || show_downbut) {
 			uiBlockBeginAlign(block);
-				uiBlockSetEmboss(block, UI_EMBOSS);
+			if (show_upbut)
+				uiItemO(subrow, "", ICON_TRIA_UP, "CONSTRAINT_OT_move_up");
 				
-				if (show_upbut)
-					uiItemO(subrow, "", ICON_TRIA_UP, "CONSTRAINT_OT_move_up");
-				
-				if (show_downbut)
-					uiItemO(subrow, "", ICON_TRIA_DOWN, "CONSTRAINT_OT_move_down");
+			if (show_downbut)
+				uiItemO(subrow, "", ICON_TRIA_DOWN, "CONSTRAINT_OT_move_down");
 			uiBlockEndAlign(block);
 		}
-	
+		
+		/* enabled */
+		uiItemR(subrow, &ptr, "enabled", 0, "", 0);
+		
+		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
+		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-			uiItemR(subrow, &ptr, "enabled", 0, "", 0);
-			
-			if (!compact) {
-				uiItemO(subrow, "", ICON_X, "CONSTRAINT_OT_delete");
-			}
+		uiItemO(row, "", ICON_X, "CONSTRAINT_OT_delete");
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
-	
+
 	/* Set but-locks for protected settings (magic numbers are used here!) */
 	if (proxy_protected)
 		uiBlockSetButLock(block, 1, "Cannot edit Proxy-Protected Constraint");
 
-		
 	/* Draw constraint data */
-	
 	if ((con->flag & CONSTRAINT_EXPAND) == 0) {
 		(yco) -= 21;
 	}

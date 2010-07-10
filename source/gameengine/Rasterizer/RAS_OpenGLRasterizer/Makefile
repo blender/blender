@@ -51,7 +51,3 @@ CPPFLAGS += -I../../SceneGraph
 CPPFLAGS += -I..
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
-ifeq ($(OS),darwin)
-	CPPFLAGS += -fpascal-strings
-endif
-
