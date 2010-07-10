@@ -2544,10 +2544,6 @@ static TStripElem* do_build_seq_array_recursively(
 	int i;
 	TStripElem* se = 0;
 
-	// XXX for prefetch and overlay offset!..., very bad!!!
-	AnimData *adt= BKE_animdata_from_id(&scene->id);
-	BKE_animsys_evaluate_animdata(&scene->id, adt, cfra, ADT_RECALC_ANIM);
-
 	count = get_shown_sequences(seqbasep, cfra, chanshown, 
 					(Sequence **)&seq_arr);
 
@@ -2560,6 +2556,14 @@ static TStripElem* do_build_seq_array_recursively(
 	if (!se) {
 		return 0;
 	}
+
+#if 0 /* commentind since this breaks keyframing, since it resets the value on draw */
+	if(scene->r.cfra != cfra) {
+		// XXX for prefetch and overlay offset!..., very bad!!!
+		AnimData *adt= BKE_animdata_from_id(&scene->id);
+		BKE_animsys_evaluate_animdata(&scene->id, adt, cfra, ADT_RECALC_ANIM);
+	}
+#endif
 
 	test_and_auto_discard_ibuf(se, seqrectx, seqrecty);
 
