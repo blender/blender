@@ -486,6 +486,8 @@ void rna_def_actuator(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_SHOW);
 	RNA_def_property_ui_text(prop, "Expanded", "Set actuator expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
+
+	RNA_api_actuator(srna);
 }
 
 static void rna_def_action_actuator(BlenderRNA *brna)
