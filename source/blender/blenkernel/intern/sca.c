@@ -659,7 +659,7 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 }
 
 /* ******************** INTERFACE ******************* */
-void sca_move_sensor(bSensor *sens_to_move, Object *ob, int *move_up)
+void sca_move_sensor(bSensor *sens_to_move, Object *ob, int move_up)
 {
 	bSensor *sens, *tmp;
 
