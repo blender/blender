@@ -1014,7 +1014,7 @@ static int get_path_user(char *targetpath, char *folder_name, char *envvar)
 	
 	user_base_path = (const char *)GHOST_getUserDir();
 	if (user_base_path) {
-		BLI_snprintf(user_path, FILE_MAX, BLENDER_BASE_FORMAT, user_base_path, blender_version_decimal());
+		BLI_snprintf(user_path, FILE_MAX, BLENDER_USER_FORMAT, user_base_path, blender_version_decimal());
 	}
 
 	if(!user_path[0])
@@ -1040,7 +1040,7 @@ static int get_path_system(char *targetpath, char *folder_name, char *envvar)
 
 	system_base_path = (const char *)GHOST_getSystemDir();
 	if (system_base_path) {
-		BLI_snprintf(system_path, FILE_MAX, BLENDER_BASE_FORMAT, system_base_path, blender_version_decimal());
+		BLI_snprintf(system_path, FILE_MAX, BLENDER_SYSTEM_FORMAT, system_base_path, blender_version_decimal());
 	}
 	
 	if(!system_path[0])

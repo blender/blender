@@ -101,11 +101,14 @@ char *BLI_get_folder_create(int folder_id, char *subfolder);
 #define BLENDER_HISTORY_FILE	"recent-files.txt"
 
 #ifdef WIN32
-#define BLENDER_BASE_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#define BLENDER_USER_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#define BLENDER_SYSTEM_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
 #elif __APPLE__
-#define BLENDER_BASE_FORMAT			"%s/Blender/%s"
+#define BLENDER_USER_FORMAT			"%s/Blender/%s"
+#define BLENDER_SYSTEM_FORMAT			"%s/Blender/%s"
 #else
-#define BLENDER_BASE_FORMAT			"%s/.blender/%s"
+#define BLENDER_USER_FORMAT			"%s/.blender/%s"
+#define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
 #endif
 
 void BLI_setenv(const char *env, const char *val);
