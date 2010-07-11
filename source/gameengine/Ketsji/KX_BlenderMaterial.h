@@ -88,8 +88,11 @@ public:
 	
 	virtual void Replace_IScene(SCA_IScene *val)
 	{
-		mScene= static_cast<KX_Scene *>(val);
-		mBlenderShader->SetScene(mScene);
+		if (mBlenderShader)
+		{
+			mScene= static_cast<KX_Scene *>(val);
+			mBlenderShader->SetScene(mScene);
+		}
 	};
 
 #ifndef DISABLE_PYTHON
