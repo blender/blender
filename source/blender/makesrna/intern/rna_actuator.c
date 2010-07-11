@@ -922,7 +922,7 @@ static void rna_def_sound_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "maximum_gain_3d", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sound3D.max_gain");
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 0.01);
-	RNA_def_property_ui_text(prop, "Minimum Gain", "The maximum gain of the sound, no matter how near it is");
+	RNA_def_property_ui_text(prop, "Maximum Gain", "The maximum gain of the sound, no matter how near it is");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "reference_distance_3d", PROP_FLOAT, PROP_NONE);
