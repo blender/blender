@@ -4257,8 +4257,13 @@ void psys_get_dupli_texture(Object *ob, ParticleSettings *part, ParticleSystemMo
 			num= pa->num_dmcache;
 
 			if(num == DMCACHE_NOTFOUND)
-				if(pa->num < psmd->dm->getNumFaces(psmd->dm))
-					num= pa->num;
+				num= pa->num;
+
+			if (num >= psmd->dm->getNumFaces(psmd->dm)) {
+				/* happens when simplify is enabled
+				 * gives invalid coords but would crash otherwise */
+				num= DMCACHE_NOTFOUND;
+			}
 
 			if(mtface && num != DMCACHE_NOTFOUND) {
 				mface= psmd->dm->getFaceData(psmd->dm, num, CD_MFACE);
