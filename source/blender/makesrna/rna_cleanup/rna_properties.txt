@@ -25,13 +25,13 @@ Actuator.type -> type:    enum
 ActuatorSensor.actuator -> actuator:    string    Actuator name, actuator active state modifications will be detected
 Addon.module -> module:    string    Module name
 AnimData.action -> action:    pointer    Active Action for this datablock
-AnimData.action_blending -> action_blending:    enum    Method used for combining Active Action's result with result of NLA stack
+AnimData.action_blending -> action_blend_type:    enum    Method used for combining Active Action's result with result of NLA stack
 AnimData.action_extrapolation -> action_extrapolation:    enum    Action to take for gaps past the Active Action's range (when evaluating with NLA)
 AnimData.action_influence -> action_influence:    float    Amount the Active Action contributes to the result of the NLA stack
 AnimData.drivers -> drivers:    collection, (read-only)    The Drivers/Expressions for this datablock
 AnimData.nla_tracks -> nla_tracks:    collection, (read-only)    NLA Tracks (i.e. Animation Layers)
 AnimViz.motion_paths -> motion_paths:    pointer, (read-only)    Motion Path settings for visualisation
-AnimViz.onion_skinning -> onion_skinning:    pointer, (read-only)    Onion Skinning (ghosting) settings for visualisation
+AnimViz.onion_skinning -> onion_skin_frames:    pointer, (read-only)    Onion Skinning (ghosting) settings for visualisation
 AnimVizMotionPaths.after_current -> after_current:    int    Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)
 AnimVizMotionPaths.bake_location -> bake_location:    enum    When calculating Bone Paths, use Head or Tips
 AnimVizMotionPaths.before_current -> before_current:    int    Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)
@@ -139,7 +139,7 @@ BoidSettings.air_max_ave -> air_max_ave:    float    Maximum angular velocity in
 BoidSettings.air_max_speed -> air_max_speed:    float    Maximum speed in air
 BoidSettings.air_min_speed -> air_min_speed:    float    Minimum speed in air (relative to maximum speed)
 BoidSettings.air_personal_space -> air_personal_space:    float    Radius of boids personal space in air (% of particle size)
-BoidSettings.banking -> banking:    float    Amount of rotation around velocity vector on turns
+BoidSettings.banking -> bank:    float    Amount of rotation around velocity vector on turns
 BoidSettings.health -> health:    float    Initial boid health when born
 BoidSettings.height -> height:    float    Boid height relative to particle size
 BoidSettings.land_jump_speed -> land_jump_speed:    float    Maximum speed for jumping
@@ -551,7 +551,7 @@ DomainFluidSettings.render_display_mode -> render_display_mode:    enum    How t
 DomainFluidSettings.resolution -> resolution:    int    Domain resolution in X,Y and Z direction
 DomainFluidSettings.slip_type -> slip_type:    enum    
 DomainFluidSettings.start_time -> start_time:    float    Simulation time of the first blender frame
-DomainFluidSettings.surface_smoothing -> surface_smoothing:    float    Amount of surface smoothing. A value of 0 is off, 1 is normal smoothing and more than 1 is extra smoothing
+DomainFluidSettings.surface_smoothing -> surface_smooth:    float    Amount of surface smoothing. A value of 0 is off, 1 is normal smoothing and more than 1 is extra smoothing
 DomainFluidSettings.surface_subdivisions -> surface_subdivisions:    int    Number of isosurface subdivisions. This is necessary for the inclusion of particles into the surface generation. Warning - can lead to longer computation times!
 DomainFluidSettings.tracer_particles -> tracer_particles:    int    Number of tracer particles to generate
 DomainFluidSettings.viewport_display_mode -> viewport_display_mode:    enum    How to display the mesh in the viewport
@@ -807,7 +807,7 @@ GameSoftBodySettings.linstiff -> linstiff:    float    Linear stiffness of the s
 GameSoftBodySettings.margin -> margin:    float    Collision margin for soft body. Small value makes the algorithm unstable
 GameSoftBodySettings.position_iterations -> position_iterations:    int    Position solver iterations
 GameSoftBodySettings.threshold -> threshold:    float    Shape matching threshold
-GameSoftBodySettings.welding -> welding:    float    Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)
+GameSoftBodySettings.welding -> weld_threshold:    float    Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)
 GameStringProperty.value -> value:    string    Property value
 GameTimerProperty.value -> value:    float    Property value
 GlowSequence.blur_distance -> blur_distance:    float    Radius of glow effect
@@ -969,7 +969,7 @@ KeyingSetInfo.bl_label -> bl_label:    string
 KeyingSetPath.array_index -> array_index:    int    Index to the specific setting if applicable
 KeyingSetPath.data_path -> data_path:    string    Path to property setting
 KeyingSetPath.group -> group:    string    Name of Action Group to assign setting(s) for this path to
-KeyingSetPath.grouping -> grouping:    enum    Method used to define which Group-name to use
+KeyingSetPath.grouping -> group_method:    enum    Method used to define which Group-name to use
 KeyingSetPath.id -> id:    pointer    ID-Block that keyframes for Keying Set should be added to (for Absolute Keying Sets only)
 KeyingSetPath.id_type -> id_type:    enum    Type of ID-block that can be used
 KinematicConstraint.axis_reference -> axis_reference:    enum    Constraint axis Lock options relative to Bone or Target reference
@@ -1435,7 +1435,7 @@ NlaStrip.action_frame_end -> action_frame_end:    float
 NlaStrip.action_frame_start -> action_frame_start:    float    
 NlaStrip.blend_in -> blend_in:    float    Number of frames at start of strip to fade in influence
 NlaStrip.blend_out -> blend_out:    float    
-NlaStrip.blending -> blending:    enum    Method used for combining strip's result with accumulated result
+NlaStrip.blending -> blend_type:    enum    Method used for combining strip's result with accumulated result
 NlaStrip.extrapolation -> extrapolation:    enum    Action to take for gaps past the strip extents
 NlaStrip.fcurves -> fcurves:    collection, (read-only)    F-Curves for controlling the strip's influence and timing
 NlaStrip.frame_end -> frame_end:    float    
@@ -2102,7 +2102,7 @@ ScrewModifier.steps -> steps:    int    Number of steps in the revolution
 Sensor.frequency -> frequency:    int    Delay between repeated pulses(in logic tics, 0=no delay)
 Sensor.name -> name:    string    Sensor name
 Sensor.type -> type:    enum    
-Sequence.blend_mode -> blend_mode:    enum    
+Sequence.blend_mode -> blend_type:    enum    
 Sequence.blend_opacity -> blend_opacity:    float    
 Sequence.channel -> channel:    int    Y position of the sequence strip
 Sequence.effect_fader -> effect_fader:    float    
@@ -2222,7 +2222,7 @@ SoftBodySettings.aerodynamics_type -> aerodynamics_type:    enum    Method of ca
 SoftBodySettings.ball_damp -> ball_damp:    float    Blending to inelastic collision
 SoftBodySettings.ball_size -> ball_size:    float    Absolute ball size or factor if not manual adjusted
 SoftBodySettings.ball_stiff -> ball_stiff:    float    Ball inflating pressure
-SoftBodySettings.bending -> bending:    float    Bending Stiffness
+SoftBodySettings.bending -> bend:    float    Bending Stiffness
 SoftBodySettings.choke -> choke:    int    'Viscosity' inside collision target
 SoftBodySettings.collision_type -> collision_type:    enum    Choose Collision Type
 SoftBodySettings.damp -> damp:    float    Edge spring friction
@@ -2353,7 +2353,7 @@ SpaceView3D.pivot_point -> pivot_point:    enum    Pivot center for rotation/sca
 SpaceView3D.region_3d -> region_3d:    pointer, (read-only)    3D region in this space, in case of quad view the camera region
 SpaceView3D.region_quadview -> region_quadview:    pointer, (read-only)    3D region that defines the quad view settings
 SpaceView3D.transform_orientation -> transform_orientation:    enum    Transformation orientation
-SpaceView3D.viewport_shading -> viewport_shading:    enum    Method to display/shade objects in the 3D View
+SpaceView3D.viewport_shading -> viewport_shade:    enum    Method to display/shade objects in the 3D View
 SpeedControlSequence.global_speed -> global_speed:    float    
 Spline.bezier_points -> bezier_points:    collection, (read-only)    Collection of points for bezier curves only
 Spline.character_index -> character_index:    int, (read-only)    Location of this character in the text data (only for text curves)
@@ -2939,8 +2939,8 @@ ToolSettings.etch_template -> etch_template:    pointer    Template armature tha
 ToolSettings.image_paint -> image_paint:    pointer, (read-only)    
 ToolSettings.normal_size -> normal_size:    float    Display size for normals in the 3D view
 ToolSettings.particle_edit -> particle_edit:    pointer, (read-only)    
-ToolSettings.proportional_editing -> proportional_editing:    enum    Proportional editing mode
-ToolSettings.proportional_editing_falloff -> proportional_editing_falloff:    enum    Falloff type for proportional editing mode
+ToolSettings.proportional_editing -> proportional_edit:    enum    Proportional editing mode
+ToolSettings.proportional_editing_falloff -> proportional_edit_falloff:    enum    Falloff type for proportional editing mode
 ToolSettings.sculpt -> sculpt:    pointer, (read-only)    
 ToolSettings.snap_element -> snap_element:    enum    Type of element to snap to
 ToolSettings.snap_target -> snap_target:    enum    Which part to snap onto the target
@@ -3074,7 +3074,7 @@ UserPreferencesView.properties_width_check -> properties_width_check:    int    
 UserPreferencesView.rotation_angle -> rotation_angle:    int    The rotation step for numerical pad keys (2 4 6 8)
 UserPreferencesView.smooth_view -> smooth_view:    int    The time to animate the view in milliseconds, zero to disable
 UserPreferencesView.timecode_style -> timecode_style:    enum    Format of Time Codes displayed when not displaying timing in terms of frames
-UserPreferencesView.view2d_grid_minimum_spacing -> view2d_grid_minimum_spacing:    int    Minimum number of pixels between each gridline in 2D Viewports
+UserPreferencesView.view2d_grid_minimum_spacing -> view2d_grid_min_spacing:    int    Minimum number of pixels between each gridline in 2D Viewports
 UserPreferencesView.wheel_scroll_lines -> wheel_scroll_lines:    int    The number of lines scrolled at a time with the mouse wheel
 UserSolidLight.diffuse_color -> diffuse_color:    float    The diffuse color of the OpenGL light
 UserSolidLight.direction -> direction:    float    The direction that the OpenGL light is shining
@@ -3089,7 +3089,7 @@ VertexGroup.index -> index:    int, (read-only)    Index number of the vertex gr
 VertexGroup.name -> name:    string    Vertex group name
 VertexGroupElement.group -> group:    int, (read-only)    
 VertexGroupElement.weight -> weight:    float    Vertex Weight
-VoronoiTexture.coloring -> coloring:    enum    
+VoronoiTexture.coloring -> color_mode:    enum    
 VoronoiTexture.distance_metric -> distance_metric:    enum    
 VoronoiTexture.minkovsky_exponent -> minkovsky_exponent:    float    Minkovsky exponent
 VoronoiTexture.nabla -> nabla:    float    Size of derivative offset used for calculating normal
@@ -3157,7 +3157,7 @@ World.stars -> stars:    pointer, (read-only)    World stars settings
 World.texture_slots -> texture_slots:    collection, (read-only)    Texture slots defining the mapping and influence of textures
 World.zenith_color -> zenith_color:    float    Color at the zenith
 WorldLighting.adapt_to_speed -> adapt_to_speed:    float    Use the speed vector pass to reduce AO samples in fast moving pixels. Higher values result in more aggressive sample reduction. Requires Vec pass enabled (for Raytrace Adaptive QMC)
-WorldLighting.ao_blend_mode -> ao_blend_mode:    enum    Defines how AO mixes with material shading
+WorldLighting.ao_blend_mode -> ao_blend_type:    enum    Defines how AO mixes with material shading
 WorldLighting.ao_factor -> ao_factor:    float    Factor for ambient occlusion blending
 WorldLighting.bias -> bias:    float    Bias (in radians) to prevent smoothed faces from showing banding (for Raytrace Constant Jittered)
 WorldLighting.correction -> correction:    float    Ad-hoc correction for over-occlusion due to the approximation (for Approximate)
