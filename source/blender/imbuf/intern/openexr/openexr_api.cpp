@@ -328,7 +328,7 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 		rect[0]= ibuf->rect_float + channels*(height-1)*width;
 		rect[1]= rect[0]+1;
 		rect[2]= rect[0]+2;
-		rect[3]= (channels >= 4)? rect[0]+3: 1.0f;
+		rect[3]= (channels >= 4)? rect[0]+3:rect[0]; /* red as alpha, is this needed since alpha isnt written? */
 
 		frameBuffer.insert ("R", Slice (FLOAT,  (char *)rect[0], xstride, ystride));
 		frameBuffer.insert ("G", Slice (FLOAT,  (char *)rect[1], xstride, ystride));
