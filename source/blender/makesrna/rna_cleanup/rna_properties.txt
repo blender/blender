@@ -55,7 +55,7 @@ AreaLamp.shadow_color -> shadow_color:    float    Color of shadows cast by the 
 AreaLamp.shadow_method -> shadow_method:    enum    Method to compute lamp shadow with
 AreaLamp.shadow_ray_samples_x -> shadow_ray_samples_x:    int    Amount of samples taken extra (samples x samples)
 AreaLamp.shadow_ray_samples_y -> shadow_ray_samples_y:    int    Amount of samples taken extra (samples x samples)
-AreaLamp.shadow_ray_sampling_method -> shadow_ray_sampling_method:    enum    Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower
+AreaLamp.shadow_ray_sampling_method -> shadow_ray_sample_method:    enum    Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower
 AreaLamp.shadow_soft_size -> shadow_soft_size:    float    Light size for ray shadow sampling (Raytraced shadows)
 AreaLamp.shape -> shape:    enum    Shape of the area lamp
 AreaLamp.size -> size:    float    Size of the area of the area Lamp, X direction size for Rectangle shapes
@@ -106,10 +106,10 @@ BevelModifier.edge_weight_method -> edge_weight_method:    enum    What edge wei
 BevelModifier.limit_method -> limit_method:    enum    
 BevelModifier.width -> width:    float    Bevel value/amount
 BezierSplinePoint.co -> co:    float    Coordinates of the control point
-BezierSplinePoint.handle1 -> handle1:    float    Coordinates of the first handle
-BezierSplinePoint.handle1_type -> handle1_type:    enum    Handle types
-BezierSplinePoint.handle2 -> handle2:    float    Coordinates of the second handle
-BezierSplinePoint.handle2_type -> handle2_type:    enum    Handle types
+BezierSplinePoint.handle1 -> handle_left:    float    Coordinates of the first handle
+BezierSplinePoint.handle1_type -> handle_left_type:    enum    Handle types
+BezierSplinePoint.handle2 -> handle_right:    float    Coordinates of the second handle
+BezierSplinePoint.handle2_type -> handle_right_type:    enum    Handle types
 BezierSplinePoint.radius -> radius:    float, (read-only)    Radius for bevelling
 BezierSplinePoint.tilt -> tilt:    float    Tilt in 3D View
 BezierSplinePoint.weight -> weight:    float    Softbody goal weight
@@ -134,18 +134,18 @@ BoidSettings.accuracy -> accuracy:    float    Accuracy of attack
 BoidSettings.active_boid_state -> active_boid_state:    pointer, (read-only)    
 BoidSettings.active_boid_state_index -> active_boid_state_index:    int    
 BoidSettings.aggression -> aggression:    float    Boid will fight this times stronger enemy
-BoidSettings.air_max_acc -> air_max_acc:    float    Maximum acceleration in air (relative to maximum speed)
-BoidSettings.air_max_ave -> air_max_ave:    float    Maximum angular velocity in air (relative to 180 degrees)
-BoidSettings.air_max_speed -> air_max_speed:    float    Maximum speed in air
-BoidSettings.air_min_speed -> air_min_speed:    float    Minimum speed in air (relative to maximum speed)
+BoidSettings.air_max_acc -> air_acc_max:    float    Maximum acceleration in air (relative to maximum speed)
+BoidSettings.air_max_ave -> air_ave_max:    float    Maximum angular velocity in air (relative to 180 degrees)
+BoidSettings.air_max_speed -> air_speed_max:    float    Maximum speed in air
+BoidSettings.air_min_speed -> air_speed_min:    float    Minimum speed in air (relative to maximum speed)
 BoidSettings.air_personal_space -> air_personal_space:    float    Radius of boids personal space in air (% of particle size)
 BoidSettings.banking -> bank:    float    Amount of rotation around velocity vector on turns
 BoidSettings.health -> health:    float    Initial boid health when born
 BoidSettings.height -> height:    float    Boid height relative to particle size
 BoidSettings.land_jump_speed -> land_jump_speed:    float    Maximum speed for jumping
-BoidSettings.land_max_acc -> land_max_acc:    float    Maximum acceleration on land (relative to maximum speed)
-BoidSettings.land_max_ave -> land_max_ave:    float    Maximum angular velocity on land (relative to 180 degrees)
-BoidSettings.land_max_speed -> land_max_speed:    float    Maximum speed on land
+BoidSettings.land_max_acc -> land_acc_max:    float    Maximum acceleration on land (relative to maximum speed)
+BoidSettings.land_max_ave -> land_ave_max:    float    Maximum angular velocity on land (relative to 180 degrees)
+BoidSettings.land_max_speed -> land_speed_max:    float    Maximum speed on land
 BoidSettings.land_personal_space -> land_personal_space:    float    Radius of boids personal space on land (% of particle size)
 BoidSettings.land_stick_force -> land_stick_force:    float    How strong a force must be to start effecting a boid on land
 BoidSettings.landing_smoothness -> land_smooth:    float    How smoothly the boids land
@@ -241,7 +241,7 @@ ClothCollisionSettings.group -> group:    pointer    Limit colliders to this Gro
 ClothCollisionSettings.min_distance -> distance_min:    float    Minimum distance between collision objects before collision response takes in
 ClothCollisionSettings.self_collision_quality -> self_collision_quality:    int    How many self collision iterations should be done. (higher is better quality but slower)
 ClothCollisionSettings.self_friction -> self_friction:    float    Friction/damping with self contact
-ClothCollisionSettings.self_min_distance -> self_min_distance:    float    0.5 means no distance at all, 1.0 is maximum distance
+ClothCollisionSettings.self_min_distance -> self_distance_min:    float    0.5 means no distance at all, 1.0 is maximum distance
 ClothModifier.collision_settings -> collision_settings:    pointer, (read-only)    
 ClothModifier.point_cache -> point_cache:    pointer, (read-only)    
 ClothModifier.settings -> settings:    pointer, (read-only)    
@@ -302,8 +302,8 @@ CompositorNodeBlur.factor -> factor:    float
 CompositorNodeBlur.factor_x -> factor_x:    float    
 CompositorNodeBlur.factor_y -> factor_y:    float    
 CompositorNodeBlur.filter_type -> filter_type:    enum    
-CompositorNodeBlur.sizex -> sizex:    int    
-CompositorNodeBlur.sizey -> sizey:    int    
+CompositorNodeBlur.sizex -> size_x:    int    
+CompositorNodeBlur.sizey -> size_y:    int    
 CompositorNodeChannelMatte.algorithm -> algorithm:    enum    Algorithm to use to limit channel
 CompositorNodeChannelMatte.channel -> channel:    enum    Channel used to determine matte
 CompositorNodeChannelMatte.color_space -> color_space:    enum    
@@ -953,10 +953,10 @@ KeyboardSensor.modifier_key -> modifier_key:    enum    Modifier key code
 KeyboardSensor.second_modifier_key -> second_modifier_key:    enum    Modifier key code
 KeyboardSensor.target -> target:    string    Property that indicates whether to log keystrokes as a string
 Keyframe.co -> co:    float    Coordinates of the control point
-Keyframe.handle1 -> handle1:    float    Coordinates of the first handle
-Keyframe.handle1_type -> handle1_type:    enum    Handle types
-Keyframe.handle2 -> handle2:    float    Coordinates of the second handle
-Keyframe.handle2_type -> handle2_type:    enum    Handle types
+Keyframe.handle1 -> handle_left:    float    Coordinates of the first handle
+Keyframe.handle1_type -> handle_left_type:    enum    Handle types
+Keyframe.handle2 -> handle_right:    float    Coordinates of the second handle
+Keyframe.handle2_type -> handle_right_type:    enum    Handle types
 Keyframe.interpolation -> interpolation:    enum    Interpolation method to use for segment of the curve from this Keyframe until the next Keyframe
 Keyframe.type -> type:    enum    The type of keyframe
 KeyingSet.active_path -> active_path:    pointer    Active Keying Set used to insert/delete keyframes
@@ -998,13 +998,13 @@ LampSkySettings.atmosphere_extinction -> atmosphere_extinction:    float    Exti
 LampSkySettings.atmosphere_inscattering -> atmosphere_inscattering:    float    Scatter contribution factor
 LampSkySettings.atmosphere_turbidity -> atmosphere_turbidity:    float    Sky turbidity
 LampSkySettings.backscattered_light -> backscattered_light:    float    Backscattered light
-TODO * LampSkySettings.horizon_brightness -> horizon_intensity:    float    Horizon brightness
+LampSkySettings.horizon_brightness -> horizon_intensity:    float    Horizon brightness
 LampSkySettings.sky_blend -> sky_blend:    float    Blend factor with sky
 LampSkySettings.sky_blend_type -> sky_blend_type:    enum    Blend mode for combining sun sky with world sky
 LampSkySettings.sky_color_space -> sky_color_space:    enum    Color space to use for internal XYZ->RGB color conversion
 LampSkySettings.sky_exposure -> sky_exposure:    float    Strength of sky shading exponential exposure correction
 LampSkySettings.spread -> spread:    float    Horizon Spread
-TODO * LampSkySettings.sun_brightness -> sun_intensity:    float    Sun brightness
+LampSkySettings.sun_brightness -> sun_intensity:    float    Sun brightness
 LampSkySettings.sun_intensity -> sun_intensity:    float    Sun intensity
 LampSkySettings.sun_size -> sun_size:    float    Sun size
 LampTextureSlot.color_factor -> color_factor:    float    Amount texture affects color values
@@ -1130,7 +1130,7 @@ Material.raytrace_mirror -> raytrace_mirror:    pointer, (read-only)    Raytrace
 Material.raytrace_transparency -> raytrace_transparency:    pointer, (read-only)    Raytraced transparency settings for the material
 Material.roughness -> rough:    float    Oren-Nayar Roughness
 Material.shadow_buffer_bias -> shadow_buffer_bias:    float    Factor to multiply shadow buffer bias with (0 is ignore.)
-Material.shadow_casting_alpha -> shadow_casting_alpha:    float    Shadow casting alpha, in use for Irregular and Deep shadow buffer
+Material.shadow_casting_alpha -> shadow_cast_alpha:    float    Shadow casting alpha, in use for Irregular and Deep shadow buffer
 Material.shadow_ray_bias -> shadow_ray_bias:    float    Shadow raytracing bias to prevent terminator problems on shadow boundary
 Material.specular_alpha -> specular_alpha:    float    Alpha transparency for specular areas
 Material.specular_color -> specular_color:    float    Specular color of the material
@@ -1245,7 +1245,7 @@ MaterialVolume.density_scale -> density_scale:    float    Multiplier for the ma
 MaterialVolume.depth_cutoff -> depth_cutoff:    float    Stop ray marching early if transmission drops below this luminance - higher values give speedups in dense volumes at the expense of accuracy
 MaterialVolume.emission -> emission:    float    Amount of light that gets emitted by the volume
 MaterialVolume.emission_color -> emission_color:    float    
-MaterialVolume.lighting_mode -> lighting_mode:    enum    Method of shading, attenuating, and scattering light through the volume
+MaterialVolume.lighting_mode -> light_mode:    enum    Method of shading, attenuating, and scattering light through the volume
 MaterialVolume.ms_diffusion -> ms_diffusion:    float    Diffusion factor, the strength of the blurring effect
 MaterialVolume.ms_intensity -> ms_intensity:    float    Multiplier for multiple scattered light energy
 MaterialVolume.ms_spread -> ms_spread:    float    Proportional distance over which the light is diffused
@@ -1805,7 +1805,7 @@ PointLamp.shadow_adaptive_threshold -> shadow_adaptive_threshold:    float    Th
 PointLamp.shadow_color -> shadow_color:    float    Color of shadows cast by the lamp
 PointLamp.shadow_method -> shadow_method:    enum    Method to compute lamp shadow with
 PointLamp.shadow_ray_samples -> shadow_ray_samples:    int    Amount of samples taken extra (samples x samples)
-PointLamp.shadow_ray_sampling_method -> shadow_ray_sampling_method:    enum    Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower
+PointLamp.shadow_ray_sampling_method -> shadow_ray_sample_method:    enum    Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower
 PointLamp.shadow_soft_size -> shadow_soft_size:    float    Light size for ray shadow sampling (Raytraced shadows)
 PointerProperty.fixed_type -> fixed_type:    pointer, (read-only)    Fixed pointer type, empty if variable type
 Pose.active_bone_group -> active_bone_group:    pointer    Active bone group for this pose
@@ -2057,8 +2057,8 @@ SceneGameData.dome_text -> dome_text:    pointer    Custom Warp Mesh data file
 SceneGameData.dome_tilt -> dome_tilt:    int    Camera rotation in horizontal axis
 SceneGameData.eye_separation -> eye_separation:    float    Set the distance between the eyes - the camera focal length/30 should be fine
 SceneGameData.fps -> fps:    int    The nominal number of game frames per second. Physics fixed timestep = 1/fps, independently of actual frame rate
-SceneGameData.framing_color -> framing_color:    float    Set colour of the bars
-SceneGameData.framing_type -> framing_type:    enum    Select the type of Framing you want
+SceneGameData.framing_color -> frame_color:    float    Set colour of the bars
+SceneGameData.framing_type -> frame_type:    enum    Select the type of Framing you want
 SceneGameData.frequency -> frequency:    int    Displays clock frequency of fullscreen display
 SceneGameData.logic_step_max -> logic_step_max:    int    Sets the maximum number of logic frame per game frame if graphics slows down the game, higher value allows better synchronization with physics
 SceneGameData.material_mode -> material_mode:    enum    Material mode to use for rendering
@@ -2371,7 +2371,7 @@ Spline.type -> type:    enum    The interpolation type for this curve element
 SplineIKConstraint.chain_length -> chain_length:    int    How many bones are included in the chain
 SplineIKConstraint.joint_bindings -> joint_bindings:    float    (EXPERIENCED USERS ONLY) The relative positions of the joints along the chain as percentages
 SplineIKConstraint.target -> target:    pointer    Curve that controls this relationship
-SplineIKConstraint.xz_scaling_mode -> xz_scaling_mode:    enum    Method used for determining the scaling of the X and Z axes of the bones
+SplineIKConstraint.xz_scaling_mode -> xz_scale_mode:    enum    Method used for determining the scaling of the X and Z axes of the bones
 SplinePoint.co -> co:    float    Point coordinates
 SplinePoint.radius -> radius:    float, (read-only)    Radius for bevelling
 SplinePoint.tilt -> tilt:    float    Tilt in 3D View
@@ -2396,7 +2396,7 @@ SpotLamp.shadow_color -> shadow_color:    float    Color of shadows cast by the 
 SpotLamp.shadow_filter_type -> shadow_filter_type:    enum    Type of shadow filter (Buffer Shadows)
 SpotLamp.shadow_method -> shadow_method:    enum    Method to compute lamp shadow with
 SpotLamp.shadow_ray_samples -> shadow_ray_samples:    int    Amount of samples taken extra (samples x samples)
-SpotLamp.shadow_ray_sampling_method -> shadow_ray_sampling_method:    enum    Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower
+SpotLamp.shadow_ray_sampling_method -> shadow_ray_sample_method:    enum    Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower
 SpotLamp.shadow_sample_buffers -> shadow_sample_buffers:    enum    Number of shadow buffers to render for better AA, this increases memory usage
 SpotLamp.shadow_soft_size -> shadow_soft_size:    float    Light size for ray shadow sampling (Raytraced shadows)
 SpotLamp.spot_blend -> spot_blend:    float    The softness of the spotlight edge
@@ -2455,7 +2455,7 @@ TextCurve.body -> body:    string    contents of this text object
 TextCurve.edit_format -> edit_format:    pointer, (read-only)    Editing settings character formatting
 TextCurve.family -> family:    string    Use Blender Objects as font characters. Give font objects a common name followed by the character it represents, eg. familya, familyb etc, and turn on Verts Duplication
 TextCurve.font -> font:    pointer    
-TextCurve.line_dist -> line_dist:    float    
+TextCurve.line_dist -> line_distance:    float    
 TextCurve.offset_x -> offset_x:    float    Horizontal offset from the object origin
 TextCurve.offset_y -> offset_y:    float    Vertical offset from the object origin
 TextCurve.shear -> shear:    float    Italic angle of the characters
@@ -2543,7 +2543,7 @@ ThemeAudioWindow.title -> title:    float
 ThemeAudioWindow.window_sliders -> window_sliders:    float    
 ThemeBoneColorSet.active -> active:    float    Color used for active bones
 ThemeBoneColorSet.normal -> normal:    float    Color used for the surface of bones
-ThemeBoneColorSet.selected -> selected:    float    Color used for selected bones
+ThemeBoneColorSet.selected -> select:    float    Color used for selected bones
 ThemeConsole.back -> back:    float    
 ThemeConsole.button -> button:    float    
 ThemeConsole.button_text -> button_text:    float    
@@ -2613,8 +2613,8 @@ ThemeFontStyle.points -> points:    int
 ThemeFontStyle.shadow -> shadow:    int    Shadow size in pixels (0, 3 and 5 supported)
 ThemeFontStyle.shadowalpha -> shadowalpha:    float    
 ThemeFontStyle.shadowcolor -> shadowcolor:    float    Shadow color in grey value
-ThemeFontStyle.shadx -> shadx:    int    Shadow offset in pixels
-ThemeFontStyle.shady -> shady:    int    Shadow offset in pixels
+ThemeFontStyle.shadx -> shadow_offset_x:    int    Shadow offset in pixels
+ThemeFontStyle.shady -> shadow_offset_y:    int    Shadow offset in pixels
 ThemeGraphEditor.active_channels_group -> active_channels_group:    float    
 ThemeGraphEditor.back -> back:    float    
 ThemeGraphEditor.button -> button:    float    
@@ -3074,7 +3074,7 @@ UserPreferencesView.properties_width_check -> properties_width_check:    int    
 UserPreferencesView.rotation_angle -> rotation_angle:    int    The rotation step for numerical pad keys (2 4 6 8)
 UserPreferencesView.smooth_view -> smooth_view:    int    The time to animate the view in milliseconds, zero to disable
 UserPreferencesView.timecode_style -> timecode_style:    enum    Format of Time Codes displayed when not displaying timing in terms of frames
-UserPreferencesView.view2d_grid_minimum_spacing -> view2d_grid_min_spacing:    int    Minimum number of pixels between each gridline in 2D Viewports
+UserPreferencesView.view2d_grid_minimum_spacing -> view2d_grid_spacing_min:    int    Minimum number of pixels between each gridline in 2D Viewports
 UserPreferencesView.wheel_scroll_lines -> wheel_scroll_lines:    int    The number of lines scrolled at a time with the mouse wheel
 UserSolidLight.diffuse_color -> diffuse_color:    float    The diffuse color of the OpenGL light
 UserSolidLight.direction -> direction:    float    The direction that the OpenGL light is shining
