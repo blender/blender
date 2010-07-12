@@ -197,6 +197,12 @@ class RENDER_PT_freestyle(RenderButtonsPanel):
         col.prop(freestyle, "mode", text="Control Mode")
 
         if freestyle.mode == "EDITOR":
+            col.label(text="Edge Detection Options:")
+            col.prop(freestyle, "crease_angle")
+            col.prop(freestyle, "sphere_radius")
+            sub = col.row()
+            sub.prop(freestyle, "dkr_epsilon")
+            sub.active = any(lineset.select_suggestive_contour for lineset in freestyle.linesets)
 
             lineset = freestyle.active_lineset
 
@@ -220,31 +226,10 @@ class RENDER_PT_freestyle(RenderButtonsPanel):
 
             if lineset:
                 col.prop(lineset, "name")
+                col.prop(lineset, "select_by_visibility")
+                col.prop(lineset, "select_by_edge_types")
 
-                row = col.row()
-                row.prop(lineset, "selection_negation", expand=True)
-                row = col.row()
-                row.prop(lineset, "selection_combination", expand=True)
-
-                row = col.row()
-                sub = row.column()
-                sub.prop(lineset, "select_silhouette")
-                sub.prop(lineset, "select_border")
-                sub.prop(lineset, "select_crease")
-                sub.prop(lineset, "select_ridge")
-                sub.prop(lineset, "select_valley")
-                sub.prop(lineset, "select_suggestive_contour")
-                sub.prop(lineset, "select_material_boundary")
-                sub = row.column()
-                sub.prop(lineset, "select_contour")
-                sub.prop(lineset, "select_external_contour")
-                sub.prop(lineset, "select_visibility")
-                col.prop(lineset, "crease_angle")
-                col.prop(lineset, "sphere_radius")
-                if lineset.select_suggestive_contour:
-                    col.label(text="Suggestive Contours:")
-                    col.prop(lineset, "dkr_epsilon")
-                if lineset.select_visibility:
+                if lineset.select_by_visibility:
                     col.label(text="Visibility:")
                     sub = col.row(align=True)
                     sub.prop(lineset, "visibility", expand=True)
@@ -252,6 +237,26 @@ class RENDER_PT_freestyle(RenderButtonsPanel):
                         sub = col.row(align=True)
                         sub.prop(lineset, "qi_start")
                         sub.prop(lineset, "qi_end")
+
+                if lineset.select_by_edge_types:
+                    col.label(text="Edge Types:")
+                    row = col.row()
+                    row.prop(lineset, "edge_type_negation", expand=True)
+                    row = col.row()
+                    row.prop(lineset, "edge_type_combination", expand=True)
+
+                    row = col.row()
+                    sub = row.column()
+                    sub.prop(lineset, "select_silhouette")
+                    sub.prop(lineset, "select_border")
+                    sub.prop(lineset, "select_crease")
+                    sub.prop(lineset, "select_ridge")
+                    sub.prop(lineset, "select_valley")
+                    sub.prop(lineset, "select_suggestive_contour")
+                    sub.prop(lineset, "select_material_boundary")
+                    sub = row.column()
+                    sub.prop(lineset, "select_contour")
+                    sub.prop(lineset, "select_external_contour")
 
         else: # freestyle.mode == "SCRIPT"
 

@@ -373,12 +373,10 @@ extern "C" {
 		lineset->linestyle = FRS_new_linestyle("LineStyle", NULL);
 		lineset->flags |= FREESTYLE_LINESET_ENABLED;
 		lineset->selection = 0;
-		lineset->crease_angle = 134.43f;
-		lineset->sphere_radius = 1.0f;
-		lineset->dkr_epsilon = 0.001f;
 		lineset->qi = FREESTYLE_QI_VISIBLE;
 		lineset->qi_start = 0;
 		lineset->qi_end = 100;
+		lineset->edge_types = 0;
 		lineset->objects.first = lineset->objects.last = NULL;
 		if (lineset_index > 0)
 			sprintf(lineset->name, "LineSet %i", lineset_index+1);

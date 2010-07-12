@@ -1535,14 +1535,14 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem selection_negation_items[] = {
-		{0, "INCLUSIVE", 0, "Inclusive", "Select feature edges satisfying the given selection criteria."},
-		{FREESTYLE_LINESET_SEL_NOT, "EXCLUSIVE", 0, "Exclusive", "Select feature edges not satisfying the given selection criteria."},
+	static EnumPropertyItem negation_items[] = {
+		{0, "INCLUSIVE", 0, "Inclusive", "Select feature edges satisfying the given edge type conditions."},
+		{FREESTYLE_LINESET_FE_NOT, "EXCLUSIVE", 0, "Exclusive", "Select feature edges not satisfying the given edge type conditions."},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem selection_combination_items[] = {
-		{0, "AND", 0, "Logical AND", "Combine selection criteria by logical AND (logical conjunction)."},
-		{FREESTYLE_LINESET_SEL_OR, "OR", 0, "Logical OR", "Combine selection criteria by logical OR (logical disjunction)."},
+	static EnumPropertyItem combination_items[] = {
+		{0, "AND", 0, "Logical AND", "Combine feature edge type conditions by logical AND (logical conjunction)."},
+		{FREESTYLE_LINESET_FE_OR, "OR", 0, "Logical OR", "Combine feature edge type conditions by logical OR (logical disjunction)."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem freestyle_ui_mode_items[] = {
@@ -1551,9 +1551,9 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem visibility_items[] ={
-		{FREESTYLE_QI_VISIBLE, "VISIBLE", 0, "Visible", "Select visible edges."},
-		{FREESTYLE_QI_HIDDEN, "HIDDEN", 0, "Hidden", "Select hidden edges."},
-		{FREESTYLE_QI_RANGE, "RANGE", 0, "QI Range", "Select edges within a range of quantitative invisibility (QI) values."},
+		{FREESTYLE_QI_VISIBLE, "VISIBLE", 0, "Visible", "Select visible feature edges."},
+		{FREESTYLE_QI_HIDDEN, "HIDDEN", 0, "Hidden", "Select hidden feature edges."},
+		{FREESTYLE_QI_RANGE, "RANGE", 0, "QI Range", "Select feature edges within a range of quantitative invisibility (QI) values."},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* FreestyleLineSet */
@@ -1581,16 +1581,26 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enabled", "Enable or disable the line set.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "selection_negation", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
-	RNA_def_property_enum_items(prop, selection_negation_items);
-	RNA_def_property_ui_text(prop, "Selection Negation", "Set the negation operation for selection criteria.");
+	prop= RNA_def_property(srna, "select_by_visibility", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_VISIBILITY);
+	RNA_def_property_ui_text(prop, "Selection by Visibility", "Select feature edges based on visibility.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "selection_combination", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "select_by_edge_types", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_EDGE_TYPES);
+	RNA_def_property_ui_text(prop, "Selection by Edge Types", "Select feature edges based on edge types.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "edge_type_negation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
-	RNA_def_property_enum_items(prop, selection_combination_items);
-	RNA_def_property_ui_text(prop, "Selection Combination", "Set the combination operation for selection criteria.");
+	RNA_def_property_enum_items(prop, negation_items);
+	RNA_def_property_ui_text(prop, "Edge Type Negation", "Set the negation operation for conditions on feature edge types.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "edge_type_combination", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
+	RNA_def_property_enum_items(prop, combination_items);
+	RNA_def_property_ui_text(prop, "Edge Type Combination", "Set the combination operation for conditions on feature edge types.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
@@ -1599,77 +1609,54 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Target Objects", "A list of objects on which stylized lines are drawn.");
 
 	prop= RNA_def_property(srna, "select_silhouette", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_SILHOUETTE);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_SILHOUETTE);
 	RNA_def_property_ui_text(prop, "Silhouette", "Select silhouette edges.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_border", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_BORDER);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_BORDER);
 	RNA_def_property_ui_text(prop, "Border", "Select border edges.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_crease", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_CREASE);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_CREASE);
 	RNA_def_property_ui_text(prop, "Crease", "Select crease edges.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_ridge", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_RIDGE);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_RIDGE);
 	RNA_def_property_ui_text(prop, "Ridge", "Select ridges.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_valley", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_VALLEY);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_VALLEY);
 	RNA_def_property_ui_text(prop, "Valley", "Select valleys.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_suggestive_contour", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_SUGGESTIVE_CONTOUR);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_SUGGESTIVE_CONTOUR);
 	RNA_def_property_ui_text(prop, "Suggestive Contour", "Select suggestive contours.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_material_boundary", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_MATERIAL_BOUNDARY);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_MATERIAL_BOUNDARY);
 	RNA_def_property_ui_text(prop, "Material Boundary", "Select edges at material boundaries.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_contour", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_CONTOUR);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_CONTOUR);
 	RNA_def_property_ui_text(prop, "Contour", "Select contours.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_external_contour", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_EXTERNAL_CONTOUR);
+	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_EXTERNAL_CONTOUR);
 	RNA_def_property_ui_text(prop, "External Contour", "Select external contours.");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-
-	prop= RNA_def_property(srna, "select_visibility", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "selection", FREESTYLE_SEL_VISIBILITY);
-	RNA_def_property_ui_text(prop, "Visibility", "Select edges based on visibility.");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-
-	prop= RNA_def_property(srna, "crease_angle", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "crease_angle");
-	RNA_def_property_range(prop, 0.0, 180.0);
-	RNA_def_property_ui_text(prop, "Crease Angle", "Angular threshold in degrees (between 0 and 180) for detecting crease edges.");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-
-	prop= RNA_def_property(srna, "sphere_radius", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "sphere_radius");
-	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Sphere Radius", "Sphere radius for computing curvatures.");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-
-	prop= RNA_def_property(srna, "dkr_epsilon", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "dkr_epsilon");
-	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Kr Derivative Epsilon", "Kr derivative epsilon for computing suggestive contours.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "visibility", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "qi");
 	RNA_def_property_enum_items(prop, visibility_items);
-	RNA_def_property_ui_text(prop, "Visibility", "Select edges based on visibility.");
+	RNA_def_property_ui_text(prop, "Visibility", "Determine how to use visibility for feature edge selection.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "qi_start", PROP_INT, PROP_UNSIGNED);

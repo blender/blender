@@ -16,20 +16,23 @@
 /* FreestyleLineSet::flags */
 #define FREESTYLE_LINESET_CURRENT  1
 #define FREESTYLE_LINESET_ENABLED  2
-#define FREESTYLE_LINESET_SEL_NOT  4
-#define FREESTYLE_LINESET_SEL_OR   8
+#define FREESTYLE_LINESET_FE_NOT   4
+#define FREESTYLE_LINESET_FE_OR    8
 
 /* FreestyleLineSet::selection */
-#define FREESTYLE_SEL_SILHOUETTE          1
-#define FREESTYLE_SEL_BORDER              2
-#define FREESTYLE_SEL_CREASE              4
-#define FREESTYLE_SEL_RIDGE               8
-#define FREESTYLE_SEL_VALLEY              16
-#define FREESTYLE_SEL_SUGGESTIVE_CONTOUR  32
-#define FREESTYLE_SEL_MATERIAL_BOUNDARY   64
-#define FREESTYLE_SEL_CONTOUR             128
-#define FREESTYLE_SEL_EXTERNAL_CONTOUR    256
-#define FREESTYLE_SEL_VISIBILITY          512
+#define FREESTYLE_SEL_VISIBILITY  1
+#define FREESTYLE_SEL_EDGE_TYPES  2
+
+/* FreestyleLineSet::fedge_types */
+#define FREESTYLE_FE_SILHOUETTE          1
+#define FREESTYLE_FE_BORDER              2
+#define FREESTYLE_FE_CREASE              4
+#define FREESTYLE_FE_RIDGE               8
+#define FREESTYLE_FE_VALLEY              16
+#define FREESTYLE_FE_SUGGESTIVE_CONTOUR  32
+#define FREESTYLE_FE_MATERIAL_BOUNDARY   64
+#define FREESTYLE_FE_CONTOUR             128
+#define FREESTYLE_FE_EXTERNAL_CONTOUR    512
 
 /* FreestyleLineSet::qi */
 #define FREESTYLE_QI_VISIBLE  1
@@ -46,14 +49,12 @@ typedef struct FreestyleLineSet {
 
 	char name[32]; /* line set name */
 	int flags;
-	int selection; /* feature edge selection */
 
-	float crease_angle;
-	float sphere_radius;
-	float dkr_epsilon;
+	int selection; /* selection criteria */
 	short qi; /* quantitative invisibility */
-	short pad;
+	short pad1;
 	int qi_start, qi_end;
+	int edge_types; /* feature edge types */
 
 	FreestyleLineStyle *linestyle; /* line style */
 
