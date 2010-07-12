@@ -162,7 +162,6 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "show_view_name", text="View Name")
         col.prop(view, "show_playback_fps", text="Playback FPS")
         col.prop(view, "global_scene")
-        col.prop(view, "pin_floating_panels")
         col.prop(view, "object_origin_size")
 
         col.separator()

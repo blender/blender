@@ -439,7 +439,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_FLIPFULLSCREEN		(1 << 7)
 #define USER_ALLWINCODECS		(1 << 8)
 #define USER_MENUOPENAUTO		(1 << 9)
-#define USER_PANELPINNED		(1 << 10)
+#define USER_PANELPINNED		(1 << 10)		/* deprecated */
 #define USER_AUTOPERSP     		(1 << 11)
 #define USER_LOCKAROUND     	(1 << 12)
 #define USER_GLOBALUNDO     	(1 << 13)
