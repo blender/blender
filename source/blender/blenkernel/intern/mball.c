@@ -2125,13 +2125,22 @@ void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 	if((totelem > 512) && (totelem <= 1024)) init_metaball_octal_tree(4);
 	if(totelem > 1024) init_metaball_octal_tree(5);
 
-	/* don't polygonize metaballs with too high resolution (base mball to small) */
+	/* don't polygonize metaballs with too high resolution (base mball to small)
+	 * note: Eps was 0.0001f but this was giving problems for blood animation for durian, using 0.00001f */
 	if(metaball_tree) {
-		if(ob->size[0]<=0.0001f*(metaball_tree->first->x_max - metaball_tree->first->x_min) ||
-			   ob->size[1]<=0.0001f*(metaball_tree->first->y_max - metaball_tree->first->y_min) ||
-			   ob->size[2]<=0.0001f*(metaball_tree->first->z_max - metaball_tree->first->z_min))
+		if(	ob->size[0] <= 0.00001f * (metaball_tree->first->x_max - metaball_tree->first->x_min) ||
+			ob->size[1] <= 0.00001f * (metaball_tree->first->y_max - metaball_tree->first->y_min) ||
+			ob->size[2] <= 0.00001f * (metaball_tree->first->z_max - metaball_tree->first->z_min))
 		{
+			new_pgn_element(-1); /* free values created by init_meta */
+
 			MEM_freeN(mainb);
+
+			/* free tree */
+			free_metaball_octal_node(metaball_tree->first);
+			MEM_freeN(metaball_tree);
+			metaball_tree= NULL;
+
 			return;
 		}
 	}
