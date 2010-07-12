@@ -12,8 +12,8 @@ ActionActuator.property -> property:    string    Use this property to define th
 ActionConstraint.action -> action:    pointer    
 ActionConstraint.frame_end -> frame_end:    int    Last frame of the Action to use
 ActionConstraint.frame_start -> frame_start:    int    First frame of the Action to use
-ActionConstraint.maximum -> maximum:    float    Maximum value for target channel range
-ActionConstraint.minimum -> minimum:    float    Minimum value for target channel range
+ActionConstraint.maximum -> max:    float    Maximum value for target channel range
+ActionConstraint.minimum -> min:    float    Minimum value for target channel range
 ActionConstraint.subtarget -> subtarget:    string    
 ActionConstraint.target -> target:    pointer    Target Object
 ActionConstraint.transform_channel -> transform_channel:    enum    Transformation channel from the target that is used to key the Action
@@ -148,7 +148,7 @@ BoidSettings.land_max_ave -> land_max_ave:    float    Maximum angular velocity 
 BoidSettings.land_max_speed -> land_max_speed:    float    Maximum speed on land
 BoidSettings.land_personal_space -> land_personal_space:    float    Radius of boids personal space on land (% of particle size)
 BoidSettings.land_stick_force -> land_stick_force:    float    How strong a force must be to start effecting a boid on land
-BoidSettings.landing_smoothness -> landing_smoothness:    float    How smoothly the boids land
+BoidSettings.landing_smoothness -> land_smooth:    float    How smoothly the boids land
 BoidSettings.range -> range:    float    The maximum distance from which a boid can attack
 BoidSettings.states -> states:    collection, (read-only)    
 BoidSettings.strength -> strength:    float    Maximum caused damage on attack per second
@@ -156,7 +156,7 @@ BoidState.active_boid_rule -> active_boid_rule:    pointer, (read-only)
 BoidState.active_boid_rule_index -> active_boid_rule_index:    int    
 BoidState.falloff -> falloff:    float    
 BoidState.name -> name:    string    Boid state name
-BoidState.rule_fuzziness -> rule_fuzziness:    float    
+BoidState.rule_fuzziness -> rule_fuzzy:    float    
 BoidState.rules -> rules:    collection, (read-only)    
 BoidState.ruleset_type -> ruleset_type:    enum    How the rules in the list are evaluated
 BoidState.volume -> volume:    float    
@@ -238,7 +238,7 @@ ClampToConstraint.target -> target:    pointer    Target Object
 ClothCollisionSettings.collision_quality -> collision_quality:    int    How many collision iterations should be done. (higher is better quality but slower)
 ClothCollisionSettings.friction -> friction:    float    Friction force if a collision happened. (higher = less movement)
 ClothCollisionSettings.group -> group:    pointer    Limit colliders to this Group
-ClothCollisionSettings.min_distance -> min_distance:    float    Minimum distance between collision objects before collision response takes in
+ClothCollisionSettings.min_distance -> distance_min:    float    Minimum distance between collision objects before collision response takes in
 ClothCollisionSettings.self_collision_quality -> self_collision_quality:    int    How many self collision iterations should be done. (higher is better quality but slower)
 ClothCollisionSettings.self_friction -> self_friction:    float    Friction/damping with self contact
 ClothCollisionSettings.self_min_distance -> self_min_distance:    float    0.5 means no distance at all, 1.0 is maximum distance
@@ -348,7 +348,7 @@ CompositorNodeDBlur.zoom -> zoom:    float
 CompositorNodeDefocus.angle -> angle:    int    Bokeh shape rotation offset in degrees
 CompositorNodeDefocus.bokeh -> bokeh:    enum    
 CompositorNodeDefocus.f_stop -> f_stop:    float    Amount of focal blur, 128=infinity=perfect focus, half the value doubles the blur radius
-CompositorNodeDefocus.max_blur -> max_blur:    float    blur limit, maximum CoC radius, 0=no limit
+CompositorNodeDefocus.max_blur -> blur_max:    float    blur limit, maximum CoC radius, 0=no limit
 CompositorNodeDefocus.samples -> samples:    int    Number of samples (16=grainy, higher=less noise)
 CompositorNodeDefocus.threshold -> threshold:    float    CoC radius threshold, prevents background bleed on in-focus midground, 0=off
 CompositorNodeDefocus.z_scale -> z_scale:    float    Scales the Z input when not using a zbuffer, controls maximum blur designated by the color white or input value 1
@@ -417,8 +417,8 @@ CompositorNodeTonemap.offset -> offset:    float    Normally always 1, but can b
 CompositorNodeTonemap.tonemap_type -> tonemap_type:    enum    
 CompositorNodeValToRGB.color_ramp -> color_ramp:    pointer, (read-only)    
 CompositorNodeVecBlur.factor -> factor:    float    Scaling factor for motion vectors; actually 'shutter speed' in frames
-CompositorNodeVecBlur.max_speed -> max_speed:    int    Maximum speed, or zero for none
-CompositorNodeVecBlur.min_speed -> min_speed:    int    Minimum speed for a pixel to be blurred; used to separate background from foreground
+CompositorNodeVecBlur.max_speed -> speed_max:    int    Maximum speed, or zero for none
+CompositorNodeVecBlur.min_speed -> speed_min:    int    Minimum speed for a pixel to be blurred; used to separate background from foreground
 CompositorNodeVecBlur.samples -> samples:    int    
 ConsoleLine.current_character -> current_character:    int    
 ConsoleLine.line -> line:    string    Text in the line
@@ -440,9 +440,9 @@ ConstraintActuator.limit -> limit:    enum
 ConstraintActuator.limit_max -> limit_max:    float    
 ConstraintActuator.limit_min -> limit_min:    float    
 ConstraintActuator.material -> material:    string    Ray detects only Objects with this material
-ConstraintActuator.max_angle -> max_angle:    float    Maximum angle (in degree) allowed with target direction. No correction is done if angle with target direction is between min and max
-ConstraintActuator.max_rotation -> max_rotation:    float    Reference Direction
-ConstraintActuator.min_angle -> min_angle:    float    Minimum angle (in degree) to maintain with target direction. No correction is done if angle with target direction is between min and max
+ConstraintActuator.max_angle -> angle_max:    float    Maximum angle (in degree) allowed with target direction. No correction is done if angle with target direction is between min and max
+ConstraintActuator.max_rotation -> rotation_max:    float    Reference Direction
+ConstraintActuator.min_angle -> angle_min:    float    Minimum angle (in degree) to maintain with target direction. No correction is done if angle with target direction is between min and max
 ConstraintActuator.mode -> mode:    enum    The type of the constraint
 ConstraintActuator.property -> property:    string    Ray detect only Objects with this property
 ConstraintActuator.range -> range:    float    Set the maximum length of ray
@@ -669,12 +669,12 @@ FModifierCycles.after_mode -> after_mode:    enum    Cycling mode to use after l
 FModifierCycles.before_cycles -> before_cycles:    float    Maximum number of cycles to allow before first keyframe. (0 = infinite)
 FModifierCycles.before_mode -> before_mode:    enum    Cycling mode to use before first keyframe
 FModifierEnvelope.control_points -> control_points:    collection, (read-only)    Control points defining the shape of the envelope
-FModifierEnvelope.default_maximum -> default_maximum:    float    Upper distance from Reference Value for 1:1 default influence
-FModifierEnvelope.default_minimum -> default_minimum:    float    Lower distance from Reference Value for 1:1 default influence
+FModifierEnvelope.default_maximum -> default_max:    float    Upper distance from Reference Value for 1:1 default influence
+FModifierEnvelope.default_minimum -> default_min:    float    Lower distance from Reference Value for 1:1 default influence
 FModifierEnvelope.reference_value -> reference_value:    float    Value that envelope's influence is centered around / based on
 FModifierEnvelopeControlPoint.frame -> frame:    float    Frame this control-point occurs on
-FModifierEnvelopeControlPoint.maximum -> maximum:    float    Upper bound of envelope at this control-point
-FModifierEnvelopeControlPoint.minimum -> minimum:    float    Lower bound of envelope at this control-point
+FModifierEnvelopeControlPoint.maximum -> max:    float    Upper bound of envelope at this control-point
+FModifierEnvelopeControlPoint.minimum -> min:    float    Lower bound of envelope at this control-point
 FModifierFunctionGenerator.amplitude -> amplitude:    float    Scale factor determining the maximum/minimum values
 FModifierFunctionGenerator.function_type -> function_type:    enum    Type of built-in function to use
 FModifierFunctionGenerator.phase_multiplier -> phase_multiplier:    float    Scale factor determining the 'speed' of the function
@@ -683,10 +683,10 @@ FModifierFunctionGenerator.value_offset -> value_offset:    float    Constant fa
 FModifierGenerator.coefficients -> coefficients:    float    Coefficients for 'x' (starting from lowest power of x^0)
 FModifierGenerator.mode -> mode:    enum    Type of generator to use
 FModifierGenerator.poly_order -> poly_order:    int    The highest power of 'x' for this polynomial. (number of coefficients - 1)
-FModifierLimits.maximum_x -> maximum_x:    float    Highest X value to allow
-FModifierLimits.maximum_y -> maximum_y:    float    Highest Y value to allow
-FModifierLimits.minimum_x -> minimum_x:    float    Lowest X value to allow
-FModifierLimits.minimum_y -> minimum_y:    float    Lowest Y value to allow
+FModifierLimits.maximum_x -> max_x:    float    Highest X value to allow
+FModifierLimits.maximum_y -> max_y:    float    Highest Y value to allow
+FModifierLimits.minimum_x -> min_x:    float    Lowest X value to allow
+FModifierLimits.minimum_y -> min_y:    float    Lowest Y value to allow
 FModifierNoise.depth -> depth:    int    Amount of fine level detail present in the noise
 FModifierNoise.modification -> modification:    enum    Method of modifying the existing F-Curve
 FModifierNoise.phase -> phase:    float    A random seed for the noise effect
@@ -716,13 +716,13 @@ FieldSettings.guide_minimum -> guide_minimum:    float    The distance from whic
 FieldSettings.harmonic_damping -> harmonic_damping:    float    Damping of the harmonic force
 FieldSettings.inflow -> inflow:    float    Inwards component of the vortex force
 FieldSettings.linear_drag -> linear_drag:    float    Drag component proportional to velocity
-FieldSettings.maximum_distance -> maximum_distance:    float    Maximum distance for the field to work
-FieldSettings.minimum_distance -> minimum_distance:    float    Minimum distance for the field's fall-off
+FieldSettings.maximum_distance -> distance_max:    float    Maximum distance for the field to work
+FieldSettings.minimum_distance -> distance_min:    float    Minimum distance for the field's fall-off
 FieldSettings.noise -> noise:    float    Noise of the force
 FieldSettings.quadratic_drag -> quadratic_drag:    float    Drag component proportional to the square of velocity
 FieldSettings.radial_falloff -> radial_falloff:    float    Radial falloff power (real gravitational falloff = 2)
-FieldSettings.radial_maximum -> radial_maximum:    float    Maximum radial distance for the field to work
-FieldSettings.radial_minimum -> radial_minimum:    float    Minimum radial distance for the field's fall-off
+FieldSettings.radial_maximum -> radial_max:    float    Maximum radial distance for the field to work
+FieldSettings.radial_minimum -> radial_min:    float    Minimum radial distance for the field's fall-off
 FieldSettings.rest_length -> rest_length:    float    Rest length of the harmonic force
 FieldSettings.seed -> seed:    int    Seed of the noise
 FieldSettings.shape -> shape:    enum    Which direction is used to calculate the effector force
@@ -773,8 +773,8 @@ GPencilLayer.active_frame -> active_frame:    pointer, (read-only)    Frame curr
 GPencilLayer.color -> color:    float    Color for all strokes in this layer
 GPencilLayer.frames -> frames:    collection, (read-only)    Sketches for this layer on different frames
 GPencilLayer.info -> info:    string    Layer name
-GPencilLayer.line_thickness -> line_thickness:    int    Thickness of strokes (in pixels)
-GPencilLayer.max_ghost_range -> max_ghost_range:    int    Maximum number of frames on either side of the active frame to show (0 = show the 'first' available sketch on either side)
+GPencilLayer.line_thickness -> line_width:    int    Thickness of strokes (in pixels)
+GPencilLayer.max_ghost_range -> ghost_range_max:    int    Maximum number of frames on either side of the active frame to show (0 = show the 'first' available sketch on either side)
 GPencilLayer.opacity -> opacity:    float    Layer Opacity
 GPencilStroke.points -> points:    collection, (read-only)    Stroke data points
 GPencilStrokePoint.co -> co:    float    
@@ -791,8 +791,8 @@ GameObjectSettings.damping -> damping:    float    General movement damping
 GameObjectSettings.form_factor -> form_factor:    float    Form factor scales the inertia tensor
 GameObjectSettings.friction_coefficients -> friction_coefficients:    float    Relative friction coefficient in the in the X, Y and Z directions, when anisotropic friction is enabled
 GameObjectSettings.mass -> mass:    float    Mass of the object
-GameObjectSettings.maximum_velocity -> maximum_velocity:    float    Clamp velocity to this maximum speed
-GameObjectSettings.minimum_velocity -> minimum_velocity:    float    Clamp velocity to this minimum speed (except when totally still)
+GameObjectSettings.maximum_velocity -> velocity_max:    float    Clamp velocity to this maximum speed
+GameObjectSettings.minimum_velocity -> velocity_min:    float    Clamp velocity to this minimum speed (except when totally still)
 GameObjectSettings.physics_type -> physics_type:    enum    Selects the type of physical representation
 GameObjectSettings.properties -> properties:    collection, (read-only)    Game engine properties
 GameObjectSettings.radius -> radius:    float    Radius of bounding sphere and material physics
@@ -803,7 +803,7 @@ GameProperty.name -> name:    string    Available as GameObject attributes in th
 GameProperty.type -> type:    enum    
 GameSoftBodySettings.cluster_iterations -> cluster_iterations:    int    Specify the number of cluster iterations
 GameSoftBodySettings.dynamic_friction -> dynamic_friction:    float    Dynamic Friction
-GameSoftBodySettings.linstiff -> linstiff:    float    Linear stiffness of the soft body links
+GameSoftBodySettings.linstiff -> linear_stiffness:    float    Linear stiffness of the soft body links
 GameSoftBodySettings.margin -> margin:    float    Collision margin for soft body. Small value makes the algorithm unstable
 GameSoftBodySettings.position_iterations -> position_iterations:    int    Position solver iterations
 GameSoftBodySettings.threshold -> threshold:    float    Shape matching threshold
@@ -909,9 +909,9 @@ IntProperty.step -> step:    int, (read-only)    Step size used by number button
 Itasc.dampeps -> dampeps:    float    Singular value under which damping is progressively applied. Higher values=more stability, less reactivity. Default=0.1
 Itasc.dampmax -> dampmax:    float    Maximum damping coefficient when singular value is nearly 0. Higher values=more stability, less reactivity. Default=0.5
 Itasc.feedback -> feedback:    float    Feedback coefficient for error correction. Average response time=1/feedback. Default=20
-Itasc.max_step -> max_step:    float    Higher bound for timestep in second in case of automatic substeps
-Itasc.max_velocity -> max_velocity:    float    Maximum joint velocity in rad/s. Default=50
-Itasc.min_step -> min_step:    float    Lower bound for timestep in second in case of automatic substeps
+Itasc.max_step -> step_max:    float    Higher bound for timestep in second in case of automatic substeps
+Itasc.max_velocity -> velocity_max:    float    Maximum joint velocity in rad/s. Default=50
+Itasc.min_step -> step_min:    float    Lower bound for timestep in second in case of automatic substeps
 Itasc.mode -> mode:    enum    
 Itasc.num_iter -> num_iter:    int    Maximum number of iterations for convergence in case of reiteration
 Itasc.num_step -> num_step:    int    Divides the frame interval into this many steps
@@ -998,13 +998,13 @@ LampSkySettings.atmosphere_extinction -> atmosphere_extinction:    float    Exti
 LampSkySettings.atmosphere_inscattering -> atmosphere_inscattering:    float    Scatter contribution factor
 LampSkySettings.atmosphere_turbidity -> atmosphere_turbidity:    float    Sky turbidity
 LampSkySettings.backscattered_light -> backscattered_light:    float    Backscattered light
-LampSkySettings.horizon_brightness -> horizon_brightness:    float    Horizon brightness
+TODO * LampSkySettings.horizon_brightness -> horizon_intensity:    float    Horizon brightness
 LampSkySettings.sky_blend -> sky_blend:    float    Blend factor with sky
 LampSkySettings.sky_blend_type -> sky_blend_type:    enum    Blend mode for combining sun sky with world sky
 LampSkySettings.sky_color_space -> sky_color_space:    enum    Color space to use for internal XYZ->RGB color conversion
 LampSkySettings.sky_exposure -> sky_exposure:    float    Strength of sky shading exponential exposure correction
 LampSkySettings.spread -> spread:    float    Horizon Spread
-LampSkySettings.sun_brightness -> sun_brightness:    float    Sun brightness
+TODO * LampSkySettings.sun_brightness -> sun_intensity:    float    Sun brightness
 LampSkySettings.sun_intensity -> sun_intensity:    float    Sun intensity
 LampSkySettings.sun_size -> sun_size:    float    Sun size
 LampTextureSlot.color_factor -> color_factor:    float    Amount texture affects color values
@@ -1031,24 +1031,24 @@ LimitDistanceConstraint.distance -> distance:    float    Radius of limiting sph
 LimitDistanceConstraint.limit_mode -> limit_mode:    enum    Distances in relation to sphere of influence to allow
 LimitDistanceConstraint.subtarget -> subtarget:    string    
 LimitDistanceConstraint.target -> target:    pointer    Target Object
-LimitLocationConstraint.maximum_x -> maximum_x:    float    Highest X value to allow
-LimitLocationConstraint.maximum_y -> maximum_y:    float    Highest Y value to allow
-LimitLocationConstraint.maximum_z -> maximum_z:    float    Highest Z value to allow
-LimitLocationConstraint.minimum_x -> minimum_x:    float    Lowest X value to allow
-LimitLocationConstraint.minimum_y -> minimum_y:    float    Lowest Y value to allow
-LimitLocationConstraint.minimum_z -> minimum_z:    float    Lowest Z value to allow
-LimitRotationConstraint.maximum_x -> maximum_x:    float    Highest X value to allow
-LimitRotationConstraint.maximum_y -> maximum_y:    float    Highest Y value to allow
-LimitRotationConstraint.maximum_z -> maximum_z:    float    Highest Z value to allow
-LimitRotationConstraint.minimum_x -> minimum_x:    float    Lowest X value to allow
-LimitRotationConstraint.minimum_y -> minimum_y:    float    Lowest Y value to allow
-LimitRotationConstraint.minimum_z -> minimum_z:    float    Lowest Z value to allow
-LimitScaleConstraint.maximum_x -> maximum_x:    float    Highest X value to allow
-LimitScaleConstraint.maximum_y -> maximum_y:    float    Highest Y value to allow
-LimitScaleConstraint.maximum_z -> maximum_z:    float    Highest Z value to allow
-LimitScaleConstraint.minimum_x -> minimum_x:    float    Lowest X value to allow
-LimitScaleConstraint.minimum_y -> minimum_y:    float    Lowest Y value to allow
-LimitScaleConstraint.minimum_z -> minimum_z:    float    Lowest Z value to allow
+LimitLocationConstraint.maximum_x -> max_x:    float    Highest X value to allow
+LimitLocationConstraint.maximum_y -> max_y:    float    Highest Y value to allow
+LimitLocationConstraint.maximum_z -> max_z:    float    Highest Z value to allow
+LimitLocationConstraint.minimum_x -> min_x:    float    Lowest X value to allow
+LimitLocationConstraint.minimum_y -> min_y:    float    Lowest Y value to allow
+LimitLocationConstraint.minimum_z -> min_z:    float    Lowest Z value to allow
+LimitRotationConstraint.maximum_x -> max_x:    float    Highest X value to allow
+LimitRotationConstraint.maximum_y -> max_y:    float    Highest Y value to allow
+LimitRotationConstraint.maximum_z -> max_z:    float    Highest Z value to allow
+LimitRotationConstraint.minimum_x -> min_x:    float    Lowest X value to allow
+LimitRotationConstraint.minimum_y -> min_y:    float    Lowest Y value to allow
+LimitRotationConstraint.minimum_z -> min_z:    float    Lowest Z value to allow
+LimitScaleConstraint.maximum_x -> max_x:    float    Highest X value to allow
+LimitScaleConstraint.maximum_y -> max_y:    float    Highest Y value to allow
+LimitScaleConstraint.maximum_z -> max_z:    float    Highest Z value to allow
+LimitScaleConstraint.minimum_x -> min_x:    float    Lowest X value to allow
+LimitScaleConstraint.minimum_y -> min_y:    float    Lowest Y value to allow
+LimitScaleConstraint.minimum_z -> min_z:    float    Lowest Z value to allow
 LockedTrackConstraint.locked -> locked:    enum    Axis that points upward
 LockedTrackConstraint.subtarget -> subtarget:    string    
 LockedTrackConstraint.target -> target:    pointer    Target Object
@@ -1128,13 +1128,13 @@ Material.physics -> physics:    pointer, (read-only)    Game physics settings
 Material.preview_render_type -> preview_render_type:    enum    Type of preview render
 Material.raytrace_mirror -> raytrace_mirror:    pointer, (read-only)    Raytraced reflection settings for the material
 Material.raytrace_transparency -> raytrace_transparency:    pointer, (read-only)    Raytraced transparency settings for the material
-Material.roughness -> roughness:    float    Oren-Nayar Roughness
+Material.roughness -> rough:    float    Oren-Nayar Roughness
 Material.shadow_buffer_bias -> shadow_buffer_bias:    float    Factor to multiply shadow buffer bias with (0 is ignore.)
 Material.shadow_casting_alpha -> shadow_casting_alpha:    float    Shadow casting alpha, in use for Irregular and Deep shadow buffer
 Material.shadow_ray_bias -> shadow_ray_bias:    float    Shadow raytracing bias to prevent terminator problems on shadow boundary
 Material.specular_alpha -> specular_alpha:    float    Alpha transparency for specular areas
 Material.specular_color -> specular_color:    float    Specular color of the material
-Material.specular_hardness -> specular_hardness:    int    
+Material.specular_hardness -> specular_hard:    int    
 Material.specular_intensity -> specular_intensity:    float    
 Material.specular_ior -> specular_ior:    float    
 Material.specular_ramp -> specular_ramp:    pointer, (read-only)    Color ramp used to affect specular shading
@@ -1159,7 +1159,7 @@ MaterialHalo.flare_seed -> flare_seed:    int    Specifies an offset in the flar
 MaterialHalo.flare_size -> flare_size:    float    Sets the factor by which the flare is larger than the halo
 MaterialHalo.flare_subsize -> flare_subsize:    float    Sets the dimension of the subflares, dots and circles
 MaterialHalo.flares_sub -> flares_sub:    int    Sets the number of subflares
-MaterialHalo.hardness -> hardness:    int    Sets the hardness of the halo
+MaterialHalo.hardness -> hard:    int    Sets the hardness of the halo
 MaterialHalo.line_number -> line_number:    int    Sets the number of star shaped lines rendered over the halo
 MaterialHalo.rings -> rings:    int    Sets the number of rings rendered over the halo
 MaterialHalo.seed -> seed:    int    Randomizes ring dimension and line location
@@ -1194,7 +1194,7 @@ MaterialSlot.link -> link:    enum    Link material to object or the object's da
 MaterialSlot.material -> material:    pointer    Material datablock used by this material slot
 MaterialSlot.name -> name:    string, (read-only)    Material slot name
 MaterialStrand.blend_distance -> blend_distance:    float    Worldspace distance over which to blend in the surface normal
-MaterialStrand.min_size -> min_size:    float    Minimum size of strands in pixels
+MaterialStrand.min_size -> size_min:    float    Minimum size of strands in pixels
 MaterialStrand.root_size -> root_size:    float    Start size of strands in pixels or Blender units
 MaterialStrand.shape -> shape:    float    Positive values make strands rounder, negative makes strands spiky
 MaterialStrand.tip_size -> tip_size:    float    End size of strands in pixels or Blender units
@@ -1221,7 +1221,7 @@ MaterialTextureSlot.diffuse_factor -> diffuse_factor:    float    Amount texture
 MaterialTextureSlot.displacement_factor -> displacement_factor:    float    Amount texture displaces the surface
 MaterialTextureSlot.emission_factor -> emission_factor:    float    Amount texture affects emission
 MaterialTextureSlot.emit_factor -> emit_factor:    float    Amount texture affects emission
-MaterialTextureSlot.hardness_factor -> hardness_factor:    float    Amount texture affects hardness
+MaterialTextureSlot.hardness_factor -> hard_factor:    float    Amount texture affects hardness
 MaterialTextureSlot.mapping -> mapping:    enum    
 MaterialTextureSlot.mirror_factor -> mirror_factor:    float    Amount texture affects mirror color
 MaterialTextureSlot.normal_factor -> normal_factor:    float    Amount texture affects normal values
@@ -1496,7 +1496,7 @@ Object.location -> location:    float    Location of the object
 Object.material_slots -> material_slots:    collection, (read-only)    Material slots in the object
 Object.matrix_local -> matrix_local:    float    Parent relative transformation matrix
 Object.matrix_world -> matrix_world:    float    Worldspace transformation matrix
-Object.max_draw_type -> max_draw_type:    enum    Maximum draw type to display object with in viewport
+Object.max_draw_type -> draw_type:    enum    Maximum draw type to display object with in viewport
 Object.mode -> mode:    enum, (read-only)    Object interaction mode
 Object.modifiers -> modifiers:    collection, (read-only)    Modifiers affecting the geometric data of the object
 Object.motion_path -> motion_path:    pointer, (read-only)    Motion Path for this element
@@ -1752,9 +1752,9 @@ ParticleSystem.vertex_group_field -> vertex_group_field:    string    Vertex gro
 ParticleSystem.vertex_group_kink -> vertex_group_kink:    string    Vertex group to control kink
 ParticleSystem.vertex_group_length -> vertex_group_length:    string    Vertex group to control length
 ParticleSystem.vertex_group_rotation -> vertex_group_rotation:    string    Vertex group to control rotation
-ParticleSystem.vertex_group_roughness1 -> vertex_group_roughness1:    string    Vertex group to control roughness 1
-ParticleSystem.vertex_group_roughness2 -> vertex_group_roughness2:    string    Vertex group to control roughness 2
-ParticleSystem.vertex_group_roughness_end -> vertex_group_roughness_end:    string    Vertex group to control roughness end
+ParticleSystem.vertex_group_roughness1 -> vertex_group_rough1:    string    Vertex group to control roughness 1
+ParticleSystem.vertex_group_roughness2 -> vertex_group_rough2:    string    Vertex group to control roughness 2
+ParticleSystem.vertex_group_roughness_end -> vertex_group_rough_end:    string    Vertex group to control roughness end
 ParticleSystem.vertex_group_size -> vertex_group_size:    string    Vertex group to control size
 ParticleSystem.vertex_group_tangent -> vertex_group_tangent:    string    Vertex group to control tangent
 ParticleSystem.vertex_group_velocity -> vertex_group_velocity:    string    Vertex group to control velocity
@@ -1783,7 +1783,7 @@ PointCache.step -> step:    int    Number of frames between cached frames
 PointDensity.color_ramp -> color_ramp:    pointer, (read-only)    
 PointDensity.color_source -> color_source:    enum    Data to derive color results from
 PointDensity.falloff -> falloff:    enum    Method of attenuating density by distance from the point
-PointDensity.falloff_softness -> falloff_softness:    float    Softness of the 'soft' falloff option
+PointDensity.falloff_softness -> falloff_soft:    float    Softness of the 'soft' falloff option
 PointDensity.noise_basis -> noise_basis:    enum    Noise formula used for turbulence
 PointDensity.object -> object:    pointer    Object to take point data from
 PointDensity.particle_cache -> particle_cache:    enum    Co-ordinate system to cache particles in
@@ -1865,8 +1865,8 @@ PropertyActuator.object_property -> object_property:    string    Copy this prop
 PropertyActuator.property -> property:    string    The name of the property
 PropertyActuator.value -> value:    string    The value to use, use "" around strings
 PropertySensor.evaluation_type -> evaluation_type:    enum    Type of property evaluation
-PropertySensor.max_value -> max_value:    string    Specify maximum value in Interval type
-PropertySensor.min_value -> min_value:    string    Specify minimum value in Interval type
+PropertySensor.max_value -> value_max:    string    Specify maximum value in Interval type
+PropertySensor.min_value -> value_min:    string    Specify minimum value in Interval type
 PropertySensor.property -> property:    string    
 PropertySensor.value -> value:    string    Check for this value in types in Equal or Not Equal types
 PythonConstraint.number_of_targets -> number_of_targets:    int    Usually only 1-3 are needed
@@ -2023,7 +2023,7 @@ Scene.objects -> objects:    collection, (read-only)
 Scene.orientations -> orientations:    collection, (read-only)    
 Scene.pose_templates -> pose_templates:    pointer, (read-only)    Pose Template Settings
 Scene.pov_radio_adc_bailout -> pov_radio_adc_bailout:    float    The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results
-Scene.pov_radio_brightness -> pov_radio_brightness:    float    Amount objects are brightened before being returned upwards to the rest of the system
+Scene.pov_radio_brightness -> pov_radio_intensity:    float    Amount objects are brightened before being returned upwards to the rest of the system
 Scene.pov_radio_count -> pov_radio_count:    int    Number of rays that are sent out whenever a new radiosity value has to be calculated
 Scene.pov_radio_error_bound -> pov_radio_error_bound:    float    One of the two main speed/quality tuning values, lower values are more accurate
 Scene.pov_radio_gray_threshold -> pov_radio_gray_threshold:    float    One of the two main speed/quality tuning values, lower values are more accurate
@@ -2140,8 +2140,8 @@ ShaderNodeExtendedMaterial.material -> material:    pointer
 ShaderNodeGeometry.color_layer -> color_layer:    string    
 ShaderNodeGeometry.uv_layer -> uv_layer:    string    
 ShaderNodeMapping.location -> location:    float    Location offset for the input coordinate
-ShaderNodeMapping.maximum -> maximum:    float    Maximum value to clamp coordinate to
-ShaderNodeMapping.minimum -> minimum:    float    Minimum value to clamp coordinate to
+ShaderNodeMapping.maximum -> max:    float    Maximum value to clamp coordinate to
+ShaderNodeMapping.minimum -> min:    float    Minimum value to clamp coordinate to
 ShaderNodeMapping.rotation -> rotation:    float    Rotation offset for the input coordinate
 ShaderNodeMapping.scale -> scale:    float    Scale adjustment for the input coordinate
 ShaderNodeMaterial.material -> material:    pointer    
@@ -2242,8 +2242,8 @@ SoftBodySettings.lrot -> lrot:    float    Estimated rotation matrix
 SoftBodySettings.lscale -> lscale:    float    Estimated scale matrix
 SoftBodySettings.mass -> mass:    float    General Mass value
 SoftBodySettings.mass_vertex_group -> mass_vertex_group:    string    Control point mass values
-SoftBodySettings.maxstep -> maxstep:    int    Maximal # solver steps/frame
-SoftBodySettings.minstep -> minstep:    int    Minimal # solver steps/frame
+SoftBodySettings.maxstep -> step_max:    int    Maximal # solver steps/frame
+SoftBodySettings.minstep -> step_min:    int    Minimal # solver steps/frame
 SoftBodySettings.plastic -> plastic:    float    Permanent deform
 SoftBodySettings.pull -> pull:    float    Edge spring stiffness when longer than rest length
 SoftBodySettings.push -> push:    float    Edge spring stiffness when shorter than rest length
@@ -2262,9 +2262,9 @@ Sound.packed_file -> packed_file:    pointer, (read-only)
 SoundActuator.cone_inner_angle_3d -> cone_inner_angle_3d:    float    The angle of the inner cone
 SoundActuator.cone_outer_angle_3d -> cone_outer_angle_3d:    float    The angle of the outer cone
 SoundActuator.cone_outer_gain_3d -> cone_outer_gain_3d:    float    The gain outside the outer cone. The gain in the outer cone will be interpolated between this value and the normal gain in the inner cone
-SoundActuator.max_distance_3d -> max_distance_3d:    float    The maximum distance at which you can hear the sound
-SoundActuator.maximum_gain_3d -> maximum_gain_3d:    float    The maximum gain of the sound, no matter how near it is
-SoundActuator.minimum_gain_3d -> minimum_gain_3d:    float    The minimum gain of the sound, no matter how far it is away
+SoundActuator.max_distance_3d -> distance_3d_max:    float    The maximum distance at which you can hear the sound
+SoundActuator.maximum_gain_3d -> gain_3d_max:    float    The maximum gain of the sound, no matter how near it is
+SoundActuator.minimum_gain_3d -> gain_3d_min:    float    The minimum gain of the sound, no matter how far it is away
 SoundActuator.mode -> mode:    enum    
 SoundActuator.pitch -> pitch:    float    Sets the pitch of the sound
 SoundActuator.reference_distance_3d -> reference_distance_3d:    float    The distance where the sound has a gain of 1.0
@@ -2410,7 +2410,7 @@ StretchToConstraint.subtarget -> subtarget:    string
 StretchToConstraint.target -> target:    pointer    Target Object
 StretchToConstraint.volume -> volume:    enum    Maintain the object's volume as it stretches
 StringProperty.default -> default:    string, (read-only)    string default value
-StringProperty.max_length -> max_length:    int, (read-only)    Maximum length of the string, 0 means unlimited
+StringProperty.max_length -> length_max:    int, (read-only)    Maximum length of the string, 0 means unlimited
 Struct.base -> base:    pointer, (read-only)    Struct definition this is derived from
 Struct.description -> description:    string, (read-only)    Description of the Struct's purpose
 Struct.functions -> functions:    collection, (read-only)    
@@ -2435,8 +2435,8 @@ SunLamp.shadow_ray_sampling_method -> shadow_ray_sampling_method:    enum    Met
 SunLamp.shadow_soft_size -> shadow_soft_size:    float    Light size for ray shadow sampling (Raytraced shadows)
 SunLamp.sky -> sky:    pointer, (read-only)    Sky related settings for sun lamps
 TexMapping.location -> location:    float    
-TexMapping.maximum -> maximum:    float    Maximum value for clipping
-TexMapping.minimum -> minimum:    float    Minimum value for clipping
+TexMapping.maximum -> max:    float    Maximum value for clipping
+TexMapping.minimum -> min:    float    Minimum value for clipping
 TexMapping.rotation -> rotation:    float    
 TexMapping.scale -> scale:    float    
 Text.current_character -> current_character:    int, (read-only)    Index of current character in current line, and also start index of character in selection if one exists
@@ -2474,7 +2474,7 @@ TextMarker.group -> group:    int, (read-only)
 TextMarker.line -> line:    int, (read-only)    Line in which the marker is located
 TextMarker.start -> start:    int, (read-only)    Start position of the marker in the line
 Texture.animation_data -> animation_data:    pointer, (read-only)    Animation data for this datablock
-Texture.brightness -> brightness:    float    
+Texture.brightness -> intensity:    float    
 Texture.color_ramp -> color_ramp:    pointer, (read-only)    
 Texture.contrast -> contrast:    float    
 Texture.factor_blue -> factor_blue:    float    
@@ -3180,7 +3180,7 @@ WorldMistSettings.intensity -> intensity:    float    Intensity of the mist effe
 WorldMistSettings.start -> start:    float    Starting distance of the mist, measured from the camera
 WorldStarsSettings.average_separation -> average_separation:    float    Average distance between any two stars
 WorldStarsSettings.color_randomization -> color_randomization:    float    Randomize star colors
-WorldStarsSettings.min_distance -> min_distance:    float    Minimum distance to the camera for stars
+WorldStarsSettings.min_distance -> distance_min:    float    Minimum distance to the camera for stars
 WorldStarsSettings.size -> size:    float    Average screen dimension of stars
 WorldTextureSlot.blend_factor -> blend_factor:    float    Amount texture affects color progression of the background
 WorldTextureSlot.horizon_factor -> horizon_factor:    float    Amount texture affects color of the horizon
