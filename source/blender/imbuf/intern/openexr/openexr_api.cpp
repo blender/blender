@@ -1011,8 +1011,16 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 					
 					file->setFrameBuffer (frameBuffer);
 					file->readPixels (dw.min.y, dw.max.y);
-					
-					IMB_rect_from_float(ibuf);
+
+					// XXX, ImBuf has no nice way to deal with this.
+					// ideally IM_rect would be used when the caller wants a rect BUT
+					// at the moment all functions use IM_rect.
+					// Disabling this is ok because all functions should check if a rect exists and create one on demand.
+					//
+					// Disabling this because the sequencer frees immediate.
+					//
+					// if(flag & IM_rect)
+					//     IMB_rect_from_float(ibuf);
 				}
 			}
 			
