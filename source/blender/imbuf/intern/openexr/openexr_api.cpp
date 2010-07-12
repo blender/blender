@@ -46,6 +46,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math_color.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -236,27 +237,44 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 				for (int j = ibuf->x; j > 0; j--) 
 				{
 					to->r = from[0];
-					to->g = (channels >= 2)? from[1]: from[0];
-					to->b = (channels >= 3)? from[2]: from[0];
-					to->a = (channels >= 4)? from[3]: from[0];
+					to->g = from[1];
+					to->b = from[2];
+					to->a = (channels >= 4)? from[3]: 1.0f;
 					to++; from += 4;
 				}
 			}
 		}
 		else {
 			unsigned char *from;
-			
-			for (int i = ibuf->y-1; i >= 0; i--) 
-			{
-				from= (unsigned char *)ibuf->rect + channels*i*width;
-				
-				for (int j = ibuf->x; j > 0; j--) 
+
+			if(ibuf->profile != IB_PROFILE_NONE) {
+				for (int i = ibuf->y-1; i >= 0; i--)
 				{
-					to->r = (float)(from[0])/255.0;
-					to->g = (float)((channels >= 2)? from[1]: from[0])/255.0;
-					to->b = (float)((channels >= 3)? from[2]: from[0])/255.0;
-					to->a = (float)((channels >= 4)? from[3]: from[0])/255.0;
-					to++; from += 4;
+					from= (unsigned char *)ibuf->rect + channels*i*width;
+
+					for (int j = ibuf->x; j > 0; j--)
+					{
+						to->r = (float)(from[0])/255.0;
+						to->g = (float)(from[1])/255.0;
+						to->b = (float)(from[2])/255.0;
+						to->a = (float)(channels >= 4) ? from[3]/255.0 : 1.0f;
+						to++; from += 4;
+					}
+				}
+			}
+			else {
+				for (int i = ibuf->y-1; i >= 0; i--)
+				{
+					from= (unsigned char *)ibuf->rect + channels*i*width;
+
+					for (int j = ibuf->x; j > 0; j--)
+					{
+						to->r = srgb_to_linearrgb((float)from[0] / 255.0);
+						to->g = srgb_to_linearrgb((float)from[1] / 255.0);
+						to->b = srgb_to_linearrgb((float)from[2] / 255.0);
+						to->a = channels >= 4 ? (float)from[3]/255.0 : 1.0f;
+						to++; from += 4;
+					}
 				}
 			}
 		}
@@ -308,9 +326,9 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 		float *rect[4] = {NULL, NULL, NULL, NULL};
 
 		rect[0]= ibuf->rect_float + channels*(height-1)*width;
-		rect[1]= (channels >= 2)? rect[0]+1: rect[0];
-		rect[2]= (channels >= 3)? rect[0]+2: rect[0];
-		rect[3]= (channels >= 4)? rect[0]+3: rect[0];
+		rect[1]= rect[0]+1;
+		rect[2]= rect[0]+2;
+		rect[3]= (channels >= 4)? rect[0]+3: 1.0f;
 
 		frameBuffer.insert ("R", Slice (FLOAT,  (char *)rect[0], xstride, ystride));
 		frameBuffer.insert ("G", Slice (FLOAT,  (char *)rect[1], xstride, ystride));
