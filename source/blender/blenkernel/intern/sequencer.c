@@ -1509,6 +1509,11 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 
 	if(cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
 		for (c = 0; c < 3; c++) {
+			/* tweak to give more subtle results
+			 * values above 1.0 are scaled */
+			if(cb.lift[c] > 1.0f)
+				cb.lift[c] = pow(cb.lift[c] - 1.0f, 2.0f) + 1.0f;
+
 			cb.lift[c] = 2.0f - cb.lift[c];
 		}
 	}

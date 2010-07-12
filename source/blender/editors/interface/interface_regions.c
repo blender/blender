@@ -1832,11 +1832,11 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	
 	/* RGB values */
 	uiBlockBeginAlign(block);
-	bt= uiDefButR(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, propname, 0, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, propname, 0, 0.0, 0.0, 0, 3, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt= uiDefButR(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, propname, 1, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, propname, 1, 0.0, 0.0, 0, 3, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 3, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 
 	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", 0);

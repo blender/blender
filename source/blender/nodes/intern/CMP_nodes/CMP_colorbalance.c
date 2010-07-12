@@ -124,8 +124,16 @@ static void node_composit_exec_colorbalance(void *data, bNode *node, bNodeStack 
 	{
 		NodeColorBalance *n= (NodeColorBalance *)node->storage;
 		int c;
+
+		copy_v3_v3(n->lift_lgg, n->lift);
+
 		for (c = 0; c < 3; c++) {
-			n->lift_lgg[c] = 2.0f - n->lift[c];
+			/* tweak to give more subtle results
+			 * values above 1.0 are scaled */
+			if(n->lift_lgg[c] > 1.0f)
+				n->lift_lgg[c] = pow(n->lift_lgg[c] - 1.0f, 2.0f) + 1.0f;
+
+			n->lift_lgg[c] = 2.0f - n->lift_lgg[c];
 		}
 	}
 
