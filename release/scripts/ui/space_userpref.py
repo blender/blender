@@ -280,13 +280,6 @@ class USERPREF_PT_edit(bpy.types.Panel):
         row.separator()
 
         col = row.column()
-        col.label(text="Snap:")
-        col.prop(edit, "snap_translate", text="Translate")
-        col.prop(edit, "snap_rotate", text="Rotate")
-        col.prop(edit, "snap_scale", text="Scale")
-        col.separator()
-        col.separator()
-        col.separator()
         col.label(text="Grease Pencil:")
         col.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")

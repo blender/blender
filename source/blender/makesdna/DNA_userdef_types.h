@@ -390,9 +390,9 @@ extern UserDef U; /* from blenkernel blender.c */
 
 /* flag */
 #define USER_AUTOSAVE			(1 << 0)
-#define USER_AUTOGRABGRID		(1 << 1)
-#define USER_AUTOROTGRID		(1 << 2)
-#define USER_AUTOSIZEGRID		(1 << 3)
+#define USER_AUTOGRABGRID		(1 << 1)	/* deprecated */
+#define USER_AUTOROTGRID		(1 << 2)	/* deprecated */
+#define USER_AUTOSIZEGRID		(1 << 3)	/* deprecated */
 #define USER_SCENEGLOBAL		(1 << 4)
 #define USER_TRACKBALL			(1 << 5)
 #define USER_DUPLILINK			(1 << 6)
