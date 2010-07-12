@@ -1022,13 +1022,13 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se,
 	y= se2->ibuf->y;
 
 	if (!se1->ibuf->rect_float && se->ibuf->rect_float) {
-		IMB_float_from_rect(se1->ibuf);
+		IMB_float_from_rect_simple(se1->ibuf);
 	}
 	if (!se2->ibuf->rect_float && se->ibuf->rect_float) {
-		IMB_float_from_rect(se2->ibuf);
+		IMB_float_from_rect_simple(se2->ibuf);
 	}
 	if (!se3->ibuf->rect_float && se->ibuf->rect_float) {
-		IMB_float_from_rect(se3->ibuf);
+		IMB_float_from_rect_simple(se3->ibuf);
 	}
 	
 	if (!se1->ibuf->rect && !se->ibuf->rect_float) {
@@ -1784,17 +1784,9 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 	}
 
 	if(seq->flag & SEQ_MAKE_FLOAT) {
-		if (!se->ibuf->rect_float) {
-			int profile = IB_PROFILE_NONE;
-			
-			/* no color management:
-			 * don't disturb the existing profiles */
-			SWAP(int, se->ibuf->profile, profile);
+		if (!se->ibuf->rect_float)
+			IMB_float_from_rect_simple(se->ibuf);
 
-			IMB_float_from_rect(se->ibuf);
-			
-			SWAP(int, se->ibuf->profile, profile);
-		}
 		if (se->ibuf->rect) {
 			imb_freerectImBuf(se->ibuf);
 		}
@@ -2085,14 +2077,14 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			}
 			copy_from_ibuf_still(seq, se);
 
-			if (!se->ibuf) {
-				se->ibuf= IMB_loadiffname(
-					name, IB_rect);
+			if (se->ibuf==NULL && (se->ibuf= IMB_loadiffname(name, IB_rect))) {
 				/* we don't need both (speed reasons)! */
-				if (se->ibuf &&
-					se->ibuf->rect_float && se->ibuf->rect) {
+				if (se->ibuf->rect_float && se->ibuf->rect)
 					imb_freerectImBuf(se->ibuf);
-				}
+
+				/* all sequencer color is done in SRGB space, linear gives odd crossfades */
+				if(se->ibuf->profile == IB_PROFILE_LINEAR_RGB)
+					IMB_convert_profile(se->ibuf, IB_PROFILE_NONE);
 
 				copy_to_ibuf_still(seq, se);
 			}
@@ -2707,11 +2699,11 @@ static TStripElem* do_build_seq_array_recursively(
 
 			if (!se1->ibuf_comp->rect_float && 
 				se2->ibuf_comp->rect_float) {
-				IMB_float_from_rect(se1->ibuf_comp);
+				IMB_float_from_rect_simple(se1->ibuf_comp);
 			}
 			if (!se2->ibuf->rect_float && 
 				se2->ibuf_comp->rect_float) {
-				IMB_float_from_rect(se2->ibuf);
+				IMB_float_from_rect_simple(se2->ibuf);
 			}
 
 			if (!se1->ibuf_comp->rect && 

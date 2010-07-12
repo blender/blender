@@ -575,9 +575,9 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 			char *col1= (char*)&col1base[j*4];
 			char *col2= (char*)(col2base?&col2base[j*4]:NULL);
 			float *vn = (mf->flag & ME_SMOOTH)?&vnors[3*vidx[j]]:n1;
-			
-			VECCOPY(vec, mv->co);
-			mul_m4_v3(mat, vec);
+
+			mul_v3_m4v3(vec, mat, mv->co);
+
 			vec[0]+= 0.001*vn[0];
 			vec[1]+= 0.001*vn[1];
 			vec[2]+= 0.001*vn[2];
@@ -688,8 +688,7 @@ void shadeDispList(Scene *scene, Base *base)
 						
 						a= dl->nr;		
 						while(a--) {
-							VECCOPY(vec, fp);
-							mul_m4_v3(mat, vec);
+							mul_v3_m4v3(vec, mat, fp);
 							
 							fastshade(vec, n1, fp, ma, (char *)col1, NULL);
 							
@@ -704,8 +703,7 @@ void shadeDispList(Scene *scene, Base *base)
 						nor= dl->nors;
 						
 						while(a--) {
-							VECCOPY(vec, fp);
-							mul_m4_v3(mat, vec);
+							mul_v3_m4v3(vec, mat, fp);
 							
 							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
 							n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
@@ -742,8 +740,7 @@ void shadeDispList(Scene *scene, Base *base)
 						
 						a= dl->nr;		
 						while(a--) {
-							VECCOPY(vec, fp);
-							mul_m4_v3(mat, vec);
+							mul_v3_m4v3(vec, mat, fp);
 							
 							/* transpose ! */
 							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
