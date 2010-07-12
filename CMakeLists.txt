@@ -61,7 +61,7 @@ SET(BLENDER_VERSION  2.5)
 
 #-----------------------------------------------------------------------------
 # Load some macros.
-INCLUDE(CMake/macros.cmake)
+INCLUDE(build_files/cmake/macros.cmake)
 
 #-----------------------------------------------------------------------------
 # Set default config options
