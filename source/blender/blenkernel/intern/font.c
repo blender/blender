@@ -1,4 +1,4 @@
-/*  font.c     
+/*  font.c
  *  
  * 
  * $Id$
@@ -34,6 +34,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <wchar.h>
+#include <wctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -597,9 +598,23 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 			}
 			bezt2 = nu2->bezt;
 
+			if(info->flag & CU_SMALLCAPS) {
+				const float sca= cu->smallcaps_scale;
+				for (i= nu2->pntsu; i > 0; i--) {
+					fp= bezt2->vec[0];
+					fp[0] *= sca;
+					fp[1] *= sca;
+					fp[3] *= sca;
+					fp[4] *= sca;
+					fp[6] *= sca;
+					fp[7] *= sca;
+					bezt2++;
+				}
+			}
+			bezt2 = nu2->bezt;
+
 			for (i= nu2->pntsu; i > 0; i--) {
 				fp= bezt2->vec[0];
-
 				fp[0]= (fp[0]+ofsx)*fsize;
 				fp[1]= (fp[1]+ofsy)*fsize;
 				fp[3]= (fp[3]+ofsx)*fsize;
@@ -632,6 +647,20 @@ int BKE_font_getselection(Object *ob, int *start, int *end)
 		*start = cu->selend;
 		*end = cu->selstart-2;
 		return -1;
+	}
+}
+
+static float char_width(Curve *cu, VChar *che, CharInfo *info)
+{
+	// The character wasn't found, propably ascii = 0, then the width shall be 0 as well
+	if(che == NULL) {
+		return 0.0f;
+	}
+	else if(info->flag & CU_SMALLCAPS) {
+		return che->width * cu->smallcaps_scale;
+	}
+	else {
+		return che->width;
 	}
 }
 
@@ -729,8 +758,18 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 	makebreak:
 		// Characters in the list
 		che = vfd->characters.first;
-		ascii = mem[i];
 		info = &(custrinfo[i]);
+		ascii = mem[i];
+		if(info->flag & CU_SMALLCAPS) {
+			ascii = towupper(ascii);
+			if(mem[i] != ascii) {
+				mem[i]= ascii;
+			}
+			else {
+				info->flag &= ~CU_SMALLCAPS; /* could have a different way to not scale caps */
+			}
+		}
+
 		vfont = which_vfont(cu, info);
 		
 		if(vfont==NULL) break;
@@ -780,11 +819,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			return 0;
 		}
 
-		// The character wasn't found, propably ascii = 0, then the width shall be 0 as well
-		if(!che)
-			twidth = 0;
-		else
-			twidth = che->width;
+		twidth = char_width(cu, che, info);
 
 		// Calculate positions
 		if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w) {
@@ -881,10 +916,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			else wsfac = 1.0;
 			
 			// Set the width of the character
-			if(!che)
-				twidth = 0;
-			else 
-				twidth = che->width;
+			twidth = char_width(cu, che, info);
 
 			xof += (twidth*wsfac*(1.0+(info->kern/40.0)) ) + xtrax;
 			
@@ -1024,10 +1056,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 					che = che->next;
 				}
 	
-				if(che)
-					twidth = che->width;
-				else
-					twidth = 0;
+				twidth = char_width(cu, che, info);
 				
 				dtime= distfac*0.35f*twidth;	/* why not 0.5? */
 				dtime= distfac*0.5f*twidth;	/* why not 0.5? */
@@ -1167,8 +1196,8 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 							break;
 						che = che->next;
 					}
-					
-					if(!che) twidth =0; else twidth=che->width;
+
+					twidth = char_width(cu, che, info);
 					ulwidth = cu->fsize * ((twidth* (1.0+(info->kern/40.0)))+uloverlap);
 					build_underline(cu, ct->xof*cu->fsize, ct->yof*cu->fsize + (cu->ulpos-0.05)*cu->fsize, 
 									ct->xof*cu->fsize + ulwidth, 

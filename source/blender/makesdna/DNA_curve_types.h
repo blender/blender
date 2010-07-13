@@ -177,7 +177,7 @@ typedef struct Curve {
 	short texflag, pad1; /* keep a short because of give_obdata_texspace() */
 
 	short drawflag, twist_mode,  pad[2];
-	float twist_smooth, pad2;
+	float twist_smooth, smallcaps_scale;
 
 	short pathlen, totcol;
 	short flag, bevresol;
@@ -329,6 +329,7 @@ typedef enum eBezTriple_KeyframeType {
 #define CU_ITALIC		2
 #define CU_UNDERLINE	4
 #define CU_WRAP			8	/* wordwrap occured here */
+#define CU_SMALLCAPS	16
 
 #endif
 

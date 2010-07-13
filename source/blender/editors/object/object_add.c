@@ -1008,6 +1008,7 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(scene);
 	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 	
 	return OPERATOR_FINISHED;
 }
