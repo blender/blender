@@ -599,7 +599,7 @@ EditObjectActuator.time -> time:    int    Duration the new Object lives or the 
 EditObjectActuator.track_object -> track_object:    pointer    Track to this Object
 EffectSequence.color_balance -> color_balance:    pointer, (read-only)    
 EffectSequence.crop -> crop:    pointer, (read-only)    
-EffectSequence.multiply_colors -> multiply_colors:    float    
+EffectSequence.multiply_colors -> color_multiply:    float    
 EffectSequence.proxy -> proxy:    pointer, (read-only)    
 EffectSequence.strobe -> strobe:    float    Only display every nth frame
 EffectSequence.transform -> transform:    pointer, (read-only)    

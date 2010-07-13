@@ -10953,6 +10953,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				tex->saturation= 1.0f;
 		}
 
+		for (scene= main->scene.first; scene; scene=scene->id.next) {
+			if(scene) {
+				Sequence *seq;
+				SEQ_BEGIN(scene->ed, seq) {
+					seq->sat= 1.0f;
+				}
+				SEQ_END
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

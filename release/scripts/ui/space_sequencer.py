@@ -745,6 +745,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 
         col = layout.column()
         col.label(text="Colors:")
+        col.prop(strip, "color_saturation", text="Saturation")
         col.prop(strip, "multiply_colors", text="Multiply")
         col.prop(strip, "premultiply")
         col.prop(strip, "convert_float")

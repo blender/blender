@@ -992,6 +992,13 @@ static void rna_def_filter_video(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Multiply Colors", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
+	prop= RNA_def_property(srna, "color_saturation", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "sat");
+	RNA_def_property_range(prop, 0.0f, 20.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 2.0f, 3, 3);
+	RNA_def_property_ui_text(prop, "Saturation", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
 	prop= RNA_def_property(srna, "strobe", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 1.0f, 30.0f);
 	RNA_def_property_ui_text(prop, "Strobe", "Only display every nth frame");
