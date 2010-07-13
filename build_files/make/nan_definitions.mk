@@ -31,7 +31,7 @@
 # set some defaults when these are not overruled (?=) by environment variables
 #
 
-sinclude ../user-def.mk
+sinclude ../../user-def.mk
 
 # This warning only takes place once in source/
 ifeq (debug, $(findstring debug, $(MAKECMDGOALS)))
