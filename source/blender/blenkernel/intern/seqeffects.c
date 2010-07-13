@@ -312,7 +312,7 @@ static void do_plugin_effect(Scene *scene, Sequence *seq, int cfra,
 			IMB_convert_rgba_to_abgr(out);
 		}
 		if (seq->plugin->version<=3 && float_rendering) {
-			IMB_float_from_rect(out);
+			IMB_float_from_rect_simple(out);
 		}
 
 		if (use_temp_bufs) {
@@ -2783,7 +2783,7 @@ static void do_multicam(Scene *scene, Sequence *seq, int cfra,
 		IMB_rect_from_float(i);
 		memcpy(out->rect, i->rect, out->x * out->y * 4);
 	} else if (out->rect_float && i->rect) {
-		IMB_float_from_rect(i);
+		IMB_float_from_rect_simple(i);
 		memcpy(out->rect_float, i->rect_float, out->x * out->y *4*sizeof(float));
 	}
 }

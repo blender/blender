@@ -145,8 +145,8 @@ class IMAGE_MT_uvs_showhide(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("uv.reveal")
-        layout.operator("uv.hide")
-        layout.operator("uv.hide").unselected = True
+        layout.operator("uv.hide", text="Hide Selected")
+        layout.operator("uv.hide", text="Hide Unselected").unselected = True
 
 
 class IMAGE_MT_uvs_transform(bpy.types.Menu):

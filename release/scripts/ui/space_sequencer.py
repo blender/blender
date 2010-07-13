@@ -336,7 +336,9 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
+        scene = context.scene
         render = context.scene.render
+        frame_current = scene.frame_current
         strip = act_strip(context)
 
         split = layout.split(percentage=0.3)
@@ -351,37 +353,30 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         split.label(text="Blend:")
         split.prop(strip, "blend_mode", text="")
 
-        row = layout.row()
-        if strip.mute == True:
-            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON', text="")
-        elif strip.mute is False:
-            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_OFF', text="")
-
+        row = layout.row(align=True)
         sub = row.row()
         sub.active = (not strip.mute)
-
         sub.prop(strip, "blend_opacity", text="Opacity", slider=True)
-
-        row = layout.row()
-        row.prop(strip, "lock")
+        sub = row.row()
+        row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF', text="")
+        row.prop(strip, "lock", toggle=True, icon='LOCKED' if strip.lock else 'UNLOCKED', text="")
 
         col = layout.column()
-        col.enabled = not strip.lock
-        col.prop(strip, "channel")
-        col.prop(strip, "frame_start")
-        subrow = col.split(percentage=0.66)
-        subrow.prop(strip, "frame_final_length")
-        subrow.label(text="%.2f sec" % (strip.frame_final_length / (render.fps / render.fps_base)))
+        sub = col.column()
+        sub.enabled = not strip.lock
+        sub.prop(strip, "channel")
+        sub.prop(strip, "frame_start")
+        sub.prop(strip, "frame_final_length")
 
         col = layout.column(align=True)
-        col.label(text="Offset:")
-        col.prop(strip, "frame_offset_start", text="Start")
-        col.prop(strip, "frame_offset_end", text="End")
+        row = col.row()
+        row.label(text="Final Length: %s" % bpy.utils.smpte_from_frame(strip.frame_final_length))
+        row = col.row()
+        row.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_length)
+        row.label(text="Strip Position: %d" % (frame_current - strip.frame_start))
 
-        col = layout.column(align=True)
-        col.label(text="Still:")
-        col.prop(strip, "frame_still_start", text="Start")
-        col.prop(strip, "frame_still_end", text="End")
+        col.label(text="Frame Offset %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
+        col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
 
 
 class SEQUENCER_PT_preview(bpy.types.Panel):
@@ -552,16 +547,14 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         self.draw_filename(context)
 
         layout.prop(strip, "use_translation", text="Image Offset:")
-        if strip.transform:
+        if strip.use_translation:
             col = layout.column(align=True)
-            col.active = strip.use_translation
             col.prop(strip.transform, "offset_x", text="X")
             col.prop(strip.transform, "offset_y", text="Y")
 
         layout.prop(strip, "use_crop", text="Image Crop:")
-        if strip.crop:
+        if strip.use_crop:
             col = layout.column(align=True)
-            col.active = strip.use_crop
             col.prop(strip.crop, "top")
             col.prop(strip.crop, "left")
             col.prop(strip.crop, "bottom")
@@ -752,6 +745,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 
         col = layout.column()
         col.label(text="Colors:")
+        col.prop(strip, "color_saturation", text="Saturation")
         col.prop(strip, "multiply_colors", text="Multiply")
         col.prop(strip, "premultiply")
         col.prop(strip, "convert_float")

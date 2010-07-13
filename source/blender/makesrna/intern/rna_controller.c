@@ -156,6 +156,8 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_Controller_refine");
 	RNA_def_struct_ui_text(srna, "Controller", "Game engine logic brick to process events, connecting sensors to actuators");
 
+	RNA_api_controller(srna);
+
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);

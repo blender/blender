@@ -319,6 +319,9 @@ void IMB_de_interlace(struct ImBuf *ibuf);
 void IMB_interlace(struct ImBuf *ibuf);
 void IMB_rect_from_float(struct ImBuf *ibuf);
 void IMB_float_from_rect(struct ImBuf *ibuf);
+void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
+/* note, check that the conversion exists, only some are supported */
+void IMB_convert_profile(struct ImBuf *ibuf, int profile);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from

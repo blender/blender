@@ -47,19 +47,17 @@ class AddPresetBase(bpy.types.Operator):
         target_path = bpy.utils.preset_paths(self.preset_subdir)[0] # we need some way to tell the user and system preset path
 
         filepath = os.path.join(target_path, filename)
-        if getattr(self, "save_keyconfig", True):
+        if getattr(self, "save_keyconfig", False):
             bpy.ops.wm.keyconfig_export(filepath=filepath, kc_name=self.properties.name)
             file_preset = open(filepath, 'a')
             file_preset.write("wm.active_keyconfig = kc\n\n")
         else:
             file_preset = open(filepath, 'w')
+            file_preset.write("import bpy\n")
 
         for rna_path in self.preset_values:
             value = eval(rna_path)
-            if type(value) == str:
-                value = "'%s'" % value
-
-            file_preset.write("%s = %s\n" % (rna_path, value))
+            file_preset.write("%s = %s\n" % (rna_path, repr(value)))
 
         file_preset.close()
 

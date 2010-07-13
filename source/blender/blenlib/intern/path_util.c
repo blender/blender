@@ -1014,7 +1014,7 @@ static int get_path_user(char *targetpath, char *folder_name, char *envvar)
 	
 	user_base_path = (const char *)GHOST_getUserDir();
 	if (user_base_path) {
-		BLI_snprintf(user_path, FILE_MAX, BLENDER_BASE_FORMAT, user_base_path, blender_version_decimal());
+		BLI_snprintf(user_path, FILE_MAX, BLENDER_USER_FORMAT, user_base_path, blender_version_decimal());
 	}
 
 	if(!user_path[0])
@@ -1040,7 +1040,7 @@ static int get_path_system(char *targetpath, char *folder_name, char *envvar)
 
 	system_base_path = (const char *)GHOST_getSystemDir();
 	if (system_base_path) {
-		BLI_snprintf(system_path, FILE_MAX, BLENDER_BASE_FORMAT, system_base_path, blender_version_decimal());
+		BLI_snprintf(system_path, FILE_MAX, BLENDER_SYSTEM_FORMAT, system_base_path, blender_version_decimal());
 	}
 	
 	if(!system_path[0])
@@ -1064,13 +1064,14 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 	switch (folder_id) {
 		case BLENDER_DATAFILES:		/* general case */
 			BLI_join_dirfile(search_path, "datafiles", subfolder);
-			if (get_path_user(path, search_path, "BLENDER_USER_DATAFILES"))	break;
 			if (get_path_local(path, search_path)) break;
+			if (get_path_user(path, search_path, "BLENDER_USER_DATAFILES"))	break;
 			if (get_path_system(path, search_path, "BLENDER_SYSTEM_DATAFILES")) break;
 			return NULL;
 			
-		case BLENDER_USER_DATAFILES:		
+		case BLENDER_USER_DATAFILES:
 			BLI_join_dirfile(search_path, "datafiles", subfolder);
+			if (get_path_local(path, search_path)) break;
 			if (get_path_user(path, search_path, "BLENDER_USER_DATAFILES"))	break;
 			return NULL;
 			
@@ -1081,13 +1082,14 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			
 		case BLENDER_CONFIG:		/* general case */
 			BLI_join_dirfile(search_path, "config", subfolder);
-			if (get_path_user(path, search_path, "BLENDER_USER_CONFIG")) break;
 			if (get_path_local(path, search_path)) break;
+			if (get_path_user(path, search_path, "BLENDER_USER_CONFIG")) break;
 			if (get_path_system(path, search_path, "BLENDER_SYSTEM_CONFIG")) break;
 			return NULL;
 			
 		case BLENDER_USER_CONFIG:
 			BLI_join_dirfile(search_path, "config", subfolder);
+			if (get_path_local(path, search_path)) break;
 			if (get_path_user(path, search_path, "BLENDER_USER_CONFIG")) break;
 			return NULL;
 			
@@ -1098,13 +1100,14 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			
 		case BLENDER_SCRIPTS:		/* general case */
 			BLI_join_dirfile(search_path, "scripts", subfolder);
-			if (get_path_user(path, search_path, "BLENDER_USER_SCRIPTS")) break;		
 			if (get_path_local(path, search_path)) break;
+			if (get_path_user(path, search_path, "BLENDER_USER_SCRIPTS")) break;		
 			if (get_path_system(path, search_path, "BLENDER_SYSTEM_SCRIPTS")) break;
 			return NULL;
 			
 		case BLENDER_USER_SCRIPTS:
 			BLI_join_dirfile(search_path, "scripts", subfolder);
+			if (get_path_local(path, search_path)) break;
 			if (get_path_user(path, search_path, "BLENDER_USER_SCRIPTS")) break;
 			return NULL;
 			
@@ -1121,7 +1124,6 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			
 		case BLENDER_SYSTEM_PYTHON:
 			BLI_join_dirfile(search_path, "python", subfolder);
-			
 			if (get_path_system(path, search_path, "BLENDER_SYSTEM_PYTHON")) break;
 			return NULL;
 	}

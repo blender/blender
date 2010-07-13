@@ -302,6 +302,8 @@ static void rna_def_sensor(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Sensor_tap_set");
 	RNA_def_property_ui_text(prop, "Tap", "Trigger controllers only for an instant, even while the sensor remains true");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	RNA_api_sensor(srna);
 }
 
 static void rna_def_always_sensor(BlenderRNA *brna)

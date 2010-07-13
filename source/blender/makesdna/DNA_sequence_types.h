@@ -140,6 +140,7 @@ typedef struct Sequence {
 	int startstill, endstill;
 	int machine, depth; /*machine - the strip channel, depth - the depth in the sequence when dealing with metastrips */
 	int startdisp, enddisp;	/*starting and ending points in the sequence*/
+	float sat, pad;
 	float mul, handsize;
 					/* is sfra needed anymore? - it looks like its only used in one place */
 	int sfra;		/* starting frame according to the timeline of the scene. */

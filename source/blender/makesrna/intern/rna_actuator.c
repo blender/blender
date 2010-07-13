@@ -486,6 +486,8 @@ void rna_def_actuator(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_SHOW);
 	RNA_def_property_ui_text(prop, "Expanded", "Set actuator expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
+
+	RNA_api_actuator(srna);
 }
 
 static void rna_def_action_actuator(BlenderRNA *brna)
@@ -920,7 +922,7 @@ static void rna_def_sound_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "maximum_gain_3d", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sound3D.max_gain");
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 0.01);
-	RNA_def_property_ui_text(prop, "Minimum Gain", "The maximum gain of the sound, no matter how near it is");
+	RNA_def_property_ui_text(prop, "Maximum Gain", "The maximum gain of the sound, no matter how near it is");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "reference_distance_3d", PROP_FLOAT, PROP_NONE);

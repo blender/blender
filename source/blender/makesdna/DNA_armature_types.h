@@ -134,7 +134,7 @@ typedef enum eArmature_DeformFlag {
 	ARM_DEF_VGROUP			= (1<<0),
 	ARM_DEF_ENVELOPE		= (1<<1),
 	ARM_DEF_QUATERNION		= (1<<2),
-	ARM_DEF_B_BONE_REST		= (1<<3),
+	ARM_DEF_B_BONE_REST		= (1<<3),	/* deprecated */
 	ARM_DEF_INVERT_VGROUP	= (1<<4)
 } eArmature_DeformFlag;
 

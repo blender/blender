@@ -247,9 +247,9 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 
 		if(seq->scene_sound)
 			sound_remove_scene_sound(scene, seq->scene_sound);
-	}
 
-	seq_free_animdata(scene, seq);
+		seq_free_animdata(scene, seq);
+	}
 
 	MEM_freeN(seq);
 }
@@ -1022,13 +1022,13 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se,
 	y= se2->ibuf->y;
 
 	if (!se1->ibuf->rect_float && se->ibuf->rect_float) {
-		IMB_float_from_rect(se1->ibuf);
+		IMB_float_from_rect_simple(se1->ibuf);
 	}
 	if (!se2->ibuf->rect_float && se->ibuf->rect_float) {
-		IMB_float_from_rect(se2->ibuf);
+		IMB_float_from_rect_simple(se2->ibuf);
 	}
 	if (!se3->ibuf->rect_float && se->ibuf->rect_float) {
-		IMB_float_from_rect(se3->ibuf);
+		IMB_float_from_rect_simple(se3->ibuf);
 	}
 	
 	if (!se1->ibuf->rect && !se->ibuf->rect_float) {
@@ -1509,6 +1509,11 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 
 	if(cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
 		for (c = 0; c < 3; c++) {
+			/* tweak to give more subtle results
+			 * values above 1.0 are scaled */
+			if(cb.lift[c] > 1.0f)
+				cb.lift[c] = pow(cb.lift[c] - 1.0f, 2.0f) + 1.0f;
+
 			cb.lift[c] = 2.0f - cb.lift[c];
 		}
 	}
@@ -1764,12 +1769,31 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 	if(seq->flag & SEQ_FLIPX) {
 		IMB_flipx(se->ibuf);
 	}
-	if(seq->flag & SEQ_FLIPY) {
-		IMB_flipy(se->ibuf);
-	}
 
-	if(seq->mul == 0.0) {
-		seq->mul = 1.0;
+	if(seq->sat != 1.0f) {
+		/* inline for now, could become an imbuf function */
+		int i;
+		char *rct= (char *)se->ibuf->rect;
+		float *rctf= se->ibuf->rect_float;
+		const float sat= seq->sat;
+		float hsv[3];
+
+		if(rct) {
+			float rgb[3];
+			for (i = se->ibuf->x * se->ibuf->y; i > 0; i--, rct+=4) {
+				rgb_byte_to_float(rct, rgb);
+				rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+				hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb+1, rgb+2);
+				rgb_float_to_byte(rgb, rct);
+			}
+		}
+
+		if(rctf) {
+			for (i = se->ibuf->x * se->ibuf->y; i > 0; i--, rctf+=4) {
+				rgb_to_hsv(rctf[0], rctf[1], rctf[2], hsv, hsv+1, hsv+2);
+				hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rctf, rctf+1, rctf+2);
+			}
+		}
 	}
 
 	mul = seq->mul;
@@ -1784,17 +1808,9 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 	}
 
 	if(seq->flag & SEQ_MAKE_FLOAT) {
-		if (!se->ibuf->rect_float) {
-			int profile = IB_PROFILE_NONE;
-			
-			/* no color management:
-			 * don't disturb the existing profiles */
-			SWAP(int, se->ibuf->profile, profile);
+		if (!se->ibuf->rect_float)
+			IMB_float_from_rect_simple(se->ibuf);
 
-			IMB_float_from_rect(se->ibuf);
-			
-			SWAP(int, se->ibuf->profile, profile);
-		}
 		if (se->ibuf->rect) {
 			imb_freerectImBuf(se->ibuf);
 		}
@@ -2085,14 +2101,14 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			}
 			copy_from_ibuf_still(seq, se);
 
-			if (!se->ibuf) {
-				se->ibuf= IMB_loadiffname(
-					name, IB_rect);
+			if (se->ibuf==NULL && (se->ibuf= IMB_loadiffname(name, IB_rect))) {
 				/* we don't need both (speed reasons)! */
-				if (se->ibuf &&
-					se->ibuf->rect_float && se->ibuf->rect) {
+				if (se->ibuf->rect_float && se->ibuf->rect)
 					imb_freerectImBuf(se->ibuf);
-				}
+
+				/* all sequencer color is done in SRGB space, linear gives odd crossfades */
+				if(se->ibuf->profile == IB_PROFILE_LINEAR_RGB)
+					IMB_convert_profile(se->ibuf, IB_PROFILE_NONE);
 
 				copy_to_ibuf_still(seq, se);
 			}
@@ -2544,10 +2560,6 @@ static TStripElem* do_build_seq_array_recursively(
 	int i;
 	TStripElem* se = 0;
 
-	// XXX for prefetch and overlay offset!..., very bad!!!
-	AnimData *adt= BKE_animdata_from_id(&scene->id);
-	BKE_animsys_evaluate_animdata(&scene->id, adt, cfra, ADT_RECALC_ANIM);
-
 	count = get_shown_sequences(seqbasep, cfra, chanshown, 
 					(Sequence **)&seq_arr);
 
@@ -2560,6 +2572,14 @@ static TStripElem* do_build_seq_array_recursively(
 	if (!se) {
 		return 0;
 	}
+
+#if 0 /* commentind since this breaks keyframing, since it resets the value on draw */
+	if(scene->r.cfra != cfra) {
+		// XXX for prefetch and overlay offset!..., very bad!!!
+		AnimData *adt= BKE_animdata_from_id(&scene->id);
+		BKE_animsys_evaluate_animdata(&scene->id, adt, cfra, ADT_RECALC_ANIM);
+	}
+#endif
 
 	test_and_auto_discard_ibuf(se, seqrectx, seqrecty);
 
@@ -2703,11 +2723,11 @@ static TStripElem* do_build_seq_array_recursively(
 
 			if (!se1->ibuf_comp->rect_float && 
 				se2->ibuf_comp->rect_float) {
-				IMB_float_from_rect(se1->ibuf_comp);
+				IMB_float_from_rect_simple(se1->ibuf_comp);
 			}
 			if (!se2->ibuf->rect_float && 
 				se2->ibuf_comp->rect_float) {
-				IMB_float_from_rect(se2->ibuf);
+				IMB_float_from_rect_simple(se2->ibuf);
 			}
 
 			if (!se1->ibuf_comp->rect && 
@@ -4042,6 +4062,7 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	seq->flag= SELECT;
 	seq->start= cfra;
 	seq->machine= machine;
+	seq->sat= 1.0;
 	seq->mul= 1.0;
 	seq->blend_opacity = 100.0;
 	seq->volume = 1.0f;

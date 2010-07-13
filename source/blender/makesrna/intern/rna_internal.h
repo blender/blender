@@ -237,6 +237,9 @@ void RNA_api_sequence_strip(StructRNA *srna);
 void RNA_api_text(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
+void RNA_api_sensor(struct StructRNA *srna);
+void RNA_api_controller(struct StructRNA *srna);
+void RNA_api_actuator(struct StructRNA *srna);
 
 /* main collection functions */
 void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop);

@@ -162,7 +162,6 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "show_view_name", text="View Name")
         col.prop(view, "show_playback_fps", text="Playback FPS")
         col.prop(view, "global_scene")
-        col.prop(view, "pin_floating_panels")
         col.prop(view, "object_origin_size")
 
         col.separator()
@@ -281,13 +280,6 @@ class USERPREF_PT_edit(bpy.types.Panel):
         row.separator()
 
         col = row.column()
-        col.label(text="Snap:")
-        col.prop(edit, "snap_translate", text="Translate")
-        col.prop(edit, "snap_rotate", text="Rotate")
-        col.prop(edit, "snap_scale", text="Scale")
-        col.separator()
-        col.separator()
-        col.separator()
         col.label(text="Grease Pencil:")
         col.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
@@ -847,7 +839,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         cats = ["All", "Enabled", "Disabled"] + sorted(cats)
 
-        bpy.types.Scene.EnumProperty(items=[(cat, cat, str(i)) for i, cat in enumerate(cats)],
+        bpy.types.Scene.EnumProperty(items=[(cat, cat, cat + " addons") for cat in cats],
             name="Category", attr="addon_filter", description="Filter add-ons by category")
         bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
             description="Search within the selected filter")

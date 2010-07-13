@@ -32,13 +32,14 @@ def particle_panel_enabled(context, psys):
     return (psys.point_cache.baked is False) and (not psys.edited) and (not context.particle_system_editable)
 
 
-def particle_panel_poll(context):
+def particle_panel_poll(panel, context):
     psys = context.particle_system
+    engine = context.scene.render.engine
     if psys is None:
         return False
     if psys.settings is None:
         return False
-    return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR')
+    return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR') and (engine in panel.COMPAT_ENGINES)
 
 
 class ParticleButtonsPanel(bpy.types.Panel):
@@ -47,15 +48,17 @@ class ParticleButtonsPanel(bpy.types.Panel):
     bl_context = "particle"
 
     def poll(self, context):
-        return particle_panel_poll(context)
+        return particle_panel_poll(self, context)
 
 
 class PARTICLE_PT_context_particles(ParticleButtonsPanel):
     bl_label = ""
     bl_show_header = False
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        return (context.particle_system or context.object)
+        engine = context.scene.render.engine
+        return (context.particle_system or context.object) and (engine in self.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -134,14 +137,16 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel):
 
 
 class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel):
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
     _context_path = "particle_system.settings"
 
 
 class PARTICLE_PT_emission(ParticleButtonsPanel):
     bl_label = "Emission"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        if particle_panel_poll(context):
+        if particle_panel_poll(self, context):
             return not context.particle_system.point_cache.external
         else:
             return False
@@ -201,14 +206,16 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
     bl_label = "Hair dynamics"
     bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
         psys = context.particle_system
+        engine = context.scene.render.engine
         if psys is None:
             return False
         if psys.settings is None:
             return False
-        return psys.settings.type == 'HAIR'
+        return psys.settings.type == 'HAIR' and (engine in self.COMPAT_ENGINES)
 
     def draw_header(self, context):
         #cloth = context.cloth.collision_settings
@@ -256,9 +263,11 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
 class PARTICLE_PT_cache(ParticleButtonsPanel):
     bl_label = "Cache"
     bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
         psys = context.particle_system
+        engine = context.scene.render.engine
         if psys is None:
             return False
         if psys.settings is None:
@@ -266,7 +275,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
         phystype = psys.settings.physics_type
         if phystype == 'NO' or phystype == 'KEYED':
             return False
-        return psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.hair_dynamics)
+        return (psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.hair_dynamics)) and engine in self.COMPAT_ENGINES
 
     def draw(self, context):
         psys = context.particle_system
@@ -276,9 +285,10 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 
 class PARTICLE_PT_velocity(ParticleButtonsPanel):
     bl_label = "Velocity"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        if particle_panel_poll(context):
+        if particle_panel_poll(self, context):
             psys = context.particle_system
             return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.external
         else:
@@ -322,9 +332,10 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel):
 
 class PARTICLE_PT_rotation(ParticleButtonsPanel):
     bl_label = "Rotation"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        if particle_panel_poll(context):
+        if particle_panel_poll(self, context):
             psys = context.particle_system
             return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.external
         else:
@@ -367,9 +378,10 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel):
 
 class PARTICLE_PT_physics(ParticleButtonsPanel):
     bl_label = "Physics"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        if particle_panel_poll(context):
+        if particle_panel_poll(self, context):
             return not context.particle_system.point_cache.external
         else:
             return False
@@ -562,16 +574,18 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 
 class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
     bl_label = "Boid Brain"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
         psys = context.particle_system
+        engine = context.scene.render.engine
         if psys is None:
             return False
         if psys.settings is None:
             return False
         if psys.point_cache.external:
             return False
-        return psys.settings.physics_type == 'BOIDS'
+        return psys.settings.physics_type == 'BOIDS' and engine in self.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -660,14 +674,16 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 
 class PARTICLE_PT_render(ParticleButtonsPanel):
     bl_label = "Render"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
         psys = context.particle_system
+        engine = context.scene.render.engine
         if psys is None:
             return False
         if psys.settings is None:
             return False
-        return True
+        return engine in self.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -829,14 +845,16 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 class PARTICLE_PT_draw(ParticleButtonsPanel):
     bl_label = "Display"
     bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
         psys = context.particle_system
+        engine = context.scene.render.engine
         if psys is None:
             return False
         if psys.settings is None:
             return False
-        return True
+        return engine in self.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -886,6 +904,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 class PARTICLE_PT_children(ParticleButtonsPanel):
     bl_label = "Children"
     bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -970,6 +989,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel):
 class PARTICLE_PT_field_weights(ParticleButtonsPanel):
     bl_label = "Field Weights"
     bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         part = context.particle_system.settings
@@ -982,6 +1002,7 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel):
 class PARTICLE_PT_force_fields(ParticleButtonsPanel):
     bl_label = "Force Field Settings"
     bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -1009,6 +1030,7 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel):
 class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
     bl_label = "Vertexgroups"
     bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout

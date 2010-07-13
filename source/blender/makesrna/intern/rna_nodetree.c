@@ -1176,6 +1176,7 @@ static void def_cmp_scale(StructRNA *srna)
 		{0, "RELATIVE",   0, "Relative",   ""},
 		{1, "ABSOLUTE",   0, "Absolute",   ""},
 		{2, "SCENE_SIZE", 0, "Scene Size", ""},
+		{3, "RENDER_SIZE", 0, "Render Size", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
