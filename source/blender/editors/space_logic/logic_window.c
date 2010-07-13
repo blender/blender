@@ -678,7 +678,7 @@ static char *actuator_name(int type)
 	case ACT_OBJECT:
 		return "Motion";
 	case ACT_IPO:
-		return "Ipo";
+		return "F-Curve";
 	case ACT_LAMP:
 		return "Lamp";
 	case ACT_CAMERA:
@@ -706,7 +706,7 @@ static char *actuator_name(int type)
 	case ACT_VISIBILITY:
 		return "Visibility";
 	case ACT_2DFILTER:
-		return "2D Filter";
+		return "Filter 2D";
 	case ACT_PARENT:
 		return "Parent";
 	case ACT_STATE:
@@ -3185,13 +3185,19 @@ static int is_sensor_linked(uiBlock *block, bSensor *sens)
 static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *logic_ptr)
 {
 	uiLayout *box, *row, *subrow;
+	bSensor *sens= (bSensor *)ptr->data;
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
 	
 	uiItemR(row, ptr, "expanded", UI_ITEM_R_NO_BG, "", 0);
-	uiItemR(row, ptr, "type", 0, "", 0);
-	uiItemR(row, ptr, "name", 0, "", 0);
+	if(RNA_boolean_get(ptr, "expanded")) {
+		uiItemR(row, ptr, "type", 0, "", 0);
+		uiItemR(row, ptr, "name", 0, "", 0);
+	} else {
+		uiItemL(row, sensor_name(sens->type), 0);
+		uiItemL(row, sens->name, 0);
+	}
 
 	subrow= uiLayoutRow(row, 0);
 	uiLayoutSetActive(subrow, ((RNA_boolean_get(logic_ptr, "sensors_show_active_states")
@@ -3199,8 +3205,9 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
 
 	if(RNA_boolean_get(ptr, "expanded")==0) {
-		uiItemEnumO(row, "LOGIC_OT_sensor_move", "", ICON_TRIA_UP, "direction", 1); // up
-		uiItemEnumO(row, "LOGIC_OT_sensor_move", "", ICON_TRIA_DOWN, "direction", 2); // down
+		subrow= uiLayoutRow(row, 1);
+		uiItemEnumO(subrow, "LOGIC_OT_sensor_move", "", ICON_TRIA_UP, "direction", 1); // up
+		uiItemEnumO(subrow, "LOGIC_OT_sensor_move", "", ICON_TRIA_DOWN, "direction", 2); // down
 	}
 
 	uiItemO(row, "", ICON_X, "LOGIC_OT_sensor_remove");
@@ -3525,27 +3532,35 @@ void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr, bContext *C)
 }
 
 /* Controller code */
-static void draw_controller_header(uiLayout *layout, PointerRNA *ptr)
+static void draw_controller_header(uiLayout *layout, PointerRNA *ptr, int xco, int width, int yco)
 {
-	uiLayout *box, *row;
+	uiLayout *box, *row, *subrow;
+	bController *cont= (bController *)ptr->data;
+
 	char name[3]; //XXX provisorly for state number
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
 	
 	uiItemR(row, ptr, "expanded", UI_ITEM_R_NO_BG, "", 0);
-	uiItemR(row, ptr, "type", 0, "", 0);
-	uiItemR(row, ptr, "name", 0, "", 0);
+	if(RNA_boolean_get(ptr, "expanded")) {
+		uiItemR(row, ptr, "type", 0, "", 0);
+		uiItemR(row, ptr, "name", 0, "", 0);
+	} else {
+		uiItemL(row, controller_name(cont->type), 0);
+		uiItemL(row, cont->name, 0);
+	}
 
-	/* XXX provisory: state number */
-	sprintf(name, "%d", RNA_int_get(ptr, "state_number"));
-	uiItemL(row, name, 0);
+	/* XXX provisory for Blender 2.50Beta */
+	sprintf(name, "%d", RNA_int_get(ptr, "state"));
+	uiDefBlockBut(uiLayoutGetBlock(layout), controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22+22, UI_UNIT_Y, "Set controller state index (from 1 to 30)");
 
 	uiItemR(row, ptr, "priority", 0, "", 0);
 
 	if(RNA_boolean_get(ptr, "expanded")==0) {
-		uiItemEnumO(row, "LOGIC_OT_controller_move", "", ICON_TRIA_UP, "direction", 1); // up
-		uiItemEnumO(row, "LOGIC_OT_controller_move", "", ICON_TRIA_DOWN, "direction", 2); // down
+		subrow= uiLayoutRow(row, 1);
+		uiItemEnumO(subrow, "LOGIC_OT_controller_move", "", ICON_TRIA_UP, "direction", 1); // up
+		uiItemEnumO(subrow, "LOGIC_OT_controller_move", "", ICON_TRIA_DOWN, "direction", 2); // down
 	}
 	uiItemO(row, "", ICON_X, "LOGIC_OT_controller_remove");
 }
@@ -3613,13 +3628,19 @@ void draw_brick_controller(uiLayout *layout, PointerRNA *ptr)
 static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *logic_ptr)
 {
 	uiLayout *box, *row, *subrow;
+	bActuator *act= (bActuator *)ptr->data;
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
 	
 	uiItemR(row, ptr, "expanded", UI_ITEM_R_NO_BG, "", 0);
-	uiItemR(row, ptr, "type", 0, "", 0);
-	uiItemR(row, ptr, "name", 0, "", 0);
+	if(RNA_boolean_get(ptr, "expanded")) {
+		uiItemR(row, ptr, "type", 0, "", 0);
+		uiItemR(row, ptr, "name", 0, "", 0);
+	} else {
+		uiItemL(row, actuator_name(act->type), 0);
+		uiItemL(row, act->name, 0);
+	}
 
 	subrow= uiLayoutRow(row, 0);
 	uiLayoutSetActive(subrow, ((RNA_boolean_get(logic_ptr, "actuators_show_active_states")
@@ -3627,8 +3648,9 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *
 	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
 
 	if(RNA_boolean_get(ptr, "expanded")==0) {
-		uiItemEnumO(row, "LOGIC_OT_actuator_move", "", ICON_TRIA_UP, "direction", 1); // up
-		uiItemEnumO(row, "LOGIC_OT_actuator_move", "", ICON_TRIA_DOWN, "direction", 2); // down
+		subrow= uiLayoutRow(row, 1);
+		uiItemEnumO(subrow, "LOGIC_OT_actuator_move", "", ICON_TRIA_UP, "direction", 1); // up
+		uiItemEnumO(subrow, "LOGIC_OT_actuator_move", "", ICON_TRIA_DOWN, "direction", 2); // down
 	}
 	uiItemO(row, "", ICON_X, "LOGIC_OT_actuator_remove");
 }
@@ -4532,8 +4554,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			uiLayoutSetContextPointer(col, "controller", &ptr);
 			
 			/* should make UI template for controller header.. function will do for now */
-			draw_controller_header(col, &ptr);
-			
+//			draw_controller_header(col, &ptr);
+			draw_controller_header(col, &ptr, xco, width, yco); //provisory for 2.50 beta
+
 			/* draw the brick contents */
 			draw_brick_controller(col, &ptr);
 			
