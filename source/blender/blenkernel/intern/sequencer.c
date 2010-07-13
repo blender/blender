@@ -517,6 +517,31 @@ void calc_sequence_disp(Scene *scene, Sequence *seq)
 	seq_update_sound(scene, seq);
 }
 
+static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
+{
+	Sequence *seq;
+
+	/* for sound we go over full meta tree to update bounds of the sound strips,
+	   since sound is played outside of evaluating the imbufs, */
+	for(seq=metaseq->seqbase.first; seq; seq=seq->next) {
+		if(seq->type == SEQ_META) {
+			seq_update_sound_bounds_recursive(scene, seq);
+		}
+		else if((seq->type == SEQ_SOUND) || (seq->type == SEQ_SCENE)) {
+			if(seq->scene_sound) {
+				int startofs = seq->startofs;
+				int endofs = seq->endofs;
+				if(seq->startofs + seq->start < metaseq->start + metaseq->startofs)
+					startofs = metaseq->start + metaseq->startofs - seq->start;
+
+				if(seq->start + seq->len - seq->endofs > metaseq->start + metaseq->len - metaseq->endofs)
+					endofs = seq->start + seq->len - metaseq->start - metaseq->len + metaseq->endofs;
+				sound_move_scene_sound(scene, seq->scene_sound, seq->start + startofs, seq->start+seq->len - endofs, startofs);
+			}
+		}
+	}
+}
+
 void calc_sequence(Scene *scene, Sequence *seq)
 {
 	Sequence *seqm;
@@ -576,6 +601,7 @@ void calc_sequence(Scene *scene, Sequence *seq)
 					new_tstripdata(seq);
 				}
 			}
+			seq_update_sound_bounds_recursive(scene, seq);
 		}
 		calc_sequence_disp(scene, seq);
 	}
