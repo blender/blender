@@ -44,7 +44,7 @@ class DataButtonsPanelActive(DataButtonsPanel):
 
     def poll(self, context):
         curve = context.curve
-        return (curve and curve.splines.active)
+        return (curve and type(curve) is not bpy.types.TextCurve and curve.splines.active)
 
 
 class DATA_PT_context_curve(DataButtonsPanel):
