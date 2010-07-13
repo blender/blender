@@ -846,7 +846,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frame_offset_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
-	RNA_def_property_ui_text(prop, "End offset", "");
+	RNA_def_property_ui_text(prop, "End Offset", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "frame_still_start", PROP_INT, PROP_TIME);
