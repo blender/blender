@@ -63,7 +63,7 @@ struct Scene *set_scene_name(char *name);
 struct Scene *copy_scene(struct Main *bmain, struct Scene *sce, int type);
 void unlink_scene(struct Main *bmain, struct Scene *sce, struct Scene *newsce);
 
-int next_object(struct Scene *scene, int val, struct Base **base, struct Object **ob);
+int next_object(struct Scene **scene, int val, struct Base **base, struct Object **ob);
 struct Object *scene_find_camera(struct Scene *sc);
 struct Object *scene_camera_switch_find(struct Scene *scene); // DURIAN_CAMERA_SWITCH
 int scene_camera_switch_update(struct Scene *scene);

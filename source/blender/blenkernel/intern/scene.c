@@ -593,7 +593,7 @@ void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
 /* used by metaballs
  * doesnt return the original duplicated object, only dupli's
  */
-int next_object(Scene *scene, int val, Base **base, Object **ob)
+int next_object(Scene **scene, int val, Base **base, Object **ob)
 {
 	static ListBase *duplilist= NULL;
 	static DupliObject *dupob;
@@ -622,17 +622,21 @@ int next_object(Scene *scene, int val, Base **base, Object **ob)
 
 			/* the first base */
 			if(fase==F_START) {
-				*base= scene->base.first;
+				*base= (*scene)->base.first;
 				if(*base) {
 					*ob= (*base)->object;
 					fase= F_SCENE;
 				}
 				else {
 					/* exception: empty scene */
-					if(scene->set && scene->set->base.first) {
-						*base= scene->set->base.first;
-						*ob= (*base)->object;
-						fase= F_SET;
+					while((*scene)->set) {
+						(*scene)= (*scene)->set;
+						if((*scene)->base.first) {
+							*base= (*scene)->base.first;
+							*ob= (*base)->object;
+							fase= F_SCENE;
+							break;
+						}
 					}
 				}
 			}
@@ -642,11 +646,14 @@ int next_object(Scene *scene, int val, Base **base, Object **ob)
 					if(*base) *ob= (*base)->object;
 					else {
 						if(fase==F_SCENE) {
-							/* scene is finished, now do the set */
-							if(scene->set && scene->set->base.first) {
-								*base= scene->set->base.first;
-								*ob= (*base)->object;
-								fase= F_SET;
+							/* (*scene) is finished, now do the set */
+							while((*scene)->set) {
+								(*scene)= (*scene)->set;
+								if((*scene)->base.first) {
+									*base= (*scene)->base.first;
+									*ob= (*base)->object;
+									break;
+								}
 							}
 						}
 					}
@@ -661,7 +668,7 @@ int next_object(Scene *scene, int val, Base **base, Object **ob)
 						this enters eternal loop because of 
 						makeDispListMBall getting called inside of group_duplilist */
 						if((*base)->object->dup_group == NULL) {
-							duplilist= object_duplilist(scene, (*base)->object);
+							duplilist= object_duplilist((*scene), (*base)->object);
 							
 							dupob= duplilist->first;
 
@@ -697,6 +704,10 @@ int next_object(Scene *scene, int val, Base **base, Object **ob)
 		}
 	}
 	
+	/* if(ob && *ob) {
+		printf("Scene: '%s', '%s'\n", (*scene)->id.name+2, (*ob)->id.name+2);
+	} */
+
 	/* reset recursion test */
 	in_next_object= 0;
 	
