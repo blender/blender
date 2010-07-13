@@ -888,17 +888,15 @@ static void rna_def_particle(BlenderRNA *brna)
 //	int totkey;
 
 	/* flag */
-	prop= RNA_def_property(srna, "unexist", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_UNEXIST);
-	RNA_def_property_ui_text(prop, "unexist", "");
+	prop= RNA_def_property(srna, "is_existing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", PARS_UNEXIST);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Exists", "");
 
-	prop= RNA_def_property(srna, "no_disp", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_NO_DISP);
-	RNA_def_property_ui_text(prop, "no_disp", "");
-
-	prop= RNA_def_property(srna, "rekey", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_REKEY);
-	RNA_def_property_ui_text(prop, "rekey", "");
+	prop= RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", PARS_NO_DISP);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Visible", "");
 
 	prop= RNA_def_property(srna, "alive_state", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "alive");
@@ -1133,11 +1131,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Multi React", "React multiple times");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	/* TODO: used somewhere? */
-	prop= RNA_def_property(srna, "hair_geometry", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_HAIR_GEOMETRY);
-	RNA_def_property_ui_text(prop, "Hair Geometry", "");//TODO: tooltip
-
 	prop= RNA_def_property(srna, "unborn", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_UNBORN);
 	RNA_def_property_ui_text(prop, "Unborn", "Show particles before they are emitted");
@@ -1223,11 +1216,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	//RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_SEAMS);
 	//RNA_def_property_ui_text(prop, "Use seams", "Use seams to determine parents");
 	//RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
-
-	/* TODO: used somewhere? */
-	prop= RNA_def_property(srna, "child_render", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_RENDER);
-	RNA_def_property_ui_text(prop, "child_render", "");
 
 	prop= RNA_def_property(srna, "child_guide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_GUIDE);
