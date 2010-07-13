@@ -827,7 +827,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 		}
 		
 		reload_sequence_new_file(scene, seqn, FALSE);
-		calc_sequence(scene, seq);
+		calc_sequence(scene, seqn);
 	}
 	return seqn;
 }
