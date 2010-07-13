@@ -912,8 +912,15 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	
 	ob= G.main->object.first;
 	nr= 0;
+
+	/* make the active object always the first one of the list */
+	if (obact) {
+		idar[0]= (ID *)obact;
+		nr++;
+	}
+
 	while(ob) {
-		if( ob->scavisflag ) {
+		if( (ob->scavisflag) && (ob != obact)) {
 			idar[nr]= (ID *)ob;
 			nr++;
 		}
@@ -4377,6 +4384,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 {
 	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	Object *ob= CTX_data_active_object(C);
+	Object *act_ob= ob;
 	ID **idar;
 	
 	PointerRNA logic_ptr, settings_ptr;
@@ -4470,7 +4478,8 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 		row = uiLayoutRow(split, 1);
 		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide controllers");
-		uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", 0);
+		if (ob == act_ob)
+			uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", 0);
 
 		if (RNA_boolean_get(&settings_ptr, "show_state_panel")) {
 
@@ -4563,7 +4572,8 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 		row = uiLayoutRow(layout, 1);
 		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
-		uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", 0);
+		if (ob == act_ob)
+			uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", 0);
 		
 		if ((ob->scaflag & OB_SHOWSENS) == 0) continue;
 		
@@ -4628,7 +4638,8 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 		row = uiLayoutRow(layout, 1);
 		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
-		uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", 0);
+		if (ob == act_ob)
+			uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", 0);
 
 		if ((ob->scaflag & OB_SHOWACT) == 0) continue;
 		
