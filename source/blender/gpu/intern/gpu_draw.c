@@ -68,6 +68,7 @@
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 #include "GPU_draw.h"
+#include "gpu_buffers.h"
 
 #include "smoke_API.h"
 

@@ -313,8 +313,6 @@ class DATA_PT_font(DataButtonsPanel):
         colsub.label(text="Underline:")
         colsub.prop(text, "ul_position", text="Position")
         colsub.prop(text, "ul_height", text="Thickness")
-        col.label(text="")
-        col.prop(text, "small_caps_scale", text="Small Caps")
 
         if wide_ui:
             col = split.column()
@@ -322,9 +320,13 @@ class DATA_PT_font(DataButtonsPanel):
         col.prop(char, "bold")
         col.prop(char, "italic")
         col.prop(char, "underline")
+        
+        split = layout.split()
+        col = split.column()
+        col.prop(text, "small_caps_scale", text="Small Caps")
+        
+        col = split.column()
         col.prop(char, "use_small_caps")
-#       col.prop(char, "style")
-#       col.prop(char, "wrap")
 
 
 class DATA_PT_paragraph(DataButtonsPanel):

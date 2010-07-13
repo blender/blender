@@ -50,6 +50,7 @@
 
 struct DerivedMesh;
 struct GHash;
+struct DMGridData;
 
 /* V - vertex, N - normal, T - uv, C - color
    F - float, UB - unsigned byte */
