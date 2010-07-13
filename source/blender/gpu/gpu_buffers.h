@@ -69,8 +69,9 @@ typedef struct GPUBuffer
 
 typedef struct GPUBufferPool
 {
-	int size;	/* number of allocated buffers stored */
-	GPUBuffer* buffers[MAX_FREE_GPU_BUFFERS];
+	int size;		/* number of allocated buffers stored */
+	int maxsize;	/* size of the array */
+	GPUBuffer **buffers;
 } GPUBufferPool;
 
 typedef struct GPUBufferMaterial
@@ -119,7 +120,8 @@ typedef struct GPUAttrib
 } GPUAttrib;
 
 GPUBufferPool *GPU_buffer_pool_new();
-void GPU_buffer_pool_free( GPUBufferPool *pool );	/* TODO: Find a place where to call this function on exit */
+void GPU_buffer_pool_free( GPUBufferPool *pool );
+void GPU_buffer_pool_free_unused( GPUBufferPool *pool );
 
 GPUBuffer *GPU_buffer_alloc( int size, GPUBufferPool *pool );
 void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool );

@@ -38,8 +38,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_ghash.h"
+#include "BLI_math.h"
+#include "BLI_threads.h"
 
 #include "DNA_meshdata_types.h"
 
@@ -82,35 +83,10 @@ GPUBufferPool *GPU_buffer_pool_new()
 	}
 
 	pool = MEM_callocN(sizeof(GPUBufferPool), "GPU_buffer_pool_new");
+	pool->maxsize = MAX_FREE_GPU_BUFFERS;
+	pool->buffers = MEM_callocN(sizeof(GPUBuffer*)*pool->maxsize, "GPU_buffer_pool_new buffers");
 
 	return pool;
-}
-
-void GPU_buffer_pool_free(GPUBufferPool *pool)
-{
-	int i;
-
-	DEBUG_VBO("GPU_buffer_pool_free\n");
-
-	if( pool == 0 )
-		pool = globalPool;
-	if( pool == 0 )
-		return;
-
-	for( i = 0; i < pool->size; i++ ) {
-		if( pool->buffers[i] != 0 ) {
-			if( useVBOs ) {
-				glDeleteBuffersARB( 1, &pool->buffers[i]->id );
-			}
-			else {
-				MEM_freeN( pool->buffers[i]->pointer );
-			}
-			MEM_freeN(pool->buffers[i]);
-		} else {
-			ERROR_VBO("Why are we accessing a null buffer in GPU_buffer_pool_free?\n");
-		}
-	}
-	MEM_freeN(pool);
 }
 
 void GPU_buffer_pool_remove( int index, GPUBufferPool *pool )
@@ -157,6 +133,35 @@ void GPU_buffer_pool_delete_last( GPUBufferPool *pool )
 		DEBUG_VBO("Why are we accessing a null buffer?\n");
 	}
 	pool->size--;
+}
+
+void GPU_buffer_pool_free(GPUBufferPool *pool)
+{
+	DEBUG_VBO("GPU_buffer_pool_free\n");
+
+	if( pool == 0 )
+		pool = globalPool;
+	if( pool == 0 )
+		return;
+	
+	while( pool->size )
+		GPU_buffer_pool_delete_last(pool);
+
+	MEM_freeN(pool->buffers);
+	MEM_freeN(pool);
+}
+
+void GPU_buffer_pool_free_unused(GPUBufferPool *pool)
+{
+	DEBUG_VBO("GPU_buffer_pool_free_unused\n");
+
+	if( pool == 0 )
+		pool = globalPool;
+	if( pool == 0 )
+		return;
+	
+	while( pool->size > MAX_FREE_GPU_BUFFERS )
+		GPU_buffer_pool_delete_last(pool);
 }
 
 GPUBuffer *GPU_buffer_alloc( int size, GPUBufferPool *pool )
@@ -226,6 +231,7 @@ GPUBuffer *GPU_buffer_alloc( int size, GPUBufferPool *pool )
 void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 {
 	int i;
+
 	DEBUG_VBO("GPU_buffer_free\n");
 
 	if( buffer == 0 )
@@ -235,9 +241,19 @@ void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 	if( pool == 0 )
 		globalPool = GPU_buffer_pool_new();
 
-	/* free the last used buffer in the queue if no more space */
-	if( pool->size == MAX_FREE_GPU_BUFFERS ) {
-		GPU_buffer_pool_delete_last( pool );
+	/* free the last used buffer in the queue if no more space, but only
+	   if we are in the main thread. for e.g. rendering or baking it can
+	   happen that we are in other thread and can't call OpenGL, in that
+	   case cleanup will be done GPU_buffer_pool_free_unused */
+	if( BLI_thread_is_main() ) {
+		while( pool->size >= MAX_FREE_GPU_BUFFERS )
+			GPU_buffer_pool_delete_last( pool );
+	}
+	else {
+		if( pool->maxsize == pool->size ) {
+			pool->maxsize += MAX_FREE_GPU_BUFFERS;
+			pool->buffers = MEM_reallocN(pool->buffers, sizeof(GPUBuffer*)*pool->maxsize);
+		}
 	}
 
 	for( i =pool->size; i > 0; i-- ) {
