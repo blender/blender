@@ -1408,7 +1408,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 
 					base->object->dup_group= ob->dup_group;
 					if(ob->dup_group)
-						id_us_plus((ID *)ob->dup_group);
+						id_lib_extern(&ob->dup_group->id);
 				}
 				else if(event==7) {	/* mass */
 					base->object->mass= ob->mass;

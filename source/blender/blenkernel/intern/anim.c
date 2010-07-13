@@ -741,7 +741,7 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, i
 
 			if(go->ob->transflag & OB_DUPLI) {
 				copy_m4_m4(dob->ob->obmat, dob->mat);
-				object_duplilist_recursive((ID *)group, scene, go->ob, lb, ob->obmat, level+1, animated);
+				object_duplilist_recursive(&group->id, scene, go->ob, lb, ob->obmat, level+1, animated);
 				copy_m4_m4(dob->ob->obmat, dob->omat);
 			}
 		}

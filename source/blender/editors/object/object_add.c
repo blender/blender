@@ -754,8 +754,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 		rename_id(&ob->id, group->id.name+2);
 		ob->dup_group= group;
 		ob->transflag |= OB_DUPLIGROUP;
-		id_us_plus(&group->id);
-
+		id_lib_extern(&group->id);
 
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 

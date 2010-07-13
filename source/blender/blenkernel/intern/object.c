@@ -283,7 +283,6 @@ void free_object(Object *ob)
 	ob->path= 0;
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
-	if(ob->dup_group) ob->dup_group->id.us--;
 	if(ob->gpd) ob->gpd->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
@@ -1320,7 +1319,7 @@ Object *copy_object(Object *ob)
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
-	id_us_plus((ID *)obn->dup_group);
+	id_lib_extern((ID *)obn->dup_group);
 	
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
