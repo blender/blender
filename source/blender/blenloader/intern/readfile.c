@@ -11020,7 +11020,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				brush->rate = 0.1f;
 
 			/* New Settings */
-			if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 6)) {
+			if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 5)) {
 				brush->flag |= BRUSH_SPACE_ATTEN; // explicitly enable adaptive space
 
 				// spacing was originally in pixels, convert it to percentage for new version
