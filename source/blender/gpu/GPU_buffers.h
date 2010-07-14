@@ -49,6 +49,7 @@
 #endif
 
 struct DerivedMesh;
+struct DMGridData;
 struct GHash;
 struct DMGridData;
 

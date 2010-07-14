@@ -49,7 +49,7 @@
 
 #include "DNA_userdef_types.h"
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 
 #define GPU_BUFFER_VERTEX_STATE 1
 #define GPU_BUFFER_NORMAL_STATE 2
