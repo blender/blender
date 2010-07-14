@@ -795,7 +795,7 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 	Sequence *seq;
 	for(seq=seqbasep->first; seq; seq= seq->next) {
 		if (sui->seq != seq && strcmp(sui->name_dest, seq->name+2)==0) {
-			sprintf(sui->name_dest, "%.18s.%03d",  sui->name_src, sui->count++);
+			sprintf(sui->name_dest, "%.17s.%03d",  sui->name_src, sui->count++); /*24 - 2 for prefix, -1 for \0 */
 			sui->match= 1; /* be sure to re-scan */
 		}
 	}
@@ -816,12 +816,17 @@ void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq)
 	strcpy(sui.name_src, seq->name+2);
 	strcpy(sui.name_dest, seq->name+2);
 
-	/* Strip off the suffix */
-	if ((dot=strrchr(sui.name_src, '.')))
-		*dot= '\0';
-
 	sui.count= 1;
 	sui.match= 1; /* assume the worst to start the loop */
+
+	/* Strip off the suffix */
+	if ((dot=strrchr(sui.name_src, '.'))) {
+		*dot= '\0';
+		dot++;
+
+		if(*dot)
+			sui.count= atoi(dot) + 1;
+	}
 
 	while(sui.match) {
 		sui.match= 0;
