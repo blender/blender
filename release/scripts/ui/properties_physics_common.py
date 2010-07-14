@@ -46,7 +46,10 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         split.prop(cache, "name", text="File Name")
         split.prop(cache, "index", text="")
 
-        layout.label(text="File Path:")
+        row = layout.row()
+        row.label(text="File Path:")
+        row.prop(cache, "use_library_path", "Use Lib Path")
+        
         layout.prop(cache, "filepath", text="")
 
         layout.label(text=cache.info)
