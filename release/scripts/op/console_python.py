@@ -68,7 +68,7 @@ def get_console(console_id):
         stderr = io.StringIO()
     else:
         namespace = {'__builtins__': __builtins__, 'bpy': bpy}
-        console = InteractiveConsole(namespace)
+        console = InteractiveConsole(locals=namespace, filename="<blender_console>")
 
         import io
         stdout = io.StringIO()

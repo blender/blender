@@ -53,7 +53,7 @@ blender_version = blender_version.split("Build")[0]
 
 date_string = datetime.date.fromtimestamp(time.time()).strftime("%B %d, %Y")
 
-filepath = __file__.replace(".py", "")
+filepath = os.path.splitext(__file__)[0] + ".1"
 
 file = open(filepath, "w")
 
