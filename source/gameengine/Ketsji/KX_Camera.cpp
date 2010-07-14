@@ -499,6 +499,7 @@ PyAttributeDef KX_Camera::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("perspective", KX_Camera, pyattr_get_perspective, pyattr_set_perspective),
 	
 	KX_PYATTRIBUTE_RW_FUNCTION("lens",	KX_Camera,	pyattr_get_lens, pyattr_set_lens),
+	KX_PYATTRIBUTE_RW_FUNCTION("ortho_scale",	KX_Camera,	pyattr_get_ortho_scale, pyattr_set_ortho_scale),
 	KX_PYATTRIBUTE_RW_FUNCTION("near",	KX_Camera,	pyattr_get_near, pyattr_set_near),
 	KX_PYATTRIBUTE_RW_FUNCTION("far",	KX_Camera,	pyattr_get_far,  pyattr_set_far),
 	
@@ -724,6 +725,26 @@ int KX_Camera::pyattr_set_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, 
 	}
 	
 	self->m_camdata.m_lens= param;
+	self->m_set_projection_matrix = false;
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* KX_Camera::pyattr_get_ortho_scale(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	return PyFloat_FromDouble(self->m_camdata.m_scale);
+}
+
+int KX_Camera::pyattr_set_ortho_scale(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	float param = PyFloat_AsDouble(value);
+	if (param == -1) {
+		PyErr_SetString(PyExc_AttributeError, "camera.scale = float: KX_Camera, expected a float greater then zero");
+		return PY_SET_ATTR_FAIL;
+	}
+	
+	self->m_camdata.m_scale= param;
 	self->m_set_projection_matrix = false;
 	return PY_SET_ATTR_SUCCESS;
 }

@@ -289,6 +289,8 @@ public:
 
 	static PyObject*	pyattr_get_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_ortho_scale(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_ortho_scale(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
