@@ -310,7 +310,8 @@ class ExportPLY(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filepath.replace(".blend", ".ply")
+    import os
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".ply"
     self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)").filepath = default_path
 
 

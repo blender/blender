@@ -131,11 +131,11 @@ class SelectHierarchy(bpy.types.Operator):
 
                 if parent:
                     parents.append(parent)
-                
-                if obj_act == obj:
-                    context.scene.objects.active = parent
 
-                parent.selected = True
+                    if obj_act == obj:
+                        context.scene.objects.active = parent
+
+                    parent.selected = True
                 
             if parents:
                 return {'CANCELLED'}
