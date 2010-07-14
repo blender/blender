@@ -76,7 +76,6 @@
 #endif
 
 #ifdef WIN32
-#include <sys/types.h>
 #include <io.h>
 #include <direct.h>
 #include "BLI_winstuff.h"
@@ -433,18 +432,20 @@ int BLI_filepathsize(const char *path)
 
 int BLI_exist(char *name)
 {
-	struct stat st;
 #ifdef WIN32
+	struct _stat64i32 st;
 	/*  in Windows stat doesn't recognize dir ending on a slash 
 		To not break code where the ending slash is expected we
 		don't mess with the argument name directly here - elubie */
 	char tmp[FILE_MAXDIR+FILE_MAXFILE];
-	int len;
+	int len, res;
 	BLI_strncpy(tmp, name, FILE_MAXDIR+FILE_MAXFILE);
 	len = strlen(tmp);
 	if (len > 3 && ( tmp[len-1]=='\\' || tmp[len-1]=='/') ) tmp[len-1] = '\0';
-	if (stat(tmp,&st)) return(0);
+	res = _stat(tmp, &st);
+	if (res == -1) return(0);
 #else
+	struct stat st;
 	if (stat(name,&st)) return(0);	
 #endif
 	return(st.st_mode);
