@@ -107,6 +107,8 @@ void POSE_OT_group_remove(struct wmOperatorType *ot);
 void POSE_OT_group_remove(struct wmOperatorType *ot);
 void POSE_OT_group_assign(struct wmOperatorType *ot);
 void POSE_OT_group_unassign(struct wmOperatorType *ot);
+void POSE_OT_group_select(struct wmOperatorType *ot);
+void POSE_OT_group_deselect(struct wmOperatorType *ot);
 
 void POSE_OT_paths_calculate(struct wmOperatorType *ot);
 void POSE_OT_paths_clear(struct wmOperatorType *ot);

@@ -160,13 +160,16 @@ class DATA_PT_bone_groups(DataButtonsPanel):
                     col = split.column()
                 col.template_triColorSet(group, "colors")
 
-        row = layout.row(align=True)
+        row = layout.row()
         row.active = (ob.proxy is None)
 
-        row.operator("pose.group_assign", text="Assign")
-        row.operator("pose.group_unassign", text="Remove") #row.operator("pose.bone_group_remove_from", text="Remove")
-        #row.operator("object.bone_group_select", text="Select")
-        #row.operator("object.bone_group_deselect", text="Deselect")
+        sub = row.row(align=True)
+        sub.operator("pose.group_assign", text="Assign")
+        sub.operator("pose.group_unassign", text="Remove") #row.operator("pose.bone_group_remove_from", text="Remove")
+
+        sub = row.row(align=True)
+        sub.operator("pose.group_select", text="Select")
+        sub.operator("pose.group_deselect", text="Deselect")
 
 
 # TODO: this panel will soon be depreceated too
