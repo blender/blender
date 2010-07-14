@@ -256,7 +256,7 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			BLI_strncpy(fullpath, sound->name, sizeof(fullpath));
 
 			if(sound->id.lib)
-				path = sound->id.lib->filename;
+				path = sound->id.lib->filepath;
 			else
 				path = bmain ? bmain->name : G.sce;
 

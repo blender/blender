@@ -204,6 +204,7 @@ class TEXTURE_PT_colors(TextureButtonsPanel):
         col.label(text="Adjust:")
         col.prop(tex, "brightness")
         col.prop(tex, "contrast")
+        col.prop(tex, "saturation")
 
 # Texture Slot Panels #
 
@@ -961,7 +962,9 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
             layout.prop(vd, "domain_object")
             layout.prop(vd, "smoke_data_type")
         elif vd.file_format == 'IMAGE_SEQUENCE':
-            layout.template_image(tex, "image", tex.image_user)
+            layout.template_ID(tex, "image", open="image.open")
+            layout.template_image(tex, "image", tex.image_user, compact=True)
+            #layout.prop(vd, "frames")
 
         layout.prop(vd, "still")
         row = layout.row()

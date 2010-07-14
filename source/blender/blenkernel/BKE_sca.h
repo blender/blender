@@ -37,6 +37,9 @@ struct Object;
 struct bController;
 struct bActuator;
 
+void link_logicbricks(void **poin, void ***ppoin, short *tot, short size);
+void unlink_logicbricks(void **poin, void ***ppoin, short *tot);
+
 void unlink_controller(struct bController *cont);
 void unlink_controllers(struct ListBase *lb);
 void free_controller(struct bController *cont);
@@ -66,6 +69,10 @@ void clear_sca_new_poins(void);
 void set_sca_new_poins_ob(struct Object *ob);
 void set_sca_new_poins(void);
 void sca_remove_ob_poin(struct Object *obt, struct Object *ob);                    
+
+void sca_move_sensor(struct bSensor *sens_to_move, Object *ob, int move_up);
+void sca_move_controller(struct bController *cont_to_move, Object *ob, int move_up);
+void sca_move_actuator(struct bActuator *act_to_move, Object *ob, int move_up);
 
 #endif
 

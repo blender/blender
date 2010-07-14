@@ -62,9 +62,6 @@
 /* for sequence */
 //XXX #include "BSE_sequence.h"
 //XXX define below from BSE_sequence.h - otherwise potentially odd behaviour
-#define SEQ_HAS_PATH(_seq) ( (_seq)->type==SEQ_MOVIE || (_seq)->type==SEQ_IMAGE || (_seq)->type==SEQ_SOUND )
-
-
 
 #define FILE_MAX			240
 
@@ -335,7 +332,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				Image *ima = (Image *)bpi->data;
 				
-				bpi->lib = ima->id.lib ? ima->id.lib->filename : NULL;
+				bpi->lib = ima->id.lib ? ima->id.lib->filepath : NULL;
 				bpi->path = ima->name;
 				bpi->name = ima->id.name+2;
 				bpi->len = sizeof(ima->name);
@@ -356,7 +353,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				bSound *snd = (bSound *)bpi->data;
 				
-				bpi->lib = snd->id.lib ? snd->id.lib->filename : NULL;
+				bpi->lib = snd->id.lib ? snd->id.lib->filepath : NULL;
 				bpi->path = snd->name;
 				bpi->name = snd->id.name+2;
 				bpi->len = sizeof(snd->name);
@@ -377,7 +374,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				VFont *vf = (VFont *)bpi->data;
 				
-				bpi->lib = vf->id.lib ? vf->id.lib->filename : NULL;
+				bpi->lib = vf->id.lib ? vf->id.lib->filepath : NULL;
 				bpi->path = vf->name;
 				bpi->name = vf->id.name+2;
 				bpi->len = sizeof(vf->name);
@@ -424,7 +421,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 
 			if (bpi->data) {
 				Mesh *me = (Mesh *)bpi->data;
-				bpi->lib = me->id.lib ? me->id.lib->filename : NULL;
+				bpi->lib = me->id.lib ? me->id.lib->filepath : NULL;
 				bpi->path = me->fdata.external->filename;
 				bpi->name = me->id.name+2;
 				bpi->len = sizeof(me->fdata.external->filename);
@@ -661,7 +658,7 @@ void findMissingFiles(char *basepath, char *str) {
 	char filepath[FILE_MAX], *libpath;
 	int filesize, recur_depth;
 	
-	char dirname[FILE_MAX], filename[FILE_MAX], filename_new[FILE_MAX];
+	char dirname[FILE_MAX], filename_new[FILE_MAX];
 	
 	//XXX waitcursor( 1 );
 	
@@ -686,9 +683,8 @@ void findMissingFiles(char *basepath, char *str) {
 				/* can the dir be opened? */
 				filesize = -1;
 				recur_depth = 0;
-				BLI_split_dirfile(filepath, NULL, filename); /* the file to find */
 				
-				findFileRecursive(filename_new, dirname, filename, &filesize, &recur_depth);
+				findFileRecursive(filename_new, dirname, BLI_path_basename(filepath), &filesize, &recur_depth);
 				if (filesize == -1) { /* could not open dir */
 					printf("Could not open dir \"%s\"\n", dirname);
 					return;

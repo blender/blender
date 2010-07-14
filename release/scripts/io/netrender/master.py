@@ -19,6 +19,7 @@
 import sys, os
 import http, http.client, http.server, urllib, socket, socketserver, threading
 import subprocess, shutil, time, hashlib
+import pickle
 import select # for select.error
 
 from netrender.utils import *
@@ -870,14 +871,18 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 self.send_head(http.client.NO_CONTENT)
 
 class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
-    def __init__(self, address, handler_class, path):
+    def __init__(self, address, handler_class, path, subdir=True):
         super().__init__(address, handler_class)
         self.jobs = []
         self.jobs_map = {}
         self.slaves = []
         self.slaves_map = {}
         self.job_id = 0
-        self.path = path + "master_" + str(os.getpid()) + os.sep
+
+        if subdir:
+            self.path = path + "master_" + str(os.getpid()) + os.sep
+        else:
+            self.path = path
 
         self.slave_timeout = 5 # 5 mins: need a parameter for that
 
@@ -891,6 +896,22 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
         if not os.path.exists(self.path):
             os.mkdir(self.path)
+
+    def restore(self, jobs, slaves, balancer = None):
+        self.jobs = jobs
+        self.jobs_map = {}
+        
+        for job in self.jobs:
+            self.jobs_map[job.id] = job
+            self.job_id = max(self.job_id, int(job.id))
+
+        self.slaves = slaves
+        for slave in self.slaves:
+            self.slaves_map[slave.id] = slave
+        
+        if balancer:
+            self.balancer = balancer
+        
 
     def nextJobID(self):
         self.job_id += 1
@@ -1010,8 +1031,29 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 def clearMaster(path):
     shutil.rmtree(path)
 
+def createMaster(address, clear, path):
+    filepath = os.path.join(path, "blender_master.data")
+
+    if not clear and os.path.exists(filepath):
+        print("loading saved master:", filepath)
+        with open(filepath, 'rb') as f:
+            path, jobs, slaves = pickle.load(f)
+            
+            httpd = RenderMasterServer(address, RenderHandler, path, subdir=False)
+            httpd.restore(jobs, slaves)
+            
+            return httpd
+
+    return RenderMasterServer(address, RenderHandler, path)
+
+def saveMaster(path, httpd):
+    filepath = os.path.join(path, "blender_master.data")
+    
+    with open(filepath, 'wb') as f:
+        pickle.dump((httpd.path, httpd.jobs, httpd.slaves), f, pickle.HIGHEST_PROTOCOL)
+
 def runMaster(address, broadcast, clear, path, update_stats, test_break):
-        httpd = RenderMasterServer(address, RenderHandler, path)
+        httpd = createMaster(address, clear, path)
         httpd.timeout = 1
         httpd.stats = update_stats
 
@@ -1040,4 +1082,6 @@ def runMaster(address, broadcast, clear, path, update_stats, test_break):
         httpd.server_close()
         if clear:
             clearMaster(httpd.path)
+        else:
+            saveMaster(path, httpd)
 

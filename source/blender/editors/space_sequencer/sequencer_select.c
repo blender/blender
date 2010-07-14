@@ -166,7 +166,7 @@ void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING B
 	
 	if(deselect_all)
 		deselect_all_seq(scene);
-	active_seq_set(scene, seq);
+	seq_active_set(scene, seq);
 
 	if((seq->type==SEQ_IMAGE) || (seq->type==SEQ_MOVIE)) {
 		if(seq->strip)
@@ -185,7 +185,7 @@ void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING B
 
 void select_neighbor_from_last(Scene *scene, int lr)
 {
-	Sequence *seq= active_seq_get(scene);
+	Sequence *seq= seq_active_get(scene);
 	Sequence *neighbor;
 	int change = 0;
 	if (seq) {
@@ -231,7 +231,7 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if (desel) {
-			seq->flag &= SEQ_DESEL;
+			seq->flag &= ~SEQ_ALLSEL;
 		}
 		else {
 			seq->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -239,7 +239,7 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -269,7 +269,7 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
 
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if (seq->flag & SELECT) {
-			seq->flag &= SEQ_DESEL;
+			seq->flag &= ~SEQ_ALLSEL;
 		}
 		else {
 			seq->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -277,7 +277,7 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -392,7 +392,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			deselect_all_seq(scene);
 	
 		if(seq) {
-			active_seq_set(scene, seq);
+			seq_active_set(scene, seq);
 	
 			if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
 				if(seq->strip) {
@@ -409,7 +409,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				switch(hand) {
 				case SEQ_SIDE_NONE:
 					if (linked_handle==0)
-						seq->flag &= SEQ_DESEL;
+						seq->flag &= ~SEQ_ALLSEL;
 					break;
 				case SEQ_SIDE_LEFT:
 					seq->flag ^= SEQ_LEFTSEL;
@@ -505,7 +505,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 #endif
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 
 	/* allowing tweaks */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
@@ -595,7 +595,7 @@ static int sequencer_select_more_exec(bContext *C, wmOperator *op)
 	if(!select_more_less_seq__internal(scene, 0, 0))
 		return OPERATOR_CANCELLED;
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -626,7 +626,7 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *op)
 	if(!select_more_less_seq__internal(scene, 1, 0))
 		return OPERATOR_CANCELLED;
  
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -681,7 +681,7 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEv
 		selected = select_more_less_seq__internal(scene, 1, 1);
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -716,7 +716,7 @@ static int sequencer_select_linked_exec(bContext *C, wmOperator *op)
 		selected = select_more_less_seq__internal(scene, 1, 1);
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -766,7 +766,7 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -794,7 +794,7 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, 0);
-	Sequence *seq_act= active_seq_get(scene);
+	Sequence *seq_act= seq_active_get(scene);
 
 	if (ed==NULL || seq_act==NULL)
 		return OPERATOR_CANCELLED;
@@ -803,7 +803,7 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 
 	select_active_side(ed->seqbasep, RNA_enum_get(op->ptr, "side"), seq_act->machine, seq_act->startdisp);
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -860,12 +860,12 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 		
 		if(BLI_isect_rctf(&rq, &rectf, 0)) {
 			if(selecting)		seq->flag |= SELECT;
-			else				seq->flag &= SEQ_DESEL;
+			else				seq->flag &= ~SEQ_ALLSEL;
 			recurs_sel_seq(seq);
 		}
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
 
 	return OPERATOR_FINISHED;
 } 

@@ -120,6 +120,7 @@ COMLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
 COMLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
 COMLIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
 COMLIB += $(NAN_DECIMATION)/lib/$(DEBUG_DIR)libdecimation.a
+COMLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 
 ifeq ($(WITH_FFMPEG),true)
     COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_ffmpeg.a
@@ -478,7 +479,7 @@ debug debuglink::
 clean:: linkclean debuglinkclean
 
 link: $(BINTARGETS)
-	@echo "****> Build $(MAKE_START) - `date '+%H:%M:%S %d-%b-%Y'`"
+	@echo "****> Build SVN rev $(BUILD_REV), $(MAKE_START) - `date '+%H:%M:%S %d-%b-%Y'`"
 ifdef NANENV
 	@for n in $(NANENV); do \
 	    echo "      $$n"; \

@@ -473,7 +473,7 @@ class MakeDupliFace(bpy.types.Operator):
                 linked.setdefault(data, []).append(obj)
 
         for data, objects in linked.items():
-            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix) for axis in v]
+            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix_world) for axis in v]
             faces = list(range(int(len(face_verts) / 3)))
 
             mesh = bpy.data.meshes.new(data.name + "_dupli")
@@ -515,9 +515,9 @@ class IsolateTypeRender(bpy.types.Operator):
 
     def execute(self, context):
         act_type = context.object.type
-        
+
         for obj in context.visible_objects:
-            
+
             if obj.selected:
                 obj.restrict_render = False
             else:

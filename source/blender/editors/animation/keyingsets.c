@@ -918,13 +918,13 @@ int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingS
 				{
 					Object *ob= (Object *)ksp->id;
 					
-					ob->recalc |= OB_RECALC;
+					ob->recalc |= OB_RECALC_ALL; // XXX: only object transforms only?
 				}
 					break;
 			}
 			
 			/* send notifiers for updates (this doesn't require context to work!) */
-			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 		}
 	}
 	

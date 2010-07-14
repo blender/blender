@@ -465,7 +465,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 
 				/* could also clamp to screen bounds
 				 * wrap with a window outside the view will fail atm  */
-				bounds.wrapPoint(x_new, y_new, 2); /* offset of one incase blender is at screen bounds */
+				bounds.wrapPoint(x_new, y_new, 8); /* offset of one incase blender is at screen bounds */
 				window->getCursorGrabAccum(x_accum, y_accum);
 
 				if(x_new != xme.x_root || y_new != xme.y_root) {
@@ -1461,19 +1461,21 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 const GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
 {
-	return (GHOST_TUns8*)"/usr/share/blender";
+	return (GHOST_TUns8*)"/usr/share";
 }
 
 const GHOST_TUns8* GHOST_SystemX11::getUserDir() const
 {
-	static char path[256];
 	char* env = getenv("HOME");
 	if(env) {
-		strncpy(path, env, 245);
-		path[245]=0;
-		strcat(path, "/.blender/");
-		return (GHOST_TUns8*) path;
+		return (GHOST_TUns8*) env;
 	} else {
 		return NULL;
 	}
 }
+
+const GHOST_TUns8* GHOST_SystemX11::getBinaryDir() const
+{
+	return NULL;
+}
+

@@ -57,6 +57,9 @@ typedef struct {
 
 #define MWM_HINTS_DECORATIONS         (1L << 1)
 
+
+// #define GHOST_X11_GRAB
+
 /*
  * A Client can't change the window property, that is
  * the work of the window manager. In case, we send
@@ -159,6 +162,7 @@ GHOST_WindowX11(
 	GHOST_Window(title,left,top,width,height,state,type,stereoVisual,numOfAASamples),
 	m_context(NULL),
 	m_display(display),
+	m_normal_state(GHOST_kWindowStateNormal),
 	m_system (system),
 	m_valid_setup (false),
 	m_invalid_window(false),
@@ -1036,6 +1040,9 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
 
 	is_motif_full = motifIsFullScreen();
 
+	if (state == GHOST_kWindowStateNormal)
+		state = m_normal_state;
+
 	if (state == GHOST_kWindowStateNormal) {
 		if (is_max == True)
 			netwmMaximized(False);
@@ -1054,6 +1061,8 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
 		 */
 		if (cur_state == GHOST_kWindowStateMinimized)
 			return (GHOST_kFailure);
+
+		m_normal_state = cur_state;
 
 		if (is_max == True)
 			netwmMaximized(False);
@@ -1436,7 +1445,9 @@ setWindowCursorGrab(
 				setWindowCursorVisibility(false);
 
 		}
+#ifdef GHOST_X11_GRAB
 		XGrabPointer(m_display, m_window, False, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+#endif
 	}
 	else {
 		if (m_cursorGrab==GHOST_kGrabHide) {
@@ -1454,7 +1465,9 @@ setWindowCursorGrab(
 		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
 		setCursorGrabAccum(0, 0);
 		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */
+#ifdef GHOST_X11_GRAB
 		XUngrabPointer(m_display, CurrentTime);
+#endif
 	}
 
 	XFlush(m_display);

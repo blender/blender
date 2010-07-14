@@ -129,17 +129,8 @@ int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
 			case ID_ME:
 			{
 				Mesh *me = (Mesh *)id;
-				*dvert_tot= me->totvert;
 
-				if (!me->edit_mesh) {
-					int i;
-
-					*dvert_arr= MEM_mallocN(sizeof(void*)*me->totvert, "vgroup parray from me");
-
-					for (i=0; i<me->totvert; i++) {
-						(*dvert_arr)[i] = me->dvert + i;
-					}
-				} else {
+				if(me->edit_mesh) {
 					EditMesh *em = me->edit_mesh;
 					EditVert *eve;
 					int i;
@@ -161,8 +152,22 @@ int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
 						(*dvert_arr)[i] = CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 					}
 
+					return 1;
 				}
-				return 1;
+				else if(me->dvert) {
+					int i;
+
+					*dvert_tot= me->totvert;
+					*dvert_arr= MEM_mallocN(sizeof(void*)*me->totvert, "vgroup parray from me");
+
+					for (i=0; i<me->totvert; i++) {
+						(*dvert_arr)[i] = me->dvert + i;
+					}
+
+					return 1;
+				}
+				else
+					return 0;
 			}
 			case ID_LT:
 			{

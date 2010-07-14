@@ -69,6 +69,14 @@ class SEQUENCER_HT_header(bpy.types.Header):
         else:
             layout.prop(st, "display_channel", text="Channel")
 
+            ed = context.scene.sequence_editor
+            if ed:
+                row = layout.row(align=True)
+                row.prop(ed, "show_overlay", text="", icon='GHOST_ENABLED')
+                if ed.show_overlay:
+                    row.prop(ed, "overlay_frame", text="")
+                    row.prop(ed, "overlay_lock", text="", icon='LOCKED')
+
 
 class SEQUENCER_MT_view_toggle(bpy.types.Menu):
     bl_label = "View Type"
@@ -126,6 +134,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text='Fit preview in window')
             layout.operator_context = 'INVOKE_DEFAULT'
+
+            # # XXX, invokes in the header view
+            # layout.operator("sequencer.view_ghost_border", text='Overlay Border')
+
         layout.operator("sequencer.view_selected")
 
         layout.prop(st, "draw_frames")
@@ -279,6 +291,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
         layout.separator()
         layout.operator("sequencer.reload")
+        layout.operator("sequencer.reassign_inputs")
         layout.separator()
         layout.operator("sequencer.lock")
         layout.operator("sequencer.unlock")
@@ -290,6 +303,10 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator("sequencer.snap")
 
         layout.operator_menu_enum("sequencer.swap", "side")
+
+        layout.separator()
+
+        layout.operator("sequencer.swap_data")
 
 
 class SequencerButtonsPanel(bpy.types.Panel):
@@ -347,15 +364,14 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
         row = layout.row()
         row.prop(strip, "lock")
-        row.prop(strip, "frame_locked", text="Frame Lock")
 
         col = layout.column()
         col.enabled = not strip.lock
         col.prop(strip, "channel")
         col.prop(strip, "frame_start")
         subrow = col.split(percentage=0.66)
-        subrow.prop(strip, "length")
-        subrow.label(text="%.2f sec" % (strip.length / (render.fps / render.fps_base)))
+        subrow.prop(strip, "frame_final_length")
+        subrow.label(text="%.2f sec" % (strip.frame_final_length / (render.fps / render.fps_base)))
 
         col = layout.column(align=True)
         col.label(text="Offset:")
@@ -457,7 +473,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             row = layout.row(align=True)
             sub = row.row()
             sub.scale_x = 2.0
-          
+
             if not context.screen.animation_playing:
                 sub.operator("screen.animation_play", text="", icon='PLAY')
             else:
@@ -741,19 +757,19 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
         col.prop(strip, "convert_float")
 
         layout.prop(strip, "use_color_balance")
-        if strip.color_balance: # TODO - need to add this somehow
+        if strip.use_color_balance and strip.color_balance: # TODO - need to add this somehow
             row = layout.row()
             row.active = strip.use_color_balance
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "lift", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "lift", value_slider=False, cubic=True)
             col.row().prop(strip.color_balance, "lift")
             col.prop(strip.color_balance, "inverse_lift", text="Inverse")
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "gamma", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "gamma", value_slider=False, lock_luminosity=True, cubic=True)
             col.row().prop(strip.color_balance, "gamma")
             col.prop(strip.color_balance, "inverse_gamma", text="Inverse")
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "gain", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "gain", value_slider=False, lock_luminosity=True, cubic=True)
             col.row().prop(strip.color_balance, "gain")
             col.prop(strip.color_balance, "inverse_gain", text="Inverse")
 

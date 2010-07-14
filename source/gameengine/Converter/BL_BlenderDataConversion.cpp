@@ -1551,7 +1551,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 					objprop.m_boundclass = KX_BOUNDMESH;
 					break;
 				}
-				// Object is not a mesh... can't use polyheder. 
+				// Object is not a mesh... can't use polyhedron.
 				// Fall through and become a sphere.
 			case OB_BOUND_SPHERE:
 			{

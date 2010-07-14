@@ -105,7 +105,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
             subcol = col.column()
             subcol.operator_context = 'INVOKE_DEFAULT'
             op = subcol.operator("anim.keying_set_export", text="Export to File")
-            op.path = "keyingset.py"
+            op.filepath = "keyingset.py"
 
             if wide_ui:
                 col = row.column()
@@ -229,18 +229,16 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
     bl_idname = "anim.keying_set_export"
     bl_label = "Export Keying Set..."
 
-    path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
-    filename = bpy.props.StringProperty(name="File Name", description="Name of the file.")
-    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file.")
+    filepath = bpy.props.StringProperty(name="File Path", description="Filepath to write file to.")
     filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
-        if not self.properties.path:
-            raise Exception("File path not set.")
+        if not self.properties.filepath:
+            raise Exception("Filepath not set.")
 
-        f = open(self.properties.path, "w")
+        f = open(self.properties.filepath, "w")
         if not f:
             raise Exception("Could not open file.")
 
@@ -301,7 +299,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         for ksp in ks.paths:
             f.write("ksp = ks.paths.add(")
 
-            # id-block + RNA-path
+            # id-block + data_path
             if ksp.id:
                 # find the relevant shorthand from the cache
                 id_bpy_path = id_to_paths_cache[ksp.id][0]

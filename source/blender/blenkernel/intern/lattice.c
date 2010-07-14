@@ -845,26 +845,20 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 		use_vgroups = 0;
 	
 	if(vgroup && vgroup[0] && use_vgroups) {
-		bDeformGroup *curdef;
 		Mesh *me = target->data;
-		int index = 0;
-		
-		/* find the group (weak loop-in-loop) */
-		for(curdef = target->defbase.first; curdef;
-			curdef = curdef->next, index++)
-			if(!strcmp(curdef->name, vgroup)) break;
+		int index = defgroup_name_index(target, vgroup);
+		float weight;
 
-		if(curdef && (me->dvert || dm)) {
+		if(index >= 0 && (me->dvert || dm)) {
 			MDeformVert *dvert = me->dvert;
-			int j;
 			
 			for(a = 0; a < numVerts; a++, dvert++) {
 				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
-				for(j = 0; j < dvert->totweight; j++) {
-					if (dvert->dw[j].def_nr == index) {
-						calc_latt_deform(laOb, vertexCos[a], dvert->dw[j].weight);
-					}
-				}
+
+				weight= defvert_find_weight(dvert, index);
+
+				if(weight > 0.0f)
+					calc_latt_deform(laOb, vertexCos[a], weight);
 			}
 		}
 	} else {
@@ -875,12 +869,12 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 	end_latt_deform(laOb);
 }
 
-int object_deform_mball(Object *ob)
+int object_deform_mball(Object *ob, ListBase *dispbase)
 {
 	if(ob->parent && ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
 		DispList *dl;
 
-		for (dl=ob->disp.first; dl; dl=dl->next) {
+		for (dl=dispbase->first; dl; dl=dl->next) {
 			lattice_deform_verts(ob->parent, ob, NULL,
 								 (float(*)[3]) dl->verts, dl->nr, NULL);
 		}

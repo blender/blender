@@ -47,7 +47,9 @@ def update(job):
     
     new_path = path + ".remap" + ext 
     
-    all = main_file.filepath == main_file.original_path 
+    # Disable for now. Partial repath should work anyway
+    #all = main_file.filepath != main_file.original_path
+    all = False 
     
     for rfile in job.files[1:]:
         if all or rfile.original_path != rfile.filepath:
@@ -87,20 +89,20 @@ def process(paths):
     # LIBRARIES
     ###########################
     for lib in bpy.data.libraries:
-        file_path = bpy.utils.expandpath(lib.filename)
+        file_path = bpy.utils.expandpath(lib.filepath)
         new_path = path_map.get(file_path, None)
         if new_path:
-            lib.filename = new_path
+            lib.filepath = new_path
 
     ###########################
     # IMAGES
     ###########################
     for image in bpy.data.images:
         if image.source == "FILE" and not image.packed_file:
-            file_path = bpy.utils.expandpath(image.filename)
+            file_path = bpy.utils.expandpath(image.filepath)
             new_path = path_map.get(file_path, None)
             if new_path:
-                image.filename = new_path
+                image.filepath = new_path
             
 
     ###########################
@@ -119,10 +121,10 @@ def process(paths):
                 if modifier.domain_settings.highres:
                     processPointCache(modifier.domain_settings.point_cache_high)
             elif modifier.type == "MULTIRES" and modifier.external:
-                file_path = bpy.utils.expandpath(modifier.filename)
+                file_path = bpy.utils.expandpath(modifier.filepath)
                 new_path = path_map.get(file_path, None)
                 if new_path:
-                    modifier.filename = new_path
+                    modifier.filepath = new_path
 
         # particles modifier are stupid and don't contain data
         # we have to go through the object property

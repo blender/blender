@@ -326,10 +326,10 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	/* check input variables */
-	if(RNA_property_is_set(op->ptr, "path")) {
+	if(RNA_property_is_set(op->ptr, "filepath")) {
 		char path[FILE_MAX];
 		
-		RNA_string_get(op->ptr, "path", path);
+		RNA_string_get(op->ptr, "filepath", path);
 		ima= BKE_add_image_file(path, 
 								scene ? scene->r.cfra : 1);
 	}
@@ -385,7 +385,7 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign.");
-	RNA_def_string(ot->srna, "path", "Path", FILE_MAX, "Filepath", "Path to image file");
+	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
 }
 
 static int uv_texture_remove_exec(bContext *C, wmOperator *op)

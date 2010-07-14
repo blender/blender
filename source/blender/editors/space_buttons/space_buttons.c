@@ -293,8 +293,9 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					buttons_area_redraw(sa, BCONTEXT_CONSTRAINT);
 					buttons_area_redraw(sa, BCONTEXT_BONE_CONSTRAINT);
 					break;
-				case ND_PARTICLE_DATA:
-					buttons_area_redraw(sa, BCONTEXT_PARTICLE);
+				case ND_PARTICLE:
+					if (wmn->action == NA_EDITED)
+						buttons_area_redraw(sa, BCONTEXT_PARTICLE);
 					break;
 				case ND_DRAW:
 					buttons_area_redraw(sa, BCONTEXT_OBJECT);
@@ -357,8 +358,9 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_ANIMATION:
 			switch(wmn->data) {
-				case ND_KEYFRAME_EDIT:
-					ED_area_tag_redraw(sa);
+				case ND_KEYFRAME:
+					if (wmn->action == NA_EDITED)
+						ED_area_tag_redraw(sa);
 					break;
 			}
 	}

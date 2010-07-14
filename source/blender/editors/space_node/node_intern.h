@@ -90,6 +90,8 @@ bNode *node_tree_get_editgroup(bNodeTree *ntree);
 void node_tree_verify_groups(bNodeTree *nodetree);
 void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace);
 int node_has_hidden_sockets(bNode *node);
+void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
+
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
@@ -103,8 +105,10 @@ void NODE_OT_group_make(struct wmOperatorType *ot);
 void NODE_OT_group_ungroup(struct wmOperatorType *ot);
 void NODE_OT_group_edit(struct wmOperatorType *ot);
 
-void NODE_OT_mute(struct wmOperatorType *ot);
-void NODE_OT_hide(struct wmOperatorType *ot);
+void NODE_OT_mute_toggle(struct wmOperatorType *ot);
+void NODE_OT_hide_toggle(struct wmOperatorType *ot);
+void NODE_OT_hide_socket_toggle(struct wmOperatorType *ot);
+void NODE_OT_preview_toggle(struct wmOperatorType *ot);
 
 void NODE_OT_show_cyclic_dependencies(struct wmOperatorType *ot);
 void NODE_OT_link_viewer(struct wmOperatorType *ot);

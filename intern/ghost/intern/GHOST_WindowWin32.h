@@ -315,6 +315,8 @@ protected:
 	HGLRC m_hGlRc;
 	/** The first created OpenGL context (for sharing display lists) */
 	static HGLRC s_firsthGLRc;
+	/** The first created device context handle. */
+	static HDC s_firstHDC;
 	/** Flag for if window has captured the mouse */
 	bool m_hasMouseCaptured;
 	/** Count of number of pressed buttons */
@@ -351,6 +353,7 @@ protected:
 	GHOST_TInt32 m_top;
 	GHOST_TUns32 m_width;
 	GHOST_TUns32 m_height;
+	GHOST_TWindowState m_normal_state;
 	bool m_stereo;
 
 	/** The GHOST_System passes this to wm if this window is being replaced */

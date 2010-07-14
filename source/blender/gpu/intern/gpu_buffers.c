@@ -459,7 +459,7 @@ void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 	for(i = 0, tottri = 0; i < totface; ++i)
 		tottri += mface[face_indices[i]].v4 ? 2 : 1;
 	
-	if(GL_ARB_vertex_buffer_object)
+	if(GL_ARB_vertex_buffer_object && !(U.gameflags & USER_DISABLE_VBO))
 		glGenBuffersARB(1, &buffers->index_buf);
 
 	if(buffers->index_buf) {
@@ -586,7 +586,7 @@ void *GPU_build_grid_buffers(DMGridData **grids,
 	totquad= (gridsize-1)*(gridsize-1)*totgrid;
 
 	/* Generate index buffer object */
-	if(GL_ARB_vertex_buffer_object)
+	if(GL_ARB_vertex_buffer_object && !(U.gameflags & USER_DISABLE_VBO))
 		glGenBuffersARB(1, &buffers->index_buf);
 
 	if(buffers->index_buf) {

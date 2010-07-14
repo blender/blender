@@ -842,7 +842,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 	rearrange_action_channels(&ac, mode);
 	
 	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -998,7 +998,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1075,7 +1075,7 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *op)
 	
 	
 	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1148,7 +1148,7 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&all_data);
 	
 	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1279,7 +1279,7 @@ static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 	setflag_anim_channels(&ac, setting, mode, 1, flush);
 	
 	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1413,7 +1413,7 @@ static int animchannels_expand_exec (bContext *C, wmOperator *op)
 	setflag_anim_channels(&ac, ACHANNEL_SETTING_EXPAND, ACHANNEL_SETFLAG_ADD, onlysel, 0);
 	
 	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1455,7 +1455,7 @@ static int animchannels_collapse_exec (bContext *C, wmOperator *op)
 	setflag_anim_channels(&ac, ACHANNEL_SETTING_EXPAND, ACHANNEL_SETFLAG_CLEAR, onlysel, 0);
 	
 	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1495,7 +1495,7 @@ static int animchannels_deselectall_exec(bContext *C, wmOperator *op)
 		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 1, ACHANNEL_SETFLAG_ADD);
 	
 	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1597,7 +1597,7 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 	borderselect_anim_channels(&ac, &rect, selectmode);
 	
 	/* send notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -1676,7 +1676,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 				if (adt) adt->flag |= ADT_UI_SELECTED;
 			}
 			
-			notifierFlags |= ND_ANIMCHAN_SELECT;
+			notifierFlags |= (ND_ANIMCHAN|NA_SELECTED);
 		}
 			break;
 		case ANIMTYPE_OBJECT:
@@ -1715,7 +1715,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			if ((adt) && (adt->flag & ADT_UI_SELECTED))
 				adt->flag |= ADT_UI_ACTIVE;
 			
-			notifierFlags |= ND_ANIMCHAN_SELECT;
+			notifierFlags |= (ND_ANIMCHAN|NA_SELECTED);
 		}
 			break;
 		
@@ -1751,7 +1751,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 					ale->adt->flag |= ADT_UI_ACTIVE;
 			}
 			
-			notifierFlags |= ND_ANIMCHAN_SELECT;
+			notifierFlags |= (ND_ANIMCHAN|NA_SELECTED);
 		}	
 			break;
 		
@@ -1786,7 +1786,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			if (agrp->flag & AGRP_SELECTED)
 				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
 				
-			notifierFlags |= ND_ANIMCHAN_SELECT;
+			notifierFlags |= (ND_ANIMCHAN|NA_SELECTED);
 		}
 			break;
 		case ANIMTYPE_FCURVE: 
@@ -1808,7 +1808,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			if (fcu->flag & FCURVE_SELECTED)
 				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
 				
-			notifierFlags |= ND_ANIMCHAN_SELECT;
+			notifierFlags |= (ND_ANIMCHAN|NA_SELECTED);
 		}
 			break;
 		case ANIMTYPE_SHAPEKEY: 
@@ -1826,7 +1826,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 				kb->flag |= KEYBLOCK_SEL;
 			}
 				
-			notifierFlags |= ND_ANIMCHAN_SELECT;
+			notifierFlags |= (ND_ANIMCHAN|NA_SELECTED);
 		}
 			break;
 		case ANIMTYPE_GPDATABLOCK:
@@ -1836,7 +1836,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			/* toggle expand */
 			gpd->flag ^= GP_DATA_EXPAND;
 			
-			notifierFlags |= ND_ANIMCHAN_EDIT;
+			notifierFlags |= (ND_ANIMCHAN|NA_EDITED);
 		}
 			break;
 		case ANIMTYPE_GPLAYER:

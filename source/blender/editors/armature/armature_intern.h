@@ -130,6 +130,7 @@ void SKETCH_OT_draw_stroke(struct wmOperatorType *ot);
 void SKETCH_OT_draw_preview(struct wmOperatorType *ot);
 void SKETCH_OT_finish_stroke(struct wmOperatorType *ot);
 void SKETCH_OT_cancel_stroke(struct wmOperatorType *ot);
+void SKETCH_OT_convert(struct wmOperatorType *ot);
 void SKETCH_OT_select(struct wmOperatorType *ot);
 
 /* ******************************************************* */

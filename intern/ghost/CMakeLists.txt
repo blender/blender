@@ -42,6 +42,7 @@ SET(SRC
 	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_ISystem.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_ModifierKeys.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_NDOFManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_Path-api.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_Rect.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_System.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_TimerManager.cpp

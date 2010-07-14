@@ -88,6 +88,7 @@ void OBJECT_OT_paths_clear(struct wmOperatorType *ot);
 void OBJECT_OT_game_property_new(struct wmOperatorType *ot);
 void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);
 void OBJECT_OT_game_property_copy(struct wmOperatorType *ot);
+void OBJECT_OT_game_property_clear(struct wmOperatorType *ot);
 void OBJECT_OT_logic_bricks_copy(struct wmOperatorType *ot);
 
 /* object_select.c */
@@ -105,7 +106,6 @@ void OBJECT_OT_select_same_group(struct wmOperatorType *ot);
 /* object_add.c */
 void OBJECT_OT_add(struct wmOperatorType *ot);
 void OBJECT_OT_add_named(struct wmOperatorType *ot);
-void OBJECT_OT_surface_add(struct wmOperatorType *ot);
 void OBJECT_OT_metaball_add(struct wmOperatorType *ot);
 void OBJECT_OT_text_add(struct wmOperatorType *ot);
 void OBJECT_OT_armature_add(struct wmOperatorType *ot);
@@ -156,8 +156,8 @@ void OBJECT_OT_modifier_copy(struct wmOperatorType *ot);
 void OBJECT_OT_multires_subdivide(struct wmOperatorType *ot);
 void OBJECT_OT_multires_reshape(struct wmOperatorType *ot);
 void OBJECT_OT_multires_higher_levels_delete(struct wmOperatorType *ot);
-void OBJECT_OT_multires_save_external(struct wmOperatorType *ot);
-void OBJECT_OT_multires_pack_external(struct wmOperatorType *ot);
+void OBJECT_OT_multires_external_save(struct wmOperatorType *ot);
+void OBJECT_OT_multires_external_pack(struct wmOperatorType *ot);
 void OBJECT_OT_meshdeform_bind(struct wmOperatorType *ot);
 void OBJECT_OT_explode_refresh(struct wmOperatorType *ot);
 

@@ -38,6 +38,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_math_vector.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_key_types.h"
@@ -1717,5 +1718,204 @@ void key_to_mesh(KeyBlock *kb, Mesh *me)
 
 	for(a=0; a<tot; a++, fp+=3, mvert++) {
 		VECCOPY(mvert->co, fp);
+	}
+}
+
+/************************* vert coords ************************/
+float (*key_to_vertcos(Object *ob, KeyBlock *kb))[3]
+{
+	float (*vertCos)[3], *co;
+	float *fp= kb->data;
+	int tot= 0, a;
+
+	/* Count of vertex coords in array */
+	if(ob->type == OB_MESH) {
+		Mesh *me= (Mesh*)ob->data;
+		tot= me->totvert;
+	} else if(ob->type == OB_LATTICE) {
+		Lattice *lt= (Lattice*)ob->data;
+		tot= lt->pntsu*lt->pntsv*lt->pntsw;
+	} else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		Curve *cu= (Curve*)ob->data;
+		tot= count_curveverts(&cu->nurb);
+	}
+
+	if (tot == 0) return NULL;
+
+	vertCos= MEM_callocN(tot*sizeof(*vertCos), "key_to_vertcos vertCos");
+
+	/* Copy coords to array */
+	co= (float*)vertCos;
+
+	if(ELEM(ob->type, OB_MESH, OB_LATTICE)) {
+		for (a= 0; a<tot; a++, fp+=3, co+=3) {
+			copy_v3_v3(co, fp);
+		}
+	} else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		Curve *cu= (Curve*)ob->data;
+		Nurb *nu= cu->nurb.first;
+		BezTriple *bezt;
+		BPoint *bp;
+
+		while (nu) {
+			if(nu->bezt) {
+				int i;
+				bezt= nu->bezt;
+				a= nu->pntsu;
+
+				while (a--) {
+					for (i= 0; i<3; i++) {
+						copy_v3_v3(co, fp);
+						fp+= 3; co+= 3;
+					}
+
+					fp+= 3; /* skip alphas */
+
+					bezt++;
+				}
+			}
+			else {
+				bp= nu->bp;
+				a= nu->pntsu*nu->pntsv;
+
+				while (a--) {
+					copy_v3_v3(co, fp);
+
+					fp+= 4;
+					co+= 3;
+
+					bp++;
+				}
+			}
+
+			nu= nu->next;
+		}
+	}
+
+	return vertCos;
+}
+
+void vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
+{
+	float *co= (float*)vertCos, *fp;
+	int tot= 0, a, elemsize;
+
+	if (kb->data) MEM_freeN(kb->data);
+
+	/* Count of vertex coords in array */
+	if(ob->type == OB_MESH) {
+		Mesh *me= (Mesh*)ob->data;
+		tot= me->totvert;
+		elemsize= me->key->elemsize;
+	} else if(ob->type == OB_LATTICE) {
+		Lattice *lt= (Lattice*)ob->data;
+		tot= lt->pntsu*lt->pntsv*lt->pntsw;
+		elemsize= lt->key->elemsize;
+	} else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		Curve *cu= (Curve*)ob->data;
+		elemsize= cu->key->elemsize;
+		tot= count_curveverts(&cu->nurb);
+	}
+
+	fp= kb->data= MEM_callocN(tot*elemsize, "key_to_vertcos vertCos");
+
+	if (tot == 0) return;
+
+	/* Copy coords to keyblock */
+
+	if(ELEM(ob->type, OB_MESH, OB_LATTICE)) {
+		for (a= 0; a<tot; a++, fp+=3, co+=3) {
+			copy_v3_v3(fp, co);
+		}
+	} else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		Curve *cu= (Curve*)ob->data;
+		Nurb *nu= cu->nurb.first;
+		BezTriple *bezt;
+		BPoint *bp;
+
+		while (nu) {
+			if(nu->bezt) {
+				int i;
+				bezt= nu->bezt;
+				a= nu->pntsu;
+
+				while (a--) {
+					for (i= 0; i<3; i++) {
+						copy_v3_v3(fp, co);
+						fp+= 3; co+= 3;
+					}
+
+					fp+= 3; /* skip alphas */
+
+					bezt++;
+				}
+			}
+			else {
+				bp= nu->bp;
+				a= nu->pntsu*nu->pntsv;
+
+				while (a--) {
+					copy_v3_v3(fp, co);
+
+					fp+= 4;
+					co+= 3;
+
+					bp++;
+				}
+			}
+
+			nu= nu->next;
+		}
+	}
+}
+
+void offset_to_key(Object *ob, KeyBlock *kb, float (*ofs)[3])
+{
+	int a;
+	float *co= (float*)ofs, *fp= kb->data;
+
+	if(ELEM(ob->type, OB_MESH, OB_LATTICE)) {
+		for (a= 0; a<kb->totelem; a++, fp+=3, co+=3) {
+			add_v3_v3(fp, co);
+		}
+	} else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		Curve *cu= (Curve*)ob->data;
+		Nurb *nu= cu->nurb.first;
+		BezTriple *bezt;
+		BPoint *bp;
+
+		while (nu) {
+			if(nu->bezt) {
+				int i;
+				bezt= nu->bezt;
+				a= nu->pntsu;
+
+				while (a--) {
+					for (i= 0; i<3; i++) {
+						add_v3_v3(fp, co);
+						fp+= 3; co+= 3;
+					}
+
+					fp+= 3; /* skip alphas */
+
+					bezt++;
+				}
+			}
+			else {
+				bp= nu->bp;
+				a= nu->pntsu*nu->pntsv;
+
+				while (a--) {
+					add_v3_v3(fp, co);
+
+					fp+= 4;
+					co+= 3;
+
+					bp++;
+				}
+			}
+
+			nu= nu->next;
+		}
 	}
 }

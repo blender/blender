@@ -432,6 +432,10 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user curve, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
+			if(!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
+				BKE_report(reports, RPT_ERROR, "Neither rotation nor location could be applied to a 2d curve, doing nothing.");
+				return OPERATOR_CANCELLED;
+			}
 			if(cu->key) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a curve with vertex keys, doing nothing.");
 				return OPERATOR_CANCELLED;
@@ -498,7 +502,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			cu= ob->data;
 
 			scale = mat3_to_scale(rsmat);
-			
+
 			for(nu=cu->nurb.first; nu; nu=nu->next) {
 				if(nu->type == CU_BEZIER) {
 					a= nu->pntsu;

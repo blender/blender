@@ -45,16 +45,26 @@ int BLI_linklist_length(LinkNode *list) {
 	}
 }
 
-int BLI_linklist_index(struct LinkNode *list, void *ptr)
+int BLI_linklist_index(LinkNode *list, void *ptr)
 {
 	int index;
 	
-	for (index = 0; list; list= list->next, index++) {
+	for (index = 0; list; list= list->next, index++)
 		if (list->link == ptr)
 			return index;
-	}
 	
 	return -1;
+}
+
+LinkNode *BLI_linklist_find(LinkNode *list, int index)
+{
+	int i;
+	
+	for (i = 0; list; list= list->next, i++)
+		if (i == index)
+			return list;
+
+	return NULL;
 }
 
 void BLI_linklist_reverse(LinkNode **listp) {
@@ -103,6 +113,22 @@ void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, MemArena *ma) {
 	
 	nlink->next= *listp;
 	*listp= nlink;
+}
+
+void BLI_linklist_insert_after(LinkNode **listp, void *ptr) {
+	LinkNode *nlink= MEM_mallocN(sizeof(*nlink), "nlink");
+	LinkNode *node = *listp;
+
+	nlink->link = ptr;
+
+	if(node) {
+		nlink->next = node->next;
+		node->next = nlink;
+	}
+	else {
+		nlink->next = NULL;
+		*listp = nlink;
+	}
 }
 
 void BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc) {

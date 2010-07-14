@@ -248,6 +248,21 @@ GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle, GHOST_Eve
 	return system->addEventConsumer((GHOST_CallbackEventConsumer*)consumerhandle);
 }
 
+GHOST_TSuccess GHOST_SetProgressBar(GHOST_WindowHandle windowhandle,float progress)
+{
+	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
+
+	return window->setProgressBar(progress);
+}
+
+GHOST_TSuccess GHOST_EndProgressBar(GHOST_WindowHandle windowhandle)
+{
+	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
+
+	return window->endProgressBar();
+}
+
+
 int GHOST_OpenNDOF(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windowhandle,
    GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
     GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
@@ -849,16 +864,4 @@ void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection)
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
 	system->putClipboard(buffer, selection);
-}
-
-const GHOST_TUns8* GHOST_getSystemDir()
-{
-	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	return system->getSystemDir();
-}
-
-const GHOST_TUns8* GHOST_getUserDir()
-{
-	GHOST_ISystem* system = GHOST_ISystem::getSystem();
-	return system->getUserDir();
 }

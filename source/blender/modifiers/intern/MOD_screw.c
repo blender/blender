@@ -137,7 +137,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	int totvert= dm->getNumVerts(dm);
 	int totedge= dm->getNumEdges(dm);
 
-	char axis_char, close;
+	char axis_char= 'X', close;
 	float angle= ltmd->angle;
 	float screw_ofs= ltmd->screw_ofs;
 	float axis_vec[3]= {0.0f, 0.0f, 0.0f};
@@ -177,7 +177,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		other_axis_1=0;
 		other_axis_2=2;
 		break;
-	case 2:
+	default: /* 2, use default to quiet warnings */
 		other_axis_1=0;
 		other_axis_2=1;
 		break;
@@ -248,7 +248,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 	else {
 		/* exis char is used by i_rotate*/
-		axis_char= 'X' + ltmd->axis;
+		axis_char += ltmd->axis; /* 'X' + axis */
 
 		/* useful to be able to use the axis vec in some cases still */
 		zero_v3(axis_vec);

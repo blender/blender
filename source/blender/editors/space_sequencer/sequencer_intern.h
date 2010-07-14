@@ -48,7 +48,7 @@ struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
 /* sequencer_draw.c */
 void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
-void draw_image_seq(const struct bContext* C, struct Scene *scene,struct  ARegion *ar, struct SpaceSeq *sseq);
+void draw_image_seq(const struct bContext* C, struct Scene *scene,struct  ARegion *ar, struct SpaceSeq *sseq, int cfra, int offset);
 
 void seq_reset_imageofs(struct SpaceSeq *sseq);
 
@@ -69,6 +69,7 @@ struct Sequence *alloc_sequence(struct ListBase *lb, int cfra, int machine);
 
 /* operator helpers */
 int sequencer_edit_poll(struct bContext *C);
+int sequencer_view_poll(struct bContext *C);
 
 /* externs */
 extern EnumPropertyItem sequencer_prop_effect_types[];
@@ -85,6 +86,7 @@ void SEQUENCER_OT_lock(struct wmOperatorType *ot);
 void SEQUENCER_OT_unlock(struct wmOperatorType *ot);
 void SEQUENCER_OT_reload(struct wmOperatorType *ot);
 void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot);
+void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot);
 void SEQUENCER_OT_duplicate(struct wmOperatorType *ot);
 void SEQUENCER_OT_delete(struct wmOperatorType *ot);
 void SEQUENCER_OT_images_separate(struct wmOperatorType *ot);
@@ -95,11 +97,14 @@ void SEQUENCER_OT_snap(struct wmOperatorType *ot);
 void SEQUENCER_OT_previous_edit(struct wmOperatorType *ot);
 void SEQUENCER_OT_next_edit(struct wmOperatorType *ot);
 void SEQUENCER_OT_swap(struct wmOperatorType *ot);
+void SEQUENCER_OT_swap_data(struct wmOperatorType *ot);
 void SEQUENCER_OT_rendersize(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_view_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_zoom_ratio(struct wmOperatorType *ot);
+void SEQUENCER_OT_view_ghost_border(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_copy(struct wmOperatorType *ot);
 void SEQUENCER_OT_paste(struct wmOperatorType *ot);
@@ -144,8 +149,6 @@ enum {
 };
 
 /* defines used internally */
-#define SEQ_ALLSEL	(SELECT+SEQ_LEFTSEL+SEQ_RIGHTSEL)
-#define SEQ_DESEL	~SEQ_ALLSEL
 #define SCE_MARKERS 0 // XXX - dummy
 
 /* sequencer_ops.c */

@@ -81,6 +81,9 @@ void ED_operatortypes_curve(void)
 	
 	WM_operatortype_append(FONT_OT_open);
 	WM_operatortype_append(FONT_OT_unlink);
+	
+	WM_operatortype_append(FONT_OT_textbox_add);
+	WM_operatortype_append(FONT_OT_textbox_remove);
 
 	WM_operatortype_append(CURVE_OT_hide);
 	WM_operatortype_append(CURVE_OT_reveal);
@@ -102,7 +105,14 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_primitive_nurbs_curve_add);
 	WM_operatortype_append(CURVE_OT_primitive_nurbs_circle_add);
 	WM_operatortype_append(CURVE_OT_primitive_nurbs_path_add);
-
+	
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_curve_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_circle_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_surface_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_tube_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_sphere_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_donut_add);
+	
 	WM_operatortype_append(CURVE_OT_smooth);
 	WM_operatortype_append(CURVE_OT_smooth_radius);
 

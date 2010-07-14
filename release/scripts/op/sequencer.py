@@ -138,6 +138,7 @@ def register():
     register(SequencerCutMulticam)
     register(SequencerDeinterlaceSelectedMovies)
 
+
 def unregister():
     unregister = bpy.types.unregister
 
@@ -145,7 +146,6 @@ def unregister():
     unregister(SequencerCutMulticam)
     unregister(SequencerDeinterlaceSelectedMovies)
 
- 
 
 if __name__ == "__main__":
     register()

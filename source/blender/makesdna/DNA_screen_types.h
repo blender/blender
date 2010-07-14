@@ -152,7 +152,9 @@ typedef struct ARegion {
 	short sizex, sizey;			/* current split size in pixels (if zero it uses regiontype) */
 	
 	short do_draw;				/* private, cached notifier events */
+	short do_draw_overlay;		/* private, cached notifier events */
 	short swap;					/* private, indicator to survive swap-exchange */
+	short pad[3];
 	
 	struct ARegionType *type;	/* callbacks for this region type */
 	

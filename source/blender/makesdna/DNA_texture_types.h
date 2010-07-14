@@ -190,8 +190,12 @@ typedef struct VoxelData {
 	float int_multiplier;	
 	int still_frame;
 	char source_path[240];
+
+	/* temporary data */
 	float *dataset;
- 
+	int cachedframe;
+	int ok;
+	
 } VoxelData;
 
 typedef struct Tex {
@@ -199,8 +203,8 @@ typedef struct Tex {
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	float noisesize, turbul;
-	float bright, contrast, rfac, gfac, bfac;
-	float filtersize;
+	float bright, contrast, saturation, rfac, gfac, bfac;
+	float filtersize, pad2;
 
 	/* newnoise: musgrave parameters */
 	float mg_H, mg_lacunarity, mg_octaves, mg_offset, mg_gain;

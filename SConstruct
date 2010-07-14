@@ -46,6 +46,9 @@ import glob
 import re
 from tempfile import mkdtemp
 
+# needed for importing tools
+sys.path.append(os.path.join(".", "build_files", "scons"))
+
 import tools.Blender
 import tools.btools
 import tools.bcolors
@@ -55,6 +58,8 @@ EnsureSConsVersion(1,0,0)
 BlenderEnvironment = tools.Blender.BlenderEnvironment
 btools = tools.btools
 B = tools.Blender
+
+VERSION = tools.btools.VERSION # This is used in creating the local config directories
 
 ### globals ###
 platform = sys.platform
@@ -157,7 +162,7 @@ if crossbuild and platform not in ('win32-vc', 'win64-vc'):
 
 env['OURPLATFORM'] = platform
 
-configfile = 'config'+os.sep+platform+'-config.py'
+configfile = os.path.join("build_files", "scons", "config", platform + "-config.py")
 
 if os.path.exists(configfile):
 	print B.bc.OKGREEN + "Using config file: " + B.bc.ENDC + configfile
@@ -193,7 +198,7 @@ if not env['BF_FANCY']:
 # NOTE: only do the scripts directory for now, otherwise is too disruptive for developers
 # TODO: perhaps we need an option (off by default) to not do this altogether...
 if not env['WITHOUT_BF_INSTALL'] and not env['WITHOUT_BF_OVERWRITE_INSTALL']:
-	scriptsDir = env['BF_INSTALLDIR'] + os.sep + '.blender' + os.sep + 'scripts'
+	scriptsDir = os.path.join(env['BF_INSTALLDIR'], VERSION, 'scripts')
 	if os.path.isdir(scriptsDir):
 		print B.bc.OKGREEN + "Clearing installation directory%s: %s" % (B.bc.ENDC, os.path.abspath(scriptsDir))
 		shutil.rmtree(scriptsDir)
@@ -201,6 +206,7 @@ if not env['WITHOUT_BF_INSTALL'] and not env['WITHOUT_BF_OVERWRITE_INSTALL']:
 
 SetOption('num_jobs', int(env['BF_NUMJOBS']))
 print B.bc.OKGREEN + "Build with parallel jobs%s: %s" % (B.bc.ENDC, GetOption('num_jobs'))
+print B.bc.OKGREEN + "Build with debug symbols%s: %s" % (B.bc.ENDC, env['BF_DEBUG'])
 
 # BLENDERPATH is a unix only option to enable typical style paths this is
 # spesifically a data-dir, which is used a lot but cant replace BF_INSTALLDIR
@@ -268,6 +274,7 @@ if 'blenderlite' in B.targets:
 	target_env_defs['WITH_BF_GAMEENGINE'] = False
 	target_env_defs['WITH_BF_OPENAL'] = False
 	target_env_defs['WITH_BF_OPENEXR'] = False
+	target_env_defs['WITH_BF_OPENMP'] = False
 	target_env_defs['WITH_BF_ICONV'] = False
 	target_env_defs['WITH_BF_INTERNATIONAL'] = False
 	target_env_defs['WITH_BF_OPENJPEG'] = False
@@ -432,9 +439,11 @@ else:
 	
 	blenderinstall = env.Install(dir=dir, source=B.program_list)
 
-#-- .blender
-#- dont do .blender and scripts for darwin, it is already in the bundle
+#-- local path = config files in install dir: installdir\VERSION
+#- dont do config and scripts for darwin, it is already in the bundle
 dotblendlist = []
+datafileslist = []
+datafilestargetlist = []
 dottargetlist = []
 scriptinstall = []
 
@@ -453,20 +462,29 @@ if  env['OURPLATFORM']!='darwin':
 					if f.endswith('.ttf'):
 						continue
 				
-				dotblendlist.append(os.path.join(dp, f))
-				if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + dp.split(os.sep)[2:]))	# skip bin/.blender
-				else:					dir= os.path.join(*([BLENDERPATH] + dp.split(os.sep)[1:]))	# skip bin
-				
-				dottargetlist.append(dir + os.sep + f)
-					
+				if 'locale' in dp:
+					datafileslist.append(os.path.join(dp,f))
+					if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + ['datafiles'] + dp.split(os.sep)[2:]))	# skip bin/.blender
+					else:					dir= os.path.join(*([BLENDERPATH] + [VERSION] + ['datafiles'] + dp.split(os.sep)[1:]))	# skip bin
+					datafilestargetlist.append(dir + os.sep + f)
 
+				else:
+					dotblendlist.append(os.path.join(dp, f))
+					if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + ['config'] + dp.split(os.sep)[2:]))	# skip bin/.blender
+					else:					dir= os.path.join(*([BLENDERPATH] + [VERSION] + ['config'] + dp.split(os.sep)[1:]))	# skip bin
+					
+					dottargetlist.append(dir + os.sep + f)
+					
 		dotblenderinstall = []
 		for targetdir,srcfile in zip(dottargetlist, dotblendlist):
 			td, tf = os.path.split(targetdir)
 			dotblenderinstall.append(env.Install(dir=td, source=srcfile))
+		for targetdir,srcfile in zip(datafilestargetlist, datafileslist):
+			td, tf = os.path.split(targetdir)
+			dotblenderinstall.append(env.Install(dir=td, source=srcfile))
 		
 		if env['WITH_BF_PYTHON']:
-			#-- .blender/scripts
+			#-- local/VERSION/scripts
 			scriptpaths=['release/scripts']
 			for scriptpath in scriptpaths:
 				for dp, dn, df in os.walk(scriptpath):
@@ -474,7 +492,7 @@ if  env['OURPLATFORM']!='darwin':
 						dn.remove('.svn')
 					
 					if env['WITH_BF_FHS']:		dir = BLENDERPATH
-					else:						dir = os.path.join(env['BF_INSTALLDIR'], '.blender')				
+					else:						dir = os.path.join(env['BF_INSTALLDIR'], VERSION)				
 					dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
 					
 					source=[os.path.join(dp, f) for f in df if f[-3:]!='pyc']

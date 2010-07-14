@@ -313,7 +313,7 @@ class RENDER_PT_output(RenderButtonsPanel):
         if rd.file_format in ('AVI_JPEG', 'JPEG'):
             split = layout.split()
             split.prop(rd, "file_quality", slider=True)
-        
+
         elif rd.file_format == 'MULTILAYER':
             split = layout.split()
 
@@ -522,6 +522,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel):
 
         row = layout.row()
         row.prop(rd, "motion_blur_samples")
+        row.prop(rd, "motion_blur_shutter")
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
@@ -535,10 +536,9 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         rd = scene.render
         wide_ui = context.region.width > narrowui
 
-        row = layout.row().split()
-        sub = row.row(align=True).split(percentage=0.75)
-        sub.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
-        sub.operator("render.preset_add", text="", icon="ZOOMIN")
+        row = layout.row(align=True)
+        row.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
+        row.operator("render.preset_add", text="", icon="ZOOMIN")
 
         split = layout.split()
 

@@ -37,4 +37,7 @@ void project_from_view(float target[2], float source[3], float persmat[4][4], fl
 /* apply ortho uv's */
 void project_from_view_ortho(float target[2], float source[3], float rotmat[4][4]);
 
+/* so we can adjust scale with keeping the struct private */
+void project_camera_info_scale(struct UvCameraInfo *uci, float scale_x, float scale_y);
+
 #endif

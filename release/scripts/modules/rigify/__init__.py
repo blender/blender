@@ -534,7 +534,7 @@ def generate_test_all(context, GRAPH=False):
     new_objects = rigify.generate_test(context)
 
     if GRAPH:
-        base_name = os.path.splitext(bpy.data.filename)[0]
+        base_name = os.path.splitext(bpy.data.filepath)[0]
         for obj, obj_new in new_objects:
             for obj in (obj, obj_new):
                 fn = base_name + "-" + bpy.utils.clean_name(obj.name)

@@ -180,13 +180,13 @@ static void meshdeformModifier_do(
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDeformWeight *dw;
-	MVert *cagemvert;
 	MDefInfluence *influences;
 	int *offsets;
 	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
 	float weight, totweight, fac, co[3], (*dco)[3], (*bindcagecos)[3];
 	int a, b, totvert, totcagevert, defgrp_index;
-	
+	float (*cagecos)[3];
+
 	if(!mmd->object || (!mmd->bindcagecos && !mmd->bindfunc))
 		return;
 	
@@ -227,7 +227,7 @@ static void meshdeformModifier_do(
 		/* progress bar redraw can make this recursive .. */
 		if(!recursive) {
 			recursive = 1;
-			mmd->bindfunc(md->scene, dm, mmd, (float*)vertexCos, numVerts, cagemat);
+			mmd->bindfunc(md->scene, mmd, (float*)vertexCos, numVerts, cagemat);
 			recursive = 0;
 		}
 	}
@@ -251,8 +251,10 @@ static void meshdeformModifier_do(
 		return;
 	}
 
+	cagecos= MEM_callocN(sizeof(*cagecos)*totcagevert, "meshdeformModifier vertCos");
+
 	/* setup deformation data */
-	cagemvert= cagedm->getVertArray(cagedm);
+	cagedm->getVertCos(cagedm, cagecos);
 	influences= mmd->bindinfluences;
 	offsets= mmd->bindoffsets;
 	bindcagecos= (float(*)[3])mmd->bindcagecos;
@@ -260,7 +262,7 @@ static void meshdeformModifier_do(
 	dco= MEM_callocN(sizeof(*dco)*totcagevert, "MDefDco");
 	for(a=0; a<totcagevert; a++) {
 		/* get cage vertex in world space with binding transform */
-		copy_v3_v3(co, cagemvert[a].co);
+		copy_v3_v3(co, cagecos[a]);
 
 		if(G.rt != 527) {
 			mul_m4_v3(mmd->bindmat, co);
@@ -273,7 +275,7 @@ static void meshdeformModifier_do(
 
 	defgrp_index = defgroup_name_index(ob, mmd->defgrp_name);
 
-	if (defgrp_index >= 0)
+	if(dm && defgrp_index >= 0)
 		dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
 
 	/* do deformation */
@@ -331,6 +333,7 @@ static void meshdeformModifier_do(
 
 	/* release cage derivedmesh */
 	MEM_freeN(dco);
+	MEM_freeN(cagecos);
 	cagedm->release(cagedm);
 }
 
@@ -340,14 +343,11 @@ static void deformVerts(
 {
 	DerivedMesh *dm= get_dm(md->scene, ob, NULL, derivedData, NULL, 0);;
 
-	if(!dm)
-		return;
-
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
 	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData)
+	if(dm && dm != derivedData)
 		dm->release(dm);
 }
 
@@ -355,16 +355,11 @@ static void deformVertsEM(
 						 ModifierData *md, Object *ob, struct EditMesh *editData,
 	  DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm;
-
-	if(!derivedData && ob->type == OB_MESH)
-		dm = CDDM_from_editmesh(editData, ob->data);
-	else
-		dm = derivedData;
+	DerivedMesh *dm= get_dm(md->scene, ob, NULL, derivedData, NULL, 0);;
 
 	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData)
+	if(dm && dm != derivedData)
 		dm->release(dm);
 }
 

@@ -156,7 +156,7 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 		deselect_action_keys(&ac, 1, SELECT_ADD);
 	
 	/* set notifier that keyframe selection have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -317,7 +317,7 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	borderselect_action(&ac, rect, mode, selectmode);
 	
 	/* set notifier that keyframe selection have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -531,7 +531,7 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 		columnselect_action_keys(&ac, mode);
 	
 	/* set notifier that keyframe selection have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -589,7 +589,7 @@ static int actkeys_select_linked_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that keyframe selection has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -667,7 +667,7 @@ static int actkeys_select_more_exec (bContext *C, wmOperator *op)
 	select_moreless_action_keys(&ac, SELMAP_MORE);
 	
 	/* set notifier that keyframe selection has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -701,7 +701,7 @@ static int actkeys_select_less_exec (bContext *C, wmOperator *op)
 	select_moreless_action_keys(&ac, SELMAP_LESS);
 	
 	/* set notifier that keyframe selection has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1138,7 +1138,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	}
 	
 	/* set notifier that keyframe selection (and channels too) have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT|ND_ANIMCHAN_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|ND_ANIMCHAN|NA_SELECTED, NULL);
 	
 	/* for tweak grab to work */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;

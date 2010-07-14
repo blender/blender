@@ -49,7 +49,7 @@ void sculptmode_draw_mesh(int);
 void sculpt_paint_brush(char clear);
 void sculpt_stroke_draw(struct SculptStroke *);
 void sculpt_radialcontrol_start(int mode);
-struct MultiresModifierData *sculpt_multires_active(struct Object *ob);
+struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
 
 struct Brush *sculptmode_brush(void);
 //void do_symmetrical_brush_actions(struct Sculpt *sd, struct wmOperator *wm, struct BrushAction *a, short *, short *);
@@ -58,8 +58,6 @@ void sculpt(Sculpt *sd);
 
 int sculpt_poll(struct bContext *C);
 void sculpt_update_mesh_elements(struct Scene *scene, struct Object *ob, int need_fmap);
-void sculpt_key_to_mesh(struct KeyBlock *kb, struct Object *ob);
-void sculpt_mesh_to_key(struct Object *ob, struct KeyBlock *kb);
 
 /* Stroke */
 struct SculptStroke *sculpt_stroke_new(const int max);

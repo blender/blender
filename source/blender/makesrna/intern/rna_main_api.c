@@ -28,6 +28,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -253,16 +254,24 @@ void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 	/* XXX python now has invalid pointer? */
 }
 
-Image *rna_Main_images_new(Main *bmain, char* name, int width, int height, int float_buffer)
+Image *rna_Main_images_new(Main *bmain, char* name, int width, int height, int alpha, int float_buffer)
 {
 	float color[4]= {0.0, 0.0, 0.0, 1.0};
-	Image *image= BKE_add_image_size(width, height, name, float_buffer, 0, color);
+	Image *image= BKE_add_image_size(width, height, name, alpha ? 32:24, float_buffer, 0, color);
 	image->id.us--;
 	return image;
 }
-Image *rna_Main_images_load(Main *bmain, char *filename)
+Image *rna_Main_images_load(Main *bmain, ReportList *reports, char *filepath)
 {
-	return BKE_add_image_file(filename, 0);
+	Image *ima;
+
+	errno= 0;
+	ima= BKE_add_image_file(filepath, 0);
+
+	if(!ima)
+		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s.", filepath, errno ? strerror(errno) : "Unsupported image format");
+
+	return ima;
 }
 void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
 {
@@ -316,9 +325,18 @@ void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall
 		BKE_reportf(reports, RPT_ERROR, "MetaBall \"%s\" must have zero users to be removed, found %d.", mb->id.name+2, ID_REAL_USERS(mb));
 }
 
-VFont *rna_Main_fonts_load(Main *bmain, char *filename)
+VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, char *filepath)
 {
-	return load_vfont(filename);
+	VFont *font;
+
+	errno= 0;
+	font= load_vfont(filepath);
+
+	if(!font)
+		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s.", filepath, errno ? strerror(errno) : "Unsupported font format");
+
+	return font;
+
 }
 void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont)
 {
@@ -394,11 +412,16 @@ void rna_Main_texts_remove(Main *bmain, ReportList *reports, Text *text)
 	free_libblock(&bmain->text, text);
 	/* XXX python now has invalid pointer? */
 }
-Text *rna_Main_texts_load(Main *bmain, ReportList *reports, char* path)
+
+Text *rna_Main_texts_load(Main *bmain, ReportList *reports, char* filepath)
 {
-	Text *txt= add_text(path, bmain->name);
-	if(txt==NULL)
-		BKE_reportf(reports, RPT_ERROR, "Couldn't load text from path \"%s\".", path);
+	Text *txt;
+
+	errno= 0;
+	txt= add_text(filepath, bmain->name);
+
+	if(!txt)
+		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s.", filepath, errno ? strerror(errno) : "Unable to load text");
 
 	return txt;
 }
@@ -465,7 +488,7 @@ void RNA_api_main(StructRNA *srna)
 	/*
 	func= RNA_def_function(srna, "add_image", "rna_Main_add_image");
 	RNA_def_function_ui_description(func, "Add a new image.");
-	parm= RNA_def_string(func, "filename", "", 0, "", "Filename to load image from.");
+	parm= RNA_def_string(func, "filepath", "", 0, "", "File path to load image from.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image.");
 	RNA_def_function_return(func, parm);
@@ -685,14 +708,16 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "width", 1024, 1, INT_MAX, "", "Width of the image.", 0, INT_MAX);
 	parm= RNA_def_int(func, "height", 1024, 1, INT_MAX, "", "Height of the image.", 0, INT_MAX);
+	parm= RNA_def_boolean(func, "alpha", 0, "Alpha", "Use alpha channel");
 	parm= RNA_def_boolean(func, "float_buffer", 0, "Float Buffer", "Create an image with floating point color");
 	/* return type */
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image datablock.");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "load", "rna_Main_images_load");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Load a new image into the main database");
-	parm= RNA_def_string(func, "filename", "File Name", 0, "", "path of the file to load.");
+	parm= RNA_def_string(func, "filepath", "File Path", 0, "", "path of the file to load.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image datablock.");
@@ -790,8 +815,9 @@ void RNA_def_main_fonts(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Main Fonts", "Collection of fonts");
 
 	func= RNA_def_function(srna, "load", "rna_Main_fonts_load");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Load a new font into the main database");
-	parm= RNA_def_string(func, "filename", "File Name", 0, "", "path of the font to load.");
+	parm= RNA_def_string(func, "filepath", "File Path", 0, "", "path of the font to load.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "vfont", "VectorFont", "", "New font datablock.");
@@ -929,7 +955,7 @@ void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "load", "rna_Main_texts_load");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new text to the main database from a file");
-	parm= RNA_def_string(func, "path", "Path", FILE_MAXDIR + FILE_MAXFILE, "", "path for the datablock.");
+	parm= RNA_def_string(func, "filepath", "Path", FILE_MAXDIR + FILE_MAXFILE, "", "path for the datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "text", "Text", "", "New text datablock.");

@@ -53,7 +53,7 @@ private:
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ScalarInterpolator"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ScalarInterpolator"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };
@@ -69,7 +69,7 @@ public:
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_InterpolatorList"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_InterpolatorList"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

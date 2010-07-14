@@ -61,7 +61,7 @@ int GPU_print_error(char *str);
 
 int GPU_glsl_support(void);
 int GPU_non_power_of_two_support(void);
-int GPU_24bit_color_support(void);
+int GPU_color_depth(void);
 
 /* GPU Types */
 

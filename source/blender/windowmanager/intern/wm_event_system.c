@@ -234,8 +234,15 @@ void wm_event_do_notifiers(bContext *C)
 			}
 		}
 		if(do_anim) {
-			/* depsgraph gets called, might send more notifiers */
-			ED_update_for_newframe(C, 1);
+
+			/* XXX, quick frame changes can cause a crash if framechange and rendering
+			 * collide (happens on slow scenes), scene_update_for_newframe can be called
+			 * twice which can depgraph update the same object at once */
+			if(!G.rendering) {
+
+				/* depsgraph gets called, might send more notifiers */
+				ED_update_for_newframe(C, 1);
+			}
 		}
 	}
 	
@@ -372,14 +379,57 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 	return 1;
 }
 
+static void wm_operator_print(wmOperator *op)
+{
+	char *buf = WM_operator_pystring(NULL, op->type, op->ptr, 1);
+	printf("%s\n", buf);
+	MEM_freeN(buf);
+}
+
+static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int popup)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	ReportList *reports = CTX_wm_reports(C);
+	char *buf;
+	
+	if(popup)
+		if(op->reports->list.first)
+			uiPupMenuReports(C, op->reports);
+	
+	if(retval & OPERATOR_FINISHED) {
+		if(G.f & G_DEBUG)
+			wm_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
+		
+		if (op->type->flag & OPTYPE_REGISTER) {
+			/* Report the python string representation of the operator */
+			buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+			BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+			MEM_freeN(buf);
+		}
+	}
+
+	if (op->reports->list.first) {
+		ReportTimerInfo *rti;
+		
+		/* add reports to the global list, otherwise they are not seen */
+		addlisttolist(&CTX_wm_reports(C)->list, &op->reports->list);
+		
+		/* After adding reports to the global list, reset the report timer. */
+		WM_event_remove_timer(wm, NULL, reports->reporttimer);
+		
+		/* Records time since last report was added */
+		reports->reporttimer= WM_event_add_timer(wm, CTX_wm_window(C), TIMER, 0.02);
+		
+		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
+		reports->reporttimer->customdata = rti;
+	}
+}
+
 static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 
 	op->customdata= NULL;
-
-	/* add reports to the global list, otherwise they are not seen */
-	addlisttolist(&CTX_wm_reports(C)->list, &op->reports->list);
 
 	/* we don't want to do undo pushes for operators that are being
 	   called from operators that already do an undo push. usually
@@ -424,9 +474,8 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 			wm->op_undo_depth--;
 	}
 	
-	if(retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
-		if(op->reports->list.first)
-			uiPupMenuReports(C, op->reports);
+	if (retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED) && repeat == 0)
+		wm_operator_reports(C, op, retval, 0);
 	
 	if(retval & OPERATOR_FINISHED)
 		wm_operator_finished(C, op, repeat);
@@ -534,13 +583,6 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 	return op;
 }
 
-static void wm_operator_print(wmOperator *op)
-{
-	char *buf = WM_operator_pystring(NULL, op->type, op->ptr, 1);
-	printf("%s\n", buf);
-	MEM_freeN(buf);
-}
-
 static void wm_region_mouse_co(bContext *C, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
@@ -584,18 +626,14 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
 		}
 		else
 			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
-
+		
 		/* Note, if the report is given as an argument then assume the caller will deal with displaying them
 		 * currently python only uses this */
-		if((retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED)) && reports==NULL)
-			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
-				uiPupMenuReports(C, op->reports);
+		if (!(retval & OPERATOR_HANDLED) && retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
+			/* only show the report if the report list was not given in the function */
+			wm_operator_reports(C, op, retval, (reports==NULL));
+			
 		
-		if (retval & OPERATOR_FINISHED) { /* todo - this may conflict with the other wm_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
-			if(G.f & G_DEBUG)
-				wm_operator_print(op);
-		}
-
 		if(retval & OPERATOR_HANDLED)
 			; /* do nothing, wm_operator_exec() has been called somewhere */
 		else if(retval & OPERATOR_FINISHED) {
@@ -1084,17 +1122,11 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				/* this special cases is for areas and regions that get removed */
 				CTX_wm_area_set(C, NULL);
 				CTX_wm_region_set(C, NULL);
-			}
+			}		
 
-			if(retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
-				if(op->reports->list.first)
-					uiPupMenuReports(C, op->reports);
-
-			if (retval & OPERATOR_FINISHED) {
-				if(G.f & G_DEBUG)
-					wm_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
-			}			
-
+			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED))
+				wm_operator_reports(C, op, retval, 0);
+			
 			if(retval & OPERATOR_FINISHED) {
 				wm_operator_finished(C, op, 0);
 				handler->op= NULL;
@@ -1187,7 +1219,6 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			{
 				/* XXX validate area and region? */
 				bScreen *screen= CTX_wm_screen(C);
-				char *path= RNA_string_get_alloc(handler->op->ptr, "path", NULL, 0);
 				
 				if(screen != handler->filescreen)
 					ED_screen_full_prevspace(C, CTX_wm_area(C));
@@ -1206,8 +1237,11 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 					/* XXX also extension code in image-save doesnt work for this yet */
 					if (RNA_struct_find_property(handler->op->ptr, "check_existing") && 
 							RNA_boolean_get(handler->op->ptr, "check_existing")) {
+						char *path= RNA_string_get_alloc(handler->op->ptr, "filepath", NULL, 0);
 						/* this gives ownership to pupmenu */
 						uiPupMenuSaveOver(C, handler->op, (path)? path: "");
+						if(path)
+							MEM_freeN(path);
 					}
 					else {
 						int retval;
@@ -1267,8 +1301,6 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				CTX_wm_area_set(C, NULL);
 				
 				wm_event_free_handler(handler);
-				if(path)
-					MEM_freeN(path);
 				
 				action= WM_HANDLER_BREAK;
 			}
@@ -1401,6 +1433,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			/* test for double click first */
 			if ((PIL_check_seconds_timer() - win->eventstate->prevclicktime) * 1000 < U.dbl_click_time) {
 				event->val = KM_DBL_CLICK;
+				event->x = win->eventstate->prevclickx;
+				event->y = win->eventstate->prevclicky;
 				action |= wm_handlers_do(C, event, handlers);
 			}
 
@@ -1582,7 +1616,7 @@ void wm_event_do_handlers(bContext *C)
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
 
-			if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
+			if((G.f & G_DEBUG) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))
 				printf("pass on evt %d val %d\n", event->type, event->val); 
 			
 			wm_eventemulation(event);
@@ -1633,7 +1667,7 @@ void wm_event_do_handlers(bContext *C)
 									
 									/* does polls for drop regions and checks uibuts */
 									/* need to be here to make sure region context is true */
-									if(event->type==MOUSEMOVE) {
+									if(ELEM(event->type, MOUSEMOVE, EVT_DROP)) {
 										wm_region_mouse_co(C, event);
 										wm_drags_check_ops(C, event);
 									}
@@ -1687,6 +1721,8 @@ void wm_event_do_handlers(bContext *C)
 						/* set click time on first click (press -> release) */
 						if (win->eventstate->prevval == KM_PRESS && event->val == KM_RELEASE) {
 							win->eventstate->prevclicktime = PIL_check_seconds_timer();
+							win->eventstate->prevclickx = event->x;
+							win->eventstate->prevclicky = event->y;
 						}
 					} else {
 						/* reset click time if event type not the same */
@@ -1699,6 +1735,8 @@ void wm_event_do_handlers(bContext *C)
 					win->eventstate->prevtype = event->type;
 					win->eventstate->prevval = event->val;
 					win->eventstate->prevclicktime = PIL_check_seconds_timer();
+					win->eventstate->prevclickx = event->x;
+					win->eventstate->prevclicky = event->y;
 				} else { /* reset if not */
 					win->eventstate->prevtype = -1;
 					win->eventstate->prevval = 0;
@@ -2106,6 +2144,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 		case GHOST_kEventCursorMove: {
 			if(win->active) {
 				GHOST_TEventCursorData *cd= customdata;
+				wmEvent *lastevent= win->queue.last;
 				
 #if defined(__APPLE__) && defined(GHOST_COCOA)
 				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
@@ -2123,6 +2162,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 				event.y= evt->y;
 
 				event.type= MOUSEMOVE;
+
+				/* some painting operators want accurate mouse events, they can
+				   handle inbetween mouse move moves, others can happily ignore
+				   them for better performance */
+				if(lastevent && lastevent->type == MOUSEMOVE)
+					lastevent->type = INBETWEEN_MOUSEMOVE;
 
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);

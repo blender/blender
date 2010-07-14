@@ -1481,6 +1481,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* moving mouse - assumed that mouse button is down if in painting status */
 		case MOUSEMOVE:
+		case INBETWEEN_MOUSEMOVE:
 			/* check if we're currently painting */
 			if (p->status == GP_STATUS_PAINTING) {
 				/* handle drawing event */
@@ -1515,6 +1516,8 @@ static EnumPropertyItem prop_gpencil_drawmodes[] = {
 
 void GPENCIL_OT_draw (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Grease Pencil Draw";
 	ot->idname= "GPENCIL_OT_draw";
@@ -1531,6 +1534,8 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* settings for drawing */
-	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
+	prop= RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }

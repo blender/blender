@@ -168,7 +168,7 @@ static char M_Mathutils_RotationMatrix_doc[] =
 "\n"
 "   Create a matrix representing a rotation.\n"
 "\n"
-"   :arg angle: The angle of rotation desired.\n"
+"   :arg angle: The angle of rotation desired, in radians.\n"
 "   :type angle: float\n"
 "   :arg size: The size of the rotation matrix to construct [2, 4].\n"
 "   :type size: int\n"
@@ -649,7 +649,8 @@ int _BaseMathObject_ReadCallback(BaseMathObject *self)
 	if(cb->get(self, self->cb_subtype))
 		return 1;
 
-	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	if(!PyErr_Occurred())
+		PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
 	return 0;
 }
 
@@ -659,7 +660,8 @@ int _BaseMathObject_WriteCallback(BaseMathObject *self)
 	if(cb->set(self, self->cb_subtype))
 		return 1;
 
-	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	if(!PyErr_Occurred())
+		PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
 	return 0;
 }
 
@@ -669,7 +671,8 @@ int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index)
 	if(cb->get_index(self, self->cb_subtype, index))
 		return 1;
 
-	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	if(!PyErr_Occurred())
+		PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
 	return 0;
 }
 
@@ -679,7 +682,8 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 	if(cb->set_index(self, self->cb_subtype, index))
 		return 1;
 
-	PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
+	if(!PyErr_Occurred())
+		PyErr_Format(PyExc_SystemError, "%s user has become invalid", Py_TYPE(self)->tp_name);
 	return 0;
 }
 

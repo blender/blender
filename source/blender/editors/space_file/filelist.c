@@ -1360,7 +1360,7 @@ void thumbnails_start(struct FileList* filelist, const struct bContext* C)
 
 void thumbnails_stop(struct FileList* filelist, const struct bContext* C)
 {
-	WM_jobs_kill(CTX_wm_manager(C), filelist);
+	WM_jobs_kill(CTX_wm_manager(C), filelist, NULL);
 }
 
 int thumbnails_running(struct FileList* filelist, const struct bContext* C)

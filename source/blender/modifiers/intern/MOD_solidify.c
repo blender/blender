@@ -178,6 +178,18 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strcpy(tsmd->defgrp_name, smd->defgrp_name);
 }
 
+static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+{
+	SolidifyModifierData *smd = (SolidifyModifierData*) md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(smd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+
 static DerivedMesh *applyModifier(ModifierData *md,
 						   Object *ob, 
 						   DerivedMesh *dm,
@@ -502,6 +514,8 @@ static DerivedMesh *applyModifier(ModifierData *md,
 		float (*edge_vert_nos)[3]= MEM_callocN(sizeof(float) * numVerts * 3, "solidify_edge_nos");
 		float nor[3];
 #endif
+		/* maximum value -1, so we have room to increase */
+		const short mat_nr_shift= (smd->flag & MOD_SOLIDIFY_RIM_MATERIAL) ? ob->totcol-1 : -1;
 
 		const unsigned char crease_rim= smd->crease_rim * 255.0f;
 		const unsigned char crease_outer= smd->crease_outer * 255.0f;
@@ -560,6 +574,10 @@ static DerivedMesh *applyModifier(ModifierData *md,
 				mf->v3= ed->v1 + numVerts;
 				mf->v4= ed->v2 + numVerts;
 			}
+			
+			/* use the next material index if option enabled */
+			if(mf->mat_nr < mat_nr_shift)
+				mf->mat_nr++;
 
 			if(crease_outer)
 				ed->crease= crease_outer;
@@ -637,7 +655,7 @@ ModifierTypeInfo modifierType_Solidify = {
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   applyModifierEM,
 	/* initData */          initData,
-	/* requiredDataMask */  0,
+	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          0,
 	/* isDisabled */        0,
 	/* updateDepgraph */    0,

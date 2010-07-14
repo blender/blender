@@ -1,3 +1,4 @@
+import bpy
 is_ntsc = (bpy.context.scene.render.fps != 25)
 
 bpy.context.scene.render.ffmpeg_format = "MPEG1"

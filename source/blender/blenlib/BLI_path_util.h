@@ -30,8 +30,12 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BLI_UTIL_H
-#define BLI_UTIL_H
+#ifndef BLI_PATH_UTIL_H
+#define BLI_PATH_UTIL_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct ListBase;
 struct direntry;
@@ -45,6 +49,68 @@ char *BLI_gethome_folder(char *folder_name, int flag);
 #define BLI_GETHOME_USER		1<<3 /* home folder ~/.blender */
 #define BLI_GETHOME_ALL			(BLI_GETHOME_SYSTEM|BLI_GETHOME_LOCAL|BLI_GETHOME_USER)
 
+
+#ifdef __APPLE__
+typedef enum {
+	BasePath_Temporary = 1,
+	BasePath_BlenderShared,
+	BasePath_BlenderUser,
+	BasePath_ApplicationBundle
+} basePathesTypes;
+
+/**
+ * Gets the base path. The path may not exist.
+ * Note that return string must be copied as its persistence is not guaranteed
+ *
+ * @return base path of pathType
+ */
+const char* BLI_osx_getBasePath(basePathesTypes pathType);
+#endif
+
+char *BLI_get_folder(int folder_id, char *subfolder);
+char *BLI_get_folder_create(int folder_id, char *subfolder);
+
+/* folder_id */
+
+/* general, will find baserd on user/local/system priority */
+#define BLENDER_CONFIG				1
+#define BLENDER_DATAFILES			2
+#define BLENDER_SCRIPTS				3
+#define BLENDER_PLUGINS				4
+#define BLENDER_PYTHON				5
+
+/* user-specific */
+#define BLENDER_USER_CONFIG			31
+#define BLENDER_USER_DATAFILES		32
+#define BLENDER_USER_SCRIPTS		33
+#define BLENDER_USER_PLUGINS		34
+
+/* system */
+#define BLENDER_SYSTEM_CONFIG		51	/* optional */
+#define BLENDER_SYSTEM_DATAFILES	52
+#define BLENDER_SYSTEM_SCRIPTS		53
+#define BLENDER_SYSTEM_PLUGINS		54
+#define BLENDER_SYSTEM_PYTHON		54
+
+#define BLENDER_TEMP				80
+
+#define BLENDER_USERFOLDER(id) (id >= BLENDER_USER_CONFIG && id <= BLENDER_USER_PLUGINS)
+
+#define BLENDER_STARTUP_FILE	"startup.blend"
+#define BLENDER_BOOKMARK_FILE	"bookmarks.txt"
+#define BLENDER_HISTORY_FILE	"recent-files.txt"
+
+#ifdef WIN32
+#define BLENDER_USER_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#define BLENDER_SYSTEM_FORMAT		"%s\\Blender Foundation\\Blender\\%s"
+#elif __APPLE__
+#define BLENDER_USER_FORMAT			"%s/Blender/%s"
+#define BLENDER_SYSTEM_FORMAT			"%s/Blender/%s"
+#else
+#define BLENDER_USER_FORMAT			"%s/.blender/%s"
+#define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
+#endif
+
 void BLI_setenv(const char *env, const char *val);
 void BLI_setenv_if_new(const char *env, const char* val);
 
@@ -53,6 +119,7 @@ void BLI_make_exist(char *dir);
 void BLI_make_existing_file(char *name);
 void BLI_split_dirfile(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
+char *BLI_path_basename(char *path);
 int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir);
 void BLI_getlastdir(const char* dir, char *last, int maxlen);
 int BLI_testextensie(const char *str, const char *ext);
@@ -134,17 +201,12 @@ char *get_install_dir(void);
 void BLI_where_is_temp(char *fullname, int usertemp);
 
 
-	/**
-	 * determines the full path to the application bundle on OS X
-	 *
-	 * @return path to application bundle
-	 */
-#ifdef __APPLE__
-char* BLI_getbundle(void);
-#endif
-
 #ifdef WITH_ICONV
 void BLI_string_to_utf8(char *original, char *utf_8, const char *code);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

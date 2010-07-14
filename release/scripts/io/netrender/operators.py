@@ -39,7 +39,7 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
         scene = context.scene
         netsettings = scene.network_render
 
-        filename = bpy.data.filename
+        filename = bpy.data.filepath
         path, name = os.path.split(filename)
         root, ext = os.path.splitext(name)
         default_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
@@ -77,7 +77,7 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
 
         bpy.ops.ptcache.bake_all()
 
-        #bpy.ops.wm.save_mainfile(path = path + os.sep + root + "_baked.blend")
+        #bpy.ops.wm.save_mainfile(filepath = path + os.sep + root + "_baked.blend")
 
         return {'FINISHED'}
 

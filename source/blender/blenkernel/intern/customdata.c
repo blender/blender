@@ -2316,10 +2316,29 @@ int CustomData_verify_versions(struct CustomData *data, int index)
 
 static void customdata_external_filename(char filename[FILE_MAX], ID *id, CustomDataExternal *external)
 {
-	char *path = (id->lib)? id->lib->filename: G.sce;
+	char *path = (id->lib)? id->lib->filepath: G.sce;
 
 	BLI_strncpy(filename, external->filename, FILE_MAX);
 	BLI_path_abs(filename, path);
+}
+
+void CustomData_external_reload(CustomData *data, ID *id, CustomDataMask mask, int totelem)
+{
+	CustomDataLayer *layer;
+	const LayerTypeInfo *typeInfo;
+	int i;
+
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		typeInfo = layerType_getInfo(layer->type);
+
+		if(!(mask & (1<<layer->type)));
+		else if((layer->flag & CD_FLAG_EXTERNAL) && (layer->flag & CD_FLAG_IN_MEMORY)) {
+			if(typeInfo->free)
+				typeInfo->free(layer->data, totelem, typeInfo->size);
+			layer->flag &= ~CD_FLAG_IN_MEMORY;
+		}
+	}
 }
 
 void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int totelem)

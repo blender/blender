@@ -237,7 +237,7 @@ class x3d_class:
         lens = min(lens, math.pi)
 
         # get the camera location, subtract 90 degress from X to orient like X3D does
-        # mat = ob.matrixWorld - mat is now passed!
+        # mat = ob.matrix_world - mat is now passed!
 
         loc = self.rotatePointForVRML(mat.translation_part())
         rot = mat.to_euler()
@@ -300,7 +300,7 @@ class x3d_class:
         # note -dz seems to equal om[3][1]
         # note  dy seems to equal om[3][2]
 
-        #location=(ob.matrixWorld*MATWORLD).translation_part() # now passed
+        #location=(ob.matrix_world*MATWORLD).translation_part() # now passed
         location=(mtx*MATWORLD).translation_part()
 
         radius = lamp.distance*math.cos(beamWidth)
@@ -346,7 +346,7 @@ class x3d_class:
             ambi = 0
             ambientIntensity = 0
 
-        # location=(ob.matrixWorld*MATWORLD).translation_part() # now passed
+        # location=(ob.matrix_world*MATWORLD).translation_part() # now passed
         location= (mtx*MATWORLD).translation_part()
 
         self.file.write("<PointLight DEF=\"%s\" " % safeName)
@@ -364,7 +364,7 @@ class x3d_class:
             return
         else:
             dx,dy,dz = self.computeDirection(mtx)
-            # location=(ob.matrixWorld*MATWORLD).translation_part()
+            # location=(ob.matrix_world*MATWORLD).translation_part()
             location=(mtx*MATWORLD).translation_part()
             self.writeIndented("<%s\n" % obname,1)
             self.writeIndented("direction=\"%s %s %s\"\n" % (round(dx,3),round(dy,3),round(dz,3)))
@@ -445,7 +445,7 @@ class x3d_class:
         else:
             bTwoSided=0
 
-        # mtx = ob.matrixWorld * MATWORLD # mtx is now passed
+        # mtx = ob.matrix_world * MATWORLD # mtx is now passed
         mtx = mtx * MATWORLD
 
         loc= mtx.translation_part()
@@ -601,7 +601,7 @@ class x3d_class:
             self.file.write("\">\n")
         else:
             #-- vertices
-            # mesh.transform(ob.matrixWorld)
+            # mesh.transform(ob.matrix_world)
             self.writeIndented("<Coordinate DEF=\"%s%s\" \n" % ("coord_",meshName), 1)
             self.file.write("\t\t\t\tpoint=\"")
             for v in mesh.verts:
@@ -717,7 +717,7 @@ class x3d_class:
 
     def writeImageTexture(self, image):
         name = image.name
-        filename = image.filename.split('/')[-1].split('\\')[-1]
+        filename = image.filepath.split('/')[-1].split('\\')[-1]
         if name in self.texNames:
             self.writeIndented("<ImageTexture USE=\"%s\" />\n" % self.cleanStr(name))
             self.texNames[name] += 1
@@ -794,28 +794,28 @@ class x3d_class:
             pic = tex.image
 
             # using .expandpath just in case, os.path may not expect //
-            basename = os.path.basename(bpy.utils.expandpath(pic.filename))
+            basename = os.path.basename(bpy.utils.expandpath(pic.filepath))
 
             pic = alltextures[i].image
             # pic = alltextures[i].getImage()
             if (namemat == "back") and (pic != None):
                 self.file.write("\n\tbackUrl=\"%s\" " % basename)
-                # self.file.write("\n\tbackUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.file.write("\n\tbackUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
             elif (namemat == "bottom") and (pic != None):
                 self.writeIndented("bottomUrl=\"%s\" " % basename)
-                # self.writeIndented("bottomUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.writeIndented("bottomUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
             elif (namemat == "front") and (pic != None):
                 self.writeIndented("frontUrl=\"%s\" " % basename)
-                # self.writeIndented("frontUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.writeIndented("frontUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
             elif (namemat == "left") and (pic != None):
                 self.writeIndented("leftUrl=\"%s\" " % basename)
-                # self.writeIndented("leftUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.writeIndented("leftUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
             elif (namemat == "right") and (pic != None):
                 self.writeIndented("rightUrl=\"%s\" " % basename)
-                # self.writeIndented("rightUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.writeIndented("rightUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
             elif (namemat == "top") and (pic != None):
                 self.writeIndented("topUrl=\"%s\" " % basename)
-                # self.writeIndented("topUrl=\"%s\" " % pic.filename.split('/')[-1].split('\\')[-1])
+                # self.writeIndented("topUrl=\"%s\" " % pic.filepath.split('/')[-1].split('\\')[-1])
         self.writeIndented("/>\n\n")
 
 ##########################################################
@@ -1215,9 +1215,6 @@ def x3d_export_ui(filename):
 #########################################################
 
 
-# if __name__ == '__main__':
-# 	Blender.Window.FileSelector(x3d_export_ui,"Export X3D", Blender.Get('filename').replace('.blend', '.x3d'))
-
 from bpy.props import *
 
 class ExportX3D(bpy.types.Operator):
@@ -1227,7 +1224,7 @@ class ExportX3D(bpy.types.Operator):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    path = StringProperty(name="File Path", description="File path used for exporting the X3D file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the X3D file", maxlen= 1024, default= "")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)
@@ -1235,7 +1232,7 @@ class ExportX3D(bpy.types.Operator):
     compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
 
     def execute(self, context):
-        x3d_export(self.properties.path, context, self.properties.apply_modifiers, self.properties.triangulate, self.properties.compress)
+        x3d_export(self.properties.filepath, context, self.properties.apply_modifiers, self.properties.triangulate, self.properties.compress)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -1245,8 +1242,8 @@ class ExportX3D(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".x3d")
-    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)").path = default_path
+    default_path = bpy.data.filepath.replace(".blend", ".x3d")
+    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)").filepath = default_path
 
 
 def register():

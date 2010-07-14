@@ -729,7 +729,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					CTX_wm_window_set(C, win);
 					
 					WM_operator_properties_create(&props_ptr, "WM_OT_open_mainfile");
-					RNA_string_set(&props_ptr, "path", path);
+					RNA_string_set(&props_ptr, "filepath", path);
 					WM_operator_name_call(C, "WM_OT_open_mainfile", WM_OP_EXEC_DEFAULT, &props_ptr);
 					WM_operator_properties_free(&props_ptr);
 					
@@ -1016,6 +1016,18 @@ void WM_clipboard_text_set(char *buf, int selection)
 #else
 	GHOST_putClipboard((GHOST_TInt8*)buf, selection);
 #endif
+}
+
+/* ******************* progress bar **************** */
+
+void WM_progress_set(wmWindow *win, float progress)
+{
+	GHOST_SetProgressBar(win->ghostwin, progress);
+}
+
+void WM_progress_clear(wmWindow *win)
+{
+	GHOST_EndProgressBar(win->ghostwin);
 }
 
 /* ************************************ */

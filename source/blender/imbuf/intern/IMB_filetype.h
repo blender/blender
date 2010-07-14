@@ -109,6 +109,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags);
 int imb_savehdr(struct ImBuf * ibuf, char *name, int flags);
 
 /* tiff */
+void imb_inittiff(void);
 int imb_is_a_tiff(unsigned char *buf);
 struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags);
 void imb_loadtiletiff(struct ImBuf *ibuf, unsigned char *mem, int size,

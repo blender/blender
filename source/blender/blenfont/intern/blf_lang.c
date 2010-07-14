@@ -59,65 +59,19 @@ char global_messagepath[1024];
 char global_language[32];
 char global_encoding_name[32];
 
-#if defined(__APPLE__)
-void BLF_lang_init(void) /* Apple Only, todo - use BLI_gethome_folder  */
+
+void BLF_lang_init(void)
 {
-	char *bundlepath;
-
-	strcpy(global_encoding_name, SYSTEM_ENCODING_DEFAULT);
-
-	/* set messagepath directory */
-#ifndef LOCALEDIR
-#define LOCALEDIR "/usr/share/locale"
-#endif
-
-	strcpy(global_messagepath, ".blender/locale");
-
-	if (!BLI_exist(global_messagepath)) { /* locale not in current dir */
-		BLI_make_file_string("/", global_messagepath, BLI_gethome(), ".blender/locale");
-
-		if (!BLI_exist(global_messagepath)) { /* locale not in home dir */
-			/* message catalogs are stored inside the application bundle */
-			bundlepath= BLI_getbundle();
-			strcpy(global_messagepath, bundlepath);
-			strcat(global_messagepath, "/Contents/Resources/locale");
-			if (!BLI_exist(global_messagepath)) { /* locale not in bundle (now that's odd..) */
-				strcpy(global_messagepath, LOCALEDIR);
-
-				if (!BLI_exist(global_messagepath)) { /* locale not in LOCALEDIR */
-					strcpy(global_messagepath, "message"); /* old compatibility as last */
-				}
-			}
-		}
-	}
-}
-#elif defined(_WIN32)
-void BLF_lang_init(void) /* Windows Only, todo - use BLI_gethome_folder  */
-{
-	strcpy(global_encoding_name, SYSTEM_ENCODING_DEFAULT);
+	char *messagepath= BLI_get_folder(BLENDER_DATAFILES, "locale");
 	
-	strcpy(global_messagepath, ".blender/locale");
-
-	if (!BLI_exist(global_messagepath)) { /* locale not in current dir */
-		BLI_make_file_string("/", global_messagepath, BLI_gethome(), ".blender/locale");
-
-		if (!BLI_exist(global_messagepath)) { /* locale not in home dir */
-			BLI_make_file_string("/", global_messagepath, BLI_gethome(), "/locale");
-		}
-	}
-}
-#else
-void BLF_lang_init(void)  /* not win or mac */
-{
-	char *messagepath= BLI_gethome_folder("locale", BLI_GETHOME_ALL);
+	BLI_strncpy(global_encoding_name, SYSTEM_ENCODING_DEFAULT, sizeof(global_encoding_name));
 	
-	if(messagepath)
-		strncpy(global_messagepath, messagepath, sizeof(global_messagepath));
+	if (messagepath)
+		BLI_strncpy(global_messagepath, messagepath, sizeof(global_messagepath));
 	else
 		global_messagepath[0]= '\0';
-
 }
-#endif
+
 
 void BLF_lang_set(const char *str)
 {

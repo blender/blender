@@ -193,7 +193,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(ob != obedit) {
-			ob->recalc |= OB_RECALC;
+			ob->recalc |= OB_RECALC_ALL;
 			par= obedit->parent;
 			
 			while(par) {
@@ -339,7 +339,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		
 		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
-		DAG_id_flush_update(&newob->id, OB_RECALC);
+		DAG_id_flush_update(&newob->id, OB_RECALC_ALL);
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, newob);
 	}
 	else {
@@ -427,7 +427,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 		else if(type == 2)
 			unit_m4(ob->parentinv);
 
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_ALL;
 	}
 	CTX_DATA_END;
 	
@@ -869,7 +869,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		
 		/* remove track-object for old track */
 		ob->track= NULL;
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_ALL;
 		
 		/* also remove all tracking constraints */
 		for (con= ob->constraints.last; con; con= pcon) {
@@ -935,7 +935,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA)
@@ -954,7 +954,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
@@ -975,7 +975,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
@@ -1188,6 +1188,30 @@ enum {
 	MAKE_LINKS_MODIFIERS
 };
 
+/* Return 1 if make link data is allow, zero otherwise */
+static int allow_make_links_data(int ev, Object *ob, Object *obt)
+{
+	switch(ev) {
+		case MAKE_LINKS_OBDATA:
+			if (ob->type == obt->type && ob->type != OB_EMPTY)
+				return 1;
+			break;
+		case MAKE_LINKS_MATERIALS:
+			if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL) &&
+				ELEM5(obt->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL))
+				return 1;
+			break;
+		case MAKE_LINKS_ANIMDATA:
+		case MAKE_LINKS_DUPLIGROUP:
+			return 1;
+		case MAKE_LINKS_MODIFIERS:
+			if (ob->type != OB_EMPTY && obt->type != OB_EMPTY)
+				return 1;
+			break;
+	}
+	return 0;
+}
+
 static int make_links_data_exec(bContext *C, wmOperator *op)
 {
 	int event = RNA_int_get(op->ptr, "type");
@@ -1199,43 +1223,45 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN(C, Object*, obt, selected_editable_objects) {
 		if(ob != obt) {
-			switch(event) {
-			case MAKE_LINKS_OBDATA: /* obdata */
-				id= obt->data;
-				id->us--;
+			if (allow_make_links_data(event, ob, obt)) {
+				switch(event) {
+				case MAKE_LINKS_OBDATA: /* obdata */
+					id= obt->data;
+					id->us--;
 
-				id= ob->data;
-				id_us_plus(id);
-				obt->data= id;
+					id= ob->data;
+					id_us_plus(id);
+					obt->data= id;
 
-				/* if amount of material indices changed: */
-				test_object_materials(obt->data);
+					/* if amount of material indices changed: */
+					test_object_materials(obt->data);
 
-				obt->recalc |= OB_RECALC_DATA;
-				break;
-			case MAKE_LINKS_MATERIALS:
-				/* new approach, using functions from kernel */
-				for(a=0; a<ob->totcol; a++) {
-					Material *ma= give_current_material(ob, a+1);
-					assign_material(obt, ma, a+1);	/* also works with ma==NULL */
+					obt->recalc |= OB_RECALC_DATA;
+					break;
+				case MAKE_LINKS_MATERIALS:
+					/* new approach, using functions from kernel */
+					for(a=0; a<ob->totcol; a++) {
+						Material *ma= give_current_material(ob, a+1);
+						assign_material(obt, ma, a+1);	/* also works with ma==NULL */
+					}
+					break;
+				case MAKE_LINKS_ANIMDATA:
+					BKE_copy_animdata_id((ID *)obt, (ID *)ob);
+					BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data);
+					break;
+				case MAKE_LINKS_DUPLIGROUP:
+					if(ob->dup_group) ob->dup_group->id.us--;
+					obt->dup_group= ob->dup_group;
+					if(obt->dup_group) {
+						id_us_plus((ID *)obt->dup_group);
+						obt->transflag |= OB_DUPLIGROUP;
+					}
+					break;
+				case MAKE_LINKS_MODIFIERS:
+					object_link_modifiers(obt, ob);
+					obt->recalc |= OB_RECALC_ALL;
+					break;
 				}
-				break;
-			case MAKE_LINKS_ANIMDATA:
-				BKE_copy_animdata_id((ID *)obt, (ID *)ob);
-				BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data);
-				break;
-			case MAKE_LINKS_DUPLIGROUP:
-				if(ob->dup_group) ob->dup_group->id.us--;
-				obt->dup_group= ob->dup_group;
-				if(obt->dup_group) {
-					id_us_plus((ID *)obt->dup_group);
-					obt->transflag |= OB_DUPLIGROUP;
-				}
-				break;
-			case MAKE_LINKS_MODIFIERS:
-				object_link_modifiers(obt, ob);
-				obt->recalc |= OB_RECALC;
-				break;
 			}
 		}
 	}

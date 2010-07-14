@@ -60,9 +60,6 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
-#include "LBM_fluidsim.h"
-
-
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_retopo.h"
@@ -1483,10 +1480,18 @@ static int mesh_separate_loose(Scene *scene, Base *editbase)
 	}
 	
 	EM_clear_flag_all(em, SELECT);
-	
-	while(doit && em->verts.first) {
+
+	while(doit) {
 		/* Select a random vert to start with */
-		EditVert *eve= em->verts.first;
+		EditVert *eve;
+		int tot;
+
+		/* check if all verts that are visible have been done */
+		for(eve=em->verts.first; eve; eve= eve->next)
+			if(!eve->h) break;
+		if(eve==NULL) break; /* only hidden verts left, quit early */
+
+		/* first non hidden vert */
 		eve->f |= SELECT;
 		
 		selectconnected_mesh_all(em);
@@ -1496,8 +1501,14 @@ static int mesh_separate_loose(Scene *scene, Base *editbase)
 			if((eve->f & SELECT)==0) break;
 		if(eve==NULL) break;
 
+		tot= BLI_countlist(&em->verts);
+
 		/* and now separate */
 		doit= mesh_separate_selected(scene, editbase);
+
+		/* with hidden verts this can happen */
+		if(tot == BLI_countlist(&em->verts))
+			break;
 	}
 
 	BKE_mesh_end_editmesh(me, em);

@@ -287,6 +287,21 @@ static void rna_ConstraintActuator_spring_set(struct PointerRNA *ptr, float valu
 	*fp = value;
 }
 
+/* ConstraintActuator uses the same property for Material and Property.
+   Therefore we need to clear the property when "detect_material" mode changes */
+static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, int value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bConstraintActuator *ca = act->data;
+
+	short old_value = (ca->flag & ACT_CONST_MATERIAL? 1:0);
+
+	if (old_value != value) {
+		ca->flag ^= ACT_CONST_MATERIAL;
+		ca->matprop[0] = '\0';
+	}
+}
+
 static void rna_FcurveActuator_add_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act = (bActuator *)ptr->data;
@@ -465,10 +480,18 @@ void rna_def_actuator(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Actuator_type_set", "rna_Actuator_type_itemf");
 	RNA_def_property_ui_text(prop, "Type", "");
 
+	prop= RNA_def_property(srna, "pinned", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_PIN);
+	RNA_def_property_ui_text(prop, "Pinned", "Display when not linked to a visible states controller");
+	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_SHOW);
 	RNA_def_property_ui_text(prop, "Expanded", "Set actuator expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
+
+	RNA_api_actuator(srna);
 }
 
 static void rna_def_action_actuator(BlenderRNA *brna)
@@ -903,7 +926,7 @@ static void rna_def_sound_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "maximum_gain_3d", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sound3D.max_gain");
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 0.01);
-	RNA_def_property_ui_text(prop, "Minimum Gain", "The maximum gain of the sound, no matter how near it is");
+	RNA_def_property_ui_text(prop, "Maximum Gain", "The maximum gain of the sound, no matter how near it is");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "reference_distance_3d", PROP_FLOAT, PROP_NONE);
@@ -1176,6 +1199,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "detect_material", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_CONST_MATERIAL);
 	RNA_def_property_ui_text(prop, "M/P", "Detect material instead of property");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Actuator_constraint_detect_material_set");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "fh_paralel_axis", PROP_BOOLEAN, PROP_NONE);
@@ -1568,7 +1592,7 @@ static void rna_def_visibility_actuator(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bVisibilityActuator", "data");
 
 	prop= RNA_def_property(srna, "visible", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_VISIBILITY_INVISIBLE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ACT_VISIBILITY_INVISIBLE);
 	RNA_def_property_ui_text(prop, "Visible", "Set the objects visible. Initialized from the objects render restriction toggle (access in the outliner)");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 

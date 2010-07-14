@@ -1559,12 +1559,21 @@ void ui_set_but_hsv(uiBut *but)
 }
 
 /* also used by small picker, be careful with name checks below... */
-void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
+void ui_update_block_buts_rgb(uiBlock *block, float *rgb, float *rhsv)
 {
 	uiBut *bt;
 	float hsv[3];
 	
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	/* this is to keep the H and S value when V is equal to zero
+	 * and we are working in HSV mode, of course!
+	 */
+	if (rhsv) {
+		hsv[0]= rhsv[0];
+		hsv[1]= rhsv[1];
+		hsv[2]= rhsv[2];
+	}
+	else
+		rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	// this updates button strings, is hackish... but button pointers are on stack of caller function
 	for(bt= block->buttons.first; bt; bt= bt->next) {
@@ -1630,7 +1639,7 @@ static void do_picker_rna_cb(bContext *C, void *bt1, void *unused)
 	
 	if (prop) {
 		RNA_property_float_get_array(&ptr, prop, rgb);
-		ui_update_block_buts_rgb(but->block, rgb);
+		ui_update_block_buts_rgb(but->block, rgb, NULL);
 	}
 	
 	if(popup)
@@ -1646,7 +1655,7 @@ static void do_hsv_rna_cb(bContext *C, void *bt1, void *hsv_arg)
 	
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 	
-	ui_update_block_buts_rgb(but->block, rgb);
+	ui_update_block_buts_rgb(but->block, rgb, hsv);
 	
 	if(popup)
 		popup->menuretval= UI_RETURN_UPDATE;
@@ -1667,7 +1676,7 @@ static void do_hex_rna_cb(bContext *C, void *bt1, void *hexcl)
 		srgb_to_linearrgb_v3_v3(rgb, rgb);
 	}
 	
-	ui_update_block_buts_rgb(but->block, rgb);
+	ui_update_block_buts_rgb(but->block, rgb, NULL);
 	
 	if(popup)
 		popup->menuretval= UI_RETURN_UPDATE;
@@ -1786,6 +1795,9 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 		linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
 	}
 	
+	/* sneaky way to check for alpha */
+	rgb[3]= FLT_MAX;
+
 	RNA_property_float_ui_range(ptr, prop, &min, &max, &step, &precision);
 	RNA_property_float_get_array(ptr, prop, rgb);
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
@@ -1820,12 +1832,13 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	
 	/* RGB values */
 	uiBlockBeginAlign(block);
-	bt= uiDefButR(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, propname, 0, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, propname, 0, 0.0, 0.0, 0, 3, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt= uiDefButR(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, propname, 1, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, propname, 1, 0.0, 0.0, 0, 3, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 3, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+
 	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", 0);
 	// but need to use uiButSetFunc for updating other fake buttons
 	
@@ -1838,7 +1851,15 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, butwidth, UI_UNIT_Y, hsv+2, 0.0, max, 10, 3, "");
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
-	
+
+	if(rgb[3] != FLT_MAX) {
+		bt= uiDefButR(block, NUMSLI, 0, "A ",	0, -120, butwidth, UI_UNIT_Y, ptr, propname, 3, 0.0, 0.0, 0, 0, "");
+		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	}
+	else {
+		rgb[3]= 1.0f;
+	}
+
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(rgb_gamma[0]*255.0), (unsigned int)(rgb_gamma[1]*255.0), (unsigned int)(rgb_gamma[2]*255.0));	
@@ -1876,7 +1897,7 @@ static int ui_picker_small_wheel(const bContext *C, uiBlock *block, wmEvent *eve
 
 				ui_set_but_vectorf(but, col);
 				
-				ui_update_block_buts_rgb(block, col);
+				ui_update_block_buts_rgb(block, col, NULL);
 				if(popup)
 					popup->menuretval= UI_RETURN_UPDATE;
 				
@@ -2307,7 +2328,7 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	ds= BLI_dynstr_new();
 
 	for(report=reports->list.first; report; report=report->next) {
-		if(report->type <= reports->printlevel)
+		if(report->type < reports->printlevel)
 			; /* pass */
 		else if(report->type >= RPT_ERROR)
 			BLI_dynstr_appendf(ds, "Error %%i%d%%t|%s", ICON_ERROR, report->message);

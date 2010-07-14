@@ -209,12 +209,12 @@ typedef struct RenderData {
 	struct FFMpegCodecData ffcodecdata;
 	
 	int cfra, sfra, efra;	/* frames as in 'images' */
+	float subframe;			/* subframe offset from cfra, in 0.0-1.0 */
 	int psfra, pefra;		/* start+end frames of preview range */
 
 	int images, framapto;
 	short flag, threads;
 
-	float ctime;			/* use for calcutions */
 	float framelen, blurfac;
 
 	/** For UR edge rendering: give the edges this color */
@@ -344,16 +344,6 @@ typedef struct RenderData {
 	short bake_osa, bake_filter, bake_mode, bake_flag;
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
-	
-	/* yafray: global panel params. TODO: move elsewhere */
-	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
-	short YF_AA, YFexportxml, YF_nobump, YF_clamprgb, yfpad1;
-	int GIdepth, GIcausdepth, GIpixelspersample;
-	int GIphotoncount, GImixphotons;
-	float GIphotonradius;
-	int YF_raydepth, YF_AApasses, YF_AAsamples, yfpad2;
-	float GIshadowquality, GIrefinement, GIpower, GIindirpower;
-	float YF_gamma, YF_exposure, YF_raybias, YF_AApixelsize, YF_AAthreshold;
 
 	/* paths to backbufffer, output, ftype */
 	char backbuf[160], pic[160];
@@ -779,9 +769,11 @@ typedef struct Scene {
 	float cursor[3];			/* 3d cursor location */
 	float twcent[3];			/* center for transform widget */
 	float twmin[3], twmax[3];	/* boundbox of selection for transform widget */
-	unsigned int lay;
 	
-
+	unsigned int lay;			/* bitflags for layer visibility */
+	int layact;		/* active layer */
+	int pad1;
+	
 	short flag;								/* various settings */
 	
 	short use_nodes;
@@ -1054,6 +1046,7 @@ typedef struct Scene {
 #define ID_NEW_US(a)	if( (a)->id.newid) {(a)= (void *)(a)->id.newid; (a)->id.us++;}
 #define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}
 #define	CFRA			(scene->r.cfra)
+#define SUBFRA			(scene->r.subframe)
 #define	F_CFRA			((float)(scene->r.cfra))
 #define	SFRA			(scene->r.sfra)
 #define	EFRA			(scene->r.efra)

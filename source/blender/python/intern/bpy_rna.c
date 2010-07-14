@@ -204,7 +204,7 @@ int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int
 	return 0;
 }
 
-#define PROP_ALL_VECTOR_SUBTYPES PROP_TRANSLATION: case PROP_DIRECTION: case PROP_VELOCITY: case PROP_ACCELERATION: case PROP_XYZ: case PROP_XYZ|PROP_UNIT_LENGTH
+#define PROP_ALL_VECTOR_SUBTYPES PROP_TRANSLATION: case PROP_DIRECTION: case PROP_VELOCITY: case PROP_ACCELERATION: case PROP_XYZ: case PROP_XYZ_LENGTH
 
 PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 {
@@ -925,11 +925,12 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, v
 		case PROP_STRING:
 		{
 			char *param = _PyUnicode_AsString(value);
-			
+
 			if (param==NULL) {
 				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected a string type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
 				return -1;
-			} else {
+			}
+			else {
 				if(data)	*((char**)data)= param;
 				else		RNA_property_string_set(ptr, prop, param);
 			}
@@ -1853,7 +1854,7 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject *kw,  const char *parse_str, const char *error_prefix,
 	char **path_full, int *index, float *cfra, char **group_name) /* return values */
 {
-	static char *kwlist[] = {"path", "index", "frame", "group", NULL};
+	static char *kwlist[] = {"data_path", "index", "frame", "group", NULL};
 	char *path;
 
 	/* note, parse_str MUST start with 's|ifs' */
@@ -1870,12 +1871,12 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject
 }
 
 static char pyrna_struct_keyframe_insert_doc[] =
-".. method:: keyframe_insert(path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
+".. method:: keyframe_insert(data_path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
 "\n"
 "   Insert a keyframe on the property given, adding fcurves and animation data when necessary.\n"
 "\n"
-"   :arg path: path to the property to key, analogous to the fcurve's data path.\n"
-"   :type path: string\n"
+"   :arg data_path: path to the property to key, analogous to the fcurve's data path.\n"
+"   :type data_path: string\n"
 "   :arg index: array index of the property to key. Defaults to -1 which will key all indicies or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is inserted, defaulting to the current frame.\n"
@@ -1904,12 +1905,12 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *arg
 }
 
 static char pyrna_struct_keyframe_delete_doc[] =
-".. method:: keyframe_delete(path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
+".. method:: keyframe_delete(data_path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
 "\n"
 "   Remove a keyframe from this properties fcurve.\n"
 "\n"
-"   :arg path: path to the property to remove a key, analogous to the fcurve's data path.\n"
-"   :type path: string\n"
+"   :arg data_path: path to the property to remove a key, analogous to the fcurve's data path.\n"
+"   :type data_path: string\n"
 "   :arg index: array index of the property to remove a key. Defaults to -1 removing all indicies or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is deleted, defaulting to the current frame.\n"
@@ -2298,7 +2299,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 	}
 	else if ((prop = RNA_struct_find_property(&self->ptr, name))) {
 		  ret = pyrna_prop_to_py(&self->ptr, prop);
-	  }
+	}
 	/* RNA function only if callback is declared (no optional functions) */
 	else if ((func = RNA_struct_find_function(&self->ptr, name)) && RNA_function_defined(func)) {
 		ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self, func);
@@ -2392,17 +2393,43 @@ static int pyrna_struct_pydict_contains(PyObject *self, PyObject *pyname)
 static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObject *value )
 {
 	char *name = _PyUnicode_AsString(pyname);
-	PropertyRNA *prop = RNA_struct_find_property(&self->ptr, name);
-	
-	if (prop==NULL) {
-		return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
-	} else if (!RNA_property_editable_flag(&self->ptr, prop)) {
-		PyErr_Format( PyExc_AttributeError, "bpy_struct: attribute \"%.200s\" from \"%.200s\" is read-only", RNA_property_identifier(prop), RNA_struct_identifier(self->ptr.type) );
-		return -1;
+	PropertyRNA *prop= NULL;
+
+	if (name[0] != '_' && (prop= RNA_struct_find_property(&self->ptr, name))) {
+		if (!RNA_property_editable_flag(&self->ptr, prop)) {
+			PyErr_Format( PyExc_AttributeError, "bpy_struct: attribute \"%.200s\" from \"%.200s\" is read-only", RNA_property_identifier(prop), RNA_struct_identifier(self->ptr.type) );
+			return -1;
+		}
 	}
-		
+	else if (self->ptr.type == &RNA_Context) {
+		/* code just raises correct error, context prop's cant be set, unless its apart of the py class */
+		bContext *C = self->ptr.data;
+		if(C==NULL) {
+			PyErr_Format(PyExc_AttributeError, "bpy_struct: Context is 'NULL', can't set \"%.200s\" from context", name);
+			return -1;
+		}
+		else {
+			PointerRNA newptr;
+			ListBase newlb;
+			short newtype;
+
+			int done= CTX_data_get(C, name, &newptr, &newlb, &newtype);
+
+			if(done==1) {
+				PyErr_Format(PyExc_AttributeError, "bpy_struct: Context property \"%.200s\" is read-only", name);
+				BLI_freelistN(&newlb);
+				return -1;
+			}
+
+			BLI_freelistN(&newlb);
+		}
+	}
+
 	/* pyrna_py_to_prop sets its own exceptions */
-	return pyrna_py_to_prop(&self->ptr, prop, NULL, NULL, value, "bpy_struct: item.attr = val:");
+	if(prop)
+		return pyrna_py_to_prop(&self->ptr, prop, NULL, NULL, value, "bpy_struct: item.attr = val:");
+	else
+		return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
 }
 
 static PyObject *pyrna_prop_dir(BPy_PropertyRNA *self)
@@ -3790,18 +3817,18 @@ PyTypeObject pyrna_prop_collection_Type = {
 };
 
 static struct PyMethodDef pyrna_struct_subtype_methods[] = {
-	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"BoolVectorProperty", (PyCFunction)BPy_BoolVectorProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"IntVectorProperty", (PyCFunction)BPy_IntVectorProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"FloatVectorProperty", (PyCFunction)BPy_FloatVectorProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolProperty_doc},
+	{"BoolVectorProperty", (PyCFunction)BPy_BoolVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolVectorProperty_doc},
+	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, BPy_IntProperty_doc},
+	{"IntVectorProperty", (PyCFunction)BPy_IntVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_IntVectorProperty_doc},
+	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, BPy_FloatProperty_doc},
+	{"FloatVectorProperty", (PyCFunction)BPy_FloatVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_FloatVectorProperty_doc},
+	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, BPy_StringProperty_doc},
+	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, BPy_EnumProperty_doc},
+	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, BPy_PointerProperty_doc},
+	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, BPy_CollectionProperty_doc},
 	
-	{"RemoveProperty", (PyCFunction)BPy_RemoveProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"RemoveProperty", (PyCFunction)BPy_RemoveProperty, METH_VARARGS|METH_KEYWORDS, BPy_RemoveProperty_doc},
 
 //	{"__get_rna", (PyCFunction)BPy_GetStructRNA, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}

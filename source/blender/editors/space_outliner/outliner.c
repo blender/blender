@@ -133,6 +133,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 static void outliner_do_object_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *));
 
+static int group_select_flag(Group *gr);
 
 /* ******************** PERSISTANT DATA ***************** */
 
@@ -438,8 +439,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
 {
-	TreeStoreElem *tselem= TREESTORE(tenla);
-	TreeElement *te;
+	TreeStoreElem *tselem = NULL;
+	TreeElement *te = NULL;
 
 	/* log stuff is to convert bitflags (powers of 2) to small integers,
 	 * in order to not overflow short tselem->nr */
@@ -449,6 +450,7 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->directdata= &srl->passflag;
 	
 	/* save cpu cycles, but we add the first to invoke an open/close triangle */
+	tselem = TREESTORE(tenla);
 	if(tselem->flag & TSE_CLOSED)
 		return;
 	
@@ -1632,8 +1634,6 @@ void OUTLINER_OT_selectability_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/* --- */
-
 void object_toggle_renderability_cb(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
@@ -1927,7 +1927,8 @@ static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *so
 	
 	/* we search for the object parent */
 	ob= (Object *)outliner_search_back(soops, te, ID_OB);
-	if(ob==NULL || ob!=OBACT) return 0;	// just paranoia
+	// note: ob->matbits can be NULL when a local object points to a library mesh.
+	if(ob==NULL || ob!=OBACT || ob->matbits==NULL) return 0;	// just paranoia
 	
 	/* searching in ob mat array? */
 	tes= te->parent;
@@ -2222,7 +2223,7 @@ static int tree_element_active_psys(bContext *C, Scene *scene, TreeElement *te, 
 	if(set) {
 		Object *ob= (Object *)tselem->id;
 		
-		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 		
 // XXX		extern_set_butspace(F7KEY, 0);
 	}
@@ -2347,7 +2348,6 @@ static int tree_element_active_keymap_item(bContext *C, TreeElement *te, TreeSto
 /* Context can be NULL when set==0 */
 static int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
 {
-	
 	switch(tselem->type) {
 		case TSE_DEFGROUP:
 			return tree_element_active_defgroup(C, scene, te, tselem, set);
@@ -2425,12 +2425,46 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 						ED_screen_set_scene(C, (Scene *)tselem->id);
 					}
 				}
+				else if(te->idcode==ID_GR) {
+					Group *gr= (Group *)tselem->id;
+					GroupObject *gob;
+
+					if(extend) {
+						int sel= BA_SELECT;
+						for(gob= gr->gobject.first; gob; gob= gob->next) {
+							if(gob->ob->flag & SELECT) {
+								sel= BA_DESELECT;
+								break;
+							}
+						}
+
+						for(gob= gr->gobject.first; gob; gob= gob->next) {
+							ED_base_object_select(object_in_scene(gob->ob, scene), sel);
+						}
+					}
+					else {
+						scene_deselect_all(scene);
+
+						for(gob= gr->gobject.first; gob; gob= gob->next) {
+							if((gob->ob->flag & SELECT) == 0)
+								ED_base_object_select(object_in_scene(gob->ob, scene), BA_SELECT);
+						}
+					}
+
+					WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+				}
 				else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
 					Object *obedit= CTX_data_edit_object(C);
 					if(obedit) 
 						ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 					else {
-						ED_object_enter_editmode(C, EM_WAITCURSOR);
+						Object *ob= CTX_data_active_object(C);
+
+						/* Don't allow edit mode if the object is hide!
+						 * check the bug #22153 and #21609
+						 */
+						if (ob && (!(ob->restrictflag & OB_RESTRICT_VIEW)))
+							ED_object_enter_editmode(C, EM_WAITCURSOR);
 						// XXX extern_set_butspace(F9KEY, 0);
 					}
 				} else {	// rest of types
@@ -3400,6 +3434,9 @@ static EnumPropertyItem prop_group_op_types[] = {
 	{1, "UNLINK", 0, "Unlink", ""},
 	{2, "LOCAL", 0, "Make Local", ""},
 	{3, "LINK", 0, "Link Group Objects to Scene", ""},
+	{4, "TOGVIS", 0, "Toggle Visible", ""},
+ 	{5, "TOGSEL", 0, "Toggle Selectable", ""},
+ 	{6, "TOGREN", 0, "Toggle Renderable", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3426,7 +3463,7 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	else if(event==3) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb);
 		ED_undo_push(C, "Link Group Objects to Scene");
-	}
+ 	}   
 	
 	
 	WM_event_add_notifier(C, NC_GROUP, NULL);
@@ -4173,11 +4210,11 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 	if(arg->x >= arg->xmax) 
 		UI_icon_draw(arg->x, arg->y, icon);
 	else {
-		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, "");
+		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
 		if(arg->id)
 			uiButSetDragID(but, arg->id);
 	}
-	
+
 }
 
 static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te, float alpha)
@@ -4501,6 +4538,18 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 					active= 2;
 				}
 			}
+			else if(te->idcode==ID_GR) {
+				Group *gr = (Group *)tselem->id;
+
+				if(group_select_flag(gr)) {
+					char col[4];
+					UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
+					col[3]= 100;
+					glColor4ubv((GLubyte *)col);
+
+					active= 2;
+				}
+			}
 			else if(te->idcode==ID_OB) {
 				Object *ob= (Object *)tselem->id;
 				
@@ -4795,6 +4844,16 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 	Base *base;
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
+	Object *obedit= CTX_data_edit_object(C);
+
+	/* Don't allow hide an objet in edit mode,
+	 * check the bug #22153 and #21609
+	 */
+	if (obedit && obedit == ob) {
+		if (ob->restrictflag & OB_RESTRICT_VIEW)
+			ob->restrictflag &= ~OB_RESTRICT_VIEW;
+		return;
+	}
 	
 	/* deselect objects that are invisible */
 	if (ob->restrictflag & OB_RESTRICT_VIEW) {
@@ -4857,6 +4916,73 @@ static void restrictbutton_bone_cb(bContext *C, void *poin, void *poin2)
 {
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 }
+
+
+static int group_restrict_flag(Group *gr, int flag)
+{
+	GroupObject *gob;
+
+	for(gob= gr->gobject.first; gob; gob= gob->next) {
+		if((gob->ob->restrictflag & flag) == 0)
+			return 0;
+	}
+
+	return 1;
+}
+
+static int group_select_flag(Group *gr)
+{
+	GroupObject *gob;
+
+	for(gob= gr->gobject.first; gob; gob= gob->next)
+		if((gob->ob->flag & SELECT))
+			return 1;
+
+	return 0;
+}
+
+static void restrictbutton_gr_restrict_flag(bContext *C, void *poin, void *poin2, int flag)
+{	
+	Scene *scene = (Scene *)poin;		
+	GroupObject *gob;
+	Group *gr = (Group *)poin2; 	
+
+	if(group_restrict_flag(gr, flag)) {
+		for(gob= gr->gobject.first; gob; gob= gob->next) {
+			gob->ob->restrictflag &= ~flag;
+
+			if(flag==OB_RESTRICT_VIEW)
+				if(gob->ob->flag & SELECT)
+					ED_base_object_select(object_in_scene(gob->ob, scene), BA_DESELECT);
+		}
+	}
+	else {
+		for(gob= gr->gobject.first; gob; gob= gob->next) {
+			gob->ob->restrictflag |= flag;
+
+			if(flag==OB_RESTRICT_VIEW)
+				if((gob->ob->flag & SELECT) == 0)
+					ED_base_object_select(object_in_scene(gob->ob, scene), BA_SELECT);
+		}
+	}
+} 
+
+static void restrictbutton_gr_restrict_view(bContext *C, void *poin, void *poin2)
+{
+	restrictbutton_gr_restrict_flag(C, poin, poin2, OB_RESTRICT_VIEW);
+	WM_event_add_notifier(C, NC_GROUP, NULL);
+}
+static void restrictbutton_gr_restrict_select(bContext *C, void *poin, void *poin2)
+{
+	restrictbutton_gr_restrict_flag(C, poin, poin2, OB_RESTRICT_SELECT);
+	WM_event_add_notifier(C, NC_GROUP, NULL);
+}
+static void restrictbutton_gr_restrict_render(bContext *C, void *poin, void *poin2)
+{
+	restrictbutton_gr_restrict_flag(C, poin, poin2, OB_RESTRICT_RENDER);
+	WM_event_add_notifier(C, NC_GROUP, NULL);
+}
+
 
 static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 {
@@ -4975,6 +5101,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	Object *ob = NULL;
+	Group  *gr = NULL;
 
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
@@ -5005,6 +5132,26 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSS);
 				
 			}
+			if(tselem->type==0 && te->idcode==ID_GR){ 
+				int restrict_bool;
+				gr = (Group *)tselem->id;
+ 				
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+
+				restrict_bool= group_restrict_flag(gr, OB_RESTRICT_VIEW);
+				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				uiButSetFunc(bt, restrictbutton_gr_restrict_view, scene, gr);
+
+				restrict_bool= group_restrict_flag(gr, OB_RESTRICT_SELECT);
+				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				uiButSetFunc(bt, restrictbutton_gr_restrict_select, scene, gr);
+
+				restrict_bool= group_restrict_flag(gr, OB_RESTRICT_RENDER);
+				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow renderability");
+				uiButSetFunc(bt, restrictbutton_gr_restrict_render, scene, gr);
+
+				uiBlockSetEmboss(block, UI_EMBOSS);
+ 			}
 			/* scene render layers and passes have toggle-able flags too! */
 			else if(tselem->type==TSE_R_LAYER) {
 				uiBlockSetEmboss(block, UI_EMBOSSN);

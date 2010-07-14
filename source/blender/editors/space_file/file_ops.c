@@ -391,7 +391,7 @@ static int bookmark_add_exec(bContext *C, wmOperator *op)
 		char name[FILE_MAX];
 	
 		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, 0, 1);
-		BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+		BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu, name);
 	}
 
@@ -423,7 +423,7 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 			char name[FILE_MAX];
 			
 			fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
-			BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+			BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 			fsmenu_write_file(fsmenu, name);
 			ED_area_tag_redraw(sa);
 		}
@@ -545,7 +545,7 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 int file_exec(bContext *C, wmOperator *exec_op)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
-	char name[FILE_MAX];
+	char filepath[FILE_MAX];
 	
 	if(sfile->op) {
 		wmOperator *op= sfile->op;
@@ -567,16 +567,23 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		}
 		
 		sfile->op = NULL;
-		RNA_string_set(op->ptr, "filename", sfile->params->file);
-		BLI_strncpy(name, sfile->params->dir, sizeof(name));
-		RNA_string_set(op->ptr, "directory", name);
-		strcat(name, sfile->params->file); // XXX unsafe
 
-		if(RNA_struct_find_property(op->ptr, "relative_path"))
-			if(RNA_boolean_get(op->ptr, "relative_path"))
-				BLI_path_rel(name, G.sce);
+		BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
+		if(RNA_struct_find_property(op->ptr, "relative_path")) {
+			if(RNA_boolean_get(op->ptr, "relative_path")) {
+				BLI_path_rel(filepath, G.sce);
+			}
+		}
 
-		RNA_string_set(op->ptr, "path", name);
+		if(RNA_struct_find_property(op->ptr, "filename")) {
+			RNA_string_set(op->ptr, "filename", sfile->params->file);
+		}
+		if(RNA_struct_find_property(op->ptr, "directory")) {
+			RNA_string_set(op->ptr, "directory", sfile->params->dir);
+		}
+		if(RNA_struct_find_property(op->ptr, "filepath")) {
+			RNA_string_set(op->ptr, "filepath", filepath);
+		}
 		
 		/* some ops have multiple files to select */
 		{
@@ -612,8 +619,8 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		folderlist_free(sfile->folders_next);
 
 		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
-		BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");
-		fsmenu_write_file(fsmenu_get(), name);
+		BLI_make_file_string(G.sce, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+		fsmenu_write_file(fsmenu_get(), filepath);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 
 		ED_fileselect_clear(C, sfile);

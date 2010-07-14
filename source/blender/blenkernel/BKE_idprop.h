@@ -71,7 +71,8 @@ void IDP_FreeArray(struct IDProperty *prop);
 void IDP_UnlinkArray(struct IDProperty *prop);
 
 /* ---------- String Type ------------ */
-void IDP_AssignString(struct IDProperty *prop, char *st);
+IDProperty *IDP_NewString(const char *st, const char *name, int maxlen);/* maxlen excludes '\0' */
+void IDP_AssignString(struct IDProperty *prop, char *st, int maxlen);	/* maxlen excludes '\0' */
 void IDP_ConcatStringC(struct IDProperty *prop, char *st);
 void IDP_ConcatString(struct IDProperty *str1, struct IDProperty *append);
 void IDP_FreeString(struct IDProperty *prop);

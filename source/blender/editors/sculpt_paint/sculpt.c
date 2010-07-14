@@ -91,6 +91,11 @@
 /* Number of vertices to average in order to determine the flatten distance */
 #define FLATTEN_SAMPLE_SIZE 10
 
+/* ==== FORWARD DEFINITIONS =====
+ *
+ */
+static void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
+
 /* ===== STRUCTS =====
  *
  */
@@ -275,6 +280,9 @@ typedef struct SculptUndoNode {
 
 	/* layer brush */
 	float *layer_disp;
+
+	/* shape keys */
+	char *shapeName[32]; /* keep size in sync with keyblock dna */
 } SculptUndoNode;
 
 static void update_cb(PBVHNode *node, void *data)
@@ -286,10 +294,21 @@ static void update_cb(PBVHNode *node, void *data)
 static int sculpt_modifiers_active(Scene *scene, Object *ob)
 {
 	ModifierData *md;
+	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
+
+	/* check if there are any modifiers after what we are sculpting,
+	   for a multires modifier with a deform modifier in front, we
+	   do no need to recalculate the modifier stack. note that this
+	   needs to be in sync with ccgDM_use_grid_pbvh! */
+	if(mmd)
+		md= mmd->modifier.next;
+	else
+		md= modifiers_getVirtualModifierList(ob);
 	
-	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
+	/* exception for shape keys because we can edit those */
+	for(; md; md= md->next) {
 		if(modifier_isEnabled(scene, md, eModifierMode_Realtime))
-			if(!ELEM(md->type, eModifierType_Multires, eModifierType_ShapeKey))
+			if(md->type != eModifierType_ShapeKey)
 				return 1;
 	}
 	
@@ -315,16 +334,53 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			continue;
 
 		if(unode->maxvert) {
+			char *shapeName= (char*)unode->shapeName;
+
 			/* regular mesh restore */
 			if(ss->totvert != unode->maxvert)
 				continue;
 
+			if (ss->kb && strcmp(ss->kb->name, shapeName)) {
+				/* shape key has been changed before calling undo operator */
+
+				Key *key= ob_get_key(ob);
+				KeyBlock *kb= key_get_named_keyblock(key, shapeName);
+
+				if (kb) {
+					ob->shapenr= BLI_findindex(&key->block, kb) + 1;
+					ob->shapeflag|= OB_SHAPE_LOCK;
+
+					sculpt_update_mesh_elements(scene, ob, 0);
+					WM_event_add_notifier(C, NC_OBJECT|ND_DATA, ob);
+				} else {
+					/* key has been removed -- skip this undo node */
+					continue;
+				}
+			}
+
 			index= unode->index;
 			mvert= ss->mvert;
 
-			for(i=0; i<unode->totvert; i++) {
-				swap_v3_v3(mvert[index[i]].co, unode->co[i]);
-				mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+			if (ss->kb) {
+				float (*vertCos)[3];
+				vertCos= key_to_vertcos(ob, ss->kb);
+
+				for(i=0; i<unode->totvert; i++)
+					swap_v3_v3(vertCos[index[i]], unode->co[i]);
+
+				/* propagate new coords to keyblock */
+				sculpt_vertcos_to_key(ob, ss->kb, vertCos);
+
+				/* pbvh uses it's own mvert array, so coords should be */
+				/* propagated to pbvh here */
+				BLI_pbvh_apply_vertCos(ss->pbvh, vertCos);
+
+				MEM_freeN(vertCos);
+			} else {
+				for(i=0; i<unode->totvert; i++) {
+					swap_v3_v3(mvert[index[i]].co, unode->co[i]);
+					mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+				}
 			}
 		}
 		else if(unode->maxgrid && dm->getGridData) {
@@ -354,19 +410,16 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	}
 
 	if(update) {
-		if(ss->kb) sculpt_mesh_to_key(ss->ob, ss->kb);
-		if(ss->refkb) sculpt_key_to_mesh(ss->refkb, ob);
-
 		/* we update all nodes still, should be more clever, but also
 		   needs to work correct when exiting/entering sculpt mode and
 		   the nodes get recreated, though in that case it could do all */
 		BLI_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, NULL);
 		BLI_pbvh_update(ss->pbvh, PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw, NULL);
 
-		if((mmd=sculpt_multires_active(ob)))
+		if((mmd=sculpt_multires_active(scene, ob)))
 			multires_mark_as_modified(ob);
 
-		if(sculpt_modifiers_active(scene, ob))
+		if(ss->modifiers_active || ((Mesh*)ob->data)->id.us > 1)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 }
@@ -464,7 +517,11 @@ static SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node)
 
 	if(unode->grids)
 		memcpy(unode->grids, grids, sizeof(int)*totgrid);
-	
+
+	/* store active shape key */
+	if(ss->kb) BLI_strncpy((char*)unode->shapeName, ss->kb->name, sizeof(ss->kb->name));
+	else unode->shapeName[0]= '\0';
+
 	return unode;
 }
 
@@ -772,7 +829,7 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3]
 	copy_v3_v3(out_dir, cache->view_normal_symmetry);
 
 	/* threaded loop over nodes */
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -809,7 +866,7 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float area_normal[3]
 			BLI_pbvh_vertex_iter_end;
 		}
 
-		#pragma omp critical
+		//#pragma omp critical
 		{
 			/* we sum per node and add together later for threads */
 			add_v3_v3(out, nout);
@@ -847,7 +904,7 @@ static void do_draw_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 	offset[2]= area_normal[2]*ss->cache->radius*ss->cache->scale[2]*bstrength;
 
 	/* threaded loop over nodes */
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -961,7 +1018,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	BLI_pbvh_node_get_grids(ss->pbvh, node, &grid_indices, &totgrid,
 		NULL, &gridsize, &griddata, &gridadj);
 
-	#pragma omp critical
+	//#pragma omp critical
 	tmpgrid= MEM_mallocN(sizeof(float)*3*gridsize*gridsize, "tmpgrid");
 
 	for(i = 0; i < totgrid; ++i) {
@@ -1020,7 +1077,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 		}
 	}
 
-	#pragma omp critical
+	//#pragma omp critical
 	MEM_freeN(tmpgrid);
 }
 
@@ -1029,7 +1086,7 @@ static void do_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int
 	int iteration, n;
 
 	for(iteration = 0; iteration < 2; ++iteration) {
-		#pragma omp parallel for private(n) schedule(static)
+		//#pragma omp parallel for private(n) schedule(static)
 		for(n=0; n<totnode; n++) {
 			sculpt_undo_push_node(ss, nodes[n]);
 
@@ -1052,7 +1109,7 @@ static void do_pinch_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 	float bstrength= ss->cache->bstrength;
 	int n;
 
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1086,7 +1143,7 @@ static void do_grab_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 	
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1129,7 +1186,7 @@ static void do_layer_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int 
 	offset[1]= ss->cache->scale[1]*area_normal[1];
 	offset[2]= ss->cache->scale[2]*area_normal[2];
 
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1186,7 +1243,7 @@ static void do_inflate_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, in
 	float bstrength= ss->cache->bstrength;
 	int n;
 
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1229,7 +1286,7 @@ static void calc_flatten_center(Sculpt *sd, SculptSession *ss, PBVHNode **nodes,
 		outer_dist[i]= -1.0f;
 	}
 		
-	#pragma omp parallel for private(n) schedule(static)
+	//#pragma omp parallel for private(n) schedule(static)
 	for(n=0; n<totnode; n++) {
 		PBVHVertexIter vd;
 		SculptBrushTest test;
@@ -1356,6 +1413,68 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, PBVHNode **node
 	}
 }
 
+static void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
+{
+	Mesh *me= (Mesh*)ob->data;
+	float (*ofs)[3]= NULL;
+	int a, is_basis= 0;
+	KeyBlock *currkey;
+
+	/* for relative keys editing of base should update other keys */
+	if (me->key->type == KEY_RELATIVE)
+		for (currkey = me->key->block.first; currkey; currkey= currkey->next)
+			if(ob->shapenr-1 == currkey->relative) {
+				is_basis= 1;
+				break;
+			}
+
+	if (is_basis) {
+		ofs= key_to_vertcos(ob, kb);
+
+		/* calculate key coord offsets (from previous location) */
+		for (a= 0; a < me->totvert; a++) {
+			VECSUB(ofs[a], vertCos[a], ofs[a]);
+		}
+
+		/* apply offsets on other keys */
+		currkey = me->key->block.first;
+		while (currkey) {
+			int apply_offset = ((currkey != kb) && (ob->shapenr-1 == currkey->relative));
+
+			if (apply_offset)
+				offset_to_key(ob, currkey, ofs);
+
+			currkey= currkey->next;
+		}
+
+		MEM_freeN(ofs);
+	}
+
+	/* modifying of basis key should update mesh */
+	if (kb == me->key->refkey) {
+		MVert *mvert= me->mvert;
+
+		for (a= 0; a < me->totvert; a++, mvert++)
+			VECCOPY(mvert->co, vertCos[a]);
+
+		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	}
+
+	/* apply new coords on active key block */
+	vertcos_to_key(ob, kb, vertCos);
+}
+
+/* copy the modified vertices from bvh to the active key */
+static void sculpt_update_keyblock(SculptSession *ss)
+{
+	float (*vertCos)[3]= BLI_pbvh_get_vertCos(ss->pbvh);
+
+	if (vertCos) {
+		sculpt_vertcos_to_key(ss->ob, ss->kb, vertCos);
+		MEM_freeN(vertCos);
+	}
+}
+
 static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 {
 	SculptSearchSphereData data;
@@ -1413,13 +1532,15 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 			do_flatten_clay_brush(sd, ss, nodes, totnode, 1);
 			break;
 		}
-	
-		/* copy the modified vertices from mesh to the active key */
-		if(ss->kb) mesh_to_key(ss->ob->data, ss->kb);
-		
+
+		/* optimization: we could avoid copying new coords to keyblock at each */
+		/* stroke step if there are no modifiers due to pbvh is used for displaying */
+		/* so to increase speed we'll copy new coords to keyblock when stroke is done */
+		if(ss->kb && ss->modifiers_active) sculpt_update_keyblock(ss);
+
 		if(nodes)
 			MEM_freeN(nodes);
-	}	
+	}
 }
 
 /* Flip all the editdata across the axis/axes specified by symm. Used to
@@ -1473,7 +1594,7 @@ static void sculpt_update_tex(Sculpt *sd, SculptSession *ss)
 
 /* Sculpt mode handles multires differently from regular meshes, but only if
    it's the last modifier on the stack and it is not on the first level */
-struct MultiresModifierData *sculpt_multires_active(Object *ob)
+struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 {
 	ModifierData *md, *nmd;
 	
@@ -1483,8 +1604,8 @@ struct MultiresModifierData *sculpt_multires_active(Object *ob)
 
 			/* Check if any of the modifiers after multires are active
 			 * if not it can use the multires struct */
-			for (nmd= md->next; nmd; nmd= nmd->next)
-				if(nmd->mode & eModifierMode_Realtime)
+			for(nmd= md->next; nmd; nmd= nmd->next)
+				if(modifier_isEnabled(scene, nmd, eModifierMode_Realtime))
 					break;
 
 			if(!nmd && mmd->sculptlvl > 0)
@@ -1495,41 +1616,21 @@ struct MultiresModifierData *sculpt_multires_active(Object *ob)
 	return NULL;
 }
 
-void sculpt_key_to_mesh(KeyBlock *kb, Object *ob)
-{
-	Mesh *me= ob->data;
-
-	key_to_mesh(kb, me);
-	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-}
-
-void sculpt_mesh_to_key(Object *ob, KeyBlock *kb)
-{
-	Mesh *me= ob->data;
-
-	mesh_to_key(me, kb);
-}
-
 void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
 {
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, 0);
+	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	SculptSession *ss = ob->sculpt;
-	
+	MultiresModifierData *mmd= sculpt_multires_active(scene, ob);
+
 	ss->ob= ob;
 
-	if((ob->shapeflag & OB_SHAPE_LOCK) && !sculpt_multires_active(ob)) {
-		ss->kb= ob_get_keyblock(ob);
-		ss->refkb= ob_get_reference_keyblock(ob);
-	}
-	else {
-		ss->kb= NULL;
-		ss->refkb= NULL;
-	}
+	ss->modifiers_active= sculpt_modifiers_active(scene, ob);
 
-	/* need to make PBVH with shape key coordinates */
-	if(ss->kb) sculpt_key_to_mesh(ss->kb, ss->ob);
+	if((ob->shapeflag & OB_SHAPE_LOCK) && !mmd) ss->kb= ob_get_keyblock(ob);
+	else ss->kb= NULL;
 
-	if((ss->multires = sculpt_multires_active(ob))) {
+	if(mmd) {
+		ss->multires = mmd;
 		ss->totvert = dm->getNumVerts(dm);
 		ss->totface = dm->getNumFaces(dm);
 		ss->mvert= NULL;
@@ -1543,10 +1644,22 @@ void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
 		ss->mvert = me->mvert;
 		ss->mface = me->mface;
 		ss->face_normals = NULL;
+		ss->multires = NULL;
 	}
 
 	ss->pbvh = dm->getPBVH(ob, dm);
 	ss->fmap = (need_fmap && dm->getFaceMap)? dm->getFaceMap(ob, dm): NULL;
+
+	/* if pbvh is deformed, key block is already applied to it */
+	if (ss->kb && !BLI_pbvh_isDeformed(ss->pbvh)) {
+		float (*vertCos)[3]= key_to_vertcos(ob, ss->kb);
+
+		if (vertCos) {
+			/* apply shape keys coordinates to PBVH */
+			BLI_pbvh_apply_vertCos(ss->pbvh, vertCos);
+			MEM_freeN(vertCos);
+		}
+	}
 }
 
 static int sculpt_mode_poll(bContext *C)
@@ -1801,9 +1914,7 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 
 static void sculpt_stroke_modifiers_check(bContext *C, SculptSession *ss)
 {
-	Scene *scene= CTX_data_scene(C);
-
-	if(sculpt_modifiers_active(scene, ss->ob)) {
+	if(ss->modifiers_active) {
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(&sd->paint);
 
@@ -1951,7 +2062,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 
 		BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-		#pragma omp parallel for private(n) schedule(static)
+		//#pragma omp parallel for private(n) schedule(static)
 		for(n=0; n<totnode; n++) {
 			SculptUndoNode *unode;
 			
@@ -1981,7 +2092,6 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 
 static void sculpt_flush_update(bContext *C)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	ARegion *ar = CTX_wm_region(C);
@@ -1991,7 +2101,7 @@ static void sculpt_flush_update(bContext *C)
 	if(mmd)
 		multires_mark_as_modified(ob);
 
-	if(sculpt_modifiers_active(scene, ob)) {
+	if(ss->modifiers_active) {
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		ED_region_tag_redraw(ar);
 	}
@@ -2075,10 +2185,13 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
 
 		BLI_pbvh_update(ss->pbvh, PBVH_UpdateOriginalBB, NULL);
 
-		if(ss->refkb) sculpt_key_to_mesh(ss->refkb, ob);
+		/* optimization: if there is locked key and active modifiers present in */
+		/* the stack, keyblock is updating at each step. otherwise we could update */
+		/* keyblock only when stroke is finished */
+		if(ss->kb && !ss->modifiers_active) sculpt_update_keyblock(ss);
 
 		ss->partial_redraw = 0;
-		
+
 		/* try to avoid calling this, only for e.g. linked duplicates now */
 		if(((Mesh*)ob->data)->id.us > 1)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -2211,9 +2324,6 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 	
 	sculpt_update_mesh_elements(scene, ob, 0);
-
-	if(ob->sculpt->refkb)
-		sculpt_key_to_mesh(ob->sculpt->refkb, ob);
 }
 
 static int sculpt_toggle_mode(bContext *C, wmOperator *op)
@@ -2221,13 +2331,19 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
-	MultiresModifierData *mmd = sculpt_multires_active(ob);
+	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
+	int flush_recalc= 0;
+
+	/* multires in sculpt mode could have different from object mode subdivision level */
+	flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;
+	/* if object has got active modifiers, it's dm could be different in sculpt mode  */
+	//flush_recalc |= sculpt_modifiers_active(scene, ob);
 
 	if(ob->mode & OB_MODE_SCULPT) {
-		if(sculpt_multires_active(ob))
+		if(mmd)
 			multires_force_update(ob);
 
-		if(mmd && mmd->sculptlvl != mmd->lvl)
+		if(flush_recalc)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 		/* Leave sculptmode */
@@ -2239,7 +2355,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		/* Enter sculptmode */
 		ob->mode |= OB_MODE_SCULPT;
 
-		if(mmd && mmd->sculptlvl != mmd->lvl)
+		if(flush_recalc)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		
 		/* Create persistent sculpt mode data */

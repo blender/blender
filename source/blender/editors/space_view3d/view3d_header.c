@@ -137,6 +137,7 @@ static void handle_view3d_lock(bContext *C)
 		if(v3d->localvd==NULL && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
 			/* copy to scene */
 			scene->lay= v3d->lay;
+			scene->layact= v3d->layact;
 			scene->camera= v3d->camera;
 
 			/* not through notifiery, listener don't have context

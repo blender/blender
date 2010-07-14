@@ -820,7 +820,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 		}
 		
 		/* colour depends on whether there is a keyframe */
-		if (id_frame_has_keyframe((ID *)ob, /*frame_to_float(scene, CFRA)*/(float)(CFRA), v3d->keyflags))
+		if (id_frame_has_keyframe((ID *)ob, /*BKE_curframe(scene)*/(float)(CFRA), v3d->keyflags))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -1830,15 +1830,15 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	for(shadow=shadows.first; shadow; shadow=shadow->next) {
 		/* this needs to be done better .. */
 		float viewmat[4][4], winmat[4][4];
-		int drawtype, lay, winsize, flag2;
+		int drawtype, lay, winsize, flag2=v3d->flag2;
 		
 		drawtype= v3d->drawtype;
 		lay= v3d->lay;
-		flag2= v3d->flag2 & V3D_SOLID_TEX;
 		
 		v3d->drawtype = OB_SOLID;
 		v3d->lay &= GPU_lamp_shadow_layer(shadow->lamp);
 		v3d->flag2 &= ~V3D_SOLID_TEX;
+		v3d->flag2 |= V3D_RENDER_OVERRIDE;
 		
 		GPU_lamp_shadow_buffer_bind(shadow->lamp, viewmat, &winsize, winmat);
 
@@ -1859,7 +1859,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		
 		v3d->drawtype= drawtype;
 		v3d->lay= lay;
-		v3d->flag2 |= flag2;
+		v3d->flag2 = flag2;
 	}
 	
 	BLI_freelistN(&shadows);
@@ -1962,7 +1962,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	bwiny= ar->winy;
 	ar->winx= winx;
 	ar->winy= winy;
-
+	
 	/* set flags */
 	G.f |= G_RENDER_OGL;
 
@@ -2043,6 +2043,8 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	glPopMatrix();
 
 	glColor4ub(255, 255, 255, 255); // XXX, without this the sequencer flickers with opengl draw enabled, need to find out why - campbell
+
+	G.f &= ~G_RENDER_OGL;
 }
 
 /* utility func for ED_view3d_draw_offscreen */

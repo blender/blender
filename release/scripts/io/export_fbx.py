@@ -75,7 +75,7 @@ def copy_images(dest_dir, textures):
 
     image_paths = set()
     for tex in textures:
-        image_paths.add(Blender.sys.expandpath(tex.filename))
+        image_paths.add(bpy.utils.expandpath(tex.filepath))
 
     # Now copy images
     copyCount = 0
@@ -528,7 +528,7 @@ def write(filename, batch_objects = None, \
             self.fbxGroupNames = []
             self.fbxParent = None # set later on IF the parent is in the selection.
             if matrixWorld:		self.matrixWorld = GLOBAL_MATRIX * matrixWorld
-            else:				self.matrixWorld = GLOBAL_MATRIX * ob.matrix
+            else:				self.matrixWorld = GLOBAL_MATRIX * ob.matrix_world
 # 			else:				self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
             self.__anim_poselist = {} # we should only access this
 
@@ -539,8 +539,7 @@ def write(filename, batch_objects = None, \
                 return self.matrixWorld
 
         def setPoseFrame(self, f):
-            self.__anim_poselist[f] =  self.blenObject.matrix.copy()
-# 			self.__anim_poselist[f] =  self.blenObject.matrixWorld.copy()
+            self.__anim_poselist[f] =  self.blenObject.matrix_world.copy()
 
         def getAnimParRelMatrix(self, frame):
             if self.fbxParent:
@@ -646,7 +645,7 @@ def write(filename, batch_objects = None, \
 
         else:
             # This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
-            #if ob and not matrix: matrix = ob.matrixWorld * GLOBAL_MATRIX
+            #if ob and not matrix: matrix = ob.matrix_world * GLOBAL_MATRIX
             if ob and not matrix: raise Exception("error: this should never happen!")
 
             matrix_rot = matrix
@@ -1255,7 +1254,7 @@ def write(filename, batch_objects = None, \
         file.write('\n\t}')
 
     def copy_image(image):
-        fn = bpy.utils.expandpath(image.filename)
+        fn = bpy.utils.expandpath(image.filepath)
         fn_strip = os.path.basename(fn)
 
         if EXP_IMAGE_COPY:
@@ -1282,7 +1281,7 @@ def write(filename, batch_objects = None, \
             Property: "Height", "int", "",0''')
         if tex:
             fname_rel, fname_strip = copy_image(tex)
-# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filepath, basepath, EXP_IMAGE_COPY)
         else:
             fname = fname_strip = fname_rel = ''
 
@@ -1347,7 +1346,7 @@ def write(filename, batch_objects = None, \
 
         if tex:
             fname_rel, fname_strip = copy_image(tex)
-# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filepath, basepath, EXP_IMAGE_COPY)
         else:
             fname = fname_strip = fname_rel = ''
 
@@ -2011,9 +2010,8 @@ def write(filename, batch_objects = None, \
 
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
-                #if ob_base.type == 'Armature':
-                ob_base.make_display_list(scene)
-# 				ob_base.makeDisplayList()
+                if ob_base.type == 'ARMATURE':
+                    ob_base.update(scene)
 
             # This causes the makeDisplayList command to effect the mesh
             scene.set_frame(scene.frame_current)
@@ -2026,7 +2024,7 @@ def write(filename, batch_objects = None, \
         if ob_base.parent and ob_base.parent.dupli_type != 'NONE':
             continue
 
-        obs = [(ob_base, ob_base.matrix)]
+        obs = [(ob_base, ob_base.matrix_world)]
         if ob_base.dupli_type != 'NONE':
             ob_base.create_dupli_list(scene)
             obs = [(dob.object, dob.matrix) for dob in ob_base.dupli_list]
@@ -2187,9 +2185,7 @@ def write(filename, batch_objects = None, \
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
                 if ob_base.type == 'ARMATURE':
-# 				if ob_base.type == 'Armature':
-                    ob_base.make_display_list(scene)
-# 					ob_base.makeDisplayList()
+                    ob_base.update(scene)
             # This causes the makeDisplayList command to effect the mesh
             scene.set_frame(scene.frame_current)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
@@ -3338,7 +3334,7 @@ class ExportFBX(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default="")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the FBX file", maxlen= 1024, default="")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
@@ -3372,8 +3368,8 @@ class ExportFBX(bpy.types.Operator):
         return context.active_object
 
     def execute(self, context):
-        if not self.properties.path:
-            raise Exception("path not set")
+        if not self.properties.filepath:
+            raise Exception("filepath not set")
 
         GLOBAL_MATRIX = mtx4_identity
         GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.properties.TX_SCALE
@@ -3381,7 +3377,7 @@ class ExportFBX(bpy.types.Operator):
         if self.properties.TX_YROT90: GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
         if self.properties.TX_ZROT90: GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
 
-        write(self.properties.path,
+        write(self.properties.filepath,
               None, # XXX
               context,
               self.properties.EXP_OBS_SELECTED,
@@ -3414,7 +3410,7 @@ class ExportFBX(bpy.types.Operator):
 
 
 # if __name__ == "__main__":
-# 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
+# 	bpy.ops.EXPORT_OT_ply(filepath="/tmp/test.ply")
 
 
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
@@ -3441,8 +3437,8 @@ class ExportFBX(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".fbx")
-    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").path = default_path
+    default_path = bpy.data.filepath.replace(".blend", ".fbx")
+    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").filepath = default_path
 
 
 def register():

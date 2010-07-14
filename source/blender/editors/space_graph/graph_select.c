@@ -160,7 +160,7 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 		deselect_graph_keys(&ac, 1, SELECT_ADD);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -329,7 +329,7 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	borderselect_graphkeys(&ac, rect, mode, selectmode, incl_handles);
 	
 	/* send notifier that keyframe selection has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -520,7 +520,7 @@ static int graphkeys_columnselect_exec(bContext *C, wmOperator *op)
 		columnselect_graph_keys(&ac, mode);
 	
 	/* set notifier that keyframe selection has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -578,7 +578,7 @@ static int graphkeys_select_linked_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that keyframe selection has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -656,7 +656,7 @@ static int graphkeys_select_more_exec (bContext *C, wmOperator *op)
 	select_moreless_graph_keys(&ac, SELMAP_MORE);
 	
 	/* set notifier that keyframe selection has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -690,7 +690,7 @@ static int graphkeys_select_less_exec (bContext *C, wmOperator *op)
 	select_moreless_graph_keys(&ac, SELMAP_LESS);
 	
 	/* set notifier that keyframe selection has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1260,7 +1260,7 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	}
 	
 	/* set notifier that keyframe selection (and also channel selection in some cases) has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT|ND_ANIMCHAN_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|ND_ANIMCHAN|NA_SELECTED, NULL);
 	
 	/* for tweak grab to work */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;

@@ -575,9 +575,9 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 			char *col1= (char*)&col1base[j*4];
 			char *col2= (char*)(col2base?&col2base[j*4]:NULL);
 			float *vn = (mf->flag & ME_SMOOTH)?&vnors[3*vidx[j]]:n1;
-			
-			VECCOPY(vec, mv->co);
-			mul_m4_v3(mat, vec);
+
+			mul_v3_m4v3(vec, mat, mv->co);
+
 			vec[0]+= 0.001*vn[0];
 			vec[1]+= 0.001*vn[1];
 			vec[2]+= 0.001*vn[2];
@@ -688,8 +688,7 @@ void shadeDispList(Scene *scene, Base *base)
 						
 						a= dl->nr;		
 						while(a--) {
-							VECCOPY(vec, fp);
-							mul_m4_v3(mat, vec);
+							mul_v3_m4v3(vec, mat, fp);
 							
 							fastshade(vec, n1, fp, ma, (char *)col1, NULL);
 							
@@ -704,8 +703,7 @@ void shadeDispList(Scene *scene, Base *base)
 						nor= dl->nors;
 						
 						while(a--) {
-							VECCOPY(vec, fp);
-							mul_m4_v3(mat, vec);
+							mul_v3_m4v3(vec, mat, fp);
 							
 							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
 							n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
@@ -742,8 +740,7 @@ void shadeDispList(Scene *scene, Base *base)
 						
 						a= dl->nr;		
 						while(a--) {
-							VECCOPY(vec, fp);
-							mul_m4_v3(mat, vec);
+							mul_v3_m4v3(vec, mat, fp);
 							
 							/* transpose ! */
 							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
@@ -925,7 +922,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 }
 
 
-void filldisplist(ListBase *dispbase, ListBase *to)
+void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 {
 	EditVert *eve, *v1, *vlast;
 	EditFace *efa;
@@ -1019,6 +1016,9 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 					index[0]= (intptr_t)efa->v1->tmp.l;
 					index[1]= (intptr_t)efa->v2->tmp.l;
 					index[2]= (intptr_t)efa->v3->tmp.l;
+
+					if(flipnormal)
+						SWAP(int, index[0], index[2]);
 					
 					index+= 3;
 					efa= efa->next;
@@ -1095,13 +1095,13 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 		dl= dl->next;
 	}
 
-	filldisplist(&front, dispbase);
-	filldisplist(&back, dispbase);
+	filldisplist(&front, dispbase, 1);
+	filldisplist(&back, dispbase, 0);
 	
 	freedisplist(&front);
 	freedisplist(&back);
 
-	filldisplist(dispbase, dispbase);
+	filldisplist(dispbase, dispbase, 0);
 	
 }
 
@@ -1113,7 +1113,7 @@ static void curve_to_filledpoly(Curve *cu, ListBase *nurb, ListBase *dispbase)
 		bevels_to_filledpoly(cu, dispbase);
 	}
 	else {
-		filldisplist(dispbase, dispbase);
+		filldisplist(dispbase, dispbase, 0);
 	}
 }
 
@@ -1169,18 +1169,28 @@ void makeDispListMBall(Scene *scene, Object *ob)
 {
 	if(!ob || ob->type!=OB_MBALL) return;
 
+	// XXX: mball stuff uses plenty of global variables
+	//      while this is unchanged updating during render is unsafe
+	if(G.rendering) return;
+
 	freedisplist(&(ob->disp));
-	
+
 	if(ob->type==OB_MBALL) {
 		if(ob==find_basis_mball(scene, ob)) {
-			metaball_polygonize(scene, ob);
+			metaball_polygonize(scene, ob, &ob->disp);
 			tex_space_mball(ob);
 
-			object_deform_mball(ob);
+			object_deform_mball(ob, &ob->disp);
 		}
 	}
 	
 	boundbox_displist(ob);
+}
+
+void makeDispListMBall_forRender(Scene *scene, Object *ob, ListBase *dispbase)
+{
+	metaball_polygonize(scene, ob, dispbase);
+	object_deform_mball(ob, dispbase);
 }
 
 static ModifierData *curve_get_tesselate_point(Scene *scene, Object *ob, int forRender, int editmode)
@@ -1315,7 +1325,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	ModifierData *preTesselatePoint;
 	Curve *cu= ob->data;
 	ListBase *nurb= cu->editnurb?cu->editnurb:&cu->nurb;
-	int required_mode, totvert;
+	int required_mode, totvert = 0;
 	int editmode = (!forRender && cu->editnurb);
 	DerivedMesh *dm= NULL, *ndm;
 	float (*vertCos)[3] = NULL;
@@ -1855,6 +1865,12 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 		DM_set_object_boundbox (ob, ob->derivedFinal);
 	} else {
 		boundbox_displist (ob);
+
+		/* if there is no derivedMesh, object's boundbox is unneeded */
+		if (ob->bb) {
+			MEM_freeN(ob->bb);
+			ob->bb= NULL;
+		}
 	}
 }
 

@@ -82,7 +82,7 @@ def create_derived_objects(scene, ob):
         ob.create_dupli_list(scene)
         return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
     else:
-        return False, [(ob, ob.matrix)]
+        return False, [(ob, ob.matrix_world)]
 
 # also used by X3D exporter
 def free_derived_objects(ob):
@@ -494,8 +494,7 @@ def make_material_texture_chunk(id, images):
     mat_sub = _3ds_chunk(id)
 
     def add_image(img):
-        filename = os.path.basename(image.filename)
-# 		filename = image.filename.split('\\')[-1].split('/')[-1]
+        filename = os.path.basename(image.filepath)
         mat_sub_file = _3ds_chunk(MATMAPFILE)
         mat_sub_file.add_variable("mapfile", _3ds_string(sane_name(filename)))
         mat_sub.add_subchunk(mat_sub_file)
@@ -1123,12 +1122,11 @@ class Export3DS(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    # filename = StringProperty(name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
-    path = StringProperty(name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the 3DS file", maxlen= 1024, default= "")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     def execute(self, context):
-        save_3ds(self.properties.path, context)
+        save_3ds(self.properties.filepath, context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -1142,8 +1140,8 @@ class Export3DS(bpy.types.Operator):
 
 # Add to a menu
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".3ds")
-    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").path = default_path
+    default_path = bpy.data.filepath.replace(".blend", ".3ds")
+    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").filepath = default_path
 
 
 def register():

@@ -3536,6 +3536,7 @@ ParticleSettings *psys_copy_settings(ParticleSettings *part)
 	partn= copy_libblock(part);
 	if(partn->pd) partn->pd= MEM_dupallocN(part->pd);
 	if(partn->pd2) partn->pd2= MEM_dupallocN(part->pd2);
+	partn->effector_weights = MEM_dupallocN(part->effector_weights);
 
 	partn->boids = boid_copy_settings(part->boids);
 	
@@ -4256,8 +4257,13 @@ void psys_get_dupli_texture(Object *ob, ParticleSettings *part, ParticleSystemMo
 			num= pa->num_dmcache;
 
 			if(num == DMCACHE_NOTFOUND)
-				if(pa->num < psmd->dm->getNumFaces(psmd->dm))
-					num= pa->num;
+				num= pa->num;
+
+			if (num >= psmd->dm->getNumFaces(psmd->dm)) {
+				/* happens when simplify is enabled
+				 * gives invalid coords but would crash otherwise */
+				num= DMCACHE_NOTFOUND;
+			}
 
 			if(mtface && num != DMCACHE_NOTFOUND) {
 				mface= psmd->dm->getFaceData(psmd->dm, num, CD_MFACE);

@@ -56,12 +56,19 @@ public:
 	void ReloadMaterial();
 	int GetBlendMode();
 
+	void SetScene(KX_Scene *scene)
+	{
+		mScene = scene;
+		mBlenderScene = scene->GetBlenderScene();
+		ReloadMaterial();
+	}
+
 	bool Equals(BL_BlenderShader *blshader);
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_BlenderShader"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_BlenderShader"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

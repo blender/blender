@@ -130,8 +130,11 @@ bAction *verify_adt_action (ID *id, short add)
 		
 	/* init action if none available yet */
 	// TODO: need some wizardry to handle NLA stuff correct
-	if ((adt->action == NULL) && (add))
-		adt->action= add_empty_action("Action");
+	if ((adt->action == NULL) && (add)) {
+		char actname[sizeof(id->name)-2];
+		BLI_snprintf(actname, sizeof(actname), "%sAction", id->name+2);
+		adt->action= add_empty_action(actname);
+	}
 		
 	/* return the action */
 	return adt->action;
@@ -1091,7 +1094,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 			BKE_reportf(op->reports, RPT_INFO, "Successfully added %d Keyframes for KeyingSet '%s'", success, ks->name);
 		
 		/* send notifiers that keyframes have been changed */
-		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	else
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
@@ -1104,6 +1107,8 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 
 void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Insert Keyframe";
 	ot->idname= "ANIM_OT_keyframe_insert";
@@ -1119,11 +1124,13 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 	/* keyingset to use
 	 *	- here the type is int not enum, since many of the indicies here are determined dynamically
 	 */
-	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+	prop= RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	/* confirm whether a keyframe was added by showing a popup 
 	 *	- by default, this is enabled, since this operator is assumed to be called independently
 	 */
-	RNA_def_boolean(ot->srna, "confirm_success", 1, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	prop= RNA_def_boolean(ot->srna, "confirm_success", 1, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* Insert Key Operator (With Menu) ------------------------ */
@@ -1152,6 +1159,8 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
  
 void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Insert Keyframe Menu";
 	ot->idname= "ANIM_OT_keyframe_insert_menu";
@@ -1167,17 +1176,20 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 	/* keyingset to use
 	 *	- here the type is int not enum, since many of the indicies here are determined dynamically
 	 */
-	RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+	prop= RNA_def_int(ot->srna, "type", 0, INT_MIN, INT_MAX, "Keying Set Number", "Index (determined internally) of the Keying Set to use", 0, 1);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	/* confirm whether a keyframe was added by showing a popup 
 	 *	- by default, this is disabled so that if a menu is shown, this doesn't come up too
 	 */
 	// XXX should this just be always on?
-	RNA_def_boolean(ot->srna, "confirm_success", 0, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	prop= RNA_def_boolean(ot->srna, "confirm_success", 0, "Confirm Successful Insert", "Show a popup when the keyframes get successfully added");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	/* whether the menu should always be shown 
 	 *	- by default, the menu should only be shown when there is no active Keying Set (2.5 behaviour),
 	 *	  although in some cases it might be useful to always shown (pre 2.5 behaviour)
 	 */
-	RNA_def_boolean(ot->srna, "always_prompt", 0, "Always Show Menu", "");
+	prop= RNA_def_boolean(ot->srna, "always_prompt", 0, "Always Show Menu", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /* Delete Key Operator ------------------------ */
@@ -1224,7 +1236,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 			BKE_reportf(op->reports, RPT_INFO, "Successfully removed %d Keyframes for KeyingSet '%s'", success, ks->name);
 		
 		/* send notifiers that keyframes have been changed */
-		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	else
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to remove any keyframes");
@@ -1385,7 +1397,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 		DAG_ids_flush_update(0);
 		
 		/* send notifiers that keyframes have been changed */
-		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
@@ -1455,7 +1467,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 		DAG_ids_flush_update(0);
 		
 		/* send notifiers that keyframes have been changed */
-		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;

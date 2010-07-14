@@ -50,6 +50,9 @@ PyObject*	bpy_text_import( struct Text *text );
 PyObject*	bpy_text_import_name( char *name, int *found );
 PyObject*	bpy_text_reimport( PyObject *module, int *found );
 /* void		bpy_text_clear_modules( int clear_all );*/ /* Clear user modules */ 
+
+void bpy_text_filename_get(char *fn, struct Text *text);
+
 extern PyMethodDef bpy_import_meth[];
 extern PyMethodDef bpy_reload_meth[];
 

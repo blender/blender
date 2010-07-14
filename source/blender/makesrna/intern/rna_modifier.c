@@ -40,6 +40,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_bmesh.h" /* For BevelModifierData */
+#include "BKE_multires.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
 #include "WM_api.h"
@@ -372,7 +373,7 @@ static int rna_MultiresModifier_external_get(PointerRNA *ptr)
 	return CustomData_external_test(&me->fdata, CD_MDISPS);
 }
 
-static void rna_MultiresModifier_filename_get(PointerRNA *ptr, char *value)
+static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
 {
 	Object *ob= (Object*)ptr->id.data;
 	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
@@ -380,16 +381,18 @@ static void rna_MultiresModifier_filename_get(PointerRNA *ptr, char *value)
 	BLI_strncpy(value, (external)? external->filename: "", sizeof(external->filename));
 }
 
-static void rna_MultiresModifier_filename_set(PointerRNA *ptr, const char *value)
+static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob= (Object*)ptr->id.data;
 	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
 
-	if(external)
+	if(external && strcmp(external->filename, value)) {
 		BLI_strncpy(external->filename, value, sizeof(external->filename));
+		multires_force_external_reload(ob);
+	}
 }
 
-static int rna_MultiresModifier_filename_length(PointerRNA *ptr)
+static int rna_MultiresModifier_filepath_length(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	CustomDataExternal *external= ((Mesh*)ob->data)->fdata.external;
@@ -606,9 +609,9 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_MultiresModifier_external_get", NULL);
 	RNA_def_property_ui_text(prop, "External", "Store multires displacements outside the .blend file, to save memory");
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_string_funcs(prop, "rna_MultiresModifier_filename_get", "rna_MultiresModifier_filename_length", "rna_MultiresModifier_filename_set");
-	RNA_def_property_ui_text(prop, "Filename", "Path to external displacements file");
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_funcs(prop, "rna_MultiresModifier_filepath_get", "rna_MultiresModifier_filepath_length", "rna_MultiresModifier_filepath_set");
+	RNA_def_property_ui_text(prop, "File Path", "Path to external displacements file");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "optimal_display", PROP_BOOLEAN, PROP_NONE);
@@ -1547,11 +1550,17 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 static void rna_def_modifier_particlesystem(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ParticleSystemModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "ParticleSystem Modifier", "Particle system simulation modifier");
 	RNA_def_struct_sdna(srna, "ParticleSystemModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_PARTICLES);
+	
+	prop= RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "psys");
+	RNA_def_property_ui_text(prop, "Particle System", "Particle System that this modifier controls");
 }
 
 static void rna_def_modifier_particleinstance(BlenderRNA *brna)
@@ -1599,7 +1608,7 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Children", "Create instances from child particles");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "path", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_path", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Path);
 	RNA_def_property_ui_text(prop, "Path", "Create instances along particle paths");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -1719,9 +1728,9 @@ static void rna_def_modifier_smoke(BlenderRNA *brna)
 	
 	static EnumPropertyItem prop_smoke_type_items[] = {
 			{0, "NONE", 0, "None", ""},
-			{MOD_SMOKE_TYPE_DOMAIN, "TYPE_DOMAIN", 0, "Domain", ""},
-			{MOD_SMOKE_TYPE_FLOW, "TYPE_FLOW", 0, "Flow", "Inflow/Outflow"},
-			{MOD_SMOKE_TYPE_COLL, "TYPE_COLL", 0, "Collision", ""},
+			{MOD_SMOKE_TYPE_DOMAIN, "DOMAIN", 0, "Domain", ""},
+			{MOD_SMOKE_TYPE_FLOW, "FLOW", 0, "Flow", "Inflow/Outflow"},
+			{MOD_SMOKE_TYPE_COLL, "COLLISION", 0, "Collision", ""},
 			{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SmokeModifier", "Modifier");
@@ -2098,6 +2107,11 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_RIM);
 	RNA_def_property_ui_text(prop, "Fill Rim", "Create edge loops between the inner and outer surfaces on face edges (slow, disable when not needed)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
+	prop= RNA_def_property(srna, "use_rim_material", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_RIM_MATERIAL);
+	RNA_def_property_ui_text(prop, "Rim Material", "Use in the next material for rim faces");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "use_even_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_EVEN);
@@ -2113,6 +2127,8 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_VGROUP_INV);
 	RNA_def_property_ui_text(prop, "Vertex Group Invert", "Invert the vertex group influence");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
+	
 }
 
 static void rna_def_modifier_screw(BlenderRNA *brna)

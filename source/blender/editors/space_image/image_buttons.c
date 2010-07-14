@@ -841,7 +841,17 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 
 			if(ima->source != IMA_SRC_GENERATED) {
 				row= uiLayoutRow(layout, 1);
-				uiItemR(row, &imaptr, "filename", 0, "", 0);
+				split = uiLayoutSplit(row, 0.0, 0);
+				if (ima->packedfile)
+					uiItemO(split, "", ICON_PACKAGE, "image.unpack");
+				else
+					uiItemO(split, "", ICON_UGLYPACKAGE, "image.pack");
+				
+				split = uiLayoutSplit(row, 0.0, 0);
+				row= uiLayoutRow(split, 1);
+				uiLayoutSetEnabled(row, ima->packedfile==NULL);
+				
+				uiItemR(row, &imaptr, "filepath", 0, "", 0);
 				uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
 			}
 

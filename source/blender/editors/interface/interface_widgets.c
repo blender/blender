@@ -283,10 +283,10 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	float maxxi= maxx - 1.0f;
 	float minyi= miny + 1.0f;
 	float maxyi= maxy - 1.0f;
-	float facxi= 1.0f/(maxxi-minxi); /* for uv */
-	float facyi= 1.0f/(maxyi-minyi);
+	float facxi= (maxxi!=minxi) ? 1.0f/(maxxi-minxi) : 0.0f; /* for uv, can divide by zero */
+	float facyi= (maxyi!=minyi) ? 1.0f/(maxyi-minyi) : 0.0f;
 	int a, tot= 0, minsize;
-	
+
 	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
 	
 	if(2.0f*rad > minsize)
@@ -608,14 +608,67 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	/* backdrop non AA */
 	if(wtb->inner) {
 		if(wcol->shaded==0) {
-			
-			/* filled center, solid */
-			glColor4ubv((unsigned char*)wcol->inner);
-			glBegin(GL_POLYGON);
-			for(a=0; a<wtb->totvert; a++)
-				glVertex2fv(wtb->inner_v[a]);
-			glEnd();
+			if (wcol->alpha_check) {
+				GLubyte checker_stipple_sml[32*32/8] =
+				{
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+				};
 
+				float x_mid= 0.0f; /* used for dumb clamping of values */
+
+				/* dark checkers */
+				glColor4ub(100, 100, 100, 255);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++) {
+					glVertex2fv(wtb->inner_v[a]);
+				}
+				glEnd();
+
+				/* light checkers */
+				glEnable(GL_POLYGON_STIPPLE);
+				glColor4ub(160, 160, 160, 255);
+				glPolygonStipple(checker_stipple_sml);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++) {
+					glVertex2fv(wtb->inner_v[a]);
+				}
+				glEnd();
+				glDisable(GL_POLYGON_STIPPLE);
+
+				/* alpha fill */
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+				glColor4ubv((unsigned char*)wcol->inner);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++) {
+					glVertex2fv(wtb->inner_v[a]);
+					x_mid += wtb->inner_v[a][0];
+				}
+				x_mid /= wtb->totvert;
+				glEnd();
+
+				/* 1/2 solid color */
+				glColor4ub(wcol->inner[0], wcol->inner[1], wcol->inner[2], 255);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++)
+					glVertex2f(MIN2(wtb->inner_v[a][0], x_mid), wtb->inner_v[a][1]);
+				glEnd();
+			}
+			else {
+				/* simple fill */
+				glColor4ubv((unsigned char*)wcol->inner);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++)
+					glVertex2fv(wtb->inner_v[a]);
+				glEnd();
+			}
 		}
 		else {
 			char col1[4], col2[4];
@@ -1603,10 +1656,10 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	copy_v3_v3(hsvo, hsv);
 	
-	/* exception: if 'lock' is set (stored in but->a2),
+	/* exception: if 'lock' is set
 	 * lock the value of the color wheel to 1.
 	 * Useful for color correction tools where you're only interested in hue. */
-	if (but->a2) hsv[2] = 1.f;
+	if (but->flag & UI_BUT_COLOR_LOCK) hsv[2] = 1.f;
 	
 	hsv_to_rgb(0.f, 0.f, hsv[2], colcent, colcent+1, colcent+2);
 	
@@ -1621,6 +1674,8 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		float co= cos(ang);
 		
 		ui_hsvcircle_vals_from_pos(hsv, hsv+1, rect, centx + co*radius, centy + si*radius);
+		CLAMP(hsv[2], 0.0f, 1.0f); /* for display only */
+
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		glColor3fv(col);
 		glVertex2f( centx + co*radius, centy + si*radius);
@@ -1635,14 +1690,19 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH );
 	glColor3ubv((unsigned char*)wcol->outline);
-	glutil_draw_lined_arc(0.0f, M_PI*2.0, radius, tot);
+	glutil_draw_lined_arc(0.0f, M_PI*2.0, radius, tot + 1);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH );
 	glPopMatrix();
 
 	/* cursor */
 	ang= 2.0f*M_PI*hsvo[0] + 0.5f*M_PI;
-	radius= hsvo[1]*radius;
+
+	if(but->flag & UI_BUT_COLOR_CUBIC)
+		radius= (1.0f - pow(1.0f - hsvo[1], 3.0f)) *radius;
+	else
+		radius= hsvo[1] * radius;
+
 	ui_hsv_cursor(centx + cos(-ang)*radius, centy + sin(-ang)*radius);
 	
 }
@@ -2208,9 +2268,15 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	float col[4];
 	int color_profile = but->block->color_profile;
 	
+	col[3]= 1.0f;
+
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 			color_profile = BLI_PR_NONE;
+
+		if(RNA_property_array_length(&but->rnapoin, but->rnaprop)==4) {
+			col[3]= RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
+		}
 	}
 	
 	widget_init(&wtb);
@@ -2226,8 +2292,10 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	wcol->inner[0]= FTOCHAR(col[0]);
 	wcol->inner[1]= FTOCHAR(col[1]);
 	wcol->inner[2]= FTOCHAR(col[2]);
+	wcol->inner[3]= FTOCHAR(col[3]);
 	wcol->shaded = 0;
-	
+	wcol->alpha_check = (wcol->inner[3] < 255);
+
 	widgetbase_draw(&wtb, wcol);
 	
 }
@@ -2368,8 +2436,20 @@ static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
+	char old_col[3];
 	
 	widget_init(&wtb);
+	
+	VECCOPY(old_col, wcol->inner);
+	
+	/* abuse but->hsv - if it's non-zero, use this colour as the box's background */
+	if ((but->hsv[0] != 0.0) || (but->hsv[1] != 0.0) || (but->hsv[2] != 0.0)) {
+		float rgb[3];
+		hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], rgb+0, rgb+1, rgb+2);
+		wcol->inner[0] = rgb[0] * 255;
+		wcol->inner[1] = rgb[1] * 255;
+		wcol->inner[2] = rgb[2] * 255;
+	}
 	
 	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
@@ -2379,6 +2459,8 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, 
 	/* store the box bg as gl clearcolor, to retrieve later when drawing semi-transparent rects
 	 * over the top to indicate disabled buttons */
 	glClearColor(wcol->inner[0]/255.0, wcol->inner[1]/255.0, wcol->inner[2]/255.0, 1.0);
+	
+	VECCOPY(wcol->inner, old_col);
 }
 
 static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)

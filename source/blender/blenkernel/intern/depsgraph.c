@@ -1754,7 +1754,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 	node->lasttime= curtime;
 	
 	ob= node->ob;
-	if(ob && (ob->recalc & OB_RECALC)) {
+	if(ob && (ob->recalc & OB_RECALC_ALL)) {
 		all_layer= node->scelay;
 
 		/* got an object node that changes, now check relations */
@@ -1797,7 +1797,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 			if(ob->recalc & OB_RECALC_DATA)
 				object_free_display(ob);
 			
-			ob->recalc &= ~OB_RECALC;
+			ob->recalc &= ~OB_RECALC_ALL;
 		}
 	}
 	
@@ -1810,7 +1810,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 			if(itA->node->type==ID_OB) {
 				obc= itA->node->ob;
 				/* child moves */
-				if((obc->recalc & OB_RECALC)==OB_RECALC_OB) {
+				if((obc->recalc & OB_RECALC_ALL)==OB_RECALC_OB) {
 					/* parent has deforming info */
 					if(itA->type & (DAG_RL_OB_DATA|DAG_RL_DATA_DATA)) {
 						// printf("parent %s changes ob %s\n", ob->id.name, obc->id.name);
@@ -1864,7 +1864,7 @@ static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int
 			if(itA->node->lasttime!=curtime) {
 				ob= (Object*)(node->ob);
 
-				if(reset || (ob->recalc & OB_RECALC)) {
+				if(reset || (ob->recalc & OB_RECALC_ALL)) {
 					if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH))
 						ob->recalc |= OB_RECALC_DATA;
 
@@ -1877,26 +1877,19 @@ static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int
 	}
 }
 
-/* flushes all recalc flags in objects down the dependency tree */
-void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
+/* flush layer flags to dependencies */
+static void dag_scene_flush_layers(Scene *sce, int lay)
 {
-	DagNode *firstnode, *node;
+	DagNode *node, *firstnode;
 	DagAdjList *itA;
-	Object *ob;
 	Base *base;
 	int lasttime;
-	
-	if(sce->theDag==NULL) {
-		printf("DAG zero... not allowed to happen!\n");
-		DAG_scene_sort(sce);
-	}
-	
+
 	firstnode= sce->theDag->DagNode.first;  // always scene node
 
 	for(itA = firstnode->child; itA; itA= itA->next)
 		itA->lay= 0;
-	
-	/* first we flush the layer flags */
+
 	sce->theDag->time++;	// so we know which nodes were accessed
 	lasttime= sce->theDag->time;
 
@@ -1930,7 +1923,26 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 	for(itA = firstnode->child; itA; itA= itA->next)
 		if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB) 
 			flush_layer_node(sce, itA->node, lasttime);
+}
+
+/* flushes all recalc flags in objects down the dependency tree */
+void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
+{
+	DagNode *firstnode;
+	DagAdjList *itA;
+	Object *ob;
+	int lasttime;
 	
+	if(sce->theDag==NULL) {
+		printf("DAG zero... not allowed to happen!\n");
+		DAG_scene_sort(sce);
+	}
+	
+	firstnode= sce->theDag->DagNode.first;  // always scene node
+
+	/* first we flush the layer flags */
+	dag_scene_flush_layers(sce, lay);
+
 	/* then we use the relationships + layer info to flush update events */
 	sce->theDag->time++;	// so we know which nodes were accessed
 	lasttime= sce->theDag->time;
@@ -1946,7 +1958,7 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 			if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB)  {
 				ob= (Object*)(itA->node->ob);
 
-				if(ob->recalc & OB_RECALC) {
+				if(ob->recalc & OB_RECALC_ALL) {
 					if(BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH))
 						ob->recalc |= OB_RECALC_DATA;
 
@@ -1962,11 +1974,30 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 static int object_modifiers_use_time(Object *ob)
 {
 	ModifierData *md;
-
+	
+	/* check if a modifier in modifier stack needs time input */
 	for (md=ob->modifiers.first; md; md=md->next)
 		if (modifier_dependsOnTime(md))
 			return 1;
-
+	
+	/* check whether any modifiers are animated */
+	if (ob->adt) {
+		AnimData *adt = ob->adt;
+		
+		/* action - check for F-Curves with paths containing 'modifiers[' */
+		if (adt->action) {
+			FCurve *fcu;
+			
+			for (fcu = adt->action->curves.first; fcu; fcu = fcu->next) {
+				if (fcu->rna_path && strstr(fcu->rna_path, "modifiers["))
+					return 1;
+			}
+		}
+		
+		// XXX: also, should check NLA strips, though for now assume that nobody uses
+		// that and we can omit that for performance reasons...
+	}
+	
 	return 0;
 }
 
@@ -2026,14 +2057,14 @@ static void dag_object_time_update_flags(Object *ob)
 			/* this case is for groups with nla, whilst nla target has no action or nla */
 			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
 				if(strip->object)
-					strip->object->recalc |= OB_RECALC;
+					strip->object->recalc |= OB_RECALC_ALL;
 			}
 		}
 	}
 #endif // XXX old animation system
 	
 	if(animdata_use_time(ob->adt)) {
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_OB;
 		ob->adt->recalc |= ADT_RECALC_ANIM;
 	}
 	
@@ -2212,7 +2243,8 @@ void DAG_on_load_update(void)
 	Object *ob;
 	Group *group;
 	GroupObject *go;
-	unsigned int lay;
+	DagNode *node;
+	unsigned int lay, oblay;
 
 	dag_current_scene_layers(bmain, &scene, &lay);
 
@@ -2221,10 +2253,14 @@ void DAG_on_load_update(void)
 		   remade, tag them so they get remade in the scene update loop,
 		   note armature poses or object matrices are preserved and do not
 		   require updates, so we skip those */
+		dag_scene_flush_layers(scene, lay);
+
 		for(SETLOOPER(scene, base)) {
 			ob= base->object;
+			node= (sce->theDag)? dag_get_node(sce->theDag, ob): NULL;
+			oblay= (node)? node->lay: ob->lay;
 
-			if(base->lay & lay) {
+			if(oblay & lay) {
 				if(ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
 					ob->recalc |= OB_RECALC_DATA;
 				if(ob->dup_group) 
@@ -2276,7 +2312,7 @@ void DAG_id_flush_update(ID *id, short flag)
 	/* set flags & pointcache for object */
 	if(GS(id->name) == ID_OB) {
 		ob= (Object*)id;
-		ob->recalc |= (flag & OB_RECALC);
+		ob->recalc |= (flag & OB_RECALC_ALL);
 		BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
 
 		if(flag & OB_RECALC_DATA) {
@@ -2284,11 +2320,10 @@ void DAG_id_flush_update(ID *id, short flag)
 			id= ob->data;
 
 			/* no point in trying in this cases */
-			if(!id || id->us <= 1)
+			if(id && id->us <= 1) {
+				dag_editors_update(bmain, id);
 				id= NULL;
-			/* for locked shape keys we make an exception */
-			else if(ob_get_key(ob) && (ob->shapeflag & OB_SHAPE_LOCK))
-				id= NULL;
+			}
 		}
 	}
 
@@ -2334,7 +2369,7 @@ void DAG_id_flush_update(ID *id, short flag)
 			for(obt=bmain->object.first; obt; obt= obt->id.next) {
 				Key *key= ob_get_key(obt);
 				if(!(ob && obt == ob) && ((ID *)key == id)) {
-					obt->flag |= (OB_RECALC|OB_RECALC_DATA);
+					obt->flag |= (OB_RECALC_OB|OB_RECALC_DATA);
 					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 				}
 			}
@@ -2347,7 +2382,7 @@ void DAG_id_flush_update(ID *id, short flag)
 				for(psys=obt->particlesystem.first; psys; psys=psys->next) {
 					if(&psys->part->id == id) {
 						BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
-						obt->recalc |= (flag & OB_RECALC);
+						obt->recalc |= (flag & OB_RECALC_ALL);
 						psys->recalc |= (flag & PSYS_RECALC);
 					}
 				}
@@ -2427,7 +2462,7 @@ void DAG_id_update_flags(ID *id)
 			GroupObject *go;
 			/* primitive; tag all... this call helps building groups for particles */
 			for(go= group->gobject.first; go; go= go->next)
-				go->ob->recalc= OB_RECALC;
+				go->ob->recalc= OB_RECALC_ALL;
 		}
 	}
 	else {

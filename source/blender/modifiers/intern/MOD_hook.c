@@ -214,25 +214,26 @@ static void deformVerts(
 
 		if(defgrp_index >= 0 && use_dverts) {
 			MDeformVert *dvert = me->dvert;
-			int i, j;
+			int i;
+			float fac;
 
 			for(i = 0; i < maxVerts; i++, dvert++) {
 				if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
-				for(j = 0; j < dvert->totweight; j++) {
-					if(dvert->dw[j].def_nr == defgrp_index) {
-						float fac = hmd->force*dvert->dw[j].weight;
-						float *co = vertexCos[i];
 
-						if(hmd->falloff != 0.0) {
-							float len = len_v3v3(co, hmd->cent);
-							if(len > hmd->falloff) fac = 0.0;
-							else if(len > 0.0)
-								fac *= sqrt(1.0 - len / hmd->falloff);
-						}
+				fac= defvert_find_weight(dvert, defgrp_index);
 
-						mul_v3_m4v3(vec, mat, co);
-						interp_v3_v3v3(co, co, vec, fac);
+				if(fac > 0.0f) {
+					float *co = vertexCos[i];
+
+					if(hmd->falloff != 0.0) {
+						float len = len_v3v3(co, hmd->cent);
+						if(len > hmd->falloff) fac = 0.0;
+						else if(len > 0.0)
+							fac *= sqrt(1.0 - len / hmd->falloff);
 					}
+
+					mul_v3_m4v3(vec, mat, co);
+					interp_v3_v3v3(co, co, vec, fac);
 				}
 			}
 		}

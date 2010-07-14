@@ -222,3 +222,74 @@ void IMB_float_from_rect(struct ImBuf *ibuf)
 	}
 }
 
+/* no profile conversion */
+void IMB_float_from_rect_simple(struct ImBuf *ibuf)
+{
+	int profile = IB_PROFILE_NONE;
+
+	/* no color management:
+	 * don't disturb the existing profiles */
+	SWAP(int, ibuf->profile, profile);
+
+	IMB_float_from_rect(ibuf);
+
+	SWAP(int, ibuf->profile, profile);
+}
+
+void IMB_convert_profile(struct ImBuf *ibuf, int profile)
+{
+	int ok= FALSE;
+	int i;
+
+	unsigned char *rct= (unsigned char *)ibuf->rect;
+	float *rctf= ibuf->rect_float;
+
+	if(ibuf->profile == profile)
+		return;
+
+	if(ELEM(ibuf->profile, IB_PROFILE_NONE, IB_PROFILE_SRGB)) { /* from */
+		if(profile == IB_PROFILE_LINEAR_RGB) { /* to */
+			if(ibuf->rect_float) {
+				for (i = ibuf->x * ibuf->y; i > 0; i--, rctf+=4) {
+					rctf[0]= srgb_to_linearrgb(rctf[0]);
+					rctf[1]= srgb_to_linearrgb(rctf[1]);
+					rctf[2]= srgb_to_linearrgb(rctf[2]);
+				}
+			}
+			if(ibuf->rect) {
+				for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
+					rctf[0]= (unsigned char)((srgb_to_linearrgb((float)rctf[0]/255.0f) * 255.0f) + 0.5f);
+					rctf[1]= (unsigned char)((srgb_to_linearrgb((float)rctf[1]/255.0f) * 255.0f) + 0.5f);
+					rctf[2]= (unsigned char)((srgb_to_linearrgb((float)rctf[2]/255.0f) * 255.0f) + 0.5f);
+				}
+			}
+			ok= TRUE;
+		}
+	}
+	else if (ibuf->profile == IB_PROFILE_LINEAR_RGB) { /* from */
+		if(ELEM(profile, IB_PROFILE_NONE, IB_PROFILE_SRGB)) { /* to */
+			if(ibuf->rect_float) {
+				for (i = ibuf->x * ibuf->y; i > 0; i--, rctf+=4) {
+					rctf[0]= linearrgb_to_srgb(rctf[0]);
+					rctf[1]= linearrgb_to_srgb(rctf[1]);
+					rctf[2]= linearrgb_to_srgb(rctf[2]);
+				}
+			}
+			if(ibuf->rect) {
+				for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
+					rctf[0]= (unsigned char)((linearrgb_to_srgb((float)rctf[0]/255.0f) * 255.0f) + 0.5f);
+					rctf[1]= (unsigned char)((linearrgb_to_srgb((float)rctf[1]/255.0f) * 255.0f) + 0.5f);
+					rctf[2]= (unsigned char)((linearrgb_to_srgb((float)rctf[2]/255.0f) * 255.0f) + 0.5f);
+				}
+			}
+			ok= TRUE;
+		}
+	}
+
+	if(ok==FALSE){
+		printf("IMB_convert_profile: failed profile conversion %d -> %d\n", ibuf->profile, profile);
+		return;
+	}
+
+	ibuf->profile= profile;
+}

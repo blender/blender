@@ -115,6 +115,7 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 	BKE_ptcache_make_cache(&baker);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -133,6 +134,8 @@ static int ptcache_free_bake_all_exec(bContext *C, wmOperator *op)
 		}
 		
 		BLI_freelistN(&pidlist);
+		
+		WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, base->object);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
@@ -211,6 +214,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&pidlist);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -218,6 +222,7 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
+	Object *ob= ptr.id.data;
 
 	if(cache->edit) {
 		if(!cache->edit->edited || 1) {// XXX okee("Lose changes done in particle mode?")) {
@@ -228,6 +233,8 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
 	}
 	else
 		cache->flag &= ~PTCACHE_BAKED;
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -235,8 +242,11 @@ static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
+	Object *ob= ptr.id.data;
 	
 	cache->flag |= PTCACHE_BAKED;
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -303,6 +313,7 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&pidlist);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -331,6 +342,8 @@ static int ptcache_remove_exec(bContext *C, wmOperator *op)
 	}
 
 	BLI_freelistN(&pidlist);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 
 	return OPERATOR_FINISHED;
 }

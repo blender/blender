@@ -38,6 +38,7 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -50,18 +51,17 @@
 
 #include "script_intern.h"	// own include
 
-
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h" /* BPY_run_python_script */
+#endif
 
 static int run_pyfile_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
-	
-
 	char path[512];
-	RNA_string_get(op->ptr, "path", path);
+	RNA_string_get(op->ptr, "filepath", path);
 #ifndef DISABLE_PYTHON
 	if(BPY_run_python_script(C, path, NULL, op->reports)) {
+		ARegion *ar= CTX_wm_region(C);
 		ED_region_tag_redraw(ar);
 		return OPERATOR_FINISHED;
 	}
@@ -81,6 +81,34 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 	ot->exec= run_pyfile_exec;
 	ot->poll= ED_operator_areaactive;
 
-	RNA_def_string_file_path(ot->srna, "path", "", 512, "Path", "");
+	RNA_def_string_file_path(ot->srna, "filepath", "", 512, "Path", "");
 }
 
+
+static int script_reload_exec(bContext *C, wmOperator *op)
+{
+#ifndef DISABLE_PYTHON
+	/* TODO, this crashes on netrender and keying sets, need to look into why
+	 * disable for now unless running in debug mode */
+	if(G.f & G_DEBUG) {
+		BPY_eval_string(C, "__import__('bpy').utils.load_scripts(reload_scripts=True)");
+	}
+	else {
+		BKE_reportf(op->reports, RPT_ERROR, "reloading is currently unstable, only operates in debug mode.\n");
+		return OPERATOR_CANCELLED;
+	}
+	return OPERATOR_FINISHED;
+#endif
+	return OPERATOR_CANCELLED;
+}
+
+void SCRIPT_OT_reload(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reload Scripts";
+	ot->description= "Reload Scripts";
+	ot->idname= "SCRIPT_OT_reload";
+
+	/* api callbacks */
+	ot->exec= script_reload_exec;
+}

@@ -42,6 +42,9 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
         col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
+        col.operator("object.origin_set", text="Origin")
+
+        col = layout.column(align=True)
         col.label(text="Object:")
         col.operator("object.duplicate_move")
         col.operator("object.delete")
@@ -948,7 +951,7 @@ class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
         layout = self.layout
         for i, tex in enumerate(context.active_object.data.uv_textures):
             prop = layout.operator("wm.context_set_int", text=tex.name)
-            prop.path = "active_object.data.uv_texture_clone_index"
+            prop.data_path = "active_object.data.uv_texture_clone_index"
             prop.value = i
 
 
@@ -959,7 +962,7 @@ class VIEW3D_MT_tools_projectpaint_stencil(bpy.types.Menu):
         layout = self.layout
         for i, tex in enumerate(context.active_object.data.uv_textures):
             prop = layout.operator("wm.context_set_int", text=tex.name)
-            prop.path = "active_object.data.uv_texture_stencil_index"
+            prop.data_path = "active_object.data.uv_texture_stencil_index"
             prop.value = i
 
 

@@ -111,6 +111,14 @@ void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max
 void BLI_pbvh_update(PBVH *bvh, int flags, float (*face_nors)[3]);
 void BLI_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3]);
 void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *totface);
+void BLI_pbvh_grids_update(PBVH *bvh, struct DMGridData **grids,
+	struct DMGridAdjacency *gridadj, void **gridfaces);
+
+/* vertex deformer */
+float (*BLI_pbvh_get_vertCos(struct PBVH *pbvh))[3];
+void BLI_pbvh_apply_vertCos(struct PBVH *pbvh, float (*vertCos)[3]);
+int BLI_pbvh_isDeformed(struct PBVH *pbvh);
+
 
 /* Vertex Iterator */
 

@@ -135,8 +135,8 @@ typedef struct PyObjectPlus_Proxy {
 // leave above line empty (macro)!
 #ifdef WITH_CXX_GUARDEDALLOC
 #define Py_Header __Py_Header \
-  void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, Type.tp_name); } \
-  void operator delete( void *mem ) { MEM_freeN(mem); } \
+  void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, Type.tp_name); } \
+  void operator delete(void *mem) { MEM_freeN(mem); } \
 
 #else
 #define Py_Header __Py_Header
@@ -144,7 +144,7 @@ typedef struct PyObjectPlus_Proxy {
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #define Py_HeaderPtr __Py_HeaderPtr \
-  void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, Type.tp_name); } \
+  void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, Type.tp_name); } \
   void operator delete( void *mem ) { MEM_freeN(mem); } \
 
 #else
@@ -466,14 +466,15 @@ typedef PyTypeObject * PyParentObject;				// Define the PyParent Object
 
 #define Py_Header \
  public: \
-
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PyObjectPlus"); } \
+	void operator delete( void *mem ) { MEM_freeN(mem); } \
 
 #define Py_HeaderPtr \
  public: \
-
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PyObjectPlusPtr"); } \
+	void operator delete( void *mem ) { MEM_freeN(mem); } \
 
 #endif
-
 
 
 // By making SG_QList the ultimate parent for PyObjectPlus objects, it

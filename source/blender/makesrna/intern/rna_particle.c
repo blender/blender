@@ -106,6 +106,92 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 
+/* use for object space hair get/set */
+static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr, ParticleSystemModifierData **psmd_pt, ParticleData **pa_pt)
+{
+	HairKey *hkey= (HairKey *)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	ModifierData *md;
+	ParticleSystemModifierData *psmd=NULL;
+	ParticleSystem *psys;
+	ParticleData *pa;
+	int i;
+
+	*psmd_pt= NULL;
+	*pa_pt= NULL;
+
+	/* weak, what about multiple particle systems? */
+	for (md = ob->modifiers.first; md; md=md->next) {
+		if (md->type == eModifierType_ParticleSystem)
+			psmd= (ParticleSystemModifierData*) md;
+	}
+
+	if (!psmd || !psmd->dm || !psmd->psys) {
+		return;
+	}
+
+	psys= psmd->psys;
+
+	/* not a very efficient way of getting hair key location data,
+	 * but it's the best we've got at the present */
+
+	/* find the particle that corresponds with this HairKey */
+	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++) {
+
+		/* hairkeys are stored sequentially in memory, so we can find if
+		 * it's the same particle by comparing pointers, without having
+		 * to iterate over them all */
+		if ((hkey >= pa->hair) && (hkey < pa->hair + pa->totkey))
+			break;
+	}
+
+	*psmd_pt= psmd;
+	*pa_pt= pa;
+}
+
+static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *values)
+{
+	HairKey *hkey= (HairKey *)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	ParticleSystemModifierData *psmd;
+	ParticleData *pa;
+
+	rna_ParticleHairKey_location_object_info(ptr, &psmd, &pa);
+
+	if(pa) {
+		float hairmat[4][4];
+		psys_mat_hair_to_object(ob, psmd->dm, psmd->psys->part->from, pa, hairmat);
+		copy_v3_v3(values, hkey->co);
+		mul_m4_v3(hairmat, values);
+	}
+	else {
+		zero_v3(values);
+	}
+}
+
+static void rna_ParticleHairKey_location_object_set(PointerRNA *ptr, const float *values)
+{
+	HairKey *hkey= (HairKey *)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	ParticleSystemModifierData *psmd;
+	ParticleData *pa;
+
+	rna_ParticleHairKey_location_object_info(ptr, &psmd, &pa);
+
+	if(pa) {
+		float hairmat[4][4];
+		float imat[4][4];
+
+		psys_mat_hair_to_object(ob, psmd->dm, psmd->psys->part->from, pa, hairmat);
+		invert_m4_m4(imat, hairmat);
+		copy_v3_v3(hkey->co, values);
+		mul_m4_v3(imat, hkey->co);
+	}
+	else {
+		zero_v3(hkey->co);
+	}
+}
+
 /* property update functions */
 static void particle_recalc(Main *bmain, Scene *scene, PointerRNA *ptr, short flag)
 {
@@ -119,7 +205,7 @@ static void particle_recalc(Main *bmain, Scene *scene, PointerRNA *ptr, short fl
 	else
 		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|flag);
 
-	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 static void rna_Particle_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -183,7 +269,7 @@ static void rna_Particle_target_reset(Main *bmain, Scene *scene, PointerRNA *ptr
 		DAG_scene_sort(scene);
 	}
 
-	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 
 static void rna_Particle_target_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -195,7 +281,7 @@ static void rna_Particle_target_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 		psys->recalc = PSYS_RECALC_REDO;
 
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 	}
 }
 
@@ -211,7 +297,7 @@ static void rna_Particle_hair_dynamics(Main *bmain, Scene *scene, PointerRNA *pt
 		rna_Particle_redo(bmain, scene, ptr);
 	}
 	else
-		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
 {
@@ -637,6 +723,7 @@ static void rna_ParticleVGroup_name_set_9(PointerRNA *ptr, const char *value) { 
 static void rna_ParticleVGroup_name_set_10(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 10); }
 static void rna_ParticleVGroup_name_set_11(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 11); }
 
+
 #else
 
 static void rna_def_particle_hair_key(BlenderRNA *brna)
@@ -648,16 +735,21 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "HairKey");
 	RNA_def_struct_ui_text(srna, "Particle Hair Key", "Particle key for hair particle system");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "co");
-	RNA_def_property_ui_text(prop, "Location", "Key location");
-
 	prop= RNA_def_property(srna, "time", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(prop, "Time", "Relative time of key over hair length");
 
 	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Weight", "Weight for cloth simulation");
+
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Location (Object Space)", "Location of the hair key in object space");
+	RNA_def_property_float_funcs(prop, "rna_ParticleHairKey_location_object_get", "rna_ParticleHairKey_location_object_set", NULL);
+	
+	prop= RNA_def_property(srna, "location_hairspace", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_float_sdna(prop, NULL, "co");
+	RNA_def_property_ui_text(prop, "Location", "Location of the hair key in its internal coordinate system, relative to the emitting face");
 }
 
 static void rna_def_particle_key(BlenderRNA *brna)

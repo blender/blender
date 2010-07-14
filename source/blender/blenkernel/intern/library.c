@@ -445,7 +445,7 @@ void recalc_all_library_objects(Main *main)
 	/* flag for full recalc */
 	for(ob=main->object.first; ob; ob=ob->id.next)
 		if(ob->id.lib)
-			ob->recalc |= OB_RECALC;
+			ob->recalc |= OB_RECALC_ALL;
 }
 
 /* note: MAX_LIBARRAY define should match this code */
@@ -1225,7 +1225,7 @@ static void image_fix_relative_path(Image *ima)
 {
 	if(ima->id.lib==NULL) return;
 	if(strncmp(ima->name, "//", 2)==0) {
-		BLI_path_abs(ima->name, ima->id.lib->filename);
+		BLI_path_abs(ima->name, ima->id.lib->filepath);
 		BLI_path_rel(ima->name, G.sce);
 	}
 }

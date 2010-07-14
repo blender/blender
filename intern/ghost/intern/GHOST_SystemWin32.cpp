@@ -37,6 +37,14 @@
 #include "GHOST_SystemWin32.h"
 #include "GHOST_EventDragnDrop.h"
 
+#define WIN32_LEAN_AND_MEAN
+#ifdef _WIN32_IE
+#undef _WIN32_IE
+#endif
+#define _WIN32_IE 0x0501
+#include <windows.h>
+#include <shlobj.h>
+
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
 #ifndef GWL_USERDATA
@@ -271,6 +279,8 @@ GHOST_TSuccess GHOST_SystemWin32::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
 
 GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
 {
+	if (!GetActiveWindow())
+		return GHOST_kFailure;
 	return ::SetCursorPos(x, y) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
@@ -1093,10 +1103,36 @@ void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 const GHOST_TUns8* GHOST_SystemWin32::getSystemDir() const
 {
+	static char knownpath[MAX_PATH];
+	HRESULT hResult = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath);
+
+	if (hResult == S_OK)
+	{
+		return (GHOST_TUns8*)knownpath;
+	}
+
 	return NULL;
 }
 
 const GHOST_TUns8* GHOST_SystemWin32::getUserDir() const
 {
+	static char knownpath[MAX_PATH];
+	HRESULT hResult = SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath);
+
+	if (hResult == S_OK)
+	{
+		return (GHOST_TUns8*)knownpath;
+	}
+
+	return NULL;
+}
+
+const GHOST_TUns8* GHOST_SystemWin32::getBinaryDir() const
+{
+	static char fullname[MAX_PATH];
+	if(GetModuleFileName(0, fullname, MAX_PATH)) {
+		return (GHOST_TUns8*)fullname;
+	}
+
 	return NULL;
 }

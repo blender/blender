@@ -236,8 +236,6 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 		}
 	}
 
-	BRICONTRGB;
-
 	if(texres->talpha) texres->tin= texres->ta;
 	else if(tex->imaflag & TEX_CALCALPHA) {
 		texres->ta= texres->tin= MAX3(texres->tr, texres->tg, texres->tb);
@@ -253,6 +251,8 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 		texres->tg*= fx;
 		texres->tb*= fx;
 	}
+	
+	BRICONTRGB;
 	
 	return retval;
 }
@@ -1318,8 +1318,6 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 		}
 	}
 
-	BRICONTRGB;
-
 	if (tex->imaflag & TEX_CALCALPHA)
 		texres->ta = texres->tin = texres->ta * MAX3(texres->tr, texres->tg, texres->tb);
 	else
@@ -1348,6 +1346,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 		texres->tb *= fx;
 	}
 
+	BRICONTRGB;
+	
 	return retval;
 }
 
@@ -1705,8 +1705,6 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 			boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 0);
 	}
 	
-	BRICONTRGB;
-	
 	if(tex->imaflag & TEX_CALCALPHA) {
 		texres->ta= texres->tin= texres->ta*MAX3(texres->tr, texres->tg, texres->tb);
 	}
@@ -1733,6 +1731,8 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 		texres->tb*= fx;
 	}
 
+	BRICONTRGB;
+	
 	return retval;
 }
 

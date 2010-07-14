@@ -280,6 +280,7 @@ int group_is_animated(Object *parent, Group *group)
 	return 0;
 }
 
+#if 0 // add back when timeoffset & animsys work again
 /* only replaces object strips or action when parent nla instructs it */
 /* keep checking nla.c though, in case internal structure of strip changes */
 static void group_replaces_nla(Object *parent, Object *target, char mode)
@@ -319,6 +320,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 		}
 	}
 }
+#endif
 
 /* puts all group members in local timing system, after this call
 you can draw everything, leaves tags in objects to signal it needs further updating */
@@ -328,6 +330,11 @@ void group_handle_recalc_and_update(Scene *scene, Object *parent, Group *group)
 {
 	GroupObject *go;
 	
+#if 0 /* warning, isnt clearing the recalc flag on the object which causes it to run all the time,
+	   * not just on frame change.
+	   * This isnt working because the animation data is only re-evalyated on frame change so commenting for now
+	   * but when its enabled at some point it will need to be changed so as not to update so much - campbell */
+
 	/* if animated group... */
 	if(give_timeoffset(parent) != 0.0f || parent->nlastrips.first) {
 		int cfrao;
@@ -353,7 +360,9 @@ void group_handle_recalc_and_update(Scene *scene, Object *parent, Group *group)
 		/* restore */
 		scene->r.cfra= cfrao;
 	}
-	else {
+	else
+#endif
+	{
 		/* only do existing tags, as set by regular depsgraph */
 		for(go= group->gobject.first; go; go= go->next) {
 			if(go->ob) {

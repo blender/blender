@@ -3232,6 +3232,10 @@ static void hair_step(ParticleSimulationData *sim, float cfra)
 	if(psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS)
 		do_hair_dynamics(sim);
 
+	/* following lines were removed r29079 but cause bug [#22811], see report for details */
+	psys_update_effectors(sim);
+	psys_update_path_cache(sim, cfra);
+
 	psys->flag |= PSYS_HAIR_UPDATED;
 }
 
@@ -3925,7 +3929,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if(!psys_check_enabled(ob, psys))
 		return;
 
-	cfra= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0f);
+	cfra= BKE_curframe(scene);
 	sim.psmd= psys_get_modifier(ob, psys);
 
 	/* system was already updated from modifier stack */
@@ -3943,7 +3947,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	BKE_animsys_evaluate_animdata(&part->id, part->adt, cfra, ADT_RECALC_DRIVERS);
 
 	/* TODO: only free child paths in case of PSYS_RECALC_CHILD */
-	if(psys->recalc & PSYS_RECALC)
+	if(psys->recalc & PSYS_RECALC || ob->recalc & OB_RECALC_ALL)
 		psys_free_path_cache(psys, NULL);
 
 	if(psys->recalc & PSYS_RECALC_CHILD)

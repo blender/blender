@@ -292,7 +292,7 @@ public:
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_OpenGLRasterizer"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_OpenGLRasterizer"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

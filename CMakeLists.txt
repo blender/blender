@@ -43,6 +43,10 @@ Remove the CMakeCache.txt file and try again from another folder, e.g.:
 ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+# quiet output for Makefiles, 'make -s' helps too
+# SET_PROPERTY(GLOBAL PROPERTY RULE_MESSAGES OFF)
+
 PROJECT(Blender)
 
 #-----------------------------------------------------------------------------
@@ -56,54 +60,82 @@ SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
 SET(BLENDER_VERSION  2.5)
 
 #-----------------------------------------------------------------------------
+# Load some macros.
+INCLUDE(build_files/cmake/macros.cmake)
+
+#-----------------------------------------------------------------------------
 # Set default config options
-OPTION(WITH_PLAYER        "Build Player" OFF)
-OPTION(WITH_GAMEENGINE    "Enable Game Engine" ON)
-OPTION(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
+
+# Blender internal features
 OPTION(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
+OPTION(WITH_LCMS          "Enable color correction with lcms" OFF)
+OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
+OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_ELBEEM        "Enable Elbeem (Fluid Simulation)" ON)
+OPTION(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
+OPTION(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
+OPTION(WITH_GAMEENGINE    "Enable Game Engine" ON)
+OPTION(WITH_PLAYER        "Build Player" OFF)
+# (unix defaults to OpenMP On)
+IF(UNIX AND NOT APPLE)
+	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
+ELSE()
+	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
+ENDIF()
+
+# Image format support
 OPTION(WITH_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
+OPTION(WITH_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org/)" OFF)
 OPTION(WITH_TIFF          "Enable LibTIFF Support" ON)
 OPTION(WITH_DDS           "Enable DDS Support" ON)
-OPTION(WITH_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)" OFF)
-OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
-OPTION(WITH_SDL           "Enable SDL for sound and joystick support" ON)
-OPTION(WITH_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org/)" OFF)
-OPTION(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
-OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
-OPTION(WITH_FFTW3         "Enable FFTW3 support" OFF)
-OPTION(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
-OPTION(WITH_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
-OPTION(WITH_LZO           "Enable fast LZO compression, used for pointcache" ON)
-OPTION(WITH_LZMA          "Enable best LZMA compression, used for pointcache" ON)
-OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF)
-OPTION(WITH_BUILDINFO     "Include extra build details" ON)
-OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
-OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" OFF) 
 
+# Audio format support
+OPTION(WITH_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)" OFF)
+OPTION(WITH_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 IF(APPLE OR WIN32)
 	OPTION(WITH_QUICKTIME     "Enable Quicktime Support" OFF)
 ENDIF(APPLE OR WIN32)
 
-# Unix defaults to OpenMP On
-# Disable opencollada on non-apple unix because opencollada has no package for debian
+# 3D format support
+# disable opencollada on non-apple unix because opencollada has no package for debian
 IF(UNIX AND NOT APPLE)
-	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
 	OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
 ELSE()
-	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
 	OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
 ENDIF()
 
-IF (APPLE)
+# Sound output
+OPTION(WITH_SDL           "Enable SDL for sound and joystick support" ON)
+OPTION(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
+OPTION(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
+
+# Compression
+OPTION(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON)
+OPTION(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
+
+# Misc
+OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
+OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
+OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
+
+IF(APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	OPTION(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	OPTION(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
-ENDIF (APPLE)
+ENDIF(APPLE)
+
+IF(NOT WITH_BULLET AND WITH_GAMEENGINE)
+	MESSAGE("WARNING: WITH_GAMEENGINE needs WITH_BULLET")
+ENDIF(NOT WITH_BULLET AND WITH_GAMEENGINE)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
+
+TEST_SSE_SUPPORT()
+
+# disabled for now, not supported
+# OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix: 
@@ -114,14 +146,9 @@ ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 # When changing any of this remember to update the notes in doc/blender-cmake.txt
 
 #-----------------------------------------------------------------------------
-# Load some macros.
-INCLUDE(CMake/macros.cmake)
-
-#-----------------------------------------------------------------------------
 #Platform specifics
 
 IF(UNIX AND NOT APPLE)
-
 
 	IF(WITH_OPENAL)
 		FIND_PACKAGE(OpenAL)
@@ -144,20 +171,23 @@ IF(UNIX AND NOT APPLE)
 	SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
 	ENDIF(WITH_SNDFILE)
 
-	FIND_LIBRARY(INTL_LIBRARY
-		NAMES intl
-		PATHS
-		/sw/lib
-	)
-	FIND_LIBRARY(ICONV_LIBRARY
-		NAMES iconv
-		PATHS
-		/sw/lib
-	)
-  
-	IF(INTL_LIBRARY AND ICONV_LIBRARY)
-		SET(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
-	ENDIF(INTL_LIBRARY AND ICONV_LIBRARY)
+	IF(WITH_INTERNATIONAL)
+		FIND_LIBRARY(INTL_LIBRARY
+			NAMES intl
+			PATHS
+			/sw/lib
+		)
+
+		FIND_LIBRARY(ICONV_LIBRARY
+			NAMES iconv
+			PATHS
+			/sw/lib
+		)
+
+		IF(INTL_LIBRARY AND ICONV_LIBRARY)
+			SET(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
+		ENDIF(INTL_LIBRARY AND ICONV_LIBRARY)
+	ENDIF(WITH_INTERNATIONAL)
 
 	FIND_PACKAGE(Freetype)
 	# UNSET(FREETYPE_INCLUDE_DIRS CACHE) # cant use
@@ -178,7 +208,6 @@ IF(UNIX AND NOT APPLE)
 
 		SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
 	ENDIF(WITH_PYTHON)
-
 
 	IF(WITH_SDL)
 		FIND_PACKAGE(SDL)
@@ -201,26 +230,11 @@ IF(UNIX AND NOT APPLE)
 			/opt/include/OpenEXR
 		)
 		SET(OPENEXR_LIB Half IlmImf Iex Imath)
+		
+		IF(NOT OPENEXR_INC)
+			SET(WITH_OPENEXR OFF)
+		ENDIF(NOT OPENEXR_INC)
 	ENDIF(WITH_OPENEXR)
-
-	IF(WITH_FFMPEG)
-		SET(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
-		SET(FFMPEG_INC ${FFMPEG}/include)
-		SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
-		SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
-	ENDIF(WITH_FFMPEG)
-  
-	IF(WITH_FFTW3)
-		SET(FFTW3 /usr)
-		SET(FFTW3_INC ${FFTW3}/include)
-		SET(FFTW3_LIB fftw3)
-		SET(FFTW3_LIBPATH ${FFTW3}/lib)
-	ENDIF(WITH_FFTW3)
-
-	SET(LIBSAMPLERATE /usr)
-	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
-	SET(LIBSAMPLERATE_LIB samplerate)
-	SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
 
 	IF(WITH_TIFF)
 		FIND_PACKAGE(TIFF)
@@ -234,6 +248,33 @@ IF(UNIX AND NOT APPLE)
 	FIND_PACKAGE(PNG REQUIRED)
 
 	FIND_PACKAGE(ZLIB REQUIRED)
+
+	IF(WITH_LCMS)
+		SET(LCMS /usr CACHE FILEPATH "LCMS directory")
+		SET(LCMS_INCLUDE_DIR ${LCMS}/include)
+		SET(LCMS_LIBRARY lcms)
+		SET(LCMS_LIBPATH ${LCMS}/lib)
+	ENDIF(WITH_LCMS)
+
+	IF(WITH_FFMPEG)
+		SET(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
+		SET(FFMPEG_INC ${FFMPEG}/include)
+		SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
+		SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
+	ENDIF(WITH_FFMPEG)
+
+	IF(WITH_FFTW3)
+		SET(FFTW3 /usr)
+		SET(FFTW3_INC ${FFTW3}/include)
+		SET(FFTW3_LIB fftw3)
+		SET(FFTW3_LIBPATH ${FFTW3}/lib)
+	ENDIF(WITH_FFTW3)
+
+	SET(LIBSAMPLERATE /usr)
+	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
+	SET(LIBSAMPLERATE_LIB samplerate)
+	SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
 
 	IF (WITH_OPENCOLLADA)
 		SET(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
@@ -270,6 +311,12 @@ IF(UNIX AND NOT APPLE)
 
 	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -Wno-char-subscripts")
 
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
 	# Better warnings
@@ -295,10 +342,12 @@ IF(WIN32)
 	
 	ADD_DEFINITIONS(-DWIN32)
 
-	SET(ICONV ${LIBDIR}/iconv)
-	SET(ICONV_INC ${ICONV}/include)
-	SET(ICONV_LIB iconv)
-	SET(ICONV_LIBPATH ${ICONV}/lib)
+	IF(WITH_INTERNATIONAL)
+		SET(ICONV ${LIBDIR}/iconv)
+		SET(ICONV_INC ${ICONV}/include)
+		SET(ICONV_LIB iconv)
+		SET(ICONV_LIBPATH ${ICONV}/lib)
+	ENDIF(WITH_INTERNATIONAL)
 
 	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
 	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
@@ -352,6 +401,11 @@ IF(WIN32)
 		SET(QUICKTIME_LIBPATH ${QUICKTIME}/Libraries)
 	ENDIF(WITH_QUICKTIME)
 
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+
 	IF(MSVC)
 		IF(CMAKE_CL_64)
 			SET(LLIBS kernel32 user32 vfw32 winmm ws2_32 )
@@ -376,14 +430,16 @@ IF(WIN32)
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp ")
 		ENDIF(WITH_OPENMP)
 		
-		SET(GETTEXT ${LIBDIR}/gettext)
-		SET(GETTEXT_INC ${GETTEXT}/include)
-		SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
-		IF(CMAKE_CL_64)
-			SET(GETTEXT_LIB gettext)
-		ELSE(CMAKE_CL_64)
-			SET(GETTEXT_LIB gnu_gettext)
-		ENDIF(CMAKE_CL_64)
+		IF(WITH_INTERNATIONAL)
+			SET(GETTEXT ${LIBDIR}/gettext)
+			SET(GETTEXT_INC ${GETTEXT}/include)
+			SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
+			IF(CMAKE_CL_64)
+				SET(GETTEXT_LIB gettext)
+			ELSE(CMAKE_CL_64)
+				SET(GETTEXT_LIB gnu_gettext)
+			ENDIF(CMAKE_CL_64)
+		ENDIF(WITH_INTERNATIONAL)
 
 		IF(CMAKE_CL_64)
 			SET(PNG_LIBRARIES libpng)
@@ -422,13 +478,15 @@ IF(WIN32)
 			SET(OPENCOLLADA ${LIBDIR}/opencollada)
 			SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
 			SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-			SET(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 buffer ftoa)
+			SET(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser xml2 buffer ftoa)
 			#pcre is bundled with openCollada
 			#SET(PCRE ${LIBDIR}/pcre)
 			#SET(PCRE_LIBPATH ${PCRE}/lib)
 			SET(PCRE_LIB pcre)
 		ENDIF(WITH_OPENCOLLADA)
 		
+		# TODO: IF(WITH_LCMS)
+        
 		IF(WITH_FFMPEG)
 			SET(FFMPEG ${LIBDIR}/ffmpeg)
 			SET(FFMPEG_INC ${FFMPEG}/include ${FFMPEG}/include/msvc)
@@ -476,7 +534,7 @@ IF(WIN32)
 	ELSE(MSVC) # MINGW
 		SET(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
 
-		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing -mwindows" CACHE STRING "Mingw C++ flags ")
+		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C++ flags ")
 		SET(CMAKE_C_FLAGS                  "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C flags ")
 
 		SET(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g" CACHE STRING "Mingw debug C++ flags ")
@@ -496,12 +554,14 @@ IF(WIN32)
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 		ENDIF(WITH_OPENMP)
 
-		SET(GETTEXT ${LIBDIR}/gcc/gettext)
-		SET(GETTEXT_INC ${GETTEXT}/include)
-		SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
-		SET(GETTEXT_LIB intl)
+		IF(WITH_INTERNATIONAL)
+			SET(GETTEXT ${LIBDIR}/gcc/gettext)
+			SET(GETTEXT_INC ${GETTEXT}/include)
+			SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
+			SET(GETTEXT_LIB intl)
+		ENDIF(WITH_INTERNATIONAL)
 
-		SET(JPEG_LIBRARY jpeg)
+		SET(JPEG_LIBRARY libjpeg)
 		SET(PNG_LIBRARIES png)
 
 		SET(ZLIB ${LIBDIR}/zlib)
@@ -547,7 +607,7 @@ IF(WIN32)
 		IF(WITH_OPENEXR)
 			SET(OPENEXR ${LIBDIR}/gcc/openexr)
 			SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
-			SET(OPENEXR_LIB Half IlmImf Iex)
+			SET(OPENEXR_LIB Half IlmImf Imath IlmThread)
 			SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		ENDIF(WITH_OPENEXR)
 
@@ -632,10 +692,12 @@ IF(APPLE)
 		SET(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python")
 	ENDIF(PYTHON_VERSION MATCHES 3.1)
 
-	SET(GETTEXT ${LIBDIR}/gettext)
-	SET(GETTEXT_INC "${GETTEXT}/include")
-	SET(GETTEXT_LIB intl iconv)
-	SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
+	IF(WITH_INTERNATIONAL)
+		SET(GETTEXT ${LIBDIR}/gettext)
+		SET(GETTEXT_INC "${GETTEXT}/include")
+		SET(GETTEXT_LIB intl iconv)
+		SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
+	ENDIF(WITH_INTERNATIONAL)
   
 	IF(WITH_FFTW3)
 		SET(FFTW3 ${LIBDIR}/fftw3)
@@ -656,15 +718,27 @@ IF(APPLE)
 	SET(FREETYPE_LIBPATH ${FREETYPE}/lib)
 	SET(FREETYPE_LIBRARY freetype)
 
-	SET(OPENEXR ${LIBDIR}/openexr)
-	SET(OPENEXR_INC ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
-	SET(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
-	SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
+	IF(WITH_OPENEXR)
+		SET(OPENEXR ${LIBDIR}/openexr)
+		SET(OPENEXR_INC ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
+		SET(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
+		SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
+	ENDIF(WITH_OPENEXR)
 
-	SET(FFMPEG ${LIBDIR}/ffmpeg)
-	SET(FFMPEG_INC ${FFMPEG}/include)
-	SET(FFMPEG_LIB avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg)
-	SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
+	IF(WITH_LCMS)
+		SET(LCMS ${LIBDIR}/lcms)
+		SET(LCMS_INCLUDE_DIR ${LCMS}/include)
+		SET(LCMS_LIBRARY lcms)
+		SET(LCMS_LIBPATH ${LCMS}/lib)
+	ENDIF(WITH_LCMS)
+
+	IF(WITH_FFMPEG)
+		SET(FFMPEG ${LIBDIR}/ffmpeg)
+		SET(FFMPEG_INC ${FFMPEG}/include)
+		SET(FFMPEG_LIB avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg)
+		SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
+	ENDIF(WITH_FFMPEG)
 
 	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
 	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
@@ -712,10 +786,12 @@ IF(APPLE)
 		SET(EXPAT_LIB)
 	ENDIF (WITH_OPENCOLLADA)
 
-	SET(SDL ${LIBDIR}/sdl)
-	SET(SDL_INCLUDE_DIR ${SDL}/include)
-	SET(SDL_LIBRARY SDL)
-	SET(SDL_LIBPATH ${SDL}/lib)
+	IF(WITH_SDL)
+		SET(SDL ${LIBDIR}/sdl)
+		SET(SDL_INCLUDE_DIR ${SDL}/include)
+		SET(SDL_LIBRARY SDL)
+		SET(SDL_LIBPATH ${SDL}/lib)
+	ENDIF(WITH_SDL)
 
 	SET(PNG "${LIBDIR}/png")
 	SET(PNG_INC "${PNG}/include")
@@ -725,10 +801,18 @@ IF(APPLE)
 	SET(JPEG_INC "${JPEG}/include")
 	SET(JPEG_LIBPATH ${JPEG}/lib)
 
-	SET(TIFF ${LIBDIR}/tiff)
-	SET(TIFF_INCLUDE_DIR ${TIFF}/include)
-	SET(TIFF_LIBRARY tiff)
-	SET(TIFF_LIBPATH ${TIFF}/lib)
+	IF(WITH_TIFF)
+		SET(TIFF ${LIBDIR}/tiff)
+		SET(TIFF_INCLUDE_DIR ${TIFF}/include)
+		SET(TIFF_LIBRARY tiff)
+		SET(TIFF_LIBPATH ${TIFF}/lib)
+	ENDIF(WITH_TIFF)
+
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	SET(EXETYPE MACOSX_BUNDLE)
 
@@ -776,10 +860,11 @@ ENDIF(WITH_BUILDINFO)
 	
 #-----------------------------------------------------------------------------
 # Common.
-
-set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
-set(OPENJPEG_INC ${OPENJPEG})
-set(OPENJPEG_LIb extern_libopenjpeg)
+IF(WITH_OPENJPEG)
+	set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
+	set(OPENJPEG_INC ${OPENJPEG})
+	set(OPENJPEG_LIb extern_libopenjpeg)
+ENDIF(WITH_OPENJPEG)
 
 #-----------------------------------------------------------------------------
 # Blender WebPlugin

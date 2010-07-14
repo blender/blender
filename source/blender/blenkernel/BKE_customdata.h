@@ -292,6 +292,8 @@ void CustomData_external_write(struct CustomData *data,
 	struct ID *id, CustomDataMask mask, int totelem, int free);
 void CustomData_external_read(struct CustomData *data,
 	struct ID *id, CustomDataMask mask, int totelem);
+void CustomData_external_reload(struct CustomData *data,
+	struct ID *id, CustomDataMask mask, int totelem);
 
 #endif
 

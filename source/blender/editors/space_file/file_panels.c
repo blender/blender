@@ -182,7 +182,7 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 
 			if(flag & PROP_HIDDEN)
 				continue;
-			if(strcmp(RNA_property_identifier(prop), "path") == 0)
+			if(strcmp(RNA_property_identifier(prop), "filepath") == 0)
 				continue;
 			if(strcmp(RNA_property_identifier(prop), "directory") == 0)
 				continue;

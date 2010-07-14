@@ -75,6 +75,7 @@ EnumPropertyItem texture_type_items[] = {
 #include "RNA_access.h"
 
 #include "BKE_depsgraph.h"
+#include "BKE_image.h"
 #include "BKE_texture.h"
 #include "BKE_main.h"
 
@@ -131,6 +132,22 @@ static void rna_Texture_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_TEXTURE, tex);
 }
 
+static void rna_Texture_voxeldata_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Tex *tex= ptr->id.data;
+	
+	tex->vd->ok = 0;
+	rna_Texture_update(bmain, scene, ptr);
+}
+
+static void rna_Texture_voxeldata_image_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Tex *tex= ptr->id.data;
+	
+	tex->ima->source = IMA_SRC_SEQUENCE;
+	rna_Texture_voxeldata_update(bmain, scene, ptr);
+}
+
 /* Used for Texture Properties, used (also) for/in Nodes */
 static void rna_Texture_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -143,24 +160,8 @@ static void rna_Texture_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Texture_type_set(PointerRNA *ptr, int value)
 {
 	Tex *tex= (Tex*)ptr->data;
-
-	switch(value) {
-
-		case TEX_VOXELDATA:
-			if (tex->vd == NULL)
-				tex->vd = BKE_add_voxeldata();
-			break;
-		case TEX_POINTDENSITY:
-			if (tex->pd == NULL)
-				tex->pd = BKE_add_pointdensity();
-			break;
-		case TEX_ENVMAP:
-			if (tex->env == NULL)
-				tex->env = BKE_add_envmap();
-			break;
-	}
 	
-	tex->type = value;
+	tex_set_type(tex, value);
 }
 
 void rna_TextureSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1593,7 +1594,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "smoked_type");
 	RNA_def_property_enum_items(prop, smoked_type_items);
 	RNA_def_property_ui_text(prop, "Source", "Simulation value to be used as a texture");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 	
 	prop= RNA_def_property(srna, "extension", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "extend");
@@ -1611,34 +1612,34 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "file_format");
 	RNA_def_property_enum_items(prop, file_format_items);
 	RNA_def_property_ui_text(prop, "File Format", "Format of the source data set to render	");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 	
 	prop= RNA_def_property(srna, "source_path", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "source_path");
 	RNA_def_property_ui_text(prop, "Source Path", "The external source data file to use");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 	
 	prop= RNA_def_property(srna, "resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resol");
 	RNA_def_property_ui_text(prop, "Resolution", "Resolution of the voxel grid");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 	
 	prop= RNA_def_property(srna, "still", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_VD_STILL);
 	RNA_def_property_ui_text(prop, "Still Frame Only", "Always render a still frame from the voxel data sequence");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 	
 	prop= RNA_def_property(srna, "still_frame_number", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "still_frame");
 	RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Still Frame Number", "The frame number to always use");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 	
 	prop= RNA_def_property(srna, "domain_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_ui_text(prop, "Domain Object", "Object used as the smoke simulation domain");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 
 	
 	srna= RNA_def_struct(brna, "VoxelDataTexture", "Texture");
@@ -1656,12 +1657,12 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_image_update");
 	
 	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 }
 
 static void rna_def_texture(BlenderRNA *brna)
@@ -1704,6 +1705,11 @@ static void rna_def_texture(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 5);
 	RNA_def_property_ui_text(prop, "Contrast", "");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	prop= RNA_def_property(srna, "saturation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 2);
+	RNA_def_property_ui_text(prop, "Saturation", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	/* RGB Factor */

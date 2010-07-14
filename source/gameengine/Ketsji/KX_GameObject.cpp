@@ -1345,7 +1345,8 @@ static int mathutils_kxgameob_vector_set(BaseMathObject *bmo, int subtype)
 			self->NodeUpdateGS(0.f);
 			break;
 		case MATHUTILS_VEC_CB_SCALE_GLOBAL:
-			break;
+			PyErr_SetString(PyExc_AttributeError, "KX_GameObject.worldScale is read-only");
+			return 0;
 		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
 			/* read only */
 			break;
@@ -1386,9 +1387,7 @@ static int mathutils_kxgameob_vector_set_index(BaseMathObject *bmo, int subtype,
 		return 0;
 	
 	bmo->data[index]= f;
-	mathutils_kxgameob_vector_set(bmo, subtype);
-	
-	return 1;
+	return mathutils_kxgameob_vector_set(bmo, subtype);
 }
 
 Mathutils_Callback mathutils_kxgameob_vector_cb = {

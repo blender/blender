@@ -220,7 +220,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	char str[FILE_MAX];
 	short internal = RNA_int_get(op->ptr, "internal");
 
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 
 	text= add_text(str, G.sce);
 
@@ -268,11 +268,11 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Text *text= CTX_data_edit_text(C);
 	char *path= (text && text->name)? text->name: G.sce;
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
 	
 	open_init(C, op);
-	RNA_string_set(op->ptr, "path", path);
+	RNA_string_set(op->ptr, "filepath", path);
 	WM_event_add_fileselect(C, op); 
 
 	return OPERATOR_RUNNING_MODAL;
@@ -295,7 +295,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
 	RNA_def_boolean(ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
 }
 
@@ -494,7 +494,7 @@ static int save_as_exec(bContext *C, wmOperator *op)
 	if(!text)
 		return OPERATOR_CANCELLED;
 
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 
 	if(text->name) MEM_freeN(text->name);
 	text->name= BLI_strdup(str);
@@ -513,7 +513,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Text *text= CTX_data_edit_text(C);
 	char *str;
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return save_as_exec(C, op);
 
 	if(text->name)
@@ -523,7 +523,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else
 		str= G.sce;
 	
-	RNA_string_set(op->ptr, "path", str);
+	RNA_string_set(op->ptr, "filepath", str);
 	WM_event_add_fileselect(C, op); 
 
 	return OPERATOR_RUNNING_MODAL;
@@ -542,7 +542,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_SAVE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
 }
 
 /******************* run script operator *********************/

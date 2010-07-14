@@ -40,6 +40,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 
 
 static void initData(ModifierData *md) 
@@ -119,7 +120,7 @@ static void deformVerts(
 		CDDM_apply_vert_coords(dm, vertexCos);
 		CDDM_calc_normals(dm);
 		
-		current_time = bsystem_time (md->scene,  ob, ( float ) md->scene->r.cfra, 0.0 );
+		current_time = BKE_curframe(md->scene);
 		
 		if(G.rt > 0)
 			printf("current_time %f, collmd->time %f\n", current_time, collmd->time);

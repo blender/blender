@@ -383,6 +383,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_SCALE_RELATIVE		0
 #define CMP_SCALE_ABSOLUTE		1
 #define CMP_SCALE_SCENEPERCENT	2
+#define CMP_SCALE_RENDERPERCENT 3
 
 
 /* the type definitions array */

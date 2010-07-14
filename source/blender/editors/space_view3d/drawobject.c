@@ -773,9 +773,7 @@ static void drawshadbuflimits(Lamp *la, float mat[][4])
 {
 	float sta[3], end[3], lavec[3];
 
-	lavec[0]= -mat[2][0];
-	lavec[1]= -mat[2][1];
-	lavec[2]= -mat[2][2];
+	negate_v3_v3(lavec, mat[2]);
 	normalize_v3(lavec);
 
 	sta[0]= mat[3][0]+ la->clipsta*lavec[0];
@@ -870,25 +868,17 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 
 static void draw_spot_cone(Lamp *la, float x, float z)
 {
-	float vec[3];
-
 	z= fabs(z);
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0.0f, 0.0f, -x);
 
 	if(la->mode & LA_SQUARE) {
-		vec[0]= z;
-		vec[1]= z;
-		vec[2]= 0.0;
-
-		glVertex3fv(vec);
-		vec[1]= -z;
-		glVertex3fv(vec);
-		vec[0]= -z;
-		glVertex3fv(vec);
-		vec[1]= z;
-		glVertex3fv(vec);
+		glVertex3f(z, z, 0);
+		glVertex3f(-z, z, 0);
+		glVertex3f(-z, -z, 0);
+		glVertex3f(z, -z, 0);
+		glVertex3f(z, z, 0);
 	}
 	else {
 		float angle;
@@ -1077,17 +1067,20 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		/* draw the circle/square at the end of the cone */
 		glTranslatef(0.0, 0.0 ,  x);
 		if(la->mode & LA_SQUARE) {
-			vvec[0]= fabs(z);
-			vvec[1]= fabs(z);
-			vvec[2]= 0.0;
+			float tvec[3];
+			float z_abs= fabs(z);
+
+			tvec[0]= tvec[1]= z_abs;
+			tvec[2]= 0.0;
+
 			glBegin(GL_LINE_LOOP);
-				glVertex3fv(vvec);
-				vvec[1]= -fabs(z);
-				glVertex3fv(vvec);
-				vvec[0]= -fabs(z);
-				glVertex3fv(vvec);
-				vvec[1]= fabs(z);
-				glVertex3fv(vvec);
+				glVertex3fv(tvec);
+				tvec[1]= -z_abs; /* neg */
+				glVertex3fv(tvec);
+				tvec[0]= -z_abs; /* neg */
+				glVertex3fv(tvec);
+				tvec[1]= z_abs; /* pos */
+				glVertex3fv(tvec);
 			glEnd();
 		}
 		else circ(0.0, 0.0, fabs(z));
@@ -1104,6 +1097,22 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 
 		if(drawcone)
 			draw_transp_spot_volume(la, x, z);
+
+		/* draw clip start, useful for wide cones where its not obvious where the start is */
+		glTranslatef(0.0, 0.0 , -x); /* reverse translation above */
+		if(la->type==LA_SPOT && (la->mode & LA_SHAD_BUF) ) {
+			float lvec_clip[3];
+			float vvec_clip[3];
+			float clipsta_fac= la->clipsta / -x;
+
+			interp_v3_v3v3(lvec_clip, vec, lvec, clipsta_fac);
+			interp_v3_v3v3(vvec_clip, vec, vvec, clipsta_fac);
+
+			glBegin(GL_LINE_STRIP);
+				glVertex3fv(lvec_clip);
+				glVertex3fv(vvec_clip);
+			glEnd();
+		}
 	}
 	else if ELEM(la->type, LA_HEMI, LA_SUN) {
 		
@@ -2716,7 +2725,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 		
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_SOLID)==0)
-			dm->drawEdges(dm, (dt==OB_WIRE || totface==0), 0);
+			dm->drawEdges(dm, (dt==OB_WIRE || totface==0), me->drawflag & ME_ALLEDGES);
 
 		if (dt!=OB_WIRE && draw_wire==2) {
 			glDepthMask(1);
@@ -3918,6 +3927,20 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		cd2=cdata2=0;
 
 		glLineWidth(1.0f);
+
+		if((part->draw & PART_DRAW_NUM) && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0){
+			cache=psys->pathcache;
+
+			for(a=0, pa=psys->particles; a<totpart; a++, pa++){
+				float vec_txt[3];
+				val[0]= '\0';
+
+				sprintf(val, "%i", a);
+				/* use worldspace beause object matrix is alredy applied */
+				mul_v3_m4v3(vec_txt, ob->imat, cache[a]->co);
+				view3d_cached_text_draw_add(vec_txt[0],  vec_txt[1],  vec_txt[2], val, 10, V3D_CACHE_TEXT_WORLDSPACE);
+			}
+		}
 	}
 	else if(pdd && ELEM(draw_as, 0, PART_DRAW_CIRC)==0){
 		glDisableClientState(GL_COLOR_ARRAY);
@@ -4452,13 +4475,13 @@ static void tekenvertsN(Nurb *nu, short sel, short hide_handles, void *lastsel)
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if (bezt == lastsel) {
+				if (sel == 1 && bezt == lastsel) {
 					UI_ThemeColor(TH_LASTSEL_POINT);
 					bglVertex3fv(bezt->vec[1]);
 
 					if (!hide_handles) {
-						bglVertex3fv(bezt->vec[0]);
-						bglVertex3fv(bezt->vec[2]);
+						if(bezt->f1 & SELECT) bglVertex3fv(bezt->vec[0]);
+						if(bezt->f3 & SELECT) bglVertex3fv(bezt->vec[2]);
 					}
 
 					UI_ThemeColor(color);
@@ -4999,6 +5022,8 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	}
 
 	if(ml==NULL) return 1;
+
+	if(v3d->flag2 & V3D_RENDER_OVERRIDE) return 0;
 	
 	/* in case solid draw, reset wire colors */
 	if(ob->flag & SELECT) {
@@ -5533,6 +5558,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	if (ob!=scene->obedit) {
 		if (ob->restrictflag & OB_RESTRICT_VIEW) 
+			return;
+		if ((ob->restrictflag & OB_RESTRICT_RENDER) && 
+			(v3d->flag2 & V3D_RENDER_OVERRIDE))
 			return;
 	}
 
@@ -6135,7 +6163,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		}
 	}
 
-	if(dt<OB_SHADED) {
+	if(dt<OB_SHADED && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		if((ob->gameflag & OB_DYNAMIC) || 
 			((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE))) {
 			float imat[4][4], vec[3];

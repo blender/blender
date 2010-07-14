@@ -184,7 +184,7 @@ int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEven
 int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-		/* invoke callback, file selector "path" unset + exec */
+		/* invoke callback, file selector "filepath" unset + exec */
 int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
@@ -223,7 +223,7 @@ void		WM_operator_properties_sanitize(struct PointerRNA *ptr, int val); /* make 
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
-void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action);
+void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action, short flag);
 void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int extend);
 void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
@@ -233,6 +233,15 @@ void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 #define	SEL_SELECT		1
 #define SEL_DESELECT	2
 #define SEL_INVERT		3
+
+
+/* flags for WM_operator_properties_filesel */
+#define WM_FILESEL_RELPATH		(1 << 0)
+
+#define WM_FILESEL_DIRECTORY	(1 << 1)
+#define WM_FILESEL_FILENAME		(1 << 2)
+#define WM_FILESEL_FILEPATH		(1 << 3)
+
 
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
@@ -316,13 +325,17 @@ void		WM_jobs_callbacks(struct wmJob *,
 							  void (*endjob)(void *));
 
 void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
-void		WM_jobs_stop(struct wmWindowManager *wm, void *owner);
-void		WM_jobs_kill(struct wmWindowManager *wm, void *owner);
+void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);
+void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void *startjob);
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
 			/* clipboard */
 char		*WM_clipboard_text_get(int selection);
 void		WM_clipboard_text_set(char *buf, int selection);
+
+			/* progress */
+void		WM_progress_set(struct wmWindow *win, float progress);
+void		WM_progress_clear(struct wmWindow *win);
 
 #endif /* WM_API_H */
 

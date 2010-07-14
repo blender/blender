@@ -199,9 +199,9 @@ char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 /* this callback gets called when the 'refresh' button of a pyconstraint gets pressed */
 void update_pyconstraint_cb (void *arg1, void *arg2)
 {
+#ifndef DISABLE_PYTHON
 	Object *owner= (Object *)arg1;
 	bConstraint *con= (bConstraint *)arg2;
-#ifndef DISABLE_PYTHON
 	if (owner && con)
 		BPY_pyconstraint_update(owner, con);
 #endif
@@ -866,7 +866,7 @@ void CONSTRAINT_OT_move_down (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Constraint Down";
 	ot->idname= "CONSTRAINT_OT_move_down";
-	ot->description= "Move constraint down constraint stack";
+	ot->description= "Move constraint down in constraint stack";
 	
 	/* callbacks */
 	ot->exec= constraint_move_down_exec;
@@ -913,7 +913,7 @@ void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Constraint Up";
 	ot->idname= "CONSTRAINT_OT_move_up";
-	ot->description= "Move constraint up constraint stack";
+	ot->description= "Move constraint up in constraint stack";
 	
 	/* callbacks */
 	ot->exec= constraint_move_up_exec;
@@ -1286,9 +1286,9 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 			
 		case CONSTRAINT_TYPE_PYTHON: // FIXME: this code is not really valid anymore
 		{
+#ifndef DISABLE_PYTHON
 			char *menustr;
 			int scriptint= 0;
-#ifndef DISABLE_PYTHON
 			/* popup a list of usable scripts */
 			menustr = buildmenu_pyconstraints(NULL, &scriptint);
 			// XXX scriptint = pupmenu(menustr);

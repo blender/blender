@@ -356,6 +356,7 @@ static void scanline_separate_32bit(float *rectf, float *fbuf, int scanline_w, i
 }
 
 
+#if 0
 /* 
  * Use the libTIFF RGBAImage API to read a TIFF image.
  * This function uses the "RGBA Image" support from libtiff, which enables
@@ -387,6 +388,7 @@ static int imb_read_tiff_pixels_rgba(ImBuf *ibuf, TIFF *image, int premul)
 
 	return success;
 }
+#endif
 
 /* 
  * Use the libTIFF scanline API to read a TIFF image.
@@ -409,12 +411,6 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 	TIFFGetField(image, TIFFTAG_PLANARCONFIG, &config);
 	scanline = TIFFScanlineSize(image);
 	
-	/* if file has an unsupported channel count, use libTIFF to 
-	 * convert to an 8 bit RGBA image */
-	if (!ELEM(spp, 3, 4))
-		return imb_read_tiff_pixels_rgba(ibuf, image, premul);
-
-	
 	if (bitspersample == 32) {
 		ib_flag = IB_rectfloat;
 		fbuf = (float *)_TIFFmalloc(scanline);
@@ -427,7 +423,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 	}
 	
 	tmpibuf= IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->depth, ib_flag, 0);
-
+	
 	/* contiguous channels: RGBRGBRGB */
 	if (config == PLANARCONFIG_CONTIG) {
 		for (row = 0; row < ibuf->y; row++) {
@@ -510,6 +506,12 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 	IMB_freeImBuf(tmpibuf);
 	
 	return success;
+}
+
+void imb_inittiff(void)
+{
+	if (!(G.f & G_DEBUG))
+		TIFFSetErrorHandler(NULL);
 }
 
 /**

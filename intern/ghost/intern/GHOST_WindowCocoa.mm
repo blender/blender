@@ -732,7 +732,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 #ifdef MAC_OS_X_VERSION_10_6
 				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
 				//Hide menu & dock if needed
-				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]])
 				{
 					[NSApp setPresentationOptions:(NSApplicationPresentationHideDock | NSApplicationPresentationAutoHideMenuBar)];
 				}
@@ -743,7 +743,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 #else
 				//With 10.5, we need to create a new window to change its style to borderless
 				//Hide menu & dock if needed
-				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]])
 				{
 					//Cocoa function in 10.5 does not allow to set the menu bar in auto-show mode [NSMenu setMenuBarVisible:NO];
 					//One of the very few 64bit compatible Carbon function
@@ -1019,6 +1019,66 @@ GHOST_TSuccess GHOST_WindowCocoa::invalidate()
 	[pool drain];
 	return GHOST_kSuccess;
 }
+
+#pragma mark Progress bar
+
+GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	if ((progress >=0.0) && (progress <=1.0)) {
+		NSImage* dockIcon = [[NSImage alloc] initWithSize:NSMakeSize(128,128)];
+		
+		[dockIcon lockFocus];
+        NSRect progressBox = {{4, 4}, {120, 16}};
+
+        [[NSImage imageNamed:@"NSApplicationIcon"] dissolveToPoint:NSZeroPoint fraction:1.0];
+        
+        // Track & Outline
+        [[NSColor blackColor] setFill];
+        NSRectFill(progressBox);
+        
+        [[NSColor whiteColor] set];
+        NSFrameRect(progressBox);
+        
+        // Progress fill
+        progressBox = NSInsetRect(progressBox, 1, 1);
+        [[NSColor knobColor] setFill];
+        progressBox.size.width = progressBox.size.width * progress;
+		NSRectFill(progressBox);
+		
+		[dockIcon unlockFocus];
+		
+		[NSApp setApplicationIconImage:dockIcon];
+		[dockIcon release];
+		
+		m_progressBarVisible = true;
+	}
+	
+	[pool drain];
+	return GHOST_kSuccess;
+}
+
+
+GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
+{
+	if (!m_progressBarVisible) return GHOST_kFailure;
+	m_progressBarVisible = false;
+	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	NSImage* dockIcon = [[NSImage alloc] initWithSize:NSMakeSize(128,128)];
+	[dockIcon lockFocus];
+	[[NSImage imageNamed:@"NSApplicationIcon"] dissolveToPoint:NSZeroPoint fraction:1.0];
+	[dockIcon unlockFocus];
+	[NSApp setApplicationIconImage:dockIcon];
+	[dockIcon release];
+	
+	[pool drain];
+	return GHOST_kSuccess;
+}
+
+
 
 #pragma mark Cursor handling
 

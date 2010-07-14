@@ -93,13 +93,14 @@ extern void makeDispListCurveTypes(struct Scene *scene, struct Object *ob, int f
 extern void makeDispListCurveTypes_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, struct DerivedMesh **derivedFinal, int forOrco);
 extern void makeDispListCurveTypes_forOrco(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
 extern void makeDispListMBall(struct Scene *scene, struct Object *ob);
+extern void makeDispListMBall_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
 extern void shadeDispList(struct Scene *scene, struct Base *base);
 extern void shadeMeshMCol(struct Scene *scene, struct Object *ob, struct Mesh *me);
 
 int surfindex_displist(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
 void imagestodisplist(void);
 void reshadeall_displist(struct Scene *scene);
-void filldisplist(struct ListBase *dispbase, struct ListBase *to);
+void filldisplist(struct ListBase *dispbase, struct ListBase *to, int flipnormal);
 
 void fastshade_free_render(void);
 
