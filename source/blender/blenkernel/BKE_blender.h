@@ -43,9 +43,9 @@ struct bContext;
 struct ReportList;
 struct Scene;
 struct Main;
-	
+
 #define BLENDER_VERSION			252
-#define BLENDER_SUBVERSION		5
+#define BLENDER_SUBVERSION		6 // XXX: this shouldn't be merged with trunk, this is so Sculpt branch can detect old files
 
 #define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0

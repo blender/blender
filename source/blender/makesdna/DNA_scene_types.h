@@ -569,12 +569,30 @@ typedef struct Sculpt {
 	Paint paint;
 
 	/* For rotating around a pivot point */
-	float pivot[3];
+	//float pivot[3]; XXX not used?
 	int flags;
 
 	/* Control tablet input */
-	char tablet_size, tablet_strength;
-	char pad[6];
+	//char tablet_size, tablet_strength; XXX not used?
+	int radial_symm[3];
+
+	// all this below is used to communicate with the cursor drawing routine
+
+	/* record movement of mouse so that rake can start at an intuitive angle */
+	float last_x, last_y;
+	float last_angle;
+
+	int draw_anchored;
+	int   anchored_size;
+	float anchored_location[3];
+	float anchored_initial_mouse[2];
+
+	int draw_pressure;
+	float pressure_value;
+
+	float special_rotation;
+
+	int pad;
 } Sculpt;
 
 typedef struct VPaint {
@@ -1105,19 +1123,22 @@ typedef struct Scene {
 
 /* Paint.flags */
 typedef enum {
-	PAINT_SHOW_BRUSH = 1,
-	PAINT_FAST_NAVIGATE = 2
+	PAINT_SHOW_BRUSH = (1<<0),
+	PAINT_FAST_NAVIGATE = (1<<1),
+	PAINT_SHOW_BRUSH_ON_SURFACE = (1<<2),
 } PaintFlags;
 
 /* Sculpt.flags */
 /* These can eventually be moved to paint flags? */
 typedef enum SculptFlags {
-	SCULPT_SYMM_X = 1,
-	SCULPT_SYMM_Y = 2,
-	SCULPT_SYMM_Z = 4,
-	SCULPT_LOCK_X = 64,
-	SCULPT_LOCK_Y = 128,
-	SCULPT_LOCK_Z = 256
+	SCULPT_SYMM_X = (1<<0),
+	SCULPT_SYMM_Y = (1<<1),
+	SCULPT_SYMM_Z = (1<<2),
+	SCULPT_LOCK_X = (1<<3),
+	SCULPT_LOCK_Y = (1<<4),
+	SCULPT_LOCK_Z = (1<<5),
+	SCULPT_SYMMETRY_FEATHER = (1<<6),
+	SCULPT_USE_OPENMP = (1<<7),
 } SculptFlags;
 
 /* ImagePaintSettings.flag */

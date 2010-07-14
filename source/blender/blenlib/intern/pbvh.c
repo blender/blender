@@ -92,6 +92,11 @@ struct PBVHNode {
 	unsigned int uniq_verts, face_verts;
 
 	char flag;
+
+	float tmin; // used for raycasting, is how close bb is to the ray point
+
+	int proxy_count;
+	PBVHProxyNode* proxies;
 };
 
 struct PBVH {
@@ -227,6 +232,17 @@ static void update_node_vb(PBVH *bvh, PBVHNode *node)
 	node->vb= vb;
 }
 
+//void BLI_pbvh_node_BB_reset(PBVHNode* node)
+//{
+//	BB_reset(&node->vb);
+//}
+//
+//void BLI_pbvh_node_BB_expand(PBVHNode* node, float co[3])
+//{
+//	BB_expand(&node->vb, co);
+//}
+
+
 /* Adapted from BLI_kdopbvh.c */
 /* Returns the index of the first element on the right of the partition */
 static int partition_indices(int *prim_indices, int lo, int hi, int axis,
@@ -354,10 +370,10 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	if(!G.background) {
 		node->draw_buffers =
 			GPU_build_mesh_buffers(map, bvh->verts, bvh->faces,
-				  node->prim_indices,
-				  node->totprim, node->vert_indices,
-				  node->uniq_verts,
-				  node->uniq_verts + node->face_verts);
+					node->prim_indices,
+					node->totprim, node->vert_indices,
+					node->uniq_verts,
+					node->uniq_verts + node->face_verts);
 	}
 
 	node->flag |= PBVH_UpdateDrawBuffers;
@@ -641,13 +657,12 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
 {
 	PBVHNode *node;
 	int revisiting;
-	void *search_data;
 
 	/* purpose here is to traverse tree, visiting child nodes before their
 	   parents, this order is necessary for e.g. computing bounding boxes */
 
 	while(iter->stacksize) {
-		/* pop node */
+                /* pop node */
 		iter->stacksize--;
 		node= iter->stack[iter->stacksize].node;
 
@@ -662,10 +677,7 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
 		if(revisiting)
 			return node;
 
-		/* check search callback */
-		search_data= iter->search_data;
-
-		if(iter->scb && !iter->scb(node, search_data))
+		if(iter->scb && !iter->scb(node, iter->search_data))
 			continue; /* don't traverse, outside of search zone */
 
 		if(node->flag & PBVH_Leaf) {
@@ -683,6 +695,34 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
 	}
 
 	return NULL;
+}
+
+static PBVHNode *pbvh_iter_next_occluded(PBVHIter *iter)
+{
+    PBVHNode *node;
+
+    while(iter->stacksize) {
+        /* pop node */
+        iter->stacksize--;
+        node= iter->stack[iter->stacksize].node;
+
+        /* on a mesh with no faces this can happen
+        * can remove this check if we know meshes have at least 1 face */
+        if(node==NULL) return NULL;
+
+        if(iter->scb && !iter->scb(node, iter->search_data)) continue; /* don't traverse, outside of search zone */
+
+        if(node->flag & PBVH_Leaf) {
+            /* immediately hit leaf node */
+            return node;
+        }
+        else {
+            pbvh_stack_push(iter, iter->bvh->nodes+node->children_offset+1, 0);
+            pbvh_stack_push(iter, iter->bvh->nodes+node->children_offset, 0);
+        }
+    }
+
+    return NULL;
 }
 
 void BLI_pbvh_search_gather(PBVH *bvh,
@@ -736,10 +776,103 @@ void BLI_pbvh_search_callback(PBVH *bvh,
 	pbvh_iter_begin(&iter, bvh, scb, search_data);
 
 	while((node=pbvh_iter_next(&iter)))
-		if(node->flag & PBVH_Leaf)
+		if (node->flag & PBVH_Leaf)
 			hcb(node, hit_data);
 
 	pbvh_iter_end(&iter);
+}
+
+typedef struct node_tree {
+    PBVHNode* data;
+
+    struct node_tree* left;
+    struct node_tree* right;
+} node_tree;
+
+static void node_tree_insert(node_tree* tree, node_tree* new_node)
+{
+    if (new_node->data->tmin < tree->data->tmin) {
+        if (tree->left) {
+            node_tree_insert(tree->left, new_node);
+        }
+        else {
+            tree->left = new_node;
+        }
+    }
+    else {
+        if (tree->right) {
+            node_tree_insert(tree->right, new_node);
+        }
+        else {
+            tree->right = new_node;
+        }
+    }
+}
+
+static void traverse_tree(node_tree* tree, BLI_pbvh_HitOccludedCallback hcb, void* hit_data, float* tmin)
+{
+    if (tree->left) traverse_tree(tree->left, hcb, hit_data, tmin);
+
+    hcb(tree->data, hit_data, tmin);
+
+    if (tree->right) traverse_tree(tree->right, hcb, hit_data, tmin);
+}
+
+static void free_tree(node_tree* tree)
+{
+    if (tree->left) {
+        free_tree(tree->left);
+        tree->left = 0;
+    }
+
+    if (tree->right) {
+        free_tree(tree->right);
+        tree->right = 0;
+    }
+
+    free(tree);
+}
+
+float BLI_pbvh_node_get_tmin(PBVHNode* node)
+{
+    return node->tmin;
+}
+
+void BLI_pbvh_search_callback_occluded(PBVH *bvh,
+	BLI_pbvh_SearchCallback scb, void *search_data,
+	BLI_pbvh_HitOccludedCallback hcb, void *hit_data)
+{
+	PBVHIter iter;
+	PBVHNode *node;
+	node_tree *tree = 0;
+
+	pbvh_iter_begin(&iter, bvh, scb, search_data);
+
+	while((node=pbvh_iter_next_occluded(&iter))) {
+		if(node->flag & PBVH_Leaf) {
+			node_tree* new_node = malloc(sizeof(node_tree));
+
+			new_node->data = node;
+
+			new_node->left  = NULL;
+			new_node->right = NULL;
+
+			if (tree) {
+				node_tree_insert(tree, new_node);
+			}
+			else {
+				tree = new_node;
+			}
+		}
+	}
+
+	pbvh_iter_end(&iter);
+
+	if (tree) {
+		float tmin = FLT_MAX;
+		traverse_tree(tree, hcb, hit_data, &tmin);
+		free_tree(tree);
+	}
 }
 
 static int update_search_cb(PBVHNode *node, void *data_v)
@@ -985,7 +1118,8 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	GHashIterator *hiter;
 	GHash *map;
 	void *face, **faces;
-	int i, tot;
+	unsigned i;
+        int tot;
 
 	map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "pbvh_get_grid_updates gh");
 
@@ -1086,6 +1220,18 @@ void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max
 	copy_v3_v3(bb_max, node->orig_vb.bmax);
 }
 
+void BLI_pbvh_node_get_proxies(PBVHNode* node, PBVHProxyNode** proxies, int* proxy_count)
+{
+	if (node->proxy_count > 0) {
+		if (proxies) *proxies = node->proxies;
+		if (proxy_count) *proxy_count = node->proxy_count;
+	}
+	else {
+		if (proxies) *proxies = 0;
+		if (proxy_count) *proxy_count = 0;
+	}
+}
+
 /********************************* Raycast ***********************************/
 
 typedef struct {
@@ -1100,16 +1246,13 @@ typedef struct {
 static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 {
 	RaycastData *ray = data_v;
-	float bb_min[3], bb_max[3], bbox[2][3];
+	float bbox[2][3];
 	float tmin, tmax, tymin, tymax, tzmin, tzmax;
 
 	if(ray->original)
-		BLI_pbvh_node_get_original_BB(node, bb_min, bb_max);
+		BLI_pbvh_node_get_original_BB(node, bbox[0], bbox[1]);
 	else
-		BLI_pbvh_node_get_BB(node, bb_min, bb_max);
-	
-	copy_v3_v3(bbox[0], bb_min);
-	copy_v3_v3(bbox[1], bb_max);
+		BLI_pbvh_node_get_BB(node, bbox[0], bbox[1]);
 
 	tmin = (bbox[ray->sign[0]][0] - ray->start[0]) * ray->inv_dir[0];
 	tmax = (bbox[1-ray->sign[0]][0] - ray->start[0]) * ray->inv_dir[0];
@@ -1119,8 +1262,10 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 
 	if((tmin > tymax) || (tymin > tmax))
 		return 0;
+
 	if(tymin > tmin)
 		tmin = tymin;
+
 	if(tymax < tmax)
 		tmax = tymax;
 
@@ -1129,20 +1274,20 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 
 	if((tmin > tzmax) || (tzmin > tmax))
 		return 0;
-	
+
+	if(tzmin > tmin)
+		tmin = tzmin;
+
+	// XXX jwilkins: tmax does not need to be updated since we don't use it
+	// keeping this here for future reference
+	//if(tzmax < tmax) tmax = tzmax; 
+
+	node->tmin = tmin;
+
 	return 1;
-
-	/* XXX: Not sure about this? 
-	   if(tzmin > tmin)
-	   tmin = tzmin;
-	   if(tzmax < tmax)
-	   tmax = tzmax;
-	   return ((tmin < t1) && (tmax > t0));
-	*/
-
 }
 
-void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
+void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
 			  float ray_start[3], float ray_normal[3], int original)
 {
 	RaycastData rcd;
@@ -1156,37 +1301,24 @@ void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
 	rcd.sign[2] = rcd.inv_dir[2] < 0;
 	rcd.original = original;
 
-	BLI_pbvh_search_callback(bvh, ray_aabb_intersect, &rcd, cb, data);
+	BLI_pbvh_search_callback_occluded(bvh, ray_aabb_intersect, &rcd, cb, data);
 }
 
-/* XXX: Code largely copied from bvhutils.c, could be unified */
-/* Returns 1 if a better intersection has been found */
 static int ray_face_intersection(float ray_start[3], float ray_normal[3],
 				 float *t0, float *t1, float *t2, float *t3,
 				 float *fdist)
 {
-	int hit = 0;
+    float dist;
 
-	do
-	{	
-		float dist = FLT_MAX;
-			
-		if(!isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2,
-					 &dist, NULL, 0.1f))
-			dist = FLT_MAX;
-
-		if(dist >= 0 && dist < *fdist) {
-			hit = 1;
-			*fdist = dist;
-		}
-
-		t1 = t2;
-		t2 = t3;
-		t3 = NULL;
-
-	} while(t2);
-
-	return hit;
+    if ((isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2, &dist, NULL, 0.1f) && dist < *fdist) ||
+        (t3 && isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t2, t3, &dist, NULL, 0.1f) && dist < *fdist))
+    {
+        *fdist = dist;
+        return 1;
+    }
+    else {
+        return 0;
+    }
 }
 
 int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
@@ -1398,4 +1530,87 @@ void BLI_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
 int BLI_pbvh_isDeformed(PBVH *pbvh)
 {
 	return pbvh->deformed;
+}
+/* Proxies */
+
+PBVHProxyNode* BLI_pbvh_node_add_proxy(PBVH* bvh, PBVHNode* node)
+{
+	int index, totverts;
+
+	#pragma omp critical
+	{
+
+		index = node->proxy_count;
+
+		node->proxy_count++;
+
+		if (node->proxies)
+			node->proxies= MEM_reallocN(node->proxies, node->proxy_count*sizeof(PBVHProxyNode));
+		else
+			node->proxies= MEM_mallocN(sizeof(PBVHProxyNode), "PBVHNodeProxy");
+
+		if (bvh->grids)
+			totverts = node->totprim*bvh->gridsize*bvh->gridsize;
+		else
+			totverts = node->uniq_verts;
+
+		node->proxies[index].co= MEM_callocN(sizeof(float[3])*totverts, "PBVHNodeProxy.co");
+	}
+
+	return node->proxies + index;
+}
+
+void BLI_pbvh_node_free_proxies(PBVHNode* node)
+{
+	#pragma omp critical
+	{
+		int p;
+
+		for (p= 0; p < node->proxy_count; p++) {
+			MEM_freeN(node->proxies[p].co);
+			node->proxies[p].co= 0;
+		}
+
+		MEM_freeN(node->proxies);
+		node->proxies = 0;
+
+		node->proxy_count= 0;
+	}
+}
+
+void BLI_pbvh_gather_proxies(PBVH* pbvh, PBVHNode*** r_array,  int* r_tot)
+{
+	PBVHNode **array= NULL, **newarray, *node;
+	int tot= 0, space= 0;
+	int n;
+
+	for (n= 0; n < pbvh->totnode; n++) {
+		node = pbvh->nodes + n;
+
+		if(node->proxy_count > 0) {
+			if(tot == space) {
+				/* resize array if needed */
+				space= (tot == 0)? 32: space*2;
+				newarray= MEM_callocN(sizeof(PBVHNode)*space, "BLI_pbvh_gather_proxies");
+
+				if (array) {
+					memcpy(newarray, array, sizeof(PBVHNode)*tot);
+					MEM_freeN(array);
+				}
+
+				array= newarray;
+			}
+
+			array[tot]= node;
+			tot++;
+		}
+	}
+
+	if(tot == 0 && array) {
+		MEM_freeN(array);
+		array= NULL;
+	}
+
+	*r_array= array;
+	*r_tot= tot;
 }

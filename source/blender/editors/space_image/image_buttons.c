@@ -792,7 +792,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
 
 	if(!compact)
-		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL);
+		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL, NULL);
 
 	// XXX missing: reload, pack
 

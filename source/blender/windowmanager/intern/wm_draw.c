@@ -389,6 +389,7 @@ static void wm_draw_triple_free(wmWindow *win)
 		wmDrawTriple *triple= win->drawdata;
 
 		glDeleteTextures(triple->nx*triple->ny, triple->bind);
+
 		MEM_freeN(triple);
 
 		win->drawdata= NULL;
@@ -560,7 +561,8 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	else {
 		win->drawdata= MEM_callocN(sizeof(wmDrawTriple), "wmDrawTriple");
 
-		if(!wm_triple_gen_textures(win, win->drawdata)) {
+		if(!wm_triple_gen_textures(win, win->drawdata))
+		{
 			wm_draw_triple_fail(C, win);
 			return;
 		}

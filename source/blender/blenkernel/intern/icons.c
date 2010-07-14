@@ -38,6 +38,7 @@
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
+#include "DNA_brush_types.h"
 
 #include "BLI_ghash.h"
 
@@ -120,6 +121,7 @@ struct PreviewImage* BKE_previewimg_create()
 
 	for (i=0; i<PREVIEW_MIPMAPS; ++i) {
 		prv_img->changed[i] = 1;
+		prv_img->changed_timestamp[i] = 0;
 	}
 	return prv_img;
 }
@@ -202,7 +204,7 @@ PreviewImage* BKE_previewimg_get(ID *id)
 		Image *img  = (Image*)id;
 		if (!img->preview) img->preview = BKE_previewimg_create();
 		prv_img = img->preview;
-	} 
+	}
 
 	return prv_img;
 }
@@ -224,6 +226,7 @@ void BKE_icon_changed(int id)
 			int i;
 			for (i=0; i<PREVIEW_MIPMAPS; ++i) {
 				prv->changed[i] = 1;
+				prv->changed_timestamp[i]++;
 			}
 		}
 	}	

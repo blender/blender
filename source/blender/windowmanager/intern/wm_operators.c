@@ -61,6 +61,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h" /* BKE_ST_MAXNAME */
 #include "BKE_utildefines.h"
+#include "BKE_brush.h" // JW
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
@@ -69,6 +70,7 @@
 
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_view3d.h" // JW
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -2595,19 +2597,28 @@ typedef struct wmRadialControl {
 	GLuint tex;
 } wmRadialControl;
 
+extern Paint *paint_get_active(Scene *sce);
+extern struct Brush *paint_brush(struct Paint *paint);
+
 static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 {
 	wmRadialControl *rc = (wmRadialControl*)customdata;
 	ARegion *ar = CTX_wm_region(C);
 	float r1=0.0f, r2=0.0f, r3=0.0f, angle=0.0f;
 
-	/* Keep cursor in the original place */
-	x = rc->initial_mouse[0] - ar->winrct.xmin;
-	y = rc->initial_mouse[1] - ar->winrct.ymin;
+	Paint *paint = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(paint);
 
-	glPushMatrix();
-	
-	glTranslatef((float)x, (float)y, 0.0f);
+	ViewContext vc;
+
+	int hit = 0;
+
+	int flip;
+	int sign;
+
+	float* col;
+
+	const float str = rc->mode == WM_RADIALCONTROL_STRENGTH ? (rc->value + 0.5) : (brush->texture_overlay_alpha / 100.0f);
 
 	if(rc->mode == WM_RADIALCONTROL_SIZE) {
 		r1= rc->value;
@@ -2615,29 +2626,37 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 		r3= r1;
 	} else if(rc->mode == WM_RADIALCONTROL_STRENGTH) {
 		r1= (1 - rc->value) * WM_RADIAL_CONTROL_DISPLAY_SIZE;
-		r2= WM_RADIAL_CONTROL_DISPLAY_SIZE;
-		r3= WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		r2= r3= WM_RADIAL_CONTROL_DISPLAY_SIZE;
 	} else if(rc->mode == WM_RADIALCONTROL_ANGLE) {
-		r1= r2= WM_RADIAL_CONTROL_DISPLAY_SIZE;
-		r3= WM_RADIAL_CONTROL_DISPLAY_SIZE;
+		r1= r2= r3= WM_RADIAL_CONTROL_DISPLAY_SIZE;
 		angle = rc->value;
 	}
 
-	glColor4ub(255, 255, 255, 128);
-	glEnable( GL_LINE_SMOOTH );
+	/* Keep cursor in the original place */
+	x = rc->initial_mouse[0] - ar->winrct.xmin;
+	y = rc->initial_mouse[1] - ar->winrct.ymin;
+
+	view3d_set_viewcontext(C, &vc);
+
+	// XXX: no way currently to know state of pen flip or invert key modifier without starting a stroke
+	flip = 1;
+
+	sign = flip * ((brush->flag & BRUSH_DIR_IN)? -1 : 1);
+
+	if (sign < 0 && ELEM4(brush->sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY, SCULPT_TOOL_PINCH))
+		col = brush->sub_col;
+	else
+		col = brush->add_col;
+
+	glTranslatef((float)x, (float)y, 0.0f);
+
 	glEnable(GL_BLEND);
 
-	if(rc->mode == WM_RADIALCONTROL_ANGLE)
-		fdrawline(0, 0, WM_RADIAL_CONTROL_DISPLAY_SIZE, 0);
+	if(rc->mode == WM_RADIALCONTROL_ANGLE) {
+		glRotatef(angle, 0, 0, 1);
+	}
 
-	if(rc->tex) {
-		const float str = rc->mode == WM_RADIALCONTROL_STRENGTH ? (rc->value + 0.5) : 1;
-
-		if(rc->mode == WM_RADIALCONTROL_ANGLE) {
-			glRotatef(angle, 0, 0, 1);
-			fdrawline(0, 0, WM_RADIAL_CONTROL_DISPLAY_SIZE, 0);
-		}
-
+	if (rc->tex) {
 		glBindTexture(GL_TEXTURE_2D, rc->tex);
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -2645,7 +2664,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 
 		glEnable(GL_TEXTURE_2D);
 		glBegin(GL_QUADS);
-		glColor4f(0,0,0, str);
+		glColor4f(U.sculpt_paint_overlay_col[0],U.sculpt_paint_overlay_col[1],U.sculpt_paint_overlay_col[2], str);
 		glTexCoord2f(0,0);
 		glVertex2f(-r3, -r3);
 		glTexCoord2f(1,0);
@@ -2658,11 +2677,20 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 		glDisable(GL_TEXTURE_2D);
 	}
 
-	glColor4ub(255, 255, 255, 128);	
+	if(rc->mode == WM_RADIALCONTROL_ANGLE) {
+		glColor4f(col[0], col[1], col[2], 0.5f);
+		glEnable(GL_LINE_SMOOTH);
+		glRotatef(-angle, 0, 0, 1);
+		fdrawline(0, 0, WM_RADIAL_CONTROL_DISPLAY_SIZE, 0);
+		glRotatef(angle, 0, 0, 1);
+		fdrawline(0, 0, WM_RADIAL_CONTROL_DISPLAY_SIZE, 0);
+		glDisable(GL_LINE_SMOOTH);
+	}
+
+	glColor4f(col[0], col[1], col[2], 0.5f);
 	glutil_draw_lined_arc(0.0, M_PI*2.0, r1, 40);
 	glutil_draw_lined_arc(0.0, M_PI*2.0, r2, 40);
 	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
 	
 	glPopMatrix();
 }
@@ -2674,6 +2702,7 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 	float dist;
 	double new_value = RNA_float_get(op->ptr, "new_value");
 	int ret = OPERATOR_RUNNING_MODAL;
+	float initial_value = RNA_float_get(op->ptr, "initial_value");
 
 	mode = RNA_int_get(op->ptr, "mode");
 	RNA_int_get_array(op->ptr, "initial_mouse", initial_mouse);
@@ -2682,6 +2711,16 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 	case MOUSEMOVE:
 		delta[0]= initial_mouse[0] - event->x;
 		delta[1]= initial_mouse[1] - event->y;
+
+		//if (mode == WM_RADIALCONTROL_SIZE) 
+		//	delta[0]+= initial_value;
+		//else if(mode == WM_RADIALCONTROL_STRENGTH)
+		//	delta[0]+= WM_RADIAL_CONTROL_DISPLAY_SIZE * (1 - initial_value);
+		//else if(mode == WM_RADIALCONTROL_ANGLE) {
+		//	delta[0]+= WM_RADIAL_CONTROL_DISPLAY_SIZE * cos(initial_value*M_PI/180.0f);
+		//	delta[1]+= WM_RADIAL_CONTROL_DISPLAY_SIZE * sin(initial_value*M_PI/180.0f);
+		//}
+
 		dist= sqrt(delta[0]*delta[0]+delta[1]*delta[1]);
 
 		if(mode == WM_RADIALCONTROL_SIZE)
@@ -2728,6 +2767,11 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 	
 	ED_region_tag_redraw(CTX_wm_region(C));
 
+	//if (ret != OPERATOR_RUNNING_MODAL) {
+	//	wmWindow *win = CTX_wm_window(C);
+	//	WM_cursor_restore(win);
+	//}
+
 	return ret;
 }
 
@@ -2735,9 +2779,14 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmRadialControl *rc = MEM_callocN(sizeof(wmRadialControl), "radial control");
+	wmWindow *win = CTX_wm_window(C);
 	int mode = RNA_int_get(op->ptr, "mode");
 	float initial_value = RNA_float_get(op->ptr, "initial_value");
+	//float initial_size = RNA_float_get(op->ptr, "initial_size");
 	int mouse[2] = {event->x, event->y};
+
+	//if (initial_size == 0)
+	//	initial_size = WM_RADIAL_CONTROL_DISPLAY_SIZE;
 
 	if(mode == WM_RADIALCONTROL_SIZE) {
 		rc->max_value = 200;
@@ -2774,6 +2823,8 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rc->initial_mouse[1] = mouse[1];
 	rc->cursor = WM_paint_cursor_activate(CTX_wm_manager(C), op->type->poll,
 						  wm_radial_control_paint, op->customdata);
+
+	//WM_cursor_modal(win, CURSOR_NONE);
 
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);

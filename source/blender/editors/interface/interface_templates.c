@@ -42,6 +42,7 @@
 #include "BKE_main.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_report.h"
 
 #include "ED_screen.h"
 #include "ED_render.h"
@@ -141,6 +142,8 @@ typedef struct TemplateID {
 
 	ListBase *idlb;
 	int prv_rows, prv_cols;
+
+	char filterop[64];
 } TemplateID;
 
 /* Search browse menu, assign  */
@@ -170,15 +173,53 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 	/* ID listbase */
 	for(id= lb->first; id; id= id->next) {
 		if(!((flag & PROP_ID_SELF_CHECK) && id == id_from)) {
+			int filter_yes;
 
-			/* hide dot-datablocks */
-			if(U.uiflag & USER_HIDE_DOT)
+			filter_yes= 0;
+
+			/* use filter */
+			if (template->filterop[0] != 0) {
+				PointerRNA ptr;
+				ReportList reports;
+				FunctionRNA *func;
+				ParameterList parms;
+
+				RNA_id_pointer_create(id, &ptr);
+
+				BKE_reports_init(&reports, RPT_PRINT);
+
+				func= RNA_struct_find_function(&ptr, template->filterop);
+
+				if (func) {
+					RNA_parameter_list_create(&parms, &ptr, func);
+
+					RNA_parameter_set_lookup(&parms, "context", &C);
+
+					if (RNA_function_call(C, &reports, &ptr, func, &parms) == 0) {
+						int* ret;
+						RNA_parameter_get_lookup(&parms, "ret", &ret);
+
+						if (!(*ret)) {
+							RNA_parameter_list_free(&parms);
+							continue;
+						}
+						else {
+							filter_yes= 1;
+						}
+					}
+
+					RNA_parameter_list_free(&parms);
+				}
+			}
+
+			/* hide dot-datablocks, but only if filter does not force it visible */
+			if(!filter_yes && U.uiflag & USER_HIDE_DOT)
 				if ((id->name[2]=='.') && (str[0] != '.'))
 					continue;
 
 			if(BLI_strcasestr(id->name+2, str)) {
 				iconid= ui_id_icon_get((bContext*)C, id, 1);
-                
+
 				if(!uiSearchItemAdd(items, id->name+2, id, iconid))
 					break;
 			}
@@ -340,7 +381,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 	}
 }
 
-static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag, char *newop, char *openop, char *unlinkop)
+static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag, char *newop, char *openop, char *unlinkop, char *filterop)
 {
 	uiBut *but;
 	uiBlock *block;
@@ -480,7 +521,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	uiBlockEndAlign(block);
 }
 
-static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, int flag, int prv_rows, int prv_cols)
+static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, char* filterop, int flag, int prv_rows, int prv_cols)
 {
 	TemplateID *template;
 	PropertyRNA *prop;
@@ -498,7 +539,12 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 	template->prop= prop;
 	template->prv_rows = prv_rows;
 	template->prv_cols = prv_cols;
-	
+
+	if (filterop) 
+		BLI_strncpy(template->filterop, filterop, sizeof(template->filterop));
+	else
+		template->filterop[0] = 0;
+
 	if(newop)
 		flag |= UI_ID_ADD_NEW;
 	if(openop)
@@ -512,26 +558,25 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 	 */
 	if(template->idlb) {
 		uiLayoutRow(layout, 1);
-		template_ID(C, layout, template, type, flag, newop, openop, unlinkop);
+		template_ID(C, layout, template, type, flag, newop, openop, unlinkop, filterop);
 	}
 
 	MEM_freeN(template);
-	
 }
 
-void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
+void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, char *filterop)
 {
-	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_DELETE, 0, 0);
+	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, filterop, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_DELETE, 0, 0);
 }
 
-void uiTemplateIDBrowse(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
+void uiTemplateIDBrowse(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, char *filterop)
 {
-	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, UI_ID_BROWSE|UI_ID_RENAME, 0, 0);
+	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, filterop, UI_ID_BROWSE|UI_ID_RENAME, 0, 0);
 }
 
-void uiTemplateIDPreview(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, int rows, int cols)
+void uiTemplateIDPreview(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, char *filterop, int rows, int cols)
 {
-	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_DELETE|UI_ID_PREVIEWS, rows, cols);
+	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, filterop, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_DELETE|UI_ID_PREVIEWS, rows, cols);
 }
 
 /************************ ID Chooser Template ***************************/

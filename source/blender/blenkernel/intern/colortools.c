@@ -126,6 +126,9 @@ CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, floa
 		cumap->cm[a].curve[1].x= maxx;
 		cumap->cm[a].curve[1].y= maxy;
 	}	
+
+	cumap->changed_timestamp = 0;
+
 	return cumap;
 }
 
@@ -240,10 +243,12 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset)
 
 	switch(preset) {
 		case CURVE_PRESET_LINE: cuma->totpoint= 2; break;
-		case CURVE_PRESET_SHARP: cuma->totpoint= 3; break;
+		case CURVE_PRESET_SHARP: cuma->totpoint= 4; break;
 		case CURVE_PRESET_SMOOTH: cuma->totpoint= 4; break;
 		case CURVE_PRESET_MAX: cuma->totpoint= 2; break;
-		case CURVE_PRESET_MID9: cuma->totpoint= 9;
+		case CURVE_PRESET_MID9: cuma->totpoint= 9; break;
+		case CURVE_PRESET_ROUND: cuma->totpoint= 4; break;
+		case CURVE_PRESET_ROOT: cuma->totpoint= 4; break;
 	}
 
 	cuma->curve= MEM_callocN(cuma->totpoint*sizeof(CurveMapPoint), "curve points");
@@ -251,27 +256,29 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset)
 	switch(preset) {
 		case CURVE_PRESET_LINE:
 			cuma->curve[0].x= clipr->xmin;
-			cuma->curve[0].y= clipr->ymin;
+			cuma->curve[0].y= clipr->ymax;
 			cuma->curve[0].flag= 0;
 			cuma->curve[1].x= clipr->xmax;
-			cuma->curve[1].y= clipr->ymax;
+			cuma->curve[1].y= clipr->ymin;
 			cuma->curve[1].flag= 0;
 			break;
 		case CURVE_PRESET_SHARP:
 			cuma->curve[0].x= 0;
 			cuma->curve[0].y= 1;
-			cuma->curve[1].x= 0.33;
-			cuma->curve[1].y= 0.33;
-			cuma->curve[2].x= 1;
-			cuma->curve[2].y= 0;
+			cuma->curve[1].x= 0.25;
+			cuma->curve[1].y= 0.50;
+			cuma->curve[2].x= 0.75;
+			cuma->curve[2].y= 0.04;
+			cuma->curve[3].x= 1;
+			cuma->curve[3].y= 0;
 			break;
 		case CURVE_PRESET_SMOOTH:
 			cuma->curve[0].x= 0;
 			cuma->curve[0].y= 1;
 			cuma->curve[1].x= 0.25;
-			cuma->curve[1].y= 0.92;
+			cuma->curve[1].y= 0.94;
 			cuma->curve[2].x= 0.75;
-			cuma->curve[2].y= 0.08;
+			cuma->curve[2].y= 0.06;
 			cuma->curve[3].x= 1;
 			cuma->curve[3].y= 0;
 			break;
@@ -290,8 +297,29 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset)
 					cuma->curve[i].y= 0.5;
 				}
 			}
+			break;
+		case CURVE_PRESET_ROUND:
+			cuma->curve[0].x= 0;
+			cuma->curve[0].y= 1;
+			cuma->curve[1].x= 0.5;
+			cuma->curve[1].y= 0.90;
+			cuma->curve[2].x= 0.86;
+			cuma->curve[2].y= 0.5;
+			cuma->curve[3].x= 1;
+			cuma->curve[3].y= 0;
+			break;
+		case CURVE_PRESET_ROOT:
+			cuma->curve[0].x= 0;
+			cuma->curve[0].y= 1;
+			cuma->curve[1].x= 0.25;
+			cuma->curve[1].y= 0.95;
+			cuma->curve[2].x= 0.75;
+			cuma->curve[2].y= 0.44;
+			cuma->curve[3].x= 1;
+			cuma->curve[3].y= 0;
+			break;
 	}
-	
+
 	if(cuma->table) {
 		MEM_freeN(cuma->table);
 		cuma->table= NULL;
@@ -619,7 +647,9 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 	float thresh= 0.01f*(clipr->xmax - clipr->xmin);
 	float dx= 0.0f, dy= 0.0f;
 	int a;
-	
+
+	cumap->changed_timestamp++;
+
 	/* clamp with clip */
 	if(cumap->flag & CUMA_DO_CLIP) {
 		for(a=0; a<cuma->totpoint; a++) {
@@ -701,7 +731,7 @@ float curvemapping_evaluateF(CurveMapping *cumap, int cur, float value)
 	if(cuma->table==NULL) {
 		curvemap_make_table(cuma, &cumap->clipr);
 		if(cuma->table==NULL)
-			return value;
+			return 1.0f-value;
 	}
 	return curvemap_evaluateF(cuma, value);
 }
