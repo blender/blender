@@ -243,8 +243,8 @@ static void make_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
 	}
 	else {
 		snap->brush_map_mode = -1;
-		snap->ofs[0]= snap->ofs[0]= snap->ofs[0]= -1;
-		snap->size[0]= snap->size[0]= snap->size[0]= -1;
+		snap->ofs[0]= snap->ofs[1]= snap->ofs[2]= -1;
+		snap->size[0]= snap->size[1]= snap->size[2]= -1;
 		snap->rot = -1;
 	}
 
