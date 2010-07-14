@@ -197,7 +197,7 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 
 					if (RNA_function_call(C, &reports, &ptr, func, &parms) == 0) {
 						int* ret;
-						RNA_parameter_get_lookup(&parms, "ret", &ret);
+						RNA_parameter_get_lookup(&parms, "ret", (void **)&ret);
 
 						if (!(*ret)) {
 							RNA_parameter_list_free(&parms);
