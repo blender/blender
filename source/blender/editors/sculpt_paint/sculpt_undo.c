@@ -1,5 +1,5 @@
 /*
- * $Id: sculpt.c 29425 2010-06-12 15:05:19Z jwilkins $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
