@@ -19,6 +19,7 @@ incs += ' #source/gameengine/GameLogic #source/gameengine/Expressions #source/ga
 incs += ' #source/gameengine/SceneGraph #source/gameengine/Physics/common #source/gameengine/Physics/Bullet'
 incs += ' #source/gameengine/Physics/Dummy'
 incs += ' #source/blender/misc #source/blender/blenloader #extern/glew/include #source/blender/gpu'
+incs += ' #source/blender/bmesh'
 
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']

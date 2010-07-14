@@ -1,3 +1,4 @@
+#if 0
 /**
  * BME_customdata.c    jan 2007
  *
@@ -197,3 +198,4 @@ void BME_CD_set_default(BME_CustomData *data, void **block)
 			typeInfo->set_default((char*)*block + offset, 1);
 	}
 }
+#endif

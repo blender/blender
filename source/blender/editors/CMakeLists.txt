@@ -27,21 +27,6 @@
 FILE(GLOB SRC */*.c)
 
 SET(INC ../windowmanager
-<<<<<<< .working
-  ../editors/include
-  ../../../intern/guardedalloc ../../../intern/memutil
-  ../blenlib ../makesdna ../makesrna ../blenkernel
-  ../include ../imbuf ../render/extern/include
-  ../../../intern/bsp/extern ../radiosity/extern/include
-  ../../../intern/decimation/extern ../blenloader ../python
-  ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
-  ../quicktime ../../../intern/elbeem/extern
-  ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include ../../../intern/smoke/extern
-  ../nodes ../bmesh
-  ../gpu
-  ../blenfont
-  ${SDL_INC}
-=======
 	../editors/include ../editors/interface
 	../../../intern/guardedalloc ../../../intern/memutil
 	../blenlib ../makesdna ../makesrna ../blenkernel
@@ -49,13 +34,12 @@ SET(INC ../windowmanager
 	../../../intern/bsp/extern
 	../../../intern/decimation/extern ../blenloader ../python
 	../../kernel/gen_system ../readstreamglue
-	../../../intern/elbeem/extern
+	../../../intern/elbeem/extern ../bmesh
 	../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include ../../../intern/smoke/extern
 	../../../intern/audaspace/intern
 	../nodes
 	../gpu
 	../blenfont
->>>>>>> .merge-right.r27259
 	../ikplugin
 )
 
@@ -66,25 +50,25 @@ IF(WITH_GAMEENGINE)
 ENDIF(WITH_GAMEENGINE)
 
 IF(WITH_INTERNATIONAL)
-  ADD_DEFINITIONS(-DINTERNATIONAL)
+	ADD_DEFINITIONS(-DINTERNATIONAL)
 ENDIF(WITH_INTERNATIONAL)
 
 IF(WITH_OPENEXR)
-  ADD_DEFINITIONS(-DWITH_OPENEXR)
+	ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_OPENJPEG)
-  ADD_DEFINITIONS(-DWITH_OPENJPEG)
+	ADD_DEFINITIONS(-DWITH_OPENJPEG)
 ENDIF(WITH_OPENJPEG)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
-  ADD_DEFINITIONS(-DWITH_QUICKTIME)
+	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
+	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(WITH_FFMPEG)
-  SET(INC ${INC} ${FFMPEG_INC})
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
+	SET(INC ${INC} ${FFMPEG_INC})
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
 IF(WITH_OPENMP)
@@ -92,22 +76,22 @@ IF(WITH_OPENMP)
 ENDIF(WITH_OPENMP)
 
 IF(NOT WITH_ELBEEM)
-  ADD_DEFINITIONS(-DDISABLE_ELBEEM)
+	ADD_DEFINITIONS(-DDISABLE_ELBEEM)
 ENDIF(NOT WITH_ELBEEM)
 
 IF(WITH_PYTHON)
-  SET(INC ${INC} ${PYTHON_INC})
+	SET(INC ${INC} ${PYTHON_INC})
 ELSE(WITH_PYTHON)
-  ADD_DEFINITIONS(-DDISABLE_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
 ENDIF(WITH_PYTHON)
 
 IF(WIN32)
-  SET(INC ${INC} ${PTHREADS_INC})
+	SET(INC ${INC} ${PTHREADS_INC})
 ENDIF(WIN32)
 
 IF(WITH_BUILDINFO)
-  ADD_DEFINITIONS(-DNAN_BUILDINFO)
+	ADD_DEFINITIONS(-DNAN_BUILDINFO)
 ENDIF(WITH_BUILDINFO)
 
-BLENDERLIB_NOLIST(bf_editors "${SRC}" "${INC}")
+BLENDERLIB(bf_editors "${SRC}" "${INC}")
 

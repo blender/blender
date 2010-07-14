@@ -821,9 +821,16 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 					break;
 
 				case SIMEDGE_CREASE:
-					if( fabs(e->crease - es->crease) <= thresh ) {
-						BMO_SetFlag(bm, e, EDGE_MARK);
-						cont = 0;
+					if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
+						float *c1, *c2;
+
+						c1 = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
+						c2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_CREASE);
+
+						if( c1&&c2 && fabs(*c1 - *c2) <= thresh ) {
+							BMO_SetFlag(bm, e, EDGE_MARK);
+							cont = 0;
+						}
 					}
 					break;
 

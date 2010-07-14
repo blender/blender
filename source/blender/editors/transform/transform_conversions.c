@@ -368,6 +368,9 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if(!BM_TestHFlag(eed, BM_HIDDEN) && (BM_TestHFlag(eed, BM_SELECT) || propmode)) { 
+			float *bweight = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+			float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
+			
 			/* need to set center for center calculations */
 			add_v3_v3v3(td->center, eed->v1->co, eed->v2->co);
 			mul_v3_fl(td->center, 0.5f);
@@ -384,12 +387,12 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 
 			td->ext = NULL;
 			if (t->mode == TFM_BWEIGHT) {
-				td->val = &(eed->bweight);
-				td->ival = eed->bweight;
+				td->val = bweight;
+				td->ival = bweight ? *bweight : 1.0f;
 			}
 			else {
-				td->val = &(eed->crease);
-				td->ival = eed->crease;
+				td->val = crease;
+				td->ival = crease ? *crease : 0.0f;
 			}
 
 			td++;
@@ -1922,7 +1925,7 @@ static void editmesh_set_connectivity_distance(EditMesh *em, float mtx[][3])
 	VECCOPY(centout, cent);
 }
 
-#define VertsToTransData(t, td, em, eve) \
+#define VertsToTransData(t, td, em, eve, bweight) \
 	td->flag = 0;\
 	td->loc = eve->co;\
 	VECCOPY(td->center, td->loc);\
@@ -1940,8 +1943,8 @@ static void editmesh_set_connectivity_distance(EditMesh *em, float mtx[][3])
 	td->val = NULL;\
 	td->extra = NULL;\
 	if (t->mode == TFM_BWEIGHT) {\
-		td->val = &(eve->bweight);\
-		td->ival = eve->bweight;\
+		td->val = bweight;\
+		td->ival = bweight ? *(bweight) : 1.0f;\
 	}
 
 #if 0
@@ -2122,6 +2125,7 @@ static void set_crazyspace_quats(BMEditMesh *em, float *origcos, float *mappedco
 }
 
 void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
+#if 0
 	BME_Vert *v;
 	BME_TransData *vtd;
 	TransData *tob;
@@ -2144,6 +2148,8 @@ void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
 	/* since td is a memarena, it can hold more transdata than actual elements
 	 * (i.e. we can't depend on td->len to determine the number of actual elements) */
 	t->total = i;
+#endif
+	t->total = 0;
 }
 
 static void createTransEditVerts(bContext *C, TransInfo *t)
@@ -2305,7 +2311,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
 		if(!BM_TestHFlag(eve, BM_HIDDEN)) {
 			if(propmode || selstate[a]) {
-				VertsToTransData(t, tob, bm, eve);
+				float *bweight = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_BWEIGHT);
+				
+				VertsToTransData(t, tob, bm, eve, bweight);
 
 				/* pinned */
 				if(BM_TestHFlag(eve,BM_PINNED)) tob->flag |= TD_SKIP;

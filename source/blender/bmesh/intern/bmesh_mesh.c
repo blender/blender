@@ -89,31 +89,6 @@ int bmesh_test_sysflag(BMHeader *head, int flag)
 }
 
 /*	
- *	BMESH MAKE MESH
- *
- *  Allocates a new BMesh structure.
- *  Returns -
- *  Pointer to a BM
- *
-*/
-
-BMesh *BM_Make_Mesh(int allocsize[4])
-{
-	/*allocate the structure*/
-	BMesh *bm = MEM_callocN(sizeof(BMesh),"BM");
-	/*allocate the memory pools for the mesh elements*/
-	bm->vpool = BLI_mempool_create(sizeof(BMVert), allocsize[0], allocsize[0], 1);
-	bm->epool = BLI_mempool_create(sizeof(BMEdge), allocsize[1], allocsize[1], 1);
-	bm->lpool = BLI_mempool_create(sizeof(BMLoop), allocsize[2], allocsize[2], 1);
-	bm->ppool = BLI_mempool_create(sizeof(BMFace), allocsize[3], allocsize[3], 1);
-
-	/*allocate one flag pool that we dont get rid of.*/
-	bm->flagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 1);
-	bm->totflags = 1;
-
-	return bm;
-}
-/*	
  *	BMESH FREE MESH
  *
  *	Frees a BMesh structure.
@@ -154,15 +129,11 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	/*destroy element pools*/
 	BLI_mempool_destroy(bm->vpool);
 	BLI_mempool_destroy(bm->epool);
-	BLI_mempool_destroy(bm->ppool);
+	BLI_mempool_destroy(bm->fpool);
 	BLI_mempool_destroy(bm->lpool);
 
 	/*destroy flag pool*/
-	BLI_mempool_destroy(bm->flagpool);
-	
-	if (bm->edar) MEM_freeN(bm->edar);
-	if (bm->vtar) MEM_freeN(bm->vtar);
-	if (bm->plar) MEM_freeN(bm->plar);
+	BLI_mempool_destroy(bm->toolflagpool);
 
 	BLI_freelistN(&bm->selected);
 
@@ -191,7 +162,7 @@ void BM_Compute_Normals(BMesh *bm)
 	BMIter verts;
 	BMIter faces;
 	BMIter loops;
-	unsigned int maxlength = 0;
+	unsigned int maxlength = 0, i;
 	float (*projectverts)[3];
 	
 	/*first, find out the largest face in mesh*/
@@ -227,7 +198,10 @@ void BM_Compute_Normals(BMesh *bm)
 	}
 
 	/*add face normals to vertices*/
+	i = 0;
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
+		i += 1;
+
 		if (BM_TestHFlag(f, BM_HIDDEN))
 			continue;
 
@@ -262,42 +236,9 @@ void BM_Compute_Normals(BMesh *bm)
 */
 
 void bmesh_begin_edit(BMesh *bm){
-	if(bm->vtar) MEM_freeN(bm->vtar);
-	if(bm->edar) MEM_freeN(bm->edar);
-	if(bm->lpar) MEM_freeN(bm->lpar);
-	if(bm->plar) MEM_freeN(bm->plar);
-	
-	/*Initialize some scratch pointer arrays used by eulers*/
-	bm->vtar = MEM_callocN(sizeof(BMVert *) * 1024, "BM scratch vert array");
-	bm->edar = MEM_callocN(sizeof(BMEdge *) * 1024, "BM scratch edge array");
-	bm->lpar = MEM_callocN(sizeof(BMLoop *) * 1024, "BM scratch loop array");
-	bm->plar = MEM_callocN(sizeof(BMFace *) * 1024, "BM scratch poly array");
-
-	bm->vtarlen = bm->edarlen = bm->lparlen = bm->plarlen = 1024;
 }
 
 void bmesh_end_edit(BMesh *bm, int flag){
-	int totvert, totedge, totface;
-	/*verify element counts*/
-	totvert = BLI_countlist(&(bm->verts));
-	totedge = BLI_countlist(&(bm->edges));
-	totface = BLI_countlist(&(bm->polys));
-
-	if(bm->totvert!=totvert || bm->totedge!=totedge || bm->totface!=totface) BME_error();
-
-	/*free temp storage*/
-	if(bm->vtar) MEM_freeN(bm->vtar);
-	if(bm->edar) MEM_freeN(bm->edar);
-	if(bm->lpar) MEM_freeN(bm->lpar);
-	if(bm->plar) MEM_freeN(bm->plar);
-
-	/*zero out pointers*/
-	bm->vtar = NULL;
-	bm->edar = NULL;
-	bm->lpar = NULL;
-	bm->plar = NULL;
-	bm->vtarlen = bm->edarlen = bm->lparlen = bm->plarlen = 0;
-
 	/*compute normals, clear temp flags and flush selections*/
 	BM_Compute_Normals(bm);
 	BM_SelectMode_Flush(bm);

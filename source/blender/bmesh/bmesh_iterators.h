@@ -13,6 +13,8 @@
 #ifndef BM_ITERATORS_H
 #define BM_ITERATORS_H
 
+#include "BLI_mempool.h"
+
 /*Defines for passing to BMIter_New.
  
  "OF" can be substituted for "around"
@@ -34,11 +36,15 @@
 #define BM_VERTS_OF_FACE 			8
 #define BM_EDGES_OF_FACE 			9
 #define BM_LOOPS_OF_FACE 			10
+/*returns elements from all boundaries, and returns 
+the first element at the end to flag that we're entering 
+a different face hole boundary*/
+#define BM_ALL_LOOPS_OF_FACE		11
 
 /*iterate through loops around this loop, which are fetched
   from the other faces in the radial cycle surrounding the
   input loop's edge.*/
-#define BM_LOOPS_OF_LOOP		11
+#define BM_LOOPS_OF_LOOP		12
 
 #define BM_ITER(ele, iter, bm, type, data) \
 	ele = BMIter_New(iter, bm, type, data); \
@@ -54,7 +60,9 @@ for (ele = BMIter_New(iter, bm, type, data); ele; ele=BMIter_Step(iter)) {\
 
 
 /*Iterator Structure*/
-typedef struct BMIter{
+typedef struct BMIter {
+	BLI_mempool_iter pooliter;
+
 	struct BMVert *firstvert, *nextvert, *vdata;
 	struct BMEdge *firstedge, *nextedge, *edata;
 	struct BMLoop *firstloop, *nextloop, *ldata, *l;

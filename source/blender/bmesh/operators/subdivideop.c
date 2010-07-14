@@ -41,6 +41,8 @@
 #include "ED_mesh.h"
 
 #include "bmesh.h"
+#include "bmesh_private.h"
+
 #include "mesh_intern.h"
 #include "subdivideop.h"
 
@@ -242,6 +244,10 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, subdparams *params,
 		BMO_SetFlag(bm, v, ELE_SPLIT);
 		BMO_SetFlag(bm, eed, ELE_SPLIT);
 		BMO_SetFlag(bm, newe, SUBD_SPLIT);
+
+		CHECK_ELEMENT(bm, v);
+		if (v->e) CHECK_ELEMENT(bm, v->e);
+		if (v->e && v->e->l) CHECK_ELEMENT(bm, v->e->l->f);
 	}
 }
 
@@ -475,7 +481,8 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *face, BMVert **verts,
 		b = numcuts + 1 + numcuts + 1 + (numcuts - i - 1);
 		
 		e = connect_smallest_face(bm, verts[a], verts[b], &nf);
-		if (!e) continue;
+		if (!e)
+			continue;
 
 		BMO_SetFlag(bm, e, ELE_INNER);
 		BMO_SetFlag(bm, nf, ELE_INNER);
@@ -488,6 +495,9 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *face, BMVert **verts,
 		for (a=0; a<numcuts; a++) {
 			v = subdivideedgenum(bm, e, &temp, a, numcuts, params, &ne,
 			                     v1, v2);
+			if (!v)
+				bmesh_error();
+
 			BMO_SetFlag(bm, ne, ELE_INNER);
 			lines[(i+1)*s+a+1] = v;
 		}
@@ -498,7 +508,8 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *face, BMVert **verts,
 			a = i*s + j;
 			b = (i-1)*s + j;
 			e = connect_smallest_face(bm, lines[a], lines[b], &nf);
-			if (!e) continue;
+			if (!e)
+				continue;
 
 			BMO_SetFlag(bm, e, ELE_INNER);
 			BMO_SetFlag(bm, nf, ELE_INNER);
@@ -651,6 +662,7 @@ subdpattern *patterns[] = {
 typedef struct subd_facedata {
 	BMVert *start; subdpattern *pat;
 	int totedgesel; //only used if pat was NULL, e.g. no pattern was found
+	BMFace *face;
 } subd_facedata;
 
 void esubdivide_exec(BMesh *bmesh, BMOperator *op)
@@ -794,13 +806,11 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 					b = BLI_array_count(facedata)-1;
 					facedata[b].pat = pat;
 					facedata[b].start = verts[i];
+					facedata[b].face = face;
+					facedata[b].totedgesel = totesel;
 					BMO_SetFlag(bmesh, face, SUBD_SPLIT);
 					break;
 				}
-			}
-			if (!matched) {
-				/*if no match, append null element to array.*/
-				BLI_array_growone(facedata);
 			}
 
 			/*obvously don't test for other patterns matching*/
@@ -832,6 +842,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 					facedata[j].pat = pat;
 					facedata[j].start = verts[a];
+					facedata[j].face = face;
+					facedata[j].totedgesel = totesel;
 					break;
 				}
 			}
@@ -844,6 +856,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			
 			BMO_SetFlag(bmesh, face, SUBD_SPLIT);
 			facedata[j].totedgesel = totesel;
+			facedata[j].face = face;
 		}
 	}
 
@@ -853,23 +866,17 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	for (i=0; i<einput->len; i++) {
 		edge = ((BMEdge**)einput->data.p)[i];
 		bm_subdivide_multicut(bmesh, edge, &params, edge->v1, edge->v2);
-		//BM_Split_Edge_Multi(bmesh, edge, numcuts);
 	}
 
-	//if (facedata) BLI_array_free(facedata);
-	//return;
-
 	i = 0;
-	for (face=BMIter_New(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
-	     face; face=BMIter_Step(&fiter)) {
+	for (i=0; i<BLI_array_count(facedata); i++) {
+		face = facedata[i].face;
+
 		/*figure out which pattern to use*/
 		BLI_array_empty(verts);
-		if (BMO_TestFlag(bmesh, face, SUBD_SPLIT) == 0)
-			continue;
 
 		pat = facedata[i].pat;
 		if (!pat && facedata[i].totedgesel == 2) { /*ok, no pattern.  we still may be able to do something.*/
-			BMFace *nf;
 			int vlen;
 			
 			BLI_array_empty(loops);
@@ -953,9 +960,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			verts[b] = nl->v;
 			j += 1;
 		}
-		
+					
+		CHECK_ELEMENT(bmesh, face);
 		pat->connectexec(bmesh, face, verts, &params);
-		i++;
 	}
 
 	if (facedata) BLI_array_free(facedata);

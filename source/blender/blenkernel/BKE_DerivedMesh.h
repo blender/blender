@@ -86,7 +86,6 @@
 
 #include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
-#include "BKE_tessmesh.h"
 
 struct MVert;
 struct MEdge;
@@ -130,19 +129,6 @@ typedef struct DMLoopIter {
 	  loop refers to per-face-vertex data.*/
 	void *(*getLoopCDData)(void *self, int type, int layer);
 	void *(*getVertCDData)(void *self, int type, int layer);
-	
-/* derivedmesh 2.0 interface ideas (will likely never be implemented ;):
-        void (*interpLoopData)(void *self, void **src_blocks, 
-	                       float *weights, float *sub_weights, int count);
-
-        //a generic handle for a loop
-	intptr_t lhandle;
-
-	inside DerivedMesh itself:
-	//
-	//void (*interpLoopData)(DerivedMesh *dm, DMLoopIter *destloop, 
-	//                       intptr_t *loop_handles, int totloop);
-*/
 } DMLoopIter;
 
 typedef struct DMFaceIter {

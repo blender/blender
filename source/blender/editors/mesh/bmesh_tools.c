@@ -1510,8 +1510,12 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-//#define DIRECTION_CW	1
-//#define DIRECTION_CCW	2
+float *bm_get_cd_float(CustomData *cdata, void *data, int type)
+{
+	float *f = CustomData_bmesh_get(cdata, data, type);
+
+	return f;
+}
 
 static const EnumPropertyItem direction_items[]= {
 	{DIRECTION_CW, "CW", 0, "Clockwise", ""},
@@ -1538,8 +1542,8 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	/*first see if we have two adjacent faces*/
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_Edge_FaceCount(eed) == 2) {
-			if ((BM_TestHFlag(eed->loop->f, BM_SELECT) && BM_TestHFlag(((BMLoop*)eed->loop->radial.next->data)->f, BM_SELECT))
-			     && !(BM_TestHFlag(eed->loop->f, BM_HIDDEN) || BM_TestHFlag(((BMLoop*)eed->loop->radial.next->data)->f, BM_HIDDEN)))
+			if ((BM_TestHFlag(eed->l->f, BM_SELECT) && BM_TestHFlag(((BMLoop*)eed->l->radial_next)->f, BM_SELECT))
+				 && !(BM_TestHFlag(eed->l->f, BM_HIDDEN) || BM_TestHFlag(((BMLoop*)eed->l->radial_next)->f, BM_HIDDEN)))
 			{
 				break;
 			}
@@ -2904,18 +2908,18 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		/*rip two adjacent edges*/
 		if (BM_Edge_FaceCount(e2) == 1) {
-			l = e2->loop;
+			l = e2->l;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 
 			BMINDEX_SET(e, 1);
 			BM_SetHFlag(e, BM_SELECT);
 		} else if (BM_Edge_FaceCount(e2) == 2) {
-			l = e2->loop;
+			l = e2->l;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 			BMINDEX_SET(e, 1);
 			BM_SetHFlag(e, BM_SELECT);
 			
-			l = e2->loop->radial.next->data;
+			l = e2->l->radial_next;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 			BMINDEX_SET(e, 1);
 			BM_SetHFlag(e, BM_SELECT);
@@ -2934,9 +2938,9 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			
-			if (i == 1 && e2->loop) {
-				l = BM_OtherFaceLoop(e2, e2->loop->f, v);
-				l = (BMLoop*)l->radial.next->data;
+			if (i == 1 && e2->l) {
+				l = BM_OtherFaceLoop(e2, e2->l->f, v);
+				l = (BMLoop*)l->radial_next;
 				l = BM_OtherFaceLoop(l->e, l->f, v);
 
 				if (l)
@@ -2958,7 +2962,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		BMO_ITER(e, &siter, em->bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
 			float cent[3] = {0, 0, 0}, mid[4], vec[3];
 
-			if (!BMBVH_EdgeVisible(bvhtree, e, rv3d, obedit))
+			if (!BMBVH_EdgeVisible(bvhtree, e, rv3d, obedit) || !e->l)
 				continue;
 
 			/*method for calculating distance:
@@ -2966,10 +2970,10 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			  for each edge: calculate face center, then made a vector
 			  from edge midpoint to face center.  offset edge midpoint
 			  by a small amount along this vector.*/
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, e->loop->f) {
+			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, e->l->f) {
 				add_v3_v3v3(cent, cent, l->v->co);
 			}
-			mul_v3_fl(cent, 1.0f/(float)e->loop->f->len);
+			mul_v3_fl(cent, 1.0f/(float)e->l->f->len);
 
 			add_v3_v3v3(mid, e->v1->co, e->v2->co);
 			mul_v3_fl(mid, 0.5f);

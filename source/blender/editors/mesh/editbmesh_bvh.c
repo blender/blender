@@ -353,7 +353,7 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 		}
 	}
 
-	if (!cure1 || !cure1->loop || !cure2->loop) {
+	if (!cure1 || !cure1->l || !cure2->l) {
 		/*just return 1.0 in this case*/
 		return 1.0f;
 	}
@@ -364,11 +364,11 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 	  e.g. a hole or an edge with more then 2 faces around it, we um ignore
 	  that edge I guess, and try to make the algorithm go around as necassary.*/
 
-	l1 = cure1->loop;
-	l2 = cure2->loop;
+	l1 = cure1->l;
+	l2 = cure2->l;
 
-	lastv1 = l1->v == v1 ? ((BMLoop*)l1->head.next)->v : ((BMLoop*)l1->head.prev)->v;
-	lastv2 = l2->v == v2 ? ((BMLoop*)l2->head.next)->v : ((BMLoop*)l2->head.prev)->v;
+	lastv1 = l1->v == v1 ? ((BMLoop*)l1->next)->v : ((BMLoop*)l1->prev)->v;
+	lastv2 = l2->v == v2 ? ((BMLoop*)l2->next)->v : ((BMLoop*)l2->prev)->v;
 
 	/*we can only provide meaningful comparisons if v1 and v2 have the same valence*/
 	if (BM_Vert_EdgeCount(v1) != BM_Vert_EdgeCount(v2))
@@ -407,35 +407,35 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 
 		/*find next case to do*/
 		if (!s1->curl)
-			s1->curl = s1->cure->loop;
+			s1->curl = s1->cure->l;
 		if (!s2->curl) {
 			float no1[3], no2[3], angle;
 			int wind1, wind2;
 			
-			s2->curl = s2->cure->loop;
+			s2->curl = s2->cure->l;
 
 			/*find which of two possible faces to use*/
 			l1 = BM_OtherFaceLoop(s1->curl->e, s1->curl->f, s1->lastv);
 			l2 = BM_OtherFaceLoop(s2->curl->e, s2->curl->f, s2->lastv);
 
 			if (l1->v == s2->lastv) {
-				l1 = (BMLoop*) l1->head.next;
+				l1 = (BMLoop*) l1->next;
 				if (l1->v == s2->v)
-					l1 = (BMLoop*) l1->head.prev->prev;
+					l1 = (BMLoop*) l1->prev->prev;
 			} else if (l1->v == s2->v) {
-				l1 = (BMLoop*) l1->head.next;
+				l1 = (BMLoop*) l1->next;
 				if (l1->v == s2->lastv)
-					l1 = (BMLoop*) l1->head.prev->prev;
+					l1 = (BMLoop*) l1->prev->prev;
 			}
 
 			if (l2->v == s2->lastv) {
-				l2 = (BMLoop*) l2->head.next;
+				l2 = (BMLoop*) l2->next;
 				if (l2->v == s2->v)
-					l2 = (BMLoop*) l2->head.prev->prev;
+					l2 = (BMLoop*) l2->prev->prev;
 			} else if (l2->v == s2->v) {
-				l2 = (BMLoop*) l2->head.next;
+				l2 = (BMLoop*) l2->next;
 				if (l2->v == s2->lastv)
-					l2 = (BMLoop*) l2->head.prev->prev;
+					l2 = (BMLoop*) l2->prev->prev;
 			}
 
 			wind1 = winding(s1->v->co, s1->lastv->co, l1->v->co);
@@ -445,17 +445,17 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 			/*if angle between the two adjacent faces is greater then 90 degrees,
 			  we need to flip wind2*/
 			l1 = l2;
-			l2 = s2->curl->radial.next->data;
+			l2 = s2->curl->radial_next;
 			l2 = BM_OtherFaceLoop(l2->e, l2->f, s2->lastv);
 			
 			if (l2->v == s2->lastv) {
-				l2 = (BMLoop*) l2->head.next;
+				l2 = (BMLoop*) l2->next;
 				if (l2->v == s2->v)
-					l2 = (BMLoop*) l2->head.prev->prev;
+					l2 = (BMLoop*) l2->prev->prev;
 			} else if (l2->v == s2->v) {
-				l2 = (BMLoop*) l2->head.next;
+				l2 = (BMLoop*) l2->next;
 				if (l2->v == s2->lastv)
-					l2 = (BMLoop*) l2->head.prev->prev;
+					l2 = (BMLoop*) l2->prev->prev;
 			}
 
 			normal_tri_v3(no1, s2->v->co, s2->lastv->co, l1->v->co);
@@ -469,15 +469,15 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 				wind2 = !wind2;
 
 			if (wind1 == wind2)
-				s2->curl = s2->curl->radial.next->data;
+				s2->curl = s2->curl->radial_next;
 		}
 
 		/*handle termination cases of having already looped through all child
 		  nodes, or the valence mismatching between v1 and v2, or we hit max
 		  recursion depth*/
 		term |= s1->valence != s2->valence || lvl+1 > maxlevel;
-		term |= s1->curl->radial.next->data == (BMLoop*)l1;
-		term |= s2->curl->radial.next->data == (BMLoop*)l2;
+		term |= s1->curl->radial_next == (BMLoop*)l1;
+		term |= s2->curl->radial_next == (BMLoop*)l2;
 
 		if (!term) {
 			lastv1 = s1->v;
@@ -507,11 +507,11 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 				s2 = stack2 + lvl - 2;
 			}
 
-			s1->curl = s1->curl->v == s1->v ? (BMLoop*) s1->curl->head.prev : (BMLoop*) s1->curl->head.next;
-			s2->curl = s2->curl->v == s2->v ? (BMLoop*) s2->curl->head.prev : (BMLoop*) s2->curl->head.next;
+			s1->curl = s1->curl->v == s1->v ? (BMLoop*) s1->curl->prev : (BMLoop*) s1->curl->next;
+			s2->curl = s2->curl->v == s2->v ? (BMLoop*) s2->curl->prev : (BMLoop*) s2->curl->next;
 		
-			s1->curl = (BMLoop*) s1->curl->radial.next->data;
-			s2->curl = (BMLoop*) s2->curl->radial.next->data;
+			s1->curl = (BMLoop*) s1->curl->radial_next;
+			s2->curl = (BMLoop*) s2->curl->radial_next;
 		}
 
 #define WADD(stack, s)\
@@ -605,7 +605,6 @@ static void vertsearchcallback_topo(void *userdata, int index, const float *co, 
 BMVert *BMBVH_FindClosestVertTopo(BMBVHTree *tree, float *co, float maxdist, BMVert *sourcev)
 {
 	BVHTreeNearest hit;
-	BMVert *v;
 	BMIter iter;
 
 	memset(&hit, 0, sizeof(hit));

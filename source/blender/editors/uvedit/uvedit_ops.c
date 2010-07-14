@@ -288,13 +288,13 @@ int uvedit_edge_selected(BMEditMesh *em, Scene *scene, BMLoop *l)
 			return BM_TestHFlag(l->e, BM_SELECT);
 		} else
 			return BM_TestHFlag(l->v, BM_SELECT) && 
-			       BM_TestHFlag(((BMLoop*)l->head.next)->v, BM_SELECT);
+			       BM_TestHFlag(((BMLoop*)l->next)->v, BM_SELECT);
 	}
 	else {
 		MLoopUV *luv1, *luv2;
 
 		luv1 = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-		luv2 = CustomData_bmesh_get(&em->bm->ldata, l->head.next->data, CD_MLOOPUV);
+		luv2 = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 
 		return (luv1->flag & MLOOPUV_VERTSEL) && (luv2->flag & MLOOPUV_VERTSEL);
 	}
@@ -319,7 +319,7 @@ void uvedit_edge_select(BMEditMesh *em, Scene *scene, BMLoop *l)
 		MLoopUV *luv1, *luv2;
 
 		luv1 = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-		luv2 = CustomData_bmesh_get(&em->bm->ldata, l->head.next->data, CD_MLOOPUV);
+		luv2 = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 		
 		luv1->flag |= MLOOPUV_VERTSEL;
 		luv2->flag |= MLOOPUV_VERTSEL;
@@ -345,7 +345,7 @@ void uvedit_edge_deselect(BMEditMesh *em, Scene *scene, BMLoop *l)
 		MLoopUV *luv1, *luv2;
 
 		luv1 = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-		luv2 = CustomData_bmesh_get(&em->bm->ldata, l->head.next->data, CD_MLOOPUV);
+		luv2 = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 		
 		luv1->flag &= ~MLOOPUV_VERTSEL;
 		luv2->flag &= ~MLOOPUV_VERTSEL;
@@ -592,7 +592,7 @@ static void find_nearest_uv_edge(Scene *scene, Image *ima, BMEditMesh *em, float
 		i = 0;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			nextluv = CustomData_bmesh_get(&em->bm->ldata, l->head.next->data, CD_MLOOPUV);
+			nextluv = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 
 			dist= dist_to_line_segment_v2(co, luv->uv, nextluv->uv);
 
@@ -601,12 +601,12 @@ static void find_nearest_uv_edge(Scene *scene, Image *ima, BMEditMesh *em, float
 				hit->efa= efa;
 				
 				hit->l = l;
-				hit->nextl = (BMLoop*)l->head.next;
+				hit->nextl = (BMLoop*)l->next;
 				hit->luv = luv;
 				hit->nextluv = nextluv;
 				hit->lindex = i;
 				hit->vert1 = BMINDEX_GET(hit->l->v);
-				hit->vert2 = BMINDEX_GET(((BMLoop*)hit->l->head.next)->v);
+				hit->vert2 = BMINDEX_GET(((BMLoop*)hit->l->next)->v);
 
 				mindist = dist;
 			}
@@ -753,9 +753,9 @@ static void find_nearest_uv_vert(Scene *scene, Image *ima, BMEditMesh *em,
 				mindist= dist;
 
 				hit->l = l;
-				hit->nextl = (BMLoop*)l->head.next;
+				hit->nextl = (BMLoop*)l->next;
 				hit->luv = luv;
-				hit->nextluv = CustomData_bmesh_get(&em->bm->ldata, l->head.next->data, CD_MLOOPUV);
+				hit->nextluv = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 				hit->tf= tf;
 				hit->efa= efa;
 				hit->lindex = i;

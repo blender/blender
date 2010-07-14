@@ -519,7 +519,7 @@ static void delete_context(BMesh *bm, int type){
 		delete_edges(bm);
 		/*remove loose vertices*/
 		for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
-			if(BMO_TestFlag(bm, (BMHeader*)v, DEL_INPUT) && (!(v->edge)))
+			if(BMO_TestFlag(bm, (BMHeader*)v, DEL_INPUT) && (!(v->e)))
 				BMO_SetFlag(bm, (BMHeader*)v, DEL_WIREVERT);
 		}
 		BM_remove_tagged_verts(bm, DEL_WIREVERT);

@@ -1613,12 +1613,12 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	}
 	
 	if (efa) {
-		eed = efa->loopbase->e;
+		eed = bm_firstfaceloop(efa)->e;
 	} else if (!eed) {
-		if (!eve || !eve->edge)
+		if (!eve || !eve->e)
 			return OPERATOR_CANCELLED;
 		
-		eed = eve->edge;
+		eed = eve->e;
 	}
 
 	BMW_Init(&walker, em->bm, BMW_SHELL, 0, 0);
@@ -2092,11 +2092,11 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	sharp = (sharp * M_PI) / 180.0;
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		if (BM_TestHFlag(e, BM_HIDDEN) || !e->loop)
+		if (BM_TestHFlag(e, BM_HIDDEN) || !e->l)
 			continue;
 
-		l1 = e->loop;
-		l2 = l1->radial.next->data;
+		l1 = e->l;
+		l2 = l1->radial_next;
 
 		if (l1 == l2)
 			continue;

@@ -50,6 +50,7 @@ struct MCol;
 struct UvVertMap;
 struct UvMapVert;
 struct CustomData;
+struct BMEditMesh;
 struct BMEditSelection;
 struct BMesh;
 struct BMVert;
@@ -82,6 +83,8 @@ struct rcti;
 #define B_JOINTRIA_MAT		0X1000
 #define B_FRACTAL		0x2000
 #define B_SPHERE		0x4000
+
+float *bm_get_cd_float(struct CustomData *cdata, void *data, int type);
 
 /* bmeshutils.c */
 

@@ -8,6 +8,8 @@
 
 #include "BKE_utildefines.h"
 
+#define BM_OVERLAP (1<<13)
+
 /*
  * BM_QUERIES.C
  *
@@ -61,16 +63,16 @@ int BM_Vert_In_Edge(BMEdge *e, BMVert *v)
 
 BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
 {
-	BMLoop *l = f->loopbase, *l2, *l3;
+	BMLoop *l = bm_firstfaceloop(f), *l2, *l3;
 	int found = 0;
 	
 	do {
 		if (l->e == e) break;
 		found = 1;
-		l = l->head.next;
-	} while (l != f->loopbase);
+		l = l->next;
+	} while (l != bm_firstfaceloop(f));
 	
-	return l->v == v ? l->head.prev : l->head.next;
+	return l->v == v ? l->prev : l->next;
 }
 
 /*
@@ -83,13 +85,17 @@ BMLoop *BM_OtherFaceLoop(BMEdge *e, BMFace *f, BMVert *v)
 
 int BM_Vert_In_Face(BMFace *f, BMVert *v)
 {
+	BMLoopList *lst;
 	BMLoop *l;
 
-	l = f->loopbase;
-	do{
-		if(l->v == v) return 1;
-		l = ((BMLoop*)(l->head.next));
-	}while(l != f->loopbase);
+	for (lst=f->loops.first; lst; lst=lst->next) {
+		l = lst->first;
+		do {
+			if(l->v == v) return 1;
+			l = l->next;
+		} while (l != lst->first);
+	}
+
 	return 0;
 }
 
@@ -102,16 +108,22 @@ int BM_Vert_In_Face(BMFace *f, BMVert *v)
 */
 int BM_Verts_In_Face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 {
+	BMLoopList *lst;
 	BMLoop *curloop = NULL;
 	int i, count = 0;
 	
 	for(i=0; i < len; i++) BMO_SetFlag(bm, varr[i], BM_OVERLAP);
+	
+	for (lst=f->loops.first; lst; lst=lst->next) {
+		curloop = lst->first;
 
-	curloop = f->loopbase;
-	do{
-		if(BMO_TestFlag(bm, curloop->v, BM_OVERLAP)) count++;
-		curloop = (BMLoop*)(curloop->head.next);
-	} while(curloop != f->loopbase);
+		do {
+			if(BMO_TestFlag(bm, curloop->v, BM_OVERLAP))
+				count++;
+
+			curloop = curloop->next;
+		} while (curloop != lst->first);
+	}
 
 	for(i=0; i < len; i++) BMO_ClearFlag(bm, varr[i], BM_OVERLAP);
 
@@ -130,12 +142,12 @@ int BM_Edge_In_Face(BMFace *f, BMEdge *e)
 {
 	BMLoop *l;
 
-	l = f->loopbase;
+	l = bm_firstfaceloop(f);
 	do{
 
 		if(l->e == e) return 1;
-		l = ((BMLoop*)(l->head.next));
-	}while(l != f->loopbase);
+		l = ((BMLoop*)(l->next));
+	}while(l != bm_firstfaceloop(f));
 
 	return 0;
 }
@@ -166,39 +178,6 @@ BMVert *BM_OtherEdgeVert(BMEdge *e, BMVert *v)
 	return bmesh_edge_getothervert(e,v);
 }
 
-/**
- *			BMESH EDGE EXIST
- *
- *  Finds out if two vertices already have an edge
- *  connecting them. Note that multiple edges may
- *  exist between any two vertices, and therefore
- *  This function only returns the first one found.
- * 
- *  Returns -
- *	BMEdge pointer
- */
-
-BMEdge *BM_Edge_Exist(BMVert *v1, BMVert *v2)
-{
-	BMNode *diskbase;
-	BMEdge *curedge;
-	int i, len=0;
-	
-	if (!v1 || !v2 || v1 == v2)
-		return NULL;
-	
-	if(v1->edge){
-		diskbase = bmesh_disk_getpointer(v1->edge,v1);
-		len = bmesh_cycle_length(diskbase);
-		
-		for(i=0,curedge=v1->edge;i<len;i++,curedge = bmesh_disk_nextedge(curedge,v1)){
-			if(bmesh_verts_in_edge(v1,v2,curedge)) return curedge;
-		}
-	}
-	
-	return NULL;
-}
-
 /*
  *  BMESH VERT EDGECOUNT
  *
@@ -207,8 +186,7 @@ BMEdge *BM_Edge_Exist(BMVert *v1, BMVert *v2)
 
 int BM_Vert_EdgeCount(BMVert *v)
 {
-	if (v == v->edge->v1) return bmesh_cycle_length(&v->edge->d1);
-	else return bmesh_cycle_length(&v->edge->d2);
+	return bmesh_disk_count(v);
 }
 
 /**
@@ -222,12 +200,12 @@ int BM_Edge_FaceCount(BMEdge *e)
 	int count = 0;
 	BMLoop *curloop = NULL;
 
-	if(e->loop){
-		curloop = e->loop;
+	if(e->l){
+		curloop = e->l;
 		do{
 			count++;
 			curloop = bmesh_radial_nextloop(curloop);
-		}while(curloop != e->loop);
+		}while(curloop != e->l);
 	}
 
 	return count;
@@ -251,12 +229,12 @@ int BM_Vert_FaceCount(BMVert *v){
 #if 0 //this code isn't working
 	BMEdge *curedge = NULL;
 
-	if(v->edge){
-		curedge = v->edge;
+	if(v->e){
+		curedge = v->e;
 		do{
-			if(curedge->loop) count += BM_Edge_FaceCount(curedge);
+			if(curedge->l) count += BM_Edge_FaceCount(curedge);
 			curedge = bmesh_disk_nextedge(curedge,v);
-		}while(curedge != v->edge);
+		}while(curedge != v->e);
 	}
 	return count;
 #endif
@@ -276,13 +254,13 @@ int BM_Wire_Vert(BMesh *bm, BMVert *v)
 {
 	BMEdge *curedge;
 
-	if(!(v->edge)) return 0;
+	if(!(v->e)) return 0;
 	
-	curedge = v->edge;
+	curedge = v->e;
 	do{
-		if(curedge->loop) return 0;
+		if(curedge->l) return 0;
 		curedge = bmesh_disk_nextedge(curedge, v);
-	}while(curedge != v->edge);
+	}while(curedge != v->e);
 
 	return 1;
 }
@@ -299,7 +277,7 @@ int BM_Wire_Vert(BMesh *bm, BMVert *v)
 
 int BM_Wire_Edge(BMesh *bm, BMEdge *e)
 {
-	if(e->loop) return 0;
+	if(e->l) return 0;
 	return 1;
 }
 
@@ -321,20 +299,20 @@ int BM_Nonmanifold_Vert(BMesh *bm, BMVert *v) {
 	BMLoop *l;
 	int len, count, flag;
 
-	if (v->edge == NULL) {
+	if (v->e == NULL) {
 		/* loose vert */
 		return 1;
 	}
 
 	/* count edges while looking for non-manifold edges */
-	oe = v->edge;
-	for (len=0,e=v->edge; e != oe || (e == oe && len == 0); len++,e=bmesh_disk_nextedge(e,v)) {
-		if (e->loop == NULL) {
+	oe = v->e;
+	for (len=0,e=v->e; e != oe || (e == oe && len == 0); len++,e=bmesh_disk_nextedge(e,v)) {
+		if (e->l == NULL) {
 			/* loose edge */
 			return 1;
 		}
 
-		if (bmesh_cycle_length(&(e->loop->radial)) > 2) {
+		if (bmesh_radial_length(e->l) > 2) {
 			/* edge shared by more than two faces */
 			return 1;
 		}
@@ -343,28 +321,28 @@ int BM_Nonmanifold_Vert(BMesh *bm, BMVert *v) {
 	count = 1;
 	flag = 1;
 	e = NULL;
-	oe = v->edge;
-	l = oe->loop;
+	oe = v->e;
+	l = oe->l;
 	while(e != oe) {
-		if (l->v == v) l = ((BMLoop*)(l->head.prev));
-		else l = ((BMLoop*)(l->head.next));
+		if (l->v == v) l = ((BMLoop*)(l->prev));
+		else l = ((BMLoop*)(l->next));
 		e = l->e;
 		count++; /* count the edges */
 
-		if (flag && l->radial.next->data == l) {
+		if (flag && l->radial_next == l) {
 			/* we've hit the edge of an open mesh, reset once */
 			flag = 0;
 			count = 1;
 			oe = e;
 			e = NULL;
-			l = oe->loop;
+			l = oe->l;
 		}
-		else if (l->radial.next->data == l) {
+		else if (l->radial_next == l) {
 			/* break the loop */
 			e = oe;
 		}
 		else {
-			l = l->radial.next->data;
+			l = l->radial_next;
 		}
 	}
 
@@ -427,11 +405,11 @@ int BM_Face_Sharededges(BMFace *f1, BMFace *f2){
 	BMLoop *l;
 	int count = 0;
 	
-	l = f1->loopbase;
+	l = bm_firstfaceloop(f1);
 	do{
 		if(bmesh_radial_find_face(l->e,f2)) count++;
-		l = ((BMLoop*)(l->head.next));
-	}while(l != f1->loopbase);
+		l = ((BMLoop*)(l->next));
+	}while(l != bm_firstfaceloop(f1));
 	
 	return count;
 }
@@ -449,15 +427,15 @@ int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
 	BMLoop *l;
 	BMFace *f;
 
-	if(e1->loop && e2->loop){
-		l = e1->loop;
+	if(e1->l && e2->l){
+		l = e1->l;
 		do{
 			f = l->f;
 			if(bmesh_radial_find_face(e2,f)){
 				return 1;
 			}
-			l = (BMLoop*)(l->radial.next->data);
-		}while(l != e1->loop);
+			l = (BMLoop*)(l->radial_next);
+		}while(l != e1->l);
 	}
 	return 0;
 }
@@ -482,8 +460,8 @@ float BM_Face_Angle(BMesh *bm, BMEdge *e)
 
 	radlen = BM_Edge_FaceCount(e);
 	if(radlen == 2){
-		l1 = e->loop;
-		l2 = e->loop->radial.next->data;
+		l1 = e->l;
+		l2 = e->l->radial_next;
 		edge_angle_cos = INPR(l1->f->no, l2->f->no);
 	}
 	return edge_angle_cos;

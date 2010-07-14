@@ -176,7 +176,7 @@ typedef struct MemHead {
 } MemHead;
 
 typedef struct MemTail {
-	int tag3, pad;
+	int tag3, tag4;
 } MemTail;
 
 /*memory bias to hopefully account 

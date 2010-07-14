@@ -33,8 +33,8 @@ void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 		v2 = BMO_Get_MapPointer(bm, op, "targetmap", l->v);
 		/*ok: if v2 is NULL (e.g. not in the map) then it's
 		      a target vert, otherwise it's a double*/
-		if (v2 && BM_Vert_In_Face(f, v2) && v2 != BL(l->head.prev)->v 
-		    && v2 != BL(l->head.next)->v)
+		if (v2 && BM_Vert_In_Face(f, v2) && v2 != BL(l->prev)->v 
+		    && v2 != BL(l->next)->v)
 		{
 			doub = l->v;
 			split = 1;
@@ -142,7 +142,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		a = 0;
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			v = l->v;
-			v2 = BL(l->head.next)->v;
+			v2 = BL(l->next)->v;
 			if (BMO_TestFlag(bm, v, ELE_DEL)) 
 				v = BMO_Get_MapPointer(bm, op, "targetmap", v);
 			if (BMO_TestFlag(bm, v2, ELE_DEL)) 

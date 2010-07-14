@@ -631,9 +631,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 					glEnd();
 
 					/*glBegin(GL_LINE_STRIP);
-						luv = CustomData_bmesh_get(&em->bm->ldata, efa->loopbase->head.data, CD_MLOOPUV);
+						luv = CustomData_bmesh_get(&em->bm->ldata, efa->lbase->head.data, CD_MLOOPUV);
 						glVertex2fv(luv->uv);
-						luv = CustomData_bmesh_get(&em->bm->ldata, efa->loopbase->head.next->data, CD_MLOOPUV);
+						luv = CustomData_bmesh_get(&em->bm->ldata, efa->lbase->next->head.data, CD_MLOOPUV);
 						glVertex2fv(luv->uv);
 					glEnd();*/
 
@@ -697,7 +697,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 							luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 							glVertex2fv(luv->uv);
-							luv = CustomData_bmesh_get(&em->bm->ldata, l->head.next->data, CD_MLOOPUV);
+							luv = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 							glVertex2fv(luv->uv);
 							i += 1;
 						}
@@ -719,7 +719,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 							luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 							glVertex2fv(luv->uv);
-							luv = CustomData_bmesh_get(&em->bm->ldata, l->head.next->data, CD_MLOOPUV);
+							luv = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 							glVertex2fv(luv->uv);
 							i += 1;
 						}

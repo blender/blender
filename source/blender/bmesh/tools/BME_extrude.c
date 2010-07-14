@@ -42,19 +42,19 @@ void BME_extrude_skirt(BME_Mesh *bm, GHash *ehash){
 	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
 		if(BME_SELECTED(e)){
 			/*find one face incident upon e and use it for winding of new face*/
-			if(e->loop){
-				v1 = e->loop->next->v;
-				v2 = e->loop->v;
+			if(e->l){
+				v1 = e->l->next->v;
+				v2 = e->l->v;
 			}
 			else{
 				v1 = e->v1;
 				v2 = e->v2;
 			}
 			
-			if(v1->edge->tflag1 == 2) l = v1->edge;
-			else l = BME_disk_next_edgeflag(v1->edge, v1, 0, 2);
-			if(v2->edge->tflag1 == 2) r = v2->edge;
-			else r = BME_disk_next_edgeflag(v2->edge, v2, 0, 2);
+			if(v1->e->tflag1 == 2) l = v1->e;
+			else l = BME_disk_next_edgeflag(v1->e, v1, 0, 2);
+			if(v2->e->tflag1 == 2) r = v2->e;
+			else r = BME_disk_next_edgeflag(v2->e, v2, 0, 2);
 			
 			lv = BME_edge_getothervert(l,v1);
 			rv = BME_edge_getothervert(r,v2);
@@ -98,14 +98,14 @@ void BME_cap_skirt(BME_Mesh *bm, GHash *vhash, GHash *ehash){
 					BME_VISIT(l->v); //we dont want to dupe it again.
 				}
 				l=l->next;
-			}while(l!=f->loopbase);
+			}while(l!=f->lbase);
 		}
 	}
 	
 	//find out if we delete old faces or not. This needs to be improved a lot.....
 	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e) && e->loop){
-			i= BME_cycle_length(&(e->loop->radial));
+		if(BME_SELECTED(e) && e->l){
+			i= BME_cycle_length(&(e->l->radial));
 			if(i > 2){ 
 				del_old = 1;
 				break;
@@ -128,7 +128,7 @@ void BME_cap_skirt(BME_Mesh *bm, GHash *vhash, GHash *ehash){
 					BME_VISIT(l->e); //we dont want to dupe it again.
 				}
 				l=l->next;
-			}while(l!=f->loopbase);
+			}while(l!=f->lbase);
 		}
 	}
 	
@@ -168,12 +168,12 @@ void BME_extrude_mesh(BME_Mesh *bm, int type){
 	if(type & BME_EXTRUDE_FACES){ //Find selected edges with more than one incident face that is also selected. deselect them.
 		for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
 			int totsel=0;
-			if(e->loop){
-				l= e->loop;
+			if(e->l){
+				l= e->l;
 				do{
 					if(BME_SELECTED(l->f)) totsel++;
 					l=BME_radial_nextloop(l);
-				}while(l!=e->loop);
+				}while(l!=e->l);
 			}
 			if(totsel > 1) BME_select_edge(bm,e,0);
 		}

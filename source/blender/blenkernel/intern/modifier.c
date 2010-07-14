@@ -150,13 +150,13 @@ static int is_last_displist(Object *ob)
 }
 
 /* returns a derived mesh if dm == NULL, for deforming modifiers that need it */
-static DerivedMesh *get_dm(Scene *scene, Object *ob, EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
+static DerivedMesh *get_dm(Scene *scene, Object *ob, BMEditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
 {
 	if(dm)
 		return dm;
 
 	if(ob->type==OB_MESH) {
-		if(em) dm= CDDM_from_editmesh(em, ob->data);
+		if(em) dm= CDDM_from_BMEditMesh(em, ob->data);
 		else dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
 
 		if(vertexCos) {
@@ -194,7 +194,7 @@ static DerivedMesh *get_dm(Scene *scene, Object *ob, EditMesh *em, DerivedMesh *
 }
 
 /* returns a cdderivedmesh if dm == NULL or is another type of derivedmesh */
-static DerivedMesh *get_cddm(Scene *scene, Object *ob, EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3])
+static DerivedMesh *get_cddm(Scene *scene, Object *ob, BMEditMesh *em, DerivedMesh *dm, float (*vertexCos)[3])
 {
 	if(dm && dm->type == DM_TYPE_CDDM)
 		return dm;
@@ -2128,7 +2128,7 @@ BM_INLINE VertUser *new_vuser(MemBase *base)
 BM_INLINE MemBase *new_membase(void)
 {
 	MemBase *b = MEM_callocN(sizeof(MemBase), "MemBase for edgesplit in modifier.c");
-	b->vertuserpool = BLI_mempool_create(sizeof(VertUser), 1, 2048, 1);
+	b->vertuserpool = BLI_mempool_create(sizeof(VertUser), 1, 2048, 1, 0);
 
 	return b;
 }
@@ -2481,7 +2481,7 @@ static DerivedMesh *bevelModifier_applyModifier(
   int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *result;
-	BME_Mesh *bm;
+	//BME_Mesh *bm;
 
 	/*bDeformGroup *def;*/
 	int /*i,*/ options, defgrp_index = -1;
@@ -2495,14 +2495,15 @@ static DerivedMesh *bevelModifier_applyModifier(
 			options &= ~BME_BEVEL_VWEIGHT;
 		}
 	}*/
-
+/*
 	bm = BME_derivedmesh_to_bmesh(derivedData);
 	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
 	result = BME_bmesh_to_derivedmesh(bm,derivedData);
 	BME_free_mesh(bm);
 
 	CDDM_calc_normals(result);
-
+*/
+	result = derivedData;
 	return result;
 }
 

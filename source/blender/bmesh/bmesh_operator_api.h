@@ -1,6 +1,10 @@
 #ifndef _BMESH_OPERATOR_H
 #define _BMESH_OPERATOR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "BLI_memarena.h"
 #include "BLI_ghash.h"
 
@@ -85,6 +89,10 @@ typedef struct BMOpSlot{
 
 #define BMOP_MAX_SLOTS			16 /*way more than probably needed*/
 
+#ifdef slots
+#undef slots
+#endif
+
 typedef struct BMOperator {
 	int type;
 	int slottype;
@@ -133,9 +141,9 @@ void BMO_Finish_Op(struct BMesh *bm, struct BMOperator *op);
   if you need to store a value per element, use a 
   ghash or a mapping slot to do it.*/
 /*flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use*/
-#define BMO_TestFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].mask & (flag))
-#define BMO_SetFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].mask |= (flag))
-#define BMO_ClearFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].mask &= ~(flag))
+#define BMO_TestFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].f & (flag))
+#define BMO_SetFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].f |= (flag))
+#define BMO_ClearFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].f &= ~(flag))
 
 /*profiling showed a significant amount of time spent in BMO_TestFlag
 void BMO_SetFlag(struct BMesh *bm, void *element, int flag);
@@ -376,9 +384,9 @@ BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname,
 	/*sanity check*/
 	if (slot->slottype != BMOP_OPSLOT_MAPPING) return;
 	
-	mapping = BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
+	mapping = (element_mapping*) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
 
-	mapping->element = element;
+	mapping->element = (BMHeader*) element;
 	mapping->len = len;
 	memcpy(mapping+1, data, len);
 
@@ -424,7 +432,7 @@ BM_INLINE void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname,
 	if (slot->slottype != BMOP_OPSLOT_MAPPING) return NULL;
 	if (!slot->data.ghash) return NULL;
 
-	mapping = BLI_ghash_lookup(slot->data.ghash, element);
+	mapping = (element_mapping*) BLI_ghash_lookup(slot->data.ghash, element);
 	
 	if (!mapping) return NULL;
 
@@ -434,7 +442,7 @@ BM_INLINE void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname,
 BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname,
 		       void *element)
 {
-	float *val = BMO_Get_MapData(bm, op, slotname, element);
+	float *val = (float*) BMO_Get_MapData(bm, op, slotname, element);
 	if (val) return *val;
 
 	return 0.0f;
@@ -443,10 +451,14 @@ BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname,
 BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
 		       void *element)
 {
-	void **val = BMO_Get_MapData(bm, op, slotname, element);
+	void **val = (void**) BMO_Get_MapData(bm, op, slotname, element);
 	if (val) return *val;
 
 	return NULL;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _BMESH_OPERATOR_H */

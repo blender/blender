@@ -111,18 +111,18 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 	BMLoop *l1, *l2, *l3, *l4;
 	int mergeok_uvs=!douvs, mergeok_vcols=!dovcols;
 	
-	l1 = e->loop;
-	l3 = (BMLoop*)e->loop->radial.next->data;
+	l1 = e->l;
+	l3 = (BMLoop*)e->l->radial_next;
 	
 	/*match up loops on each side of an edge corrusponding to each vert*/
 	if (l1->v == l3->v) {
-		l2 = (BMLoop*)l1->head.next;
-		l4 = (BMLoop*)l2->head.next;
+		l2 = (BMLoop*)l1->next;
+		l4 = (BMLoop*)l2->next;
 	} else {
-		l2 = (BMLoop*)l1->head.next;
+		l2 = (BMLoop*)l1->next;
 
 		l4 = l3;
-		l3 = (BMLoop*)l4->head.next;
+		l3 = (BMLoop*)l4->next;
 	}
 
 	lcol1 = CustomData_bmesh_get(&bm->ldata, l1->head.data, CD_MLOOPCOL);
@@ -240,8 +240,8 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		f1 = e->loop->f;
-		f2 = ((BMLoop*)e->loop->radial.next->data)->f;
+		f1 = e->l->f;
+		f2 = ((BMLoop*)e->l->radial_next)->f;
 
 		if (f1->len != 3 || f2->len != 3) {
 			BMO_ClearFlag(bm, e, EDGE_MARK);
@@ -263,13 +263,13 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_TestFlag(bm, e, EDGE_MARK))
 			continue;
 
-		f1 = e->loop->f;
-		f2 = ((BMLoop*)e->loop->radial.next->data)->f;
+		f1 = e->l->f;
+		f2 = ((BMLoop*)e->l->radial_next)->f;
 
-		v1 = e->loop->v;
-		v2 = ((BMLoop*)e->loop->head.prev)->v;
-		v3 = ((BMLoop*)e->loop->head.next)->v;
-		v4 = ((BMLoop*)((BMLoop*)e->loop->radial.next->data)->head.prev)->v;
+		v1 = e->l->v;
+		v2 = ((BMLoop*)e->l->prev)->v;
+		v3 = ((BMLoop*)e->l->next)->v;
+		v4 = ((BMLoop*)((BMLoop*)e->l->radial_next)->prev)->v;
 
 		if (dosharp && BM_TestHFlag(e, BM_SHARP))
 			continue;
@@ -301,8 +301,8 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		BMFace *f1, *f2;
 
 		e = jedges[i].e;
-		f1 = e->loop->f;
-		f2 = ((BMLoop*)e->loop->radial.next->data)->f;
+		f1 = e->l->f;
+		f2 = ((BMLoop*)e->l->radial_next)->f;
 
 		if (BMO_TestFlag(bm, f1, FACE_MARK) || BMO_TestFlag(bm, f2, FACE_MARK))
 			continue;
@@ -316,10 +316,10 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_TestFlag(bm, e, EDGE_CHOSEN))
 			continue;
 
-		f1 = e->loop->f;
-		f2 = ((BMLoop*)e->loop->radial.next->data)->f;
+		f1 = e->l->f;
+		f2 = ((BMLoop*)e->l->radial_next)->f;
 
-		BM_Join_Faces(bm, f1, f2, e);
+		BM_Join_TwoFaces(bm, f1, f2, e);
 	}
 
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -327,8 +327,8 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 			/*ok, this edge wasn't merged, check if it's 
 			  in a 2-tri-pair island, and if so merge*/
 
-			f1 = e->loop->f;
-			f2 = ((BMLoop*)e->loop->radial.next->data)->f;
+			f1 = e->l->f;
+			f2 = ((BMLoop*)e->l->radial_next)->f;
 			
 			if (f1->len != 3 || f2->len != 3)
 				continue;
@@ -348,7 +348,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 			if (i != 2)
 				continue;
 		
-			BM_Join_Faces(bm, f1, f2, e);
+			BM_Join_TwoFaces(bm, f1, f2, e);
 		}
 	}
 

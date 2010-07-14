@@ -135,7 +135,7 @@ void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *op)
 				continue;
 
 			et = etags + BMINDEX_GET(e);
-			if (!et->tag && e->loop) {
+			if (!et->tag && e->l) {
 				break;
 			}
 		}
@@ -146,9 +146,9 @@ void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *op)
 		/*ok we found an edge, part of a region of splits we need
 		  to identify.  now walk along it.*/
 		for (i=0; i<2; i++) {
-			l = e->loop;
+			l = e->l;
 			
-			v = i ? ((BMLoop*)l->head.next)->v : l->v;
+			v = i ? ((BMLoop*)l->next)->v : l->v;
 
 			while (1) {
 				et = etags + BMINDEX_GET(l->e);
@@ -177,14 +177,14 @@ void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *op)
 					l = BM_OtherFaceLoop(l->e, l->f, v);
 					if (BM_Edge_FaceCount(l->e) != 2)
 						break;
-					l = (BMLoop*) l->radial.next->data;
+					l = (BMLoop*) l->radial_next;
 				} while (l != startl && !BMO_TestFlag(bm, l->e, EDGE_SEAM));
 				
 				if (l == startl || !BMO_TestFlag(bm, l->e, EDGE_SEAM))
 					break;
 
 				if (l->v == v) {
-					v = ((BMLoop*)l->head.next)->v;
+					v = ((BMLoop*)l->next)->v;
 				} else v = l->v;
 			}
 		}
@@ -261,8 +261,8 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 
 			BMO_SetFlag(bm, l->e, EDGE_DEL);
 
-			nextl = (BMLoop*) l->head.next;
-			prevl = (BMLoop*) l->head.prev;
+			nextl = (BMLoop*) l->next;
+			prevl = (BMLoop*) l->prev;
 			
 			for (j=0; j<2; j++) {
 				l2 = j ? nextl : prevl;
@@ -294,7 +294,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 							break;
 						}
 
-						l3 = (BMLoop*)l3->radial.next->data;
+						l3 = (BMLoop*)l3->radial_next;
 						l3 = BM_OtherFaceLoop(l3->e, l3->f, v);
 					} while (l3 != l2 && !BMO_TestFlag(bm, l3->e, EDGE_SEAM));
 
@@ -311,7 +311,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 								if (BM_Edge_FaceCount(l3->e) != 2)
 									break;
 
-								l3 = (BMLoop*)l3->radial.next->data;
+								l3 = (BMLoop*)l3->radial_next;
 								l3 = BM_OtherFaceLoop(l3->e, l3->f, v);
 								
 								et = etags + BMINDEX_GET(l3->e);
@@ -340,7 +340,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	  is set in remake_face*/
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_TestFlag(bm, e, EDGE_MARK)) {
-			if (!e->loop)
+			if (!e->l)
 				BMO_SetFlag(bm, e, EDGE_DEL);
 		}
 	}

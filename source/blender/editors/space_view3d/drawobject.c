@@ -1978,10 +1978,15 @@ static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *ba
 
 static int draw_dm_creases__setDrawOptions(void *userData, int index)
 {
+	BMEditMesh *em = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
-
-	if (!BM_TestHFlag(eed, BM_HIDDEN) && eed->crease!=0.0) {
-		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, eed->crease);
+	float *crease = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_CREASE);
+	
+	if (!crease)
+		return 0;
+	
+	if (!BM_TestHFlag(eed, BM_HIDDEN) && *crease!=0.0) {
+		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, *crease);
 		return 1;
 	} else {
 		return 0;
@@ -1996,10 +2001,15 @@ static void draw_dm_creases(BMEditMesh *em, DerivedMesh *dm)
 
 static int draw_dm_bweights__setDrawOptions(void *userData, int index)
 {
+	BMEditMesh *em = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(userData, index);
+	float *bweight = bm_get_cd_float(&em->bm->edata, eed->head.data, CD_BWEIGHT);
 
-	if (!BM_TestHFlag(eed, BM_HIDDEN) && eed->bweight!=0.0) {
-		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, eed->bweight);
+	if (!bweight)
+		return 0;
+	
+	if (!BM_TestHFlag(eed, BM_HIDDEN) && *bweight!=0.0) {
+		UI_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, *bweight);
 		return 1;
 	} else {
 		return 0;
@@ -2007,10 +2017,15 @@ static int draw_dm_bweights__setDrawOptions(void *userData, int index)
 }
 static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
+	BMEditMesh *em = userData;
 	BMVert *eve = EDBM_get_vert_for_index(userData, index);
-
-	if (!BM_TestHFlag(eve, BM_HIDDEN) && eve->bweight!=0.0) {
-		UI_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, eve->bweight);
+	float *bweight = bm_get_cd_float(&em->bm->vdata, eve->head.data, CD_BWEIGHT);
+	
+	if (!bweight)
+		return;
+	
+	if (!BM_TestHFlag(eve, BM_HIDDEN) && *bweight!=0.0) {
+		UI_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, *bweight);
 		bglVertex3fv(co);
 	}
 }
@@ -2483,7 +2498,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			glLineWidth(1);
 		}
 	
-		if(me->drawflag & ME_DRAWCREASES) {
+		if(me->drawflag & ME_DRAWCREASES && CustomData_has_layer(&em->bm->edata, CD_CREASE)) {
 			draw_dm_creases(em, cageDM);
 		}
 		if(me->drawflag & ME_DRAWBWEIGHTS) {

@@ -27,16 +27,17 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-	. ../../../intern/guardedalloc ../../../intern/memutil ../editors/include ../blenlib ../makesdna
+	. ../../../intern/guardedalloc ../../../intern/memutil ../editors/include ../blenlib ../makesdna ../modifiers
 	../render/extern/include ../../../intern/decimation/extern
 	../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
-	../../../intern/iksolver/extern ../blenloader ../ikplugin
+	../../../intern/iksolver/extern ../blenloader ../ikplugin ../bmesh
 	../nodes ../../../extern/glew/include ../gpu ../makesrna ../../../intern/smoke/extern
 	../../../intern/bsp/extern ../blenfont
 	../../../intern/audaspace/intern
     ../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
 	${ZLIB_INC}
 )
+
 
 ADD_DEFINITIONS(-DGLEW_STATIC)
 

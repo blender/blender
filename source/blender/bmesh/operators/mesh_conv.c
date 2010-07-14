@@ -31,6 +31,7 @@
 
 #include "mesh_intern.h"
 #include "bmesh.h"
+#include "bmesh_private.h"
 
 /*
  * MESH CONV.C
@@ -68,6 +69,16 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	CustomData_copy(&me->pdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
 	CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
+
+	if (!CustomData_has_layer(&bm->edata, CD_CREASE))
+		CustomData_add_layer(&bm->edata, CD_CREASE, CD_ASSIGN, NULL, 0);
+
+	if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT))
+		CustomData_add_layer(&bm->edata, CD_BWEIGHT, CD_ASSIGN, NULL, 0);
+
+	if (!CustomData_has_layer(&bm->vdata, CD_BWEIGHT))
+		CustomData_add_layer(&bm->vdata, CD_BWEIGHT, CD_ASSIGN, NULL, 0);
+
 
 	if (me->key && ob->shapenr > me->key->totkey) {
 		ob->shapenr = me->key->totkey-1;
@@ -116,7 +127,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 		/*transfer flags*/
 		v->head.flag = MEFlags_To_BMFlags(mvert->flag, BM_VERT);
-		v->bweight = (float)mvert->bweight / 255.0f;
+		BM_SetCDf(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
 
 		/*Copy Custom Data*/
 		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data);
@@ -150,8 +161,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		/*Copy Custom Data*/
 		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data);
 		
-		e->crease = (float)medge->crease / 255.0f;
-		e->bweight = (float)medge->bweight / 255.0f;
+		BM_SetCDf(&bm->edata, e, CD_CREASE, (float)medge->crease / 255.0f);
+		BM_SetCDf(&bm->edata, e, CD_BWEIGHT, (float)medge->bweight / 255.0f);
 
 		/*this is necassary for selection counts to work properly*/
 		if (e->head.flag & BM_SELECT) BM_Select(bm, e, 1);
@@ -371,6 +382,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 		i++;
 		mvert++;
+
+		CHECK_ELEMENT(bm, v);
 	}
 
 	i = 0;
@@ -387,6 +400,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 		i++;
 		medge++;
+		CHECK_ELEMENT(bm, e);
 	}
 
 	/*new scanfill tesselation code*/
@@ -511,6 +525,9 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 			/*copy over customdata*/
 			CustomData_from_bmesh_block(&bm->ldata, &me->ldata, l->head.data, j);
+			CHECK_ELEMENT(bm, l);
+			CHECK_ELEMENT(bm, l->e);
+			CHECK_ELEMENT(bm, l->v);
 		}
 		
 		if (f == bm->act_face) me->act_face = i;
@@ -520,6 +537,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 		i++;
 		mpoly++;
+		CHECK_ELEMENT(bm, f);
 	}
 
 	/* patch hook indices and vertex parents */

@@ -48,10 +48,12 @@
 #include "string.h"
 
 #define SELECT 1
+	#define BM_EDGEVERT	(1<<14)
 
 /*prototypes*/
 static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh,
                                     BMLoop *source_loop, BMLoop *target_loop);
+#if 0
 
 /*
  * BM_CONSTRUCT.C
@@ -100,7 +102,7 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
 	BMEdge *e = NULL;
 	
 	if(nodouble) /*test if edge already exists.*/
-		e = bmesh_disk_existedge(v1, v2);
+		e = BM_Edge_Exist(v1, v2);
 
 	if(!e){
 		e = bmesh_me(bm, v1, v2);
@@ -112,6 +114,7 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
 	return e;
 	
 }
+#endif
 
 /*
  * BMESH MAKE QUADTRIANGLE
@@ -136,10 +139,10 @@ BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3,
 	BMEdge *edar[4];
 	BMVert *vtar[4];
 
-	edar[0] = bmesh_disk_existedge(v1, v2);
-	edar[1] = bmesh_disk_existedge(v2, v3);
-	edar[2] = bmesh_disk_existedge(v3, v4? v4 : v1);
-	if (v4) edar[3] = bmesh_disk_existedge(v4, v1);
+	edar[0] = BM_Edge_Exist(v1, v2);
+	edar[1] = BM_Edge_Exist(v2, v3);
+	edar[2] = BM_Edge_Exist(v3, v4? v4 : v1);
+	if (v4) edar[3] = BM_Edge_Exist(v4, v1);
 	else edar[3] = NULL;
 
 	if (!edar[0]) edar[0] = BM_Make_Edge(bm, v1, v2, NULL, 0);
@@ -170,14 +173,14 @@ BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len,
 		edar[2] = edges[2];
 		if(len == 4) edar[3] = edges[3];
 	}else{
-		edar[0] = bmesh_disk_existedge(verts[0],verts[1]);
-		edar[1] = bmesh_disk_existedge(verts[1],verts[2]);
+		edar[0] = BM_Edge_Exist(verts[0],verts[1]);
+		edar[1] = BM_Edge_Exist(verts[1],verts[2]);
 		if(len == 4){
-			edar[2] = bmesh_disk_existedge(verts[2],verts[3]);
-			edar[3] = bmesh_disk_existedge(verts[3],verts[0]);
+			edar[2] = BM_Edge_Exist(verts[2],verts[3]);
+			edar[3] = BM_Edge_Exist(verts[3],verts[0]);
 
 		}else{
-			edar[2] = bmesh_disk_existedge(verts[2],verts[0]);
+			edar[2] = BM_Edge_Exist(verts[2],verts[0]);
 		}
 	}
 	
@@ -192,17 +195,16 @@ BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len,
 
 	/*make new face*/
 	if((!f) && (!overlap)){
-		if(!edar[0]) edar[0] = bmesh_me(bm, verts[0], verts[1]);
-		if(!edar[1]) edar[1] = bmesh_me(bm, verts[1], verts[2]);
+		if(!edar[0]) edar[0] = BM_Make_Edge(bm, verts[0], verts[1], NULL, 0);
+		if(!edar[1]) edar[1] = BM_Make_Edge(bm, verts[1], verts[2], NULL, 0);
 		if(len == 4){
-			if(!edar[2]) edar[2] = bmesh_me(bm, verts[2], verts[3]);
-			if(!edar[3]) edar[3] = bmesh_me(bm, verts[3], verts[0]); 
+			if(!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[3], NULL, 0);
+			if(!edar[3]) edar[3] = BM_Make_Edge(bm, verts[3], verts[0], NULL, 0);
 		} else {
-			if(!edar[2]) edar[2] = bmesh_me(bm, verts[2], verts[0]);
+			if(!edar[2]) edar[2] = BM_Make_Edge(bm, verts[2], verts[0], NULL, 0);
 		}
 	
-		if(len == 4) f = bmesh_mf(bm, verts[0], verts[1], edar, 4);
-		else f = bmesh_mf(bm, verts[0], verts[1], edar, 3);
+		f = BM_Make_Face(bm, verts, edar, len);
 	
 		if(example)
 			CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, example->head.data, &f->head.data);
@@ -222,13 +224,13 @@ void BM_Face_CopyShared(BMesh *bm, BMFace *f) {
 
 	l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
 	for (; l; l=BMIter_Step(&iter)) {
-		l2 = l->radial.next->data;
+		l2 = l->radial_next;
 		
 		if (l2 && l2 != l) {
 			if (l2->v == l->v) {
 				bm_copy_loop_attributes(bm, bm, l2, l);
 			} else {
-				l2 = (BMLoop*) l2->head.next;
+				l2 = (BMLoop*) l2->next;
 				bm_copy_loop_attributes(bm, bm, l2, l);
 			}
 		}
@@ -240,82 +242,126 @@ void BM_Face_CopyShared(BMesh *bm, BMFace *f) {
  *
  * Attempts to make a new Ngon from a list of edges.
  * If nodouble equals one, a check for overlaps or existing
- * 
- * 
  *
+ * The edges are not required to be ordered, simply to to form
+ * a single closed loop as a whole
 */
 #define VERT_BUF_SIZE 100
 BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble)
 {
-	BMVert *vert_buf[VERT_BUF_SIZE];
-	BMVert **verts = vert_buf, *lastv;
+	BMEdge **edges2 = NULL;
+	BLI_array_staticdeclare(edges2, VERT_BUF_SIZE);
+	BMVert **verts = NULL, *v;
+	BLI_array_staticdeclare(verts, VERT_BUF_SIZE);
 	BMFace *f = NULL;
-	int overlap = 0, i, j;
-	
-	/*note: need to make sure this is correct*/
-	if(bmesh_verts_in_edge(v1,v2,edges[0]) == 0) {
-		if (v1 == edges[0]->v1)
-			v2 = edges[0]->v2;
-		else {
-			v1 = edges[0]->v2;
-			v2 = edges[0]->v1;
+	BMEdge *e;
+	int overlap = 0, i, j, v1found, reverse;
+
+	/*this code is hideous, yeek.  I'll have to think about ways of
+	  cleaning it up.  basically, it now combines the old BM_Make_Ngon
+	  *and* the old bmesh_mf functions, so its kindof smashed together
+		- joeedh*/
+
+	if (!len || !v1 || !v2 || !edges || !bm)
+		return NULL;
+
+	/*put edges in correct order*/
+	for (i=0; i<len; i++) {
+		bmesh_api_setflag(edges[i], _FLAG_MF);
+	}
+
+	BLI_array_append(verts, edges[0]->v1);
+
+	v = edges[0]->v2;
+	e = edges[0];
+	do {
+		BMEdge *e2 = e;
+
+		BLI_array_append(verts, v);
+		BLI_array_append(edges2, e);
+
+		do {
+			e2 = bmesh_disk_nextedge(e2, v);
+			if (e2 != e && bmesh_api_getflag(e2, _FLAG_MF)) {
+				v = BM_OtherEdgeVert(e2, v);
+				break;
+			}
+		} while (e2 != e);
+
+		if (e2 == e)
+			goto err; /*the edges do not form a closed loop*/
+
+		e = e2;
+	} while (e != edges[0]);
+
+	if (BLI_array_count(edges2) != len)
+		goto err; /*we didn't use all edges in forming the boundary loop*/
+
+	/*ok, edges are in correct order, now ensure they are going
+	  in the correct direction*/
+	v1found = reverse = 0;
+	for (i=0; i<len; i++) {
+		if (BM_Vert_In_Edge(edges2[i], v1)) {
+			/*see if v1 and v2 are in the same edge*/
+			if (BM_Vert_In_Edge(edges2[i], v2)) {
+				/*if v1 is shared by the *next* edge, then the winding
+				  is incorrect*/
+				if (BM_Vert_In_Edge(edges2[(i+1)%len], v1)) {
+					reverse = 1;
+					break;
+				}
+			}
+
+			v1found = 1;
+		}
+
+		if (!v1found && BM_Vert_In_Edge(edges2[i], v2)) {
+			reverse = 1;
+			break;
 		}
 	}
 
-	if(nodouble) {
-		if(len > VERT_BUF_SIZE)
-			verts = MEM_callocN(sizeof(BMVert *) * len, "bmesh make ngon vertex array");
-		
-		/*if ((edges[i]->v1 == edges[i]->v1) || 
-		   (edges[i]->v1 == edges[i]->v2))
-		{
-			lastv = edges[i]->v2;
-		} else lastv = edges[i]->v1;
-		verts[0] = lastv;
-
-		for (i=1; i<len; i++) {
-			if (!BMO_TestFlag
-		}*/
-
-		/*clear flags first*/
-		for(i = 0; i < len; i++){
-			BMO_ClearFlag(bm, edges[i]->v1, BM_EDGEVERT);
-			BMO_ClearFlag(bm, edges[i]->v2, BM_EDGEVERT);
+	if (reverse) {
+		for (i=0; i<len/2; i++) {
+			v = verts[i];
+			verts[i] = verts[len-i-1];
+			verts[len-i-1] = v;
 		}
+	}
 
-		for(i = 0, j=0; i < len; i++){
-			if(!BMO_TestFlag(bm, edges[i]->v1, BM_EDGEVERT)){
-				BMO_SetFlag(bm, edges[i]->v1, BM_EDGEVERT);
-				verts[j++] = edges[i]->v1;
-			}
-			if(!BMO_TestFlag(bm, edges[i]->v2, BM_EDGEVERT)) {
-				BMO_SetFlag(bm, edges[i]->v2, BM_EDGEVERT);
-				verts[j++] = edges[i]->v2;
-			}
-		}
-		
-		if (j != len) {
-			/*sanity check*/
-			return NULL;
-		}
+	for (i=0; i<len; i++) {
+		edges2[i] = BM_Edge_Exist(verts[i], verts[(i+1)%len]);
+	}
 
+	/*check if face already exists*/
+	if(nodouble)
 		overlap = BM_Face_Exists(bm, verts, len, &f);
-		
-		/*clear flags*/
-		for(i = 0; i < len; i++){
-			BMO_ClearFlag(bm, edges[i]->v1, BM_EDGEVERT);
-			BMO_ClearFlag(bm, edges[i]->v2, BM_EDGEVERT);
-		}
-		
-		if(len > VERT_BUF_SIZE)
-			MEM_freeN(verts);
+
+	/*create the face, if necassary*/
+	if (!f && !overlap)
+		f = BM_Make_Face(bm, verts, edges2, len);
+	else if (!overlap) 
+		f = NULL;
+
+	/*clean up flags*/
+	for (i=0; i<len; i++) {
+		bmesh_api_clearflag(edges2[i], _FLAG_MF);
 	}
 
-	if((!f) && (!overlap)) {
-		f = bmesh_mf(bm, v1, v2, edges, len);
-	} else return NULL;
+	BLI_array_free(verts);
+	BLI_array_free(edges2);
 
 	return f;
+
+err:
+	for (i=0; i<len; i++) {
+		bmesh_api_clearflag(edges[i], _FLAG_MF);
+	}
+
+	BLI_array_free(verts);
+	BLI_array_free(edges2);
+
+	return NULL;
 }
 
 
@@ -332,52 +378,42 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 
 void BM_remove_tagged_faces(BMesh *bm, int flag)
 {
-	BMHeader *current, *next;
+	BMFace *f;
+	BMIter iter;
 
-	current = bm->polys.first;
-	while(current){
-		next = current->next;
-		if(BMO_TestFlag(bm, current, flag)) bmesh_kf(bm, (BMFace*)current);
-		current = next;
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		if(BMO_TestFlag(bm, f, flag)) BM_Kill_Face(bm, f);
 	}
 }
+
 void BM_remove_tagged_edges(BMesh *bm, int flag)
 {
-	BMHeader *current, *next;
-	
-	current = bm->edges.first;
-	
-	while(current){
-		next = current->next;
-		if(BMO_TestFlag(bm, current, flag)) bmesh_ke(bm, (BMEdge*)current);
-		current = next;
+	BMEdge *e;
+	BMIter iter;
+
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		if(BMO_TestFlag(bm, e, flag)) BM_Kill_Edge(bm, e);
 	}
 }
 
 void BM_remove_tagged_verts(BMesh *bm, int flag)
 {
-	BMHeader *current, *next;
+	BMVert *v;
+	BMIter iter;
 
-	current = bm->verts.first;
-
-	while(current){
-		next = current->next;
-		if(BMO_TestFlag(bm, current, flag)) bmesh_kv(bm,(BMVert*)current);
-		current = next;
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		if(BMO_TestFlag(bm, v, flag)) BM_Kill_Vert(bm, v);
 	}
 }
 
 static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh, BMVert *source_vertex, BMVert *target_vertex)
 {
 	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->head.data, &target_vertex->head.data);	
-	target_vertex->bweight = source_vertex->bweight;
 }
 
 static void bm_copy_edge_attributes(BMesh *source_mesh, BMesh *target_mesh, BMEdge *source_edge, BMEdge *target_edge)
 {
 	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata, source_edge->head.data, &target_edge->head.data);
-	target_edge->crease = source_edge->crease;
-	target_edge->bweight = source_edge->bweight;
 }
 
 static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh, BMLoop *source_loop, BMLoop *target_loop)

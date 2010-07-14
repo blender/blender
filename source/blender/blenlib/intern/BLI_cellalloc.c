@@ -94,7 +94,7 @@ void *BLI_cellalloc_malloc(long size, char *tag)
 	}
 
 	if (!pools[slot]) {
-		pools[slot] = BLI_mempool_create(slot, 1, 128, 1);
+		pools[slot] = BLI_mempool_create(slot, 1, 128, 1, 0);
 	}
 
 	memh = BLI_mempool_alloc(pools[slot]);

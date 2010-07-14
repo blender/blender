@@ -261,7 +261,7 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 				if (l->f->head.flag & BM_ACTIVE) act = BM_ACTIVE;
 				if (((BMLoop*)l->radial.next->data)->f->head.flag & BM_ACTIVE) act = BM_ACTIVE;
 
-				sf = BM_Join_Faces(bm,l->f, ((BMLoop*)l->radial.next->data)->f, l->e);
+				sf = BM_Join_TwoFaces(bm,l->f, ((BMLoop*)l->radial.next->data)->f, l->e);
 				if (!sf) {
 					//tesselation error
 					break;
@@ -275,7 +275,7 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 					return;
 				}
 			}
-			l = ((BMLoop*)(l->head.next));
+			l = ((BMLoop*)(l->next));
 		}while(l != sf->loopbase);
 	}
 }
@@ -293,7 +293,7 @@ static BM_fgonconvert(BMesh *bm, BMOperator *op, EditMesh *em, int numCol, int n
 		f = editface_to_BMFace(bm, em, efa, numCol, numTex);
 	}
 
-	for (f=bm->polys.first; f; f=f->head.next) {
+	for (f=bm->polys.first; f; f=f->next) {
 		fuse_fgon(bm, f);
 	}
 

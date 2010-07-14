@@ -185,8 +185,10 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 
 		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if(BM_TestHFlag(eed, BM_SELECT)) {
+				float *f = bm_get_cd_float(&bm->edata, eed->head.data, CD_CREASE);
+
 				totedge++;
-				median[3]+= eed->crease;
+				median[3]+= f ? *f : 0.0f;
 			}
 		}
 
@@ -393,12 +395,15 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 			
 			BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 				if(BM_TestHFlag(eed, BM_SELECT)) {
+					float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
+					if (!crease) continue;
+					
 					/* ensure the median can be set to zero or one */
-					if(ve_median[3]==0.0f) eed->crease= 0.0f;
-					else if(ve_median[3]==1.0f) eed->crease= 1.0f;
+					if(ve_median[3]==0.0f) *crease= 0.0f;
+					else if(ve_median[3]==1.0f) *crease= 1.0f;
 					else {
-						eed->crease+= median[3];
-						CLAMP(eed->crease, 0.0, 1.0);
+						*crease+= median[3];
+						CLAMP(*crease, 0.0, 1.0);
 					}
 				}
 			}

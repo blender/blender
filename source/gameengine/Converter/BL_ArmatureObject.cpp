@@ -68,8 +68,7 @@
  * When it is about to evaluate the pose, set the KX object position in the obmat of the corresponding
  * Blender objects and restore after the evaluation.
  */
-void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
-{
+void game_copy_pose(bPose **dst, bPose *src, int copy_constraint) {
 	bPose *out;
 	bPoseChannel *pchan, *outpchan;
 	GHash *ghash;

@@ -594,6 +594,8 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, char *slotname, int flag,
 				}
 			}
 		}
+	} else {
+		output->len = 0;
 	}
 }
 
@@ -641,6 +643,8 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, char *slotname, int flag, int t
 				}
 			}
 		}
+	} else {
+		output->len = 0;
 	}
 }
 
@@ -696,15 +700,13 @@ void BMO_UnHeaderFlag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag
 
 int BMO_Vert_CountEdgeFlags(BMesh *bm, BMVert *v, int toolflag)
 {
-	BMNode *diskbase;
 	BMEdge *curedge;
 	int i, len=0, count=0;
 	
-	if(v->edge){
-		diskbase = bmesh_disk_getpointer(v->edge, v);
-		len = bmesh_cycle_length(diskbase);
+	if(v->e) {
+		len = bmesh_disk_count(v);
 		
-		for(i = 0, curedge=v->edge; i<len; i++){
+		for(i = 0, curedge=v->e; i<len; i++){
 			if (BMO_TestFlag(bm, curedge, toolflag))
 				count++;
 			curedge = bmesh_disk_nextedge(curedge, v);
@@ -784,29 +786,31 @@ static void alloc_flag_layer(BMesh *bm)
 	BMIter verts;
 	BMIter edges;
 	BMIter faces;
-	BLI_mempool *oldpool = bm->flagpool; 		/*old flag pool*/
+	BLI_mempool *oldpool = bm->toolflagpool; 		/*old flag pool*/
 	void *oldflags;
 	
+	bm->totflags++;
+
 	/*allocate new flag pool*/
-	bm->flagpool = BLI_mempool_create(sizeof(BMFlagLayer)*(bm->totflags+1), 512, 512, 1);
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, 1, 0);
 	
 	/*now go through and memcpy all the flags. Loops don't get a flag layer at this time...*/
 	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
 		oldflags = v->head.flags;
-		v->head.flags = BLI_mempool_calloc(bm->flagpool);
+		v->head.flags = BLI_mempool_calloc(bm->toolflagpool);
 		memcpy(v->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags); /*dont know if this memcpy usage is correct*/
 	}
 	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
 		oldflags = e->head.flags;
-		e->head.flags = BLI_mempool_calloc(bm->flagpool);
+		e->head.flags = BLI_mempool_calloc(bm->toolflagpool);
 		memcpy(e->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
 	}
 	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
 		oldflags = f->head.flags;
-		f->head.flags = BLI_mempool_calloc(bm->flagpool);
+		f->head.flags = BLI_mempool_calloc(bm->toolflagpool);
 		memcpy(f->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
 	}
-	bm->totflags++;
+
 	BLI_mempool_destroy(oldpool);
 }
 
@@ -819,28 +823,28 @@ static void free_flag_layer(BMesh *bm)
 	BMIter verts;
 	BMIter edges;
 	BMIter faces;
-	BLI_mempool *oldpool = bm->flagpool;
+	BLI_mempool *oldpool = bm->toolflagpool;
 	void *oldflags;
 	
 	/*de-increment the totflags first...*/
 	bm->totflags--;
 	/*allocate new flag pool*/
-	bm->flagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, 1);
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, 1, 0);
 	
 	/*now go through and memcpy all the flags*/
 	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
 		oldflags = v->head.flags;
-		v->head.flags = BLI_mempool_calloc(bm->flagpool);
+		v->head.flags = BLI_mempool_calloc(bm->toolflagpool);
 		memcpy(v->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);  /*correct?*/
 	}
 	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
 		oldflags = e->head.flags;
-		e->head.flags = BLI_mempool_calloc(bm->flagpool);
+		e->head.flags = BLI_mempool_calloc(bm->toolflagpool);
 		memcpy(e->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
 	}
 	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
 		oldflags = f->head.flags;
-		f->head.flags = BLI_mempool_calloc(bm->flagpool);
+		f->head.flags = BLI_mempool_calloc(bm->toolflagpool);
 		memcpy(f->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
 	}
 
@@ -859,13 +863,13 @@ static void clear_flag_layer(BMesh *bm)
 	
 	/*now go through and memcpy all the flags*/
 	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
-		memset(v->head.flags+bm->totflags-1, 0, sizeof(BMFlagLayer));
+		memset(v->head.flags+(bm->totflags-1), 0, sizeof(BMFlagLayer));
 	}
 	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
-		memset(e->head.flags+bm->totflags-1, 0, sizeof(BMFlagLayer));
+		memset(e->head.flags+(bm->totflags-1), 0, sizeof(BMFlagLayer));
 	}
 	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
-		memset(f->head.flags+bm->totflags-1, 0, sizeof(BMFlagLayer));
+		memset(f->head.flags+(bm->totflags-1), 0, sizeof(BMFlagLayer));
 	}
 }
 
@@ -1059,6 +1063,18 @@ static int bmesh_name_to_slotcode(BMOpDefine *def, char *name)
 	return 0;
 }
 
+static int bmesh_name_to_slotcode_check(BMOpDefine *def, char *name)
+{
+	int i;
+
+	for (i=0; def->slottypes[i].type; i++) {
+		if (!strcmp(name, def->slottypes[i].name)) return i;
+	}
+
+	printf("yeek! could not find bmesh slot for name %s!\n", name);
+	return -1;
+}
+
 static int bmesh_opname_to_opcode(char *opname) {
 	int i;
 
@@ -1125,7 +1141,7 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist)
 
 			fmt[i] = 0;
 
-			if (bmesh_name_to_slotcode(def, fmt) < 0) goto error;
+			if (bmesh_name_to_slotcode_check(def, fmt) < 0) goto error;
 			
 			strcpy(slotname, fmt);
 			
@@ -1284,7 +1300,7 @@ int BMO_CallOpf(BMesh *bm, char *fmt, ...) {
 void BMO_SetFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
-	head->flags[bm->stackdepth-1].mask |= flag;
+	head->flags[bm->stackdepth-1].f |= flag;
 }
 
 /*
@@ -1300,7 +1316,7 @@ void BMO_SetFlag(BMesh *bm, void *element, int flag)
 void BMO_ClearFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
-	head->flags[bm->stackdepth-1].mask &= ~flag;
+	head->flags[bm->stackdepth-1].f &= ~flag;
 }
 
 /*
@@ -1317,7 +1333,7 @@ void BMO_ClearFlag(BMesh *bm, void *element, int flag)
 int BMO_TestFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
-	if(head->flags[bm->stackdepth-1].mask & flag)
+	if(head->flags[bm->stackdepth-1].f & flag)
 		return 1;
 	return 0;
 }

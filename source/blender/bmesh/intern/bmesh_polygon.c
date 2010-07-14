@@ -395,15 +395,16 @@ void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
 {
 	float projverts[200][3];
 	float (*proj)[3] = f->len < 200 ? projverts : MEM_mallocN(sizeof(float)*f->len*3, "projvertsn");
-	BMLoop *l = f->loopbase;
+	BMIter iter;
+	BMLoop *l;
 	int i=0;
 
 	if (f->len < 3) return;
 	
-	do {
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
 		VECCOPY(proj[i], l->v->co);
 		i += 1;
-	} while (l != f->loopbase);
+	}
 
 	bmesh_update_face_normal(bm, f, proj);
 
@@ -444,33 +445,33 @@ void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
 
 void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 {
+	BMIter iter;
 	BMLoop *l;
 	int i;
 
 	if(f->len > 4) {
 		i = 0;
-		l = f->loopbase;
-		do{
+		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
 			VECCOPY(projectverts[i], l->v->co);
-			l = (BMLoop*)(l->head.next);
+			l = (BMLoop*)(l->next);
 			i += 1;
-		}while(l!=f->loopbase);
+		}
 
 		compute_poly_normal(f->no, projectverts, f->len);	
 	}
 	else if(f->len == 3){
 		BMVert *v1, *v2, *v3;
-		v1 = f->loopbase->v;
-		v2 = ((BMLoop*)(f->loopbase->head.next))->v;
-		v3 = ((BMLoop*)(f->loopbase->head.next->next))->v;
+		v1 = bm_firstfaceloop(f)->v;
+		v2 = bm_firstfaceloop(f)->next->v;
+		v3 = bm_firstfaceloop(f)->next->next->v;
 		normal_tri_v3( f->no,v1->co, v2->co, v3->co);
 	}
 	else if(f->len == 4){
 		BMVert *v1, *v2, *v3, *v4;
-		v1 = f->loopbase->v;
-		v2 = ((BMLoop*)(f->loopbase->head.next))->v;
-		v3 = ((BMLoop*)(f->loopbase->head.next->next))->v;
-		v4 = ((BMLoop*)(f->loopbase->head.prev))->v;
+		v1 = bm_firstfaceloop(f)->v;
+		v2 = bm_firstfaceloop(f)->next->v;
+		v3 = bm_firstfaceloop(f)->next->next->v;
+		v4 = bm_firstfaceloop(f)->prev->v;
 		normal_quad_v3( f->no,v1->co, v2->co, v3->co, v4->co);
 	}
 	else{ /*horrible, two sided face!*/
@@ -588,7 +589,7 @@ int linecrossesf(float *v1, float *v2, float *v3, float *v4)
 
 int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	     int v2i, int v3i, int nvert) {
-	BMLoop *l = f->loopbase;
+	BMLoop *l = bm_firstfaceloop(f);
 	double v1[3], v2[3], v3[3], pv1[3], pv2[3];
 	int i;
 
@@ -602,19 +603,19 @@ int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	do {
 		i = l->v->head.eflag2;
 		if (i == v1i || i == v2i || i == v3i) {
-			l = (BMLoop*)l->head.next;
+			l = (BMLoop*)l->next;
 			continue;
 		}
 		
 		VECCOPY(pv1, projectverts[l->v->head.eflag2]);
-		VECCOPY(pv2, projectverts[((BMLoop*)l->head.next)->v->head.eflag2]);
+		VECCOPY(pv2, projectverts[((BMLoop*)l->next)->v->head.eflag2]);
 		
 		//if (linecrosses(pv1, pv2, v1, v3)) return 0;
 		if (point_in_triangle(v1, v2, v3, pv1)) return 0;
 		if (point_in_triangle(v3, v2, v1, pv1)) return 0;
 
-		l = (BMLoop*)l->head.next;
-	} while (l != f->loopbase);
+		l = (BMLoop*)l->next;
+	} while (l != bm_firstfaceloop(f));
 	return 1;
 }
 /*
@@ -634,13 +635,13 @@ static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3],
 	float angle, bestangle = 180.0f;
 	int isear, i=0;
 	
-	l = f->loopbase;
+	l = bm_firstfaceloop(f);
 	do {
 		isear = 1;
 		
-		v1 = ((BMLoop*)(l->head.prev))->v;
+		v1 = ((BMLoop*)(l->prev))->v;
 		v2 = l->v;
-		v3 = ((BMLoop*)(l->head.next))->v;
+		v3 = ((BMLoop*)(l->next))->v;
 
 		if (BM_Edge_Exist(v1, v3)) isear = 0;
 
@@ -661,9 +662,9 @@ static BMLoop *find_ear(BMesh *bm, BMFace *f, float (*verts)[3],
 			bestear = l;
 			break;
 		}
-		l = (BMLoop*)(l->head.next);
+		l = (BMLoop*)(l->next);
 	}
-	while(l != f->loopbase);
+	while(l != bm_firstfaceloop(f));
 
 	return bestear;
 }
@@ -693,13 +694,13 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 	/*copy vertex coordinates to vertspace array*/
 	i = 0;
-	l = f->loopbase;
+	l = bm_firstfaceloop(f);
 	do{
 		VECCOPY(projectverts[i], l->v->co);
 		l->v->head.eflag2 = i; /*warning, abuse! never duplicate in tools code! never you hear?*/ /*actually, get rid of this completely, use a new structure for this....*/
 		i++;
-		l = (BMLoop*)(l->head.next);
-	}while(l != f->loopbase);
+		l = (BMLoop*)(l->next);
+	}while(l != bm_firstfaceloop(f));
 	
 	///bmesh_update_face_normal(bm, f, projectverts);
 
@@ -720,8 +721,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		if(l) {
 			done = 0;
 			v = l->v;
-			f = BM_Split_Face(bm, l->f, ((BMLoop*)(l->head.prev))->v, 
-			                  ((BMLoop*)(l->head.next))->v, 
+			f = BM_Split_Face(bm, l->f, ((BMLoop*)(l->prev))->v, 
+			                  ((BMLoop*)(l->next))->v, 
 			                  &newl, NULL);
 			VECCOPY(f->no, l->f->no);
 
@@ -741,15 +742,15 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 					f->loopbase = l;
 					break;
 				}
-				l = l->head.next;
+				l = l->next;
 			} while (l != f->loopbase);*/
 		}
 	}
 
 	if (f->len > 3){
-		l = f->loopbase;
+		l = bm_firstfaceloop(f);
 		while (l->f->len > 3){
-			nextloop = ((BMLoop*)(l->head.next->next));
+			nextloop = ((BMLoop*)(l->next->next));
 			f = BM_Split_Face(bm, l->f, l->v, nextloop->v, 
 			                  &newl, NULL);
 			if (!f) {
@@ -818,7 +819,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	poly_rotate_plane(no, projverts, f->len);
 	poly_rotate_plane(no, edgeverts, len*2);
 	
-	l = f->loopbase;
+	l = bm_firstfaceloop(f);
 	for (i=0; i<f->len; i++) {
 		p1 = projverts[i];
 		out[0] = MAX2(out[0], p1[0]) + 0.01f;
@@ -828,7 +829,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 
 		//VECCOPY(l->v->co, p1);
 
-		l = (BMLoop*) l->head.next;
+		l = (BMLoop*) l->next;
 	}
 	
 	for (i=0; i<len; i++) {

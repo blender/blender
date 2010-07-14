@@ -71,6 +71,7 @@ static const char *check_memlist(MemHead *memh);
 #define MEMTAG1 MAKE_ID('M', 'E', 'M', 'O')
 #define MEMTAG2 MAKE_ID('R', 'Y', 'B', 'L')
 #define MEMTAG3 MAKE_ID('O', 'C', 'K', '!')
+#define MEMTAG4 MAKE_ID('C', 'R', 'A', 'P')
 #define MEMFREE MAKE_ID('F', 'R', 'E', 'E')
 
 #define MEMNEXT(x) ((MemHead *)(((char *) x) - ((char *) & (((MemHead *)0)->next))))
@@ -230,6 +231,7 @@ static void make_memhead_header(MemHead *memh, unsigned int len, const char *str
 	
 	memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + len);
 	memt->tag3 = MEMTAG3;
+	memt->tag4 = MEMTAG4;
 	
 	addtail(membase,&memh->next);
 	if (memh->next) memh->nextname = MEMNEXT(memh->next)->name;
@@ -555,11 +557,12 @@ short _MEM_freeN(void *vmemh, char *file, int line)		/* anders compileertie niet
 	mem_lock_thread();
 	if ((memh->tag1 == MEMTAG1) && (memh->tag2 == MEMTAG2) && ((memh->len & 0x3) == 0)) {
 		memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + memh->len);
-		if (memt->tag3 == MEMTAG3){
+		if (memt->tag3 == MEMTAG3 && memt->tag4 == MEMTAG4){
 			
 			memh->tag1 = MEMFREE;
 			memh->tag2 = MEMFREE;
 			memt->tag3 = MEMFREE;
+			memt->tag4 = MEMFREE;
 			/* after tags !!! */
 			rem_memblock(memh);
 

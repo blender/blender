@@ -29,7 +29,7 @@ FILE(GLOB SRC intern/*.c)
 SET(INC 
 	. ../../../intern/guardedalloc ../blenlib ../blenkernel
 	../makesdna ../readblenfile ../include ../makesrna
-	../python ../../kernel/gen_messaging
+	../python ../../kernel/gen_messaging ../bmesh
 	../render/extern/include
 	${ZLIB_INC}
 )

@@ -28,7 +28,7 @@ FILE(GLOB SRC intern/source/*.c intern/raytrace/*.cpp)
 
 SET(INC 
 	intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
-	extern/include ../blenkernel ../imbuf
+	extern/include ../blenkernel ../imbuf ../bmesh
 	../include ../../kernel/gen_messaging ../blenloader
 	../../../intern/smoke/extern
 	../makesrna

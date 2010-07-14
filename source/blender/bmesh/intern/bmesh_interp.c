@@ -83,8 +83,6 @@ void BM_Data_Interp_From_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, flo
 void BM_Data_Vert_Average(BMesh *bm, BMFace *f)
 {
 	BMIter iter;
-
-
 }
 
 /**
@@ -105,17 +103,17 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, B
 	w[1] = 1.0f - fac;
 	w[0] = fac;
 
-	if(!e1->loop) return;
-	l = e1->loop;
+	if(!e1->l) return;
+	l = e1->l;
 	do{
 		if(l->v == v1){ 
 			v1loop = l;
-			vloop = (BMLoop*)(v1loop->head.next);
-			v2loop = (BMLoop*)(vloop->head.next);
+			vloop = (BMLoop*)(v1loop->next);
+			v2loop = (BMLoop*)(vloop->next);
 		}else if(l->v == v){
-			v1loop = (BMLoop*)(l->head.next);
+			v1loop = (BMLoop*)(l->next);
 			vloop = l;
-			v2loop = (BMLoop*)(l->head.prev);
+			v2loop = (BMLoop*)(l->prev);
 			
 		}
 
@@ -123,8 +121,8 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, B
 		src[1] = v2loop->head.data;					
 
 		CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, vloop->head.data); 				
-		l = l->radial.next->data;
-	}while(l!=e1->loop);
+		l = l->radial_next;
+	}while(l!=e1->l);
 }
 
 void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
@@ -276,4 +274,24 @@ void BM_free_data_layer(BMesh *bm, CustomData *data, int type)
 
 	update_data_blocks(bm, &olddata, data);
 	if (olddata.layers) MEM_freeN(olddata.layers);
+}
+
+float BM_GetCDf(CustomData *cd, void *element, int type)
+{
+	if (CustomData_has_layer(cd, type)) {
+		float *f = CustomData_bmesh_get(cd, ((BMHeader*)element)->data, type);
+		return *f;
+	}
+
+	return 0.0;
+}
+
+void BM_SetCDf(CustomData *cd, void *element, int type, float val)
+{
+	if (CustomData_has_layer(cd, type)) {
+		float *f = CustomData_bmesh_get(cd, ((BMHeader*)element)->data, type);
+		*f = val;
+	}
+
+	return;
 }

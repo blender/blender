@@ -525,7 +525,7 @@ static void edgetag_add_adjacent(BMEditMesh *em, Heap *heap, int mednum, int ver
 		BMEdge *eedadj = EDBM_get_edge_for_index(em, adjnum);
 		float newcost;
 
-		if (eedadj->head.eflag2 & ME_SEAM_DONE)
+		if (eedadj->head.flags[0].f & ME_SEAM_DONE)
 			continue;
 
 		newcost = cost[mednum] + edgetag_cut_cost(em, mednum, adjnum, vertnum);
@@ -553,18 +553,39 @@ void edgetag_context_set(BMEditMesh *em, Scene *scene, BMEdge *eed, int val)
 		if (val)		{BM_SetHFlag(eed, BM_SEAM);}
 		else			{BM_ClearHFlag(eed, BM_SEAM);}
 		break;				
-	case EDGE_MODE_TAG_CREASE:	
-		if (val)		{eed->crease = 1.0f;}
-		else			{eed->crease = 0.0f;}
+	case EDGE_MODE_TAG_CREASE:
+	 {
+		float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
+		
+		if (val)		{*crease = 1.0f;}
+		else			{*crease = 0.0f;}
 		break;
+	 }
 	case EDGE_MODE_TAG_BEVEL:
-		if (val)		{eed->bweight = 1.0f;}
-		else			{eed->bweight = 0.0f;}
+	 {
+		float *bweight = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
+
+		if (val)		{*bweight = 1.0f;}
+		else			{*bweight = 0.0f;}
 		break;
+	 }
 	}
 }
 
-int edgetag_context_check(Scene *scene, BMEdge *eed)
+static float bm_cdata_get_single_float(BMesh *bm, CustomData *cdata, void *element, int type)
+{
+	BMHeader *ele = element;
+	float *f;
+	
+	if (!CustomData_has_layer(cdata, type))
+		return 0.0f;
+	
+	f = CustomData_bmesh_get(cdata, ele->data, type);
+	
+	return *f;
+}
+
+int edgetag_context_check(Scene *scene, BMEditMesh *em, BMEdge *eed)
 {
 	switch (scene->toolsettings->edge_mode) {
 	case EDGE_MODE_SELECT:
@@ -574,9 +595,9 @@ int edgetag_context_check(Scene *scene, BMEdge *eed)
 	case EDGE_MODE_TAG_SHARP:
 		return BM_TestHFlag(eed, BM_SHARP);
 	case EDGE_MODE_TAG_CREASE:	
-		return eed->crease ? 1 : 0;
+		return bm_cdata_get_single_float(em->bm, &em->bm->edata, eed, CD_CREASE) ? 1 : 0;
 	case EDGE_MODE_TAG_BEVEL:
-		return eed->bweight ? 1 : 0;
+		return bm_cdata_get_single_float(em->bm, &em->bm->edata, eed, CD_BWEIGHT) ? 1 : 0;
 	}
 	return 0;
 }
@@ -599,9 +620,9 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 	}
 
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		eed->head.eflag2 = 0;
+		eed->head.flags[0].f = 0;
 		if (BM_TestHFlag(eed, BM_SELECT)) {
-			eed->head.eflag2 |= ME_SEAM_DONE;
+			eed->head.flags[0].f |= ME_SEAM_DONE;
 		}
 
 		BMINDEX_SET(eed, totedge);
@@ -650,10 +671,10 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 		if (mednum == BMINDEX_GET(target))
 			break;
 
-		if (eed->head.eflag2 & ME_SEAM_DONE)
+		if (eed->head.flags[0].f & ME_SEAM_DONE)
 			continue;
 
-		eed->head.eflag2 |= ME_SEAM_DONE;
+		eed->head.flags[0].f |= ME_SEAM_DONE;
 
 		edgetag_add_adjacent(em, heap, mednum, BMINDEX_GET(eed->v1), nedges, edges, prevedge, cost);
 		edgetag_add_adjacent(em, heap, mednum, BMINDEX_GET(eed->v2), nedges, edges, prevedge, cost);
@@ -665,7 +686,7 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 	BLI_heap_free(heap, NULL);
 
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-		eed->head.eflag2 &= ~ME_SEAM_DONE;
+		eed->head.flags[0].f &= ~ME_SEAM_DONE;
 	}
 
 	if (mednum != BMINDEX_GET(target)) {
@@ -681,7 +702,7 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 		mednum = BMINDEX_GET(target);
 		do {
 			eed = EDBM_get_edge_for_index(em, mednum);
-			if (!edgetag_context_check(scene, eed)) {
+			if (!edgetag_context_check(scene, em, eed)) {
 				allseams = 0;
 				break;
 			}

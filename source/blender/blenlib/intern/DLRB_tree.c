@@ -25,16 +25,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dlrbTree.h"
-
-#include "DNA_listBase.h"
 
 /* *********************************************** */
 /* Tree API */

@@ -183,7 +183,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 cleanup:
 	/*free/cleanup*/
 	for (i=0; i<BLI_array_count(regions); i++) {
-		if (regions[i]) BLI_array_free(regions[i]);
+		if (regions[i]) MEM_freeN(regions[i]);
 	}
 
 	BLI_array_free(regions);
@@ -206,8 +206,8 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 			BMO_SetFlag(bm, e->v1, VERT_MARK);
 			BMO_SetFlag(bm, e->v2, VERT_MARK);
 
-			BM_Join_Faces(bm, e->loop->f, 
-				      ((BMLoop*)e->loop->radial.next->data)->f,
+			BM_Join_TwoFaces(bm, e->l->f,
+				      ((BMLoop*)e->l->radial_next)->f,
 				      e);
 		}
 	}
@@ -223,7 +223,7 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 
 	/*clean up extreneous 2-valence vertices*/
 	for (i=0; i<BLI_array_count(verts); i++) {
-		BM_Collapse_Vert(bm, verts[i]->edge, verts[i], 1.0);
+		BM_Collapse_Vert(bm, verts[i]->e, verts[i], 1.0);
 	}
 	
 	BLI_array_free(verts);
@@ -249,8 +249,8 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 
 	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
 		if (BM_Edge_FaceCount(e) == 2) {
-			BM_Join_Faces(bm, e->loop->f, 
-				      ((BMLoop*)e->loop->radial.next->data)->f,
+			BM_Join_TwoFaces(bm, e->l->f,
+				      ((BMLoop*)e->l->radial_next)->f,
 				      e);
 		}
 	}
@@ -312,7 +312,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 			if (BM_Vert_EdgeCount(v) == 2) {
 
 				/*collapse the vert*/
-				BM_Collapse_Vert(bm, v->edge, v, 0.5f);
+				BM_Collapse_Vert(bm, v->e, v, 0.5f);
 				continue;
 			}
 

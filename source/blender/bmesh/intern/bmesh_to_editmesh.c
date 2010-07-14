@@ -67,8 +67,8 @@ static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *fac
 			texface->uv[j][0] = mloopuv->uv[0];
 			texface->uv[j][1] = mloopuv->uv[1];
 			j++;
-			l = ((BMLoop*)(l->head.next));
-		} while(l!=f->loopbase);
+			l = ((BMLoop*)(l->next));
+		} while(l!=f->lbase);
 
 	}
 
@@ -83,8 +83,8 @@ static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *fac
 			mcol[j].b = mloopcol->b;
 			mcol[j].a = mloopcol->a;
 			j++;
-			l = ((BMLoop*)(l->head.next));
-		} while(l!=f->loopbase);
+			l = ((BMLoop*)(l->next));
+		} while(l!=f->lbase);
 	}
 }
 
@@ -146,11 +146,11 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 	
 	len = f->len;
 
-	eve1= evlist[f->loopbase->v->head.eflag1];
-	eve2= evlist[((BMLoop*)(f->loopbase->head.next))->v->head.eflag1];
-	eve3= evlist[((BMLoop*)(f->loopbase->head.next->next))->v->head.eflag1];
+	eve1= evlist[f->lbase->v->head.eflag1];
+	eve2= evlist[((BMLoop*)(f->lbase->next))->v->head.eflag1];
+	eve3= evlist[((BMLoop*)(f->lbase->next->next))->v->head.eflag1];
 	if (len == 4) {
-		eve4= evlist[ ((BMLoop*)(f->loopbase->head.prev))->v->head.eflag1];
+		eve4= evlist[ ((BMLoop*)(f->lbase->prev))->v->head.eflag1];
 	}
 	else {
 		eve4= NULL;
@@ -162,11 +162,11 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 	efa = addfacelist(em, eve1, eve2, eve3, eve4, NULL, NULL);
 	if (!efa) return NULL;
 
-	bmeshedge_to_editedge_internal(bm, em, f->loopbase->e, efa->e1);
-	bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.next))->e, efa->e2);
-	bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.next->next))->e, efa->e3);
+	bmeshedge_to_editedge_internal(bm, em, f->lbase->e, efa->e1);
+	bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->lbase->next))->e, efa->e2);
+	bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->lbase->next->next))->e, efa->e3);
 	if(eve4)
-		bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.prev))->e, efa->e4);
+		bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->lbase->prev))->e, efa->e4);
 
 	efa->mat_nr = (unsigned char)f->mat_nr;
 
@@ -269,8 +269,8 @@ void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op)
 			if (trifan) {
 				while (face->len > 4) {
 					face = BM_Split_Face(bmesh, face, 
-						face->loopbase->v, 
-						((BMLoop*)face->loopbase->head.next->next)->v,
+						face->lbase->v, 
+						((BMLoop*)face->lbase->next->next)->v,
 						&nl, NULL);
 					BM_SetHFlag(nl->e, BM_FGON);
 				}

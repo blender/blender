@@ -212,7 +212,7 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask, int flag)
 		default:
 			break;
 	}
-	walker->stack = BLI_mempool_create(size, 100, 100, 1);
+	walker->stack = BLI_mempool_create(size, 100, 100, 1, 0);
 	walker->currentstate = NULL;
 }
 
@@ -321,7 +321,7 @@ static void shellWalker_begin(BMWalker *walker, void *data){
 	BMVert *v = data;
 	shellWalker *shellWalk = NULL;
 
-	if (!v->edge)
+	if (!v->e)
 		return;
 
 	if (walker->restrictflag) {
@@ -330,7 +330,7 @@ static void shellWalker_begin(BMWalker *walker, void *data){
 				break;
 		}
 	} else {
-		e = v->edge;
+		e = v->e;
 	}
 
 	if (!e) 
@@ -490,7 +490,7 @@ static void *islandboundWalker_step(BMWalker *walker)
 			f = l->f;
 			e = l->e;
 			if(!BMO_TestFlag(walker->bm, f, walker->restrictflag)){
-				l = l->radial.next->data;
+				l = l->radial_next;
 				break;
 			}
 		} else {
@@ -509,7 +509,7 @@ static void *islandboundWalker_step(BMWalker *walker)
 	iwalk->base = owalk.base;
 
 	//if (!BMO_TestFlag(walker->bm, l->f, walker->restrictflag))
-	//	iwalk->curloop = l->radial.next->data;
+	//	iwalk->curloop = l->radial_next;
 	iwalk->curloop = l; //else iwalk->curloop = l;
 	iwalk->lastv = v;				
 
@@ -651,7 +651,7 @@ static void *loopWalker_step(BMWalker *walker)
 	BMW_popstate(walker);
 	
 	rlen = owalk.startrad;
-	l = e->loop;
+	l = e->l;
 	if (!l)
 		return owalk.cur;
 
@@ -680,7 +680,7 @@ static void *loopWalker_step(BMWalker *walker)
 	if (!l)
 		return owalk.cur;
 
-	if (l != e->loop && !BLI_ghash_haskey(walker->visithash, l->e)) {
+	if (l != e->l && !BLI_ghash_haskey(walker->visithash, l->e)) {
 		if (!(rlen != 1 && i != stopi)) {
 			BMW_pushstate(walker);
 			lwalk = walker->currentstate;
@@ -701,10 +701,10 @@ static void faceloopWalker_begin(BMWalker *walker, void *data)
 
 	BMW_pushstate(walker);
 
-	if (!e->loop) return;
+	if (!e->l) return;
 
 	lwalk = walker->currentstate;
-	lwalk->l = e->loop;
+	lwalk->l = e->l;
 	lwalk->nocalc = 0;
 	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
 
@@ -741,18 +741,18 @@ static void *faceloopWalker_step(BMWalker *walker)
 
 	BMW_popstate(walker);
 
-	l = l->radial.next->data;
+	l = l->radial_next;
 	
 	if (lwalk->nocalc)
 		return f;
 
 	if (BLI_ghash_haskey(walker->visithash, l->f)) {
 		l = lwalk->l;
-		l = l->head.next->next;
-		if (l == l->radial.next->data) {
-			l = l->head.prev->prev;
+		l = l->next->next;
+		if (l == l->radial_next) {
+			l = l->prev->prev;
 		}
-		l = l->radial.next->data;
+		l = l->radial_next;
 	}
 
 	if (!BLI_ghash_haskey(walker->visithash, l->f)) {
@@ -777,12 +777,12 @@ static void edgeringWalker_begin(BMWalker *walker, void *data)
 	edgeringWalker *lwalk, owalk;
 	BMEdge *e = data;
 
-	if (!e->loop) return;
+	if (!e->l) return;
 
 	BMW_pushstate(walker);
 
 	lwalk = walker->currentstate;
-	lwalk->l = e->loop;
+	lwalk->l = e->l;
 	BLI_ghash_insert(walker->visithash, lwalk->l->e, NULL);
 
 	/*rewind*/
@@ -796,7 +796,7 @@ static void edgeringWalker_begin(BMWalker *walker, void *data)
 	*lwalk = owalk;
 
 	if (lwalk->l->f->len != 4)
-		lwalk->l = lwalk->l->radial.next->data;
+		lwalk->l = lwalk->l->radial_next;
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
 	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
@@ -820,11 +820,11 @@ static void *edgeringWalker_step(BMWalker *walker)
 
 	BMW_popstate(walker);
 
-	l = l->radial.next->data;
-	l = l->head.next->next;
+	l = l->radial_next;
+	l = l->next->next;
 	
 	if (l->f->len != 4) {
-		l = lwalk->l->head.next->next;
+		l = lwalk->l->next->next;
 	}
 
 	if (l->f->len == 4 && !BLI_ghash_haskey(walker->visithash, l->e)) {
@@ -870,7 +870,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 	int i, j, rlen, type;
 
 	l = lwalk->l;
-	nl = l->head.next;
+	nl = l->next;
 	type = walker->bm->ldata.layers[walker->flag].type;
 
 	BMW_popstate(walker);
@@ -879,7 +879,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 		return l;
 
 	/*go over loops around l->v and nl->v and see which ones share l and nl's 
-	  mloopuv's coordinates. in addition, push on l->head.next if necassary.*/
+	  mloopuv's coordinates. in addition, push on l->next if necassary.*/
 	for (i=0; i<2; i++) {
 		cl = i ? nl : l;
 		BM_ITER(l2, &liter, walker->bm, BM_LOOPS_OF_VERT, cl->v) {
@@ -896,7 +896,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 						continue;
 				}
 				
-				l3 = l2->v != cl->v ? (BMLoop*)l2->head.next : l2;
+				l3 = l2->v != cl->v ? (BMLoop*)l2->next : l2;
 				d2 = CustomData_bmesh_get_layer_n(&walker->bm->ldata, 
 					     l3->head.data, walker->flag);
 
@@ -909,7 +909,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 
 				lwalk->l = l2;
 
-				l2 = l2->radial.next->data;
+				l2 = l2->radial_next;
 			}
 		}
 	}

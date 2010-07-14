@@ -107,16 +107,6 @@ ADD_EXECUTABLE(blender ${EXETYPE} ${EXESRC})
 SET(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
 
 
-<<<<<<< .working
-IF(UNIX)
-  ADD_CUSTOM_COMMAND(TARGET blender
-    POST_BUILD
-    MAIN_DEPENDENCY blender
-    #COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/plugins ${TARGETDIR}/
-    #COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/text/* ${TARGETDIR}/
-  )
-ENDIF(UNIX)
-=======
 	IF(UNIX)
 		ADD_CUSTOM_COMMAND(TARGET blender
 			POST_BUILD
@@ -125,24 +115,6 @@ ENDIF(UNIX)
 			#COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/text/* ${TARGETDIR}/
 		)
 	ENDIF(UNIX)
->>>>>>> .merge-right.r23146
-
-<<<<<<< .working
-IF(UNIX AND NOT APPLE)
-  ADD_CUSTOM_COMMAND(TARGET blender
-    POST_BUILD
-    MAIN_DEPENDENCY blender
-    COMMAND rm -Rf ${TARGETDIR}/.blender
-    COMMAND mkdir ${TARGETDIR}/.blender/
-    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/.blender/
-    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/.blender/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/.blender/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/.blender/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/.blender/
-    COMMAND find ${TARGETDIR} -name CVS -prune -exec rm -rf {} "\;"
-  )
-ENDIF(UNIX AND NOT APPLE)
-=======
 	IF(UNIX AND NOT APPLE)
 		
 		# Local installation, "make install" can be done after this optionally
@@ -188,14 +160,6 @@ ENDIF(UNIX AND NOT APPLE)
         
 				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages
 				COMMAND mkdir ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
->>>>>>> .merge-right.r23146
-
-<<<<<<< .working
-IF(APPLE)
-  SET(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
-  SET(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
-  SET(TARGETINFO ${TARGETDIR}/blender.app/Contents/Info.plist)
-=======
 				COMMAND rm -f ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
 				COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
 				COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
@@ -231,78 +195,10 @@ IF(APPLE)
 		# end "make install"
     
 	ENDIF(UNIX AND NOT APPLE)
->>>>>>> .merge-right.r23146
-
-<<<<<<< .working
-  ADD_CUSTOM_COMMAND(TARGET blender
-    POST_BUILD
-    MAIN_DEPENDENCY blender
-    COMMAND cp -R ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
-    COMMAND cp -R ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
-    COMMAND cp -R ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
-    COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
-    COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/.blender
-    COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/Resources/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/Resources/
-    COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-    COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-    COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/io ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-    COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
-    COMMAND unzip -q ${LIBDIR}/release/python.zip -d ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
-    COMMAND find ${TARGETDIR}/blender.app -name CVS -prune -exec rm -rf {} "\;"
-    COMMAND find ${TARGETDIR}/blender.app -name CVS.sandboxinfo -prune -exec rm -rf {} "\;"
-    COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
-    COMMAND find ${TARGETDIR}/blender.app -name .svn -prune -exec rm -rf {} "\;"
-  )
-ENDIF(APPLE)
-=======
 	IF(APPLE)
 		SET(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
 		SET(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
 		SET(TARGETINFO ${TARGETDIR}/blender.app/Contents/Info.plist)
->>>>>>> .merge-right.r23146
-
-<<<<<<< .working
-IF(WIN32)
-  FILE(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR} WIN_SOURCE_DIR)
-  
-  ADD_CUSTOM_COMMAND(TARGET blender
-    POST_BUILD
-    MAIN_DEPENDENCY blender
-    COMMAND if not exist \"${TARGETDIR}\\.blender\" mkdir \"${TARGETDIR}\\.blender\"
-    COMMAND if not exist \"${TARGETDIR}\\.blender\\locale\" mkdir \"${TARGETDIR}\\.blender\\locale\"
-    COMMAND if not exist \"${TARGETDIR}\\.blender\\scripts\" mkdir \"${TARGETDIR}\\.blender\\scripts\"
-    COMMAND if not exist \"${TARGETDIR}\\.blender\\ui\" mkdir \"${TARGETDIR}\\.blender\\ui\"
-    COMMAND if not exist \"${TARGETDIR}\\plugins\" mkdir \"${TARGETDIR}\\plugins\"
-    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\.blender\\\" 
-    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\.blender\\\"
-    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\.blender\\locale\"
-    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
-    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\ui\\*.*\" \"${TARGETDIR}\\.blender\\ui\"
-    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
-    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
-    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python26.zip\" \"${TARGETDIR}\\\"
-  )
-  
-  FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)
-  
-  ADD_CUSTOM_COMMAND(TARGET blender
-    POST_BUILD
-    MAIN_DEPENDENCY blender
-    COMMAND copy /Y \"${WIN_LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"${TARGETDIR}\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\png\\lib\\libpng.dll\" \"${TARGETDIR}\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\tiff\\lib\\libtiff.dll\" \"${TARGETDIR}\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python26.dll\" \"${TARGETDIR}\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python26_d.dll\" \"${TARGETDIR}\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
-  )
-=======
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND cp -Rf ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
@@ -346,22 +242,9 @@ IF(WIN32)
             		COMMAND find ${TARGETDIR}/blender.app -name __MACOSX -prune -exec rm -rf {} "\;"
 		)
 	ENDIF(APPLE)
->>>>>>> .merge-right.r23146
-
-<<<<<<< .working
-  IF(WITH_INTERNATIONAL)
-=======
 	IF(WIN32)
 		FILE(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR} WIN_SOURCE_DIR)
     
->>>>>>> .merge-right.r23146
-<<<<<<< .working
-    ADD_CUSTOM_COMMAND(TARGET blender
-      POST_BUILD
-      MAIN_DEPENDENCY blender
-      COMMAND copy /Y \"${WIN_LIBDIR}\\iconv\\lib\\iconv.dll\" \"${TARGETDIR}\\\"
-    )
-=======
 		ADD_CUSTOM_COMMAND(TARGET blender
 			POST_BUILD
 			MAIN_DEPENDENCY blender
@@ -378,32 +261,9 @@ IF(WIN32)
 			# TODO, copy python bundle
 			# COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python31.zip\" \"${TARGETDIR}\\\"
 		)
->>>>>>> .merge-right.r23146
-<<<<<<< .working
-  ENDIF(WITH_INTERNATIONAL)
-
-  IF(WITH_FFMPEG)
-=======
     
 		FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)
     
->>>>>>> .merge-right.r23146
-<<<<<<< .working
-    ADD_CUSTOM_COMMAND(TARGET blender
-      POST_BUILD
-      MAIN_DEPENDENCY blender
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avcodec-52.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avformat-52.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avdevice-52.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avutil-50.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaac-0.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaad-2.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libmp3lame-0.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libx264-67.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\swscale-0.dll\" \"${TARGETDIR}\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\xvidcore.dll\" \"${TARGETDIR}\\\"
-    )
-=======
 		ADD_CUSTOM_COMMAND(TARGET blender
 			POST_BUILD
 			MAIN_DEPENDENCY blender
@@ -419,12 +279,6 @@ IF(WIN32)
 			COMMAND copy /Y \"${WIN_LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
 			COMMAND copy /Y \"${WIN_LIBDIR}\\samplerate\\lib\\libsamplerate-0.dll\" \"${TARGETDIR}\\\"
 		)
->>>>>>> .merge-right.r23146
-  ENDIF(WITH_FFMPEG)
-ENDIF(WIN32)
-
-<<<<<<< .working
-=======
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(TARGET blender
 				POST_BUILD
@@ -475,12 +329,8 @@ ENDIF(WIN32)
 
 			)
 		ENDIF(WITH_OPENAL)
-
-
 	ENDIF(WIN32)
-ENDIF(WITH_INSTALL)
 
->>>>>>> .merge-right.r23146
 ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
@@ -496,77 +346,6 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 #IF(UNIX)
-<<<<<<< .working
-  # Sort libraries
-  SET(BLENDER_SORTED_LIBS
-    bf_windowmanager
-	bf_editors
-    bf_decimation 
-    blender_BSP 
-    bf_ghost 
-    bf_string 
-    blender_render 
-    blender_ONL 
-    bf_python 
-    bf_gen_python 
-    bf_blenkernel 
-    bf_nodes
-    bf_bmesh
-	bf_gpu
-    bf_blenloader 
-    bf_blenpluginapi 
-    bf_imbuf 
-    bf_blenlib 
-    bf_avi 
-    bf_cineon 
-    bf_openexr 
-    bf_dds
-    bf_readblenfile 
-    blender_bop 
-    bf_kernel 
-    bf_decimation 
-    bf_elbeem 
-    bf_IK 
-    bf_memutil 
-    bf_guardedalloc 
-    blender_CTR 
-    bf_moto 
-    bf_windowmanager
-    bf_editors
-    bf_blroutines 
-    bf_converter 
-    bf_dummy 
-    bf_bullet 
-    bf_smoke
-    bf_common 
-    bf_ketsji 
-    bf_logic 
-    bf_rasterizer 
-    bf_oglrasterizer 
-    bf_expressions 
-    bf_scenegraph 
-    bf_moto 
-    bf_blroutines 
-    kx_network 
-    bf_kernel 
-    bf_ngnetwork 
-    extern_bullet 
-    bf_loopbacknetwork 
-    bf_common 
-    bf_moto 
-    bf_python
-    bf_gen_python
-    bf_quicktime
-    extern_binreloc
-    extern_glew
-    extern_libopenjpeg
-    bf_videotex
-    bf_rna
-    bf_dna
-    bf_blenfont
-    bf_soundsystem 
-  )
-=======
 	# Sort libraries
 	SET(BLENDER_SORTED_LIBS
 		bf_windowmanager
@@ -580,7 +359,8 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_python 
 		bf_gen_python 
 		bf_ikplugin
-		bf_blenkernel 
+		bf_bmesh
+		bf_blenkernel
 		bf_nodes
 		bf_gpu
 		bf_blenloader 
@@ -640,10 +420,6 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_blenfont
 		bf_audaspace
 	)
->>>>>>> .merge-right.r23146
-
-<<<<<<< .working
-=======
 	IF(WITH_CXX_GUARDEDALLOC)
 		SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_guardedalloc_cpp)
 	ENDIF(WITH_CXX_GUARDEDALLOC)
@@ -653,7 +429,6 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	ENDIF(WITH_QUICKTIME)
 
 
->>>>>>> .merge-right.r23146
 	FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})
 		SET(REMLIB ${SORTLIB})
 		FOREACH(SEARCHLIB ${BLENDER_LINK_LIBS})

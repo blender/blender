@@ -88,17 +88,17 @@ static BMFace *copy_face(BMMesh *source_mesh, BMFace *source_face, BMMesh *targe
 	int i;
 	
 	/*lookup the first and second verts*/
-	target_vert1 = BLI_ghash_lookup(vhash, source_face->loopbase->v);
-	target_vert2 = BLI_ghash_lookup(vhash, source_face->loopbase->next->v);
+	target_vert1 = BLI_ghash_lookup(vhash, source_face->lbase->v);
+	target_vert2 = BLI_ghash_lookup(vhash, source_face->lbase->next->v);
 	
 	/*lookup edges*/
 	i = 0;
-	source_loop = source_face->loopbase;
+	source_loop = source_face->lbase;
 	do{
 		edar[i] = BLI_ghash_lookup(ehash, source_loop->e);
 		i++;
 		source_loop = source_loop->next;
-	}while(source_loop != source_face->loopbase);
+	}while(source_loop != source_face->lbase);
 	
 	/*create new face*/
 	target_face = BM_Make_Ngon(target_mesh, target_vert1, target_vert2, edar, source_face->len, 0);	
@@ -114,13 +114,13 @@ static BMFace *copy_face(BMMesh *source_mesh, BMFace *source_face, BMMesh *targe
 	BMO_SetFlag(target_mesh, (BMHeader*)target_face, DUPE_NEW);
 	
 	/*copy per-loop custom data*/
-	source_loop = source_face->loopbase;
-	target_loop = target_face->loopbase;
+	source_loop = source_face->lbase;
+	target_loop = target_face->lbase;
 	do{
 		CustomData_bmesh_copy_data(&source_mesh->ldata, &target_mesh->ldata, source_loop->data, &target_loop->data);		
 		source_loop = source_loop->next;
 		target_loop = target_loop->next;
-	}while(source_loop != source_face->loopbase);
+	}while(source_loop != source_face->lbase);
 	
 	return target_face;
 }

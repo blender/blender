@@ -1771,7 +1771,6 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 		mv->no[0] = eve->no[0] * 32767.0;
 		mv->no[1] = eve->no[1] * 32767.0;
 		mv->no[2] = eve->no[2] * 32767.0;
-		mv->bweight = (unsigned char) (eve->bweight * 255.0f);
 
 		mv->mat_nr = 0;
 		mv->flag = BMFlags_To_MEFlags(eve);
@@ -1790,8 +1789,6 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 
 		med->v1 = BMINDEX_GET(eed->v1);
 		med->v2 = BMINDEX_GET(eed->v2);
-		med->crease = (unsigned char) (eed->crease * 255.0f);
-		med->bweight = (unsigned char) (eed->bweight * 255.0f);
 		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 		
 		med->flag = BMFlags_To_MEFlags(eed);

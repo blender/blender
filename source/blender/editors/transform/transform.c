@@ -4116,7 +4116,7 @@ static BMLoop *get_next_loop(BMesh *bm, BMVert *v, BMLoop *l,
 	firstl = l;
 	do {
 		l = BM_OtherFaceLoop(l->e, l->f, v);
-		if (l->radial.next->data == l)
+		if (l->radial_next == l)
 			return NULL;
 		
 		if (l->e == nexte) {
@@ -4152,7 +4152,7 @@ static BMLoop *get_next_loop(BMesh *bm, BMVert *v, BMLoop *l,
 			return BM_OtherFaceLoop(l->e, l->f, v);
 		}
 		
-		l = l->radial.next->data;
+		l = l->radial_next;
 	} while (l != firstl); 
 
 	if (i)
@@ -4198,8 +4198,8 @@ static int createSlideVerts(TransInfo *t)
 			BM_ITER(e, &iter2, em->bm, BM_EDGES_OF_VERT, v) {
 				if (BM_TestHFlag(e, BM_SELECT)) {
 					/*BMESH_TODO: this is probably very evil,
-					  set v->edge to a selected edge*/
-					v->edge = e;
+					  set v->e to a selected edge*/
+					v->e = e;
 
 					numsel++;
 				}
@@ -4243,20 +4243,20 @@ static int createSlideVerts(TransInfo *t)
 		if (!v)
 			break;
 
-		if (!v->edge)
+		if (!v->e)
 			continue;
 		
 		first = v;
 
 		/*walk along the edge loop*/
-		e = v->edge;
+		e = v->e;
 
 		/*first, rewind*/
 		numsel = 0;
 		do {
 			e = get_other_edge(bm, v, e);
 			if (!e) {
-				e = v->edge;
+				e = v->e;
 				break;
 			}
 
@@ -4266,13 +4266,13 @@ static int createSlideVerts(TransInfo *t)
 				break;
 
 			v = BM_OtherEdgeVert(e, v);
-		} while (e != first->edge);
+		} while (e != first->e);
 
 		BMINDEX_SET(v, 0);
 
 		l1 = l2 = l = NULL;
-		l1 = e->loop;
-		l2 = e->loop->radial.next->data;
+		l1 = e->l;
+		l2 = e->l->radial_next;
 
 		l = BM_OtherFaceLoop(l1->e, l1->f, v);
 		sub_v3_v3v3(vec, BM_OtherEdgeVert(l->e, v)->co, v->co);
@@ -4339,7 +4339,7 @@ static int createSlideVerts(TransInfo *t)
 
 			BMINDEX_SET(v, 0);
 			BMINDEX_SET(v2, 0);
-		} while (e != first->edge && l1);
+		} while (e != first->e && l1);
 	}
 
 	//EDBM_clear_flag_all(em, BM_SELECT);

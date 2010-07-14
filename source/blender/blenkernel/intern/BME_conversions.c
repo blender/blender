@@ -1,3 +1,4 @@
+#if 0
 /**
  * BME_mesh.c    jan 2007
  *
@@ -641,3 +642,4 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	BLI_edgehash_free(edge_hash, NULL);
 	return result;
 }
+#endif

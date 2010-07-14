@@ -9,6 +9,7 @@
 #include "BLI_array.h"
 
 #include "bmesh.h"
+#include "bmesh_private.h"
 #include "bmesh_operators_private.h"
 
 #include <math.h>
@@ -64,15 +65,15 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 		l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_FACE, f2);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			BM_Copy_Attributes(bm, bm, l, l2);
-			l3 = l->head.next;
-			l4 = l2->head.next;
+			l3 = l->next;
+			l4 = l2->next;
 
 			f3 = BM_Make_QuadTri(bm, l3->v, l4->v, l2->v, l->v, f, 0);
 			
-			BM_Copy_Attributes(bm, bm, l->head.next, f3->loopbase);
-			BM_Copy_Attributes(bm, bm, l->head.next, f3->loopbase->head.next);
-			BM_Copy_Attributes(bm, bm, l, f3->loopbase->head.next->next);
-			BM_Copy_Attributes(bm, bm, l, f3->loopbase->head.next->next->next);
+			BM_Copy_Attributes(bm, bm, l->next, bm_firstfaceloop(f3));
+			BM_Copy_Attributes(bm, bm, l->next, bm_firstfaceloop(f3)->next);
+			BM_Copy_Attributes(bm, bm, l, bm_firstfaceloop(f3)->next->next);
+			BM_Copy_Attributes(bm, bm, l, bm_firstfaceloop(f3)->next->next->next);
 
 			l2 = BMIter_Step(&liter2);
 		}
@@ -105,7 +106,7 @@ void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
 		e2 = BMO_IterMapVal(&siter);
 		e2 = *(BMEdge**)e2;
 
-		if (e->loop && e->v1 != e->loop->v) {
+		if (e->l && e->v1 != e->l->v) {
 			v1 = e->v1;
 			v2 = e->v2;
 			v3 = e2->v2;
@@ -245,10 +246,10 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		newedge = BMO_IterMapVal(&siter);
 		newedge = *(BMEdge**)newedge;
 		if (!newedge) continue;
-		if (!newedge->loop) ce = e;
+		if (!newedge->l) ce = e;
 		else ce = newedge;
 		
-		if (ce->loop && (ce->loop->v == ce->v1)) {
+		if (ce->l && (ce->l->v == ce->v1)) {
 			verts[0] = e->v1;
 			verts[1] = e->v2;
 			verts[2] = newedge->v2;
@@ -267,15 +268,15 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 		l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
 		for (; l; l=BMIter_Step(&iter)) {
 			if (l->e != e && l->e != newedge) continue;
-			l2 = l->radial.next->data;
+			l2 = l->radial_next;
 			
 			if (l2 == l) {
-				l2 = newedge->loop;
+				l2 = newedge->l;
 				BM_Copy_Attributes(bm, bm, l2->f, l->f);
 
 				BM_Copy_Attributes(bm, bm, l2, l);
-				l2 = (BMLoop*) l2->head.next;
-				l = (BMLoop*) l->head.next;
+				l2 = (BMLoop*) l2->next;
+				l = (BMLoop*) l->next;
 				BM_Copy_Attributes(bm, bm, l2, l);
 			} else {
 				BM_Copy_Attributes(bm, bm, l2->f, l->f);
@@ -283,14 +284,14 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 				/*copy data*/
 				if (l2->v == l->v) {
 					BM_Copy_Attributes(bm, bm, l2, l);
-					l2 = (BMLoop*) l2->head.next;
-					l = (BMLoop*) l->head.next;
+					l2 = (BMLoop*) l2->next;
+					l = (BMLoop*) l->next;
 					BM_Copy_Attributes(bm, bm, l2, l);
 				} else {
-					l2 = (BMLoop*) l2->head.next;
+					l2 = (BMLoop*) l2->next;
 					BM_Copy_Attributes(bm, bm, l2, l);
-					l2 = (BMLoop*) l2->head.prev;
-					l = (BMLoop*) l->head.next;
+					l2 = (BMLoop*) l2->prev;
+					l = (BMLoop*) l->next;
 					BM_Copy_Attributes(bm, bm, l2, l);
 				}
 			}
@@ -301,7 +302,7 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	v = BMO_IterNew(&siter, bm, &dupeop, "isovertmap", 0);
 	for (; v; v=BMO_IterStep(&siter)) {
 		v2 = *((void**)BMO_IterMapVal(&siter));
-		BM_Make_Edge(bm, v, v2, v->edge, 1);
+		BM_Make_Edge(bm, v, v2, v->e, 1);
 	}
 
 	/*cleanup*/

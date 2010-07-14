@@ -34,6 +34,8 @@ extern "C" {
 
 #ifdef BLI_MATH_INLINE
 #include "intern/math_vector_inline.c"
+#else
+#define MINLINE
 #endif
 
 /************************************* Init ***********************************/

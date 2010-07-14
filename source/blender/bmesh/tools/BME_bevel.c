@@ -212,12 +212,12 @@ static BMVert *BME_bevel_split_edge(BMesh *bm, BMVert *v, BMVert *v1, BMLoop *l,
 		 * so... here we walk around edges to find the needed verts */
 		forward = 1;
 		is_split_vert = 0;
-		if (v->edge == NULL) {
+		if (v->e == NULL) {
 			//printf("We can't split a loose vert's edge!\n");
 			return NULL;
 		}
-		e1 = v->edge; /* we just use the first two edges */
-		e2 = bmesh_disk_nextedge(v->edge, v);
+		e1 = v->e; /* we just use the first two edges */
+		e2 = bmesh_disk_nextedge(v->e, v);
 		if (e1 == e2) {
 			//printf("You need at least two edges to use BME_bevel_split_edge()\n");
 			return NULL;
@@ -398,8 +398,8 @@ static float BME_bevel_set_max(BMVert *v1, BMVert *v2, float value, BME_TransDat
 static BMVert *BME_bevel_wire(BMesh *bm, BMVert *v, float value, int res, int options, BME_TransData_Head *td) {
 	BMVert *ov1, *ov2, *v1, *v2;
 
-	ov1 = BM_OtherEdgeVert(v->edge, v);
-	ov2 = BM_OtherEdgeVert(bmesh_disk_nextedge(v->edge, v), v);
+	ov1 = BM_OtherEdgeVert(v->e, v);
+	ov2 = BM_OtherEdgeVert(bmesh_disk_nextedge(v->e, v), v);
 
 	/* split the edges */
 	v1 = BME_bevel_split_edge(bm,v,ov1,NULL,NULL,value,td);
@@ -418,8 +418,8 @@ static BMVert *BME_bevel_wire(BMesh *bm, BMVert *v, float value, int res, int op
 
 		//void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, int calcnorm){
 		//hrm, why is there a fac here? it just removes a vert
-		BM_Collapse_Vert(bm, v->edge, v, 1.0, 0);
-		//bmesh_jekv(bm,v->edge,v);
+		BM_Collapse_Vert(bm, v->e, v, 1.0, 0);
+		//bmesh_jekv(bm,v->e,v);
 	}
 
 	return v1;
@@ -444,7 +444,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int options, fl
 	/* first, check to see if this edge was inset previously */
 	if ((l->prev->e->tflag1 & BME_BEVEL_ORIG) == 0
 		&& (l->v->tflag1 & BME_BEVEL_NONMAN) == 0) {
-		kl = l->prev->radial.next->data;
+		kl = l->prev->radial_next;
 		if (kl->v == l->v) kl = kl->prev;
 		else kl = kl->next;
 		kv = l->v;
@@ -464,14 +464,14 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int options, fl
 		l = l->next;
 		if (kl->v == kv) {
 			BM_Split_Face(bm,kl->f,kl->prev->v,kl->next->v,&nl,kl->prev->e);
-			bmesh_jfke(bm,((BMLoop*)kl->prev->radial.next->data)->f,kl->f,kl->prev->e);
+			bmesh_jfke(bm,((BMLoop*)kl->prev->radial_next)->f,kl->f,kl->prev->e);
 			BM_Collapse_Vert(bm, kl->e, kv, 1.0);
 			//BME_JEKV(bm,kl->e,kv);
 			
 		}
 		else {
 			BM_Split_Face(bm,kl->f,kl->next->next->v,kl->v,&nl,kl->next->e);
-			bmesh_jfke(bm,((BMLoop*)kl->next->radial.next->data)->f,kl->f,kl->next->e);
+			bmesh_jfke(bm,((BMLoop*)kl->next->radial_next)->f,kl->f,kl->next->e);
 			BM_Collapse_Vert(bm, kl->e, kv, 1.0);
 			//BME_JEKV(bm,kl->e,kv);
 		}
@@ -482,7 +482,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int options, fl
 	/* first, check to see if this edge was inset previously  */
 	if ((l->next->e->tflag1 & BME_BEVEL_ORIG) == 0
 		&& (l->next->v->tflag1 & BME_BEVEL_NONMAN) == 0) {
-		kl = l->next->radial.next->data;
+		kl = l->next->radial_next;
 		if (kl->v == l->next->v) kl = kl->prev;
 		else kl = kl->next;
 		kv = l->next->v;
@@ -501,13 +501,13 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int options, fl
 	if (kv) {
 		if (kl->v == kv) {
 			BM_Split_Face(bm,kl->f,kl->prev->v,kl->next->v,&nl,kl->prev->e);
-			bmesh_jfke(bm,((BMLoop*)kl->prev->radial.next->data)->f,kl->f,kl->prev->e);
+			bmesh_jfke(bm,((BMLoop*)kl->prev->radial_next)->f,kl->f,kl->prev->e);
 			BM_Collapse_Vert(bm, kl->e, kv, 1.0);
 			//BME_JEKV(bm,kl->e,kv);
 		}
 		else {
 			BM_Split_Face(bm,kl->f,kl->next->next->v,kl->v,&nl,kl->next->e);
-			bmesh_jfke(bm,((BMLoop*)kl->next->radial.next->data)->f,kl->f,kl->next->e);
+			bmesh_jfke(bm,((BMLoop*)kl->next->radial_next)->f,kl->f,kl->next->e);
 			BM_Collapse_Vert(bm, kl->e, kv, 1.0);
 			//BME_JEKV(bm,kl->e,kv);
 		}
@@ -516,7 +516,7 @@ static BMLoop *BME_bevel_edge(BMesh *bm, BMLoop *l, float value, int options, fl
 	if ((v1->tflag1 & BME_BEVEL_NONMAN)==0 || (v2->tflag1 & BME_BEVEL_NONMAN)==0) {
 		BM_Split_Face(bm,f,v2,v1,&l,e);
 		l->e->tflag1 = BME_BEVEL_BEVEL;
-		l = l->radial.next->data;
+		l = l->radial_next;
 	}
 
 	if (l->f != f){
@@ -726,7 +726,7 @@ static bevel_init_edges(BMesh *bm, int options, BME_TransData_Head *td){
 	/*clean up edges with 2 faces that share more than one edge*/
 	for( e = BM_first_element(bm, BME_EDGE); e; e = BM_next_element(bm, BME_EDGE, e)){
 		if(e->tflag1 & BME_BEVEL_BEVEL){
-			count = BM_face_sharededges(e->loop->f, ((BMLoop*)e->loop->radial.next->data)->f);
+			count = BM_face_sharededges(e->l->f, ((BMLoop*)e->l->radial_next)->f);
 			if(count > 1) e->tflag1 &= ~BME_BEVEL_BEVEL;
 		}
 	}
@@ -746,18 +746,18 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options, int defgrp_index, flo
 	/*tag non-manifold geometry*/
 	for (v = BMIter_New(&iter, bm, BM_VERTS, nm); v; v = BMIter_Step(&iter)) {
 		v->tflag1 = BME_BEVEL_ORIG;
-		if(v->edge){ 
+		if(v->e){ 
 			BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 0, -1, -1, NULL); 
 			if (BM_Nonmanifold_Vert(bm,v)) v->tflag1 |= BME_BEVEL_NONMAN;
 			/*test wire vert*/
-			len = bmesh_cycle_length(bmesh_disk_getpointer(v->edge,v));
+			len = bmesh_cycle_length(bmesh_disk_getpointer(v->e,v));
 			if(len == 2 && BME_wirevert(bm, v)) v->tflag1 &= ~BME_BEVEL_NONMAN;	
 		}else v->tflag1 |= BME_BEVEL_NONMAN;
 	}
 
 	for (e = BMIter_New(&iter, bm, BM_EDGES, nm); e; e = BMIter_Step(&iter)) {
 		e->tflag1 = BME_BEVEL_ORIG;
-		if (e->loop == NULL || BME_cycle_length(&(e->loop->radial)) > 2){
+		if (e->l == NULL || BME_cycle_length(&(e->l->radial)) > 2){
 			e->v1->tflag1 |= BME_BEVEL_NONMAN;
 			e->v2->tflag1 |= BME_BEVEL_NONMAN;
 			e->tflag1 |= BME_BEVEL_NONMAN;
@@ -828,23 +828,23 @@ static BMMesh *BME_bevel_mesh(BMMesh *bm, float value, int res, int options, int
 	/*get rid of beveled edges*/
 	for(e = BMeshIter_init(edges, BM_EDGES, bm, 0); e;){
 		ne = BMeshIter_step(edges);
-		if( bmesh_test_flag(e, BME_BEVEL_BEVEL) && bmesh_test_flag(e, BME_BEVEL_ORIG) ) bmesh_join_faces(bm, e->loop->f,  ((BMLoop*)e->loop->radial.next->data)->f, e, 1);
+		if( bmesh_test_flag(e, BME_BEVEL_BEVEL) && bmesh_test_flag(e, BME_BEVEL_ORIG) ) bmesh_join_faces(bm, e->l->f,  ((BMLoop*)e->l->radial_next)->f, e, 1);
 		e = ne;
 	}
 	/*link up corners and clip*/
 	for(v = BMeshIter_init(verts, BM_VERTS, bm, 0); v;){
 		nv = BMeshIter_step(verts)
 		if( bmesh_test_flag(v, BME_BEVEL_ORIG) && bmesh_test_flag(v, BME_BEVEL_BEVEL)){
-			curedge = v->edge;
+			curedge = v->e;
 			do{
-				l = curedge->loop;
-				l2 = l->radial.next->data;
+				l = curedge->l;
+				l2 = l->radial_next;
 				if(l->v != v) l = l->next;
 				if(l2->v != v) l2 = l2->next;
 				if(l->f->len > 3) BM_split_face(bm,l->f,l->next->v,l->prev->v,&l,l->e); /* clip this corner off */
 					if(l2->f->len > 3) BM_split_face(bm,l2->f,l2->next->v,l2->prev->v,&l,l2->e); /* clip this corner off */
 				curedge = BM_edge_of_vert(curedge, v);
-			}while(curedge != v->edge);
+			}while(curedge != v->e);
 			BM_dissolve_disk(bm,v);
 		}
 		v = nv;

@@ -1,3 +1,4 @@
+#if 0
 /**
  * BME_eulers.c    jan 2007
  *
@@ -135,13 +136,13 @@ BME_Edge *BME_ME(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2){
 	
 	#ifndef BME_FASTEULER
 	/*count valance of v1*/
-	if(v1->edge){ 
-		d1 = BME_disk_getpointer(v1->edge,v1);
+	if(v1->e){ 
+		d1 = BME_disk_getpointer(v1->e,v1);
 		if(d1) valance1 = BME_cycle_length(d1);
 		else BME_error();
 	}
-	if(v2->edge){
-		d2 = BME_disk_getpointer(v2->edge,v2);
+	if(v2->e){
+		d2 = BME_disk_getpointer(v2->e,v2);
 		if(d2) valance2 = BME_cycle_length(d2);
 		else BME_error();
 	}
@@ -209,7 +210,7 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 		elist[i]->eflag1 |= MF_CANDIDATE;
 		
 		/*if elist[i] has a loop, count its radial length*/
-		if(elist[i]->loop) elist[i]->eflag2 = BME_cycle_length(&(elist[i]->loop->radial));
+		if(elist[i]->loop) elist[i]->eflag2 = BME_cycle_length(&(elist[i]->l->radial));
 		else elist[i]->eflag2 = 0;
 	}
 	
@@ -279,8 +280,8 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 		for(i=0;i<len;i++){
 			curvert = vlist[i];
 			l = BME_create_loop(bm,curvert,NULL,f,NULL);
-			if(!(f->loopbase)) f->loopbase = l;
-			BME_cycle_append(f->loopbase, l);
+			if(!(f->loopbase)) f->lbase = l;
+			BME_cycle_append(f->lbase, l);
 		}
 		
 		/*take care of edge pointers and radial cycle*/
@@ -304,7 +305,7 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 		f->len = len;
 		
 		/*Validation Loop cycle*/
-		edok = BME_cycle_validate(len, f->loopbase);
+		edok = BME_cycle_validate(len, f->lbase);
 		if(!edok) BME_error();
 		for(i=0, l = f->loopbase; i<len; i++, l=l->next){
 			/*validate loop vert pointers*/
@@ -332,7 +333,7 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
  */
 
 int BME_KV(BME_Mesh *bm, BME_Vert *v){
-	if(v->edge == NULL){ 
+	if(v->e == NULL){ 
 		BLI_remlink(&(bm->verts), v);
 		BME_free_vert(bm,v);
 		return 1;
@@ -355,7 +356,7 @@ int BME_KE(BME_Mesh *bm, BME_Edge *e){
 	int edok;
 	
 	/*Make sure that no faces!*/
-	if(e->loop == NULL){
+	if(e->l == NULL){
 		BME_disk_remove_edge(e, e->v1);
 		BME_disk_remove_edge(e, e->v2);
 		
@@ -391,14 +392,14 @@ int BME_KF(BME_Mesh *bm, BME_Poly *bply){
 	
 	/*add validation to make sure that radial cycle is cleaned up ok*/
 	/*deal with radial cycle first*/
-	len = BME_cycle_length(bply->loopbase);
+	len = BME_cycle_length(bply->lbase);
 	for(i=0, curloop=bply->loopbase; i < len; i++, curloop = curloop->next) 
 		BME_radial_remove_loop(curloop, curloop->e);
 	
 	/*now deallocate the editloops*/
 	for(i=0; i < len; i++){
-		newbase = bply->loopbase->next;
-		oldbase = bply->loopbase;
+		newbase = bply->lbase->next;
+		oldbase = bply->lbase;
 		BME_cycle_remove(oldbase, oldbase);
 		BME_free_loop(bm, oldbase);
 		bply->loopbase = newbase;
@@ -458,24 +459,24 @@ BME_Vert *BME_SEMV(BME_Mesh *bm, BME_Vert *tv, BME_Edge *e, BME_Edge **re){
 	/*add ne to tv's disk cycle*/
 	BME_disk_append_edge(ne, tv);
 	/*verify disk cycles*/
-	diskbase = BME_disk_getpointer(ov->edge,ov);
+	diskbase = BME_disk_getpointer(ov->e,ov);
 	edok = BME_cycle_validate(valance1, diskbase);
 	if(!edok) BME_error();
-	diskbase = BME_disk_getpointer(tv->edge,tv);
+	diskbase = BME_disk_getpointer(tv->e,tv);
 	edok = BME_cycle_validate(valance2, diskbase);
 	if(!edok) BME_error();
-	diskbase = BME_disk_getpointer(nv->edge,nv);
+	diskbase = BME_disk_getpointer(nv->e,nv);
 	edok = BME_cycle_validate(2, diskbase);
 	if(!edok) BME_error();
 	
 	/*Split the radial cycle if present*/
-	if(e->loop){
+	if(e->l){
 		BME_Loop *nl,*l;
 		BME_CycleNode *radEBase=NULL, *radNEBase=NULL;
-		int radlen = BME_cycle_length(&(e->loop->radial));
+		int radlen = BME_cycle_length(&(e->l->radial));
 		/*Take the next loop. Remove it from radial. Split it. Append to appropriate radials.*/
-		while(e->loop){
-			l=e->loop;
+		while(e->l){
+			l=e->l;
 			l->f->len++;
 			BME_radial_remove_loop(l,e);
 			
@@ -528,17 +529,17 @@ BME_Vert *BME_SEMV(BME_Mesh *bm, BME_Vert *tv, BME_Edge *e, BME_Edge **re){
 					
 		}
 		
-		e->loop = radEBase->data;
-		ne->loop = radNEBase->data;
+		e->l = radEBase->data;
+		ne->l = radNEBase->data;
 		
 		/*verify length of radial cycle*/
-		edok = BME_cycle_validate(radlen,&(e->loop->radial));
+		edok = BME_cycle_validate(radlen,&(e->l->radial));
 		if(!edok) BME_error();
-		edok = BME_cycle_validate(radlen,&(ne->loop->radial));
+		edok = BME_cycle_validate(radlen,&(ne->l->radial));
 		if(!edok) BME_error();
 		
 		/*verify loop->v and loop->next->v pointers for e*/
-		for(i=0,l=e->loop; i < radlen; i++, l = l->radial.next->data){
+		for(i=0,l=e->l; i < radlen; i++, l = l->radial_next){
 			if(!(l->e == e)) BME_error();
 			if(!(l->radial.data == l)) BME_error();
 			if(l->prev->e != ne && l->next->e != ne) BME_error();
@@ -547,11 +548,11 @@ BME_Vert *BME_SEMV(BME_Mesh *bm, BME_Vert *tv, BME_Edge *e, BME_Edge **re){
 			if(l->v == l->next->v) BME_error();
 			if(l->e == l->next->e) BME_error();
 			/*verify loop cycle for kloop->f*/
-			edok = BME_cycle_validate(l->f->len, l->f->loopbase);
+			edok = BME_cycle_validate(l->f->len, l->f->lbase);
 			if(!edok) BME_error();
 		}
 		/*verify loop->v and loop->next->v pointers for ne*/
-		for(i=0,l=ne->loop; i < radlen; i++, l = l->radial.next->data){
+		for(i=0,l=ne->l; i < radlen; i++, l = l->radial_next){
 			if(!(l->e == ne)) BME_error();
 			if(!(l->radial.data == l)) BME_error();
 			if(l->prev->e != e && l->next->e != e) BME_error();
@@ -560,7 +561,7 @@ BME_Vert *BME_SEMV(BME_Mesh *bm, BME_Vert *tv, BME_Edge *e, BME_Edge **re){
 			if(l->v == l->next->v) BME_error();
 			if(l->e == l->next->e) BME_error();
 			/*verify loop cycle for kloop->f. Redundant*/
-			edok = BME_cycle_validate(l->f->len, l->f->loopbase);
+			edok = BME_cycle_validate(l->f->len, l->f->lbase);
 			if(!edok) BME_error();
 		}
 	}
@@ -605,7 +606,7 @@ BME_Poly *BME_SFME(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Lo
 	
 	
 	/*verify that v1 and v2 are in face.*/
-	len = BME_cycle_length(f->loopbase);
+	len = BME_cycle_length(f->lbase);
 	for(i = 0, curloop = f->loopbase; i < len; i++, curloop = curloop->next){
 		if(curloop->v == v1) v1loop = curloop;
 		else if(curloop->v == v2) v2loop = curloop;
@@ -639,7 +640,7 @@ BME_Poly *BME_SFME(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Lo
 	/*I dont know how many loops are supposed to be in each face at this point! FIXME!*/
 	
 	/*go through all of f2's loops and make sure they point to it properly.*/
-	f2len = BME_cycle_length(f2->loopbase);
+	f2len = BME_cycle_length(f2->lbase);
 	for(i=0, curloop = f2->loopbase; i < f2len; i++, curloop = curloop->next) curloop->f = f2;
 	
 	/*link up the new loops into the new edges radial*/
@@ -649,7 +650,7 @@ BME_Poly *BME_SFME(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Lo
 	
 	f2->len = f2len;
 	
-	f1len = BME_cycle_length(f->loopbase);
+	f1len = BME_cycle_length(f->lbase);
 	f->len = f1len;
 	
 	if(rl) *rl = f2loop;
@@ -697,7 +698,7 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 	int len,radlen=0, halt = 0, i, valance1, valance2,edok;
 	
 	if(BME_vert_in_edge(ke,kv) == 0) return 0;
-	diskbase = BME_disk_getpointer(kv->edge, kv);
+	diskbase = BME_disk_getpointer(kv->e, kv);
 	len = BME_cycle_length(diskbase);
 	
 	if(len == 2){
@@ -710,9 +711,9 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 		else{
 			
 			/*For verification later, count valance of ov and tv*/
-			diskbase = BME_disk_getpointer(ov->edge, ov);
+			diskbase = BME_disk_getpointer(ov->e, ov);
 			valance1 = BME_cycle_length(diskbase);
-			diskbase = BME_disk_getpointer(tv->edge, tv);
+			diskbase = BME_disk_getpointer(tv->e, tv);
 			valance2 = BME_cycle_length(diskbase);
 			
 			/*remove oe from kv's disk cycle*/
@@ -727,10 +728,10 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 			
 
 			/*deal with radial cycle of ke*/
-			if(ke->loop){
+			if(ke->l){
 				/*first step, fix the neighboring loops of all loops in ke's radial cycle*/
-				radlen = BME_cycle_length(&(ke->loop->radial));
-				for(i=0,killoop = ke->loop; i<radlen; i++, killoop = BME_radial_nextloop(killoop)){
+				radlen = BME_cycle_length(&(ke->l->radial));
+				for(i=0,killoop = ke->l; i<radlen; i++, killoop = BME_radial_nextloop(killoop)){
 					/*relink loops and fix vertex pointer*/
 					killoop->next->prev = killoop->prev;
 					killoop->prev->next = killoop->next;
@@ -738,11 +739,11 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 					
 					/*fix len attribute of face*/
 					killoop->f->len--;
-					if(killoop->f->loopbase == killoop) killoop->f->loopbase = killoop->next;
+					if(killoop->f->loopbase == killoop) killoop->f->lbase = killoop->next;
 				}
 				/*second step, remove all the hanging loops attached to ke*/
-				killoop = ke->loop;
-				radlen = BME_cycle_length(&(ke->loop->radial));
+				killoop = ke->l;
+				radlen = BME_cycle_length(&(ke->l->radial));
 				/*make sure we have enough room in bm->lpar*/
 				if(bm->lparlen < radlen){
 					MEM_freeN(bm->lpar);
@@ -753,7 +754,7 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 				i=0;
 				while(i<radlen){
 					bm->lpar[i] = killoop;
-					killoop = killoop->radial.next->data;
+					killoop = killoop->radial_next;
 					i++;
 				}
 				i=0;
@@ -762,22 +763,22 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 					i++;
 				}
 				/*Validate radial cycle of oe*/
-				edok = BME_cycle_validate(radlen,&(oe->loop->radial));
+				edok = BME_cycle_validate(radlen,&(oe->l->radial));
 				
 			}
 			
 
 			/*Validate disk cycles*/
-			diskbase = BME_disk_getpointer(ov->edge,ov);
+			diskbase = BME_disk_getpointer(ov->e,ov);
 			edok = BME_cycle_validate(valance1, diskbase);
 			if(!edok) BME_error();
-			diskbase = BME_disk_getpointer(tv->edge,tv);
+			diskbase = BME_disk_getpointer(tv->e,tv);
 			edok = BME_cycle_validate(valance2, diskbase);
 			if(!edok) BME_error();
 			
 			/*Validate loop cycle of all faces attached to oe*/
-			for(i=0,nextl = oe->loop; i<radlen; i++, nextl = BME_radial_nextloop(nextl)){
-				edok = BME_cycle_validate(nextl->f->len,nextl->f->loopbase);
+			for(i=0,nextl = oe->l; i<radlen; i++, nextl = BME_radial_nextloop(nextl)){
+				edok = BME_cycle_validate(nextl->f->len,nextl->f->lbase);
 				if(!edok) BME_error();
 			}
 			/*deallocate edge*/
@@ -907,8 +908,8 @@ BME_Poly *BME_JFKE(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e)
 	
 	if(f1 == f2) return NULL; //can't join a face to itself
 	/*verify that e is in both f1 and f2*/
-	f1len = BME_cycle_length(f1->loopbase);
-	f2len = BME_cycle_length(f2->loopbase);
+	f1len = BME_cycle_length(f1->lbase);
+	f2len = BME_cycle_length(f2->lbase);
 	for(i=0, curloop = f1->loopbase; i < f1len; i++, curloop = curloop->next){
 		if(curloop->e == e){ 
 			f1loop = curloop;
@@ -947,19 +948,19 @@ BME_Poly *BME_JFKE(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e)
 	f2loop->prev->next = f1loop->next;
 	
 	/*if f1loop was baseloop, give f1loop->next the base.*/
-	if(f1->loopbase == f1loop) f1->loopbase = f1loop->next;
+	if(f1->loopbase == f1loop) f1->lbase = f1loop->next;
 	
 	/*validate the new loop*/
-	loopok = BME_cycle_validate((f1len+f2len)-2, f1->loopbase);
+	loopok = BME_cycle_validate((f1len+f2len)-2, f1->lbase);
 	if(!loopok) BME_error();
 	
 	/*make sure each loop points to the proper face*/
-	newlen = BME_cycle_length(f1->loopbase);
+	newlen = BME_cycle_length(f1->lbase);
 	for(i = 0, curloop = f1->loopbase; i < newlen; i++, curloop = curloop->next) curloop->f = f1;
 	
 	f1->len = newlen;
 	
-	edok = BME_cycle_validate(f1->len, f1->loopbase);
+	edok = BME_cycle_validate(f1->len, f1->lbase);
 	if(!edok) BME_error();
 	
 	/*remove edge from the disk cycle of its two vertices.*/
@@ -975,3 +976,4 @@ BME_Poly *BME_JFKE(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e)
 	BME_free_poly(bm, f2);	
 	return f1;
 }
+#endif

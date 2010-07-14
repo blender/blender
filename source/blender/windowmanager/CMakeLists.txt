@@ -39,7 +39,7 @@ SET(INC .
 	../python
 	../nodes
 	../gpu
-	../blenfont
+	../blenfont ../bmesh
 	${OPENGL_INCLUDE_DIR}
 )
 

@@ -429,8 +429,11 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 	CustomData_free(&me->ldata, me->totloop);
 	CustomData_free(&me->pdata, me->totpoly);
 
-	/* if the number of verts has changed, remove invalid data */
+	/* BMESH_TODO/XXX: ok, this should use new CD shapekey data,
+	                   which shouuld be fed through the modifier 
+					   stack*/
 	if(tmp.totvert != me->totvert) {
+		printf("YEEK! this should be recoded! Shape key loss!!!\n");
 		if(me->key) me->key->id.us--;
 		me->key = NULL;
 	}

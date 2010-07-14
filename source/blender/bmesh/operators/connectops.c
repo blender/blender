@@ -44,8 +44,8 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 					continue;
 				}
 
-				if (lastl != l->head.prev && lastl != 
-				    l->head.next)
+				if (lastl != l->prev && lastl != 
+				    l->next)
 				{
 					BLI_array_growone(loops);
 					loops[BLI_array_count(loops)-1] = lastl;

@@ -900,6 +900,25 @@ static void layerDefault_mcol(void *data, int count)
 		mcol[i] = default_mcol;
 }
 
+static void layerInterp_bweight(void **sources, float *weights,
+                             float *sub_weights, int count, void *dest)
+{
+	float *f = dest, *src;
+	float **in = sources;
+	int i;
+	
+	if(count <= 0) return;
+
+	*f = 0.0f;
+	
+	for(i = 0; i < count; ++i) {
+		float weight = weights ? weights[i] : 1.0f;
+		
+		src = in[i];
+		*f += *src * weight;
+	}
+}
+
 static void layerInterp_shapekey(void **sources, float *weights,
                              float *sub_weights, int count, void *dest)
 {
@@ -969,6 +988,8 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	 layerSwap_mcol, layerDefault_mcol},
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(float)*3, "", 0, "ShapeKey", NULL, NULL, layerInterp_shapekey},
+	{sizeof(float), "", 0, "BevelWeight", NULL, NULL, layerInterp_bweight},
+	{sizeof(float), "", 0, "SubSurfCrease", NULL, NULL, layerInterp_bweight},
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -976,10 +997,10 @@ const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
 	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV",
 	"CDMloopCol", "CDTangent", "CDMDisps", "CDWeightMCol", "CDMPoly", 
-	"CDMLoop", "CDMLoopCol", "CDIDCol", "CDTextureCol", "CDShapeKeyIndex", "CDShapeKey"};
+	"CDMLoop", "CDMLoopCol", "CDIDCol", "CDTextureCol", "CDShapeKeyIndex", "CDShapeKey", "CDBevelWeight", "CDSubSurfCrease"};
 
 const CustomDataMask CD_MASK_BAREMESH =
-	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE | CD_MASK_MLOOP | CD_MASK_MPOLY;
+	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE | CD_MASK_MLOOP | CD_MASK_MPOLY | CD_MASK_BWEIGHT;
 const CustomDataMask CD_MASK_MESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL |
@@ -2159,7 +2180,7 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 
 
 void CustomData_bmesh_init_pool(CustomData *data, int allocsize){
-	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize, 1);
+	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize, 1, 0);
 }
 
 void CustomData_bmesh_merge(CustomData *source, CustomData *dest, 
@@ -2227,7 +2248,9 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
         }
     }
 
-	BLI_mempool_free(data->pool, *block);
+	if (data->totsize)
+		BLI_mempool_free(data->pool, *block);
+
 	*block = NULL;
 }
 
@@ -2238,7 +2261,7 @@ static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
 		CustomData_bmesh_free_block(data, block);
 
 	if (data->totsize > 0)
-		*block = BLI_mempool_calloc(data->pool);
+		*block = BLI_mempool_alloc(data->pool);
 	else
 		*block = NULL;
 }
@@ -2471,6 +2494,7 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
 
 		if(typeInfo->set_default)
 			typeInfo->set_default((char*)*block + offset, 1);
+		else memset((char*)*block + offset, 0, typeInfo->size);
 	}
 }
 

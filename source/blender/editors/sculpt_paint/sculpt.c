@@ -1367,7 +1367,6 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 	Brush *brush = paint_brush(&sd->paint);
 	PBVHNode **nodes= NULL;
 	rctf mr;
-	ARegion *ar = cache->vc->ar;
 	float xrad, yrad;
 	int totnode;
 

@@ -134,7 +134,7 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 	BMLoop *l, *l2;
 	int rev;
 
-	l = eed->loop;
+	l = eed->l;
 
 	/*find correct order for v[1]*/
 	if (!(BM_Edge_In_Face(l->f, eed) && BM_Edge_In_Face(l->f, lasteed))) {
@@ -154,9 +154,9 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 	}
 	
 	l2 = BM_OtherFaceLoop(l->e, l->f, eed->v1);
-	rev = (l2 == (BMLoop*)l->head.prev);
+	rev = (l2 == (BMLoop*)l->prev);
 	while (l2->v != lasteed->v1 && l2->v != lasteed->v2) {
-		l2 = rev ? (BMLoop*)l2->head.prev : (BMLoop*)l2->head.next;
+		l2 = rev ? (BMLoop*)l2->prev : (BMLoop*)l2->next;
 	}
 
 	if (l2->v == lastv1) {

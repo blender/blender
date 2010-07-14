@@ -41,6 +41,20 @@
 #define BMESH_PRIVATE_H
 
 #include "bmesh.h"
+struct Link;
+struct BMLoop;
+
+/*returns positive nonzero on error*/
+int bmesh_check_element(BMesh *bm, void *element, int type);
+
+#define CHECK_ELEMENT(bm, el) \
+if (bmesh_check_element(bm, el, ((BMHeader*)el)->type))\
+		printf("check_element failure, with code %i on line %i in file\n    \"%s\"\n\n", bmesh_check_element(bm, el, ((BMHeader*)el)->type), __LINE__, __FILE__);
+
+#define bm_get_edge_link(e, v) (Link*)((v) == ((BMEdge*)(e))->v1 ? &(((BMEdge*)(e))->dlink1) : &(((BMEdge*)(e))->dlink2))
+
+int bmesh_radial_length(struct BMLoop *l);
+int bmesh_disk_count(BMVert *v);
 
 /*start/stop edit*/
 void bmesh_begin_edit(struct BMesh *bm);
@@ -59,10 +73,14 @@ void bmesh_clear_sysflag(struct BMHeader *element, int flag);
 int bmesh_test_sysflag(struct BMHeader *element, int flag);
 
 /*NOTE: ensure different parts of the API do not conflict
-  on using this!  sets and gets the API index member 
-  of the current flag layer.*/
-#define bmesh_api_seti(bm, head, i) ((head)->flags[bm->stackdepth-1].pflag = i)
-#define bmesh_api_geti(bm, head) ((head)->flags[bm->stackdepth-1].pflag)
+  on using these internal flags!*/
+#define _FLAG_JF	1 /*join faces*/
+#define _FLAG_SF	2 /*split faces*/
+#define _FLAG_MF	4 /*make face*/
+
+#define bmesh_api_setflag(element, f) (((BMHeader*)(element))->flags[0].pflag |= (f))
+#define bmesh_api_getflag(element, f) (((BMHeader*)(element))->flags[0].pflag & (f))
+#define bmesh_api_clearflag(element, f) (((BMHeader*)(element))->flags[0].pflag &= ~(f))
 
 /*Polygon Utilities ? FIXME... where do these each go?*/
 /*newedgeflag sets a flag layer flag, obviously not the header flag.*/
@@ -76,6 +94,9 @@ void bmesh_flip_normal(struct BMesh *bm, struct BMFace *f);
 
 /*Error reporting. Shouldnt be called by tools ever.*/
 void BME_error(void);
+
+BMEdge *bmesh_disk_next(BMEdge *e, BMVert *v);
+BMEdge *bmesh_disk_prev(BMEdge *e, BMVert *v);
 
 /*include the rest of our private declarations*/
 #include "bmesh_structure.h"

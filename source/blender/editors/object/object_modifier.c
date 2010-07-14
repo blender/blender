@@ -351,6 +351,17 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 
 static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
 {
+	/*
+	  It should be ridiculously easy to extract the original verts that we want
+	  and form the shape data.  We can probably use the CD KEYINDEX layer (or
+	  whatever I ended up calling it, too tired to check now), though this would
+	  by necassity have to make some potentially ugly assumptions about the order
+	  of the mesh data :-/  you can probably assume in 99% of cases that the first
+	  element of a given index is the original, and any subsequent duplicates are
+	  copies/interpolates, but that's an assumption that would need to be tested
+	  and then predominantly stated in comments in a half dozen headers.
+	*/
+
 	if (ob->type==OB_MESH) {
 		DerivedMesh *dm;
 		Mesh *me= ob->data;

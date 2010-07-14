@@ -36,6 +36,10 @@
 #include "stdlib.h"
 #include "string.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "BKE_utildefines.h"
 #include "MEM_guardedalloc.h"
 
@@ -145,32 +149,6 @@ int				BLI_ghashutil_intcmp(void *a, void *b);
 /*begin of macro-inlined functions*/
 extern unsigned int hashsizes[];
 
-#if 0
-#define BLI_ghash_insert(gh, _k, _v){\
-	unsigned int _hash= (gh)->hashfp(_k)%gh->nbuckets;\
-	Entry *_e= BLI_mempool_alloc((gh)->entrypool);\
-	_e->key= _k;\
-	_e->val= _v;\
-	_e->next= (gh)->buckets[_hash];\
-	(gh)->buckets[_hash]= _e;\
-	if (++(gh)->nentries>(gh)->nbuckets*3) {\
-		Entry *_e, **_old= (gh)->buckets;\
-		int _i, _nold= (gh)->nbuckets;\
-		(gh)->nbuckets= hashsizes[++(gh)->cursize];\
-		(gh)->buckets= malloc((gh)->nbuckets*sizeof(*(gh)->buckets));\
-		memset((gh)->buckets, 0, (gh)->nbuckets*sizeof(*(gh)->buckets));\
-		for (_i=0; _i<_nold; _i++) {\
-			for (_e= _old[_i]; _e;) {\
-				Entry *_n= _e->next;\
-				_hash= (gh)->hashfp(_e->key)%(gh)->nbuckets;\
-				_e->next= (gh)->buckets[_hash];\
-				(gh)->buckets[_hash]= _e;\
-				_e= _n;\
-			}\
-		}\
-		free(_old); } }
-#endif
-
 /*---------inlined functions---------*/
 BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
@@ -262,5 +240,4 @@ BM_INLINE int BLI_ghash_haskey(GHash *gh, void *key) {
 #ifdef __cplusplus
 }
 #endif
-
 #endif

@@ -152,7 +152,6 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	for (i=0; i<totvert; i++, mv++) {
 		v = BM_Make_Vert(bm, mv->co, NULL);
 		
-		v->bweight = mv->bweight;
 		VECCOPY(v->no, mv->no);
 		v->head.flag = MEFlags_To_BMFlags(mv->flag, BM_VERT);
 
@@ -166,8 +165,6 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	for (i=0; i<totedge; i++, me++) {
 		e = BM_Make_Edge(bm, vtable[me->v1], vtable[me->v2], NULL, 0);
 
-		e->bweight = me->bweight;
-		e->crease = me->crease;
 		e->head.flag = MEFlags_To_BMFlags(me->flag, BM_EDGE);
 
 		CustomData_to_bmesh_block(&dm->edgeData, &bm->edata, i, &e->head.data);

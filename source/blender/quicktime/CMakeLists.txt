@@ -45,6 +45,7 @@ SET(INC
 	../render/extern/include
 	../include
 	../windowmanager
+	../../../intern/audaspace/intern
 )
 
 SET(INC ${INC} ${QUICKTIME_INC})

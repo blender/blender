@@ -54,16 +54,16 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v) {
 	}
 	
 	if (len == 1) {
-		bmesh_ke(bm, v->edge);
-		bmesh_kv(bm, v);
+		BM_Kill_Edge(bm, v->e);
+		BM_Kill_Vert(bm, v);
 		return 1;
 	}
 
 	if(BM_Nonmanifold_Vert(bm, v)) {
-		if (!v->edge) bmesh_kv(bm, v);
-		else if (!v->edge->loop) {
-			bmesh_ke(bm, v->edge);
-			bmesh_kv(bm, v);
+		if (!v->e) BM_Kill_Vert(bm, v);
+		else if (!v->e->l) {
+			BM_Kill_Edge(bm, v->e);
+			BM_Kill_Vert(bm, v);
 		} else return 0;
 
 		return 1;
@@ -82,19 +82,19 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		return 0;
 	}
 	
-	if(v->edge){
-		/*v->edge we keep, what else?*/
-		e = v->edge;
+	if(v->e){
+		/*v->e we keep, what else?*/
+		e = v->e;
 		len = 0;
 		do{
 			e = bmesh_disk_nextedge(e,v);
-			if(!(BM_Edge_Share_Faces(e, v->edge))){
+			if(!(BM_Edge_Share_Faces(e, v->e))){
 				keepedge = e;
-				baseedge = v->edge;
+				baseedge = v->e;
 				break;
 			}
 			len++;
-		}while(e != v->edge);
+		}while(e != v->e);
 	}
 	
 	/*this code for handling 2 and 3-valence verts
@@ -102,8 +102,8 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	if (keepedge == NULL && len == 3) {
 		/*handle specific case for three-valence.  solve it by
 		  increasing valence to four.  this may be hackish. . .*/
-		loop = e->loop;
-		if (loop->v == v) loop = (BMLoop*) loop->head.next;
+		loop = e->l;
+		if (loop->v == v) loop = (BMLoop*) loop->next;
 		if (!BM_Split_Face(bm, loop->f, v, loop->v, NULL, NULL))
 			return 0;
 
@@ -111,11 +111,11 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		return 1;
 	} else if (keepedge == NULL && len == 2) {
 		/*handle two-valence*/
-		f = v->edge->loop->f;
-		f2 = ((BMLoop*)v->edge->loop->radial.next->data)->f;
+		f = v->e->l->f;
+		f2 = ((BMLoop*)v->e->l->radial_next)->f;
 		/*collapse the vertex*/
-		BM_Collapse_Vert(bm, v->edge, v, 1.0);
-		BM_Join_Faces(bm, f, f2, NULL);
+		BM_Collapse_Vert(bm, v->e, v, 1.0);
+		BM_Join_TwoFaces(bm, f, f2, NULL);
 
 		return 1;
 	}
@@ -124,12 +124,12 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		done = 0;
 		while(!done){
 			done = 1;
-			e = v->edge;
+			e = v->e;
 			do{
 				f = NULL;
-				len = bmesh_cycle_length(&(e->loop->radial));
+				len = bmesh_radial_length(e->l);
 				if(len == 2 && (e!=baseedge) && (e!=keepedge)) {
-					f = BM_Join_Faces(bm, e->loop->f, ((BMLoop*)(e->loop->radial.next->data))->f, e); 
+					f = BM_Join_TwoFaces(bm, e->l->f, ((BMLoop*)(e->l->radial_next))->f, e);
 					/*return if couldn't join faces in manifold
 					  conditions.*/
 					//!disabled for testing why bad things happen
@@ -141,19 +141,19 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 					break;
 				}
 				e = bmesh_disk_nextedge(e, v);
-			}while(e != v->edge);
+			}while(e != v->e);
 		}
 
 		/*get remaining two faces*/
-		f = v->edge->loop->f;
-		f2 = ((BMLoop*)v->edge->loop->radial.next->data)->f;
+		f = v->e->l->f;
+		f2 = ((BMLoop*)v->e->l->radial_next)->f;
 
 		/*collapse the vertex*/
 		BM_Collapse_Vert(bm, baseedge, v, 1.0);
 		
 		if (f != f2) {
 			/*join two remaining faces*/
-			if (!BM_Join_Faces(bm, f, f2, NULL)) return 0;
+			if (!BM_Join_TwoFaces(bm, f, f2, NULL)) return 0;
 		}
 	}
 
@@ -166,7 +166,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
 	BMIter iter;
 	int done, len;
 	
-	if(v->edge){
+	if(v->e){
 		done = 0;
 		while(!done){
 			done = 1;
@@ -175,10 +175,10 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
 			for (e=BMIter_New(&iter, bm, BM_EDGES_OF_VERT, v); e;
 			     e = BMIter_Step(&iter)) {
 				f = NULL;
-				len = bmesh_cycle_length(&(e->loop->radial));
+				len = bmesh_cycle_length(&(e->l->radial));
 				if(len == 2){
-					f = BM_Join_Faces(bm,e->loop->f,((BMLoop*)
-					      (e->loop->radial.next->data))->f, 
+					f = BM_Join_TwoFaces(bm,e->l->f,((BMLoop*)
+					      (e->l->radial_next))->f, 
 					       e);
 				}
 				if(f){ 
@@ -187,7 +187,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
 				}
 			};
 		}
-		BM_Collapse_Vert(bm, v->edge, v, 1.0);
+		BM_Collapse_Vert(bm, v->e, v, 1.0);
 	}
 }
 #endif
@@ -201,31 +201,32 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
  *	BMFace pointer
  */
  
-BMFace *BM_Join_Faces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e) {
+BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e) {
 
 	BMLoop *l1, *l2;
 	BMEdge *jed=NULL;
+	BMFace *faces[2] = {f1, f2};
 	
 	jed = e;
 	if(!jed){
 		/*search for an edge that has both these faces in its radial cycle*/
-		l1 = f1->loopbase;
+		l1 = bm_firstfaceloop(f1);
 		do{
-			if( ((BMLoop*)l1->radial.next->data)->f == f2 ){
+			if( ((BMLoop*)l1->radial_next)->f == f2 ){
 				jed = l1->e;
 				break;
 			}
-			l1 = ((BMLoop*)(l1->head.next));
-		}while(l1!=f1->loopbase);
+			l1 = ((BMLoop*)(l1->next));
+		}while(l1!=bm_firstfaceloop(f1));
 	}
 
-	l1 = jed->loop;
-	l2 = l1->radial.next->data;
+	l1 = jed->l;
+	l2 = l1->radial_next;
 	if (l1->v == l2->v) {
 		bmesh_loop_reverse(bm, f2);
 	}
 
-	f1 = bmesh_jfke(bm, f1, f2, jed);
+	f1 = BM_Join_Faces(bm, faces, 2);
 	
 	return f1;
 }
@@ -274,7 +275,7 @@ BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
 BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl, BMEdge *example)
 {
 	BMFace *nf;
-	nf = bmesh_sfme(bm,f,v1,v2,nl);
+	nf = bmesh_sfme(bm,f,v1,v2,nl, NULL);
 	
 	if (nf) {
 		BM_Copy_Attributes(bm, bm, f, nf);
@@ -302,30 +303,66 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  */
  
 void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
-	void *src[2];
-	float w[2];
+	BMFace **faces = NULL, *f;
+	BLI_array_staticdeclare(faces, 8);
+	BMIter iter;
 	BMLoop *l=NULL, *kvloop=NULL, *tvloop=NULL;
 	BMVert *tv = bmesh_edge_getothervert(ke,kv);
+	void *src[2];
+	float w[2];
 
 	w[0] = 1.0f - fac;
 	w[1] = fac;
 
-	if(ke->loop){
-		l = ke->loop;
+	if(ke->l){
+		l = ke->l;
 		do{
-			if(l->v == tv && ((BMLoop*)(l->head.next))->v == kv){
+			if(l->v == tv && ((BMLoop*)(l->next))->v == kv){
 				tvloop = l;
-				kvloop = ((BMLoop*)(l->head.next));
+				kvloop = ((BMLoop*)(l->next));
 
 				src[0] = kvloop->head.data;
 				src[1] = tvloop->head.data;
 				CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, kvloop->head.data);
 			}
-			l=l->radial.next->data;
-		}while(l!=ke->loop);
+			l=l->radial_next;
+		}while(l!=ke->l);
 	}
-	BM_Data_Interp_From_Verts(bm, kv, tv, kv, fac);   
-	bmesh_jekv(bm,ke,kv);
+
+	BM_ITER(f, &iter, bm, BM_FACES_OF_VERT, kv) {
+		BLI_array_append(faces, f);
+	}
+
+	BM_Data_Interp_From_Verts(bm, kv, tv, kv, fac);
+
+	//bmesh_jekv(bm,ke,kv);
+	if (faces) {
+		BMFace *f2;
+		BMEdge *e2;
+		BMVert *tv2;
+
+		/*ok, no faces, means we have a wire edge*/
+		e2 = bmesh_disk_nextedge(ke, kv);
+		tv2 = BM_OtherEdgeVert(e2, kv);
+
+		f2 = BM_Join_Faces(bm, faces, BLI_array_count(faces));
+		BM_Split_Face(bm, f2, tv, tv2, NULL, NULL);
+	} else {
+		BMVert *tv2;
+		BMEdge *e2, *ne;
+
+		/*ok, no faces, means we have a wire edge*/
+		e2 = bmesh_disk_nextedge(ke, kv);
+		tv2 = BM_OtherEdgeVert(e2, kv);
+
+		ne = BM_Make_Edge(bm, tv, tv2, ke, 0);
+
+		BM_Kill_Edge(bm, ke);
+		BM_Kill_Edge(bm, e2);
+		BM_Kill_Vert(bm, kv);
+	}
+
+	BLI_array_free(faces);
 }
 
 /**
@@ -441,7 +478,7 @@ BMEdge *BM_Rotate_Edge(BMesh *bm, BMEdge *e, int ccw)
 	if (BM_Edge_FaceCount(e) != 2)
 		return NULL;
 
-	f = BM_Join_Faces(bm, e->loop->f, ((BMLoop*)e->loop->radial.next->data)->f, e);
+	f = BM_Join_TwoFaces(bm, e->l->f, ((BMLoop*)e->l->radial_next)->f, e);
 	
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		if (l->v == v1)
@@ -451,11 +488,11 @@ BMEdge *BM_Rotate_Edge(BMesh *bm, BMEdge *e, int ccw)
 	}
 	
 	if (ccw) {
-		l1 = (BMLoop*) l1->head.prev;
-		l2 = (BMLoop*) l2->head.prev;
+		l1 = (BMLoop*) l1->prev;
+		l2 = (BMLoop*) l2->prev;
 	} else {
-		l1 = (BMLoop*) l1->head.next;
-		l2 = (BMLoop*) l2->head.next;
+		l1 = (BMLoop*) l1->next;
+		l2 = (BMLoop*) l2->next;
 	}
 
 	if (!BM_Split_Face(bm, f, l1->v, l2->v, &nl, NULL))
