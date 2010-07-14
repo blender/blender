@@ -2481,7 +2481,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 
 	file = open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Can't open file for writing: %s.", strerror(errno));
+		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s.", tempname, strerror(errno));
 		return 0;
 	}
 
