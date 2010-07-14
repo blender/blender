@@ -46,7 +46,6 @@ if env['WITH_BF_GAMEENGINE']:
 if env['BF_UNIT_TEST']:
 	defs.append('UNIT_TEST')
 
-
 if env['OURPLATFORM'] == 'linux2':
 	cflags='-pthread'
 	incs += ' ../../../extern/binreloc/include'

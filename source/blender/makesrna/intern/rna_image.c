@@ -213,6 +213,12 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 	return depth;
 }
 
+static int rna_Image_is_image_icon(Image *me, bContext *C)
+{
+	const char prefix[] = ".imageicon.";
+	return strncmp(me->id.name+2, prefix, sizeof(prefix)-1) == 0;
+}
+
 #else
 
 static void rna_def_imageuser(BlenderRNA *brna)
@@ -292,6 +298,9 @@ static void rna_def_image(BlenderRNA *brna)
 		{IMA_STD_FIELD, "ODD", 0, "Lower First", "Lower field first"},
 		{0, NULL, 0, NULL, NULL}};
 
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
 	srna= RNA_def_struct(brna, "Image", "ID");
 	RNA_def_struct_ui_text(srna, "Image", "Image datablock referencing an external or packed image");
 	RNA_def_struct_ui_icon(srna, ICON_IMAGE_DATA);
@@ -333,6 +342,14 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Field Order", "Order of video fields. Select which lines are displayed first");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 	
+	/* functions */
+	func= RNA_def_function(srna, "is_image_icon", "rna_Image_is_image_icon");
+	RNA_def_function_ui_description(func, "Returns true if Image name is prefixed with .imageicon.");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_boolean(func, "ret", 0, "", "");
+	RNA_def_function_return(func, parm);
+
 	/* booleans */
 	prop= RNA_def_property(srna, "fields", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_FIELDS);

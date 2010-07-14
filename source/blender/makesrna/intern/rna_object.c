@@ -2116,11 +2116,6 @@ static void rna_def_object_base(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Selected", "Object base selection state");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Base_select_update");
 	
-	prop= RNA_def_property(srna, "selected_user", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BA_WAS_SEL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "User Selected", "Object base user selection state, used to restore user selection after transformations");
-	
 	RNA_api_object_base(srna);
 }
 

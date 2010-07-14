@@ -45,6 +45,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
+#include "BKE_sca.h"
 
 /* ******************* SENSORS ************************ */
 
@@ -189,26 +190,13 @@ void unlink_controller(bController *cont)
 {
 	bSensor *sens;
 	Object *ob;
-	int a, removed;
 	
 	/* check for controller pointers in sensors */
 	ob= G.main->object.first;
 	while(ob) {
 		sens= ob->sensors.first;
 		while(sens) {
-			removed= 0;
-			for(a=0; a<sens->totlinks; a++) {
-				if(removed) (sens->links)[a-1] = (sens->links)[a];
-				else if((sens->links)[a] == cont) removed= 1;
-			}
-			if(removed) {
-				sens->totlinks--;
-				
-				if(sens->totlinks==0) {
-					MEM_freeN(sens->links);
-					sens->links= NULL;
-				}
-			}
+			unlink_logicbricks((void **)&cont, (void ***)&(sens->links), &sens->totlinks);
 			sens= sens->next;
 		}
 		ob= ob->id.next;
@@ -313,26 +301,13 @@ void unlink_actuator(bActuator *act)
 {
 	bController *cont;
 	Object *ob;
-	int a, removed;
 	
 	/* check for actuator pointers in controllers */
 	ob= G.main->object.first;
 	while(ob) {
 		cont= ob->controllers.first;
 		while(cont) {
-			removed= 0;
-			for(a=0; a<cont->totlinks; a++) {
-				if(removed) (cont->links)[a-1] = (cont->links)[a];
-				else if((cont->links)[a] == act) removed= 1;
-			}
-			if(removed) {
-				cont->totlinks--;
-				
-				if(cont->totlinks==0) {
-					MEM_freeN(cont->links);
-					cont->links= NULL;
-				}
-			}
+			unlink_logicbricks((void **)&act, (void ***)&(cont->links), &cont->totlinks);
 			cont= cont->next;
 		}
 		ob= ob->id.next;
@@ -512,7 +487,6 @@ bActuator *new_actuator(int type)
 }
 
 /* ******************** GENERAL ******************* */
-
 void clear_sca_new_poins_ob(Object *ob)
 {
 	bSensor *sens;
@@ -685,7 +659,7 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 }
 
 /* ******************** INTERFACE ******************* */
-void sca_move_sensor(bSensor *sens_to_move, Object *ob, int *move_up)
+void sca_move_sensor(bSensor *sens_to_move, Object *ob, int move_up)
 {
 	bSensor *sens, *tmp;
 
@@ -805,5 +779,58 @@ void sca_move_actuator(bActuator *act_to_move, Object *ob, int move_up)
 			BLI_remlink(&ob->actuators, act);
 			BLI_insertlink(&ob->actuators, tmp, act);
 		}
+	}
+}
+
+void link_logicbricks(void **poin, void ***ppoin, short *tot, short size)
+{
+	void **old_links= NULL;
+	
+	int ibrick;
+
+	/* check if the bricks are already linked */
+	for (ibrick=0; ibrick < *tot; ibrick++) {
+		if ((*ppoin)[ibrick] == *poin)
+			return;
+	}
+
+	if (*ppoin) {
+		old_links= *ppoin;
+
+		(*tot) ++;
+		*ppoin = MEM_callocN((*tot)*size, "new link");
+	
+		for (ibrick=0; ibrick < *tot - 1; ibrick++) {
+			(*ppoin)[ibrick] = old_links[ibrick];
+		}
+		(*ppoin)[ibrick] = *poin;
+
+		if(old_links) MEM_freeN(old_links);
+	}
+	else {
+		(*tot) = 1;
+		*ppoin = MEM_callocN((*tot)*size, "new link");
+		(*ppoin)[0] = *poin;
+	}
+}
+
+void unlink_logicbricks(void **poin, void ***ppoin, short *tot)
+{
+	int ibrick, removed;
+
+	removed= 0;
+	for (ibrick=0; ibrick < *tot; ibrick++) {
+		if(removed) (*ppoin)[ibrick - removed] = (*ppoin)[ibrick];
+		else if((*ppoin)[ibrick] == *poin) removed = 1;
+	}
+
+	if (removed) {
+		(*tot) --;
+
+		if(*tot == 0) {
+			MEM_freeN(*ppoin);
+			(*ppoin)= NULL;
+		}
+		return;
 	}
 }

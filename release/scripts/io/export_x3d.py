@@ -1242,7 +1242,7 @@ class ExportX3D(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filepath.replace(".blend", ".x3d")
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".x3d"
     self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)").filepath = default_path
 
 
@@ -1259,4 +1259,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

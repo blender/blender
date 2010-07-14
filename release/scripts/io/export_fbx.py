@@ -3437,7 +3437,7 @@ class ExportFBX(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filepath.replace(".blend", ".fbx")
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".fbx"
     self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").filepath = default_path
 
 

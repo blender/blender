@@ -365,14 +365,13 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 	}	
 }
 
-static void draw_seq_extensions(Scene *scene, SpaceSeq *sseq, Sequence *seq)
+static void draw_seq_extensions(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *seq)
 {
 	float x1, x2, y1, y2, pixely, a;
 	char col[3], blendcol[3];
-	View2D *v2d= &sseq->v2d;
+	View2D *v2d= &ar->v2d;
 	
 	if(seq->type >= SEQ_EFFECT) return;
-	if(v2d->mask.ymax == v2d->mask.ymin) return; /* avoid divide by zero */
 
 	x1= seq->startdisp;
 	x2= seq->enddisp;
@@ -625,7 +624,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 	
 	/* draw additional info and controls */
 	if (!is_single_image)
-		draw_seq_extensions(scene, sseq, seq);
+		draw_seq_extensions(scene, ar, sseq, seq);
 	
 	draw_seq_handle(v2d, seq, pixelx, SEQ_LEFTHANDLE);
 	draw_seq_handle(v2d, seq, pixelx, SEQ_RIGHTHANDLE);

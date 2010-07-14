@@ -61,6 +61,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_exotic.h"
 #include "BKE_font.h"
@@ -309,7 +310,9 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 //		refresh_interface_font();
 
 		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+
 		ED_editors_init(C);
+		DAG_on_load_update();
 
 #ifndef DISABLE_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
@@ -362,7 +365,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	if (!from_memory && BLI_exists(tstr)) {
 		success = BKE_read_file(C, tstr, NULL, NULL);
 	} else {
-		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL, NULL);
+		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
 	}
 	
@@ -389,6 +392,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	BKE_write_undo(C, "original");	/* save current state */
 
 	ED_editors_init(C);
+	DAG_on_load_update();
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 	CTX_wm_window_set(C, NULL); /* exits queues */

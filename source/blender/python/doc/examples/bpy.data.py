@@ -18,7 +18,8 @@ if "Cube" in bpy.data.meshes:
 
 
 # write images into a file next to the blend
-file = open(bpy.data.filepath.replace(".blend", ".txt"), 'w')
+import os
+file = open(os.path.splitext(bpy.data.filepath)[0] + ".txt", 'w')
 
 for image in bpy.data.images:
     file.write("%s %dx%d\n" % (image.filepath, image.size[0], image.size[1]))

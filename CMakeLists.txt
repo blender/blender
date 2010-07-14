@@ -61,7 +61,7 @@ SET(BLENDER_VERSION  2.5)
 
 #-----------------------------------------------------------------------------
 # Load some macros.
-INCLUDE(CMake/macros.cmake)
+INCLUDE(build_files/cmake/macros.cmake)
 
 #-----------------------------------------------------------------------------
 # Set default config options
@@ -485,7 +485,7 @@ IF(WIN32)
 			SET(PCRE_LIB pcre)
 		ENDIF(WITH_OPENCOLLADA)
 		
-        # TODO: IF(WITH_LCMS)
+		# TODO: IF(WITH_LCMS)
         
 		IF(WITH_FFMPEG)
 			SET(FFMPEG ${LIBDIR}/ffmpeg)
@@ -534,7 +534,7 @@ IF(WIN32)
 	ELSE(MSVC) # MINGW
 		SET(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
 
-		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing -mwindows" CACHE STRING "Mingw C++ flags ")
+		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C++ flags ")
 		SET(CMAKE_C_FLAGS                  "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C flags ")
 
 		SET(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g" CACHE STRING "Mingw debug C++ flags ")
@@ -561,7 +561,7 @@ IF(WIN32)
 			SET(GETTEXT_LIB intl)
 		ENDIF(WITH_INTERNATIONAL)
 
-		SET(JPEG_LIBRARY jpeg)
+		SET(JPEG_LIBRARY libjpeg)
 		SET(PNG_LIBRARIES png)
 
 		SET(ZLIB ${LIBDIR}/zlib)
@@ -607,7 +607,7 @@ IF(WIN32)
 		IF(WITH_OPENEXR)
 			SET(OPENEXR ${LIBDIR}/gcc/openexr)
 			SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
-			SET(OPENEXR_LIB Half IlmImf Iex)
+			SET(OPENEXR_LIB Half IlmImf Imath IlmThread)
 			SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		ENDIF(WITH_OPENEXR)
 
@@ -627,6 +627,12 @@ IF(WIN32)
 			# TODO, gives linking errors, force off
 			SET(WITH_JACK OFF)
 		ENDIF(WITH_JACK)
+
+		IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+			SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+			ADD_DEFINITIONS(-D__SSE__)
+			ADD_DEFINITIONS(-D__MMX__)
+		ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	ENDIF(MSVC)
 

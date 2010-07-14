@@ -162,7 +162,6 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "show_view_name", text="View Name")
         col.prop(view, "show_playback_fps", text="Playback FPS")
         col.prop(view, "global_scene")
-        col.prop(view, "pin_floating_panels")
         col.prop(view, "object_origin_size")
 
         col.separator()
@@ -288,13 +287,6 @@ class USERPREF_PT_edit(bpy.types.Panel):
         row.separator()
 
         col = row.column()
-        col.label(text="Snap:")
-        col.prop(edit, "snap_translate", text="Translate")
-        col.prop(edit, "snap_rotate", text="Rotate")
-        col.prop(edit, "snap_scale", text="Scale")
-        col.separator()
-        col.separator()
-        col.separator()
         col.label(text="Grease Pencil:")
         col.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
@@ -342,7 +334,21 @@ class USERPREF_PT_edit(bpy.types.Panel):
         row.separator()
         row.separator()
 
+        sculpt = context.tool_settings.sculpt
         col = row.column()
+        col.label(text="Paint and Sculpt:")
+        col.prop(edit, "sculpt_paint_use_unified_size", text="Unify Size")
+        col.prop(edit, "sculpt_paint_use_unified_strength", text="Unify Strength")
+        row = col.row(align=True)
+        row.label("Overlay Color:")
+        row.prop(edit, "sculpt_paint_overlay_col", text="")
+        col.prop(sculpt, "use_openmp", text="Threaded Sculpt")
+        col.prop(sculpt, "show_brush")
+
+        col.separator()
+        col.separator()
+        col.separator()
+
         col.label(text="Duplicate Data:")
         col.prop(edit, "duplicate_mesh", text="Mesh")
         col.prop(edit, "duplicate_surface", text="Surface")

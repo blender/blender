@@ -138,6 +138,7 @@ Curve *add_curve(char *name, int type)
 	cu->fsize= 1.0;
 	cu->ulheight = 0.05;	
 	cu->texflag= CU_AUTOSPACE;
+	cu->smallcaps_scale= 0.75f;
 	cu->twist_mode= CU_TWIST_MINIMUM;	// XXX: this one seems to be the best one in most cases, at least for curve deform...
 	
 	cu->bb= unit_boundbox();
@@ -1317,30 +1318,33 @@ void makebevelcurve(Scene *scene, Object *ob, ListBase *disp, int forRender)
 		short dnr;
 		
 		/* bevel now in three parts, for proper vertex normals */
-		/* part 1 */
-		dnr= nr= 2+ cu->bevresol;
-		if( (cu->flag & (CU_FRONT|CU_BACK))==0)
-			nr= 3+ 2*cu->bevresol;
-		   
-		dl= MEM_callocN(sizeof(DispList), "makebevelcurve p1");
-		dl->verts= MEM_mallocN(nr*3*sizeof(float), "makebevelcurve p1");
-		BLI_addtail(disp, dl);
-		dl->type= DL_SEGM;
-		dl->parts= 1;
-		dl->flag= DL_BACK_CURVE;
-		dl->nr= nr;
+		/* part 1, back */
 
-		/* half a circle */
-		fp= dl->verts;
-		dangle= (0.5*M_PI/(dnr-1));
-		angle= -(nr-1)*dangle;
-		
-		for(a=0; a<nr; a++) {
-			fp[0]= 0.0;
-			fp[1]= (float)(cos(angle)*(cu->ext2));
-			fp[2]= (float)(sin(angle)*(cu->ext2)) - cu->ext1;
-			angle+= dangle;
-			fp+= 3;
+		if((cu->flag & CU_BACK) || !(cu->flag & CU_FRONT)) {
+			dnr= nr= 2+ cu->bevresol;
+			if( (cu->flag & (CU_FRONT|CU_BACK))==0)
+				nr= 3+ 2*cu->bevresol;
+
+			dl= MEM_callocN(sizeof(DispList), "makebevelcurve p1");
+			dl->verts= MEM_mallocN(nr*3*sizeof(float), "makebevelcurve p1");
+			BLI_addtail(disp, dl);
+			dl->type= DL_SEGM;
+			dl->parts= 1;
+			dl->flag= DL_BACK_CURVE;
+			dl->nr= nr;
+
+			/* half a circle */
+			fp= dl->verts;
+			dangle= (0.5*M_PI/(dnr-1));
+			angle= -(nr-1)*dangle;
+
+			for(a=0; a<nr; a++) {
+				fp[0]= 0.0;
+				fp[1]= (float)(cos(angle)*(cu->ext2));
+				fp[2]= (float)(sin(angle)*(cu->ext2)) - cu->ext1;
+				angle+= dangle;
+				fp+= 3;
+			}
 		}
 		
 		/* part 2, sidefaces */
@@ -1373,30 +1377,32 @@ void makebevelcurve(Scene *scene, Object *ob, ListBase *disp, int forRender)
 			}
 		}
 		
-		/* part 3 */
-		dnr= nr= 2+ cu->bevresol;
-		if( (cu->flag & (CU_FRONT|CU_BACK))==0)
-			nr= 3+ 2*cu->bevresol;
-		
-		dl= MEM_callocN(sizeof(DispList), "makebevelcurve p3");
-		dl->verts= MEM_mallocN(nr*3*sizeof(float), "makebevelcurve p3");
-		BLI_addtail(disp, dl);
-		dl->type= DL_SEGM;
-		dl->flag= DL_FRONT_CURVE;
-		dl->parts= 1;
-		dl->nr= nr;
-		
-		/* half a circle */
-		fp= dl->verts;
-		angle= 0.0;
-		dangle= (0.5*M_PI/(dnr-1));
-		
-		for(a=0; a<nr; a++) {
-			fp[0]= 0.0;
-			fp[1]= (float)(cos(angle)*(cu->ext2));
-			fp[2]= (float)(sin(angle)*(cu->ext2)) + cu->ext1;
-			angle+= dangle;
-			fp+= 3;
+		/* part 3, front */
+		if((cu->flag & CU_FRONT) || !(cu->flag & CU_BACK)) {
+			dnr= nr= 2+ cu->bevresol;
+			if( (cu->flag & (CU_FRONT|CU_BACK))==0)
+				nr= 3+ 2*cu->bevresol;
+
+			dl= MEM_callocN(sizeof(DispList), "makebevelcurve p3");
+			dl->verts= MEM_mallocN(nr*3*sizeof(float), "makebevelcurve p3");
+			BLI_addtail(disp, dl);
+			dl->type= DL_SEGM;
+			dl->flag= DL_FRONT_CURVE;
+			dl->parts= 1;
+			dl->nr= nr;
+
+			/* half a circle */
+			fp= dl->verts;
+			angle= 0.0;
+			dangle= (0.5*M_PI/(dnr-1));
+
+			for(a=0; a<nr; a++) {
+				fp[0]= 0.0;
+				fp[1]= (float)(cos(angle)*(cu->ext2));
+				fp[2]= (float)(sin(angle)*(cu->ext2)) + cu->ext1;
+				angle+= dangle;
+				fp+= 3;
+			}
 		}
 	}
 }

@@ -84,5 +84,15 @@ unsigned int *brush_gen_texture_cache(struct Brush *br, int half_side);
 void brush_radial_control_invoke(struct wmOperator *op, struct Brush *br, float size_weight);
 int brush_radial_control_exec(struct wmOperator *op, struct Brush *br, float size_weight);
 
+/* unified strength and size */
+int sculpt_get_brush_size(struct Brush *brush);
+void sculpt_set_brush_size(struct Brush *brush, int size);
+int sculpt_get_lock_brush_size(struct Brush *brush);
+float sculpt_get_brush_unprojected_radius(struct Brush *brush);
+void sculpt_set_brush_unprojected_radius(struct Brush *brush, float unprojected_radius);
+float sculpt_get_brush_alpha(struct Brush *brush);
+void sculpt_set_brush_alpha(struct Brush *brush, float alpha);
+
+
 #endif
 

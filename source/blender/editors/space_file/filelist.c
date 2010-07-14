@@ -807,9 +807,6 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 
 			/* Don't check extensions for directories */ 
 		if (file->type & S_IFDIR) {
-			if(BLO_has_bfile_extension(file->relname)) {
-				file->flags |= BLENDERFILE;
-			}
 			continue;
 		}
 

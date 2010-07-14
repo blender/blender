@@ -473,7 +473,8 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_free(grid);
 	
 	/* keyframes */
-	time_draw_keyframes(C, stime, ar);
+	if(!G.rendering) /* ANIM_nla_mapping_apply_fcurve() modifies curve data while rendering, possible race condition */
+		time_draw_keyframes(C, stime, ar);
 	
 	/* current frame */
 	if ((stime->flag & TIME_DRAWFRAMES)==0) 	flag |= DRAWCFRA_UNIT_SECONDS;

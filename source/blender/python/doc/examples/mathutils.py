@@ -1,7 +1,7 @@
 import mathutils
 from math import radians
 
-vec = mathutils.Vector(1.0, 2.0, 3.0)
+vec = mathutils.Vector((1.0, 2.0, 3.0))
 
 mat_rot = mathutils.RotationMatrix(radians(90), 4, 'X')
 mat_trans = mathutils.TranslationMatrix(vec)

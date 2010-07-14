@@ -2544,8 +2544,21 @@ static void do_render_seq(Render * re)
 		if(ibuf->rect_float) {
 			if (!rr->rectf)
 				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
-			
+
 			memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
+
+			/* sequencer float buffer is not in linear color space, convert
+			 * should always be true, use a fake ibuf for the colorspace conversion */
+			if(ibuf->profile != IB_PROFILE_LINEAR_RGB) {
+				ImBuf ibuf_dummy;
+				memset(&ibuf_dummy, 0, sizeof(ImBuf));
+				ibuf_dummy.profile= ibuf->profile;
+				ibuf_dummy.x= rr->rectx;
+				ibuf_dummy.y= rr->recty;
+				ibuf_dummy.rect_float= rr->rectf;
+				/* only touch the rr->rectf */
+				IMB_convert_profile(&ibuf_dummy, IB_PROFILE_LINEAR_RGB);
+			}
 			
 			/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
 			   can hang around when sequence render has rendered a 32 bits one before */

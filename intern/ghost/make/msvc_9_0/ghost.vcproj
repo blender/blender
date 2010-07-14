@@ -469,6 +469,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\GHOST_Path-api.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\GHOST_Rect.h"
 					>
 				</File>
@@ -523,6 +527,10 @@
 			</File>
 			<File
 				RelativePath="..\..\intern\GHOST_NDOFManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\GHOST_Path-api.cpp"
 				>
 			</File>
 			<File

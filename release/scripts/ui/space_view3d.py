@@ -1544,6 +1544,7 @@ class VIEW3D_MT_edit_mesh_faces(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
+        layout.operator("mesh.flip_normals")
         # layout.operator("mesh.bevel")
         # layout.operator("mesh.bevel")
         layout.operator("mesh.edge_face_add")
@@ -1705,6 +1706,13 @@ class VIEW3D_MT_edit_text(bpy.types.Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_text_chars")
+
+        layout.separator()
+        
+        layout.operator("font.style_toggle", text="Toggle Bold").style = 'BOLD'
+        layout.operator("font.style_toggle", text="Toggle Italic").style = 'ITALIC'
+        layout.operator("font.style_toggle", text="Toggle Underline").style = 'UNDERLINE'
+        layout.operator("font.style_toggle", text="Toggle Small Caps").style = 'SMALL_CAPS'
 
 
 class VIEW3D_MT_edit_text_chars(bpy.types.Menu):

@@ -113,24 +113,42 @@ class SelectHierarchy(bpy.types.Operator):
         return context.object
 
     def execute(self, context):
-        obj = context.object
-        if self.properties.direction == 'PARENT':
-            parent = obj.parent
-            if not parent:
-                return {'CANCELLED'}
-            obj_act = parent
-        else:
-            children = obj.children
-            if len(children) != 1:
-                return {'CANCELLED'}
-            obj_act = children[0]
+        objs = context.selected_objects
+        obj_act = context.object
+
+        if context.object not in objs:
+            objs.append(context.object)
 
         if not self.properties.extend:
-            # obj.selected = False
+            # for obj in objs:
+            #     obj.selected = False
             bpy.ops.object.select_all(action='DESELECT')
 
-        obj_act.selected = True
-        context.scene.objects.active = obj_act
+        if self.properties.direction == 'PARENT':
+            parents = []
+            for obj in objs:
+                parent = obj.parent
+
+                if parent:
+                    parents.append(parent)
+
+                    if obj_act == obj:
+                        context.scene.objects.active = parent
+
+                    parent.selected = True
+                
+            if parents:
+                return {'CANCELLED'}
+
+        else:
+            children = []
+            for obj in objs:
+                children += list(obj.children)
+                for obj_iter in children:
+                    obj_iter.selected = True
+
+            children.sort(key=lambda obj_iter: obj_iter.name)
+            context.scene.objects.active = children[0]
 
         return {'FINISHED'}
 

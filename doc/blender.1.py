@@ -31,12 +31,12 @@ def man_format(data):
     data = data.replace("-", "\\-")
     data = data.replace("\t", "    ")
     # data = data.replace("$", "\\fI")
-    
+
     data_ls = []
     for w in data.split():
         if w.startswith("$"):
             w = "\\fI" + w[1:] + "\\fR"
-           
+
         data_ls.append(w)
 
     data = data[:len(data) - len(data.lstrip())] + " ".join(data_ls)
@@ -53,7 +53,7 @@ blender_version = blender_version.split("Build")[0]
 
 date_string = datetime.date.fromtimestamp(time.time()).strftime("%B %d, %Y")
 
-filepath = __file__.replace(".py", "")
+filepath = os.path.splitext(__file__)[0] + ".1"
 
 file = open(filepath, "w")
 
@@ -90,16 +90,16 @@ lines = [line.rstrip() for line in blender_help.split("\n")]
 while lines:
     l = lines.pop(0)
     if l.startswith("Environment Variables:"):
-        fw('.SH "ENVIRONMENT VARIABLES"\n') 
+        fw('.SH "ENVIRONMENT VARIABLES"\n')
     elif l.endswith(":"): # one line
-        fw('.SS "%s"\n\n' % l) 
+        fw('.SS "%s"\n\n' % l)
     elif l.startswith("-") or l.startswith("/"): # can be multi line
 
         fw('.TP\n')
         fw('.B %s\n' % man_format(l))
-        
+
         while lines:
-            # line with no 
+            # line with no
             if lines[0].strip() and len(lines[0].lstrip()) == len(lines[0]): # no white space
                 break
 
@@ -112,7 +112,7 @@ while lines:
             l = l[1:] # remove first whitespace (tab)
 
             fw('%s\n' % man_format(l))
-    
+
     else:
         if not l.strip():
             fw('.br\n')

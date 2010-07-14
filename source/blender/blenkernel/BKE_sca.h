@@ -37,6 +37,9 @@ struct Object;
 struct bController;
 struct bActuator;
 
+void link_logicbricks(void **poin, void ***ppoin, short *tot, short size);
+void unlink_logicbricks(void **poin, void ***ppoin, short *tot);
+
 void unlink_controller(struct bController *cont);
 void unlink_controllers(struct ListBase *lb);
 void free_controller(struct bController *cont);

@@ -398,7 +398,6 @@ Group *rna_Main_groups_new(Main *bmain, char* name)
 void rna_Main_groups_remove(Main *bmain, ReportList *reports, Group *group)
 {
 	unlink_group(group);
-	group->id.us= 0;
 	free_libblock(&bmain->group, group);
 	/* XXX python now has invalid pointer? */
 }

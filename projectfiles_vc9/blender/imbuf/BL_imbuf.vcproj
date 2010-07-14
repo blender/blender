@@ -590,6 +590,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\thumbs_blend.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\tiff.c"
 				>
 			</File>

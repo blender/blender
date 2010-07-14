@@ -329,7 +329,7 @@ class INFO_MT_help(bpy.types.Menu):
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
     bl_idname = "help.operator_cheat_sheet"
-    bl_label = "Operator Cheat Sheet (new textblock)"
+    bl_label = "Operator Cheat Sheet"
 
     def execute(self, context):
         op_strings = []

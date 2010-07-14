@@ -285,32 +285,6 @@ void uiEndPanel(uiBlock *block, int width, int height)
 	}
 }
 
-#if 0
-void uiPanelToMouse(const bContext *C, Panel *pa)
-{
-	/* global control over this feature; UI_PNL_TO_MOUSE only called for hotkey panels */
-	if(U.uiflag & USER_PANELPINNED);
-	else if(pa->control & UI_PNL_TO_MOUSE) {
-		int mx, my;
-
-		mx= CTX_wm_window(C)->eventstate->x;
-		my= CTX_wm_window(C)->eventstate->y;
-		
-		pa->ofsx= mx-pa->sizex/2;
-		pa->ofsy= my-pa->sizey/2;
-		
-		if(pa->flag & PNL_CLOSED) pa->flag &= ~PNL_CLOSED;
-	}
-	
-	if(pa->control & UI_PNL_UNSTOW) {
-		if(pa->flag & PNL_CLOSEDY) {
-			pa->flag &= ~PNL_CLOSED;
-		}
-	}
-}
-#endif
-
-
 static void ui_offset_panel_block(uiBlock *block)
 {
 	uiStyle *style= U.uistyles.first;

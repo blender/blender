@@ -747,7 +747,7 @@ char *BLI_gethome(void) {
 		ret = getenv("HOME");
 		if(ret) {
 			sprintf(dir, "%s\\%s", ret, blender_version_decimal());
-			if (BLI_exists(dir)) return dir;
+			if (BLI_is_dir(dir)) return dir;
 		}
 
 		/* else, check install dir (path containing blender.exe) */
@@ -755,7 +755,7 @@ char *BLI_gethome(void) {
 		if(BLI_getInstallationDir(dir))
 		{
 			sprintf(dir, "%s", dir, blender_version_decimal());
-			if (BLI_exists(dir)) return(dir);
+			if (BLI_is_dir(dir)) return(dir);
 		}
 
 				
@@ -768,24 +768,24 @@ char *BLI_gethome(void) {
 		
 		if (hResult == S_OK)
 		{
-			if (BLI_exists(appdatapath)) { /* from fop, also below... */
+			if (BLI_is_dir(appdatapath)) { /* from fop, also below... */
 				sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
 				BLI_recurdir_fileops(dir);
-				if (BLI_exists(dir)) {
+				if (BLI_is_dir(dir)) {
 					sprintf(dir,"%s\\%s", dir, blender_version_decimal());
-					if(BLI_exists(dir)) return(dir);
+					if(BLI_is_dir(dir)) return(dir);
 				}
 			}
 			hResult = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
 			if (hResult == S_OK)
 			{
-				if (BLI_exists(appdatapath)) 
+				if (BLI_is_dir(appdatapath)) 
 				{ /* from fop, also below... */
 					sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
 					BLI_recurdir_fileops(dir);
-					if (BLI_exists(dir)) {
+					if (BLI_is_dir(dir)) {
 						sprintf(dir,"%s\\%s", dir, blender_version_decimal());
-						if(BLI_exists(dir)) return(dir);
+						if(BLI_is_dir(dir)) return(dir);
 					}
 				}
 			}
@@ -809,7 +809,7 @@ static int test_data_path(char *targetpath, char *path_base, char *path_sep, cha
 	
 	BLI_make_file_string("/", targetpath, tmppath, folder_name);
 	
-	if (BLI_exists(targetpath)) {
+	if (BLI_is_dir(targetpath)) {
 #ifdef PATH_DEBUG
 		printf("\tpath found: %s\n", targetpath);
 #endif
@@ -932,7 +932,7 @@ static int test_path(char *targetpath, char *path_base, char *path_sep, char *fo
 	
 	BLI_make_file_string("/", targetpath, tmppath, folder_name);
 	
-	if (BLI_exists(targetpath)) {
+	if (BLI_is_dir(targetpath)) {
 #ifdef PATH_DEBUG2
 		printf("\tpath found: %s\n", targetpath);
 #endif
@@ -952,7 +952,7 @@ static int test_env_path(char *path, char *envvar)
 	char *env = envvar?getenv(envvar):NULL;
 	if (!env) return 0;
 	
-	if (BLI_exists(env)) {
+	if (BLI_is_dir(env)) {
 		BLI_strncpy(path, env, FILE_MAX);
 		return 1;
 	} else {
@@ -1014,7 +1014,7 @@ static int get_path_user(char *targetpath, char *folder_name, char *envvar)
 	
 	user_base_path = (const char *)GHOST_getUserDir();
 	if (user_base_path) {
-		BLI_snprintf(user_path, FILE_MAX, BLENDER_BASE_FORMAT, user_base_path, blender_version_decimal());
+		BLI_snprintf(user_path, FILE_MAX, BLENDER_USER_FORMAT, user_base_path, blender_version_decimal());
 	}
 
 	if(!user_path[0])
@@ -1040,7 +1040,7 @@ static int get_path_system(char *targetpath, char *folder_name, char *envvar)
 
 	system_base_path = (const char *)GHOST_getSystemDir();
 	if (system_base_path) {
-		BLI_snprintf(system_path, FILE_MAX, BLENDER_BASE_FORMAT, system_base_path, blender_version_decimal());
+		BLI_snprintf(system_path, FILE_MAX, BLENDER_SYSTEM_FORMAT, system_base_path, blender_version_decimal());
 	}
 	
 	if(!system_path[0])
@@ -1064,13 +1064,14 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 	switch (folder_id) {
 		case BLENDER_DATAFILES:		/* general case */
 			BLI_join_dirfile(search_path, "datafiles", subfolder);
-			if (get_path_user(path, search_path, "BLENDER_USER_DATAFILES"))	break;
 			if (get_path_local(path, search_path)) break;
+			if (get_path_user(path, search_path, "BLENDER_USER_DATAFILES"))	break;
 			if (get_path_system(path, search_path, "BLENDER_SYSTEM_DATAFILES")) break;
 			return NULL;
 			
-		case BLENDER_USER_DATAFILES:		
+		case BLENDER_USER_DATAFILES:
 			BLI_join_dirfile(search_path, "datafiles", subfolder);
+			if (get_path_local(path, search_path)) break;
 			if (get_path_user(path, search_path, "BLENDER_USER_DATAFILES"))	break;
 			return NULL;
 			
@@ -1081,13 +1082,14 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			
 		case BLENDER_CONFIG:		/* general case */
 			BLI_join_dirfile(search_path, "config", subfolder);
-			if (get_path_user(path, search_path, "BLENDER_USER_CONFIG")) break;
 			if (get_path_local(path, search_path)) break;
+			if (get_path_user(path, search_path, "BLENDER_USER_CONFIG")) break;
 			if (get_path_system(path, search_path, "BLENDER_SYSTEM_CONFIG")) break;
 			return NULL;
 			
 		case BLENDER_USER_CONFIG:
 			BLI_join_dirfile(search_path, "config", subfolder);
+			if (get_path_local(path, search_path)) break;
 			if (get_path_user(path, search_path, "BLENDER_USER_CONFIG")) break;
 			return NULL;
 			
@@ -1098,13 +1100,14 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			
 		case BLENDER_SCRIPTS:		/* general case */
 			BLI_join_dirfile(search_path, "scripts", subfolder);
-			if (get_path_user(path, search_path, "BLENDER_USER_SCRIPTS")) break;		
 			if (get_path_local(path, search_path)) break;
+			if (get_path_user(path, search_path, "BLENDER_USER_SCRIPTS")) break;		
 			if (get_path_system(path, search_path, "BLENDER_SYSTEM_SCRIPTS")) break;
 			return NULL;
 			
 		case BLENDER_USER_SCRIPTS:
 			BLI_join_dirfile(search_path, "scripts", subfolder);
+			if (get_path_local(path, search_path)) break;
 			if (get_path_user(path, search_path, "BLENDER_USER_SCRIPTS")) break;
 			return NULL;
 			
@@ -1121,7 +1124,6 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			
 		case BLENDER_SYSTEM_PYTHON:
 			BLI_join_dirfile(search_path, "python", subfolder);
-			
 			if (get_path_system(path, search_path, "BLENDER_SYSTEM_PYTHON")) break;
 			return NULL;
 	}
@@ -1243,7 +1245,7 @@ void BLI_make_exist(char *dir) {
 	a = strlen(dir);
 	
 #ifdef WIN32	
-	while(BLI_exists(dir) == 0){
+	while(BLI_is_dir(dir) == 0){
 		a --;
 		while(dir[a] != '\\'){
 			a--;
@@ -1257,7 +1259,7 @@ void BLI_make_exist(char *dir) {
 		}
 	}
 #else
-	while(BLI_exist(dir) == 0){
+	while(BLI_is_dir(dir) == 0){
 		a --;
 		while(dir[a] != '/'){
 			a--;
@@ -1680,7 +1682,7 @@ void BLI_where_is_temp(char *fullname, int usertemp)
 {
 	fullname[0] = '\0';
 	
-	if (usertemp && BLI_exists(U.tempdir)) {
+	if (usertemp && BLI_is_dir(U.tempdir)) {
 		strcpy(fullname, U.tempdir);
 	}
 	
@@ -1688,7 +1690,7 @@ void BLI_where_is_temp(char *fullname, int usertemp)
 #ifdef WIN32
 	if (fullname[0] == '\0') {
 		char *tmp = getenv("TEMP"); /* Windows */
-		if (tmp && BLI_exists(tmp)) {
+		if (tmp && BLI_is_dir(tmp)) {
 			strcpy(fullname, tmp);
 		}
 	}
@@ -1696,14 +1698,14 @@ void BLI_where_is_temp(char *fullname, int usertemp)
 	/* Other OS's - Try TMP and TMPDIR */
 	if (fullname[0] == '\0') {
 		char *tmp = getenv("TMP");
-		if (tmp && BLI_exists(tmp)) {
+		if (tmp && BLI_is_dir(tmp)) {
 			strcpy(fullname, tmp);
 		}
 	}
 	
 	if (fullname[0] == '\0') {
 		char *tmp = getenv("TMPDIR");
-		if (tmp && BLI_exists(tmp)) {
+		if (tmp && BLI_is_dir(tmp)) {
 			strcpy(fullname, tmp);
 		}
 	}

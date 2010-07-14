@@ -88,7 +88,7 @@
 #include "UI_interface.h"
 #include "BLF_api.h"
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 

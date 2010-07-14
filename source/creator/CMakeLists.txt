@@ -427,7 +427,6 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		blender_CTR 
 		bf_moto 
 		bf_windowmanager
-		bf_editors
 		bf_blroutines 
 		bf_converter 
 		bf_dummy 

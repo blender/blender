@@ -130,7 +130,7 @@ typedef struct PreviewImage {
 	unsigned int w[2];
 	unsigned int h[2];	
 	short changed[2];
-	short pad0, pad1;
+	short changed_timestamp[2];
 	unsigned int * rect[2];
 } PreviewImage;
 

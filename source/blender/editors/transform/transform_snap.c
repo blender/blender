@@ -1897,26 +1897,13 @@ void snapGridAction(TransInfo *t, float *val, GearsType action) {
 
 
 void snapGrid(TransInfo *t, float *val) {
-	int invert;
 	GearsType action;
 
 	// Only do something if using Snap to Grid
 	if (t->tsnap.mode != SCE_SNAP_MODE_INCREMENT)
 		return;
 
-	if(t->mode==TFM_ROTATION || t->mode==TFM_WARP || t->mode==TFM_TILT || t->mode==TFM_TRACKBALL || t->mode==TFM_BONE_ROLL)
-		invert = U.flag & USER_AUTOROTGRID;
-	else if(t->mode==TFM_RESIZE || t->mode==TFM_SHEAR || t->mode==TFM_BONESIZE || t->mode==TFM_SHRINKFATTEN || t->mode==TFM_CURVE_SHRINKFATTEN)
-		invert = U.flag & USER_AUTOSIZEGRID;
-	else
-		invert = U.flag & USER_AUTOGRABGRID;
-
-	if(invert) {
-		action = activeSnap(t) ? NO_GEARS: BIG_GEARS;
-	}
-	else {
-		action = activeSnap(t) ? BIG_GEARS : NO_GEARS;
-	}
+	action = activeSnap(t) ? BIG_GEARS : NO_GEARS;
 
 	if (action == BIG_GEARS && (t->modifiers & MOD_PRECISION)) {
 		action = SMALL_GEARS;

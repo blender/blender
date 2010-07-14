@@ -1461,7 +1461,7 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 const GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
 {
-	return (GHOST_TUns8*)"/usr/share/";
+	return (GHOST_TUns8*)"/usr/share";
 }
 
 const GHOST_TUns8* GHOST_SystemX11::getUserDir() const
@@ -1478,3 +1478,4 @@ const GHOST_TUns8* GHOST_SystemX11::getBinaryDir() const
 {
 	return NULL;
 }
+

@@ -27,8 +27,8 @@ class AddPresetBase(bpy.types.Operator):
     subclasses must define
      - preset_values
      - preset_subdir '''
-    bl_idname = "script.add_preset_base"
-    bl_label = "Add a Python Preset"
+    # bl_idname = "script.preset_base_add"
+    # bl_label = "Add a Python Preset"
 
     name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen=64, default="")
 
@@ -47,19 +47,17 @@ class AddPresetBase(bpy.types.Operator):
         target_path = bpy.utils.preset_paths(self.preset_subdir)[0] # we need some way to tell the user and system preset path
 
         filepath = os.path.join(target_path, filename)
-        if getattr(self, "save_keyconfig", True):
+        if getattr(self, "save_keyconfig", False):
             bpy.ops.wm.keyconfig_export(filepath=filepath, kc_name=self.properties.name)
             file_preset = open(filepath, 'a')
             file_preset.write("wm.active_keyconfig = kc\n\n")
         else:
             file_preset = open(filepath, 'w')
+            file_preset.write("import bpy\n")
 
         for rna_path in self.preset_values:
             value = eval(rna_path)
-            if type(value) == str:
-                value = "'%s'" % value
-
-            file_preset.write("%s = %s\n" % (rna_path, value))
+            file_preset.write("%s = %s\n" % (rna_path, repr(value)))
 
         file_preset.close()
 

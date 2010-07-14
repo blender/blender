@@ -3232,6 +3232,10 @@ static void hair_step(ParticleSimulationData *sim, float cfra)
 	if(psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS)
 		do_hair_dynamics(sim);
 
+	/* following lines were removed r29079 but cause bug [#22811], see report for details */
+	psys_update_effectors(sim);
+	psys_update_path_cache(sim, cfra);
+
 	psys->flag |= PSYS_HAIR_UPDATED;
 }
 

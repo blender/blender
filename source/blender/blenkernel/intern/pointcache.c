@@ -1067,20 +1067,20 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 
 static int ptcache_path(PTCacheID *pid, char *filename)
 {
-	Library *lib;
+	Library *lib= (pid)? pid->ob->id.lib: NULL;
+	const char *blendfilename= (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH)==0) ? lib->filepath: G.sce;
 	size_t i;
-
-	lib= (pid)? pid->ob->id.lib: NULL;
 
 	if(pid->cache->flag & PTCACHE_EXTERNAL) {
 		strcpy(filename, pid->cache->path);
+
+		if(strncmp(filename, "//", 2)==0)
+			BLI_path_abs(filename, blendfilename);
+
 		return BLI_add_slash(filename); /* new strlen() */
 	}
 	else if (G.relbase_valid || lib) {
 		char file[MAX_PTCACHE_PATH]; /* we dont want the dir, only the file */
-		char *blendfilename;
-
-		blendfilename= (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH)==0) ? lib->filepath: G.sce;
 
 		BLI_split_dirfile(blendfilename, NULL, file);
 		i = strlen(file);

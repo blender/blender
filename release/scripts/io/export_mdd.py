@@ -183,7 +183,8 @@ class ExportMDD(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filepath.replace(".blend", ".mdd")
+    import os
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".mdd"
     self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)").filepath = default_path
 
 

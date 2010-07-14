@@ -210,7 +210,8 @@ class ExportUVLayout(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filepath.replace(".blend", ".svg")
+    import os
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".svg"
     self.layout.operator(ExportUVLayout.bl_idname).filepath = default_path
 
 

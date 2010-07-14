@@ -1411,7 +1411,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		GroupObject *go;
 		
 		for(group= mainvar->group.first; group; group= group->id.next) {
-			if(group->id.us) {
+			if(group->gobject.first) {
 				te= outliner_add_element(soops, &soops->tree, group, NULL, 0, 0);
 				tselem= TREESTORE(te);
 				
@@ -3124,7 +3124,6 @@ static void unlink_group_cb(bContext *C, Scene *scene, TreeElement *te, TreeStor
 		if( GS(tsep->id->name)==ID_OB) {
 			Object *ob= (Object *)tsep->id;
 			ob->dup_group= NULL;
-			group->id.us--;
 		}
 	}
 	else {
