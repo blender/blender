@@ -1250,10 +1250,9 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 					BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data);
 					break;
 				case MAKE_LINKS_DUPLIGROUP:
-					if(ob->dup_group) ob->dup_group->id.us--;
 					obt->dup_group= ob->dup_group;
 					if(obt->dup_group) {
-						id_us_plus((ID *)obt->dup_group);
+						id_lib_extern(&obt->dup_group->id);
 						obt->transflag |= OB_DUPLIGROUP;
 					}
 					break;

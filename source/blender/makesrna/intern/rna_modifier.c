@@ -2065,7 +2065,7 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "offset_fac");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -1, 1, 0.1, 4);
-	RNA_def_property_ui_text(prop, "Offset", "");
+	RNA_def_property_ui_text(prop, "Offset", "Offset the thickness from the center");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "edge_crease_inner", PROP_FLOAT, PROP_FACTOR);

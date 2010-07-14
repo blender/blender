@@ -32,7 +32,7 @@
 #include "BKE_mesh.h" /* for mesh_calc_normals */
 #include "BKE_global.h" /* for mesh_calc_normals */
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 
 #define LEAF_LIMIT 10000
 

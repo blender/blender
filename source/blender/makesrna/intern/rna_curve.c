@@ -730,6 +730,12 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Font size", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
+	prop= RNA_def_property(srna, "small_caps_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "smallcaps_scale");
+	RNA_def_property_ui_range(prop, 0, 1.0, 0.1, 0);
+	RNA_def_property_ui_text(prop, "Small Caps", "Scale of small capitals");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
 	prop= RNA_def_property(srna, "line_dist", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "linedist");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
@@ -872,29 +878,30 @@ static void rna_def_charinfo(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Text Character Format", "Text character formatting settings");
 	
 	/* flags */
-	prop= RNA_def_property(srna, "style", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_STYLE);
-	RNA_def_property_ui_text(prop, "Style", "");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
 	prop= RNA_def_property(srna, "bold", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_BOLD);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_BOLD);
 	RNA_def_property_ui_text(prop, "Bold", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "italic", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_ITALIC);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_ITALIC);
 	RNA_def_property_ui_text(prop, "Italic", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "underline", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UNDERLINE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_UNDERLINE);
 	RNA_def_property_ui_text(prop, "Underline", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
-	prop= RNA_def_property(srna, "wrap", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_WRAP);
+	/* probably there is no reason to expose this */
+	/* prop= RNA_def_property(srna, "wrap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_WRAP);
 	RNA_def_property_ui_text(prop, "Wrap", "");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data"); */
+
+	prop= RNA_def_property(srna, "use_small_caps", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_SMALLCAPS);
+	RNA_def_property_ui_text(prop, "Small Caps", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 

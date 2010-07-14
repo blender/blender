@@ -1600,7 +1600,7 @@ void ui_update_block_buts_rgb(uiBlock *block, float *rgb, float *rhsv)
 			if (rgb_gamma[1] > 1.0f) rgb_gamma[1] = modf(rgb_gamma[1], &intpart);
 			if (rgb_gamma[2] > 1.0f) rgb_gamma[2] = modf(rgb_gamma[2], &intpart);
 
-			sprintf(col, "%02X%02X%02X", (unsigned int)(rgb_gamma[0]*255.0), (unsigned int)(rgb_gamma[1]*255.0), (unsigned int)(rgb_gamma[2]*255.0));
+			sprintf(col, "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 			
 			strcpy(bt->poin, col);
 		}
@@ -1861,8 +1861,8 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	}
 
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-	
-	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(rgb_gamma[0]*255.0), (unsigned int)(rgb_gamma[1]*255.0), (unsigned int)(rgb_gamma[2]*255.0));	
+
+	sprintf(hexcol, "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 
 	bt= uiDefBut(block, TEX, 0, "Hex: ", 0, -60, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);

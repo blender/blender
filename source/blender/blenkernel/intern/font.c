@@ -1,4 +1,4 @@
-/*  font.c     
+/*  font.c
  *  
  * 
  * $Id$
@@ -34,6 +34,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <wchar.h>
+#include <wctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -426,12 +427,12 @@ VFont *load_vfont(char *name)
 
 static VFont *which_vfont(Curve *cu, CharInfo *info)
 {
-	switch(info->flag & CU_STYLE) {
-		case CU_BOLD:
+	switch(info->flag & (CU_CHINFO_BOLD|CU_CHINFO_ITALIC)) {
+		case CU_CHINFO_BOLD:
 			if (cu->vfontb) return(cu->vfontb); else return(cu->vfont);
-		case CU_ITALIC:
+		case CU_CHINFO_ITALIC:
 			if (cu->vfonti) return(cu->vfonti); else return(cu->vfont);
-		case (CU_BOLD|CU_ITALIC):
+		case (CU_CHINFO_BOLD|CU_CHINFO_ITALIC):
 			if (cu->vfontbi) return(cu->vfontbi); else return(cu->vfont);
 		default:
 			return(cu->vfont);
@@ -449,6 +450,17 @@ VFont *get_builtin_font(void)
 	return load_vfont("<builtin>");
 }
 
+static VChar *find_vfont_char(VFontData *vfd, intptr_t character)
+{
+	VChar *che= NULL;
+
+	for(che = vfd->characters.first; che; che = che->next) {
+		if(che->index == character)
+			break;
+	}
+	return che; /* NULL if not found */
+}
+		
 static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, int charidx, short mat_nr)
 {
 	Nurb *nu2;
@@ -523,14 +535,7 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 	si= (float)sin(rot);
 	co= (float)cos(rot);
 
-	// Find the correct character from the font
-	che = vfd->characters.first;
-	while(che)
-	{
-		if(che->index == character)
-			break;
-		che = che->next;
-	}
+	che= find_vfont_char(vfd, character);
 	
 	// Select the glyph data
 	if(che)
@@ -597,9 +602,23 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 			}
 			bezt2 = nu2->bezt;
 
+			if(info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
+				const float sca= cu->smallcaps_scale;
+				for (i= nu2->pntsu; i > 0; i--) {
+					fp= bezt2->vec[0];
+					fp[0] *= sca;
+					fp[1] *= sca;
+					fp[3] *= sca;
+					fp[4] *= sca;
+					fp[6] *= sca;
+					fp[7] *= sca;
+					bezt2++;
+				}
+			}
+			bezt2 = nu2->bezt;
+
 			for (i= nu2->pntsu; i > 0; i--) {
 				fp= bezt2->vec[0];
-
 				fp[0]= (fp[0]+ofsx)*fsize;
 				fp[1]= (fp[1]+ofsy)*fsize;
 				fp[3]= (fp[3]+ofsx)*fsize;
@@ -632,6 +651,20 @@ int BKE_font_getselection(Object *ob, int *start, int *end)
 		*start = cu->selend;
 		*end = cu->selstart-2;
 		return -1;
+	}
+}
+
+static float char_width(Curve *cu, VChar *che, CharInfo *info)
+{
+	// The character wasn't found, propably ascii = 0, then the width shall be 0 as well
+	if(che == NULL) {
+		return 0.0f;
+	}
+	else if(info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
+		return che->width * cu->smallcaps_scale;
+	}
+	else {
+		return che->width;
 	}
 }
 
@@ -716,7 +749,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 	oldvfont = NULL;
 
-	for (i=0; i<slen; i++) custrinfo[i].flag &= ~CU_WRAP;
+	for (i=0; i<slen; i++) custrinfo[i].flag &= ~(CU_CHINFO_WRAP|CU_CHINFO_SMALLCAPS_CHECK);
 
 	if (cu->selboxes) MEM_freeN(cu->selboxes);
 	cu->selboxes = NULL;
@@ -729,18 +762,21 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 	makebreak:
 		// Characters in the list
 		che = vfd->characters.first;
-		ascii = mem[i];
 		info = &(custrinfo[i]);
+		ascii = mem[i];
+		if(info->flag & CU_CHINFO_SMALLCAPS) {
+			ascii = towupper(ascii);
+			if(mem[i] != ascii) {
+				mem[i]= ascii;
+				info->flag |= CU_CHINFO_SMALLCAPS_CHECK;
+			}
+		}
+
 		vfont = which_vfont(cu, info);
 		
 		if(vfont==NULL) break;
-		
-		// Find the character
-		while(che) {
-			if(che->index == ascii)
-				break;
-			che = che->next;
-		}
+
+		che= find_vfont_char(vfd, ascii);
 
 		/*
 		 * The character wasn't in the current curve base so load it
@@ -752,12 +788,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 		}
 
 		/* Try getting the character again from the list */
-		che = vfd->characters.first;
-		while(che) {
-			if(che->index == ascii)
-				break;
-			che = che->next;
-		}
+		che= find_vfont_char(vfd, ascii);
 
 		/* No VFont found */
 		if (vfont==0) {
@@ -780,11 +811,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			return 0;
 		}
 
-		// The character wasn't found, propably ascii = 0, then the width shall be 0 as well
-		if(!che)
-			twidth = 0;
-		else
-			twidth = che->width;
+		twidth = char_width(cu, che, info);
 
 		// Calculate positions
 		if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w) {
@@ -798,13 +825,13 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 					i = j-1;
 					xof = ct->xof;
 					ct[1].dobreak = 1;
-					custrinfo[i+1].flag |= CU_WRAP;
+					custrinfo[i+1].flag |= CU_CHINFO_WRAP;
 					goto makebreak;
 				}
 				if (chartransdata[j].dobreak) {
 	//				fprintf(stderr, "word too long: %c%c%c...\n", mem[j], mem[j+1], mem[j+2]);
 					ct->dobreak= 1;
-					custrinfo[i+1].flag |= CU_WRAP;
+					custrinfo[i+1].flag |= CU_CHINFO_WRAP;
 					ct -= 1;
 					cnr -= 1;
 					i--;
@@ -881,10 +908,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			else wsfac = 1.0;
 			
 			// Set the width of the character
-			if(!che)
-				twidth = 0;
-			else 
-				twidth = che->width;
+			twidth = char_width(cu, che, info);
 
 			xof += (twidth*wsfac*(1.0+(info->kern/40.0)) ) + xtrax;
 			
@@ -1015,19 +1039,10 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				
 				/* rotate around center character */
 				ascii = mem[i];
-				
-				// Find the character
-				che = vfd->characters.first;
-				while(che) {
-					if(che->index == ascii)
-						break;
-					che = che->next;
-				}
+
+				che= find_vfont_char(vfd, ascii);
 	
-				if(che)
-					twidth = che->width;
-				else
-					twidth = 0;
+				twidth = char_width(cu, che, info);
 				
 				dtime= distfac*0.35f*twidth;	/* why not 0.5? */
 				dtime= distfac*0.5f*twidth;	/* why not 0.5? */
@@ -1151,24 +1166,19 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				if(cha != '\n' && cha != '\r')
 					buildchar(cu, cha, info, ct->xof, ct->yof, ct->rot, i);
 				
-				if ((info->flag & CU_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
+				if ((info->flag & CU_CHINFO_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
 					float ulwidth, uloverlap= 0.0f;
 					
 					if ( (i<(slen-1)) && (mem[i+1] != '\n') && (mem[i+1] != '\r') &&
-						 ((mem[i+1] != ' ') || (custrinfo[i+1].flag & CU_UNDERLINE)) && ((custrinfo[i+1].flag & CU_WRAP)==0)
+						 ((mem[i+1] != ' ') || (custrinfo[i+1].flag & CU_CHINFO_UNDERLINE)) && ((custrinfo[i+1].flag & CU_CHINFO_WRAP)==0)
 						 ) {
 						uloverlap = xtrax + 0.1;
 					}
 					// Find the character, the characters has to be in the memory already 
 					// since character checking has been done earlier already.
-					che = vfd->characters.first;
-					while(che) {
-						if(che->index == cha)
-							break;
-						che = che->next;
-					}
-					
-					if(!che) twidth =0; else twidth=che->width;
+					che= find_vfont_char(vfd, cha);
+
+					twidth = char_width(cu, che, info);
 					ulwidth = cu->fsize * ((twidth* (1.0+(info->kern/40.0)))+uloverlap);
 					build_underline(cu, ct->xof*cu->fsize, ct->yof*cu->fsize + (cu->ulpos-0.05)*cu->fsize, 
 									ct->xof*cu->fsize + ulwidth, 

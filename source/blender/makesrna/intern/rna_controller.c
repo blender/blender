@@ -32,12 +32,12 @@
 #include "DNA_controller_types.h"
 
 EnumPropertyItem controller_type_items[] ={
-	{CONT_LOGIC_AND, "LOGIC_AND", 0, "And", "Logic And"},
-	{CONT_LOGIC_OR, "LOGIC_OR", 0, "Or", "Logic Or"},
-	{CONT_LOGIC_NAND, "LOGIC_NAND", 0, "Nand", "Logic Nand"},
-	{CONT_LOGIC_NOR, "LOGIC_NOR", 0, "Nor", "Logic Nor"},
-	{CONT_LOGIC_XOR, "LOGIC_XOR", 0, "Xor", "Logic Xor"},
-	{CONT_LOGIC_XNOR, "LOGIC_XNOR", 0, "Xnor", "Logic Xnor"},
+	{CONT_LOGIC_AND, "LOGIC_AND", 0, "AND", "Logic And"},
+	{CONT_LOGIC_OR, "LOGIC_OR", 0, "OR", "Logic Or"},
+	{CONT_LOGIC_NAND, "LOGIC_NAND", 0, "NAND", "Logic Nand"},
+	{CONT_LOGIC_NOR, "LOGIC_NOR", 0, "NOR", "Logic Nor"},
+	{CONT_LOGIC_XOR, "LOGIC_XOR", 0, "XOR", "Logic Xor"},
+	{CONT_LOGIC_XNOR, "LOGIC_XNOR", 0, "XNOR", "Logic Xnor"},
 	{CONT_EXPRESSION, "EXPRESSION", 0, "Expression", ""},
 	{CONT_PYTHON, "PYTHON", 0, "Python Script", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -185,15 +185,15 @@ void RNA_def_controller(BlenderRNA *brna)
 	/* State */
 	
 	// array of OB_MAX_STATES
-	prop= RNA_def_property(srna, "state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_array(prop, OB_MAX_STATES);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "", "Set Controller state index (1 to 30)");
-	RNA_def_property_boolean_funcs(prop, "rna_Controller_state_get", "rna_Controller_state_set");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	//prop= RNA_def_property(srna, "state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	//RNA_def_property_array(prop, OB_MAX_STATES);
+	//RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	//RNA_def_property_ui_text(prop, "", "Set Controller state index (1 to 30)");
+	//RNA_def_property_boolean_funcs(prop, "rna_Controller_state_get", "rna_Controller_state_set");
+	//RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	// number of the state
-	prop= RNA_def_property(srna, "state_number", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "state", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "state_mask");
 	RNA_def_property_range(prop, 1, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "", "Set Controller state index (1 to 30)");

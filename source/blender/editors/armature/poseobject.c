@@ -1247,8 +1247,8 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 		pose_add_group(ob);
 	
 	/* add selected bones to group then */
-	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
+	{
 		pchan->agrp_index= pose->active_group;
 		done= 1;
 	}
@@ -1290,7 +1290,6 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *op)
 	Object *ob;
 	bArmature *arm;
 	bPose *pose;
-	bPoseChannel *pchan;
 	short done= 0;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
@@ -1306,20 +1305,14 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *op)
 	arm= ob->data;
 	
 	/* find selected bones to remove from all bone groups */
-	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
-	// CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
-	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-		/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-		// NOTE: sync this view3d_context() in space_view3d.c
-		if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-			if ((pchan->bone->flag & BONE_SELECTED) || (pchan->bone == arm->act_bone)) {
-				if (pchan->agrp_index) {
-					pchan->agrp_index= 0;
-					done= 1;
-				}
-			}
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
+	{
+		if (pchan->agrp_index) {
+			pchan->agrp_index= 0;
+			done= 1;
 		}
 	}
+	CTX_DATA_END;
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1340,6 +1333,102 @@ void POSE_OT_group_unassign (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= pose_group_unassign_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static void pose_group_select(bContext *C, Object *ob, int select)
+{
+	bPose *pose= ob->pose;
+	
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, visible_pose_bones)
+	{
+		if ((pchan->bone->flag & BONE_UNSELECTABLE)==0) {
+			if (select) {
+				if (pchan->agrp_index == pose->active_group) 
+					pchan->bone->flag |= BONE_SELECTED;
+			}
+			else {
+				if (pchan->agrp_index == pose->active_group) 
+					pchan->bone->flag &= ~BONE_SELECTED;
+			}
+		}
+	}
+	CTX_DATA_END;
+}
+
+static int pose_group_select_exec (bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	Object *ob;
+	
+	/* since this call may also be used from the buttons window, we need to check for where to get the object */
+	if (sa->spacetype == SPACE_BUTS) 
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= CTX_data_active_object(C);
+	
+	/* only continue if there's an object, and a pose there too */
+	if (ELEM(NULL, ob, ob->pose))
+		return OPERATOR_CANCELLED;
+	
+	pose_group_select(C, ob, 1);
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_group_select (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Bones of Bone Group";
+	ot->idname= "POSE_OT_group_select";
+	ot->description= "Select bones in active Bone Group";
+	
+	/* api callbacks */
+	ot->exec= pose_group_select_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int pose_group_deselect_exec (bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	Object *ob;
+	
+	/* since this call may also be used from the buttons window, we need to check for where to get the object */
+	if (sa->spacetype == SPACE_BUTS) 
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= CTX_data_active_object(C);
+	
+	/* only continue if there's an object, and a pose there too */
+	if (ELEM(NULL, ob, ob->pose))
+		return OPERATOR_CANCELLED;
+	
+	pose_group_select(C, ob, 0);
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_group_deselect (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Deselecte Bone Group";
+	ot->idname= "POSE_OT_group_deselect";
+	ot->description= "Deselect bones of active Bone Group";
+	
+	/* api callbacks */
+	ot->exec= pose_group_deselect_exec;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */

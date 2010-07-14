@@ -162,6 +162,7 @@ static void initData(ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 	smd->offset = 0.01f;
+	smd->offset_fac = -1.0f;
 	smd->flag = MOD_SOLIDIFY_RIM;
 }
  

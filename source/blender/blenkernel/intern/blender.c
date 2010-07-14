@@ -313,8 +313,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(CTX_data_scene(C));
-
-	DAG_on_load_update();
 	
 	MEM_freeN(bfd);
 }
@@ -477,6 +475,9 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	/* restore */
 	strcpy(G.sce, scestr);
 	G.fileflags= fileflags;
+
+	if(success)
+		DAG_on_load_update();
 
 	return success;
 }

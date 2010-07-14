@@ -59,7 +59,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"

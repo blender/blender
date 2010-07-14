@@ -2217,7 +2217,7 @@ static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay
 		*sce= bmain->scene.first;
 		if(*sce) *lay= (*sce)->lay;
 
-		/* XXX for background mode, we should get the scen
+		/* XXX for background mode, we should get the scene
 		   from somewhere, for the -S option, but it's in
 		   the context, how to get it here? */
 	}
@@ -2248,7 +2248,7 @@ void DAG_on_load_update(void)
 
 	dag_current_scene_layers(bmain, &scene, &lay);
 
-	if(scene) {
+	if(scene && scene->theDag) {
 		/* derivedmeshes and displists are not saved to file so need to be
 		   remade, tag them so they get remade in the scene update loop,
 		   note armature poses or object matrices are preserved and do not

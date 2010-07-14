@@ -82,7 +82,7 @@
 
 #include "RE_render_ext.h"
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 
 #include <math.h>
 #include <stdlib.h>
