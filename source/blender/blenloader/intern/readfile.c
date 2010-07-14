@@ -10958,13 +10958,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				tex->saturation= 1.0f;
 		}
 
-		//set defaults for recast data
+		//set defaults for obstacle avoidance, recast data
 		{
 			Scene *sce;
 			for(sce = main->scene.first; sce; sce = sce->id.next)
 			{
-				if(sce->unit.scale_length == 0.0f)
-					sce->unit.scale_length= 1.0f;
+				
+				if (sce->gm.levelHeight == 0.f)
+					sce->gm.levelHeight = 2.f;
+				
 				if(sce->gm.recastData.cellsize == 0.0f)
 					sce->gm.recastData.cellsize = 0.3f;
 				if(sce->gm.recastData.cellheight == 0.0f)

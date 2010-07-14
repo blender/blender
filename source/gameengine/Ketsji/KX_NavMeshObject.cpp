@@ -646,7 +646,7 @@ void KX_NavMeshObject::DrawNavMesh()
 
 			for (int i = 0, j = (int)poly->nv-1; i < (int)poly->nv; j = i++)
 			{	
-				if (poly->n[j] && renderMode==DETAILED_TRIS) 
+				if (poly->n[j] && renderMode==WALLS) 
 					continue;
 				const float* vif = m_navMesh->getVertex(poly->v[i]);
 				const float* vjf = m_navMesh->getVertex(poly->v[j]);

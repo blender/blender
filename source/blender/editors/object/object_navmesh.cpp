@@ -426,5 +426,8 @@ void OBJECT_OT_create_navmesh(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= create_navmesh_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 }

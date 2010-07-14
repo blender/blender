@@ -426,8 +426,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	NavMeshModifierData *nmmd = (NavMeshModifierData*) md;
 
+
 	//for test
-	result = testCreateNavMesh(nmmd, derivedData);
+	//result = testCreateNavMesh(nmmd, derivedData);
 	//result = buildNavMesh(nmmd, derivedData);
 
 	return result;
