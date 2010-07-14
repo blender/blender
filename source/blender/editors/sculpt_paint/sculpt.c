@@ -229,8 +229,6 @@ typedef struct StrokeCache {
 	int alt_smooth;
 
 	float plane_trim_squared;
-
-	float autosmooth_overlap;
 } StrokeCache;
 
 /* ===== OPENGL =====
@@ -580,7 +578,7 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache* cache)
 /* Return modified brush strength. Includes the direction of the brush, positive
    values pull vertices, negative values push. Uses tablet pressure and a
    special multiplier found experimentally to scale the strength factor. */
-static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather, float overlap)
+static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 {
 	Brush *brush = paint_brush(&sd->paint);
 
@@ -590,6 +588,8 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather, float
 	float pressure     = brush->flag & BRUSH_ALPHA_PRESSURE	? cache->pressure : 1;
 	float pen_flip     = cache->pen_flip ? -1 : 1;
 	float invert       = cache->invert ? -1 : 1;
+	float accum        = integrate_overlap(brush);
+	float overlap      = (brush->flag & BRUSH_SPACE_ATTEN && brush->flag & BRUSH_SPACE && !(brush->flag & BRUSH_ANCHORED)) && (brush->spacing < 100) ? 1.0f/accum : 1; // spacing is integer percentage of radius, divide by 50 to get normalized diameter
 	float flip         = dir * invert * pen_flip;
 
 	switch(brush->sculpt_tool){
@@ -912,7 +912,7 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float an[3], PBVHNod
 			BLI_pbvh_vertex_iter_end;
 		}
 
-		//#pragma omp critical
+		#pragma omp critical
 		{
 			add_v3_v3(an, private_an);
 			add_v3_v3(out_flip, private_out_flip);
@@ -1065,7 +1065,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	BLI_pbvh_node_get_grids(ss->pbvh, node, &grid_indices, &totgrid,
 		NULL, &gridsize, &griddata, &gridadj);
 
-	//#pragma omp critical
+	#pragma omp critical
 	{
 		tmpgrid= MEM_mallocN(sizeof(float)*3*gridsize*gridsize, "tmpgrid");
 		tmprow=  MEM_mallocN(sizeof(float)*3*gridsize, "tmprow");
@@ -1150,7 +1150,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 		}
 	}
 
-	//#pragma omp critical
+	#pragma omp critical
 	{
 		MEM_freeN(tmpgrid);
 		MEM_freeN(tmprow);
@@ -2403,10 +2403,10 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, Brush *brush)
 
 		if (brush->sculpt_tool != SCULPT_TOOL_SMOOTH && brush->autosmooth_factor > 0) {
 			if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
-				smooth(sd, ss, nodes, totnode, brush->autosmooth_factor*(1-ss->cache->pressure)*ss->cache->autosmooth_overlap);
+				smooth(sd, ss, nodes, totnode, brush->autosmooth_factor*(1-ss->cache->pressure));
 			}
 			else {
-				smooth(sd, ss, nodes, totnode, brush->autosmooth_factor*ss->cache->autosmooth_overlap);
+				smooth(sd, ss, nodes, totnode, brush->autosmooth_factor);
 			}
 		}
 
@@ -2580,12 +2580,8 @@ static void do_symmetrical_brush_actions(Sculpt *sd, SculptSession *ss)
 	int i;
 
 	float feather = calc_symmetry_feather(sd, ss->cache);
-	float accum   = integrate_overlap(brush);
-	float overlap = (brush->flag & BRUSH_SPACE_ATTEN && brush->flag & BRUSH_SPACE && !(brush->flag & BRUSH_ANCHORED)) && (brush->spacing < 100) ? 1.0f/accum : 1; // spacing is integer percentage of radius, divide by 50 to get normalized diameter
 
-	ss->cache->autosmooth_overlap = overlap;
-
-	cache->bstrength= brush_strength(sd, cache, feather, overlap);
+	cache->bstrength= brush_strength(sd, cache, feather);
 
 	cache->symmetry= symm;
 
