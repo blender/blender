@@ -204,12 +204,12 @@ static PyObject* AUD_getCDevice(PyObject* self)
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef meth_getcdevice[] = {{ "getCDevice", (PyCFunction)AUD_getCDevice, METH_NOARGS, "Returns the C API Device."}};
+static PyMethodDef meth_getcdevice[] = {{ "get_c_device", (PyCFunction)AUD_getCDevice, METH_NOARGS, "Returns the C API Device."}};
 
 PyObject* AUD_initPython()
 {
 	PyObject* module = PyInit_aud();
-	PyModule_AddObject(module, "getCDevice", (PyObject *)PyCFunction_New(meth_getcdevice, NULL));
+	PyModule_AddObject(module, "get_c_device", (PyObject *)PyCFunction_New(meth_getcdevice, NULL));
 	PyDict_SetItemString(PySys_GetObject("modules"), "aud", module);
 	if(AUD_device)
 	{
