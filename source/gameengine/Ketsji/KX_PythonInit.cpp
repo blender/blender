@@ -379,15 +379,6 @@ static PyObject* gPyGetSpectrum(PyObject*)
 	return resultlist;
 }
 
-
-static PyObject* gPyStopDSP(PyObject*, PyObject* args)
-{
-        PyErr_SetString(PyExc_RuntimeError, "no audio device available");
-        return NULL;
-	
-	Py_RETURN_NONE;
-}
-
 static PyObject* gPySetLogicTicRate(PyObject*, PyObject* args)
 {
 	float ticrate;
@@ -756,7 +747,6 @@ static struct PyMethodDef game_methods[] = {
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat, METH_NOARGS, (const char *)gPyGetRandomFloat_doc},
 	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (const char *)"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (const char *)"get audio spectrum"},
-	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (const char *)"stop using the audio dsp (for performance reasons)"},
 	{"getMaxLogicFrame", (PyCFunction) gPyGetMaxLogicFrame, METH_NOARGS, (const char *)"Gets the max number of logic frame per render frame"},
 	{"setMaxLogicFrame", (PyCFunction) gPySetMaxLogicFrame, METH_VARARGS, (const char *)"Sets the max number of logic frame per render frame"},
 	{"getMaxPhysicsFrame", (PyCFunction) gPyGetMaxPhysicsFrame, METH_NOARGS, (const char *)"Gets the max number of physics frame per render frame"},
@@ -938,7 +928,6 @@ static PyObject* gPyDisableMist(PyObject*)
 	
 	Py_RETURN_NONE;
 }
-
 
 static PyObject* gPySetMistStart(PyObject*, PyObject* args)
 {
