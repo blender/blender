@@ -38,6 +38,7 @@ extern "C"
 #include "DNA_meshdata_types.h"
 #include "DNA_ID.h"
 
+#include "BKE_library.h"
 #include "BKE_depsgraph.h"
 #include "BKE_context.h"
 #include "BKE_mesh.h"
@@ -345,7 +346,7 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 		//create unique verts 
 		for (j=nv; j<ndv; j++)
 		{
-			copy_v3_v3(co, &dmesh->verts[vbase + j]);
+			copy_v3_v3(co, &dmesh->verts[3*(vbase + j)]);
 			SWAP(float, co[1], co[2]);
 			addvertlist(em, co, NULL);
 		}
@@ -386,6 +387,11 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 
 	ED_object_exit_editmode(C, EM_FREEDATA); 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+
+	obedit->gameflag &= ~OB_COLLISION;
+	obedit->gameflag |= OB_NAVMESH;
+	obedit->body_type = OB_BODY_TYPE_NAVMESH;
+	rename_id((ID *)obedit, "Navmesh");
 	return obedit;
 }
 

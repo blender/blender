@@ -70,6 +70,24 @@ inline void flipAxes(float* vec)
 	std::swap(vec[1],vec[2]);
 }
 
+static float distPointToSegmentSq(const float* point, const float* a, const float* b)
+{
+	float abx[3], dx[3];
+	vsub(abx, b,a);
+	vsub(dx, point,a);
+	float d = abx[0]*abx[0]+abx[1]*abx[1];
+	float t = abx[0]*dx[0]+abx[1]*dx[1];
+	if (d > 0)
+		t /= d;
+	if (t < 0)
+		t = 0;
+	else if (t > 1)
+		t = 1;
+	dx[0] = a[0] + t*abx[0] - point[0];
+	dx[1] = a[1] + t*abx[1] - point[1];
+	return dx[0]*dx[0] + dx[1]*dx[1];
+}
+
 KX_NavMeshObject::KX_NavMeshObject(void* sgReplicationInfo, SG_Callbacks callbacks)
 :	KX_GameObject(sgReplicationInfo, callbacks)
 ,	m_navMesh(NULL)
@@ -177,7 +195,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 		
 		for (int polyidx=0; polyidx<npolys; polyidx++)
 		{
-			vector<int> poly;
+			vector<unsigned short> poly, tempPoly;
 			//search border 
 			int btri = -1;
 			int bedge = -1;
@@ -239,8 +257,20 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 				}
 			}
 			
-			//.todo: process poly to remove degenerate vertices
-			if (poly.size()>=vertsPerPoly)
+			size_t nv = poly.size();
+			for (size_t i=0; i<nv; i++)
+			{
+				unsigned short prev = poly[(poly.size()+i-1)%nv];
+				unsigned short cur = poly[i];
+				unsigned short next = poly[(i+1)%nv];
+				float distSq = distPointToSegmentSq(mvert[cur].co, mvert[prev].co, mvert[next].co);
+				static const float tolerance = 0.001f;
+				if (distSq>tolerance)
+					tempPoly.push_back(cur);
+			}
+			poly = tempPoly;
+
+			if (poly.size()>vertsPerPoly)
 			{
 				printf("Error! Polygon size exceeds max verts count");
 				return false;
@@ -254,7 +284,6 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 
 		//assumption: vertices in mesh are stored in following order: 
 		//navigation mesh vertices - unique detailed mesh vertex
-		
 		unsigned short  maxidx = 0;
 		for (int polyidx=0; polyidx<npolys; polyidx++)
 		{
@@ -295,7 +324,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 			unsigned short minvert = 0xffff, maxvert = 0;
 			for (int j=0; j<dmesh[3]; j++)
 			{
-				unsigned short* dtri = &dtris[dmesh[2]*3*2+j];
+				unsigned short* dtri = &dtris[(dmesh[2]+j)*3*2];
 				for (int k=0; k<3; k++)
 				{
 					if (dtri[k]<nverts)
@@ -308,7 +337,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 			dmesh[1] = minvert != 0xffff ? maxvert - minvert + 1 : 0; //vnum
 		}
 
-		//recalculate detailed mesh indices (it must be local)
+		//recalculate detailed mesh indices (they must be local)
 		for (int polyIdx=0; polyIdx<npolys; polyIdx++)
 		{
 			unsigned short * poly = &polys[polyIdx*vertsPerPoly*2];
@@ -350,6 +379,8 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 					}
 				}
 			}
+			if (dmesh[1]>0)
+				dmesh[0] -= nverts;
 		}
 	}
 	else
@@ -434,6 +465,11 @@ bool KX_NavMeshObject::BuildNavMesh()
 	{
 		flipAxes(&vertices[i*3]);
 	}
+	for (int i=0; i<ndvertsuniq; i++)
+	{
+		flipAxes(&dvertices[i*3]);
+	}
+
 /*
 	//reorder tris 
 	for (int i=0; i<npolys; i++)
@@ -599,7 +635,7 @@ void KX_NavMeshObject::DrawNavMesh()
 	MT_Vector3 color(0.f, 0.f, 0.f);
 	
 	enum RenderMode {POLYS ,DETAILED_TRIS, WALLS};
-	static const RenderMode renderMode = DETAILED_TRIS;//POLYS;
+	static const RenderMode renderMode = DETAILED_TRIS;// DETAILED_TRIS POLYS
 	switch (renderMode)
 	{
 	case POLYS :
