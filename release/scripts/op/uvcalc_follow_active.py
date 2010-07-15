@@ -65,9 +65,9 @@ def extend(obj, operator, EXTEND_MODE):
 
         # vertex index is the key, uv is the value
 
-        uvs_vhash_source = dict([(vindex, uvs_source[i]) for i, vindex in enumerate(vidx_source)])
+        uvs_vhash_source = {vindex: uvs_source[i] for i, vindex in enumerate(vidx_source)}
 
-        uvs_vhash_target = dict([(vindex, uvs_target[i]) for i, vindex in enumerate(vidx_target)])
+        uvs_vhash_target = {vindex: uvs_target[i] for i, vindex in enumerate(vidx_target)}
 
         edge_idxs_source = face_edge_vs(vidx_source)
         edge_idxs_target = face_edge_vs(vidx_target)

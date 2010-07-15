@@ -596,7 +596,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 
     if unique_smooth_groups:
         sharp_edges= {}
-        smooth_group_users= dict([ (context_smooth_group, {}) for context_smooth_group in list(unique_smooth_groups.keys()) ])
+        smooth_group_users = {context_smooth_group: {} for context_smooth_group in list(unique_smooth_groups.keys())}
         context_smooth_group_old= -1
 
     # Split fgons into tri's
@@ -691,7 +691,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 
 
     # map the material names to an index
-    material_mapping= dict([(name, i) for i, name in enumerate(unique_materials)]) # enumerate over unique_materials keys()
+    material_mapping = {name: i for i, name in enumerate(unique_materials)} # enumerate over unique_materials keys()
 
     materials= [None] * len(unique_materials)
 
