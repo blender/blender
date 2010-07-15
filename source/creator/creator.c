@@ -289,11 +289,13 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("\t\t\"blender --background test.blend --render-output /tmp --render-frame 1\" works as expected.\n\n");
 
 	printf ("\nEnvironment Variables:\n");
-	printf ("  $HOME\t\t\tStore '.blender/' containing defaults, bookmarks and user scripts.\n");
-	printf ("  $BLENDERPATH  System directory to use for data files and scripts.\n");
-	printf ("                For this build of blender the default $BLENDERPATH is...\n");
-	printf ("                \"%s\"\n", blender_path);
-	printf ("                setting the $BLENDERPATH will override this\n");
+	printf ("  $BLENDER_USER_CONFIG      Directory for user configuration files.\n");
+	printf ("  $BLENDER_SYSTEM_CONFIG    Directory for system wide configuration files.\n");
+	printf ("  $BLENDER_USER_SCRIPTS     Directory for user scripts.\n");
+	printf ("  $BLENDER_SYSTEM_SCRIPTS   Directory for system wide scripts.\n");
+	printf ("  $BLENDER_USER_DATAFILES   Directory for user data files (icons, translations, ..).\n");
+	printf ("  $BLENDER_SYSTEM_DATAFILES Directory for system wide data files.\n");
+	printf ("  $BLENDER_SYSTEM_PYTHON    Directory for system python libraries.\n");
 #ifdef WIN32
 	printf ("  $TEMP         Store temporary files here.\n");
 #else
