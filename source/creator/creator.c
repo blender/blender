@@ -289,7 +289,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("\t\t\"blender --background test.blend --render-output /tmp --render-frame 1\" works as expected.\n\n");
 
 	printf ("\nEnvironment Variables:\n");
-	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
+	printf ("  $HOME\t\t\tStore '.blender/' containing defaults, bookmarks and user scripts.\n");
 	printf ("  $BLENDERPATH  System directory to use for data files and scripts.\n");
 	printf ("                For this build of blender the default $BLENDERPATH is...\n");
 	printf ("                \"%s\"\n", blender_path);
@@ -1101,7 +1101,7 @@ int main(int argc, char **argv)
 		WM_init(C, argc, argv);
 		
 		/* this is properly initialized with user defs, but this is default */
-		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
+		BLI_where_is_temp( btempdir, 1 ); /* call after loading the startup.blend so we can read U.tempdir */
 
 #ifndef DISABLE_SDL
 	BLI_setenv("SDL_VIDEODRIVER", "dummy");
@@ -1119,7 +1119,7 @@ int main(int argc, char **argv)
 
 		WM_init(C, argc, argv);
 
-		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
+		BLI_where_is_temp( btempdir, 0 ); /* call after loading the startup.blend so we can read U.tempdir */
 	}
 #ifndef DISABLE_PYTHON
 	/**

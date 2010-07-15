@@ -740,7 +740,7 @@ int KX_Camera::pyattr_set_ortho_scale(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	KX_Camera* self= static_cast<KX_Camera*>(self_v);
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
-		PyErr_SetString(PyExc_AttributeError, "camera.scale = float: KX_Camera, expected a float greater then zero");
+		PyErr_SetString(PyExc_AttributeError, "camera.ortho_scale = float: KX_Camera, expected a float greater then zero");
 		return PY_SET_ATTR_FAIL;
 	}
 	

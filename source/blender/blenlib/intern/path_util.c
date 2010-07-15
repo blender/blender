@@ -364,7 +364,7 @@ void BLI_path_rel(char *file, const char *relfile)
 	if (strlen(relfile) > 2 && relfile[1] != ':') {
 		char* ptemp;
 		/* fix missing volume name in relative base,
-		   can happen with old .Blog files */
+		   can happen with old recent-files.txt files */
 		get_default_root(temp);
 		ptemp = &temp[2];
 		if (relfile[0] != '\\' && relfile[0] != '/') {

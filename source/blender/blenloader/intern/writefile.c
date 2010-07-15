@@ -65,7 +65,7 @@ Any case: direct data is ALWAYS after the lib block
 - write TEST (128x128, blend file preview, optional)
 - write FileGlobal (some global vars)
 - write SDNA
-- write USER if filename is ~/.B.blend
+- write USER if filename is ~/X.XX/config/startup.blend
 */
 
 

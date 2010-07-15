@@ -174,7 +174,7 @@ READ
 		- read associated 'direct data'
 		- link direct data (internal and to LibBlock)
 - read FileGlobal
-- read USER data, only when indicated (file is ~/.B.blend or .B25.blend)
+- read USER data, only when indicated (file is ~/X.XX/startup.blend)
 - free file
 - per Library (per Main)
 	- read file

@@ -382,7 +382,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	
 	/* XXX */
 	G.save_over = 0;	// start with save preference untitled.blend
-	G.fileflags &= ~G_FILE_AUTOPLAY;	/*  disable autoplay in .B.blend... */
+	G.fileflags &= ~G_FILE_AUTOPLAY;	/*  disable autoplay in startup.blend... */
 //	mainwindow_set_filename_to_title("");	// empty string re-initializes title to "Blender"
 	
 //	refresh_interface_font();
@@ -418,7 +418,7 @@ void read_history(void)
 
 	G.recent_files.first = G.recent_files.last = NULL;
 
-	/* read list of recent opend files from .Blog to memory */
+	/* read list of recent opend files from recent-files.txt to memory */
 	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next) {
 		line = l->link;
 		if (line[0] && BLI_exists(line)) {
@@ -452,7 +452,7 @@ static void write_history(void)
 	BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_HISTORY_FILE);
 
 	recent = G.recent_files.first;
-	/* refresh .Blog of recent opened files, when current file was changed */
+	/* refresh recent-files.txt of recent opened files, when current file was changed */
 	if(!(recent) || (strcmp(recent->filepath, G.sce)!=0)) {
 		fp= fopen(name, "w");
 		if (fp) {
@@ -462,11 +462,11 @@ static void write_history(void)
 			recent->filepath[0] = '\0';
 			strcpy(recent->filepath, G.sce);
 			BLI_addhead(&(G.recent_files), recent);
-			/* write current file to .Blog */
+			/* write current file to recent-files.txt */
 			fprintf(fp, "%s\n", recent->filepath);
 			recent = recent->next;
 			i=1;
-			/* write rest of recent opened files to .Blog */
+			/* write rest of recent opened files to recent-files.txt */
 			while((i<U.recent_files) && (recent)){
 				/* this prevents to have duplicities in list */
 				if (strcmp(recent->filepath, G.sce)!=0) {
