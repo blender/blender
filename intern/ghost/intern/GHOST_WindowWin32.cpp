@@ -39,6 +39,10 @@
 #include "GHOST_SystemWin32.h"
 #include "GHOST_DropTargetWin32.h"
 
+//#include "wintab.h" // for tablets, naturally
+#include "Utils.c" // that's right, .c, with permission from Wacom
+#include <stdio.h> // for debug, remove soon [mce]
+
 // Need glew for some defines
 #include <GL/glew.h>
 #include <GL/wglew.h>
@@ -122,7 +126,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_hasMouseCaptured(false),
 	m_nPressedButtons(0),
 	m_customCursor(0),
-	m_wintab(NULL),
+	m_wintab(false),
 	m_tabletData(NULL),
 	m_tablet(0),
 	m_maxPressure(0),
@@ -238,14 +242,11 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		}
 	}
 
-	m_wintab = ::LoadLibrary("Wintab32.dll");
+   m_wintab = LoadWintab();
 	if (m_wintab) {
-		GHOST_WIN32_WTInfo fpWTInfo = ( GHOST_WIN32_WTInfo ) ::GetProcAddress( m_wintab, "WTInfoA" );
-		GHOST_WIN32_WTOpen fpWTOpen = ( GHOST_WIN32_WTOpen ) ::GetProcAddress( m_wintab, "WTOpenA" );
-
 		// let's see if we can initialize tablet here
 		/* check if WinTab available. */
-		if (fpWTInfo && fpWTInfo(0, 0, NULL)) {
+		if (gpWTInfoA(0, 0, NULL)) {
 			// Now init the tablet
 			LOGCONTEXT lc;
 			AXIS TabletX, TabletY, Pressure, Orientation[3]; /* The maximum tablet size, pressure and orientation (tilt) */
@@ -253,26 +254,27 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			// Open a Wintab context
 
 			// Get default context information
-			fpWTInfo( WTI_DEFCONTEXT, 0, &lc );
+			gpWTInfoA( WTI_DEFCONTEXT, 0, &lc );
 
 			// Open the context
 			lc.lcPktData = PACKETDATA;
 			lc.lcPktMode = PACKETMODE;
-			lc.lcOptions |= CXO_MESSAGES | CXO_SYSTEM;
+			lc.lcOptions |= /* CXO_MESSAGES | */ CXO_SYSTEM;
+			lc.lcOptions &= ~CXO_MESSAGES;
 
 			/* Set the entire tablet as active */
-			fpWTInfo(WTI_DEVICES,DVC_X,&TabletX);
-			fpWTInfo(WTI_DEVICES,DVC_Y,&TabletY);
+			gpWTInfoA(WTI_DEVICES,DVC_X,&TabletX);
+			gpWTInfoA(WTI_DEVICES,DVC_Y,&TabletY);
 
 			/* get the max pressure, to divide into a float */
-			BOOL pressureSupport = fpWTInfo (WTI_DEVICES, DVC_NPRESSURE, &Pressure);
+			BOOL pressureSupport = gpWTInfoA(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
 			if (pressureSupport)
 				m_maxPressure = Pressure.axMax;
 			else
 				m_maxPressure = 0;
 
 			/* get the max tilt axes, to divide into floats */
-			BOOL tiltSupport = fpWTInfo (WTI_DEVICES, DVC_ORIENTATION, &Orientation);
+			BOOL tiltSupport = gpWTInfoA(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
 			if (tiltSupport) {
 				/* does the tablet support azimuth ([0]) and altitude ([1]) */
 				if (Orientation[0].axResolution && Orientation[1].axResolution) {
@@ -285,12 +287,16 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 				}
 			}
 
-			if (fpWTOpen) {
-				m_tablet = fpWTOpen( m_hWnd, &lc, TRUE );
-				if (m_tablet) {
-					m_tabletData = new GHOST_TabletData();
-					m_tabletData->Active = GHOST_kTabletModeNone;
-				}
+			m_tablet = gpWTOpenA( m_hWnd, &lc, TRUE );
+			if (m_tablet) {
+				m_tabletData = new GHOST_TabletData();
+				m_tabletData->Active = GHOST_kTabletModeNone;
+
+            // request a deep queue, to capture every pen point
+            int tabletQueueSize = 128;
+            while (!gpWTQueueSizeSet(m_tablet, tabletQueueSize))
+                  --tabletQueueSize;
+            printf("tablet queue size: %d\n", tabletQueueSize);
 			}
 		}
 	}
@@ -300,14 +306,12 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 GHOST_WindowWin32::~GHOST_WindowWin32()
 {
 	if (m_wintab) {
-		GHOST_WIN32_WTClose fpWTClose = ( GHOST_WIN32_WTClose ) ::GetProcAddress( m_wintab, "WTClose" );
-		if (fpWTClose) {
-			if (m_tablet)
-				fpWTClose(m_tablet);
-			if (m_tabletData)
-				delete m_tabletData;
-				m_tabletData = NULL;
-		}
+		if (m_tablet)
+			gpWTClose(m_tablet);
+		if (m_tabletData)
+			delete m_tabletData;
+		m_tabletData = NULL;
+      UnloadWintab();
 	}
 	if (m_customCursor) {
 		DestroyCursor(m_customCursor);
@@ -912,20 +916,16 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cur
 void GHOST_WindowWin32::processWin32TabletInitEvent()
 {
 	if (m_wintab) {
-		GHOST_WIN32_WTInfo fpWTInfo = ( GHOST_WIN32_WTInfo ) ::GetProcAddress( m_wintab, "WTInfoA" );
-
 		// let's see if we can initialize tablet here
-		/* check if WinTab available. */
-		if (fpWTInfo) {
 			AXIS Pressure, Orientation[3]; /* The maximum tablet size */
 
-			BOOL pressureSupport = fpWTInfo (WTI_DEVICES, DVC_NPRESSURE, &Pressure);
+			BOOL pressureSupport = gpWTInfoA(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
 			if (pressureSupport)
 				m_maxPressure = Pressure.axMax;
 			else
 				m_maxPressure = 0;
 
-			BOOL tiltSupport = fpWTInfo (WTI_DEVICES, DVC_ORIENTATION, &Orientation);
+			BOOL tiltSupport = gpWTInfoA(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
 			if (tiltSupport) {
 				/* does the tablet support azimuth ([0]) and altitude ([1]) */
 				if (Orientation[0].axResolution && Orientation[1].axResolution) {
@@ -938,17 +938,22 @@ void GHOST_WindowWin32::processWin32TabletInitEvent()
 			}
 
 			m_tabletData->Active = GHOST_kTabletModeNone;
-		}
 	}
 }
 
 void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 {
-	PACKET pkt;
+//	PACKET pkt;
 	if (m_wintab) {
-		GHOST_WIN32_WTPacket fpWTPacket = ( GHOST_WIN32_WTPacket ) ::GetProcAddress( m_wintab, "WTPacket" );
-		if (fpWTPacket) {
-			if (fpWTPacket((HCTX)lParam, wParam, &pkt)) {
+     printf("tablet event ");
+     		PACKET pkt_buffer[128];
+     		int n = gpWTPacketsGet((HCTX)lParam, 128, pkt_buffer);
+     		printf("(%d in queue) ", n);
+     		for (int i = 0; i < n; ++i) {
+				PACKET& pkt = pkt_buffer[i];
+     // "while" not "if" -- drain the queue!
+//			while (gpWTPacket((HCTX)lParam, wParam, &pkt)) {
+				putchar('.');
 				if (m_tabletData) {
 					switch (pkt.pkCursor) {
 						case 0: /* first device */
@@ -1008,7 +1013,7 @@ void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 					}
 				}
 			}
-		}
+		putchar('\n');
 	}
 }
 

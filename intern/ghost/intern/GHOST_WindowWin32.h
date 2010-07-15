@@ -39,8 +39,9 @@
 
 #include "GHOST_Window.h"
 
+#define _WIN32_WINNT 0x501 // require Windows XP or newer
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
 
 #include <wintab.h>
 #define PACKETDATA	(PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
@@ -50,11 +51,13 @@
 class GHOST_SystemWin32;
 class GHOST_DropTargetWin32;
 
+/*
 // typedefs for WinTab functions to allow dynamic loading
 typedef UINT (API * GHOST_WIN32_WTInfo) ( UINT, UINT, LPVOID );
 typedef HCTX (API * GHOST_WIN32_WTOpen) (HWND, LPLOGCONTEXTA, BOOL);
 typedef BOOL (API * GHOST_WIN32_WTClose) (HCTX);
 typedef BOOL (API * GHOST_WIN32_WTPacket) (HCTX, UINT, LPVOID);
+*/
 
 /**
  * GHOST window on M$ Windows OSs.
@@ -328,7 +331,8 @@ protected:
 	static const int s_maxTitleLength;
 
 	/** WinTab dll handle */
-	HMODULE m_wintab;
+//	HMODULE m_wintab;
+   bool m_wintab;
 
 	/** Tablet data for GHOST */
 	GHOST_TabletData* m_tabletData;
