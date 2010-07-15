@@ -2049,7 +2049,7 @@ void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
 	csPtr= RNA_property_pointer_get(ptr, prop);
 	
 	uiItemR(row, &csPtr, "normal", 0, "", 0);
-	uiItemR(row, &csPtr, "selected", 0, "", 0);
+	uiItemR(row, &csPtr, "select", 0, "", 0);
 	uiItemR(row, &csPtr, "active", 0, "", 0);
 }
 

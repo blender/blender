@@ -146,7 +146,7 @@ def extend(obj, operator, EXTEND_MODE):
         operator.report({'ERROR'}, "No active face.")
         return
 
-    face_sel = [f for f in me.faces if len(f.verts) == 4 and f.selected]
+    face_sel = [f for f in me.faces if len(f.verts) == 4 and f.select]
 
     face_act_local_index = -1
     for i, f in enumerate(face_sel):

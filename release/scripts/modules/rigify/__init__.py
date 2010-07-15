@@ -191,8 +191,8 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     obj.animation_data_clear()
 
     # Select generated rig object
-    obj_orig.selected = False
-    obj.selected = True
+    obj_orig.select = False
+    obj.select = True
     scene.objects.active = obj
 
     # Remove all bones from the generated rig armature.
@@ -212,9 +212,9 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
     # Select the temp rigs for merging
     for objt in scene.objects:
-        objt.selected = False # deselect all objects
-    temp_rig_1.selected = True
-    temp_rig_2.selected = True
+        objt.select = False # deselect all objects
+    temp_rig_1.select = True
+    temp_rig_2.select = True
     scene.objects.active = temp_rig_2
 
     # Merge the temporary rigs
@@ -225,8 +225,8 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
     # Select the generated rig
     for objt in scene.objects:
-        objt.selected = False # deselect all objects
-    obj.selected = True
+        objt.select = False # deselect all objects
+    obj.select = True
     scene.objects.active = obj
 
     # Copy over the pose_bone properties
@@ -464,7 +464,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     arm.layer = layer_show
 
 
-    # obj.restrict_view = True
+    # obj.hide = True
     obj.data.draw_axes = False
 
     bpy.ops.object.mode_set(mode=mode_orig)
@@ -490,8 +490,8 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
         scene.objects.link(obj_new)
         scene.objects.active = obj_new
         for obj in scene.objects:
-            obj.selected = False
-        obj_new.selected = True
+            obj.select = False
+        obj_new.select = True
 
     for module_name in get_submodule_types():
         if (metarig_type and module_name != metarig_type):
@@ -551,8 +551,8 @@ def generate_test_all(context, GRAPH=False):
         obj.data.drawtype = 'STICK'
         obj.location[1] += i
         obj_new.location[1] += i
-        obj_new.selected = False
-        obj.selected = True
+        obj_new.select = False
+        obj.select = True
         i += 4
 
 

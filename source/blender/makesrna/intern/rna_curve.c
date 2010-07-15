@@ -525,14 +525,14 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "SplinePoint", "Spline point without handles");
 
 	/* Boolean values */
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
-	RNA_def_property_ui_text(prop, "Selected", "Selection status");
+	RNA_def_property_ui_text(prop, "Select", "Selection status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "hide", 0);
-	RNA_def_property_ui_text(prop, "Hidden", "Visibility status");
+	RNA_def_property_ui_text(prop, "Hide", "Visibility status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Vector value */
@@ -578,24 +578,24 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Bezier Curve Point", "Bezier curve point with two handles");
 
 	/* Boolean values */
-	prop= RNA_def_property(srna, "selected_handle1", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
 	RNA_def_property_ui_text(prop, "Handle 1 selected", "Handle 1 selection status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "selected_handle2", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_right_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f3", 0);
 	RNA_def_property_ui_text(prop, "Handle 2 selected", "Handle 2 selection status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "selected_control_point", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_control_point", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f2", 0);
 	RNA_def_property_ui_text(prop, "Control Point selected", "Control point selection status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "hide", 0);
-	RNA_def_property_ui_text(prop, "Hidden", "Visibility status");
+	RNA_def_property_ui_text(prop, "Hide", "Visibility status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Enums */

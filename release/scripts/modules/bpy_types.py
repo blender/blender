@@ -444,7 +444,7 @@ class Mesh(bpy_types.ID):
         if not hasattr(edges, "pop"):
             edges = edges[:]
 
-        edge_dict = {ed.key: ed for ed in self.edges if ed.selected}
+        edge_dict = {ed.key: ed for ed in self.edges if ed.select}
 
         while edges:
             current_edge = edges.pop()

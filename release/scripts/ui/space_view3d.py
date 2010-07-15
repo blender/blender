@@ -859,9 +859,9 @@ class VIEW3D_MT_object_showhide(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.restrictview_clear", text="Show Hidden")
-        layout.operator("object.restrictview_set", text="Hide Selected")
-        layout.operator("object.restrictview_set", text="Hide Unselected").unselected = True
+        layout.operator("object.hide_view_clear", text="Show Hidden")
+        layout.operator("object.hide_view_set", text="Hide Selected")
+        layout.operator("object.hide_view_set", text="Hide Unselected").unselected = True
 
 
 class VIEW3D_MT_make_single_user(bpy.types.Menu):
