@@ -200,6 +200,10 @@ IF(WITH_INSTALL)
             DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
         )
 		INSTALL(
+            FILES ${CMAKE_SOURCE_DIR}/doc/blender.1
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/man
+        )
+		INSTALL(
             DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
             DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
             PATTERN ".svn" EXCLUDE
