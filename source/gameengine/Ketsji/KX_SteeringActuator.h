@@ -53,16 +53,17 @@ class KX_SteeringActuator : public SCA_IActuator
 	KX_GameObject *m_target;
 	KX_NavMeshObject *m_navmesh;
 	int	m_mode;
-	MT_Scalar m_distance;
-	MT_Scalar m_velocity;
-	MT_Scalar m_acceleration;									
-	MT_Scalar m_turnspeed;
+	float m_distance;
+	float m_velocity;
+	float m_acceleration;									
+	float m_turnspeed;
 	KX_ObstacleSimulation* m_simulation;
 	
 	KX_Obstacle* m_obstacle;
 	double m_updateTime;
 	bool m_isActive;
 	bool m_isSelfTerminated;
+	bool m_enableVisualization;
 	float m_path[MAX_PATH_LENGTH*3];
 	int m_pathLen;
 	int m_pathUpdatePeriod;
@@ -82,13 +83,14 @@ public:
 						int mode,
 						KX_GameObject *target, 
 						KX_GameObject *navmesh,
-						MT_Scalar distance,
-						MT_Scalar velocity, 
-						MT_Scalar acceleration,									
-						MT_Scalar turnspeed,
+						float distance,
+						float velocity, 
+						float acceleration,									
+						float turnspeed,
 						bool  isSelfTerminated,
 						int pathUpdatePeriod,
-						KX_ObstacleSimulation* simulation);
+						KX_ObstacleSimulation* simulation,
+						bool enableVisualization);
 	virtual ~KX_SteeringActuator();
 	virtual bool Update(double curtime, bool frame);
 
@@ -106,6 +108,9 @@ public:
 	/* These are used to get and set m_target */
 	static PyObject* pyattr_get_target(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_target(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject* pyattr_get_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int pyattr_set_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	
 
 #endif // DISABLE_PYTHON
 

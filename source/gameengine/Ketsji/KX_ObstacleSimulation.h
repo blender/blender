@@ -74,11 +74,12 @@ protected:
 	std::vector<KX_Obstacle*>	m_obstacles;
 
 	MT_Scalar m_levelHeight;
+	bool m_enableVisualization;
 
 	virtual KX_Obstacle* CreateObstacle(KX_GameObject* gameobj);
 	bool FilterObstacle(KX_Obstacle* activeObstacle, KX_NavMeshObject* activeNavMeshObj, KX_Obstacle* otherObstacle);
 public:
-	KX_ObstacleSimulation(MT_Scalar levelHeight);
+	KX_ObstacleSimulation(MT_Scalar levelHeight, bool enableVisualization);
 	virtual ~KX_ObstacleSimulation();
 
 	void DrawObstacles();
@@ -117,7 +118,7 @@ protected:
 	std::vector<TOICircle*>	m_toiCircles; // TOI circles (one per active agent)
 	virtual KX_Obstacle* CreateObstacle(KX_GameObject* gameobj);
 public:
-	KX_ObstacleSimulationTOI(MT_Scalar levelHeight);
+	KX_ObstacleSimulationTOI(MT_Scalar levelHeight, bool enableVisualization);
 	~KX_ObstacleSimulationTOI();
 	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
 									MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);

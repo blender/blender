@@ -166,8 +166,9 @@ static float interpolateToi(float a, const float* dir, const float* toi, const i
 	return 0;
 }
 
-KX_ObstacleSimulation::KX_ObstacleSimulation(MT_Scalar levelHeight)
+KX_ObstacleSimulation::KX_ObstacleSimulation(MT_Scalar levelHeight, bool enableVisualization)
 :	m_levelHeight(levelHeight)
+,	m_enableVisualization(enableVisualization)
 {
 
 }
@@ -276,6 +277,8 @@ void KX_ObstacleSimulation::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_N
 
 void KX_ObstacleSimulation::DrawObstacles()
 {
+	if (!m_enableVisualization)
+		return;
 	static const MT_Vector3 bluecolor(0,0,1);
 	static const MT_Vector3 normal(0.,0.,1.);
 	static const int SECTORS_NUM = 32;
@@ -341,8 +344,8 @@ bool KX_ObstacleSimulation::FilterObstacle(KX_Obstacle* activeObst, KX_NavMeshOb
 	return true;
 }
 
-KX_ObstacleSimulationTOI::KX_ObstacleSimulationTOI(MT_Scalar levelHeight):
-	KX_ObstacleSimulation(levelHeight),
+KX_ObstacleSimulationTOI::KX_ObstacleSimulationTOI(MT_Scalar levelHeight, bool enableVisualization):
+	KX_ObstacleSimulation(levelHeight, enableVisualization),
 	m_avoidSteps(32),
 	m_minToi(0.5f),
 	m_maxToi(1.2f),

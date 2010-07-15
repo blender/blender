@@ -446,6 +446,13 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 
 bool KX_NavMeshObject::BuildNavMesh()
 {
+	if (m_navMesh)
+	{
+		delete m_navMesh;
+		m_navMesh = NULL;
+	}
+
+
 	if (GetMeshCount()==0)
 		return false;
 
@@ -628,25 +635,23 @@ dtStatNavMesh* KX_NavMeshObject::GetNavMesh()
 	return m_navMesh;
 }
 
-void KX_NavMeshObject::DrawNavMesh()
+void KX_NavMeshObject::DrawNavMesh(NavMeshRenderMode renderMode)
 {
 	if (!m_navMesh)
 		return;
 	MT_Vector3 color(0.f, 0.f, 0.f);
 	
-	enum RenderMode {POLYS ,DETAILED_TRIS, WALLS};
-	static const RenderMode renderMode = DETAILED_TRIS;// DETAILED_TRIS POLYS
 	switch (renderMode)
 	{
-	case POLYS :
-	case WALLS : 
+	case RM_POLYS :
+	case RM_WALLS : 
 		for (int pi=0; pi<m_navMesh->getPolyCount(); pi++)
 		{
 			const dtStatPoly* poly = m_navMesh->getPoly(pi);
 
 			for (int i = 0, j = (int)poly->nv-1; i < (int)poly->nv; j = i++)
 			{	
-				if (poly->n[j] && renderMode==WALLS) 
+				if (poly->n[j] && renderMode==RM_WALLS) 
 					continue;
 				const float* vif = m_navMesh->getVertex(poly->v[i]);
 				const float* vjf = m_navMesh->getVertex(poly->v[j]);
@@ -658,7 +663,7 @@ void KX_NavMeshObject::DrawNavMesh()
 			}
 		}
 		break;
-	case DETAILED_TRIS : 
+	case RM_TRIS : 
 		for (int i = 0; i < m_navMesh->getPolyDetailCount(); ++i)
 		{
 			const dtStatPoly* p = m_navMesh->getPoly(i);
@@ -800,7 +805,7 @@ PyTypeObject KX_NavMeshObject::Type = {
 	Methods,
 	0,
 	0,
-	&CValue::Type,
+	&KX_GameObject::Type,
 	0,0,0,0,0,0,
 	py_base_new
 };
@@ -814,6 +819,7 @@ PyMethodDef KX_NavMeshObject::Methods[] = {
 	KX_PYMETHODTABLE(KX_NavMeshObject, findPath),
 	KX_PYMETHODTABLE(KX_NavMeshObject, raycast),
 	KX_PYMETHODTABLE(KX_NavMeshObject, draw),
+	KX_PYMETHODTABLE(KX_NavMeshObject, rebuild),
 	{NULL,NULL} //Sentinel
 };
 
@@ -854,10 +860,30 @@ KX_PYMETHODDEF_DOC(KX_NavMeshObject, raycast,
 	return PyFloat_FromDouble(hit);
 }
 
-KX_PYMETHODDEF_DOC_NOARGS(KX_NavMeshObject, draw,
-				   "draw(): navigation mesh debug drawing\n")
+KX_PYMETHODDEF_DOC(KX_NavMeshObject, draw,
+				   "draw(mode): navigation mesh debug drawing\n"
+				   "mode: WALLS, POLYS, TRIS\n")
 {
-	DrawNavMesh();
+	char* mode;
+	NavMeshRenderMode renderMode = RM_TRIS;
+	if (PyArg_ParseTuple(args,"s:rebuild",&mode))
+	{
+		STR_String mode_str(mode);
+		if (mode_str.IsEqualNoCase("WALLS"))
+			renderMode = RM_WALLS;
+		else if (mode_str.IsEqualNoCase("POLYS"))
+			renderMode = RM_POLYS;
+		else if (mode_str.IsEqualNoCase("TRIS"))
+			renderMode = RM_TRIS;
+	}
+	DrawNavMesh(renderMode);
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC_NOARGS(KX_NavMeshObject, rebuild,
+						  "rebuild(): rebuild navigation mesh\n")
+{
+	BuildNavMesh();
 	Py_RETURN_NONE;
 }
 

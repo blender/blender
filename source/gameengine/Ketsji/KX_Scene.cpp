@@ -210,11 +210,12 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_rootnode = NULL;
 
 	m_bucketmanager=new RAS_BucketManager();
-
+	bool showObstacleSimulation = scene->gm.flag & GAME_SHOW_OBSTACLE_SIMULATION;
 	switch (scene->gm.obstacleSimulation)
 	{
 	case OBSTSIMULATION_TOI:
-		m_obstacleSimulation = new KX_ObstacleSimulationTOI((MT_Scalar)scene->gm.levelHeight);
+
+		m_obstacleSimulation = new KX_ObstacleSimulationTOI((MT_Scalar)scene->gm.levelHeight, showObstacleSimulation);
 		break;
 	default:
 		m_obstacleSimulation = NULL;

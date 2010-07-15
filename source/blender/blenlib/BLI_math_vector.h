@@ -121,7 +121,7 @@ void mid_v3_v3v3(float r[3], float a[3], float b[3]);
 MINLINE int is_zero_v3(float a[3]);
 MINLINE int is_one_v3(float a[3]);
 
-MINLINE int equals_v3v3(float a[3], float b[3]);
+MINLINE int equals_v3v3(const float a[3],const float b[3]);
 MINLINE int compare_v3v3(float a[3], float b[3], float limit);
 MINLINE int compare_len_v3v3(float a[3], float b[3], float limit);
 

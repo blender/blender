@@ -1862,6 +1862,10 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Level height", "Max difference in heights of obstacles to enable their interaction");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop= RNA_def_property(srna, "show_obstacle_simulation", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_SHOW_OBSTACLE_SIMULATION);
+	RNA_def_property_ui_text(prop, "Visualization", "Enable debug visualization for obstacle simulation");
+
 	/* Recast Settings */
 	prop= RNA_def_property(srna, "recast_data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);

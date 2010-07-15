@@ -522,6 +522,7 @@ typedef struct FreeCamera {
 #define ACT_STEERING_PATHFOLLOWING   2
 /* steeringactuator->flag */
 #define ACT_STEERING_SELFTERMINATED   1
+#define ACT_STEERING_ENABLEVISUALIZATION   2
 
 #endif
 

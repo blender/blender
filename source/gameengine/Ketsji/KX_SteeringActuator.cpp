@@ -48,13 +48,14 @@ KX_SteeringActuator::KX_SteeringActuator(SCA_IObject *gameobj,
 									int mode,
 									KX_GameObject *target,
 									KX_GameObject *navmesh,
-									MT_Scalar distance,
-									MT_Scalar velocity, 
-									MT_Scalar acceleration,									
-									MT_Scalar turnspeed,
+									float distance,
+									float velocity, 
+									float acceleration,									
+									float turnspeed,
 									bool  isSelfTerminated,
 									int pathUpdatePeriod,
-									KX_ObstacleSimulation* simulation)	 : 
+									KX_ObstacleSimulation* simulation,
+									bool enableVisualization)	 : 
 	SCA_IActuator(gameobj, KX_ACT_STEERING),
 	m_mode(mode),
 	m_target(target),
@@ -67,6 +68,7 @@ KX_SteeringActuator::KX_SteeringActuator(SCA_IObject *gameobj,
 	m_updateTime(0),
 	m_isActive(false),	
 	m_simulation(simulation),	
+	m_enableVisualization(enableVisualization),
 	m_obstacle(NULL),
 	m_pathLen(0),
 	m_wayPointIdx(-1)
@@ -111,13 +113,11 @@ bool KX_SteeringActuator::UnlinkObject(SCA_IObject* clientobj)
 {
 	if (clientobj == m_target)
 	{
-		// this object is being deleted, we cannot continue to use it.
 		m_target = NULL;
 		return true;
 	}
 	else if (clientobj == m_navmesh)
 	{
-		// this object is being deleted, we cannot continue to useit.
 		m_navmesh = NULL;
 		return true;
 	}
@@ -229,10 +229,13 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 						steervec = waypoint - mypos;
 						apply_steerforce = true;
 
-						//debug draw
-						static const MT_Vector3 PATH_COLOR(1,0,0);
-						m_navmesh->DrawPath(m_path, m_pathLen, PATH_COLOR);
-
+						
+						if (m_enableVisualization)
+						{
+							//debug draw
+							static const MT_Vector3 PATH_COLOR(1,0,0);
+							m_navmesh->DrawPath(m_path, m_pathLen, PATH_COLOR);
+						}
 					}	
 					
 				}
@@ -251,10 +254,12 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 			//adjust velocity to avoid obstacles
 			if (m_simulation && m_obstacle && !newvel.fuzzyZero())
 			{
-				KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(1.,0.,0.));
+				if (m_enableVisualization)
+					KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(1.,0.,0.));
 				m_simulation->AdjustObstacleVelocity(m_obstacle, m_mode!=KX_STEERING_PATHFOLLOWING ? m_navmesh : NULL, 
 								newvel, m_acceleration*delta, m_turnspeed/180.0f*M_PI*delta);
-				KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(0.,1.,0.));
+				if (m_enableVisualization)
+					KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(0.,1.,0.));
 			}
 
 			if (isdyna)
@@ -313,7 +318,16 @@ PyMethodDef KX_SteeringActuator::Methods[] = {
 };
 
 PyAttributeDef KX_SteeringActuator::Attributes[] = {
+	KX_PYATTRIBUTE_INT_RW("bevaiour", KX_STEERING_NODEF+1, KX_STEERING_MAX-1, true, KX_SteeringActuator, m_mode),
 	KX_PYATTRIBUTE_RW_FUNCTION("target", KX_SteeringActuator, pyattr_get_target, pyattr_set_target),
+	KX_PYATTRIBUTE_RW_FUNCTION("navmesh", KX_SteeringActuator, pyattr_get_navmesh, pyattr_set_navmesh),
+	KX_PYATTRIBUTE_FLOAT_RW("distance", 0.0f, 1000.0f, KX_SteeringActuator, m_distance),
+	KX_PYATTRIBUTE_FLOAT_RW("velocity", 0.0f, 1000.0f, KX_SteeringActuator, m_velocity),
+	KX_PYATTRIBUTE_FLOAT_RW("acceleration", 0.0f, 1000.0f, KX_SteeringActuator, m_acceleration),
+	KX_PYATTRIBUTE_FLOAT_RW("turnspeed", 0.0f, 720.0f, KX_SteeringActuator, m_turnspeed),
+	KX_PYATTRIBUTE_BOOL_RW("selfterminated", KX_SteeringActuator, m_isSelfTerminated),
+	KX_PYATTRIBUTE_BOOL_RW("enableVisualization", KX_SteeringActuator, m_enableVisualization),
+	KX_PYATTRIBUTE_INT_RW("pathUpdatePeriod", -1, 100000, true, KX_SteeringActuator, m_pathUpdatePeriod),
 	{ NULL }	//Sentinel
 };
 
@@ -341,6 +355,34 @@ int KX_SteeringActuator::pyattr_set_target(void *self, const struct KX_PYATTRIBU
 
 	if (actuator->m_target)
 		actuator->m_target->RegisterActuator(actuator);
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* KX_SteeringActuator::pyattr_get_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_SteeringActuator* actuator = static_cast<KX_SteeringActuator*>(self);
+	if (!actuator->m_navmesh)	
+		Py_RETURN_NONE;
+	else
+		return actuator->m_navmesh->GetProxy();
+}
+
+int KX_SteeringActuator::pyattr_set_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_SteeringActuator* actuator = static_cast<KX_SteeringActuator*>(self);
+	KX_GameObject *gameobj;
+
+	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_SteeringActuator"))
+		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
+
+	if (actuator->m_navmesh != NULL)
+		actuator->m_navmesh->UnregisterActuator(actuator);	
+
+	actuator->m_navmesh = dynamic_cast<KX_NavMeshObject*>(gameobj);
+
+	if (actuator->m_navmesh)
+		actuator->m_navmesh->RegisterActuator(actuator);
 
 	return PY_SET_ATTR_SUCCESS;
 }

@@ -1926,6 +1926,11 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Self terminated", "Terminate when target is reached");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	prop= RNA_def_property(srna, "enablevisualization", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_ENABLEVISUALIZATION);
+	RNA_def_property_ui_text(prop, "Visualize", "Enable debug visualization");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	prop= RNA_def_property(srna, "updateperiod", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "updateTime");
 	RNA_def_property_ui_range(prop, -1, 100000, 1, 1);

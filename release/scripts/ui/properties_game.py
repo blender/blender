@@ -557,7 +557,8 @@ class WORLD_PT_game_physics_obstacles(WorldButtonsPanel):
 
         layout.prop(gs, "obstacle_simulation", text = "Type")
         if gs.obstacle_simulation != 'None':
-            layout.prop(gs, "level_height", text="Level height")
+            layout.prop(gs, "level_height")
+            layout.prop(gs, "show_obstacle_simulation")
 			
 
 classes = [

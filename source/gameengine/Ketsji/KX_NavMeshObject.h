@@ -60,7 +60,9 @@ public:
 	dtStatNavMesh* GetNavMesh();
 	int FindPath(const MT_Point3& from, const MT_Point3& to, float* path, int maxPathLen);
 	float Raycast(const MT_Point3& from, const MT_Point3& to);
-	void DrawNavMesh();
+
+	enum NavMeshRenderMode {RM_WALLS, RM_POLYS, RM_TRIS};
+	void DrawNavMesh(NavMeshRenderMode mode);
 	void DrawPath(const float *path, int pathLen, const MT_Vector3& color);
 
 	MT_Point3 TransformToLocalCoords(const MT_Point3& wpos);
@@ -72,7 +74,8 @@ public:
 
 	KX_PYMETHOD_DOC(KX_NavMeshObject, findPath);
 	KX_PYMETHOD_DOC(KX_NavMeshObject, raycast);
-	KX_PYMETHOD_DOC_NOARGS(KX_NavMeshObject, draw);
+	KX_PYMETHOD_DOC(KX_NavMeshObject, draw);
+	KX_PYMETHOD_DOC_NOARGS(KX_NavMeshObject, rebuild);
 #endif
 };
 
