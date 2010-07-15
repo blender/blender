@@ -29,6 +29,11 @@
  * Some really low-level file thingies.
  */
 
+/* needed for mingw & _stat64i32 */
+#ifdef FREE_WINDOWS
+# define __MSVCRT_VERSION__ 0x0800
+#endif
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>	
