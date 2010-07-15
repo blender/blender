@@ -64,7 +64,7 @@ Bone.inherit_scale -> use_inherit_scale:    boolean    Bone inherits scaling fro
 Bone.layer -> layer:    boolean    Layers bone exists in
 Bone.local_location -> use_local_location:    boolean    Bone location is set in local space
 Bone.multiply_vertexgroup_with_envelope -> use_envelope_multiply:    boolean    When deforming bone, multiply effects of Vertex Group weights with Envelope influence
-Bone.restrict_select -> restrict_select:    boolean    Bone is able to be selected
+Bone.restrict_select -> hide_select:    boolean    Bone is able to be selected
 Bone.selected -> select:    boolean
 BooleanProperty.default -> default:    boolean, (read-only)    Default value for this number
 BooleanProperty.default_array -> default_array:    boolean, (read-only)    Default value for this array
@@ -221,7 +221,7 @@ EditBone.layer -> layer:    boolean    Layers bone exists in
 EditBone.local_location -> use_local_location:    boolean    Bone location is set in local space
 EditBone.locked -> lock:    boolean    Bone is not able to be transformed when in Edit Mode
 EditBone.multiply_vertexgroup_with_envelope -> use_envelope_multiply:    boolean    When deforming bone, multiply effects of Vertex Group weights with Envelope influence
-EditBone.restrict_select -> restrict_select:    boolean    Bone is able to be selected
+EditBone.restrict_select -> hide_select:    boolean    Bone is able to be selected
 EditBone.selected -> select:    boolean
 EditBone.selected_head -> select_head:    boolean
 EditBone.selected_tail -> select_tail:    boolean
@@ -682,9 +682,9 @@ Object.lock_rotation -> lock_rotation:    boolean    Lock editing of rotation in
 Object.lock_rotation_w -> lock_rotation_w:    boolean    Lock editing of 'angle' component of four-component rotations in the interface
 Object.lock_rotations_4d -> lock_rotations_4d:    boolean    Lock editing of four component rotations by components (instead of as Eulers)
 Object.lock_scale -> lock_scale:    boolean    Lock editing of scale in the interface
-Object.restrict_render -> restrict_render:    boolean    Restrict renderability
-Object.restrict_select -> restrict_select:    boolean    Restrict selection in the viewport
-Object.restrict_view -> restrict_view:    boolean    Restrict visibility in the viewport
+Object.restrict_render -> hide_render:    boolean    Restrict renderability
+Object.restrict_select -> hide_select:    boolean    Restrict selection in the viewport
+Object.restrict_view -> hide:    boolean    Restrict visibility in the viewport
 Object.selected -> select:    boolean    Object selection state
 Object.shape_key_edit_mode -> use_shape_key_edit_mode:    boolean    Apply shape keys in edit mode (for Meshes only)
 Object.shape_key_lock -> show_shape_key:    boolean    Always show the current Shape for this Object
