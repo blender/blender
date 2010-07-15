@@ -183,19 +183,19 @@ bool GHOST_EventManager::dispatchEvents_lo_fi()
 	GHOST_IEvent* cursorMove = NULL;
 	GHOST_IEvent* event = NULL;
 
-	GHOST_EventPrinter printer;
+//	GHOST_EventPrinter printer;
 
 	// when Pen gets its own event type, track it alongside mouse moves
 	// they probably won't both be active, but you never know
 
-	cout << "\n--- lo-fi dispatch ---";
-	cout << "\ndiscard:";
+//	cout << "\n--- lo-fi dispatch ---";
+//	cout << "\ndiscard:";
 	while ((event = popEvent()) != NULL) {
 		if (event->getType() == GHOST_kEventCursorMove) {
 			// just a simple (x,y) pair, nothing much to adjust
 			// discard the older event and keep the latest
 			if (cursorMove) {
-				printer.processEvent(cursorMove);
+//				printer.processEvent(cursorMove);
 				delete cursorMove;
 			}
 			cursorMove = event;
@@ -207,13 +207,13 @@ bool GHOST_EventManager::dispatchEvents_lo_fi()
 		
 	// finally dispatch the single cursor update
 	if (cursorMove) {
-		cout << "\nsend:";
-		printer.processEvent(cursorMove);
+//		cout << "\nsend:";
+//		printer.processEvent(cursorMove);
 		if (!dispatchEvent(cursorMove))
 			allHandled = false;
 	}
 
-	cout << endl;
+//	cout << endl;
 
 	return allHandled;
 }
