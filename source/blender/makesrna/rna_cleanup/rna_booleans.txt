@@ -24,8 +24,8 @@ Armature.draw_custom_bone_shapes -> show_bone_custom_shapes:    boolean    Draw 
 Armature.draw_group_colors -> show_group_colors:    boolean    Draw bone group colors
 Armature.draw_names -> show_names:    boolean    Draw bone names
 Armature.show_ghost_only_selected -> show_only_ghost_selected:    boolean
-Armature.layer -> layer:    boolean    Armature layer visibility
-Armature.layer_protection -> layer_protected:    boolean    Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo
+Armature.layer -> layers:    boolean    Armature layer visibility
+Armature.layer_protection -> layers_protected:    boolean    Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo
 Armature.x_axis_mirror -> use_mirror_x:    boolean    Apply changes to matching bone on opposite side of X-Axis
 ArmatureModifier.invert -> invert_vertex_group:    boolean    Invert vertex group influence
 ArmatureModifier.multi_modifier -> use_multi_modifier:    boolean    Use same input as previous modifier, and mix results using overall vgroup
@@ -57,7 +57,7 @@ Bone.draw_wire -> show_wire:    boolean    Bone is always drawn as Wireframe reg
 
 Bone.hinge -> use_hinge:    boolean    Bone inherits rotation or scale from parent bone
 Bone.inherit_scale -> use_inherit_scale:    boolean    Bone inherits scaling from parent bone
-Bone.layer -> layer:    boolean    Layers bone exists in
+Bone.layer -> layers:    boolean    Layers bone exists in
 Bone.local_location -> use_local_location:    boolean    Bone location is set in local space
 Bone.multiply_vertexgroup_with_envelope -> use_envelope_multiply:    boolean    When deforming bone, multiply effects of Vertex Group weights with Envelope influence
 BooleanProperty.default -> default:    boolean, (read-only)    Default value for this number
@@ -143,7 +143,7 @@ ControlFluidSettings.active -> use:    boolean    Object contributes to the flui
 ControlFluidSettings.reverse_frames -> use_reverse_frames:    boolean    Reverse control object movement
 Controller.expanded -> show_expanded:    boolean    Set controller expanded in the user interface
 Controller.priority -> use_priority:    boolean    Mark controller for execution before all non-marked controllers (good for startup scripts)
-Controller.state -> state:    boolean, (read-only)    Set Controller state index (1 to 30)
+Controller.state -> states:    boolean, (read-only)    Set Controller state index (1 to 30)
 CopyLocationConstraint.invert_x -> invert_x:    boolean    Invert the X location
 CopyLocationConstraint.invert_y -> invert_y:    boolean    Invert the Y location
 CopyLocationConstraint.invert_z -> invert_z:    boolean    Invert the Z location
@@ -211,7 +211,7 @@ EditBone.draw_wire -> show_wire:    boolean    Bone is always drawn as Wireframe
 
 EditBone.hinge -> use_hinge:    boolean    Bone inherits rotation or scale from parent bone
 EditBone.inherit_scale -> use_inherit_scale:    boolean    Bone inherits scaling from parent bone
-EditBone.layer -> layer:    boolean    Layers bone exists in
+EditBone.layer -> layers:    boolean    Layers bone exists in
 EditBone.local_location -> use_local_location:    boolean    Bone location is set in local space
 EditBone.multiply_vertexgroup_with_envelope -> use_envelope_multiply:    boolean    When deforming bone, multiply effects of Vertex Group weights with Envelope influence
 
@@ -233,8 +233,8 @@ EffectSequence.use_crop -> use_crop:    boolean    Crop image before processing
 EffectSequence.use_proxy -> use_proxy:    boolean    Use a preview proxy for this strip
 EffectSequence.use_translation -> use_translation:    boolean    Translate image before processing
 EffectorWeights.do_growing_hair -> apply_to_hair_growing:    boolean    Use force fields when growing hair
-EnvironmentMap.ignore_layers -> layer_ignore:    boolean    Hide objects on these layers when generating the Environment Map
-EnvironmentMapTexture.use_filter_size_min -> filter_size_min:    boolean    Use Filter Size as a minimal filter value in pixels
+EnvironmentMap.ignore_layers -> layers_ignore:    boolean    Hide objects on these layers when generating the Environment Map
+EnvironmentMapTexture.use_filter_size_min -> use_minimum_filter_size:    boolean    Use Filter Size as a minimal filter value in pixels
 EnvironmentMapTexture.mipmap -> use_mipmap:    boolean    Uses auto-generated MIP maps for the image
 EnvironmentMapTexture.mipmap_gauss -> use_mipmap_gauss:    boolean    Uses Gauss filter to sample down MIP maps
 Event.alt -> alt:    boolean, (read-only)    True when the Alt/Option key is held
@@ -248,7 +248,7 @@ ExplodeModifier.split_edges -> use_edge_split:    boolean    Split face edges fo
 ExplodeModifier.unborn -> show_unborn:    boolean    Show mesh when particles are unborn
 FCurve.auto_clamped_handles -> use_auto_handle_clamp:    boolean    All auto-handles for F-Curve are clamped
 FModifier.active -> active:    boolean    F-Curve Modifier is the one being edited
-NEGATE * FModifier.disabled -> enabled:    boolean, (read-only)    F-Curve Modifier has invalid settings and will not be evaluated
+NEGATE * FModifier.disabled -> use:    boolean, (read-only)    F-Curve Modifier has invalid settings and will not be evaluated
 FModifier.expanded -> show_expanded:    boolean    F-Curve Modifier's panel is expanded in UI
 FModifierFunctionGenerator.additive -> use_additive:    boolean    Values generated by this modifier are applied on top of the existing values instead of overwriting them
 FModifierGenerator.additive -> use_additive:    boolean    Values generated by this modifier are applied on top of the existing values instead of overwriting them
@@ -310,7 +310,7 @@ GameObjectSettings.anisotropic_friction -> use_anisotropic_friction:    boolean 
 GameObjectSettings.collision_compound -> use_collision_compound:    boolean    Add children to form a compound collision object
 GameObjectSettings.debug_state -> show_debug_state:    boolean    Print state debug info in the game engine
 GameObjectSettings.ghost -> use_ghost:    boolean    Object does not restitute collisions, like a ghost
-GameObjectSettings.initial_state -> state_initial:    boolean    Initial state when the game starts
+GameObjectSettings.initial_state -> states_initial:    boolean    Initial state when the game starts
 GameObjectSettings.lock_x_axis -> lock_location_x:    boolean    Disable simulation of linear motion along the X axis
 GameObjectSettings.lock_x_rot_axis -> lock_rotation_x:    boolean    Disable simulation of angular  motion along the X axis
 GameObjectSettings.lock_y_axis -> lock_location_y:    boolean    Disable simulation of linear motion along the Y axis
@@ -326,8 +326,8 @@ GameObjectSettings.show_sensors -> show_sensors:    boolean    Shows sensors for
 GameObjectSettings.show_state_panel -> show_state_panel:    boolean    Show state panel
 GameObjectSettings.use_activity_culling -> use_activity_culling:    boolean    Disable simulation of angular  motion along the Z axis
 GameObjectSettings.use_collision_bounds -> use_collision_bounds:    boolean    Specify a collision bounds type other than the default
-GameObjectSettings.used_state -> state_used:    boolean, (read-only)    States which are being used by controllers
-GameObjectSettings.visible_state -> state_visible:    boolean    State determining which controllers are displayed
+GameObjectSettings.used_state -> states_used:    boolean, (read-only)    States which are being used by controllers
+GameObjectSettings.visible_state -> states_visible:    boolean    State determining which controllers are displayed
 GameProperty.debug -> show_debug:    boolean    Print debug information for this property
 GameSoftBodySettings.bending_const -> use_bending_constraints:    boolean    Enable bending constraints
 GameSoftBodySettings.cluster_rigid_to_softbody -> use_cluster_rigid_to_softbody:    boolean    Enable cluster collision between soft and rigid body
@@ -335,7 +335,7 @@ GameSoftBodySettings.cluster_soft_to_softbody -> use_cluster_soft_to_softbody:  
 GameSoftBodySettings.shape_match -> use_shape_match:    boolean    Enable soft body shape matching goal
 GlowSequence.only_boost -> use_only_boost:    boolean    Show the glow buffer only
 GreasePencil.use_stroke_endpoints -> use_stroke_endpoints:    boolean    Only use the first and last parts of the stroke for snapping
-Group.layer -> layer:    boolean    Layers visible when this groups is instanced as a dupli
+Group.layer -> layers:    boolean    Layers visible when this groups is instanced as a dupli
 ID.fake_user -> use_fake_user:    boolean    Saves this datablock even if it has no users
 ID.tag -> tag:    boolean    Tools can use this to tag data, (initial state is undefined)
 Image.animated -> use_animation:    boolean    Use as animated texture in the game engine
@@ -542,7 +542,7 @@ Mesh.use_paint_mask -> use_paint_mask:    boolean    Face selection masking for 
 Mesh.vertex_normal_flip -> use_vertex_normal_flip:    boolean    Flip vertex normals towards the camera during render
 MeshColorLayer.active -> active:    boolean    Sets the layer as active for display and editing
 MeshColorLayer.active_render -> active_render:    boolean    Sets the layer as active for rendering
-MeshDeformModifier.dynamic -> dynamic:    boolean    Recompute binding dynamically on top of other deformers (slower and more memory consuming.)
+MeshDeformModifier.dynamic -> use_dynamic_bind:    boolean    Recompute binding dynamically on top of other deformers (slower and more memory consuming.)
 MeshDeformModifier.invert -> invert_vertex_group:    boolean    Invert vertex group influence
 MeshDeformModifier.is_bound -> is_bound:    boolean, (read-only)    Whether geometry has been bound to control cage
 MeshEdge.fgon -> is_fgon:    boolean, (read-only)    Fgon edge
@@ -563,7 +563,7 @@ MeshTextureFace.shared -> use_blend_shared:    boolean    Blend vertex colors ac
 MeshTextureFace.tex -> use_texture:    boolean    Render face with texture
 MeshTextureFace.text -> use_bitmap_text:    boolean    Enable bitmap text on face
 MeshTextureFace.twoside -> use_twoside:    boolean    Render face two-sided
-MeshTextureFace.uv_pinned -> uv_pin:    boolean
+MeshTextureFace.uv_pinned -> pin_uv:    boolean
 MeshTextureFace.uv_selected -> select_uv:    boolean
 MeshTextureFaceLayer.active -> active:    boolean    Sets the layer as active for display and editing
 MeshTextureFaceLayer.active_clone -> active_clone:    boolean    Sets the layer as active for cloning
@@ -644,7 +644,7 @@ Object.draw_texture_space -> show_texture_space:    boolean    Displays the obje
 Object.draw_transparent -> show_transparent:    boolean    Enables transparent materials for the object (Mesh only)
 Object.draw_wire -> show_wire:    boolean    Adds the object's wireframe over solid drawing
 Object.duplis_used -> is_duplicator:    boolean, (read-only)
-Object.layers -> layer:    boolean    Layers the object is on
+Object.layers -> layers:    boolean    Layers the object is on
 Object.lock_location -> lock_location:    boolean    Lock editing of location in the interface
 Object.lock_rotation -> lock_rotation:    boolean    Lock editing of rotation in the interface
 Object.lock_rotation_w -> lock_rotation_w:    boolean    Lock editing of 'angle' component of four-component rotations in the interface
@@ -672,7 +672,7 @@ ObjectActuator.local_torque -> use_local_torque:    boolean    Torque is defined
 ObjectActuator.servo_limit_x -> use_servo_limit_x:    boolean    Set limit to force along the X axis
 ObjectActuator.servo_limit_y -> use_servo_limit_y:    boolean    Set limit to force along the Y axis
 ObjectActuator.servo_limit_z -> use_servo_limit_z:    boolean    Set limit to force along the Z axis
-ObjectBase.layers -> layer:    boolean    Layers the object base is on
+ObjectBase.layers -> layers:    boolean    Layers the object base is on
 ObstacleFluidSettings.active -> use:    boolean    Object contributes to the fluid simulation
 ObstacleFluidSettings.export_animated_mesh -> use_animated_mesh:    boolean    Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated pos/rot/scale IPOs do not require it
 Operator.has_reports -> has_reports:    boolean, (read-only)    Operator has a set of reports (warnings and errors) from last execution
@@ -767,7 +767,7 @@ PointCache.baked -> is_baked:    boolean, (read-only)
 PointCache.baking -> is_baking:    boolean, (read-only)
 PointCache.disk_cache -> use_disk_cache:    boolean    Save cache files to disk (.blend file must be saved first)
 PointCache.external -> use_external:    boolean    Read cache from an external location
-PointCache.has_skipped_frames-> frames_skipped:    boolean, (read-only)
+PointCache.has_skipped_frames-> has_skipped_frames:    boolean, (read-only)
 PointCache.outdated -> is_outdated:    boolean, (read-only)
 PointCache.quick_cache -> use_quick_cache:    boolean    Update simulation with cache steps
 PointCache.use_library_path -> use_library_path:    boolean    Use this files path when library linked into another file.
@@ -839,9 +839,9 @@ RenderLayer.pass_z -> use_pass_z:    boolean, (read-only)    Deliver Z values pa
 RenderLayer.sky -> use_sky:    boolean, (read-only)    Render Sky in this Layer
 RenderLayer.solid -> use_solid:    boolean, (read-only)    Render Solid faces in this Layer
 RenderLayer.strand -> use_strand:    boolean, (read-only)    Render Strands in this Layer
-RenderLayer.visible_layers -> layer:    boolean, (read-only)    Scene layers included in this render layer
+RenderLayer.visible_layers -> layers:    boolean, (read-only)    Scene layers included in this render layer
 RenderLayer.zmask -> use_zmask:    boolean, (read-only)    Only render what's in front of the solid z values
-RenderLayer.zmask_layers -> layer_zmask:    boolean, (read-only)    Zmask scene layers
+RenderLayer.zmask_layers -> layers_zmask:    boolean, (read-only)    Zmask scene layers
 RenderLayer.zmask_negate -> invert_zmask:    boolean, (read-only)    For Zmask, only render what is behind solid z values instead of in front
 RenderLayer.ztransp -> use_ztransp:    boolean, (read-only)    Render Z-Transparent faces in this Layer (On top of Solid and Halos)
 RenderSettings.backbuf -> use_backbuf:    boolean    Render backbuffer image
@@ -903,7 +903,7 @@ RenderSettings.use_textures -> use_textures:    boolean    Use textures to affec
 NEGATE *  RigidBodyJointConstraint.disable_linked_collision -> use_linked_collision:    boolean    Disable collision between linked bodies
 RigidBodyJointConstraint.draw_pivot -> show_pivot:    boolean    Display the pivot point and rotation in 3D view
 Scene.frame_drop -> use_frame_drop:    boolean    Play back dropping frames if frame display is too slow
-Scene.layers -> layer:    boolean    Layers visible when rendering the scene
+Scene.layers -> layers:    boolean    Layers visible when rendering the scene
 Scene.mute_audio -> mute_audio:    boolean    Play back of audio from Sequence Editor will be muted
 Scene.nla_tweakmode_on -> use_nla_tweakmode:    boolean, (read-only)    Indicates whether there is any action referenced by NLA being edited. Strictly read-only
 Scene.pov_radio_always_sample -> use_pov_radio_always_sample:    boolean    Only use the data from the pretrace step and not gather any new samples during the final radiosity pass
@@ -965,9 +965,9 @@ SceneRenderLayer.pass_z -> use_pass_z:    boolean    Deliver Z values pass
 SceneRenderLayer.sky -> use_sky:    boolean    Render Sky in this Layer
 SceneRenderLayer.solid -> use_solid:    boolean    Render Solid faces in this Layer
 SceneRenderLayer.strand -> use_strand:    boolean    Render Strands in this Layer
-SceneRenderLayer.visible_layers -> layer:    boolean    Scene layers included in this render layer
+SceneRenderLayer.visible_layers -> layers:    boolean    Scene layers included in this render layer
 SceneRenderLayer.zmask -> use_zmask:    boolean    Only render what's in front of the solid z values
-SceneRenderLayer.zmask_layers -> layer_zmask:    boolean    Zmask scene layers
+SceneRenderLayer.zmask_layers -> layers_zmask:    boolean    Zmask scene layers
 SceneRenderLayer.zmask_negate -> invert_zmask:    boolean    For Zmask, only render what is behind solid z values instead of in front
 SceneRenderLayer.ztransp -> use_ztransp:    boolean    Render Z-Transparent faces in this Layer (On top of Solid and Halos)
 SceneSequence.convert_float -> use_float:    boolean    Convert input to float data
@@ -1142,7 +1142,7 @@ SpaceView3D.display_render_override -> show_only_render:    boolean    Display o
 SpaceView3D.display_x_axis -> show_axis_x:    boolean    Show the X axis line in perspective view
 SpaceView3D.display_y_axis -> show_axis_y:    boolean    Show the Y axis line in perspective view
 SpaceView3D.display_z_axis -> show_axis_z:    boolean    Show the Z axis line in perspective view
-SpaceView3D.layers -> layer:    boolean    Layers visible in this 3D View
+SpaceView3D.layers -> layers:    boolean    Layers visible in this 3D View
 SpaceView3D.lock_camera_and_layers -> lock_camera_and_layers:    boolean    Use the scene's active camera and layers in this view, rather than local layers
 SpaceView3D.manipulator -> use_manipulator:    boolean    Use a 3D manipulator widget for controlling transforms
 SpaceView3D.manipulator_rotate -> use_manipulator_rotate:    boolean    Use the manipulator for rotation transformations
@@ -1153,7 +1153,7 @@ SpaceView3D.outline_selected -> show_outline_selected:    boolean    Show an out
 SpaceView3D.pivot_point_align -> use_pivot_point_align:    boolean    Manipulate object centers only
 SpaceView3D.relationship_lines -> show_relationship_lines:    boolean    Show dashed lines indicating parent or constraint relationships
 SpaceView3D.textured_solid -> show_textured_solid:    boolean    Display face-assigned textures in solid view
-SpaceView3D.used_layers -> layer_used:    boolean, (read-only)    Layers that contain something
+SpaceView3D.used_layers -> layers_used:    boolean, (read-only)    Layers that contain something
 SpeedControlSequence.curve_compress_y -> use_curve_compress_y:    boolean    Scale F-Curve value to get the target frame number, F-Curve value runs from 0.0 to 1.0
 SpeedControlSequence.curve_velocity -> use_curve_velocity:    boolean    Interpret the F-Curve value as a velocity instead of a frame number
 SpeedControlSequence.frame_blending -> use_frame_blend:    boolean    Blend two frames into the target for a smoother result
@@ -1178,7 +1178,7 @@ SpotLamp.shadow_layer -> use_shadow_layer:    boolean    Causes only objects on 
 SpotLamp.show_cone -> show_cone:    boolean    Draw transparent cone in 3D view to visualize which objects are contained in it
 SpotLamp.sphere -> use_sphere:    boolean    Sets light intensity to zero beyond lamp distance
 SpotLamp.square -> use_square:    boolean    Casts a square spot light shape
-StateActuator.state -> state:    boolean
+StateActuator.state -> states:    boolean
 SubsurfModifier.optimal_display -> show_only_control_edges:    boolean    Skip drawing/rendering of interior subdivided edges
 SubsurfModifier.subsurf_uv -> use_subsurf_uv:    boolean    Use subsurf to subdivide UVs
 SunLamp.only_shadow -> use_only_shadow:    boolean    Causes light to cast shadows only without illuminating objects
