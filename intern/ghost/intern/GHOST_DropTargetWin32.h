@@ -28,7 +28,11 @@
 #ifndef _GHOST_DROP_TARGET_WIN32_H_
 #define _GHOST_DROP_TARGET_WIN32_H_
 
+#define _WIN32_WINNT 0x501 // require Windows XP or newer
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <shellapi.h>
+
 #include <string.h>
 #include <GHOST_Types.h>
 #include "GHOST_WindowWin32.h"
@@ -41,7 +45,7 @@ public:
 	 * Enables clients to get pointers to other interfaces on a given object 
 	 * through the QueryInterface method, and manage the existence of the object
 	 * through the AddRef and Release methods. All other COM interfaces are 
-	 * inherited, directly or indirectly, from IUnknown. Therefore, the three 
+	 * inherited, directly or indirectly, from IUnknown. Therefore, the three
 	 * methods in IUnknown are the first entries in the VTable for every interface. 
 	 */
 	HRESULT __stdcall QueryInterface (REFIID riid, void ** ppvObj);
