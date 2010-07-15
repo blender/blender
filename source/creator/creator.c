@@ -131,14 +131,6 @@ extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
-/* unix path support.
- * defined by the compiler. eg "/usr/share/blender/2.5" "/opt/blender/2.5" */
-#ifndef BLENDERPATH
-#define BLENDERPATH ""
-#endif
- 
-char blender_path[FILE_MAXDIR+FILE_MAXFILE] = BLENDERPATH;
-
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
 
@@ -297,14 +289,14 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("  $BLENDER_SYSTEM_DATAFILES Directory for system wide data files.\n");
 	printf ("  $BLENDER_SYSTEM_PYTHON    Directory for system python libraries.\n");
 #ifdef WIN32
-	printf ("  $TEMP         Store temporary files here.\n");
+	printf ("  $TEMP                     Store temporary files here.\n");
 #else
-	printf ("  $TMP or $TMPDIR  Store temporary files here.\n");
+	printf ("  $TMP or $TMPDIR           Store temporary files here.\n");
 #endif
 #ifndef DISABLE_SDL
-	printf ("  $SDL_AUDIODRIVER  LibSDL audio driver - alsa, esd, alsa, dma.\n");
+	printf ("  $SDL_AUDIODRIVER          LibSDL audio driver - alsa, esd, dma.\n");
 #endif
-	printf ("  $PYTHONHOME   Path to the python directory, eg. /usr/lib/python.\n\n");
+	printf ("  $PYTHONHOME               Path to the python directory, eg. /usr/lib/python.\n\n");
 
 	exit(0);
 
@@ -1040,12 +1032,6 @@ int main(int argc, char **argv)
 
 	BLI_where_am_i(bprogname, argv[0]);
 	
-	{	/* override the hard coded blender path */
-		char *blender_path_env = getenv("BLENDERPATH");
-		if(blender_path_env)
-			BLI_strncpy(blender_path, blender_path_env, sizeof(blender_path));
-	}
-
 #ifdef BUILD_DATE	
     strip_quotes(build_date);
     strip_quotes(build_time);
