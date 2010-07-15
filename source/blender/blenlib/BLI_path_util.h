@@ -59,6 +59,7 @@ char *BLI_get_folder_create(int folder_id, char *subfolder);
 #define BLENDER_USER_DATAFILES		32
 #define BLENDER_USER_SCRIPTS		33
 #define BLENDER_USER_PLUGINS		34
+#define BLENDER_USER_AUTOSAVE		35
 
 /* system */
 #define BLENDER_SYSTEM_CONFIG		51	/* optional */

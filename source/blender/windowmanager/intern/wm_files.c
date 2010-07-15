@@ -434,9 +434,6 @@ void read_history(void)
 			num++;
 		}
 	}
-
-	if(G.sce[0] == 0)
-		BLI_make_file_string("/", G.sce, BLI_gethome(), "untitled.blend");
 	
 	BLI_free_file_lines(lines);
 
@@ -686,21 +683,14 @@ void wm_autosave_location(char *filename)
 {
 	char pidstr[32];
 #ifdef WIN32
-	char subdir[9];
-	char savedir[FILE_MAXDIR];
+	char *savedir;
 #endif
 
 	sprintf(pidstr, "%d.blend", abs(getpid()));
 	
 #ifdef WIN32
 	if (!BLI_exists(U.tempdir)) {
-		BLI_strncpy(subdir, "autosave", sizeof(subdir));
-		BLI_make_file_string("/", savedir, BLI_gethome(), subdir);
-		
-		/* create a new autosave dir
-		 * function already checks for existence or not */
-		BLI_recurdir_fileops(savedir);
-	
+		savedir = BLI_get_folder_create(BLENDER_USER_AUTOSAVE, NULL);
 		BLI_make_file_string("/", filename, savedir, pidstr);
 		return;
 	}
