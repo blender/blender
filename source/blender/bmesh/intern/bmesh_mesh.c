@@ -88,6 +88,53 @@ int bmesh_test_sysflag(BMHeader *head, int flag)
 	return 0;
 }
 
+/*
+ *	BMESH MAKE MESH
+ *
+ *  Allocates a new BMesh structure.
+ *  Returns -
+ *  Pointer to a BM
+ *
+*/
+
+BMesh *BM_Make_Mesh(int allocsize[4])
+{
+	/*allocate the structure*/
+	BMesh *bm = MEM_callocN(sizeof(BMesh),"BM");
+	int vsize, esize, lsize, fsize, lstsize;
+	int baselevel = LAYER_ADJ;
+
+	if (baselevel == LAYER_BASE) {
+		vsize = sizeof(BMBaseVert);
+		esize = sizeof(BMBaseEdge);
+		lsize = sizeof(BMBaseLoop);
+		fsize = sizeof(BMBaseFace);
+		lstsize = sizeof(BMBaseLoopList);
+	} else {
+		vsize = sizeof(BMVert);
+		esize = sizeof(BMEdge);
+		lsize = sizeof(BMLoop);
+		fsize = sizeof(BMFace);
+		lstsize = sizeof(BMLoopList);
+	}
+
+	bm->baselevel = baselevel;
+
+/*allocate the memory pools for the mesh elements*/
+	bm->vpool = BLI_mempool_create(vsize, allocsize[0], allocsize[0], 0, 1);
+	bm->epool = BLI_mempool_create(esize, allocsize[1], allocsize[1], 0, 1);
+	bm->lpool = BLI_mempool_create(lsize, allocsize[2], allocsize[2], 0, 0);
+	bm->looplistpool = BLI_mempool_create(lstsize, allocsize[3], allocsize[3], 0, 0);
+	bm->fpool = BLI_mempool_create(fsize, allocsize[3], allocsize[3], 0, 1);
+
+	/*allocate one flag pool that we dont get rid of.*/
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0, 0);
+	bm->stackdepth = 0;
+	bm->totflags = 1;
+
+	return bm;
+}
+
 /*	
  *	BMESH FREE MESH
  *
@@ -129,11 +176,21 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	/*destroy element pools*/
 	BLI_mempool_destroy(bm->vpool);
 	BLI_mempool_destroy(bm->epool);
-	BLI_mempool_destroy(bm->fpool);
 	BLI_mempool_destroy(bm->lpool);
+	BLI_mempool_destroy(bm->fpool);
+
+	if (bm->svpool)
+		BLI_mempool_destroy(bm->svpool);
+	if (bm->sepool)
+		BLI_mempool_destroy(bm->sepool);
+	if (bm->slpool)
+		BLI_mempool_destroy(bm->slpool);
+	if (bm->sfpool)
+		BLI_mempool_destroy(bm->sfpool);
 
 	/*destroy flag pool*/
 	BLI_mempool_destroy(bm->toolflagpool);
+	BLI_mempool_destroy(bm->looplistpool);
 
 	BLI_freelistN(&bm->selected);
 

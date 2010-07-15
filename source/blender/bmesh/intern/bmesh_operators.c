@@ -798,17 +798,17 @@ static void alloc_flag_layer(BMesh *bm)
 	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
 		oldflags = v->head.flags;
 		v->head.flags = BLI_mempool_calloc(bm->toolflagpool);
-		memcpy(v->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags); /*dont know if this memcpy usage is correct*/
+		memcpy(v->head.flags, oldflags, sizeof(BMFlagLayer)*(bm->totflags-1)); /*dont know if this memcpy usage is correct*/
 	}
 	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
 		oldflags = e->head.flags;
 		e->head.flags = BLI_mempool_calloc(bm->toolflagpool);
-		memcpy(e->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
+		memcpy(e->head.flags, oldflags, sizeof(BMFlagLayer)*(bm->totflags-1));
 	}
 	for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
 		oldflags = f->head.flags;
 		f->head.flags = BLI_mempool_calloc(bm->toolflagpool);
-		memcpy(f->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
+		memcpy(f->head.flags, oldflags, sizeof(BMFlagLayer)*(bm->totflags-1));
 	}
 
 	BLI_mempool_destroy(oldpool);

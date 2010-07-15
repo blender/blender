@@ -392,7 +392,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 								BM_FACES_OF_EDGE, l->e);
 						for (; f2; f2=BMIter_Step(&fiter)) {
 							if (f2 != f) {
-								BM_Join_Faces(bm, f, f2, l->e);
+								BM_Join_TwoFaces(bm, f, f2, l->e);
 								found2 = 1;
 								break;
 							}

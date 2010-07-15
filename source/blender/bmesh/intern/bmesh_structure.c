@@ -156,7 +156,7 @@ int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv){
 int bmesh_disk_append_edge(struct BMEdge *e, struct BMVert *v)
 {
 	if (!v->e) {
-		Link *e1 = bm_get_edge_link(e, v);
+		Link *e1 = (Link*)bm_get_edge_link(e, v);
 
 		v->e = e;
 		e1->next = e1->prev = (Link*)e;
@@ -411,10 +411,9 @@ void bmesh_radial_append(BMEdge *e, BMLoop *l){
 		l->radial_prev = e->l;
 		l->radial_next = e->l->radial_next;
 
-		if (e->l == e->l->radial_next)
-			e->l->radial_prev = e->l->radial_next = l;
-		else
-			e->l->radial_next = l;
+		e->l->radial_next->radial_prev = l;
+		e->l->radial_next = l;
+
 		e->l = l;
 	}
 }
