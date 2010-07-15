@@ -947,13 +947,13 @@ static int test_path(char *targetpath, char *path_base, char *path_sep, char *fo
 	}
 }
 
-static int test_env_path(char *path, char *envvar)
+static int test_env_path(char *path, char *subfolder_name, char *envvar)
 {
 	char *env = envvar?getenv(envvar):NULL;
 	if (!env) return 0;
 	
 	if (BLI_is_dir(env)) {
-		BLI_strncpy(path, env, FILE_MAX);
+		BLI_make_file_string("/", path, env, subfolder_name);
 		return 1;
 	} else {
 		path[0] = '\0';
@@ -1002,14 +1002,14 @@ static int get_path_local(char *targetpath, char *folder_name)
 	return 0;
 }
 
-static int get_path_user(char *targetpath, char *folder_name, char *envvar)
+static int get_path_user(char *targetpath, char *folder_name, char *subfolder_name, char *envvar)
 {
 	char user_path[FILE_MAX];
 	const char *user_base_path;
 	
 	user_path[0] = '\0';
 
-	if (test_env_path(targetpath, envvar))
+	if (test_env_path(targetpath, subfolder_name, envvar))
 		return 1;
 	
 	user_base_path = (const char *)GHOST_getUserDir();
@@ -1028,14 +1028,14 @@ static int get_path_user(char *targetpath, char *folder_name, char *envvar)
 	return test_path(targetpath, user_path, NULL, folder_name);
 }
 
-static int get_path_system(char *targetpath, char *folder_name, char *envvar)
+static int get_path_system(char *targetpath, char *folder_name, char *subfolder_name, char *envvar)
 {
 	char system_path[FILE_MAX];
 	const char *system_base_path;
 
 	system_path[0] = '\0';
 
-	if (test_env_path(targetpath, envvar))
+	if (test_env_path(targetpath, subfolder_name, envvar))
 		return 1;
 
 	system_base_path = (const char *)GHOST_getSystemDir();
@@ -1065,66 +1065,66 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 		case BLENDER_DATAFILES:		/* general case */
 			BLI_join_dirfile(search_path, "datafiles", subfolder);
 			if (get_path_local(path, search_path)) break;
-			if (get_path_user(path, search_path, "BLENDER_USER_DATAFILES"))	break;
-			if (get_path_system(path, search_path, "BLENDER_SYSTEM_DATAFILES")) break;
+			if (get_path_user(path, search_path, subfolder, "BLENDER_USER_DATAFILES"))	break;
+			if (get_path_system(path, search_path, subfolder, "BLENDER_SYSTEM_DATAFILES")) break;
 			return NULL;
 			
 		case BLENDER_USER_DATAFILES:
 			BLI_join_dirfile(search_path, "datafiles", subfolder);
 			if (get_path_local(path, search_path)) break;
-			if (get_path_user(path, search_path, "BLENDER_USER_DATAFILES"))	break;
+			if (get_path_user(path, search_path, subfolder, "BLENDER_USER_DATAFILES"))	break;
 			return NULL;
 			
 		case BLENDER_SYSTEM_DATAFILES:
 			BLI_join_dirfile(search_path, "datafiles", subfolder);
-			if (get_path_system(path, search_path, "BLENDER_SYSTEM_DATAFILES"))	break;
+			if (get_path_system(path, search_path, subfolder, "BLENDER_SYSTEM_DATAFILES"))	break;
 			return NULL;
 			
 		case BLENDER_CONFIG:		/* general case */
 			BLI_join_dirfile(search_path, "config", subfolder);
 			if (get_path_local(path, search_path)) break;
-			if (get_path_user(path, search_path, "BLENDER_USER_CONFIG")) break;
-			if (get_path_system(path, search_path, "BLENDER_SYSTEM_CONFIG")) break;
+			if (get_path_user(path, search_path, subfolder, "BLENDER_USER_CONFIG")) break;
+			if (get_path_system(path, search_path, subfolder, "BLENDER_SYSTEM_CONFIG")) break;
 			return NULL;
 			
 		case BLENDER_USER_CONFIG:
 			BLI_join_dirfile(search_path, "config", subfolder);
 			if (get_path_local(path, search_path)) break;
-			if (get_path_user(path, search_path, "BLENDER_USER_CONFIG")) break;
+			if (get_path_user(path, search_path, subfolder, "BLENDER_USER_CONFIG")) break;
 			return NULL;
 			
 		case BLENDER_SYSTEM_CONFIG:
 			BLI_join_dirfile(search_path, "config", subfolder);
-			if (get_path_system(path, search_path, "BLENDER_SYSTEM_CONFIG")) break;
+			if (get_path_system(path, search_path, subfolder, "BLENDER_SYSTEM_CONFIG")) break;
 			return NULL;
 			
 		case BLENDER_SCRIPTS:		/* general case */
 			BLI_join_dirfile(search_path, "scripts", subfolder);
 			if (get_path_local(path, search_path)) break;
-			if (get_path_user(path, search_path, "BLENDER_USER_SCRIPTS")) break;		
-			if (get_path_system(path, search_path, "BLENDER_SYSTEM_SCRIPTS")) break;
+			if (get_path_user(path, search_path, subfolder, "BLENDER_USER_SCRIPTS")) break;		
+			if (get_path_system(path, search_path, subfolder, "BLENDER_SYSTEM_SCRIPTS")) break;
 			return NULL;
 			
 		case BLENDER_USER_SCRIPTS:
 			BLI_join_dirfile(search_path, "scripts", subfolder);
 			if (get_path_local(path, search_path)) break;
-			if (get_path_user(path, search_path, "BLENDER_USER_SCRIPTS")) break;
+			if (get_path_user(path, search_path, subfolder, "BLENDER_USER_SCRIPTS")) break;
 			return NULL;
 			
 		case BLENDER_SYSTEM_SCRIPTS:
 			BLI_join_dirfile(search_path, "scripts", subfolder);
-			if (get_path_system(path, search_path, "BLENDER_SYSTEM_SCRIPTS")) break;
+			if (get_path_system(path, search_path, subfolder, "BLENDER_SYSTEM_SCRIPTS")) break;
 			return NULL;
 			
 		case BLENDER_PYTHON:		/* general case */
 			BLI_join_dirfile(search_path, "python", subfolder);
 			if (get_path_local(path, search_path)) break;
-			if (get_path_system(path, search_path, "BLENDER_SYSTEM_PYTHON")) break;
+			if (get_path_system(path, search_path, subfolder, "BLENDER_SYSTEM_PYTHON")) break;
 			return NULL;
 			
 		case BLENDER_SYSTEM_PYTHON:
 			BLI_join_dirfile(search_path, "python", subfolder);
-			if (get_path_system(path, search_path, "BLENDER_SYSTEM_PYTHON")) break;
+			if (get_path_system(path, search_path, subfolder, "BLENDER_SYSTEM_PYTHON")) break;
 			return NULL;
 	}
 	
@@ -1139,11 +1139,11 @@ static char *BLI_get_user_folder_notest(int folder_id, char *subfolder)
 	switch (folder_id) {
 		case BLENDER_USER_DATAFILES:
 			BLI_join_dirfile(search_path, "datafiles", subfolder);
-			get_path_user(path, search_path, "BLENDER_USER_DATAFILES");
+			get_path_user(path, search_path, subfolder, "BLENDER_USER_DATAFILES");
 			break;
 		case BLENDER_USER_CONFIG:
 			BLI_join_dirfile(search_path, "config", subfolder);
-			get_path_user(path, search_path, "BLENDER_USER_CONFIG");
+			get_path_user(path, search_path, subfolder, "BLENDER_USER_CONFIG");
 			break;
 	}
 	if ('\0' == path[0]) {
