@@ -37,7 +37,10 @@
 #error WIN32 only!
 #endif // WIN32
 
+#define _WIN32_WINNT 0x501 // require Windows XP or newer
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <ole2.h>
 
 #include "GHOST_System.h"
 
@@ -52,6 +55,8 @@ class GHOST_EventKey;
 class GHOST_EventWheel;
 class GHOST_EventWindow;
 class GHOST_EventDragnDrop;
+
+class GHOST_WindowWin32;
 
 /**
  * WIN32 Implementation of GHOST_System class.
@@ -258,9 +263,10 @@ protected:
 	 * Creates cursor event.
 	 * @param type		The type of event to create.
 	 * @param window	The window receiving the event (the active window).
+	 * @param x,y		Cursor position.
 	 * @return The event created.
 	 */
-	static GHOST_EventCursor* processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow);
+	static GHOST_EventCursor* processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow, int x, int y);
 
 	/**
 	 * Creates a mouse wheel event.
@@ -287,12 +293,31 @@ protected:
 	 * @return The event created.
 	 */
 	static GHOST_Event* processWindowEvent(GHOST_TEventType type, GHOST_IWindow* window);
-	/** 
+
+	/**
 	 * Handles minimum window size.
 	 * @param minmax	The MINMAXINFO structure.
 	 */
 	static void processMinMaxInfo(MINMAXINFO * minmax);
-	
+
+	/**
+	 * Creates and sends mouse or multi-axis events.
+	 * @param raw		a single RawInput structure
+	 * @param window	The window receiving the event (the active window).
+	 * @param x,y		current mouse coordinates, which may be updated by this function
+	 * @return Whether any events (possibly more than one) were created and sent.
+	 */
+	bool processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* window, int& x, int& y);
+
+	/**
+	 * Creates and sends mouse events for mouse movements "in between" WM_MOUSEMOVEs.
+	 * @param Latest	screen coords from latest WM_MOUSEMOVE
+	 * @param Prev		screen coords from previous WM_MOUSEMOVE
+	 * @param window	The window receiving the event (the active window).
+	 * @return How many events (possibly many) were created and sent.
+	 */
+	int getMoreMousePoints(int xLatest, int yLatest, int xPrev, int yPrev, GHOST_WindowWin32* window);
+
 	/**
 	 * Returns the local state of the modifier keys (from the message queue).
 	 * @param keys The state of the keys.
@@ -310,6 +335,9 @@ protected:
 	 * Windows call back routine for our window class.
 	 */
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	// non-static version of WndProc
+	bool handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	/** The current state of the modifier keys. */
 	GHOST_ModifierKeys m_modifierKeys;

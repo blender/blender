@@ -37,6 +37,8 @@
 #include "GHOST_SystemWin32.h"
 #include "GHOST_EventDragnDrop.h"
 
+#include <stdio.h> // for debug [mce]
+
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
 #ifndef GWL_USERDATA
@@ -49,31 +51,16 @@
  * According to the docs the mouse wheel message is supported from windows 98 
  * upwards. Leaving WINVER at default value, the WM_MOUSEWHEEL message and the 
  * wheel detent value are undefined.
- */
+
+ [mce] able to remove this too?
+
 #ifndef WM_MOUSEWHEEL
 #define WM_MOUSEWHEEL 0x020A
 #endif // WM_MOUSEWHEEL
 #ifndef WHEEL_DELTA
-#define WHEEL_DELTA 120	/* Value for rolling one detent, (old convention! MS changed it) */
+#define WHEEL_DELTA 120	// Value for rolling one detent, (old convention! MS changed it)
 #endif // WHEEL_DELTA
-
-/* 
- * Defines for mouse buttons 4 and 5 aka xbutton1 and xbutton2.
- * MSDN: Declared in Winuser.h, include Windows.h 
- * This does not seem to work with MinGW so we define our own here.
  */
-#ifndef XBUTTON1
-#define XBUTTON1 0x0001
-#endif // XBUTTON1
-#ifndef XBUTTON2
-#define XBUTTON2 0x0002
-#endif // XBUTTON2
-#ifndef WM_XBUTTONUP
-#define WM_XBUTTONUP 524
-#endif // WM_XBUTTONUP
-#ifndef WM_XBUTTONDOWN
-#define WM_XBUTTONDOWN 523
-#endif // WM_XBUTTONDOWN
 
 #include "GHOST_Debug.h"
 #include "GHOST_DisplayManagerWin32.h"
@@ -135,9 +122,31 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	m_displayManager = new GHOST_DisplayManagerWin32 ();
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
 	m_displayManager->initialize();
-	
+
 	// Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
 	OleInitialize(0);
+
+	m_input_fidelity_hint = HI_FI; // just for testing...
+
+/*
+	// register for RawInput devices
+	RAWINPUTDEVICE devices[2];
+
+	// standard HID mouse
+	devices[0].usUsagePage = 0x01;
+	devices[0].usUsage = 0x02;
+	devices[0].dwFlags = 0; // RIDEV_NOLEGACY; // ignore legacy mouse messages
+	devices[0].hwndTarget = NULL;
+
+	// multi-axis mouse (SpaceNavigator)
+	devices[1].usUsagePage = 0x01;
+	devices[1].usUsage = 0x08;
+	devices[1].dwFlags = 0;
+	devices[1].hwndTarget = NULL;
+
+	if (RegisterRawInputDevices(devices, 2, sizeof(RAWINPUTDEVICE)))
+		puts("registered for raw mouse and multi-axis input");
+*/
 }
 
 GHOST_SystemWin32::~GHOST_SystemWin32()
@@ -513,13 +522,15 @@ GHOST_EventButton* GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type, 
 }
 
 
-GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow)
+GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow, int x, int y)
 {
 	GHOST_TInt32 x_screen, y_screen;
 	GHOST_SystemWin32 * system = ((GHOST_SystemWin32 * ) getSystem());
 	GHOST_WindowWin32 * window = ( GHOST_WindowWin32 * ) Iwindow;
 	
-	system->getCursorPosition(x_screen, y_screen);
+//	system->getCursorPosition(x_screen, y_screen);
+	x_screen = x;
+	y_screen = y;
 
 	if(window->getCursorGrabMode() != GHOST_kGrabDisable && window->getCursorGrabMode() != GHOST_kGrabNormal)
 	{
@@ -546,7 +557,7 @@ GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, 
 			window->setCursorGrabAccum(x_accum + (x_screen - x_new), y_accum + (y_screen - y_new));
 		}else{
 			return new GHOST_EventCursor(system->getMilliSeconds(),
-										 GHOST_kEventCursorMove,
+										 type,
 										 window,
 										 x_screen + x_accum,
 										 y_screen + y_accum
@@ -556,7 +567,7 @@ GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, 
 	}
 	else {
 		return new GHOST_EventCursor(system->getMilliSeconds(),
-									 GHOST_kEventCursorMove,
+									 type,
 									 window,
 									 x_screen,
 									 y_screen
@@ -628,23 +639,199 @@ void GHOST_SystemWin32::processMinMaxInfo(MINMAXINFO * minmax)
 	minmax->ptMinTrackSize.y=240;
 }
 
+bool GHOST_SystemWin32::processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* window, int& x, int& y)
+{
+	GHOST_IEvent* event = NULL;
+	bool eventSent = false;
+
+	puts("BEGIN");
+
+				if (raw.header.dwType == RIM_TYPEMOUSE)
+					{
+					USHORT const& buttonFlags = raw.data.mouse.usButtonFlags;
+					if (buttonFlags)
+						{
+						printf("button flags: %04X\n", buttonFlags);
+
+						if (buttonFlags & RI_MOUSE_LEFT_BUTTON_DOWN)
+							{
+							puts("left button down");
+							window->registerMouseClickEvent(true);
+							event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskLeft);
+							}
+						else if (buttonFlags & RI_MOUSE_LEFT_BUTTON_UP)
+							{
+							puts("left button up");
+							window->registerMouseClickEvent(false);
+							event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
+							}
+
+						if (buttonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN)
+							{
+							puts("right button down");
+							window->registerMouseClickEvent(true);
+							event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskRight);
+							}
+						else if (buttonFlags & RI_MOUSE_RIGHT_BUTTON_UP)
+							{
+							puts("right button up");
+							window->registerMouseClickEvent(false);
+							event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskRight);
+							}
+
+						if (buttonFlags & RI_MOUSE_MIDDLE_BUTTON_DOWN)
+							{
+							puts("middle button down");
+							window->registerMouseClickEvent(true);
+							event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskMiddle);
+							}
+						else if (buttonFlags & RI_MOUSE_MIDDLE_BUTTON_UP)
+							{
+							puts("middle button up");
+							window->registerMouseClickEvent(false);
+							event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskMiddle);
+							}
+
+						// similar for BUTTON_4 and BUTTON_5
+
+						if (buttonFlags & RI_MOUSE_WHEEL)
+							{
+							signed short wheelDelta = raw.data.mouse.usButtonData;
+							printf("wheel moved %+d\n", wheelDelta);
+							}
+						}
+
+					int dx = raw.data.mouse.lLastX; // These might be in Mickeys, not pixels.
+					int dy = raw.data.mouse.lLastY;
+					if (dx || dy)
+						{
+						printf("mouse moved (%+d,%+d)\n", dx, dy);
+						x += dx;
+						x += dy;
+						event = processCursorEvent(GHOST_kEventCursorMove, window, x, y);
+						}
+					}
+				else
+					puts("exotic device!");
+
+	// assume only one event will come from this RawInput report
+	// test and adjust assumptions as needed!
+
+			if (event)
+				{
+				pushEvent(event);
+				event = NULL;
+				eventSent = true;
+				}
+
+	puts("END");
+
+	return eventSent;
+}
+
+int GHOST_SystemWin32::getMoreMousePoints(int xLatest, int yLatest, int xPrev, int yPrev, GHOST_WindowWin32* window)
+	{
+	MOUSEMOVEPOINT point = {
+		xLatest & 0x0000FFFF, // confine to low word to make GetMouseMovePointsEx happy
+		yLatest & 0x0000FFFF,
+		0, // time stamp unknown
+		NULL // no extra info
+		};
+
+	MOUSEMOVEPOINT morePoints[64];
+
+	int n = GetMouseMovePointsEx(sizeof(MOUSEMOVEPOINT), &point, morePoints, 64, GMMP_USE_DISPLAY_POINTS);
+	if (n == -1)
+		{
+		printf("<!> can't get more mouse points (error %d)\n", (int) GetLastError());
+		return 0;
+		}
+
+	// search for 'prev' point (we want only newer points)
+	for (int i = 1; i < n; ++i)
+		if (morePoints[i].x == xPrev && morePoints[i].y == yPrev)
+			{
+			n = i; // don't include found point (or more ancient points)
+			break;
+			}
+
+	for (int i = n - 1; i > 0; --i)
+		{
+		signed short x = morePoints[i].x;
+		signed short y = morePoints[i].y;
+
+		printf("> (%d,%d)\n", x, y);
+		
+		pushEvent(processCursorEvent(GHOST_kEventCursorMove, window, x, y));
+		}
+
+	return n;
+	} // END getMoreMousePoints
 
 LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	GHOST_Event* event = 0;
 	LRESULT lResult = 0;
 	GHOST_SystemWin32* system = ((GHOST_SystemWin32*)getSystem());
 	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized")
+	// [mce] then why not register this function at the end of SystemWin32 constructor?
+
+	bool handled = false;
 
 	if (hwnd) {
 		GHOST_WindowWin32* window = (GHOST_WindowWin32*)::GetWindowLong(hwnd, GWL_USERDATA);
 		if (window) {
+			handled = system->handleEvent(window, msg, wParam, lParam);
+
+			// take care of misc. cases that need hwnd
+			if (msg == WM_ACTIVATE)
+				/* WARNING: Let DefWindowProc handle WM_ACTIVATE, otherwise WM_MOUSEWHEEL
+				will not be dispatched to OUR active window if we minimize one of OUR windows. */
+				lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
+			else if (msg == WM_PAINT)
+				/* An application sends the WM_PAINT message when the system or another application
+				* makes a request to paint a portion of an application's window. The message is sent
+				* when the UpdateWindow or RedrawWindow function is called, or by the DispatchMessage
+				* function when the application obtains a WM_PAINT message by using the GetMessage or
+				* PeekMessage function. */
+				::ValidateRect(hwnd, NULL);
+		}
+		else {
+			// Event found for a window before the pointer to the class has been set.
+			GHOST_PRINT("GHOST_SystemWin32::wndProc: GHOST window event before creation\n")
+
+			/* These are events we typically miss at this point:
+			   WM_GETMINMAXINFO	0x24
+			   WM_NCCREATE			0x81
+			   WM_NCCALCSIZE		0x83
+			   WM_CREATE			0x01
+			   We let DefWindowProc do the work.
+			*/
+		}
+	}
+	else {
+		// Events without valid hwnd
+		GHOST_PRINT("GHOST_SystemWin32::wndProc: event without window\n")
+	}
+
+	if (!handled)
+		lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
+
+	return lResult;
+}
+
+bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM wParam, LPARAM lParam)
+	{
+	GHOST_Event* event = NULL;
+	bool eventSent = false;
+
+	static int mousePosX = 0, mousePosY = 0; // track mouse position between calls
+
 			switch (msg) {
 				////////////////////////////////////////////////////////////////////////
 				// Keyboard events, processed
 				////////////////////////////////////////////////////////////////////////
 				case WM_KEYDOWN:
-					/* The WM_KEYDOWN message is posted to the window with the keyboard focus when a 
+					/* The WM_KEYDOWN message is posted to the window with the keyboard focus when a
 					 * nonsystem key is pressed. A nonsystem key is a key that is pressed when the alt
 					 * key is not pressed. 
 					 */
@@ -660,33 +847,33 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						case VK_SHIFT:
 						case VK_CONTROL:
 						case VK_MENU:
-							if (!system->m_separateLeftRightInitialized) {
+							if (!m_separateLeftRightInitialized) {
 								// Check whether this system supports separate left and right keys
 								switch (wParam) {
 									case VK_SHIFT:
-										system->m_separateLeftRight = 
+										m_separateLeftRight =
 											(HIBYTE(::GetKeyState(VK_LSHIFT)) != 0) ||
 											(HIBYTE(::GetKeyState(VK_RSHIFT)) != 0) ?
 											true : false;
 										break;
 									case VK_CONTROL:
-										system->m_separateLeftRight = 
+										m_separateLeftRight =
 											(HIBYTE(::GetKeyState(VK_LCONTROL)) != 0) ||
 											(HIBYTE(::GetKeyState(VK_RCONTROL)) != 0) ?
 											true : false;
 										break;
 									case VK_MENU:
-										system->m_separateLeftRight = 
+										m_separateLeftRight =
 											(HIBYTE(::GetKeyState(VK_LMENU)) != 0) ||
 											(HIBYTE(::GetKeyState(VK_RMENU)) != 0) ?
 											true : false;
 										break;
 								}
-								system->m_separateLeftRightInitialized = true;
+								m_separateLeftRightInitialized = true;
 							}
-							system->processModifierKeys(window);
+							processModifierKeys(window);
 							// Bypass call to DefWindowProc
-							return 0;
+							return true;
 						default:
 							event = processKeyEvent(window, true, wParam, lParam);
 							if (!event) {
@@ -704,9 +891,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						case VK_SHIFT:
 						case VK_CONTROL:
 						case VK_MENU:
-							system->processModifierKeys(window);
+							processModifierKeys(window);
 							// Bypass call to DefWindowProc
-							return 0;
+							return true;
 						default:
 							event = processKeyEvent(window, false, wParam, lParam);
 							if (!event) {
@@ -718,6 +905,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					}
 					break;
 
+#if 0 // this code is illustrative; no need to compile
 				////////////////////////////////////////////////////////////////////////
 				// Keyboard events, ignored
 				////////////////////////////////////////////////////////////////////////
@@ -742,16 +930,21 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * a dead key that is pressed while holding down the alt key. 
 					 */
 					break;
+#endif // illustrative code
+
 				////////////////////////////////////////////////////////////////////////
 				// Tablet events, processed
 				////////////////////////////////////////////////////////////////////////
 				case WT_PACKET:
-					((GHOST_WindowWin32*)window)->processWin32TabletEvent(wParam, lParam);
+					puts("WT_PACKET");
+					window->processWin32TabletEvent(wParam, lParam);
 					break;
 				case WT_CSRCHANGE:
 				case WT_PROXIMITY:
-					((GHOST_WindowWin32*)window)->processWin32TabletInitEvent();
+					window->processWin32TabletInitEvent();
 					break;
+
+//#if 0 // this code has been replaced by RawInput (the WM_INPUT case)
 				////////////////////////////////////////////////////////////////////////
 				// Mouse events, processed
 				////////////////////////////////////////////////////////////////////////
@@ -795,14 +988,100 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton5);
 					}
 					break;
+//#endif // replaced mouse code
+
 				case WM_MOUSEMOVE:
-					event = processCursorEvent(GHOST_kEventCursorMove, window);
+					{
+//					puts("WM_MOUSEMOVE");
+
+//					bool IsFromPen = ((GetMessageExtraInfo() & 0xFF515700) == 0xFF515700); // this only works on TabletPCs
+					int tabletTool = GetMessageExtraInfo() & 0x7f; // true for tablet mouse, not just pen
+					if (tabletTool)
+						puts("(from tablet)");
+					else
+						{
+						// these give window coords, we need view coords
+//						mousePosX = LOWORD(lParam);
+//						mousePosY = HIWORD(lParam);
+//						window->clientToScreen(mousePosX, mousePosY, mousePosX, mousePosY);
+
+						int xPrev = mousePosX;
+						int yPrev = mousePosY;
+						window->clientToScreen(LOWORD(lParam), HIWORD(lParam), mousePosX, mousePosY);
+						// if (m_input_fidelity_hint == HI_FI) // can't access hint from static function
+							
+						putchar('\n');
+						/* int n = */ getMoreMousePoints(mousePosX, mousePosY, xPrev, yPrev, window);
+//						printf("%d more mouse points found\n", n);
+						printf("  (%d,%d)\n", mousePosX, mousePosY);
+
+						event = processCursorEvent(GHOST_kEventCursorMove, window, mousePosX, mousePosY);
+						}
 					break;
+					}
+
+				case WM_INPUT:
+					puts("WM_INPUT");
+{
+/*
+    UINT dwSize;
+    GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
+    LPBYTE lpb = new BYTE[dwSize];
+    GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+    RAWINPUT* raw = (RAWINPUT*)lpb;
+*/
+
+	RAWINPUT raw;
+	RAWINPUT* raw_ptr = &raw;
+	UINT rawSize = sizeof(RAWINPUT);
+//	UINT bufferSize = rawSize;
+
+	puts("processing first event:");
+	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw_ptr, &rawSize, sizeof(RAWINPUTHEADER));
+	eventSent |= processRawInput(raw, window, mousePosX, mousePosY);
+	DefRawInputProc(&raw_ptr, 1, sizeof(RAWINPUTHEADER));
+
+//	GetRawInputBuffer(NULL, &bufferSize, sizeof(RAWINPUTHEADER));
+//	UINT n = bufferSize / rawSize;
+//	printf("allocating %d bytes (room for %d events)\n", bufferSize, n);
+
+	RAWINPUT rawBuffer[10];// = new RAWINPUT[n];
+	rawSize *= 10;
+	while (true)
+		{
+		int n = GetRawInputBuffer(rawBuffer, &rawSize, sizeof(RAWINPUTHEADER));
+		if (n == -1)
+			{
+			printf("<!> error %d\n", (int) GetLastError());
+			break;
+			}
+		else if (n == 0)
+			{
+			//puts("no more events");
+			putchar('\n');
+			break;
+			}
+		else
+			{
+			printf("processing %d more events:\n", n);
+			for (int i = 0; i < n; ++i)
+				{
+				RAWINPUT const& raw = rawBuffer[i];
+				eventSent |= processRawInput(raw, window, mousePosX, mousePosY);
+				}
+
+			// clear processed events from the queue
+			DefRawInputProc((RAWINPUT**)&rawBuffer, n, sizeof(RAWINPUTHEADER));
+			}
+		} // inf. loop
+}
+ 					break;
 				case WM_MOUSEWHEEL:
-					/* The WM_MOUSEWHEEL message is sent to the focus window 
-					 * when the mouse wheel is rotated. The DefWindowProc 
+					puts("WM_MOUSEWHEEL");
+					/* The WM_MOUSEWHEEL message is sent to the focus window
+					 * when the mouse wheel is rotated. The DefWindowProc
 					 * function propagates the message to the window's parent.
-					 * There should be no internal forwarding of the message, 
+					 * There should be no internal forwarding of the message,
 					 * since DefWindowProc propagates it up the parent chain 
 					 * until it finds a window that processes it.
 					 */
@@ -827,6 +1106,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					}
 					break;
 
+#if 0 // this code is illustrative; no need to compile
 				////////////////////////////////////////////////////////////////////////
 				// Mouse events, ignored
 				////////////////////////////////////////////////////////////////////////
@@ -842,6 +1122,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * is sent to the window that has captured the mouse. 
 					 */
 					break;
+#endif // illustrative code
 
 				////////////////////////////////////////////////////////////////////////
 				// Window events, processed
@@ -858,19 +1139,15 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * the message is sent asynchronously, so the window is activated immediately. 
 					 */
 					event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate, window);
-					/* WARNING: Let DefWindowProc handle WM_ACTIVATE, otherwise WM_MOUSEWHEEL
-					will not be dispatched to OUR active window if we minimize one of OUR windows. */
-					lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
 					break;
 				case WM_PAINT:
-					/* An application sends the WM_PAINT message when the system or another application 
+					/* An application sends the WM_PAINT message when the system or another application
 					 * makes a request to paint a portion of an application's window. The message is sent
 					 * when the UpdateWindow or RedrawWindow function is called, or by the DispatchMessage 
 					 * function when the application obtains a WM_PAINT message by using the GetMessage or 
 					 * PeekMessage function. 
 					 */
 					event = processWindowEvent(GHOST_kEventWindowUpdate, window);
-					::ValidateRect(hwnd, NULL);
 					break;
 				case WM_GETMINMAXINFO:
 					/* The WM_GETMINMAXINFO message is sent to a window when the size or 
@@ -906,6 +1183,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 */
 					event = processWindowEvent(GHOST_kEventWindowMove, window);
 					break;
+
+#if 0 // this code is illustrative; no need to compile
 				////////////////////////////////////////////////////////////////////////
 				// Window events, ignored
 				////////////////////////////////////////////////////////////////////////
@@ -986,57 +1265,44 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * In GHOST, we let DefWindowProc call the timer callback.
 					 */
 					break;
+#endif // illustrative code
+
+#if 0 // this is part of the 'old' NDOF system; new one coming soon!
 				case WM_BLND_NDOF_AXIS:
 					{
 						GHOST_TEventNDOFData ndofdata;
-						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
-						system->m_eventManager->
+						m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						m_eventManager->
 							pushEvent(new GHOST_EventNDOF(
-								system->getMilliSeconds(), 
-								GHOST_kEventNDOFMotion, 
+								getMilliSeconds(),
+								GHOST_kEventNDOFMotion,
 								window, ndofdata));
 					}
 					break;
 				case WM_BLND_NDOF_BTN:
 					{
 						GHOST_TEventNDOFData ndofdata;
-						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
-						system->m_eventManager->
+						m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						m_eventManager->
 							pushEvent(new GHOST_EventNDOF(
-								system->getMilliSeconds(), 
-								GHOST_kEventNDOFButton, 
+								getMilliSeconds(),
+								GHOST_kEventNDOFButton,
 								window, ndofdata));
 					}
 					break;
+#endif // old NDOF
 			}
-		}
-		else {
-			// Event found for a window before the pointer to the class has been set.
-			GHOST_PRINT("GHOST_SystemWin32::wndProc: GHOST window event before creation\n")
-			/* These are events we typically miss at this point:
-			   WM_GETMINMAXINFO	0x24
-			   WM_NCCREATE			0x81
-			   WM_NCCALCSIZE		0x83
-			   WM_CREATE			0x01
-			   We let DefWindowProc do the work.
-			*/
-		}
-	}
-	else {
-		// Events without valid hwnd
-		GHOST_PRINT("GHOST_SystemWin32::wndProc: event without window\n")
-	}
 
-	if (event) {
-		system->pushEvent(event);
-	}
-	else {
-		lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
-	}
-	return lResult;
+	if (!eventSent)
+		if (event) {
+			pushEvent(event);
+			eventSent = true;
+		}
+
+	return eventSent;
 }
 
-GHOST_TUns8* GHOST_SystemWin32::getClipboard(bool selection) const 
+GHOST_TUns8* GHOST_SystemWin32::getClipboard(bool selection) const
 {
 	char *buffer;
 	char *temp_buff;
