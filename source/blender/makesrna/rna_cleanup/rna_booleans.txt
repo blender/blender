@@ -237,10 +237,10 @@ EnvironmentMap.ignore_layers -> layers_ignore:    boolean    Hide objects on the
 EnvironmentMapTexture.use_filter_size_min -> use_minimum_filter_size:    boolean    Use Filter Size as a minimal filter value in pixels
 EnvironmentMapTexture.mipmap -> use_mipmap:    boolean    Uses auto-generated MIP maps for the image
 EnvironmentMapTexture.mipmap_gauss -> use_mipmap_gauss:    boolean    Uses Gauss filter to sample down MIP maps
-Event.alt -> alt:    boolean, (read-only)    True when the Alt/Option key is held
-Event.ctrl -> ctrl:    boolean, (read-only)    True when the Ctrl key is held
-Event.oskey -> oskey:    boolean, (read-only)    True when the Cmd key is held
-Event.shift -> shift:    boolean, (read-only)    True when the Shift key is held
+Event.alt -> is_pressed_alt:    boolean, (read-only)    True when the Alt/Option key is held
+Event.ctrl -> is_pressed_ctrl:    boolean, (read-only)    True when the Ctrl key is held
+Event.oskey -> is_pressed_cmd:    boolean, (read-only)    True when the Cmd key is held
+Event.shift -> is_pressed_shift:    boolean, (read-only)    True when the Shift key is held
 ExplodeModifier.alive -> show_alive:    boolean    Show mesh when particles are alive
 ExplodeModifier.dead -> show_dead:    boolean    Show mesh when particles are dead
 ExplodeModifier.size -> use_size:    boolean    Use particle size for the shrapnel
@@ -394,12 +394,12 @@ KeyMap.items_expanded -> show_expanded_items:    boolean    Expanded in the user
 KeyMap.modal -> is_modal:    boolean, (read-only)    Indicates that a keymap is used for translate modal events for an operator
 KeyMap.user_defined -> is_user_defined:    boolean    Keymap is defined by the user
 KeyMapItem.active -> active:    boolean    Activate or deactivate item
-KeyMapItem.alt -> alt:    boolean    Alt key pressed
-KeyMapItem.any -> any:    boolean    Any modifier keys pressed
-KeyMapItem.ctrl -> ctrl:    boolean    Control key pressed
+KeyMapItem.alt -> pressed_alt:    boolean    Alt key pressed
+KeyMapItem.any -> pressed_any:    boolean    Any modifier keys pressed
+KeyMapItem.ctrl -> pressed_ctrl:    boolean    Control key pressed
 KeyMapItem.expanded -> show_expanded:    boolean    Show key map event and property details in the user interface
-KeyMapItem.oskey -> oskey:    boolean    Operating system key pressed
-KeyMapItem.shift -> shift:    boolean    Shift key pressed
+KeyMapItem.oskey -> pressed_cmd:    boolean    Operating system key pressed
+KeyMapItem.shift -> pressed_shift:    boolean    Shift key pressed
 KeyboardSensor.all_keys -> use_all_keys:    boolean    Trigger this sensor on any keystroke
 KeyingSet.absolute -> use_absolute:    boolean    Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)
 KeyingSet.insertkey_needed -> use_insertkey_needed:    boolean    Only insert keyframes where they're needed in the relevant F-Curves
