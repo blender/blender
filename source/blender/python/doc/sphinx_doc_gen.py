@@ -565,10 +565,9 @@ def rna2sphinx(BASEPATH):
         fw("   %s\n\n" % struct.description)
         
         # properties sorted in alphabetical order
-        zip_props_ids = zip(struct.properties, [prop.identifier for prop in struct.properties])
-        zip_props_ids = sorted(zip_props_ids, key=lambda p: p[1])
-        sorted_struct_properties = [x[0] for x in zip_props_ids]
-        
+        sorted_struct_properties = struct.properties[:]
+        sorted_struct_properties.sort(key=lambda prop: prop.identifier)
+
         for prop in sorted_struct_properties:
             type_descr = prop.get_type_description(class_fmt=":class:`%s`")
             # readonly properties use "data" directive, variables properties use "attribute" directive

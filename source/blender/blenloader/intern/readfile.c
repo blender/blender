@@ -174,7 +174,7 @@ READ
 		- read associated 'direct data'
 		- link direct data (internal and to LibBlock)
 - read FileGlobal
-- read USER data, only when indicated (file is ~/.B.blend or .B25.blend)
+- read USER data, only when indicated (file is ~/X.XX/startup.blend)
 - free file
 - per Library (per Main)
 	- read file
@@ -11044,7 +11044,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				brush->rate = 0.1f;
 
 			/* New Settings */
-			if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 6)) {
+			if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 5)) {
 				brush->flag |= BRUSH_SPACE_ATTEN; // explicitly enable adaptive space
 
 				// spacing was originally in pixels, convert it to percentage for new version

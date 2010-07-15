@@ -52,9 +52,9 @@ class SelectPattern(bpy.types.Operator):
         # Can be pose bones or objects
         for item in items:
             if pattern_match(item.name, self.properties.pattern):
-                item.selected = True
+                item.select = True
             elif not self.properties.extend:
-                item.selected = False
+                item.select = False
 
         return {'FINISHED'}
 
@@ -90,7 +90,7 @@ class SelectCamera(bpy.types.Operator):
             self.report({'WARNING'}, "Active camera is not in this scene")
 
         context.scene.objects.active = camera
-        camera.selected = True
+        camera.select = True
         return {'FINISHED'}
 
 
@@ -121,7 +121,7 @@ class SelectHierarchy(bpy.types.Operator):
 
         if not self.properties.extend:
             # for obj in objs:
-            #     obj.selected = False
+            #     obj.select = False
             bpy.ops.object.select_all(action='DESELECT')
 
         if self.properties.direction == 'PARENT':
@@ -135,7 +135,7 @@ class SelectHierarchy(bpy.types.Operator):
                     if obj_act == obj:
                         context.scene.objects.active = parent
 
-                    parent.selected = True
+                    parent.select = True
                 
             if parents:
                 return {'CANCELLED'}
@@ -145,7 +145,7 @@ class SelectHierarchy(bpy.types.Operator):
             for obj in objs:
                 children += list(obj.children)
                 for obj_iter in children:
-                    obj_iter.selected = True
+                    obj_iter.select = True
 
             children.sort(key=lambda obj_iter: obj_iter.name)
             context.scene.objects.active = children[0]
@@ -536,11 +536,11 @@ class IsolateTypeRender(bpy.types.Operator):
 
         for obj in context.visible_objects:
 
-            if obj.selected:
-                obj.restrict_render = False
+            if obj.select:
+                obj.hide_render = False
             else:
                 if obj.type == act_type:
-                    obj.restrict_render = True
+                    obj.hide_render = True
 
         return {'FINISHED'}
 

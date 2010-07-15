@@ -633,7 +633,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		
 		
 		/* 'mute' button */
-		uiItemR(subrow, &ptr, "muted", UI_ITEM_R_ICON_ONLY, "", 0);
+		uiItemR(subrow, &ptr, "mute", UI_ITEM_R_ICON_ONLY, "", 0);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		

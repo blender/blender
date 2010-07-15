@@ -135,7 +135,7 @@ Object *ED_object_active_context(bContext *C)
 
 
 /* ********* clear/set restrict view *********/
-static int object_restrictview_clear_exec(bContext *C, wmOperator *op)
+static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
@@ -160,23 +160,23 @@ static int object_restrictview_clear_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
+void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Clear Restrict View";
-	ot->description = "Reveal the object by setting the restrictview flag";
-	ot->idname= "OBJECT_OT_restrictview_clear";
+	ot->description = "Reveal the object by setting the hide flag";
+	ot->idname= "OBJECT_OT_hide_view_clear";
 	
 	/* api callbacks */
-	ot->exec= object_restrictview_clear_exec;
+	ot->exec= object_hide_view_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_restrictview_set_exec(bContext *C, wmOperator *op)
+static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	short changed = 0;
@@ -213,15 +213,15 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictview_set(wmOperatorType *ot)
+void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Restrict View";
-	ot->description = "Hide the object by setting the restrictview flag";
-	ot->idname= "OBJECT_OT_restrictview_set";
+	ot->description = "Hide the object by setting the hide flag";
+	ot->idname= "OBJECT_OT_hide_view_set";
 	
 	/* api callbacks */
-	ot->exec= object_restrictview_set_exec;
+	ot->exec= object_hide_view_set_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
@@ -232,7 +232,7 @@ void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 }
 
 /* 99% same as above except no need for scene refreshing (TODO, update render preview) */
-static int object_restrictrender_clear_exec(bContext *C, wmOperator *op)
+static int object_hide_render_clear_exec(bContext *C, wmOperator *op)
 {
 	short changed= 0;
 
@@ -251,23 +251,23 @@ static int object_restrictrender_clear_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictrender_clear(wmOperatorType *ot)
+void OBJECT_OT_hide_render_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Clear Restrict Render";
-	ot->description = "Reveal the render object by setting the restrictrender flag";
-	ot->idname= "OBJECT_OT_restrictrender_clear";
+	ot->description = "Reveal the render object by setting the hide render flag";
+	ot->idname= "OBJECT_OT_hide_render_clear";
 
 	/* api callbacks */
-	ot->exec= object_restrictrender_clear_exec;
+	ot->exec= object_hide_render_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_restrictrender_set_exec(bContext *C, wmOperator *op)
+static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 {
 	int unselected= RNA_boolean_get(op->ptr, "unselected");
 
@@ -288,15 +288,15 @@ static int object_restrictrender_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictrender_set(wmOperatorType *ot)
+void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Restrict Render";
-	ot->description = "Hide the render object by setting the restrictrender flag";
-	ot->idname= "OBJECT_OT_restrictrender_set";
+	ot->description = "Hide the render object by setting the hide render flag";
+	ot->idname= "OBJECT_OT_hide_render_set";
 
 	/* api callbacks */
-	ot->exec= object_restrictrender_set_exec;
+	ot->exec= object_hide_render_set_exec;
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */

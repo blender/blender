@@ -940,7 +940,7 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Expanded", "F-Curve Modifier's panel is expanded in UI");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 	
-	prop= RNA_def_property(srna, "muted", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_MUTED);
 	RNA_def_property_ui_text(prop, "Muted", "F-Curve Modifier will not be evaluated");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
@@ -1156,9 +1156,9 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "F-Curve Sample", "Sample point for F-Curve");
 	
 	/* Boolean values */
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1);
-	RNA_def_property_ui_text(prop, "Selected", "Selection status");
+	RNA_def_property_ui_text(prop, "Select", "Selection status");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	/* Vector value */
@@ -1183,19 +1183,19 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Keyframe", "Bezier curve point with two handles defining a Keyframe on an F-Curve");
 	
 	/* Boolean values */
-	prop= RNA_def_property(srna, "selected_handle1", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
 	RNA_def_property_ui_text(prop, "Handle 1 selected", "Handle 1 selection status");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
-	prop= RNA_def_property(srna, "selected_handle2", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_right_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f3", 0);
 	RNA_def_property_ui_text(prop, "Handle 2 selected", "Handle 2 selection status");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_control_point", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f2", 0);
-	RNA_def_property_ui_text(prop, "Selected", "Control point selection status");
+	RNA_def_property_ui_text(prop, "Select", "Control point selection status");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	/* Enums */
@@ -1384,17 +1384,17 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);	
 	
 	/* Flags */
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_SELECTED);
-	RNA_def_property_ui_text(prop, "Selected", "F-Curve is selected for editing");
+	RNA_def_property_ui_text(prop, "Select", "F-Curve is selected for editing");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
-	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_PROTECTED);
-	RNA_def_property_ui_text(prop, "Locked", "F-Curve's settings cannot be edited");
+	RNA_def_property_ui_text(prop, "Lock", "F-Curve's settings cannot be edited");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "muted", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_MUTED);
 	RNA_def_property_ui_text(prop, "Muted", "F-Curve is not evaluated");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
@@ -1404,15 +1404,15 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Auto Clamped Handles", "All auto-handles for F-Curve are clamped");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
-	prop= RNA_def_property(srna, "visible", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_VISIBLE);
-	RNA_def_property_ui_text(prop, "Visible", "F-Curve and its keyframes are shown in the Graph Editor graphs");
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FCURVE_VISIBLE);
+	RNA_def_property_ui_text(prop, "Hide", "F-Curve and its keyframes are hidden in the Graph Editor graphs");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
-	
+
 	/* State Info (for Debugging) */
-	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_DISABLED);
-	RNA_def_property_ui_text(prop, "Disabled", "F-Curve could not be evaluated in past, so should be skipped when evaluating");
+	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FCURVE_DISABLED);
+	RNA_def_property_ui_text(prop, "Enabled", "False when F-Curve could not be evaluated in past, so should be skipped when evaluating");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	/* Collections */

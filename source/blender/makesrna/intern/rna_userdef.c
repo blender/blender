@@ -1622,10 +1622,10 @@ static void rna_def_userdef_theme_colorset(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Normal", "Color used for the surface of bones");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "selected", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "select", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "select");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Selected", "Color used for selected bones");
+	RNA_def_property_ui_text(prop, "Select", "Color used for selected bones");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "active", PROP_FLOAT, PROP_COLOR);

@@ -356,10 +356,6 @@
 			Filter="c"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\datafiles\B.blend.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\datafiles\Bfont.c"
 				>
 			</File>
@@ -385,6 +381,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\datafiles\splash.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\startup.blend.c"
 				>
 			</File>
 		</Filter>
@@ -1345,6 +1345,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt_undo.c"
 				>
 			</File>
 		</Filter>

@@ -85,9 +85,9 @@ class ExportUVLayout(bpy.types.Operator):
             for i in range(uv_layer_len):
                 uv_elem = uv_layer[i]
                 # context checks
-                if faces[i].selected and (local_image is Ellipsis or local_image == uv_elem.image):
+                if faces[i].select and (local_image is Ellipsis or local_image == uv_elem.image):
                     #~ uv = uv_elem.uv
-                    #~ if False not in uv_elem.uv_selected[:len(uv)]:
+                    #~ if False not in uv_elem.select_uv[:len(uv)]:
                     #~     yield (i, uv)
 
                     # just write what we see.

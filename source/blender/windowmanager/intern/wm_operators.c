@@ -2611,7 +2611,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 
 	ViewContext vc;
 
-	int hit = 0;
+	// int hit = 0;
 
 	int flip;
 	int sign;
@@ -2779,7 +2779,7 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmRadialControl *rc = MEM_callocN(sizeof(wmRadialControl), "radial control");
-	wmWindow *win = CTX_wm_window(C);
+	// wmWindow *win = CTX_wm_window(C);
 	int mode = RNA_int_get(op->ptr, "mode");
 	float initial_value = RNA_float_get(op->ptr, "initial_value");
 	//float initial_size = RNA_float_get(op->ptr, "initial_size");

@@ -360,7 +360,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             vertMappingIndex = 0
 
             vertsToUse = [i for i in range(len(myContextMesh_vertls)) if faceVertUsers[i]]
-            myVertMapping = dict( [ (ii, i) for i, ii in enumerate(vertsToUse) ] )
+            myVertMapping = {ii: i for i, ii in enumerate(vertsToUse)}
 
             tempName= '%s_%s' % (contextObName, matName) # matName may be None.
             bmesh = bpy.data.meshes.new(tempName)

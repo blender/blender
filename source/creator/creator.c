@@ -133,14 +133,6 @@ extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
-/* unix path support.
- * defined by the compiler. eg "/usr/share/blender/2.5" "/opt/blender/2.5" */
-#ifndef BLENDERPATH
-#define BLENDERPATH ""
-#endif
- 
-char blender_path[FILE_MAXDIR+FILE_MAXFILE] = BLENDERPATH;
-
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
 
@@ -291,20 +283,22 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("\t\t\"blender --background test.blend --render-output /tmp --render-frame 1\" works as expected.\n\n");
 
 	printf ("\nEnvironment Variables:\n");
-	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
-	printf ("  $BLENDERPATH  System directory to use for data files and scripts.\n");
-	printf ("                For this build of blender the default $BLENDERPATH is...\n");
-	printf ("                \"%s\"\n", blender_path);
-	printf ("                setting the $BLENDERPATH will override this\n");
+	printf ("  $BLENDER_USER_CONFIG      Directory for user configuration files.\n");
+	printf ("  $BLENDER_SYSTEM_CONFIG    Directory for system wide configuration files.\n");
+	printf ("  $BLENDER_USER_SCRIPTS     Directory for user scripts.\n");
+	printf ("  $BLENDER_SYSTEM_SCRIPTS   Directory for system wide scripts.\n");
+	printf ("  $BLENDER_USER_DATAFILES   Directory for user data files (icons, translations, ..).\n");
+	printf ("  $BLENDER_SYSTEM_DATAFILES Directory for system wide data files.\n");
+	printf ("  $BLENDER_SYSTEM_PYTHON    Directory for system python libraries.\n");
 #ifdef WIN32
-	printf ("  $TEMP         Store temporary files here.\n");
+	printf ("  $TEMP                     Store temporary files here.\n");
 #else
-	printf ("  $TMP or $TMPDIR  Store temporary files here.\n");
+	printf ("  $TMP or $TMPDIR           Store temporary files here.\n");
 #endif
 #ifndef DISABLE_SDL
-	printf ("  $SDL_AUDIODRIVER  LibSDL audio driver - alsa, esd, alsa, dma.\n");
+	printf ("  $SDL_AUDIODRIVER          LibSDL audio driver - alsa, esd, dma.\n");
 #endif
-	printf ("  $PYTHONHOME   Path to the python directory, eg. /usr/lib/python.\n\n");
+	printf ("  $PYTHONHOME               Path to the python directory, eg. /usr/lib/python.\n\n");
 
 	exit(0);
 
@@ -1040,12 +1034,6 @@ int main(int argc, char **argv)
 
 	BLI_where_am_i(bprogname, argv[0]);
 	
-	{	/* override the hard coded blender path */
-		char *blender_path_env = getenv("BLENDERPATH");
-		if(blender_path_env)
-			BLI_strncpy(blender_path, blender_path_env, sizeof(blender_path));
-	}
-
 #ifdef BUILD_DATE	
     strip_quotes(build_date);
     strip_quotes(build_time);
@@ -1103,7 +1091,7 @@ int main(int argc, char **argv)
 		WM_init(C, argc, argv);
 		
 		/* this is properly initialized with user defs, but this is default */
-		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
+		BLI_where_is_temp( btempdir, 1 ); /* call after loading the startup.blend so we can read U.tempdir */
 
 #ifndef DISABLE_SDL
 	BLI_setenv("SDL_VIDEODRIVER", "dummy");
@@ -1121,7 +1109,7 @@ int main(int argc, char **argv)
 
 		WM_init(C, argc, argv);
 
-		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
+		BLI_where_is_temp( btempdir, 0 ); /* call after loading the startup.blend so we can read U.tempdir */
 	}
 #ifndef DISABLE_PYTHON
 	/**

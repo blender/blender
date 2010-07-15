@@ -53,7 +53,7 @@ blender_version = blender_version.split("Build")[0]
 
 date_string = datetime.date.fromtimestamp(time.time()).strftime("%B %d, %Y")
 
-filepath = os.path.splitext(__file__)[0] + ".1"
+filepath = os.path.splitext(__file__)[0]
 
 file = open(filepath, "w")
 
@@ -132,3 +132,5 @@ This manpage was written for a Debian GNU/Linux system by Daniel Mester
 <mester@uni-bremen.de> and updated by Cyril Brulebois
 <cyril.brulebois@enst-bretagne.fr> and Dan Eicher <dan@trollwerks.org>.
 ''')
+
+print("written:", filepath)

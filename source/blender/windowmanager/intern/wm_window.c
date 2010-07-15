@@ -258,7 +258,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 	}
 	else {
 		
-		/* this is set to 1 if you don't have .B.blend open */
+		/* this is set to 1 if you don't have startup.blend open */
 		if(G.save_over) {
 			char *str= MEM_mallocN(strlen(G.sce) + 16, "title");
 			

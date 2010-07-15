@@ -141,7 +141,7 @@ class TIME_MT_frame(bpy.types.Menu):
 
         # it was ok for riscos... ok TODO, operator
         for marker in context.scene.timeline_markers:
-            if marker.selected:
+            if marker.select:
                 layout.separator()
                 layout.prop(marker, "name", text="", icon='MARKER_HLT')
                 break

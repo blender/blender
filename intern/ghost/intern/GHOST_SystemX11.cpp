@@ -67,6 +67,10 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
+#ifndef PREFIX
+#  define PREFIX "/usr/local"
+#endif
+
 typedef struct NDOFPlatformInfo {
 	Display *display;
 	Window window;
@@ -1461,7 +1465,7 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 const GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
 {
-	return (GHOST_TUns8*)"/usr/share";
+	return (GHOST_TUns8*) PREFIX "/share";
 }
 
 const GHOST_TUns8* GHOST_SystemX11::getUserDir() const

@@ -126,7 +126,7 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 	
 	/* locked */
 	icon= (gpl->flag & GP_LAYER_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
-	uiItemR(subrow, &ptr, "locked", 0, "", icon);
+	uiItemR(subrow, &ptr, "lock", 0, "", icon);
 	
 	/* when layer is locked or hidden, only draw header */
 	if (gpl->flag & (GP_LAYER_LOCKED|GP_LAYER_HIDE)) {

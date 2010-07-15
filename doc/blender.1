@@ -1,4 +1,4 @@
-.TH "BLENDER" "1" "June 27, 2010" "Blender Blender 2\&.52 (sub 5) "
+.TH "BLENDER" "1" "July 15, 2010" "Blender Blender 2\&.52 (sub 5) "
 
 .SH NAME
 blender \- a 3D modelling and rendering package
@@ -317,11 +317,13 @@ Arguments are executed in the order they are given. eg
 .br
 .br
 .SH "ENVIRONMENT VARIABLES"
-  \fIHOME\fR Store files such as .blender/ .B.blend .Bfs .Blog here.
-  \fIBLENDERPATH\fR System directory to use for data files and scripts.
-                For this build of blender the default \fIBLENDERPATH\fR is...
-                "/usr/local/share/blender/2.5"
-                setting the \fIBLENDERPATH\fR will override this
+  \fIBLENDER_USER_CONFIG\fR Directory for user configuration files.
+  \fIBLENDER_SYSTEM_CONFIG\fR Directory for system wide configuration files.
+  \fIBLENDER_USER_SCRIPTS\fR Directory for user scripts.
+  \fIBLENDER_SYSTEM_SCRIPTS\fR Directory for system wide scripts.
+  \fIBLENDER_USER_DATAFILES\fR Directory for user data files (icons, translations, ..).
+  \fIBLENDER_SYSTEM_DATAFILES\fR Directory for system wide data files.
+  \fIBLENDER_SYSTEM_PYTHON\fR Directory for system python libraries.
   \fITMP\fR or \fITMPDIR\fR Store temporary files here.
   \fIPYTHONHOME\fR Path to the python directory, eg. /usr/lib/python.
 .br
