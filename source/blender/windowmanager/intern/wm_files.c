@@ -616,10 +616,11 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 	ED_object_exit_editmode(C, EM_DO_UNDO);
 	ED_sculpt_force_update(C);
 
-	do_history(di, reports);
-	
 	/* blend file thumbnail */
 	ibuf_thumb= blend_file_thumb(di, CTX_data_scene(C), &thumb);
+
+	/* rename to .blend1, do this as last before write */
+	do_history(di, reports);
 
 	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
 		strcpy(G.sce, di);
