@@ -81,13 +81,13 @@ class BONE_PT_transform(BoneButtonsPanel):
                 sub.label(text="Roll:")
                 sub.prop(bone, "roll", text="")
                 sub.label()
-                sub.prop(bone, "locked")
+                sub.prop(bone, "lock")
             else:
                 col = layout.column()
                 col.prop(bone, "head")
                 col.prop(bone, "tail")
                 col.prop(bone, "roll")
-                col.prop(bone, "locked")
+                col.prop(bone, "lock")
 
         else:
             pchan = ob.pose.bones[context.bone.name]
@@ -231,7 +231,7 @@ class BONE_PT_display(BoneButtonsPanel):
 
             col = split.column()
             col.prop(bone, "draw_wire", text="Wireframe")
-            col.prop(bone, "hidden", text="Hide")
+            col.prop(bone, "hide", text="Hide")
 
             if wide_ui:
                 col = split.column()

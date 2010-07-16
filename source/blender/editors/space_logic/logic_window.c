@@ -644,17 +644,17 @@ static char *controller_name(int type)
 {
 	switch (type) {
 	case CONT_LOGIC_AND:
-		return "AND";
+		return "And";
 	case CONT_LOGIC_OR:
-		return "OR";
+		return "Or";
 	case CONT_LOGIC_NAND:
-		return "NAND";
+		return "Nand";
 	case CONT_LOGIC_NOR:
-		return "NOR";
+		return "Nor";
 	case CONT_LOGIC_XOR:
-		return "XOR";
+		return "Xor";
 	case CONT_LOGIC_XNOR:
-		return "XNOR";
+		return "Xnor";
 	case CONT_EXPRESSION:
 		return "Expression";
 	case CONT_PYTHON:
@@ -3537,7 +3537,8 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr, int xco, i
 	uiLayout *box, *row, *subrow;
 	bController *cont= (bController *)ptr->data;
 
-	char name[3]; //XXX provisorly for state number
+	char state[3];
+	sprintf(state, "%d", RNA_int_get(ptr, "state"));
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
@@ -3546,14 +3547,13 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr, int xco, i
 	if(RNA_boolean_get(ptr, "expanded")) {
 		uiItemR(row, ptr, "type", 0, "", 0);
 		uiItemR(row, ptr, "name", 0, "", 0);
+		/* XXX provisory for Blender 2.50Beta */
+		uiDefBlockBut(uiLayoutGetBlock(layout), controller_state_mask_menu, cont, state, (short)(xco+width-44), yco, 22+22, UI_UNIT_Y, "Set controller state index (from 1 to 30)");
 	} else {
 		uiItemL(row, controller_name(cont->type), 0);
 		uiItemL(row, cont->name, 0);
+		uiItemL(row, state, 0);
 	}
-
-	/* XXX provisory for Blender 2.50Beta */
-	sprintf(name, "%d", RNA_int_get(ptr, "state"));
-	uiDefBlockBut(uiLayoutGetBlock(layout), controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22+22, UI_UNIT_Y, "Set controller state index (from 1 to 30)");
 
 	uiItemR(row, ptr, "priority", 0, "", 0);
 
@@ -4278,7 +4278,7 @@ static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *row, *col;
 
-	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL);
+	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL, NULL);
 	if (!RNA_pointer_get(ptr, "sound").data)
 	{
 		uiItemL(layout, "Select a sound from the list or load a new one", 0);

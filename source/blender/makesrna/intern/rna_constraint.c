@@ -1034,7 +1034,7 @@ static void rna_def_constraint_locked_track(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points to the target object");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "locked", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "lock", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "lockflag");
 	RNA_def_property_enum_items(prop, lock_items);
 	RNA_def_property_ui_text(prop, "Locked Axis", "Axis that points upward");

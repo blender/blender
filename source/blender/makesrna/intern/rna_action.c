@@ -326,14 +326,14 @@ static void rna_def_action_group(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, 0, "rna_ActionGroup_channels_next", 0, 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Channels", "F-Curves in this group");
 	
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_SELECTED);
-	RNA_def_property_ui_text(prop, "Selected", "Action Group is selected");
+	RNA_def_property_ui_text(prop, "Select", "Action Group is selected");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_SELECTED, NULL);
 	
-	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_PROTECTED);
-	RNA_def_property_ui_text(prop, "Locked", "Action Group is locked");
+	RNA_def_property_ui_text(prop, "Lock", "Action Group is locked");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);

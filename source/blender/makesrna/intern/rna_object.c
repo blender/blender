@@ -1538,9 +1538,9 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_layer_update");
 
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "Object selection state");
+	RNA_def_property_ui_text(prop, "Select", "Object selection state");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_select_update");
 
 	/* for data access */
@@ -1842,19 +1842,19 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_particle_update");
 
 	/* restrict */
-	prop= RNA_def_property(srna, "restrict_view", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEW);
 	RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "restrict_select", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_SELECT);
 	RNA_def_property_ui_text(prop, "Restrict Select", "Restrict selection in the viewport");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "restrict_render", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_RENDER);
 	RNA_def_property_ui_text(prop, "Restrict Render", "Restrict renderability");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
@@ -2111,9 +2111,9 @@ static void rna_def_object_base(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Base_layer_set");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Base_layer_update");
 	
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BA_SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "Object base selection state");
+	RNA_def_property_ui_text(prop, "Select", "Object base selection state");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Base_select_update");
 	
 	RNA_api_object_base(srna);

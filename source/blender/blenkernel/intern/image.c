@@ -200,9 +200,9 @@ void free_image(Image *ima)
 	}
 	BKE_icon_delete(&ima->id);
 	ima->id.icon_id = 0;
-	if (ima->preview) {
-		BKE_previewimg_free(&ima->preview);
-	}
+
+	BKE_previewimg_free(&ima->preview);
+
 	for(a=0; a<IMA_MAX_RENDER_SLOT; a++) {
 		if(ima->renders[a]) {
 			RE_FreeRenderResult(ima->renders[a]);

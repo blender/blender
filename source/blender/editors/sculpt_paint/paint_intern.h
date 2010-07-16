@@ -110,6 +110,13 @@ void PAINT_OT_face_select_all(struct wmOperatorType *ot);
 
 int facemask_paint_poll(struct bContext *C);
 
+/* stroke operator */
+typedef enum wmBrushStrokeMode {
+	WM_BRUSHSTROKE_NORMAL,
+	WM_BRUSHSTROKE_INVERT,
+	WM_BRUSHSTROKE_SMOOTH,
+} wmBrushStrokeMode;
+
 /* paint_undo.c */
 typedef void (*UndoRestoreCb)(struct bContext *C, struct ListBase *lb);
 typedef void (*UndoFreeCb)(struct ListBase *lb);

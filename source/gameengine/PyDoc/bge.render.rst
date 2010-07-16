@@ -230,7 +230,7 @@ Functions
 
 .. function:: enableMotionBlur(factor)
 
-   Enable the motion blue effect.
+   Enable the motion blur effect.
    
    :arg factor: the ammount of motion blur to display.
    :type factor: float [0.0 - 1.0]
@@ -238,5 +238,5 @@ Functions
 
 .. function:: disableMotionBlur()
 
-   Disable the motion blue effect.
+   Disable the motion blur effect.
 

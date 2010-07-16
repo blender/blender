@@ -75,17 +75,17 @@ typedef enum GPUDeviceType {
 } GPUDeviceType;
 
 typedef enum GPUOSType {
-	GPU_OS_WIN = 			(1<<16),
-	GPU_OS_MAC = 			(1<<17),
-	GPU_OS_UNIX =			(1<<18),
+	GPU_OS_WIN = 			(1<<8),
+	GPU_OS_MAC = 			(1<<9),
+	GPU_OS_UNIX =			(1<<10),
 	GPU_OS_ANY =			(0xff00)
 } GPUOSType;
 
 typedef enum GPUDriverType {
-	GPU_DRIVER_OFFICIAL =	(1<<24),
-	GPU_DRIVER_OPENSOURCE = (1<<25),
-	GPU_DRIVER_SOFTWARE =	(1<<26),
-	GPU_DRIVER_UNKNOWN =	(0xff0000)
+	GPU_DRIVER_OFFICIAL =	(1<<16),
+	GPU_DRIVER_OPENSOURCE = (1<<17),
+	GPU_DRIVER_SOFTWARE =	(1<<18),
+	GPU_DRIVER_ANY =		(0xff0000)
 } GPUDriverType;
 
 int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver);

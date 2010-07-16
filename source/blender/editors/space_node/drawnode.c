@@ -81,7 +81,7 @@
 
 void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiTemplateIDBrowse(layout, C, ptr, "nodetree", NULL, NULL, "");
+	uiTemplateIDBrowse(layout, C, ptr, "nodetree", NULL, NULL, "", NULL);
 }
 
 static void node_buts_value(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -306,7 +306,7 @@ static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA 
 	bNode *node= ptr->data;
 	uiLayout *col;
 	
-	uiTemplateID(layout, C, ptr, "material", "MATERIAL_OT_new", NULL, NULL);
+	uiTemplateID(layout, C, ptr, "material", "MATERIAL_OT_new", NULL, NULL, NULL);
 	
 	if(!node->id) return;
 	
@@ -467,7 +467,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	PointerRNA imaptr;
 	PropertyRNA *prop;
 	
-	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL, NULL);
 	
 	if(!node->id) return;
 	
@@ -504,7 +504,7 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 	const char *layer_name;
 	char scene_name[19];
 	
-	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL);
+	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL, NULL);
 	
 	if(!node->id) return;
 
@@ -1204,7 +1204,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *C, PointerRNA *pt
 
 static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL, NULL);
 }
 
 static void node_texture_buts_output(uiLayout *layout, bContext *C, PointerRNA *ptr)

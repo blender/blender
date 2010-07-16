@@ -821,7 +821,7 @@ def main(context, island_margin, projection_limit):
 #XXX	ob = objects.active
     ob= objects[0]
 
-    if ob and ob.selected == 0 and ob.type == 'MESH':
+    if ob and (not ob.select) and ob.type == 'MESH':
         # Add to the list
         obList =[ob]
     del objects
@@ -899,7 +899,7 @@ def main(context, island_margin, projection_limit):
         me_verts = list(me.verts)
 
         if USER_ONLY_SELECTED_FACES:
-            meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces) if f.selected]
+            meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces) if f.select]
         #else:
         #	meshFaces = map(thickface, me.faces)
 

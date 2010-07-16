@@ -237,7 +237,7 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	/* Active Action Properties ------------------------------------- */
 	/* action */
 	row= uiLayoutRow(layout, 1);
-		uiTemplateID(row, (bContext *)C, &adt_ptr, "action", "ACTION_OT_new", NULL, NULL /*"ACTION_OT_unlink"*/); // XXX: need to make these operators
+		uiTemplateID(row, (bContext *)C, &adt_ptr, "action", "ACTION_OT_new", NULL, NULL /*"ACTION_OT_unlink"*/, NULL); // XXX: need to make these operators
 	
 	/* extrapolation */
 	row= uiLayoutRow(layout, 1);
@@ -322,7 +322,7 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	column= uiLayoutColumn(layout, 1);
 		uiLayoutSetActive(column, !(RNA_boolean_get(&strip_ptr, "animated_influence") || RNA_boolean_get(&strip_ptr, "animated_time"))); 
 		uiItemL(column, "Playback Settings:", 0);
-		uiItemR(column, &strip_ptr, "muted", 0, NULL, 0);
+		uiItemR(column, &strip_ptr, "mute", 0, NULL, 0);
 		uiItemR(column, &strip_ptr, "reversed", 0, NULL, 0);
 }
 

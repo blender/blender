@@ -305,9 +305,9 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Handle Type", "Curve interpolation at this point: bezier or vector");
 
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "Selection state of the curve point");
+	RNA_def_property_ui_text(prop, "Select", "Selection state of the curve point");
 }
 
 static void rna_def_curvemap(BlenderRNA *brna)

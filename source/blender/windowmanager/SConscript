@@ -24,7 +24,7 @@ if env['WITH_BF_COLLADA']:
 
 if env['OURPLATFORM'] == 'linux2':
 	cflags='-pthread'
-    	incs += ' ../../../extern/binreloc/include'
+	incs += ' ../../../extern/binreloc/include'
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
 	incs += ' ' + env['BF_PTHREADS_INC']
@@ -35,4 +35,4 @@ if env['WITH_GHOST_COCOA']:
 if env['BF_BUILDINFO']:
 	defs.append('NAN_BUILDINFO')
 
-env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defs, libtype=['core'], priority=[5] )
+env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defines=defs, libtype=['core'], priority=[5] )

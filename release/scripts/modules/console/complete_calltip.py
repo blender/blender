@@ -124,7 +124,7 @@ def get_argspec(func, strip_self=True, doc=None, source=None):
         if source is None:
             try:
                 source = inspect.getsource(func)
-            except TypeError:
+            except (TypeError, IOError):
                 source = ''
         if source:
             match = re.search(DEF_SOURCE % func_name, source, RE_FLAG)

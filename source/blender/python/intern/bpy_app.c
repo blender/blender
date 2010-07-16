@@ -43,7 +43,6 @@ static PyTypeObject BlenderAppType;
 static PyStructSequence_Field app_info_fields[] = {
 	{"version", "The Blender version as a tuple of 3 numbers. eg. (2, 50, 11)"},
 	{"version_string", "The Blender version formatted as a string"},
-	{"home", "The blender home directory, normally matching $HOME"},
 	{"binary_path", "The location of blenders executable, useful for utilities that spawn new instances"},
 	{"debug", "Boolean, set when blender is running in debug mode (started with -d)"},
 	{"background", "Boolean, True when blender is running without a user interface (started with -b)"},
@@ -85,7 +84,6 @@ static PyObject *make_app_info(void)
 
 	SetObjItem(Py_BuildValue("(iii)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION));
 	SetObjItem(PyUnicode_FromFormat("%d.%02d (sub %d)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION));
-	SetStrItem(BLI_gethome());
 	SetStrItem(bprogname);
 	SetObjItem(PyBool_FromLong(G.f & G_DEBUG));
 	SetObjItem(PyBool_FromLong(G.background));

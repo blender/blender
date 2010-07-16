@@ -382,7 +382,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	
 	/* XXX */
 	G.save_over = 0;	// start with save preference untitled.blend
-	G.fileflags &= ~G_FILE_AUTOPLAY;	/*  disable autoplay in .B.blend... */
+	G.fileflags &= ~G_FILE_AUTOPLAY;	/*  disable autoplay in startup.blend... */
 //	mainwindow_set_filename_to_title("");	// empty string re-initializes title to "Blender"
 	
 //	refresh_interface_font();
@@ -418,7 +418,7 @@ void read_history(void)
 
 	G.recent_files.first = G.recent_files.last = NULL;
 
-	/* read list of recent opend files from .Blog to memory */
+	/* read list of recent opend files from recent-files.txt to memory */
 	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next) {
 		line = l->link;
 		if (line[0] && BLI_exists(line)) {
@@ -434,9 +434,6 @@ void read_history(void)
 			num++;
 		}
 	}
-
-	if(G.sce[0] == 0)
-		BLI_make_file_string("/", G.sce, BLI_gethome(), "untitled.blend");
 	
 	BLI_free_file_lines(lines);
 
@@ -452,7 +449,7 @@ static void write_history(void)
 	BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_HISTORY_FILE);
 
 	recent = G.recent_files.first;
-	/* refresh .Blog of recent opened files, when current file was changed */
+	/* refresh recent-files.txt of recent opened files, when current file was changed */
 	if(!(recent) || (strcmp(recent->filepath, G.sce)!=0)) {
 		fp= fopen(name, "w");
 		if (fp) {
@@ -462,11 +459,11 @@ static void write_history(void)
 			recent->filepath[0] = '\0';
 			strcpy(recent->filepath, G.sce);
 			BLI_addhead(&(G.recent_files), recent);
-			/* write current file to .Blog */
+			/* write current file to recent-files.txt */
 			fprintf(fp, "%s\n", recent->filepath);
 			recent = recent->next;
 			i=1;
-			/* write rest of recent opened files to .Blog */
+			/* write rest of recent opened files to recent-files.txt */
 			while((i<U.recent_files) && (recent)){
 				/* this prevents to have duplicities in list */
 				if (strcmp(recent->filepath, G.sce)!=0) {
@@ -616,10 +613,11 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 	ED_object_exit_editmode(C, EM_DO_UNDO);
 	ED_sculpt_force_update(C);
 
-	do_history(di, reports);
-	
 	/* blend file thumbnail */
 	ibuf_thumb= blend_file_thumb(di, CTX_data_scene(C), &thumb);
+
+	/* rename to .blend1, do this as last before write */
+	do_history(di, reports);
 
 	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
 		strcpy(G.sce, di);
@@ -685,21 +683,22 @@ void wm_autosave_location(char *filename)
 {
 	char pidstr[32];
 #ifdef WIN32
-	char subdir[9];
-	char savedir[FILE_MAXDIR];
+	char *savedir;
 #endif
 
 	sprintf(pidstr, "%d.blend", abs(getpid()));
 	
 #ifdef WIN32
+	// XXX Need to investigate how to handle default location of '/tmp/'
+	// This is a relative directory on Windows, and it may be
+	// found. Example:
+	// Blender installed on D:\ drive, D:\ drive has D:\tmp\
+	// Now, BLI_exists() will find '/tmp/' exists, but
+	// BLI_make_file_string will create string that has it most likely on C:\
+	// through get_default_root().
+	// If there is no C:\tmp autosave fails.
 	if (!BLI_exists(U.tempdir)) {
-		BLI_strncpy(subdir, "autosave", sizeof(subdir));
-		BLI_make_file_string("/", savedir, BLI_gethome(), subdir);
-		
-		/* create a new autosave dir
-		 * function already checks for existence or not */
-		BLI_recurdir_fileops(savedir);
-	
+		savedir = BLI_get_folder_create(BLENDER_USER_AUTOSAVE, NULL);
 		BLI_make_file_string("/", filename, savedir, pidstr);
 		return;
 	}

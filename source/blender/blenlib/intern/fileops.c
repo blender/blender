@@ -205,6 +205,10 @@ int BLI_touch(const char *file)
 	return 0;
 }
 
+int BLI_exists(char *file) {
+	return BLI_exist(file);
+}
+
 #ifdef WIN32
 
 static char str[MAXPATHLEN+12];
@@ -282,10 +286,6 @@ int BLI_link(char *file, char *to) {
 	return 1;
 }
 
-int BLI_exists(char *file) {
-	return (GetFileAttributes(file) != 0xFFFFFFFF);
-}
-
 void BLI_recurdir_fileops(char *dirname) {
 	char *lslash;
 	char tmp[MAXPATHLEN];
@@ -326,10 +326,10 @@ int BLI_rename(char *from, char *to) {
 	return rename(from, to);
 }
 
-#else /* The sane UNIX world */
+#else /* The weirdo UNIX world */
 
 /*
- * but the sane UNIX world is tied to the interface, and the system
+ * but the UNIX world is tied to the interface, and the system
  * timer, and... We implement a callback mechanism. The system will
  * have to initialise the callback before the functions will work!
  * */
@@ -372,10 +372,6 @@ int BLI_link(char *file, char *to) {
 	sprintf(str, "/bin/ln -f \"%s\" \"%s\"", file, to);
 	
 	return system(str);
-}
-
-int BLI_exists(char *file) {
-	return BLI_exist(file);
 }
 
 void BLI_recurdir_fileops(char *dirname) {

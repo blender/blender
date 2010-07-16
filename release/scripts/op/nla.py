@@ -100,7 +100,7 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
     pose_items = pose.bones.items()
 
     for name, pbone in pose_items:
-        if only_selected and not pbone.selected:
+        if only_selected and not pbone.select:
             continue
 
         for f in frame_range:

@@ -1,7 +1,6 @@
 ActionActuator.continue_last_frame -> use_continue_last_frame:    boolean    Restore last frame when switching on/off, otherwise play from the start each time
 ActionGroup.expanded -> show_expanded:    boolean    Action Group is expanded
-ActionGroup.locked -> lock:    boolean    Action Group is locked
-ActionGroup.selected -> select:    boolean    Action Group is selected
+
 Actuator.expanded -> show_expanded:    boolean    Set actuator expanded in the user interface
 AnimData.nla_enabled -> use_nla:    boolean    NLA stack is evaluated when evaluating this block
 AnimVizMotionPaths.highlight_keyframes -> show_keyframe_highlight:    boolean    Emphasize position of keyframes on Motion Paths
@@ -25,8 +24,8 @@ Armature.draw_custom_bone_shapes -> show_bone_custom_shapes:    boolean    Draw 
 Armature.draw_group_colors -> show_group_colors:    boolean    Draw bone group colors
 Armature.draw_names -> show_names:    boolean    Draw bone names
 Armature.show_ghost_only_selected -> show_only_ghost_selected:    boolean
-Armature.layer -> layer:    boolean    Armature layer visibility
-Armature.layer_protection -> layer_protected:    boolean    Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo
+Armature.layer -> layers:    boolean    Armature layer visibility
+Armature.layer_protection -> layers_protected:    boolean    Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo
 Armature.x_axis_mirror -> use_mirror_x:    boolean    Apply changes to matching bone on opposite side of X-Axis
 ArmatureModifier.invert -> invert_vertex_group:    boolean    Invert vertex group influence
 ArmatureModifier.multi_modifier -> use_multi_modifier:    boolean    Use same input as previous modifier, and mix results using overall vgroup
@@ -40,10 +39,7 @@ ArrayModifier.merge_end_vertices -> use_merge_end_vertices:    boolean    Merge 
 ArrayModifier.relative_offset -> use_relative_offset:    boolean    Add an offset relative to the object's bounding box
 BackgroundImage.show_expanded -> show_expanded:    boolean    Show the expanded in the user interface
 BevelModifier.only_vertices -> use_only_vertices:    boolean    Bevel verts/corners, not edges
-BezierSplinePoint.hidden -> hide:    boolean    Visibility status
-BezierSplinePoint.selected_control_point -> select_control_point:    boolean    Control point selection status
-BezierSplinePoint.selected_handle1 -> select_left_handle:    boolean    Handle 1 selection status
-BezierSplinePoint.selected_handle2 -> select_right_handle:    boolean    Handle 2 selection status
+
 BoidRule.in_air -> use_in_air:    boolean    Use rule when boid is flying
 BoidRule.on_land -> use_on_land:    boolean    Use rule when boid is on land
 BoidRuleAvoid.predict -> use_predict:    boolean    Predict target movement
@@ -58,14 +54,12 @@ Bone.connected -> use_connect:    boolean, (read-only)    When bone has a parent
 Bone.cyclic_offset -> use_cyclic_offset:    boolean    When bone doesn't have a parent, it receives cyclic offset effects
 Bone.deform -> use_deform:    boolean    Bone does not deform any geometry
 Bone.draw_wire -> show_wire:    boolean    Bone is always drawn as Wireframe regardless of viewport draw mode. Useful for non-obstructive custom bone shapes
-Bone.hidden -> hide:    boolean    Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)
+
 Bone.hinge -> use_hinge:    boolean    Bone inherits rotation or scale from parent bone
 Bone.inherit_scale -> use_inherit_scale:    boolean    Bone inherits scaling from parent bone
-Bone.layer -> layer:    boolean    Layers bone exists in
+Bone.layer -> layers:    boolean    Layers bone exists in
 Bone.local_location -> use_local_location:    boolean    Bone location is set in local space
 Bone.multiply_vertexgroup_with_envelope -> use_envelope_multiply:    boolean    When deforming bone, multiply effects of Vertex Group weights with Envelope influence
-Bone.restrict_select -> restrict_select:    boolean    Bone is able to be selected
-Bone.selected -> select:    boolean
 BooleanProperty.default -> default:    boolean, (read-only)    Default value for this number
 BooleanProperty.default_array -> default_array:    boolean, (read-only)    Default value for this array
 Brush.use_accumulate -> use_accumulate:    boolean    Accumulate stroke dabs on top of each other
@@ -149,7 +143,7 @@ ControlFluidSettings.active -> use:    boolean    Object contributes to the flui
 ControlFluidSettings.reverse_frames -> use_reverse_frames:    boolean    Reverse control object movement
 Controller.expanded -> show_expanded:    boolean    Set controller expanded in the user interface
 Controller.priority -> use_priority:    boolean    Mark controller for execution before all non-marked controllers (good for startup scripts)
-Controller.state -> state:    boolean, (read-only)    Set Controller state index (1 to 30)
+Controller.state -> states:    boolean, (read-only)    Set Controller state index (1 to 30)
 CopyLocationConstraint.invert_x -> invert_x:    boolean    Invert the X location
 CopyLocationConstraint.invert_y -> invert_y:    boolean    Invert the Y location
 CopyLocationConstraint.invert_z -> invert_z:    boolean    Invert the Z location
@@ -180,7 +174,7 @@ Curve.use_path_follow -> use_path_follow:    boolean    Make curve path children
 Curve.use_radius -> use_radius:    boolean    Option for paths: apply the curve radius with path following it and deforming
 Curve.use_stretch -> use_stretch:    boolean    Option for curve-deform: makes deformed child to stretch along entire path
 Curve.use_time_offset -> use_time_offset:    boolean    Children will use Time Offset value as path distance offset
-CurveMapPoint.selected -> select:    boolean    Selection state of the curve point
+
 CurveMapping.clip -> use_clip:    boolean    Force the curve view to fit a defined boundary
 DelaySensor.repeat -> use_repeat:    boolean    Toggle repeat option. If selected, the sensor restarts after Delay+Dur logic tics
 DomainFluidSettings.generate_speed_vectors -> use_speed_vectors:    boolean    Generate speed vectors for vector blur
@@ -214,17 +208,13 @@ EditBone.connected -> use_connect:    boolean    When bone has a parent, bone's 
 EditBone.cyclic_offset -> use_cyclic_offset:    boolean    When bone doesn't have a parent, it receives cyclic offset effects
 EditBone.deform -> use_deform:    boolean    Bone does not deform any geometry
 EditBone.draw_wire -> show_wire:    boolean    Bone is always drawn as Wireframe regardless of viewport draw mode. Useful for non-obstructive custom bone shapes
-EditBone.hidden -> hide:    boolean    Bone is not visible when in Edit Mode
+
 EditBone.hinge -> use_hinge:    boolean    Bone inherits rotation or scale from parent bone
 EditBone.inherit_scale -> use_inherit_scale:    boolean    Bone inherits scaling from parent bone
-EditBone.layer -> layer:    boolean    Layers bone exists in
+EditBone.layer -> layers:    boolean    Layers bone exists in
 EditBone.local_location -> use_local_location:    boolean    Bone location is set in local space
-EditBone.locked -> lock:    boolean    Bone is not able to be transformed when in Edit Mode
 EditBone.multiply_vertexgroup_with_envelope -> use_envelope_multiply:    boolean    When deforming bone, multiply effects of Vertex Group weights with Envelope influence
-EditBone.restrict_select -> restrict_select:    boolean    Bone is able to be selected
-EditBone.selected -> select:    boolean
-EditBone.selected_head -> select_head:    boolean
-EditBone.selected_tail -> select_tail:    boolean
+
 EditObjectActuator.enable_3d_tracking -> use_3d_tracking:    boolean    Enable 3D tracking
 EditObjectActuator.local_angular_velocity -> use_local_angular_velocity:    boolean    Apply the rotation locally
 EditObjectActuator.local_linear_velocity -> use_local_linear_velocity:    boolean    Apply the transformation locally
@@ -243,30 +233,23 @@ EffectSequence.use_crop -> use_crop:    boolean    Crop image before processing
 EffectSequence.use_proxy -> use_proxy:    boolean    Use a preview proxy for this strip
 EffectSequence.use_translation -> use_translation:    boolean    Translate image before processing
 EffectorWeights.do_growing_hair -> apply_to_hair_growing:    boolean    Use force fields when growing hair
-EnvironmentMap.ignore_layers -> layer_ignore:    boolean    Hide objects on these layers when generating the Environment Map
-EnvironmentMapTexture.use_filter_size_min -> filter_size_min:    boolean    Use Filter Size as a minimal filter value in pixels
+EnvironmentMap.ignore_layers -> layers_ignore:    boolean    Hide objects on these layers when generating the Environment Map
+EnvironmentMapTexture.use_filter_size_min -> use_minimum_filter_size:    boolean    Use Filter Size as a minimal filter value in pixels
 EnvironmentMapTexture.mipmap -> use_mipmap:    boolean    Uses auto-generated MIP maps for the image
 EnvironmentMapTexture.mipmap_gauss -> use_mipmap_gauss:    boolean    Uses Gauss filter to sample down MIP maps
-Event.alt -> alt:    boolean, (read-only)    True when the Alt/Option key is held
-Event.ctrl -> ctrl:    boolean, (read-only)    True when the Ctrl key is held
-Event.oskey -> oskey:    boolean, (read-only)    True when the Cmd key is held
-Event.shift -> shift:    boolean, (read-only)    True when the Shift key is held
+Event.alt -> is_pressed_alt:    boolean, (read-only)    True when the Alt/Option key is held
+Event.ctrl -> is_pressed_ctrl:    boolean, (read-only)    True when the Ctrl key is held
+Event.oskey -> is_pressed_cmd:    boolean, (read-only)    True when the Cmd key is held
+Event.shift -> is_pressed_shift:    boolean, (read-only)    True when the Shift key is held
 ExplodeModifier.alive -> show_alive:    boolean    Show mesh when particles are alive
 ExplodeModifier.dead -> show_dead:    boolean    Show mesh when particles are dead
 ExplodeModifier.size -> use_size:    boolean    Use particle size for the shrapnel
 ExplodeModifier.split_edges -> use_edge_split:    boolean    Split face edges for nicer shrapnel
 ExplodeModifier.unborn -> show_unborn:    boolean    Show mesh when particles are unborn
 FCurve.auto_clamped_handles -> use_auto_handle_clamp:    boolean    All auto-handles for F-Curve are clamped
-NEGATE * FCurve.disabled -> enabled:    boolean    F-Curve could not be evaluated in past, so should be skipped when evaluating
-FCurve.locked -> lock:    boolean    F-Curve's settings cannot be edited
-FCurve.muted -> mute:    boolean    F-Curve is not evaluated
-FCurve.selected -> select:    boolean    F-Curve is selected for editing
-NEGATE * FCurve.visible -> hide:    boolean    F-Curve and its keyframes are shown in the Graph Editor graphs
-FCurveSample.selected -> select:    boolean    Selection status
 FModifier.active -> active:    boolean    F-Curve Modifier is the one being edited
-NEGATE * FModifier.disabled -> enabled:    boolean, (read-only)    F-Curve Modifier has invalid settings and will not be evaluated
+NEGATE * FModifier.disabled -> use:    boolean, (read-only)    F-Curve Modifier has invalid settings and will not be evaluated
 FModifier.expanded -> show_expanded:    boolean    F-Curve Modifier's panel is expanded in UI
-FModifier.muted -> mute:    boolean    F-Curve Modifier will not be evaluated
 FModifierFunctionGenerator.additive -> use_additive:    boolean    Values generated by this modifier are applied on top of the existing values instead of overwriting them
 FModifierGenerator.additive -> use_additive:    boolean    Values generated by this modifier are applied on top of the existing values instead of overwriting them
 FModifierLimits.use_maximum_x -> use_max_x:    boolean    Use the maximum X value
@@ -314,12 +297,10 @@ FollowPathConstraint.use_fixed_position -> use_fixed_location:    boolean    Obj
 Function.registered -> is_registered:    boolean, (read-only)    Function is registered as callback as part of type registration
 Function.registered_optional -> is_registered_optional:    boolean, (read-only)    Function is optionally registered as callback part of type registration
 GPencilFrame.paint_lock -> is_edited:    boolean    Frame is being edited (painted on)
-GPencilFrame.selected -> select:    boolean    Frame is selected for editing in the DopeSheet
 GPencilLayer.active -> active:    boolean    Set active layer for editing
 GPencilLayer.frame_lock -> lock_frame:    boolean    Lock current frame displayed by layer
 GPencilLayer.hide -> hide:    boolean    Set layer Visibility
-GPencilLayer.locked -> lock:    boolean    Protect layer from further editing and/or frame changes
-GPencilLayer.selected -> select:    boolean    Layer is selected for editing in the DopeSheet
+
 GPencilLayer.show_points -> show_points:    boolean    Draw the points which make up the strokes (for debugging purposes)
 GPencilLayer.use_onion_skinning -> use_onion_skinning:    boolean    Ghost frames on either side of frame
 GameBooleanProperty.value -> value:    boolean    Property value
@@ -329,7 +310,7 @@ GameObjectSettings.anisotropic_friction -> use_anisotropic_friction:    boolean 
 GameObjectSettings.collision_compound -> use_collision_compound:    boolean    Add children to form a compound collision object
 GameObjectSettings.debug_state -> show_debug_state:    boolean    Print state debug info in the game engine
 GameObjectSettings.ghost -> use_ghost:    boolean    Object does not restitute collisions, like a ghost
-GameObjectSettings.initial_state -> state_initial:    boolean    Initial state when the game starts
+GameObjectSettings.initial_state -> states_initial:    boolean    Initial state when the game starts
 GameObjectSettings.lock_x_axis -> lock_location_x:    boolean    Disable simulation of linear motion along the X axis
 GameObjectSettings.lock_x_rot_axis -> lock_rotation_x:    boolean    Disable simulation of angular  motion along the X axis
 GameObjectSettings.lock_y_axis -> lock_location_y:    boolean    Disable simulation of linear motion along the Y axis
@@ -345,8 +326,8 @@ GameObjectSettings.show_sensors -> show_sensors:    boolean    Shows sensors for
 GameObjectSettings.show_state_panel -> show_state_panel:    boolean    Show state panel
 GameObjectSettings.use_activity_culling -> use_activity_culling:    boolean    Disable simulation of angular  motion along the Z axis
 GameObjectSettings.use_collision_bounds -> use_collision_bounds:    boolean    Specify a collision bounds type other than the default
-GameObjectSettings.used_state -> state_used:    boolean, (read-only)    States which are being used by controllers
-GameObjectSettings.visible_state -> state_visible:    boolean    State determining which controllers are displayed
+GameObjectSettings.used_state -> states_used:    boolean, (read-only)    States which are being used by controllers
+GameObjectSettings.visible_state -> states_visible:    boolean    State determining which controllers are displayed
 GameProperty.debug -> show_debug:    boolean    Print debug information for this property
 GameSoftBodySettings.bending_const -> use_bending_constraints:    boolean    Enable bending constraints
 GameSoftBodySettings.cluster_rigid_to_softbody -> use_cluster_rigid_to_softbody:    boolean    Enable cluster collision between soft and rigid body
@@ -354,7 +335,7 @@ GameSoftBodySettings.cluster_soft_to_softbody -> use_cluster_soft_to_softbody:  
 GameSoftBodySettings.shape_match -> use_shape_match:    boolean    Enable soft body shape matching goal
 GlowSequence.only_boost -> use_only_boost:    boolean    Show the glow buffer only
 GreasePencil.use_stroke_endpoints -> use_stroke_endpoints:    boolean    Only use the first and last parts of the stroke for snapping
-Group.layer -> layer:    boolean    Layers visible when this groups is instanced as a dupli
+Group.layer -> layers:    boolean    Layers visible when this groups is instanced as a dupli
 ID.fake_user -> use_fake_user:    boolean    Saves this datablock even if it has no users
 ID.tag -> tag:    boolean    Tools can use this to tag data, (initial state is undefined)
 Image.animated -> use_animation:    boolean    Use as animated texture in the game engine
@@ -413,16 +394,13 @@ KeyMap.items_expanded -> show_expanded_items:    boolean    Expanded in the user
 KeyMap.modal -> is_modal:    boolean, (read-only)    Indicates that a keymap is used for translate modal events for an operator
 KeyMap.user_defined -> is_user_defined:    boolean    Keymap is defined by the user
 KeyMapItem.active -> active:    boolean    Activate or deactivate item
-KeyMapItem.alt -> alt:    boolean    Alt key pressed
-KeyMapItem.any -> any:    boolean    Any modifier keys pressed
-KeyMapItem.ctrl -> ctrl:    boolean    Control key pressed
+KeyMapItem.alt -> pressed_alt:    boolean    Alt key pressed
+KeyMapItem.any -> pressed_any:    boolean    Any modifier keys pressed
+KeyMapItem.ctrl -> pressed_ctrl:    boolean    Control key pressed
 KeyMapItem.expanded -> show_expanded:    boolean    Show key map event and property details in the user interface
-KeyMapItem.oskey -> oskey:    boolean    Operating system key pressed
-KeyMapItem.shift -> shift:    boolean    Shift key pressed
+KeyMapItem.oskey -> pressed_cmd:    boolean    Operating system key pressed
+KeyMapItem.shift -> pressed_shift:    boolean    Shift key pressed
 KeyboardSensor.all_keys -> use_all_keys:    boolean    Trigger this sensor on any keystroke
-Keyframe.selected -> select:    boolean    Control point selection status
-Keyframe.selected_handle1 -> select_left_handle:    boolean    Handle 1 selection status
-Keyframe.selected_handle2 -> select_right_handle:    boolean    Handle 2 selection status
 KeyingSet.absolute -> use_absolute:    boolean    Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)
 KeyingSet.insertkey_needed -> use_insertkey_needed:    boolean    Only insert keyframes where they're needed in the relevant F-Curves
 KeyingSet.insertkey_visual -> use_insertkey_visual:    boolean    Insert keyframes based on 'visual transforms'
@@ -564,17 +542,14 @@ Mesh.use_paint_mask -> use_paint_mask:    boolean    Face selection masking for 
 Mesh.vertex_normal_flip -> use_vertex_normal_flip:    boolean    Flip vertex normals towards the camera during render
 MeshColorLayer.active -> active:    boolean    Sets the layer as active for display and editing
 MeshColorLayer.active_render -> active_render:    boolean    Sets the layer as active for rendering
-MeshDeformModifier.dynamic -> dynamic:    boolean    Recompute binding dynamically on top of other deformers (slower and more memory consuming.)
+MeshDeformModifier.dynamic -> use_dynamic_bind:    boolean    Recompute binding dynamically on top of other deformers (slower and more memory consuming.)
 MeshDeformModifier.invert -> invert_vertex_group:    boolean    Invert vertex group influence
 MeshDeformModifier.is_bound -> is_bound:    boolean, (read-only)    Whether geometry has been bound to control cage
 MeshEdge.fgon -> is_fgon:    boolean, (read-only)    Fgon edge
-MeshEdge.hidden -> hide:    boolean
 MeshEdge.loose -> is_loose:    boolean, (read-only)    Loose edge
 MeshEdge.seam -> use_seam:    boolean    Seam edge for UV unwrapping
-MeshEdge.selected -> select:    boolean
 MeshEdge.sharp -> use_sharp:    boolean    Sharp edge for the EdgeSplit modifier
-MeshFace.hidden -> hide:    boolean
-MeshFace.selected -> select:    boolean
+
 MeshFace.smooth -> use_smooth:    boolean
 MeshTextureFace.alpha_sort -> use_alpha_sort:    boolean    Enable sorting of faces for correct alpha drawing (slow, use Clip Alpha instead when possible)
 MeshTextureFace.billboard -> use_billboard:    boolean    Billboard with Z-axis constraint
@@ -588,13 +563,11 @@ MeshTextureFace.shared -> use_blend_shared:    boolean    Blend vertex colors ac
 MeshTextureFace.tex -> use_texture:    boolean    Render face with texture
 MeshTextureFace.text -> use_bitmap_text:    boolean    Enable bitmap text on face
 MeshTextureFace.twoside -> use_twoside:    boolean    Render face two-sided
-MeshTextureFace.uv_pinned -> uv_pin:    boolean
-MeshTextureFace.uv_selected -> uv_select:    boolean
+MeshTextureFace.uv_pinned -> pin_uv:    boolean
+MeshTextureFace.uv_selected -> select_uv:    boolean
 MeshTextureFaceLayer.active -> active:    boolean    Sets the layer as active for display and editing
 MeshTextureFaceLayer.active_clone -> active_clone:    boolean    Sets the layer as active for cloning
 MeshTextureFaceLayer.active_render -> active_render:    boolean    Sets the layer as active for rendering
-MeshVertex.hidden -> hide:    boolean
-MeshVertex.selected -> select:    boolean
 MetaBall.auto_texspace -> use_auto_texspace:    boolean    Adjusts active object's texture space automatically when transforming object
 MetaElement.hide -> hide:    boolean    Hide element
 MetaElement.negative -> use_negative:    boolean    Set metaball as negative one
@@ -624,7 +597,6 @@ Modifier.realtime -> show_realtime:    boolean    Realtime display of a modifier
 Modifier.render -> use_render:    boolean    Use modifier during rendering
 MotionPath.editing -> is_edited:    boolean    Path is being edited
 MotionPath.use_bone_head -> use_bone_head:    boolean, (read-only)    For PoseBone paths, use the bone head location when calculating this path
-MotionPathVert.selected -> select:    boolean    Path point is selected for editing
 MovieSequence.convert_float -> use_float:    boolean    Convert input to float data
 MovieSequence.de_interlace -> use_deinterlace:    boolean    For video movies to remove fields
 MovieSequence.flip_x -> use_flip_x:    boolean    Flip on the X axis
@@ -663,11 +635,7 @@ NlaStrip.animated_time_cyclic -> use_animated_time_cyclic:    boolean    Cycle t
 NlaStrip.auto_blending -> use_auto_blend:    boolean    Number of frames for Blending In/Out is automatically determined from overlapping strips
 NlaStrip.muted -> mute:    boolean    NLA Strip is not evaluated
 NlaStrip.reversed -> use_reverse:    boolean    NLA Strip is played back in reverse order (only when timing is automatically determined)
-NlaStrip.selected -> select:    boolean    NLA Strip is selected
 NlaTrack.active -> active:    boolean, (read-only)    NLA Track is active
-NlaTrack.locked -> lock:    boolean    NLA Track is locked
-NlaTrack.muted -> mute:    boolean    NLA Track is not evaluated
-NlaTrack.selected -> select:    boolean    NLA Track is selected
 NlaTrack.solo -> is_solo:    boolean, (read-only)    NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)
 Object.draw_axis -> show_axis:    boolean    Displays the object's origin and axis
 Object.draw_bounds -> show_bounds:    boolean    Displays the object's bounds
@@ -676,16 +644,13 @@ Object.draw_texture_space -> show_texture_space:    boolean    Displays the obje
 Object.draw_transparent -> show_transparent:    boolean    Enables transparent materials for the object (Mesh only)
 Object.draw_wire -> show_wire:    boolean    Adds the object's wireframe over solid drawing
 Object.duplis_used -> is_duplicator:    boolean, (read-only)
-Object.layers -> layer:    boolean    Layers the object is on
+Object.layers -> layers:    boolean    Layers the object is on
 Object.lock_location -> lock_location:    boolean    Lock editing of location in the interface
 Object.lock_rotation -> lock_rotation:    boolean    Lock editing of rotation in the interface
 Object.lock_rotation_w -> lock_rotation_w:    boolean    Lock editing of 'angle' component of four-component rotations in the interface
 Object.lock_rotations_4d -> lock_rotations_4d:    boolean    Lock editing of four component rotations by components (instead of as Eulers)
 Object.lock_scale -> lock_scale:    boolean    Lock editing of scale in the interface
-Object.restrict_render -> restrict_render:    boolean    Restrict renderability
-Object.restrict_select -> restrict_select:    boolean    Restrict selection in the viewport
-Object.restrict_view -> restrict_view:    boolean    Restrict visibility in the viewport
-Object.selected -> select:    boolean    Object selection state
+
 Object.shape_key_edit_mode -> use_shape_key_edit_mode:    boolean    Apply shape keys in edit mode (for Meshes only)
 Object.shape_key_lock -> show_shape_key:    boolean    Always show the current Shape for this Object
 Object.slow_parent -> use_slow_parent:    boolean    Create a delay in the parent relationship
@@ -707,8 +672,7 @@ ObjectActuator.local_torque -> use_local_torque:    boolean    Torque is defined
 ObjectActuator.servo_limit_x -> use_servo_limit_x:    boolean    Set limit to force along the X axis
 ObjectActuator.servo_limit_y -> use_servo_limit_y:    boolean    Set limit to force along the Y axis
 ObjectActuator.servo_limit_z -> use_servo_limit_z:    boolean    Set limit to force along the Z axis
-ObjectBase.layers -> layer:    boolean    Layers the object base is on
-ObjectBase.selected -> select:    boolean    Object base selection state
+ObjectBase.layers -> layers:    boolean    Layers the object base is on
 ObstacleFluidSettings.active -> use:    boolean    Object contributes to the fluid simulation
 ObstacleFluidSettings.export_animated_mesh -> use_animated_mesh:    boolean    Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated pos/rot/scale IPOs do not require it
 Operator.has_reports -> has_reports:    boolean, (read-only)    Operator has a set of reports (warnings and errors) from last execution
@@ -803,7 +767,7 @@ PointCache.baked -> is_baked:    boolean, (read-only)
 PointCache.baking -> is_baking:    boolean, (read-only)
 PointCache.disk_cache -> use_disk_cache:    boolean    Save cache files to disk (.blend file must be saved first)
 PointCache.external -> use_external:    boolean    Read cache from an external location
-PointCache.has_skipped_frames-> frames_skipped:    boolean, (read-only)
+PointCache.has_skipped_frames-> has_skipped_frames:    boolean, (read-only)
 PointCache.outdated -> is_outdated:    boolean, (read-only)
 PointCache.quick_cache -> use_quick_cache:    boolean    Update simulation with cache steps
 PointCache.use_library_path -> use_library_path:    boolean    Use this files path when library linked into another file.
@@ -825,7 +789,7 @@ PoseBone.lock_rotation -> lock_rotation:    boolean    Lock editing of rotation 
 PoseBone.lock_rotation_w -> lock_rotation_w:    boolean    Lock editing of 'angle' component of four-component rotations in the interface
 PoseBone.lock_rotations_4d -> lock_rotations_4d:    boolean    Lock editing of four component rotations by components (instead of as Eulers)
 PoseBone.lock_scale -> lock_scale:    boolean    Lock editing of scale in the interface
-PoseBone.selected -> select:    boolean
+
 PoseTemplateSettings.generate_def_rig -> use_generate_deform_rig:    boolean    Create a copy of the metarig, constrainted by the generated rig
 Property.is_never_none -> is_never_none:    boolean, (read-only)    True when this value can't be set to None
 Property.is_readonly -> is_readonly:    boolean, (read-only)    Property is editable through RNA
@@ -875,9 +839,9 @@ RenderLayer.pass_z -> use_pass_z:    boolean, (read-only)    Deliver Z values pa
 RenderLayer.sky -> use_sky:    boolean, (read-only)    Render Sky in this Layer
 RenderLayer.solid -> use_solid:    boolean, (read-only)    Render Solid faces in this Layer
 RenderLayer.strand -> use_strand:    boolean, (read-only)    Render Strands in this Layer
-RenderLayer.visible_layers -> layer:    boolean, (read-only)    Scene layers included in this render layer
+RenderLayer.visible_layers -> layers:    boolean, (read-only)    Scene layers included in this render layer
 RenderLayer.zmask -> use_zmask:    boolean, (read-only)    Only render what's in front of the solid z values
-RenderLayer.zmask_layers -> layer_zmask:    boolean, (read-only)    Zmask scene layers
+RenderLayer.zmask_layers -> layers_zmask:    boolean, (read-only)    Zmask scene layers
 RenderLayer.zmask_negate -> invert_zmask:    boolean, (read-only)    For Zmask, only render what is behind solid z values instead of in front
 RenderLayer.ztransp -> use_ztransp:    boolean, (read-only)    Render Z-Transparent faces in this Layer (On top of Solid and Halos)
 RenderSettings.backbuf -> use_backbuf:    boolean    Render backbuffer image
@@ -939,7 +903,7 @@ RenderSettings.use_textures -> use_textures:    boolean    Use textures to affec
 NEGATE *  RigidBodyJointConstraint.disable_linked_collision -> use_linked_collision:    boolean    Disable collision between linked bodies
 RigidBodyJointConstraint.draw_pivot -> show_pivot:    boolean    Display the pivot point and rotation in 3D view
 Scene.frame_drop -> use_frame_drop:    boolean    Play back dropping frames if frame display is too slow
-Scene.layers -> layer:    boolean    Layers visible when rendering the scene
+Scene.layers -> layers:    boolean    Layers visible when rendering the scene
 Scene.mute_audio -> mute_audio:    boolean    Play back of audio from Sequence Editor will be muted
 Scene.nla_tweakmode_on -> use_nla_tweakmode:    boolean, (read-only)    Indicates whether there is any action referenced by NLA being edited. Strictly read-only
 Scene.pov_radio_always_sample -> use_pov_radio_always_sample:    boolean    Only use the data from the pretrace step and not gather any new samples during the final radiosity pass
@@ -1001,9 +965,9 @@ SceneRenderLayer.pass_z -> use_pass_z:    boolean    Deliver Z values pass
 SceneRenderLayer.sky -> use_sky:    boolean    Render Sky in this Layer
 SceneRenderLayer.solid -> use_solid:    boolean    Render Solid faces in this Layer
 SceneRenderLayer.strand -> use_strand:    boolean    Render Strands in this Layer
-SceneRenderLayer.visible_layers -> layer:    boolean    Scene layers included in this render layer
+SceneRenderLayer.visible_layers -> layers:    boolean    Scene layers included in this render layer
 SceneRenderLayer.zmask -> use_zmask:    boolean    Only render what's in front of the solid z values
-SceneRenderLayer.zmask_layers -> layer_zmask:    boolean    Zmask scene layers
+SceneRenderLayer.zmask_layers -> layers_zmask:    boolean    Zmask scene layers
 SceneRenderLayer.zmask_negate -> invert_zmask:    boolean    For Zmask, only render what is behind solid z values instead of in front
 SceneRenderLayer.ztransp -> use_ztransp:    boolean    Render Z-Transparent faces in this Layer (On top of Solid and Halos)
 SceneSequence.convert_float -> use_float:    boolean    Convert input to float data
@@ -1037,11 +1001,8 @@ Sensor.pulse_false_level -> use_pulse_false_level:    boolean    Activate FALSE 
 Sensor.pulse_true_level -> use_pulse_true_level:    boolean    Activate TRUE level triggering (pulse mode)
 Sensor.tap -> use_tap:    boolean    Trigger controllers only for an instant, even while the sensor remains true
 Sequence.frame_locked -> use_frame_lock:    boolean    Lock the animation curve to the global frame counter
-Sequence.left_handle_selected -> select_left_handle:    boolean
 Sequence.lock -> lock:    boolean    Lock strip so that it can't be transformed
 Sequence.mute -> mute:    boolean
-Sequence.right_handle_selected -> select_right_handle:    boolean
-Sequence.selected -> select:    boolean
 Sequence.use_effect_default_fade -> use_default_fade:    boolean    Fade effect using the built-in default (usually make transition as long as effect strip)
 SequenceColorBalance.inverse_gain -> invert_gain:    boolean
 SequenceColorBalance.inverse_gamma -> invert_gamma:    boolean
@@ -1181,7 +1142,7 @@ SpaceView3D.display_render_override -> show_only_render:    boolean    Display o
 SpaceView3D.display_x_axis -> show_axis_x:    boolean    Show the X axis line in perspective view
 SpaceView3D.display_y_axis -> show_axis_y:    boolean    Show the Y axis line in perspective view
 SpaceView3D.display_z_axis -> show_axis_z:    boolean    Show the Z axis line in perspective view
-SpaceView3D.layers -> layer:    boolean    Layers visible in this 3D View
+SpaceView3D.layers -> layers:    boolean    Layers visible in this 3D View
 SpaceView3D.lock_camera_and_layers -> lock_camera_and_layers:    boolean    Use the scene's active camera and layers in this view, rather than local layers
 SpaceView3D.manipulator -> use_manipulator:    boolean    Use a 3D manipulator widget for controlling transforms
 SpaceView3D.manipulator_rotate -> use_manipulator_rotate:    boolean    Use the manipulator for rotation transformations
@@ -1192,7 +1153,7 @@ SpaceView3D.outline_selected -> show_outline_selected:    boolean    Show an out
 SpaceView3D.pivot_point_align -> use_pivot_point_align:    boolean    Manipulate object centers only
 SpaceView3D.relationship_lines -> show_relationship_lines:    boolean    Show dashed lines indicating parent or constraint relationships
 SpaceView3D.textured_solid -> show_textured_solid:    boolean    Display face-assigned textures in solid view
-SpaceView3D.used_layers -> layer_used:    boolean, (read-only)    Layers that contain something
+SpaceView3D.used_layers -> layers_used:    boolean, (read-only)    Layers that contain something
 SpeedControlSequence.curve_compress_y -> use_curve_compress_y:    boolean    Scale F-Curve value to get the target frame number, F-Curve value runs from 0.0 to 1.0
 SpeedControlSequence.curve_velocity -> use_curve_velocity:    boolean    Interpret the F-Curve value as a velocity instead of a frame number
 SpeedControlSequence.frame_blending -> use_frame_blend:    boolean    Blend two frames into the target for a smoother result
@@ -1208,8 +1169,7 @@ SplineIKConstraint.chain_offset -> use_chain_offset:    boolean    Offset the en
 SplineIKConstraint.even_divisions -> use_even_divisions:    boolean    Ignore the relative lengths of the bones when fitting to the curve
 SplineIKConstraint.use_curve_radius -> use_curve_radius:    boolean    Average radius of the endpoints is used to tweak the X and Z Scaling of the bones, on top of XZ Scale mode
 SplineIKConstraint.y_stretch -> use_y_stretch:    boolean    Stretch the Y axis of the bones to fit the curve
-SplinePoint.hidden -> hide:    boolean    Visibility status
-SplinePoint.selected -> select_control_point:    boolean    Selection status
+
 SpotLamp.auto_clip_end -> use_auto_clip_end:    boolean    Automatic calculation of clipping-end, based on visible vertices
 SpotLamp.auto_clip_start -> use_auto_clip_start:    boolean    Automatic calculation of clipping-start, based on visible vertices
 SpotLamp.halo -> use_halo:    boolean    Renders spotlight with a volumetric halo (Buffer Shadows)
@@ -1218,7 +1178,7 @@ SpotLamp.shadow_layer -> use_shadow_layer:    boolean    Causes only objects on 
 SpotLamp.show_cone -> show_cone:    boolean    Draw transparent cone in 3D view to visualize which objects are contained in it
 SpotLamp.sphere -> use_sphere:    boolean    Sets light intensity to zero beyond lamp distance
 SpotLamp.square -> use_square:    boolean    Casts a square spot light shape
-StateActuator.state -> state:    boolean
+StateActuator.state -> states:    boolean
 SubsurfModifier.optimal_display -> show_only_control_edges:    boolean    Skip drawing/rendering of interior subdivided edges
 SubsurfModifier.subsurf_uv -> use_subsurf_uv:    boolean    Use subsurf to subdivide UVs
 SunLamp.only_shadow -> use_only_shadow:    boolean    Causes light to cast shadows only without illuminating objects
@@ -1251,7 +1211,6 @@ TextureSlot.rgb_to_intensity -> use_rgb_to_intensity:    boolean    Converts tex
 TextureSlot.stencil -> use_stencil:    boolean    Use this texture as a blending value on the next texture
 ThemeBoneColorSet.colored_constraints -> show_colored_constraints:    boolean    Allow the use of colors indicating constraints/keyed status
 ThemeWidgetColors.shaded -> show_shaded:    boolean
-TimelineMarker.selected -> select:    boolean    Marker selection state
 ToolSettings.auto_normalize -> use_auto_normalize:    boolean    Ensure all bone-deforming vertex groups add up to 1.0 while weight painting
 ToolSettings.automerge_editing -> use_automerge_editing:    boolean    Automatically merge vertices moved to the same location
 ToolSettings.bone_sketching -> use_bone_sketching:    boolean    DOC BROKEN

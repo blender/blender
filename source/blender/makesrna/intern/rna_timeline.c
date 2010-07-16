@@ -55,9 +55,9 @@ static void rna_def_timeline_marker(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frame", "The frame on which the timeline marker appears");
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);
 
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1 /*SELECT*/);
-	RNA_def_property_ui_text(prop, "Selected", "Marker selection state");
+	RNA_def_property_ui_text(prop, "Select", "Marker selection state");
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);
 
 #ifdef DURIAN_CAMERA_SWITCH

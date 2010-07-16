@@ -32,6 +32,9 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
+#include "DNA_key_types.h"
+
+#include "BLI_pbvh.h"
 
 struct bContext;
 struct Brush;
@@ -65,8 +68,49 @@ void sculpt_stroke_free(struct SculptStroke *);
 void sculpt_stroke_add_point(struct SculptStroke *, const short x, const short y);
 void sculpt_stroke_apply(struct Sculpt *sd, struct SculptStroke *);
 void sculpt_stroke_apply_all(struct Sculpt *sd, struct SculptStroke *);
+int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float out[3], float mouse[2]);
 
 /* Partial Mesh Visibility */
 void sculptmode_pmv(int mode);
+
+/* Undo */
+
+typedef struct SculptUndoNode {
+	struct SculptUndoNode *next, *prev;
+
+	char idname[MAX_ID_NAME];	/* name instead of pointer*/
+	void *node;					/* only during push, not valid afterwards! */
+
+	float (*co)[3];
+	short (*no)[3];
+	int totvert;
+
+	/* non-multires */
+	int maxvert;				/* to verify if totvert it still the same */
+	int *index;					/* to restore into right location */
+
+	/* multires */
+	int maxgrid;				/* same for grid */
+	int gridsize;				/* same for grid */
+	int totgrid;				/* to restore into right location */
+	int *grids;					/* to restore into right location */
+
+	/* layer brush */
+	float *layer_disp;
+
+	/* shape keys */
+	char *shapeName[32]; /* keep size in sync with keyblock dna */
+} SculptUndoNode;
+
+SculptUndoNode *sculpt_undo_push_node(SculptSession *ss, PBVHNode *node);
+SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
+void sculpt_undo_push_begin(char *name);
+void sculpt_undo_push_end(void);
+
+struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
+int sculpt_modifiers_active(Scene *scene, Object *ob);
+void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
+
+void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos);
 
 #endif

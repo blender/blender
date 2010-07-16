@@ -631,8 +631,8 @@ if __name__ == "__main__":
         props = [(prop.identifier, prop) for prop in v.properties]
         
         for prop_id, prop in sorted(props):
-            if prop.type == 'boolean':
-                continue
+            # if prop.type == 'boolean':
+            #     continue
             data += "%s.%s -> %s:    %s%s    %s\n" % (struct_id_str, prop.identifier, prop.identifier, prop.type, ", (read-only)" if prop.is_readonly else "", prop.description)
 
     if bpy.app.background:

@@ -54,9 +54,9 @@ class MeshSelectInteriorFaces(bpy.types.Operator):
 
         for index, face in enumerate(face_list):
             if(test_interior(index)):
-                face.selected = True
+                face.select = True
             else:
-                face.selected = False
+                face.select = False
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -122,7 +122,7 @@ class MeshMirrorUV(bpy.types.Operator):
         # as a list
         faces = mesh.faces[:]
 
-        fuvsel = [(False not in uv.uv_selected) for uv in active_uv_layer]
+        fuvsel = [(False not in uv.select_uv) for uv in active_uv_layer]
         fcents = [f.center for f in faces]
 
         # find mirror faces

@@ -174,7 +174,7 @@ READ
 		- read associated 'direct data'
 		- link direct data (internal and to LibBlock)
 - read FileGlobal
-- read USER data, only when indicated (file is ~/.B.blend or .B25.blend)
+- read USER data, only when indicated (file is ~/X.XX/startup.blend)
 - free file
 - per Library (per Main)
 	- read file
@@ -1539,6 +1539,7 @@ static void lib_link_brush(FileData *fd, Main *main)
 			brush->id.flag -= LIB_NEEDLINK;
 
 			brush->mtex.tex= newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
+			brush->image_icon= newlibadr_us(fd, brush->id.lib, brush->image_icon);
 			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
 		}
 	}
@@ -10967,6 +10968,82 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					seq->sat= 1.0f;
 				}
 				SEQ_END
+			}
+		}
+	}
+
+	{
+		/* GSOC 2010 Sculpt - New settings for Brush */
+
+		Brush *brush;
+		for (brush= main->brush.first; brush; brush= brush->id.next) {
+			/* Sanity Check */
+
+			// infinite number of dabs
+			if (brush->spacing == 0)
+				brush->spacing = 10;
+
+			// will have no effect
+			if (brush->alpha == 0)
+				brush->alpha = 0.5f;
+
+			// bad radius
+			if (brush->unprojected_radius == 0)
+				brush->unprojected_radius = 0.125;
+
+			// unusable size
+			if (brush->size == 0)
+				brush->size = 35;
+
+			// can't see overlay
+			if (brush->texture_overlay_alpha == 0)
+				brush->texture_overlay_alpha = 33;
+
+			// same as draw brush
+			if (brush->crease_pinch_factor == 0)
+				brush->crease_pinch_factor = 0.5f;
+
+			// will sculpt no vertexes
+			if (brush->plane_trim == 0)
+				brush->plane_trim = 0.5f;
+
+			// same as smooth stroke off
+			if (brush->smooth_stroke_radius == 0)
+				brush->smooth_stroke_radius= 75;
+
+			// will keep cursor in one spot
+			if (brush->smooth_stroke_radius == 1)
+				brush->smooth_stroke_factor= 0.9f;
+
+			// same as dots
+			if (brush->rate == 0)
+				brush->rate = 0.1f;
+
+			/* New Settings */
+			if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 5)) {
+				brush->flag |= BRUSH_SPACE_ATTEN; // explicitly enable adaptive space
+
+				// spacing was originally in pixels, convert it to percentage for new version
+				// size should not be zero due to sanity check above
+				brush->spacing = (int)(100*((float)brush->spacing) / ((float)brush->size));
+
+				if (brush->add_col[0] == 0 &&
+					brush->add_col[1] == 0 &&
+					brush->add_col[2] == 0)
+				{
+					brush->add_col[0] = 1.00;
+					brush->add_col[1] = 0.39;
+					brush->add_col[2] = 0.39;
+				}
+
+				if (brush->sub_col[0] == 0 &&
+					brush->sub_col[1] == 0 &&
+					brush->sub_col[2] == 0)
+				{
+					brush->sub_col[0] = 0.39;
+					brush->sub_col[1] = 0.39;
+					brush->sub_col[2] = 1.00;
+				}
 			}
 		}
 	}

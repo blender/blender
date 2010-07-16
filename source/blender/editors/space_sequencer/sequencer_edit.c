@@ -621,7 +621,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 
 	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
 		if(seq->flag & SELECT) {
-			if (seq->type == SEQ_SOUND) {
+			if (seq->type == SEQ_SOUND && get_sequence_effect_num_inputs(type) != 0) {
 				*error_str= "Can't apply effects to audio sequence strips";
 				return 0;
 			}
@@ -2157,7 +2157,7 @@ static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 	float facx= (v2d->mask.xmax - v2d->mask.xmin) / winx;
 	float facy= (v2d->mask.ymax - v2d->mask.ymin) / winy;
 
-	BLI_resize_rctf(&v2d->cur, winx*facx*ratio, winy*facy*ratio);
+	BLI_resize_rctf(&v2d->cur, (int)(winx*facx*ratio) + 1, (int)(winy*facy*ratio) + 1);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 

@@ -47,19 +47,18 @@ import re
 from tempfile import mkdtemp
 
 # needed for importing tools
-sys.path.append(os.path.join(".", "build_files", "scons"))
+sys.path.append(os.path.join(".", "build_files", "scons", "tools"))
 
-import tools.Blender
-import tools.btools
-import tools.bcolors
+import Blender
+import btools
+import bcolors
 
 EnsureSConsVersion(1,0,0)
 
-BlenderEnvironment = tools.Blender.BlenderEnvironment
-btools = tools.btools
-B = tools.Blender
+BlenderEnvironment = Blender.BlenderEnvironment
+B = Blender
 
-VERSION = tools.btools.VERSION # This is used in creating the local config directories
+VERSION = btools.VERSION # This is used in creating the local config directories
 
 ### globals ###
 platform = sys.platform
