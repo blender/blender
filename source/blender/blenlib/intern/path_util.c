@@ -732,10 +732,10 @@ void BLI_getlastdir(const char* dir, char *last, int maxlen)
 	}
 }
 
-/* This is now only used to really get the user's home folder */
+/* This is now only used to really get the user's default document folder */
 /* On Windows I chose the 'Users/<MyUserName>/Documents' since it's used
    as default location to save documents */
-char *BLI_gethome(void) {
+char *BLI_getDefaultDocumentFolder(void) {
 	#if !defined(WIN32)
 		return getenv("HOME");
 

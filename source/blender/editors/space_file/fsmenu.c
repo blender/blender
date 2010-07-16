@@ -338,7 +338,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		/* As 10.4 doesn't provide proper API to retrieve the favorite places,
 		 assume they are the standard ones 
 		 TODO : replace hardcoded paths with proper BLI_get_folder calls */
-		home = BLI_gethome();
+		home = getenv("HOME");
 		if(home) {
 			BLI_snprintf(line, 256, "%s/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
@@ -458,7 +458,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 #else
 	/* unix */
 	{
-		char *home= BLI_gethome();
+		char *home= getenv("HOME");
 
 		if(home) {
 			BLI_snprintf(line, FILE_MAXDIR, "%s/", home);
