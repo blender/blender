@@ -677,13 +677,22 @@ static int wm_draw_update_test_window(wmWindow *win)
 
 static int wm_automatic_draw_method(wmWindow *win)
 {
+	/* Ideally all cards would work well with triple buffer, since if it works
+	   well gives the least redraws and is considerably faster at partial redraw
+	   for sculpting or drawing overlapping menus. For typically lower end cards
+	   copy to texture is slow though and so we use overlap instead there. */
+
 	if(win->drawmethod == USER_DRAW_AUTOMATIC) {
 		/* ATI opensource driver is known to be very slow at this */
 		if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE))
 			return USER_DRAW_OVERLAP;
+		/* also Intel drivers don't work well with this */
+		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
+			return USER_DRAW_OVERLAP;
 		/* Windows software driver darkens color on each redraw */
 		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
 			return USER_DRAW_OVERLAP_FLIP;
+		/* drawing lower color depth again degrades colors each time */
 		else if(GPU_color_depth() < 24)
 			return USER_DRAW_OVERLAP;
 		else
