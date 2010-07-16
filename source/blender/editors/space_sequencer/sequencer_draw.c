@@ -840,32 +840,46 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	glDisable(GL_TEXTURE_2D);
 	glDeleteTextures(1, &texid);
 
-	/* safety border */
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && 
-		(sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
-		float fac= 0.1;
+	if(sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+
 		float x1 = v2d->tot.xmin;
 		float y1 = v2d->tot.ymin;
 		float x2 = v2d->tot.xmax;
 		float y2 = v2d->tot.ymax;
-		
-		float a= fac*(x2-x1);
-		x1+= a; 
-		x2-= a;
-	
-		a= fac*(y2-y1);
-		y1+= a;
-		y2-= a;
-	
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
+
+		/* border */
 		setlinestyle(3);
 
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 		UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 1.0, 0);
-		
-		uiSetRoundBox(15);
-		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+
+		glBegin(GL_LINE_LOOP);
+		glVertex2f(x1-0.5, y1-0.5);
+		glVertex2f(x1-0.5, y2+0.5);
+		glVertex2f(x2+0.5, y2+0.5);
+		glVertex2f(x2+0.5, y1-0.5);
+		glEnd();
+
+		/* safety border */
+		if ((sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
+			float fac= 0.1;
+
+			float a= fac*(x2-x1);
+			x1+= a;
+			x2-= a;
+
+			a= fac*(y2-y1);
+			y1+= a;
+			y2-= a;
+
+			uiSetRoundBox(15);
+			gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+
+		}
 
 		setlinestyle(0);
+
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	
