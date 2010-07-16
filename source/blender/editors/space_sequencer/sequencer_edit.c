@@ -621,7 +621,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 
 	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
 		if(seq->flag & SELECT) {
-			if (seq->type == SEQ_SOUND) {
+			if (seq->type == SEQ_SOUND && get_sequence_effect_num_inputs(type) != 0) {
 				*error_str= "Can't apply effects to audio sequence strips";
 				return 0;
 			}
