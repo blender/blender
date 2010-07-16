@@ -375,6 +375,7 @@ def rna2sphinx(BASEPATH):
 
     fw("   mathutils.rst\n\n")
     fw("   blf.rst\n\n")
+    fw("   aud.rst\n\n")
     
     # game engine
     fw("===================\n")
@@ -454,14 +455,30 @@ def rna2sphinx(BASEPATH):
     import blf as module
     pymodule2sphinx(BASEPATH, "blf", module, "Font Drawing (blf)")
     del module
+    
+    import aud as module
+    pymodule2sphinx(BASEPATH, "aud", module, "Audio System (aud)")
+    del module
 
     # game engine
-    import shutil
+    from bge import types as module
+    pymodule2sphinx(BASEPATH, "bge.types", module, "Game Engine bge.types Module")
+
+    from bge import logic as module
+    pymodule2sphinx(BASEPATH, "bge.logic", module, "Game Engine bge.logic Module")
+
+    from bge import render as module
+    pymodule2sphinx(BASEPATH, "bge.render", module, "Game Engine bge.render Module")
+
+    from bge import events as module
+    pymodule2sphinx(BASEPATH, "bge.events", module, "Game Engine bge.events Module")
+
+    #import shutil
     # copy2 keeps time/date stamps
-    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.types.rst"), BASEPATH)
-    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.logic.rst"), BASEPATH)
-    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.render.rst"), BASEPATH)
-    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.events.rst"), BASEPATH)
+    #shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.types.rst"), BASEPATH)
+    #shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.logic.rst"), BASEPATH)
+    #shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.render.rst"), BASEPATH)
+    #shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.events.rst"), BASEPATH)
 
 
     if 0:
