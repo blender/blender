@@ -381,6 +381,8 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, SpaceSeq *sseq, Seque
 
 	pixely = (v2d->cur.ymax - v2d->cur.ymin)/(v2d->mask.ymax - v2d->mask.ymin);
 	
+	if(pixely <= 0) return; /* can happen when the view is split/resized */
+	
 	blendcol[0] = blendcol[1] = blendcol[2] = 120;
 
 	if(seq->startofs) {
