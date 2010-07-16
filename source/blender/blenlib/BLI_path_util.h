@@ -40,14 +40,14 @@ extern "C" {
 struct ListBase;
 struct direntry;
 
-char *BLI_gethome(void);
+char *BLI_getDefaultDocumentFolder(void);
 
 char *BLI_get_folder(int folder_id, char *subfolder);
 char *BLI_get_folder_create(int folder_id, char *subfolder);
 
 /* folder_id */
 
-/* general, will find baserd on user/local/system priority */
+/* general, will find based on user/local/system priority */
 #define BLENDER_CONFIG				1
 #define BLENDER_DATAFILES			2
 #define BLENDER_SCRIPTS				3
@@ -59,6 +59,7 @@ char *BLI_get_folder_create(int folder_id, char *subfolder);
 #define BLENDER_USER_DATAFILES		32
 #define BLENDER_USER_SCRIPTS		33
 #define BLENDER_USER_PLUGINS		34
+#define BLENDER_USER_AUTOSAVE		35
 
 /* system */
 #define BLENDER_SYSTEM_CONFIG		51	/* optional */

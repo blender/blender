@@ -164,6 +164,10 @@ void WM_init(bContext *C, int argc, char **argv)
 	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
 	
 	read_history();
+
+	if(G.sce[0] == 0)
+		BLI_make_file_string("/", G.sce, BLI_getDefaultDocumentFolder(), "untitled.blend");
+
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 
 }

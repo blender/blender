@@ -732,66 +732,38 @@ void BLI_getlastdir(const char* dir, char *last, int maxlen)
 	}
 }
 
-char *BLI_gethome(void) {
+/* This is now only used to really get the user's default document folder */
+/* On Windows I chose the 'Users/<MyUserName>/Documents' since it's used
+   as default location to save documents */
+char *BLI_getDefaultDocumentFolder(void) {
 	#if !defined(WIN32)
 		return getenv("HOME");
 
 	#else /* Windows */
 		char * ret;
-		static char dir[512];
-		static char appdatapath[MAXPATHLEN];
+		static char documentfolder[MAXPATHLEN];
 		HRESULT hResult;
 
 		/* Check for %HOME% env var */
 
 		ret = getenv("HOME");
 		if(ret) {
-			sprintf(dir, "%s\\%s", ret, blender_version_decimal());
-			if (BLI_is_dir(dir)) return dir;
+			if (BLI_is_dir(ret)) return ret;
 		}
-
-		/* else, check install dir (path containing blender.exe) */
-
-		if(BLI_getInstallationDir(dir))
-		{
-			sprintf(dir, "%s", dir, blender_version_decimal());
-			if (BLI_is_dir(dir)) return(dir);
-		}
-
 				
 		/* add user profile support for WIN 2K / NT.
 		 * This is %APPDATA%, which translates to either
 		 * %USERPROFILE%\Application Data or since Vista
 		 * to %USERPROFILE%\AppData\Roaming
 		 */
-		hResult = SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
+		hResult = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documentfolder);
 		
 		if (hResult == S_OK)
 		{
-			if (BLI_is_dir(appdatapath)) { /* from fop, also below... */
-				sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
-				BLI_recurdir_fileops(dir);
-				if (BLI_is_dir(dir)) {
-					sprintf(dir,"%s\\%s", dir, blender_version_decimal());
-					if(BLI_is_dir(dir)) return(dir);
-				}
-			}
-			hResult = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
-			if (hResult == S_OK)
-			{
-				if (BLI_is_dir(appdatapath)) 
-				{ /* from fop, also below... */
-					sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
-					BLI_recurdir_fileops(dir);
-					if (BLI_is_dir(dir)) {
-						sprintf(dir,"%s\\%s", dir, blender_version_decimal());
-						if(BLI_is_dir(dir)) return(dir);
-					}
-				}
-			}
+			if (BLI_is_dir(documentfolder)) return documentfolder;
 		}
 		
-		return "C:\\Temp";	/* sheesh! bad, bad, bad! (aphex) */
+		return NULL;
 	#endif
 }
 
@@ -989,6 +961,11 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			if (get_path_system(path, "datafiles", subfolder, "BLENDER_SYSTEM_DATAFILES"))	break;
 			return NULL;
 			
+		case BLENDER_USER_AUTOSAVE:
+			if (get_path_local(path, "autosave", subfolder)) break;
+			if (get_path_user(path, "autosave", subfolder, "BLENDER_USER_DATAFILES"))	break;
+			return NULL;
+
 		case BLENDER_CONFIG:		/* general case */
 			if (get_path_local(path, "config", subfolder)) break;
 			if (get_path_user(path, "config", subfolder, "BLENDER_USER_CONFIG")) break;
@@ -1035,16 +1012,16 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 static char *BLI_get_user_folder_notest(int folder_id, char *subfolder)
 {
 	static char path[FILE_MAX] = "";
-	char search_path[FILE_MAX];
 
 	switch (folder_id) {
 		case BLENDER_USER_DATAFILES:
-			BLI_join_dirfile(search_path, "datafiles", subfolder);
-			get_path_user(path, search_path, subfolder, "BLENDER_USER_DATAFILES");
+			get_path_user(path, "datafiles", subfolder, "BLENDER_USER_DATAFILES");
 			break;
 		case BLENDER_USER_CONFIG:
-			BLI_join_dirfile(search_path, "config", subfolder);
-			get_path_user(path, search_path, subfolder, "BLENDER_USER_CONFIG");
+			get_path_user(path, "config", subfolder, "BLENDER_USER_CONFIG");
+			break;
+		case BLENDER_USER_AUTOSAVE:
+			get_path_user(path, "autosave", subfolder, "BLENDER_USER_AUTOSAVE");
 			break;
 	}
 	if ('\0' == path[0]) {
@@ -1058,7 +1035,7 @@ char *BLI_get_folder_create(int folder_id, char *subfolder)
 	char *path;
 
 	/* only for user folders */
-	if (!ELEM(folder_id, BLENDER_USER_DATAFILES, BLENDER_USER_CONFIG))
+	if (!ELEM3(folder_id, BLENDER_USER_DATAFILES, BLENDER_USER_CONFIG, BLENDER_USER_AUTOSAVE))
 		return NULL;
 	
 	path = BLI_get_folder(folder_id, subfolder);

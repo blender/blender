@@ -3078,7 +3078,7 @@ int clamp_nurb_order_u( struct Nurb *nu )
 		nu->orderu= nu->pntsu;
 		change= 1;
 	}
-	if(((nu->flag & CU_NURB_CYCLIC)==0) && (nu->flagu & CU_NURB_BEZIER)) {
+	if(((nu->flagu & CU_NURB_CYCLIC)==0) && (nu->flagu & CU_NURB_BEZIER)) {
 		CLAMP(nu->orderu, 3,4);
 		change= 1;
 	}
@@ -3092,7 +3092,7 @@ int clamp_nurb_order_v( struct Nurb *nu)
 		nu->orderv= nu->pntsv;
 		change= 1;
 	}
-	if(((nu->flag & CU_NURB_CYCLIC)==0) && (nu->flagv & CU_NURB_BEZIER)) {
+	if(((nu->flagv & CU_NURB_CYCLIC)==0) && (nu->flagv & CU_NURB_BEZIER)) {
 		CLAMP(nu->orderv, 3,4);
 		change= 1;
 	}

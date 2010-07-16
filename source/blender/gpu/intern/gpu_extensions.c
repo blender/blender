@@ -152,8 +152,8 @@ void GPU_extensions_init()
 		GG.driver = GPU_DRIVER_SOFTWARE;
 	}
 	else {
-		GG.device = GPU_DEVICE_UNKNOWN;
-		GG.driver = GPU_DRIVER_UNKNOWN;
+		GG.device = GPU_DEVICE_ANY;
+		GG.driver = GPU_DRIVER_ANY;
 	}
 
 	GG.os = GPU_OS_UNIX;

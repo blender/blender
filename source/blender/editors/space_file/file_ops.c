@@ -945,7 +945,7 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 		if ( sfile->params->dir[0] == '~' ) {
 			char tmpstr[sizeof(sfile->params->dir)-1];
 			strncpy(tmpstr, sfile->params->dir+1, sizeof(tmpstr));
-			BLI_join_dirfile(sfile->params->dir, BLI_gethome(), tmpstr);
+			BLI_join_dirfile(sfile->params->dir, BLI_getDefaultDocumentFolder(), tmpstr);
 		}
 
 #ifdef WIN32

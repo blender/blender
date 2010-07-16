@@ -144,4 +144,4 @@ if __name__ == "__main__":
         
         process(args)
         
-        bpy.ops.wm.save_as_mainfile(path=new_path, check_existing=False)
+        bpy.ops.wm.save_as_mainfile(filepath=new_path, check_existing=False)
