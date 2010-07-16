@@ -1800,6 +1800,10 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 	if(seq->flag & SEQ_FLIPX) {
 		IMB_flipx(se->ibuf);
 	}
+	
+	if(seq->flag & SEQ_FLIPY) {
+		IMB_flipy(se->ibuf);
+	}
 
 	if(seq->sat != 1.0f) {
 		/* inline for now, could become an imbuf function */
@@ -2279,6 +2283,13 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 						addzbuffloatImBuf(se->ibuf);
 						memcpy(se->ibuf->zbuf_float, rres.rectz, sizeof(float)*rres.rectx*rres.recty);
 					}
+
+					/* {
+						ImBuf *imb= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat, 0);
+						IMB_saveiff(imb, "/tmp/foo.image", IB_rect | IB_metadata);
+						IMB_freeImBuf(imb);
+					} */
+
 				} else if (rres.rect32) {
 					se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect, 0);
 					memcpy(se->ibuf->rect, rres.rect32, 4*rres.rectx*rres.recty);
