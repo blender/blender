@@ -953,11 +953,11 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			return NULL;
 			
 		case BLENDER_USER_DATAFILES:
-			if (get_path_local(path, "datafiles", subfolder)) break;
 			if (get_path_user(path, "datafiles", subfolder, "BLENDER_USER_DATAFILES"))	break;
 			return NULL;
 			
 		case BLENDER_SYSTEM_DATAFILES:
+			if (get_path_local(path, "datafiles", subfolder)) break;
 			if (get_path_system(path, "datafiles", subfolder, "BLENDER_SYSTEM_DATAFILES"))	break;
 			return NULL;
 			
@@ -973,11 +973,11 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			return NULL;
 			
 		case BLENDER_USER_CONFIG:
-			if (get_path_local(path, "config", subfolder)) break;
 			if (get_path_user(path, "config", subfolder, "BLENDER_USER_CONFIG")) break;
 			return NULL;
 			
 		case BLENDER_SYSTEM_CONFIG:
+			if (get_path_local(path, "config", subfolder)) break;
 			if (get_path_system(path, "config", subfolder, "BLENDER_SYSTEM_CONFIG")) break;
 			return NULL;
 			
@@ -988,11 +988,11 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			return NULL;
 			
 		case BLENDER_USER_SCRIPTS:
-			if (get_path_local(path, "scripts", subfolder)) break;
 			if (get_path_user(path, "scripts", subfolder, "BLENDER_USER_SCRIPTS")) break;
 			return NULL;
 			
 		case BLENDER_SYSTEM_SCRIPTS:
+			if (get_path_local(path, "scripts", subfolder)) break;
 			if (get_path_system(path, "scripts", subfolder, "BLENDER_SYSTEM_SCRIPTS")) break;
 			return NULL;
 			
@@ -1002,6 +1002,7 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			return NULL;
 			
 		case BLENDER_SYSTEM_PYTHON:
+			if (get_path_local(path, "python", subfolder)) break;
 			if (get_path_system(path, "python", subfolder, "BLENDER_SYSTEM_PYTHON")) break;
 			return NULL;
 	}
