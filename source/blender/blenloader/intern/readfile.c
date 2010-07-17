@@ -11338,7 +11338,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				else {
 					/* The line below was commented by Ton (I assume), when Hos did the merge from the orange branch. rev 6568
 					 * This line is NEEDED, the case is that you have 3 blend files...
-					 * user.blend, lib.blend and lib_indirect.blend - if user.blend alredy references a "tree" from
+					 * user.blend, lib.blend and lib_indirect.blend - if user.blend already references a "tree" from
 					 * lib_indirect.blend but lib.blend does too, linking in a Scene or Group from lib.blend can result in an
 					 * empty without the dupli group referenced. Once you save and reload the group would appier. - Campbell */
 					/* This crashes files, must look further into it */
@@ -12122,7 +12122,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 			
 				/* IF below is quite confusing!
 				if we are appending, but this object wasnt just added allong with a group,
-				then this is alredy used indirectly in the scene somewhere else and we didnt just append it.
+				then this is already used indirectly in the scene somewhere else and we didnt just append it.
 				
 				(ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */
 			if (is_group_append==0 || (ob->id.flag & LIB_PRE_EXISTING)==0) {

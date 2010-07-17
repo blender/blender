@@ -1308,7 +1308,7 @@ void all_local(Library *lib, int untagged_only)
 			
 			/* The check on the second line (LIB_PRE_EXISTING) is done so its
 			 * possible to tag data you dont want to be made local, used for
-			 * appending data, so any libdata alredy linked wont become local
+			 * appending data, so any libdata already linked wont become local
 			 * (very nasty to discover all your links are lost after appending)  
 			 * */
 			if(id->flag & (LIB_EXTERN|LIB_INDIRECT|LIB_NEW) &&

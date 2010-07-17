@@ -592,7 +592,7 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 }
 
 /*
-Draw a sequence strip, bounds check alredy made
+Draw a sequence strip, bounds check already made
 ARegion is currently only used to get the windows width in pixels
 so wave file sample drawing precision is zoom adjusted
 */

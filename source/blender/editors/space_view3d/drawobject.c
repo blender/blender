@@ -3835,7 +3835,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						sprintf(val_pos, (val_pos==val) ? "%.2f" : ":%.2f", pa_health);
 
 					/* in path drawing state.co is the end point */
-					/* use worldspace beause object matrix is alredy applied */
+					/* use worldspace beause object matrix is already applied */
 					mul_v3_m4v3(vec_txt, ob->imat, state.co);
 					view3d_cached_text_draw_add(vec_txt[0],  vec_txt[1],  vec_txt[2], val, 10, V3D_CACHE_TEXT_WORLDSPACE);
 				}
@@ -3929,7 +3929,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				val[0]= '\0';
 
 				sprintf(val, "%i", a);
-				/* use worldspace beause object matrix is alredy applied */
+				/* use worldspace beause object matrix is already applied */
 				mul_v3_m4v3(vec_txt, ob->imat, cache[a]->co);
 				view3d_cached_text_draw_add(vec_txt[0],  vec_txt[1],  vec_txt[2], val, 10, V3D_CACHE_TEXT_WORLDSPACE);
 			}

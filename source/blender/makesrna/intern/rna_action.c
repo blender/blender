@@ -100,7 +100,7 @@ static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, char *da
 
 	/* annoying, check if this exists */
 	if(verify_fcurve(act, group, data_path, index, 0)) {
-		BKE_reportf(reports, RPT_ERROR, "FCurve '%s[%d]' alredy exists in action '%s'", data_path, index, act->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "FCurve '%s[%d]' already exists in action '%s'", data_path, index, act->id.name+2);
 		return NULL;
 	}
 	return verify_fcurve(act, group, data_path, index, 1);
