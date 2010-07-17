@@ -2956,6 +2956,78 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 	cache->vertex_rotation= 0;
 }
 
+static void sculpt_update_brush_delta(Sculpt *sd, SculptSession *ss, Brush *brush)
+{
+	StrokeCache *cache = ss->cache;
+	int tool = brush->sculpt_tool;
+
+	if(ELEM5(tool,
+		 SCULPT_TOOL_GRAB, SCULPT_TOOL_NUDGE,
+		 SCULPT_TOOL_CLAY_TUBES, SCULPT_TOOL_SNAKE_HOOK,
+		 SCULPT_TOOL_THUMB)) {
+		float grab_location[3], imat[4][4], delta[3];
+
+		if(cache->first_time) {
+			copy_v3_v3(cache->orig_grab_location,
+				   cache->true_location);
+		}
+		else if(tool == SCULPT_TOOL_SNAKE_HOOK)
+			add_v3_v3(cache->true_location, cache->grab_delta);
+
+		/* compute 3d coordinate at same z from original location + mouse */
+		initgrabz(cache->vc->rv3d,
+			  cache->orig_grab_location[0],
+			  cache->orig_grab_location[1],
+			  cache->orig_grab_location[2]);
+
+		window_to_3d_delta(cache->vc->ar, grab_location,
+				   cache->mouse[0], cache->mouse[1]);
+
+		/* compute delta to move verts by */
+		if(!cache->first_time) {
+			switch(tool) {
+			case SCULPT_TOOL_GRAB:
+			case SCULPT_TOOL_THUMB:
+				sub_v3_v3v3(delta, grab_location, cache->old_grab_location);
+				invert_m4_m4(imat, ss->ob->obmat);
+				mul_mat3_m4_v3(imat, delta);
+				add_v3_v3(cache->grab_delta, delta);
+				break;
+			case SCULPT_TOOL_CLAY_TUBES:
+			case SCULPT_TOOL_NUDGE:
+				sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
+				invert_m4_m4(imat, ss->ob->obmat);
+				mul_mat3_m4_v3(imat, cache->grab_delta);
+				break;
+			case SCULPT_TOOL_SNAKE_HOOK:
+				sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
+				invert_m4_m4(imat, ss->ob->obmat);
+				mul_mat3_m4_v3(imat, cache->grab_delta);
+				break;
+			}
+		}
+		else {
+			zero_v3(cache->grab_delta);
+		}
+
+		copy_v3_v3(cache->old_grab_location, grab_location);
+
+		if(tool == SCULPT_TOOL_GRAB)
+			copy_v3_v3(sd->anchored_location, cache->true_location);
+		else if(tool == SCULPT_TOOL_THUMB)
+			copy_v3_v3(sd->anchored_location, cache->orig_grab_location);			
+
+		if(ELEM(tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB)) {
+			/* location stays the same for finding vertices in brush radius */
+			copy_v3_v3(cache->true_location, cache->orig_grab_location);
+
+			sd->draw_anchored = 1;
+			copy_v3_v3(sd->anchored_initial_mouse, cache->initial_mouse);
+			sd->anchored_size = cache->pixel_radius;
+		}
+	}
+}
+
 /* Initialize the stroke cache variants from operator properties */
 static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, SculptSession *ss, struct PaintStroke *stroke, PointerRNA *ptr)
 {
@@ -3083,125 +3155,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, SculptSession 
 		}
 	}
 
-	/* Find the grab delta */
-	if(brush->sculpt_tool == SCULPT_TOOL_GRAB) {
-		float grab_location[3], imat[4][4];
+	sculpt_update_brush_delta(sd, ss, brush);
 
-		if(cache->first_time)
-			copy_v3_v3(cache->orig_grab_location, cache->true_location);
-
-		/* compute 3d coordinate at same z from original location + mouse */
-		initgrabz(cache->vc->rv3d, cache->orig_grab_location[0],
-			cache->orig_grab_location[1], cache->orig_grab_location[2]);
-		window_to_3d_delta(cache->vc->ar, grab_location, cache->mouse[0], cache->mouse[1]);
-
-		/* compute delta to move verts by */
-		if(!cache->first_time) {
-			float delta[3];
-			sub_v3_v3v3(delta, grab_location, cache->old_grab_location);
-			invert_m4_m4(imat, ss->ob->obmat);
-			mul_mat3_m4_v3(imat, delta);
-			add_v3_v3(cache->grab_delta, delta);
-		}
-		else {
-			zero_v3(cache->grab_delta);
-		}
-
-		copy_v3_v3(cache->old_grab_location, grab_location);
-
-		/* location stays the same for finding vertices in brush radius */
-		copy_v3_v3(cache->true_location, cache->orig_grab_location);
-
-		sd->draw_anchored = 1;
-		copy_v3_v3(sd->anchored_location, cache->true_location);
-		copy_v3_v3(sd->anchored_initial_mouse, cache->initial_mouse);
-		sd->anchored_size = cache->pixel_radius;
-	}
-	/* Find the nudge/clay tubes delta */
-	else if(brush->sculpt_tool == SCULPT_TOOL_NUDGE || brush->sculpt_tool == SCULPT_TOOL_CLAY_TUBES) {
-		float grab_location[3], imat[4][4];
-
-		if(cache->first_time)
-			copy_v3_v3(cache->orig_grab_location, cache->true_location);
-
-		/* compute 3d coordinate at same z from original location + mouse */
-		initgrabz(cache->vc->rv3d, cache->orig_grab_location[0],
-			cache->orig_grab_location[1], cache->orig_grab_location[2]);
-		window_to_3d_delta(cache->vc->ar, grab_location, cache->mouse[0], cache->mouse[1]);
-
-		/* compute delta to move verts by */
-		if (!cache->first_time) {
-			sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
-			invert_m4_m4(imat, ss->ob->obmat);
-			mul_mat3_m4_v3(imat, cache->grab_delta);
-		}
-		else {
-			zero_v3(cache->grab_delta);
-		}
-
-		copy_v3_v3(cache->old_grab_location, grab_location);
-	}
-	/* Find the snake hook delta */
-	else if(brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK) {
-		float grab_location[3], imat[4][4];
-
-		if(cache->first_time)
-			copy_v3_v3(cache->orig_grab_location, cache->true_location);
-		else
-			add_v3_v3(cache->true_location, cache->grab_delta);
-
-		/* compute 3d coordinate at same z from original location + mouse */
-		initgrabz(cache->vc->rv3d, cache->orig_grab_location[0],
-			cache->orig_grab_location[1], cache->orig_grab_location[2]);
-		window_to_3d_delta(cache->vc->ar, grab_location, cache->mouse[0], cache->mouse[1]);
-
-		/* compute delta to move verts by */
-		if (!cache->first_time) {
-			sub_v3_v3v3(cache->grab_delta, grab_location, cache->old_grab_location);
-			invert_m4_m4(imat, ss->ob->obmat);
-			mul_mat3_m4_v3(imat, cache->grab_delta);
-		}
-		else {
-			zero_v3(cache->grab_delta);
-		}
-
-		copy_v3_v3(cache->old_grab_location, grab_location);
-	}
-	/* Find the thumb delta */
-	else if(brush->sculpt_tool == SCULPT_TOOL_THUMB) {
-		float grab_location[3], imat[4][4];
-
-		if(cache->first_time)
-			copy_v3_v3(cache->orig_grab_location, cache->true_location);
-
-		/* compute 3d coordinate at same z from original location + mouse */
-		initgrabz(cache->vc->rv3d, cache->orig_grab_location[0],
-			cache->orig_grab_location[1], cache->orig_grab_location[2]);
-		window_to_3d_delta(cache->vc->ar, grab_location, cache->mouse[0], cache->mouse[1]);
-
-		/* compute delta to move verts by */
-		if (!cache->first_time) {
-			float delta[3];
-			sub_v3_v3v3(delta, grab_location, cache->old_grab_location);
-			invert_m4_m4(imat, ss->ob->obmat);
-			mul_mat3_m4_v3(imat, delta);
-			add_v3_v3(cache->grab_delta, delta);
-		}
-		else {
-			zero_v3(cache->grab_delta);
-		}
-
-		copy_v3_v3(cache->old_grab_location, grab_location);
-
-		/* location stays the same for finding vertices in brush radius */
-		copy_v3_v3(cache->true_location, cache->orig_grab_location);
-
-		sd->draw_anchored = 1;
-		copy_v3_v3(sd->anchored_location, cache->orig_grab_location);
-		copy_v3_v3(sd->anchored_initial_mouse, cache->initial_mouse);
-		sd->anchored_size = cache->pixel_radius;
-	}
-	else if(brush->sculpt_tool == SCULPT_TOOL_ROTATE) {
+	if(brush->sculpt_tool == SCULPT_TOOL_ROTATE) {
 		dx = cache->mouse[0] - cache->initial_mouse[0];
 		dy = cache->mouse[1] - cache->initial_mouse[1];
 
