@@ -48,7 +48,7 @@ WTPACKETSGET gpWTPacketsGet = NULL;
 
 // TODO - add more wintab32 function pointers as needed
 
-char* pszProgramName = NULL;
+char* gpszProgramName = NULL;
 
 #define GETPROCADDRESS(type, func) \
 	gp##func = (type)GetProcAddress(ghWintab, #func); \
