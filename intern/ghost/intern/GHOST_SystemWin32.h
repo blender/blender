@@ -307,7 +307,7 @@ protected:
 	 * @param x,y		current mouse coordinates, which may be updated by this function
 	 * @return Whether any events (possibly more than one) were created and sent.
 	 */
-	bool processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* window, int& x, int& y);
+	bool processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* window /*, int& x, int& y */ );
 
 	/**
 	 * Creates and sends mouse events for mouse movements "in between" WM_MOUSEMOVEs.

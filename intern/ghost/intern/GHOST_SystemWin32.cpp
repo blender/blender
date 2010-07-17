@@ -128,25 +128,23 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 
 	m_input_fidelity_hint = HI_FI; // just for testing...
 
-/*
 	// register for RawInput devices
-	RAWINPUTDEVICE devices[2];
-
+	RAWINPUTDEVICE devices[1];
+/*
 	// standard HID mouse
 	devices[0].usUsagePage = 0x01;
 	devices[0].usUsage = 0x02;
 	devices[0].dwFlags = 0; // RIDEV_NOLEGACY; // ignore legacy mouse messages
 	devices[0].hwndTarget = NULL;
-
-	// multi-axis mouse (SpaceNavigator)
-	devices[1].usUsagePage = 0x01;
-	devices[1].usUsage = 0x08;
-	devices[1].dwFlags = 0;
-	devices[1].hwndTarget = NULL;
-
-	if (RegisterRawInputDevices(devices, 2, sizeof(RAWINPUTDEVICE)))
-		puts("registered for raw mouse and multi-axis input");
 */
+	// multi-axis mouse (SpaceNavigator)
+	devices[0].usUsagePage = 0x01;
+	devices[0].usUsage = 0x08;
+	devices[0].dwFlags = 0;
+	devices[0].hwndTarget = NULL;
+
+	if (RegisterRawInputDevices(devices, 1, sizeof(RAWINPUTDEVICE)))
+		puts("registered for multi-axis input");
 }
 
 GHOST_SystemWin32::~GHOST_SystemWin32()
@@ -639,13 +637,14 @@ void GHOST_SystemWin32::processMinMaxInfo(MINMAXINFO * minmax)
 	minmax->ptMinTrackSize.y=240;
 }
 
-bool GHOST_SystemWin32::processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* window, int& x, int& y)
+bool GHOST_SystemWin32::processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* window /*, int& x, int& y */ )
 {
 	GHOST_IEvent* event = NULL;
 	bool eventSent = false;
 
 	puts("BEGIN");
 
+#if 0 // now using the existing mouse button handlers, improved movement handler
 				if (raw.header.dwType == RIM_TYPEMOUSE)
 					{
 					USHORT const& buttonFlags = raw.data.mouse.usButtonFlags;
@@ -705,24 +704,89 @@ bool GHOST_SystemWin32::processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* 
 					int dy = raw.data.mouse.lLastY;
 					if (dx || dy)
 						{
-						printf("mouse moved (%+d,%+d)\n", dx, dy);
+						printf("mouse moved <%+d,%+d>\n", dx, dy);
 						x += dx;
 						x += dy;
 						event = processCursorEvent(GHOST_kEventCursorMove, window, x, y);
 						}
 					}
+#endif // unused experimental mouse code
+
+	if (raw.header.dwType == RIM_TYPEHID)
+		{
+//		RID_DEVICE_INFO info;
+//		DWORD infoSize = sizeof(RID_DEVICE_INFO);
+//		int n = GetRawInputDeviceInfo(raw.header.hDevice, RIDI_DEVICEINFO, &info, &infoSize);
+		// ... and so on
+		// I'll finish this device checking code later. Since we ask for only multi-axis input
+		// in the constructor, that's all we should get here.
+
+/*
+Here's some handy info from http://www.linux-usb.org/usb.ids
+
+vendor ID
+046d  Logitech, Inc.
+
+	device IDs
+	c623  3Dconnexion Space Traveller 3D Mouse
+	c625  3Dconnexion Space Pilot 3D Mouse
+	c626  3Dconnexion Space Navigator 3D Mouse
+	c627  3Dconnexion Space Explorer 3D Mouse
+
+No other registered devices use the c62_ space, so a simple mask will work!
+*/
+
+		short t[3], r[3];       // defined here just for quick testing,
+		unsigned short buttons; // will maintain shared copy for all NDOF events
+
+		// multiple events per RAWHID? MSDN hints at this.
+		printf("%d events\n", raw.data.hid.dwCount);
+
+		BYTE const* data = &raw.data.hid.bRawData;
+// MinGW's definition (below) doesn't agree with MSDN reference for bRawData:
+// typedef struct tagRAWHID {
+// 	DWORD dwSizeHid;
+// 	DWORD dwCount;
+// 	BYTE bRawData;
+// } RAWHID,*PRAWHID,*LPRAWHID;
+
+		BYTE packetType = data[0];
+		switch (packetType)
+			{
+			case 1: // translation
+				memcpy(t, data + 1, sizeof(t));
+				printf("T: %+5d %+5d %+5d\n", t[0], t[1], t[2]);
+				break;
+			case 2: // rotation
+				memcpy(r, data + 1, sizeof(r));
+				printf("R: %+5d %+5d %+5d\n", r[0], r[1], r[2]);
+				break;
+			case 3: // buttons
+				memcpy(&buttons, data + 1, sizeof(buttons));
+				printf("buttons:");
+				if (buttons)
+					{
+					// work our way through the bit mask
+					for (int i = 0; i < 16; ++i)
+						if (buttons & (1 << i))
+							printf(" %d", i + 1);
+					printf("\n");
+					}
 				else
-					puts("exotic device!");
+					printf(" none\n");
+				break;
+			}
+		}
 
 	// assume only one event will come from this RawInput report
 	// test and adjust assumptions as needed!
 
-			if (event)
-				{
-				pushEvent(event);
-				event = NULL;
-				eventSent = true;
-				}
+	if (event)
+		{
+		pushEvent(event);
+		event = NULL;
+		eventSent = true;
+		}
 
 	puts("END");
 
@@ -944,7 +1008,6 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 					window->processWin32TabletInitEvent();
 					break;
 
-//#if 0 // this code has been replaced by RawInput (the WM_INPUT case)
 				////////////////////////////////////////////////////////////////////////
 				// Mouse events, processed
 				////////////////////////////////////////////////////////////////////////
@@ -1037,8 +1100,11 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 //	UINT bufferSize = rawSize;
 
 	puts("processing first event:");
+	// I don't know if this is needed. Can we get by with just GetRawInputBuffer?
+	// Thought some mouse events were missing, so I put this in to be cautious.
+	// Test and remove if redundant. [mce]
 	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw_ptr, &rawSize, sizeof(RAWINPUTHEADER));
-	eventSent |= processRawInput(raw, window, mousePosX, mousePosY);
+	eventSent |= processRawInput(raw, window /*, mousePosX, mousePosY*/ );
 	DefRawInputProc(&raw_ptr, 1, sizeof(RAWINPUTHEADER));
 
 //	GetRawInputBuffer(NULL, &bufferSize, sizeof(RAWINPUTHEADER));
@@ -1067,7 +1133,7 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 			for (int i = 0; i < n; ++i)
 				{
 				RAWINPUT const& raw = rawBuffer[i];
-				eventSent |= processRawInput(raw, window, mousePosX, mousePosY);
+				eventSent |= processRawInput(raw, window /*, mousePosX, mousePosY*/ );
 				}
 
 			// clear processed events from the queue
