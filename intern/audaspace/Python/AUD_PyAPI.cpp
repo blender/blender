@@ -60,7 +60,29 @@
 #include <cstdlib>
 #include <unistd.h>
 
+// ====================================================================
+
 #define PY_MODULE_ADD_CONSTANT(module, name) PyModule_AddIntConstant(module, #name, name)
+
+static inline int APyArg_ParseTupleAndKeywords(PyObject * o1, PyObject * o2, const char * f, const char ** k, ...)
+{
+	va_list ap;
+	va_start(ap, k);
+	int result = PyArg_ParseTupleAndKeywords(o1, o2, f, const_cast<char **>(k), ap);
+	va_end(ap);
+	return result;
+}
+
+static inline PyObject* APyObject_CallMethod(PyObject *o, const char *m, const char *f, ...)
+{
+	va_list ap;
+	va_start(ap, f);
+	PyObject* result = PyObject_CallMethod(o, const_cast<char *>(m), const_cast<char *>(f), ap);
+	va_end(ap);
+	return result;
+}
+
+// ====================================================================
 
 static PyObject* AUDError;
 
@@ -83,10 +105,10 @@ Sound_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	self = (Sound*)type->tp_alloc(type, 0);
 	if(self != NULL)
 	{
-		static char *kwlist[] = {"filename", NULL};
+		static const char *kwlist[] = {"filename", NULL};
 		const char* filename = NULL;
 
-		if(!PyArg_ParseTupleAndKeywords(args, kwds, "|s", kwlist, &filename))
+		if(!APyArg_ParseTupleAndKeywords(args, kwds, "|s", kwlist, &filename))
 		{
 			Py_DECREF(self);
 			return NULL;
@@ -958,7 +980,7 @@ PyDoc_STRVAR(M_aud_Handle_pause_doc,
 static PyObject *
 Handle_pause(Handle *self)
 {
-	return PyObject_CallMethod(self->device, "_pause", "(O)", self);
+	return APyObject_CallMethod(self->device, "_pause", "(O)", self);
 }
 
 PyDoc_STRVAR(M_aud_Handle_resume_doc,
@@ -967,7 +989,7 @@ PyDoc_STRVAR(M_aud_Handle_resume_doc,
 static PyObject *
 Handle_resume(Handle *self)
 {
-	return PyObject_CallMethod(self->device, "_resume", "(O)", self);
+	return APyObject_CallMethod(self->device, "_resume", "(O)", self);
 }
 
 PyDoc_STRVAR(M_aud_Handle_stop_doc,
@@ -976,7 +998,7 @@ PyDoc_STRVAR(M_aud_Handle_stop_doc,
 static PyObject *
 Handle_stop(Handle *self)
 {
-	return PyObject_CallMethod(self->device, "_stop", "(O)", self);
+	return APyObject_CallMethod(self->device, "_stop", "(O)", self);
 }
 
 PyDoc_STRVAR(M_aud_Handle_update_doc,
@@ -985,7 +1007,7 @@ PyDoc_STRVAR(M_aud_Handle_update_doc,
 static PyObject *
 Handle_update(Handle *self, PyObject *data)
 {
-	return PyObject_CallMethod(self->device, "_update_source", "(OO)", self, data);
+	return APyObject_CallMethod(self->device, "_update_source", "(OO)", self, data);
 }
 
 static PyMethodDef Handle_methods[] = {
@@ -1010,13 +1032,13 @@ PyDoc_STRVAR(M_aud_Handle_position_doc,
 static PyObject *
 Handle_get_position(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_position", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_position", "(O)", self);
 }
 
 static int
 Handle_set_position(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_seek", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_seek", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1031,7 +1053,7 @@ PyDoc_STRVAR(M_aud_Handle_keep_doc,
 static int
 Handle_set_keep(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_keep", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_keep", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1046,7 +1068,7 @@ PyDoc_STRVAR(M_aud_Handle_status_doc,
 static PyObject *
 Handle_get_status(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_status", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_status", "(O)", self);
 }
 
 PyDoc_STRVAR(M_aud_Handle_volume_doc,
@@ -1055,13 +1077,13 @@ PyDoc_STRVAR(M_aud_Handle_volume_doc,
 static PyObject *
 Handle_get_volume(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_volume", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_volume", "(O)", self);
 }
 
 static int
 Handle_set_volume(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_volume", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_volume", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1076,7 +1098,7 @@ PyDoc_STRVAR(M_aud_Handle_pitch_doc,
 static int
 Handle_set_pitch(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_pitch", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_pitch", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1091,7 +1113,7 @@ PyDoc_STRVAR(M_aud_Handle_loop_count_doc,
 static int
 Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_loop_count", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_loop_count", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1106,13 +1128,13 @@ PyDoc_STRVAR(M_aud_Handle_relative_doc,
 static PyObject *
 Handle_get_relative(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_is_relative", "(O)", self);
+	return APyObject_CallMethod(self->device, "_is_relative", "(O)", self);
 }
 
 static int
 Handle_set_relative(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_relative", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_relative", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1127,13 +1149,13 @@ PyDoc_STRVAR(M_aud_Handle_min_gain_doc,
 static PyObject *
 Handle_get_min_gain(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_min_gain", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_min_gain", "(O)", self);
 }
 
 static int
 Handle_set_min_gain(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_min_gain", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_min_gain", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1148,13 +1170,13 @@ PyDoc_STRVAR(M_aud_Handle_max_gain_doc,
 static PyObject *
 Handle_get_max_gain(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_max_gain", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_max_gain", "(O)", self);
 }
 
 static int
 Handle_set_max_gain(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_max_gain", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_max_gain", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1169,13 +1191,13 @@ PyDoc_STRVAR(M_aud_Handle_reference_distance_doc,
 static PyObject *
 Handle_get_reference_distance(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_reference_distance", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_reference_distance", "(O)", self);
 }
 
 static int
 Handle_set_reference_distance(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_reference_distance", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_reference_distance", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1190,13 +1212,13 @@ PyDoc_STRVAR(M_aud_Handle_max_distance_doc,
 static PyObject *
 Handle_get_max_distance(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_max_distance", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_max_distance", "(O)", self);
 }
 
 static int
 Handle_set_max_distance(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_max_distance", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_max_distance", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1211,13 +1233,13 @@ PyDoc_STRVAR(M_aud_Handle_rolloff_factor_doc,
 static PyObject *
 Handle_get_rolloff_factor(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_rolloff_factor", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_rolloff_factor", "(O)", self);
 }
 
 static int
 Handle_set_rolloff_factor(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_rolloff_factor", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_rolloff_factor", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1232,13 +1254,13 @@ PyDoc_STRVAR(M_aud_Handle_cone_inner_angle_doc,
 static PyObject *
 Handle_get_cone_inner_angle(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_cone_inner_angle", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_cone_inner_angle", "(O)", self);
 }
 
 static int
 Handle_set_cone_inner_angle(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_cone_inner_angle", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_cone_inner_angle", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1253,13 +1275,13 @@ PyDoc_STRVAR(M_aud_Handle_cone_outer_angle_doc,
 static PyObject *
 Handle_get_cone_outer_angle(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_cone_outer_angle", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_cone_outer_angle", "(O)", self);
 }
 
 static int
 Handle_set_cone_outer_angle(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_cone_outer_angle", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_cone_outer_angle", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1274,13 +1296,13 @@ PyDoc_STRVAR(M_aud_Handle_cone_outer_gain_doc,
 static PyObject *
 Handle_get_cone_outer_gain(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, "_get_cone_outer_gain", "(O)", self);
+	return APyObject_CallMethod(self->device, "_get_cone_outer_gain", "(O)", self);
 }
 
 static int
 Handle_set_cone_outer_gain(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, "_set_cone_outer_gain", "(OO)", self, args);
+	PyObject* result = APyObject_CallMethod(self->device, "_set_cone_outer_gain", "(OO)", self, args);
 	if(result)
 	{
 		Py_DECREF(result);
@@ -1290,35 +1312,35 @@ Handle_set_cone_outer_gain(Handle *self, PyObject* args, void* nothing)
 }
 
 static PyGetSetDef Handle_properties[] = {
-	{"position", (getter)Handle_get_position, (setter)Handle_set_position,
+	{(char*)"position", (getter)Handle_get_position, (setter)Handle_set_position,
 	 M_aud_Handle_position_doc, NULL },
-	{"keep", NULL, (setter)Handle_set_keep,
+	{(char*)"keep", NULL, (setter)Handle_set_keep,
 	 M_aud_Handle_keep_doc, NULL },
-	{"status", (getter)Handle_get_status, NULL,
+	{(char*)"status", (getter)Handle_get_status, NULL,
 	 M_aud_Handle_status_doc, NULL },
-	{"volume", (getter)Handle_get_volume, (setter)Handle_set_volume,
+	{(char*)"volume", (getter)Handle_get_volume, (setter)Handle_set_volume,
 	 M_aud_Handle_volume_doc, NULL },
-	{"pitch", NULL, (setter)Handle_set_pitch,
+	{(char*)"pitch", NULL, (setter)Handle_set_pitch,
 	 M_aud_Handle_pitch_doc, NULL },
-	{"loop_count", NULL, (setter)Handle_set_loop_count,
+	{(char*)"loop_count", NULL, (setter)Handle_set_loop_count,
 	 M_aud_Handle_loop_count_doc, NULL },
-	{"relative", (getter)Handle_get_relative, (setter)Handle_set_relative,
+	{(char*)"relative", (getter)Handle_get_relative, (setter)Handle_set_relative,
 	 M_aud_Handle_relative_doc, NULL },
-	{"min_gain", (getter)Handle_get_min_gain, (setter)Handle_set_min_gain,
+	{(char*)"min_gain", (getter)Handle_get_min_gain, (setter)Handle_set_min_gain,
 	 M_aud_Handle_min_gain_doc, NULL },
-	{"max_gain", (getter)Handle_get_max_gain, (setter)Handle_set_max_gain,
+	{(char*)"max_gain", (getter)Handle_get_max_gain, (setter)Handle_set_max_gain,
 	 M_aud_Handle_max_gain_doc, NULL },
-	{"reference_distance", (getter)Handle_get_reference_distance, (setter)Handle_set_reference_distance,
+	{(char*)"reference_distance", (getter)Handle_get_reference_distance, (setter)Handle_set_reference_distance,
 	 M_aud_Handle_reference_distance_doc, NULL },
-	{"max_distance", (getter)Handle_get_max_distance, (setter)Handle_set_max_distance,
+	{(char*)"max_distance", (getter)Handle_get_max_distance, (setter)Handle_set_max_distance,
 	 M_aud_Handle_max_distance_doc, NULL },
-	{"rolloff_factor", (getter)Handle_get_rolloff_factor, (setter)Handle_set_rolloff_factor,
+	{(char*)"rolloff_factor", (getter)Handle_get_rolloff_factor, (setter)Handle_set_rolloff_factor,
 	 M_aud_Handle_rolloff_factor_doc, NULL },
-	{"cone_inner_angle", (getter)Handle_get_cone_inner_angle, (setter)Handle_set_cone_inner_angle,
+	{(char*)"cone_inner_angle", (getter)Handle_get_cone_inner_angle, (setter)Handle_set_cone_inner_angle,
 	 M_aud_Handle_cone_inner_angle_doc, NULL },
-	{"cone_outer_angle", (getter)Handle_get_cone_outer_angle, (setter)Handle_set_cone_outer_angle,
+	{(char*)"cone_outer_angle", (getter)Handle_get_cone_outer_angle, (setter)Handle_set_cone_outer_angle,
 	 M_aud_Handle_cone_outer_angle_doc, NULL },
-	{"cone_outer_gain", (getter)Handle_get_cone_outer_gain, (setter)Handle_set_cone_outer_gain,
+	{(char*)"cone_outer_gain", (getter)Handle_get_cone_outer_gain, (setter)Handle_set_cone_outer_gain,
 	 M_aud_Handle_cone_outer_gain_doc, NULL },
 	{NULL}  /* Sentinel */
 };
@@ -1385,9 +1407,9 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 
 	bool keep = false;
 
-	static char *kwlist[] = {"sound", "keep", NULL};
+	static const char *kwlist[] = {"sound", "keep", NULL};
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &object, &keepo))
+	if(!APyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &object, &keepo))
 		return NULL;
 
 	if(!PyObject_TypeCheck(object, &SoundType))
@@ -1814,9 +1836,9 @@ Device_play3D(Device *self, PyObject *args, PyObject *kwds)
 
 	bool keep = false;
 
-	static char *kwlist[] = {"sound", "keep", NULL};
+	static const char *kwlist[] = {"sound", "keep", NULL};
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &object, &keepo))
+	if(!APyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &object, &keepo))
 		return NULL;
 
 	if(!PyObject_TypeCheck(object, &SoundType))
@@ -3013,19 +3035,19 @@ Device_set_distance_model(Device *self, PyObject* args, void* nothing)
 }
 
 static PyGetSetDef Device_properties[] = {
-	{"rate", (getter)Device_get_rate, NULL,
+	{(char*)"rate", (getter)Device_get_rate, NULL,
 	 M_aud_Device_rate_doc, NULL },
-	{"format", (getter)Device_get_format, NULL,
+	{(char*)"format", (getter)Device_get_format, NULL,
 	 M_aud_Device_format_doc, NULL },
-	{"channels", (getter)Device_get_channels, NULL,
+	{(char*)"channels", (getter)Device_get_channels, NULL,
 	 M_aud_Device_channels_doc, NULL },
-	{"volume", (getter)Device_get_volume, (setter)Device_set_volume,
+	{(char*)"volume", (getter)Device_get_volume, (setter)Device_set_volume,
 	 M_aud_Device_volume_doc, NULL },
-	{"speed_of_sound", (getter)Device_get_speed_of_sound, (setter)Device_set_speed_of_sound,
+	{(char*)"speed_of_sound", (getter)Device_get_speed_of_sound, (setter)Device_set_speed_of_sound,
 	 M_aud_Device_speed_of_sound_doc, NULL },
-	{"doppler_factor", (getter)Device_get_doppler_factor, (setter)Device_set_doppler_factor,
+	{(char*)"doppler_factor", (getter)Device_get_doppler_factor, (setter)Device_set_doppler_factor,
 	 M_aud_Device_doppler_factor_doc, NULL },
-	{"distance_model", (getter)Device_get_distance_model, (setter)Device_set_distance_model,
+	{(char*)"distance_model", (getter)Device_get_distance_model, (setter)Device_set_distance_model,
 	 M_aud_Device_distance_model_doc, NULL },
 	{NULL}  /* Sentinel */
 };
@@ -3078,9 +3100,9 @@ Device_OpenAL(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
 	int frequency = AUD_RATE_44100;
 
-	static char *kwlist[] = {"frequency", "buffersize", NULL};
+	static const char *kwlist[] = {"frequency", "buffersize", NULL};
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist, &frequency, &buffersize))
+	if(!APyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist, &frequency, &buffersize))
 		return NULL;
 
 	if(buffersize < 128)
@@ -3124,9 +3146,9 @@ Device_SDL(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
 	int frequency = AUD_RATE_44100;
 
-	static char *kwlist[] = {"frequency", "buffersize", NULL};
+	static const char *kwlist[] = {"frequency", "buffersize", NULL};
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist, &frequency, &buffersize))
+	if(!APyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist, &frequency, &buffersize))
 		return NULL;
 
 	if(buffersize < 128)
@@ -3170,9 +3192,9 @@ Device_Jack(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
 	int channels = AUD_CHANNELS_STEREO;
 
-	static char *kwlist[] = {"channels", "buffersize", NULL};
+	static const char *kwlist[] = {"channels", "buffersize", NULL};
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist, &channels, &buffersize))
+	if(!APyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist, &channels, &buffersize))
 		return NULL;
 
 	if(buffersize < 128)
