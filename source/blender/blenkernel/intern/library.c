@@ -995,7 +995,7 @@ void IMAnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb
 
 
 /* used by buttons.c library.c mball.c */
-void splitIDname(char *name, char *left, int *nr)
+int splitIDname(char *name, char *left, int *nr)
 {
 	int a;
 	
@@ -1003,19 +1003,21 @@ void splitIDname(char *name, char *left, int *nr)
 	strncpy(left, name, 21);
 	
 	a= strlen(name);
-	if(a>1 && name[a-1]=='.') return;
+	if(a>1 && name[a-1]=='.') return a;
 	
 	while(a--) {
 		if( name[a]=='.' ) {
 			left[a]= 0;
 			*nr= atol(name+a+1);
-			return;
+			return a;
 		}
 		if( isdigit(name[a])==0 ) break;
 		
 		left[a]= 0;
 	}
 	strcpy(left, name);	
+
+	return a;
 }
 
 static void sort_alpha_id(ListBase *lb, ID *id)
@@ -1077,8 +1079,7 @@ static ID *is_dupid(ListBase *lb, ID *id, char *name)
 static int check_for_dupid(ListBase *lb, ID *id, char *name)
 {
 	ID *idtest;
-	int nr= 0, nrtest, a;
-	const int maxtest=32;
+	int nr= 0, nrtest, a, left_len;
 	char left[32], leftest[32], in_use[32];
 
 	/* make sure input name is terminated properly */
@@ -1095,22 +1096,25 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 
 		/* we have a dup; need to make a new name */
 		/* quick check so we can reuse one of first 32 ids if vacant */
-		memset(in_use, 0, maxtest);
+		memset(in_use, 0, sizeof(in_use));
 
 		/* get name portion, number portion ("name.number") */
-		splitIDname( name, left, &nr);
+		left_len= splitIDname(name, left, &nr);
 
 		/* if new name will be too long, truncate it */
 		if(nr>999 && strlen(left)>16) left[16]= 0;
 		else if(strlen(left)>17) left[17]= 0;
 
-		for( idtest = lb->first; idtest; idtest = idtest->next ) {
-			if( id != idtest && idtest->lib == NULL ) {
-				splitIDname(idtest->name+2, leftest, &nrtest);
-				/* if base names match... */
-				/* optimized */
-				if( *left == *leftest && strcmp(left, leftest)==0 ) {
-					if(nrtest < maxtest)
+		if(left_len) {
+			for(idtest= lb->first; idtest; idtest= idtest->next) {
+				if(		(id != idtest) &&
+						(idtest->lib == NULL) &&
+						(*name == *(idtest->name+2)) &&
+						(strncmp(name, idtest->name+2, left_len)==0) &&
+						(splitIDname(idtest->name+2, leftest, &nrtest) == left_len)
+
+				) {
+					if(nrtest < sizeof(in_use))
 						in_use[nrtest]= 1;	/* mark as used */
 					if(nr <= nrtest)
 						nr= nrtest+1;		/* track largest unused */
@@ -1119,7 +1123,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		}
 
 		/* decide which value of nr to use */
-		for(a=0; a<maxtest; a++) {
+		for(a=0; a < sizeof(in_use); a++) {
 			if(a>=nr) break;	/* stop when we've check up to biggest */
 			if( in_use[a]==0 ) { /* found an unused value */
 				nr = a;
@@ -1129,8 +1133,9 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 
 		/* If the original name has no numeric suffix, 
 		 * rather than just chopping and adding numbers, 
-		 * shave off the end chars until we have a unique name */
-		if (nr==0) {
+		 * shave off the end chars until we have a unique name.
+		 * Check the null terminators match as well so we dont get Cube.000 -> Cube.00 */
+		if (nr==0 && name[left_len] == left[left_len]) {
 			int len = strlen(name)-1;
 			idtest= is_dupid(lb, id, name);
 			
@@ -1389,4 +1394,3 @@ void rename_id(ID *id, char *name)
 	
 	new_id(lb, id, name);				
 }
-
