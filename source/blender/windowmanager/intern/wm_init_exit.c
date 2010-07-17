@@ -95,6 +95,7 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_sound.h"
+#include "GHOST_C-api.h"
 
 static void wm_init_reports(bContext *C)
 {
@@ -264,8 +265,14 @@ int WM_init_game(bContext *C)
 		/* Fullscreen */
 		if(scene->gm.fullscreen) {
 			WM_operator_name_call(C, "WM_OT_window_fullscreen_toggle", WM_OP_EXEC_DEFAULT, NULL);
-			ar->winrct.ymax = win->sizey;
-			ar->winrct.xmax = win->sizex;
+			wm_get_screensize(&ar->winrct.xmax, &ar->winrct.ymax);
+		}
+		else
+		{
+			GHOST_RectangleHandle rect = GHOST_GetClientBounds(win->ghostwin);
+			ar->winrct.ymax = GHOST_GetHeightRectangle(rect);
+			ar->winrct.xmax = GHOST_GetWidthRectangle(rect);
+			GHOST_DisposeRectangle(rect);
 		}
 
 		WM_operator_name_call(C, "VIEW3D_OT_game_start", WM_OP_EXEC_DEFAULT, NULL);
