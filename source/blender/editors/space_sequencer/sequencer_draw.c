@@ -850,8 +850,6 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		/* border */
 		setlinestyle(3);
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 		UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 1.0, 0);
 
 		glBegin(GL_LINE_LOOP);
@@ -873,14 +871,16 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			y1+= a;
 			y2-= a;
 
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 			uiSetRoundBox(15);
 			gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		}
 
 		setlinestyle(0);
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	
 	/* draw grease-pencil (image aligned) */
