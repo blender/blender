@@ -2702,7 +2702,7 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 	float dist;
 	double new_value = RNA_float_get(op->ptr, "new_value");
 	int ret = OPERATOR_RUNNING_MODAL;
-	float initial_value = RNA_float_get(op->ptr, "initial_value");
+	// float initial_value = RNA_float_get(op->ptr, "initial_value");
 
 	mode = RNA_int_get(op->ptr, "mode");
 	RNA_int_get_array(op->ptr, "initial_mouse", initial_mouse);

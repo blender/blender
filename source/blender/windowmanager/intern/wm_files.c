@@ -689,14 +689,14 @@ void wm_autosave_location(char *filename)
 	sprintf(pidstr, "%d.blend", abs(getpid()));
 	
 #ifdef WIN32
-	// XXX Need to investigate how to handle default location of '/tmp/'
-	// This is a relative directory on Windows, and it may be
-	// found. Example:
-	// Blender installed on D:\ drive, D:\ drive has D:\tmp\
-	// Now, BLI_exists() will find '/tmp/' exists, but
-	// BLI_make_file_string will create string that has it most likely on C:\
-	// through get_default_root().
-	// If there is no C:\tmp autosave fails.
+	/* XXX Need to investigate how to handle default location of '/tmp/'
+	 * This is a relative directory on Windows, and it may be
+	 * found. Example:
+	 * Blender installed on D:\ drive, D:\ drive has D:\tmp\
+	 * Now, BLI_exists() will find '/tmp/' exists, but
+	 * BLI_make_file_string will create string that has it most likely on C:\
+	 * through get_default_root().
+	 * If there is no C:\tmp autosave fails. */
 	if (!BLI_exists(U.tempdir)) {
 		savedir = BLI_get_folder_create(BLENDER_USER_AUTOSAVE, NULL);
 		BLI_make_file_string("/", filename, savedir, pidstr);

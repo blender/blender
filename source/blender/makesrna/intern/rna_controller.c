@@ -103,6 +103,7 @@ static void rna_Controller_state_number_set(struct PointerRNA *ptr, const int va
 	cont->state_mask = (1 << (value - 1));
 }
 
+#if 0 /* editable is set to false, comment for now. */
 static void rna_Controller_state_get(PointerRNA *ptr, int *values)
 {
 	bController *cont= (bController *)ptr->data;
@@ -113,7 +114,6 @@ static void rna_Controller_state_get(PointerRNA *ptr, int *values)
 		values[i] = (cont->state_mask & (1<<i));
 }
 
-#if 0 /* editable is set to false, comment for now. */
 static void rna_Controller_state_set(PointerRNA *ptr, const int *values)
 {
 	bController *cont= (bController *)ptr->data;
