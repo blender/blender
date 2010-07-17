@@ -1433,7 +1433,6 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_MBALL, "META", 0, "Meta", ""},
 		{OB_LAMP, "LAMP", 0, "Lamp", ""},
 		{OB_CAMERA, "CAMERA", 0, "Camera", ""},
-		{OB_WAVE, "WAVE", 0, "Wave", ""},
 		{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
 		{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
 		{0, NULL, 0, NULL, NULL}};
