@@ -118,6 +118,8 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
             if ob:
                 split.template_ID(ob, "active_material", new="material.new")
                 row = split.row()
+                if mat.use_nodes:
+                    row.label(icon="NODETREE")
                 if slot:
                     row.prop(slot, "link", text="")
                 else:
