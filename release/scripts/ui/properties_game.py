@@ -548,6 +548,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel):
 
 class WORLD_PT_game_physics_obstacles(WorldButtonsPanel):
     bl_label = "Obstacle simulation"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
 
     def draw(self, context):
         layout = self.layout
