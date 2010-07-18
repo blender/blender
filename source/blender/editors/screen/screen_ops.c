@@ -2448,7 +2448,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		else sync= (scene->flag & SCE_FRAME_DROP);
 		
 		if((scene->audio.flag & AUDIO_SYNC) && !(sad->flag & ANIMPLAY_FLAG_REVERSE) && finite(time = sound_sync_scene(scene)))
-			scene->r.cfra = round(time * FPS);
+			scene->r.cfra = time * FPS + 0.5;
 		else
 		{
 			if(sync) {
