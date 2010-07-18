@@ -10965,7 +10965,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(scene) {
 				Sequence *seq;
 				SEQ_BEGIN(scene->ed, seq) {
-					seq->sat= 1.0f;
+					if(seq->sat==0.0f) {
+						seq->sat= 1.0f;
+					}
 				}
 				SEQ_END
 			}
