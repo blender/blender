@@ -2441,31 +2441,32 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		ScrArea *sa;
 		int sync;
 		float time;
-
+		
 		/* sync, don't sync, or follow scene setting */
 		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
 		else if(sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
 		else sync= (scene->flag & SCE_FRAME_DROP);
 		
 		if((scene->audio.flag & AUDIO_SYNC) && !(sad->flag & ANIMPLAY_FLAG_REVERSE) && finite(time = sound_sync_scene(scene)))
-			scene->r.cfra = time * FPS + 0.5;
+			scene->r.cfra = time * (int)(FPS + 0.5) * sad->speed_mul;
 		else
 		{
 			if(sync) {
-				int step = floor(wt->duration * FPS);
+				int step = floor(wt->duration * sad->speed_mul * FPS);
 				/* skip frames */
 				if(sad->flag & ANIMPLAY_FLAG_REVERSE)
 					scene->r.cfra -= step;
 				else
 					scene->r.cfra += step;
-				wt->duration -= ((float)step)/FPS;
+				wt->duration -= ((float)step)/(FPS*sad->speed_mul);
 			}
 			else {
 				/* one frame +/- */
+				int step = sad->speed_mul;
 				if(sad->flag & ANIMPLAY_FLAG_REVERSE)
-					scene->r.cfra--;
+					scene->r.cfra-=step;
 				else
-					scene->r.cfra++;
+					scene->r.cfra+=step;
 			}
 		}
 		
@@ -2533,7 +2534,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		 * since the frames-per-second value may have been changed
 		 */
 		// TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this?
-		wt->timestep= (1.0/FPS);
+		wt->timestep= (1.0/(FPS*sad->speed_mul));
 		
 		return OPERATOR_FINISHED;
 	}
@@ -2557,19 +2558,30 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 /* ****************** anim player, starts or ends timer ***************** */
 
 /* toggle operator */
-int ED_screen_animation_play(bContext *C, int sync, int mode)
+int ED_screen_animation_play(bContext *C, int sync, int mode, int toggle)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	struct Scene* scene = CTX_data_scene(C);
 
-	if(screen->animtimer) {
+	if(screen->animtimer && toggle) {
+		ScreenAnimData *sad= (ScreenAnimData *)screen->animtimer->customdata;
+		
 		/* stop playback now */
-		ED_screen_animation_timer(C, 0, 0, 0, 0);
+		ED_screen_animation_timer(C, 0, 0, 0, 0, 0.0);
 		sound_stop_scene(scene);
 	}
 	else {
 		ScrArea *sa= CTX_wm_area(C);
 		int refresh= SPACE_TIME;
+		double speed = 1.0;
+		if (screen->animtimer) {
+			ScreenAnimData *sad = (ScreenAnimData*)screen->animtimer->customdata;
+			int oldmode = sad->flag & ANIMPLAY_FLAG_REVERSE ? -1 : 1;
+			speed = (screen->animtimer && (oldmode == mode)) ? 2.0 : 1.0;
+		} else if (toggle) {
+			mode = screen->animmode;
+		}
+		screen->animmode = mode;
 
 		if(mode == 1) // XXX only play audio forwards!?
 			sound_play_scene(scene);
@@ -2578,7 +2590,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 		if ((sa) && (sa->spacetype == SPACE_TIME)) {
 			SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
 
-			ED_screen_animation_timer(C, stime->redraws, refresh, sync, mode);
+			ED_screen_animation_timer(C, stime->redraws, refresh, sync, mode, speed);
 
 			/* update region if TIME_REGION was set, to leftmost 3d window */
 			ED_screen_animation_timer_update(screen, stime->redraws, refresh);
@@ -2591,7 +2603,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 				redraws |= TIME_SEQ;
 			}
 
-			ED_screen_animation_timer(C, redraws, refresh, sync, mode);
+			ED_screen_animation_timer(C, redraws, refresh, sync, mode, speed);
 
 			if(screen->animtimer) {
 				wmTimer *wt= screen->animtimer;
@@ -2608,12 +2620,13 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 static int screen_animation_play_exec(bContext *C, wmOperator *op)
 {
 	int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
+	int toggle= RNA_boolean_get(op->ptr, "toggle");
 	int sync= -1;
 
 	if(RNA_property_is_set(op->ptr, "sync"))
 		sync= (RNA_boolean_get(op->ptr, "sync"));
 
-	return ED_screen_animation_play(C, sync, mode);
+	return ED_screen_animation_play(C, sync, mode, toggle);
 }
 
 static void SCREEN_OT_animation_play(wmOperatorType *ot)
@@ -2630,6 +2643,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	
 	RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
 	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");
+	RNA_def_boolean(ot->srna, "toggle", 1, "Toggle Playback", "Toggle animation off or double speed on hitting play again");
 }
 
 static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
@@ -2647,7 +2661,7 @@ static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
 		/* call the other "toggling" operator to clean up now */
-		ED_screen_animation_play(C, 0, 0);
+		ED_screen_animation_play(C, 0, 0, 1);
 	}
 
 	return OPERATOR_PASS_THROUGH;
@@ -2999,6 +3013,7 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
 void ED_keymap_screen(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 	
 	/* Screen Editing ------------------------------------------------ */
 	keymap= WM_keymap_find(keyconf, "Screen Editing", 0, 0);
@@ -3098,6 +3113,17 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_cancel", ESCKEY, KM_PRESS, 0, 0);
 	
+	/* Alternative keys for animation and sequencer playing */
+	keymap= WM_keymap_find(keyconf, "Frames", 0, 0);
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "toggle", 0);
+	
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "reverse", 1);
+	RNA_boolean_set(kmi->ptr, "toggle", 0);
+	
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", DOWNARROWKEY, KM_PRESS, KM_ALT, 0);
+
 	keymap_modal_set(keyconf);
 }
 

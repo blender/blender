@@ -66,7 +66,7 @@ typedef struct bScreen {
 	short mainwin;						/* screensize subwindow, for screenedges and global menus */
 	short subwinactive;					/* active subwindow */
 	
-	int pad2;
+	int animmode;						/* store current direction of animation(1=forward, -1=backward) */
 	
 	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
 	void *context;						/* context callback */

@@ -242,12 +242,18 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_ghost_border", OKEY, KM_PRESS, 0, 0);
 
 	/* would prefer to use numpad keys for job */
+	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD1, KM_PRESS, 0, 0)->ptr, "ratio", 1.0f);
+	
+	/* Setting zoom levels is not that useful, except for back to zoom level 1, removing keymap because of conflicts for now */
+#if 0
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD8, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 8.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD4, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 4.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD2, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 2.0f);
-	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD1, KM_PRESS, 0, 0)->ptr, "ratio", 1.0f);
+	
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD2, KM_PRESS, 0, 0)->ptr, "ratio", 0.5f);
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
+#endif
+
 }
 

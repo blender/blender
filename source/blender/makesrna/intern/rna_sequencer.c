@@ -1203,7 +1203,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "File", "");
 	RNA_def_property_string_funcs(prop, "rna_Sequence_filepath_get", "rna_Sequence_filepath_length", 
 										"rna_Sequence_filepath_set");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_filepath_update");
 	
 	rna_def_input(srna);
 }
