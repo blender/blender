@@ -200,7 +200,7 @@ IF(WITH_INSTALL)
             DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
         )
 		INSTALL(
-			PROGRAMS ${CMAKE_SOURCE_DIR}/release/freedesktop/blender-thumbnailer.py
+			PROGRAMS ${CMAKE_SOURCE_DIR}/bin/blender-thumbnailer.py
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 		)
 		INSTALL(
