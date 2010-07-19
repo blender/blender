@@ -46,8 +46,11 @@ import glob
 import re
 from tempfile import mkdtemp
 
+# store path to tools
+toolpath=os.path.join(".", "build_files", "scons", "tools")
+
 # needed for importing tools
-sys.path.append(os.path.join(".", "build_files", "scons", "tools"))
+sys.path.append(toolpath)
 
 import Blender
 import btools
@@ -121,7 +124,7 @@ if toolset:
 	print "Using " + toolset
 	if toolset=='mstoolkit':
 		env = BlenderEnvironment(ENV = os.environ)
-		env.Tool('mstoolkit', ['tools'])
+		env.Tool('mstoolkit', [toolpath])
 	else:
 		env = BlenderEnvironment(tools=[toolset], ENV = os.environ)
 		# xxx commented out, as was supressing warnings under mingw..
@@ -170,7 +173,7 @@ else:
 
 if crossbuild and env['PLATFORM'] != 'win32':
 	print B.bc.HEADER+"Preparing for crossbuild"+B.bc.ENDC
-	env.Tool('crossmingw', ['tools'])
+	env.Tool('crossmingw', [toolpath])
 	# todo: determine proper libs/includes etc.
 	# Needed for gui programs, console programs should do without it
 
