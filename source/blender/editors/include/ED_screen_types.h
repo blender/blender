@@ -38,7 +38,6 @@ typedef struct ScreenAnimData {
 	short refresh;
 	short flag;			/* flags for playback */
 	int sfra;			/* frame that playback was started from */
-	double speed_mul;	/* speed multiplier */
 } ScreenAnimData;
 
 /* for animplayer */

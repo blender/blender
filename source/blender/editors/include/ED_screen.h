@@ -98,7 +98,7 @@ void	ED_screen_set_scene(struct bContext *C, struct Scene *scene);
 void	ED_screen_delete_scene(struct bContext *C, struct Scene *scene);
 void	ED_screen_set_subwinactive(struct wmWindow *win, struct wmEvent *event);
 void	ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
-void	ED_screen_animation_timer(struct bContext *C, int redraws, int refresh, int sync, int enable, double speed);
+void	ED_screen_animation_timer(struct bContext *C, int redraws, int refresh, int sync, int enable);
 void	ED_screen_animation_timer_update(struct bScreen *screen, int redraws, int refresh);
 int		ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
 void	ED_screen_full_prevspace(struct bContext *C, ScrArea *sa);
@@ -110,7 +110,7 @@ void	ED_screen_new_window(struct bContext *C, struct rcti *position, int type);
 /* anim */
 void	ED_update_for_newframe(const struct bContext *C, int mute);
 void 	ED_refresh_viewport_fps(struct bContext *C);
-int ED_screen_animation_play(struct bContext *C, int sync, int mode, int toggle);
+int ED_screen_animation_play(struct bContext *C, int sync, int mode);
 
 /* screen keymaps */
 void	ED_operatortypes_screen(void);

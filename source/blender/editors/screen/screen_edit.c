@@ -1653,7 +1653,7 @@ void ED_refresh_viewport_fps(bContext *C)
 /* redraws: uses defines from stime->redraws 
  * enable: 1 - forward on, -1 - backwards on, 0 - off
  */
-void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, int enable, double speed)
+void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, int enable)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -1666,14 +1666,16 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
 	
 	if(enable) {
 		ScreenAnimData *sad= MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
-		screen->animtimer= WM_event_add_timer(wm, win, TIMER0, (1.0/(FPS*speed)));
+		
+		screen->animtimer= WM_event_add_timer(wm, win, TIMER0, (1.0/FPS));
+		
 		sad->ar= CTX_wm_region(C);
 		sad->sfra = scene->r.cfra;
 		sad->redraws= redraws;
 		sad->refresh= refresh;
-		sad->speed_mul= speed;
 		sad->flag |= (enable < 0)? ANIMPLAY_FLAG_REVERSE: 0;
 		sad->flag |= (sync == 0)? ANIMPLAY_FLAG_NO_SYNC: (sync == 1)? ANIMPLAY_FLAG_SYNC: 0;
+		
 		screen->animtimer->customdata= sad;
 		
 	}

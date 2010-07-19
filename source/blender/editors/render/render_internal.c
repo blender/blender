@@ -628,7 +628,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* cancel animation playback */
 	if (screen->animtimer)
-		ED_screen_animation_play(C, 0, 0, 1);
+		ED_screen_animation_play(C, 0, 0);
 	
 	/* handle UI stuff */
 	WM_cursor_wait(1);
