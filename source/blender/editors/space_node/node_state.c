@@ -243,7 +243,7 @@ static void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
 	
 	cur->xmin= cur->ymin= 0.0f;
 	cur->xmax=ar->winx;
-	cur->xmax= ar->winy;
+	cur->ymax=ar->winy;
 	
 	if(snode->edittree) {
 		for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -261,19 +261,20 @@ static void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
 	snode->yof= 0;
 	width= cur->xmax - cur->xmin;
 	height= cur->ymax- cur->ymin;
+
 	if(width > height) {
 		float newheight;
 		newheight= oldheight * width/oldwidth;
 		cur->ymin= cur->ymin - newheight/4;
-		cur->ymax= cur->ymin + newheight;
+		cur->ymax= cur->ymax + newheight/4;
 	}
 	else {
 		float newwidth;
 		newwidth= oldwidth * height/oldheight;
 		cur->xmin= cur->xmin - newwidth/4;
-		cur->xmax= cur->xmin + newwidth;
+		cur->xmax= cur->xmax + newwidth/4;
 	}
-	
+
 	ar->v2d.tot= ar->v2d.cur;
 	UI_view2d_curRect_validate(&ar->v2d);
 }
