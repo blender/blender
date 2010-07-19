@@ -566,7 +566,7 @@ int write_crash_blend(void)
 	}
 }
 
-int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
+int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports, int copy)
 {
 	Library *li;
 	int len;
@@ -620,11 +620,13 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 	do_history(di, reports);
 
 	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
-		strcpy(G.sce, di);
-		G.relbase_valid = 1;
-		strcpy(G.main->name, di);	/* is guaranteed current file */
-
-		G.save_over = 1; /* disable untitled.blend convention */
+		if(!copy) {
+			strcpy(G.sce, di);
+			G.relbase_valid = 1;
+			strcpy(G.main->name, di);	/* is guaranteed current file */
+	
+			G.save_over = 1; /* disable untitled.blend convention */
+		}
 
 		if(fileflags & G_FILE_COMPRESS) G.fileflags |= G_FILE_COMPRESS;
 		else G.fileflags &= ~G_FILE_COMPRESS;

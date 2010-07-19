@@ -1783,6 +1783,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
 	int fileflags;
+	int copy=0;
 
 	save_set_compress(op);
 	
@@ -1793,6 +1794,9 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 		untitled(path);
 	}
 
+	if(RNA_property_is_set(op->ptr, "copy"))
+		copy = RNA_boolean_get(op->ptr, "copy");
+	
 	fileflags= G.fileflags;
 
 	/* set compression flag */
@@ -1801,7 +1805,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "relative_remap"))	fileflags |=  G_FILE_RELATIVE_REMAP;
 	else											fileflags &= ~G_FILE_RELATIVE_REMAP;
 
-	if ( WM_write_file(C, path, fileflags, op->reports) != 0)
+	if ( WM_write_file(C, path, fileflags, op->reports, copy) != 0)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
@@ -1822,6 +1826,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative", "Remap relative paths when saving in a different directory");
+	RNA_def_boolean(ot->srna, "copy", 0, "Save Copy", "Save a copy of the actual working state but does not make saved file active.");
 }
 
 /* *************** save file directly ******** */
@@ -1872,7 +1877,6 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
 }
-
 
 /* XXX: move these collada operators to a more appropriate place */
 #ifdef WITH_COLLADA
