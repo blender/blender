@@ -1415,7 +1415,7 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	free_imbuf_seq(scene, &ed->seqbase, FALSE);
+	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 

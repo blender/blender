@@ -460,7 +460,7 @@ static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	free_imbuf_seq(scene, &ed->seqbase, FALSE);
+	free_imbuf_seq(scene, &ed->seqbase, FALSE, TRUE);
 
 	if(RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
 		seq_update_sound(scene, ptr->data);
