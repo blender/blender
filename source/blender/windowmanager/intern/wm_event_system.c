@@ -1594,7 +1594,7 @@ void wm_event_do_handlers(bContext *C)
 					CTX_data_scene_set(C, scene);
 					
 					if(((playing == 1) && (!win->screen->animtimer)) || ((playing == 0) && (win->screen->animtimer))){
-						ED_screen_animation_play(C, -1, 1, 1);
+						ED_screen_animation_play(C, -1, 1);
 					}
 					
 					if(playing == 0) {

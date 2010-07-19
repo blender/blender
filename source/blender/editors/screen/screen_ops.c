@@ -2647,7 +2647,7 @@ static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
 		/* call the other "toggling" operator to clean up now */
-		ED_screen_animation_play(C, 0, 0, 0);
+		ED_screen_animation_play(C, 0, 0);
 	}
 
 	return OPERATOR_PASS_THROUGH;
@@ -2999,7 +2999,7 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
 void ED_keymap_screen(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
-	wmKeyMapItem *kmi;
+	//wmKeyMapItem *kmi;
 	
 	/* Screen Editing ------------------------------------------------ */
 	keymap= WM_keymap_find(keyconf, "Screen Editing", 0, 0);
