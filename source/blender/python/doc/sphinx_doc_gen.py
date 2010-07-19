@@ -143,7 +143,9 @@ def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
 
 
 def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):    
-
+    if identifier.startswith("_"):
+        return
+    
     doc = descr.__doc__
     if not doc:
         doc = undocumented_message(module_name, type_name, identifier)
@@ -772,7 +774,8 @@ def rna2sphinx(BASEPATH):
 
     file.close()
 
-if __name__ == '__main__':
+def main():
+    import bpy
     if 'bpy' not in dir():
         print("\nError, this script must run from inside blender2.5")
         print(script_help_msg)
@@ -842,3 +845,6 @@ if __name__ == '__main__':
 
     import sys
     sys.exit()
+
+if __name__ == '__main__':
+    main()
