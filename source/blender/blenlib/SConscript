@@ -7,7 +7,7 @@ cflags=''
 incs = '. ../makesdna ../blenkernel #/intern/guardedalloc #/intern/ghost ../editors/include ../gpu'
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_ZLIB_INC']
-defs = []
+defs = ''
 
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'
@@ -15,9 +15,6 @@ if env['OURPLATFORM'] == 'linux2':
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
-
-if env['OURPLATFORM'] == 'win32-mingw':
-    defs.append('FREE_WINDOWS')
 
 if env['OURPLATFORM'] == 'linuxcross':
     if env['WITH_BF_OPENMP']:
@@ -27,4 +24,4 @@ if env['OURPLATFORM'] == 'darwin':
     if env['WITH_BF_OPENMP']:
        env.Append(CFLAGS=['-DPARALLEL=1'])
 
-env.BlenderLib ( 'bf_blenlib', sources, Split(incs), defs, libtype=['core','player'], priority = [363,170], compileflags =cflags )
+env.BlenderLib ( 'bf_blenlib', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [363,170], compileflags =cflags )
