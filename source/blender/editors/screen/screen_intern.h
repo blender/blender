@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -50,8 +50,6 @@ int			scredge_is_horizontal(ScrEdge *se);
 ScrEdge		*screen_find_active_scredge(bScreen *sc, int mx, int my);
 
 AZone		*is_in_area_actionzone(ScrArea *sa, int x, int y);
-
-ScrArea		*ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa);
 
 /* screen_context.c */
 void ed_screen_context(const bContext *C, const char *member, bContextDataResult *result);

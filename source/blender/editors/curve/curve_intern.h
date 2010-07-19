@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -33,13 +33,13 @@
 struct wmOperatorType;
 
 /* lorem.c */
-char *ED_lorem;
+extern char *ED_lorem;
 
 /* editfont.c */
 enum { DEL_ALL, DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };
 enum { CASE_LOWER, CASE_UPPER };
 enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD,
-       PREV_LINE, NEXT_LINE, PREV_PAGE, NEXT_PAGE };
+	   PREV_LINE, NEXT_LINE, PREV_PAGE, NEXT_PAGE };
 
 void FONT_OT_text_insert(struct wmOperatorType *ot);
 void FONT_OT_line_break(struct wmOperatorType *ot);
@@ -66,6 +66,9 @@ void FONT_OT_change_spacing(struct wmOperatorType *ot);
 void FONT_OT_open(struct wmOperatorType *ot);
 void FONT_OT_unlink(struct wmOperatorType *ot);
 
+void FONT_OT_textbox_add(struct wmOperatorType *ot);
+void FONT_OT_textbox_remove(struct wmOperatorType *ot);
+
 /* editcurve.c */
 void CURVE_OT_hide(struct wmOperatorType *ot);
 void CURVE_OT_reveal(struct wmOperatorType *ot);
@@ -85,6 +88,19 @@ void CURVE_OT_tilt_clear(struct wmOperatorType *ot);
 void CURVE_OT_smooth(struct wmOperatorType *ot);
 void CURVE_OT_smooth_radius(struct wmOperatorType *ot);
 
+void CURVE_OT_primitive_bezier_curve_add(struct wmOperatorType *ot);
+void CURVE_OT_primitive_bezier_circle_add(struct wmOperatorType *ot);
+void CURVE_OT_primitive_nurbs_curve_add(struct wmOperatorType *ot);
+void CURVE_OT_primitive_nurbs_circle_add(struct wmOperatorType *ot);
+void CURVE_OT_primitive_nurbs_path_add(struct wmOperatorType *ot);
+
+void SURFACE_OT_primitive_nurbs_surface_curve_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_circle_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_surface_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_tube_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_sphere_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_donut_add(struct wmOperatorType *ot);
+
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
 void CURVE_OT_de_select_last(struct wmOperatorType *ot);
 void CURVE_OT_select_all(struct wmOperatorType *ot);
@@ -96,7 +112,7 @@ void CURVE_OT_select_previous(struct wmOperatorType *ot);
 void CURVE_OT_select_more(struct wmOperatorType *ot);
 void CURVE_OT_select_less(struct wmOperatorType *ot);
 void CURVE_OT_select_random(struct wmOperatorType *ot);
-void CURVE_OT_select_every_nth(struct wmOperatorType *ot);
+void CURVE_OT_select_nth(struct wmOperatorType *ot);
 
 void CURVE_OT_switch_direction(struct wmOperatorType *ot);
 void CURVE_OT_subdivide(struct wmOperatorType *ot);

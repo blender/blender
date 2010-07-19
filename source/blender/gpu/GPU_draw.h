@@ -117,10 +117,14 @@ int GPU_update_image_time(struct Image *ima, double time);
 int GPU_verify_image(struct Image *ima, struct ImageUser *iuser, int tftile, int tfmode, int compare, int mipmap);
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(void);
+void GPU_free_images_anim(void);
 
 /* smoke drawing functions */
 void GPU_free_smoke(struct SmokeModifierData *smd);
 void GPU_create_smoke(struct SmokeModifierData *smd, int highres);
+
+/* Delayed free of OpenGL buffers by main thread */
+void GPU_free_unused_buffers(void);
 
 #ifdef __cplusplus
 }

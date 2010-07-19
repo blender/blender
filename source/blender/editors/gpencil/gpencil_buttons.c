@@ -36,11 +36,7 @@
 #include "BLI_blenlib.h"
 
 #include "DNA_gpencil_types.h"
-#include "DNA_listBase.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -56,12 +52,9 @@
 #include "BIF_glutil.h"
 
 #include "ED_gpencil.h"
-#include "ED_sequencer.h"
-#include "ED_util.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "gpencil_intern.h"
 
@@ -129,11 +122,11 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 	
 	/* active */
 	icon= (gpl->flag & GP_LAYER_ACTIVE) ? ICON_RADIOBUT_ON : ICON_RADIOBUT_OFF;
-	uiItemR(subrow, "", icon, &ptr, "active", 0);
+	uiItemR(subrow, &ptr, "active", 0, "", icon);
 	
 	/* locked */
 	icon= (gpl->flag & GP_LAYER_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
-	uiItemR(subrow, "", icon, &ptr, "locked", 0);
+	uiItemR(subrow, &ptr, "locked", 0, "", icon);
 	
 	/* when layer is locked or hidden, only draw header */
 	if (gpl->flag & (GP_LAYER_LOCKED|GP_LAYER_HIDE)) {
@@ -141,7 +134,7 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		
 		/* visibility button (only if hidden but not locked!) */
 		if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED))
-			uiItemR(subrow, "", ICON_RESTRICT_VIEW_ON, &ptr, "hide", 0); 
+			uiItemR(subrow, &ptr, "hide", 0, "", ICON_RESTRICT_VIEW_ON); 
 			
 		
 		/* name */
@@ -166,17 +159,17 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 	else {
 		/* draw rest of header -------------------------------- */
 		/* visibility button */
-		uiItemR(subrow, "", ICON_RESTRICT_VIEW_OFF, &ptr, "hide", 0); 
+		uiItemR(subrow, &ptr, "hide", 0, "", ICON_RESTRICT_VIEW_OFF); 
 		
 		/* frame locking */
 		// TODO: this needs its own icons...
 		icon= (gpl->flag & GP_LAYER_FRAMELOCK) ? ICON_RENDER_STILL : ICON_RENDER_ANIMATION;
-		uiItemR(subrow, "", icon, &ptr, "frame_lock", 0); 
+		uiItemR(subrow, &ptr, "frame_lock", 0, "", icon); 
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
 		/* name */
-		uiItemR(subrow, "", 0, &ptr, "info", 0);
+		uiItemR(subrow, &ptr, "info", 0, "", 0);
 		
 		/* delete 'button' */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -200,17 +193,17 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		
 		/* color */
 		subcol= uiLayoutColumn(col, 1);
-			uiItemR(subcol, "", 0, &ptr, "color", 0);
-			uiItemR(subcol, NULL, 0, &ptr, "opacity", UI_ITEM_R_SLIDER);
+			uiItemR(subcol, &ptr, "color", 0, "", 0);
+			uiItemR(subcol, &ptr, "opacity", UI_ITEM_R_SLIDER, NULL, 0);
 			
 		/* stroke thickness */
 		subcol= uiLayoutColumn(col, 1);
-			uiItemR(subcol, NULL, 0, &ptr, "line_thickness", UI_ITEM_R_SLIDER);
+			uiItemR(subcol, &ptr, "line_thickness", UI_ITEM_R_SLIDER, NULL, 0);
 		
 		/* debugging options */
 		if (G.f & G_DEBUG) {
 			subcol= uiLayoutColumn(col, 1);
-				uiItemR(subcol, NULL, 0, &ptr, "show_points", 0);
+				uiItemR(subcol, &ptr, "show_points", 0, NULL, 0);
 		}
 		
 		/* right column ................... */
@@ -218,8 +211,8 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		
 		/* onion-skinning */
 		subcol= uiLayoutColumn(col, 1);
-			uiItemR(subcol, "Onion Skinning", 0, &ptr, "use_onion_skinning", 0);
-			uiItemR(subcol, "Frames", 0, &ptr, "max_ghost_range", 0); // XXX shorter name here? (i.e. GStep)
+			uiItemR(subcol, &ptr, "use_onion_skinning", 0, "Onion Skinning", 0);
+			uiItemR(subcol, &ptr, "max_ghost_range", 0, "Frames", 0); // XXX shorter name here? i.e. GStep
 		
 		/* additional options... */
 		subcol= uiLayoutColumn(col, 1);
@@ -228,12 +221,20 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 	}
 } 
 
+/* stroke drawing options available */
+typedef enum eGP_Stroke_Ops {
+	STROKE_OPTS_NORMAL = 0, 
+	STROKE_OPTS_V3D_OFF, 
+	STROKE_OPTS_V3D_ON,
+} eGP_Stroke_Ops;
+
 /* Draw the contents for a grease-pencil panel*/
 static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, PointerRNA *ctx_ptr)
 {
 	PointerRNA gpd_ptr;
 	bGPDlayer *gpl;
 	uiLayout *col, *row;
+	short v3d_stroke_opts = STROKE_OPTS_NORMAL;
 	
 	/* make new PointerRNA for Grease Pencil block */
 	RNA_id_pointer_create((ID *)gpd, &gpd_ptr);
@@ -242,7 +243,7 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 	col= uiLayoutColumn(layout, 0);
 		/* current Grease Pencil block */
 		// TODO: show some info about who owns this?
-		uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_add", NULL, "GPENCIL_OT_data_unlink"); 
+		uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_add", NULL, "GPENCIL_OT_data_unlink", NULL); 
 		
 		/* add new layer button - can be used even when no data, since it can add a new block too */
 		uiItemO(col, NULL, 0, "GPENCIL_OT_layer_add");
@@ -262,17 +263,26 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 		/* label */
 		uiItemL(col, "Drawing Settings:", 0);
 		
-		/* 'stick to view' option */
+		/* check whether advanced 3D-View drawing space options can be used */
+		if (CTX_wm_view3d(C)) {
+			if (gpd->flag & (GP_DATA_DEPTH_STROKE|GP_DATA_DEPTH_VIEW))
+				v3d_stroke_opts = STROKE_OPTS_V3D_ON;
+			else
+				v3d_stroke_opts = STROKE_OPTS_V3D_OFF;
+		}
+		
+		/* drawing space options */
 		row= uiLayoutRow(col, 1);
-		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "VIEW");
-		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "CURSOR");
+			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "VIEW", NULL, 0);
+			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "CURSOR", NULL, 0);
 		row= uiLayoutRow(col, 1);
-		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "SURFACE");
-		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "STROKE");
+			uiLayoutSetActive(row, v3d_stroke_opts);
+			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "SURFACE", NULL, 0);
+			uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "STROKE", NULL, 0);
 		
 		row= uiLayoutRow(col, 0);
-		uiLayoutSetActive(row, (gpd->flag & (GP_DATA_DEPTH_STROKE|GP_DATA_DEPTH_VIEW)) ? 1:0);
-		uiItemR(row, NULL, 0, &gpd_ptr, "use_stroke_endpoints", 0);
+			uiLayoutSetActive(row, v3d_stroke_opts==STROKE_OPTS_V3D_ON);
+			uiItemR(row, &gpd_ptr, "use_stroke_endpoints", 0, NULL, 0);
 }	
 
 

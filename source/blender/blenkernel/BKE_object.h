@@ -45,6 +45,8 @@ struct SoftBody;
 struct BulletSoftBody;
 struct Group;
 struct bAction;
+struct RenderData;
+struct rctf;
 
 void clear_workob(struct Object *workob);
 void what_does_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
@@ -75,6 +77,7 @@ void *add_camera(char *name);
 struct Camera *copy_camera(struct Camera *cam);
 void make_local_camera(struct Camera *cam);
 float dof_camera(struct Object *ob);
+	
 void *add_lamp(char *name);
 struct Lamp *copy_lamp(struct Lamp *la);
 void make_local_lamp(struct Lamp *la);
@@ -110,6 +113,8 @@ void where_is_object_simul(struct Scene *scene, struct Object *ob);
 struct BoundBox *unit_boundbox(void);
 void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);
 struct BoundBox *object_get_boundbox(struct Object *ob);
+void object_get_dimensions(struct Object *ob, float *value);
+void object_set_dimensions(struct Object *ob, const float *value);
 void object_boundbox_flag(struct Object *ob, int flag, int set);
 void minmax_object(struct Object *ob, float *min, float *max);
 int minmax_object_duplis(struct Scene *scene, struct Object *ob, float *min, float *max);
@@ -128,6 +133,10 @@ int object_insert_ptcache(struct Object *ob);
 // void object_delete_ptcache(struct Object *ob, int index);
 struct KeyBlock *object_insert_shape_key(struct Scene *scene, struct Object *ob, char *name, int from_mix);
 
+void object_camera_matrix(
+		struct RenderData *rd, struct Object *camera, int winx, int winy, short field_second,
+		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens, float *ycor,
+		float *viewdx, float *viewdy);
 
 #ifdef __cplusplus
 }

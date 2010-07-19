@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -30,10 +30,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
+
+#include "BLI_fileops.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h" /* G.sce only */
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -41,10 +43,8 @@
 #include "ED_screen.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "buttons_intern.h"	// own include
 
@@ -92,10 +92,10 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	FileBrowseOp *fbo= op->customdata;
 	char *str;
 	
-	if (RNA_property_is_set(op->ptr, "path")==0 || fbo==NULL)
+	if (RNA_property_is_set(op->ptr, "filepath")==0 || fbo==NULL)
 		return OPERATOR_CANCELLED;
 	
-	str= RNA_string_get_alloc(op->ptr, "path", 0, 0);
+	str= RNA_string_get_alloc(op->ptr, "filepath", 0, 0);
 	RNA_property_string_set(&fbo->ptr, fbo->prop, str);
 	RNA_property_update(C, &fbo->ptr, fbo->prop);
 	MEM_freeN(str);
@@ -123,26 +123,53 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if(!prop)
 		return OPERATOR_CANCELLED;
-	
-	fbo= MEM_callocN(sizeof(FileBrowseOp), "FileBrowseOp");
-	fbo->ptr= ptr;
-	fbo->prop= prop;
-	op->customdata= fbo;
 
 	str= RNA_property_string_get_alloc(&ptr, prop, 0, 0);
-	RNA_string_set(op->ptr, "path", str);
-	MEM_freeN(str);
 
-	WM_event_add_fileselect(C, op); 
-	
-	return OPERATOR_RUNNING_MODAL;
+	/* useful yet irritating feature, Shift+Click to open the file
+	 * Alt+Click to browse a folder in the OS's browser */
+	if(event->shift || event->alt) {
+		PointerRNA props_ptr;
+
+		if(event->alt) {
+			char *lslash= BLI_last_slash(str);
+			if(lslash)
+				*lslash= '\0';
+		}
+
+
+		WM_operator_properties_create(&props_ptr, "WM_OT_path_open");
+		RNA_string_set(&props_ptr, "filepath", str);
+		WM_operator_name_call(C, "WM_OT_path_open", WM_OP_EXEC_DEFAULT, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
+
+		MEM_freeN(str);
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		fbo= MEM_callocN(sizeof(FileBrowseOp), "FileBrowseOp");
+		fbo->ptr= ptr;
+		fbo->prop= prop;
+		op->customdata= fbo;
+
+		RNA_string_set(op->ptr, "filepath", str);
+		MEM_freeN(str);
+
+		if(RNA_struct_find_property(op->ptr, "relative_path"))
+			if(!RNA_property_is_set(op->ptr, "relative_path"))
+				RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+
+		WM_event_add_fileselect(C, op);
+
+		return OPERATOR_RUNNING_MODAL;
+	}
 }
 
 void BUTTONS_OT_file_browse(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Accept";
-	ot->description="Open a file browser";
+	ot->description="Open a file browser, Hold Shift to open the file, Alt to browse containing directory";
 	ot->idname= "BUTTONS_OT_file_browse";
 	
 	/* api callbacks */
@@ -151,6 +178,6 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 	ot->cancel= file_browse_cancel;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
 }
 

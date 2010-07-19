@@ -167,7 +167,7 @@ static void draw_triangulated(short mcords[][2], short tot)
 	}
 	
 	/* do the fill */
-	filldisplist(&lb, &lb);
+	filldisplist(&lb, &lb, 0);
 
 	/* do the draw */
 	dl= lb.first;	/* filldisplist adds in head of list */

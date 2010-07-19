@@ -27,45 +27,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#include <stdio.h>
-#include <stddef.h>
 #include <string.h>
-#include <math.h>
-#include <float.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
-#include "DNA_material_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_action.h"
-#include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_utildefines.h"
 #include "BKE_context.h"
-#include "BKE_report.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
-
-#include "ED_anim_api.h"
-#include "ED_keyframing.h"
-#include "ED_keyframes_edit.h"
-#include "ED_screen.h"
-#include "ED_util.h"
 
 #include "UI_interface.h"
 
@@ -74,7 +47,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 /* ************************************************** */
 /* Animation Data Validation */
@@ -225,27 +197,42 @@ short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index,
 {
 	AnimData *adt;
 	FCurve *fcu;
+	int success= 0;
 	
 	/* get F-Curve
 	 * Note: here is one of the places where we don't want new F-Curve + Driver added!
 	 * 		so 'add' var must be 0
 	 */
 	/* we don't check the validity of the path here yet, but it should be ok... */
-	fcu= verify_driver_fcurve(id, rna_path, array_index, 0);
 	adt= BKE_animdata_from_id(id);
 	
-	/* only continue if we have an driver to remove */
-	if (adt && fcu) {
-		/* remove F-Curve from driver stack, then free it */
-		BLI_remlink(&adt->drivers, fcu);
-		free_fcurve(fcu);
-		
-		/* done successfully */
-		return 1;
+	if(adt) {
+		if(array_index == -1) {
+			FCurve *fcu_iter= adt->drivers.first;
+			while((fcu= iter_step_fcurve(fcu_iter, rna_path))) {
+				/* store the next fcurve for looping  */
+				fcu_iter= fcu->next;
+				
+				/* remove F-Curve from driver stack, then free it */
+				BLI_remlink(&adt->drivers, fcu);
+				free_fcurve(fcu);
+				
+				/* done successfully */
+				success |= 1;
+			}
+		}
+		else {
+			fcu= verify_driver_fcurve(id, rna_path, array_index, 0);
+			if(fcu) {
+				BLI_remlink(&adt->drivers, fcu);
+				free_fcurve(fcu);
+				
+				success = 1;
+			}
+		}
 	}
-	
-	/* failed */
-	return 0;
+
+	return success;
 }
 
 /* ************************************************** */
@@ -436,32 +423,20 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	PropertyRNA *prop= NULL;
 	char *path;
 	short success= 0;
-	int a, index, length, all= RNA_boolean_get(op->ptr, "all");
+	int index, all= RNA_boolean_get(op->ptr, "all");
 	
 	/* try to find driver using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
+	
+	if (all)
+		index= -1;
 
 	if (ptr.data && prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
-		
-		if (path) {
-			if (all) {
-				length= RNA_property_array_length(&ptr, prop);
-				
-				if(length) index= 0;
-				else length= 1;
-			}
-			else
-				length= 1;
-			
-			for (a=0; a<length; a++)
-				success+= ANIM_remove_driver(ptr.id.data, path, index+a, 0);
-			
-			MEM_freeN(path);
-		}
+		success= ANIM_remove_driver(ptr.id.data, path, index, 0);
+		MEM_freeN(path);
 	}
-	
 	
 	if (success) {
 		/* send updates */

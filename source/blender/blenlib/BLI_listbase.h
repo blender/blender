@@ -32,9 +32,9 @@
 #ifndef BLI_LISTBASE_H
 #define BLI_LISTBASE_H
 
-//#include "DNA_listbase.h"
-struct ListBase;
-struct LinkData;
+#include "DNA_listBase.h"
+//struct ListBase;
+//struct LinkData;
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,6 +49,7 @@ int BLI_findstringindex(struct ListBase *listbase, const char *id, int offset);
 void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);
 void BLI_remlink(struct ListBase *listbase, void *vlink);
+int BLI_remlink_safe(struct ListBase *listbase, void *vlink);
 
 void BLI_addhead(struct ListBase *listbase, void *vlink);
 void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnewlink);

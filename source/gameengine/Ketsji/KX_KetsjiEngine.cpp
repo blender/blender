@@ -285,6 +285,7 @@ void KX_KetsjiEngine::RenderDome()
 		return;
 
 	KX_SceneList::iterator sceneit;
+	KX_Scene* scene;
 
 	int n_renders=m_dome->GetNumberRenders();// usually 4 or 6
 	for (int i=0;i<n_renders;i++){
@@ -292,7 +293,7 @@ void KX_KetsjiEngine::RenderDome()
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++)
 		// for each scene, call the proceed functions
 		{
-			KX_Scene* scene = *sceneit;
+			scene = *sceneit;
 			KX_Camera* cam = scene->GetActiveCamera();
 
 			m_rendertools->BeginFrame(m_rasterizer);
@@ -368,6 +369,10 @@ void KX_KetsjiEngine::RenderDome()
 			);
 	}
 	m_dome->Draw();
+	// Draw Callback for the last scene
+#ifndef DISABLE_PYTHON
+	scene->RunDrawingCallbacks(scene->GetPostDrawCB());
+#endif	
 	EndFrame();
 }
 
@@ -1309,8 +1314,10 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	m_logger->StartLog(tc_rasterizer, m_kxsystem->GetTimeInSeconds(), true);
 	SG_SetActiveStage(SG_STAGE_RENDER);
 
+#ifndef DISABLE_PYTHON
 	// Run any pre-drawing python callbacks
 	scene->RunDrawingCallbacks(scene->GetPreDrawCB());
+#endif
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
 	
@@ -1324,7 +1331,9 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
 	m_rendertools->MotionBlur(m_rasterizer);
 	scene->Render2DFilters(m_canvas);
+#ifndef DISABLE_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
+#endif
 	m_rasterizer->FlushDebugLines();
 }
 
@@ -1617,7 +1626,8 @@ KX_Scene* KX_KetsjiEngine::CreateScene(Scene *scene)
 									  m_mousedevice,
 									  m_networkdevice,
 									  scene->id.name+2,
-									  scene);
+									  scene,
+									  m_canvas);
 
 	m_sceneconverter->ConvertScene(tmpscene,
 							  m_rendertools,

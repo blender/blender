@@ -51,10 +51,10 @@ static void do_color_key(bNode *node, float *out, float *in)
    VECCOPY(out, in);
 
    if(fabs(in[0]-c->key[0]) < c->t1 &&
-      fabs(in[1]-c->key[1]) < c->t2 &&
-      fabs(in[2]-c->key[2]) < c->t3) 
+	  fabs(in[1]-c->key[1]) < c->t2 &&
+	  fabs(in[2]-c->key[2]) < c->t3) 
    {
-      out[3]=0.0; /*make transparent*/
+	  out[3]=0.0; /*make transparent*/
    }
 
 	else { /*pixel is outside key color */

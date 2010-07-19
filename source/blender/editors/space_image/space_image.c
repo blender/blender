@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,13 +29,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_image_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -55,8 +51,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_gpencil.h"
-#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -70,7 +64,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -107,6 +100,7 @@ void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obe
 			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 		
 		ED_area_tag_redraw(CTX_wm_area(C));
+		
 	}
 }
 
@@ -185,6 +179,12 @@ void ED_space_image_size(SpaceImage *sima, int *width, int *height)
 		/* not very important, just nice */
 		*width= (scene->r.xsch*scene->r.size)/100;
 		*height= (scene->r.ysch*scene->r.size)/100;
+
+		if((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
+			*width *= (scene->r.border.xmax - scene->r.border.xmin);
+			*height *= (scene->r.border.ymax - scene->r.border.ymin);
+		}
+
 	}
 	/* I know a bit weak... but preview uses not actual image size */
 	// XXX else if(image_preview_active(sima, width, height));
@@ -296,20 +296,20 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 }
 
 
-
-static void image_histogram_tag_refresh(ScrArea *sa)
+static void image_scopes_tag_refresh(ScrArea *sa)
 {
 	SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
 	ARegion *ar;
-	
+
 	/* only while histogram is visible */
 	for (ar=sa->regionbase.first; ar; ar=ar->next) {
 		if (ar->regiontype == RGN_TYPE_PREVIEW && ar->flag & RGN_FLAG_HIDDEN)
 			return;
 	}
-	
-	sima->hist.ok=0;
+
+	sima->scopes.ok=0;
 }
+
 
 /* ******************** manage regions ********************* */
 
@@ -363,8 +363,8 @@ ARegion *image_has_scope_region(ScrArea *sa)
 	arnew->alignment= RGN_ALIGN_RIGHT;
 	
 	arnew->flag = RGN_FLAG_HIDDEN;
-	
-	image_histogram_tag_refresh(sa);
+
+	image_scopes_tag_refresh(sa);
 	
 	return arnew;
 }
@@ -384,6 +384,8 @@ static SpaceLink *image_new(const bContext *C)
 	simage->iuser.ok= 1;
 	simage->iuser.fie_ima= 2;
 	simage->iuser.frames= 100;
+	
+	scopes_new(&simage->scopes);
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for image");
@@ -407,7 +409,7 @@ static SpaceLink *image_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_PREVIEW;
 	ar->alignment= RGN_ALIGN_RIGHT;
 	ar->flag = RGN_FLAG_HIDDEN;
-	
+
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for image");
 	
@@ -424,9 +426,7 @@ static void image_free(SpaceLink *sl)
 	
 	if(simage->cumap)
 		curvemapping_free(simage->cumap);
-//	if(simage->gpd)
-// XXX		free_gpencil_data(simage->gpd);
-	
+	scopes_free(&simage->scopes);
 }
 
 
@@ -474,6 +474,7 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_cycle_render_slot);
 
 	WM_operatortype_append(IMAGE_OT_sample);
+	WM_operatortype_append(IMAGE_OT_sample_line);
 	WM_operatortype_append(IMAGE_OT_curves_point_set);
 
 	WM_operatortype_append(IMAGE_OT_record_composite);
@@ -530,7 +531,7 @@ void image_keymap(struct wmKeyConfig *keyconf)
 static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 {
 	if(drag->type==WM_DRAG_PATH)
-		if(ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
+		if(ELEM3(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
 			return 1;
 	return 0;
 }
@@ -538,7 +539,7 @@ static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 static void image_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	/* copy drag path to properties */
-	RNA_string_set(drop->ptr, "path", drag->path);
+	RNA_string_set(drop->ptr, "filepath", drag->path);
 }
 
 /* area+region dropbox definition */
@@ -559,6 +560,9 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 
 	ima= ED_space_image(sima);
 
+	if(sima->iuser.flag & IMA_ANIM_ALWAYS)
+		BKE_image_user_calc_frame(&sima->iuser, CTX_data_scene(C)->r.cfra, 0);
+	
 	/* check if we have to set the image from the editmesh */
 	if(ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
 	else if(obedit && obedit->type == OB_MESH) {
@@ -590,26 +594,33 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_SCENE:
 			switch(wmn->data) {
+				case ND_FRAME:
+					image_scopes_tag_refresh(sa);
+					ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);					
+					break;
 				case ND_MODE:
 				case ND_RENDER_RESULT:
 				case ND_COMPO_RESULT:
 					if (ED_space_image_show_render(sima))
-						image_histogram_tag_refresh(sa);
+						image_scopes_tag_refresh(sa);
 					ED_area_tag_refresh(sa);
-					ED_area_tag_redraw(sa);
+					ED_area_tag_redraw(sa);					
 					break;
 			}
 			break;
 		case NC_IMAGE:
 			if (wmn->reference == sima->image || !wmn->reference) {
-				image_histogram_tag_refresh(sa);
+				image_scopes_tag_refresh(sa);
 				ED_area_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
 			}
 			break;
 		case NC_SPACE:	
-			if(wmn->data == ND_SPACE_IMAGE)
+			if(wmn->data == ND_SPACE_IMAGE) {
+				image_scopes_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
+			}
 			break;
 		case NC_GEOM:
 			switch(wmn->data) {
@@ -617,6 +628,15 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_SELECT:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
+					break;
+			}
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_TRANSFORM:
+					if(sima->lock && (sima->flag & SI_DRAWSHADOW)) {
+						ED_area_tag_refresh(sa);
+						ED_area_tag_redraw(sa);
+					}
 					break;
 			}
 	}
@@ -766,7 +786,10 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		/* nothing yet */
+		case NC_SCREEN:
+			if (wmn->data==ND_GPENCIL)
+				ED_region_tag_redraw(ar);
+		break;
 	}
 }
 
@@ -792,6 +815,10 @@ static void image_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_SCREEN:
+			if (wmn->data==ND_GPENCIL)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_BRUSH:
 			if(wmn->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
@@ -815,10 +842,12 @@ static void image_scope_area_init(wmWindowManager *wm, ARegion *ar)
 static void image_scope_area_draw(const bContext *C, ARegion *ar)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
+	Scene *scene= CTX_data_scene(C);
 	void *lock;
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
-	if(ibuf)
-        histogram_update(&sima->hist, ibuf);
+	if(ibuf) {
+		scopes_update(&sima->scopes, ibuf, scene->r.color_mgt_flag & R_COLOR_MANAGEMENT );
+	}
 	ED_space_image_release_buffer(sima, lock);
 	
 	ED_region_panels(C, ar, 1, NULL, -1);
@@ -858,6 +887,29 @@ static void image_header_area_init(wmWindowManager *wm, ARegion *ar)
 static void image_header_area_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_header(C, ar);
+}
+
+static void image_header_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_MODE:
+				case ND_TOOLSETTINGS:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_DATA:
+				case ND_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			
+	}
 }
 
 /**************************** spacetype *****************************/
@@ -919,6 +971,7 @@ void ED_spacetype_image(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
+	art->listener= image_header_area_listener;
 	art->init= image_header_area_init;
 	art->draw= image_header_area_draw;
 	

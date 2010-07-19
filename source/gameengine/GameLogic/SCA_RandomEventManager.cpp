@@ -37,10 +37,6 @@ using namespace std;
 #include <iostream>
 #include <stdio.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 SCA_RandomEventManager::SCA_RandomEventManager(class SCA_LogicManager* logicmgr)
 		: SCA_EventManager(logicmgr, RANDOM_EVENTMGR)
 {

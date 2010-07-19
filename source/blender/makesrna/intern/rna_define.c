@@ -34,9 +34,7 @@
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "BLI_ghash.h"
 #include "BLI_string.h"
@@ -887,7 +885,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 			fprop->hardmin= (subtype == PROP_UNSIGNED)? 0.0f: -FLT_MAX;
 			fprop->hardmax= FLT_MAX;
 
-			if(subtype == PROP_COLOR) {
+			if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA)) {
 				fprop->softmin= 0.0f;
 				fprop->softmax= 1.0f;
 			}
@@ -2723,6 +2721,40 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 				break;
 		}
 	}
+}
+
+void RNA_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
+{
+	ContainerRNA *cont= cont_;
+	
+	RNA_def_property_free_pointers(prop);
+	
+	if(prop->flag & PROP_RUNTIME) {
+		if(cont->prophash)
+			BLI_ghash_remove(cont->prophash, (void*)prop->identifier, NULL, NULL);
+
+		rna_freelinkN(&cont->properties, prop);
+	}
+}
+
+/* note: only intended for removing dynamic props */
+int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *identifier)
+{
+	ContainerRNA *cont= cont_;
+	PropertyRNA *prop;
+	
+	for(prop= cont->properties.first; prop; prop= prop->next) {
+		if(strcmp(prop->identifier, identifier)==0) {
+			if(prop->flag & PROP_RUNTIME) {
+				RNA_def_property_free(cont_, prop);
+				return 1;
+			}
+			else {
+				return -1;
+			}
+		}
+	}
+	return 0;
 }
 #endif
 

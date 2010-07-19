@@ -104,6 +104,15 @@ typedef struct QuicktimeCodecSettings {
 	int	minTemporalQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
 	int	keyFrameRate;
 	int	bitRate;	/* bitrate in bps */
+	
+	/* Audio Codec settings */
+	int audiocodecType;
+	int audioSampleRate;
+	short audioBitDepth;
+	short audioChannels;
+	int audioCodecFlags;
+	int audioBitRate;
+	int pad1;
 } QuicktimeCodecSettings;
 
 typedef struct FFMpegCodecData {
@@ -170,25 +179,24 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_NEG_ZMASK	0x80000
 
 /* srl->passflag */
-#define SCE_PASS_COMBINED		1
-#define SCE_PASS_Z				2
-#define SCE_PASS_RGBA			4
-#define SCE_PASS_DIFFUSE		8
-#define SCE_PASS_SPEC			16
-#define SCE_PASS_SHADOW			32
-#define SCE_PASS_AO				64
-#define SCE_PASS_REFLECT		128
-#define SCE_PASS_NORMAL			256
-#define SCE_PASS_VECTOR			512
-#define SCE_PASS_REFRACT		1024
-#define SCE_PASS_INDEXOB		2048
-#define SCE_PASS_UV				4096
-#define SCE_PASS_RADIO			8192 /* Radio removed, can use for new GI? */
-#define SCE_PASS_MIST			16384
-#define SCE_PASS_RAYHITS		32768
-#define SCE_PASS_EMIT			65536
-#define SCE_PASS_ENVIRONMENT	131072
-#define SCE_PASS_INDIRECT		262144
+#define SCE_PASS_COMBINED		(1<<0)
+#define SCE_PASS_Z				(1<<1)
+#define SCE_PASS_RGBA			(1<<2)
+#define SCE_PASS_DIFFUSE		(1<<3)
+#define SCE_PASS_SPEC			(1<<4)
+#define SCE_PASS_SHADOW			(1<<5)
+#define SCE_PASS_AO				(1<<6)
+#define SCE_PASS_REFLECT		(1<<7)
+#define SCE_PASS_NORMAL			(1<<8)
+#define SCE_PASS_VECTOR			(1<<9)
+#define SCE_PASS_REFRACT		(1<<10)
+#define SCE_PASS_INDEXOB		(1<<11)
+#define SCE_PASS_UV				(1<<12)
+#define SCE_PASS_INDIRECT		(1<<13)
+#define SCE_PASS_MIST			(1<<14)
+#define SCE_PASS_RAYHITS		(1<<15)
+#define SCE_PASS_EMIT			(1<<16)
+#define SCE_PASS_ENVIRONMENT	(1<<17)
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
@@ -201,12 +209,12 @@ typedef struct RenderData {
 	struct FFMpegCodecData ffcodecdata;
 	
 	int cfra, sfra, efra;	/* frames as in 'images' */
+	float subframe;			/* subframe offset from cfra, in 0.0-1.0 */
 	int psfra, pefra;		/* start+end frames of preview range */
 
 	int images, framapto;
 	short flag, threads;
 
-	float ctime;			/* use for calcutions */
 	float framelen, blurfac;
 
 	/** For UR edge rendering: give the edges this color */
@@ -220,7 +228,7 @@ typedef struct RenderData {
 	
 	short dimensionspreset;		/* for the dimensions presets menu */
  	
- 	short filtertype;	/* filter is box, tent, gauss, mitch, etc */
+	 short filtertype;	/* filter is box, tent, gauss, mitch, etc */
 
 	short size, maximsize;	/* size in %, max in Kb */
 	/* from buttons: */
@@ -246,7 +254,7 @@ typedef struct RenderData {
 	/** Mode bits:                                                           */
 	/* 0: Enable backbuffering for images                                    */
 	short bufflag;
- 	short quality;
+	 short quality;
 	
 	/**
 	 * Render to image editor, fullscreen or to new window.
@@ -329,23 +337,13 @@ typedef struct RenderData {
 	/** post-production settings. Depricated, but here for upwards compat (initialized to 1) */	 
 	float postgamma, posthue, postsat;	 
 	
- 	/* Dither noise intensity */
+	 /* Dither noise intensity */
 	float dither_intensity;
 	
 	/* Bake Render options */
 	short bake_osa, bake_filter, bake_mode, bake_flag;
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
-	
-	/* yafray: global panel params. TODO: move elsewhere */
-	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
-	short YF_AA, YFexportxml, YF_nobump, YF_clamprgb, yfpad1;
-	int GIdepth, GIcausdepth, GIpixelspersample;
-	int GIphotoncount, GImixphotons;
-	float GIphotonradius;
-	int YF_raydepth, YF_AApasses, YF_AAsamples, yfpad2;
-	float GIshadowquality, GIrefinement, GIpower, GIindirpower;
-	float YF_gamma, YF_exposure, YF_raybias, YF_AApixelsize, YF_AAthreshold;
 
 	/* paths to backbufffer, output, ftype */
 	char backbuf[160], pic[160];
@@ -360,6 +358,12 @@ typedef struct RenderData {
 	/* foreground/background color. */
 	float fg_stamp[4];
 	float bg_stamp[4];
+
+	/* sequencer options */
+	char seq_prev_type;
+	char seq_rend_type;
+	char seq_flag; /* flag use for sequence render/draw */
+	char pad5[5];
 
 	/* render simplify */
 	int simplify_flag;
@@ -521,14 +525,18 @@ typedef struct ImagePaintSettings {
 	
 	/* for projection painting only */
 	short seam_bleed, normal_angle;
+	short screen_grab_size[2]; /* capture size for re-projection */
+
+	int pad1;
 
 	void *paintcursor;			/* wm handle */
 } ImagePaintSettings;
 
 typedef struct ParticleBrushData {
-	short size, strength;	/* common settings */
-	short step, invert;		/* for specific brushes only */
-	int flag, pad;
+	short size;						/* common setting */
+	short step, invert, count;		/* for specific brushes only */
+	int flag;
+	float strength;
 } ParticleBrushData;
 
 typedef struct ParticleEditSettings {
@@ -561,12 +569,30 @@ typedef struct Sculpt {
 	Paint paint;
 
 	/* For rotating around a pivot point */
-	float pivot[3];
+	//float pivot[3]; XXX not used?
 	int flags;
 
 	/* Control tablet input */
-	char tablet_size, tablet_strength;
-	char pad[6];
+	//char tablet_size, tablet_strength; XXX not used?
+	int radial_symm[3];
+
+	// all this below is used to communicate with the cursor drawing routine
+
+	/* record movement of mouse so that rake can start at an intuitive angle */
+	float last_x, last_y;
+	float last_angle;
+
+	int draw_anchored;
+	int   anchored_size;
+	float anchored_location[3];
+	float anchored_initial_mouse[2];
+
+	int draw_pressure;
+	float pressure_value;
+
+	float special_rotation;
+
+	int pad;
 } Sculpt;
 
 typedef struct VPaint {
@@ -717,7 +743,7 @@ typedef struct UnitSettings {
 
 typedef struct PhysicsSettings {
 	float gravity[3];
-	int flag;
+	int flag, quick_cache_step, rt;
 } PhysicsSettings;
 
 typedef struct Scene {
@@ -737,9 +763,11 @@ typedef struct Scene {
 	float cursor[3];			/* 3d cursor location */
 	float twcent[3];			/* center for transform widget */
 	float twmin[3], twmax[3];	/* boundbox of selection for transform widget */
-	unsigned int lay;
 	
-
+	unsigned int lay;			/* bitflags for layer visibility */
+	int layact;		/* active layer */
+	int pad1;
+	
 	short flag;								/* various settings */
 	
 	short use_nodes;
@@ -836,6 +864,10 @@ typedef struct Scene {
 #define R_TOUCH			0x800000 /* touch files before rendering */
 #define R_SIMPLIFY		0x1000000
 
+/* seq_flag */
+#define R_SEQ_GL_PREV 1
+#define R_SEQ_GL_REND 2
+
 /* displaymode */
 
 #define R_OUTPUT_SCREEN	0
@@ -887,7 +919,7 @@ typedef struct Scene {
 #define R_NO_TEX			0x2000
 #define R_STAMP_INFO		0x4000	/* deprecated */
 #define R_FULL_SAMPLE		0x8000
-#define R_COMP_RERENDER		0x10000
+#define R_DEPRECATED		0x10000
 #define R_RECURS_PROTECTION	0x20000
 #define R_TEXNODE_PREVIEW	0x40000
 
@@ -977,6 +1009,9 @@ typedef struct Scene {
 /* simplify_flag */
 #define R_SIMPLE_NO_TRIANGULATE		1
 
+/* sequencer seq_prev_type seq_rend_type */
+
+
 /* **************** SCENE ********************* */
 
 /* for general use */
@@ -1005,6 +1040,7 @@ typedef struct Scene {
 #define ID_NEW_US(a)	if( (a)->id.newid) {(a)= (void *)(a)->id.newid; (a)->id.us++;}
 #define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}
 #define	CFRA			(scene->r.cfra)
+#define SUBFRA			(scene->r.subframe)
 #define	F_CFRA			((float)(scene->r.cfra))
 #define	SFRA			(scene->r.sfra)
 #define	EFRA			(scene->r.efra)
@@ -1075,7 +1111,6 @@ typedef struct Scene {
 #define F_ERROR			-1
 #define F_START			0
 #define F_SCENE			1
-#define F_SET			2
 #define F_DUPLI			3
 
 /* audio->flag */
@@ -1088,19 +1123,22 @@ typedef struct Scene {
 
 /* Paint.flags */
 typedef enum {
-	PAINT_SHOW_BRUSH = 1,
-	PAINT_FAST_NAVIGATE = 2
+	PAINT_SHOW_BRUSH = (1<<0),
+	PAINT_FAST_NAVIGATE = (1<<1),
+	PAINT_SHOW_BRUSH_ON_SURFACE = (1<<2),
 } PaintFlags;
 
 /* Sculpt.flags */
 /* These can eventually be moved to paint flags? */
 typedef enum SculptFlags {
-	SCULPT_SYMM_X = 1,
-	SCULPT_SYMM_Y = 2,
-	SCULPT_SYMM_Z = 4,
-	SCULPT_LOCK_X = 64,
-	SCULPT_LOCK_Y = 128,
-	SCULPT_LOCK_Z = 256
+	SCULPT_SYMM_X = (1<<0),
+	SCULPT_SYMM_Y = (1<<1),
+	SCULPT_SYMM_Z = (1<<2),
+	SCULPT_LOCK_X = (1<<3),
+	SCULPT_LOCK_Y = (1<<4),
+	SCULPT_LOCK_Z = (1<<5),
+	SCULPT_SYMMETRY_FEATHER = (1<<6),
+	SCULPT_USE_OPENMP = (1<<7),
 } SculptFlags;
 
 /* ImagePaintSettings.flag */

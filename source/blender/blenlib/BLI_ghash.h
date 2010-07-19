@@ -72,8 +72,8 @@ typedef struct GHashIterator {
 	struct Entry *curEntry;
 } GHashIterator;
 
-GHash* BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp);
-void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
+GHash*	BLI_ghash_new		(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info);
+void	BLI_ghash_free		(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 
 int		BLI_ghash_size		(GHash *gh);
 

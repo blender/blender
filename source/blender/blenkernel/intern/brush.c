@@ -34,9 +34,6 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
-#include "DNA_image_types.h"
-#include "DNA_object_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -56,9 +53,7 @@
 #include "BKE_main.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
-
-
+#include "BKE_icons.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -74,29 +69,59 @@ Brush *add_brush(const char *name)
 
 	brush= alloc_libblock(&G.main->brush, ID_BR, name);
 
-	brush->rgb[0]= 1.0f;
+	/* BRUSH SCULPT TOOL SETTINGS */
+	brush->sculpt_tool = SCULPT_TOOL_DRAW; /* sculpting defaults to the draw tool for new brushes */
+	brush->size= 35; /* radius of the brush in pixels */
+	brush->alpha= 0.5f; /* brush strength/intensity probably variable should be renamed? */
+	brush->autosmooth_factor= 0.0f;
+	brush->crease_pinch_factor= 0.5f;
+	brush->sculpt_plane = SCULPT_DISP_DIR_VIEW;
+	brush->plane_offset= 0.0f; /* how far above or below the plane that is found by averaging the faces */
+	brush->plane_trim= 0.5f;
+	brush->clone.alpha= 0.5f;
+	brush->normal_weight= 0.0f;
+
+	/* BRUSH PAINT TOOL SETTINGS */
+	brush->rgb[0]= 1.0f; /* default rgb color of the brush when painting - white */
 	brush->rgb[1]= 1.0f;
 	brush->rgb[2]= 1.0f;
-	brush->alpha= 0.2f;
-	brush->size= 25;
-	brush->spacing= 7.5f;
-	brush->smooth_stroke_radius= 75;
-	brush->smooth_stroke_factor= 0.9;
-	brush->rate= 0.1f;
-	brush->jitter= 0.0f;
-	brush->clone.alpha= 0.5;
-	brush->sculpt_tool = SCULPT_TOOL_DRAW;
-	brush->flag |= BRUSH_SPACE;
 
-	brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
-	
+	/* BRUSH STROKE SETTINGS */
+	brush->flag |= (BRUSH_SPACE|BRUSH_SPACE_ATTEN);
+	brush->spacing= 10; /* how far each brush dot should be spaced as a percentage of brush diameter */
+
+	brush->smooth_stroke_radius= 75;
+	brush->smooth_stroke_factor= 0.9f;
+
+	brush->rate= 0.1f; /* time delay between dots of paint or sculpting when doing airbrush mode */
+
+	brush->jitter= 0.0f;
+
+	/* BRUSH TEXTURE SETTINGS */
 	default_mtex(&brush->mtex);
+
+	brush->texture_sample_bias= 0; /* value to added to texture samples */
+
+	/* brush appearance  */
+
+	brush->image_icon= NULL;
+
+	brush->add_col[0]= 1.00; /* add mode color is light red */
+	brush->add_col[1]= 0.39;
+	brush->add_col[2]= 0.39;
+
+	brush->sub_col[0]= 0.39; /* subtract mode color is light blue */
+	brush->sub_col[1]= 0.39;
+	brush->sub_col[2]= 1.00;
+
+	 /* the default alpha falloff curve */
+	brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
 	brush_toggled_fake_user(brush);
-	
-	return brush;	
+
+	return brush;
 }
 
 Brush *copy_brush(Brush *brush)
@@ -122,7 +147,7 @@ Brush *copy_brush(Brush *brush)
 void free_brush(Brush *brush)
 {
 	if(brush->mtex.tex) brush->mtex.tex->id.us--;
-	
+
 	curvemapping_free(brush->curve);
 }
 
@@ -237,7 +262,8 @@ void brush_curve_preset(Brush *b, /*CurveMappingPreset*/int preset)
 	cm = b->curve->cm;
 	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 
-	curvemap_reset(cm, &b->curve->clipr, preset);
+	b->curve->preset = preset;
+	curvemap_reset(cm, &b->curve->clipr, b->curve->preset);
 	curvemapping_changed(b->curve, 0);
 }
 
@@ -681,7 +707,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 	short flt;
 
 	if ((brush->size != cache->lastsize) || (brush->alpha != cache->lastalpha)
-	    || (brush->jitter != cache->lastjitter)) {
+		|| (brush->jitter != cache->lastjitter)) {
 		if (cache->ibuf) {
 			IMB_freeImBuf(cache->ibuf);
 			cache->ibuf= NULL;
@@ -734,11 +760,19 @@ static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pres
 		brush->spacing = MAX2(1.0, painter->startspacing*(1.5f-pressure));
 }
 
-static void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
+void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
 {
 	if(brush->jitter){
-		jitterpos[0] = pos[0] + ((BLI_frand()-0.5f) * brush->size * brush->jitter * 2);
-		jitterpos[1] = pos[1] + ((BLI_frand()-0.5f) * brush->size * brush->jitter * 2);
+		float rand_pos[2];
+
+		// find random position within a circle of diameter 1
+		do {
+			rand_pos[0] = BLI_frand()-0.5f;
+			rand_pos[1] = BLI_frand()-0.5f;
+		} while (len_v2(rand_pos) > 0.5f);
+
+		jitterpos[0] = pos[0] + 2*rand_pos[0]*brush->size*brush->jitter;
+		jitterpos[1] = pos[1] + 2*rand_pos[1]*brush->size*brush->jitter;
 	}
 	else {
 		VECCOPY2D(jitterpos, pos);
@@ -890,7 +924,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 /* Uses the brush curve control to find a strength value between 0 and 1 */
 float brush_curve_strength_clamp(Brush *br, float p, const float len)
 {
-	if(p >= len)	p= 1.0f;
+	if(p >= len)	return 0;
 	else			p= p/len;
 
 	p= curvemapping_evaluateF(br->curve, 0, p);
@@ -902,9 +936,12 @@ float brush_curve_strength_clamp(Brush *br, float p, const float len)
  * used for sculpt only */
 float brush_curve_strength(Brush *br, float p, const float len)
 {
-	if(p >= len)	p= 1.0f;
-	else			p= p/len;
-	return curvemapping_evaluateF(br->curve, 0, p);
+    if(p >= len)
+        p= 1.0f;
+    else
+        p= p/len;
+
+    return curvemapping_evaluateF(br->curve, 0, p);
 }
 
 /* TODO: should probably be unified with BrushPainter stuff? */
@@ -918,7 +955,7 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 
 	memset(&texres, 0, sizeof(TexResult));
 	
-	if(mtex && mtex->tex) {
+	if(mtex->tex) {
 		float x, y, step = 2.0 / side, co[3];
 
 		texcache = MEM_callocN(sizeof(int) * side * side, "Brush texture cache");
@@ -933,7 +970,7 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 				co[2]= 0.0f;
 				
 				/* This is copied from displace modifier code */
-				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 1, &texres);
+				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres);
 			
 				/* if the texture gave an RGB value, we assume it didn't give a valid
 				 * intensity, so calculate one (formula from do_material_tex).
@@ -941,7 +978,7 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 				 */
 				if(hasrgb & TEX_RGB)
 					texres.tin = (0.35 * texres.tr + 0.45 *
-					              texres.tg + 0.2 * texres.tb);
+								  texres.tg + 0.2 * texres.tb);
 
 				texres.tin = texres.tin * 255.0;
 				((char*)texcache)[(iy*side+ix)*4] = (char)texres.tin;
@@ -996,9 +1033,9 @@ void brush_radial_control_invoke(wmOperator *op, Brush *br, float size_weight)
 	float original_value= 0;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
-		original_value = br->size * size_weight;
+		original_value = sculpt_get_brush_size(br) * size_weight;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		original_value = br->alpha;
+		original_value = sculpt_get_brush_alpha(br);
 	else if(mode == WM_RADIALCONTROL_ANGLE) {
 		MTex *mtex = brush_active_texture(br);
 		if(mtex)
@@ -1016,9 +1053,15 @@ int brush_radial_control_exec(wmOperator *op, Brush *br, float size_weight)
 	const float conv = 0.017453293;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
-		br->size = new_value * size_weight;
+		if (sculpt_get_lock_brush_size(br)) {
+			float initial_value = RNA_float_get(op->ptr, "initial_value");
+			const float unprojected_radius = sculpt_get_brush_unprojected_radius(br);
+			sculpt_set_brush_unprojected_radius(br, unprojected_radius * new_value/initial_value * size_weight);
+		}
+		else
+			sculpt_set_brush_size(br, new_value * size_weight);
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		br->alpha = new_value;
+		sculpt_set_brush_alpha(br, new_value);
 	else if(mode == WM_RADIALCONTROL_ANGLE) {
 		MTex *mtex = brush_active_texture(br);
 		if(mtex)

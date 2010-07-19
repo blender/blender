@@ -717,7 +717,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->strength = 2.0;
 			smd->domain->noise = MOD_SMOKE_NOISEWAVE;
 			smd->domain->diss_speed = 5;
-			// init 3dview buffer
+			// init view3d buffer
 			smd->domain->viewsettings = 0;
 			smd->domain->effector_weights = BKE_add_effector_weights(NULL);
 		}
@@ -752,6 +752,41 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 		}
 	}
 }
+
+void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData *tsmd)
+{
+	tsmd->type = smd->type;
+	tsmd->time = smd->time;
+	
+	smokeModifier_createType(tsmd);
+
+	if (tsmd->domain) {
+		tsmd->domain->maxres = smd->domain->maxres;
+		tsmd->domain->amplify = smd->domain->amplify;
+		tsmd->domain->omega = smd->domain->omega;
+		tsmd->domain->alpha = smd->domain->alpha;
+		tsmd->domain->beta = smd->domain->beta;
+		tsmd->domain->flags = smd->domain->flags;
+		tsmd->domain->strength = smd->domain->strength;
+		tsmd->domain->noise = smd->domain->noise;
+		tsmd->domain->diss_speed = smd->domain->diss_speed;
+		tsmd->domain->viewsettings = smd->domain->viewsettings;
+		tsmd->domain->fluid_group = smd->domain->fluid_group;
+		tsmd->domain->coll_group = smd->domain->coll_group;
+		
+		MEM_freeN(tsmd->domain->effector_weights);
+		tsmd->domain->effector_weights = MEM_dupallocN(smd->domain->effector_weights);
+	} else if (tsmd->flow) {
+		tsmd->flow->density = smd->flow->density;
+		tsmd->flow->temp = smd->flow->temp;
+		tsmd->flow->psys = smd->flow->psys;
+		tsmd->flow->type = smd->flow->type;
+	} else if (tsmd->coll) {
+		;
+		/* leave it as initialised, collision settings is mostly caches */
+	}
+}
+
 
 // forward decleration
 static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct);
@@ -1156,10 +1191,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		framenr = scene->r.cfra;
 
-		// printf("time: %d\n", scene->r.cfra);
-
-		if(framenr == smd->time)
-			return;
+		printf("time: %d\n", scene->r.cfra);
 
 		cache = sds->point_cache[0];
 		BKE_ptcache_id_from_smoke(&pid, ob, smd);
@@ -1197,8 +1229,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		if(cache_result == PTCACHE_READ_EXACT) 
 		{
-			cache->flag |= PTCACHE_SIMULATION_VALID;
-			cache->simframe= framenr;
+			BKE_ptcache_validate(cache, framenr);
 
 			if(sds->wt)
 			{
@@ -1206,12 +1237,23 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 				
 				if(cache_result_wt == PTCACHE_READ_EXACT) 
 				{
-					cache_wt->flag |= PTCACHE_SIMULATION_VALID;
-					cache_wt->simframe= framenr;
+					BKE_ptcache_validate(cache_wt, framenr);
+
+					return;
+				}
+				else
+				{
+					; /* don't return in the case we only got low res cache but no high res cache */
+					/* we still need to calculate the high res cache */
 				}
 			}
-			return;
+			else
+				return;
 		}
+
+		/* only calculate something when we advanced a frame */
+		if(framenr == smd->time)
+			return;
 
 		tstart();
 
@@ -1223,8 +1265,6 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		/* do simulation */
 
 		// low res
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
 
 		// simulate the actual smoke (c++ code in intern/smoke)
 		// DG: interesting commenting this line + deactivating loading of noise files
@@ -1239,6 +1279,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		if(get_lamp(scene, light))
 			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
 	
+		BKE_ptcache_validate(cache, framenr);
 		BKE_ptcache_write_cache(&pid, framenr);
 
 		if(sds->wt)
@@ -1250,8 +1291,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 				smoke_turbulence_step(sds->wt, sds->fluid);
 			}
 
-			cache_wt->flag |= PTCACHE_SIMULATION_VALID;
-			cache_wt->simframe= framenr;
+			BKE_ptcache_validate(cache_wt, framenr);
 			BKE_ptcache_write_cache(&pid_wt, framenr);
 		}
 
@@ -1283,11 +1323,11 @@ long long smoke_get_mem_req(int xres, int yres, int zres, int amplify)
 
 	  // print out memory requirements
 	  long long int coarseSize = sizeof(float) * totalCells * 22 +
-	                   sizeof(unsigned char) * totalCells;
+					   sizeof(unsigned char) * totalCells;
 
 	  long long int fineSize = sizeof(float) * amplifiedCells * 7 + // big grids
-	                 sizeof(float) * totalCells * 8 +     // small grids
-	                 sizeof(float) * 128 * 128 * 128;     // noise tile
+					 sizeof(float) * totalCells * 8 +     // small grids
+					 sizeof(float) * 128 * 128 * 128;     // noise tile
 
 	  long long int totalMB = (coarseSize + fineSize) / (1024 * 1024);
 
@@ -1296,83 +1336,83 @@ long long smoke_get_mem_req(int xres, int yres, int zres, int amplify)
 
 static void bresenham_linie_3D(int x1, int y1, int z1, int x2, int y2, int z2, float *tRay, bresenham_callback cb, float *result, float *input, int res[3], float correct)
 {
-    int dx, dy, dz, i, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
-    int pixel[3];
+	int dx, dy, dz, i, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
+	int pixel[3];
 
-    pixel[0] = x1;
-    pixel[1] = y1;
-    pixel[2] = z1;
+	pixel[0] = x1;
+	pixel[1] = y1;
+	pixel[2] = z1;
 
-    dx = x2 - x1;
-    dy = y2 - y1;
-    dz = z2 - z1;
+	dx = x2 - x1;
+	dy = y2 - y1;
+	dz = z2 - z1;
 
-    x_inc = (dx < 0) ? -1 : 1;
-    l = abs(dx);
-    y_inc = (dy < 0) ? -1 : 1;
-    m = abs(dy);
-    z_inc = (dz < 0) ? -1 : 1;
-    n = abs(dz);
-    dx2 = l << 1;
-    dy2 = m << 1;
-    dz2 = n << 1;
+	x_inc = (dx < 0) ? -1 : 1;
+	l = abs(dx);
+	y_inc = (dy < 0) ? -1 : 1;
+	m = abs(dy);
+	z_inc = (dz < 0) ? -1 : 1;
+	n = abs(dz);
+	dx2 = l << 1;
+	dy2 = m << 1;
+	dz2 = n << 1;
 
-    if ((l >= m) && (l >= n)) {
-        err_1 = dy2 - l;
-        err_2 = dz2 - l;
-        for (i = 0; i < l; i++) {
-        	if(cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
-        		break;
-            if (err_1 > 0) {
-                pixel[1] += y_inc;
-                err_1 -= dx2;
-            }
-            if (err_2 > 0) {
-                pixel[2] += z_inc;
-                err_2 -= dx2;
-            }
-            err_1 += dy2;
-            err_2 += dz2;
-            pixel[0] += x_inc;
-        }
-    } else if ((m >= l) && (m >= n)) {
-        err_1 = dx2 - m;
-        err_2 = dz2 - m;
-        for (i = 0; i < m; i++) {
-        	if(cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
-        		break;
-            if (err_1 > 0) {
-                pixel[0] += x_inc;
-                err_1 -= dy2;
-            }
-            if (err_2 > 0) {
-                pixel[2] += z_inc;
-                err_2 -= dy2;
-            }
-            err_1 += dx2;
-            err_2 += dz2;
-            pixel[1] += y_inc;
-        }
-    } else {
-        err_1 = dy2 - n;
-        err_2 = dx2 - n;
-        for (i = 0; i < n; i++) {
-        	if(cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
-        		break;
-            if (err_1 > 0) {
-                pixel[1] += y_inc;
-                err_1 -= dz2;
-            }
-            if (err_2 > 0) {
-                pixel[0] += x_inc;
-                err_2 -= dz2;
-            }
-            err_1 += dy2;
-            err_2 += dx2;
-            pixel[2] += z_inc;
-        }
-    }
-    cb(result, input, res, pixel, tRay, correct);
+	if ((l >= m) && (l >= n)) {
+		err_1 = dy2 - l;
+		err_2 = dz2 - l;
+		for (i = 0; i < l; i++) {
+			if(cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
+				break;
+			if (err_1 > 0) {
+				pixel[1] += y_inc;
+				err_1 -= dx2;
+			}
+			if (err_2 > 0) {
+				pixel[2] += z_inc;
+				err_2 -= dx2;
+			}
+			err_1 += dy2;
+			err_2 += dz2;
+			pixel[0] += x_inc;
+		}
+	} else if ((m >= l) && (m >= n)) {
+		err_1 = dx2 - m;
+		err_2 = dz2 - m;
+		for (i = 0; i < m; i++) {
+			if(cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
+				break;
+			if (err_1 > 0) {
+				pixel[0] += x_inc;
+				err_1 -= dy2;
+			}
+			if (err_2 > 0) {
+				pixel[2] += z_inc;
+				err_2 -= dy2;
+			}
+			err_1 += dx2;
+			err_2 += dz2;
+			pixel[1] += y_inc;
+		}
+	} else {
+		err_1 = dy2 - n;
+		err_2 = dx2 - n;
+		for (i = 0; i < n; i++) {
+			if(cb(result, input, res, pixel, tRay, correct) <= FLT_EPSILON)
+				break;
+			if (err_1 > 0) {
+				pixel[1] += y_inc;
+				err_1 -= dz2;
+			}
+			if (err_2 > 0) {
+				pixel[0] += x_inc;
+				err_2 -= dz2;
+			}
+			err_1 += dy2;
+			err_2 += dx2;
+			pixel[2] += z_inc;
+		}
+	}
+	cb(result, input, res, pixel, tRay, correct);
 }
 
 static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct)
@@ -1398,11 +1438,12 @@ static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int
 
 static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct)
 {
-	int z;
 	float bv[6];
-	int slabsize=res[0]*res[1];
+	int a, z, slabsize=res[0]*res[1], size= res[0]*res[1]*res[2];
 
-	memset(result, -1, sizeof(float)*res[0]*res[1]*res[2]);	// x
+	for(a=0; a<size; a++)
+		result[a]= -1.0f;
+
 	bv[0] = p0[0];
 	bv[1] = p1[0];
 	// y

@@ -134,7 +134,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
     def exportCamera():
         camera = scene.camera
-        matrix = camera.matrix
+        matrix = camera.matrix_world
 
         # compute resolution
         Qsize = float(render.resolution_x) / float(render.resolution_y)
@@ -155,7 +155,7 @@ def write_pov(filename, scene=None, info_callback=None):
         for ob in lamps:
             lamp = ob.data
 
-            matrix = ob.matrix
+            matrix = ob.matrix_world
 
             color = tuple([c * lamp.energy for c in lamp.color]) # Colour is modified by energy
 
@@ -263,11 +263,11 @@ def write_pov(filename, scene=None, info_callback=None):
 
             writeObjectMaterial(material)
 
-            writeMatrix(ob.matrix)
+            writeMatrix(ob.matrix_world)
 
             file.write('}\n')
 
-    def exportMeshs(sel):
+    def exportMeshs(scene, sel):
 
         ob_num = 0
 
@@ -280,7 +280,7 @@ def write_pov(filename, scene=None, info_callback=None):
             me = ob.data
             me_materials = me.materials
 
-            me = ob.create_mesh(True, 'RENDER')
+            me = ob.create_mesh(scene, True, 'RENDER')
 
             if not me:
                 continue
@@ -292,7 +292,7 @@ def write_pov(filename, scene=None, info_callback=None):
             #	continue
             # me = ob.data
 
-            matrix = ob.matrix
+            matrix = ob.matrix_world
             try:
                 uv_layer = me.active_uv_texture.data
             except:
@@ -545,7 +545,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
         mist = world.mist
 
-        if mist.enabled:
+        if mist.use_mist:
             file.write('fog {\n')
             file.write('\tdistance %.6f\n' % mist.depth)
             file.write('\tcolor rgbt<%.3g, %.3g, %.3g, %.3g>\n' % (tuple(world.horizon_color) + (1 - mist.intensity,)))
@@ -593,7 +593,7 @@ def write_pov(filename, scene=None, info_callback=None):
     sel = scene.objects
     exportLamps([l for l in sel if l.type == 'LAMP'])
     exportMeta([l for l in sel if l.type == 'META'])
-    exportMeshs(sel)
+    exportMeshs(scene, sel)
     exportWorld(scene.world)
     exportGlobalSettings(scene)
 
@@ -629,8 +629,8 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     file.write('Output_File_Type=T\n') # TGA, best progressive loading
     file.write('Output_Alpha=1\n')
 
-    if render.antialiasing:
-        aa_mapping = {'OVERSAMPLE_5': 2, 'OVERSAMPLE_8': 3, 'OVERSAMPLE_11': 4, 'OVERSAMPLE_16': 5} # method 1 assumed
+    if render.render_antialiasing:
+        aa_mapping = {'5': 2, '8': 3, '11': 4, '16': 5} # method 1 assumed
         file.write('Antialias=1\n')
         file.write('Antialias_Depth=%d\n' % aa_mapping[render.antialiasing_samples])
     else:
@@ -762,12 +762,22 @@ class PovrayRender(bpy.types.RenderEngine):
 
         if 1:
             # TODO, when povray isnt found this gives a cryptic error, would be nice to be able to detect if it exists
-            self._process = subprocess.Popen([pov_binary, self._temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            try:
+                self._process = subprocess.Popen([pov_binary, self._temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            except OSError:
+                # TODO, report api
+                print("POVRAY: could not execute '%s', possibly povray isn't installed" % pov_binary)
+                import traceback
+                traceback.print_exc()
+                print ("***-DONE-***")
+                return False
+
         else:
             # This works too but means we have to wait until its done
             os.system('%s %s' % (pov_binary, self._temp_file_ini))
 
         print ("***-DONE-***")
+        return True
 
     def _cleanup(self):
         for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
@@ -783,7 +793,10 @@ class PovrayRender(bpy.types.RenderEngine):
         self.update_stats("", "POVRAY: Exporting data from Blender")
         self._export(scene)
         self.update_stats("", "POVRAY: Parsing File")
-        self._render()
+
+        if not self._render():
+            self.update_stats("", "POVRAY: Not found")
+            return
 
         r = scene.render
 
@@ -880,6 +893,30 @@ for member in dir(properties_material):
     except:
         pass
 del properties_material
+import properties_data_mesh
+for member in dir(properties_data_mesh):
+    subclass = getattr(properties_data_mesh, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_data_mesh
+import properties_texture
+for member in dir(properties_texture):
+    subclass = getattr(properties_texture, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_texture
+import properties_data_camera
+for member in dir(properties_data_camera):
+    subclass = getattr(properties_data_camera, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_data_camera
 
 
 class RenderButtonsPanel(bpy.types.Panel):
@@ -954,6 +991,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -961,4 +999,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

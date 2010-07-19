@@ -33,43 +33,43 @@
 
 typedef struct SunSky
 {
-    short effect_type, skyblendtype, sky_colorspace;
-    float turbidity;
-    float theta, phi;
+	short effect_type, skyblendtype, sky_colorspace;
+	float turbidity;
+	float theta, phi;
     
-    float toSun[3];
+	float toSun[3];
 
-    /*float sunSpectralRaddata[SPECTRUM_MAX_COMPONENTS];*/
-    float sunSolidAngle;
+	/*float sunSpectralRaddata[SPECTRUM_MAX_COMPONENTS];*/
+	float sunSolidAngle;
 
-    float zenith_Y, zenith_x, zenith_y;
+	float zenith_Y, zenith_x, zenith_y;
     
-    float perez_Y[5], perez_x[5], perez_y[5];
+	float perez_Y[5], perez_x[5], perez_y[5];
 
-    /* suggested by glome in 
-     * http://projects.blender.org/tracker/?func=detail&atid=127&aid=8063&group_id=9*/
-    float horizon_brightness;
-    float spread;
-    float sun_brightness;
-    float sun_size;
-    float backscattered_light;
-    float skyblendfac;
+	/* suggested by glome in 
+	 * http://projects.blender.org/tracker/?func=detail&atid=127&aid=8063&group_id=9*/
+	float horizon_brightness;
+	float spread;
+	float sun_brightness;
+	float sun_size;
+	float backscattered_light;
+	float skyblendfac;
 	float sky_exposure;
 	
-    float atm_HGg;
+	float atm_HGg;
 
-    float atm_SunIntensity;
-    float atm_InscatteringMultiplier;
-    float atm_ExtinctionMultiplier;
-    float atm_BetaRayMultiplier;
-    float atm_BetaMieMultiplier;
-    float atm_DistanceMultiplier;
+	float atm_SunIntensity;
+	float atm_InscatteringMultiplier;
+	float atm_ExtinctionMultiplier;
+	float atm_BetaRayMultiplier;
+	float atm_BetaMieMultiplier;
+	float atm_DistanceMultiplier;
 
-    float atm_BetaRay[3];
-    float atm_BetaDashRay[3];
-    float atm_BetaMie[3];
-    float atm_BetaDashMie[3];
-    float atm_BetaRM[3];
+	float atm_BetaRay[3];
+	float atm_BetaDashRay[3];
+	float atm_BetaMie[3];
+	float atm_BetaDashMie[3];
+	float atm_BetaRM[3];
 }SunSky;
 
 /**

@@ -33,10 +33,6 @@
 #include <math.h>
 #include <float.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
 #include <unistd.h>
 #else
@@ -47,20 +43,9 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_action_types.h"  /* for some special action-editor settings */
 #include "DNA_constraint_types.h"
-#include "DNA_ipo_types.h"		/* some silly ipo flag	*/
-#include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"		/* PET modes			*/
-#include "DNA_screen_types.h"	/* area dimensions		*/
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 
@@ -98,7 +83,6 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_markers.h"
-#include "ED_util.h"
 #include "ED_view3d.h"
 #include "ED_mesh.h"
 
@@ -112,7 +96,6 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 
-#include "PIL_time.h"			/* sleep				*/
 
 #include "UI_resources.h"
 
@@ -219,17 +202,33 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
-	else if(ELEM3(t->spacetype, SPACE_IPO, SPACE_NLA, SPACE_ACTION)) {
+	else if(t->spacetype == SPACE_ACTION) {
+		SpaceAction *sact = t->sa->spacedata.first;
 		int out[2] = {0, 0};
 
-		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1);
+		if (sact->flag & SACTION_DRAWTIME) {
+			//vec[0] = vec[0]/((t->scene->r.frs_sec / t->scene->r.frs_sec_base));
+
+			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
+		} 
+		else {
+			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
+		}
+
+		adr[0]= out[0];
+		adr[1]= out[1];
+	}
+	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
+		int out[2] = {0, 0};
+
+		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
 		adr[0]= out[0];
 		adr[1]= out[1];
 	}
 	else if(t->spacetype==SPACE_SEQ) { /* XXX not tested yet, but should work */
 		int out[2] = {0, 0};
 
-		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1);
+		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out+1);
 		adr[0]= out[0];
 		adr[1]= out[1];
 	}
@@ -259,9 +258,8 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 
 void applyAspectRatio(TransInfo *t, float *vec)
 {
-	SpaceImage *sima= t->sa->spacedata.first;
-
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
+		SpaceImage *sima= t->sa->spacedata.first;
 		float aspx, aspy;
 
 		if((sima->flag & SI_COORDFLOATS)==0) {
@@ -280,9 +278,8 @@ void applyAspectRatio(TransInfo *t, float *vec)
 
 void removeAspectRatio(TransInfo *t, float *vec)
 {
-	SpaceImage *sima= t->sa->spacedata.first;
-
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
+		SpaceImage *sima= t->sa->spacedata.first;
 		float aspx, aspy;
 
 		if((sima->flag & SI_COORDFLOATS)==0) {
@@ -314,14 +311,14 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		//SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
-		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	}
 	else if(t->spacetype == SPACE_NODE)
 	{
@@ -347,7 +344,7 @@ static void viewRedrawPost(TransInfo *t)
 	if(t->spacetype == SPACE_VIEW3D) {
 		/* if autokeying is enabled, send notifiers that keyframes were added */
 		if (IS_AUTOKEY_ON(t->scene))
-			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	}
 	
 #if 0 // TRANSFORM_FIX_ME
@@ -482,6 +479,8 @@ static void view_editmove(unsigned short event)
 #define TFM_MODAL_REMOVE_SNAP	17
 /*	18 and 19 used by numinput, defined in transform.h
  * */
+#define TFM_MODAL_PROPSIZE_UP	20
+#define TFM_MODAL_PROPSIZE_DOWN	21
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
@@ -506,6 +505,8 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, "Remove Last Snap Point", ""},
 	{NUM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, "Numinput Increment Up", ""},
 	{NUM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, "Numinput Increment Down", ""},
+	{TFM_MODAL_PROPSIZE_UP, "PROPORTIONAL_SIZE_UP", 0, "Increase Proportional Influence", ""},
+	{TFM_MODAL_PROPSIZE_DOWN, "PROPORTIONAL_SIZE_DOWN", 0, "Decrease Poportional Influence", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -535,6 +536,11 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 
 	WM_modalkeymap_add_item(keymap, UPARROWKEY, KM_PRESS, 0, 0, NUM_MODAL_INCREMENT_UP);
 	WM_modalkeymap_add_item(keymap, DOWNARROWKEY, KM_PRESS, 0, 0, NUM_MODAL_INCREMENT_DOWN);
+	
+	WM_modalkeymap_add_item(keymap, PAGEUPKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
+	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
+	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
+	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
 
 	return keymap;
 }
@@ -559,7 +565,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->redraw |= TREDRAW_SOFT;
 
 		if (t->state == TRANS_STARTING) {
-		    t->state = TRANS_RUNNING;
+			t->state = TRANS_RUNNING;
 		}
 
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
@@ -713,6 +719,20 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case TFM_MODAL_REMOVE_SNAP:
 				removeSnapPoint(t);
+				t->redraw |= TREDRAW_HARD;
+				break;
+			case TFM_MODAL_PROPSIZE_UP:
+				if(t->flag & T_PROP_EDIT) {
+					t->prop_size*= 1.1f;
+					calculatePropRatio(t);
+				}
+				t->redraw |= TREDRAW_HARD;
+				break;
+			case TFM_MODAL_PROPSIZE_DOWN:
+				if (t->flag & T_PROP_EDIT) {
+					t->prop_size*= 0.90909090f;
+					calculatePropRatio(t);
+				}
 				t->redraw |= TREDRAW_HARD;
 				break;
 			default:
@@ -939,10 +959,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			if (t->flag & T_AUTOIK) {
 				transform_autoik_update(t, 1);
 			}
-			else if(t->flag & T_PROP_EDIT) {
-				t->prop_size*= 1.1f;
-				calculatePropRatio(t);
-			}
 			else view_editmove(event->type);
 			t->redraw= 1;
 			break;
@@ -957,10 +973,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case WHEELUPMOUSE:
 			if (t->flag & T_AUTOIK) {
 				transform_autoik_update(t, -1);
-			}
-			else if (t->flag & T_PROP_EDIT) {
-				t->prop_size*= 0.90909090f;
-				calculatePropRatio(t);
 			}
 			else view_editmove(event->type);
 			t->redraw= 1;
@@ -1045,10 +1057,13 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		}
 
 		/* confirm transform if launch key is released after mouse move */
-		/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
-		if (event->type == LEFTMOUSE /*t->launch_event*/ && t->state != TRANS_STARTING)
+		if (t->flag & T_RELEASE_CONFIRM)
 		{
-			t->state = TRANS_CONFIRM;
+			/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
+			if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE))
+			{
+				t->state = TRANS_CONFIRM;
+			}
 		}
 	}
 
@@ -1456,6 +1471,22 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->launch_event = event ? event->type : -1;
 
+	if (t->launch_event == EVT_TWEAK_R)
+	{
+		t->launch_event = RIGHTMOUSE;
+	}
+	else if (t->launch_event == EVT_TWEAK_L)
+	{
+		t->launch_event = LEFTMOUSE;
+	}
+
+	// XXX Remove this when wm_operator_call_internal doesn't use window->eventstate (which can have type = 0)
+	// For manipulator only, so assume LEFTMOUSE
+	if (t->launch_event == 0)
+	{
+		t->launch_event = LEFTMOUSE;
+	}
+
 	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
 	{
 		return 0;
@@ -1484,6 +1515,28 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	if (t->total == 0) {
 		postTrans(C, t);
 		return 0;
+	}
+
+	/* Stupid code to have Ctrl-Click on manipulator work ok */
+	if(event)
+	{
+		wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
+		wmKeyMapItem *kmi;
+
+		for (kmi = keymap->items.first; kmi; kmi = kmi->next)
+		{
+			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS)
+			{
+				if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) && event->ctrl) ||
+					(ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
+					(ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) && event->alt) ||
+					(kmi->type == COMMANDKEY && event->oskey)) {
+					t->modifiers |= MOD_SNAP_INVERT;
+				}
+				break;
+			}
+		}
+
 	}
 
 	initSnapping(t, op); // Initialize snapping data AFTER mode flags
@@ -1897,39 +1950,50 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 	}
 }
 
+static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
+{
+	/* Make a temporary bConstraintOb for use by limit constraints
+	 * 	- they only care that cob->matrix is correctly set ;-)
+	 *	- current space should be local
+	 */
+	memset(cob, 0, sizeof(bConstraintOb));
+	if (td->rotOrder == ROT_MODE_QUAT) {
+		/* quats */
+		if (td->ext) {
+			/* objects and bones do normalization first too, otherwise
+			   we don't necessarily end up with a rotation matrix, and
+			   then conversion back to quat gives a different result */
+			float quat[4];
+			copy_qt_qt(quat, td->ext->quat);
+			normalize_qt(quat);
+			quat_to_mat4(cob->matrix, quat);
+		}
+		else
+			return;
+	}
+	else if (td->rotOrder == ROT_MODE_AXISANGLE) {
+		/* axis angle */
+		if (td->ext)
+			axis_angle_to_mat4(cob->matrix, &td->ext->quat[1], td->ext->quat[0]);
+		else
+			return;
+	}
+	else {
+		/* eulers */
+		if (td->ext)
+			eulO_to_mat4(cob->matrix, td->ext->rot, td->rotOrder);
+		else
+			return;
+	}
+}
+
 static void constraintRotLim(TransInfo *t, TransData *td)
 {
 	if (td->con) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_ROTLIMIT);
 		bConstraintOb cob;
 		bConstraint *con;
-
-		/* Make a temporary bConstraintOb for using these limit constraints
-		 * 	- they only care that cob->matrix is correctly set ;-)
-		 *	- current space should be local
-		 */
-		memset(&cob, 0, sizeof(bConstraintOb));
-		if (td->rotOrder == ROT_MODE_QUAT) {
-			/* quats */
-			if (td->ext)
-				quat_to_mat4( cob.matrix,td->ext->quat);
-			else
-				return;
-		}
-		else if (td->rotOrder == ROT_MODE_AXISANGLE) {
-			/* axis angle */
-			if (td->ext)
-				axis_angle_to_mat4( cob.matrix,&td->ext->quat[1], td->ext->quat[0]);
-			else
-				return;
-		}
-		else {
-			/* eulers */
-			if (td->ext)
-				eulO_to_mat4( cob.matrix,td->ext->rot, td->rotOrder);
-			else
-				return;
-		}
+		int dolimit = 0;
 		
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
@@ -1945,16 +2009,22 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 				/* only use it if it's tagged for this purpose */
 				if ((data->flag2 & LIMIT_TRANSFORM)==0)
 					continue;
+
+				/* skip incompatable spacetypes */
+				if (!ELEM(con->ownspace, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL))
+					continue;
+
+				/* only do conversion if necessary, to preserve quats and eulers */
+				if(!dolimit) {
+					constraintob_from_transdata(&cob, td);
+					dolimit= 1;
+				}
 				
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
 					copy_m4_m4(tmat, cob.matrix);
 					mul_m4_m3m4(cob.matrix, td->mtx, tmat);
-				}
-				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
-					/* skip... incompatable spacetype */
-					continue;
 				}
 				
 				/* do constraint */
@@ -1969,18 +2039,20 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 			}
 		}
 		
-		/* copy results from cob->matrix */
-		if (td->rotOrder == ROT_MODE_QUAT) {
-			/* quats */
-			mat4_to_quat( td->ext->quat,cob.matrix);
-		}
-		else if (td->rotOrder == ROT_MODE_AXISANGLE) {
-			/* axis angle */
-			mat4_to_axis_angle( &td->ext->quat[1], &td->ext->quat[0],cob.matrix);
-		}
-		else {
-			/* eulers */
-			mat4_to_eulO( td->ext->rot, td->rotOrder,cob.matrix);
+		if(dolimit) {
+			/* copy results from cob->matrix */
+			if (td->rotOrder == ROT_MODE_QUAT) {
+				/* quats */
+				mat4_to_quat( td->ext->quat,cob.matrix);
+			}
+			else if (td->rotOrder == ROT_MODE_AXISANGLE) {
+				/* axis angle */
+				mat4_to_axis_angle( &td->ext->quat[1], &td->ext->quat[0],cob.matrix);
+			}
+			else {
+				/* eulers */
+				mat4_to_eulO( td->ext->rot, td->rotOrder,cob.matrix);
+			}
 		}
 	}
 }
@@ -2064,6 +2136,16 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 
 /* ************************** WARP *************************** */
 
+void postInputWarp(TransInfo *t, float values[3])
+{
+	mul_v3_fl(values, (float)(M_PI * 2));
+
+	if (t->customData) /* non-null value indicates reversed input */
+	{
+		negate_v3(values);
+	}
+}
+
 void initWarp(TransInfo *t)
 {
 	float max[3], min[3];
@@ -2073,13 +2155,14 @@ void initWarp(TransInfo *t)
 	t->transform = Warp;
 	t->handleEvent = handleEventWarp;
 	
+	setInputPostFct(&t->mouse, postInputWarp);
 	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_RATIO);
 	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = 5.0f;
-	t->snap[2] = 1.0f;
+	t->snap[1] = 5.0f / 180 * M_PI;
+	t->snap[2] = 1.0f / 180 * M_PI;
 	
 	t->num.increment = 1.0f;
 
@@ -2091,7 +2174,7 @@ void initWarp(TransInfo *t)
 		VECCOPY(center, t->data[i].center);
 		mul_m3_v3(t->data[i].mtx, center);
 		mul_m4_v3(t->viewmat, center);
-		sub_v3_v3v3(center, center, t->viewmat[3]);
+		sub_v3_v3(center, t->viewmat[3]);
 		if (i)
 			minmax_v3_v3v3(min, max, center);
 		else {
@@ -2147,20 +2230,15 @@ int Warp(TransInfo *t, short mval[2])
 	VECCOPY(cursor, curs);
 	VECCOPY(gcursor, cursor);
 	if (t->flag & T_EDIT) {
-		sub_v3_v3v3(cursor, cursor, t->obedit->obmat[3]);
-		sub_v3_v3v3(gcursor, gcursor, t->obedit->obmat[3]);
+		sub_v3_v3(cursor, t->obedit->obmat[3]);
+		sub_v3_v3(gcursor, t->obedit->obmat[3]);
 		mul_m3_v3(t->data->smtx, gcursor);
 	}
 	mul_m4_v3(t->viewmat, cursor);
-	sub_v3_v3v3(cursor, cursor, t->viewmat[3]);
+	sub_v3_v3(cursor, t->viewmat[3]);
 	
-	/* amount of degrees for warp */
-	circumfac = 360.0f * t->values[0];
-	
-	if (t->customData) /* non-null value indicates reversed input */
-	{
-		circumfac *= -1;
-	}
+	/* amount of radians for warp */
+	circumfac = t->values[0];
 	
 	snapGrid(t, &circumfac);
 	applyNumInput(&t->num, &circumfac);
@@ -2172,13 +2250,17 @@ int Warp(TransInfo *t, short mval[2])
 		outputNumInput(&(t->num), c);
 		
 		sprintf(str, "Warp: %s", c);
+
+		circumfac = circumfac / 180 * M_PI;
 	}
 	else {
 		/* default header print */
-		sprintf(str, "Warp: %.3f", circumfac);
+		sprintf(str, "Warp: %.3f", circumfac * 180 / M_PI);
 	}
 	
-	circumfac*= (float)(-M_PI/360.0);
+	t->values[0] = circumfac;
+
+	circumfac /= 2; /* only need 180 on each side to make 360 */
 	
 	for(i = 0; i < t->total; i++, td++) {
 		float loc[3];
@@ -2192,7 +2274,7 @@ int Warp(TransInfo *t, short mval[2])
 		VECCOPY(vec, td->iloc);
 		mul_m3_v3(td->mtx, vec);
 		mul_m4_v3(t->viewmat, vec);
-		sub_v3_v3v3(vec, vec, t->viewmat[3]);
+		sub_v3_v3(vec, t->viewmat[3]);
 		
 		dist= vec[0]-cursor[0];
 		
@@ -2208,10 +2290,10 @@ int Warp(TransInfo *t, short mval[2])
 		loc[2]= vec[2];
 		
 		mul_m4_v3(t->viewinv, loc);
-		sub_v3_v3v3(loc, loc, t->viewinv[3]);
+		sub_v3_v3(loc, t->viewinv[3]);
 		mul_m3_v3(td->smtx, loc);
 		
-		sub_v3_v3v3(loc, loc, td->iloc);
+		sub_v3_v3(loc, td->iloc);
 		mul_v3_fl(loc, td->factor);
 		add_v3_v3v3(td->loc, td->iloc, loc);
 	}
@@ -2225,12 +2307,18 @@ int Warp(TransInfo *t, short mval[2])
 
 /* ************************** SHEAR *************************** */
 
+void postInputShear(TransInfo *t, float values[3])
+{
+	mul_v3_fl(values, 0.05f);
+}
+
 void initShear(TransInfo *t)
 {
 	t->mode = TFM_SHEAR;
 	t->transform = Shear;
 	t->handleEvent = handleEventShear;
 	
+	setInputPostFct(&t->mouse, postInputShear);
 	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
 	
 	t->idx_max = 0;
@@ -2281,7 +2369,7 @@ int Shear(TransInfo *t, short mval[2])
 	copy_m3_m4(persmat, t->viewmat);
 	invert_m3_m3(persinv, persmat);
 	
-	value = 0.05f * t->values[0];
+	value = t->values[0];
 	
 	snapGrid(t, &value);
 	
@@ -2330,8 +2418,8 @@ int Shear(TransInfo *t, short mval[2])
 		
 		mul_m3_v3(tmat, vec);
 		
-		add_v3_v3v3(vec, vec, t->center);
-		sub_v3_v3v3(vec, vec, td->center);
+		add_v3_v3(vec, t->center);
+		sub_v3_v3(vec, td->center);
 		
 		mul_v3_fl(vec, td->factor);
 		
@@ -2482,16 +2570,16 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		if ((t->flag & T_V3D_ALIGN)==0) {	// align mode doesn't resize objects itself
 			if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)){
 				/* scale val and reset size */
- 				*td->val = td->ival * (1 + (fsize[0] - 1) * td->factor);
+				 *td->val = td->ival * (1 + (fsize[0] - 1) * td->factor);
 				
 				td->ext->size[0] = td->ext->isize[0];
 				td->ext->size[1] = td->ext->isize[1];
 				td->ext->size[2] = td->ext->isize[2];
- 			}
+			 }
 			else {
 				/* Reset val if SINGLESIZE but using a constraint */
 				if (td->flag & TD_SINGLESIZE)
-	 				*td->val = td->ival;
+					 *td->val = td->ival;
 				
 				td->ext->size[0] = td->ext->isize[0] * (1 + (fsize[0] - 1) * td->factor);
 				td->ext->size[1] = td->ext->isize[1] * (1 + (fsize[1] - 1) * td->factor);
@@ -2510,11 +2598,11 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	
 	mul_m3_v3(tmat, vec);
 	
-	add_v3_v3v3(vec, vec, center);
+	add_v3_v3(vec, center);
 	if (t->flag & T_POINTS)
-		sub_v3_v3v3(vec, vec, td->iloc);
+		sub_v3_v3(vec, td->iloc);
 	else
-		sub_v3_v3v3(vec, vec, td->center);
+		sub_v3_v3(vec, td->center);
 	
 	mul_v3_fl(vec, td->factor);
 	
@@ -2652,6 +2740,8 @@ int ToSphere(TransInfo *t, short mval[2])
 	else if (ratio > 1)
 		ratio = 1.0f;
 	
+	t->values[0] = ratio;
+
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
 		char c[20];
@@ -2696,11 +2786,19 @@ int ToSphere(TransInfo *t, short mval[2])
 /* ************************** ROTATION *************************** */
 
 
+void postInputRotation(TransInfo *t, float values[3])
+{
+	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
+		t->con.applyRot(t, NULL, t->axis, values);
+	}
+}
+
 void initRotation(TransInfo *t)
 {
 	t->mode = TFM_ROTATION;
 	t->transform = Rotation;
 	
+	setInputPostFct(&t->mouse, postInputRotation);
 	initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 	
 	t->ndof.axis = 16;
@@ -2792,7 +2890,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			mul_m3_v3(mat, vec);		// Applying rotation
 			mul_m3_v3(imtx, vec);	// To Local space
 			
-			add_v3_v3v3(vec, vec, center);
+			add_v3_v3(vec, center);
 			/* vec now is the location where the object has to be */
 			
 			sub_v3_v3v3(vec, vec, td->center); // Translation needed from the initial location
@@ -2864,9 +2962,9 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			/* translation */
 			sub_v3_v3v3(vec, td->center, center);
 			mul_m3_v3(mat, vec);
-			add_v3_v3v3(vec, vec, center);
+			add_v3_v3(vec, center);
 			/* vec now is the location where the object has to be */
-			sub_v3_v3v3(vec, vec, td->center);
+			sub_v3_v3(vec, td->center);
 			mul_m3_v3(td->smtx, vec);
 			
 			protectedTransBits(td->protectflag, vec);
@@ -2880,7 +2978,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		/* rotation */
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
 			/* euler or quaternion? */
- 	  	    if ((td->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
+			   if ((td->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				mat3_to_quat( quat,fmat);	// Actual transform
 				
@@ -2973,7 +3071,7 @@ int Rotation(TransInfo *t, short mval[2])
 	snapGrid(t, &final);
 	
 	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
-		t->con.applyRot(t, NULL, t->axis, &final);
+		t->con.applyRot(t, NULL, t->axis, NULL);
 	} else {
 		/* reset axis if constraint is not set */
 		negate_v3_v3(t->axis, t->viewinv[2]);
@@ -3004,11 +3102,9 @@ int Rotation(TransInfo *t, short mval[2])
 		sprintf(str, "Rot: %.2f%s %s", 180.0*final/M_PI, t->con.text, t->proptext);
 	}
 	
+	t->values[0] = final;
+
 	vec_rot_to_mat3( mat, t->axis, final);
-	
-	// TRANSFORM_FIX_ME
-//	t->values[0] = final;		// used in manipulator
-//	copy_m3_m3(t->mat, mat);	// used in manipulator
 	
 	applyRotation(t, final, t->axis);
 	
@@ -3620,7 +3716,7 @@ int PushPull(TransInfo *t, short mval[2])
 			if (isLockConstraint(t)) {
 				float dvec[3];
 				project_v3_v3v3(dvec, vec, axis);
-				sub_v3_v3v3(vec, vec, dvec);
+				sub_v3_v3(vec, dvec);
 			}
 			else {
 				project_v3_v3v3(vec, vec, axis);
@@ -3772,7 +3868,7 @@ void initBevelWeight(TransInfo *t)
 
 	t->num.increment = t->snap[1];
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 int BevelWeight(TransInfo *t, short mval[2])
@@ -3845,7 +3941,7 @@ void initCrease(TransInfo *t)
 
 	t->num.increment = t->snap[1];
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 int Crease(TransInfo *t, short mval[2])
@@ -4526,7 +4622,7 @@ static int createSlideVerts(TransInfo *t)
 
 	// populate the SlideVerts
 
-	vertgh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	vertgh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createSlideVerts gh");
 	look = vertlist;
 	while(look) {
 		i=0;
@@ -4680,7 +4776,7 @@ static int createSlideVerts(TransInfo *t)
 					sub_v3_v3v3(vec, co2, co);
 				}
 
-				add_v3_v3v3(start, start, vec);
+				add_v3_v3(start, vec);
 
 				if (v3d) {
 					view3d_project_float(t->ar, tempsv->down->v1->co, co, projectMat);
@@ -4693,7 +4789,7 @@ static int createSlideVerts(TransInfo *t)
 					sub_v3_v3v3(vec, co, co2);
 				}
 
-				add_v3_v3v3(end, end, vec);
+				add_v3_v3(end, vec);
 
 				totvec += 1.0f;
 				nearest = (EditVert*)look->link;
@@ -4705,7 +4801,7 @@ static int createSlideVerts(TransInfo *t)
 		look = look->next;
 	}
 
-	add_v3_v3v3(start, start, end);
+	add_v3_v3(start, end);
 	mul_v3_fl(start, 0.5*(1.0/totvec));
 	VECCOPY(vec, start);
 	start[0] = t->mval[0];
@@ -4727,7 +4823,7 @@ static int createSlideVerts(TransInfo *t)
 
 		for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 
-			uvarray[uvlay_idx] = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+			uvarray[uvlay_idx] = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createSlideVerts2 gh");
 
 			for(ev=em->verts.first;ev;ev=ev->next) {
 				ev->tmp.l = 0;
@@ -4886,7 +4982,7 @@ void initEdgeSlide(TransInfo *t)
 
 	t->num.increment = t->snap[1];
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 int doEdgeSlide(TransInfo *t, float perc)
@@ -5507,27 +5603,27 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 /* This function is used by Animation Editor specific transform functions to do
  * the Snap Keyframe to Nearest Frame/Marker
  */
-static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, AnimData *adt, short autosnap)
+static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d, AnimData *adt, short autosnap)
 {
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
 		const Scene *scene= t->scene;
-		const short doTime= getAnimEdit_DrawTime(t);
+		const short doTime= 0; //XXX doesn't work - getAnimEdit_DrawTime(t);
 		const double secf= FPS;
 		double val;
-
+		
 		/* convert frame to nla-action time (if needed) */
 		if (adt)
 			val= BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
 		else
 			val= *(td->val);
-
+		
 		/* do the snapping to nearest frame/second */
 		if (doTime)
 			val= (float)( floor((val/secf) + 0.5f) * secf );
 		else
 			val= (float)( floor(val+0.5f) );
-
+		
 		/* convert frame out of nla-action time */
 		if (adt)
 			*(td->val)= BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
@@ -5537,22 +5633,33 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, AnimData *adt, sho
 	/* snap key to nearest marker? */
 	else if (autosnap == SACTSNAP_MARKER) {
 		float val;
-
+		
 		/* convert frame to nla-action time (if needed) */
 		if (adt)
 			val= BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
 		else
 			val= *(td->val);
-
+		
 		/* snap to nearest marker */
 		// TODO: need some more careful checks for where data comes from
 		val= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, val);
-
+		
 		/* convert frame out of nla-action time */
 		if (adt)
 			*(td->val)= BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
 		else
 			*(td->val)= val;
+	}
+	
+	/* if the handles are to be moved too (as side-effect of keyframes moving, to keep the general effect) 
+	 * offset them by the same amount so that the general angles are maintained (i.e. won't change while 
+	 * handles are free-to-roam and keyframes are snap-locked)
+	 */
+	if ((td->flag & TD_MOVEHANDLE1) && td2d->h1) {
+		td2d->h1[0] = td2d->ih1[0] + *td->val - td->ival;
+	}
+	if ((td->flag & TD_MOVEHANDLE2) && td2d->h2) {
+		td2d->h2[0] = td2d->ih2[0] + *td->val - td->ival;
 	}
 }
 
@@ -5616,6 +5723,7 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 static void applyTimeTranslate(TransInfo *t, float sval)
 {
 	TransData *td = t->data;
+	TransData2D *td2d = t->data2d;
 	Scene *scene = t->scene;
 	int i;
 
@@ -5624,15 +5732,17 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 
 	const short autosnap= getAnimEdit_SnapMode(t);
 
-	float deltax, val;
+	float deltax, val, valprev;
 
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
-	for (i = 0 ; i < t->total; i++, td++) {
+	for (i = 0 ; i < t->total; i++, td++, td2d++) {
 		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from
 		 * (this is only valid when not in NLA)
 		 */
 		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
+
+		valprev = *td->val;
 
 		/* check if any need to apply nla-mapping */
 		if (adt && t->spacetype != SPACE_SEQ) {
@@ -5663,7 +5773,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		}
 
 		/* apply nearest snapping */
-		doAnimEdit_SnapFrame(t, td, adt, autosnap);
+		doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
 	}
 }
 
@@ -5807,6 +5917,7 @@ int TimeSlide(TransInfo *t, short mval[2])
 	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[0], &sval[0], &sval[1]);
 
 	/* t->values[0] stores cval[0], which is the current mouse-pointer location (in frames) */
+	// XXX Need to be able to repeat this
 	t->values[0] = cval[0];
 
 	/* handle numeric-input stuff */
@@ -5873,6 +5984,7 @@ static void headerTimeScale(TransInfo *t, char *str) {
 static void applyTimeScale(TransInfo *t) {
 	Scene *scene = t->scene;
 	TransData *td = t->data;
+	TransData2D *td2d = t->data2d;
 	int i;
 
 	const short autosnap= getAnimEdit_SnapMode(t);
@@ -5880,7 +5992,7 @@ static void applyTimeScale(TransInfo *t) {
 	const double secf= FPS;
 
 
-	for (i = 0 ; i < t->total; i++, td++) {
+	for (i = 0 ; i < t->total; i++, td++, td2d++) {
 		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from
 		 * (this is only valid when not in NLA)
@@ -5906,7 +6018,7 @@ static void applyTimeScale(TransInfo *t) {
 		*(td->val) += startx;
 
 		/* apply nearest snapping */
-		doAnimEdit_SnapFrame(t, td, adt, autosnap);
+		doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
 	}
 }
 
@@ -5941,11 +6053,11 @@ void BIF_TransformSetUndo(char *str)
 void NDofTransform()
 {
 #if 0 // TRANSFORM_FIX_ME
-    float fval[7];
-    float maxval = 50.0f; // also serves as threshold
-    int axis = -1;
-    int mode = 0;
-    int i;
+	float fval[7];
+	float maxval = 50.0f; // also serves as threshold
+	int axis = -1;
+	int mode = 0;
+	int i;
 
 	getndof(fval);
 

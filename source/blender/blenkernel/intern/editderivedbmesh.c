@@ -129,7 +129,7 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 	BMIter iter, liter;
 	BMFace *f;
 	BMLoop *l;
-	int i = 0, j, a, b;
+	int i = 0, j;
 	
 	if (tm->looptris) MEM_freeN(tm->looptris);
 
@@ -354,9 +354,9 @@ static void bmdm_recalc_lookups(EditDerivedBMesh *bmdm)
 	if (bmdm->ehash) BLI_ghash_free(bmdm->ehash, NULL, NULL);
 	if (bmdm->fhash) BLI_ghash_free(bmdm->fhash, NULL, NULL);
 
-	bmdm->vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	bmdm->ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	bmdm->fhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	bmdm->vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh derived");
+	bmdm->ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh derived");
+	bmdm->fhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh derived");
 	
 	if (bmdm->vtable) MEM_freeN(bmdm->vtable);
 	if (bmdm->etable) MEM_freeN(bmdm->etable);
@@ -398,7 +398,7 @@ static void bmdm_recalc_lookups(EditDerivedBMesh *bmdm)
 
 static void bmDM_recalcTesselation(DerivedMesh *dm)
 {
-	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
+	//EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 
 	//bmdm_recalc_lookups(bmdm);
 }
@@ -1166,13 +1166,13 @@ static int bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *vert_r)
 	if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
 		vert_r->bweight = (unsigned char) (BM_GetCDf(&bm->vdata, ev, CD_BWEIGHT)*255.0f);
 	}
+
+	return 1;
 }
 
 static void bmDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 {
 	BMVert *ev;
-	BMIter iter;
-	int i;
 
 	if (index < 0 || index >= ((EditDerivedBMesh *)dm)->tv) {
 		printf("error in bmDM_getVert.\n");
@@ -1188,9 +1188,6 @@ static void bmDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
 	BMEdge *e;
-	BMVert *ev, *v1, *v2;
-	BMIter iter;
-	int i;
 
 	if (index < 0 || index >= ((EditDerivedBMesh *)dm)->te) {
 		printf("error in bmDM_getEdge.\n");
@@ -1221,11 +1218,8 @@ static void bmDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 static void bmDM_getTessFace(DerivedMesh *dm, int index, MFace *face_r)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
-	BMesh *bm = bmdm->tc->bm;
 	BMFace *ef;
-	BMIter iter;
 	BMLoop **l;
-	int i;
 	
 	if (index < 0 || index >= ((EditDerivedBMesh *)dm)->tf) {
 		printf("error in bmDM_getTessFace.\n");

@@ -73,7 +73,7 @@ CompBuf *dupalloc_compbuf(CompBuf *cbuf)
 /* instead of reference counting, we create a list */
 CompBuf *pass_on_compbuf(CompBuf *cbuf)
 {
-	CompBuf *dupbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 0);
+	CompBuf *dupbuf= (cbuf)? alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 0): NULL;
 	CompBuf *lastbuf;
 	
 	if(dupbuf) {
@@ -120,6 +120,11 @@ void print_compbuf(char *str, CompBuf *cbuf)
 {
 	printf("Compbuf %s %d %d %p\n", str, cbuf->x, cbuf->y, cbuf->rect);
 	
+}
+
+void compbuf_set_node(CompBuf *cbuf, bNode *node)
+{
+	if (cbuf) cbuf->node = node;
 }
 
 /* used for disabling node  (similar code in drawnode.c for disable line) */
@@ -573,9 +578,9 @@ CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel)
 	valbuf->yof= cbuf->yof;
 	
 	valf= valbuf->rect;
-	
+
 	/* defaults to returning alpha channel */
-	if ((channel < CHAN_R) && (channel > CHAN_A)) channel = CHAN_A;
+	if ((channel < CHAN_R) || (channel > CHAN_A)) channel = CHAN_A;
 
 	rectf= cbuf->rect + channel;
 	
@@ -671,7 +676,7 @@ void do_rgba_to_hsva(bNode *node, float *out, float *in)
 
 void do_rgba_to_ycca(bNode *node, float *out, float *in)
 {
-   rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+   rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
    out[3]=in[3];
 }
 
@@ -689,7 +694,7 @@ void do_hsva_to_rgba(bNode *node, float *out, float *in)
 
 void do_ycca_to_rgba(bNode *node, float *out, float *in)
 {
-   ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+   ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
    out[3]=in[3];
 }
 
@@ -725,18 +730,18 @@ void gamma_correct_compbuf(CompBuf *img, int inversed)
 
    drect= img->rect;
    if(inversed) {
-      for(x=img->x*img->y; x>0; x--, drect+=4) {
-         if(drect[0]>0.0f) drect[0]= sqrt(drect[0]); else drect[0]= 0.0f;
-         if(drect[1]>0.0f) drect[1]= sqrt(drect[1]); else drect[1]= 0.0f;
-         if(drect[2]>0.0f) drect[2]= sqrt(drect[2]); else drect[2]= 0.0f;
-      }
+	  for(x=img->x*img->y; x>0; x--, drect+=4) {
+		 if(drect[0]>0.0f) drect[0]= sqrt(drect[0]); else drect[0]= 0.0f;
+		 if(drect[1]>0.0f) drect[1]= sqrt(drect[1]); else drect[1]= 0.0f;
+		 if(drect[2]>0.0f) drect[2]= sqrt(drect[2]); else drect[2]= 0.0f;
+	  }
    }
    else {
-      for(x=img->x*img->y; x>0; x--, drect+=4) {
-         if(drect[0]>0.0f) drect[0]*= drect[0]; else drect[0]= 0.0f;
-         if(drect[1]>0.0f) drect[1]*= drect[1]; else drect[1]= 0.0f;
-         if(drect[2]>0.0f) drect[2]*= drect[2]; else drect[2]= 0.0f;
-      }
+	  for(x=img->x*img->y; x>0; x--, drect+=4) {
+		 if(drect[0]>0.0f) drect[0]*= drect[0]; else drect[0]= 0.0f;
+		 if(drect[1]>0.0f) drect[1]*= drect[1]; else drect[1]= 0.0f;
+		 if(drect[2]>0.0f) drect[2]*= drect[2]; else drect[2]= 0.0f;
+	  }
    }
 }
 
@@ -749,7 +754,7 @@ void premul_compbuf(CompBuf *img, int inversed)
 
    drect= img->rect;
    if(inversed) {
-      for(x=img->x*img->y; x>0; x--, drect+=4) {
+	  for(x=img->x*img->y; x>0; x--, drect+=4) {
 		 if(fabs(drect[3]) < 1e-5f) {
 			 drect[0]= 0.0f;
 			 drect[1]= 0.0f;
@@ -760,14 +765,14 @@ void premul_compbuf(CompBuf *img, int inversed)
 			 drect[1] /= drect[3];
 			 drect[2] /= drect[3];
 		 }
-      }
+	  }
    }
    else {
-      for(x=img->x*img->y; x>0; x--, drect+=4) {
+	  for(x=img->x*img->y; x>0; x--, drect+=4) {
 		 drect[0] *= drect[3];
 		 drect[1] *= drect[3];
 		 drect[2] *= drect[3];
-      }
+	  }
    }
 }
 

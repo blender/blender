@@ -39,6 +39,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_scene.h"
 #include "BKE_texture.h"
 
 #include "DNA_meshdata_types.h"
@@ -95,7 +96,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	ParticleKey state;
 	ParticleSimulationData sim = {re->scene, ob, psys, NULL};
 	ParticleData *pa=NULL;
-	float cfra = bsystem_time(re->scene, ob, (float)re->scene->r.cfra, 0.0);
+	float cfra = BKE_curframe(re->scene);
 	int i, childexists;
 	int total_particles, offset=0;
 	int data_used = point_data_used(pd);
@@ -142,9 +143,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 			if (pd->psys_cache_space == TEX_PD_OBJECTSPACE)
 				mul_m4_v3(ob->imat, partco);
 			else if (pd->psys_cache_space == TEX_PD_OBJECTLOC) {
-				float obloc[3];
-				VECCOPY(obloc, ob->loc);
-				sub_v3_v3v3(partco, partco, obloc);
+				sub_v3_v3(partco, ob->loc);
 			} else {
 				/* TEX_PD_WORLDSPACE */
 			}
@@ -209,7 +208,7 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 				break;
 			case TEX_PD_OBJECTLOC:
 				mul_m4_v3(ob->obmat, co);
-				sub_v3_v3v3(co, co, ob->loc);
+				sub_v3_v3(co, ob->loc);
 				break;
 			case TEX_PD_WORLDSPACE:
 			default:
@@ -306,12 +305,12 @@ void free_pointdensities(Render *re)
 
 typedef struct PointDensityRangeData
 {
-    float *density;
-    float squared_radius;
-    float *point_data;
+	float *density;
+	float squared_radius;
+	float *point_data;
 	float *vec;
 	float softness;
-    short falloff_type;
+	short falloff_type;
 	short noise_influence;
 	float *age;
 	int point_data_used;

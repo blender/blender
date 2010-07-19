@@ -20,11 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <float.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_meshdata_types.h"
 
@@ -33,10 +29,10 @@
 #include "BLI_pbvh.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_mesh.h"
-#include "BKE_utildefines.h"
+#include "BKE_mesh.h" /* for mesh_calc_normals */
+#include "BKE_global.h" /* for mesh_calc_normals */
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 
 #define LEAF_LIMIT 10000
 
@@ -96,6 +92,11 @@ struct PBVHNode {
 	unsigned int uniq_verts, face_verts;
 
 	char flag;
+
+	float tmin; // used for raycasting, is how close bb is to the ray point
+
+	int proxy_count;
+	PBVHProxyNode* proxies;
 };
 
 struct PBVH {
@@ -126,6 +127,9 @@ struct PBVH {
 #ifdef PERFCNTRS
 	int perf_modified;
 #endif
+
+	/* flag are verts/faces deformed */
+	int deformed;
 };
 
 #define STACK_FIXED_DEPTH	100
@@ -228,10 +232,21 @@ static void update_node_vb(PBVH *bvh, PBVHNode *node)
 	node->vb= vb;
 }
 
+//void BLI_pbvh_node_BB_reset(PBVHNode* node)
+//{
+//	BB_reset(&node->vb);
+//}
+//
+//void BLI_pbvh_node_BB_expand(PBVHNode* node, float co[3])
+//{
+//	BB_expand(&node->vb, co);
+//}
+
+
 /* Adapted from BLI_kdopbvh.c */
 /* Returns the index of the first element on the right of the partition */
 static int partition_indices(int *prim_indices, int lo, int hi, int axis,
-			     float mid, BBC *prim_bbc)
+				 float mid, BBC *prim_bbc)
 {
 	int i=lo, j=hi;
 	for(;;) {
@@ -247,7 +262,7 @@ static int partition_indices(int *prim_indices, int lo, int hi, int axis,
 }
 
 void check_partitioning(int *prim_indices, int lo, int hi, int axis,
-			       float mid, BBC *prim_bbc, int index_of_2nd_partition)
+				   float mid, BBC *prim_bbc, int index_of_2nd_partition)
 {
 	int i;
 	for(i = lo; i <= hi; ++i) {
@@ -279,8 +294,8 @@ static void grow_nodes(PBVH *bvh, int totnode)
 /* Add a vertex to the map, with a positive value for unique vertices and
    a negative value for additional vertices */
 static int map_insert_vert(PBVH *bvh, GHash *map,
-			    unsigned int *face_verts,
-			    unsigned int *uniq_verts, int vertex)
+				unsigned int *face_verts,
+				unsigned int *uniq_verts, int vertex)
 {
 	void *value, *key = SET_INT_IN_POINTER(vertex);
 
@@ -309,7 +324,7 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	GHash *map;
 	int i, j, totface;
 
-	map = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+	map = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "build_mesh_leaf_node gh");
 	
 	node->uniq_verts = node->face_verts = 0;
 	totface= node->totprim;
@@ -334,8 +349,8 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 	/* Build the vertex list, unique verts first */
 	for(iter = BLI_ghashIterator_new(map), i = 0;
-	    !BLI_ghashIterator_isDone(iter);
-	    BLI_ghashIterator_step(iter), ++i) {
+		!BLI_ghashIterator_isDone(iter);
+		BLI_ghashIterator_step(iter), ++i) {
 		void *value = BLI_ghashIterator_getValue(iter);
 		int ndx = GET_INT_FROM_POINTER(value);
 
@@ -352,21 +367,28 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 		if(node->face_vert_indices[i] < 0)
 			node->face_vert_indices[i]= -node->face_vert_indices[i] + node->uniq_verts - 1;
 
-	node->draw_buffers =
-		GPU_build_mesh_buffers(map, bvh->verts, bvh->faces,
-				  node->prim_indices,
-				  node->totprim, node->vert_indices,
-				  node->uniq_verts,
-				  node->uniq_verts + node->face_verts);
+	if(!G.background) {
+		node->draw_buffers =
+			GPU_build_mesh_buffers(map, bvh->verts, bvh->faces,
+					node->prim_indices,
+					node->totprim, node->vert_indices,
+					node->uniq_verts,
+					node->uniq_verts + node->face_verts);
+	}
+
+	node->flag |= PBVH_UpdateDrawBuffers;
 
 	BLI_ghash_free(map, NULL, NULL);
 }
 
 static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 {
-	node->draw_buffers =
-		GPU_build_grid_buffers(bvh->grids, node->prim_indices,
+	if(!G.background) {
+		node->draw_buffers =
+			GPU_build_grid_buffers(bvh->grids, node->prim_indices,
 				node->totprim, bvh->gridsize);
+	}
+	node->flag |= PBVH_UpdateDrawBuffers;
 }
 
 /* Recursively build a node in the tree
@@ -381,7 +403,7 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 */
 
 void build_sub(PBVH *bvh, int node_index, BB *cb, BBC *prim_bbc,
-	       int offset, int count)
+		   int offset, int count)
 {
 	int i, axis, end;
 	BB cb_backing;
@@ -578,6 +600,15 @@ void BLI_pbvh_free(PBVH *bvh)
 		}
 	}
 
+	if (bvh->deformed) {
+		if (bvh->verts) {
+			/* if pbvh was deformed, new memory was allocated for verts/faces -- free it */
+
+			MEM_freeN(bvh->verts);
+			MEM_freeN(bvh->faces);
+		}
+	}
+
 	MEM_freeN(bvh->nodes);
 	MEM_freeN(bvh->prim_indices);
 	MEM_freeN(bvh);
@@ -626,13 +657,12 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
 {
 	PBVHNode *node;
 	int revisiting;
-	void *search_data;
 
 	/* purpose here is to traverse tree, visiting child nodes before their
 	   parents, this order is necessary for e.g. computing bounding boxes */
 
 	while(iter->stacksize) {
-		/* pop node */
+                /* pop node */
 		iter->stacksize--;
 		node= iter->stack[iter->stacksize].node;
 
@@ -647,10 +677,7 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
 		if(revisiting)
 			return node;
 
-		/* check search callback */
-		search_data= iter->search_data;
-
-		if(iter->scb && !iter->scb(node, search_data))
+		if(iter->scb && !iter->scb(node, iter->search_data))
 			continue; /* don't traverse, outside of search zone */
 
 		if(node->flag & PBVH_Leaf) {
@@ -668,6 +695,34 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
 	}
 
 	return NULL;
+}
+
+static PBVHNode *pbvh_iter_next_occluded(PBVHIter *iter)
+{
+    PBVHNode *node;
+
+    while(iter->stacksize) {
+        /* pop node */
+        iter->stacksize--;
+        node= iter->stack[iter->stacksize].node;
+
+        /* on a mesh with no faces this can happen
+        * can remove this check if we know meshes have at least 1 face */
+        if(node==NULL) return NULL;
+
+        if(iter->scb && !iter->scb(node, iter->search_data)) continue; /* don't traverse, outside of search zone */
+
+        if(node->flag & PBVH_Leaf) {
+            /* immediately hit leaf node */
+            return node;
+        }
+        else {
+            pbvh_stack_push(iter, iter->bvh->nodes+node->children_offset+1, 0);
+            pbvh_stack_push(iter, iter->bvh->nodes+node->children_offset, 0);
+        }
+    }
+
+    return NULL;
 }
 
 void BLI_pbvh_search_gather(PBVH *bvh,
@@ -721,10 +776,103 @@ void BLI_pbvh_search_callback(PBVH *bvh,
 	pbvh_iter_begin(&iter, bvh, scb, search_data);
 
 	while((node=pbvh_iter_next(&iter)))
-		if(node->flag & PBVH_Leaf)
+		if (node->flag & PBVH_Leaf)
 			hcb(node, hit_data);
 
 	pbvh_iter_end(&iter);
+}
+
+typedef struct node_tree {
+    PBVHNode* data;
+
+    struct node_tree* left;
+    struct node_tree* right;
+} node_tree;
+
+static void node_tree_insert(node_tree* tree, node_tree* new_node)
+{
+    if (new_node->data->tmin < tree->data->tmin) {
+        if (tree->left) {
+            node_tree_insert(tree->left, new_node);
+        }
+        else {
+            tree->left = new_node;
+        }
+    }
+    else {
+        if (tree->right) {
+            node_tree_insert(tree->right, new_node);
+        }
+        else {
+            tree->right = new_node;
+        }
+    }
+}
+
+static void traverse_tree(node_tree* tree, BLI_pbvh_HitOccludedCallback hcb, void* hit_data, float* tmin)
+{
+    if (tree->left) traverse_tree(tree->left, hcb, hit_data, tmin);
+
+    hcb(tree->data, hit_data, tmin);
+
+    if (tree->right) traverse_tree(tree->right, hcb, hit_data, tmin);
+}
+
+static void free_tree(node_tree* tree)
+{
+    if (tree->left) {
+        free_tree(tree->left);
+        tree->left = 0;
+    }
+
+    if (tree->right) {
+        free_tree(tree->right);
+        tree->right = 0;
+    }
+
+    free(tree);
+}
+
+float BLI_pbvh_node_get_tmin(PBVHNode* node)
+{
+    return node->tmin;
+}
+
+void BLI_pbvh_search_callback_occluded(PBVH *bvh,
+	BLI_pbvh_SearchCallback scb, void *search_data,
+	BLI_pbvh_HitOccludedCallback hcb, void *hit_data)
+{
+	PBVHIter iter;
+	PBVHNode *node;
+	node_tree *tree = 0;
+
+	pbvh_iter_begin(&iter, bvh, scb, search_data);
+
+	while((node=pbvh_iter_next_occluded(&iter))) {
+		if(node->flag & PBVH_Leaf) {
+			node_tree* new_node = malloc(sizeof(node_tree));
+
+			new_node->data = node;
+
+			new_node->left  = NULL;
+			new_node->right = NULL;
+
+			if (tree) {
+				node_tree_insert(tree, new_node);
+			}
+			else {
+				tree = new_node;
+			}
+		}
+	}
+
+	pbvh_iter_end(&iter);
+
+	if (tree) {
+		float tmin = FLT_MAX;
+		traverse_tree(tree, hcb, hit_data, &tmin);
+		free_tree(tree);
+	}
 }
 
 static int update_search_cb(PBVHNode *node, void *data_v)
@@ -752,11 +900,11 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 
 	/* subtle assumptions:
 	   - We know that for all edited vertices, the nodes with faces
-	     adjacent to these vertices have been marked with PBVH_UpdateNormals.
+		 adjacent to these vertices have been marked with PBVH_UpdateNormals.
 		 This is true because if the vertex is inside the brush radius, the
 		 bounding box of it's adjacent faces will be as well.
 	   - However this is only true for the vertices that have actually been
-	     edited, not for all vertices in the nodes marked for update, so we
+		 edited, not for all vertices in the nodes marked for update, so we
 		 can only update vertices marked with ME_VERT_PBVH_UPDATE.
 	*/
 
@@ -861,7 +1009,7 @@ static void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes,
 	}
 }
 
-static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
+static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode, int smooth)
 {
 	PBVHNode *node;
 	int n;
@@ -876,7 +1024,8 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 						   bvh->grids,
 						   node->prim_indices,
 						   node->totprim,
-						   bvh->gridsize);
+						   bvh->gridsize,
+						   smooth);
 			}
 			else {
 				GPU_update_mesh_buffers(node->draw_buffers,
@@ -936,9 +1085,6 @@ void BLI_pbvh_update(PBVH *bvh, int flag, float (*face_nors)[3])
 	if(flag & (PBVH_UpdateBB|PBVH_UpdateOriginalBB|PBVH_UpdateRedraw))
 		pbvh_update_BB_redraw(bvh, nodes, totnode, flag);
 
-	if(flag & PBVH_UpdateDrawBuffers)
-		pbvh_update_draw_buffers(bvh, nodes, totnode);
-
 	if(flag & (PBVH_UpdateBB|PBVH_UpdateOriginalBB))
 		pbvh_flush_bb(bvh, bvh->nodes, flag);
 
@@ -972,9 +1118,10 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	GHashIterator *hiter;
 	GHash *map;
 	void *face, **faces;
-	int i, tot;
+	unsigned i;
+        int tot;
 
-	map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "pbvh_get_grid_updates gh");
 
 	pbvh_iter_begin(&iter, bvh, NULL, NULL);
 
@@ -1004,8 +1151,8 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	faces= MEM_callocN(sizeof(void*)*tot, "PBVH Grid Faces");
 
 	for(hiter = BLI_ghashIterator_new(map), i = 0;
-	    !BLI_ghashIterator_isDone(hiter);
-	    BLI_ghashIterator_step(hiter), ++i)
+		!BLI_ghashIterator_isDone(hiter);
+		BLI_ghashIterator_step(hiter), ++i)
 		faces[i]= BLI_ghashIterator_getKey(hiter);
 
 	BLI_ghashIterator_free(hiter);
@@ -1073,6 +1220,18 @@ void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max
 	copy_v3_v3(bb_max, node->orig_vb.bmax);
 }
 
+void BLI_pbvh_node_get_proxies(PBVHNode* node, PBVHProxyNode** proxies, int* proxy_count)
+{
+	if (node->proxy_count > 0) {
+		if (proxies) *proxies = node->proxies;
+		if (proxy_count) *proxy_count = node->proxy_count;
+	}
+	else {
+		if (proxies) *proxies = 0;
+		if (proxy_count) *proxy_count = 0;
+	}
+}
+
 /********************************* Raycast ***********************************/
 
 typedef struct {
@@ -1087,16 +1246,13 @@ typedef struct {
 static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 {
 	RaycastData *ray = data_v;
-	float bb_min[3], bb_max[3], bbox[2][3];
+	float bbox[2][3];
 	float tmin, tmax, tymin, tymax, tzmin, tzmax;
 
 	if(ray->original)
-		BLI_pbvh_node_get_original_BB(node, bb_min, bb_max);
+		BLI_pbvh_node_get_original_BB(node, bbox[0], bbox[1]);
 	else
-		BLI_pbvh_node_get_BB(node, bb_min, bb_max);
-	
-	copy_v3_v3(bbox[0], bb_min);
-	copy_v3_v3(bbox[1], bb_max);
+		BLI_pbvh_node_get_BB(node, bbox[0], bbox[1]);
 
 	tmin = (bbox[ray->sign[0]][0] - ray->start[0]) * ray->inv_dir[0];
 	tmax = (bbox[1-ray->sign[0]][0] - ray->start[0]) * ray->inv_dir[0];
@@ -1106,8 +1262,10 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 
 	if((tmin > tymax) || (tymin > tmax))
 		return 0;
+
 	if(tymin > tmin)
 		tmin = tymin;
+
 	if(tymax < tmax)
 		tmax = tymax;
 
@@ -1116,21 +1274,21 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 
 	if((tmin > tzmax) || (tzmin > tmax))
 		return 0;
-	
+
+	if(tzmin > tmin)
+		tmin = tzmin;
+
+	// XXX jwilkins: tmax does not need to be updated since we don't use it
+	// keeping this here for future reference
+	//if(tzmax < tmax) tmax = tzmax; 
+
+	node->tmin = tmin;
+
 	return 1;
-
-	/* XXX: Not sure about this? 
-	   if(tzmin > tmin)
-	   tmin = tzmin;
-	   if(tzmax < tmax)
-	   tmax = tzmax;
-	   return ((tmin < t1) && (tmax > t0));
-	*/
-
 }
 
-void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
-		      float ray_start[3], float ray_normal[3], int original)
+void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
+			  float ray_start[3], float ray_normal[3], int original)
 {
 	RaycastData rcd;
 
@@ -1143,37 +1301,24 @@ void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
 	rcd.sign[2] = rcd.inv_dir[2] < 0;
 	rcd.original = original;
 
-	BLI_pbvh_search_callback(bvh, ray_aabb_intersect, &rcd, cb, data);
+	BLI_pbvh_search_callback_occluded(bvh, ray_aabb_intersect, &rcd, cb, data);
 }
 
-/* XXX: Code largely copied from bvhutils.c, could be unified */
-/* Returns 1 if a better intersection has been found */
 static int ray_face_intersection(float ray_start[3], float ray_normal[3],
 				 float *t0, float *t1, float *t2, float *t3,
 				 float *fdist)
 {
-	int hit = 0;
+    float dist;
 
-	do
-	{	
-		float dist = FLT_MAX;
-			
-		if(!isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2,
-					 &dist, NULL, 0.1f))
-			dist = FLT_MAX;
-
-		if(dist >= 0 && dist < *fdist) {
-			hit = 1;
-			*fdist = dist;
-		}
-
-		t1 = t2;
-		t2 = t3;
-		t3 = NULL;
-
-	} while(t2);
-
-	return hit;
+    if ((isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2, &dist, NULL, 0.1f) && dist < *fdist) ||
+        (t3 && isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t2, t3, &dist, NULL, 0.1f) && dist < *fdist))
+    {
+        *fdist = dist;
+        return 1;
+    }
+    else {
+        return 0;
+    }
 }
 
 int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
@@ -1218,6 +1363,8 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 
 		for(i = 0; i < totgrid; ++i) {
 			DMGridData *grid= bvh->grids[node->prim_indices[i]];
+			if (!grid)
+				continue;
 
 			for(y = 0; y < gridsize-1; ++y) {
 				for(x = 0; x < gridsize-1; ++x) {
@@ -1304,9 +1451,18 @@ int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data)
 	return 1;
 }
 
-void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3])
+void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3], int smooth)
 {
-	BLI_pbvh_update(bvh, PBVH_UpdateNormals|PBVH_UpdateDrawBuffers, face_nors);
+	PBVHNode **nodes;
+	int totnode;
+
+	BLI_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(PBVH_UpdateNormals|PBVH_UpdateDrawBuffers),
+		&nodes, &totnode);
+
+	pbvh_update_normals(bvh, nodes, totnode, face_nors);
+	pbvh_update_draw_buffers(bvh, nodes, totnode, smooth);
+
+	if(nodes) MEM_freeN(nodes);
 
 	if(planes) {
 		BLI_pbvh_search_callback(bvh, BLI_pbvh_node_planes_contain_AABB,
@@ -1317,3 +1473,145 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3])
 	}
 }
 
+void BLI_pbvh_grids_update(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridadj, void **gridfaces)
+{
+	bvh->grids= grids;
+	bvh->gridadj= gridadj;
+	bvh->gridfaces= gridfaces;
+}
+
+float (*BLI_pbvh_get_vertCos(PBVH *pbvh))[3]
+{
+	int a;
+	float (*vertCos)[3]= NULL;
+
+	if (pbvh->verts) {
+		float *co;
+		MVert *mvert= pbvh->verts;
+
+		vertCos= MEM_callocN(3*pbvh->totvert*sizeof(float), "BLI_pbvh_get_vertCoords");
+		co= (float*)vertCos;
+
+		for (a= 0; a<pbvh->totvert; a++, mvert++, co+= 3) {
+			copy_v3_v3(co, mvert->co);
+		}
+	}
+
+	return vertCos;
+}
+
+void BLI_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
+{
+	int a;
+
+	if (!pbvh->deformed) {
+		if (pbvh->verts) {
+			/* if pbvh is not already deformed, verts/faces points to the */
+			/* original data and applying new coords to this arrays would lead to */
+			/* unneeded deformation -- duplicate verts/faces to avoid this */
+
+			pbvh->verts= MEM_dupallocN(pbvh->verts);
+			pbvh->faces= MEM_dupallocN(pbvh->faces);
+
+			pbvh->deformed= 1;
+		}
+	}
+
+	if (pbvh->verts) {
+		/* copy new verts coords */
+		for (a= 0; a < pbvh->totvert; ++a) {
+			copy_v3_v3(pbvh->verts[a].co, vertCos[a]);
+		}
+
+		/* coordinates are new -- normals should also be updated */
+		mesh_calc_normals(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
+	}
+}
+
+int BLI_pbvh_isDeformed(PBVH *pbvh)
+{
+	return pbvh->deformed;
+}
+/* Proxies */
+
+PBVHProxyNode* BLI_pbvh_node_add_proxy(PBVH* bvh, PBVHNode* node)
+{
+	int index, totverts;
+
+	#pragma omp critical
+	{
+
+		index = node->proxy_count;
+
+		node->proxy_count++;
+
+		if (node->proxies)
+			node->proxies= MEM_reallocN(node->proxies, node->proxy_count*sizeof(PBVHProxyNode));
+		else
+			node->proxies= MEM_mallocN(sizeof(PBVHProxyNode), "PBVHNodeProxy");
+
+		if (bvh->grids)
+			totverts = node->totprim*bvh->gridsize*bvh->gridsize;
+		else
+			totverts = node->uniq_verts;
+
+		node->proxies[index].co= MEM_callocN(sizeof(float[3])*totverts, "PBVHNodeProxy.co");
+	}
+
+	return node->proxies + index;
+}
+
+void BLI_pbvh_node_free_proxies(PBVHNode* node)
+{
+	#pragma omp critical
+	{
+		int p;
+
+		for (p= 0; p < node->proxy_count; p++) {
+			MEM_freeN(node->proxies[p].co);
+			node->proxies[p].co= 0;
+		}
+
+		MEM_freeN(node->proxies);
+		node->proxies = 0;
+
+		node->proxy_count= 0;
+	}
+}
+
+void BLI_pbvh_gather_proxies(PBVH* pbvh, PBVHNode*** r_array,  int* r_tot)
+{
+	PBVHNode **array= NULL, **newarray, *node;
+	int tot= 0, space= 0;
+	int n;
+
+	for (n= 0; n < pbvh->totnode; n++) {
+		node = pbvh->nodes + n;
+
+		if(node->proxy_count > 0) {
+			if(tot == space) {
+				/* resize array if needed */
+				space= (tot == 0)? 32: space*2;
+				newarray= MEM_callocN(sizeof(PBVHNode)*space, "BLI_pbvh_gather_proxies");
+
+				if (array) {
+					memcpy(newarray, array, sizeof(PBVHNode)*tot);
+					MEM_freeN(array);
+				}
+
+				array= newarray;
+			}
+
+			array[tot]= node;
+			tot++;
+		}
+	}
+
+	if(tot == 0 && array) {
+		MEM_freeN(array);
+		array= NULL;
+	}
+
+	*r_array= array;
+	*r_tot= tot;
+}

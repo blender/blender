@@ -28,10 +28,6 @@
  * Convert blender data to ketsji
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif
@@ -88,7 +84,6 @@
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
-#include "BKE_scene.h"
 #include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_SkinDeformer.h"
@@ -138,6 +133,7 @@
 #include "BLI_math.h"
 
 extern "C" {
+#include "BKE_scene.h"
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
@@ -1552,7 +1548,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 					objprop.m_boundclass = KX_BOUNDMESH;
 					break;
 				}
-				// Object is not a mesh... can't use polyheder. 
+				// Object is not a mesh... can't use polyhedron.
 				// Fall through and become a sphere.
 			case OB_BOUND_SPHERE:
 			{
@@ -1733,7 +1729,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		// only support relative shape key
 		bool bHasShapeKey = mesh->key != NULL && mesh->key->type==KEY_RELATIVE;
 		bool bHasDvert = mesh->dvert != NULL && ob->defbase.first;
-		bool bHasArmature = (ob->parent && ob->parent->type == OB_ARMATURE && ob->partype==PARSKEL && bHasDvert);
+		bool bHasArmature = (BL_ModifierDeformer::HasArmatureDeformer(ob) && ob->parent && ob->parent->type == OB_ARMATURE && bHasDvert);
 		bool bHasModifier = BL_ModifierDeformer::HasCompatibleDeformer(ob);
 		bool bHasSoftBody = (!ob->parent && (ob->gameflag & OB_SOFT_BODY));
 
@@ -2361,8 +2357,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	
 			if (me->dvert){
 				BL_DeformableGameObject *obj = (BL_DeformableGameObject*)converter->FindGameObject(blenderobj);
-	
-				if (obj && blenderobj->parent && blenderobj->parent->type==OB_ARMATURE && blenderobj->partype==PARSKEL){
+
+				if (obj && BL_ModifierDeformer::HasArmatureDeformer(blenderobj) && blenderobj->parent && blenderobj->parent->type==OB_ARMATURE){
 					KX_GameObject *par = converter->FindGameObject(blenderobj->parent);
 					if (par && obj->GetDeformer())
 						((BL_SkinDeformer*)obj->GetDeformer())->SetArmature((BL_ArmatureObject*) par);

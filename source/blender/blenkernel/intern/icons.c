@@ -32,23 +32,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
-#include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
+#include "DNA_brush_types.h"
 
 #include "BLI_ghash.h"
 
 #include "BKE_icons.h"
-#include "BKE_utildefines.h"
 #include "BKE_global.h" /* only for G.background test */
 
 #include "BLO_sys_types.h" // for intptr_t support
@@ -108,7 +102,7 @@ void BKE_icons_init(int first_dyn_id)
 	gFirstIconId = first_dyn_id;
 
 	if (!gIcons)
-		gIcons = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+		gIcons = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "icons_init gh");
 }
 
 void BKE_icons_free()
@@ -127,6 +121,7 @@ struct PreviewImage* BKE_previewimg_create()
 
 	for (i=0; i<PREVIEW_MIPMAPS; ++i) {
 		prv_img->changed[i] = 1;
+		prv_img->changed_timestamp[i] = 0;
 	}
 	return prv_img;
 }
@@ -209,7 +204,7 @@ PreviewImage* BKE_previewimg_get(ID *id)
 		Image *img  = (Image*)id;
 		if (!img->preview) img->preview = BKE_previewimg_create();
 		prv_img = img->preview;
-	} 
+	}
 
 	return prv_img;
 }
@@ -231,6 +226,7 @@ void BKE_icon_changed(int id)
 			int i;
 			for (i=0; i<PREVIEW_MIPMAPS; ++i) {
 				prv->changed[i] = 1;
+				prv->changed_timestamp[i]++;
 			}
 		}
 	}	

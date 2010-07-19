@@ -23,7 +23,8 @@ incs  = ['.',
 		 '../imbuf/intern',
 		 '../blenloader',
 		 '../render/extern/include',
-		 '../editors/include']
+		 '../editors/include',
+		 '#/intern/audaspace/intern']
 
 incs.append(env['BF_QUICKTIME_INC'])
 

@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,35 +29,26 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_rand.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_global.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
-
-#include "BIF_gl.h"
+#include "ED_view3d.h" /* only for sequencer view3d drawing callback */
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-
-#include "ED_markers.h"
 
 #include "sequencer_intern.h"	// own include
 
@@ -110,44 +101,44 @@ void ED_sequencer_update_view(bContext *C, int view)
 
 	switch (view) {
 		case SEQ_VIEW_SEQUENCE:
-			if (ar_main->flag & RGN_FLAG_HIDDEN) {
+			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
 				ar_main->flag &= ~RGN_FLAG_HIDDEN;
 				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
 			}
-			if (!(ar_preview->flag & RGN_FLAG_HIDDEN)) {
+			if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
 				ar_preview->flag |= RGN_FLAG_HIDDEN;
 				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 				WM_event_remove_handlers(C, &ar_preview->handlers);
 			}
-			ar_main->alignment= RGN_ALIGN_NONE;
-			ar_preview->alignment= RGN_ALIGN_NONE;
+			if (ar_main) ar_main->alignment= RGN_ALIGN_NONE;
+			if (ar_preview) ar_preview->alignment= RGN_ALIGN_NONE;
 			break;
 		case SEQ_VIEW_PREVIEW:
-			if (!(ar_main->flag & RGN_FLAG_HIDDEN)) {
+			if (ar_main && !(ar_main->flag & RGN_FLAG_HIDDEN)) {
 				ar_main->flag |= RGN_FLAG_HIDDEN;
 				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
 				WM_event_remove_handlers(C, &ar_main->handlers);
 			}
-			if (ar_preview->flag & RGN_FLAG_HIDDEN) {
+			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
 				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
 				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 				ar_preview->v2d.cur = ar_preview->v2d.tot;
 			}
-			ar_main->alignment= RGN_ALIGN_NONE;
-			ar_preview->alignment= RGN_ALIGN_NONE;
+			if (ar_main) ar_main->alignment= RGN_ALIGN_NONE;
+			if (ar_preview) ar_preview->alignment= RGN_ALIGN_NONE;
 			break;
 		case SEQ_VIEW_SEQUENCE_PREVIEW:
-			if (ar_main->flag & RGN_FLAG_HIDDEN) {
+			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
 				ar_main->flag &= ~RGN_FLAG_HIDDEN;
 				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
 			}
-			if (ar_preview->flag & RGN_FLAG_HIDDEN) {
+			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
 				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
 				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 				ar_preview->v2d.cur = ar_preview->v2d.tot;
 			}
-			ar_main->alignment= RGN_ALIGN_NONE;
-			ar_preview->alignment= RGN_ALIGN_TOP;
+			if (ar_main) ar_main->alignment= RGN_ALIGN_NONE;
+			if (ar_preview) ar_preview->alignment= RGN_ALIGN_TOP;
 			break;
 	}
 
@@ -195,15 +186,15 @@ static SpaceLink *sequencer_new(const bContext *C)
 	/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
 	ar->v2d.keepzoom= V2D_KEEPASPECT | V2D_KEEPZOOM;
 	ar->v2d.minzoom= 0.00001f;
-    ar->v2d.maxzoom= 100000.0f;
-    ar->v2d.tot.xmin= -960.0f; /* 1920 width centered */
-    ar->v2d.tot.ymin= -540.0f; /* 1080 height centered */
-    ar->v2d.tot.xmax= 960.0f;
-    ar->v2d.tot.ymax= 540.0f;
-    ar->v2d.min[0]= 0.0f;
-    ar->v2d.min[1]= 0.0f;
-    ar->v2d.max[0]= 12000.0f;
-    ar->v2d.max[1]= 12000.0f;
+	ar->v2d.maxzoom= 100000.0f;
+	ar->v2d.tot.xmin= -960.0f; /* 1920 width centered */
+	ar->v2d.tot.ymin= -540.0f; /* 1080 height centered */
+	ar->v2d.tot.xmax= 960.0f;
+	ar->v2d.tot.ymax= 540.0f;
+	ar->v2d.min[0]= 0.0f;
+	ar->v2d.min[1]= 0.0f;
+	ar->v2d.max[0]= 12000.0f;
+	ar->v2d.max[1]= 12000.0f;
 	ar->v2d.cur= ar->v2d.tot;
 	ar->v2d.align= V2D_ALIGN_FREE; 
 	ar->v2d.keeptot= V2D_KEEPTOT_FREE;
@@ -315,7 +306,7 @@ static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 static int movie_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 {
 	if(drag->type==WM_DRAG_PATH)
-		if(ELEM(drag->icon, ICON_FILE_MOVIE, ICON_FILE_BLANK))	/* rule might not work? */
+		if(ELEM3(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK))	/* rule might not work? */
 			return 1;
 	return 0;
 }
@@ -331,7 +322,7 @@ static int sound_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	/* copy drag path to properties */
-	RNA_string_set(drop->ptr, "path", drag->path);
+	RNA_string_set(drop->ptr, "filepath", drag->path);
 }
 
 /* this region dropbox definition */
@@ -364,9 +355,9 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+				case ND_FRAME_RANGE:
 				case ND_MARKERS:
 				case ND_SEQUENCER:
-				case ND_SEQUENCER_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -405,7 +396,21 @@ static void sequencer_preview_area_draw(const bContext *C, ARegion *ar)
 	
 	/* XXX temp fix for wrong setting in sseq->mainb */
 	if (sseq->mainb == SEQ_DRAW_SEQUENCE) sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-	draw_image_seq(C, scene, ar, sseq);
+
+	draw_image_seq(C, scene, ar, sseq, scene->r.cfra, 0);
+
+	if(scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		int over_cfra;
+
+		if(scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS)
+			over_cfra= scene->ed->over_cfra;
+		else
+			over_cfra= scene->r.cfra + scene->ed->over_ofs;
+
+		if(over_cfra != scene->r.cfra)
+			draw_image_seq(C, scene, ar, sseq, scene->r.cfra, over_cfra - scene->r.cfra);
+	}
+
 }
 
 static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -417,7 +422,6 @@ static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_MARKERS:
 				case ND_SEQUENCER:
-				case ND_SEQUENCER_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -459,7 +463,6 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 		switch(wmn->data) {
 			case ND_FRAME:
 			case ND_SEQUENCER:
-			case ND_SEQUENCER_SELECT:
 				ED_region_tag_redraw(ar);
 				break;
 		}
@@ -540,5 +543,10 @@ void ED_spacetype_sequencer(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	BKE_spacetype_register(st);
+
+	/* set the sequencer callback when not in background mode */
+	if(G.background==0) {
+		sequencer_view3d_cb= ED_view3d_draw_offscreen_imbuf_simple;
+	}
 }
 

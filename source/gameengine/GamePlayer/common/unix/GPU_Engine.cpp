@@ -49,10 +49,6 @@
 #include "GPC_RenderTools.h"
 #include "GPC_RawImage.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void Redraw(GPU_Engine *engine);  // -the- redraw function
 
 // callback functions

@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -31,28 +31,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
-#include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
 
 #include "ED_transform.h"
 
 #include "action_intern.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -67,6 +58,7 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACTION_OT_select_all_toggle);
 	WM_operatortype_append(ACTION_OT_select_border);
 	WM_operatortype_append(ACTION_OT_select_column);
+	WM_operatortype_append(ACTION_OT_select_linked);
 	WM_operatortype_append(ACTION_OT_select_more);
 	WM_operatortype_append(ACTION_OT_select_less);
 	
@@ -128,6 +120,9 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "ACTION_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	
+		/* select linekd */
+	WM_keymap_add_item(keymap, "ACTION_OT_select_linked", LKEY, KM_PRESS, 0, 0);
+	
 	
 	/* action_edit.c */
 		/* snap - current frame to selected keys */
@@ -150,6 +145,7 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	WM_keymap_add_item(keymap, "ACTION_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "ACTION_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);

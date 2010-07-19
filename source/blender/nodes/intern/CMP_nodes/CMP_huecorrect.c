@@ -60,7 +60,6 @@ static void do_huecorrect(bNode *node, float *out, float *in)
 	
 	CLAMP(hsv[0], 0.f, 1.f);
 	CLAMP(hsv[1], 0.f, 1.f);
-	CLAMP(hsv[2], 0.f, 1.f);
 	
 	/* convert back to rgb */
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], out, out+1, out+2);
@@ -89,7 +88,6 @@ static void do_huecorrect_fac(bNode *node, float *out, float *in, float *fac)
 	
 	CLAMP(hsv[0], 0.f, 1.f);
 	CLAMP(hsv[1], 0.f, 1.f);
-	CLAMP(hsv[2], 0.f, 1.f);
 	
 	/* convert back to rgb */
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
@@ -137,28 +135,13 @@ static void node_composit_exec_huecorrect(void *data, bNode *node, bNodeStack **
 static void node_composit_init_huecorrect(bNode* node)
 {
 	CurveMapping *cumapping = node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-	int c, i;
+	int c;
+	
+	cumapping->preset = CURVE_PRESET_MID9;
 	
 	for (c=0; c<3; c++) {
 		CurveMap *cuma = &cumapping->cm[c];
-		
-		/* set default horizontal curve */
-		if(cuma->curve)
-			MEM_freeN(cuma->curve);
-		
-		cuma->totpoint= 9;
-		cuma->curve= MEM_callocN(cuma->totpoint*sizeof(CurveMapPoint), "curve points");
-		
-		for (i=0; i < cuma->totpoint; i++)
-		{
-			cuma->curve[i].x= i / ((float)cuma->totpoint-1);
-			cuma->curve[i].y= 0.5;
-		}
-		
-		if(cuma->table) {
-			MEM_freeN(cuma->table);
-			cuma->table= NULL;
-		}
+		curvemap_reset(cuma, &cumapping->clipr, cumapping->preset);
 	}
 	
 	/* default to showing Saturation */

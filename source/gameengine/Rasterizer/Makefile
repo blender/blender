@@ -49,10 +49,6 @@ CPPFLAGS += -I../Ketsji
 
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
-ifeq ($(OS),darwin)
-    CPPFLAGS += -fpascal-strings
-endif
-
 ###############
 
 SOURCEDIR = source/gameengine/Rasterizer

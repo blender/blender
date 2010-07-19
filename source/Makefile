@@ -97,6 +97,7 @@ COMLIB += $(OCGDIR)/blender/nodes_tex/$(DEBUG_DIR)libnodes_tex.a
 COMLIB += $(OCGDIR)/blender/nodes/$(DEBUG_DIR)libnodes.a
 COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
 COMLIB += $(OCGDIR)/blender/ikplugin/$(DEBUG_DIR)libikplugin.a
+COMLIB += $(OCGDIR)/blender/modifiers/$(DEBUG_DIR)libmodifiers.a
 COMLIB += $(NAN_IKSOLVER)/lib/$(DEBUG_DIR)libiksolver.a
 COMLIB += $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc.a
 COMLIB += $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc_kdl.a
@@ -119,6 +120,7 @@ COMLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
 COMLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
 COMLIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
 COMLIB += $(NAN_DECIMATION)/lib/$(DEBUG_DIR)libdecimation.a
+COMLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 
 ifeq ($(WITH_FFMPEG),true)
     COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_ffmpeg.a
@@ -477,7 +479,7 @@ debug debuglink::
 clean:: linkclean debuglinkclean
 
 link: $(BINTARGETS)
-	@echo "****> Build $(MAKE_START) - `date '+%H:%M:%S %d-%b-%Y'`"
+	@echo "****> Build SVN rev $(BUILD_REV), $(MAKE_START) - `date '+%H:%M:%S %d-%b-%Y'`"
 ifdef NANENV
 	@for n in $(NANENV); do \
 	    echo "      $$n"; \

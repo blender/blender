@@ -34,26 +34,17 @@
 #include <string.h>
 #include <float.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_dlrbTree.h"
 
-#include "DNA_listBase.h"
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
@@ -61,11 +52,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
-#include "DNA_view2d_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -80,16 +67,11 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
-#include "ED_keyframing.h"
 #include "ED_keyframes_draw.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
 
 /* *************************** Keyframe Processing *************************** */
 
@@ -258,7 +240,7 @@ static BezTriple *abk_get_bezt_with_value (ActBeztColumn *abk, float value)
 	/* look over each BezTriple in this container */
 	for (i = 0; i < abk->numBezts; i++) {		
 		/* only do exact match for now... */
-		if (i >= sizeof(abk->bezts)/sizeof(BezTriple)) {
+		if (/*i >= MAX_ABK_BUFSIZE*/0) {
 			// TODO: this case needs special handling
 		}
 		else {
@@ -301,7 +283,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, DLRBT_Tree *beztTree,
 	abk= (ActBeztColumn *)BLI_dlrbTree_search_prev(beztTree, compare_abk_bezt, beztn);
 		/* if applicable, the BezTriple with the same value */
 	prev= (abk) ? abk_get_bezt_with_value(abk, beztn->vec[1][1]) : NULL;
-
+	
 	/* check if block needed - same value(s)?
 	 *	-> firstly, handles must have same central value as each other
 	 *	-> secondly, handles which control that section of the curve must be constant

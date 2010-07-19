@@ -8,7 +8,4 @@ incs += ' ../../bmesh ../../windowmanager #/intern/guardedalloc #/extern/glew/in
 
 defs = []
 
-if env['WITH_BF_GAMEENGINE']:
-	defs.append('GAMEBLENDER=1')
-
 env.BlenderLib ( 'bf_editors_space_info', sources, Split(incs), defs, libtype=['core'], priority=[70] )

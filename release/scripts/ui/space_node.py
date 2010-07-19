@@ -55,7 +55,10 @@ class NODE_HT_header(bpy.types.Header):
             snode_id = snode.id
             id_from = snode.id_from
             if id_from:
-                layout.template_ID(id_from, "active_texture", new="texture.new")
+                if snode.texture_type == 'BRUSH':
+                    layout.template_ID(id_from, "texture", new="texture.new")
+                else:
+                    layout.template_ID(id_from, "active_texture", new="texture.new")
             if snode_id:
                 layout.prop(snode_id, "use_nodes")
 
@@ -65,6 +68,10 @@ class NODE_HT_header(bpy.types.Header):
             layout.prop(scene, "use_nodes")
             layout.prop(scene.render, "free_unused_nodes", text="Free Unused")
             layout.prop(snode, "backdrop")
+
+        layout.separator()
+
+        layout.template_running_jobs()
 
 
 class NODE_MT_view(bpy.types.Menu):
@@ -101,6 +108,9 @@ class NODE_MT_select(bpy.types.Menu):
         layout.operator("node.select_all")
         layout.operator("node.select_linked_from")
         layout.operator("node.select_linked_to")
+        layout.operator("node.select_same_type")
+        layout.operator("node.select_same_type_next")
+        layout.operator("node.select_same_type_prev")
 
 
 class NODE_MT_node(bpy.types.Menu):
@@ -129,8 +139,10 @@ class NODE_MT_node(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("node.hide")
-        layout.operator("node.mute")
+        layout.operator("node.hide_toggle")
+        layout.operator("node.mute_toggle")
+        layout.operator("node.preview_toggle")
+        layout.operator("node.hide_socket_toggle")
 
         # XXX
         # layout.operator("node.rename")

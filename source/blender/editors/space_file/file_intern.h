@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -58,7 +58,6 @@ void FILE_OT_select_bookmark(struct wmOperatorType *ot);
 void FILE_OT_bookmark_add(struct wmOperatorType *ot);
 void FILE_OT_delete_bookmark(struct wmOperatorType *ot);
 void FILE_OT_hidedot(struct wmOperatorType *ot);
-void FILE_OT_loadimages(struct wmOperatorType *ot);
 void FILE_OT_execute(struct wmOperatorType *ot);
 void FILE_OT_cancel(struct wmOperatorType *ot);
 void FILE_OT_parent(struct wmOperatorType *ot);
@@ -71,6 +70,7 @@ void FILE_OT_bookmark_toggle(struct wmOperatorType *ot);
 void FILE_OT_filenum(struct wmOperatorType *ot);
 void FILE_OT_delete(struct wmOperatorType *ot);
 void FILE_OT_rename(struct wmOperatorType *ot);
+void FILE_OT_smoothscroll(struct wmOperatorType *ot);
 
 int file_exec(bContext *C, struct wmOperator *exec_op);
 int file_cancel_exec(bContext *C, struct wmOperator *unused);
@@ -88,9 +88,10 @@ int file_hilight_set(struct SpaceFile *sfile, struct ARegion *ar, int mx, int my
 /* filesel.c */
 float file_string_width(const char* str);
 float file_font_pointsize();
-void file_change_dir(struct SpaceFile *sfile, int checkdir);
+void file_change_dir(bContext *C, int checkdir);
 int file_select_match(struct SpaceFile *sfile, const char *pattern);
 void autocomplete_directory(struct bContext *C, char *str, void *arg_v);
+void autocomplete_file(struct bContext *C, char *str, void *arg_v);
 
 /* file_panels.c */
 void file_panels_register(struct ARegionType *art);

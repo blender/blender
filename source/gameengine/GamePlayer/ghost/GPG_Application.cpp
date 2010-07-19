@@ -28,10 +28,6 @@
  * GHOST Blender Player application implementation file.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 	#include <windows.h>
@@ -677,7 +673,8 @@ bool GPG_Application::startEngine(void)
 			m_mouse,
 			m_networkdevice,
 			startscenename,
-			m_startScene);
+			m_startScene,
+			m_canvas);
 		
 #ifndef DISABLE_PYTHON
 			// some python things
@@ -797,10 +794,7 @@ void GPG_Application::exitEngine()
 		m_canvas = 0;
 	}
 
-	libtiff_exit();
-#ifdef WITH_QUICKTIME
-	quicktime_exit();
-#endif
+	IMB_exit();
 	GPU_extensions_exit();
 
 	m_exitRequested = 0;

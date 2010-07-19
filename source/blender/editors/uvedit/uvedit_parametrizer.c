@@ -388,7 +388,7 @@ static float p_face_area(PFace *f)
 static float p_area_signed(float *v1, float *v2, float *v3)
 {
 	return 0.5f*(((v2[0] - v1[0])*(v3[1] - v1[1])) - 
-	            ((v3[0] - v1[0])*(v2[1] - v1[1])));
+				((v3[0] - v1[0])*(v2[1] - v1[1])));
 }
 
 static float p_face_uv_area_signed(PFace *f)
@@ -397,30 +397,30 @@ static float p_face_uv_area_signed(PFace *f)
 	PVert *v1 = e1->vert, *v2 = e2->vert, *v3 = e3->vert;
 
 	return 0.5f*(((v2->uv[0] - v1->uv[0])*(v3->uv[1] - v1->uv[1])) - 
-	            ((v3->uv[0] - v1->uv[0])*(v2->uv[1] - v1->uv[1])));
+				((v3->uv[0] - v1->uv[0])*(v2->uv[1] - v1->uv[1])));
 }
 
 static float p_edge_length(PEdge *e)
 {
-    PVert *v1 = e->vert, *v2 = e->next->vert;
-    float d[3];
+	PVert *v1 = e->vert, *v2 = e->next->vert;
+	float d[3];
 
-    d[0] = v2->co[0] - v1->co[0];
-    d[1] = v2->co[1] - v1->co[1];
-    d[2] = v2->co[2] - v1->co[2];
+	d[0] = v2->co[0] - v1->co[0];
+	d[1] = v2->co[1] - v1->co[1];
+	d[2] = v2->co[2] - v1->co[2];
 
-    return sqrt(d[0]*d[0] + d[1]*d[1] + d[2]*d[2]);
+	return sqrt(d[0]*d[0] + d[1]*d[1] + d[2]*d[2]);
 }
 
 static float p_edge_uv_length(PEdge *e)
 {
-    PVert *v1 = e->vert, *v2 = e->next->vert;
-    float d[3];
+	PVert *v1 = e->vert, *v2 = e->next->vert;
+	float d[3];
 
-    d[0] = v2->uv[0] - v1->uv[0];
-    d[1] = v2->uv[1] - v1->uv[1];
+	d[0] = v2->uv[0] - v1->uv[0];
+	d[1] = v2->uv[1] - v1->uv[1];
 
-    return sqrt(d[0]*d[0] + d[1]*d[1]);
+	return sqrt(d[0]*d[0] + d[1]*d[1]);
 }
 
 static void p_chart_uv_bbox(PChart *chart, float *minv, float *maxv)
@@ -522,7 +522,7 @@ static PEdge *p_boundary_edge_next(PEdge *e)
 
 static PEdge *p_boundary_edge_prev(PEdge *e)
 {
-    PEdge *we = e, *last;
+	PEdge *we = e, *last;
 
 	do {
 		last = we;
@@ -591,7 +591,7 @@ static void p_vert_load_pin_select_uvs(PHandle *handle, PVert *v)
 			if (e->flag & PEDGE_SELECT)
 				v->flag |= PVERT_SELECT;
 
- 			if (e->flag & PEDGE_PIN) {
+			 if (e->flag & PEDGE_PIN) {
 				pinuv[0] += e->orig_uv[0]*handle->aspx;
 				pinuv[1] += e->orig_uv[1]*handle->aspy;
 				npins++;
@@ -823,7 +823,7 @@ static PBool p_edge_has_pair(PHandle *handle, PEdge *e, PEdge **pair, PBool impl
 
 				/* don't connect seams and t-junctions */
 				if ((pe->flag & PEDGE_SEAM) || *pair ||
-				    (impl && p_edge_implicit_seam(e, pe))) {
+					(impl && p_edge_implicit_seam(e, pe))) {
 					*pair = NULL;
 					return P_FALSE;
 				}
@@ -1032,8 +1032,8 @@ static PFace *p_face_add(PHandle *handle)
 }
 
 static PFace *p_face_add_construct(PHandle *handle, ParamKey key, ParamKey *vkeys,
-                                   float *co[3], float *uv[3], int i1, int i2, int i3,
-                                   ParamBool *pin, ParamBool *select)
+								   float *co[3], float *uv[3], int i1, int i2, int i3,
+								   ParamBool *pin, ParamBool *select)
 {
 	PFace *f = p_face_add(handle);
 	PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
@@ -1124,8 +1124,8 @@ static PBool p_quad_split_direction(PHandle *handle, float **co, PHashKey *vkeys
 
 static void p_chart_boundaries(PChart *chart, int *nboundaries, PEdge **outer)
 {   
-    PEdge *e, *be;
-    float len, maxlen = -1.0;
+	PEdge *e, *be;
+	float len, maxlen = -1.0;
 
 	if (nboundaries)
 		*nboundaries = 0;
@@ -1133,29 +1133,29 @@ static void p_chart_boundaries(PChart *chart, int *nboundaries, PEdge **outer)
 		*outer = NULL;
 
 	for (e=chart->edges; e; e=e->nextlink) {
-        if (e->pair || (e->flag & PEDGE_DONE))
-            continue;
+		if (e->pair || (e->flag & PEDGE_DONE))
+			continue;
 
 		if (nboundaries)
 			(*nboundaries)++;
 
-        len = 0.0f;
+		len = 0.0f;
     
 		be = e;
 		do {
-            be->flag |= PEDGE_DONE;
-            len += p_edge_length(be);
+			be->flag |= PEDGE_DONE;
+			len += p_edge_length(be);
 			be = be->next->vert->edge;
-        } while(be != e);
+		} while(be != e);
 
-        if (outer && (len > maxlen)) {
+		if (outer && (len > maxlen)) {
 			*outer = e;
-            maxlen = len;
-        }
-    }
+			maxlen = len;
+		}
+	}
 
 	for (e=chart->edges; e; e=e->nextlink)
-        e->flag &= ~PEDGE_DONE;
+		e->flag &= ~PEDGE_DONE;
 }
 
 static float p_edge_boundary_angle(PEdge *e)
@@ -1272,8 +1272,8 @@ static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
 	for (e=chart->edges; e; e=e->nextlink) {
 		/* enext = e->nextlink; - as yet unused */
 
-        if (e->pair || (e->flag & PEDGE_FILLED))
-            continue;
+		if (e->pair || (e->flag & PEDGE_FILLED))
+			continue;
 
 		nedges = 0;
 		be = e;
@@ -1285,7 +1285,7 @@ static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
 
 		if (e != outer)
 			p_chart_fill_boundary(chart, e, nedges);
-    }
+	}
 }
 
 #if 0
@@ -1848,7 +1848,7 @@ static PBool p_collapse_allowed(PEdge *edge, PEdge *pair)
 		return P_FALSE;
 	
 	return (p_collapse_allowed_topologic(edge, pair) &&
-	        p_collapse_allowed_geometric(edge, pair));
+			p_collapse_allowed_geometric(edge, pair));
 }
 
 static float p_collapse_cost(PEdge *edge, PEdge *pair)
@@ -2793,7 +2793,7 @@ static PBool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PV
 	float maxlen = 0.0f, curlen = 0.0f, totlen = 0.0f, firstlen = 0.0f;
 	float len1, len2;
  
- 	/* find longest series of verts split in the chart itself, these are
+	 /* find longest series of verts split in the chart itself, these are
 	   marked during construction */
 	be = outer;
 	lastbe = p_boundary_edge_prev(be);
@@ -2804,7 +2804,7 @@ static PBool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PV
 		nextbe = p_boundary_edge_next(be);
 
 		if ((be->vert->flag & PVERT_SPLIT) ||
-		    (lastbe->vert->flag & nextbe->vert->flag & PVERT_SPLIT)) {
+			(lastbe->vert->flag & nextbe->vert->flag & PVERT_SPLIT)) {
 			if (!cure) {
 				if (be == outer)
 					firste1 = be;
@@ -3192,11 +3192,11 @@ static float p_face_stretch(PFace *f)
 
 	copy_v3_v3(tmp, v2->co);
 	mul_v3_fl(tmp, (v3->uv[1] - v1->uv[1]));
-	add_v3_v3v3(Ps, Ps, tmp);
+	add_v3_v3(Ps, tmp);
 
 	copy_v3_v3(tmp, v3->co);
 	mul_v3_fl(tmp, (v1->uv[1] - v2->uv[1]));
-	add_v3_v3v3(Ps, Ps, tmp);
+	add_v3_v3(Ps, tmp);
 
 	mul_v3_fl(Ps, w);
 
@@ -3205,11 +3205,11 @@ static float p_face_stretch(PFace *f)
 
 	copy_v3_v3(tmp, v2->co);
 	mul_v3_fl(tmp, (v1->uv[0] - v3->uv[0]));
-	add_v3_v3v3(Pt, Pt, tmp);
+	add_v3_v3(Pt, tmp);
 
 	copy_v3_v3(tmp, v3->co);
 	mul_v3_fl(tmp, (v2->uv[0] - v1->uv[0]));
-	add_v3_v3v3(Pt, Pt, tmp);
+	add_v3_v3(Pt, tmp);
 
 	mul_v3_fl(Pt, w);
 
@@ -4029,7 +4029,7 @@ static void p_smooth(PChart *chart)
 	MEM_freeN(nodesx);
 	MEM_freeN(nodesy);
 
-	arena = BLI_memarena_new(1<<16);
+	arena = BLI_memarena_new(1<<16, "param smooth arena");
 	root = p_node_new(arena, tri, esize*2, minv, maxv, 0);
 
 	for (v=chart->verts; v; v=v->nextlink)
@@ -4049,7 +4049,7 @@ ParamHandle *param_construct_begin()
 	PHandle *handle = MEM_callocN(sizeof*handle, "PHandle");
 	handle->construction_chart = p_chart_new(handle);
 	handle->state = PHANDLE_STATE_ALLOCATED;
-	handle->arena = BLI_memarena_new((1<<16));
+	handle->arena = BLI_memarena_new((1<<16), "param construct arena");
 	handle->aspx = 1.0f;
 	handle->aspy = 1.0f;
 
@@ -4074,7 +4074,7 @@ void param_delete(ParamHandle *handle)
 	int i;
 
 	param_assert((phandle->state == PHANDLE_STATE_ALLOCATED) ||
-	             (phandle->state == PHANDLE_STATE_CONSTRUCTED));
+				 (phandle->state == PHANDLE_STATE_CONSTRUCTED));
 
 	for (i = 0; i < phandle->ncharts; i++)
 		p_chart_delete(phandle->charts[i]);
@@ -4095,8 +4095,8 @@ void param_delete(ParamHandle *handle)
 }
 
 void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
-                    ParamKey *vkeys, float **co, float **uv,
-                    ParamBool *pin, ParamBool *select)
+					ParamKey *vkeys, float **co, float **uv,
+					ParamBool *pin, ParamBool *select)
 {
 	PHandle *phandle = (PHandle*)handle;
 

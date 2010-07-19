@@ -32,10 +32,6 @@
 #include "PHY_IPhysicsController.h"
 #include "PHY_IMotionState.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * 	RadarSensor constructor. Creates a near-sensor derived class, with a cone collision shape.
  */

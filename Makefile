@@ -41,7 +41,7 @@ sinclude user-def.mk
 # export NAN_NO_OPENAL=true
 
 export NANBLENDERHOME=$(shell pwd)
-MAKEFLAGS=-I$(NANBLENDERHOME)/source --no-print-directory
+MAKEFLAGS=-I$(NANBLENDERHOME)/build_files/make --no-print-directory
 
 SOURCEDIR = 
 ifeq ($(FREE_WINDOWS),true)
@@ -50,7 +50,7 @@ else
     DIRS ?= extern intern source po
 endif
 
-include source/nan_subdirs.mk
+include build_files/make/nan_subdirs.mk
 
 .PHONY: release
 release:

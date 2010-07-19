@@ -34,10 +34,6 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_vec_types.h"
-#include "DNA_view2d_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
@@ -48,15 +44,16 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "BIF_gl.h"
+
+#include "UI_interface.h"
+
+#include "interface_intern.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
 
-#include "ED_screen.h"
-
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 /* ********************************************************** */
 
@@ -94,18 +91,20 @@ static int eyedropper_cancel(bContext *C, wmOperator *op)
 
 static void eyedropper_sample(bContext *C, Eyedropper *eye, short mx, short my)
 {
-	float col[3];
-		
-	glReadBuffer(GL_FRONT);
-	glReadPixels(mx, my, 1, 1, GL_RGB, GL_FLOAT, col);
-	glReadBuffer(GL_BACK);
-	
 	if(RNA_property_type(eye->prop) == PROP_FLOAT) {
-
+		const int color_manage = CTX_data_scene(C)->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+		float col[4];
+	
+		RNA_property_float_get_array(&eye->ptr, eye->prop, col);
+		
+		glReadBuffer(GL_FRONT);
+		glReadPixels(mx, my, 1, 1, GL_RGB, GL_FLOAT, col);
+		glReadBuffer(GL_BACK);
+	
 		if (RNA_property_array_length(&eye->ptr, eye->prop) < 3) return;
 
 		/* convert from screen (srgb) space to linear rgb space */
-		if (RNA_property_subtype(eye->prop) == PROP_COLOR)
+		if (color_manage && RNA_property_subtype(eye->prop) == PROP_COLOR)
 			srgb_to_linearrgb_v3_v3(col, col);
 		
 		RNA_property_float_set_array(&eye->ptr, eye->prop, col);
@@ -195,6 +194,29 @@ void UI_OT_eyedropper(wmOperatorType *ot)
 	/* properties */
 }
 
+/* Reset Default Theme ------------------------ */
+
+static int reset_default_theme_exec(bContext *C, wmOperator *op)
+{
+	ui_theme_init_default();
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void UI_OT_reset_default_theme(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reset to Default Theme";
+	ot->idname= "UI_OT_reset_default_theme";
+	ot->description= "Reset to the default theme colors";
+	
+	/* callbacks */
+	ot->exec= reset_default_theme_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
 
 /* Copy Data Path Operator ------------------------ */
 
@@ -300,6 +322,8 @@ static int copy_to_selected_list(bContext *C, PointerRNA *ptr, ListBase *lb)
 		*lb = CTX_data_collection_get(C, "selected_editable_bones");
 	else if(RNA_struct_is_a(ptr->type, &RNA_PoseBone))
 		*lb = CTX_data_collection_get(C, "selected_pose_bones");
+	else if(RNA_struct_is_a(ptr->type, &RNA_Sequence))
+		*lb = CTX_data_collection_get(C, "selected_editable_sequences");
 	else
 		return 0;
 	
@@ -386,6 +410,7 @@ void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 void UI_buttons_operatortypes(void)
 {
 	WM_operatortype_append(UI_OT_eyedropper);
+	WM_operatortype_append(UI_OT_reset_default_theme);
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);

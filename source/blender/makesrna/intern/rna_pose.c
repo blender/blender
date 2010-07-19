@@ -26,7 +26,6 @@
 #include <string.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 #include "RNA_enum_types.h"
 
 #include "rna_internal.h"
@@ -38,6 +37,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
+#include "BLI_ghash.h"
 
 #include "WM_types.h"
 
@@ -197,12 +197,12 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob= (Object*)ptr->id.data;
 	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
-	char oldname[32], newname[32];
-	
+	char oldname[sizeof(pchan->name)], newname[sizeof(pchan->name)];
+
 	/* need to be on the stack */
-	BLI_strncpy(newname, value, 32);
-	BLI_strncpy(oldname, pchan->name, 32);
-	
+	BLI_strncpy(newname, value, sizeof(pchan->name));
+	BLI_strncpy(oldname, pchan->name, sizeof(pchan->name));
+
 	ED_armature_bone_rename(ob->data, oldname, newname);
 }
 
@@ -431,7 +431,7 @@ static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr, PointerRNA va
 	constraints_set_active(&pchan->constraints, (bConstraint *)value.data);
 }
 
-static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, bContext *C, int type)
+static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, int type)
 {
 	//WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
 	// TODO, pass object also
@@ -439,7 +439,7 @@ static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, bContex
 	return add_pose_constraint(NULL, pchan, NULL, type);
 }
 
-static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, bContext *C, int index)
+static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, int index)
 {
 	// TODO
 	//ED_object_constraint_set_active(object, NULL);
@@ -526,9 +526,21 @@ PointerRNA rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key)
 {
 	PointerRNA rptr;
 	bPose *pose= (bPose*)ptr->data;
-	bPoseChannel *pchan= BLI_findstring(&pose->chanbase, key, offsetof(bPoseChannel, name));
+	bPoseChannel *pchan= get_pose_channel(pose, key);
 	RNA_pointer_create(ptr->id.data, &RNA_PoseBone, pchan, &rptr);
 	return rptr;
+}
+
+static void rna_PoseChannel_matrix_local_get(PointerRNA *ptr, float *values)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	pchan_to_mat4(pchan, (float (*)[4])values);
+}
+
+static void rna_PoseChannel_matrix_local_set(PointerRNA *ptr, const float *values)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	pchan_apply_mat4(pchan, (float (*)[4])values);
 }
 
 #else
@@ -627,7 +639,6 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 
 	/* Constraint collection */
 	func= RNA_def_function(srna, "new", "rna_PoseChannel_constraints_new");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a constraint to this object");
 	/* return type */
 	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
@@ -637,7 +648,6 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "remove", "rna_PoseChannel_constraints_remove");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
 	/* return type */
 	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
@@ -764,12 +774,17 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
 	/* transform matrices - should be read-only since these are set directly by AnimSys evaluation */
-	prop= RNA_def_property(srna, "channel_matrix", PROP_FLOAT, PROP_MATRIX);
+	prop= RNA_def_property(srna, "matrix_channel", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "chan_mat");
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints");
-	
+
+	prop= RNA_def_property(srna, "matrix_local", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_array(prop, 16);
+	RNA_def_property_ui_text(prop, "Local Matrix", "Matrix representing the parent relative location, scale and rotation. Provides an alternative access to these properties.");
+	RNA_def_property_float_funcs(prop, "rna_PoseChannel_matrix_local_get", "rna_PoseChannel_matrix_local_set", NULL);
+
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
 	RNA_def_property_array(prop, 16);
@@ -965,6 +980,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_LOCX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Location", "Lock editing of location in the interface");
+	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
@@ -972,6 +988,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Rotation", "Lock editing of rotation in the interface");
+	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
@@ -979,6 +996,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lock_rotation_w", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTW);
 	RNA_def_property_ui_text(prop, "Lock Rotation (4D Angle)", "Lock editing of 'angle' component of four-component rotations in the interface");
+	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
@@ -993,6 +1011,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_SCALEX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface");
+	RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
@@ -1050,7 +1069,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "auto_step", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ITASC_AUTO_STEP);
-	RNA_def_property_ui_text(prop, "Auto step", "Automatically determine the optimal number of steps for best performance/accurary trade off");
+	RNA_def_property_ui_text(prop, "Auto step", "Automatically determine the optimal number of steps for best performance/accuracy trade off");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
 	prop= RNA_def_property(srna, "min_step", PROP_FLOAT, PROP_NONE);

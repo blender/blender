@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 from _bpy import types as bpy_types
-from Mathutils import Vector
+from mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
 # StructRNA = bpy_types.Struct
@@ -29,13 +29,60 @@ class Context(StructRNA):
     __slots__ = ()
 
     def copy(self):
+        from types import BuiltinMethodType
         new_context = {}
-        generic_keys = StructRNA.__dict__.keys()
-        for item in dir(self):
-            if item not in generic_keys:
-                new_context[item] = getattr(self, item)
+        generic_attrs = list(StructRNA.__dict__.keys()) + ["bl_rna", "rna_type", "copy"]
+        for attr in dir(self):
+            if not (attr.startswith("_") or attr in generic_attrs):
+                value = getattr(self, attr)
+                if type(value) != BuiltinMethodType:
+                    new_context[attr] = value
 
         return new_context
+
+
+class Library(bpy_types.ID):
+    __slots__ = ()
+
+    @property
+    def users_id(self):
+        """ID datablocks which use this library"""
+        import bpy
+
+        # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE, we could make this an attribute in rna.
+        attr_links = "actions", "armatures", "brushes", "cameras", \
+                "curves", "gpencil", "groups", "images", \
+                "lamps", "lattices", "materials", "metaballs", \
+                "meshes", "node_groups", "objects", "scenes", \
+                "sounds", "textures", "texts", "fonts", "worlds"
+
+        return tuple(id_block for attr in attr_links for id_block in getattr(bpy.data, attr) if id_block.library == self)
+
+
+class Texture(bpy_types.ID):
+    __slots__ = ()
+
+    @property
+    def users_material(self):
+        """Materials that use this texture"""
+        import bpy
+        return tuple(mat for mat in bpy.data.materials if self in [slot.texture for slot in mat.texture_slots if slot])
+
+    @property
+    def users_object_modifier(self):
+        """Object modifiers that use this texture"""
+        import bpy
+        return tuple(obj for obj in bpy.data.objects if self in [mod.texture for mod in obj.modifiers if mod.type == 'DISPLACE'])
+
+
+class Group(bpy_types.ID):
+    __slots__ = ()
+
+    @property
+    def users_dupli_group(self):
+        """The dupli group this group is used in"""
+        import bpy
+        return tuple(obj for obj in bpy.data.objects if self == obj.dupli_group)
 
 
 class Object(bpy_types.ID):
@@ -45,21 +92,19 @@ class Object(bpy_types.ID):
     def children(self):
         """All the children of this object"""
         import bpy
-        return [child for child in bpy.data.objects if child.parent == self]
+        return tuple(child for child in bpy.data.objects if child.parent == self)
 
     @property
-    def group_users(self):
+    def users_group(self):
         """The groups this object is in"""
         import bpy
-        name = self.name
-        return [group for group in bpy.data.groups if name in group.objects]
+        return tuple(group for group in bpy.data.groups if self in group.objects[:])
 
     @property
-    def scene_users(self):
+    def users_scene(self):
         """The scenes this object is in"""
         import bpy
-        name = self.name
-        return [scene for scene in bpy.data.scenes if name in scene.objects]
+        return tuple(scene for scene in bpy.data.scenes if self in scene.objects[:])
 
 
 class _GenericBone:
@@ -95,19 +140,19 @@ class _GenericBone:
     def x_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector(1.0, 0.0, 0.0)
+        return self.matrix.rotation_part() * Vector((1.0, 0.0, 0.0))
 
     @property
     def y_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector(0.0, 1.0, 0.0)
+        return self.matrix.rotation_part() * Vector((0.0, 1.0, 0.0))
 
     @property
     def z_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector(0.0, 0.0, 1.0)
+        return self.matrix.rotation_part() * Vector((0.0, 0.0, 1.0))
 
     @property
     def basename(self):
@@ -236,8 +281,8 @@ class EditBone(StructRNA, _GenericBone):
         Transform the the bones head, tail, roll and envalope (when the matrix has a scale component).
         Expects a 4x4 or 3x3 matrix.
         """
-        from Mathutils import Vector
-        z_vec = self.matrix.rotation_part() * Vector(0.0, 0.0, 1.0)
+        from mathutils import Vector
+        z_vec = self.matrix.rotation_part() * Vector((0.0, 0.0, 1.0))
         self.tail = matrix * self.tail
         self.head = matrix * self.head
         scalar = matrix.median_scale
@@ -303,7 +348,7 @@ class Mesh(bpy_types.ID):
         edge_face_count_dict = self.edge_face_count_dict
         return [edge_face_count_dict.get(ed.key, 0) for ed in self.edges]
 
-    def edge_loops(self, faces=None, seams=()):
+    def edge_loops_from_faces(self, faces=None, seams=()):
         """
         Edge loops defined by faces
 
@@ -314,7 +359,7 @@ class Mesh(bpy_types.ID):
         return a list of edge key lists
         [ [(0,1), (4, 8), (3,8)], ...]
 
-        optionaly, seams are edge keys that will be removed
+        return a list of edge vertex index lists
         """
 
         OTHER_INDEX = 2, 3, 0, 1 # opposite face index
@@ -379,6 +424,70 @@ class Mesh(bpy_types.ID):
 
         return edge_loops
 
+    def edge_loops_from_edges(self, edges=None):
+        """
+        Edge loops defined by edges
+
+        Takes me.edges or a list of edges and returns the edge loops
+
+        return a list of vertex indices.
+        [ [1, 6, 7, 2], ...]
+
+        closed loops have matching start and end values.
+        """
+        line_polys = []
+
+        # Get edges not used by a face
+        if edges is None:
+            edges = self.edges
+
+        if not hasattr(edges, "pop"):
+            edges = edges[:]
+
+        edge_dict = {ed.key: ed for ed in self.edges if ed.selected}
+
+        while edges:
+            current_edge = edges.pop()
+            vert_end, vert_start = current_edge.verts[:]
+            line_poly = [vert_start, vert_end]
+
+            ok = True
+            while ok:
+                ok = False
+                #for i, ed in enumerate(edges):
+                i = len(edges)
+                while i:
+                    i -= 1
+                    ed = edges[i]
+                    v1, v2 = ed.verts
+                    if v1 == vert_end:
+                        line_poly.append(v2)
+                        vert_end = line_poly[-1]
+                        ok = 1
+                        del edges[i]
+                        # break
+                    elif v2 == vert_end:
+                        line_poly.append(v1)
+                        vert_end = line_poly[-1]
+                        ok = 1
+                        del edges[i]
+                        #break
+                    elif v1 == vert_start:
+                        line_poly.insert(0, v2)
+                        vert_start = line_poly[0]
+                        ok = 1
+                        del edges[i]
+                        # break
+                    elif v2 == vert_start:
+                        line_poly.insert(0, v1)
+                        vert_start = line_poly[0]
+                        ok = 1
+                        del edges[i]
+                        #break
+            line_polys.append(line_poly)
+
+        return line_polys
+
 
 class MeshEdge(StructRNA):
     __slots__ = ()
@@ -409,6 +518,24 @@ class MeshFace(StructRNA):
 
         return ord_ind(verts[0], verts[1]), ord_ind(verts[1], verts[2]), ord_ind(verts[2], verts[3]), ord_ind(verts[3], verts[0])
 
+
+class Text(bpy_types.ID):
+    __slots__ = ()
+
+    def as_string(self):
+        """Return the text as a string."""
+        return "\n".join(line.line for line in self.lines)
+
+    def from_string(self, string):
+        """Replace text with this string."""
+        self.clear()
+        self.write(string)
+
+    @property
+    def users_logic(self):
+        """Logic bricks that use this text"""
+        import bpy
+        return tuple(obj for obj in bpy.data.objects if self in [cont.text for cont in obj.game.controllers if cont.type == 'PYTHON'])
 
 import collections
 
@@ -490,9 +617,9 @@ class Header(StructRNA, _GenericUI):
 class Menu(StructRNA, _GenericUI):
     __slots__ = ()
 
-    def path_menu(self, searchpaths, operator):
+    def path_menu(self, searchpaths, operator, props_default={}):
         layout = self.layout
-        # hard coded to set the operators 'path' to the filename.
+        # hard coded to set the operators 'filepath' to the filename.
 
         import os
         import bpy.utils
@@ -501,17 +628,26 @@ class Menu(StructRNA, _GenericUI):
 
         # collect paths
         files = []
-        for path in searchpaths:
-            files.extend([(f, os.path.join(path, f)) for f in os.listdir(path)])
+        for directory in searchpaths:
+            files.extend([(f, os.path.join(directory, f)) for f in os.listdir(directory)])
 
         files.sort()
 
-        for f, path in files:
+        for f, filepath in files:
 
             if f.startswith("."):
                 continue
 
-            layout.operator(operator, text=bpy.utils.display_name(f)).path = path
+            preset_name = bpy.utils.display_name(f)
+            props = layout.operator(operator, text=preset_name)
+
+            for attr, value in props_default.items():
+                setattr(props, attr, value)
+
+            props.filepath = filepath
+            if operator == "script.execute_preset":
+                props.menu_idname = self.bl_idname
+                props.preset_name = preset_name
 
     def draw_preset(self, context):
         """Define these on the subclass

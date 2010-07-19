@@ -206,7 +206,7 @@ PyObject* initVideoTexture(void)
 	PyModule_AddObject(m, (char*)"Texture", (PyObject*)&TextureType);
 	
 	// init last error description
-	Exception::m_lastError[0] = '\0';
+	Exception::m_lastError = "";
 	
 	return m;
 }

@@ -51,16 +51,10 @@
 #include <stdio.h>
 
 #include "MEM_guardedalloc.h"
-#include "BLI_blenlib.h"
 #include "BKE_global.h"
 #include "IMB_imbuf_types.h"
 
-#include "BKE_bmfont.h"
 #include "BKE_bmfont_types.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 void printfGlyph(bmGlyph * glyph)
 {
@@ -180,8 +174,8 @@ void detectBitmapFont(ImBuf *ibuf)
 	unsigned short version;
 	int i;
 	
-	if (ibuf != NULL) {
-	        // bitmap must have an x size that is a power of two
+	if (ibuf != NULL && ibuf->rect != NULL) {
+			// bitmap must have an x size that is a power of two
 		if (is_power_of_two(ibuf->x)) {
 			rect = (unsigned char *) (ibuf->rect + (ibuf->x * (ibuf->y - 1)));
 			// printf ("starts with: %s %c %c %c %c\n", rect, rect[0], rect[1], rect[2], rect[3]);

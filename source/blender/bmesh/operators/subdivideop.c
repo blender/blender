@@ -876,9 +876,11 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		BLI_array_empty(verts);
 
 		pat = facedata[i].pat;
-		if (!pat && facedata[i].totedgesel == 2) { /*ok, no pattern.  we still may be able to do something.*/
+
+		if (!pat && facedata[i].totedgesel == 2) {
 			int vlen;
 			
+			/*ok, no pattern.  we still may be able to do something.*/
 			BLI_array_empty(loops);
 			BLI_array_empty(splits);
 

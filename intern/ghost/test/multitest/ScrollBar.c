@@ -30,10 +30,6 @@
 
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "Basic.h"

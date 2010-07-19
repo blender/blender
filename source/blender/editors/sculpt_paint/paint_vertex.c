@@ -47,22 +47,9 @@
 #include "BLI_cellalloc.h"
 #include "BLI_ghash.h"
 
-#include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_brush_types.h"
-#include "DNA_cloth_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
 #include "DNA_particle_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -92,9 +79,7 @@
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
-#include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 #include "ED_view3d.h"
 
 #include "paint_intern.h"
@@ -955,6 +940,7 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	Mesh *me= get_mesh(ob);
 	int index, i;
 	short mval[2] = {0, 0}, sco[2];
+	int vgroup= ob->actdef-1;
 
 	if (!me) return;
 	
@@ -1015,7 +1001,6 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 		}
 		else {
 			DerivedMesh *dm;
-			MDeformWeight *dw;
 			MLoop *ml;
 			float w, co[3], fmin = 10000000.0f;
 			int loopi = mpoly->loopstart;
@@ -1036,21 +1021,17 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 				
 				fac= MIN4(w1, w2, w3, w4);
 				if(w1==fac) {
-					dw= defvert_find_index(me->dvert+mface->v1, ob->actdef-1);
-					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
+					ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v1, vgroup);
 				}
 				else if(w2==fac) {
-					dw= defvert_find_index(me->dvert+mface->v2, ob->actdef-1);
-					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
+					ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v2, vgroup);
 				}
 				else if(w3==fac) {
-					dw= defvert_find_index(me->dvert+mface->v3, ob->actdef-1);
-					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
+					ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v3, vgroup);
 				}
 				else if(w4==fac) {
 					if(mface->v4) {
-						dw= defvert_find_index(me->dvert+mface->v4, ob->actdef-1);
-						if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
+						ts->vgroup_weight= defvert_find_weight(me->dvert+mface->v4, vgroup);
 >>>>>>> .merge-right.r23146
 					}
 				}
@@ -1185,7 +1166,8 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		}
 	}
 	else {
-		mesh_octree_table(ob, NULL, NULL, 'e');
+		mesh_octree_table(NULL, NULL, NULL, 'e');
+		mesh_mirrtopo_table(NULL, 'e');
 	}
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MODE, scene);
@@ -1196,8 +1178,6 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 /* for switching to/from mode */
 static int paint_poll_test(bContext *C)
 {
-	if(ED_operator_view3d_active(C)==0)
-		return 0;
 	if(CTX_data_edit_object(C))
 		return 0;
 	if(CTX_data_active_object(C)==NULL)
@@ -1335,7 +1315,7 @@ static char *wpaint_make_validmap(Mesh *me, Object *ob)
 	bPose *pose;
 	bPoseChannel *chan;
 	ArmatureModifierData *amd;
-	GHash *gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+	GHash *gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "wpaint_make_validmap gh");
 	int i = 0, step1=1;
 
 	/*add all names to a hash table*/
@@ -1814,7 +1794,7 @@ Operator->invoke()
 Operator->modal()
   - for every mousemove, apply vertex paint
   - exit on mouse release, free customdata
-    (return OPERATOR_FINISHED also removes handler and operator)
+	(return OPERATOR_FINISHED also removes handler and operator)
 
 For future:
   - implement a stroke event (or mousemove with past positons)
@@ -1847,7 +1827,7 @@ static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me,
 	int *origIndex;
 	int i;
 
-	vd->arena = BLI_memarena_new(1<<13);
+	vd->arena = BLI_memarena_new(1<<13, "vpaint tmp");
 	BLI_memarena_use_calloc(vd->arena);
 
 	vd->polyfacemap = BLI_memarena_alloc(vd->arena, sizeof(ListBase)*me->totpoly);

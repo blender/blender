@@ -24,14 +24,14 @@
 #ifdef WITH_OPENJPEG
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
-#include "IMB_jp2.h"
+#include "IMB_filetype.h"
 
 #include "openjpeg.h"
 
@@ -58,7 +58,7 @@ static int checkj2p(unsigned char *mem) /* J2K_CFMT */
 	return memcmp(JP2_HEAD, mem, 12) ? 0 : 1;
 }
 
-int imb_is_a_jp2(void *buf)
+int imb_is_a_jp2(unsigned char *buf)
 {	
 	return checkj2p(buf);
 }
@@ -92,8 +92,6 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 {
 	struct ImBuf *ibuf = 0;
 	int use_float = 0; /* for precision higher then 8 use float */
-	unsigned char *rect= NULL;
-	float *rect_float= NULL;
 	
 	long signed_offsets[4] = {0,0,0,0};
 	int float_divs[4];
@@ -159,7 +157,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 		return NULL;
 	}
 	
-	w = image->comps[0].w;	    
+	w = image->comps[0].w;
 	h = image->comps[0].h;
 	
 	switch (image->numcomps) {
@@ -189,13 +187,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 		float_divs[i]= (1<<image->comps[i].prec)-1;
 	}
 	
-	if (use_float) {
-		ibuf= IMB_allocImBuf(w, h, depth, IB_rectfloat, 0);
-		rect_float = ibuf->rect_float;
-	} else {
-		ibuf= IMB_allocImBuf(w, h, depth, IB_rect, 0);
-		rect = (unsigned char *) ibuf->rect;
-	}
+	ibuf= IMB_allocImBuf(w, h, depth, use_float ? IB_rectfloat : IB_rect, 0);
 	
 	if (ibuf==NULL) {
 		if(dinfo)
@@ -206,8 +198,8 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 	ibuf->ftype = JP2;
 	
 	if (use_float) {
-		rect_float = ibuf->rect_float;
-		
+		float *rect_float= ibuf->rect_float;
+
 		if (image->numcomps < 3) {
 			/* greyscale 12bits+ */
 			for (i = 0; i < w * h; i++, rect_float+=4) {
@@ -237,13 +229,14 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 		}
 		
 	} else {
-		
+		unsigned char *rect= (unsigned char *)ibuf->rect;
+
 		if (image->numcomps < 3) {
 			/* greyscale */
 			for (i = 0; i < w * h; i++, rect+=4) {
 				index = w * h - ((i) / (w) + 1) * w + (i) % (w);
 				
-				rect_float[0]= rect_float[1]= rect_float[2]= (image->comps[0].data[index] + signed_offsets[0]);
+				rect[0]= rect[1]= rect[2]= (image->comps[0].data[index] + signed_offsets[0]);
 				
 				if (image->numcomps == 2)
 					rect[3]= image->comps[1].data[index] + signed_offsets[1];
@@ -296,8 +289,8 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 /*
 2048x1080 (2K) at 24 fps or 48 fps, or 4096x2160 (4K) at 24 fps; 3×12 bits per pixel, XYZ color space
 
-    * In 2K, for Scope (2.39:1) presentation 2048x858 pixels of the imager is used
-    * In 2K, for Flat (1.85:1) presentation 1998x1080 pixels of the imager is used
+	* In 2K, for Scope (2.39:1) presentation 2048x858 pixels of the imager is used
+	* In 2K, for Flat (1.85:1) presentation 1998x1080 pixels of the imager is used
 */
 
 /* ****************************** COPIED FROM image_to_j2k.c */
@@ -540,16 +533,23 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 	
 	
 	if (rect_float) {
+		float rgb[3];
+		
 		switch (prec) {
 		case 8: /* Convert blenders float color channels to 8,12 or 16bit ints */
 			for(y=h-1; y>=0; y--) {
 				y_row = y*w;
 				for(x=0; x<w; x++, rect_float+=4) {
 					i = y_row + x;
+					
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+						linearrgb_to_srgb_v3_v3(rgb, rect_float);
+					else
+						copy_v3_v3(rgb, rect_float);
 				
-					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[0]);
-					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[1]);
-					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[2]);
+					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[0]);
+					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[1]);
+					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[2]);
 					if (numcomps>3)
 						image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[3]);
 				}
@@ -561,10 +561,15 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 				y_row = y*w;
 				for(x=0; x<w; x++, rect_float+=4) {
 					i = y_row + x;
+					
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+						linearrgb_to_srgb_v3_v3(rgb, rect_float);
+					else
+						copy_v3_v3(rgb, rect_float);
 				
-					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[0]);
-					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[1]);
-					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[2]);
+					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[0]);
+					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[1]);
+					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[2]);
 					if (numcomps>3)
 						image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[3]);
 				}
@@ -575,10 +580,15 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 				y_row = y*w;
 				for(x=0; x<w; x++, rect_float+=4) {
 					i = y_row + x;
+					
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+						linearrgb_to_srgb_v3_v3(rgb, rect_float);
+					else
+						copy_v3_v3(rgb, rect_float);
 				
-					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[0]);
-					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[1]);
-					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[2]);
+					image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[0]);
+					image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[1]);
+					image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[2]);
 					if (numcomps>3)
 						image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[3]);
 				}
@@ -649,7 +659,7 @@ static opj_image_t* ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters) {
 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-short imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
+int imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
 	
 	int quality = ibuf->ftype & 0xff;
 	

@@ -34,10 +34,6 @@
  * @date	October 25, 2001
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_Debug.h"
 #include "GHOST_C-api.h"
 #include "GHOST_CallbackEventConsumer.h"

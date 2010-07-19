@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -75,6 +75,7 @@ void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);
 void VIEW3D_OT_view_center_cursor(struct wmOperatorType *ot);
+void VIEW3D_OT_view_center_camera(struct wmOperatorType *ot);
 void VIEW3D_OT_view_pan(struct wmOperatorType *ot);
 void VIEW3D_OT_view_persportho(struct wmOperatorType *ot);
 void VIEW3D_OT_add_background_image(struct wmOperatorType *ot);
@@ -104,7 +105,7 @@ void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int 
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
 void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob);
-void drawaxes(float size, int flag, char drawtype);
+void drawaxes(struct RegionView3D *rv3d, float mat[][4], float size, int flag, char drawtype);
 
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(float x, float y, float z, char *str, short xoffs, short flag);
@@ -125,7 +126,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void view3d_clr_clipping(void);
 void view3d_set_clipping(RegionView3D *rv3d);
 void add_view3d_after(View3D *v3d, Base *base, int type, int flag);
-void calc_viewborder(Scene *scene, struct ARegion *ar, View3D *v3d, rctf *viewborder_r);
+void calc_viewborder(Scene *scene, struct ARegion *ar, struct RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
@@ -139,6 +140,8 @@ void VIEW3D_OT_select_border(struct wmOperatorType *ot);
 void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
 
 /* view3d_view.c */
+void view3d_settings_from_ob(struct Object *ob, float *ofs, float *quat, float *dist, float *lens);
+
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
 void VIEW3D_OT_setobjectascamera(struct wmOperatorType *ot);
@@ -175,7 +178,6 @@ int minmax_verts(Object *obedit, float *min, float *max);
 
 void VIEW3D_OT_snap_selected_to_grid(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_selected_to_cursor(struct wmOperatorType *ot);
-void VIEW3D_OT_snap_selected_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_grid(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_selected(struct wmOperatorType *ot);

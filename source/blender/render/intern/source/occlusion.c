@@ -213,7 +213,7 @@ static void occ_build_shade(Render *re, OcclusionTree *tree)
 
 	/* setup shade sample with correct passes */
 	memset(&ssamp, 0, sizeof(ShadeSample));
-	ssamp.shi[0].lay= re->scene->lay;
+	ssamp.shi[0].lay= re->lay;
 	ssamp.shi[0].passflag= SCE_PASS_DIFFUSE|SCE_PASS_RGBA;
 	ssamp.shi[0].combinedflag= ~(SCE_PASS_SPEC);
 	ssamp.tot= 1;
@@ -660,7 +660,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 	tree->doindirect= (re->wrld.ao_indirect_energy > 0.0f && re->wrld.ao_indirect_bounces > 0);
 
 	/* allocation */
-	tree->arena= BLI_memarena_new(0x8000 * sizeof(OccNode));
+	tree->arena= BLI_memarena_new(0x8000 * sizeof(OccNode), "occ tree arena");
 	BLI_memarena_use_calloc(tree->arena);
 
 	if(re->wrld.aomode & WO_AOCACHE)
@@ -1025,8 +1025,8 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 
 	/* dot */
 	vresult.v = (vec_splat_float(n[0])*gx +
-	             vec_splat_float(n[1])*gy +
-	             vec_splat_float(n[2])*gz)*vangle;
+				 vec_splat_float(n[1])*gy +
+				 vec_splat_float(n[2])*gz)*vangle;
 
 	result= (vresult.f[0] + vresult.f[1] + vresult.f[2] + vresult.f[3])*(0.5f/(float)M_PI);
 	result= MAX2(result, 0.0f);
@@ -1096,7 +1096,7 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 	aresult = (_mm_set_ps1(n[0])*gx + _mm_set_ps1(n[1])*gy + _mm_set_ps1(n[2])*gz)*angle;
 
 	/* sum together */
-    result= (fresult[0] + fresult[1] + fresult[2] + fresult[3])*(0.5f/(float)M_PI);
+	result= (fresult[0] + fresult[1] + fresult[2] + fresult[3])*(0.5f/(float)M_PI);
 	result= MAX2(result, 0.0f);
 
 	return result;

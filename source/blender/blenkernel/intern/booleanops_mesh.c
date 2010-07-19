@@ -30,24 +30,10 @@
  */
 #include "CSG_BooleanOps.h"
 
-#include "BKE_booleanops.h"
-#include "BKE_booleanops_mesh.h"
 #include "MEM_guardedalloc.h"
 
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
-#include "BKE_global.h"
-#include "BKE_mesh.h"
-#include "BKE_displist.h"
-#include "BKE_object.h"
-#include "BKE_utildefines.h"
-#include "BKE_library.h"
-#include "BKE_material.h"
 
-#include "BLI_math.h"
 
 /**
  * Implementation of boolean ops mesh interface.

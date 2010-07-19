@@ -60,18 +60,15 @@
 #include "text_intern.h"
 
 /******************** text font drawing ******************/
+static int mono= -1; // XXX needs proper storage and change all the BLF_* here
 
 static void text_font_begin(SpaceText *st)
 {
-	static int mono= -1; // XXX needs proper storage
-
 	if(mono == -1)
 		mono= BLF_load_mem("monospace", (unsigned char*)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 
-	BLF_set(mono);
-	BLF_aspect(1.0);
-
-	BLF_size(st->lheight, 72);
+	BLF_aspect(mono, 1.0);
+	BLF_size(mono, st->lheight, 72);
 }
 
 static void text_font_end(SpaceText *st)
@@ -80,10 +77,10 @@ static void text_font_end(SpaceText *st)
 
 static int text_font_draw(SpaceText *st, int x, int y, char *str)
 {
-	BLF_position(x, y, 0);
-	BLF_draw(str);
+	BLF_position(mono, x, y, 0);
+	BLF_draw(mono, str);
 
-	return BLF_width(str);
+	return BLF_width(mono, str);
 }
 
 static int text_font_draw_character(SpaceText *st, int x, int y, char c)
@@ -93,15 +90,15 @@ static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 	str[0]= c;
 	str[1]= '\0';
 
-	BLF_position(x, y, 0);
-	BLF_draw(str);
+	BLF_position(mono, x, y, 0);
+	BLF_draw(mono, str);
 
 	return st->cwidth;
 }
 
 int text_font_width(SpaceText *st, char *str)
 {
-	return BLF_width(str);
+	return BLF_width(mono, str);
 }
 
 /****************** flatten string **********************/
@@ -227,6 +224,24 @@ static int find_specialvar(char *string)
 	return i;
 }
 
+static int find_bool(char *string) 
+{
+	int i = 0;
+	/* Check for "False" */
+	if(string[0]=='F' && string[1]=='a' && string[2]=='l' && string[3]=='s' && string[4]=='e')
+		i = 5;
+	/* Check for "True" */
+	else if(string[0]=='T' && string[1]=='r' && string[2]=='u' && string[3]=='e')
+		i = 4;
+	/* Check for "None" */
+	else if(string[0]=='N' && string[1]=='o' && string[2]=='n' && string[3]=='e')
+		i = 4;
+	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	if(i==0 || text_check_identifier(string[i]))
+		return -1;
+	return i;
+}
+
 /* Ensures the format string for the given line is long enough, reallocating
  as needed. Allocation is done here, alone, to ensure consistency. */
 int text_check_format_len(TextLine *line, unsigned int len)
@@ -249,14 +264,14 @@ int text_check_format_len(TextLine *line, unsigned int len)
 /* Formats the specified line. If do_next is set, the process will move on to
  the succeeding line if it is affected (eg. multiline strings). Format strings
  may contain any of the following characters:
- 	'_'		Whitespace
- 	'#'		Comment text
- 	'!'		Punctuation and other symbols
- 	'n'		Numerals
- 	'l'		String letters
- 	'v'		Special variables (class, def)
- 	'b'		Built-in names (print, for, etc.)
- 	'q'		Other text (identifiers, etc.)
+	 '_'		Whitespace
+	 '#'		Comment text
+	 '!'		Punctuation and other symbols
+	 'n'		Numerals
+	 'l'		String letters
+	 'v'		Special variables (class, def)
+	 'b'		Built-in names (print, for, etc.)
+	 'q'		Other text (identifiers, etc.)
  It is terminated with a null-terminator '\0' followed by a continuation
  flag indicating whether the line is part of a multi-line string. */
 
@@ -338,6 +353,17 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 			/* Numbers (digits not part of an identifier and periods followed by digits) */
 			else if((prev != 'q' && text_check_digit(*str)) || (*str == '.' && text_check_digit(*(str+1))))
 				*fmt = 'n';
+			/* Booleans */
+			else if(prev != 'q' && (i=find_bool(str)) != -1)
+				if(i>0) {
+					while(i>1) {
+						*fmt = 'n'; fmt++; str++;
+						i--;
+					}
+					*fmt = 'n';
+				}
+				else
+					*fmt = 'q';
 			/* Punctuation */
 			else if(text_check_delim(*str))
 				*fmt = '!';
@@ -1237,7 +1263,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	}
 
 	text_font_begin(st);
-	st->cwidth= BLF_fixed_width();
+	st->cwidth= BLF_fixed_width(mono);
 	st->cwidth= MAX2(st->cwidth, 1);
 
 	/* draw line numbers background */
@@ -1307,7 +1333,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 void text_update_character_width(SpaceText *st)
 {
 	text_font_begin(st);
-	st->cwidth= BLF_fixed_width();
+	st->cwidth= BLF_fixed_width(mono);
 	st->cwidth= MAX2(st->cwidth, 1);
 	text_font_end(st);
 }
@@ -1318,19 +1344,19 @@ void text_update_cursor_moved(bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= st->text;
+	Text *text;
 	ARegion *ar;
 	int i, x, winx= 0;
 
-	if(!st) return;
+	if(!st || !st->text || st->text->curl) return;
+
+	text= st->text;
 
 	for(ar=sa->regionbase.first; ar; ar= ar->next)
 		if(ar->regiontype==RGN_TYPE_WINDOW)
 			winx= ar->winx;
 	
 	winx -= TXT_SCROLL_WIDTH;
-
-	if(!text || !text->curl) return;
 
 	text_update_character_width(st);
 

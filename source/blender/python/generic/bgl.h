@@ -1,5 +1,5 @@
 /* 
- * $Id: bgl.h 27188 2010-02-28 14:57:26Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -35,10 +35,6 @@
 
 #ifndef EXPP_BGL_H
 #define EXPP_BGL_H
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include <Python.h>
 

@@ -31,8 +31,10 @@
 
 #define RNA_MAGIC ((int)~0)
 
+struct ID;
 struct IDProperty;
 struct SDNA;
+struct Sequence;
 
 /* Data structures used during define */
 
@@ -200,9 +202,12 @@ void rna_object_vgroup_name_index_set(struct PointerRNA *ptr, const char *value,
 void rna_object_vgroup_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_uvlayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
+PointerRNA rna_object_shapekey_index_get(struct ID *id, int value);
+int rna_object_shapekey_index_set(struct ID *id, PointerRNA value, int current);
 
-void rna_Object_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
-void rna_Object_update_data(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+/* named internal so as not to conflict with obj.update() rna func */
+void rna_Object_internal_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_Object_internal_update_data(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_Mesh_update_draw(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_TextureSlot_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 
@@ -224,12 +229,17 @@ void RNA_api_main(struct StructRNA *srna);
 void RNA_api_material(StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
 void RNA_api_object(struct StructRNA *srna);
+void RNA_api_object_base(struct StructRNA *srna);
 void RNA_api_pose_channel(struct StructRNA *srna);
 void RNA_api_scene(struct StructRNA *srna);
 void RNA_api_scene_render(struct StructRNA *srna);
+void RNA_api_sequence_strip(StructRNA *srna);
 void RNA_api_text(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
+void RNA_api_sensor(struct StructRNA *srna);
+void RNA_api_controller(struct StructRNA *srna);
+void RNA_api_actuator(struct StructRNA *srna);
 
 /* main collection functions */
 void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop);
@@ -246,7 +256,7 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_lattices(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_curves(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_metaballs(BlenderRNA *brna, PropertyRNA *cprop);
-void RNA_def_main_vfonts(BlenderRNA *brna, PropertyRNA *cprop);
+void RNA_def_main_fonts(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_textures(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_brushes(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_worlds(BlenderRNA *brna, PropertyRNA *cprop);
@@ -297,6 +307,7 @@ void rna_iterator_listbase_begin(struct CollectionPropertyIterator *iter, struct
 void rna_iterator_listbase_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_listbase_get(struct CollectionPropertyIterator *iter);
 void rna_iterator_listbase_end(struct CollectionPropertyIterator *iter);
+PointerRNA rna_listbase_lookup_int(PointerRNA *ptr, StructRNA *type, struct ListBase *lb, int index);
 
 typedef struct ArrayIterator {
 	char *ptr;
@@ -311,6 +322,7 @@ void rna_iterator_array_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_get(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_dereference_get(struct CollectionPropertyIterator *iter);
 void rna_iterator_array_end(struct CollectionPropertyIterator *iter);
+PointerRNA rna_array_lookup_int(PointerRNA *ptr, StructRNA *type, void *data, int itemsize, int length, int index);
 
 /* Duplicated code since we can't link in blenlib */
 
@@ -332,6 +344,7 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 
 int rna_parameter_size(struct PropertyRNA *parm);
 int rna_parameter_size_alloc(struct PropertyRNA *parm);
+
 
 #endif /* RNA_INTERNAL_H */
 

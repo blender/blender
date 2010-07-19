@@ -28,10 +28,6 @@
  * Game object wrapper
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #if defined(_WIN64)
 typedef unsigned __int64 uint_ptr;
 #else
@@ -234,7 +230,12 @@ KX_GameObject* KX_GameObject::GetParent()
 void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj, bool addToCompound, bool ghost)
 {
 	// check on valid node in case a python controller holds a reference to a deleted object
-	if (obj && GetSGNode() && obj->GetSGNode() && GetSGNode()->GetSGParent() != obj->GetSGNode())
+	if (obj && 
+		GetSGNode() &&			// object is not zombi
+		obj->GetSGNode() &&		// object is not zombi
+		GetSGNode()->GetSGParent() != obj->GetSGNode() &&	// not already parented to same object
+		!GetSGNode()->IsAncessor(obj->GetSGNode()) && 		// no parenting loop
+		this != obj)										// not the object itself
 	{
 		// Make sure the objects have some scale
 		MT_Vector3 scale1 = NodeGetWorldScaling();
@@ -1251,56 +1252,56 @@ void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
 
 static int mathutils_kxgameob_vector_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_kxgameob_generic_check(PyObject *self_v)
+static int mathutils_kxgameob_generic_check(BaseMathObject *bmo)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 	
 	return 1;
 }
 
-static int mathutils_kxgameob_vector_get(PyObject *self_v, int subtype, float *vec_from)
+static int mathutils_kxgameob_vector_get(BaseMathObject *bmo, int subtype)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 	
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_POS_LOCAL:
-			self->NodeGetLocalPosition().getValue(vec_from);
+			self->NodeGetLocalPosition().getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_POS_GLOBAL:
-			self->NodeGetWorldPosition().getValue(vec_from);
+			self->NodeGetWorldPosition().getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_SCALE_LOCAL:
-			self->NodeGetLocalScaling().getValue(vec_from);
+			self->NodeGetLocalScaling().getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_SCALE_GLOBAL:
-			self->NodeGetWorldScaling().getValue(vec_from);
+			self->NodeGetWorldScaling().getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
 			if(!self->GetPhysicsController()) return 0;
-			self->GetPhysicsController()->GetLocalInertia().getValue(vec_from);
+			self->GetPhysicsController()->GetLocalInertia().getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_OBJECT_COLOR:
-			self->GetObjectColor().getValue(vec_from);
+			self->GetObjectColor().getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_LINVEL_LOCAL:
 			if(!self->GetPhysicsController()) return 0;
-			self->GetLinearVelocity(true).getValue(vec_from);
+			self->GetLinearVelocity(true).getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_LINVEL_GLOBAL:
 			if(!self->GetPhysicsController()) return 0;
-			self->GetLinearVelocity(false).getValue(vec_from);
+			self->GetLinearVelocity(false).getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_ANGVEL_LOCAL:
 			if(!self->GetPhysicsController()) return 0;
-			self->GetAngularVelocity(true).getValue(vec_from);
+			self->GetAngularVelocity(true).getValue(bmo->data);
 			break;
 		case MATHUTILS_VEC_CB_ANGVEL_GLOBAL:
 			if(!self->GetPhysicsController()) return 0;
-			self->GetAngularVelocity(false).getValue(vec_from);
+			self->GetAngularVelocity(false).getValue(bmo->data);
 			break;
 			
 	}
@@ -1308,73 +1309,69 @@ static int mathutils_kxgameob_vector_get(PyObject *self_v, int subtype, float *v
 	return 1;
 }
 
-static int mathutils_kxgameob_vector_set(PyObject *self_v, int subtype, float *vec_to)
+static int mathutils_kxgameob_vector_set(BaseMathObject *bmo, int subtype)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 	
 	switch(subtype) {
 		case MATHUTILS_VEC_CB_POS_LOCAL:
-			self->NodeSetLocalPosition(MT_Point3(vec_to));
+			self->NodeSetLocalPosition(MT_Point3(bmo->data));
 			self->NodeUpdateGS(0.f);
 			break;
 		case MATHUTILS_VEC_CB_POS_GLOBAL:
-			self->NodeSetWorldPosition(MT_Point3(vec_to));
+			self->NodeSetWorldPosition(MT_Point3(bmo->data));
 			self->NodeUpdateGS(0.f);
 			break;
 		case MATHUTILS_VEC_CB_SCALE_LOCAL:
-			self->NodeSetLocalScale(MT_Point3(vec_to));
+			self->NodeSetLocalScale(MT_Point3(bmo->data));
 			self->NodeUpdateGS(0.f);
 			break;
 		case MATHUTILS_VEC_CB_SCALE_GLOBAL:
-			break;
+			PyErr_SetString(PyExc_AttributeError, "KX_GameObject.worldScale is read-only");
+			return 0;
 		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
 			/* read only */
 			break;
 		case MATHUTILS_VEC_CB_OBJECT_COLOR:
-			self->SetObjectColor(MT_Vector4(vec_to));
+			self->SetObjectColor(MT_Vector4(bmo->data));
 			break;
 		case MATHUTILS_VEC_CB_LINVEL_LOCAL:
-			self->setLinearVelocity(MT_Point3(vec_to),true);
+			self->setLinearVelocity(MT_Point3(bmo->data),true);
 			break;
 		case MATHUTILS_VEC_CB_LINVEL_GLOBAL:
-			self->setLinearVelocity(MT_Point3(vec_to),false);
+			self->setLinearVelocity(MT_Point3(bmo->data),false);
 			break;
 		case MATHUTILS_VEC_CB_ANGVEL_LOCAL:
-			self->setAngularVelocity(MT_Point3(vec_to),true);
+			self->setAngularVelocity(MT_Point3(bmo->data),true);
 			break;
 		case MATHUTILS_VEC_CB_ANGVEL_GLOBAL:
-			self->setAngularVelocity(MT_Point3(vec_to),false);
+			self->setAngularVelocity(MT_Point3(bmo->data),false);
 			break;
 	}
 	
 	return 1;
 }
 
-static int mathutils_kxgameob_vector_get_index(PyObject *self_v, int subtype, float *vec_from, int index)
+static int mathutils_kxgameob_vector_get_index(BaseMathObject *bmo, int subtype, int index)
 {
-	float f[4];
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_kxgameob_vector_get(self_v, subtype, f))
+	if(!mathutils_kxgameob_vector_get(bmo, subtype))
 		return 0;
-	
-	vec_from[index]= f[index];
 	return 1;
 }
 
-static int mathutils_kxgameob_vector_set_index(PyObject *self_v, int subtype, float *vec_to, int index)
+static int mathutils_kxgameob_vector_set_index(BaseMathObject *bmo, int subtype, int index)
 {
-	float f= vec_to[index];
+	float f= bmo->data[index];
 	
 	/* lazy, avoid repeteing the case statement */
-	if(!mathutils_kxgameob_vector_get(self_v, subtype, vec_to))
+	if(!mathutils_kxgameob_vector_get(bmo, subtype))
 		return 0;
 	
-	vec_to[index]= f;
-	mathutils_kxgameob_vector_set(self_v, subtype, vec_to);
-	
-	return 1;
+	bmo->data[index]= f;
+	return mathutils_kxgameob_vector_set(bmo, subtype);
 }
 
 Mathutils_Callback mathutils_kxgameob_vector_cb = {
@@ -1391,18 +1388,18 @@ Mathutils_Callback mathutils_kxgameob_vector_cb = {
 
 static int mathutils_kxgameob_matrix_cb_index= -1; /* index for our callbacks */
 
-static int mathutils_kxgameob_matrix_get(PyObject *self_v, int subtype, float *mat_from)
+static int mathutils_kxgameob_matrix_get(BaseMathObject *bmo, int subtype)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
-	
+
 	switch(subtype) {
 		case MATHUTILS_MAT_CB_ORI_LOCAL:
-			self->NodeGetLocalOrientation().getValue3x3(mat_from);
+			self->NodeGetLocalOrientation().getValue3x3(bmo->data);
 			break;
 		case MATHUTILS_MAT_CB_ORI_GLOBAL:
-			self->NodeGetWorldOrientation().getValue3x3(mat_from);
+			self->NodeGetWorldOrientation().getValue3x3(bmo->data);
 			break;
 	}
 	
@@ -1410,21 +1407,21 @@ static int mathutils_kxgameob_matrix_get(PyObject *self_v, int subtype, float *m
 }
 
 
-static int mathutils_kxgameob_matrix_set(PyObject *self_v, int subtype, float *mat_to)
+static int mathutils_kxgameob_matrix_set(BaseMathObject *bmo, int subtype)
 {
-	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(self_v);
+	KX_GameObject* self= static_cast<KX_GameObject*>BGE_PROXY_REF(bmo->cb_user);
 	if(self==NULL)
 		return 0;
 	
 	MT_Matrix3x3 mat3x3;
 	switch(subtype) {
 		case MATHUTILS_MAT_CB_ORI_LOCAL:
-			mat3x3.setValue3x3(mat_to);
+			mat3x3.setValue3x3(bmo->data);
 			self->NodeSetLocalOrientation(mat3x3);
 			self->NodeUpdateGS(0.f);
 			break;
 		case MATHUTILS_MAT_CB_ORI_GLOBAL:
-			mat3x3.setValue3x3(mat_to);
+			mat3x3.setValue3x3(bmo->data);
 			self->NodeSetLocalOrientation(mat3x3);
 			self->NodeUpdateGS(0.f);
 			break;
@@ -1741,6 +1738,8 @@ PySequenceMethods KX_GameObject::Sequence = {
 	NULL,		/* sq_ass_item */
 	NULL,		/* sq_ass_slice */
 	(objobjproc)Seq_Contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 PyTypeObject KX_GameObject::Type = {
@@ -2735,7 +2734,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	KX_RayCast::Callback<KX_GameObject> callback(this,spc);
 	KX_RayCast::RayTest(pe, fromPoint, toPoint, callback);
 
-    if (m_pHitObject)
+	if (m_pHitObject)
 		return m_pHitObject->GetProxy();
 	
 	Py_RETURN_NONE;

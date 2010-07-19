@@ -76,7 +76,7 @@ class MeshMirrorUV(bpy.types.Operator):
     def execute(self, context):
         DIR = 1 # TODO, make an option
 
-        from Mathutils import Vector
+        from mathutils import Vector
 
         ob = context.active_object
         is_editmode = (ob.mode == 'EDIT')

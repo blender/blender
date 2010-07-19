@@ -26,10 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "math.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 
 #include "MEM_guardedalloc.h"
@@ -1494,7 +1490,7 @@ static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *nod
 
 	dist = t1x;
 	if (t1y > dist) dist = t1y;
-    if (t1z > dist) dist = t1z;
+	if (t1z > dist) dist = t1z;
 	return dist;
 }
 
@@ -1617,7 +1613,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float
 	{
 		dfs_raycast(&data, root);
 //		iterative_raycast(&data, root);
- 	}
+	 }
 
 
 	if(hit)

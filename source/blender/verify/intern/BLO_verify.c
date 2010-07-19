@@ -45,10 +45,6 @@
 
 #include "BLO_signer_info.h" /* external signer info struct */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 static struct BLO_SignerInfo g_SignerInfo = {"", "", ""};
 
 struct verifyStructType {
@@ -377,7 +373,7 @@ BLO_verify_end(
 
 	/* verify the signature */
 	verifySuccess = RSA_verify(NID_ripemd160, digest, RIPEMD160_DIGEST_LENGTH,
-			       BLO_verify->streamHeader->signature,
+				   BLO_verify->streamHeader->signature,
 				   BLO_verify->streamHeader->signatureLen, rsa);
 	if (verifySuccess == 1) {
 #ifndef NDEBUG

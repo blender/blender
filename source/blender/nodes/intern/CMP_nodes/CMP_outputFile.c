@@ -47,13 +47,22 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 		if(nif->sfra!=nif->efra && (rd->cfra<nif->sfra || rd->cfra>nif->efra)) {
 			return;	/* BAIL OUT RETURN */
 		}
-		else {
+		else if (!G.rendering) {
+			/* only output files when rendering a sequence -
+			 * otherwise, it overwrites the output files just 
+			 * scrubbing through the timeline when the compositor updates */
+			return;
+		} else {
 			CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 			ImBuf *ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
 			char string[256];
 			
 			ibuf->rect_float= cbuf->rect;
 			ibuf->dither= rd->dither_intensity;
+			
+			if (rd->color_mgt_flag & R_COLOR_MANAGEMENT)
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
+			
 			if(in[1]->data) {
 				CompBuf *zbuf= in[1]->data;
 				if(zbuf->type==CB_VAL && zbuf->x==cbuf->x && zbuf->y==cbuf->y) {

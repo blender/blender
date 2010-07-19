@@ -83,6 +83,10 @@ void free_matcopybuf(void);
 void copy_matcopybuf(struct Material *ma);
 void paste_matcopybuf(struct Material *ma);
 
+void clear_mat_mtex_copybuf(void);
+void copy_mat_mtex_copybuf(struct ID *id);
+void paste_mat_mtex_copybuf(struct ID *id);
+
 #ifdef __cplusplus
 }
 #endif

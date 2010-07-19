@@ -125,7 +125,7 @@ void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val) {
 
 void BLI_edgehashIterator_step(EdgeHashIterator *ehi) {
 	if (ehi->curEntry) {
-        ehi->curEntry= ehi->curEntry->next;
+		ehi->curEntry= ehi->curEntry->next;
 		while (!ehi->curEntry) {
 			ehi->curBucket++;
 			if (ehi->curBucket==ehi->eh->nbuckets)

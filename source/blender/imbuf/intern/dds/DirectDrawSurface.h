@@ -83,11 +83,11 @@ struct DDSCaps
 /// DDS file header for DX10.
 struct DDSHeader10
 {
-    uint dxgiFormat;
-    uint resourceDimension;
-    uint miscFlag;
-    uint arraySize;
-    uint reserved;
+	uint dxgiFormat;
+	uint resourceDimension;
+	uint miscFlag;
+	uint arraySize;
+	uint reserved;
 };
 
 /// DDS file header.

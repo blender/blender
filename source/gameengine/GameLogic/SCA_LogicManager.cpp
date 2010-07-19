@@ -36,10 +36,6 @@
 #include "SCA_PythonController.h"
 #include <set>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 SCA_LogicManager::SCA_LogicManager()
 {

@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -33,6 +33,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_image.h"
 
 #include "WM_types.h"
@@ -78,6 +79,7 @@ static void rna_Image_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
+	DAG_id_flush_update(&ima->id, 0);
 }
 
 static void rna_Image_fields_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -105,6 +107,7 @@ static void rna_Image_reload_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Image *ima= ptr->id.data;
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+	DAG_id_flush_update(&ima->id, 0);
 }
 
 static void rna_Image_generated_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -142,6 +145,23 @@ static EnumPropertyItem *rna_Image_source_itemf(bContext *C, PointerRNA *ptr, in
 	return item;
 }
 
+static int rna_Image_file_format_get(PointerRNA *ptr)
+{
+	Image *image= (Image*)ptr->data;
+	ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+	return BKE_ftype_to_imtype(ibuf ? ibuf->ftype : 0);
+}
+
+static void rna_Image_file_format_set(PointerRNA *ptr, int value)
+{
+	Image *image= (Image*)ptr->data;
+	if(BKE_imtype_is_movie(value) == 0) { /* should be able to throw an error here */
+		ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+		if(ibuf)
+			ibuf->ftype= BKE_imtype_to_ftype(value);
+	}
+}
+
 static int rna_Image_has_data_get(PointerRNA *ptr)
 {
 	Image *im= (Image*)ptr->data;
@@ -163,7 +183,7 @@ static void rna_Image_size_get(PointerRNA *ptr,int *values)
 		values[0]= ibuf->x;
 		values[1]= ibuf->y;
 	}
-    else {
+	else {
 		values[0]= 0;
 		values[1]= 0;
 	}
@@ -191,6 +211,12 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 	BKE_image_release_ibuf(im, lock);
 
 	return depth;
+}
+
+static int rna_Image_is_image_icon(Image *me, bContext *C)
+{
+	const char prefix[] = ".imageicon.";
+	return strncmp(me->id.name+2, prefix, sizeof(prefix)-1) == 0;
 }
 
 #else
@@ -224,7 +250,7 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Offset", "Offsets the number of the frame to use in the animation");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
 	RNA_def_property_range(prop, 1.0f, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start Frame", "Sets the global starting frame of the movie");
@@ -260,7 +286,8 @@ static void rna_def_image(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_generated_type_items[]= {
 		{0, "BLANK", 0, "Blank", "Generate a blank image"},
-		{1, "UVGRID", 0, "UV Grid", "Generated grid to test UV mappings"},
+		{1, "UV_GRID", 0, "UV Grid", "Generated grid to test UV mappings"},
+		{2, "COLOR_GRID", 0, "Color Grid", "Generated improved UV grid to test UV mappings"},
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_mapping_items[]= {
 		{0, "UV", 0, "UV Coordinates", "Use UV coordinates for mapping the image"},
@@ -271,14 +298,27 @@ static void rna_def_image(BlenderRNA *brna)
 		{IMA_STD_FIELD, "ODD", 0, "Lower First", "Lower field first"},
 		{0, NULL, 0, NULL, NULL}};
 
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
 	srna= RNA_def_struct(brna, "Image", "ID");
 	RNA_def_struct_ui_text(srna, "Image", "Image datablock referencing an external or packed image");
 	RNA_def_struct_ui_icon(srna, ICON_IMAGE_DATA);
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name");
+	RNA_def_property_ui_text(prop, "File Name", "Image/Movie file name");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_reload_update");
+
+	/* eek. this is horrible but needed so we can save to a new name without blanking the data :( */
+	prop= RNA_def_property(srna, "filepath_raw", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "File Name", "Image/Movie file name (without data refreshing)");
+
+	prop= RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, image_type_items);
+	RNA_def_property_enum_funcs(prop, "rna_Image_file_format_get", "rna_Image_file_format_set", NULL);
+	RNA_def_property_ui_text(prop, "File Format", "Format used for re-saving this file");
 
 	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, image_source_items);
@@ -302,16 +342,19 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Field Order", "Order of video fields. Select which lines are displayed first");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 	
+	/* functions */
+	func= RNA_def_function(srna, "is_image_icon", "rna_Image_is_image_icon");
+	RNA_def_function_ui_description(func, "Returns true if Image name is prefixed with .imageicon.");
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_boolean(func, "ret", 0, "", "");
+	RNA_def_function_return(func, parm);
+
 	/* booleans */
 	prop= RNA_def_property(srna, "fields", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_FIELDS);
 	RNA_def_property_ui_text(prop, "Fields", "Use fields of the image");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_fields_update");
-
-	prop= RNA_def_property(srna, "antialias", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANTIALI);
-	RNA_def_property_ui_text(prop, "Anti-alias", "Toggles image anti-aliasing, only works with solid colors");
-	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
 	prop= RNA_def_property(srna, "premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_DO_PREMUL);
@@ -406,6 +449,12 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Clamp Y", "Disable texture repeating vertically");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
+	prop= RNA_def_property(srna, "bindcode", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "bindcode");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Bindcode", "OpenGL bindcode");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
+
 	/*
 	   Image.has_data and Image.depth are temporary,
 	   Update import_obj.py when they are replaced (Arystan)
@@ -415,7 +464,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Has data", "True if this image has data");
 
-	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Image_depth_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Depth", "Image bit depth");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -35,24 +35,11 @@
 #include "BLO_sys_types.h" // for intptr_t support
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 
@@ -106,7 +93,6 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "RNA_access.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -204,8 +190,8 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						copy_v3_v3(iloc, td->iloc);
 
 						if (mmd->mirror_ob) {
-							mul_v3_m4v3(loc, mtx, loc);
-							mul_v3_m4v3(iloc, mtx, iloc);
+							mul_m4_v3(mtx, loc);
+							mul_m4_v3(mtx, iloc);
 						}
 
 						clip = 0;
@@ -233,7 +219,7 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						}
 						if (clip) {
 							if (mmd->mirror_ob) {
-								mul_v3_m4v3(loc, imtx, loc);
+								mul_m4_v3(imtx, loc);
 							}
 							copy_v3_v3(td->loc, loc);
 						}
@@ -327,7 +313,7 @@ static int fcu_test_selected(FCurve *fcu)
 	BezTriple *bezt= fcu->bezt;
 	int i;
 
-	if(bezt==NULL) /* ignore baked */
+	if (bezt==NULL) /* ignore baked */
 		return 0;
 
 	for (i=0; i < fcu->totvert; i++, bezt++) {
@@ -423,11 +409,11 @@ void recalcData(TransInfo *t)
 		/* now test if there is a need to re-sort */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			FCurve *fcu= (FCurve *)ale->key_data;
-
+			
 			/* ignore unselected fcurves */
-			if(!fcu_test_selected(fcu))
+			if (!fcu_test_selected(fcu))
 				continue;
-
+			
 			// fixme: only do this for selected verts...
 			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL|ANIM_UNITCONV_SELVERTS|ANIM_UNITCONV_RESTORE);
 			
@@ -443,7 +429,6 @@ void recalcData(TransInfo *t)
 			 */
 			if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0)
 				ANIM_list_elem_update(t->scene, ale);
-
 		}
 		
 		/* do resort and other updates? */
@@ -574,8 +559,8 @@ void recalcData(TransInfo *t)
 			// TODO: do we need to write in 2 passes to make sure that no truncation goes on?
 			RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
 			
-			RNA_float_set(&strip_ptr, "start_frame", tdn->h1[0]);
-			RNA_float_set(&strip_ptr, "end_frame", tdn->h2[0]);
+			RNA_float_set(&strip_ptr, "frame_start", tdn->h1[0]);
+			RNA_float_set(&strip_ptr, "frame_end", tdn->h2[0]);
 			
 			/* flush transforms to child strips (since this should be a meta) */
 			BKE_nlameta_flush_transforms(strip);
@@ -653,7 +638,11 @@ void recalcData(TransInfo *t)
 		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 			Curve *cu= t->obedit->data;
 			Nurb *nu= cu->editnurb->first;
-				
+
+				if(t->state != TRANS_CANCEL) {
+					clipMirrorModifier(t, t->obedit);
+				}
+
 			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 				
 			if (t->state == TRANS_CANCEL) {
@@ -823,7 +812,7 @@ void recalcData(TransInfo *t)
 				/* sets recalc flags fully, instead of flushing existing ones 
 				 * otherwise proxies don't function correctly
 				 */
-				DAG_id_flush_update(&ob->id, OB_RECALC);  
+				DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 			}
 		}
 		
@@ -973,7 +962,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		{
 			t->current_orientation = RNA_enum_get(op->ptr, "constraint_orientation");
 
-			if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C) - 1)
+			if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C))
 			{
 				t->current_orientation = V3D_MANIP_GLOBAL;
 			}
@@ -1003,6 +992,21 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 		// XXX for now, the center point is the midpoint of the data
 		t->around = V3D_CENTER;
+	}
+
+	if (op && RNA_property_is_set(op->ptr, "release_confirm"))
+	{
+		if (RNA_boolean_get(op->ptr, "release_confirm"))
+		{
+			t->flag |= T_RELEASE_CONFIRM;
+		}
+	}
+	else
+	{
+		if (U.flag & USER_RELEASECONFIRM)
+		{
+			t->flag |= T_RELEASE_CONFIRM;
+		}
 	}
 
 	if (op && RNA_struct_find_property(op->ptr, "mirror") && RNA_property_is_set(op->ptr, "mirror"))
@@ -1115,7 +1119,7 @@ void postTrans (bContext *C, TransInfo *t)
 	if (t->data) {
 		int a;
 
-		/* since ipokeys are optional on objects, we mallocced them per trans-data */
+		/* free data malloced per trans-data */
 		for(a=0, td= t->data; a<t->total; a++, td++) {
 			if (td->flag & TD_BEZTRIPLE) 
 				MEM_freeN(td->hdata);
@@ -1174,6 +1178,7 @@ static void restoreElement(TransData *td) {
 	if (td->val) {
 		*td->val = td->ival;
 	}
+
 	if (td->ext && (td->flag&TD_NO_EXT)==0) {
 		if (td->ext->rot) {
 			VECCOPY(td->ext->rot, td->ext->irot);
@@ -1195,9 +1200,21 @@ static void restoreElement(TransData *td) {
 void restoreTransObjects(TransInfo *t)
 {
 	TransData *td;
+	TransData2D *td2d;
 
 	for (td = t->data; td < t->data + t->total; td++) {
 		restoreElement(td);
+	}
+
+	for (td2d=t->data2d; t->data2d && td2d < t->data2d + t->total; td2d++) {
+		if (td2d->h1) {
+			td2d->h1[0] = td2d->ih1[0];
+			td2d->h1[1] = td2d->ih1[1];
+		}
+		if (td2d->h2) {
+			td2d->h2[0] = td2d->ih2[0];
+			td2d->h2[1] = td2d->ih2[1];
+		}
 	}
 
 	unit_m3(t->mat);
@@ -1243,15 +1260,19 @@ void calculateCenterCursor(TransInfo *t)
 
 void calculateCenterCursor2D(TransInfo *t)
 {
-	View2D *v2d= t->view;
 	float aspx=1.0, aspy=1.0;
+	float *cursor= NULL;
+	
+	if(t->spacetype==SPACE_IMAGE) {
+		SpaceImage *sima= (SpaceImage *)t->sa->spacedata.first;
+		/* only space supported right now but may change */
+		ED_space_image_uv_aspect(sima, &aspx, &aspy);
+		cursor = sima->cursor;
+	}
 
-	if(t->spacetype==SPACE_IMAGE) /* only space supported right now but may change */
-		ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
-
-	if (v2d) {
-		t->center[0] = v2d->cursor[0] * aspx;
-		t->center[1] = v2d->cursor[1] * aspy;
+	if (cursor) {
+		t->center[0] = cursor[0] * aspx;
+		t->center[1] = cursor[1] * aspy;
 	}
 
 	calculateCenter2D(t);
@@ -1279,7 +1300,7 @@ void calculateCenterMedian(TransInfo *t)
 		if (t->data[i].flag & TD_SELECTED) {
 			if (!(t->data[i].flag & TD_NOCENTER))
 			{
-				add_v3_v3v3(partial, partial, t->data[i].center);
+				add_v3_v3(partial, t->data[i].center);
 				total++;
 			}
 		}

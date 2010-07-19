@@ -26,10 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 
 // don't show stl-warnings
@@ -121,7 +117,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 			)
 		);
 
-		char *rotmode, *drotmode;
+		const char *rotmode, *drotmode;
 
 		switch(blenderobject->rotmode)
 		{

@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -36,10 +36,7 @@
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_fileselect.h"
 
@@ -48,7 +45,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "UI_interface.h"
 #include "UI_view2d.h"
 
 #include "WM_api.h"
@@ -63,13 +59,13 @@
 #include <stdio.h>
 
 /* for events */
-#define NOTACTIVE			0
+#define NOTACTIVEFILE			0
 #define ACTIVATE			1
 #define INACTIVATE			2
 
 /* ---------- FILE SELECTION ------------ */
 
-static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, int x, int y)
+static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, int clamp_bounds, int x, int y)
 {
 	float fx,fy;
 	int active_file = -1;
@@ -77,7 +73,7 @@ static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, int x, int y)
 
 	UI_view2d_region_to_view(v2d, x, y, &fx, &fy);
 
-	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
+	active_file = ED_fileselect_layout_offset(sfile->layout, clamp_bounds, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
 	
 	return active_file;
 }
@@ -90,8 +86,8 @@ static void file_deselect_all(SpaceFile* sfile)
 
 	for ( i=0; i < numfiles; ++i) {
 		struct direntry* file = filelist_file(sfile->files, i);
-		if (file && (file->flags & ACTIVE)) {
-			file->flags &= ~ACTIVE;
+		if (file && (file->flags & ACTIVEFILE)) {
+			file->flags &= ~ACTIVEFILE;
 		}
 	}
 }
@@ -125,8 +121,10 @@ static void clamp_to_filelist(int numfiles, int *first_file, int *last_file)
 	}
 }
 
-static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short selecting, short toggle_one)
+static FileSelect file_select(bContext* C, const rcti* rect, short selecting, short toggle_one, short fill)
 {
+	ARegion *ar= CTX_wm_region(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 	int first_file = -1;
 	int last_file = -1;
 	int act_file;
@@ -136,12 +134,25 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 	// FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
 
 	int numfiles = filelist_numfiles(sfile->files);
-
-	params->selstate = NOTACTIVE;
-	first_file = find_file_mouse(sfile, ar, rect->xmin, rect->ymax);
-	last_file = find_file_mouse(sfile, ar, rect->xmax, rect->ymin);
+	
+	params->selstate = NOTACTIVEFILE;
+	first_file = find_file_mouse(sfile, ar, 1, rect->xmin, rect->ymax);
+	last_file = find_file_mouse(sfile, ar, 1, rect->xmax, rect->ymin);
 	
 	clamp_to_filelist(numfiles, &first_file, &last_file);
+
+	if (fill && (last_file >= 0) && (last_file < numfiles) ) {
+		int f= last_file;
+		while (f >= 0) {
+			struct direntry* file = filelist_file(sfile->files, f);
+			if (file->flags & ACTIVEFILE)
+				break;
+			f--;
+		}
+		if (f >= 0) {
+			first_file = f+1;
+		}
+	}
 
 	/* select all valid files between first and last indicated */
 	if ( (first_file >= 0) && (first_file < numfiles) && (last_file >= 0) && (last_file < numfiles) ) {
@@ -149,15 +160,15 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 			struct direntry* file = filelist_file(sfile->files, act_file);
 			
 			if (toggle_one) {
-				if (file->flags & ACTIVE) {
-					file->flags &= ~ACTIVE;
+				if (file->flags & ACTIVEFILE) {
+					file->flags &= ~ACTIVEFILE;
 					selecting=0;
 				} else
-					file->flags |= ACTIVE;
+					file->flags |= ACTIVEFILE;
 			} else if (selecting) 
-				file->flags |= ACTIVE;
+				file->flags |= ACTIVEFILE;
 			else
-				file->flags &= ~ACTIVE;
+				file->flags &= ~ACTIVEFILE;
 		}
 	}
 
@@ -184,7 +195,7 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 					BLI_add_slash(params->dir);
 				}
 
-				file_change_dir(sfile, 0);
+				file_change_dir(C, 0);
 				retval = FILE_SELECT_DIR;
 			}
 		}
@@ -204,10 +215,9 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 static int file_border_select_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
-	SpaceFile *sfile= CTX_wm_space_file(C);
 	short selecting;
 	rcti rect;
-
+	
 	selecting= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
@@ -216,7 +226,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 
 	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
 	
-	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, selecting, 0)) {
+	if (FILE_SELECT_DIR == file_select(C, &rect, selecting, 0, 0)) {
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	} else {
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
@@ -248,6 +258,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short val;
 	rcti rect;
 	int extend = RNA_boolean_get(op->ptr, "extend");
+	int fill = RNA_boolean_get(op->ptr, "fill");
 
 	if(ar->regiontype != RGN_TYPE_WINDOW)
 		return OPERATOR_CANCELLED;
@@ -262,7 +273,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* single select, deselect all selected first */
 	if (!extend) file_deselect_all(sfile);
 
-	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, 1, extend ))
+	if (FILE_SELECT_DIR == file_select(C, &rect, 1, extend, fill ))
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	else
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
@@ -286,6 +297,7 @@ void FILE_OT_select(wmOperatorType *ot)
 
 	/* rna */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "Select everything beginning with the last selection.");
 }
 
 static int file_select_all_exec(bContext *C, wmOperator *op)
@@ -299,8 +311,8 @@ static int file_select_all_exec(bContext *C, wmOperator *op)
 	/* if any file is selected, deselect all first */
 	for ( i=0; i < numfiles; ++i) {
 		struct direntry* file = filelist_file(sfile->files, i);
-		if (file && (file->flags & ACTIVE)) {
-			file->flags &= ~ACTIVE;
+		if (file && (file->flags & ACTIVEFILE)) {
+			file->flags &= ~ACTIVEFILE;
 			select = 0;
 			ED_area_tag_redraw(sa);
 		}
@@ -310,7 +322,7 @@ static int file_select_all_exec(bContext *C, wmOperator *op)
 		for ( i=0; i < numfiles; ++i) {
 			struct direntry* file = filelist_file(sfile->files, i);
 			if(file && !S_ISDIR(file->type)) {
-				file->flags |= ACTIVE;
+				file->flags |= ACTIVEFILE;
 				ED_area_tag_redraw(sa);
 			}
 		}
@@ -346,7 +358,7 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 		RNA_string_get(op->ptr, "dir", entry);
 		BLI_strncpy(params->dir, entry, sizeof(params->dir));
 		BLI_cleanup_dir(G.sce, params->dir);
-		file_change_dir(sfile, 1);
+		file_change_dir(C, 1);
 
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	}
@@ -379,7 +391,7 @@ static int bookmark_add_exec(bContext *C, wmOperator *op)
 		char name[FILE_MAX];
 	
 		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, 0, 1);
-		BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+		BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu, name);
 	}
 
@@ -411,7 +423,7 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 			char name[FILE_MAX];
 			
 			fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
-			BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+			BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 			fsmenu_write_file(fsmenu, name);
 			ED_area_tag_redraw(sa);
 		}
@@ -434,35 +446,6 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
 }
 
-
-static int loadimages_exec(bContext *C, wmOperator *op)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceFile *sfile= CTX_wm_space_file(C);
-	if (sfile->files) {
-		filelist_loadimage_timer(sfile->files);
-		if (filelist_changed(sfile->files)) {
-			ED_area_tag_redraw(sa);
-		}
-	}
-
-	return OPERATOR_FINISHED;
-}
-
-void FILE_OT_loadimages(wmOperatorType *ot)
-{
-	
-	/* identifiers */
-	ot->name= "Load Images";
-	ot->description= "Load selected image(s)";
-	ot->idname= "FILE_OT_loadimages";
-	
-	/* api callbacks */
-	ot->exec= loadimages_exec;
-	
-	ot->poll= ED_operator_file_active;
-}
-
 int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 {
 	FileSelectParams* params;
@@ -479,7 +462,7 @@ int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	my -= ar->winrct.ymin;
 
 	if(BLI_in_rcti(&ar->v2d.mask, mx, my)) {
-		actfile = find_file_mouse(sfile, ar, mx , my);
+		actfile = find_file_mouse(sfile, ar, 0, mx , my);
 
 		if((actfile >= 0) && (actfile < numfiles))
 			params->active_file=actfile;
@@ -528,8 +511,7 @@ int file_cancel_exec(bContext *C, wmOperator *unused)
 	sfile->op = NULL;
 	
 	if (sfile->files) {
-		filelist_freelib(sfile->files);
-		filelist_free(sfile->files);
+		ED_fileselect_clear(C, sfile);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
 	}
@@ -563,7 +545,7 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 int file_exec(bContext *C, wmOperator *exec_op)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
-	char name[FILE_MAX];
+	char filepath[FILE_MAX];
 	
 	if(sfile->op) {
 		wmOperator *op= sfile->op;
@@ -576,7 +558,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			
 			for (i=0; i<filelist_numfiles(sfile->files); i++) {
 				file = filelist_file(sfile->files, i);
-				if(file->flags & ACTIVE) {
+				if(file->flags & ACTIVEFILE) {
 					active=1;
 				}
 			}
@@ -585,16 +567,23 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		}
 		
 		sfile->op = NULL;
-		RNA_string_set(op->ptr, "filename", sfile->params->file);
-		BLI_strncpy(name, sfile->params->dir, sizeof(name));
-		RNA_string_set(op->ptr, "directory", name);
-		strcat(name, sfile->params->file); // XXX unsafe
 
-		if(RNA_struct_find_property(op->ptr, "relative_paths"))
-			if(RNA_boolean_get(op->ptr, "relative_paths"))
-				BLI_makestringcode(G.sce, name);
+		BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
+		if(RNA_struct_find_property(op->ptr, "relative_path")) {
+			if(RNA_boolean_get(op->ptr, "relative_path")) {
+				BLI_path_rel(filepath, G.sce);
+			}
+		}
 
-		RNA_string_set(op->ptr, "path", name);
+		if(RNA_struct_find_property(op->ptr, "filename")) {
+			RNA_string_set(op->ptr, "filename", sfile->params->file);
+		}
+		if(RNA_struct_find_property(op->ptr, "directory")) {
+			RNA_string_set(op->ptr, "directory", sfile->params->dir);
+		}
+		if(RNA_struct_find_property(op->ptr, "filepath")) {
+			RNA_string_set(op->ptr, "filepath", filepath);
+		}
 		
 		/* some ops have multiple files to select */
 		{
@@ -604,7 +593,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			if(RNA_struct_find_property(op->ptr, "files")) {
 				for (i=0; i<numfiles; i++) {
 					file = filelist_file(sfile->files, i);
-					if(file->flags & ACTIVE) {
+					if(file->flags & ACTIVEFILE) {
 						if ((file->type & S_IFDIR)==0) {
 							RNA_collection_add(op->ptr, "files", &itemptr);
 							RNA_string_set(&itemptr, "name", file->relname);
@@ -616,7 +605,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 			if(RNA_struct_find_property(op->ptr, "dirs")) {
 				for (i=0; i<numfiles; i++) {
 					file = filelist_file(sfile->files, i);
-					if(file->flags & ACTIVE) {
+					if(file->flags & ACTIVEFILE) {
 						if ((file->type & S_IFDIR)) {
 							RNA_collection_add(op->ptr, "dirs", &itemptr);
 							RNA_string_set(&itemptr, "name", file->relname);
@@ -630,12 +619,11 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		folderlist_free(sfile->folders_next);
 
 		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
-		BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");
-		fsmenu_write_file(fsmenu_get(), name);
+		BLI_make_file_string(G.sce, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+		fsmenu_write_file(fsmenu_get(), filepath);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 
-		filelist_freelib(sfile->files);
-		filelist_free(sfile->files);
+		ED_fileselect_clear(C, sfile);
 		MEM_freeN(sfile->files);
 		sfile->files= NULL;
 	}
@@ -666,7 +654,7 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 		if (BLI_has_parent(sfile->params->dir)) {
 			BLI_parent_dir(sfile->params->dir);
 			BLI_cleanup_dir(G.sce, sfile->params->dir);
-			file_change_dir(sfile, 0);
+			file_change_dir(C, 0);
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 		}
 	}		
@@ -692,8 +680,8 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 int file_refresh_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
-	
-	file_change_dir(sfile, 1);
+
+	ED_fileselect_clear(C, sfile);
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
@@ -725,7 +713,7 @@ int file_previous_exec(bContext *C, wmOperator *unused)
 		folderlist_popdir(sfile->folders_prev, sfile->params->dir);
 		folderlist_pushdir(sfile->folders_next, sfile->params->dir);
 
-		file_change_dir(sfile, 1);
+		file_change_dir(C, 1);
 	}
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
@@ -747,8 +735,8 @@ void FILE_OT_next(struct wmOperatorType *ot)
 int file_next_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
-		if(sfile->params) {
-			if (!sfile->folders_next)
+	if(sfile->params) {
+		if (!sfile->folders_next)
 			sfile->folders_next = folderlist_new();
 
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
@@ -757,12 +745,122 @@ int file_next_exec(bContext *C, wmOperator *unused)
 		// update folder_prev so we can check for it in folderlist_clear_next()
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-		file_change_dir(sfile, 1);
+		file_change_dir(C, 1);
 	}		
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;
 }
+
+
+/* only meant for timer usage */
+static int file_smoothscroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
+	ARegion *ar, *oldar= CTX_wm_region(C);
+	int numfiles, offset;
+	int edit_idx = 0;
+	int numfiles_layout;
+	int i;
+
+	/* escape if not our timer */
+	if(sfile->smoothscroll_timer==NULL || sfile->smoothscroll_timer!=event->customdata)
+		return OPERATOR_PASS_THROUGH;
+	
+	numfiles = filelist_numfiles(sfile->files);
+
+	/* check if we are editing a name */
+	for (i=0; i < numfiles; ++i)
+	{
+		struct direntry *file = filelist_file(sfile->files, i);	
+		if (file->flags & EDITING) {
+			edit_idx=i;
+			break;
+		}
+	}
+
+	/* if we are not editing, we are done */
+	if (0==edit_idx) {
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
+		sfile->smoothscroll_timer=NULL;
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	/* we need the correct area for scrolling */
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	if (!ar || ar->regiontype != RGN_TYPE_WINDOW) {
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
+		sfile->smoothscroll_timer=NULL;
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	offset = ED_fileselect_layout_offset(sfile->layout, 0, ar->v2d.cur.xmin, -ar->v2d.cur.ymax);
+	if (offset<0) offset=0;
+
+	/* scroll offset is the first file in the row/column we are editing in */
+	if (sfile->scroll_offset == 0) {
+		if (sfile->layout->flag & FILE_LAYOUT_HOR) {
+			sfile->scroll_offset = (edit_idx/sfile->layout->rows)*sfile->layout->rows;
+			if (sfile->scroll_offset <= offset) sfile->scroll_offset -= sfile->layout->rows;
+		} else {
+			sfile->scroll_offset = (edit_idx/sfile->layout->columns)*sfile->layout->columns;
+			if (sfile->scroll_offset <= offset) sfile->scroll_offset -= sfile->layout->columns;
+		}
+	}
+	
+	numfiles_layout = ED_fileselect_layout_numfiles(sfile->layout, ar);
+	
+	/* check if we have reached our final scroll position */
+	if ( (sfile->scroll_offset >= offset) && (sfile->scroll_offset < offset + numfiles_layout) ) {
+		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), sfile->smoothscroll_timer);
+		sfile->smoothscroll_timer=NULL;
+		return OPERATOR_FINISHED;
+	}
+
+	/* temporarily set context to the main window region, 
+	 * so the scroll operators work */
+	CTX_wm_region_set(C, ar);
+	
+	/* scroll one step in the desired direction */
+	if (sfile->scroll_offset < offset) {
+		if (sfile->layout->flag & FILE_LAYOUT_HOR) {
+			WM_operator_name_call(C, "VIEW2D_OT_scroll_left", 0, NULL);
+		} else {
+			WM_operator_name_call(C, "VIEW2D_OT_scroll_up", 0, NULL);
+		}
+		
+	} else {
+		if (sfile->layout->flag & FILE_LAYOUT_HOR) {
+			WM_operator_name_call(C, "VIEW2D_OT_scroll_right", 0, NULL);
+		} else {
+			WM_operator_name_call(C, "VIEW2D_OT_scroll_down", 0, NULL);
+		}
+	}
+	
+	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	/* and restore context */
+	CTX_wm_region_set(C, oldar);
+	
+	return OPERATOR_FINISHED;
+}
+
+
+void FILE_OT_smoothscroll(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Smooth Scroll";
+	ot->idname= "FILE_OT_smoothscroll";
+	ot->description="Smooth scroll to make editable file visible.";
+	
+	/* api callbacks */
+	ot->invoke= file_smoothscroll_invoke;
+	
+	ot->poll= ED_operator_file_active;
+}
+
 
 /* create a new, non-existing folder name, returns 1 if successful, 0 if name couldn't be created.
    The actual name is returned in 'name', 'folder' contains the complete path, including the new folder name.
@@ -813,6 +911,13 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 
 	/* now remember file to jump into editing */
 	BLI_strncpy(sfile->params->renamefile, name, FILE_MAXFILE);
+
+	/* set timer to smoothly view newly generated file */
+	sfile->smoothscroll_timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/1000.0);	/* max 30 frs/sec */
+	sfile->scroll_offset=0;
+
+	/* reload dir to make sure we're seeing what's in the directory */
+	ED_fileselect_clear(C, sfile);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;
@@ -834,33 +939,22 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 
 int file_directory_exec(bContext *C, wmOperator *unused)
 {
-	char tmpstr[FILE_MAX];
-
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
 	if(sfile->params) {
 		if ( sfile->params->dir[0] == '~' ) {
-			if (sfile->params->dir[1] == '\0') {
-				BLI_strncpy(sfile->params->dir, BLI_gethome(), sizeof(sfile->params->dir) );
-			} else {
-				/* replace ~ with home */
-				char homestr[FILE_MAX];
-				char *d = &sfile->params->dir[1];
-
-				while ( (*d == '\\') || (*d == '/') )
-					d++;
-				BLI_strncpy(homestr,  BLI_gethome(), FILE_MAX);
-				BLI_join_dirfile(tmpstr, homestr, d);
-				BLI_strncpy(sfile->params->dir, tmpstr, sizeof(sfile->params->dir));
-			}
+			char tmpstr[sizeof(sfile->params->dir)-1];
+			strncpy(tmpstr, sfile->params->dir+1, sizeof(tmpstr));
+			BLI_join_dirfile(sfile->params->dir, BLI_gethome(), tmpstr);
 		}
+
 #ifdef WIN32
 		if (sfile->params->dir[0] == '\0')
 			get_default_root(sfile->params->dir);
 #endif
 		BLI_cleanup_dir(G.sce, sfile->params->dir);
 		BLI_add_slash(sfile->params->dir);
-		file_change_dir(sfile, 1);
+		file_change_dir(C, 1);
 
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	}		
@@ -903,13 +997,11 @@ int file_hidedot_exec(bContext *C, wmOperator *unused)
 	
 	if(sfile->params) {
 		sfile->params->flag ^= FILE_HIDE_DOT;
-		filelist_free(sfile->files);
-		sfile->params->active_file = -1;
+		ED_fileselect_clear(C, sfile);
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	}
 	
 	return OPERATOR_FINISHED;
-
 }
 
 
@@ -1089,6 +1181,7 @@ int file_delete_exec(bContext *C, wmOperator *op)
 	file = filelist_file(sfile->files, sfile->params->active_file);
 	BLI_make_file_string(G.sce, str, sfile->params->dir, file->relname);
 	BLI_delete(str, 0, 0);	
+	ED_fileselect_clear(C, sfile);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 	
 	return OPERATOR_FINISHED;

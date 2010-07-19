@@ -33,10 +33,6 @@
 #include "RAS_MaterialBucket.h"
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 BL_DeformableGameObject::~BL_DeformableGameObject()
 {
 	if (m_pDeformer)

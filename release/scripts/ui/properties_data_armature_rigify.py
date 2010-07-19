@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class PoseTemplateSettings(bpy.types.IDPropertyGroup):
@@ -28,28 +28,6 @@ class PoseTemplateSettings(bpy.types.IDPropertyGroup):
 
 class PoseTemplate(bpy.types.IDPropertyGroup):
     pass
-
-PoseTemplate.StringProperty(attr="name",
-                name="Name of the slave",
-                description="",
-                maxlen=64,
-                default="")
-
-
-PoseTemplateSettings.CollectionProperty(attr="templates", type=PoseTemplate, name="Templates", description="")
-PoseTemplateSettings.IntProperty(attr="active_template_index",
-                name="Index of the active slave",
-                description="",
-                default=-1,
-                min=-1,
-                max=65535)
-
-PoseTemplateSettings.BoolProperty(attr="generate_def_rig",
-                name="Create Deform Rig",
-                description="Create a copy of the metarig, constrainted by the generated rig",
-                default=False)
-
-bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Pose Templates", description="Pose Template Settings")
 
 
 def metarig_templates():
@@ -234,7 +212,7 @@ class Graph(bpy.types.Operator):
         import bpy
         reload(graphviz_export)
         obj = bpy.context.object
-        path = os.path.splitext(bpy.data.filename)[0] + "-" + bpy.utils.clean_name(obj.name)
+        path = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.utils.clean_name(obj.name)
         path_dot = path + ".dot"
         path_png = path + ".png"
         saved = graphviz_export.graph_armature(bpy.context.object, path_dot, CONSTRAINTS=False, DRIVERS=False)
@@ -254,14 +232,14 @@ class AsScript(bpy.types.Operator):
     bl_label = "Write Metarig to Script"
     bl_options = {'REGISTER', 'UNDO'}
 
-    path = StringProperty(name="File Path", description="File path used for exporting the Armature file", maxlen=1024, default="")
+    filepath = StringProperty(name="File Path", description="File path used for exporting the Armature file", maxlen=1024, default="")
 
     def execute(self, context):
         import rigify_utils
         reload(rigify_utils)
         obj = context.object
         code = rigify_utils.write_meta_rig(obj)
-        path = self.properties.path
+        path = self.properties.filepath
         file = open(path, "w")
         file.write(code)
         file.close()
@@ -271,7 +249,7 @@ class AsScript(bpy.types.Operator):
     def invoke(self, context, event):
         import os
         obj = context.object
-        self.properties.path = os.path.splitext(bpy.data.filename)[0] + "-" + bpy.utils.clean_name(obj.name) + ".py"
+        self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.utils.clean_name(obj.name) + ".py"
         wm = context.manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
@@ -355,6 +333,28 @@ def register():
     register = bpy.types.register
     for cls in classes:
         register(cls)
+
+    PoseTemplate.StringProperty(attr="name",
+                    name="Name of the slave",
+                    description="",
+                    maxlen=64,
+                    default="")
+
+
+    PoseTemplateSettings.CollectionProperty(attr="templates", type=PoseTemplate, name="Templates", description="")
+    PoseTemplateSettings.IntProperty(attr="active_template_index",
+                    name="Index of the active slave",
+                    description="",
+                    default=-1,
+                    min=-1,
+                    max=65535)
+
+    PoseTemplateSettings.BoolProperty(attr="generate_def_rig",
+                    name="Create Deform Rig",
+                    description="Create a copy of the metarig, constrainted by the generated rig",
+                    default=False)
+
+    bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Pose Templates", description="Pose Template Settings")
 
     space_info.INFO_MT_armature_add.append(menu_func)
 

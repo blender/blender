@@ -40,6 +40,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_modifier.h"
@@ -59,7 +60,7 @@ Collision modifier code start
 /* step is limited from 0 (frame start position) to 1 (frame end position) */
 void collision_move_object ( CollisionModifierData *collmd, float step, float prevstep )
 {
-	float tv[3] = {0,0,0};
+	float tv[3] = {0, 0, 0};
 	unsigned int i = 0;
 
 	for ( i = 0; i < collmd->numverts; i++ )
@@ -69,6 +70,7 @@ void collision_move_object ( CollisionModifierData *collmd, float step, float pr
 		VECADDS ( collmd->current_xnew[i].co, collmd->x[i].co, tv, step );
 		VECSUB ( collmd->current_v[i].co, collmd->current_xnew[i].co, collmd->current_x[i].co );
 	}
+
 	bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
 }
 
@@ -527,7 +529,7 @@ int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifier
 			float magtangent = 0, repulse = 0, d = 0;
 			double impulse = 0.0;
 			float vrel_t_pre[3];
-			float temp[3];
+			float temp[3], spf;
 
 			// calculate tangential velocity
 			VECCOPY ( temp, collpair->normal );
@@ -565,10 +567,12 @@ int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifier
 
 			// Apply repulse impulse if distance too short
 			// I_r = -min(dt*kd, m(0,1d/dt - v_n))
+			spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
+
 			d = clmd->coll_parms->epsilon*8.0/9.0 + epsilon2*8.0/9.0 - collpair->distance;
-			if ( ( magrelVel < 0.1*d*clmd->sim_parms->stepsPerFrame ) && ( d > ALMOST_ZERO ) )
+			if ( ( magrelVel < 0.1*d*spf ) && ( d > ALMOST_ZERO ) )
 			{
-				repulse = MIN2 ( d*1.0/clmd->sim_parms->stepsPerFrame, 0.1*d*clmd->sim_parms->stepsPerFrame - magrelVel );
+				repulse = MIN2 ( d*1.0/spf, 0.1*d*spf - magrelVel );
 
 				// stay on the safe side and clamp repulse
 				if ( impulse > ALMOST_ZERO )
@@ -1299,188 +1303,130 @@ static int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierDa
 }
 #endif
 
+static void add_collision_object(Object ***objs, int *numobj, int *maxobj, Object *ob, Object *self, int level)
+{
+	CollisionModifierData *cmd= NULL;
+
+	if(ob == self)
+		return;
+
+	/* only get objects with collision modifier */
+	if(ob->pd && ob->pd->deflect)
+		cmd= (CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
+	
+	if(cmd) {	
+		/* extend array */
+		if(*numobj >= *maxobj) {
+			*maxobj *= 2;
+			*objs= MEM_reallocN(*objs, sizeof(Object*)*(*maxobj));
+		}
+		
+		(*objs)[*numobj] = ob;
+		(*numobj)++;
+	}
+
+	/* objects in dupli groups, one level only for now */
+	if(ob->dup_group && level == 0) {
+		GroupObject *go;
+		Group *group= ob->dup_group;
+
+		/* add objects */
+		for(go= group->gobject.first; go; go= go->next)
+			add_collision_object(objs, numobj, maxobj, go->ob, self, level+1);
+	}	
+}
 
 // return all collision objects in scene
 // collision object will exclude self 
-Object **get_collisionobjects(Scene *scene, Object *self, int *numcollobj)
+Object **get_collisionobjects(Scene *scene, Object *self, Group *group, int *numcollobj)
 {
-	Base *base=NULL;
-	Object **objs = NULL;
-	Object *coll_ob = NULL;
-	CollisionModifierData *collmd = NULL;
-	int numobj = 0, maxobj = 100;
+	Base *base;
+	Object **objs;
+	GroupObject *go;
+	int numobj= 0, maxobj= 100;
 	
-	objs = MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
-	// check all collision objects
-	for ( base = scene->base.first; base; base = base->next )
-	{
-		/*Only proceed for mesh object in same layer */
-		if(!(base->object->type==OB_MESH && (base->lay & self->lay))) 
-			continue;
-		
-		coll_ob = base->object;
-		
-		if(coll_ob == self)
-				continue;
-		
-		if(coll_ob->pd && coll_ob->pd->deflect)
-		{
-			collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
-		}
-		else
-			collmd = NULL;
-		
-		if ( collmd )
-		{	
-			if(numobj >= maxobj)
-			{
-				// realloc
-				int oldmax = maxobj;
-				Object **tmp;
-				maxobj *= 2;
-				tmp = MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
-				memcpy(tmp, objs, sizeof(Object *)*oldmax);
-				MEM_freeN(objs);
-				objs = tmp;
-				
-			}
-			
-			objs[numobj] = coll_ob;
-			numobj++;
-		}
-		else
-		{
-			if ( coll_ob->dup_group )
-			{
-				GroupObject *go;
-				Group *group = coll_ob->dup_group;
+	objs= MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
 
-				for ( go= group->gobject.first; go; go= go->next )
-				{
-					coll_ob = go->ob;
-					collmd = NULL;
-					
-					if(coll_ob == self)
-						continue;
-					
-					if(coll_ob->pd && coll_ob->pd->deflect)
-					{
-						collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
-					}
-					else
-						collmd = NULL;
-
-					if ( !collmd )
-						continue;
-					
-					if( !collmd->bvhtree)
-						continue;
-
-					if(numobj >= maxobj)
-					{
-						// realloc
-						int oldmax = maxobj;
-						Object **tmp;
-						maxobj *= 2;
-						tmp = MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
-						memcpy(tmp, objs, sizeof(Object *)*oldmax);
-						MEM_freeN(objs);
-						objs = tmp;
-					}
-					
-					objs[numobj] = coll_ob;
-					numobj++;
-				}
-			}
-		}	
+	/* gather all collision objects */
+	if(group) {
+		/* use specified group */
+		for(go= group->gobject.first; go; go= go->next)
+			add_collision_object(&objs, &numobj, &maxobj, go->ob, self, 0);
 	}
-	*numcollobj = numobj;
+	else {
+		Scene *sce; /* for SETLOOPER macro */
+		/* add objects in same layer in scene */
+		for(SETLOOPER(scene, base)) {
+			if(base->lay & self->lay)
+				add_collision_object(&objs, &numobj, &maxobj, base->object, self, 0);
+
+		}
+	}
+
+	*numcollobj= numobj;
+
 	return objs;
 }
 
-ListBase *get_collider_cache(Scene *scene, Object *self)
+static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self, int level)
 {
-	Base *base=NULL;
-	ListBase *objs = NULL;
-	Object *coll_ob = NULL;
-	CollisionModifierData *collmd = NULL;
+	CollisionModifierData *cmd= NULL;
 	ColliderCache *col;
+
+	if(ob == self)
+		return;
+
+	if(ob->pd && ob->pd->deflect)
+		cmd =(CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
 	
-	// check all collision objects
-	for ( base = scene->base.first; base; base = base->next )
-	{
-		/*Only proceed for mesh object in same layer */
-		if(base->object->type!=OB_MESH)
-			continue;
+	if(cmd && cmd->bvhtree) {	
+		if(*objs == NULL)
+			*objs = MEM_callocN(sizeof(ListBase), "ColliderCache array");
 
-		if(self && (base->lay & self->lay)==0) 
-			continue;
-
-		
-		coll_ob = base->object;
-		
-		if(coll_ob == self)
-				continue;
-		
-		if(coll_ob->pd && coll_ob->pd->deflect)
-		{
-			collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
-		}
-		else
-			collmd = NULL;
-		
-		if ( collmd )
-		{	
-			if(objs == NULL)
-				objs = MEM_callocN(sizeof(ListBase), "ColliderCache array");
-
-			col = MEM_callocN(sizeof(ColliderCache), "ColliderCache");
-			col->ob = coll_ob;
-			col->collmd = collmd;
-			/* make sure collider is properly set up */
-			collision_move_object(collmd, 1.0, 0.0);
-			BLI_addtail(objs, col);
-		}
-		else if ( coll_ob->dup_group )
-			{
-				GroupObject *go;
-				Group *group = coll_ob->dup_group;
-
-				for ( go= group->gobject.first; go; go= go->next )
-				{
-					coll_ob = go->ob;
-					collmd = NULL;
-					
-					if(coll_ob == self)
-						continue;
-					
-					if(coll_ob->pd && coll_ob->pd->deflect)
-					{
-						collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
-					}
-					else
-						collmd = NULL;
-
-					if ( !collmd )
-						continue;
-					
-					if( !collmd->bvhtree)
-						continue;
-
-					if(objs == NULL)
-						objs = MEM_callocN(sizeof(ListBase), "ColliderCache array");
-
-					col = MEM_callocN(sizeof(ColliderCache), "ColliderCache");
-					col->ob = coll_ob;
-					col->collmd = collmd;
-					/* make sure collider is properly set up */
-					collision_move_object(collmd, 1.0, 0.0);
-					BLI_addtail(objs, col);
-				}
-			}
+		col = MEM_callocN(sizeof(ColliderCache), "ColliderCache");
+		col->ob = ob;
+		col->collmd = cmd;
+		/* make sure collider is properly set up */
+		collision_move_object(cmd, 1.0, 0.0);
+		BLI_addtail(*objs, col);
 	}
+
+	/* objects in dupli groups, one level only for now */
+	if(ob->dup_group && level == 0) {
+		GroupObject *go;
+		Group *group= ob->dup_group;
+
+		/* add objects */
+		for(go= group->gobject.first; go; go= go->next)
+			add_collider_cache_object(objs, go->ob, self, level+1);
+	}
+}
+
+ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
+{
+	GroupObject *go;
+	ListBase *objs= NULL;
+	
+	/* add object in same layer in scene */
+	if(group) {
+		for(go= group->gobject.first; go; go= go->next)
+			add_collider_cache_object(&objs, go->ob, self, 0);
+	}
+	else {
+		Scene *sce; /* for SETLOOPER macro */
+		Base *base;
+
+		/* add objects in same layer in scene */
+		for(SETLOOPER(scene, base)) {
+			if(!self || (base->lay & self->lay))
+				add_collider_cache_object(&objs, base->object, self, 0);
+
+		}
+	}
+
 	return objs;
 }
+
 void free_collider_cache(ListBase **colliders)
 {
 	if(*colliders) {
@@ -1489,6 +1435,7 @@ void free_collider_cache(ListBase **colliders)
 		*colliders = NULL;
 	}
 }
+
 static void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, CollisionModifierData *collmd, CollPair **collisions, CollPair **collisions_index, int numresult, BVHTreeOverlap *overlap)
 {
 	int i;
@@ -1574,7 +1521,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 	bvhtree_update_from_cloth ( clmd, 1 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	bvhselftree_update_from_cloth ( clmd, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	
-	collobjs = get_collisionobjects(clmd->scene, ob, &numcollobj);
+	collobjs = get_collisionobjects(clmd->scene, ob, clmd->coll_parms->group, &numcollobj);
 	
 	if(!collobjs)
 		return 0;
@@ -1606,20 +1553,15 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 			overlap = BLI_bvhtree_overlap ( cloth_bvh, collmd->bvhtree, &result );
 				
 			// go to next object if no overlap is there
-			if(!result || !overlap)
-			{
-				if ( overlap )
-					MEM_freeN ( overlap );
-				continue;
+			if( result && overlap ) {
+				/* check if collisions really happen (costly near check) */
+				cloth_bvh_objcollisions_nearcheck ( clmd, collmd, &collisions[i], &collisions_index[i], result, overlap);
+			
+				// resolve nearby collisions
+				ret += cloth_bvh_objcollisions_resolve ( clmd, collmd, collisions[i],  collisions_index[i]);
+				ret2 += ret;
 			}
-			
-			/* check if collisions really happen (costly near check) */
-			cloth_bvh_objcollisions_nearcheck ( clmd, collmd, &collisions[i], &collisions_index[i], result, overlap);
-			
-			// resolve nearby collisions
-			ret += cloth_bvh_objcollisions_resolve ( clmd, collmd, collisions[i],  collisions_index[i]);
-			ret2 += ret;
-			
+
 			if ( overlap )
 				MEM_freeN ( overlap );
 		}

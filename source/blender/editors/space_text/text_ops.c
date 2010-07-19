@@ -35,13 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_constraint_types.h"
-#include "DNA_object_types.h"
-#include "DNA_action_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_text_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "PIL_time.h"
@@ -196,6 +190,9 @@ void TEXT_OT_new(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= new_exec;
 	ot->poll= text_new_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
 }
 
 /******************* open operator *********************/
@@ -221,8 +218,9 @@ static int open_exec(bContext *C, wmOperator *op)
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	char str[FILE_MAX];
+	short internal = RNA_int_get(op->ptr, "internal");
 
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 
 	text= add_text(str, G.sce);
 
@@ -250,6 +248,13 @@ static int open_exec(bContext *C, wmOperator *op)
 		st->text= text;
 		st->top= 0;
 	}
+	
+	if (internal) {
+		if(text->name)
+			MEM_freeN(text->name);
+		
+		text->name = NULL;
+	}
 
 	WM_event_add_notifier(C, NC_TEXT|NA_ADDED, text);
 
@@ -263,11 +268,11 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Text *text= CTX_data_edit_text(C);
 	char *path= (text && text->name)? text->name: G.sce;
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
 	
 	open_init(C, op);
-	RNA_string_set(op->ptr, "path", path);
+	RNA_string_set(op->ptr, "filepath", path);
 	WM_event_add_fileselect(C, op); 
 
 	return OPERATOR_RUNNING_MODAL;
@@ -286,8 +291,12 @@ void TEXT_OT_open(wmOperatorType *ot)
 	ot->cancel= open_cancel;
 	ot->poll= text_new_poll;
 
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
+	
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
+	RNA_def_boolean(ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
 }
 
 /******************* reload operator *********************/
@@ -366,6 +375,9 @@ void TEXT_OT_unlink(wmOperatorType *ot)
 	ot->exec= unlink_exec;
 	ot->invoke= WM_operator_confirm;
 	ot->poll= text_edit_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
 }
 
 /******************* make internal operator *********************/
@@ -397,6 +409,9 @@ void TEXT_OT_make_internal(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= make_internal_exec;
 	ot->poll= text_edit_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
 }
 
 /******************* save operator *********************/
@@ -420,7 +435,7 @@ static void txt_write_file(Text *text, ReportList *reports)
 	char file[FILE_MAXDIR+FILE_MAXFILE];
 	
 	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(file, G.sce);
+	BLI_path_abs(file, G.sce);
 	
 	fp= fopen(file, "w");
 	if(fp==NULL) {
@@ -479,7 +494,7 @@ static int save_as_exec(bContext *C, wmOperator *op)
 	if(!text)
 		return OPERATOR_CANCELLED;
 
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 
 	if(text->name) MEM_freeN(text->name);
 	text->name= BLI_strdup(str);
@@ -498,7 +513,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Text *text= CTX_data_edit_text(C);
 	char *str;
 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return save_as_exec(C, op);
 
 	if(text->name)
@@ -508,7 +523,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else
 		str= G.sce;
 	
-	RNA_string_set(op->ptr, "path", str);
+	RNA_string_set(op->ptr, "filepath", str);
 	WM_event_add_fileselect(C, op); 
 
 	return OPERATOR_RUNNING_MODAL;
@@ -527,7 +542,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_SAVE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
 }
 
 /******************* run script operator *********************/
@@ -746,7 +761,7 @@ void TEXT_OT_paste(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= paste_exec;
 	ot->poll= text_edit_poll;
-
+	
 	/* properties */
 	RNA_def_boolean(ot->srna, "selection", 0, "Selection", "Paste text selected elsewhere rather than copied, X11 only.");
 }
@@ -1592,15 +1607,23 @@ static int jump_exec(bContext *C, wmOperator *op)
 	int line= RNA_int_get(op->ptr, "line");
 	short nlines= txt_get_span(text->lines.first, text->lines.last)+1;
 
-	if(line < 1 || line > nlines)
-		return OPERATOR_CANCELLED;
-
-	txt_move_toline(text, line-1, 0);
+	if(line < 1)
+		txt_move_toline(text, 1, 0);
+	else if(line > nlines)
+		txt_move_toline(text, nlines-1, 0);
+	else
+		txt_move_toline(text, line-1, 0);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 
 	return OPERATOR_FINISHED;
+}
+
+static int jump_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return WM_operator_props_dialog_popup(C,op,200,100);
+
 }
 
 void TEXT_OT_jump(wmOperatorType *ot)
@@ -1611,7 +1634,7 @@ void TEXT_OT_jump(wmOperatorType *ot)
 	ot->description= "Jump cursor to line";
 	
 	/* api callbacks */
-	ot->invoke=  WM_operator_props_popup;
+	ot->invoke= jump_invoke;
 	ot->exec= jump_exec;
 	ot->poll= text_edit_poll;
 
@@ -1699,7 +1722,7 @@ static void screen_skip(SpaceText *st, int lines)
 {
 	int last;
 
- 	st->top += lines;
+	 st->top += lines;
 
 	last= txt_get_span(st->text->lines.first, st->text->lines.last);
 	last= last - (st->viewlines/2);
@@ -1849,9 +1872,9 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll";
-    /*don't really see the difference between this and
-      scroll_bar. Both do basically the same thing (aside 
-      from keymaps).*/
+	/*don't really see the difference between this and
+	  scroll_bar. Both do basically the same thing (aside 
+	  from keymaps).*/
 	ot->idname= "TEXT_OT_scroll";
 	ot->description= "Scroll text screen";
 	
@@ -1902,9 +1925,9 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scrollbar";
-    /*don't really see the difference between this and
-      scroll. Both do basically the same thing (aside 
-      from keymaps).*/
+	/*don't really see the difference between this and
+	  scroll. Both do basically the same thing (aside 
+	  from keymaps).*/
 	ot->idname= "TEXT_OT_scroll_bar";
 	ot->description= "Scroll text screen";
 	
@@ -2542,7 +2565,7 @@ int text_file_modified(Text *text)
 		return 0;
 
 	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(file, G.sce);
+	BLI_path_abs(file, G.sce);
 
 	if(!BLI_exists(file))
 		return 2;
@@ -2570,7 +2593,7 @@ static void text_ignore_modified(Text *text)
 	if(!text || !text->name) return;
 
 	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(file, G.sce);
+	BLI_path_abs(file, G.sce);
 
 	if(!BLI_exists(file)) return;
 
@@ -2614,25 +2637,25 @@ static int resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				/* modified locally and externally, ahhh. offer more possibilites. */
 				pup= uiPupMenuBegin(C, "File Modified Outside and Inside Blender", 0);
 				layout= uiPupMenuLayout(pup);
-				uiItemEnumO(layout, "Reload from disk (ignore local changes)", 0, op->type->idname, "resolution", RESOLVE_RELOAD);
-				uiItemEnumO(layout, "Save to disk (ignore outside changes)", 0, op->type->idname, "resolution", RESOLVE_SAVE);
-				uiItemEnumO(layout, "Make text internal (separate copy)", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO(layout, op->type->idname, "Reload from disk (ignore local changes)", 0, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO(layout, op->type->idname, "Save to disk (ignore outside changes)", 0, "resolution", RESOLVE_SAVE);
+				uiItemEnumO(layout, op->type->idname, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
 				uiPupMenuEnd(C, pup);
 			}
 			else {
 				pup= uiPupMenuBegin(C, "File Modified Outside Blender", 0);
 				layout= uiPupMenuLayout(pup);
-				uiItemEnumO(layout, "Reload from disk", 0, op->type->idname, "resolution", RESOLVE_RELOAD);
-				uiItemEnumO(layout, "Make text internal (separate copy)", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
-				uiItemEnumO(layout, "Ignore", 0, op->type->idname, "resolution", RESOLVE_IGNORE);
+				uiItemEnumO(layout, op->type->idname, "Reload from disk", 0, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO(layout, op->type->idname, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO(layout, op->type->idname, "Ignore", 0, "resolution", RESOLVE_IGNORE);
 				uiPupMenuEnd(C, pup);
 			}
 			break;
 		case 2:
 			pup= uiPupMenuBegin(C, "File Deleted Outside Blender", 0);
 			layout= uiPupMenuLayout(pup);
-			uiItemEnumO(layout, "Make text internal", 0, op->type->idname, "resolution", RESOLVE_MAKE_INTERNAL);
-			uiItemEnumO(layout, "Recreate file", 0, op->type->idname, "resolution", RESOLVE_SAVE);
+			uiItemEnumO(layout, op->type->idname, "Make text internal", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+			uiItemEnumO(layout, op->type->idname, "Recreate file", 0, "resolution", RESOLVE_SAVE);
 			uiPupMenuEnd(C, pup);
 			break;
 	}

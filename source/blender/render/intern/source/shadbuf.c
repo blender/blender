@@ -945,13 +945,13 @@ static int firstreadshadbuf(ShadBuf *shb, ShadSampleBuf *shsample, int **rz, int
 	ofs= (ys>>4)*(shb->size>>4) + (xs>>4);
 	ct= shsample->cbuf+ofs;
 	if(*ct==0) {
-	    if(nr==0) {
+		if(nr==0) {
 			*rz= *( (int **)(shsample->zbuf+ofs) );
 			return 1;
-	    }
+		}
 		else if(*rz!= *( (int **)(shsample->zbuf+ofs) )) return 0;
 		
-	    return 1;
+		return 1;
 	}
 	
 	return 0;
@@ -1071,7 +1071,7 @@ static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int 
 	else {
 		/* got warning on this for 64 bits.... */
 		/* but it's working code! in this case rz is not a pointer but zvalue (ton) */
- 		zsamp= GET_INT_FROM_POINTER(rz);
+		 zsamp= GET_INT_FROM_POINTER(rz);
 	}
 
 	/* tricky stuff here; we use ints which can overflow easily with bias values */
@@ -1174,7 +1174,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *co, float *dxco, float *dyc
 	/* in case we have a constant value in a tile, we can do quicker lookup */
 	if(xres<16.0f && yres<16.0f) {
 		shsample= shb->buffers.first;
-	    if(firstreadshadbuf(shb, shsample, &rz, (int)xs1, (int)ys1, 0)) {
+		if(firstreadshadbuf(shb, shsample, &rz, (int)xs1, (int)ys1, 0)) {
 			if(firstreadshadbuf(shb, shsample, &rz, (int)(xs1+xres), (int)ys1, 1)) {
 				if(firstreadshadbuf(shb, shsample, &rz, (int)xs1, (int)(ys1+yres), 1)) {
 					if(firstreadshadbuf(shb, shsample, &rz, (int)(xs1+xres), (int)(ys1+yres), 1)) {
@@ -1182,7 +1182,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *co, float *dxco, float *dyc
 					}
 				}
 			}
-	    }
+		}
 	}
 	
 	/* full jittered shadow buffer lookup */
@@ -1255,7 +1255,7 @@ static float readshadowbuf_halo(ShadBuf *shb, ShadSampleBuf *shsample, int xs, i
 	else {
 		/* same as before */
 		/* still working code! (ton) */
- 		zsamp= GET_INT_FROM_POINTER(rz);
+		 zsamp= GET_INT_FROM_POINTER(rz);
 	}
 
 	/* NO schadow when sampled at 'eternal' distance */
@@ -2204,7 +2204,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 	isbdata->recty= pa->recty;
 	
 	/* branches are added using memarena (32k branches) */
-	memarena = BLI_memarena_new(0x8000 * sizeof(ISBBranch));
+	memarena = BLI_memarena_new(0x8000 * sizeof(ISBBranch), "isb arena");
 	BLI_memarena_use_calloc(memarena);
 	
 	/* samplebuf is in camera view space (pixels) */
@@ -2300,7 +2300,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 			if(R.osa) {
 				ISBShadfacA **isbsa= isbdata->shadfaca= MEM_callocN(pa->rectx*pa->recty*sizeof(void *), "isb shadfacs");
 				
-				isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA));
+				isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA), "isb arena");
 				BLI_memarena_use_calloc(isbdata->memarena);
 
 				for(rd= pa->rectdaps, x=pa->rectx*pa->recty; x>0; x--, rd++, isbsa++) {
@@ -2412,7 +2412,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 	isbdata->recty= pa->recty;
 	
 	/* branches are added using memarena (32k branches) */
-	memarena = BLI_memarena_new(0x8000 * sizeof(ISBBranch));
+	memarena = BLI_memarena_new(0x8000 * sizeof(ISBBranch), "isb arena");
 	BLI_memarena_use_calloc(memarena);
 	
 	/* samplebuf is in camera view space (pixels) */
@@ -2503,7 +2503,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 			/* copy shadow samples to persistant buffer, reduce memory overhead */
 			isbsa= isbdata->shadfaca= MEM_callocN(pa->rectx*pa->recty*sizeof(void *), "isb shadfacs");
 			
-			isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA));
+			isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA), "isb arena");
 			
 			for(ap= apixbuf, x=pa->rectx*pa->recty; x>0; x--, ap++, isbsa++) {
 					

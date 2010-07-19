@@ -35,10 +35,6 @@
 #include "KX_PyMath.h" // needed for PyObjectFrom()
 #include <iostream>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -299,7 +295,7 @@ PyMethodDef KX_SoundActuator::Methods[] = {
 	KX_PYMETHODTABLE_NOARGS(KX_SoundActuator, startSound),
 	KX_PYMETHODTABLE_NOARGS(KX_SoundActuator, pauseSound),
 	KX_PYMETHODTABLE_NOARGS(KX_SoundActuator, stopSound),
-	{NULL,NULL,NULL,NULL} //Sentinel
+	{NULL, NULL} //Sentinel
 };
 
 PyAttributeDef KX_SoundActuator::Attributes[] = {

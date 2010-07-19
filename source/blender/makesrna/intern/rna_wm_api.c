@@ -30,7 +30,6 @@
 #include <stdio.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 #include "RNA_enum_types.h"
 
 #include "DNA_screen_types.h"
@@ -40,8 +39,6 @@
 
 #include "BKE_context.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
 
 static wmKeyMap *rna_keymap_add(wmKeyConfig *keyconf, char *idname, int spaceid, int regionid, int modal)
 {
@@ -73,70 +70,9 @@ static wmKeyMap *rna_keymap_active(wmKeyMap *km, bContext *C)
 	return WM_keymap_active(wm, km);
 }
 
-
-static wmKeyMapItem *rna_KeyMap_add_modal_item(wmKeyMap *km, bContext *C, ReportList *reports, char* propvalue_str, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
-{
-	wmWindowManager *wm = CTX_wm_manager(C);
-	int modifier= 0;
-	int propvalue = 0;
-
-	/* only modal maps */
-	if ((km->flag & KEYMAP_MODAL) == 0) {
-		BKE_report(reports, RPT_ERROR, "Not a modal keymap.");
-		return NULL;
-	}
-
-	if (!km->modal_items) {
-		if(!WM_keymap_user_init(wm, km)) {
-			BKE_report(reports, RPT_ERROR, "User defined keymap doesn't correspond to a system keymap.");
-			return NULL;
-		}
-	}
-
-	if (!km->modal_items) {
-		BKE_report(reports, RPT_ERROR, "No property values defined.");
-		return NULL;
-	}
-
-
-	if(RNA_enum_value_from_id(km->modal_items, propvalue_str, &propvalue)==0) {
-		BKE_report(reports, RPT_WARNING, "Property value not in enumeration.");
-	}
-
-	if(shift) modifier |= KM_SHIFT;
-	if(ctrl) modifier |= KM_CTRL;
-	if(alt) modifier |= KM_ALT;
-	if(oskey) modifier |= KM_OSKEY;
-
-	if(any) modifier = KM_ANY;
-
-	return WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, propvalue);
-}
-
 static void rna_keymap_restore_item_to_default(wmKeyMap *km, bContext *C, wmKeyMapItem *kmi)
 {
 	WM_keymap_restore_item_to_default(C, km, kmi);
-}
-
-static wmKeyMapItem *rna_KeyMap_add_item(wmKeyMap *km, ReportList *reports, char *idname, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
-{
-//	wmWindowManager *wm = CTX_wm_manager(C);
-	int modifier= 0;
-
-	/* only on non-modal maps */
-	if (km->flag & KEYMAP_MODAL) {
-		BKE_report(reports, RPT_ERROR, "Not a non-modal keymap.");
-		return NULL;
-	}
-
-	if(shift) modifier |= KM_SHIFT;
-	if(ctrl) modifier |= KM_CTRL;
-	if(alt) modifier |= KM_ALT;
-	if(oskey) modifier |= KM_OSKEY;
-
-	if(any) modifier = KM_ANY;
-
-	return WM_keymap_add_item(km, idname, type, value, modifier, keymodifier);
 }
 
 static void rna_Operator_report(wmOperator *op, int type, char *msg)
@@ -158,7 +94,11 @@ static int rna_event_add_modal_handler(struct bContext *C, struct wmOperator *op
 
 #else
 
-static void rna_generic_op_invoke(FunctionRNA *func, int use_event, int use_ret)
+#define WM_GEN_INVOKE_EVENT (1<<0)
+#define WM_GEN_INVOKE_SIZE (1<<1)
+#define WM_GEN_INVOKE_RETURN (1<<2)
+
+static void rna_generic_op_invoke(FunctionRNA *func, int flag)
 {
 	PropertyRNA *parm;
 
@@ -166,12 +106,17 @@ static void rna_generic_op_invoke(FunctionRNA *func, int use_event, int use_ret)
 	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	if(use_event) {
+	if(flag & WM_GEN_INVOKE_EVENT) {
 		parm= RNA_def_pointer(func, "event", "Event", "", "Event.");
 		RNA_def_property_flag(parm, PROP_REQUIRED);
 	}
 
-	if(use_ret) {
+	if(flag & WM_GEN_INVOKE_SIZE) {
+		parm= RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
+		parm= RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
+	}
+
+	if(flag & WM_GEN_INVOKE_RETURN) {
 		parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", "");
 		RNA_def_property_flag(parm, PROP_ENUM_FLAG);
 		RNA_def_function_return(func, parm);
@@ -185,7 +130,7 @@ void RNA_api_wm(StructRNA *srna)
 
 	func= RNA_def_function(srna, "add_fileselect", "WM_event_add_fileselect");
 	RNA_def_function_ui_description(func, "Show up the file selector.");
-	rna_generic_op_invoke(func, 0, 0);
+	rna_generic_op_invoke(func, 0);
 
 	func= RNA_def_function(srna, "add_keyconfig", "WM_keyconfig_add_user");
 	parm= RNA_def_string(func, "name", "", 0, "Name", "");
@@ -206,18 +151,21 @@ void RNA_api_wm(StructRNA *srna)
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_props_popup", "WM_operator_props_popup");
 	RNA_def_function_ui_description(func, "Operator popup invoke.");
-	rna_generic_op_invoke(func, 1, 1);
+	rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT|WM_GEN_INVOKE_RETURN);
+
+	/* invoked dialog opens popup with OK button, does not auto-exec operator. */
+	func= RNA_def_function(srna, "invoke_props_dialog", "WM_operator_props_dialog_popup");
+	RNA_def_function_ui_description(func, "Operator dialog (non-autoexec popup) invoke.");
+	rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE|WM_GEN_INVOKE_RETURN);
 
 	/* invoke enum */
 	func= RNA_def_function(srna, "invoke_search_popup", "rna_Operator_enum_search_invoke");
-	rna_generic_op_invoke(func, 0, 0);
+	rna_generic_op_invoke(func, 0);
 
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_popup", "WM_operator_ui_popup");
 	RNA_def_function_ui_description(func, "Operator popup invoke.");
-	rna_generic_op_invoke(func, 0, 0);
-	parm= RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
-	parm= RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
+	rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE|WM_GEN_INVOKE_RETURN);
 }
 
 void RNA_api_operator(StructRNA *srna)
@@ -342,40 +290,6 @@ void RNA_api_keymap(StructRNA *srna)
 {
 	FunctionRNA *func;
 	PropertyRNA *parm;
-
-	func= RNA_def_function(srna, "add_item", "rna_KeyMap_add_item");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_string(func, "idname", "", 0, "Operator Identifier", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_enum(func, "type", event_type_items, 0, "Type", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_enum(func, "value", event_value_items, 0, "Value", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_boolean(func, "any", 0, "Any", "");
-	RNA_def_boolean(func, "shift", 0, "Shift", "");
-	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
-	RNA_def_boolean(func, "alt", 0, "Alt", "");
-	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
-	RNA_def_enum(func, "key_modifier", event_type_items, 0, "Key Modifier", "");
-	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item.");
-	RNA_def_function_return(func, parm);
-
-	func= RNA_def_function(srna, "add_modal_item", "rna_KeyMap_add_modal_item");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	parm= RNA_def_string(func, "propvalue", "", 0, "Property Value", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_enum(func, "type", event_type_items, 0, "Type", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_enum(func, "value", event_value_items, 0, "Value", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_boolean(func, "any", 0, "Any", "");
-	RNA_def_boolean(func, "shift", 0, "Shift", "");
-	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
-	RNA_def_boolean(func, "alt", 0, "Alt", "");
-	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
-	RNA_def_enum(func, "key_modifier", event_type_items, 0, "Key Modifier", "");
-	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item.");
-	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "active", "rna_keymap_active");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

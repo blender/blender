@@ -32,10 +32,6 @@
  * @date	May 10, 2001
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_Window.h"
 
 
@@ -56,6 +52,8 @@ GHOST_Window::GHOST_Window(
 {
 	m_isUnsavedChanges = false;
 	m_canAcceptDragOperation = false;
+	
+	m_progressBarVisible = false;
 	
     m_cursorGrabAccumPos[0] = 0;
     m_cursorGrabAccumPos[1] = 0;

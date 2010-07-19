@@ -58,11 +58,11 @@ typedef struct IDProperty {
 				seemed like a good idea as a pad var was needed anyway :)*/
 	IDPropertyData data;	/* note, alignment for 64 bits */
 	int len; /* array length, also (this is important!) string length + 1.
-	            the idea is to be able to reuse array realloc functions on strings.*/
+				the idea is to be able to reuse array realloc functions on strings.*/
 	/*totallen is total length of allocated array/string, including a buffer.
 	  Note that the buffering is mild; the code comes from python's list implementation.*/
 	int totallen; /*strings and arrays are both buffered, though the buffer isn't
-	                saved.*/
+					saved.*/
 } IDProperty;
 
 #define MAX_IDPROP_NAME	32
@@ -116,10 +116,10 @@ typedef struct Library {
 	ID id;
 	ID *idblock;
 	struct FileData *filedata;
-	char name[240];			/* revealed in the UI, can store relative path */
-	char filename[240];		/* expanded name, not relative, used while reading */
+	char name[240];			/* path name used for reading, can be relative and edited in the outliner */
+	char filepath[240];		/* temp. absolute filepath, only used while reading */
 	int tot, pad;			/* tot, idblock and filedata are only fo read and write */
-	struct Library *parent;	/* for outliner, showing dependency */
+	struct Library *parent;	/* set for indirectly linked libs, used in the outliner and while reading */
 } Library;
 
 #define PREVIEW_MIPMAPS 2
@@ -130,7 +130,7 @@ typedef struct PreviewImage {
 	unsigned int w[2];
 	unsigned int h[2];	
 	short changed[2];
-	short pad0, pad1;
+	short changed_timestamp[2];
 	unsigned int * rect[2];
 } PreviewImage;
 
@@ -205,8 +205,8 @@ typedef struct PreviewImage {
 #define LIB_EXTERN		1
 #define LIB_INDIRECT	2
 #define LIB_TEST		8
-#define LIB_TESTEXT		9
-#define LIB_TESTIND		10
+#define LIB_TESTEXT		(LIB_TEST | LIB_EXTERN)
+#define LIB_TESTIND		(LIB_TEST | LIB_INDIRECT)
 #define LIB_READ		16
 #define LIB_NEEDLINK	32
 

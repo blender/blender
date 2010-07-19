@@ -33,10 +33,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32 
 #include <unistd.h>
 #else
@@ -49,17 +45,14 @@
 #include "DNA_sound_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_packedFile_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_screen.h"
 #include "BKE_sound.h"
 #include "BKE_image.h"
-#include "BKE_font.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 
@@ -186,14 +179,14 @@ PackedFile *newPackedFile(ReportList *reports, char *filename)
 	// convert relative filenames to absolute filenames
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce);
+	BLI_path_abs(name, G.sce);
 	
 	// open the file
 	// and create a PackedFile structure
 
 	file= open(name, O_BINARY|O_RDONLY);
 	if (file <= 0) {
-		BKE_reportf(reports, RPT_ERROR, "Can't open file: \"%s\"", name);
+		BKE_reportf(reports, RPT_ERROR, "Unable to pack file, source path not found: \"%s\"", name);
 	} else {
 		filelen = BLI_filesize(file);
 
@@ -223,15 +216,15 @@ void packAll(Main *bmain, ReportList *reports)
 	bSound *sound;
 
 	for(ima=bmain->image.first; ima; ima=ima->id.next)
-		if(ima->packedfile == NULL)
+		if(ima->packedfile == NULL && ima->id.lib==NULL && ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
 			ima->packedfile = newPackedFile(reports, ima->name);
 
 	for(vf=bmain->vfont.first; vf; vf=vf->id.next)
-		if(vf->packedfile == NULL)
+		if(vf->packedfile == NULL && vf->id.lib==NULL)
 			vf->packedfile = newPackedFile(reports, vf->name);
 
 	for(sound=bmain->sound.first; sound; sound=sound->id.next)
-		if(sound->packedfile == NULL)
+		if(sound->packedfile == NULL && sound->id.lib==NULL)
 			sound->packedfile = newPackedFile(reports, sound->name);
 }
 
@@ -271,10 +264,10 @@ int writePackedFile(ReportList *reports, char *filename, PackedFile *pf, int gui
 	char tempname[FILE_MAXDIR + FILE_MAXFILE];
 /*  	void *data; */
 	
-	if (guimode); //XXX  waitcursor(1);
+	if (guimode) {} //XXX  waitcursor(1);
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce);
+	BLI_path_abs(name, G.sce);
 	
 	if (BLI_exists(name)) {
 		for (number = 1; number <= 999; number++) {
@@ -315,7 +308,7 @@ int writePackedFile(ReportList *reports, char *filename, PackedFile *pf, int gui
 		}
 	}
 	
-	if(guimode); //XXX waitcursor(0);
+	if(guimode) {} //XXX waitcursor(0);
 
 	return (ret_value);
 }
@@ -339,7 +332,7 @@ int checkPackedFile(char *filename, PackedFile *pf)
 	char name[FILE_MAXDIR + FILE_MAXFILE];
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce);
+	BLI_path_abs(name, G.sce);
 	
 	if (stat(name, &st)) {
 		ret_val = PF_NOFILE;

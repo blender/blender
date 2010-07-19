@@ -30,10 +30,6 @@
 
 #include <stdio.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif //WIN32
@@ -257,7 +253,15 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		gReverseKeyTranslateTable[F9KEY				] = SCA_IInputDevice::KX_F9KEY;                  
 		gReverseKeyTranslateTable[F10KEY			] = SCA_IInputDevice::KX_F10KEY;                  
 		gReverseKeyTranslateTable[F11KEY			] = SCA_IInputDevice::KX_F11KEY;                  
-		gReverseKeyTranslateTable[F12KEY			] = SCA_IInputDevice::KX_F12KEY;                  
+		gReverseKeyTranslateTable[F12KEY			] = SCA_IInputDevice::KX_F12KEY;
+		gReverseKeyTranslateTable[F13KEY			] = SCA_IInputDevice::KX_F13KEY;
+		gReverseKeyTranslateTable[F14KEY			] = SCA_IInputDevice::KX_F14KEY;
+		gReverseKeyTranslateTable[F15KEY			] = SCA_IInputDevice::KX_F15KEY;
+		gReverseKeyTranslateTable[F16KEY			] = SCA_IInputDevice::KX_F16KEY;
+		gReverseKeyTranslateTable[F17KEY			] = SCA_IInputDevice::KX_F17KEY;
+		gReverseKeyTranslateTable[F18KEY			] = SCA_IInputDevice::KX_F18KEY;
+		gReverseKeyTranslateTable[F19KEY			] = SCA_IInputDevice::KX_F19KEY;
+		
 		
 		gReverseKeyTranslateTable[PAUSEKEY			] = SCA_IInputDevice::KX_PAUSEKEY;                  
 		gReverseKeyTranslateTable[INSERTKEY			] = SCA_IInputDevice::KX_INSERTKEY;                  

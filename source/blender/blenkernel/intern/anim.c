@@ -40,31 +40,21 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "DNA_listBase.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BKE_anim.h"
-#include "BKE_animsys.h"
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_displist.h"
-#include "BKE_effect.h"
+#include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_group.h"
 #include "BKE_global.h"
@@ -77,13 +67,9 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "BKE_depsgraph.h"
 
 // XXX bad level call...
-#include "ED_mesh.h"
 
 /* --------------------- */
 /* forward declarations */
@@ -206,9 +192,14 @@ bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *
 	
 	if (avs->path_bakeflag & MOTIONPATH_BAKE_HEADS)
 		mpath->flag |= MOTIONPATH_FLAG_BHEAD;
+	else
+		mpath->flag &= ~MOTIONPATH_FLAG_BHEAD;
 	
 	/* allocate a cache */
 	mpath->points= MEM_callocN(sizeof(bMotionPathVert)*mpath->length, "bMotionPathVerts");
+	
+	/* tag viz settings as currently having some path(s) which use it */
+	avs->path_bakeflag |= MOTIONPATH_BAKE_HAS_PATHS;
 	
 	/* return it */
 	return mpath;
@@ -262,6 +253,83 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 			}
 		}
 	}
+}
+
+/* ........ */
+
+/* Note on evaluation optimisations:
+ * Optimisations currently used here play tricks with the depsgraph in order to try and 
+ * evaluate as few objects as strictly necessary to get nicer performance under standard
+ * production conditions. For those people who really need the accurate version, 
+ * disable the ifdef (i.e. 1 -> 0) and comment out the call to motionpaths_calc_optimise_depsgraph()
+ */
+
+/* tweak the object ordering to trick depsgraph into making MotionPath calculations run faster */
+static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
+{
+	Base *base, *baseNext;
+	MPathTarget *mpt;
+	
+	/* make sure our temp-tag isn't already in use */
+	for (base= scene->base.first; base; base= base->next)
+		base->object->flag &= ~BA_TEMP_TAG;
+	
+	/* for each target, dump its object to the start of the list if it wasn't moved already */
+	for (mpt= targets->first; mpt; mpt= mpt->next) {
+		for (base=scene->base.first; base; base=baseNext) {
+			baseNext = base->next;
+			
+			if ((base->object == mpt->ob) && !(mpt->ob->flag & BA_TEMP_TAG)) {
+				BLI_remlink(&scene->base, base);
+				BLI_addhead(&scene->base, base);
+				
+				mpt->ob->flag |= BA_TEMP_TAG;
+				break; // we really don't need to continue anymore once this happens, but this line might really 'break'
+			}
+		}
+	}
+	
+	/* "brew me a list that's sorted a bit faster now depsy" */
+	DAG_scene_sort(scene);
+}
+
+/* update scene for current frame */
+static void motionpaths_calc_update_scene(Scene *scene)
+{
+#if 1 // 'production' optimisations always on
+	Base *base, *last=NULL;
+	
+	/* only stuff that moves or needs display still */
+	DAG_scene_update_flags(scene, scene->lay);
+	
+	/* find the last object with the tag 
+	 *	- all those afterwards are assumed to not be relevant for our calculations
+	 */
+	// optimise further by moving out...
+	for (base=scene->base.first; base; base=base->next) {
+		if (base->object->flag & BA_TEMP_TAG)
+			last = base;
+	}
+	
+	/* perform updates for tagged objects */
+	// XXX: this will break if rigs depend on scene or other data that 
+	// is animated but not attached to/updatable from objects
+	for (base=scene->base.first; base; base=base->next) {
+		/* update this object */
+		object_handle_update(scene, base->object);
+		
+		/* if this is the last one we need to update, let's stop to save some time */
+		if (base == last)
+			break;
+	}
+#else // original, 'always correct' version
+	/* do all updates 
+	 *	- if this is too slow, resort to using a more efficient way 
+	 * 	  that doesn't force complete update, but for now, this is the
+	 *	  most accurate way!
+	 */
+	scene_update_for_newframe(scene, scene->lay); // XXX this is the best way we can get anything moving
+#endif
 }
 
 /* ........ */
@@ -327,7 +395,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	
 	// TODO: this method could be improved...
 	//	1) max range for standard baking
-	//	2) minimum range for recalc baking (i.e. between keyfames, but how?)
+	//	2) minimum range for recalc baking (i.e. between keyframes, but how?)
 	for (mpt= targets->first; mpt; mpt= mpt->next) {
 		/* try to increase area to do (only as much as needed) */
 		sfra= MIN2(sfra, mpt->mpath->start_frame);
@@ -335,14 +403,14 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	}
 	if (efra <= sfra) return;
 	
+	/* optimise the depsgraph for faster updates */
+	// TODO: whether this is used should depend on some setting for the level of optimisations used
+	motionpaths_calc_optimise_depsgraph(scene, targets);
+	
 	/* calculate path over requested range */
 	for (CFRA=sfra; CFRA<=efra; CFRA++) {
-		/* do all updates 
-		 *	- if this is too slow, resort to using a more efficient way 
-		 * 	  that doesn't force complete update, but for now, this is the
-		 *	  most accurate way!
-		 */
-		scene_update_for_newframe(scene, scene->lay); // XXX this is the best way we can get anything moving
+		/* update relevant data for new frame */
+		motionpaths_calc_update_scene(scene);
 		
 		/* perform baking for targets */
 		motionpaths_calc_bake_targets(scene, targets);
@@ -350,7 +418,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 	
 	/* reset original environment */
 	CFRA= cfra;
-	scene_update_for_newframe(scene, scene->lay); // XXX this is the best way we can get anything moving
+	motionpaths_calc_update_scene(scene);
 	
 	/* clear recalc flags from targets */
 	for (mpt= targets->first; mpt; mpt= mpt->next) {
@@ -410,7 +478,7 @@ void calc_curvepath(Object *ob)
 	bl= cu->bev.first;
 	if(bl==NULL || !bl->nr) return;
 
-	cu->path=path= MEM_callocN(sizeof(Path), "path");
+	cu->path=path= MEM_callocN(sizeof(Path), "calc_curvepath");
 	
 	/* if POLY: last vertice != first vertice */
 	cycl= (bl->poly!= -1);
@@ -451,7 +519,7 @@ void calc_curvepath(Object *ob)
 	fp= dist+1;
 	maxdist= dist+tot;
 	fac= 1.0f/((float)path->len-1.0f);
-        fac = fac * path->totdist;
+		fac = fac * path->totdist;
 	
 	for(a=0; a<path->len; a++) {
 		
@@ -476,6 +544,7 @@ void calc_curvepath(Object *ob)
 		interp_v3_v3v3(pp->vec, bevp->vec, bevpn->vec, fac2);
 		pp->vec[3]= fac1*bevp->alfa + fac2*bevpn->alfa;
 		pp->radius= fac1*bevp->radius + fac2*bevpn->radius;
+		pp->weight= fac1*bevp->weight + fac2*bevpn->weight;
 		interp_qt_qtqt(pp->quat, bevp->quat, bevpn->quat, fac2);
 		normalize_qt(pp->quat);
 		
@@ -507,7 +576,7 @@ int interval_test(int min, int max, int p1, int cycl)
  * 	- *vec needs FOUR items!
  *	- ctime is normalized range <0-1>
  */
-int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius)	/* returns OK */
+int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius, float *weight)	/* returns OK */
 {
 	Curve *cu;
 	Nurb *nu;
@@ -603,6 +672,9 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 	if(radius)
 		*radius= data[0]*p0->radius + data[1]*p1->radius + data[2]*p2->radius + data[3]*p3->radius;
 
+	if(weight)
+		*weight= data[0]*p0->weight + data[1]*p1->weight + data[2]*p2->weight + data[3]*p3->weight;
+
 	return 1;
 }
 
@@ -658,11 +730,21 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, i
 			}
 			
 			dob= new_dupli_object(lb, go->ob, mat, ob->lay, 0, OB_DUPLIGROUP, animated);
-			dob->no_draw= (dob->origlay & group->layer)==0;
-			
+
+			/* check the group instance and object layers match, also that the object visible flags are ok. */
+			if(	(dob->origlay & group->layer)==0 ||
+				(G.rendering==0 && dob->ob->restrictflag & OB_RESTRICT_VIEW) ||
+				(G.rendering && dob->ob->restrictflag & OB_RESTRICT_RENDER)
+			) {
+				dob->no_draw= 1;
+			}
+			else {
+				dob->no_draw= 0;
+			}
+
 			if(go->ob->transflag & OB_DUPLI) {
 				copy_m4_m4(dob->ob->obmat, dob->mat);
-				object_duplilist_recursive((ID *)group, scene, go->ob, lb, ob->obmat, level+1, animated);
+				object_duplilist_recursive(&group->id, scene, go->ob, lb, ob->obmat, level+1, animated);
 				copy_m4_m4(dob->ob->obmat, dob->omat);
 			}
 		}
@@ -680,7 +762,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	if(level>MAX_DUPLI_RECUR) return;
 	
 	cfrao= scene->r.cfra;
-	if(ob->parent==NULL && ob->track==NULL && ob->ipo==NULL && ob->constraints.first==NULL) return;
+	if(ob->parent==NULL && ob->constraints.first==NULL) return;
 
 	if(ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
 	copyob= *ob;	/* store transform info */
@@ -729,10 +811,9 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	vertexDupliData *vdd= userData;
 	float vec[3], q2[4], mat[3][3], tmat[4][4], obmat[4][4];
 	
-	VECCOPY(vec, co);
-	mul_m4_v3(vdd->pmat, vec);
-	sub_v3_v3v3(vec, vec, vdd->pmat[3]);
-	add_v3_v3v3(vec, vec, vdd->obmat[3]);
+	mul_v3_m4v3(vec, vdd->pmat, co);
+	sub_v3_v3(vec, vdd->pmat[3]);
+	add_v3_v3(vec, vdd->obmat[3]);
 	
 	copy_m4_m4(obmat, vdd->obmat);
 	VECCOPY(obmat[3], vec);
@@ -848,7 +929,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 					/* mballs have a different dupli handling */
 					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
 
-					if(par->mode & OB_MODE_EDIT) {
+					if(me->edit_btmesh) {
 						dm->foreachMappedVert(dm, vertex_dupli__mapFunc, (void*) &vdd);
 					}
 					else {
@@ -988,7 +1069,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						mul_m4_v3(pmat, cent);
 						
 						sub_v3_v3v3(cent, cent, pmat[3]);
-						add_v3_v3v3(cent, cent, ob__obmat[3]);
+						add_v3_v3(cent, ob__obmat[3]);
 						
 						copy_m4_m4(obmat, ob__obmat);
 						
@@ -1011,7 +1092,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						copy_m4_m4(tmat, obmat);
 						mul_m4_m4m3(obmat, tmat, mat);
 						
-						dob= new_dupli_object(lb, ob, obmat, lay, a, OB_DUPLIFACES, animated);
+						dob= new_dupli_object(lb, ob, obmat, par->lay, a, OB_DUPLIFACES, animated);
 						if(G.rendering) {
 							w= (mv4)? 0.25f: 1.0f/3.0f;
 
@@ -1056,7 +1137,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		else		go= go->next;		/* group loop */
 	}
 	
-	if(par->mode & OB_MODE_EDIT) {
+	if(em) {
 		MEM_freeN(mface);
 		MEM_freeN(mvert);
 	}
@@ -1081,7 +1162,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	ParticleCacheKey *cache;
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size=0.0;
-	float (*obmat)[4], (*oldobmat)[4], recurs_mat[4][4];
+	float (*obmat)[4], (*oldobmat)[4];
 	int lay, a, b, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
 
@@ -1098,10 +1179,6 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	if(!psys_check_enabled(par, psys))
 		return;
 	
-	/* particles are already in world space, don't want the object mat twice */
-	if(par_space_mat)
-		mul_m4_m4m4(recurs_mat, psys->imat, par_space_mat);
-
 	ctime = bsystem_time(scene, par, (float)scene->r.cfra, 0.0);
 
 	totpart = psys->totpart;
@@ -1110,11 +1187,21 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	BLI_srandom(31415926 + psys->seed);
 	
 	lay= scene->lay;
-	if((psys->renderdata || part->draw_as==PART_DRAW_REND) &&
-		((part->ren_as == PART_DRAW_OB && part->dup_ob) ||
-		(part->ren_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first))) {
+	if((psys->renderdata || part->draw_as==PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
 
-		psys_check_group_weights(part);
+		/* first check for loops (particle system object used as dupli object) */
+		if(part->ren_as == PART_DRAW_OB) {
+			if(ELEM(part->dup_ob, NULL, par))
+				return;
+		}
+		else { /*PART_DRAW_GR */
+			if(part->dup_group == NULL || part->dup_group->gobject.first == NULL)
+				return;
+
+			for(go=part->dup_group->gobject.first; go; go=go->next)
+				if(go->ob == par)
+					return;
+		}
 
 		/* if we have a hair particle system, use the path cache */
 		if(part->type == PART_HAIR) {
@@ -1127,6 +1214,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 			totchild = psys->totchildcache;
 			totpart = psys->totcached;
 		}
+
+		psys_check_group_weights(part);
 
 		psys->lattice = psys_get_lattice(&sim);
 
@@ -1245,7 +1334,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					mul_m4_m4m4(tmat, oblist[b]->obmat, pamat);
 					mul_mat3_m4_fl(tmat, size*scale);
 					if(par_space_mat)
-						mul_m4_m4m4(mat, tmat, recurs_mat);
+						mul_m4_m4m4(mat, tmat, par_space_mat);
 					else
 						copy_m4_m4(mat, tmat);
 
@@ -1271,7 +1360,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					VECADD(tmat[3], tmat[3], vec);
 
 				if(par_space_mat)
-					mul_m4_m4m4(mat, tmat, recurs_mat);
+					mul_m4_m4m4(mat, tmat, par_space_mat);
 				else
 					copy_m4_m4(mat, tmat);
 
@@ -1442,7 +1531,10 @@ void free_object_duplilist(ListBase *lb)
 {
 	DupliObject *dob;
 	
-	for(dob= lb->first; dob; dob= dob->next) {
+	/* loop in reverse order, if object is instanced multiple times
+	   the original layer may not really be original otherwise, proper
+	   solution is more complicated */
+	for(dob= lb->last; dob; dob= dob->prev) {
 		dob->ob->lay= dob->origlay;
 		copy_m4_m4(dob->ob->obmat, dob->omat);
 	}

@@ -35,18 +35,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_property_types.h"
 #include "DNA_object_types.h"
-#include "DNA_listBase.h"
 
 #include "BLI_blenlib.h"
-#include "BKE_property.h"
 
 void free_property(bProperty *prop)
 {

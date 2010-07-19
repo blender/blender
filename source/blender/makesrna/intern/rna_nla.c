@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -321,13 +320,13 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blending", "Method used for combining strip's result with accumulated result");
 	
 	/* Strip extents */
-	prop= RNA_def_property(srna, "start_frame", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "start");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update");
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "end");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "");
@@ -355,12 +354,12 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Action", "Action referenced by this strip");
 	
 	/* Action extents */
-	prop= RNA_def_property(srna, "action_start_frame", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "action_frame_start", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "actstart");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_action_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Action Start Frame", "");
 	
-	prop= RNA_def_property(srna, "action_end_frame", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "action_frame_end", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "actend");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_action_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Action End Frame", "");
@@ -411,6 +410,11 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_USR_TIME);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_NlaStrip_animated_time_set");
 	RNA_def_property_ui_text(prop, "Animated Strip Time", "Strip time is controlled by an F-Curve rather than automatically determined");
+
+	prop= RNA_def_property(srna, "animated_time_cyclic", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_USR_TIME_CYCLIC);
+	RNA_def_property_ui_text(prop, "Cyclic Strip Time", "Cycle the animated time within the action start & end");
+	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update"); // is there a better update flag?
 	
 	/* settings */
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);

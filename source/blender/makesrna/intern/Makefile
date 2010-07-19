@@ -46,6 +46,7 @@ endif
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I../../../../intern/audaspace/intern
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../imbuf
@@ -89,6 +90,10 @@ endif
 
 ifeq ($(WITH_OPENAL),true)
 	CPPFLAGS += -DWITH_OPENAL
+endif
+
+ifeq ($(WITH_TIFF),true)
+    CPPFLAGS += -DWITH_TIFF
 endif
 
 ifeq ($(OS),windows)

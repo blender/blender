@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -35,6 +35,7 @@
 typedef struct ScreenAnimData {
 	ARegion *ar;		/* do not read from this, only for comparing if region exists */
 	short redraws;
+	short refresh;
 	short flag;			/* flags for playback */
 	int sfra;			/* frame that playback was started from */
 } ScreenAnimData;

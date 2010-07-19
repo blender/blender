@@ -30,10 +30,6 @@
 #include "SG_ParentRelation.h"
 #include <algorithm>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 using namespace std;
 
 
@@ -148,6 +144,12 @@ SG_Node::
 GetRootSGParent(
 ) const {
 	return (m_SGparent ? (const SG_Node*) m_SGparent->GetRootSGParent() : (const SG_Node*) this);
+}
+
+bool SG_Node::IsAncessor(const SG_Node* child) const
+{
+	return (!child->m_SGparent) ? false : 
+		(child->m_SGparent == this) ? true : IsAncessor(child->m_SGparent);
 }
 
 	void 

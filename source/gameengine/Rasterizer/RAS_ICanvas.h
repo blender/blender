@@ -130,6 +130,26 @@ public:
 	GetHeight(
 	) const = 0;
 
+	virtual
+		int
+	GetMouseX( int x
+	)=0;
+
+	virtual
+		int
+	GetMouseY( int y
+	)= 0;
+
+	virtual
+		float
+	GetMouseNormalizedX( int x
+	)=0;
+
+	virtual
+		float
+	GetMouseNormalizedY( int y
+	)= 0;
+
 	virtual 
 		const RAS_Rect &
 	GetDisplayArea(
@@ -172,16 +192,25 @@ public:
 		int y
 	)=0;
 
+	virtual
+		RAS_MouseState
+	GetMouseState()
+	{
+		return m_mousestate;
+	}
+
 	virtual 
 		void 
 	MakeScreenShot(
 		const char* filename
 	)=0;
 	
+protected:
+	RAS_MouseState m_mousestate;
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_ICanvas"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_ICanvas"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

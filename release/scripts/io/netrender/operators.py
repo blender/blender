@@ -39,7 +39,7 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
         scene = context.scene
         netsettings = scene.network_render
 
-        filename = bpy.data.filename
+        filename = bpy.data.filepath
         path, name = os.path.split(filename)
         root, ext = os.path.splitext(name)
         default_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
@@ -77,7 +77,7 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
 
         bpy.ops.ptcache.bake_all()
 
-        #bpy.ops.wm.save_mainfile(path = path + os.sep + root + "_baked.blend")
+        #bpy.ops.wm.save_mainfile(filepath = path + os.sep + root + "_baked.blend")
 
         return {'FINISHED'}
 
@@ -104,7 +104,7 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
             scene.network_render.job_id = client.clientSendJob(conn, scene, True)
             conn.close()
 
-        bpy.ops.screen.render('INVOKE_AREA', animation=True)
+        bpy.ops.render.render('INVOKE_AREA', animation=True)
 
         return {'FINISHED'}
 
@@ -121,7 +121,7 @@ class RENDER_OT_netclientrun(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        bpy.ops.screen.render('INVOKE_AREA', animation=True)
+        bpy.ops.render.render('INVOKE_AREA', animation=True)
 
         return {'FINISHED'}
 
@@ -147,6 +147,36 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
             if conn:
                 # Sending file
                 scene.network_render.job_id = client.clientSendJob(conn, scene, True)
+                conn.close()
+                self.report('INFO', "Job sent to master")
+        except Exception as err:
+            self.report('ERROR', str(err))
+
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
+@rnaType
+class RENDER_OT_netclientsendframe(bpy.types.Operator):
+    '''Send Render Job with current frame to the Network'''
+    bl_idname = "render.netclientsendframe"
+    bl_label = "Send current frame job"
+
+    def poll(self, context):
+        return True
+
+    def execute(self, context):
+        scene = context.scene
+        netsettings = scene.network_render
+
+        try:
+            conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+
+            if conn:
+                # Sending file
+                scene.network_render.job_id = client.clientSendJob(conn, scene, False)
                 conn.close()
                 self.report('INFO', "Job sent to master")
         except Exception as err:

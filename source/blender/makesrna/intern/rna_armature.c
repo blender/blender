@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -211,11 +210,11 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 {
 	bArmature *arm= (bArmature*)ptr->id.data;
 	EditBone *ebone= (EditBone*)ptr->data;
-	char oldname[32], newname[32];
+	char oldname[sizeof(ebone->name)], newname[sizeof(ebone->name)];
 	
 	/* need to be on the stack */
-	BLI_strncpy(newname, value, 32);
-	BLI_strncpy(oldname, ebone->name, 32);
+	BLI_strncpy(newname, value, sizeof(ebone->name));
+	BLI_strncpy(oldname, ebone->name, sizeof(ebone->name));
 	
 	ED_armature_bone_rename(arm, oldname, newname);
 }
@@ -224,12 +223,12 @@ static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
 {
 	bArmature *arm= (bArmature*)ptr->id.data;
 	Bone *bone= (Bone*)ptr->data;
-	char oldname[32], newname[32];
+	char oldname[sizeof(bone->name)], newname[sizeof(bone->name)];
 	
 	/* need to be on the stack */
-	BLI_strncpy(newname, value, 32);
-	BLI_strncpy(oldname, bone->name, 32);
-	
+	BLI_strncpy(newname, value, sizeof(bone->name));
+	BLI_strncpy(oldname, bone->name, sizeof(bone->name));
+
 	ED_armature_bone_rename(arm, oldname, newname);
 }
 
@@ -862,11 +861,6 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Dual Quaternion Deformation", "Enable deform rotation with Quaternions");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "deform_bbone_rest", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_B_BONE_REST);
-	RNA_def_property_ui_text(prop, "B-Bones Deform in Rest Position", "Make B-Bones deform already in Rest Position");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
 	//prop= RNA_def_property(srna, "deform_invert_vertexgroups", PROP_BOOLEAN, PROP_NONE);
 	//RNA_def_property_boolean_negative_sdna(prop, NULL, "deformflag", ARM_DEF_INVERT_VGROUP);
 	//RNA_def_property_ui_text(prop, "Invert Vertex Group Influence", "Invert Vertex Group influence (only for Modifiers)");
@@ -878,25 +872,25 @@ static void rna_def_armature(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ghost_step", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ghostep");
 	RNA_def_property_range(prop, 0, 30);
-	RNA_def_property_ui_text(prop, "Ghosting Step", "Number of frame steps on either side of current frame to show as ghosts (only for 'Around Current Frame' Onion-skining method)");
+	RNA_def_property_ui_text(prop, "Ghosting Step", "Number of frame steps on either side of current frame to show as ghosts (only for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "ghost_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ghostsize");
 	RNA_def_property_range(prop, 1, 20);
-	RNA_def_property_ui_text(prop, "Ghosting Frame Step", "Frame step for Ghosts (not for 'On Keyframes' Onion-skining method)");
+	RNA_def_property_ui_text(prop, "Ghosting Frame Step", "Frame step for Ghosts (not for 'On Keyframes' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
-	prop= RNA_def_property(srna, "ghost_start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "ghost_frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghostsf");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Ghosting Start Frame", "Starting frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
-	prop= RNA_def_property(srna, "ghost_end_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "ghost_frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghostef");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Ghosting End Frame", "End frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method)");

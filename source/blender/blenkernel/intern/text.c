@@ -37,8 +37,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_scene_types.h"
@@ -50,16 +48,11 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
-#endif
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
 #endif
 
 /***************/ /*
@@ -187,10 +180,12 @@ Text *add_empty_text(char *name)
 	
 	ta->name= NULL;
 
-    init_undo_text(ta);
+	init_undo_text(ta);
 
 	ta->nlines=1;
-	ta->flags= TXT_ISDIRTY | TXT_ISMEM | TXT_TABSTOSPACES;
+	ta->flags= TXT_ISDIRTY | TXT_ISMEM;
+	if((U.flag & USER_TXT_TABSTOSPACES_DISABLE)==0)
+		ta->flags |= TXT_TABSTOSPACES;
 
 	ta->lines.first= ta->lines.last= NULL;
 	ta->markers.first= ta->markers.last= NULL;
@@ -237,15 +232,13 @@ int reopen_text(Text *text)
 	int i, llen, len, res;
 	unsigned char *buffer;
 	TextLine *tmp;
-	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	struct stat st;
 
 	if (!text || !text->name) return 0;
 	
 	BLI_strncpy(str, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(str, G.sce);
-	BLI_split_dirfile_basic(str, NULL, sfile);
+	BLI_path_abs(str, G.sce);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return 0;
@@ -336,27 +329,26 @@ Text *add_text(char *file, const char *relpath)
 	unsigned char *buffer;
 	TextLine *tmp;
 	Text *ta;
-	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	struct stat st;
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
 	if (relpath) /* can be NULL (bg mode) */
-		BLI_convertstringcode(str, relpath);
-	BLI_split_dirfile_basic(str, NULL, sfile);
+		BLI_path_abs(str, relpath);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return NULL;
 	
-	ta= alloc_libblock(&G.main->text, ID_TXT, sfile);
+	ta= alloc_libblock(&G.main->text, ID_TXT, BLI_path_basename(str));
 	ta->id.us= 1;
 
 	ta->lines.first= ta->lines.last= NULL;
 	ta->markers.first= ta->markers.last= NULL;
 	ta->curl= ta->sell= NULL;
-	
-	ta->flags= TXT_TABSTOSPACES;
-	
+
+	if((U.flag & USER_TXT_TABSTOSPACES_DISABLE)==0)
+		ta->flags= TXT_TABSTOSPACES;
+
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);
 	fseek(fp, 0L, SEEK_SET);	

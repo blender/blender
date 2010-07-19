@@ -29,10 +29,6 @@
 
 #include "KX_TimeCategoryLogger.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_TimeCategoryLogger::KX_TimeCategoryLogger(unsigned int maxNumMeasurements)
 : m_maxNumMeasurements(maxNumMeasurements)
 {

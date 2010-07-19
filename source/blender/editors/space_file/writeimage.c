@@ -36,11 +36,9 @@
 
 #include "BLI_blenlib.h"
 
-#include "DNA_image_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_texture_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -52,40 +50,14 @@
 #include "file_intern.h"
 
 /* XXX */
-static void error() {}
+static void error(const char *dummy) {}
 static void waitcursor(int val) {}
-static void activate_fileselect() {}
-static int saveover() {return 0;}
+static void activate_fileselect(int d1, char *d2, char *d3, void *d4) {}
+static int saveover(const char *dummy) {return 0;}
 /* XXX */
 
 
 /* ------------------------------------------------------------------------- */
-
-
-void BIF_save_envmap(Scene *scene, EnvMap *env, char *str)
-{
-	ImBuf *ibuf;
-/*  	extern rectcpy(); */
-	int dx;
-	
-	/* all interactive stuff is handled in buttons.c */
-	if(env->cube[0]==NULL) return;
-		
-	dx= env->cube[0]->x;
-	ibuf= IMB_allocImBuf(3*dx, 2*dx, 24, IB_rect, 0);
-	
-	IMB_rectcpy(ibuf, env->cube[0], 0, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[1], dx, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[2], 2*dx, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[3], 0, dx, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[4], dx, dx, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[5], 2*dx, dx, 0, 0, dx, dx);
-	
-	BKE_write_ibuf(scene, ibuf, str, scene->r.imtype, scene->r.subimtype, scene->r.quality);
-	IMB_freeImBuf(ibuf);
-}
-
-
 
 /* callback for fileselect to save rendered image, renderresult was checked to exist */
 static void save_rendered_image_cb_real(char *name, int confirm)
@@ -105,7 +77,7 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 			BKE_add_image_extension(name, scene->r.imtype);
 
 	strcpy(str, name);
-	BLI_convertstringcode(str, G.sce);
+	BLI_path_abs(str, G.sce);
 
 	if (confirm)
 		overwrite = saveover(str);
@@ -114,14 +86,14 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 	
 	if(overwrite) {
 		if(scene->r.imtype==R_MULTILAYER) {
-			Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
+			Render *re= RE_GetRender(scene->id.name);
 			RenderResult *rr= RE_AcquireResultRead(re);
 			if(rr) 
 				RE_WriteRenderResult(rr, str, scene->r.quality);
 			RE_ReleaseResult(re);
 		}
 		else {
-			Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
+			Render *re= RE_GetRender(scene->id.name);
 			RenderResult rres;
 			ImBuf *ibuf;
 			
@@ -171,10 +143,11 @@ void save_image_filesel_str(Scene *scene, char *str)
 		case R_BMP:
 			strcpy(str, "Save BMP");
 			break;
+#ifdef WITH_TIFF
 		case R_TIFF:
-			if (G.have_libtiff)
-				strcpy(str, "Save TIFF");
+			strcpy(str, "Save TIFF");
 			break;
+#endif
 #ifdef WITH_OPENEXR
 		case R_OPENEXR:
 			strcpy(str, "Save OpenEXR");
@@ -211,7 +184,6 @@ void save_image_filesel_str(Scene *scene, char *str)
 #endif
 			/* default we save jpeg, also for all movie formats */
 		case R_JPEG90:
-		case R_MOVIE:
 		case R_AVICODEC:
 		case R_AVIRAW:
 		case R_AVIJPEG:
@@ -235,7 +207,7 @@ void BIF_save_rendered_image(char *name)
 /* calls fileselect */
 void BIF_save_rendered_image_fs(Scene *scene)
 {
-	Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
+	Render *re= RE_GetRender(scene->id.name);
 	RenderResult rres;
 	
 	RE_AcquireResultImage(re, &rres);

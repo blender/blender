@@ -59,6 +59,8 @@ void BKE_report_store_level_set(ReportList *reports, ReportType level);
 char *BKE_reports_string(ReportList *reports, ReportType level);
 void BKE_reports_print(ReportList *reports, ReportType level);
 
+Report *BKE_reports_last_displayable(ReportList *reports);
+	
 #ifdef __cplusplus
 }
 #endif

@@ -112,22 +112,22 @@ struct SeqEffectHandle {
 	
 	/* stores the y-range of the effect IPO */
 	void (*store_icu_yrange)(struct Sequence * seq,
-							 short adrcode, float *ymin, float *ymax);
+                                 short adrcode, float *ymin, float *ymax);
 	
 	/* stores the default facf0 and facf1 if no IPO is present */
 	void (*get_default_fac)(struct Sequence *seq, int cfra,
-							float * facf0, float * facf1);
+                                float * facf0, float * facf1);
 	
 	/* execute the effect
-		sequence effects are only required to either support
-		float-rects or byte-rects 
-		(mixed cases are handled one layer up...) */
+           sequence effects are only required to either support
+           float-rects or byte-rects 
+           (mixed cases are handled one layer up...) */
 	
 	void (*execute)(struct Scene *scene, struct Sequence *seq, int cfra,
-					float facf0, float facf1,
-					int x, int y,
-					struct ImBuf *ibuf1, struct ImBuf *ibuf2,
-					struct ImBuf *ibuf3, struct ImBuf *out);
+                        float facf0, float facf1,
+                        int x, int y, int preview_render_size,
+                        struct ImBuf *ibuf1, struct ImBuf *ibuf2,
+                        struct ImBuf *ibuf3, struct ImBuf *out);
 };
 
 /* ********************* prototypes *************** */
@@ -136,8 +136,8 @@ struct SeqEffectHandle {
 void printf_strip(struct Sequence *seq);
 
 /* apply functions recursively */
-void seqbase_recursive_apply(struct ListBase *seqbase, int (*apply_func)(struct Sequence *seq, void *), void *arg);
-void seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence *, void *), void *arg);
+int seqbase_recursive_apply(struct ListBase *seqbase, int (*apply_func)(struct Sequence *seq, void *), void *arg);
+int seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence *, void *), void *arg);
 
 // extern
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
@@ -149,11 +149,12 @@ char *give_seqname(struct Sequence *seq);
 struct ImBuf *give_ibuf_seq(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
 struct ImBuf *give_ibuf_seq_threaded(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
 struct ImBuf *give_ibuf_seq_direct(struct Scene *scene, int rectx, int recty, int cfra, int render_size, struct Sequence *seq);
+struct ImBuf *give_ibuf_seqbase(struct Scene *scene, int rectx, int recty, int cfra, int chan_shown, int render_size, struct ListBase *seqbasep);
 void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, int render_size);
 void calc_sequence(struct Scene *scene, struct Sequence *seq);
 void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
 void new_tstripdata(struct Sequence *seq);
-void reload_sequence_new_file(struct Scene *scene, struct Sequence * seq);
+void reload_sequence_new_file(struct Scene *scene, struct Sequence * seq, int lock_range);
 void sort_seq(struct Scene *scene);
 void build_seqar_cb(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq,
 					int (*test_func)(struct Sequence * seq));
@@ -186,21 +187,27 @@ void seq_single_fix(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
 struct ListBase *seq_seqbase(struct ListBase *seqbase, struct Sequence *seq);
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
+void seq_dupe_animdata(struct Scene *scene, char *name_from, char *name_to);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test, struct Scene *evil_scene);
 int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);
 void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);
+struct Sequence	*seq_dupli_recursive(struct Scene *scene, struct Sequence * seq, int dupe_flag);
+int seq_swap(struct Sequence *seq_a, struct Sequence *seq_b);
 
 void seq_update_sound(struct Scene* scene, struct Sequence *seq);
 void seq_update_muting(struct Scene* scene, struct Editing *ed);
 void seqbase_sound_reload(Scene *scene, ListBase *seqbase);
 void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
+void seqbase_dupli_recursive(struct Scene *scene, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);
+
 void clear_scene_in_allseqs(struct Scene *sce);
 
 struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);
 
-struct Sequence *active_seq_get(struct Scene *scene);
-void active_seq_set(struct Scene *scene, struct Sequence *seq);
+struct Sequence *seq_active_get(struct Scene *scene);
+void seq_active_set(struct Scene *scene, struct Sequence *seq);
+int seq_active_pair_get(struct Scene *scene, struct Sequence **seq_act, struct Sequence **seq_other);
 
 /* api for adding new sequence strips */
 typedef struct SeqLoadInfo {
@@ -222,6 +229,13 @@ typedef struct SeqLoadInfo {
 #define SEQ_LOAD_MOVIE_SOUND	1<<2
 #define SEQ_LOAD_SOUND_CACHE	1<<3
 
+
+/* seq_dupli' flags */
+#define SEQ_DUPE_UNIQUE_NAME	1<<0
+#define SEQ_DUPE_CONTEXT		1<<1
+#define SEQ_DUPE_ANIM			1<<2
+#define SEQ_DUPE_ALL			1<<3 /* otherwise only selected are copied */
+
 /* use as an api function */
 typedef struct Sequence *(*SeqLoadFunc)(struct bContext *, ListBase *, struct SeqLoadInfo *);
 
@@ -232,6 +246,10 @@ void seq_load_apply(struct Scene *scene, struct Sequence *seq, struct SeqLoadInf
 struct Sequence *sequencer_add_image_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 struct Sequence *sequencer_add_sound_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 struct Sequence *sequencer_add_movie_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
+
+/* view3d draw callback, run when not in background view */
+typedef struct ImBuf *(*SequencerDrawView)(struct Scene *, int, int, int);
+extern SequencerDrawView sequencer_view3d_cb;
 
 /* copy/paste */
 extern ListBase seqbase_clipboard;

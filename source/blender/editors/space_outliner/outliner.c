@@ -27,6 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -34,33 +35,28 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
-#include "DNA_outliner_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_text_types.h"
 #include "DNA_world_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BLI_blenlib.h"
+
+#if defined WIN32 && !defined _LIBC
+# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
+#else
+# define _GNU_SOURCE
+# include <fnmatch.h>
+#endif
 
 #include "IMB_imbuf_types.h"
 
@@ -87,7 +83,6 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
-#include "ED_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -103,16 +98,10 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_armature.h"
 #include "ED_keyframing.h"
-#include "ED_object.h"
-#include "ED_particle.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
 
 #include "outliner_intern.h"
 
-#include "PIL_time.h" 
 
 
 #define OL_H	19
@@ -134,7 +123,7 @@
 
 /* ************* XXX **************** */
 
-static void error() {}
+static void error(const char *dummy, ...) {}
 
 /* ********************************** */
 
@@ -144,6 +133,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 static void outliner_do_object_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *));
 
+static int group_select_flag(Group *gr);
 
 /* ******************** PERSISTANT DATA ***************** */
 
@@ -445,78 +435,91 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index);
 
+#define LOG2I(x) (int)(log(x)/log(2.0))
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
 {
-	TreeStoreElem *tselem= TREESTORE(tenla);
-	TreeElement *te;
+	TreeStoreElem *tselem = NULL;
+	TreeElement *te = NULL;
+
+	/* log stuff is to convert bitflags (powers of 2) to small integers,
+	 * in order to not overflow short tselem->nr */
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_COMBINED);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_COMBINED));
 	te->name= "Combined";
 	te->directdata= &srl->passflag;
 	
 	/* save cpu cycles, but we add the first to invoke an open/close triangle */
+	tselem = TREESTORE(tenla);
 	if(tselem->flag & TSE_CLOSED)
 		return;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_Z);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_Z));
 	te->name= "Z";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_VECTOR);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_VECTOR));
 	te->name= "Vector";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_NORMAL);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_NORMAL));
 	te->name= "Normal";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_UV);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_UV));
 	te->name= "UV";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_MIST);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_MIST));
 	te->name= "Mist";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_INDEXOB);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_INDEXOB));
 	te->name= "Index Object";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_RGBA);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_RGBA));
 	te->name= "Color";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_DIFFUSE);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_DIFFUSE));
 	te->name= "Diffuse";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_SPEC);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_SPEC));
 	te->name= "Specular";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_SHADOW);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_SHADOW));
 	te->name= "Shadow";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_AO);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_AO));
 	te->name= "AO";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_REFLECT);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_REFLECT));
 	te->name= "Reflection";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_REFRACT);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_REFRACT));
 	te->name= "Refraction";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_RADIO);
-	te->name= "Radiosity";
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_INDIRECT));
+	te->name= "Indirect";
 	te->directdata= &srl->passflag;
-	
+
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_ENVIRONMENT));
+	te->name= "Environment";
+	te->directdata= &srl->passflag;
+
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_EMIT));
+	te->name= "Emit";
+	te->directdata= &srl->passflag;
 }
 
+#undef LOG2I
 
 /* special handling of hierarchical non-lib data */
 static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone, 
@@ -1245,6 +1248,86 @@ void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
 	}
 }
 
+static int outliner_filter_has_name(TreeElement *te, char *name, int flags)
+{
+#if 0
+	int found= 0;
+	
+	/* determine if match */
+	if (flags & SO_FIND_CASE_SENSITIVE) {
+		if (flags & SO_FIND_COMPLETE)
+			found= strcmp(te->name, name) == 0;
+		else
+			found= strstr(te->name, name) != NULL;
+	}
+	else {
+		if (flags & SO_FIND_COMPLETE)
+			found= BLI_strcasecmp(te->name, name) == 0;
+		else
+			found= BLI_strcasestr(te->name, name) != NULL;
+	}
+#else
+	
+	int fn_flag= 0;
+	int found= 0;
+	
+	if ((flags & SO_FIND_CASE_SENSITIVE) == 0)
+		fn_flag |= FNM_CASEFOLD;
+
+	if (flags & SO_FIND_COMPLETE) {
+		found= fnmatch(name, te->name, fn_flag)==0;
+	}
+	else {
+		char fn_name[sizeof(((struct SpaceOops *)NULL)->search_string) + 2];
+		sprintf(fn_name, "*%s*", name);
+		found= fnmatch(fn_name, te->name, fn_flag)==0;
+	}
+	return found;
+#endif
+}
+
+static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
+{
+	TreeElement *te, *ten;
+	TreeStoreElem *tselem;
+	
+	/* although we don't have any search string, we return TRUE 
+	 * since the entire tree is ok then...
+	 */
+	if (soops->search_string[0]==0) 
+		return 1;
+
+	for (te= lb->first; te; te= ten) {
+		ten= te->next;
+		
+		if (0==outliner_filter_has_name(te, soops->search_string, soops->search_flags)) {
+			/* item isn't something we're looking for, but...
+			 * 	- if the subtree is expanded, check if there are any matches that can be easily found
+			 *		so that searching for "cu" in the default scene will still match the Cube
+			 *	- otherwise, we can't see within the subtree and the item doesn't match,
+			 *		so these can be safely ignored (i.e. the subtree can get freed)
+			 */
+			tselem= TREESTORE(te);
+			
+			if ((tselem->flag & TSE_CLOSED) || outliner_filter_tree(soops, &te->subtree)==0) { 
+				outliner_free_tree(&te->subtree);
+				BLI_remlink(lb, te);
+				
+				if(te->flag & TE_FREE_NAME) MEM_freeN(te->name);
+				MEM_freeN(te);
+			}
+		}
+		else {
+			/* filter subtree too */
+			outliner_filter_tree(soops, &te->subtree);
+		}
+	}
+	
+	/* if there are still items in the list, that means that there were still some matches */
+	return (lb->first != NULL);
+}
+
+
 static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 {
 	Base *base;
@@ -1328,7 +1411,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		GroupObject *go;
 		
 		for(group= mainvar->group.first; group; group= group->id.next) {
-			if(group->id.us) {
+			if(group->gobject.first) {
 				te= outliner_add_element(soops, &soops->tree, group, NULL, 0, 0);
 				tselem= TREESTORE(te);
 				
@@ -1426,6 +1509,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	}
 
 	outliner_sort(soops, &soops->tree);
+	outliner_filter_tree(soops, &soops->tree);
 }
 
 /* **************** INTERACTIVE ************* */
@@ -1549,8 +1633,6 @@ void OUTLINER_OT_selectability_toggle(wmOperatorType *ot)
 	
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-
-/* --- */
 
 void object_toggle_renderability_cb(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
@@ -1845,7 +1927,8 @@ static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *so
 	
 	/* we search for the object parent */
 	ob= (Object *)outliner_search_back(soops, te, ID_OB);
-	if(ob==NULL || ob!=OBACT) return 0;	// just paranoia
+	// note: ob->matbits can be NULL when a local object points to a library mesh.
+	if(ob==NULL || ob!=OBACT || ob->matbits==NULL) return 0;	// just paranoia
 	
 	/* searching in ob mat array? */
 	tes= te->parent;
@@ -2140,7 +2223,7 @@ static int tree_element_active_psys(bContext *C, Scene *scene, TreeElement *te, 
 	if(set) {
 		Object *ob= (Object *)tselem->id;
 		
-		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 		
 // XXX		extern_set_butspace(F7KEY, 0);
 	}
@@ -2265,7 +2348,6 @@ static int tree_element_active_keymap_item(bContext *C, TreeElement *te, TreeSto
 /* Context can be NULL when set==0 */
 static int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
 {
-	
 	switch(tselem->type) {
 		case TSE_DEFGROUP:
 			return tree_element_active_defgroup(C, scene, te, tselem, set);
@@ -2343,12 +2425,46 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 						ED_screen_set_scene(C, (Scene *)tselem->id);
 					}
 				}
+				else if(te->idcode==ID_GR) {
+					Group *gr= (Group *)tselem->id;
+					GroupObject *gob;
+
+					if(extend) {
+						int sel= BA_SELECT;
+						for(gob= gr->gobject.first; gob; gob= gob->next) {
+							if(gob->ob->flag & SELECT) {
+								sel= BA_DESELECT;
+								break;
+							}
+						}
+
+						for(gob= gr->gobject.first; gob; gob= gob->next) {
+							ED_base_object_select(object_in_scene(gob->ob, scene), sel);
+						}
+					}
+					else {
+						scene_deselect_all(scene);
+
+						for(gob= gr->gobject.first; gob; gob= gob->next) {
+							if((gob->ob->flag & SELECT) == 0)
+								ED_base_object_select(object_in_scene(gob->ob, scene), BA_SELECT);
+						}
+					}
+
+					WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+				}
 				else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
 					Object *obedit= CTX_data_edit_object(C);
 					if(obedit) 
 						ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 					else {
-						ED_object_enter_editmode(C, EM_WAITCURSOR);
+						Object *ob= CTX_data_active_object(C);
+
+						/* Don't allow edit mode if the object is hide!
+						 * check the bug #22153 and #21609
+						 */
+						if (ob && (!(ob->restrictflag & OB_RESTRICT_VIEW)))
+							ED_object_enter_editmode(C, EM_WAITCURSOR);
 						// XXX extern_set_butspace(F9KEY, 0);
 					}
 				} else {	// rest of types
@@ -2655,17 +2771,7 @@ static TreeElement *outliner_find_named(SpaceOops *soops, ListBase *lb, char *na
 	TreeElement *te, *tes;
 	
 	for (te= lb->first; te; te= te->next) {
-		int found;
-		
-		/* determine if match */
-		if(flags==OL_FIND)
-			found= BLI_strcasestr(te->name, name)!=NULL;
-		else if(flags==OL_FIND_CASE)
-			found= strstr(te->name, name)!=NULL;
-		else if(flags==OL_FIND_COMPLETE)
-			found= BLI_strcasecmp(te->name, name)==0;
-		else
-			found= strcmp(te->name, name)==0;
+		int found = outliner_filter_has_name(te, name, flags);
 		
 		if(found) {
 			/* name is right, but is element the previous one? */
@@ -2721,7 +2827,7 @@ void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again,
 	TreeElement *last_find;
 	TreeStoreElem *tselem;
 	int ytop, xdelta, prevFound=0;
-	char name[33];
+	char name[32];
 	
 	/* get last found tree-element based on stored search_tse */
 	last_find= outliner_find_tse(soops, &soops->search_tse);
@@ -2729,7 +2835,7 @@ void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again,
 	/* determine which type of search to do */
 	if (again && last_find) {
 		/* no popup panel - previous + user wanted to search for next after previous */		
-		BLI_strncpy(name, soops->search_string, 33);
+		BLI_strncpy(name, soops->search_string, sizeof(name));
 		flags= soops->search_flags;
 		
 		/* try to find matching element */
@@ -3018,7 +3124,6 @@ static void unlink_group_cb(bContext *C, Scene *scene, TreeElement *te, TreeStor
 		if( GS(tsep->id->name)==ID_OB) {
 			Object *ob= (Object *)tsep->id;
 			ob->dup_group= NULL;
-			group->id.us--;
 		}
 	}
 	else {
@@ -3328,6 +3433,9 @@ static EnumPropertyItem prop_group_op_types[] = {
 	{1, "UNLINK", 0, "Unlink", ""},
 	{2, "LOCAL", 0, "Make Local", ""},
 	{3, "LINK", 0, "Link Group Objects to Scene", ""},
+	{4, "TOGVIS", 0, "Toggle Visible", ""},
+ 	{5, "TOGSEL", 0, "Toggle Selectable", ""},
+ 	{6, "TOGREN", 0, "Toggle Renderable", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3354,7 +3462,7 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	else if(event==3) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb);
 		ED_undo_push(C, "Link Group Objects to Scene");
-	}
+ 	}   
 	
 	
 	WM_event_add_notifier(C, NC_GROUP, NULL);
@@ -3786,7 +3894,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 			short groupmode= KSP_GROUP_KSNAME;
 			
 			/* check if RNA-property described by this selected element is an animateable prop */
-			if ((tselem->type == TSE_RNA_PROPERTY) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
+			if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
 				/* get id + path + index info from the selected element */
 				tree_element_to_path(soops, te, tselem, 
 						&id, &path, &array_index, &flag, &groupmode);
@@ -3794,7 +3902,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 			
 			/* only if ID and path were set, should we perform any actions */
 			if (id && path) {
-				int arraylen;
+				int arraylen = 1;
 				
 				/* array checks */
 				if (flag & KSP_FLAG_WHOLE_ARRAY) {
@@ -4101,11 +4209,11 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 	if(arg->x >= arg->xmax) 
 		UI_icon_draw(arg->x, arg->y, icon);
 	else {
-		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, "");
+		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
 		if(arg->id)
 			uiButSetDragID(but, arg->id);
 	}
-	
+
 }
 
 static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te, float alpha)
@@ -4210,6 +4318,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						UI_icon_draw(x, y, ICON_MOD_SMOKE); break;
 					case eModifierType_Solidify:
 						UI_icon_draw(x, y, ICON_MOD_SOLIDIFY); break;
+					case eModifierType_Screw:
+						UI_icon_draw(x, y, ICON_MOD_SCREW); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
@@ -4226,7 +4336,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			case TSE_R_LAYER_BASE:
 				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
 			case TSE_R_LAYER:
-				UI_icon_draw(x, y, ICON_RENDER_RESULT); break;
+				UI_icon_draw(x, y, ICON_RENDERLAYERS); break;
 			case TSE_LINKED_LAMP:
 				UI_icon_draw(x, y, ICON_LAMP_DATA); break;
 			case TSE_LINKED_MAT:
@@ -4424,6 +4534,18 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 			if(te->idcode==ID_SCE) {
 				if(tselem->id == (ID *)scene) {
 					glColor4ub(255, 255, 255, 100);
+					active= 2;
+				}
+			}
+			else if(te->idcode==ID_GR) {
+				Group *gr = (Group *)tselem->id;
+
+				if(group_select_flag(gr)) {
+					char col[4];
+					UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
+					col[3]= 100;
+					glColor4ubv((GLubyte *)col);
+
 					active= 2;
 				}
 			}
@@ -4721,6 +4843,16 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 	Base *base;
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
+	Object *obedit= CTX_data_edit_object(C);
+
+	/* Don't allow hide an objet in edit mode,
+	 * check the bug #22153 and #21609
+	 */
+	if (obedit && obedit == ob) {
+		if (ob->restrictflag & OB_RESTRICT_VIEW)
+			ob->restrictflag &= ~OB_RESTRICT_VIEW;
+		return;
+	}
 	
 	/* deselect objects that are invisible */
 	if (ob->restrictflag & OB_RESTRICT_VIEW) {
@@ -4772,11 +4904,9 @@ static void restrictbutton_r_lay_cb(bContext *C, void *poin, void *poin2)
 
 static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 {
-	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
 	
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	object_handle_update(scene, ob);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 }
@@ -4785,6 +4915,73 @@ static void restrictbutton_bone_cb(bContext *C, void *poin, void *poin2)
 {
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 }
+
+
+static int group_restrict_flag(Group *gr, int flag)
+{
+	GroupObject *gob;
+
+	for(gob= gr->gobject.first; gob; gob= gob->next) {
+		if((gob->ob->restrictflag & flag) == 0)
+			return 0;
+	}
+
+	return 1;
+}
+
+static int group_select_flag(Group *gr)
+{
+	GroupObject *gob;
+
+	for(gob= gr->gobject.first; gob; gob= gob->next)
+		if((gob->ob->flag & SELECT))
+			return 1;
+
+	return 0;
+}
+
+static void restrictbutton_gr_restrict_flag(bContext *C, void *poin, void *poin2, int flag)
+{	
+	Scene *scene = (Scene *)poin;		
+	GroupObject *gob;
+	Group *gr = (Group *)poin2; 	
+
+	if(group_restrict_flag(gr, flag)) {
+		for(gob= gr->gobject.first; gob; gob= gob->next) {
+			gob->ob->restrictflag &= ~flag;
+
+			if(flag==OB_RESTRICT_VIEW)
+				if(gob->ob->flag & SELECT)
+					ED_base_object_select(object_in_scene(gob->ob, scene), BA_DESELECT);
+		}
+	}
+	else {
+		for(gob= gr->gobject.first; gob; gob= gob->next) {
+			gob->ob->restrictflag |= flag;
+
+			if(flag==OB_RESTRICT_VIEW)
+				if((gob->ob->flag & SELECT) == 0)
+					ED_base_object_select(object_in_scene(gob->ob, scene), BA_SELECT);
+		}
+	}
+} 
+
+static void restrictbutton_gr_restrict_view(bContext *C, void *poin, void *poin2)
+{
+	restrictbutton_gr_restrict_flag(C, poin, poin2, OB_RESTRICT_VIEW);
+	WM_event_add_notifier(C, NC_GROUP, NULL);
+}
+static void restrictbutton_gr_restrict_select(bContext *C, void *poin, void *poin2)
+{
+	restrictbutton_gr_restrict_flag(C, poin, poin2, OB_RESTRICT_SELECT);
+	WM_event_add_notifier(C, NC_GROUP, NULL);
+}
+static void restrictbutton_gr_restrict_render(bContext *C, void *poin, void *poin2)
+{
+	restrictbutton_gr_restrict_flag(C, poin, poin2, OB_RESTRICT_RENDER);
+	WM_event_add_notifier(C, NC_GROUP, NULL);
+}
+
 
 static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 {
@@ -4816,7 +5013,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 			if (te->idcode == ID_LI) {
 				char expanded[FILE_MAXDIR + FILE_MAXFILE];
 				BLI_strncpy(expanded, ((Library *)tselem->id)->name, FILE_MAXDIR + FILE_MAXFILE);
-				BLI_convertstringcode(expanded, G.sce);
+				BLI_path_abs(expanded, G.sce);
 				if (!BLI_exists(expanded)) {
 					error("This path does not exist, correct this before saving");
 				}
@@ -4903,29 +5100,57 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	Object *ob = NULL;
+	Group  *gr = NULL;
 
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
 		if(te->ys+2*OL_H >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {	
 			/* objects have toggle-able restriction flags */
 			if(tselem->type==0 && te->idcode==ID_OB) {
+				PointerRNA ptr;
+
 				ob = (Object *)tselem->id;
+				RNA_pointer_create((ID *)ob, &RNA_Object, ob, &ptr);
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, 0, ICON_RESTRICT_VIEW_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_VIEW_OFF,
+							  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1,
+							  &ptr, "restrict_view", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, 0, ICON_RESTRICT_SELECT_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_SELECT_OFF,
+								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1,
+								  &ptr, "restrict_select", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				
-				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, 0, ICON_RESTRICT_RENDER_OFF, 
-						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
+				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_RENDER_OFF,
+								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1,
+								  &ptr, "restrict_render", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_rend_cb, scene, ob);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
+				
 			}
+			if(tselem->type==0 && te->idcode==ID_GR){ 
+				int restrict_bool;
+				gr = (Group *)tselem->id;
+ 				
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+
+				restrict_bool= group_restrict_flag(gr, OB_RESTRICT_VIEW);
+				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				uiButSetFunc(bt, restrictbutton_gr_restrict_view, scene, gr);
+
+				restrict_bool= group_restrict_flag(gr, OB_RESTRICT_SELECT);
+				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				uiButSetFunc(bt, restrictbutton_gr_restrict_select, scene, gr);
+
+				restrict_bool= group_restrict_flag(gr, OB_RESTRICT_RENDER);
+				bt = uiDefIconBut(block, BUT, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF, (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, 0, 0, 0, 0, 0, "Restrict/Allow renderability");
+				uiButSetFunc(bt, restrictbutton_gr_restrict_render, scene, gr);
+
+				uiBlockSetEmboss(block, UI_EMBOSS);
+ 			}
 			/* scene render layers and passes have toggle-able flags too! */
 			else if(tselem->type==TSE_R_LAYER) {
 				uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -4938,16 +5163,18 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 			}
 			else if(tselem->type==TSE_R_PASS) {
 				int *layflag= te->directdata;
+				int passflag= 1<<tselem->nr;
+				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				
-				/* NOTE: tselem->nr is short! */
-				bt= uiDefIconButBitI(block, ICONTOG, tselem->nr, 0, ICON_CHECKBOX_HLT-1, 
+				
+				bt= uiDefIconButBitI(block, ICONTOG, passflag, 0, ICON_CHECKBOX_HLT-1, 
 									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
 				layflag++;	/* is lay_xor */
-				if(ELEM6(tselem->nr, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_RADIO))
-					bt= uiDefIconButBitI(block, TOG, tselem->nr, 0, (*layflag & tselem->nr)?ICON_DOT:ICON_BLANK1, 
+				if(ELEM8(passflag, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_INDIRECT, SCE_PASS_EMIT, SCE_PASS_ENVIRONMENT))
+					bt= uiDefIconButBitI(block, TOG, passflag, 0, (*layflag & passflag)?ICON_DOT:ICON_BLANK1, 
 									 (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				

@@ -87,7 +87,8 @@ typedef enum {
 	UI_WTYPE_NORMAL,
 	UI_WTYPE_BOX,
 	UI_WTYPE_SCROLL,
-	UI_WTYPE_LISTITEM
+	UI_WTYPE_LISTITEM,
+	UI_WTYPE_PROGRESSBAR,
 	
 } uiWidgetTypeEnum;
 
@@ -126,6 +127,9 @@ typedef enum {
  * extension direction, selextend, inside ui_do_but_TEX */
 #define EXTEND_LEFT		1
 #define EXTEND_RIGHT	2
+
+/* for scope resize zone */
+#define SCOPE_RESIZE_PAD	9
 
 typedef struct {
 	short xim, yim;
@@ -180,8 +184,11 @@ struct uiBut {
 
 	struct bContextStore *context;
 
+	/* not ysed yet, was used in 2.4x for ui_draw_pulldown_round & friends */
+	/*
 	void (*embossfunc)(int , int , float, float, float, float, float, int);
 	void (*sliderfunc)(int , float, float, float, float, float, float, int);
+	*/
 
 	uiButCompleteFunc autocomplete_func;
 	void *autofunc_arg;
@@ -224,12 +231,12 @@ struct uiBut {
 
 	/* Operator data */
 	struct wmOperatorType *optype;
-	int opcontext;
 	struct IDProperty *opproperties;
 	struct PointerRNA *opptr;
+	short opcontext;
 	
 	/* Draggable data, type is WM_DRAG_... */
-	int dragtype;
+	short dragtype;
 	void *dragpoin;
 	struct ImBuf *imb;
 	float imb_scale;
@@ -440,6 +447,8 @@ extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float 
 void ui_draw_gradient(rcti *rect, float *rgb, int type, float alpha);
 
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
+void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
+void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_COLORBAND(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_NORMAL(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
@@ -474,7 +483,7 @@ int ui_id_icon_get(struct bContext *C, struct ID *id, int preview);
 
 /* resources.c */
 void init_userdef_do_versions(void);
-void ui_theme_init_userdef(void);
+void ui_theme_init_default(void);
 void ui_resources_init(void);
 void ui_resources_free(void);
 

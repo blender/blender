@@ -20,7 +20,7 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class DataButtonsPanel(bpy.types.Panel):
@@ -69,7 +69,10 @@ class DATA_PT_skeleton(DataButtonsPanel):
         arm = context.armature
         wide_ui = context.region.width > narrowui
 
-        layout.prop(arm, "pose_position", expand=True)
+        if wide_ui:
+            layout.prop(arm, "pose_position", expand=True)
+        else:
+            layout.prop(arm, "pose_position", text="")
 
         split = layout.split()
 
@@ -79,13 +82,17 @@ class DATA_PT_skeleton(DataButtonsPanel):
         col.label(text="Protected Layers:")
         col.prop(arm, "layer_protection", text="")
 
-        if wide_ui:
-            col = split.column()
         col.label(text="Deform:")
+
+        split = layout.split()
+
+        col = split.column()
         col.prop(arm, "deform_vertexgroups", text="Vertex Groups")
         col.prop(arm, "deform_envelope", text="Envelopes")
+
+        if wide_ui:
+            col = split.column()
         col.prop(arm, "deform_quaternion", text="Quaternion")
-        col.prop(arm, "deform_bbone_rest", text="B-Bones Rest")
 
 
 class DATA_PT_display(DataButtonsPanel):
@@ -114,7 +121,6 @@ class DATA_PT_display(DataButtonsPanel):
             col = split.column()
         col.prop(arm, "draw_group_colors", text="Colors")
         col.prop(arm, "delay_deform", text="Delay Refresh")
-        col.prop(ob, "x_ray", text="X-Ray (Object)")
 
 
 class DATA_PT_bone_groups(DataButtonsPanel):
@@ -154,13 +160,16 @@ class DATA_PT_bone_groups(DataButtonsPanel):
                     col = split.column()
                 col.template_triColorSet(group, "colors")
 
-        row = layout.row(align=True)
+        row = layout.row()
         row.active = (ob.proxy is None)
 
-        row.operator("pose.group_assign", text="Assign")
-        row.operator("pose.group_unassign", text="Remove") #row.operator("pose.bone_group_remove_from", text="Remove")
-        #row.operator("object.bone_group_select", text="Select")
-        #row.operator("object.bone_group_deselect", text="Deselect")
+        sub = row.row(align=True)
+        sub.operator("pose.group_assign", text="Assign")
+        sub.operator("pose.group_unassign", text="Remove") #row.operator("pose.bone_group_remove_from", text="Remove")
+
+        sub = row.row(align=True)
+        sub.operator("pose.group_select", text="Select")
+        sub.operator("pose.group_deselect", text="Deselect")
 
 
 # TODO: this panel will soon be depreceated too
@@ -186,8 +195,8 @@ class DATA_PT_ghost(DataButtonsPanel):
 
         sub = col.column(align=True)
         if arm.ghost_type == 'RANGE':
-            sub.prop(arm, "ghost_start_frame", text="Start")
-            sub.prop(arm, "ghost_end_frame", text="End")
+            sub.prop(arm, "ghost_frame_start", text="Start")
+            sub.prop(arm, "ghost_frame_end", text="End")
             sub.prop(arm, "ghost_size", text="Step")
         elif arm.ghost_type == 'CURRENT_FRAME':
             sub.prop(arm, "ghost_step", text="Range")
@@ -253,7 +262,7 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel):
                 row.prop(itasc, "dampmax", text="Damp", slider=True)
                 row.prop(itasc, "dampeps", text="Eps", slider=True)
 
-# import generic panels from other files 
+# import generic panels from other files
 from properties_animviz import DATA_PT_motion_paths, DATA_PT_onion_skinning
 
 classes = [

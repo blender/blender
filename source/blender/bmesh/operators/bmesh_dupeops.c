@@ -169,8 +169,8 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	int maxlength = 0;
 
 	/*initialize pointer hashes*/
-	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp); 
-	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops v");
+	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops e");
 	
 	/*initialize edge pointer array*/
 	for(f = BMIter_New(&faces, source, BM_FACES_OF_MESH, source); f; f = BMIter_Step(&faces)){

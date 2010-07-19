@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,15 +29,12 @@
 #include <stdlib.h>
 
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
-#include "ED_screen.h"
 
 #include "outliner_intern.h"
 
@@ -77,6 +74,8 @@ void outliner_operatortypes(void)
 void outliner_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Outliner", SPACE_OUTLINER, 0);
+	
+	WM_keymap_add_item(keymap, "OUTLINER_OT_item_rename", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
 	
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_PRESS, 0, 0)->ptr, "extend", 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);

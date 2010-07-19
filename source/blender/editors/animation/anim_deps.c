@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,14 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
@@ -47,21 +44,13 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "ED_anim_api.h"
-#include "ED_screen.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 /* **************************** depsgraph tagging ******************************** */
 
@@ -101,7 +90,7 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 	else {
 		/* in other case we do standard depsgaph update, ideally
 		   we'd be calling property update functions here too ... */
-		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
+		DAG_id_flush_update(id, OB_RECALC_ALL); // XXX or do we want something more restrictive?
 	}
 }
 
@@ -117,7 +106,7 @@ void ANIM_id_update(Scene *scene, ID *id)
 			adt->recalc |= ADT_RECALC_ANIM;
 			
 		/* set recalc flags */
-		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
+		DAG_id_flush_update(id, OB_RECALC_ALL); // XXX or do we want something more restrictive?
 	}
 }
 

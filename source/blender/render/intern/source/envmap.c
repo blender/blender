@@ -74,15 +74,23 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 	
 	dx= ibuf->y;
 	dx/= 2;
-	if(3*dx != ibuf->x) {
+	if (3*dx == ibuf->x) {
+		env->type = ENV_CUBE;
+	} else if (ibuf->x == ibuf->y) {
+		env->type = ENV_PLANE;
+	} else {
 		printf("Incorrect envmap size\n");
 		env->ok= 0;
 		env->ima->ok= 0;
+		return;
 	}
-	else {
+	
+	if (env->type == ENV_CUBE) {
 		for(part=0; part<6; part++) {
-			env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect, 0);
+			env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect|IB_rectfloat, 0);
 		}
+		IMB_float_from_rect(ibuf);
+		
 		IMB_rectcpy(env->cube[0], ibuf, 
 			0, 0, 0, 0, dx, dx);
 		IMB_rectcpy(env->cube[1], ibuf, 
@@ -97,6 +105,12 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 			0, 0, 2*dx, dx, dx, dx);
 		env->ok= ENV_OSA;
 	}
+	else { /* ENV_PLANE */
+		env->cube[1]= IMB_dupImBuf(ibuf);
+		IMB_float_from_rect(env->cube[1]);
+		
+		env->ok= ENV_OSA;
+	}
 }
 
 /* ------------------------------------------------------------------------- */
@@ -108,7 +122,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	Render *envre;
 	int cuberes;
 	
-	envre= RE_NewRender("Envmap", RE_SLOT_DEFAULT);
+	envre= RE_NewRender("Envmap");
 	
 	env->lastsize= re->r.size;
 	cuberes = (env->cuberes * re->r.size) / 100;
@@ -129,6 +143,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	
 	RE_InitState(envre, NULL, &envre->r, NULL, cuberes, cuberes, NULL);
 	envre->scene= re->scene;	/* unsure about this... */
+	envre->lay= re->lay;
 
 	/* view stuff in env render */
 	envre->lens= 16.0f;
@@ -432,7 +447,7 @@ static void render_envmap(Render *re, EnvMap *env)
 		env_set_imats(envre);
 				
 		if(re->test_break(re->tbh)==0) {
-			RE_TileProcessor(envre, 0, 0);
+			RE_TileProcessor(envre);
 		}
 		
 		/* rotate back */
@@ -442,17 +457,18 @@ static void render_envmap(Render *re, EnvMap *env)
 		if(re->test_break(re->tbh)==0) {
 			RenderLayer *rl= envre->result->layers.first;
 			int y;
-			char *alpha;
+			float *alpha;
 			
-			ibuf= IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect, 0);
-			ibuf->rect_float= rl->rectf;
-			IMB_rect_from_float(ibuf);
-			ibuf->rect_float= NULL;
+			ibuf= IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect|IB_rectfloat, 0);
+			memcpy(ibuf->rect_float, rl->rectf, ibuf->channels * ibuf->x * ibuf->y * sizeof(float));
+			
+			if (re->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 			
 			/* envmap renders without alpha */
-			alpha= ((char *)ibuf->rect)+3;
+			alpha= ((float *)ibuf->rect_float)+3;
 			for(y= ibuf->x*ibuf->y - 1; y>=0; y--, alpha+=4)
-				*alpha= 255;
+				*alpha= 1.0;
 			
 			env->cube[part]= ibuf;
 		}
@@ -498,7 +514,7 @@ void make_envmaps(Render *re)
 				if(tex->env && tex->env->object) {
 					EnvMap *env= tex->env;
 					
-					if(env->object->lay & re->scene->lay) {
+					if(env->object->lay & re->lay) {
 						if(env->stype==ENV_LOAD) {
 							float orthmat[4][4], mat[4][4], tmat[4][4];
 							
@@ -657,10 +673,11 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		texres->tin= 0.0;
 		return 0;
 	}
+	
 	if(env->stype==ENV_LOAD) {
 		env->ima= tex->ima;
 		if(env->ima && env->ima->ok) {
-			if(env->cube[0]==NULL) {
+			if(env->cube[1]==NULL) {
 				ImBuf *ibuf= BKE_image_get_ibuf(env->ima, NULL);
 				if(ibuf)
 					envmap_split_ima(env, ibuf);
@@ -671,7 +688,6 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	}
 
 	if(env->ok==0) {
-		
 		texres->tin= 0.0;
 		return 0;
 	}
@@ -703,9 +719,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	
 			texr1.nor= texr2.nor= NULL;
 
-			add_v3_v3v3(vec, vec, dxt);
+			add_v3_v3(vec, dxt);
 			face1= envcube_isect(env, vec, sco);
-			sub_v3_v3v3(vec, vec, dxt);
+			sub_v3_v3(vec, dxt);
 			
 			if(face!=face1) {
 				ibuf= env->cube[face1];
@@ -716,9 +732,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			
 			/* here was the nasty bug! results were not zero-ed. FPE! */
 			
-			add_v3_v3v3(vec, vec, dyt);
+			add_v3_v3(vec, dyt);
 			face1= envcube_isect(env, vec, sco);
-			sub_v3_v3v3(vec, vec, dyt);
+			sub_v3_v3(vec, dyt);
 			
 			if(face!=face1) {
 				ibuf= env->cube[face1];

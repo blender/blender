@@ -40,10 +40,6 @@
 
 #include "mjpeg.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define PADUP(num, amt)	((num+(amt-1))&~(amt-1))
 
 static void jpegmemdestmgr_build (j_compress_ptr cinfo, unsigned char *buffer, int bufsize);
@@ -134,13 +130,13 @@ static void std_huff_tables (j_decompress_ptr dinfo) {
 		0xf9, 0xfa 	};
 
 	add_huff_table(dinfo, &dinfo->dc_huff_tbl_ptrs[0],
-	    bits_dc_luminance, val_dc_luminance);
+		bits_dc_luminance, val_dc_luminance);
 	add_huff_table(dinfo, &dinfo->ac_huff_tbl_ptrs[0],
-	    bits_ac_luminance, val_ac_luminance);
+		bits_ac_luminance, val_ac_luminance);
 	add_huff_table(dinfo, &dinfo->dc_huff_tbl_ptrs[1],
-	    bits_dc_chrominance, val_dc_chrominance);
+		bits_dc_chrominance, val_dc_chrominance);
 	add_huff_table(dinfo, &dinfo->ac_huff_tbl_ptrs[1],
-	    bits_ac_chrominance, val_ac_chrominance);
+		bits_ac_chrominance, val_ac_chrominance);
 }
 
 static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsigned int width, unsigned int height, int bufsize) {

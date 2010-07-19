@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -32,10 +32,7 @@
 
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -72,7 +69,9 @@ static int particle_system_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	object_add_particle_system(scene, ob, NULL);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -110,7 +109,8 @@ static int particle_system_remove_exec(bContext *C, wmOperator *op)
 			if(scene->basact && scene->basact->object==ob)
 				WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -169,7 +169,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(scene);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -217,7 +217,7 @@ static int new_particle_target_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(scene);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -265,7 +265,7 @@ static int remove_particle_target_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(scene);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -303,7 +303,7 @@ static int target_move_up_exec(bContext *C, wmOperator *op)
 			BLI_insertlink(&psys->targets, pt->prev->prev, pt);
 
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 			break;
 		}
 	}
@@ -341,7 +341,7 @@ static int target_move_down_exec(bContext *C, wmOperator *op)
 			BLI_insertlink(&psys->targets, pt->next, pt);
 
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 			break;
 		}
 	}
@@ -379,7 +379,7 @@ static int dupliob_move_up_exec(bContext *C, wmOperator *op)
 			BLI_remlink(&part->dupliweights, dw);
 			BLI_insertlink(&part->dupliweights, dw->prev->prev, dw);
 
-			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
 			break;
 		}
 	}
@@ -418,7 +418,7 @@ static int copy_particle_dupliob_exec(bContext *C, wmOperator *op)
 			dw->flag |= PART_DUPLIW_CURRENT;
 			BLI_addhead(&part->dupliweights, dw);
 
-			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
 			break;
 		}
 	}
@@ -464,7 +464,7 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator *op)
 	if(dw)
 		dw->flag |= PART_DUPLIW_CURRENT;
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -501,7 +501,7 @@ static int dupliob_move_down_exec(bContext *C, wmOperator *op)
 			BLI_remlink(&part->dupliweights, dw);
 			BLI_insertlink(&part->dupliweights, dw->next, dw);
 
-			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
 			break;
 		}
 	}
@@ -526,6 +526,7 @@ void PARTICLE_OT_dupliob_move_down(wmOperatorType *ot)
 static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob,psys);
+	ParticleEditSettings *pset= PE_settings(scene);
 	ParticleData *pa;
 	PTCacheEdit *edit;
 	PTCacheEditPoint *point;
@@ -565,6 +566,9 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 
 	psys->flag |= PSYS_GLOBAL_HAIR;
 
+	if(ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_PUFF))
+		pset->brushtype = PE_BRUSH_NONE;
+
 	PE_update_object(scene, ob, 0);
 }
 
@@ -589,7 +593,7 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 		disconnect_hair(scene, ob, psys);
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -728,7 +732,7 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 		connect_hair(scene, ob, psys);
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 
 	return OPERATOR_FINISHED;
 }

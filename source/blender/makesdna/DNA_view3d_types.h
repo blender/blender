@@ -63,14 +63,14 @@ struct wmTimer;
  
 /* Background Picture in 3D-View */
 typedef struct BGpic {
-    struct BGpic *next, *prev;
+	struct BGpic *next, *prev;
 
-    struct Image *ima;
+	struct Image *ima;
 	struct ImageUser iuser;
-    float xof, yof, size, blend;
-    short view;
-    short flag;
-    float pad2;
+	float xof, yof, size, blend;
+	short view;
+	short flag;
+	float pad2;
 } BGpic;
 
 /* ********************************* */
@@ -229,6 +229,7 @@ typedef struct View3D {
 #define RV3D_FLYMODE				2
 #define RV3D_CLIPPING				4
 #define RV3D_NAVIGATING				8
+#define RV3D_GPULIGHT_UPDATE		16
 
 /* RegionView3d->viewlock */
 #define RV3D_LOCKED			1
@@ -246,6 +247,7 @@ typedef struct View3D {
 #define RV3D_VIEW_CAMERA		 8
 
 /* View3d->flag2 (short) */
+#define V3D_RENDER_OVERRIDE		4
 #define V3D_SOLID_TEX			8
 #define V3D_DISPGP				16
 

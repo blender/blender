@@ -1,5 +1,5 @@
 /**
- * $Id: idprop.c
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,13 +29,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "DNA_listBase.h"
-#include "DNA_ID.h"
-
 #include "BKE_idprop.h"
-#include "BKE_global.h"
 #include "BKE_library.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 
@@ -294,16 +289,44 @@ IDProperty *IDP_CopyArray(IDProperty *prop)
 
 /*taken from readfile.c*/
 #define SWITCH_LONGINT(a) { \
-    char s_i, *p_i; \
-    p_i= (char *)&(a);  \
-    s_i=p_i[0]; p_i[0]=p_i[7]; p_i[7]=s_i; \
-    s_i=p_i[1]; p_i[1]=p_i[6]; p_i[6]=s_i; \
-    s_i=p_i[2]; p_i[2]=p_i[5]; p_i[5]=s_i; \
-    s_i=p_i[3]; p_i[3]=p_i[4]; p_i[4]=s_i; }
+	char s_i, *p_i; \
+	p_i= (char *)&(a);  \
+	s_i=p_i[0]; p_i[0]=p_i[7]; p_i[7]=s_i; \
+	s_i=p_i[1]; p_i[1]=p_i[6]; p_i[6]=s_i; \
+	s_i=p_i[2]; p_i[2]=p_i[5]; p_i[5]=s_i; \
+	s_i=p_i[3]; p_i[3]=p_i[4]; p_i[4]=s_i; }
 
 
 
 /* ---------- String Type ------------ */
+IDProperty *IDP_NewString(const char *st, const char *name, int maxlen)
+{
+	IDProperty *prop = MEM_callocN(sizeof(IDProperty), "IDProperty string");
+
+	if (st == NULL) {
+		prop->data.pointer = MEM_callocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
+		prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
+		prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
+	}
+	else {
+		int stlen = strlen(st);
+
+		if(maxlen > 0 && maxlen < stlen)
+			stlen = maxlen;
+
+		stlen++; /* null terminator '\0' */
+
+		prop->data.pointer = MEM_callocN(stlen, "id property string 2");
+		prop->len = prop->totallen = stlen;
+		BLI_strncpy(prop->data.pointer, st, stlen);
+	}
+
+	prop->type = IDP_STRING;
+	BLI_strncpy(prop->name, name, MAX_IDPROP_NAME);
+
+	return prop;
+}
+
 IDProperty *IDP_CopyString(IDProperty *prop)
 {
 	IDProperty *newp = idp_generic_copy(prop);
@@ -317,14 +340,19 @@ IDProperty *IDP_CopyString(IDProperty *prop)
 }
 
 
-void IDP_AssignString(IDProperty *prop, char *st)
+void IDP_AssignString(IDProperty *prop, char *st, int maxlen)
 {
 	int stlen;
 
 	stlen = strlen(st);
 
-	IDP_ResizeArray(prop, stlen+1); /*make room for null byte :) */
-	strcpy(prop->data.pointer, st);
+	if(maxlen > 0 && maxlen < stlen)
+		stlen= maxlen;
+
+	stlen++; /* make room for null byte */
+
+	IDP_ResizeArray(prop, stlen);
+	BLI_strncpy(prop->data.pointer, st, stlen);
 }
 
 void IDP_ConcatStringC(IDProperty *prop, char *st)
@@ -713,9 +741,6 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name)
 
 	prop->type = type;
 	BLI_strncpy(prop->name, name, MAX_IDPROP_NAME);
-	
-	/*security null byte*/
-	prop->name[MAX_IDPROP_NAME-1] = 0;
 	
 	return prop;
 }

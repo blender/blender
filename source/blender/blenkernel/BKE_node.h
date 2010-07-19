@@ -290,9 +290,11 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define RRES_OUT_AO			10
 #define RRES_OUT_REFLECT	11
 #define RRES_OUT_REFRACT	12
-#define RRES_OUT_RADIO		13
+#define RRES_OUT_INDIRECT	13
 #define RRES_OUT_INDEXOB	14
 #define RRES_OUT_MIST		15
+#define RRES_OUT_EMIT		16
+#define RRES_OUT_ENV		17
 
 /* note: types are needed to restore callbacks, don't change values */
 #define CMP_NODE_VIEWER		201
@@ -381,6 +383,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_SCALE_RELATIVE		0
 #define CMP_SCALE_ABSOLUTE		1
 #define CMP_SCALE_SCENEPERCENT	2
+#define CMP_SCALE_RENDERPERCENT 3
 
 
 /* the type definitions array */

@@ -33,12 +33,6 @@
 /* list of builtin KeyingSets (defined in keyingsets.c) */
 extern ListBase builtin_keyingsets;
 
-/* for builtin keyingsets - context poll */
-short keyingset_context_ok_poll(bContext *C, KeyingSet *ks);
-
-/* Main KeyingSet operations API call */
-short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks);
-
 /* Operator Define Prototypes ------------------- */
 
 /* Main Keyframe Management operators: 
@@ -70,6 +64,9 @@ void ANIM_OT_keying_set_add(struct wmOperatorType *ot);
 void ANIM_OT_keying_set_remove(struct wmOperatorType *ot);
 void ANIM_OT_keying_set_path_add(struct wmOperatorType *ot);
 void ANIM_OT_keying_set_path_remove(struct wmOperatorType *ot);
+
+/* KeyingSet general operators */
+void ANIM_OT_keying_set_active_set(struct wmOperatorType *ot);
 
 /* .......... */
 

@@ -29,14 +29,13 @@
  * $Id$
  */
 
-#include "BLI_blenlib.h"
+#include "BKE_utildefines.h"
 
-#include "imbuf.h"
-#include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_filter.h"
 
+#include "imbuf.h"
 
 /************************************************************************/
 /*				FILTERS					*/
@@ -371,114 +370,101 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask)
 	}
 }
 
-#if 0
 void IMB_makemipmap(ImBuf *ibuf, int use_filter)
 {
-	ImBuf *hbuf= ibuf;
-	int minsize, curmap=0;
-	
-	minsize= ibuf->x<ibuf->y?ibuf->x:ibuf->y;
-	
-	while(minsize>10 && curmap<IB_MIPMAP_LEVELS) {
+	ImBuf *hbuf = ibuf;
+	int curmap = 0;
+
+	ibuf->miptot= 1;
+
+	while(curmap < IB_MIPMAP_LEVELS) {
 		if(use_filter) {
 			ImBuf *nbuf= IMB_allocImBuf(hbuf->x, hbuf->y, 32, IB_rect, 0);
 			IMB_filterN(nbuf, hbuf);
-			ibuf->mipmap[curmap]= IMB_onehalf(nbuf);
+			ibuf->mipmap[curmap] = IMB_onehalf(nbuf);
 			IMB_freeImBuf(nbuf);
 		}
-		else {
-			ibuf->mipmap[curmap]= IMB_onehalf(hbuf);
-		}
+		else
+			ibuf->mipmap[curmap] = IMB_onehalf(hbuf);
+
+		ibuf->miptot= curmap+2;
 		hbuf= ibuf->mipmap[curmap];
-		
+		hbuf->miplevel= curmap+1;
+
+		if(!hbuf || (hbuf->x == 1 && hbuf->y == 1))
+			break;
+
 		curmap++;
-		minsize= hbuf->x<hbuf->y?hbuf->x:hbuf->y;
 	}
 }
-#endif
 
-void IMB_makemipmap(ImBuf *ibuf, int use_filter, int SAT)
+ImBuf *IMB_getmipmap(ImBuf *ibuf, int level)
 {
-	if (SAT) {
-		// to maximize precision subtract image average, use intermediate double SAT,
-		// only convert to float at the end
-		const double dv = 1.0/255.0;
-		double avg[4] = {0, 0, 0, 0};
-		const int x4 = ibuf->x << 2;
-		int x, y, i;
-		ImBuf* sbuf = IMB_allocImBuf(ibuf->x, ibuf->y, 32, IB_rectfloat, 0);
-		double *satp, *satbuf = MEM_callocN(sizeof(double)*ibuf->x*ibuf->y*4, "tmp SAT buf");
-		const double mf = ibuf->x*ibuf->y;
-		float* fp;
-		ibuf->mipmap[0] = sbuf;
-		if (ibuf->rect_float) {
-			fp = ibuf->rect_float;
-			for (y=0; y<ibuf->y; ++y)
-				for (x=0; x<ibuf->x; ++x) {
-					avg[0] += *fp++;
-					avg[1] += *fp++;
-					avg[2] += *fp++;
-					avg[3] += *fp++;
-				}
-		}
-		else {
-			char* cp = (char*)ibuf->rect;
-			for (y=0; y<ibuf->y; ++y)
-				for (x=0; x<ibuf->x; ++x) {
-					avg[0] += *cp++ * dv;
-					avg[1] += *cp++ * dv;
-					avg[2] += *cp++ * dv;
-					avg[3] += *cp++ * dv;
-				}
-		}
-		avg[0] /= mf;
-		avg[1] /= mf;
-		avg[2] /= mf;
-		avg[3] /= mf;
-		for (y=0; y<ibuf->y; ++y)
-			for (x=0; x<ibuf->x; ++x) {
-				const unsigned int p = (x + y*ibuf->x) << 2;
-				char* cp = (char*)ibuf->rect + p;
-				fp = ibuf->rect_float + p;
-				satp = satbuf + p;
-				for (i=0; i<4; ++i, ++cp, ++fp, ++satp) {
-					double sv = (ibuf->rect_float ? (double)*fp : (double)(*cp)*dv) - avg[i];
-					if (x > 0) sv += satp[-4];
-					if (y > 0) sv += satp[-x4];
-					if (x > 0 && y > 0) sv -= satp[-x4 - 4];
-					*satp = sv;
-				}
-			}
-		fp = sbuf->rect_float;
-		satp = satbuf;
-		for (y=0; y<ibuf->y; ++y)
-			for (x=0; x<ibuf->x; ++x) {
-				*fp++ = (float)*satp++;
-				*fp++ = (float)*satp++;
-				*fp++ = (float)*satp++;
-				*fp++ = (float)*satp++;
-			}
-		MEM_freeN(satbuf);
-		fp = &sbuf->rect_float[(sbuf->x - 1 + (sbuf->y - 1)*sbuf->x) << 2];
-		fp[0] = avg[0];
-		fp[1] = avg[1];
-		fp[2] = avg[2];
-		fp[3] = avg[3];
+	CLAMP(level, 0, ibuf->miptot-1);
+	return (level == 0)? ibuf: ibuf->mipmap[level-1];
+}
+
+void IMB_premultiply_rect(unsigned int *rect, int depth, int w, int h)
+{
+	char *cp;
+	int x, y, val;
+
+	if(depth == 24) {	/* put alpha at 255 */
+		cp= (char *)(rect);
+
+		for(y=0; y<h; y++)
+			for(x=0; x<w; x++, cp+=4)
+				cp[3]= 255;
 	}
 	else {
-		ImBuf *hbuf = ibuf;
-		int curmap = 0;
-		while (curmap < IB_MIPMAP_LEVELS) {
-			if (use_filter) {
-				ImBuf *nbuf= IMB_allocImBuf(hbuf->x, hbuf->y, 32, IB_rect, 0);
-				IMB_filterN(nbuf, hbuf);
-				ibuf->mipmap[curmap] = IMB_onehalf(nbuf);
-				IMB_freeImBuf(nbuf);
+		cp= (char *)(rect);
+
+		for(y=0; y<h; y++) {
+			for(x=0; x<w; x++, cp+=4) {
+				val= cp[3];
+				cp[0]= (cp[0]*val)>>8;
+				cp[1]= (cp[1]*val)>>8;
+				cp[2]= (cp[2]*val)>>8;
 			}
-			else ibuf->mipmap[curmap] = IMB_onehalf(hbuf);
-			hbuf = ibuf->mipmap[curmap];
-			if (hbuf->x == 1 && hbuf->y == 1) break;
-			curmap++;
 		}
 	}
 }
+
+void IMB_premultiply_rect_float(float *rect_float, int depth, int w, int h)
+{
+	float val, *cp;
+	int x, y;
+
+	if(depth==24) {	/* put alpha at 1.0 */
+		cp= rect_float;
+
+		for(y=0; y<h; y++)
+			for(x=0; x<w; x++, cp+=4)
+				cp[3]= 1.0;
+	}
+	else {
+		cp= rect_float;
+		for(y=0; y<h; y++) {
+			for(x=0; x<w; x++, cp+=4) {
+				val= cp[3];
+				cp[0]= cp[0]*val;
+				cp[1]= cp[1]*val;
+				cp[2]= cp[2]*val;
+			}
+		}
+	}
+
+}
+
+void IMB_premultiply_alpha(ImBuf *ibuf)
+{
+	if(ibuf==NULL)
+		return;
+
+	if(ibuf->rect)
+		IMB_premultiply_rect(ibuf->rect, ibuf->depth, ibuf->x, ibuf->y);
+
+	if(ibuf->rect_float)
+		IMB_premultiply_rect_float(ibuf->rect_float, ibuf->depth, ibuf->x, ibuf->y);
+}
+

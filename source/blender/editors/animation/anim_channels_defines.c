@@ -25,68 +25,40 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <float.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "DNA_listBase.h"
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "BKE_animsys.h"
-#include "BKE_action.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
 #include "BKE_key.h"
-#include "BKE_material.h"
-#include "BKE_object.h"
 #include "BKE_context.h"
-#include "BKE_utildefines.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
-#include "ED_keyframes_edit.h" // XXX move the select modes out of there!
-#include "ED_screen.h"
-#include "ED_space_api.h"
 
 #include "BIF_gl.h"
 
@@ -620,10 +592,32 @@ static int acf_object_icon(bAnimListElem *ale)
 	Object *ob= base->object;
 	
 	/* icon depends on object-type */
-	if (ob->type == OB_ARMATURE)
-		return ICON_ARMATURE_DATA;
-	else	
-		return ICON_OBJECT_DATA;
+
+	switch (ob->type) {
+		case OB_LAMP:
+			return ICON_OUTLINER_OB_LAMP;
+		case OB_MESH: 
+			return ICON_OUTLINER_OB_MESH;
+		case OB_CAMERA: 
+			return ICON_OUTLINER_OB_CAMERA;
+		case OB_CURVE: 
+			return ICON_OUTLINER_OB_CURVE;
+		case OB_MBALL: 
+			return ICON_OUTLINER_OB_META;
+		case OB_LATTICE: 
+			return ICON_OUTLINER_OB_LATTICE;
+		case OB_ARMATURE: 
+			return ICON_OUTLINER_OB_ARMATURE;
+		case OB_FONT: 
+			return ICON_OUTLINER_OB_FONT;
+		case OB_SURF: 
+			return ICON_OUTLINER_OB_SURFACE;
+		case OB_EMPTY: 
+			return ICON_OUTLINER_OB_EMPTY;
+		default:
+			return ICON_OBJECT_DATA;
+	}
+	
 }
 
 /* name for object */
@@ -2362,8 +2356,8 @@ static void dummy_olddraw_gpencil ()
 				case SPACE_VIEW3D:
 				{
 					/* this shouldn't cause any overflow... */
-					//sprintf(name, "3DView:%s", view3d_get_name(sa->spacedata.first)); // XXX missing func..
-					strcpy(name, "3dView");
+					//sprintf(name, "View3D:%s", view3d_get_name(sa->spacedata.first)); // XXX missing func..
+					strcpy(name, "View3D");
 					special= ICON_VIEW3D;
 				}
 					break;
@@ -2864,7 +2858,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 /* callback for (normal) widget settings - send notifiers */
 static void achannel_setting_widget_cb(bContext *C, void *poin, void *poin2)
 {
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 }
 
 /* callback for widget settings that need flushing */
@@ -2878,7 +2872,7 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	short on = 0;
 	
 	/* send notifiers before doing anything else... */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	/* verify animation context */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -2942,7 +2936,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 		done= insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
 		
 		if (done)
-			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	}
 }
 
@@ -2984,7 +2978,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 		done= insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
 		
 		if (done)
-			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+			WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	}
 	
 	/* free the path */
@@ -3212,6 +3206,7 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 		 */
 		if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_SHAPEKEY)) {
 			/* adjust offset */
+			// TODO: make slider width dynamic, so that they can be easier to use when the view is wide enough
 			offset += SLIDER_WIDTH;
 			
 			/* need backdrop behind sliders... */

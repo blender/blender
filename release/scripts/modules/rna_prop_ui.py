@@ -61,7 +61,7 @@ def rna_idprop_ui_prop_clear(item, prop):
 def draw(layout, context, context_member, use_edit=True):
 
     def assign_props(prop, val, key):
-        prop.path = context_member
+        prop.data_path = context_member
         prop.property = key
 
         try:
@@ -81,7 +81,7 @@ def draw(layout, context, context_member, use_edit=True):
     if use_edit:
         row = layout.row()
         props = row.operator("wm.properties_add", text="Add")
-        props.path = context_member
+        props.data_path = context_member
         del row
 
     for key, val in items:
@@ -140,7 +140,7 @@ from bpy.props import *
 
 
 rna_path = StringProperty(name="Property Edit",
-    description="Property path edit", maxlen=1024, default="", options={'HIDDEN'})
+    description="Property data_path edit", maxlen=1024, default="", options={'HIDDEN'})
 
 rna_value = StringProperty(name="Property Value",
     description="Property value edit", maxlen=1024, default="")
@@ -153,11 +153,11 @@ rna_max = FloatProperty(name="Max", default=1.0, precision=3)
 
 
 class WM_OT_properties_edit(bpy.types.Operator):
-    '''Internal use (edit a property path)'''
+    '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_edit"
     bl_label = "Edit Property"
 
-    path = rna_path
+    data_path = rna_path
     property = rna_property
     value = rna_value
     min = rna_min
@@ -165,7 +165,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
     description = StringProperty(name="Tip", default="")
 
     def execute(self, context):
-        path = self.properties.path
+        data_path = self.properties.data_path
         value = self.properties.value
         prop = self.properties.property
         prop_old = self._last_prop[0]
@@ -176,7 +176,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
             value_eval = value
 
         # First remove
-        item = eval("context.%s" % path)
+        item = eval("context.%s" % data_path)
 
         rna_idprop_ui_prop_clear(item, prop_old)
         exec_str = "del item['%s']" % prop_old
@@ -207,7 +207,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
         self._last_prop = [self.properties.property]
 
-        item = eval("context.%s" % self.properties.path)
+        item = eval("context.%s" % self.properties.data_path)
 
         # setup defaults
         prop_ui = rna_idprop_ui_prop_get(item, self.properties.property, False) # dont create
@@ -225,14 +225,14 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
 
 class WM_OT_properties_add(bpy.types.Operator):
-    '''Internal use (edit a property path)'''
+    '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_add"
     bl_label = "Add Property"
 
-    path = rna_path
+    data_path = rna_path
 
     def execute(self, context):
-        item = eval("context.%s" % self.properties.path)
+        item = eval("context.%s" % self.properties.data_path)
 
         def unique_name(names):
             prop = 'prop'
@@ -251,14 +251,14 @@ class WM_OT_properties_add(bpy.types.Operator):
 
 
 class WM_OT_properties_remove(bpy.types.Operator):
-    '''Internal use (edit a property path)'''
+    '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_remove"
-    bl_label = "Add Property"
+    bl_label = "Remove Property"
 
-    path = rna_path
+    data_path = rna_path
     property = rna_property
 
     def execute(self, context):
-        item = eval("context.%s" % self.properties.path)
+        item = eval("context.%s" % self.properties.data_path)
         del item[self.properties.property]
         return {'FINISHED'}

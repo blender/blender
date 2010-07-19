@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -31,11 +31,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_curve_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -46,12 +43,36 @@
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_sculpt.h"
 #include "ED_util.h"
 
 #include "UI_interface.h"
 
 /* ********* general editor util funcs, not BKE stuff please! ********* */
+
+void ED_editors_init(bContext *C)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *sce= CTX_data_scene(C);
+	Object *ob, *obact= (sce && sce->basact)? sce->basact->object: NULL;
+	ID *data;
+
+	/* toggle on modes for objects that were saved with these enabled. for
+	   e.g. linked objects we have to ensure that they are actually the
+	   active object in this scene. */
+	for(ob=bmain->object.first; ob; ob=ob->id.next) {
+		int mode= ob->mode;
+
+		if(mode && (mode != OB_MODE_POSE)) {
+			ob->mode= 0;
+			data= ob->data;
+
+			if(ob == obact && !ob->id.lib && !(data && data->lib))
+				ED_object_toggle_modes(C, mode);
+		}
+	}
+}
 
 /* frees all editmode stuff */
 void ED_editors_exit(bContext *C)
@@ -67,7 +88,8 @@ void ED_editors_exit(bContext *C)
 			Object *ob= sce->obedit;
 		
 			/* global in meshtools... */
-			mesh_octree_table(ob, NULL, NULL, 'e');
+			mesh_octree_table(NULL, NULL, NULL, 'e');
+			mesh_mirrtopo_table(NULL, 'e');
 			
 			if(ob) {
 				if(ob->type==OB_MESH) {
@@ -94,8 +116,10 @@ void ED_editors_exit(bContext *C)
 			Object *ob= sce->basact->object;
 			
 			/* if weight-painting is on, free mesh octree data */
-			if(ob->mode & OB_MODE_WEIGHT_PAINT)
-				mesh_octree_table(ob, NULL, NULL, 'e');
+			if(ob->mode & OB_MODE_WEIGHT_PAINT) {
+				mesh_octree_table(NULL, NULL, NULL, 'e');
+				mesh_mirrtopo_table(NULL, 'e');
+			}
 		}
 	}
 	

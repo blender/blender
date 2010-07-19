@@ -31,10 +31,6 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_gsqueue.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef struct _GSQueueElem GSQueueElem;
 struct _GSQueueElem {
 	GSQueueElem *next;

@@ -110,7 +110,7 @@ void BMO_Init_Op(BMOperator *op, char *opname)
 	op->exec = opdefines[opcode]->exec;
 
 	/*memarena, used for operator's slot buffers*/
-	op->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	op->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "bmesh operator");
 	BLI_memarena_use_calloc (op->arena);
 }
 
@@ -216,7 +216,7 @@ void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, char *src, char *d
 			if (!dest_slot->data.ghash) {
 				dest_slot->data.ghash = 
 				      BLI_ghash_new(BLI_ghashutil_ptrhash, 
-				      BLI_ghashutil_ptrcmp);
+					  BLI_ghashutil_ptrcmp, "bmesh operator 2");
 			}
 
 			BLI_ghashIterator_init(&it, source_slot->data.ghash);

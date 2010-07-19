@@ -514,7 +514,6 @@ short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, short flag, float *nor)
 static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
 	BMEditMesh *em = ((Mesh *)obedit->data)->edit_btmesh;
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);		
 		
@@ -671,7 +670,6 @@ static int mesh_extrude_region_exec(bContext *C, wmOperator *op)
 
 static int mesh_extrude_region_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	float nor[3];
@@ -710,8 +708,7 @@ void MESH_OT_extrude_region(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	Properties_Proportional(ot);
-	Properties_Constraints(ot);
+	Transform_Properties(ot, P_PROPORTIONAL|P_CONSTRAINT|P_AXIS);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
@@ -730,7 +727,6 @@ static int mesh_extrude_verts_exec(bContext *C, wmOperator *op)
 
 static int mesh_extrude_verts_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	float nor[3];
@@ -769,8 +765,7 @@ void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	Properties_Proportional(ot);
-	Properties_Constraints(ot);
+	Transform_Properties(ot, P_PROPORTIONAL|P_CONSTRAINT|P_AXIS);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
@@ -789,11 +784,9 @@ static int mesh_extrude_edges_exec(bContext *C, wmOperator *op)
 
 static int mesh_extrude_edges_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	float nor[3];
-	int constraint_axis[3] = {0, 0, 1};
 	int tmode;
 
 	tmode = EDBM_Extrude_edges_indiv(em, op, BM_SELECT, nor);
@@ -828,8 +821,7 @@ void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	Properties_Proportional(ot);
-	Properties_Constraints(ot);
+	Transform_Properties(ot, P_PROPORTIONAL|P_CONSTRAINT|P_AXIS);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
@@ -848,7 +840,6 @@ static int mesh_extrude_faces_exec(bContext *C, wmOperator *op)
 
 static int mesh_extrude_faces_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	float nor[3];
@@ -890,8 +881,7 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	Properties_Proportional(ot);
-	Properties_Constraints(ot);
+	Transform_Properties(ot, P_PROPORTIONAL|P_CONSTRAINT|P_AXIS);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
@@ -1258,7 +1248,6 @@ void MESH_OT_selection_type(wmOperatorType *ot)
 
 static int editbmesh_mark_seam(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= ((Mesh *)obedit->data);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
@@ -1308,7 +1297,6 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 
 static int editbmesh_mark_sharp(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= ((Mesh *)obedit->data);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
@@ -1359,9 +1347,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 
 static int editbmesh_vert_connect(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	Mesh *me= ((Mesh *)obedit->data);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMesh *bm = em->bm;
 	BMOperator bmop;
@@ -1394,9 +1380,7 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 
 static int editbmesh_edge_split(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	Mesh *me= ((Mesh *)obedit->data);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMesh *bm = em->bm;
 	BMOperator bmop;
@@ -1433,7 +1417,6 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 
 static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
 	BMOperator bmop;
@@ -1482,7 +1465,6 @@ void MESH_OT_duplicate(wmOperatorType *ot)
 
 static int flip_normals(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
 	
@@ -1525,14 +1507,12 @@ static const EnumPropertyItem direction_items[]= {
 /* only accepts 1 selected edge, or 2 selected faces */
 static int edge_rotate_selected(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMOperator bmop;
 	BMEdge *eed;
 	BMIter iter;
 	int ccw = RNA_int_get(op->ptr, "direction") == 1; // direction == 2 when clockwise and ==1 for counter CW.
-	short edgeCount = 0;
 	
 	if (!(em->bm->totfacesel == 2 || em->bm->totedgesel == 1)) {
 		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
@@ -1629,7 +1609,6 @@ void EDBM_pin_mesh(BMEditMesh *em, int swap)
 static int pin_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
 	Mesh *me= ((Mesh *)obedit->data);
 
@@ -1666,8 +1645,6 @@ void EDBM_unpin_mesh(BMEditMesh *em, int swap)
 {
 	BMIter iter;
 	BMHeader *ele;
-	int types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
-	int sels[3] = {1, !(em->selectmode & SCE_SELECT_VERTEX), !(em->selectmode & SCE_SELECT_VERTEX | SCE_SELECT_EDGE)};
 	int itermode;
 	
 	if(em==NULL) return;
@@ -1690,9 +1667,7 @@ void EDBM_unpin_mesh(BMEditMesh *em, int swap)
 static int unpin_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
-	Mesh *me= ((Mesh *)obedit->data);
 	
 	EDBM_unpin_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
 
@@ -1755,7 +1730,6 @@ void EDBM_hide_mesh(BMEditMesh *em, int swap)
 static int hide_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
 	
 	EDBM_hide_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
@@ -1809,7 +1783,6 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 static int reveal_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
 	
 	EDBM_reveal_mesh(em);
@@ -1837,7 +1810,6 @@ void MESH_OT_reveal(wmOperatorType *ot)
 
 static int normals_make_consistent_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	
@@ -1874,7 +1846,6 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 
 static int do_smooth_vertex(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	ModifierData *md;
@@ -1940,7 +1911,6 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 
 static int bm_test_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	RegionView3D *r3d = CTX_wm_region_view3d(C);		
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
@@ -2033,7 +2003,6 @@ void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
 
 static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 
@@ -2062,7 +2031,6 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 
 static int mesh_faces_shade_flat_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 
@@ -2100,7 +2068,6 @@ static const EnumPropertyItem axis_items[]= {
 
 static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 	BMOperator bmop;
@@ -2131,7 +2098,6 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 
 static int mesh_reverse_uvs(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 	BMOperator bmop;
@@ -2158,7 +2124,6 @@ static int mesh_reverse_uvs(bContext *C, wmOperator *op)
 
 static int mesh_rotate_colors(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 	BMOperator bmop;
@@ -2190,7 +2155,6 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 
 static int mesh_reverse_colors(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 	BMOperator bmop;
@@ -2370,7 +2334,7 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 {
 	BMIter iter;
 	BMVert *v;
-	float *vco, co[3], cent[3] = {0.0f, 0.0f, 0.0f}, fac;
+	float *vco=NULL, co[3], cent[3] = {0.0f, 0.0f, 0.0f}, fac;
 	int i;
 
 	if (target) {
@@ -2392,9 +2356,10 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 		fac = 1.0f / (float)i;
 		VECMUL(cent, fac);
 		VECCOPY(co, cent);
+		vco = co;
 	}
 
-	if (!co)
+	if (!vco)
 		return OPERATOR_CANCELLED;
 	
 	if (uvmerge) {
@@ -2517,7 +2482,6 @@ void MESH_OT_merge(wmOperatorType *ot)
 static int removedoublesflag_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMOperator bmop;
 	int count;
@@ -2587,7 +2551,6 @@ typedef struct PathEdge {
 
 int select_vertex_path_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
 	BMOperator bmop;
@@ -3259,7 +3222,7 @@ void MESH_OT_rip(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	Properties_Proportional(ot);
+	Transform_Properties(ot, P_PROPORTIONAL);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
@@ -3343,7 +3306,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 	float blend= RNA_float_get(op->ptr, "blend");
 	int shape= RNA_enum_get(op->ptr, "shape");
 	int add= RNA_int_get(op->ptr, "add");
-	int blended= 0, totshape;
+	int totshape;
 
 	/*sanity check*/
 	totshape = CustomData_number_of_layers(&em->bm->vdata, CD_SHAPEKEY);
@@ -3525,6 +3488,7 @@ static int solidify_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 #endif
+	return OPERATOR_CANCELLED;
 }
 
 
@@ -3789,7 +3753,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	}
 
 	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
-	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife cut exec");
 	for(bv=BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);bv;bv=BMIter_Step(&iter)){
 		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
 		VECCOPY(co, bv->co);
@@ -4008,7 +3972,6 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	int dosharp, douvs, dovcols, domaterials;
 	float limit = RNA_float_get(op->ptr, "limit");
@@ -4103,8 +4066,8 @@ static int split_mesh(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
-	return OPERATOR_FINISHED;
 #endif
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_split(wmOperatorType *ot)
@@ -4204,6 +4167,7 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 	BKE_mesh_end_editmesh(obedit->data, em);
 	return ok;
 #endif
+	return OPERATOR_CANCELLED;
 }
 
 static int spin_mesh_exec(bContext *C, wmOperator *op)
@@ -4235,8 +4199,8 @@ static int spin_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
 	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[2]);
 
-	return spin_mesh_exec(C, op);
 #endif
+	return spin_mesh_exec(C, op);
 }
 
 void MESH_OT_spin(wmOperatorType *ot)
@@ -4333,6 +4297,7 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 #endif
+	return OPERATOR_CANCELLED;
 }
 
 /* get center and axis, in global coords */

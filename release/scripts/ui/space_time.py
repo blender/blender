@@ -39,17 +39,17 @@ class TIME_HT_header(bpy.types.Header):
             sub.menu("TIME_MT_frame")
             sub.menu("TIME_MT_playback")
 
-        layout.prop(scene, "use_preview_range", text="PR")
+        layout.prop(scene, "use_preview_range", text="", toggle=True)
 
         row = layout.row(align=True)
         if not scene.use_preview_range:
-            row.prop(scene, "start_frame", text="Start")
-            row.prop(scene, "end_frame", text="End")
+            row.prop(scene, "frame_start", text="Start")
+            row.prop(scene, "frame_end", text="End")
         else:
-            row.prop(scene, "preview_range_start_frame", text="Start")
-            row.prop(scene, "preview_range_end_frame", text="End")
+            row.prop(scene, "preview_range_frame_start", text="Start")
+            row.prop(scene, "preview_range_frame_end", text="End")
 
-        layout.prop(scene, "current_frame", text="")
+        layout.prop(scene, "frame_current", text="")
 
         layout.separator()
 
@@ -67,7 +67,7 @@ class TIME_HT_header(bpy.types.Header):
         row.operator("screen.frame_jump", text="", icon='FF').end = True
 
         row = layout.row(align=True)
-        row.prop(tools, "use_auto_keying", text="", toggle=True, icon='REC')
+        row.prop(tools, "use_auto_keying", text="", toggle=True)
         if screen.animation_playing and tools.use_auto_keying:
             subsub = row.row()
             subsub.prop(tools, "record_with_nla", toggle=True)
@@ -77,7 +77,7 @@ class TIME_HT_header(bpy.types.Header):
         layout.separator()
 
         row = layout.row(align=True)
-        row.prop_object(scene, "active_keying_set", scene, "keying_sets", text="")
+        row.prop_object(scene, "active_keying_set", scene, "all_keying_sets", text="")
         row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
@@ -100,7 +100,31 @@ class TIME_MT_view(bpy.types.Menu):
 
         layout.separator()
 
+        layout.menu("TIME_MT_cache")
+
+        layout.separator()
+
         layout.operator("marker.camera_bind")
+
+
+class TIME_MT_cache(bpy.types.Menu):
+    bl_label = "Cache"
+
+    def draw(self, context):
+        layout = self.layout
+
+        st = context.space_data
+
+        layout.prop(st, "show_cache")
+
+        layout.separator()
+
+        col = layout.column()
+        col.enabled = st.show_cache
+        col.prop(st, "cache_softbody")
+        col.prop(st, "cache_particles")
+        col.prop(st, "cache_cloth")
+        col.prop(st, "cache_smoke")
 
 
 class TIME_MT_frame(bpy.types.Menu):
@@ -171,6 +195,7 @@ class TIME_MT_autokey(bpy.types.Menu):
 classes = [
     TIME_HT_header,
     TIME_MT_view,
+    TIME_MT_cache,
     TIME_MT_frame,
     TIME_MT_autokey,
     TIME_MT_playback]

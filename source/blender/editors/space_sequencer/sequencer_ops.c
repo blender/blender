@@ -1,6 +1,6 @@
 
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -32,11 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -45,13 +41,10 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
 #include "ED_transform.h" /* transform keymap */
 
 #include "sequencer_intern.h"
@@ -70,6 +63,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_unlock);
 	WM_operatortype_append(SEQUENCER_OT_reload);
 	WM_operatortype_append(SEQUENCER_OT_refresh_all);
+	WM_operatortype_append(SEQUENCER_OT_reassign_inputs);
 	WM_operatortype_append(SEQUENCER_OT_duplicate);
 	WM_operatortype_append(SEQUENCER_OT_delete);
 	WM_operatortype_append(SEQUENCER_OT_images_separate);
@@ -80,12 +74,15 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_next_edit);
 	WM_operatortype_append(SEQUENCER_OT_previous_edit);
 	WM_operatortype_append(SEQUENCER_OT_swap);
+	WM_operatortype_append(SEQUENCER_OT_swap_data);
 	WM_operatortype_append(SEQUENCER_OT_rendersize);
 
 	WM_operatortype_append(SEQUENCER_OT_view_all);
 	WM_operatortype_append(SEQUENCER_OT_view_selected);
 	WM_operatortype_append(SEQUENCER_OT_view_all_preview);
 	WM_operatortype_append(SEQUENCER_OT_view_toggle);
+	WM_operatortype_append(SEQUENCER_OT_view_zoom_ratio);
+	WM_operatortype_append(SEQUENCER_OT_view_ghost_border);
 
 	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_select_all_toggle);
@@ -117,6 +114,9 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "SequencerCommon", SPACE_SEQ, 0);
 	wmKeyMapItem *kmi;
 
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "scene.sequence_editor.show_overlay");
+
 	/* operators common to sequence and preview view */
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
 
@@ -139,12 +139,14 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_lock", LKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_unlock", LKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_reassign_inputs", RKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
@@ -225,9 +227,28 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_menu(keymap, "SEQUENCER_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", OKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "scene.sequence_editor.overlay_frame");
+	RNA_int_set(kmi->ptr, "value", 0);
+
 	transform_keymap_for_space(keyconf, keymap, SPACE_SEQ);
 
 	keymap= WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all_preview", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
+
+
+	keymap= WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_ghost_border", OKEY, KM_PRESS, 0, 0);
+
+	/* would prefer to use numpad keys for job */
+	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD8, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 8.0f);
+	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD4, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 4.0f);
+	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD2, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 2.0f);
+	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD1, KM_PRESS, 0, 0)->ptr, "ratio", 1.0f);
+	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD2, KM_PRESS, 0, 0)->ptr, "ratio", 0.5f);
+	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
+	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 }
 

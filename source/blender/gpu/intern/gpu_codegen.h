@@ -59,7 +59,7 @@ GPUFunction *GPU_lookup_function(char *name);
 
 /* Pass Generation
    - Takes a list of nodes and a desired output, and makes a pass. This
-     will take ownership of the nodes and free them early if unused or
+	 will take ownership of the nodes and free them early if unused or
 	 at the end if used.
 */
 

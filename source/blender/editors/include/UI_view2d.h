@@ -164,6 +164,7 @@ void UI_view2d_view_restore(const struct bContext *C);
 View2DGrid *UI_view2d_grid_calc(const struct bContext *C, struct View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int winx, int winy);
 void UI_view2d_grid_draw(const struct bContext *C, struct View2D *v2d, View2DGrid *grid, int flag);
 void UI_view2d_constant_grid_draw(const struct bContext *C, struct View2D *v2d);
+void UI_view2d_grid_size(View2DGrid *grid, float *r_dx, float *r_dy);
 void UI_view2d_grid_free(View2DGrid *grid);
 
 /* scrollbar drawing */

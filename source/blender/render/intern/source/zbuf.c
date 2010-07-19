@@ -1910,10 +1910,10 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 				}
 			}
 
-            /* warning, this should never happen! */
+			/* warning, this should never happen! */
 			if(clve>38 || clvl>31) printf("clip overflow: clve clvl %d %d\n",clve,clvl);
 
-            /* perspective division */
+			/* perspective division */
 			f1=vez;
 			for(c1=0;c1<clve;c1++) {
 				hoco_to_zco(zspan, f1, f1);
@@ -3273,8 +3273,8 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 		zspan->mask= 1<<zsample;
 
 		if(jit) {
-			zspan->zofsx= -pa->disprect.xmin + jit[zsample][0];
-			zspan->zofsy= -pa->disprect.ymin + jit[zsample][1];
+			zspan->zofsx= -pa->disprect.xmin - jit[zsample][0];
+			zspan->zofsy= -pa->disprect.ymin - jit[zsample][1];
 		}
 		else {
 			zspan->zofsx= -pa->disprect.xmin;
@@ -3312,7 +3312,10 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 			
 			if(vlr->mat!=ma) {
 				ma= vlr->mat;
-				dofill= shadow || (((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP)) && !(ma->mode & MA_ONLYCAST));
+				if(shadow)
+					dofill= (ma->mode & MA_SHADBUF);
+				else
+					dofill= (((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP)) && !(ma->mode & MA_ONLYCAST));
 			}
 			
 			if(dofill) {
@@ -3539,9 +3542,6 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 			case SCE_PASS_REFLECT:
 				col= shr->refl;
 				break;
-			case SCE_PASS_RADIO:
-				col= NULL; // removed shr->rad;
-				break;
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
 				break;
@@ -3649,9 +3649,6 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 				break;
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
-				break;
-			case SCE_PASS_RADIO:
-				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
@@ -3852,7 +3849,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 		ShadeInput *shi= ssamp->shi;
 		ShadeResult *shr= ssamp->shr;
 		
- 		for(sample=0; sample<ssamp->tot; sample++, shi++, shr++) {
+		 for(sample=0; sample<ssamp->tot; sample++, shi++, shr++) {
 		
 			if(shi->mask & (1<<a)) {
 				float fac= (1.0f - samp_shr->combined[3])*shr->combined[3];
@@ -3899,9 +3896,6 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 					
 					if(addpassflag & SCE_PASS_REFRACT)
 						addvecmul(samp_shr->refr, shr->refr, fac);
-					
-					/* removed if(addpassflag & SCE_PASS_RADIO)
-						addvecmul(samp_shr->rad, shr->rad, fac);*/
 					
 					if(addpassflag & SCE_PASS_MIST)
 						samp_shr->mist= samp_shr->mist+fac*shr->mist;

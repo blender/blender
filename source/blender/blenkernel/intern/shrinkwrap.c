@@ -46,23 +46,16 @@
 #include "BKE_lattice.h"
 #include "BKE_utildefines.h"
 #include "BKE_deform.h"
-#include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
 #include "BKE_mesh.h"
 #include "BKE_tessmesh.h"
 
 #include "BLI_math.h"
-#include "BLI_kdtree.h"
-#include "BLI_kdopbvh.h"
 #include "BLI_editVert.h"
 
-#include "RE_raytrace.h"
 #include "MEM_guardedalloc.h"
 
-#include "ED_mesh.h"
 
 /* Util macros */
 #define TO_STR(a)	#a
@@ -364,11 +357,16 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 
 			if(calc->vert)
 			{
-				VECCOPY(tmp_co, calc->vert[i].co);
-				if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
+				/* calc->vert contains verts from derivedMesh  */
+				/* this coordinated are deformed by vertexCos only for normal projection (to get correct normals) */
+				/* for other cases calc->varts contains undeformed coordinates and vertexCos should be used */
+				if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
+					VECCOPY(tmp_co, calc->vert[i].co);
 					normal_short_to_float_v3(tmp_no, calc->vert[i].no);
-				else
+				} else {
+					VECCOPY(tmp_co, co);
 					VECCOPY(tmp_no, proj_axis);
+				}
 			}
 			else
 			{

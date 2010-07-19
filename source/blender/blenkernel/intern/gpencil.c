@@ -33,27 +33,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 
-#include "DNA_listBase.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_vec_types.h"
 
-#include "BKE_blender.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"

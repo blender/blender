@@ -24,7 +24,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Raul Fernandez Hernandez (Farsthary), Stephen Swhitehorn.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -159,8 +159,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 	psys_free_path_cache(psys, psys->edit);
 
 	/* reset point cache */
-	psys->pointcache->flag &= ~PTCACHE_SIMULATION_VALID;
-	psys->pointcache->simframe= 0;
+	BKE_ptcache_invalidate(psys->pointcache);
 }
 
 static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
@@ -287,7 +286,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 
 	   node: the allocated links - total derived mesh element count 
 	   nodearray: the array of nodes aligned with the base mesh's elements, so
-	              each original elements can reference its derived elements
+				  each original elements can reference its derived elements
 	*/
 	Mesh *me= (Mesh*)ob->data;
 	PARTICLE_P;
@@ -512,18 +511,18 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 static void hammersley_create(float *out, int n, int seed, float amount)
 {
 	RNG *rng;
-    double p, t, offs[2];
-    int k, kk;
+	double p, t, offs[2];
+	int k, kk;
 
 	rng = rng_new(31415926 + n + seed);
 	offs[0]= rng_getDouble(rng) + amount;
 	offs[1]= rng_getDouble(rng) + amount;
 	rng_free(rng);
 
-    for (k = 0; k < n; k++) {
-        t = 0;
-        for (p = 0.5, kk = k; kk; p *= 0.5, kk >>= 1)
-            if (kk & 1) /* kk mod 2 = 1 */
+	for (k = 0; k < n; k++) {
+		t = 0;
+		for (p = 0.5, kk = k; kk; p *= 0.5, kk >>= 1)
+			if (kk & 1) /* kk mod 2 = 1 */
 				t += p;
     
 		out[2*k + 0]= fmod((double)k/(double)n + offs[0], 1.0);
@@ -546,7 +545,7 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
 
 	rng = rng_new(31415926 + num + seed2);
 	x= 0;
-        num2 = 2 * num;
+		num2 = 2 * num;
 	for(i=0; i<num2; i+=2) {
 	
 		jit[i]= x + amount*rad1*(0.5f - rng_getFloat(rng));
@@ -618,6 +617,10 @@ static int binary_search_distribution(float *sum, int n, float value)
 	return low;
 }
 
+/* the max number if calls to rng_* funcs within psys_thread_distribute_particle
+ * be sure to keep up to date if this changes */
+#define PSYS_RND_DIST_SKIP 2
+
 /* note: this function must be thread safe, for from == PART_FROM_CHILD */
 #define ONLY_WORKING_WITH_PA_VERTS 0
 static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, ChildParticle *cpa, int p)
@@ -633,6 +636,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 	int cfrom= ctx->cfrom;
 	int distr= ctx->distr;
 	int i, intersect, tot;
+	int rng_skip_tot= PSYS_RND_DIST_SKIP; /* count how many rng_* calls wont need skipping */
 
 	if(from == PART_FROM_VERT) {
 		/* TODO_PARTICLE - use original index */
@@ -670,6 +674,8 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 		case PART_DISTR_RAND:
 			randu= rng_getFloat(thread->rng);
 			randv= rng_getFloat(thread->rng);
+			rng_skip_tot -= 2;
+
 			psys_uv_to_w(randu, randv, mface->v4, pa->fuv);
 			break;
 		}
@@ -752,6 +758,8 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 
 		randu= rng_getFloat(thread->rng);
 		randv= rng_getFloat(thread->rng);
+		rng_skip_tot -= 2;
+
 		psys_uv_to_w(randu, randv, mf->v4, cpa->fuv);
 
 		cpa->num = ctx->index[p];
@@ -860,6 +868,9 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 			cpa->parent=cpa->pa[0];
 		}
 	}
+
+	if(rng_skip_tot > 0) /* should never be below zero */
+		rng_skip(thread->rng, rng_skip_tot);
 }
 
 static void *exec_distribution(void *data)
@@ -876,12 +887,12 @@ static void *exec_distribution(void *data)
 
 		for(p=0; p<totpart; p++, cpa++) {
 			if(thread->ctx->skip) /* simplification skip */
-				rng_skip(thread->rng, 5*thread->ctx->skip[p]);
+				rng_skip(thread->rng, PSYS_RND_DIST_SKIP * thread->ctx->skip[p]);
 
 			if((p+thread->num) % thread->tot == 0)
 				psys_thread_distribute_particle(thread, NULL, cpa, p);
 			else /* thread skip */
-				rng_skip(thread->rng, 5);
+				rng_skip(thread->rng, PSYS_RND_DIST_SKIP);
 		}
 	}
 	else {
@@ -2215,21 +2226,17 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 void psys_make_temp_pointcache(Object *ob, ParticleSystem *psys)
 {
 	PointCache *cache = psys->pointcache;
-	PTCacheID pid;
 
-	if((cache->flag & PTCACHE_DISK_CACHE)==0 || cache->mem_cache.first)
-		return;
-
-	BKE_ptcache_id_from_particles(&pid, ob, psys);
-
-	BKE_ptcache_disk_to_mem(&pid);
+	if(cache->flag & PTCACHE_DISK_CACHE && cache->mem_cache.first == NULL) {
+		PTCacheID pid;
+		BKE_ptcache_id_from_particles(&pid, ob, psys);
+		BKE_ptcache_disk_to_mem(&pid);
+	}
 }
 static void psys_clear_temp_pointcache(ParticleSystem *psys)
 {
-	if((psys->pointcache->flag & PTCACHE_DISK_CACHE)==0)
-		return;
-
-	BKE_ptcache_free_mem(&psys->pointcache->mem_cache);
+	if(psys->pointcache->flag & PTCACHE_DISK_CACHE)
+		BKE_ptcache_free_mem(&psys->pointcache->mem_cache);
 }
 void psys_get_pointcache_start_end(Scene *scene, ParticleSystem *psys, int *sfra, int *efra)
 {
@@ -2273,6 +2280,136 @@ static void psys_update_effectors(ParticleSimulationData *sim)
 	pdEndEffectors(&sim->psys->effectors);
 	sim->psys->effectors = pdInitEffectors(sim->scene, sim->ob, sim->psys, sim->psys->part->effector_weights);
 	precalc_guides(sim, sim->psys->effectors);
+}
+
+/*************************************************
+                    SPH fluid physics 
+
+ In theory, there could be unlimited implementation
+                    of SPH simulators
+**************************************************/
+void particle_fluidsim(ParticleSystem *psys, ParticleData *pa, ParticleSettings *part, ParticleSimulationData *sim, float dfra, float cfra, float mass){
+/****************************************************************************************************************
+* 	This code uses in some parts adapted algorithms from the pseduo code as outlined in the Research paper
+*	Titled: Particle-based Viscoelastic Fluid Simulation.
+* 	Authors: Simon Clavet, Philippe Beaudoin and Pierre Poulin
+*
+*	Website: http://www.iro.umontreal.ca/labs/infographie/papers/Clavet-2005-PVFS/
+*	Presented at Siggraph, (2005)
+*
+*****************************************************************************************************************/
+	KDTree *tree = psys->tree;
+	KDTreeNearest *ptn = NULL;
+	
+	SPHFluidSettings *fluid = part->fluid;
+	ParticleData *second_particle;
+
+	float start[3], end[3], v[3];
+	float temp[3];
+	float q, radius, D;
+	float p, pnear, pressure_near, pressure;
+	float dtime = dfra * psys_get_timestep(sim);
+	float omega = fluid->viscosity_omega;
+	float beta = fluid->viscosity_omega;
+	float massfactor = 1.0f/mass;
+	int n, neighbours;
+
+		
+	radius 	= fluid->radius;
+
+	VECCOPY(start, pa->prev_state.co);
+	VECCOPY(end, pa->state.co);
+
+	VECCOPY(v, pa->state.vel);
+
+	neighbours = BLI_kdtree_range_search(tree, radius, start, NULL, &ptn);
+
+	/* use ptn[n].co to store relative direction */
+	for(n=1; n<neighbours; n++) {
+		sub_v3_v3(ptn[n].co, start);
+		normalize_v3(ptn[n].co);
+	}
+        
+	/* Viscosity - Algorithm 5  */
+	if (omega > 0.f || beta > 0.f) {
+		float u, I;
+
+		for(n=1; n<neighbours; n++) {
+			second_particle = psys->particles + ptn[n].index;
+			q = ptn[n].dist/radius;
+			
+			sub_v3_v3v3(temp, v, second_particle->prev_state.vel);
+			
+			u = dot_v3v3(ptn[n].co, temp);
+
+			if (u > 0){
+				I = dtime * ((1-q) * (omega * u + beta * u*u)) * 0.5f;
+				madd_v3_v3fl(v, ptn[n].co, -I * massfactor);
+			} 
+		}	
+	}
+
+	/* Hooke's spring force  */
+	if (fluid->spring_k > 0.f) {
+		float D, L = fluid->rest_length;
+		for(n=1; n<neighbours; n++) {
+			/* L is a factor of radius */
+			D = dtime * 10.f * fluid->spring_k * (1.f - L) * (L - ptn[n].dist/radius);
+			madd_v3_v3fl(v, ptn[n].co, -D * massfactor);
+		}
+	}
+	/* Update particle position */	
+	VECADDFAC(end, start, v, dtime);
+
+	/* Double Density Relaxation - Algorithm 2 */
+	p = 0;
+	pnear = 0;
+	for(n=1; n<neighbours; n++) {
+		q = ptn[n].dist/radius;
+		p += ((1-q)*(1-q));
+		pnear += ((1-q)*(1-q)*(1-q));
+	}
+	p *= part->mass;
+	pnear *= part->mass;
+	pressure =  fluid->stiffness_k * (p - fluid->rest_density);
+	pressure_near = fluid->stiffness_knear * pnear;
+
+	for(n=1; n<neighbours; n++) {
+		q = ptn[n].dist/radius;
+
+		D =  dtime * dtime * (pressure*(1-q) + pressure_near*(1-q)*(1-q))* 0.5f;
+		madd_v3_v3fl(end, ptn[n].co, -D * massfactor);
+	} 	
+
+	/* Artificial buoyancy force in negative gravity direction  */
+	if (fluid->buoyancy >= 0.f && psys_uses_gravity(sim)) {
+		float B = -dtime * dtime * fluid->buoyancy * (p - fluid->rest_density) * 0.5f;
+		madd_v3_v3fl(end, sim->scene->physics_settings.gravity, -B * massfactor);
+	}
+
+	/* apply final result and recalculate velocity */
+	VECCOPY(pa->state.co, end);
+	sub_v3_v3v3(pa->state.vel, end, start);
+	mul_v3_fl(pa->state.vel, 1.f/dtime);
+
+	if(ptn){ MEM_freeN(ptn); ptn=NULL;}
+}
+
+static void apply_particle_fluidsim(ParticleSystem *psys, ParticleData *pa, ParticleSettings *part, ParticleSimulationData *sim, float dfra, float cfra){
+	ParticleTarget *pt;
+//	float dtime = dfra*psys_get_timestep(sim);
+	float particle_mass = part->mass;
+
+	particle_fluidsim(psys, pa, part, sim, dfra, cfra, particle_mass);
+	
+	/*----check other SPH systems (Multifluids) , each fluid has its own parameters---*/
+	for(pt=sim->psys->targets.first; pt; pt=pt->next) {
+		ParticleSystem *epsys = psys_get_target_system(sim->ob, pt);
+
+		if(epsys)
+			particle_fluidsim(epsys, pa, epsys->part, sim, dfra, cfra, particle_mass);
+	}
+	/*----------------------------------------------------------------*/	 	 
 }
 
 /************************************************/
@@ -2720,6 +2857,12 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 
 	VECCOPY(col.co1, pa->prev_state.co);
 	VECCOPY(col.co2, pa->state.co);
+	
+	VECCOPY(col.ve1, pa->prev_state.vel);
+	VECCOPY(col.ve2, pa->state.vel);
+	mul_v3_fl(col.ve1, timestep * dfra);
+	mul_v3_fl(col.ve2, timestep * dfra);
+	
 	col.t = 0.0f;
 
 	/* override for boids */
@@ -2765,12 +2908,20 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 			int through = (BLI_frand() < pd->pdef_perm) ? 1 : 0;
 			float co[3]; /* point of collision */
 			float vec[3]; /* movement through collision */
-			float t = hit.dist/col.ray_len; /* time of collision between this iteration */
-			float dt = col.t + t * (1.0f - col.t); /* time of collision between frame change*/
+			float acc[3]; /* acceleration */
 
-			interp_v3_v3v3(co, col.co1, col.co2, t);
+			float x = hit.dist/col.ray_len; /* location of collision between this iteration */
+			float le = len_v3(col.ve1)/col.ray_len;
+			float ac = len_v3(col.ve2)/col.ray_len - le; /* (taking acceleration into account) */
+			float t = (-le + sqrt(le*le + 2*ac*x))/ac; /* time of collision between this iteration */
+			float dt = col.t + x * (1.0f - col.t); /* time of collision between frame change*/
+			float it = 1.0 - t;
+			
+			interp_v3_v3v3(co, col.co1, col.co2, x);
 			VECSUB(vec, col.co2, col.co1);
 
+			VECSUB(acc, col.ve2, col.ve1);
+			
 			mul_v3_fl(col.vel, 1.0f-col.t);
 
 			/* particle dies in collision */
@@ -2790,7 +2941,7 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				deflections=max_deflections;
 			}
 			else {
-				float nor_vec[3], tan_vec[3], tan_vel[3], vel[3];
+				float nor_vec[3], tan_vec[3], tan_vel[3];
 				float damp, frict;
 				float inp, inp_v;
 				
@@ -2867,10 +3018,6 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				/* combine components together again */
 				VECADD(vec, nor_vec, tan_vec);
 
-				/* calculate velocity from collision vector */
-				VECCOPY(vel, vec);
-				mul_v3_fl(vel, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
-
 				/* make sure we don't hit the current face again */
 				VECADDFAC(co, co, col.nor, (through ? -0.0001f : 0.0001f));
 
@@ -2878,21 +3025,25 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 					BoidParticle *bpa = pa->boid;
 					if(bpa->data.mode == eBoidMode_OnLand || co[2] <= boid_z) {
 						co[2] = boid_z;
-						vel[2] = 0.0f;
+						vec[2] = 0.0f;
 					}
 				}
 
-				/* store state for reactors */
-				//VECCOPY(reaction_state.co, co);
-				//interp_v3_v3v3(reaction_state.vel, pa->prev_state.vel, pa->state.vel, dt);
-				//interp_qt_qtqt(reaction_state.rot, pa->prev_state.rot, pa->state.rot, dt);
-
 				/* set coordinates for next iteration */
-				VECCOPY(col.co1, co);
-				VECADDFAC(col.co2, co, vec, 1.0f - t);
-				col.t = dt;
+				
+				/* apply acceleration to final position, but make sure particle stays above surface */
+				madd_v3_v3v3fl(acc, vec, acc, it);
+				ac = dot_v3v3(acc, col.nor);
+				if((!through && ac < 0.0f) || (through && ac > 0.0f))
+					madd_v3_v3fl(acc, col.nor, -ac);
 
-				if(len_v3(vec) < 0.001 && len_v3(pa->state.vel) < 0.001) {
+				VECCOPY(col.co1, co);
+				VECADDFAC(col.co2, co, acc, it);
+
+				VECCOPY(col.ve1, vec);
+				VECCOPY(col.ve2, acc);
+
+				if(len_v3(vec) < 0.001 && len_v3v3(pa->state.co, pa->prev_state.co) < 0.001) {
 					/* kill speed to stop slipping */
 					VECCOPY(pa->state.vel,zerovec);
 					VECCOPY(pa->state.co, co);
@@ -2902,10 +3053,14 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				}
 				else {
 					VECCOPY(pa->state.co, col.co2);
+					mul_v3_v3fl(pa->state.vel, acc, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
+					
 					/* Stickness to surface */
 					normalize_v3(nor_vec);
-					VECADDFAC(pa->state.vel, vel, nor_vec, -pd->pdef_stickness);
+					madd_v3_v3fl(pa->state.vel, nor_vec, -pd->pdef_stickness);
 				}
+
+				col.t = dt;
 			}
 			deflections++;
 
@@ -2920,66 +3075,18 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 /*			Hair								*/
 /************************************************/
 /* check if path cache or children need updating and do it if needed */
-static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
+void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
-	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
-	int distr=0, alloc=0, skip=0;
-
-	if((psys->part->childtype && psys->totchild != get_psys_tot_child(sim->scene, psys)) || psys->recalc&PSYS_RECALC_RESET)
-		alloc=1;
-
-	if(alloc || psys->recalc&PSYS_RECALC_CHILD || (psys->vgroup[PSYS_VG_DENSITY] && (sim->ob && sim->ob->mode & OB_MODE_WEIGHT_PAINT)))
-		distr=1;
-
-	if(distr){
-		if(alloc)
-			realloc_particles(sim, sim->psys->totpart);
-
-		if(get_psys_tot_child(sim->scene, psys)) {
-			/* don't generate children while computing the hair keys */
-			if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE)) {
-				distribute_particles(sim, PART_FROM_CHILD);
-
-				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES && part->parents!=0.0)
-					psys_find_parents(sim);
-			}
-		}
-		else
-			psys_free_children(psys);
-	}
-
-	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED || psys->pointcache->flag & PTCACHE_BAKED)==0)
-		skip = 1; /* only hair, keyed and baked stuff can have paths */
-	else if(part->ren_as != PART_DRAW_PATH && !(part->type==PART_HAIR && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)))
-		skip = 1; /* particle visualization must be set as path */
-	else if(!psys->renderdata) {
-		if(part->draw_as != PART_DRAW_REND)
-			skip = 1; /* draw visualization */
-		else if(psys->pointcache->flag & PTCACHE_BAKING)
-			skip = 1; /* no need to cache paths while baking dynamics */
-		else if(psys_in_edit_mode(sim->scene, psys)) {
-			if((pset->flag & PE_DRAW_PART)==0)
-				skip = 1;
-			else if(part->childtype==0 && (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED)==0)
-				skip = 1; /* in edit mode paths are needed for child particles and dynamic hair */
-		}
-	}
-
-	if(!skip) {
+	
+	/* only hair, keyed and baked stuff can have paths */
+	if(part->type==PART_HAIR || psys->flag&PSYS_KEYED || psys->pointcache->mem_cache.first) {
 		psys_cache_paths(sim, cfra);
 
 		/* for render, child particle paths are computed on the fly */
-		if(part->childtype) {
-			if(!psys->totchild)
-				skip = 1;
-			else if((psys->part->type == PART_HAIR && psys->flag & PSYS_HAIR_DONE)==0)
-				skip = 1;
-
-			if(!skip)
-				psys_cache_child_paths(sim, cfra, 0);
-		}
+		if(part->childtype && psys->totchild)
+			psys_cache_child_paths(sim, cfra, 0);
 	}
 	else if(psys->pathcache)
 		psys_free_path_cache(psys, NULL);
@@ -3094,6 +3201,8 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	psys->hair_out_dm = clothModifier_do(psys->clmd, sim->scene, sim->ob, dm, 0, 0);
 
 	psys->clmd->sim_parms->effector_weights = NULL;
+
+	psys_free_path_cache(psys, NULL);
 }
 static void hair_step(ParticleSimulationData *sim, float cfra)
 {
@@ -3123,8 +3232,8 @@ static void hair_step(ParticleSimulationData *sim, float cfra)
 	if(psys->part->type==PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS)
 		do_hair_dynamics(sim);
 
+	/* following lines were removed r29079 but cause bug [#22811], see report for details */
 	psys_update_effectors(sim);
-
 	psys_update_path_cache(sim, cfra);
 
 	psys->flag |= PSYS_HAIR_UPDATED;
@@ -3184,15 +3293,11 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part=psys->part;
-	KDTree *tree=0;
-	//IpoCurve *icu_esize=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
-/*	Material *ma=give_current_material(sim->ob, part->omat); */
 	BoidBrainData bbd;
 	PARTICLE_P;
 	float timestep;
-	int totpart;
 	/* current time */
-	float ctime, ipotime; // XXX old animation system
+	float ctime;
 	/* frame & time changes */
 	float dfra, dtime, pa_dtime, pa_dfra=0.0;
 	float birthtime, dietime;
@@ -3200,200 +3305,186 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	/* where have we gone in time since last time */
 	dfra= cfra - psys->cfra;
 
-	totpart=psys->totpart;
-
 	timestep = psys_get_timestep(sim);
 	dtime= dfra*timestep;
 	ctime= cfra*timestep;
-	ipotime= cfra; // XXX old animation system
-
-#if 0 // XXX old animation system
-	if(part->flag&PART_ABS_TIME && part->ipo){
-		calc_ipo(part->ipo, cfra);
-		execute_ipo((ID *)part, part->ipo);
-	}
-#endif // XXX old animation system
 
 	if(dfra<0.0){
-		float *vg_size=0;
-		//if(part->type==PART_REACTOR)
-		//	vg_size=psys_cache_vgroup(sim->psmd->dm,psys,PSYS_VG_SIZE);
-
 		LOOP_EXISTING_PARTICLES {
-			/* set correct ipo timing */
-#if 0 // XXX old animation system
-			if((part->flag&PART_ABS_TIME)==0 && part->ipo){
-				ipotime=100.0f*(cfra-pa->time)/pa->lifetime;
-				calc_ipo(part->ipo, ipotime);
-				execute_ipo((ID *)part, part->ipo);
-			}
-#endif // XXX old animation system
 			pa->size = part->size;
 			if(part->randsize > 0.0)
 				pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
 
 			reset_particle(sim, pa, dtime, cfra);
 		}
-
-		if(vg_size)
-			MEM_freeN(vg_size);
+		return;
 	}
-	else{
-		BLI_srandom(31415926 + (int)cfra + psys->seed);
 
-		psys_update_effectors(sim);
+	BLI_srandom(31415926 + (int)cfra + psys->seed);
 
-		if(part->type != PART_HAIR)
-			sim->colliders = get_collider_cache(sim->scene, NULL);
+	psys_update_effectors(sim);
 
-		if(part->phystype==PART_PHYS_BOIDS){
-			ParticleTarget *pt = psys->targets.first;
-			bbd.sim = sim;
-			bbd.part = part;
-			bbd.cfra = cfra;
-			bbd.dfra = dfra;
-			bbd.timestep = timestep;
+	if(part->type != PART_HAIR)
+		sim->colliders = get_collider_cache(sim->scene, NULL, NULL);
 
-			psys_update_particle_tree(psys, cfra);
+	if(part->phystype==PART_PHYS_BOIDS){
+		ParticleTarget *pt = psys->targets.first;
+		bbd.sim = sim;
+		bbd.part = part;
+		bbd.cfra = cfra;
+		bbd.dfra = dfra;
+		bbd.timestep = timestep;
 
-			boids_precalc_rules(part, cfra);
+		psys_update_particle_tree(psys, cfra);
 
-			for(; pt; pt=pt->next) {
-				if(pt->ob)
-					psys_update_particle_tree(BLI_findlink(&pt->ob->particlesystem, pt->psys-1), cfra);
-			}
+		boids_precalc_rules(part, cfra);
+
+		for(; pt; pt=pt->next) {
+			if(pt->ob)
+				psys_update_particle_tree(BLI_findlink(&pt->ob->particlesystem, pt->psys-1), cfra);
+		}
+	}
+	else if(part->phystype==PART_PHYS_FLUID){
+		ParticleTarget *pt = psys->targets.first;
+		psys_update_particle_tree(psys, cfra);
+		
+		for(; pt; pt=pt->next) {  /* Updating others systems particle tree for fluid-fluid interaction */
+			if(pt->ob) psys_update_particle_tree(BLI_findlink(&pt->ob->particlesystem, pt->psys-1), cfra);
+		}
+	}
+
+	/* main loop: calculate physics for all particles */
+	LOOP_SHOWN_PARTICLES {
+		copy_particle_key(&pa->prev_state,&pa->state,1);
+
+		pa->size = part->size;
+		if(part->randsize > 0.0)
+			pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
+
+		///* reactions can change birth time so they need to be checked first */
+		//if(psys->reactevents.first && ELEM(pa->alive,PARS_DEAD,PARS_KILLED)==0)
+		//	react_to_events(psys,p);
+
+		birthtime = pa->time;
+		dietime = birthtime + pa->lifetime;
+
+		pa_dfra = dfra;
+		pa_dtime = dtime;
+
+
+		if(dietime <= cfra && psys->cfra < dietime){
+			/* particle dies some time between this and last step */
+			pa_dfra = dietime - ((birthtime > psys->cfra) ? birthtime : psys->cfra);
+			pa_dtime = pa_dfra * timestep;
+			pa->alive = PARS_DYING;
+		}
+		else if(birthtime <= cfra && birthtime >= psys->cfra){
+			/* particle is born some time between this and last step*/
+			reset_particle(sim, pa, dtime, cfra);
+			pa->alive = PARS_ALIVE;
+			pa_dfra = cfra - birthtime;
+			pa_dtime = pa_dfra*timestep;
+		}
+		else if(dietime < cfra){
+			/* nothing to be done when particle is dead */
 		}
 
-		/* main loop: calculate physics for all particles */
-		LOOP_SHOWN_PARTICLES {
-			copy_particle_key(&pa->prev_state,&pa->state,1);
-			
-			/* set correct ipo timing */
-#if 0 // XXX old animation system
-			if((part->flag&PART_ABS_TIME)==0 && part->ipo){
-				ipotime=100.0f*(cfra-pa->time)/pa->lifetime;
-				calc_ipo(part->ipo, ipotime);
-				execute_ipo((ID *)part, part->ipo);
-			}
-#endif // XXX old animation system
-			//update_particle_settings(psys, part, &tpart, pa);
+		/* only reset unborn particles if they're shown or if the particle is born soon*/
+		if(pa->alive==PARS_UNBORN
+			&& (part->flag & PART_UNBORN || cfra + psys->pointcache->step > pa->time))
+			reset_particle(sim, pa, dtime, cfra);
+		else if(part->phystype == PART_PHYS_NO)
+			reset_particle(sim, pa, dtime, cfra);
 
-			pa->size = part->size;
-			if(part->randsize > 0.0)
-				pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
+		if(dfra>0.0 && ELEM(pa->alive,PARS_ALIVE,PARS_DYING)){
+			switch(part->phystype){
+				case PART_PHYS_NEWTON:
+					/* do global forces & effectors */
+					apply_particle_forces(sim, p, pa_dfra, cfra);
+		
+					/* deflection */
+					if(sim->colliders)
+						deflect_particle(sim, p, pa_dfra, cfra);
 
-			///* reactions can change birth time so they need to be checked first */
-			//if(psys->reactevents.first && ELEM(pa->alive,PARS_DEAD,PARS_KILLED)==0)
-			//	react_to_events(psys,p);
+					/* rotations */
+					rotate_particle(part, pa, pa_dfra, timestep);
+					break;
+				case PART_PHYS_BOIDS:
+				{
+					bbd.goal_ob = NULL;
+					boid_brain(&bbd, p, pa);
+					if(pa->alive != PARS_DYING) {
+						boid_body(&bbd, pa);
 
-			birthtime = pa->time;
-			dietime = birthtime + pa->lifetime;
-
-			pa_dfra = dfra;
-			pa_dtime = dtime;
-
-
-			if(dietime <= cfra && psys->cfra < dietime){
-				/* particle dies some time between this and last step */
-				pa_dfra = dietime - ((birthtime > psys->cfra) ? birthtime : psys->cfra);
-				pa_dtime = pa_dfra * timestep;
-				pa->alive = PARS_DYING;
-			}
-			else if(birthtime <= cfra && birthtime >= psys->cfra){
-				/* particle is born some time between this and last step*/
-				reset_particle(sim, pa, dtime, cfra);
-				pa->alive = PARS_ALIVE;
-				pa_dfra = cfra - birthtime;
-				pa_dtime = pa_dfra*timestep;
-			}
-			else if(dietime < cfra){
-				/* nothing to be done when particle is dead */
-			}
-
-			/* only reset unborn particles if they're shown or if the particle is born soon*/
-			if(pa->alive==PARS_UNBORN
-				&& (part->flag & PART_UNBORN || cfra + psys->pointcache->step > pa->time))
-				reset_particle(sim, pa, dtime, cfra);
-			else if(part->phystype == PART_PHYS_NO)
-				reset_particle(sim, pa, dtime, cfra);
-
-			if(dfra>0.0 && ELEM(pa->alive,PARS_ALIVE,PARS_DYING)){
-				switch(part->phystype){
-					case PART_PHYS_NEWTON:
-						/* do global forces & effectors */
-						apply_particle_forces(sim, p, pa_dfra, cfra);
-			
 						/* deflection */
 						if(sim->colliders)
 							deflect_particle(sim, p, pa_dfra, cfra);
-
-						/* rotations */
-						rotate_particle(part, pa, pa_dfra, timestep);
-						break;
-					case PART_PHYS_BOIDS:
-					{
-						bbd.goal_ob = NULL;
-						boid_brain(&bbd, p, pa);
-						if(pa->alive != PARS_DYING) {
-							boid_body(&bbd, pa);
-
-							/* deflection */
-							if(sim->colliders)
-								deflect_particle(sim, p, pa_dfra, cfra);
-						}
-						break;
 					}
+					break;
 				}
+				case PART_PHYS_FLUID:
+				{	
+					/* do global forces & effectors */
+					apply_particle_forces(sim, p, pa_dfra, cfra);
 
-				if(pa->alive == PARS_DYING){
-					//push_reaction(ob,psys,p,PART_EVENT_DEATH,&pa->state);
+					/* do fluid sim */
+					apply_particle_fluidsim(psys, pa, part, sim, pa_dfra, cfra);
 
-					pa->alive=PARS_DEAD;
-					pa->state.time=pa->dietime;
-				}
-				else
-					pa->state.time=cfra;
-
-				//push_reaction(ob,psys,p,PART_EVENT_NEAR,&pa->state);
+					/* deflection */
+ 					if(sim->colliders)
+						deflect_particle(sim, p, pa_dfra, cfra);
+ 					
+					/* rotations, SPH particles are not physical particles, just interpolation particles,  thus rotation has not a direct sense for them */	
+					rotate_particle(part, pa, pa_dfra, timestep);  
+ 					break;
+				} 
 			}
-		}
 
-		free_collider_cache(&sim->colliders);
+			if(pa->alive == PARS_DYING){
+				//push_reaction(ob,psys,p,PART_EVENT_DEATH,&pa->state);
+
+				pa->alive=PARS_DEAD;
+				pa->state.time=pa->dietime;
+			}
+			else
+				pa->state.time=cfra;
+
+			//push_reaction(ob,psys,p,PART_EVENT_NEAR,&pa->state);
+		}
 	}
 
-	if(tree)
-		BLI_kdtree_free(tree);
-}
+	free_collider_cache(&sim->colliders);
 
+	if(psys->pathcache)
+		psys_free_path_cache(psys, NULL);
+}
+void psys_update_children(ParticleSimulationData *sim)
+{
+	if((sim->psys->part->type == PART_HAIR) && (sim->psys->flag & PSYS_HAIR_DONE)==0)
+	/* don't generate children while growing hair - waste of time */
+		psys_free_children(sim->psys);
+	else if(sim->psys->part->childtype) {
+		if(sim->psys->totchild != get_psys_tot_child(sim->scene, sim->psys))
+			distribute_particles(sim, PART_FROM_CHILD);
+	}
+	else
+		psys_free_children(sim->psys);
+}
 /* updates cached particles' alive & other flags etc..*/
 static void cached_step(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
-	//IpoCurve *icu_esize = NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
-/*	Material *ma = give_current_material(sim->ob,part->omat); */
 	PARTICLE_P;
-	float disp, birthtime, dietime, *vg_size= NULL; // XXX ipotime=cfra
+	float disp, birthtime, dietime;
 
 	BLI_srandom(psys->seed);
-
-	if(part->from!=PART_FROM_PARTICLE)
-		vg_size= psys_cache_vgroup(sim->psmd->dm,psys,PSYS_VG_SIZE);
 
 	psys_update_effectors(sim);
 	
 	disp= (float)get_current_display_percentage(psys)/100.0f;
 
 	LOOP_PARTICLES {
-#if 0 // XXX old animation system
-		if((part->flag&PART_ABS_TIME)==0 && part->ipo){
-			ipotime=100.0f*(cfra-pa->time)/pa->lifetime;
-			calc_ipo(part->ipo, ipotime);
-			execute_ipo((ID *)part, part->ipo);
-		}
-#endif // XXX old animation system
-		//update_settings_with_particle(psys, part, pa);
-
 		pa->size = part->size;
 		if(part->randsize > 0.0)
 			pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
@@ -3409,12 +3500,10 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 			if(part->flag & PART_UNBORN && (psys->pointcache->flag & PTCACHE_EXTERNAL) == 0)
 				reset_particle(sim, pa, 0.0f, cfra);
 		}
-		else if(dietime <= cfra){
+		else if(dietime <= cfra)
 			pa->alive = PARS_DEAD;
-		}
-		else{
+		else
 			pa->alive = PARS_ALIVE;
-		}
 
 		if(psys->lattice){
 			end_latt_deform(psys->lattice);
@@ -3426,114 +3515,8 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 		else
 			pa->flag &= ~PARS_NO_DISP;
 	}
-
-	/* make sure that children are up to date */
-	if(psys->part->childtype && psys->totchild != get_psys_tot_child(sim->scene, psys)) {
-		realloc_particles(sim, psys->totpart);
-		distribute_particles(sim, PART_FROM_CHILD);
-	}
-
-	psys_update_path_cache(sim, cfra);
-
-	if(vg_size)
-		MEM_freeN(vg_size);
 }
 
-static void psys_changed_type(ParticleSimulationData *sim)
-{
-	ParticleSettings *part = sim->psys->part;
-	PTCacheID pid;
-
-	BKE_ptcache_id_from_particles(&pid, sim->ob, sim->psys);
-
-	/* system type has changed so set sensible defaults and clear non applicable flags */
-	if(part->from == PART_FROM_PARTICLE) {
-		//if(part->type != PART_REACTOR)
-		part->from = PART_FROM_FACE;
-		if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
-			part->distr = PART_DISTR_JIT;
-	}
-
-	if(part->phystype != PART_PHYS_KEYED)
-		sim->psys->flag &= ~PSYS_KEYED;
-
-	if(part->type == PART_HAIR) {
-		if(ELEM4(part->ren_as, PART_DRAW_NOT, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR)==0)
-			part->ren_as = PART_DRAW_PATH;
-
-		if(ELEM3(part->draw_as, PART_DRAW_NOT, PART_DRAW_REND, PART_DRAW_PATH)==0)
-			part->draw_as = PART_DRAW_REND;
-
-		CLAMP(part->path_start, 0.0f, 100.0f);
-		CLAMP(part->path_end, 0.0f, 100.0f);
-
-		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
-	}
-	else {
-		free_hair(sim->ob, sim->psys, 1);
-
-		CLAMP(part->path_start, 0.0f, MAX2(100.0f, part->end + part->lifetime));
-		CLAMP(part->path_end, 0.0f, MAX2(100.0f, part->end + part->lifetime));
-	}
-
-	psys_reset(sim->psys, PSYS_RESET_ALL);
-}
-void psys_check_boid_data(ParticleSystem *psys)
-{
-		BoidParticle *bpa;
-		PARTICLE_P;
-
-		pa = psys->particles;
-
-		if(!pa)
-			return;
-
-		if(psys->part && psys->part->phystype==PART_PHYS_BOIDS) {
-			if(!pa->boid) {
-				bpa = MEM_callocN(psys->totpart * sizeof(BoidParticle), "Boid Data");
-
-				LOOP_PARTICLES
-					pa->boid = bpa++;
-			}
-		}
-		else if(pa->boid){
-			MEM_freeN(pa->boid);
-			LOOP_PARTICLES
-				pa->boid = NULL;
-		}
-}
-static void psys_changed_physics(ParticleSimulationData *sim)
-{
-	ParticleSettings *part = sim->psys->part;
-
-	if(ELEM(part->phystype, PART_PHYS_NO, PART_PHYS_KEYED)) {
-		PTCacheID pid;
-		BKE_ptcache_id_from_particles(&pid, sim->ob, sim->psys);
-		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
-	}
-	else {
-		free_keyed_keys(sim->psys);
-		sim->psys->flag &= ~PSYS_KEYED;
-	}
-
-	if(part->phystype == PART_PHYS_BOIDS && part->boids == NULL) {
-		BoidState *state;
-
-		part->boids = MEM_callocN(sizeof(BoidSettings), "Boid Settings");
-		boid_default_settings(part->boids);
-
-		state = boid_new_state(part->boids);
-		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Separate));
-		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Flock));
-
-		((BoidRule*)state->rules.first)->flag |= BOIDRULE_CURRENT;
-
-		state->flag |= BOIDSTATE_CURRENT;
-		BLI_addtail(&part->boids->states, state);
-	}
-
-	psys_check_boid_data(sim->psys);
-}
 static void particles_fluid_step(ParticleSimulationData *sim, int cfra)
 {	
 	ParticleSystem *psys = sim->psys;
@@ -3567,8 +3550,8 @@ static void particles_fluid_step(ParticleSimulationData *sim, int cfra)
 			// ok, start loading
 			strcpy(filename, fss->surfdataPath);
 			strcat(filename, suffix);
-			BLI_convertstringcode(filename, G.sce);
-			BLI_convertstringframe(filename, curFrame, 0); // fixed #frame-no 
+			BLI_path_abs(filename, G.sce);
+			BLI_path_frame(filename, curFrame, 0); // fixed #frame-no 
 			strcat(filename, suffix2);
 	
 			gzf = gzopen(filename, "rb");
@@ -3642,200 +3625,127 @@ static void particles_fluid_step(ParticleSimulationData *sim, int cfra)
 	#endif // DISABLE_ELBEEM
 }
 
-/* Calculates the next state for all particles of the system */
-/* In particles code most fra-ending are frames, time-ending are fra*timestep (seconds)*/
+static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float cfra)
+{
+	ParticleSystem *psys = sim->psys;
+	ParticleSettings *part = psys->part;
+	int oldtotpart = psys->totpart;
+	int totpart = oldtotpart;
+
+	if(pid && psys->pointcache->flag & PTCACHE_EXTERNAL)
+		totpart = pid->cache->totpoint;
+	else if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
+		totpart = part->grid_res*part->grid_res*part->grid_res;
+	else
+		totpart = psys->part->totpart;
+
+	if(totpart != oldtotpart)
+		realloc_particles(sim, totpart);
+
+	return totpart - oldtotpart;
+}
+/* Calculates the next state for all particles of the system
+ * In particles code most fra-ending are frames, time-ending are fra*timestep (seconds)
+ * 1. Emit particles
+ * 2. Check cache (if used) and return if frame is cached
+ * 3. Do dynamics
+ * 4. Save to cache */
 static void system_step(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	PointCache *cache = psys->pointcache;
-	PTCacheID pid;
+	PTCacheID pid, *use_cache = NULL;
 	PARTICLE_P;
-	int totpart, oldtotpart, totchild, oldtotchild;
-	float disp, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0;
-	int init= 0, distr= 0, alloc= 0, usecache= 0, only_children_changed= 0;
-	int framenr, framedelta, startframe, endframe;
+	int oldtotpart;
+	float disp; /*, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0; */
+	int init= 0, emit= 0; //, only_children_changed= 0;
+	int framenr, framedelta, startframe = 0, endframe = 100;
 
 	framenr= (int)sim->scene->r.cfra;
 	framedelta= framenr - cache->simframe;
 
-	/* set suitable cache range automatically */
-	if((cache->flag & (PTCACHE_BAKING|PTCACHE_BAKED))==0 && !(psys->flag & PSYS_HAIR_DYNAMICS))
-		psys_get_pointcache_start_end(sim->scene, sim->psys, &cache->startframe, &cache->endframe);
-
-	BKE_ptcache_id_from_particles(&pid, sim->ob, psys);
-	BKE_ptcache_id_time(&pid, sim->scene, 0.0f, &startframe, &endframe, NULL);
-
-	psys_clear_temp_pointcache(sim->psys);
-
-	/* update ipo's */
-#if 0 // XXX old animation system
-	if((part->flag & PART_ABS_TIME) && part->ipo) {
-		calc_ipo(part->ipo, cfra);
-		execute_ipo((ID *)part, part->ipo);
-	}
-#endif // XXX old animation system
-
-	/* hair if it's already done is handled separate */
-	if(part->type == PART_HAIR && (psys->flag & PSYS_HAIR_DONE)) {
-		hair_step(sim, cfra);
-		psys->cfra = cfra;
-		psys->recalc = 0;
-		return;
-	}
-	/* fluid is also handled separate */
-	else if(part->type == PART_FLUID) {
-		particles_fluid_step(sim, framenr);
-		psys->cfra = cfra;
-		psys->recalc = 0;
-		return;
+	/* cache shouldn't be used for hair or "continue physics" */
+	if(part->type != PART_HAIR && BKE_ptcache_get_continue_physics() == 0) {
+		BKE_ptcache_id_from_particles(&pid, sim->ob, psys);
+		use_cache = &pid;
 	}
 
-	/* cache shouldn't be used for hair or "none" or "keyed" physics */
-	if(part->type == PART_HAIR || ELEM(part->phystype, PART_PHYS_NO, PART_PHYS_KEYED))
-		usecache= 0;
-	else if(BKE_ptcache_get_continue_physics())
-		usecache= 0;
-	else
-		usecache= 1;
+	if(use_cache) {
+		psys_clear_temp_pointcache(sim->psys);
 
-	if(usecache) {
-		/* frame clamping */
+		/* set suitable cache range automatically */
+		if((cache->flag & (PTCACHE_BAKING|PTCACHE_BAKED))==0)
+			psys_get_pointcache_start_end(sim->scene, sim->psys, &cache->startframe, &cache->endframe);
+		
+		BKE_ptcache_id_time(&pid, sim->scene, 0.0f, &startframe, &endframe, NULL);
+
+		/* simulation is only active during a specific period */
 		if(framenr < startframe) {
 			psys_reset(psys, PSYS_RESET_CACHE_MISS);
-			psys->cfra = cfra;
-			psys->recalc = 0;
 			return;
 		}
 		else if(framenr > endframe) {
 			framenr= endframe;
 		}
-
+		
 		if(framenr == startframe) {
-			BKE_ptcache_id_reset(sim->scene, &pid, PTCACHE_RESET_OUTDATED);
-			cache->simframe= framenr;
-			cache->flag |= PTCACHE_SIMULATION_VALID;
+			BKE_ptcache_id_reset(sim->scene, use_cache, PTCACHE_RESET_OUTDATED);
+			BKE_ptcache_validate(cache, framenr);
 			cache->flag &= ~PTCACHE_REDO_NEEDED;
 		}
 	}
 
+/* 1. emit particles */
+
 	/* verify if we need to reallocate */
 	oldtotpart = psys->totpart;
-	oldtotchild = psys->totchild;
 
-	if(psys->pointcache->flag & PTCACHE_EXTERNAL)
-		totpart = pid.cache->totpoint;
-	else if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
-		totpart = part->grid_res*part->grid_res*part->grid_res;
-	else
-		totpart = psys->part->totpart;
-	totchild = get_psys_tot_child(sim->scene, psys);
-
-	if(oldtotpart != totpart || oldtotchild != totchild) {
-		only_children_changed = (oldtotpart == totpart);
-		alloc = 1;
-		distr= 1;
-		init= 1;
-	}
-
-	if(psys->recalc & PSYS_RECALC_RESET) {
-		distr= 1;
-		init= 1;
-	}
+	emit = emit_particles(sim, use_cache, cfra);
+	if(use_cache && emit > 0)
+		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, cfra);
+	init = emit*emit + (psys->recalc & PSYS_RECALC_RESET);
 
 	if(init) {
-		if(distr) {
-			if(alloc) {
-				realloc_particles(sim, totpart);
-
-				if(oldtotpart && usecache && !only_children_changed) {
-					BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
-					BKE_ptcache_id_from_particles(&pid, sim->ob, psys);
-				}
-			}
-
-			if(!only_children_changed)
-				distribute_particles(sim, part->from);
-
-			if((psys->part->type == PART_HAIR) && !(psys->flag & PSYS_HAIR_DONE))
-			/* don't generate children while growing hair - waste of time */
-				psys_free_children(psys);
-			else if(get_psys_tot_child(sim->scene, psys))
-				distribute_particles(sim, PART_FROM_CHILD);
-		}
-
-		if(!only_children_changed) {
-			free_keyed_keys(psys);
-
-			initialize_all_particles(sim);
-			
-
-			if(alloc) {
-				reset_all_particles(sim, 0.0, cfra, oldtotpart);
-			}
-		}
+		distribute_particles(sim, part->from);
+		initialize_all_particles(sim);
+		reset_all_particles(sim, 0.0, cfra, oldtotpart);
 
 		/* flag for possible explode modifiers after this system */
 		sim->psmd->flag |= eParticleSystemFlag_Pars;
 	}
 
-	/* try to read from the cache */
-	if(usecache) {
-		int result = BKE_ptcache_read_cache(&pid, cfra, sim->scene->r.frs_sec);
+/* 2. try to read from the cache */
+	if(use_cache) {
+		int cache_result = BKE_ptcache_read_cache(use_cache, cfra, sim->scene->r.frs_sec);
 
-		if(result == PTCACHE_READ_EXACT || result == PTCACHE_READ_INTERPOLATED) {
+		if(ELEM(cache_result, PTCACHE_READ_EXACT, PTCACHE_READ_INTERPOLATED)) {
 			cached_step(sim, cfra);
-			psys->cfra=cfra;
-			psys->recalc = 0;
 
-			cache->simframe= framenr;
-			cache->flag |= PTCACHE_SIMULATION_VALID;
+			BKE_ptcache_validate(cache, framenr);
 
-			if(result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
-				BKE_ptcache_write_cache(&pid, (int)cfra);
+			if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
+				BKE_ptcache_write_cache(use_cache, framenr);
 
 			return;
 		}
-		else if(result==PTCACHE_READ_OLD) {
+		else if(cache_result == PTCACHE_READ_OLD) {
 			psys->cfra = (float)cache->simframe;
-			LOOP_PARTICLES {
-				/* update alive status */
-				if(pa->time > psys->cfra)
-					pa->alive = PARS_UNBORN;
-				else if(pa->dietime <= psys->cfra)
-					pa->alive = PARS_DEAD;
-				else
-					pa->alive = PARS_ALIVE;
-			}
+			cached_step(sim, psys->cfra);
 		}
 		else if(cfra != startframe && ( /*sim->ob->id.lib ||*/ (cache->flag & PTCACHE_BAKED))) { /* 2.4x disabled lib, but this can be used in some cases, testing further - campbell */
 			psys_reset(psys, PSYS_RESET_CACHE_MISS);
-			psys->cfra=cfra;
-			psys->recalc = 0;
 			return;
 		}
+
+		/* if on second frame, write cache for first frame */
+		if(psys->cfra == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
+			BKE_ptcache_write_cache(use_cache, startframe);
 	}
-	else {
-		cache->flag &= ~PTCACHE_SIMULATION_VALID;
-		cache->simframe= 0;
-		cache->last_exact= 0;
-	}
+	else
+		BKE_ptcache_invalidate(cache);
 
-	/* if on second frame, write cache for first frame */
-	if(usecache && psys->cfra == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
-		BKE_ptcache_write_cache(&pid, startframe);
-
-	if(part->phystype==PART_PHYS_KEYED)
-		psys_count_keyed_targets(sim);
-
-	/* initialize vertex groups */
-	if(part->from!=PART_FROM_PARTICLE) {
-		vg_vel= psys_cache_vgroup(sim->psmd->dm,psys,PSYS_VG_VEL);
-		vg_tan= psys_cache_vgroup(sim->psmd->dm,psys,PSYS_VG_TAN);
-		vg_rot= psys_cache_vgroup(sim->psmd->dm,psys,PSYS_VG_ROT);
-		vg_size= psys_cache_vgroup(sim->psmd->dm,psys,PSYS_VG_SIZE);
-	}
-
+/* 3. do dynamics */
 	/* set particles to be not calculated TODO: can't work with pointcache */
 	disp= (float)get_current_display_percentage(psys)/100.0f;
 
@@ -3848,50 +3758,153 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	}
 
 	if(psys->totpart) {
-		int dframe, totframesback = 0;
-
+		int dframe, subframe = 0, totframesback = 0, totsubframe = part->subframes+1;
+		float fraction;
+		
 		/* handle negative frame start at the first frame by doing
 		 * all the steps before the first frame */
 		if(framenr == startframe && part->sta < startframe)
 			totframesback = (startframe - (int)part->sta);
-
+		
 		for(dframe=-totframesback; dframe<=0; dframe++) {
 			/* ok now we're all set so let's go */
-			dynamics_step(sim, cfra+dframe);
-			psys->cfra = cfra+dframe;
+			for (subframe = 1; subframe <= totsubframe; subframe++) {
+				fraction = (float)subframe/(float)totsubframe;
+				dynamics_step(sim, cfra+dframe+fraction - 1.f);
+				psys->cfra = cfra+dframe+fraction - 1.f;
+			}
 		}
+		
 	}
 	
-	cache->simframe= framenr;
-	cache->flag |= PTCACHE_SIMULATION_VALID;
-
-	psys->recalc = 0;
-	psys->cfra = cfra;
-
-	/* only write cache starting from second frame */
-	if(usecache && framenr != startframe)
-		BKE_ptcache_write_cache(&pid, (int)cfra);
-
-	/* for keyed particles the path is allways known so it can be drawn */
-	if(part->phystype==PART_PHYS_KEYED) {
-		set_keyed_keys(sim);
-		psys_update_path_cache(sim,(int)cfra);
+/* 4. only write cache starting from second frame */
+	if(use_cache) {
+		BKE_ptcache_validate(cache, framenr);
+		if(framenr != startframe)
+			BKE_ptcache_write_cache(use_cache, framenr);
 	}
-	else if(psys->pathcache)
-		psys_free_path_cache(psys, NULL);
 
-	/* cleanup */
-	if(vg_vel) MEM_freeN(vg_vel);
-	if(vg_tan) MEM_freeN(vg_tan);
-	if(vg_rot) MEM_freeN(vg_rot);
-	if(vg_size) MEM_freeN(vg_size);
-
+/* cleanup */
 	if(psys->lattice){
 		end_latt_deform(psys->lattice);
 		psys->lattice= NULL;
 	}
 }
 
+/* system type has changed so set sensible defaults and clear non applicable flags */
+static void psys_changed_type(ParticleSimulationData *sim)
+{
+	ParticleSettings *part = sim->psys->part;
+	PTCacheID pid;
+
+	BKE_ptcache_id_from_particles(&pid, sim->ob, sim->psys);
+
+	if(part->from == PART_FROM_PARTICLE) {
+		//if(part->type != PART_REACTOR)
+		part->from = PART_FROM_FACE;
+		if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
+			part->distr = PART_DISTR_JIT;
+	}
+
+	if(part->phystype != PART_PHYS_KEYED)
+		sim->psys->flag &= ~PSYS_KEYED;
+
+	if(part->type == PART_HAIR) {
+		if(ELEM4(part->ren_as, PART_DRAW_NOT, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR)==0)
+			part->ren_as = PART_DRAW_PATH;
+
+		if(ELEM3(part->draw_as, PART_DRAW_NOT, PART_DRAW_REND, PART_DRAW_PATH)==0)
+			part->draw_as = PART_DRAW_REND;
+
+		CLAMP(part->path_start, 0.0f, 100.0f);
+		CLAMP(part->path_end, 0.0f, 100.0f);
+
+		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
+	}
+	else {
+		free_hair(sim->ob, sim->psys, 1);
+
+		CLAMP(part->path_start, 0.0f, MAX2(100.0f, part->end + part->lifetime));
+		CLAMP(part->path_end, 0.0f, MAX2(100.0f, part->end + part->lifetime));
+	}
+
+	psys_reset(sim->psys, PSYS_RESET_ALL);
+}
+void psys_check_boid_data(ParticleSystem *psys)
+{
+		BoidParticle *bpa;
+		PARTICLE_P;
+
+		pa = psys->particles;
+
+		if(!pa)
+			return;
+
+		if(psys->part && psys->part->phystype==PART_PHYS_BOIDS) {
+			if(!pa->boid) {
+				bpa = MEM_callocN(psys->totpart * sizeof(BoidParticle), "Boid Data");
+
+				LOOP_PARTICLES
+					pa->boid = bpa++;
+			}
+		}
+		else if(pa->boid){
+			MEM_freeN(pa->boid);
+			LOOP_PARTICLES
+				pa->boid = NULL;
+		}
+}
+
+static void fluid_default_settings(ParticleSettings *part){
+	SPHFluidSettings *fluid = part->fluid;
+
+	fluid->radius = 0.5f;
+	fluid->spring_k = 0.f;
+	fluid->rest_length = 0.5f;
+	fluid->viscosity_omega = 2.f;
+	fluid->viscosity_beta = 0.f;
+	fluid->stiffness_k = 0.1f;
+	fluid->stiffness_knear = 0.05f;
+	fluid->rest_density = 10.f;
+	fluid->buoyancy = 0.f;
+}
+
+static void psys_changed_physics(ParticleSimulationData *sim)
+{
+	ParticleSettings *part = sim->psys->part;
+
+	if(ELEM(part->phystype, PART_PHYS_NO, PART_PHYS_KEYED)) {
+		PTCacheID pid;
+		BKE_ptcache_id_from_particles(&pid, sim->ob, sim->psys);
+		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
+	}
+	else {
+		free_keyed_keys(sim->psys);
+		sim->psys->flag &= ~PSYS_KEYED;
+	}
+
+	if(part->phystype == PART_PHYS_BOIDS && part->boids == NULL) {
+		BoidState *state;
+
+		part->boids = MEM_callocN(sizeof(BoidSettings), "Boid Settings");
+		boid_default_settings(part->boids);
+
+		state = boid_new_state(part->boids);
+		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Separate));
+		BLI_addtail(&state->rules, boid_new_rule(eBoidRuleType_Flock));
+
+		((BoidRule*)state->rules.first)->flag |= BOIDRULE_CURRENT;
+
+		state->flag |= BOIDSTATE_CURRENT;
+		BLI_addtail(&part->boids->states, state);
+	}
+	else if(part->phystype == PART_PHYS_FLUID && part->fluid == NULL) {
+		part->fluid = MEM_callocN(sizeof(SPHFluidSettings), "SPH Fluid Settings");
+		fluid_default_settings(part);
+	}
+
+	psys_check_boid_data(sim->psys);
+}
 static int hair_needs_recalc(ParticleSystem *psys)
 {
 	if(!(psys->flag & PSYS_EDITED) && (!psys->edit || !psys->edit->edited) &&
@@ -3902,10 +3915,12 @@ static int hair_needs_recalc(ParticleSystem *psys)
 	return 0;
 }
 
-/* main particle update call, checks that things are ok on the large scale before actual particle calculations */
+/* main particle update call, checks that things are ok on the large scale and
+ * then advances in to actual particle calculations depending on particle type */
 void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	ParticleSimulationData sim = {scene, ob, psys, NULL, NULL};
+	ParticleSettings *part = psys->part;
 	float cfra;
 
 	/* drawdata is outdated after ANY change */
@@ -3914,7 +3929,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if(!psys_check_enabled(ob, psys))
 		return;
 
-	cfra= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0f);
+	cfra= BKE_curframe(scene);
 	sim.psmd= psys_get_modifier(ob, psys);
 
 	/* system was already updated from modifier stack */
@@ -3929,35 +3944,87 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 		return;
 
 	/* execute drivers only, as animation has already been done */
-	BKE_animsys_evaluate_animdata(&psys->part->id, psys->part->adt, cfra, ADT_RECALC_DRIVERS);
+	BKE_animsys_evaluate_animdata(&part->id, part->adt, cfra, ADT_RECALC_DRIVERS);
+
+	/* TODO: only free child paths in case of PSYS_RECALC_CHILD */
+	if(psys->recalc & PSYS_RECALC || ob->recalc & OB_RECALC_ALL)
+		psys_free_path_cache(psys, NULL);
+
+	if(psys->recalc & PSYS_RECALC_CHILD)
+		psys_free_children(psys);
 
 	if(psys->recalc & PSYS_RECALC_TYPE)
 		psys_changed_type(&sim);
 	else if(psys->recalc & PSYS_RECALC_PHYS)
 		psys_changed_physics(&sim);
 
-	/* (re-)create hair */
-	if(psys->part->type==PART_HAIR && hair_needs_recalc(psys)) {
-		float hcfra=0.0f;
-		int i;
+	switch(part->type) {
+		case PART_HAIR:
+		{
+			/* (re-)create hair */
+			if(hair_needs_recalc(psys)) {
+				float hcfra=0.0f;
+				int i, recalc = psys->recalc;
 
-		free_hair(ob, psys, 0);
+				free_hair(ob, psys, 0);
 
-		/* first step is negative so particles get killed and reset */
-		psys->cfra= 1.0f;
+				/* first step is negative so particles get killed and reset */
+				psys->cfra= 1.0f;
 
-		for(i=0; i<=psys->part->hair_step; i++){
-			hcfra=100.0f*(float)i/(float)psys->part->hair_step;
-			BKE_animsys_evaluate_animdata(&psys->part->id, psys->part->adt, hcfra, ADT_RECALC_ANIM);
-			system_step(&sim, hcfra);
-			save_hair(&sim, hcfra);
+				for(i=0; i<=part->hair_step; i++){
+					hcfra=100.0f*(float)i/(float)psys->part->hair_step;
+					BKE_animsys_evaluate_animdata(&part->id, part->adt, hcfra, ADT_RECALC_ANIM);
+					system_step(&sim, hcfra);
+					psys->cfra = hcfra;
+					psys->recalc = 0;
+					save_hair(&sim, hcfra);
+				}
+
+				psys->flag |= PSYS_HAIR_DONE;
+				psys->recalc = recalc;
+			}
+
+			if(psys->flag & PSYS_HAIR_DONE)
+				hair_step(&sim, cfra);
+			break;
 		}
+		case PART_FLUID:
+		{
+			particles_fluid_step(&sim, (int)cfra);
+			break;
+		}
+		default:
+		{
+			switch(part->phystype) {
+				case PART_PHYS_NO:
+				case PART_PHYS_KEYED:
+				{
+					if(emit_particles(&sim, NULL, cfra)) {
+						free_keyed_keys(psys);
+						distribute_particles(&sim, part->from);
+						initialize_all_particles(&sim);
+					}
+					reset_all_particles(&sim, 0.0, cfra, 0);
 
-		psys->flag |= PSYS_HAIR_DONE;
+					if(part->phystype == PART_PHYS_KEYED) {
+						psys_count_keyed_targets(&sim);
+						set_keyed_keys(&sim);
+					}
+					break;
+				}
+				default:
+				{
+					/* the main dynamic particle system step */
+					system_step(&sim, cfra);
+					break;
+				}
+			}
+			break;
+		}
 	}
 
-	/* the main particle system step */
-	system_step(&sim, cfra);
+	psys->cfra = cfra;
+	psys->recalc = 0;
 
 	/* save matrix for duplicators */
 	invert_m4_m4(psys->imat, ob->obmat);

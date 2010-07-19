@@ -31,24 +31,14 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_ID.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -74,8 +64,6 @@
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
 #include "BLF_api.h"
 
 #include "UI_resources.h"
@@ -1205,7 +1193,7 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 {
 	
 	/*	Draw a 3d octahedral bone, we use normalized space based on length,
-	    for glDisplayLists */
+		for glDisplayLists */
 	
 	glScalef(length, length, length);
 
@@ -1559,7 +1547,7 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 
 	VECCOPY(trans, mat[1]);
 	mul_v3_fl(trans, y);
-	add_v3_v3v3(mat[3], mat[3], trans);
+	add_v3_v3(mat[3], trans);
 }
 
 /* assumes object is Armature with pose */
@@ -1894,16 +1882,16 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 						
 						/*	Draw additional axes on the bone tail  */
 						if ( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ) {
+							float mat[4][4];
 							glPushMatrix();
 							copy_m4_m4(bmat, pchan->pose_mat);
 							bone_matrix_translate_y(bmat, pchan->bone->length);
 							glMultMatrixf(bmat);
 							
-							/* do cached text draw immediate to include transform */
-							view3d_cached_text_draw_begin();
-							drawaxes(pchan->bone->length*0.25f, 0, OB_ARROWS);
-							view3d_cached_text_draw_end(v3d, ar, 1, bmat);
+							mul_m4_m4m4(mat, bmat, rv3d->viewmatob);
 							
+							drawaxes(rv3d, mat, pchan->bone->length*0.25f, 0, OB_ARROWS);
+
 							glPopMatrix();
 						}
 					}
@@ -1929,7 +1917,7 @@ static void get_matrix_editbone(EditBone *eBone, float bmat[][4])
 	vec_roll_to_mat3(delta, eBone->roll, mat);
 	copy_m4_m3(bmat, mat);
 
-	add_v3_v3v3(bmat[3], bmat[3], eBone->head);
+	add_v3_v3(bmat[3], eBone->head);
 }
 
 static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
@@ -2090,15 +2078,16 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 						}					
 						/*	Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
+							float mat[4][4];
 							glPushMatrix();
 							get_matrix_editbone(eBone, bmat);
 							bone_matrix_translate_y(bmat, eBone->length);
 							glMultMatrixf(bmat);
 							
+							mul_m4_m4m4(mat, bmat, rv3d->viewmatob);
+							
 							/* do cached text draw immediate to include transform */
-							view3d_cached_text_draw_begin();
-							drawaxes(eBone->length*0.25f, 0, OB_ARROWS);
-							view3d_cached_text_draw_end(v3d, ar, 1, bmat);
+							drawaxes(rv3d, mat, eBone->length*0.25f, 0, OB_ARROWS);
 							
 							glPopMatrix();
 						}
@@ -2406,7 +2395,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 	bArmature *arm= ob->data;
 	int retval= 0;
 
-	if(G.f & G_RENDER_SHADOW)
+	if(v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return 1;
 	
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {

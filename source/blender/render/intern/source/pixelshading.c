@@ -285,14 +285,14 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	int a;
    
 	if(R.wrld.mode & WO_MIST) {
-       if(har->type & HA_ONLYSKY) {
-           /* stars but no mist */
-           alpha= har->alfa;
-       }
-       else {
-           /* a bit patchy... */
-           alpha= mistfactor(-har->co[2], har->co)*har->alfa;
-       }
+	   if(har->type & HA_ONLYSKY) {
+		   /* stars but no mist */
+		   alpha= har->alfa;
+	   }
+	   else {
+		   /* a bit patchy... */
+		   alpha= mistfactor(-har->co[2], har->co)*har->alfa;
+	   }
 	}
 	else alpha= har->alfa;
 	

@@ -18,13 +18,13 @@
 
 # <pep8 compliant>
 import bpy
-import Mathutils
+import mathutils
 from math import cos, sin, pi
 
 
 def add_torus(major_rad, minor_rad, major_seg, minor_seg):
-    Vector = Mathutils.Vector
-    Quaternion = Mathutils.Quaternion
+    Vector = mathutils.Vector
+    Quaternion = mathutils.Quaternion
 
     PI_2 = pi * 2
     z_axis = (0, 0, 1)
@@ -39,10 +39,10 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
         for minor_index in range(minor_seg):
             angle = 2 * pi * minor_index / minor_seg
 
-            vec = Vector(major_rad + (cos(angle) * minor_rad), 0.0,
-                        (sin(angle) * minor_rad)) * quat
+            vec = Vector((major_rad + (cos(angle) * minor_rad), 0.0,
+                        (sin(angle) * minor_rad))) * quat
 
-            verts.extend([vec.x, vec.y, vec.z])
+            verts.extend(vec[:])
 
             if minor_index + 1 == minor_seg:
                 i2 = (major_index) * minor_seg
@@ -102,6 +102,10 @@ class AddTorus(bpy.types.Operator):
             description="Total Interior Radius of the torus",
             default=0.5, min=0.01, max=100.0)
 
+    # generic transform props
+    location = FloatVectorProperty(name="Location")
+    rotation = FloatVectorProperty(name="Rotation")
+
     def execute(self, context):
         props = self.properties
 
@@ -120,44 +124,16 @@ class AddTorus(bpy.types.Operator):
         mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
         mesh.verts.foreach_set("co", verts_loc)
         mesh.faces.foreach_set("verts_raw", faces)
-        mesh.faces.foreach_set("smooth", [False] * len(mesh.faces))
-
-        scene = context.scene
-
-        # ugh
-        for ob in scene.objects:
-            ob.selected = False
-
         mesh.update()
-        ob_new = bpy.data.objects.new("Torus", mesh)
-        scene.objects.link(ob_new)
-        ob_new.selected = True
 
-        ob_new.location = scene.cursor_location
-
-        obj_act = scene.objects.active
-
-        if obj_act and obj_act.mode == 'EDIT':
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-            obj_act.selected = True
-            scene.update() # apply location
-            #scene.objects.active = ob_new
-
-            bpy.ops.object.join() # join into the active.
-
-            bpy.ops.object.mode_set(mode='EDIT')
-        else:
-            scene.objects.active = ob_new
-            if context.user_preferences.edit.enter_edit_mode:
-                bpy.ops.object.mode_set(mode='EDIT')
+        import add_object_utils
+        add_object_utils.add_object_data(context, mesh, operator=self)
 
         return {'FINISHED'}
 
 
-# Add to the menu
-menu_func = (lambda self, context: self.layout.operator(AddTorus.bl_idname,
-                                        text="Torus", icon='MESH_DONUT'))
+def menu_func(self, context):
+    self.layout.operator(AddTorus.bl_idname, text="Torus", icon='MESH_DONUT')
 
 
 def register():

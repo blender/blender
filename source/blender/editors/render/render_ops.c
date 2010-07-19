@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -27,10 +27,8 @@
 
 #include <stdlib.h>
 
-#include "DNA_windowmanager_types.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 #include "render_intern.h" // own include
 
@@ -63,6 +61,19 @@ void ED_operatortypes_render(void)
 	WM_operatortype_append(SCENE_OT_render_data_set_quicktime_codec);
 #endif
 	
+	WM_operatortype_append(TEXTURE_OT_slot_copy);
+	WM_operatortype_append(TEXTURE_OT_slot_paste);
 	WM_operatortype_append(TEXTURE_OT_slot_move);
+	WM_operatortype_append(TEXTURE_OT_envmap_save);
+	WM_operatortype_append(TEXTURE_OT_envmap_clear);
+	WM_operatortype_append(TEXTURE_OT_envmap_clear_all);
+
+	/* render_internal.c */
+	WM_operatortype_append(RENDER_OT_view_show);
+	WM_operatortype_append(RENDER_OT_render);
+	WM_operatortype_append(RENDER_OT_view_cancel);
+
+	/* render_opengl.c */
+	WM_operatortype_append(RENDER_OT_opengl);
 }
 

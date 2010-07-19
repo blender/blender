@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,11 +29,13 @@
  #include <string.h>
 #include <stdio.h>
 
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
 
 #include "MEM_guardedalloc.h"
+
+#include "BLO_readfile.h" /* get the ID name for dnd*/
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -42,19 +44,16 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
 
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -148,13 +147,70 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
 static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
+	ListBase *lb;
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymap */
 	keymap= WM_keymap_find(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	
+	/* add drop boxes */
+	lb= WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
+	
+	WM_event_add_dropbox_handler(&ar->handlers, lb);
 }
+
+
+/* ************* dropboxes ************* */
+
+static int id_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+    SpaceConsole *sc= CTX_wm_space_console(C);
+    if(sc->type==CONSOLE_TYPE_PYTHON)
+        if(drag->type==WM_DRAG_ID)
+            return 1;
+	return 0;
+}
+
+static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	char text[64];
+	ID *id= drag->poin;
+
+	snprintf(text, sizeof(text), "bpy.data.%s['%s']", BLO_idcode_to_name_plural(GS(id->name)), id->name+2);	
+
+	/* copy drag path to properties */
+	RNA_string_set(drop->ptr, "text", text);
+}
+
+static int path_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+    SpaceConsole *sc= CTX_wm_space_console(C);
+    if(sc->type==CONSOLE_TYPE_PYTHON)
+        if(drag->type==WM_DRAG_PATH)
+            return 1;
+	return 0;
+}
+
+static void path_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+    char pathname[FILE_MAXDIR+FILE_MAXFILE+2];
+    snprintf(pathname, sizeof(pathname), "\"%s\"", drag->path);
+	RNA_string_set(drop->ptr, "text", pathname);
+}
+
+
+/* this region dropbox definition */
+static void console_dropboxes(void)
+{
+	ListBase *lb= WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
+	
+	WM_dropbox_add(lb, "CONSOLE_OT_insert", id_drop_poll, id_drop_copy);
+	WM_dropbox_add(lb, "CONSOLE_OT_insert", path_drop_poll, path_drop_copy);
+}
+
+/* ************* end drop *********** */
 
 static void console_main_area_draw(const bContext *C, ARegion *ar)
 {
@@ -162,14 +218,12 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
-	float col[3];
 	
 	if((sc->type==CONSOLE_TYPE_PYTHON) && (sc->scrollback.first==NULL))
 		WM_operator_name_call((bContext *)C, "CONSOLE_OT_banner", WM_OP_EXEC_DEFAULT, NULL);
 
 	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 1.0);
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	console_update_rect(C, ar);
@@ -235,19 +289,19 @@ void console_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.font_size");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
 	RNA_boolean_set(kmi->ptr, "reverse", 0);
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.font_size");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
 	RNA_boolean_set(kmi->ptr, "reverse", 1);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.font_size");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
 	RNA_boolean_set(kmi->ptr, "reverse", 0);
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.font_size");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.font_size");
 	RNA_boolean_set(kmi->ptr, "reverse", 1);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_CHAR);
@@ -295,6 +349,11 @@ void console_keymap(struct wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "CONSOLE_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+#ifdef __APPLE__
+	WM_keymap_add_item(keymap, "CONSOLE_OT_copy", CKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "CONSOLE_OT_paste", VKEY, KM_PRESS, KM_OSKEY, 0);
+#endif
+	
 	WM_keymap_add_item(keymap, "CONSOLE_OT_select_set", LEFTMOUSE, KM_PRESS, 0, 0);
 
 	RNA_string_set(WM_keymap_add_item(keymap, "CONSOLE_OT_insert", TABKEY, KM_PRESS, 0, 0)->ptr, "text", "    "); /* fake tabs */
@@ -347,6 +406,7 @@ void ED_spacetype_console(void)
 	st->duplicate= console_duplicate;
 	st->operatortypes= console_operatortypes;
 	st->keymap= console_keymap;
+	st->dropboxes= console_dropboxes;
 	st->listener= console_main_area_listener;
 	
 	/* regions: main window */

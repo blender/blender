@@ -27,12 +27,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
 #include "BKE_report.h"
+#include "BKE_global.h" /* G.background only */
+#include "BKE_utildefines.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -67,7 +67,7 @@ void BKE_reports_init(ReportList *reports, int flag)
 	memset(reports, 0, sizeof(ReportList));
 
 	reports->storelevel= RPT_INFO;
-	reports->printlevel= RPT_INFO;
+	reports->printlevel= RPT_ERROR;
 	reports->flag= flag;
 }
 
@@ -94,6 +94,10 @@ void BKE_report(ReportList *reports, ReportType type, const char *message)
 {
 	Report *report;
 	int len;
+
+    /* exception, print and return in background, no reason to store a list */
+    if(G.background)
+        reports= NULL;
 
 	if(!reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
 		printf("%s: %s\n", report_type_str(type), message);
@@ -259,3 +263,14 @@ void BKE_reports_print(ReportList *reports, ReportType level)
 	MEM_freeN(cstring);
 }
 
+Report *BKE_reports_last_displayable(ReportList *reports)
+{
+	Report *report=NULL;
+	
+	for (report= (Report *)reports->list.last; report; report=report->prev) {
+		if (ELEM3(report->type, RPT_ERROR, RPT_WARNING, RPT_INFO))
+			return report;
+	}
+	
+	return NULL;
+}

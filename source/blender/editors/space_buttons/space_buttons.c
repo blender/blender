@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,11 +29,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -45,7 +40,6 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -53,7 +47,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -181,7 +174,7 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	else if(sbuts->mainb == BCONTEXT_BONE_CONSTRAINT)
 		ED_region_panels(C, ar, vertical, "bone_constraint", sbuts->mainb);
 
-    sbuts->re_align= 0;
+	sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;
 }
 
@@ -215,15 +208,9 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 #else
 
-	float col[3];
-	
+
 	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor(ED_screen_area_active(C)?TH_HEADER:TH_HEADERDESEL);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */
@@ -265,6 +252,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					buttons_area_redraw(sa, BCONTEXT_TEXTURE);
 					buttons_area_redraw(sa, BCONTEXT_WORLD);
 					buttons_area_redraw(sa, BCONTEXT_DATA);
+					buttons_area_redraw(sa, BCONTEXT_PHYSICS);
 					sbuts->preview= 1;
 					break;
 				case ND_OB_ACTIVE:
@@ -273,6 +261,8 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 				case ND_KEYINGSET:
 					buttons_area_redraw(sa, BCONTEXT_SCENE);
+					break;
+				case ND_RENDER_RESULT:
 					break;
 				case ND_MODE:
 				case ND_LAYER:
@@ -297,15 +287,20 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 						ED_area_tag_redraw(sa);
 					else
 						buttons_area_redraw(sa, BCONTEXT_MODIFIER);
+						buttons_area_redraw(sa, BCONTEXT_PHYSICS);
 					break;
 				case ND_CONSTRAINT:
 					buttons_area_redraw(sa, BCONTEXT_CONSTRAINT);
 					buttons_area_redraw(sa, BCONTEXT_BONE_CONSTRAINT);
 					break;
-				case ND_PARTICLE_DATA:
-					buttons_area_redraw(sa, BCONTEXT_PARTICLE);
+				case ND_PARTICLE:
+					if (wmn->action == NA_EDITED)
+						buttons_area_redraw(sa, BCONTEXT_PARTICLE);
 					break;
 				case ND_DRAW:
+					buttons_area_redraw(sa, BCONTEXT_OBJECT);
+					buttons_area_redraw(sa, BCONTEXT_DATA);
+					buttons_area_redraw(sa, BCONTEXT_PHYSICS);
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
 					/* currently works by redraws... if preview is set, it (re)starts job */
@@ -349,6 +344,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			sbuts->preview= 1;
 			break;
 		case NC_TEXTURE:
+		case NC_IMAGE:
 			ED_area_tag_redraw(sa);
 			sbuts->preview= 1;
 			break;
@@ -362,8 +358,9 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_ANIMATION:
 			switch(wmn->data) {
-				case ND_KEYFRAME_EDIT:
-					ED_area_tag_redraw(sa);
+				case ND_KEYFRAME:
+					if (wmn->action == NA_EDITED)
+						ED_area_tag_redraw(sa);
 					break;
 			}
 	}

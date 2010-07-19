@@ -29,10 +29,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_SystemX11.h"
 #include "GHOST_WindowX11.h"
 #include "GHOST_WindowManager.h"
@@ -469,7 +465,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 
 				/* could also clamp to screen bounds
 				 * wrap with a window outside the view will fail atm  */
-				bounds.wrapPoint(x_new, y_new, 2); /* offset of one incase blender is at screen bounds */
+				bounds.wrapPoint(x_new, y_new, 8); /* offset of one incase blender is at screen bounds */
 				window->getCursorGrabAccum(x_accum, y_accum);
 
 				if(x_new != xme.x_root || y_new != xme.y_root) {
@@ -536,38 +532,43 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		}
 
 		case ButtonPress:
-		{
-			/* process wheel mouse events and break */
-			if (xe->xbutton.button == 4) {
-				g_event = new GHOST_EventWheel(getMilliSeconds(), window, 1);
-				break;
-			}
-			if (xe->xbutton.button == 5) {
-				g_event = new GHOST_EventWheel(getMilliSeconds(), window, -1);
-				break;
-			}
-		}
 		case ButtonRelease:
 		{
-
 			XButtonEvent & xbe = xe->xbutton;
 			GHOST_TButtonMask gbmask = GHOST_kButtonMaskLeft;
-			switch (xbe.button) {
-				case Button1 : gbmask = GHOST_kButtonMaskLeft; break;
-				case Button3 : gbmask = GHOST_kButtonMaskRight; break;
-				/* It seems events 6 and 7 are for horizontal scrolling.
-				 * you can re-order button mapping like this... (swaps 6,7 with 8,9)
-				 *   xmodmap -e "pointer = 1 2 3 4 5 8 9 6 7" 
-				 */
-				case 8 : gbmask = GHOST_kButtonMaskButton4; break; /* Button4 is the wheel */
-				case 9 : gbmask = GHOST_kButtonMaskButton5; break; /* Button5 is a wheel too */
-				default:
-				case Button2 : gbmask = GHOST_kButtonMaskMiddle; break;
-			}
-			
 			GHOST_TEventType type = (xbe.type == ButtonPress) ? 
 				GHOST_kEventButtonDown : GHOST_kEventButtonUp;
+
+			/* process wheel mouse events and break, only pass on press events */
+			if(xbe.button == Button4) {
+				if(xbe.type == ButtonPress)
+					g_event = new GHOST_EventWheel(getMilliSeconds(), window, 1);
+				break;
+			}
+			else if(xbe.button == Button5) {
+				if(xbe.type == ButtonPress)
+					g_event = new GHOST_EventWheel(getMilliSeconds(), window, -1);
+				break;
+			}
 			
+			/* process rest of normal mouse buttons */
+			if(xbe.button == Button1)
+				gbmask = GHOST_kButtonMaskLeft;
+			else if(xbe.button == Button2)
+				gbmask = GHOST_kButtonMaskMiddle;
+			else if(xbe.button == Button3)
+				gbmask = GHOST_kButtonMaskRight;
+			/* It seems events 6 and 7 are for horizontal scrolling.
+			* you can re-order button mapping like this... (swaps 6,7 with 8,9)
+			*   xmodmap -e "pointer = 1 2 3 4 5 8 9 6 7" 
+			*/
+			else if(xbe.button == 8)
+				gbmask = GHOST_kButtonMaskButton4;
+			else if(xbe.button == 9)
+				gbmask = GHOST_kButtonMaskButton5;
+			else
+				break;
+
 			g_event = new
 			GHOST_EventButton(
 				getMilliSeconds(),
@@ -965,7 +966,7 @@ GHOST_SystemX11::
 setCursorPosition(
 	GHOST_TInt32 x,
 	GHOST_TInt32 y
-) const {
+) {
 
 	// This is a brute force move in screen coordinates
 	// XWarpPointer does relative moves so first determine the
@@ -1460,19 +1461,21 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 const GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
 {
-	return (GHOST_TUns8*)"/usr/share/blender";
+	return (GHOST_TUns8*)"/usr/share";
 }
 
 const GHOST_TUns8* GHOST_SystemX11::getUserDir() const
 {
-	static char path[256];
 	char* env = getenv("HOME");
 	if(env) {
-		strncpy(path, env, 245);
-		path[245]=0;
-		strcat(path, "/.blender/");
-		return (GHOST_TUns8*) path;
+		return (GHOST_TUns8*) env;
 	} else {
 		return NULL;
 	}
 }
+
+const GHOST_TUns8* GHOST_SystemX11::getBinaryDir() const
+{
+	return NULL;
+}
+

@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -38,6 +38,8 @@ void FILE_OT_make_paths_relative(struct wmOperatorType *ot);
 void FILE_OT_make_paths_absolute(struct wmOperatorType *ot);
 void FILE_OT_report_missing_files(struct wmOperatorType *ot);
 void FILE_OT_find_missing_files(struct wmOperatorType *ot);
+
+void INFO_OT_reports_display_update(struct wmOperatorType *ot);
 
 #endif /* ED_INFO_INTERN_H */
 

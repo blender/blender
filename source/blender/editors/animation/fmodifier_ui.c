@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -30,65 +30,38 @@
  * This file defines the (C-Coded) templates + editing callbacks needed 
  * by the interface stuff or F-Modifiers, as used by F-Curves in the Graph Editor,
  * and NLA-Strips in the NLA Editor.
+ *
+ * Copy/Paste Buffer for F-Modifiers:
+ * For now, this is also defined in this file so that it can be shared between the 
  */
  
 #include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <float.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
-#include "BLI_rand.h"
 
-#include "BKE_animsys.h"
-#include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_object.h"
-#include "BKE_global.h"
-#include "BKE_nla.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
-
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframing.h"
-#include "ED_screen.h"
-#include "ED_types.h"
-#include "ED_util.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
+
+/* ********************************************** */
+/* UI STUFF */
 
 // XXX! --------------------------------
 /* temporary definition for limits of float number buttons (FLT_MAX tends to infinity with old system) */
 #define UI_FLT_MAX 	10000.0f
-
-/* ********************************************** */
 
 #define B_REDR 					1
 #define B_FMODIFIER_REDRAW		20
@@ -122,7 +95,7 @@ static void delete_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 	
 	/* send notifiers */
 	// XXX for now, this is the only way to get updates in all the right places... but would be nice to have a special one in this case 
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 }
 
 /* --------------- */
@@ -252,14 +225,14 @@ static void draw_modifier__fn_generator(uiLayout *layout, ID *id, FModifier *fcm
 	
 	/* add the settings */
 	col= uiLayoutColumn(layout, 1);
-		uiItemR(col, "", 0, &ptr, "function_type", 0);
-		uiItemR(col, NULL, 0, &ptr, "additive", UI_ITEM_R_TOGGLE);
+		uiItemR(col, &ptr, "function_type", 0, "", 0);
+		uiItemR(col, &ptr, "additive", UI_ITEM_R_TOGGLE, NULL, 0);
 	
 	col= uiLayoutColumn(layout, 0); // no grouping for now
-		uiItemR(col, NULL, 0, &ptr, "amplitude", 0);
-		uiItemR(col, NULL, 0, &ptr, "phase_multiplier", 0);
-		uiItemR(col, NULL, 0, &ptr, "phase_offset", 0);
-		uiItemR(col, NULL, 0, &ptr, "value_offset", 0);
+		uiItemR(col, &ptr, "amplitude", 0, NULL, 0);
+		uiItemR(col, &ptr, "phase_multiplier", 0, NULL, 0);
+		uiItemR(col, &ptr, "phase_offset", 0, NULL, 0);
+		uiItemR(col, &ptr, "value_offset", 0, NULL, 0);
 }
 
 /* --------------- */
@@ -280,15 +253,15 @@ static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, shor
 	
 	/* before range */
 	col= uiLayoutColumn(split, 1);
-	uiItemL(col, "Before:", 0);
-	uiItemR(col, "", 0, &ptr, "before_mode", 0);
-	uiItemR(col, NULL, 0, &ptr, "before_cycles", 0);
+		uiItemL(col, "Before:", 0);
+		uiItemR(col, &ptr, "before_mode", 0, "", 0);
+		uiItemR(col, &ptr, "before_cycles", 0, NULL, 0);
 		
 	/* after range */
 	col= uiLayoutColumn(split, 1);
-	uiItemL(col, "After:", 0);
-	uiItemR(col, "", 0, &ptr, "after_mode", 0);
-	uiItemR(col, NULL, 0, &ptr, "after_cycles", 0);
+		uiItemL(col, "After:", 0);
+		uiItemR(col, &ptr, "after_mode", 0, "", 0);
+		uiItemR(col, &ptr, "after_cycles", 0, NULL, 0);
 }
 
 /* --------------- */
@@ -303,20 +276,20 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	RNA_pointer_create(id, &RNA_FModifierNoise, fcm, &ptr);
 	
 	/* blending mode */
-	uiItemR(layout, NULL, 0, &ptr, "modification", 0);
+	uiItemR(layout, &ptr, "modification", 0, NULL, 0);
 	
 	/* split into 2 columns */
 	split= uiLayoutSplit(layout, 0.5f, 0);
 	
 	/* col 1 */
 	col= uiLayoutColumn(split, 0);
-	uiItemR(col, NULL, 0, &ptr, "size", 0);
-	uiItemR(col, NULL, 0, &ptr, "strength", 0);
+		uiItemR(col, &ptr, "size", 0, NULL, 0);
+		uiItemR(col, &ptr, "strength", 0, NULL, 0);
 	
 	/* col 2 */
 	col= uiLayoutColumn(split, 0);
-	uiItemR(col, NULL, 0, &ptr, "phase", 0);
-	uiItemR(col, NULL, 0, &ptr, "depth", 0);
+		uiItemR(col, &ptr, "phase", 0, NULL, 0);
+		uiItemR(col, &ptr, "depth", 0, NULL, 0);
 }
 
 /* --------------- */
@@ -497,11 +470,11 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	/* general settings */
 	col= uiLayoutColumn(layout, 1);
 		uiItemL(col, "Envelope:", 0);
-		uiItemR(col, NULL, 0, &ptr, "reference_value", 0);
+		uiItemR(col, &ptr, "reference_value", 0, NULL, 0);
 		
 		row= uiLayoutRow(col, 1);
-			uiItemR(row, "Min", 0, &ptr, "default_minimum", 0);
-			uiItemR(row, "Max", 0, &ptr, "default_maximum", 0);
+			uiItemR(row, &ptr, "default_minimum", 0, "Min", 0);
+			uiItemR(row, &ptr, "default_maximum", 0, "Max", 0);
 			
 	/* control points header */
 	// TODO: move this control-point control stuff to using the new special widgets for lists
@@ -553,16 +526,16 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_minimum_x", 0);
-		uiItemR(col, NULL, 0, &ptr, "minimum_x", 0);
+			uiItemR(col, &ptr, "use_minimum_x", 0, NULL, 0);
+			uiItemR(col, &ptr, "minimum_x", 0, NULL, 0);
 			
 		/* y-minimum*/
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_minimum_y", 0);
-		uiItemR(col, NULL, 0, &ptr, "minimum_y", 0);
+			uiItemR(col, &ptr, "use_minimum_y", 0, NULL, 0);
+			uiItemR(col, &ptr, "minimum_y", 0, NULL, 0);
 	}
 	
-	/* row 2: minimum */
+	/* row 2: maximum */
 	{
 		row= uiLayoutRow(layout, 0);
 		
@@ -571,18 +544,50 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_maximum_x", 0);
-		uiItemR(col, NULL, 0, &ptr, "maximum_x", 0);
+			uiItemR(col, &ptr, "use_maximum_x", 0, NULL, 0);
+			uiItemR(col, &ptr, "maximum_x", 0, NULL, 0);
 			
 		/* y-minimum*/
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_maximum_y", 0);
-		uiItemR(col, NULL, 0, &ptr, "maximum_y", 0);
+			uiItemR(col, &ptr, "use_maximum_y", 0, NULL, 0);
+			uiItemR(col, &ptr, "maximum_y", 0, NULL, 0);
 	}
 }
 
 /* --------------- */
 
+/* draw settings for stepped interpolation modifier */
+static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, short width)
+{
+	uiLayout *col, *subcol;
+	PointerRNA ptr;
+	
+	/* init the RNA-pointer */
+	RNA_pointer_create(id, &RNA_FModifierStepped, fcm, &ptr);
+	
+	/* block 1: "stepping" settings */
+	col= uiLayoutColumn(layout, 0);
+		uiItemR(col, &ptr, "step_size", 0, NULL, 0);
+		uiItemR(col, &ptr, "offset", 0, NULL, 0);
+		
+	/* block 2: start range settings */
+	col= uiLayoutColumn(layout, 1);
+		uiItemR(col, &ptr, "use_frame_start", 0, NULL, 0);
+		
+		subcol = uiLayoutColumn(col, 1);
+		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_frame_start"));
+			uiItemR(subcol, &ptr, "frame_start", 0, NULL, 0);
+			
+	/* block 3: end range settings */
+	col= uiLayoutColumn(layout, 1);
+		uiItemR(col, &ptr, "use_frame_end", 0, NULL, 0);
+		
+		subcol = uiLayoutColumn(col, 1);
+		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_end_frame"));
+			uiItemR(subcol, &ptr, "frame_end", 0, NULL, 0);
+}
+
+/* --------------- */
 
 void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
 {
@@ -611,10 +616,10 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* expand */
-		uiItemR(subrow, "", 0, &ptr, "expanded", UI_ITEM_R_ICON_ONLY);
+		uiItemR(subrow, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 		
 		/* checkbox for 'active' status (for now) */
-		uiItemR(subrow, "", 0, &ptr, "active", UI_ITEM_R_ICON_ONLY);
+		uiItemR(subrow, &ptr, "active", UI_ITEM_R_ICON_ONLY, "", 0);
 		
 		/* name */
 		if (fmi)
@@ -628,7 +633,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		
 		
 		/* 'mute' button */
-		uiItemR(subrow, "", 0, &ptr, "muted", UI_ITEM_R_ICON_ONLY);
+		uiItemR(subrow, &ptr, "muted", UI_ITEM_R_ICON_ONLY, "", 0);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
@@ -669,11 +674,93 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 			case FMODIFIER_TYPE_NOISE: /* Noise */
 				draw_modifier__noise(box, id, fcm, width);
 				break;
+				
+			case FMODIFIER_TYPE_STEPPED: /* Stepped */
+				draw_modifier__stepped(box, id, fcm, width);
+				break;
 			
 			default: /* unknown type */
 				break;
 		}
 	}
+}
+
+/* ********************************************** */
+/* COPY/PASTE BUFFER STUFF */
+
+/* Copy/Paste Buffer itself (list of FModifier 's) */
+static ListBase fmodifier_copypaste_buf = {NULL, NULL};
+
+/* ---------- */
+
+/* free the copy/paste buffer */
+void free_fmodifiers_copybuf (void)
+{
+	/* just free the whole buffer */
+	free_fmodifiers(&fmodifier_copypaste_buf);
+}
+
+/* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
+ * assuming that the buffer has been cleared already with free_fmodifiers_copybuf()
+ *	- active: only copy the active modifier
+ */
+short ANIM_fmodifiers_copy_to_buf (ListBase *modifiers, short active)
+{
+	short ok = 1;
+	
+	/* sanity checks */
+	if ELEM(NULL, modifiers, modifiers->first)
+		return 0;
+		
+	/* copy the whole list, or just the active one? */
+	if (active) {
+		FModifier *fcm = find_active_fmodifier(modifiers);
+		
+		if (fcm) {
+			FModifier *fcmN = copy_fmodifier(fcm);
+			BLI_addtail(&fmodifier_copypaste_buf, fcmN);
+		}
+		else
+			ok = 0;
+	}
+	else
+		copy_fmodifiers(&fmodifier_copypaste_buf, modifiers);
+		
+	/* did we succeed? */
+	return ok;
+}
+
+/* 'Paste' the F-Modifier(s) from the buffer to the specified list 
+ *	- replace: free all the existing modifiers to leave only the pasted ones 
+ */
+short ANIM_fmodifiers_paste_from_buf (ListBase *modifiers, short replace)
+{
+	FModifier *fcm;
+	short ok = 0;
+	
+	/* sanity checks */
+	if (modifiers == NULL)
+		return 0;
+		
+	/* if replacing the list, free the existing modifiers */
+	if (replace)
+		free_fmodifiers(modifiers);
+		
+	/* now copy over all the modifiers in the buffer to the end of the list */
+	for (fcm= fmodifier_copypaste_buf.first; fcm; fcm= fcm->next) {
+		/* make a copy of it */
+		FModifier *fcmN = copy_fmodifier(fcm);
+		
+		/* make sure the new one isn't active, otherwise the list may get several actives */
+		fcmN->flag &= ~FMODIFIER_FLAG_ACTIVE;
+		
+		/* now add it to the end of the list */
+		BLI_addtail(modifiers, fcmN);
+		ok = 1;
+	}
+	
+	/* did we succeed? */
+	return ok;
 }
 
 /* ********************************************** */

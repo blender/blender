@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -31,13 +31,7 @@
 #include <math.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -59,7 +53,6 @@
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
-#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 
@@ -71,8 +64,6 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "nla_intern.h"	// own include
 #include "nla_private.h" // FIXME... maybe this shouldn't be included?
@@ -269,7 +260,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	cfra= (float)CFRA;
 		
 	/* get action to use */
-	act= BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "type"));
+	act= BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "action"));
 	
 	if (act == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No valid Action to add.");
@@ -320,7 +311,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -345,7 +336,7 @@ void NLA_OT_actionclip_add (wmOperatorType *ot)
 	
 	/* props */
 		// TODO: this would be nicer as an ID-pointer...
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	prop= RNA_def_enum(ot->srna, "action", DummyRNA_NULL_items, 0, "Action", "");
 	RNA_def_enum_funcs(prop, RNA_action_itemf);
 	ot->prop= prop;
 }
@@ -439,7 +430,7 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 		ED_nla_postop_refresh(&ac);
 		
 		/* set notifier that things have changed */
-		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 		
 		/* done */
 		return OPERATOR_FINISHED;
@@ -506,7 +497,7 @@ static int nlaedit_add_meta_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -558,7 +549,7 @@ static int nlaedit_remove_meta_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -648,7 +639,7 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
 		ED_nla_postop_refresh(&ac);
 		
 		/* set notifier that things have changed */
-		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 		
 		/* done */
 		return OPERATOR_FINISHED;
@@ -736,7 +727,7 @@ static int nlaedit_delete_exec (bContext *C, wmOperator *op)
 	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -881,7 +872,7 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -912,6 +903,7 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *op)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+//	int flag = 0;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -923,7 +915,7 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *op)
 	
 	/* for each AnimData block, bake strips to animdata... */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		// FIXME
+		//BKE_nla_bake(ac.scene, ale->id, ale->data, flag);
 	}
 	
 	/* free temp data */
@@ -933,7 +925,7 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *op)
 	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -995,7 +987,7 @@ static int nlaedit_toggle_mute_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1069,7 +1061,7 @@ static int nlaedit_move_up_exec (bContext *C, wmOperator *op)
 	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1143,7 +1135,7 @@ static int nlaedit_move_down_exec (bContext *C, wmOperator *op)
 	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1219,7 +1211,7 @@ static int nlaedit_sync_actlen_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1247,10 +1239,10 @@ void NLA_OT_action_sync_length (wmOperatorType *ot)
 /* Reset the scaling of the selected strips to 1.0f */
 
 /* apply scaling to keyframe */
-static short bezt_apply_nlamapping (BeztEditData *bed, BezTriple *bezt)
+static short bezt_apply_nlamapping (KeyframeEditData *ked, BezTriple *bezt)
 {
-	/* NLA-strip which has this scaling is stored in bed->data */
-	NlaStrip *strip= (NlaStrip *)bed->data;
+	/* NLA-strip which has this scaling is stored in ked->data */
+	NlaStrip *strip= (NlaStrip *)ked->data;
 	
 	/* adjust all the times */
 	bezt->vec[0][0]= nlastrip_get_frame(strip, bezt->vec[0][0], NLATIME_CONVERT_MAP);
@@ -1269,7 +1261,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditData bed;
+	KeyframeEditData ked;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -1280,7 +1272,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* init the editing data */
-	memset(&bed, 0, sizeof(BeztEditData));
+	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* for each NLA-Track, apply scale of all selected strips */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1303,8 +1295,8 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 				}
 				
 				/* setup iterator, and iterate over all the keyframes in the action, applying this scaling */
-				bed.data= strip;
-				ANIM_animchanneldata_keys_bezier_loop(&bed, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, calchandles_fcurve, 0);
+				ked.data= strip;
+				ANIM_animchanneldata_keyframes_loop(&ked, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, calchandles_fcurve, 0);
 				
 				/* clear scale of strip now that it has been applied,
 				 * and recalculate the extents of the action now that it has been scaled
@@ -1320,7 +1312,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1383,7 +1375,7 @@ static int nlaedit_clear_scale_exec (bContext *C, wmOperator *op)
 	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1524,7 +1516,7 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1575,7 +1567,7 @@ static int nla_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *event
 			continue;
 		
 		/* add entry to add this type of modifier */
-		uiItemEnumO(layout, fmi->name, 0, "NLA_OT_fmodifier_add", "type", i);
+		uiItemEnumO(layout, "NLA_OT_fmodifier_add", fmi->name, 0, "type", i);
 	}
 	uiItemS(layout);
 	
@@ -1608,12 +1600,19 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		NlaStrip *strip;
-		int i = 1;
 		
-		for (strip= nlt->strips.first; strip; strip=strip->next, i++) {
-			/* only add F-Modifier if on active strip? */
-			if ((onlyActive) && (strip->flag & NLASTRIP_FLAG_ACTIVE)==0)
-				continue;
+		for (strip= nlt->strips.first; strip; strip=strip->next) {
+			/* can F-Modifier be added to the current strip? */
+			if (onlyActive) {
+				/* if not active, cannot add since we're only adding to active strip */
+				if ((strip->flag & NLASTRIP_FLAG_ACTIVE)==0)
+					continue;
+			}
+			else {
+				/* strip must be selected, since we're not just doing active */
+				if ((strip->flag & NLASTRIP_FLAG_SELECT)==0)
+					continue;
+			}
 			
 			/* add F-Modifier of specified type to selected, and make it the active one */
 			fcm= add_fmodifier(&strip->modifiers, type);
@@ -1621,10 +1620,9 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 			if (fcm)
 				set_active_fmodifier(&strip->modifiers, fcm);
 			else {
-				char errormsg[128];
-				sprintf(errormsg, "Modifier couldn't be added to (%s : %d). See console for details.", nlt->name, i);
-				
-				BKE_report(op->reports, RPT_ERROR, errormsg);
+				BKE_reportf(op->reports, RPT_ERROR,
+					"Modifier couldn't be added to (%s : %s). See console for details.", 
+					nlt->name, strip->name);
 			}
 		}
 	}
@@ -1633,8 +1631,7 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	// FIXME: this doesn't really do it justice...
-	WM_event_add_notifier(C, NC_ANIMATION, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1657,6 +1654,127 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
 	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add F-Modifier of the specified type to the active strip.");
+}
+
+/* ******************** Copy F-Modifiers Operator *********************** */
+
+static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter, ok=0;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* clear buffer first */
+	free_fmodifiers_copybuf();
+	
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each NLA-Track, add the specified modifier to all selected strips */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		for (strip= nlt->strips.first; strip; strip=strip->next) {
+			/* only add F-Modifier if on active strip? */
+			if ((strip->flag & NLASTRIP_FLAG_ACTIVE)==0)
+				continue;
+				
+			// TODO: when 'active' vs 'all' boolean is added, change last param!
+			ok += ANIM_fmodifiers_copy_to_buf(&strip->modifiers, 0);
+		}
+	}
+	
+	/* successful or not? */
+	if (ok == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No F-Modifiers available to be copied");
+		return OPERATOR_CANCELLED;
+	}
+	else
+		return OPERATOR_FINISHED;
+}
+ 
+void NLA_OT_fmodifier_copy (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy F-Modifiers";
+	ot->idname= "NLA_OT_fmodifier_copy";
+	ot->description= "Copy the F-Modifier(s) of the active NLA-Strip.";
+	
+	/* api callbacks */
+	ot->exec= nla_fmodifier_copy_exec;
+	ot->poll= nlaop_poll_tweakmode_off; 
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	//ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All F-Modifiers", "Copy all the F-Modifiers, instead of just the active one");
+}
+
+/* ******************** Paste F-Modifiers Operator *********************** */
+
+static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter, ok=0;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each NLA-Track, add the specified modifier to all selected strips */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		for (strip= nlt->strips.first; strip; strip=strip->next) {
+			// TODO: do we want to replace existing modifiers? add user pref for that!
+			ok += ANIM_fmodifiers_paste_from_buf(&strip->modifiers, 0);
+		}
+	}
+	
+	/* clean up */
+	BLI_freelistN(&anim_data);
+	
+	/* successful or not? */
+	if (ok) {
+		/* set notifier that things have changed */
+		/* set notifier that things have changed */
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No F-Modifiers to paste");
+		return OPERATOR_CANCELLED;
+	}
+}
+ 
+void NLA_OT_fmodifier_paste (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste F-Modifiers";
+	ot->idname= "NLA_OT_fmodifier_paste";
+	ot->description= "Add copied F-Modifiers to the selected NLA-Strips";
+	
+	/* api callbacks */
+	ot->exec= nla_fmodifier_paste_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *********************************************** */

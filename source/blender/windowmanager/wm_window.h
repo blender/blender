@@ -1,5 +1,5 @@
 /**
- * $Id: wm_window.h
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

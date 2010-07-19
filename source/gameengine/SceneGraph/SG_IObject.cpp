@@ -29,10 +29,6 @@
 #include "SG_IObject.h"
 #include "SG_Controller.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 SG_Stage gSG_Stage = SG_STAGE_UNKNOWN;
 
 SG_IObject::

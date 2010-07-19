@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb, Xavier Thomas
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -186,10 +186,10 @@ typedef struct bNodeTree {
 	int pad2[2];
 	
 	/* callbacks */
-	void (*timecursor)(void *, int nr);
+	void (*progress)(void *, float progress);
 	void (*stats_draw)(void *, char *str);
 	int (*test_break)(void *);
-	void *tbh, *tch, *sdh;
+	void *tbh, *prh, *sdh;
 	
 } bNodeTree;
 
@@ -250,6 +250,7 @@ typedef struct NodeChroma {
 	float t1,t2,t3;
 	float fsize,fstrength,falpha;
 	float key[4];
+   short algorithm, channel;
 } NodeChroma;
 
 typedef struct NodeTwoXYs {
@@ -310,7 +311,16 @@ typedef struct NodeColorBalance {
 	float lift[3];
 	float gamma[3];
 	float gain[3];
+
+	/* temp storage for inverted lift */
+	float lift_lgg[3];
 } NodeColorBalance;
+
+typedef struct NodeColorspill {
+	short limchan, unspill;
+	float limscale;
+	float uspillr, uspillg, uspillb;
+}NodeColorspill;
 
 /* TEX_output */
 typedef struct TexNodeOutput {

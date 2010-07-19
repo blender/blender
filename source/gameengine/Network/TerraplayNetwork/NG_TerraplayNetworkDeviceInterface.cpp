@@ -31,10 +31,6 @@
 #include "NG_TerraplayNetworkDeviceInterface.h"
 #include "NG_NetworkMessage.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 //---- relocate these
 void NG_TerraplayNetworkDeviceInterface::interface_error(char *str, GASResult error) {
 	GASRString err_str = GAS->ErrorTranslate(error);

@@ -158,6 +158,7 @@ FModifierTypeInfo *get_fmodifier_typeinfo(int type);
 /* ---------------------- */
 
 struct FModifier *add_fmodifier(ListBase *modifiers, int type);
+struct FModifier *copy_fmodifier(struct FModifier *src);
 void copy_fmodifiers(ListBase *dst, ListBase *src);
 int remove_fmodifier(ListBase *modifiers, struct FModifier *fcm);
 int remove_fmodifier_index(ListBase *modifiers, int index);
@@ -185,6 +186,8 @@ void copy_fcurves(ListBase *dst, ListBase *src);
 
 /* find matching F-Curve in the given list of F-Curves */
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);
+
+struct FCurve *iter_step_fcurve (struct FCurve *fcu_iter, const char rna_path[]);
 
 /* high level function to get an fcurve from C without having the rna */
 struct FCurve *id_data_find_fcurve(ID *id, void *data, struct StructRNA *type, char *prop_name, int index);

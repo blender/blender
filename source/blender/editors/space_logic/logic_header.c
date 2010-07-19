@@ -29,10 +29,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -46,8 +42,6 @@
 #include "ED_types.h"
 #include "ED_util.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

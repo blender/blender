@@ -32,7 +32,6 @@
 #include <time.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "DNA_object_types.h"
 
@@ -66,25 +65,25 @@
 #include "DNA_curve_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
-static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports, int apply_modifiers, int settings)
+static Mesh *rna_Object_create_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL;
 	Object *tmpobj = NULL;
 	int render = settings, i;
 	int cage = !apply_modifiers;
-	Scene *sce = CTX_data_scene(C);
 
 	/* perform the mesh extraction based on type */
- 	switch (ob->type) {
- 	case OB_FONT:
- 	case OB_CURVE:
- 	case OB_SURF:
+	 switch (ob->type) {
+	 case OB_FONT:
+	 case OB_CURVE:
+	 case OB_SURF:
 
 		/* copies object and modifiers (but not the data) */
 		tmpobj= copy_object(ob);
@@ -116,7 +115,7 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
 		
 		/* nurbs_to_mesh changes the type to a mesh, check it worked */
 		if (tmpobj->type != OB_MESH) {
-			free_libblock_us( &(CTX_data_main(C)->object), tmpobj );
+			free_libblock_us( &(G.main->object), tmpobj );
 			BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
 			return NULL;
 		}
@@ -124,7 +123,7 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
 		free_libblock_us( &G.main->object, tmpobj );
 		break;
 
- 	case OB_MBALL:
+	 case OB_MBALL:
 		/* metaballs don't have modifiers, so just convert to mesh */
 		ob = find_basis_mball( sce, ob );
 		/* todo, re-generatre for render-res */
@@ -132,9 +131,9 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
 
 		tmpmesh = add_mesh("Mesh");
 		mball_to_mesh( &ob->disp, tmpmesh );
- 		break;
+		 break;
 
- 	case OB_MESH:
+	 case OB_MESH:
 		/* copies object and modifiers (but not the data) */
 		if (cage) {
 			/* copies the data */
@@ -159,10 +158,10 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
 		}
 		
 		break;
- 	default:
+	 default:
 		BKE_report(reports, RPT_ERROR, "Object does not have geometry data");
- 		return NULL;
-  	}
+		 return NULL;
+	  }
 
 	/* Copy materials to new mesh */
 	switch (ob->type) {
@@ -234,7 +233,7 @@ static Mesh *rna_Object_create_mesh(Object *ob, bContext *C, ReportList *reports
 }
 
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
-static void rna_Object_create_duplilist(Object *ob, bContext *C, ReportList *reports)
+static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
 {
 	if (!(ob->transflag & OB_DUPLI)) {
 		BKE_report(reports, RPT_ERROR, "Object does not have duplis.");
@@ -249,7 +248,7 @@ static void rna_Object_create_duplilist(Object *ob, bContext *C, ReportList *rep
 		ob->duplilist= NULL;
 	}
 
-	ob->duplilist= object_duplilist(CTX_data_scene(C), ob);
+	ob->duplilist= object_duplilist(sce, ob);
 
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }
@@ -273,10 +272,11 @@ static void rna_Object_add_vertex_to_group(Object *ob, int vertex_index, bDeform
 	ED_vgroup_vert_add(ob, def, vertex_index, weight, assignmode);
 }
 
-/* copied from old API Object.makeDisplayList (Object.c) */
-static void rna_Object_make_display_list(Object *ob, bContext *C)
+/* copied from old API Object.makeDisplayList (Object.c)
+ * use _ suffix because this exists for internal rna */
+static void rna_Object_update(Object *ob, Scene *sce, int object, int data, int time)
 {
-	Scene *sce= CTX_data_scene(C);
+	int flag= 0;
 
 	if (ob->type == OB_FONT) {
 		Curve *cu = ob->data;
@@ -284,7 +284,11 @@ static void rna_Object_make_display_list(Object *ob, bContext *C)
 		BKE_text_to_curve(sce, ob, CU_LEFT);
 	}
 
-	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	if(object) flag |= OB_RECALC_OB;
+	if(data) flag |= OB_RECALC_DATA;
+	if(time) flag |= OB_RECALC_TIME;
+
+	DAG_id_flush_update(&ob->id, flag);
 }
 
 static Object *rna_Object_find_armature(Object *ob)
@@ -329,9 +333,9 @@ static PointerRNA rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *
 	}
 }
 
-int rna_Object_is_visible(Object *ob, bContext *C)
+int rna_Object_is_visible(Object *ob, Scene *sce)
 {
-	return !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->lay & CTX_data_scene(C)->lay;
+	return !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->lay & sce->lay;
 }
 
 /*
@@ -409,6 +413,13 @@ void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], fl
 	*index= -1;
 }
 
+/* ObjectBase */
+
+void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
+{
+	base->lay= base->object->lay= v3d->lay;
+}
+
 #else
 
 void RNA_api_object(StructRNA *srna)
@@ -432,7 +443,9 @@ void RNA_api_object(StructRNA *srna)
 	/* mesh */
 	func= RNA_def_function(srna, "create_mesh", "rna_Object_create_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh datablock with modifiers applied.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	parm= RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply.");
@@ -443,7 +456,9 @@ void RNA_api_object(StructRNA *srna)
 	/* duplis */
 	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");
 	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to be freed manually with free_dupli_list.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate duplis.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	func= RNA_def_function(srna, "free_dupli_list", "rna_Object_free_duplilist");
 	RNA_def_function_ui_description(func, "Free the list of dupli objects.");
@@ -507,16 +522,33 @@ void RNA_api_object(StructRNA *srna)
 
 	
 	/* DAG */
-	func= RNA_def_function(srna, "make_display_list", "rna_Object_make_display_list");
-	RNA_def_function_ui_description(func, "Update object's display data."); /* XXX describe better */
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	func= RNA_def_function(srna, "update", "rna_Object_update");
+	RNA_def_function_ui_description(func, "Tag the object to update its display data.");
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_boolean(func, "object", 1, "", "Tag the object for updating");
+	RNA_def_boolean(func, "data", 1, "", "Tag the objects display data for updating");
+	RNA_def_boolean(func, "time", 1, "", "Tag the object time related data for updating");
 
 	/* View */
 	func= RNA_def_function(srna, "is_visible", "rna_Object_is_visible");
-	RNA_def_function_ui_description(func, "Determine if object is visible in active scene.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Determine if object is visible in a given scene.");
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	parm= RNA_def_boolean(func, "is_visible", 0, "", "Object visibility.");
 	RNA_def_function_return(func, parm);
+}
+
+
+void RNA_api_object_base(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	func= RNA_def_function(srna, "layers_from_view", "rna_ObjectBase_layers_from_view");
+	RNA_def_function_ui_description(func, "Sets the object layers from a 3D View (use when adding an object in local view).");
+	parm= RNA_def_pointer(func, "view", "SpaceView3D", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 #endif

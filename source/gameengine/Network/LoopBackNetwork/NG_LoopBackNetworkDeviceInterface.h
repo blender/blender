@@ -34,11 +34,7 @@
 #include "NG_NetworkDeviceInterface.h"
 
 class NG_LoopBackNetworkDeviceInterface : public NG_NetworkDeviceInterface
-{
-	enum {
-		LOOPBACK_NETWORK_VERSION=28022001
-	};
-	
+{	
 	std::deque<NG_NetworkMessage*> m_messages[2];
 	int		m_currentQueue;
 
@@ -58,8 +54,6 @@ public:
 
 	virtual void SendNetworkMessage(class NG_NetworkMessage* msg);
 	virtual vector<NG_NetworkMessage*>		RetrieveNetworkMessages();
-
-	STR_String GetNetworkVersion();
 };
 
 #endif //NG_LOOPBACKNETWORKDEVICEINTERFACE_H

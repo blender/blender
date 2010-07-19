@@ -102,7 +102,7 @@ class NLA_MT_edit(bpy.types.Menu):
         layout.column()
         layout.menu("NLA_MT_edit_transform", text="Transform")
 
-        layout.operator_menu_enum("nla.snap", property="type", text="Snap")
+        layout.operator_menu_enum("nla.snap", "type", text="Snap")
 
         layout.separator()
         layout.operator("nla.duplicate")

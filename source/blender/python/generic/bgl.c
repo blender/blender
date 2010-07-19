@@ -1,5 +1,5 @@
 /* 
- * $Id: bgl.c 27189 2010-02-28 15:44:18Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -61,16 +61,19 @@ static PyObject *Buffer_item( PyObject * self, int i );
 static PyObject *Buffer_slice( PyObject * self, int begin, int end );
 static int Buffer_ass_item( PyObject * self, int i, PyObject * v );
 static int Buffer_ass_slice( PyObject * self, int begin, int end,
-			     PyObject * seq );
+				 PyObject * seq );
 
 static PySequenceMethods Buffer_SeqMethods = {
-	( lenfunc ) Buffer_len,	/*sq_length */
-	( binaryfunc ) 0,	/*sq_concat */
-	( ssizeargfunc ) 0,	/*sq_repeat */
-	( ssizeargfunc ) Buffer_item,	/*sq_item */
-	( ssizessizeargfunc ) Buffer_slice,	/*sq_slice */
-	( ssizeobjargproc ) Buffer_ass_item,	/*sq_ass_item */
-	( ssizessizeobjargproc ) Buffer_ass_slice,	/*sq_ass_slice */
+	( lenfunc ) Buffer_len,						/*sq_length */
+	( binaryfunc ) NULL,						/*sq_concat */
+	( ssizeargfunc ) NULL,						/*sq_repeat */
+	( ssizeargfunc ) Buffer_item,				/*sq_item */
+	( ssizessizeargfunc ) Buffer_slice,			/*sq_slice, deprecated TODO, replace */
+	( ssizeobjargproc ) Buffer_ass_item,		/*sq_ass_item */
+	( ssizessizeobjargproc ) Buffer_ass_slice,	/*sq_ass_slice, deprecated TODO, replace */
+	(objobjproc) NULL,							/* sq_contains */
+	(binaryfunc) NULL,							/* sq_inplace_concat */
+	(ssizeargfunc) NULL,						/* sq_inplace_repeat */
 };
 
 static void Buffer_dealloc( PyObject * self );
@@ -319,20 +322,20 @@ static int Buffer_ass_item(PyObject *self, int i, PyObject *v)
 	}
 
 	if (buf->type==GL_BYTE) {
-		if (!PyArg_Parse(v, "b;Coordinates must be ints", &buf->buf.asbyte[i]))
+		if (!PyArg_Parse(v, "b:Coordinates must be ints", &buf->buf.asbyte[i]))
 		return -1;
 	} else if (buf->type==GL_SHORT) {
-		if (!PyArg_Parse(v, "h;Coordinates must be ints", &buf->buf.asshort[i]))
+		if (!PyArg_Parse(v, "h:Coordinates must be ints", &buf->buf.asshort[i]))
 			return -1;
 	  
 	} else if (buf->type==GL_INT) {
-		if (!PyArg_Parse(v, "i;Coordinates must be ints", &buf->buf.asint[i]))
+		if (!PyArg_Parse(v, "i:Coordinates must be ints", &buf->buf.asint[i]))
 			return -1;
 	} else if (buf->type==GL_FLOAT) {
-		if (!PyArg_Parse(v, "f;Coordinates must be floats", &buf->buf.asfloat[i]))
+		if (!PyArg_Parse(v, "f:Coordinates must be floats", &buf->buf.asfloat[i]))
 			return -1;
 	} else if (buf->type==GL_DOUBLE) {
-		if (!PyArg_Parse(v, "d;Coordinates must be floats", &buf->buf.asdouble[i]))
+		if (!PyArg_Parse(v, "d:Coordinates must be floats", &buf->buf.asdouble[i]))
 			return -1;
 	}
 	return 0;
@@ -355,7 +358,10 @@ static int Buffer_ass_slice(PyObject *self, int begin, int end, PyObject *seq)
 	}
 
 	if (PySequence_Length(seq)!=(end-begin)) {
-		PyErr_SetString(PyExc_TypeError, "size mismatch in assignment");
+		int seq_len = PySequence_Length(seq);
+		char err_str[128];
+		sprintf(err_str, "size mismatch in assignment. Expected size: %d (size provided: %d)", seq_len, (end-begin));
+		PyErr_SetString(PyExc_TypeError, err_str);
 		return -1;
 	}
 	
@@ -430,7 +436,7 @@ BGL_Wrap(3, AreTexturesResident,  GLboolean,  (GLsizei, GLuintP, GLbooleanP))
 BGL_Wrap(1, Begin,          void,     (GLenum))
 BGL_Wrap(2, BindTexture,    void,   (GLenum, GLuint))
 BGL_Wrap(7, Bitmap,         void,     (GLsizei, GLsizei, GLfloat,
-                        GLfloat, GLfloat, GLfloat, GLubyteP))
+						GLfloat, GLfloat, GLfloat, GLubyteP))
 BGL_Wrap(2, BlendFunc,        void,     (GLenum, GLenum))
 BGL_Wrap(1, CallList,         void,     (GLuint))
 BGL_Wrap(3, CallLists,        void,     (GLsizei, GLenum, GLvoidP))
@@ -476,6 +482,7 @@ BGL_Wrap(1, Color4usv,        void,     (GLushortP))
 BGL_Wrap(4, ColorMask,        void,     (GLboolean, GLboolean, GLboolean, GLboolean))
 BGL_Wrap(2, ColorMaterial,    void,     (GLenum, GLenum))
 BGL_Wrap(5, CopyPixels,       void,     (GLint, GLint, GLsizei, GLsizei, GLenum))
+BGL_Wrap(8, CopyTexImage2D,   void,     (GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei, GLint))
 BGL_Wrap(1, CullFace,         void,     (GLenum))
 BGL_Wrap(2, DeleteLists,      void,     (GLuint, GLsizei))
 BGL_Wrap(2, DeleteTextures,   void,   (GLsizei, GLuintP))
@@ -511,7 +518,7 @@ BGL_Wrap(2, Fogi,             void,     (GLenum, GLint))
 BGL_Wrap(2, Fogiv,            void,     (GLenum, GLintP))
 BGL_Wrap(1, FrontFace,        void,     (GLenum))
 BGL_Wrap(6, Frustum,          void,     (GLdouble, GLdouble,
-                        GLdouble, GLdouble, GLdouble, GLdouble))
+						GLdouble, GLdouble, GLdouble, GLdouble))
 BGL_Wrap(1, GenLists,         GLuint,   (GLsizei))
 BGL_Wrap(2, GenTextures,      void,   (GLsizei, GLuintP))
 BGL_Wrap(2, GetBooleanv,      void,     (GLenum, GLbooleanP))
@@ -573,19 +580,19 @@ BGL_Wrap(1, LoadMatrixf,    void,     (GLfloatP))
 BGL_Wrap(1, LoadName,       void,     (GLuint))
 BGL_Wrap(1, LogicOp,        void,     (GLenum))
 BGL_Wrap(6, Map1d,          void,     (GLenum, GLdouble, GLdouble,
-                        GLint, GLint, GLdoubleP))
+						GLint, GLint, GLdoubleP))
 BGL_Wrap(6, Map1f,          void,     (GLenum, GLfloat, GLfloat,
-                        GLint, GLint, GLfloatP))
+						GLint, GLint, GLfloatP))
 BGL_Wrap(10, Map2d,         void,     (GLenum, GLdouble, GLdouble,
-                        GLint, GLint, GLdouble, GLdouble, GLint, GLint, GLdoubleP))
+						GLint, GLint, GLdouble, GLdouble, GLint, GLint, GLdoubleP))
 BGL_Wrap(10, Map2f,         void,     (GLenum, GLfloat, GLfloat,
-                        GLint, GLint, GLfloat, GLfloat, GLint, GLint, GLfloatP))
+						GLint, GLint, GLfloat, GLfloat, GLint, GLint, GLfloatP))
 BGL_Wrap(3, MapGrid1d,        void,     (GLint, GLdouble, GLdouble))
 BGL_Wrap(3, MapGrid1f,        void,     (GLint, GLfloat, GLfloat))
 BGL_Wrap(6, MapGrid2d,        void,     (GLint, GLdouble, GLdouble,
-                        GLint, GLdouble, GLdouble))
+						GLint, GLdouble, GLdouble))
 BGL_Wrap(6, MapGrid2f,        void,     (GLint, GLfloat, GLfloat,
-                        GLint, GLfloat, GLfloat))
+						GLint, GLfloat, GLfloat))
 BGL_Wrap(3, Materialf,        void,     (GLenum, GLenum, GLfloat))
 BGL_Wrap(3, Materialfv,       void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, Materiali,        void,     (GLenum, GLenum, GLint))
@@ -605,7 +612,7 @@ BGL_Wrap(1, Normal3iv,        void,     (GLintP))
 BGL_Wrap(3, Normal3s,         void,     (GLshort, GLshort, GLshort))
 BGL_Wrap(1, Normal3sv,        void,     (GLshortP))
 BGL_Wrap(6, Ortho,            void,     (GLdouble, GLdouble,
-                        GLdouble, GLdouble, GLdouble, GLdouble))
+						GLdouble, GLdouble, GLdouble, GLdouble))
 BGL_Wrap(1, PassThrough,      void,     (GLfloat))
 BGL_Wrap(3, PixelMapfv,       void,     (GLenum, GLint, GLfloatP))
 BGL_Wrap(3, PixelMapuiv,      void,     (GLenum, GLint, GLuintP))
@@ -654,7 +661,7 @@ BGL_Wrap(4, RasterPos4s,      void,     (GLshort, GLshort, GLshort, GLshort))
 BGL_Wrap(1, RasterPos4sv,     void,     (GLshortP))
 BGL_Wrap(1, ReadBuffer,       void,     (GLenum))
 BGL_Wrap(7, ReadPixels,       void,     (GLint, GLint, GLsizei,
-                        GLsizei, GLenum, GLenum, GLvoidP))
+						GLsizei, GLenum, GLenum, GLvoidP))
 BGL_Wrap(4, Rectd,          void,     (GLdouble, GLdouble, GLdouble, GLdouble))
 BGL_Wrap(2, Rectdv,         void,     (GLdoubleP, GLdoubleP))
 BGL_Wrap(4, Rectf,          void,     (GLfloat, GLfloat, GLfloat, GLfloat))
@@ -717,9 +724,9 @@ BGL_Wrap(3, TexGenfv,       void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, TexGeni,        void,     (GLenum, GLenum, GLint))
 BGL_Wrap(3, TexGeniv,       void,     (GLenum, GLenum, GLintP))
 BGL_Wrap(8, TexImage1D,     void,     (GLenum, GLint, GLint,
-                        GLsizei, GLint, GLenum, GLenum, GLvoidP))
+						GLsizei, GLint, GLenum, GLenum, GLvoidP))
 BGL_Wrap(9, TexImage2D,     void,     (GLenum, GLint, GLint,
-                        GLsizei, GLsizei, GLint, GLenum, GLenum, GLvoidP))
+						GLsizei, GLsizei, GLint, GLenum, GLenum, GLvoidP))
 BGL_Wrap(3, TexParameterf,      void,     (GLenum, GLenum, GLfloat))
 BGL_Wrap(3, TexParameterfv,     void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, TexParameteri,      void,     (GLenum, GLenum, GLint))
@@ -819,6 +826,7 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(ColorMask),
 	MethodDef(ColorMaterial),
 	MethodDef(CopyPixels),
+	MethodDef(CopyTexImage2D),
 	MethodDef(CullFace),
 	MethodDef(DeleteLists),
 	MethodDef(DeleteTextures),
@@ -1605,4 +1613,3 @@ PyObject *BGL_Init(void)
       
 	return mod;
 }
-

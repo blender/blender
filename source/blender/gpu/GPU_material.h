@@ -159,7 +159,7 @@ void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[][4], int *winsize
 void GPU_lamp_shadow_buffer_unbind(GPULamp *lamp);
 
 void GPU_lamp_update(GPULamp *lamp, int lay, float obmat[][4]);
-void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float energy);
+void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float power);
 int GPU_lamp_shadow_layer(GPULamp *lamp);
 
 #ifdef __cplusplus

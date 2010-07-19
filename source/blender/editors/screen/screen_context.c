@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,7 +29,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_action_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
@@ -37,6 +37,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_action.h"
+#include "BKE_sequencer.h"
 
 #include "RNA_access.h"
 
@@ -61,19 +62,35 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
-			"scene", "selected_objects", "selected_bases",
+			"scene", "visible_objects", "visible_bases", "selected_objects", "selected_bases",
 			"selected_editable_objects", "selected_editable_bases",
 			"visible_bones", "editable_bones", "selected_bones", "selected_editable_bones",
 			"visible_pose_bones", "selected_pose_bones", "active_bone", "active_pose_bone",
 			"active_base", "active_object", "object", "edit_object",
 			"sculpt_object", "vertex_paint_object", "weight_paint_object",
-			"texture_paint_object", "particle_edit_object", NULL};
+			"texture_paint_object", "particle_edit_object",
+			"sequences", "selected_sequences", "selected_editable_sequences", /* sequencer */
+			NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "scene")) {
 		CTX_data_id_pointer_set(result, &scene->id);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "visible_objects") || CTX_data_equals(member, "visible_bases")) {
+		int visible_objects= CTX_data_equals(member, "visible_objects");
+
+		for(base=scene->base.first; base; base=base->next) {
+			if(((base->object->restrictflag & OB_RESTRICT_VIEW) == 0) && (base->lay & scene->lay)) {
+				if(visible_objects)
+					CTX_data_id_list_add(result, &base->object->id);
+				else
+					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
+			}
+		}
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selected_objects") || CTX_data_equals(member, "selected_bases")) {
@@ -87,7 +104,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 			}
 		}
-
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selected_editable_objects") || CTX_data_equals(member, "selected_editable_bases")) {
@@ -105,7 +122,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				}
 			}
 		}
-
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "visible_bones") || CTX_data_equals(member, "editable_bones")) {
@@ -146,7 +163,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					}
 				}
 			}	
-			
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
 	}
@@ -188,7 +205,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					}
 				}
 			}	
-			
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
 	}
@@ -203,7 +220,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
 				}
 			}
-			
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
 	}
@@ -219,7 +236,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 						CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
 				}
 			}
-			
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
 	}
@@ -303,6 +320,43 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
+	}
+	else if(CTX_data_equals(member, "sequences")) {
+		Editing *ed= seq_give_editing(scene, FALSE);
+		if(ed) {
+			Sequence *seq;
+			for (seq= ed->seqbasep->first; seq; seq= seq->next) {
+				CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
+			}
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+			return 1;
+		}
+	}
+	else if(CTX_data_equals(member, "selected_sequences")) {
+		Editing *ed= seq_give_editing(scene, FALSE);
+		if(ed) {
+			Sequence *seq;
+			for (seq= ed->seqbasep->first; seq; seq= seq->next) {
+				if (seq->flag & SELECT) {
+					CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
+				}
+			}
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+			return 1;
+		}
+	}
+	else if(CTX_data_equals(member, "selected_editable_sequences")) {
+		Editing *ed= seq_give_editing(scene, FALSE);
+		if(ed) {
+			Sequence *seq;
+			for (seq= ed->seqbasep->first; seq; seq= seq->next) {
+				if (seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
+					CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
+				}
+			}
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+			return 1;
+		}
 	}
 	else {
 		return 0; /* not found */

@@ -27,6 +27,11 @@
 #include <cstring>
 #include <cmath>
 
+#ifdef WITH_FFMPEG
+// needed for INT64_C
+#define __STDC_CONSTANT_MACROS
+#endif
+
 #include "AUD_NULLDevice.h"
 #include "AUD_I3DDevice.h"
 #include "AUD_FileFactory.h"
@@ -62,6 +67,7 @@
 #include "AUD_JackDevice.h"
 #endif
 
+
 #ifdef WITH_FFMPEG
 extern "C" {
 #include <libavformat/avformat.h>
@@ -84,11 +90,15 @@ static AUD_IDevice* AUD_device = NULL;
 static int AUD_available_devices[4];
 static AUD_I3DDevice* AUD_3ddevice = NULL;
 
-int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
+void AUD_initOnce()
 {
 #ifdef WITH_FFMPEG
 	av_register_all();
 #endif
+}
+
+int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
+{
 	AUD_IDevice* dev = NULL;
 
 	if(AUD_device)

@@ -31,10 +31,6 @@
 #include <windows.h>
 #include "GPW_System.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 GPW_System::GPW_System(void)
 {
 	m_freq = 0;

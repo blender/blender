@@ -109,10 +109,10 @@ static void init_render_jit(Render *re)
 
 static float filt_quadratic(float x)
 {
-    if (x <  0.0f) x = -x;
-    if (x < 0.5f) return 0.75f-(x*x);
-    if (x < 1.5f) return 0.50f*(x-1.5f)*(x-1.5f);
-    return 0.0f;
+	if (x <  0.0f) x = -x;
+	if (x < 0.5f) return 0.75f-(x*x);
+	if (x < 1.5f) return 0.50f*(x-1.5f)*(x-1.5f);
+	return 0.0f;
 }
 
 
@@ -120,11 +120,11 @@ static float filt_cubic(float x)
 {
 	float x2= x*x;
 	
-    if (x <  0.0f) x = -x;
+	if (x <  0.0f) x = -x;
 	
-    if (x < 1.0f) return 0.5*x*x2 - x2 + 2.0f/3.0f;
-    if (x < 2.0f) return (2.0-x)*(2.0-x)*(2.0-x)/6.0f;
-    return 0.0f;
+	if (x < 1.0f) return 0.5*x*x2 - x2 + 2.0f/3.0f;
+	if (x < 2.0f) return (2.0-x)*(2.0-x)*(2.0-x)/6.0f;
+	return 0.0f;
 }
 
 
@@ -132,10 +132,10 @@ static float filt_catrom(float x)
 {
 	float x2= x*x;
 	
-    if (x <  0.0f) x = -x;
-    if (x < 1.0f) return  1.5f*x2*x - 2.5f*x2  + 1.0f;
-    if (x < 2.0f) return -0.5f*x2*x + 2.5*x2 - 4.0f*x + 2.0f;
-    return 0.0f;
+	if (x <  0.0f) x = -x;
+	if (x < 1.0f) return  1.5f*x2*x - 2.5f*x2  + 1.0f;
+	if (x < 2.0f) return -0.5f*x2*x + 2.5*x2 - 4.0f*x + 2.0f;
+	return 0.0f;
 }
 
 static float filt_mitchell(float x)	/* Mitchell & Netravali's two-param cubic */
@@ -447,117 +447,9 @@ void make_sample_tables(Render *re)
 /* per render, there's one persistant viewplane. Parts will set their own viewplanes */
 void RE_SetCamera(Render *re, Object *camera)
 {
-	Camera *cam=NULL;
-	rctf viewplane;
-	float pixsize, clipsta, clipend;
-	float lens, shiftx=0.0, shifty=0.0, winside;
-	
-	/* question mark */
-	re->ycor= ( (float)re->r.yasp)/( (float)re->r.xasp);
-	if(re->r.mode & R_FIELDS)
-		re->ycor *= 2.0f;
-	
-	if(camera->type==OB_CAMERA) {
-		cam= camera->data;
-		
-		if(cam->type==CAM_ORTHO) re->r.mode |= R_ORTHO;
-		if(cam->flag & CAM_PANORAMA) re->r.mode |= R_PANORAMA;
-		
-		/* solve this too... all time depending stuff is in convertblender.c?
-		 * Need to update the camera early because it's used for projection matrices
-		 * and other stuff BEFORE the animation update loop is done 
-		 * */
-#if 0 // XXX old animation system
-		if(cam->ipo) {
-			calc_ipo(cam->ipo, frame_to_float(re->scene, re->r.cfra));
-			execute_ipo(&cam->id, cam->ipo);
-		}
-#endif // XXX old animation system
-		lens= cam->lens;
-		shiftx=cam->shiftx;
-		shifty=cam->shifty;
-
-		clipsta= cam->clipsta;
-		clipend= cam->clipend;
-	}
-	else if(camera->type==OB_LAMP) {
-		Lamp *la= camera->data;
-		float fac= cos( M_PI*la->spotsize/360.0 );
-		float phi= acos(fac);
-		
-		lens= 16.0*fac/sin(phi);
-		if(lens==0.0f)
-			lens= 35.0;
-		clipsta= la->clipsta;
-		clipend= la->clipend;
-	}
-	else {	/* envmap exception... */
-		lens= re->lens;
-		if(lens==0.0f)
-			lens= 16.0;
-		
-		clipsta= re->clipsta;
-		clipend= re->clipend;
-		if(clipsta==0.0f || clipend==0.0f) {
-			clipsta= 0.1f;
-			clipend= 1000.0f;
-		}
-	}
-
-	/* ortho only with camera available */
-	if(cam && (re->r.mode & R_ORTHO)) {
-		if( (re->r.xasp*re->winx) >= (re->r.yasp*re->winy) ) {
-			re->viewfac= re->winx;
-		}
-		else {
-			re->viewfac= re->ycor*re->winy;
-		}
-		/* ortho_scale == 1.0 means exact 1 to 1 mapping */
-		pixsize= cam->ortho_scale/re->viewfac;
-	}
-	else {
-		if( (re->r.xasp*re->winx) >= (re->r.yasp*re->winy) ) {
-			re->viewfac= (re->winx*lens)/32.0;
-		}
-		else {
-			re->viewfac= re->ycor*(re->winy*lens)/32.0;
-		}
-		
-		pixsize= clipsta/re->viewfac;
-	}
-	
-	/* viewplane fully centered, zbuffer fills in jittered between -.5 and +.5 */
-	winside= MAX2(re->winx, re->winy);
-	viewplane.xmin= -0.5f*(float)re->winx + shiftx*winside; 
-	viewplane.ymin= -0.5f*re->ycor*(float)re->winy + shifty*winside;
-	viewplane.xmax=  0.5f*(float)re->winx + shiftx*winside; 
-	viewplane.ymax=  0.5f*re->ycor*(float)re->winy + shifty*winside; 
-
-	if(re->flag & R_SEC_FIELD) {
-		if(re->r.mode & R_ODDFIELD) {
-			viewplane.ymin-= .5*re->ycor;
-			viewplane.ymax-= .5*re->ycor;
-		}
-		else {
-			viewplane.ymin+= .5*re->ycor;
-			viewplane.ymax+= .5*re->ycor;
-		}
-	}
-	/* the window matrix is used for clipping, and not changed during OSA steps */
-	/* using an offset of +0.5 here would give clip errors on edges */
-	viewplane.xmin= pixsize*(viewplane.xmin);
-	viewplane.xmax= pixsize*(viewplane.xmax);
-	viewplane.ymin= pixsize*(viewplane.ymin);
-	viewplane.ymax= pixsize*(viewplane.ymax);
-	
-	re->viewdx= pixsize;
-	re->viewdy= re->ycor*pixsize;
-
-	if(re->r.mode & R_ORTHO)
-		RE_SetOrtho(re, &viewplane, clipsta, clipend);
-	else 
-		RE_SetWindow(re, &viewplane, clipsta, clipend);
-
+	object_camera_matrix(&re->r, camera, re->winx, re->winy, re->flag & R_SEC_FIELD,
+			re->winmat, &re->viewplane, &re->clipsta, &re->clipend,
+			&re->lens, &re->ycor, &re->viewdx, &re->viewdy);
 }
 
 void RE_SetPixelSize(Render *re, float pixsize)

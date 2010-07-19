@@ -46,9 +46,11 @@ static bNodeSocketType cmp_node_rlayers_out[]= {
 	{	SOCK_RGBA, 0, "AO",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, "Reflect",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, "Refract",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_RGBA, 0, "Radio",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Indirect",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "IndexOB",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Mist",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Emit",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Environment",0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -176,13 +178,16 @@ void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, I
 		out[RRES_OUT_REFLECT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_REFLECT);
 	if(out[RRES_OUT_REFRACT]->hasoutput)
 		out[RRES_OUT_REFRACT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_REFRACT);
-	if(out[RRES_OUT_RADIO]->hasoutput)
-		out[RRES_OUT_RADIO]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_RADIO);
+	if(out[RRES_OUT_INDIRECT]->hasoutput)
+		out[RRES_OUT_INDIRECT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_INDIRECT);
 	if(out[RRES_OUT_INDEXOB]->hasoutput)
 		out[RRES_OUT_INDEXOB]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_INDEXOB);
 	if(out[RRES_OUT_MIST]->hasoutput)
 		out[RRES_OUT_MIST]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_MIST);
-	
+	if(out[RRES_OUT_EMIT]->hasoutput)
+		out[RRES_OUT_EMIT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_EMIT);
+	if(out[RRES_OUT_ENV]->hasoutput)
+		out[RRES_OUT_ENV]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_ENVIRONMENT);
 };
 
 
@@ -226,9 +231,12 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 					/*first duplicate stackbuf->rect, since it's just a pointer
 					  to the source imbuf, and we don't want to change that.*/
 					stackbuf->rect = MEM_dupallocN(stackbuf->rect);
-				
+					
+					/* since stackbuf now has allocated memory, rather than just a pointer,
+					 * mark it as allocated so it can be freed properly */
+					stackbuf->malloc=1;
+					
 					/*premul the image*/
-				
 					pixel = stackbuf->rect;
 					for (i=0; i<stackbuf->x*stackbuf->y; i++, pixel += 4) {
 						pixel[0] *= pixel[3];
@@ -288,23 +296,23 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 {
    float *fp= RE_RenderLayerGetPass(rl, passcode);
    if(fp) {
-      CompBuf *buf;
-      int buftype= CB_VEC3;
+	  CompBuf *buf;
+	  int buftype= CB_VEC3;
 
-      if(ELEM3(passcode, SCE_PASS_Z, SCE_PASS_INDEXOB, SCE_PASS_MIST))
-         buftype= CB_VAL;
-      else if(passcode==SCE_PASS_VECTOR)
-         buftype= CB_VEC4;
-      else if(ELEM(passcode, SCE_PASS_COMBINED, SCE_PASS_RGBA))
-         buftype= CB_RGBA;
+	  if(ELEM3(passcode, SCE_PASS_Z, SCE_PASS_INDEXOB, SCE_PASS_MIST))
+		 buftype= CB_VAL;
+	  else if(passcode==SCE_PASS_VECTOR)
+		 buftype= CB_VEC4;
+	  else if(ELEM(passcode, SCE_PASS_COMBINED, SCE_PASS_RGBA))
+		 buftype= CB_RGBA;
 
-      if(rd->scemode & R_COMP_CROP)
-         buf= get_cropped_compbuf(&rd->disprect, fp, rectx, recty, buftype);
-      else {
-         buf= alloc_compbuf(rectx, recty, buftype, 0);
-         buf->rect= fp;
-      }
-      return buf;
+	  if(rd->scemode & R_COMP_CROP)
+		 buf= get_cropped_compbuf(&rd->disprect, fp, rectx, recty, buftype);
+	  else {
+		 buf= alloc_compbuf(rectx, recty, buftype, 0);
+		 buf->rect= fp;
+	  }
+	  return buf;
    }
    return NULL;
 };
@@ -312,41 +320,44 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out, int rectx, int recty)
 {
    if(out[RRES_OUT_Z]->hasoutput)
-      out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_Z);
+	  out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_Z);
    if(out[RRES_OUT_VEC]->hasoutput)
-      out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_VECTOR);
+	  out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_VECTOR);
    if(out[RRES_OUT_NORMAL]->hasoutput)
-      out[RRES_OUT_NORMAL]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_NORMAL);
+	  out[RRES_OUT_NORMAL]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_NORMAL);
    if(out[RRES_OUT_UV]->hasoutput)
-      out[RRES_OUT_UV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_UV);
+	  out[RRES_OUT_UV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_UV);
 
    if(out[RRES_OUT_RGBA]->hasoutput)
-      out[RRES_OUT_RGBA]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_RGBA);
+	  out[RRES_OUT_RGBA]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_RGBA);
    if(out[RRES_OUT_DIFF]->hasoutput)
-      out[RRES_OUT_DIFF]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_DIFFUSE);
+	  out[RRES_OUT_DIFF]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_DIFFUSE);
    if(out[RRES_OUT_SPEC]->hasoutput)
-      out[RRES_OUT_SPEC]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_SPEC);
+	  out[RRES_OUT_SPEC]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_SPEC);
    if(out[RRES_OUT_SHADOW]->hasoutput)
-      out[RRES_OUT_SHADOW]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_SHADOW);
+	  out[RRES_OUT_SHADOW]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_SHADOW);
    if(out[RRES_OUT_AO]->hasoutput)
-      out[RRES_OUT_AO]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_AO);
+	  out[RRES_OUT_AO]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_AO);
    if(out[RRES_OUT_REFLECT]->hasoutput)
-      out[RRES_OUT_REFLECT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFLECT);
+	  out[RRES_OUT_REFLECT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFLECT);
    if(out[RRES_OUT_REFRACT]->hasoutput)
-      out[RRES_OUT_REFRACT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFRACT);
-   if(out[RRES_OUT_RADIO]->hasoutput)
-      out[RRES_OUT_RADIO]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_RADIO);
+	  out[RRES_OUT_REFRACT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFRACT);
+   if(out[RRES_OUT_INDIRECT]->hasoutput)
+	  out[RRES_OUT_INDIRECT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDIRECT);
    if(out[RRES_OUT_INDEXOB]->hasoutput)
 	   out[RRES_OUT_INDEXOB]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDEXOB);
    if(out[RRES_OUT_MIST]->hasoutput)
 	   out[RRES_OUT_MIST]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_MIST);
-
+   if(out[RRES_OUT_EMIT]->hasoutput)
+	   out[RRES_OUT_EMIT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_EMIT);
+   if(out[RRES_OUT_ENV]->hasoutput)
+	   out[RRES_OUT_ENV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_ENVIRONMENT);
 };
 
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
    Scene *sce= (Scene *)node->id;
-   Render *re= (sce)? RE_GetRender(sce->id.name, RE_SLOT_RENDERING): NULL;
+   Render *re= (sce)? RE_GetRender(sce->id.name): NULL;
    RenderData *rd= data;
    RenderResult *rr= NULL;
 
@@ -354,38 +365,38 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in,
 	   rr= RE_AcquireResultRead(re);
 
    if(rr) {
-      SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
-      if(srl) {
-         RenderLayer *rl= RE_GetRenderLayer(rr, srl->name);
-         if(rl && rl->rectf) {
-            CompBuf *stackbuf;
+	  SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
+	  if(srl) {
+		 RenderLayer *rl= RE_GetRenderLayer(rr, srl->name);
+		 if(rl && rl->rectf) {
+			CompBuf *stackbuf;
 
-            /* we put render rect on stack, cbuf knows rect is from other ibuf when freed! */
-            if(rd->scemode & R_COMP_CROP)
-               stackbuf= get_cropped_compbuf(&rd->disprect, rl->rectf, rr->rectx, rr->recty, CB_RGBA);
-            else {
-               stackbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);
-               stackbuf->rect= rl->rectf;
-            }
-            if(stackbuf==NULL) {
-               printf("Error; Preview Panel in UV Window returns zero sized image\n");
-            }
-            else {
-               stackbuf->xof= rr->xof;
-               stackbuf->yof= rr->yof;
+			/* we put render rect on stack, cbuf knows rect is from other ibuf when freed! */
+			if(rd->scemode & R_COMP_CROP)
+			   stackbuf= get_cropped_compbuf(&rd->disprect, rl->rectf, rr->rectx, rr->recty, CB_RGBA);
+			else {
+			   stackbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);
+			   stackbuf->rect= rl->rectf;
+			}
+			if(stackbuf==NULL) {
+			   printf("Error; Preview Panel in UV Window returns zero sized image\n");
+			}
+			else {
+			   stackbuf->xof= rr->xof;
+			   stackbuf->yof= rr->yof;
 
-               /* put on stack */	
-               out[RRES_OUT_IMAGE]->data= stackbuf;
+			   /* put on stack */	
+			   out[RRES_OUT_IMAGE]->data= stackbuf;
 
-               if(out[RRES_OUT_ALPHA]->hasoutput)
-                  out[RRES_OUT_ALPHA]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
+			   if(out[RRES_OUT_ALPHA]->hasoutput)
+				  out[RRES_OUT_ALPHA]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
 
-               node_composit_rlayers_out(rd, rl, out, rr->rectx, rr->recty);
+			   node_composit_rlayers_out(rd, rl, out, rr->rectx, rr->recty);
 
-               generate_preview(data, node, stackbuf);
-            }
-         }
-      }
+			   generate_preview(data, node, stackbuf);
+			}
+		 }
+	  }
    }
 
    if(re)

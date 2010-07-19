@@ -1,3 +1,26 @@
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Jan Diederich, Tod Liverseed.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -359,6 +382,8 @@ public:
 		std::vector<Normal> nor;
 		std::vector<Face> norind;
 
+		bool has_color = (bool)CustomData_has_layer(&me->fdata, CD_MCOL);
+
 		create_normals(nor, norind, me);
 
 		// openMesh(geoId, geoName, meshId)
@@ -370,12 +395,15 @@ public:
 		// writes <source> for normal coords
 		createNormalsSource(geom_id, me, nor);
 
-		int has_uvs = CustomData_has_layer(&me->fdata, CD_MTFACE);
+		bool has_uvs = (bool)CustomData_has_layer(&me->fdata, CD_MTFACE);
 		
 		// writes <source> for uv coords if mesh has uv coords
-		if (has_uvs) {
-			createTexcoordsSource(geom_id, (Mesh*)ob->data);
-		}
+		if (has_uvs)
+			createTexcoordsSource(geom_id, me);
+
+		if (has_color)
+			createVertexColorSource(geom_id, me);
+
 		// <vertices>
 		COLLADASW::Vertices verts(mSW);
 		verts.setId(getIdBySemantics(geom_id, COLLADASW::VERTEX));
@@ -389,11 +417,11 @@ public:
 			for(int a = 0; a < ob->totcol; a++)	{
 				// account for NULL materials, this should not normally happen?
 				Material *ma = give_current_material(ob, a + 1);
-				createPolylist(ma != NULL, a, has_uvs, ob, geom_id, norind);
+				createPolylist(ma != NULL, a, has_uvs, has_color, ob, geom_id, norind);
 			}
 		}
 		else {
-			createPolylist(false, 0, has_uvs, ob, geom_id, norind);
+			createPolylist(false, 0, has_uvs, has_color, ob, geom_id, norind);
 		}
 		
 		closeMesh();
@@ -408,14 +436,11 @@ public:
 	void createPolylist(bool has_material,
 						int material_index,
 						bool has_uvs,
+						bool has_color,
 						Object *ob,
 						std::string& geom_id,
 						std::vector<Face>& norind)
 	{
-#if 0
-		MFace *mfaces = dm->getFaceArray(dm);
-		int totfaces = dm->getNumFaces(dm);
-#endif
 		Mesh *me = (Mesh*)ob->data;
 		MFace *mfaces = me->mface;
 		int totfaces = me->totface;
@@ -479,6 +504,11 @@ public:
 									);
 			til.push_back(input3);
 		}
+
+		if (has_color) {
+			COLLADASW::Input input4(COLLADASW::COLOR, getUrlBySemantics(geom_id, COLLADASW::COLOR), has_uvs ? 3 : 2);
+			til.push_back(input4);
+		}
 			
 		// sets <vcount>
 		polylist.setVCountList(vcount_list);
@@ -500,6 +530,9 @@ public:
 					polylist.appendValues(n[j]);
 
 					if (has_uvs)
+						polylist.appendValues(texindex + j);
+
+					if (has_color)
 						polylist.appendValues(texindex + j);
 				}
 			}
@@ -543,6 +576,42 @@ public:
 		
 		source.finish();
 	
+	}
+
+	void createVertexColorSource(std::string geom_id, Mesh *me)
+	{
+		if (!CustomData_has_layer(&me->fdata, CD_MCOL))
+			return;
+
+		MFace *f;
+		int totcolor = 0, i, j;
+
+		for (i = 0, f = me->mface; i < me->totface; i++, f++)
+			totcolor += f->v4 ? 4 : 3;
+
+		COLLADASW::FloatSourceF source(mSW);
+		source.setId(getIdBySemantics(geom_id, COLLADASW::COLOR));
+		source.setArrayId(getIdBySemantics(geom_id, COLLADASW::COLOR) + ARRAY_ID_SUFFIX);
+		source.setAccessorCount(totcolor);
+		source.setAccessorStride(3);
+
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		param.push_back("R");
+		param.push_back("G");
+		param.push_back("B");
+
+		source.prepareToAppendValues();
+
+		int index = CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
+
+		MCol *mcol = (MCol*)me->fdata.layers[index].data;
+		MCol *c = mcol;
+
+		for (i = 0, f = me->mface; i < me->totface; i++, c += 4, f++)
+			for (j = 0; j < (f->v4 ? 4 : 3); j++)
+				source.appendValues(c[j].b / 255.0f, c[j].g / 255.0f, c[j].r / 255.0f);
+		
+		source.finish();
 	}
 
 	std::string makeTexcoordSourceId(std::string& geom_id, int layer_index)
@@ -592,8 +661,8 @@ public:
 			source.setAccessorCount(totuv);
 			source.setAccessorStride(2);
 			COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-			param.push_back("X");
-			param.push_back("Y");
+			param.push_back("S");
+			param.push_back("T");
 			
 			source.prepareToAppendValues();
 			
@@ -862,7 +931,7 @@ public:
 		Object *ob_arm = get_assigned_armature(ob);
 		bArmature *arm = (bArmature*)ob_arm->data;
 
-		const std::string& controller_id = get_controller_id(ob_arm);
+		const std::string& controller_id = get_controller_id(ob_arm, ob);
 
 		COLLADASW::InstanceController ins(mSW);
 		ins.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, controller_id));
@@ -1005,9 +1074,9 @@ private:
 		TransformWriter::add_node_transform(node, mat, NULL);
 	}
 
-	std::string get_controller_id(Object *ob_arm)
+	std::string get_controller_id(Object *ob_arm, Object *ob)
 	{
-		return translate_id(id_name(ob_arm)) + SKIN_CONTROLLER_ID_SUFFIX;
+		return translate_id(id_name(ob_arm)) + "_" + translate_id(id_name(ob)) + SKIN_CONTROLLER_ID_SUFFIX;
 	}
 
 	// ob should be of type OB_MESH
@@ -1041,7 +1110,7 @@ private:
 		if (!me->dvert) return;
 
 		std::string controller_name = id_name(ob_arm);
-		std::string controller_id = get_controller_id(ob_arm);
+		std::string controller_id = get_controller_id(ob_arm, ob);
 
 		openSkin(controller_id, controller_name,
 				 COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob)));
@@ -1433,7 +1502,7 @@ public:
 				char src[FILE_MAX];
 				char dir[FILE_MAX];
 				
-				BLI_split_dirfile_basic(mfilename, dir, NULL);
+				BLI_split_dirfile(mfilename, dir, NULL);
 
 				BKE_rebase_path(abs, sizeof(abs), rel, sizeof(rel), G.sce, image->name, dir);
 
@@ -1441,7 +1510,7 @@ public:
 
 					// make absolute source path
 					BLI_strncpy(src, image->name, sizeof(src));
-					BLI_convertstringcode(src, G.sce);
+					BLI_path_abs(src, G.sce);
 
 					// make dest directory if it doesn't exist
 					BLI_make_existing_file(abs);
@@ -1509,18 +1578,27 @@ public:
 		else {
 			ep.setIndexOfRefraction(1.0f);
 		}
+	
+		COLLADASW::ColorOrTexture cot;
+
 		// transparency
-		ep.setTransparency(ma->alpha);
-		// emission
-		COLLADASW::ColorOrTexture cot = getcol(0.0f, 0.0f, 0.0f, 1.0f);
-		ep.setEmission(cot);
+		// Tod: because we are in A_ONE mode transparency is calculated like this:
+		ep.setTransparency(1.0f);
+		cot = getcol(0.0f, 0.0f, 0.0f, ma->alpha);
 		ep.setTransparent(cot);
+
+		// emission
+		cot=getcol(ma->emit, ma->emit, ma->emit, 1.0f);
+		ep.setEmission(cot);
+
 		// diffuse 
 		cot = getcol(ma->r, ma->g, ma->b, 1.0f);
 		ep.setDiffuse(cot);
+
 		// ambient
 		cot = getcol(ma->ambr, ma->ambg, ma->ambb, 1.0f);
 		ep.setAmbient(cot);
+
 		// reflective, reflectivity
 		if (ma->mode & MA_RAYMIRROR) {
 			cot = getcol(ma->mirr, ma->mirg, ma->mirb, 1.0f);
@@ -1528,15 +1606,16 @@ public:
 			ep.setReflectivity(ma->ray_mirror);
 		}
 		else {
-			cot = getcol(0.0f, 0.0f, 0.0f, 1.0f);
+			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
 			ep.setReflective(cot);
-			ep.setReflectivity(0.0f);
+			ep.setReflectivity(ma->spec);
 		}
+
 		// specular
 		if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
 			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
 			ep.setSpecular(cot);
-		}
+		}	
 
 		// XXX make this more readable if possible
 
@@ -1640,12 +1719,28 @@ public:
 				// most widespread de-facto standard.
 				texture.setProfileName("FCOLLADA");
 				texture.setChildElementName("bump");				
+#ifdef WIN32	// currently, Windows builds are using revision 746 of OpenCollada while Linux and Mac are using an older revision 721
+				ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
+#else
 				ep.setExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
+#endif
 			}
 		}
 		// performs the actual writing
 		ep.addProfileElements();
+		bool twoSided = false;
+		if (ob->type == OB_MESH && ob->data) {
+			Mesh *me = (Mesh*)ob->data;
+			if (me->flag & ME_TWOSIDED)
+				twoSided = true;
+		}
+		if (twoSided)
+			ep.addExtraTechniqueParameter("GOOGLEEARTH", "double_sided", 1);
+		ep.addExtraTechniques(mSW);
+
 		ep.closeProfile();
+		if (twoSided)
+			mSW->appendTextBlock("<extra><technique profile=\"MAX3D\"><double_sided>1</double_sided></technique></extra>");
 		closeEffect();	
 	}
 	
@@ -1902,7 +1997,7 @@ protected:
 		addSampler(sampler);
 
 		std::string target = translate_id(ob_name)
-			+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name);
+			+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
 		addChannel(COLLADABU::URI(empty, sampler_id), target);
 
 		closeAnimation();
@@ -2050,7 +2145,7 @@ protected:
 		if (axis > -1)
 			axis_name = axis_names[axis];
 		
-		std::string transform_sid = get_transform_sid(NULL, tm_type, axis_name);
+		std::string transform_sid = get_transform_sid(NULL, tm_type, axis_name, false);
 		
 		BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
 					 (char*)translate_id(bone_name).c_str(), (char*)transform_sid.c_str());
@@ -2321,24 +2416,47 @@ protected:
 		return source_id;
 	}
 
-	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name)
+	// for rotation, axis name is always appended and the value of append_axis is ignored
+	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis)
 	{
+		std::string tm_name;
+
+		// when given rna_path, determine tm_type from it
 		if (rna_path) {
 			char *name = extract_transform_name(rna_path);
 
 			if (strstr(name, "rotation"))
-				return std::string("rotation") + std::string(axis_name) + ".ANGLE";
-			else if (!strcmp(name, "location") || !strcmp(name, "scale"))
-				return std::string(name);
-		}
-		else {
-			if (tm_type == 0)
-				return std::string("rotation") + std::string(axis_name) + ".ANGLE";
+				tm_type = 0;
+			else if (!strcmp(name, "scale"))
+				tm_type = 1;
+			else if (!strcmp(name, "location"))
+				tm_type = 2;
 			else
-				return tm_type == 1 ? "scale" : "location";
+				tm_type = -1;
 		}
 
-		return NULL;
+		switch (tm_type) {
+		case 0:
+			return std::string("rotation") + std::string(axis_name) + ".ANGLE";
+		case 1:
+			tm_name = "scale";
+			break;
+		case 2:
+			tm_name = "location";
+			break;
+		default:
+			tm_name = "";
+			break;
+		}
+
+		if (tm_name.size()) {
+			if (append_axis)
+				return tm_name + std::string(".") + std::string(axis_name);
+			else
+				return tm_name;
+		}
+
+		return std::string("");
 	}
 
 	char *extract_transform_name(char *rna_path)
@@ -2364,6 +2482,9 @@ protected:
 				}
 			}
 		}
+
+		// keep the keys in ascending order
+		std::sort(fra.begin(), fra.end());
 	}
 
 	void find_rotation_frames(Object *ob, std::vector<float> &fra, const char *prefix, int rotmode)

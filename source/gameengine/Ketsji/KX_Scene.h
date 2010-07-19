@@ -45,6 +45,7 @@
 #include "RAS_FramingManager.h"
 #include "RAS_Rect.h"
 
+
 #include "PyObjectPlus.h"
 #include "RAS_2DFilterManager.h"
 
@@ -82,6 +83,10 @@ class SCA_JoystickManager;
 class btCollisionShape;
 class KX_BlenderSceneConverter;
 struct KX_ClientObjectInfo;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
 
 /* for ID freeing */
 #define IS_TAGGED(_id) ((_id) && (((ID *)_id)->flag & LIB_DOIT))
@@ -280,7 +285,8 @@ public:
 		class SCA_IInputDevice* mousedevice,
 		class NG_NetworkDeviceInterface* ndi,
 		const STR_String& scenename,
-		struct Scene* scene);
+		struct Scene* scene,
+		class RAS_ICanvas* canvas);
 
 	virtual	
 	~KX_Scene();
@@ -290,11 +296,6 @@ public:
 	void RenderBuckets(const MT_Transform& cameratransform,
 						RAS_IRasterizer* rasty,
 						RAS_IRenderTools* rendertools);
-
-	/**
-	 * Run the registered python drawing functions.
-	 */
-	void RunDrawingCallbacks(PyObject* cb_list);
 
 	/**
 	 * Update all transforms according to the scenegraph.
@@ -552,6 +553,8 @@ public:
 	KX_PYMETHOD_DOC(KX_Scene, end);
 	KX_PYMETHOD_DOC(KX_Scene, restart);
 	KX_PYMETHOD_DOC(KX_Scene, replace);
+	KX_PYMETHOD_DOC(KX_Scene, suspend);
+	KX_PYMETHOD_DOC(KX_Scene, resume);
 	KX_PYMETHOD_DOC(KX_Scene, get);
 
 	/* attributes */
@@ -573,6 +576,11 @@ public:
 	static PyMappingMethods	Mapping;
 	static PySequenceMethods	Sequence;
 
+	/**
+	 * Run the registered python drawing functions.
+	 */
+	void RunDrawingCallbacks(PyObject* cb_list);
+	
 	PyObject* GetPreDrawCB() { return m_draw_call_pre; };
 	PyObject* GetPostDrawCB() { return m_draw_call_post; };
 #endif
@@ -606,8 +614,6 @@ public:
 	//void PrintStats(int verbose_level) {
 	//	m_bucketmanager->PrintStats(verbose_level)
 	//}
-
-
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

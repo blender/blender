@@ -79,6 +79,8 @@
 #include "SCA_RandomSensor.h"
 #include "SCA_XNORController.h"
 #include "SCA_XORController.h"
+#include "SCA_PythonKeyboard.h"
+#include "SCA_PythonMouse.h"
 #include "KX_IpoActuator.h"
 #include "KX_NearSensor.h"
 #include "KX_RadarSensor.h"
@@ -239,6 +241,8 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, SCA_XNORController, init_getset);
 		PyType_Ready_Attr(dict, SCA_XORController, init_getset);
 		PyType_Ready_Attr(dict, SCA_IController, init_getset);
+		PyType_Ready_Attr(dict, SCA_PythonKeyboard, init_getset);
+		PyType_Ready_Attr(dict, SCA_PythonMouse, init_getset);
 	}
 
 

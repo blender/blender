@@ -96,12 +96,12 @@ def clientSendJob(conn, scene, anim = False):
     job = netrender.model.RenderJob()
 
     if anim:
-        for f in range(scene.start_frame, scene.end_frame + 1):
+        for f in range(scene.frame_start, scene.frame_end + 1):
             job.addFrame(f)
     else:
-        job.addFrame(scene.current_frame)
+        job.addFrame(scene.frame_current)
 
-    filename = bpy.data.filename
+    filename = bpy.data.filepath
     job.addFile(filename)
 
     job_name = netsettings.job_name
@@ -113,7 +113,7 @@ def clientSendJob(conn, scene, anim = False):
     # LIBRARIES
     ###########################
     for lib in bpy.data.libraries:
-        file_path = bpy.utils.expandpath(lib.filename)
+        file_path = bpy.utils.expandpath(lib.filepath)
         if os.path.exists(file_path):
             job.addFile(file_path)
 
@@ -122,9 +122,13 @@ def clientSendJob(conn, scene, anim = False):
     ###########################
     for image in bpy.data.images:
         if image.source == "FILE" and not image.packed_file:
-            file_path = bpy.utils.expandpath(image.filename)
+            file_path = bpy.utils.expandpath(image.filepath)
             if os.path.exists(file_path):
                 job.addFile(file_path)
+                
+                tex_path = os.path.splitext(file_path)[0] + ".tex"
+                if os.path.exists(tex_path):
+                    job.addFile(tex_path)
 
     ###########################
     # FLUID + POINT CACHE
@@ -144,6 +148,9 @@ def clientSendJob(conn, scene, anim = False):
                 addPointCache(job, object, modifier.domain_settings.point_cache_low, default_path)
                 if modifier.domain_settings.highres:
                     addPointCache(job, object, modifier.domain_settings.point_cache_high, default_path)
+            elif modifier.type == "MULTIRES" and modifier.external:
+                file_path = bpy.utils.expandpath(modifier.filepath)
+                job.addFile(file_path)
 
         # particles modifier are stupid and don't contain data
         # we have to go through the object property
@@ -186,6 +193,7 @@ def requestResult(conn, job_id, frame):
 class NetworkRenderEngine(bpy.types.RenderEngine):
     bl_idname = 'NET_RENDER'
     bl_label = "Network Render"
+    bl_postprocess = False
     def render(self, scene):
         if scene.network_render.mode == "RENDER_CLIENT":
             self.render_client(scene)
@@ -227,7 +235,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
             self.update_stats("", "Network render waiting for results")
 
-            requestResult(conn, job_id, scene.current_frame)
+            requestResult(conn, job_id, scene.frame_current)
             response = conn.getresponse()
 
             if response.status == http.client.NO_CONTENT:
@@ -235,12 +243,12 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
                 netsettings.job_id = clientSendJob(conn, scene)
                 job_id = netsettings.job_id
 
-                requestResult(conn, job_id, scene.current_frame)
+                requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
 
             while response.status == http.client.ACCEPTED and not self.test_break():
                 time.sleep(1)
-                requestResult(conn, job_id, scene.current_frame)
+                requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
 
             # cancel new jobs (animate on network) on break
@@ -268,7 +276,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             f.close()
 
             result = self.begin_result(0, 0, x, y)
-            result.load_from_file(netsettings.path + "output.exr", 0, 0)
+            result.load_from_file(netsettings.path + "output.exr")
             self.end_result(result)
 
             conn.close()
@@ -283,3 +291,6 @@ def compatible(module):
 #compatible("properties_render")
 compatible("properties_world")
 compatible("properties_material")
+compatible("properties_data_mesh")
+compatible("properties_data_camera")
+compatible("properties_texture")

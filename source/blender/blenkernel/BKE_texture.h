@@ -64,6 +64,7 @@ void colorband_table_RGBA(struct ColorBand *coba, float **array, int *size);
 
 void default_tex(struct Tex *tex);
 struct Tex *add_texture(const char *name);
+void tex_set_type(struct Tex *tex, int type);
 void default_mtex(struct MTex *mtex);
 struct MTex *add_mtex(void);
 struct Tex *copy_texture(struct Tex *tex);

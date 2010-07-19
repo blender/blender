@@ -80,17 +80,14 @@ extern "C"
 #include "DNA_material_types.h"
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
-//XXX #include "BSE_editipo.h"
-//XXX #include "BSE_editipo_types.h"
-// #include "DNA_ipo_types.h"
 #include "BKE_global.h"
 #include "BKE_animsys.h"
 #include "BKE_library.h"
-#include "BKE_ipo.h" // eval_icu
 #include "BKE_material.h" // copy_material
 #include "BKE_mesh.h" // copy_mesh
 #include "DNA_space_types.h"
 #include "DNA_anim_types.h"
+#include "RNA_define.h"
 #include "../../blender/editors/include/ED_keyframing.h"
 }
 
@@ -755,22 +752,21 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 	{
 		KX_Scene* scene = scenes->at(i);
 		//PHY_IPhysicsEnvironment* physEnv = scene->GetPhysicsEnvironment();
-		CListValue* parentList = scene->GetRootParentList();
+		CListValue* parentList = scene->GetObjectList();
 		int numObjects = parentList->GetCount();
 		int g;
 		for (g=0;g<numObjects;g++)
 		{
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
-			if (gameObj->IsDynamic())
+			Object* blenderObject = gameObj->GetBlenderObject();
+			if (blenderObject && blenderObject->parent==NULL && gameObj->GetPhysicsController() != NULL)
 			{
 				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
-				
-				Object* blenderObject = gameObj->GetBlenderObject();
 
 				if(blenderObject->adt==NULL)
 					BKE_id_add_animdata(&blenderObject->id);
 
-				if (blenderObject && blenderObject->adt)
+				if (blenderObject->adt)
 				{
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
 					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();

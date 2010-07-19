@@ -125,7 +125,7 @@ def deform(obj, definitions, base_names, options):
 
 
 def main(obj, bone_definition, base_names, options):
-    from Mathutils import Vector
+    from mathutils import Vector
 
     arm = obj.data
 
@@ -176,7 +176,7 @@ def main(obj, bone_definition, base_names, options):
     ex.neck_socket_e.connected = False
     ex.neck_socket_e.parent = mt.body_e
     ex.neck_socket_e.head = mt.head_e.head
-    ex.neck_socket_e.tail = mt.head_e.head - Vector(0.0, neck_chain_segment_length / 2.0, 0.0)
+    ex.neck_socket_e.tail = mt.head_e.head - Vector((0.0, neck_chain_segment_length / 2.0, 0.0))
     ex.neck_socket_e.roll = 0.0
 
 
@@ -237,9 +237,9 @@ def main(obj, bone_definition, base_names, options):
     con.subtarget = mt.body
 
     # add driver
-    hinge_driver_path = ex.head_ctrl_p.path_to_id() + '["hinge"]'
+    hinge_driver_path = ex.head_ctrl_p.path_from_id() + '["hinge"]'
 
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'
@@ -254,12 +254,12 @@ def main(obj, bone_definition, base_names, options):
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
 
-    head_driver_path = ex.head_ctrl_p.path_to_id()
+    head_driver_path = ex.head_ctrl_p.path_from_id()
 
     target_names = [("b%.2d" % (i + 1)) for i in range(len(neck_chain))]
 
     ex.head_ctrl_p["bend_tot"] = 0.0
-    fcurve = ex.head_ctrl_p.driver_add('["bend_tot"]', 0)
+    fcurve = ex.head_ctrl_p.driver_add('["bend_tot"]')
     driver = fcurve.driver
     driver.type = 'SUM'
     fcurve.modifiers.remove(0) # grr dont need a modifier
@@ -296,7 +296,7 @@ def main(obj, bone_definition, base_names, options):
         con.owner_space = 'LOCAL'
         con.target_space = 'LOCAL'
 
-        fcurve = con.driver_add("influence", 0)
+        fcurve = con.driver_add("influence")
         driver = fcurve.driver
         driver.type = 'SCRIPTED'
         driver.expression = "bend/bend_tot"
@@ -332,7 +332,7 @@ def main(obj, bone_definition, base_names, options):
 
     # last step setup layers
     if "ex_layer" in options:
-        layer = [n==options["ex_layer"] for n in range(0,32)]
+        layer = [n == options["ex_layer"] for n in range(0, 32)]
     else:
         layer = list(arm.bones[bone_definition[1]].layer)
     for attr in ex_chain.attr_names:
@@ -346,4 +346,3 @@ def main(obj, bone_definition, base_names, options):
 
     # no blending the result of this
     return None
-

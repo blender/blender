@@ -45,7 +45,7 @@ static bNodeSocketType cmp_node_channel_matte_out[]={
 static void do_normalized_rgba_to_ycca2(bNode *node, float *out, float *in)
 {
 	/*normalize to the range 0.0 to 1.0) */
-	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 	out[0]=(out[0])/255.0;
 	out[1]=(out[1])/255.0;
 	out[2]=(out[2])/255.0;
@@ -58,7 +58,7 @@ static void do_normalized_ycca_to_rgba2(bNode *node, float *out, float *in)
 	in[0]=in[0]*255.0;
 	in[1]=in[1]*255.0;
 	in[2]=in[2]*255.0;
-	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 	out[3]=in[3];
 }
 
@@ -66,30 +66,36 @@ static void do_normalized_ycca_to_rgba2(bNode *node, float *out, float *in)
 static void do_channel_matte(bNode *node, float *out, float *in)
 {
 	NodeChroma *c=(NodeChroma *)node->storage;
-	float alpha=0.0;
-	
-	/* Alpha=G-MAX(R, B) */
-	
-	switch(node->custom2)
-	{
-	case 1:
-		{
-			alpha=in[0]-MAX2(in[1],in[2]);
-			break;
-		}
-	case 2:
-		{
-			alpha=in[1]-MAX2(in[0],in[2]);
-			break;
-		}
-	case 3:
-		{
-			alpha=in[2]-MAX2(in[0],in[1]);
-			break;
-		}
-	default:
-		break;
-	}
+	float alpha=0.0;	
+
+	switch(c->algorithm) {
+	  case 0: { /* Alpha=key_channel-limit channel */
+		 int key_channel=node->custom2-1;
+		 int limit_channel=c->channel-1;
+		 alpha=in[key_channel]-in[limit_channel];
+		 break;
+	  }
+	  case 1: {  	/* Alpha=G-MAX(R, B) */
+		 switch(node->custom2) {
+			case 1: {
+					alpha=in[0]-MAX2(in[1],in[2]);
+					break;
+			 }
+			case 2: {
+					alpha=in[1]-MAX2(in[0],in[2]);
+					break;
+			 }
+			case 3: {
+					alpha=in[2]-MAX2(in[0],in[1]);
+					break;
+			 }
+			default:
+				break;
+		 }
+	  }
+	  default:
+		 break;
+   }
 	
 	/*flip because 0.0 is transparent, not 1.0*/
 	alpha=1-alpha;
@@ -131,24 +137,24 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 	
 	/*convert to colorspace*/
 	switch(node->custom1) {
-	case CMP_NODE_CHANNEL_MATTE_CS_RGB:
-		break;
-	case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/
-		composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_rgba_to_hsva, CB_RGBA);
-		break;
-	case CMP_NODE_CHANNEL_MATTE_CS_YUV: /*YUV*/
-		composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_rgba_to_yuva, CB_RGBA);
-		break;
-	case CMP_NODE_CHANNEL_MATTE_CS_YCC: /*YCC*/
-		composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_normalized_rgba_to_ycca2, CB_RGBA);
-		break;
-	default:
-		break;
+	   case CMP_NODE_CHANNEL_MATTE_CS_RGB:
+		   break;
+	   case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/
+		   composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_rgba_to_hsva, CB_RGBA);
+		   break;
+	   case CMP_NODE_CHANNEL_MATTE_CS_YUV: /*YUV*/
+		   composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_rgba_to_yuva, CB_RGBA);
+		   break;
+	   case CMP_NODE_CHANNEL_MATTE_CS_YCC: /*YCC*/
+		   composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_normalized_rgba_to_ycca2, CB_RGBA);
+		   break;
+	   default:
+		   break;
 	}
 
 	/*use the selected channel information to do the key */
 	composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_channel_matte, CB_RGBA);
-
+   
 	/*convert back to RGB colorspace in place*/
 	switch(node->custom1) {
 	case CMP_NODE_CHANNEL_MATTE_CS_RGB: /*RGB*/
@@ -185,6 +191,8 @@ static void node_composit_init_channel_matte(bNode *node)
    c->t3= 0.0f;
    c->fsize= 0.0f;
    c->fstrength= 0.0f;
+   c->algorithm=1; /*max channel limiting */
+   c->channel=1; /* limit by red */
    node->custom1= 1; /* RGB channel */
    node->custom2= 2; /* Green Channel */
 }

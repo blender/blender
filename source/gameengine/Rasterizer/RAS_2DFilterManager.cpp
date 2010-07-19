@@ -51,10 +51,6 @@
 
 #include <stdio.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "Value.h"
 
 RAS_2DFilterManager::RAS_2DFilterManager():

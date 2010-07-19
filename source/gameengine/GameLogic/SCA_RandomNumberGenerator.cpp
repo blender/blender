@@ -37,10 +37,6 @@
 #include <limits.h>
 #include "SCA_RandomNumberGenerator.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* Period parameters */  
 #define N 624
 #define M 397

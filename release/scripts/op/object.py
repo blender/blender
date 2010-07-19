@@ -113,24 +113,42 @@ class SelectHierarchy(bpy.types.Operator):
         return context.object
 
     def execute(self, context):
-        obj = context.object
-        if self.properties.direction == 'PARENT':
-            parent = obj.parent
-            if not parent:
-                return {'CANCELLED'}
-            obj_act = parent
-        else:
-            children = obj.children
-            if len(children) != 1:
-                return {'CANCELLED'}
-            obj_act = children[0]
+        objs = context.selected_objects
+        obj_act = context.object
+
+        if context.object not in objs:
+            objs.append(context.object)
 
         if not self.properties.extend:
-            # obj.selected = False
+            # for obj in objs:
+            #     obj.selected = False
             bpy.ops.object.select_all(action='DESELECT')
 
-        obj_act.selected = True
-        context.scene.objects.active = obj_act
+        if self.properties.direction == 'PARENT':
+            parents = []
+            for obj in objs:
+                parent = obj.parent
+
+                if parent:
+                    parents.append(parent)
+
+                    if obj_act == obj:
+                        context.scene.objects.active = parent
+
+                    parent.selected = True
+                
+            if parents:
+                return {'CANCELLED'}
+
+        else:
+            children = []
+            for obj in objs:
+                children += list(obj.children)
+                for obj_iter in children:
+                    obj_iter.selected = True
+
+            children.sort(key=lambda obj_iter: obj_iter.name)
+            context.scene.objects.active = children[0]
 
         return {'FINISHED'}
 
@@ -235,8 +253,8 @@ class ShapeTransfer(bpy.types.Operator):
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
             ob.shape_key_lock = True
 
-        from Geometry import BarycentricTransform
-        from Mathutils import Vector
+        from geometry import BarycentricTransform
+        from mathutils import Vector
 
         if use_clamp and mode == 'OFFSET':
             use_clamp = False
@@ -383,6 +401,7 @@ class ShapeTransfer(bpy.types.Operator):
             return {'CANCELLED'}
         return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
 
+
 class JoinUVs(bpy.types.Operator):
     '''Copy UV Layout to objects with matching geometry'''
     bl_idname = "object.join_uvs"
@@ -440,6 +459,7 @@ class JoinUVs(bpy.types.Operator):
         self._main(context)
         return {'FINISHED'}
 
+
 class MakeDupliFace(bpy.types.Operator):
     '''Make linked objects into dupli-faces'''
     bl_idname = "object.make_dupli_face"
@@ -450,12 +470,12 @@ class MakeDupliFace(bpy.types.Operator):
         return (obj and obj.type == 'MESH')
 
     def _main(self, context):
-        from Mathutils import Vector
+        from mathutils import Vector
         from math import sqrt
 
         SCALE_FAC = 0.01
         offset = 0.5 * SCALE_FAC
-        base_tri = Vector(-offset, -offset, 0.0), Vector(offset, -offset, 0.0), Vector(offset, offset, 0.0), Vector(-offset, offset, 0.0)
+        base_tri = Vector((-offset, -offset, 0.0)), Vector((offset, -offset, 0.0)), Vector((offset, offset, 0.0)), Vector((-offset, offset, 0.0))
 
         def matrix_to_quat(matrix):
             # scale = matrix.median_scale
@@ -471,7 +491,7 @@ class MakeDupliFace(bpy.types.Operator):
                 linked.setdefault(data, []).append(obj)
 
         for data, objects in linked.items():
-            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix) for axis in v]
+            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix_world) for axis in v]
             faces = list(range(int(len(face_verts) / 3)))
 
             mesh = bpy.data.meshes.new(data.name + "_dupli")
@@ -505,6 +525,26 @@ class MakeDupliFace(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class IsolateTypeRender(bpy.types.Operator):
+    '''Select object matching a naming pattern'''
+    bl_idname = "object.isolate_type_render"
+    bl_label = "Isolate Render Selection"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        act_type = context.object.type
+
+        for obj in context.visible_objects:
+
+            if obj.selected:
+                obj.restrict_render = False
+            else:
+                if obj.type == act_type:
+                    obj.restrict_render = True
+
+        return {'FINISHED'}
+
+
 classes = [
     SelectPattern,
     SelectCamera,
@@ -512,6 +552,7 @@ classes = [
     SubdivisionSet,
     ShapeTransfer,
     JoinUVs,
+    IsolateTypeRender,
     MakeDupliFace]
 
 
@@ -520,6 +561,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -527,4 +569,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

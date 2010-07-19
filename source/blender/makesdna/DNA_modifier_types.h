@@ -65,6 +65,7 @@ typedef enum ModifierType {
 	eModifierType_Smoke,
 	eModifierType_ShapeKey,
 	eModifierType_Solidify,
+	eModifierType_Screw,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -82,6 +83,7 @@ typedef struct ModifierData {
 	struct ModifierData *next, *prev;
 
 	int type, mode;
+	int stackindex, pad;
 	char name[32];
 	
 	/* XXX for timing info set by caller... solve later? (ton) */
@@ -167,31 +169,31 @@ typedef struct ArrayModifierData {
 	struct Object *offset_ob;
 	/* a constant duplicate offset;
 	   1 means the duplicates are 1 unit apart
-    */
+	*/
 	float offset[3];
 	/* a scaled factor for duplicate offsets;
 	   1 means the duplicates are 1 object-width apart
-    */
+	*/
 	float scale[3];
 	/* the length over which to distribute the duplicates */
 	float length;
 	/* the limit below which to merge vertices in adjacent duplicates */
 	float merge_dist;
 	/* determines how duplicate count is calculated; one of:
-	      MOD_ARR_FIXEDCOUNT -> fixed
-	      MOD_ARR_FITLENGTH  -> calculated to fit a set length
-	      MOD_ARR_FITCURVE   -> calculated to fit the length of a Curve object
-    */
+		  MOD_ARR_FIXEDCOUNT -> fixed
+		  MOD_ARR_FITLENGTH  -> calculated to fit a set length
+		  MOD_ARR_FITCURVE   -> calculated to fit the length of a Curve object
+	*/
 	int fit_type;
 	/* flags specifying how total offset is calculated; binary OR of:
-	     MOD_ARR_OFF_CONST    -> total offset += offset
-	     MOD_ARR_OFF_RELATIVE -> total offset += relative * object width
-	     MOD_ARR_OFF_OBJ      -> total offset += offset_ob's matrix
+		 MOD_ARR_OFF_CONST    -> total offset += offset
+		 MOD_ARR_OFF_RELATIVE -> total offset += relative * object width
+		 MOD_ARR_OFF_OBJ      -> total offset += offset_ob's matrix
 	   total offset is the sum of the individual enabled offsets
 	*/
 	int offset_type;
 	/* general flags:
-	      MOD_ARR_MERGE -> merge vertices in adjacent duplicates
+		  MOD_ARR_MERGE -> merge vertices in adjacent duplicates
 	*/
 	int flags;
 	/* the number of duplicates to generate for MOD_ARR_FIXEDCOUNT */
@@ -317,6 +319,7 @@ typedef struct UVProjectModifierData {
 	int flags;
 	int num_projectors;
 	float aspectx, aspecty;
+	float scalex, scaley;												
 	char uvlayer_name[32];
 	int uvlayer_tmp, pad;
 } UVProjectModifierData;
@@ -514,9 +517,13 @@ typedef struct MeshDeformModifierData {
 
 	short gridsize, flag, mode, pad;
 
-	/* variables filled in when bound */
-	float *bindweights, *bindcos;	/* computed binding weights */
+	/* result of static binding */
+	MDefInfluence *bindinfluences;	/* influences */
+	int *bindoffsets;				/* offsets into influences array */
+	float *bindcagecos;				/* coordinates that cage was bound with */
 	int totvert, totcagevert;		/* total vertices in mesh and cage */
+
+	/* result of dynamic binding */
 	MDefCell *dyngrid;				/* grid with dynamic binding cell points */
 	MDefInfluence *dyninfluences;	/* dynamic binding vertex influences */
 	int *dynverts, *pad2;			/* is this vertex bound or not? */
@@ -526,8 +533,12 @@ typedef struct MeshDeformModifierData {
 	float dyncellwidth;				/* width of dynamic bind cell */
 	float bindmat[4][4];			/* matrix of cage at binding time */
 
+	/* deprecated storage */
+	float *bindweights;				/* deprecated inefficient storage */
+	float *bindcos;					/* deprecated storage of cage coords */
+
 	/* runtime */
-	void (*bindfunc)(struct Scene *scene, struct DerivedMesh *dm,
+	void (*bindfunc)(struct Scene *scene,
 		struct MeshDeformModifierData *mmd,
 		float *vertexcos, int totvert, float cagemat[][4]);
 } MeshDeformModifierData;
@@ -569,7 +580,7 @@ typedef struct ParticleInstanceModifierData {
 
 typedef enum {
 	eExplodeFlag_CalcFaces =	(1<<0),
-	//eExplodeFlag_PaSize =		(1<<1),
+	eExplodeFlag_PaSize =		(1<<1),
 	eExplodeFlag_EdgeSplit =	(1<<2),
 	eExplodeFlag_Unborn =		(1<<3),
 	eExplodeFlag_Alive =		(1<<4),
@@ -597,7 +608,7 @@ typedef enum {
 typedef struct FluidsimModifierData {
 	ModifierData modifier;
 	
-	struct FluidsimSettings *fss; /* definition is is DNA_object_fluidsim.h */
+	struct FluidsimSettings *fss; /* definition is in DNA_object_fluidsim.h */
 	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
 } FluidsimModifierData;
 
@@ -681,15 +692,35 @@ typedef struct SolidifyModifierData {
 
 	char defgrp_name[32];		/* name of vertex group to use */
 	float offset;			/* new surface offset level*/
+	float offset_fac;		/* midpoint of the offset  */
 	float crease_inner;
 	float crease_outer;
 	float crease_rim;
 	int flag;
-	char pad[4];
 } SolidifyModifierData;
 
 #define MOD_SOLIDIFY_RIM			(1<<0)
 #define MOD_SOLIDIFY_EVEN			(1<<1)
 #define MOD_SOLIDIFY_NORMAL_CALC	(1<<2)
+#define MOD_SOLIDIFY_VGROUP_INV		(1<<3)
+#define MOD_SOLIDIFY_RIM_MATERIAL	(1<<4)
+
+typedef struct ScrewModifierData {
+	ModifierData modifier;
+	struct Object *ob_axis;
+	int		steps;
+	int		render_steps;
+	int		iter;
+	float	screw_ofs;
+	float	angle;
+	short	axis;
+	short	flag;
+} ScrewModifierData;
+
+#define MOD_SCREW_NORMAL_FLIP	(1<<0)
+#define MOD_SCREW_NORMAL_CALC	(1<<1)
+#define MOD_SCREW_OBJECT_OFFSET	(1<<2)
+// #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
+
 
 #endif

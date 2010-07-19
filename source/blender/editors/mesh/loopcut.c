@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -73,7 +73,6 @@
 #include "RNA_define.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -130,7 +129,7 @@ static void ringsel_draw(const bContext *C, ARegion *ar, void *arg)
 static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed, 
                                 BMVert *lastv1, BMVert *v[2][2])
 {
-	BMIter iter, liter;
+	BMIter liter;
 	BMLoop *l, *l2;
 	int rev;
 
@@ -178,7 +177,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	float (*edges)[2][3] = NULL;
 	BLI_array_declare(edges);
 	float co[2][3];
-	int looking=1, i, tot=0;
+	int i, tot=0;
 	
 	if (!startedge)
 		return;
@@ -209,10 +208,6 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	lastv1 = NULL;
 	for (lasteed=NULL; eed; eed=BMW_Step(&walker)) {
 		if (lasteed) {
-			BMIter liter;
-			BMLoop *l, *l2;
-			int rev;
-
 			if (lastv1) {
 				v[1][0] = v[0][0];
 				v[1][1] = v[0][1];
@@ -291,7 +286,16 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			BM_esubdivideflag(lcd->ob, em->bm, BM_SELECT, 0.0f, 
 			                  0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT, 
 			                  SUBD_PATH, 0, 0);
-			
+			/* force edge slide to edge select mode in in face select mode */
+			if (em->selectmode & SCE_SELECT_FACE) {
+				if (em->selectmode == SCE_SELECT_FACE)
+					em->selectmode = SCE_SELECT_EDGE;
+				else
+					em->selectmode &= ~SCE_SELECT_FACE;
+				CTX_data_tool_settings(C)->selectmode= em->selectmode;
+				EDBM_selectmode_set(em);
+			}
+
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT|ND_DATA, lcd->ob->data);
 			DAG_id_flush_update(lcd->ob->data, OB_RECALC_DATA);
 		}
@@ -416,7 +420,7 @@ static int ringsel_modal (bContext *C, wmOperator *op, wmEvent *event)
 
 			return OPERATOR_FINISHED;
 		case RIGHTMOUSE: /* confirm */ // XXX hardcoded
-			if (event->val == KM_RELEASE) {
+			if (event->val == KM_PRESS) {
 				/* finish */
 				ED_region_tag_redraw(lcd->ar);
 				

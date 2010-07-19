@@ -64,7 +64,7 @@ extern "C" {
 	This leads to 4 possible types of RayObject:
 
 	 addr&3  - type of object
-	 	0		Self (reserved for each structure)
+		 0		Self (reserved for each structure)
 		1     	RayFace (tri/quad primitive)
 		2		RayObject (generic with API callbacks)
 		3		VlakPrimitive

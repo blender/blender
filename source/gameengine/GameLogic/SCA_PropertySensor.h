@@ -95,6 +95,16 @@ public:
 	 */
 	static int validValueForProperty(void* self, const PyAttributeDef*);
 
+	/**
+	 * Test whether this is a sensible value for interval (type check) and updates Range Expression
+	 */
+	static int validValueForIntervalProperty(void* self, const PyAttributeDef*);
+
+	/**
+	 * Test if the new mode is interval. If positive updates Range Expression
+	 */
+	static int modeChange(void* self, const PyAttributeDef* attrdef);
+
 #endif
 };
 

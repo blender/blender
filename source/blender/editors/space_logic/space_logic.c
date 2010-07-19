@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,13 +29,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_image_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -46,18 +39,15 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -192,6 +182,7 @@ void logic_keymap(struct wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "LOGIC_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "LOGIC_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "LOGIC_MT_logicbricks_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
 static void logic_refresh(const bContext *C, ScrArea *sa)
@@ -205,6 +196,9 @@ static void logic_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_LOGIC:
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
@@ -254,11 +248,9 @@ static void logic_main_area_draw(const bContext *C, ARegion *ar)
 //	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
-	float col[3];
 	
 	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	UI_view2d_view_ortho(C, v2d);
@@ -304,15 +296,8 @@ static void logic_header_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void logic_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
 	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor(ED_screen_area_active(C)?TH_HEADER:TH_HEADERDESEL);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */

@@ -50,10 +50,10 @@ class SEQUENCER_HT_header(bpy.types.Header):
                 sub.menu("SEQUENCER_MT_add")
                 sub.menu("SEQUENCER_MT_strip")
 
-        layout.prop(st, "view_type", text="")
+        layout.prop(st, "view_type", expand=True, text="")
 
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
-            layout.prop(st, "display_mode", text="")
+            layout.prop(st, "display_mode", expand=True, text="")
 
         if (st.view_type == 'SEQUENCER'):
             row = layout.row(align=True)
@@ -68,6 +68,14 @@ class SEQUENCER_HT_header(bpy.types.Header):
             layout.prop(st, "display_channel", text="Channel")
         else:
             layout.prop(st, "display_channel", text="Channel")
+
+            ed = context.scene.sequence_editor
+            if ed:
+                row = layout.row(align=True)
+                row.prop(ed, "show_overlay", text="", icon='GHOST_ENABLED')
+                if ed.show_overlay:
+                    row.prop(ed, "overlay_frame", text="")
+                    row.prop(ed, "overlay_lock", text="", icon='LOCKED')
 
 
 class SEQUENCER_MT_view_toggle(bpy.types.Menu):
@@ -126,6 +134,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text='Fit preview in window')
             layout.operator_context = 'INVOKE_DEFAULT'
+
+            # # XXX, invokes in the header view
+            # layout.operator("sequencer.view_ghost_border", text='Overlay Border')
+
         layout.operator("sequencer.view_selected")
 
         layout.prop(st, "draw_frames")
@@ -135,6 +147,8 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         if st.display_mode == 'WAVEFORM':
             layout.prop(st, "separate_color_preview")
 
+        layout.separator()
+        layout.prop(st, "use_marker_sync")
         layout.separator()
 
         layout.operator("screen.area_dupli")
@@ -185,7 +199,7 @@ class SEQUENCER_MT_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator("sequencer.scene_strip_add", text="Scene")
+        layout.operator_menu_enum("sequencer.scene_strip_add", "scene", text="Scene...")
         layout.operator("sequencer.movie_strip_add", text="Movie")
         layout.operator("sequencer.image_strip_add", text="Image")
         layout.operator("sequencer.sound_strip_add", text="Sound")
@@ -215,6 +229,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
         layout.operator("sequencer.effect_strip_add", text="Transform").type = 'TRANSFORM'
         layout.operator("sequencer.effect_strip_add", text="Color").type = 'COLOR'
         layout.operator("sequencer.effect_strip_add", text="Speed Control").type = 'SPEED'
+        layout.operator("sequencer.effect_strip_add", text="Multicam Selector").type = 'MULTICAM'
 
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
@@ -234,6 +249,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator("sequencer.cut", text="Cut (hard) at frame").type = 'HARD'
         layout.operator("sequencer.cut", text="Cut (soft) at frame").type = 'SOFT'
         layout.operator("sequencer.images_separate")
+        layout.operator("sequencer.deinterlace_selected_movies")
         layout.separator()
 
         layout.operator("sequencer.duplicate")
@@ -244,20 +260,23 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         if strip:
             stype = strip.type
 
-            if	stype == 'EFFECT':
-                layout.separator()
-                layout.operator("sequencer.effect_change")
-                layout.operator("sequencer.effect_reassign_inputs")
+            # XXX note strip.type is never equal to 'EFFECT', look at seq_type_items within rna_sequencer.c
+            if stype == 'EFFECT':
+                pass
+                # layout.separator()
+                # layout.operator("sequencer.effect_change")
+                # layout.operator("sequencer.effect_reassign_inputs")
             elif stype == 'IMAGE':
                 layout.separator()
                 # layout.operator("sequencer.image_change")
                 layout.operator("sequencer.rendersize")
             elif stype == 'SCENE':
-                layout.separator()
-                layout.operator("sequencer.scene_change", text="Change Scene")
+                pass
+                # layout.separator()
+                # layout.operator("sequencer.scene_change", text="Change Scene")
             elif stype == 'MOVIE':
                 layout.separator()
-                layout.operator("sequencer.movie_change")
+                # layout.operator("sequencer.movie_change")
                 layout.operator("sequencer.rendersize")
 
         layout.separator()
@@ -272,6 +291,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
         layout.separator()
         layout.operator("sequencer.reload")
+        layout.operator("sequencer.reassign_inputs")
         layout.separator()
         layout.operator("sequencer.lock")
         layout.operator("sequencer.unlock")
@@ -283,6 +303,10 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator("sequencer.snap")
 
         layout.operator_menu_enum("sequencer.swap", "side")
+
+        layout.separator()
+
+        layout.operator("sequencer.swap_data")
 
 
 class SequencerButtonsPanel(bpy.types.Panel):
@@ -312,7 +336,9 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
+        scene = context.scene
         render = context.scene.render
+        frame_current = scene.frame_current
         strip = act_strip(context)
 
         split = layout.split(percentage=0.3)
@@ -327,38 +353,54 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         split.label(text="Blend:")
         split.prop(strip, "blend_mode", text="")
 
-        row = layout.row()
-        if strip.mute == True:
-            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON', text="")
-        elif strip.mute is False:
-            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_OFF', text="")
-
+        row = layout.row(align=True)
         sub = row.row()
         sub.active = (not strip.mute)
-
         sub.prop(strip, "blend_opacity", text="Opacity", slider=True)
-
-        row = layout.row()
-        row.prop(strip, "lock")
-        row.prop(strip, "frame_locked", text="Frame Lock")
+        sub = row.row()
+        row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF', text="")
+        row.prop(strip, "lock", toggle=True, icon='LOCKED' if strip.lock else 'UNLOCKED', text="")
 
         col = layout.column()
-        col.enabled = not strip.lock
-        col.prop(strip, "channel")
-        col.prop(strip, "start_frame")
-        subrow = col.split(percentage=0.66)
-        subrow.prop(strip, "length")
-        subrow.label(text="%.2f sec" % (strip.length / (render.fps / render.fps_base)))
+        sub = col.column()
+        sub.enabled = not strip.lock
+        sub.prop(strip, "channel")
+        sub.prop(strip, "frame_start")
+        sub.prop(strip, "frame_final_length")
 
         col = layout.column(align=True)
-        col.label(text="Offset:")
-        col.prop(strip, "start_offset", text="Start")
-        col.prop(strip, "end_offset", text="End")
+        row = col.row()
+        row.label(text="Final Length: %s" % bpy.utils.smpte_from_frame(strip.frame_final_length))
+        row = col.row()
+        row.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_length)
+        row.label(text="Playhead: %d" % (frame_current - strip.frame_start))
 
-        col = layout.column(align=True)
-        col.label(text="Still:")
-        col.prop(strip, "start_still", text="Start")
-        col.prop(strip, "end_still", text="End")
+        col.label(text="Frame Offset %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
+        col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
+
+
+class SEQUENCER_PT_preview(bpy.types.Panel):
+    bl_label = "Scene Preview/Render"
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'UI'
+
+    def draw(self, context):
+        layout = self.layout
+        render = context.scene.render
+
+        col = layout.column()
+        col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
+        col = layout.column()
+        col.active = render.use_sequencer_gl_preview
+        col.prop(render, "sequencer_gl_preview", text="")
+
+        '''
+        col = layout.column()
+        col.prop(render, "use_sequencer_gl_render", text="Open GL Render")
+        col = layout.column()
+        col.active = render.use_sequencer_gl_render
+        col.prop(render, "sequencer_gl_render", text="")
+        '''
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
@@ -375,7 +417,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         return strip.type in ('ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
-                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED')
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
+                              'MULTICAM')
 
     def draw(self, context):
         layout = self.layout
@@ -418,6 +461,22 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 
         elif strip.type == 'TRANSFORM':
             self.draw_panel_transform(strip)
+
+        elif strip.type == "MULTICAM":
+            layout.prop(strip, "multicam_source")
+
+            row = layout.row(align=True)
+            sub = row.row()
+            sub.scale_x = 2.0
+
+            if not context.screen.animation_playing:
+                sub.operator("screen.animation_play", text="", icon='PLAY')
+            else:
+                sub.operator("screen.animation_play", text="", icon='PAUSE')
+
+            row.label("Cut To")
+            for i in range(1, strip.channel):
+                row.operator("sequencer.cut_multicam", text=str(i)).camera = i
 
 
         col = layout.column(align=True)
@@ -470,11 +529,16 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE')
-        
+        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META',
+                              'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+                              'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+                              'PLUGIN',
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+                              'MULTICAM', 'SPEED')
+
     def draw_filename(self, context):
         pass
-        
+
     def draw(self, context):
         layout = self.layout
 
@@ -483,16 +547,14 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         self.draw_filename(context)
 
         layout.prop(strip, "use_translation", text="Image Offset:")
-        if strip.transform:
+        if strip.use_translation:
             col = layout.column(align=True)
-            col.active = strip.use_translation
             col.prop(strip.transform, "offset_x", text="X")
             col.prop(strip.transform, "offset_y", text="Y")
 
         layout.prop(strip, "use_crop", text="Image Crop:")
-        if strip.crop:
+        if strip.use_crop:
             col = layout.column(align=True)
-            col.active = strip.use_crop
             col.prop(strip.crop, "top")
             col.prop(strip.crop, "left")
             col.prop(strip.crop, "bottom")
@@ -502,7 +564,8 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         col.label(text="Trim Duration:")
         col.prop(strip, "animation_start_offset", text="Start")
         col.prop(strip, "animation_end_offset", text="End")
-        
+
+
 class SEQUENCER_PT_input_movie(SEQUENCER_PT_input):
     bl_label = "Strip Input"
 
@@ -526,6 +589,7 @@ class SEQUENCER_PT_input_movie(SEQUENCER_PT_input):
         col.label(text="Path:")
         col = split.column()
         col.prop(strip, "filepath", text="")
+
 
 class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
     bl_label = "Strip Input"
@@ -553,13 +617,30 @@ class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
 
         # Current element for the filename
 
-        elem = strip.getStripElem(context.scene.current_frame)
+        elem = strip.getStripElem(context.scene.frame_current)
         if elem:
             split = layout.split(percentage=0.2)
             col = split.column()
             col.label(text="File:")
             col = split.column()
             col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
+
+
+class SEQUENCER_PT_input_secondary(SEQUENCER_PT_input):
+    bl_label = "Strip Input"
+
+    def poll(self, context):
+        if not self.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
+        return strip.type in ('SCENE', 'META')
+
+    def draw_filename(self, context):
+        pass
 
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel):
@@ -583,7 +664,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         layout.template_ID(strip, "sound", open="sound.open")
 
         layout.separator()
-        layout.prop(strip.sound, "filepath", text="")
+        layout.prop(strip, "filepath", text="")
 
         row = layout.row()
         if strip.sound.packed_file:
@@ -594,6 +675,12 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         row.prop(strip.sound, "caching")
 
         layout.prop(strip, "volume")
+        layout.prop(strip, "attenuation")
+
+        col = layout.column(align=True)
+        col.label(text="Trim Duration:")
+        col.prop(strip, "animation_start_offset", text="Start")
+        col.prop(strip, "animation_end_offset", text="End")
 
 
 class SEQUENCER_PT_scene(SequencerButtonsPanel):
@@ -616,6 +703,9 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
 
         layout.template_ID(strip, "scene")
 
+        layout.label(text="Camera Override")
+        layout.template_ID(strip, "scene_camera")
+
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
     bl_label = "Filter"
@@ -628,7 +718,12 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META')
+        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META',
+                              'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+                              'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+                              'PLUGIN',
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+                              'MULTICAM', 'SPEED')
 
     def draw(self, context):
         layout = self.layout
@@ -638,34 +733,37 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
         col = layout.column()
         col.label(text="Video:")
         col.prop(strip, "strobe")
+
+        row = layout.row()
+        row.label(text="Flip:")
+        row.prop(strip, "flip_x", text="X")
+        row.prop(strip, "flip_y", text="Y")
+
+        col = layout.column()
+        col.prop(strip, "reverse_frames", text="Backwards")
         col.prop(strip, "de_interlace")
 
         col = layout.column()
         col.label(text="Colors:")
+        col.prop(strip, "color_saturation", text="Saturation")
         col.prop(strip, "multiply_colors", text="Multiply")
         col.prop(strip, "premultiply")
         col.prop(strip, "convert_float")
 
-        col = layout.column()
-        col.label(text="Flip:")
-        col.prop(strip, "flip_x", text="X")
-        col.prop(strip, "flip_y", text="Y")
-        col.prop(strip, "reverse_frames", text="Backwards")
-
         layout.prop(strip, "use_color_balance")
-        if strip.color_balance: # TODO - need to add this somehow
+        if strip.use_color_balance and strip.color_balance: # TODO - need to add this somehow
             row = layout.row()
             row.active = strip.use_color_balance
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "lift", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "lift", value_slider=False, cubic=True)
             col.row().prop(strip.color_balance, "lift")
             col.prop(strip.color_balance, "inverse_lift", text="Inverse")
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "gamma", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "gamma", value_slider=False, lock_luminosity=True, cubic=True)
             col.row().prop(strip.color_balance, "gamma")
             col.prop(strip.color_balance, "inverse_gamma", text="Inverse")
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "gain", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "gain", value_slider=False, lock_luminosity=True, cubic=True)
             col.row().prop(strip.color_balance, "gain")
             col.prop(strip.color_balance, "inverse_gain", text="Inverse")
 
@@ -681,7 +779,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
         if not strip:
             return False
 
-        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META')
+        return strip.type in ('MOVIE', 'IMAGE', 'SCENE', 'META', 'MULTICAM')
 
     def draw_header(self, context):
         strip = act_strip(context)
@@ -695,9 +793,12 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 
         flow = layout.column_flow()
         flow.prop(strip, "proxy_custom_directory")
+        flow.prop(strip, "proxy_custom_file")
         if strip.proxy: # TODO - need to add this somehow
-            flow.prop(strip.proxy, "directory")
-            flow.prop(strip.proxy, "file")
+            if strip.proxy_custom_directory and not strip.proxy_custom_file:
+                flow.prop(strip.proxy, "directory")
+            if strip.proxy_custom_file:
+                flow.prop(strip.proxy, "filepath")
 
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
@@ -709,9 +810,12 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
         st = context.space_data
 
         col = layout.column()
-        col.prop(st, "draw_overexposed") # text="Zebra"
-        col.prop(st, "draw_safe_margin")
-
+        if st.display_mode == 'IMAGE':
+            col.prop(st, "draw_overexposed") # text="Zebra"
+            col.prop(st, "draw_safe_margin")
+        if st.display_mode == 'WAVEFORM':
+            col.prop(st, "separate_color_preview")
+        col.prop(st, "proxy_render_size")
 
 classes = [
     SEQUENCER_HT_header, # header/menu classes
@@ -724,9 +828,11 @@ classes = [
     SEQUENCER_MT_strip,
 
     SEQUENCER_PT_edit, # sequencer panels
+    SEQUENCER_PT_preview,
     SEQUENCER_PT_effect,
     SEQUENCER_PT_input_movie,
     SEQUENCER_PT_input_image,
+    SEQUENCER_PT_input_secondary,
     SEQUENCER_PT_sound,
     SEQUENCER_PT_scene,
     SEQUENCER_PT_filter,

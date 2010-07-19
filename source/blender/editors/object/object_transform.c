@@ -29,16 +29,11 @@
 #include <string.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BLI_math.h"
 #include "BLI_editVert.h"
@@ -61,12 +56,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
-#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -76,32 +69,35 @@
 
 static int object_location_clear_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	
+	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
 	
 	/* clear location of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			if((ob->protectflag & OB_LOCK_LOCX)==0)
+		if (!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
+			/* clear location if not locked */
+			if ((ob->protectflag & OB_LOCK_LOCX)==0)
 				ob->loc[0]= ob->dloc[0]= 0.0f;
-			if((ob->protectflag & OB_LOCK_LOCY)==0)
+			if ((ob->protectflag & OB_LOCK_LOCY)==0)
 				ob->loc[1]= ob->dloc[1]= 0.0f;
-			if((ob->protectflag & OB_LOCK_LOCZ)==0)
+			if ((ob->protectflag & OB_LOCK_LOCZ)==0)
 				ob->loc[2]= ob->dloc[2]= 0.0f;
 				
-			/* do auto-keyframing as appropriate */
+			/* auto keyframing */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				/* init cks for this object, then use the relative KeyingSets to keyframe it */
-				cks.id= &ob->id;
-				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				ListBase dsources = {NULL, NULL};
+				
+				/* now insert the keyframe(s) using the Keying Set
+				 *	1) add datasource override for the PoseChannel
+				 *	2) insert keyframes
+				 *	3) free the extra info 
+				 */
+				ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL); 
+				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				BLI_freelistN(&dsources);
 			}
 		}
+		
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
@@ -132,17 +128,12 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
 	
 	/* clear rotation of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
+			/* clear rotations that aren't locked */
 			if (ob->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
 				if (ob->protectflag & OB_LOCK_ROT4D) {
 					/* perform clamping on a component by component basis */
@@ -218,7 +209,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 						VECCOPY(ob->rot, eul);
 					}
 				}
-			}						
+			}						 // Duplicated in source/blender/editors/armature/editarmature.c
 			else { 
 				if (ob->rotmode == ROT_MODE_QUAT) {
 					ob->quat[1]=ob->quat[2]=ob->quat[3]= 0.0f; 
@@ -234,13 +225,21 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 				}
 			}
 			
-			/* do auto-keyframing as appropriate */
+			/* auto keyframing */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				/* init cks for this object, then use the relative KeyingSets to keyframe it */
-				cks.id= &ob->id;
-				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				ListBase dsources = {NULL, NULL};
+				
+				/* now insert the keyframe(s) using the Keying Set
+				 *	1) add datasource override for the PoseChannel
+				 *	2) insert keyframes
+				 *	3) free the extra info 
+				 */
+				ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL); 
+				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				BLI_freelistN(&dsources);
 			}
 		}
+		
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
@@ -271,35 +270,37 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 static int object_scale_clear_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
 	
 	/* clear scales of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			if((ob->protectflag & OB_LOCK_SCALEX)==0) {
+			/* clear scale factors which are not locked */
+			if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
 				ob->dsize[0]= 0.0f;
 				ob->size[0]= 1.0f;
 			}
-			if((ob->protectflag & OB_LOCK_SCALEY)==0) {
+			if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
 				ob->dsize[1]= 0.0f;
 				ob->size[1]= 1.0f;
 			}
-			if((ob->protectflag & OB_LOCK_SCALEZ)==0) {
+			if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
 				ob->dsize[2]= 0.0f;
 				ob->size[2]= 1.0f;
 			}
 			
-			/* do auto-keyframing as appropriate */
+			/* auto keyframing */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				/* init cks for this object, then use the relative KeyingSets to keyframe it */
-				cks.id= &ob->id;
-				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				ListBase dsources = {NULL, NULL};
+				
+				/* now insert the keyframe(s) using the Keying Set
+				 *	1) add datasource override for the PoseChannel
+				 *	2) insert keyframes
+				 *	3) free the extra info 
+				 */
+				ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL); 
+				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				BLI_freelistN(&dsources);
 			}
 		}
 		ob->recalc |= OB_RECALC_OB;
@@ -385,7 +386,7 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob )
 	/* a change was made, adjust the children to compensate */
 	for(ob_child=bmain->object.first; ob_child; ob_child=ob_child->id.next) {
 		if(ob_child->parent == ob) {
-			ED_object_apply_obmat(ob_child);
+			object_apply_mat4(ob_child, ob_child->obmat);
 			what_does_parent(scene, ob_child, &workob);
 			invert_m4_m4(ob_child->parentinv, workob.obmat);
 		}
@@ -430,6 +431,10 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			
 			if(ID_REAL_USERS(cu) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user curve, doing nothing.");
+				return OPERATOR_CANCELLED;
+			}
+			if(!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
+				BKE_report(reports, RPT_ERROR, "Neither rotation nor location could be applied to a 2d curve, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
 			if(cu->key) {
@@ -498,7 +503,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			cu= ob->data;
 
 			scale = mat3_to_scale(rsmat);
-			
+
 			for(nu=cu->nurb.first; nu; nu=nu->next) {
 				if(nu->type == CU_BEZIER) {
 					a= nu->pntsu;
@@ -759,7 +764,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			}
 			
 			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				sub_v3_v3v3(eve->co, eve->co, cent);			
+				sub_v3_v3(eve->co, cent);			
 			}
 			
 			EDBM_RecalcNormals(em);
@@ -804,7 +809,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					mvert= me->mvert;
 					for(a=0; a<me->totvert; a++, mvert++) {
-						sub_v3_v3v3(mvert->co, mvert->co, cent);
+						sub_v3_v3(mvert->co, cent);
 					}
 					
 					if (me->key) {
@@ -813,7 +818,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 							float *fp= kb->data;
 							
 							for (a=0; a<kb->totelem; a++, fp+=3) {
-								sub_v3_v3v3(fp, fp, cent);
+								sub_v3_v3(fp, cent);
 							}
 						}
 					}
@@ -855,7 +860,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 									if(tme && (tme->flag & ME_ISDONE)==0) {
 										mvert= tme->mvert;
 										for(a=0; a<tme->totvert; a++, mvert++) {
-											sub_v3_v3v3(mvert->co, mvert->co, cent);
+											sub_v3_v3(mvert->co, cent);
 										}
 										
 										if (tme->key) {
@@ -864,7 +869,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 												float *fp= kb->data;
 												
 												for (a=0; a<kb->totelem; a++, fp+=3) {
-													sub_v3_v3v3(fp, fp, cent);
+													sub_v3_v3(fp, cent);
 												}
 											}
 										}
@@ -924,15 +929,15 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						if(nu->type == CU_BEZIER) {
 							a= nu->pntsu;
 							while (a--) {
-								sub_v3_v3v3(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
-								sub_v3_v3v3(nu->bezt[a].vec[1], nu->bezt[a].vec[1], cent);
-								sub_v3_v3v3(nu->bezt[a].vec[2], nu->bezt[a].vec[2], cent);
+								sub_v3_v3(nu->bezt[a].vec[0], cent);
+								sub_v3_v3(nu->bezt[a].vec[1], cent);
+								sub_v3_v3(nu->bezt[a].vec[2], cent);
 							}
 						}
 						else {
 							a= nu->pntsu*nu->pntsv;
 							while (a--)
-								sub_v3_v3v3(nu->bp[a].vec, nu->bp[a].vec, cent);
+								sub_v3_v3(nu->bp[a].vec, cent);
 						}
 						nu= nu->next;
 					}

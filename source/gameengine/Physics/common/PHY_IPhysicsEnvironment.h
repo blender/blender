@@ -88,7 +88,7 @@ public:
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IRayCastFilterCallback"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IRayCastFilterCallback"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };
@@ -179,7 +179,7 @@ class PHY_IPhysicsEnvironment
 		
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IPhysicsEnvironment"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IPhysicsEnvironment"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

@@ -29,10 +29,6 @@
 #include "SCA_ISensor.h"
 #include "SCA_PropertyEventManager.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 SCA_PropertyEventManager::SCA_PropertyEventManager(class SCA_LogicManager* logicmgr)
 	: SCA_EventManager(logicmgr, PROPERTY_EVENTMGR)

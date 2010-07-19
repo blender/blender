@@ -14,10 +14,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "AUD_C-API.h"
 
@@ -31,14 +29,10 @@
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
 
-#include "RNA_access.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 static int force_device = -1;
 
+#ifdef WITH_JACK
 static void sound_sync_callback(void* data, int mode, float time)
 {
 	struct Main* bmain = (struct Main*)data;
@@ -58,6 +52,7 @@ static void sound_sync_callback(void* data, int mode, float time)
 		scene = scene->id.next;
 	}
 }
+#endif
 
 int sound_define_from_str(char *str)
 {
@@ -76,6 +71,11 @@ int sound_define_from_str(char *str)
 void sound_force_device(int device)
 {
 	force_device = device;
+}
+
+void sound_init_once()
+{
+	AUD_initOnce();
 }
 
 void sound_init(struct Main *bmain)
@@ -125,7 +125,7 @@ struct bSound* sound_new_file(struct Main *bmain, char* filename)
 	int len;
 
 	strcpy(str, filename);
-	BLI_convertstringcode(str, bmain->name);
+	BLI_path_abs(str, bmain->name);
 
 	len = strlen(filename);
 	while(len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
@@ -256,11 +256,11 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			BLI_strncpy(fullpath, sound->name, sizeof(fullpath));
 
 			if(sound->id.lib)
-				path = sound->id.lib->filename;
+				path = sound->id.lib->filepath;
 			else
 				path = bmain ? bmain->name : G.sce;
 
-			BLI_convertstringcode(fullpath, path);
+			BLI_path_abs(fullpath, path);
 
 			/* but we need a packed file then */
 			if (pf)
@@ -345,6 +345,13 @@ void sound_destroy_scene(struct Scene *scene)
 		AUD_stop(scene->sound_scene_handle);
 	if(scene->sound_scene)
 		AUD_destroySequencer(scene->sound_scene);
+}
+
+void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)
+{
+	if(scene != sequence->scene)
+		return AUD_addSequencer(scene->sound_scene, &(sequence->scene->sound_scene), startframe / FPS, endframe / FPS, frameskip / FPS, sequence);
+	return NULL;
 }
 
 void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)

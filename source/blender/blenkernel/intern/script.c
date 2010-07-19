@@ -31,17 +31,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "BKE_script.h"
-#include "DNA_space_types.h"
 
 #include "MEM_guardedalloc.h"
 
 /*
-#include "BLI_blenlib.h"
-#include "BKE_utildefines.h"
-#include "BKE_library.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h" // Blender Python library

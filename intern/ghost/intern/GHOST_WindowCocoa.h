@@ -226,6 +226,17 @@ public:
 
 	GHOST_TabletData& GetCocoaTabletData()
 	{ return m_tablet; }
+	
+	/**
+	 * Sets the progress bar value displayed in the window/application icon
+	 * @param progress The progress % (0.0 to 1.0)
+	 */
+	virtual GHOST_TSuccess setProgressBar(float progress);
+	
+	/**
+	 * Hides the progress bar icon
+	 */
+	virtual GHOST_TSuccess endProgressBar();
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
@@ -291,14 +302,6 @@ protected:
 	NSCursor*	m_customCursor;
 
 	GHOST_TabletData m_tablet;
-    
-    /**
-     * The width/height of the size rectangle in the lower right corner of a 
-     * Mac/Carbon window. This is also the height of the gutter area.
-     */
-#ifdef GHOST_DRAW_CARBON_GUTTER
-    static const GHOST_TInt32 s_sizeRectSize;
-#endif // GHOST_DRAW_CARBON_GUTTER
 };
 
 #endif // _GHOST_WINDOW_COCOA_H_

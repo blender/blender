@@ -32,10 +32,6 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
 #include <unistd.h>
 #else
@@ -44,19 +40,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -79,7 +62,6 @@
 //
 //#include "mydevice.h"
 
-#include "WM_types.h"
 #include "UI_resources.h"
 
 
@@ -542,6 +524,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	if (t->flag & T_EDIT) {
 		float obmat[3][3];
 		copy_m3_m4(obmat, t->scene->obedit->obmat);
+		normalize_m3(obmat);
 		setConstraint(t, obmat, mode, text);
 	}
 	else {
@@ -638,7 +621,7 @@ void drawConstraint(const struct bContext *C, TransInfo *t)
 			float vec[3];
 			char col2[3] = {255,255,255};
 			convertViewVec(t, vec, (short)(t->mval[0] - t->con.imval[0]), (short)(t->mval[1] - t->con.imval[1]));
-			add_v3_v3v3(vec, vec, tc->center);
+			add_v3_v3(vec, tc->center);
 
 			drawLine(t, tc->center, tc->mtx[0], 'x', 0);
 			drawLine(t, tc->center, tc->mtx[1], 'y', 0);
@@ -870,14 +853,14 @@ static void setNearestAxis3d(TransInfo *t)
 
 		mul_v3_fl(axis, zfac);
 		/* now we can project to get window coordinate */
-		add_v3_v3v3(axis, axis, t->con.center);
+		add_v3_v3(axis, t->con.center);
 		projectIntView(t, axis, icoord);
 
 		axis[0] = (float)(icoord[0] - t->center2d[0]);
 		axis[1] = (float)(icoord[1] - t->center2d[1]);
 		axis[2] = 0.0f;
 
- 		if (normalize_v3(axis) != 0.0f) {
+		 if (normalize_v3(axis) != 0.0f) {
 			project_v3_v3v3(proj, mvec, axis);
 			sub_v3_v3v3(axis, mvec, proj);
 			len[i] = normalize_v3(axis);

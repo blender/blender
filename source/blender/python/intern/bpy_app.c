@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -23,7 +23,6 @@
  */
 
 #include "bpy_app.h"
-#include "bpy_util.h"
 
 #include "BLI_path_util.h"
 
@@ -32,11 +31,11 @@
 #include "structseq.h"
 
 #ifdef BUILD_DATE
-extern const char * build_date;
-extern const char * build_time;
-extern const char * build_rev;
-extern const char * build_platform;
-extern const char * build_type;
+extern char build_date[];
+extern char build_time[];
+extern char build_rev[];
+extern char build_platform[];
+extern char build_type[];
 #endif
 
 static PyTypeObject BlenderAppType;
@@ -47,6 +46,7 @@ static PyStructSequence_Field app_info_fields[] = {
 	{"home", "The blender home directory, normally matching $HOME"},
 	{"binary_path", "The location of blenders executable, useful for utilities that spawn new instances"},
 	{"debug", "Boolean, set when blender is running in debug mode (started with -d)"},
+	{"background", "Boolean, True when blender is running without a user interface (started with -b)"},
 
 	/* buildinfo */
 	{"build_date", "The date this blender instance was built"},
@@ -61,27 +61,12 @@ static PyStructSequence_Desc app_info_desc = {
 	"bpy.app",     /* name */
 	"This module contains application values that remain unchanged during runtime.",    /* doc */
 	app_info_fields,    /* fields */
-	10
+	(sizeof(app_info_fields)/sizeof(PyStructSequence_Field)) - 1
 };
-
-static char *strip_quotes(char *buf, const char *input)
-{
-	int i;
-	strcpy(buf, input);
-	if(buf[0]=='\0') return buf;
-	while(buf[1] && (buf[0]=='"' || buf[0]=='\'')) buf++;
-	if(buf[0]=='\0') return buf;
-	i= strlen(buf) - 1;
-	while(i>=0 && (buf[i]=='"' || buf[i]=='\'')) i--;
-	buf[i+1]= '\0';
-
-	return buf;
-}
 
 static PyObject *make_app_info(void)
 {
 	extern char bprogname[]; /* argv[0] from creator.c */
-	char buf[256];
 
 	PyObject *app_info;
 	int pos = 0;
@@ -103,20 +88,21 @@ static PyObject *make_app_info(void)
 	SetStrItem(BLI_gethome());
 	SetStrItem(bprogname);
 	SetObjItem(PyBool_FromLong(G.f & G_DEBUG));
+	SetObjItem(PyBool_FromLong(G.background));
 
 	/* build info */
 #ifdef BUILD_DATE
-	SetStrItem(strip_quotes(buf, build_date));
-	SetStrItem(strip_quotes(buf, build_time));
-	SetStrItem(strip_quotes(buf, build_rev));
-	SetStrItem(strip_quotes(buf, build_platform));
-	SetStrItem(strip_quotes(buf, build_type));
+	SetStrItem(build_date);
+	SetStrItem(build_time);
+	SetStrItem(build_rev);
+	SetStrItem(build_platform);
+	SetStrItem(build_type);
 #else
-	SetStrItem(strip_quotes(buf, "Unknown"));
-	SetStrItem(strip_quotes(buf, "Unknown"));
-	SetStrItem(strip_quotes(buf, "Unknown"));
-	SetStrItem(strip_quotes(buf, "Unknown"));
-	SetStrItem(strip_quotes(buf, "Unknown"));
+	SetStrItem("Unknown");
+	SetStrItem("Unknown");
+	SetStrItem("Unknown");
+	SetStrItem("Unknown");
+	SetStrItem("Unknown");
 #endif
 
 #undef SetIntItem

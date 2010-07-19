@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -32,12 +32,8 @@
 #include <float.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -66,17 +62,13 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"
-#include "ED_types.h"
-#include "ED_util.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "graph_intern.h"	// own include
 
@@ -155,7 +147,7 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 
 	/* 2D-Cursor */
 	col= uiLayoutColumn(pa->layout, 0);
-		uiItemR(col, NULL, 0, &spaceptr, "show_cursor", 0);
+		uiItemR(col, &spaceptr, "show_cursor", 0, NULL, 0);
 		
 		subcol= uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
@@ -164,11 +156,11 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 		subcol= uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
 			row= uiLayoutSplit(subcol, 0.7, 1);
-				uiItemR(row, "Cursor X", 0, &sceneptr, "current_frame", 0);
-				uiItemEnumO(row, "To Keys", 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_CFRA);
+				uiItemR(row, &sceneptr, "frame_current", 0, "Cursor X", 0);
+				uiItemEnumO(row, "GRAPH_OT_snap", "To Keys", 0, "type", GRAPHKEYS_SNAP_CFRA);
 			row= uiLayoutSplit(subcol, 0.7, 1);
-				uiItemR(row, "Cursor Y", 0, &spaceptr, "cursor_value", 0);
-				uiItemEnumO(row, "To Keys", 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_VALUE);
+				uiItemR(row, &spaceptr, "cursor_value", 0, "Cursor Y", 0);
+				uiItemEnumO(row, "GRAPH_OT_snap", "To Keys", 0, "type", GRAPHKEYS_SNAP_VALUE);
 }
 
 /* ******************* active F-Curve ************** */
@@ -202,25 +194,102 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 	/* RNA-Path Editing - only really should be enabled when things aren't working */
 	col= uiLayoutColumn(layout, 1);
 		uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED)); 
-		uiItemR(col, "", ICON_RNA, &fcu_ptr, "data_path", 0);
-		uiItemR(col, NULL, 0, &fcu_ptr, "array_index", 0);
+		uiItemR(col, &fcu_ptr, "data_path", 0, "", ICON_RNA);
+		uiItemR(col, &fcu_ptr, "array_index", 0, NULL, 0);
 		
 	/* color settings */
 	col= uiLayoutColumn(layout, 1);
 		uiItemL(col, "Display Color:", 0);
 		
 		row= uiLayoutRow(col, 1);
-			uiItemR(row, "", 0, &fcu_ptr, "color_mode", 0);
+			uiItemR(row, &fcu_ptr, "color_mode", 0, "", 0);
 			
 			subrow= uiLayoutRow(row, 1);
 				uiLayoutSetEnabled(subrow, (fcu->color_mode==FCURVE_COLOR_CUSTOM));
-				uiItemR(subrow, "", 0, &fcu_ptr, "color", 0);
+				uiItemR(subrow, &fcu_ptr, "color", 0, "", 0);
 	
-	/* TODO: the following settings could be added here
-	 *	- Access details (ID-block + RNA-Path + Array Index)
-	 *	- ...
-	 */
+	MEM_freeN(ale);
+}
 
+/* ******************* active Keyframe ************** */
+
+/* get 'active' keyframe for panel editing */
+static short get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezTriple **prevbezt)
+{
+	BezTriple *b;
+	int i;
+	
+	/* zero the pointers */
+	*bezt = *prevbezt = NULL;
+	
+	/* sanity checks */
+	if ((fcu->bezt == NULL) || (fcu->totvert == 0))
+		return 0;
+		
+	/* find first selected keyframe for now, and call it the active one 
+	 *	- this is a reasonable assumption, given that whenever anyone 
+	 *	  wants to edit numerically, there is likely to only be 1 vert selected
+	 */
+	for (i=0, b=fcu->bezt; i < fcu->totvert; i++, b++) {
+		if (BEZSELECTED(b)) {
+			/* found 
+			 *	- 'previous' is either the one before, of the keyframe itself (which is still fine)
+			 *		XXX: we can just make this null instead if needed
+			 */
+			*prevbezt = (i > 0) ? b-1 : b;
+			*bezt = b;
+			
+			return 1;
+		}
+	}
+	
+	/* not found */
+	return 0;
+}
+
+static void graph_panel_key_properties(const bContext *C, Panel *pa)
+{
+	bAnimListElem *ale;
+	FCurve *fcu;
+	BezTriple *bezt, *prevbezt;
+	
+	uiLayout *layout = pa->layout;
+	uiLayout *col;
+	uiBlock *block;
+
+	if (!graph_panel_context(C, &ale, &fcu))
+		return;
+	
+	block = uiLayoutGetBlock(layout);
+	uiBlockSetHandleFunc(block, do_graph_region_buttons, NULL);
+	
+	/* only show this info if there are keyframes to edit */
+	if (get_active_fcurve_keyframe_edit(fcu, &bezt, &prevbezt)) {
+		PointerRNA bezt_ptr;
+		
+		/* RNA pointer to keyframe, to allow editing */
+		RNA_pointer_create(ale->id, &RNA_Keyframe, bezt, &bezt_ptr);
+		
+		/* interpolation */
+		col= uiLayoutColumn(layout, 0);
+			uiItemR(col, &bezt_ptr, "interpolation", 0, NULL, 0);
+			
+		/* numerical coordinate editing */
+		col= uiLayoutColumn(layout, 1);
+			/* keyframe itself */
+			uiItemR(col, &bezt_ptr, "co", 0, "Key", 0);
+			
+			/* previous handle - only if previous was Bezier interpolation */
+			if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ))
+				uiItemR(col, &bezt_ptr, "handle1", 0, NULL, 0);
+			
+			/* next handle - only if current is Bezier interpolation */
+			if (bezt->ipo == BEZT_IPO_BEZ)
+				uiItemR(col, &bezt_ptr, "handle2", 0, NULL, 0);
+	}
+	else
+		uiItemL(layout, "No active keyframe on F-Curve", 0);
+	
 	MEM_freeN(ale);
 }
 
@@ -357,7 +426,7 @@ static void graph_panel_driverVar__rotDiff(const bContext *C, uiLayout *layout, 
 			PointerRNA tar_ptr;
 			
 			RNA_pointer_create(dtar->id, &RNA_Pose, ob1->pose, &tar_ptr);
-			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar_ptr, "bone_target", &tar_ptr, "bones");
+			uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 	
 	col= uiLayoutColumn(layout, 1);
@@ -367,7 +436,7 @@ static void graph_panel_driverVar__rotDiff(const bContext *C, uiLayout *layout, 
 			PointerRNA tar_ptr;
 			
 			RNA_pointer_create(dtar2->id, &RNA_Pose, ob2->pose, &tar_ptr);
-			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar2_ptr, "bone_target", &tar_ptr, "bones");
+			uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 }
 
@@ -393,10 +462,10 @@ static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, 
 			PointerRNA tar_ptr;
 			
 			RNA_pointer_create(dtar->id, &RNA_Pose, ob1->pose, &tar_ptr);
-			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar_ptr, "bone_target", &tar_ptr, "bones");
+			uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		uiItemR(col, NULL, 0, &dtar_ptr, "use_local_space_transforms", 0);
+		uiItemR(col, &dtar_ptr, "use_local_space_transforms", 0, NULL, 0);
 	
 	col= uiLayoutColumn(layout, 1);
 		uiTemplateAnyID(col, (bContext *)C, &dtar2_ptr, "id", "id_type", "Ob/Bone 2:");
@@ -405,10 +474,10 @@ static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, 
 			PointerRNA tar_ptr;
 			
 			RNA_pointer_create(dtar2->id, &RNA_Pose, ob2->pose, &tar_ptr);
-			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar2_ptr, "bone_target", &tar_ptr, "bones");
+			uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		uiItemR(col, NULL, 0, &dtar2_ptr, "use_local_space_transforms", 0);
+		uiItemR(col, &dtar2_ptr, "use_local_space_transforms", 0, NULL, 0);
 }
 
 /* settings for 'transform channel' driver variable type */
@@ -430,12 +499,12 @@ static void graph_panel_driverVar__transChan(const bContext *C, uiLayout *layout
 			PointerRNA tar_ptr;
 			
 			RNA_pointer_create(dtar->id, &RNA_Pose, ob->pose, &tar_ptr);
-			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar_ptr, "bone_target", &tar_ptr, "bones");
+			uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
 		row= uiLayoutRow(layout, 1);
-			uiItemR(row, "", 0, &dtar_ptr, "transform_type", 0);
-			uiItemR(row, NULL, 0, &dtar_ptr, "use_local_space_transforms", 0);
+			uiItemR(row, &dtar_ptr, "transform_type", 0, "", 0);
+			uiItemR(row, &dtar_ptr, "use_local_space_transforms", 0, NULL, 0);
 }
 
 /* driver settings for active F-Curve (only for 'Drivers' mode) */
@@ -474,12 +543,12 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	
 	col= uiLayoutColumn(pa->layout, 1);
 	block= uiLayoutGetBlock(col);
-		uiItemR(col, NULL, 0, &driver_ptr, "type", 0);
+		uiItemR(col, &driver_ptr, "type", 0, NULL, 0);
 		
 		/* show expression box if doing scripted drivers, and/or error messages when invalid drivers exist */
 		if (driver->type == DRIVER_TYPE_PYTHON) {
 			/* expression */
-			uiItemR(col, "Expr", 0, &driver_ptr, "expression", 0);
+			uiItemR(col, &driver_ptr, "expression", 0, "Expr", 0);
 			
 			/* errors? */
 			if (driver->flag & DRIVER_FLAG_INVALID)
@@ -493,7 +562,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		
 	col= uiLayoutColumn(pa->layout, 1);
 		/* debug setting */
-		uiItemR(col, NULL, 0, &driver_ptr, "show_debug_info", 0);
+		uiItemR(col, &driver_ptr, "show_debug_info", 0, NULL, 0);
 		
 		/* value of driver */
 		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
@@ -528,7 +597,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			row= uiLayoutRow(box, 0);
 			block= uiLayoutGetBlock(row);
 				/* variable name */
-				uiItemR(row, "", 0, &dvar_ptr, "name", 0);
+				uiItemR(row, &dvar_ptr, "name", 0, "", 0);
 				
 				/* remove button */
 				uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -538,7 +607,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			
 			/* variable type */
 			row= uiLayoutRow(box, 0);
-				uiItemR(row, "", 0, &dvar_ptr, "type", 0);
+				uiItemR(row, &dvar_ptr, "type", 0, "", 0);
 				
 		/* variable type settings */
 		box= uiLayoutBox(col);
@@ -610,8 +679,13 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 		row= uiLayoutRow(pa->layout, 0);
 		block= uiLayoutGetBlock(row);
 		
-		// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
+		// XXX for now, this will be a operator button which calls a 'add modifier' operator
 		uiDefButO(block, BUT, "GRAPH_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, "Add Modifier", 10, 0, 150, 20, "Adds a new F-Curve Modifier for the active F-Curve");
+		
+		/* copy/paste (as sub-row)*/
+		row= uiLayoutRow(row, 1);
+			uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_fmodifier_copy");
+			uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_fmodifier_paste");
 	}
 	
 	/* draw each modifier */
@@ -634,6 +708,7 @@ void graph_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "GRAPH_PT_view");
 	strcpy(pt->label, "View Properties");
 	pt->draw= graph_panel_view;
+	pt->flag |= PNL_DEFAULT_CLOSED;
 	BLI_addtail(&art->paneltypes, pt);
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
@@ -642,6 +717,14 @@ void graph_buttons_register(ARegionType *art)
 	pt->draw= graph_panel_properties;
 	pt->poll= graph_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
+	
+	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
+	strcpy(pt->idname, "GRAPH_PT_key_properties");
+	strcpy(pt->label, "Active Keyframe");
+	pt->draw= graph_panel_key_properties;
+	pt->poll= graph_panel_poll;
+	BLI_addtail(&art->paneltypes, pt);
+
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers");
 	strcpy(pt->idname, "GRAPH_PT_drivers");

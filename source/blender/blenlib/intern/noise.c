@@ -35,11 +35,6 @@
 #endif
 
 #include <math.h>
-#include "BLI_blenlib.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 /* local */
 static float noise3_perlin(float vec[3]);
@@ -204,8 +199,15 @@ float hashvectf[768]= {
 /*  IMPROVED PERLIN NOISE */
 /**************************/
 
-#define lerp(t, a, b) ((a)+(t)*((b)-(a)))
-#define npfade(t) ((t)*(t)*(t)*((t)*((t)*6-15)+10))
+static float lerp(float t, float a, float b)
+{
+	return (a+t*(b-a));
+}
+
+static float npfade(float t)
+{
+	return (t*t*t*(t*(t*6.0f-15.0f)+10.0f));
+}
 
 static float grad(int hash, float x, float y, float z)
 {
@@ -908,11 +910,11 @@ float g[512+2][3]= {
 #define DOT(a,b) (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
 
 #define setup(i,b0,b1,r0,r1) \
-        t = vec[i] + 10000.; \
-        b0 = ((int)t) & 255; \
-        b1 = (b0+1) & 255; \
-        r0 = t - (int)t; \
-        r1 = r0 - 1.;
+		t = vec[i] + 10000.; \
+		b0 = ((int)t) & 255; \
+		b1 = (b0+1) & 255; \
+		r0 = t - (int)t; \
+		r1 = r0 - 1.;
 
 
 static float noise3_perlin(float vec[3])
@@ -1491,7 +1493,7 @@ float mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves
  *    ``offset''  is the zero offset, which determines multifractality (NOT USED??)
  */
  /* this one is in fact rather confusing,
- 	* there seem to be errors in the original source code (in all three versions of proc.text&mod),
+	 * there seem to be errors in the original source code (in all three versions of proc.text&mod),
 	* I modified it to something that made sense to me, so it might be wrong... */
 float mg_MultiFractal(float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {

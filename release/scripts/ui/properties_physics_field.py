@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 from properties_physics_common import basic_force_field_settings_ui
@@ -72,6 +72,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
             col.prop(field, "guide_free")
             col.prop(field, "falloff_power")
             col.prop(field, "guide_path_add")
+            col.prop(field, "use_guide_path_weight")
 
             if wide_ui:
                 col = split.column()
@@ -184,7 +185,6 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
-        split.operator_context = 'EXEC_DEFAULT'
 
         if md:
             # remove modifier + settings

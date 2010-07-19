@@ -30,19 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "DNA_armature_types.h"
-#include "DNA_ID.h"
-#include "DNA_image_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h" /* U.smooth_viewtx */
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 
@@ -67,9 +55,6 @@
 #include "BKE_utildefines.h" /* for VECCOPY */
 #include "BKE_tessmesh.h"
 
-#include "ED_armature.h"
-#include "ED_particle.h"
-#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_util.h"
 #include "ED_screen.h"
@@ -79,7 +64,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -91,9 +75,7 @@
 #include "BLI_editVert.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "view3d_intern.h"
 
@@ -156,11 +138,12 @@ static void handle_view3d_lock(bContext *C)
 		if(v3d->localvd==NULL && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
 			/* copy to scene */
 			scene->lay= v3d->lay;
+			scene->layact= v3d->layact;
 			scene->camera= v3d->camera;
 
 			/* not through notifiery, listener don't have context
 			   and non-open screens or spaces need to be updated too */
-			ED_view3d_scene_layers_update(bmain, scene);
+			BKE_screen_view3d_main_sync(&bmain->screen, scene);
 			
 			/* notifiers for scene update */
 			WM_event_add_notifier(C, NC_SCENE|ND_LAYER, scene);
@@ -178,14 +161,18 @@ static int layers_exec(bContext *C, wmOperator *op)
 	
 	if(nr < 0)
 		return OPERATOR_CANCELLED;
-	
-	
+
 	if(nr == 0) {
 		/* all layers */
-		v3d->lay |= (1<<20)-1;
-
 		if(!v3d->layact)
 			v3d->layact= 1;
+
+		if (toggle && v3d->lay == ((1<<20)-1)) {
+			/* return to active layer only */
+			v3d->lay = v3d->layact;
+		} else {
+			v3d->lay |= (1<<20)-1;
+		}		
 	}
 	else {
 		int bit;
@@ -398,25 +385,25 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		if( shift==0 || v3d->twtype==0) {
 			v3d->twtype= V3D_MANIP_TRANSLATE;
 		}
-        ED_area_tag_redraw(sa);
-        break;
+		ED_area_tag_redraw(sa);
+		break;
 	case B_MAN_ROT:
 		if( shift==0 || v3d->twtype==0) {
-            v3d->twtype= V3D_MANIP_ROTATE;
+			v3d->twtype= V3D_MANIP_ROTATE;
 		}
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_SCALE:
 		if( shift==0 || v3d->twtype==0) {
-            v3d->twtype= V3D_MANIP_SCALE;
+			v3d->twtype= V3D_MANIP_SCALE;
 		}
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	case B_NDOF:
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_MODE:
-        ED_area_tag_redraw(sa);
+		ED_area_tag_redraw(sa);
 		break;
 	default:
 		break;
@@ -450,7 +437,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlock *block;
 	uiLayout *row;
 	
-	RNA_pointer_create(&screen->id, &RNA_Space3DView, v3d, &v3dptr);	
+	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);	
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
 	RNA_pointer_create(&scene->id, &RNA_Scene, scene, &sceneptr);
 
@@ -488,7 +475,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlockEndAlign(block);
 	
 	/* Draw type */
-	uiItemR(layout, "", 0, &v3dptr, "viewport_shading", UI_ITEM_R_ICON_ONLY);
+	uiItemR(layout, &v3dptr, "viewport_shading", UI_ITEM_R_ICON_ONLY, "", 0);
 
 	if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)))) {
 		/* Manipulators aren't used in weight paint mode */
@@ -496,13 +483,13 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		PointerRNA meshptr;
 
 		RNA_pointer_create(&ob->id, &RNA_Mesh, ob->data, &meshptr);
-		uiItemR(layout, "", 0, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY);
+		uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", 0);
 	} else {
 		char *str_menu;
 
 		row= uiLayoutRow(layout, 1);
-		uiItemR(row, "", 0, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY);
-		uiItemR(row, "", 0, &v3dptr, "pivot_point_align", UI_ITEM_R_ICON_ONLY);
+		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", 0);
+		uiItemR(row, &v3dptr, "pivot_point_align", UI_ITEM_R_ICON_ONLY, "", 0);
 
 		/* NDOF */
 		/* Not implemented yet
@@ -510,14 +497,14 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), 0,0,XIC+10,YIC, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
 		
 			uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
-				      0,0,XIC,YIC,
-				      &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
+					  0,0,XIC,YIC,
+					  &v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");	
 		}
 		 */
 
 		/* Transform widget / manipulators */
 		row= uiLayoutRow(layout, 1);
-		uiItemR(row, "", 0, &v3dptr, "manipulator", UI_ITEM_R_ICON_ONLY);
+		uiItemR(row, &v3dptr, "manipulator", UI_ITEM_R_ICON_ONLY, "", 0);
 		block= uiLayoutGetBlock(row);
 		
 		if(v3d->twflag & V3D_USE_MANIPULATOR) {
@@ -540,12 +527,12 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		
 		/* Layers */
 		if (v3d->scenelock)
-			uiTemplateLayers(layout, &sceneptr, "visible_layers", &v3dptr, "used_layers", ob_lay);
+			uiTemplateLayers(layout, &sceneptr, "layers", &v3dptr, "used_layers", ob_lay);
 		else
-			uiTemplateLayers(layout, &v3dptr, "visible_layers", &v3dptr, "used_layers", ob_lay);
+			uiTemplateLayers(layout, &v3dptr, "layers", &v3dptr, "used_layers", ob_lay);
 
 		/* Scene lock */
-		uiItemR(layout, "", 0, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY);
+		uiItemR(layout, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY, "", 0);
 	}
 	
 	/* selection modus, dont use python for this since it cant do the toggle buttons with shift+click as well as clicking to set one. */

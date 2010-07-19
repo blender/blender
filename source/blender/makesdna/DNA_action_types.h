@@ -40,6 +40,7 @@
 struct SpaceLink;
 struct Object;
 struct Group;
+struct GHash;
 
 /* ************************************************ */
 /* Visualisation */
@@ -153,6 +154,8 @@ typedef enum eMotionPaths_ViewFlag {
 	MOTIONPATH_VIEW_KFRAS		= (1<<1),
 		/* show keyframe/frame numbers */
 	MOTIONPATH_VIEW_KFNOS		= (1<<2),
+		/* find keyframes in whole action (instead of just in matching group name) */
+	MOTIONPATH_VIEW_KFACT		= (1<<3),
 } eMotionPath_ViewFlag;
 
 /* bAnimVizSettings->path_bakeflag */
@@ -161,6 +164,8 @@ typedef enum eMotionPaths_BakeFlag {
 	MOTIONPATH_BAKE_NEEDS_RECALC	= (1<<0),
 		/* for bones - calculate head-points for curves instead of tips */
 	MOTIONPATH_BAKE_HEADS			= (1<<1),
+		/* motion paths exist for AnimVizSettings instance - set when calc for first time, and unset when clearing */
+	MOTIONPATH_BAKE_HAS_PATHS		= (1<<2),
 } eMotionPath_BakeFlag;
 
 /* ************************************************ */
@@ -324,6 +329,7 @@ typedef enum eRotationModes {
  */
 typedef struct bPose {
 	ListBase chanbase; 			/* list of pose channels, PoseBones in RNA */
+	struct GHash *chanhash;		/* ghash for quicker string lookups */
 	
 	short flag, proxy_layer;	/* proxy layer: copy from armature, gets synced */
 	
@@ -340,6 +346,7 @@ typedef struct bPose {
 	void *ikparam;				/* IK solver parameters, structure depends on iksolver */ 
 	
 	bAnimVizSettings avs;		/* settings for visualisation of bone animation */
+	char proxy_act_bone[32];           /*proxy active bone name*/
 } bPose;
 
 
@@ -355,9 +362,9 @@ typedef enum ePose_Flags {
 	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3),
 		/* recalculate bone paths */
 	POSE_RECALCPATHS = (1<<4),
-	    /* set by armature_rebuild_pose to give a chance to the IK solver to rebuild IK tree */
+		/* set by armature_rebuild_pose to give a chance to the IK solver to rebuild IK tree */
 	POSE_WAS_REBUILT = (1<<5),
-	    /* set by game_copy_pose to indicate that this pose is used in the game engine */
+		/* set by game_copy_pose to indicate that this pose is used in the game engine */
 	POSE_GAME_ENGINE = (1<<6),
 } ePose_Flags;
 
@@ -543,6 +550,9 @@ typedef enum eDopeSheet_FilterFlag {
 		/* NLA-specific filters */
 	ADS_FILTER_NLA_NOACT		= (1<<25),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
 	
+		/* general filtering 3 */
+	ADS_FILTER_INCL_HIDDEN		= (1<<26),	/* include 'hidden' channels too (i.e. those from hidden Objects/Bones) */
+	
 		/* combination filters (some only used at runtime) */
 	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM),
 } eDopeSheet_FilterFlag;	
@@ -597,6 +607,8 @@ typedef enum eSAction_Flag {
 	SACTION_TEMP_NEEDCHANSYNC = (1<<9),
 		/* don't perform realtime updates */
 	SACTION_NOREALTIMEUPDATES =	(1<<10),
+		/* move markers as well as keyframes */
+	SACTION_MARKERS_MOVE = (1<<11),
 } eSAction_Flag;	
 
 /* SpaceAction Mode Settings */

@@ -30,7 +30,7 @@
 
 #include "RAS_IRasterizer.h"
 #include "SCA_IActuator.h"
-#include "KX_Scene.h"
+#include "SCA_IScene.h"
 
 class SCA_2DFilterActuator : public SCA_IActuator
 {
@@ -45,7 +45,7 @@ private:
 	int   m_int_arg;
 	STR_String	m_shaderText;
 	RAS_IRasterizer* m_rasterizer;
-	KX_Scene* m_scene;
+	SCA_IScene* m_scene;
 
 public:
 
@@ -56,7 +56,7 @@ public:
 		float float_arg,
 		int int_arg,
 		RAS_IRasterizer* rasterizer,
-		KX_Scene* scene);
+		SCA_IScene* scene);
 
 	void	SetShaderText(const char *text);
     virtual ~SCA_2DFilterActuator();

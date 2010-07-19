@@ -31,10 +31,6 @@
 #include "NG_LoopBackNetworkDeviceInterface.h"
 #include "NG_NetworkMessage.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 // temporary debugging printf's
 #ifdef NAN_NET_DEBUG
   #include <stdio.h>
@@ -65,11 +61,6 @@ void NG_LoopBackNetworkDeviceInterface::NextFrame()
 	//m_messages[m_currentQueue].clear();
 
 	m_currentQueue=1-m_currentQueue;
-}
-
-STR_String NG_LoopBackNetworkDeviceInterface::GetNetworkVersion()
-{
-	return LOOPBACK_NETWORK_VERSION;
 }
 
 void NG_LoopBackNetworkDeviceInterface::SendNetworkMessage(NG_NetworkMessage* nwmsg)

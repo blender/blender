@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 from properties_physics_common import point_cache_ui
@@ -48,7 +48,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
-        split.operator_context = 'EXEC_DEFAULT'
 
         if md:
             # remove modifier + settings
@@ -71,8 +70,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
             else:
                 layout.prop(md, "smoke_type", text="")
 
-            if md.smoke_type == 'TYPE_DOMAIN':
-
+            if md.smoke_type == 'DOMAIN':
                 domain = md.domain_settings
 
                 split = layout.split()
@@ -94,8 +92,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 sub.prop(domain, "dissolve_speed", text="Time")
                 sub.prop(domain, "dissolve_smoke_log", text="Slow")
 
-            elif md.smoke_type == 'TYPE_FLOW':
-
+            elif md.smoke_type == 'FLOW':
                 flow = md.flow_settings
 
                 split = layout.split()
@@ -115,7 +112,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                     col.prop(flow, "temperature")
                     col.prop(flow, "density")
 
-            #elif md.smoke_type == 'TYPE_COLL':
+            #elif md.smoke_type == 'COLLISION':
             #	layout.separator()
 
 
@@ -125,7 +122,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
 
     def poll(self, context):
         md = context.smoke
-        return md and (md.smoke_type == 'TYPE_DOMAIN')
+        return md and (md.smoke_type == 'DOMAIN')
 
     def draw(self, context):
         layout = self.layout
@@ -154,20 +151,18 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
 
     def poll(self, context):
         md = context.smoke
-        return md and (md.smoke_type == 'TYPE_DOMAIN')
+        return md and (md.smoke_type == 'DOMAIN')
 
     def draw(self, context):
         layout = self.layout
 
-        domain = context.smoke.domain_settings
-
-        layout.label(text="Compression:")
-        layout.prop(domain, "smoke_cache_comp", expand=True)
-
         md = context.smoke.domain_settings
         cache = md.point_cache_low
 
-        point_cache_ui(self, context, cache, (cache.baked is False), 0, 1)
+        layout.label(text="Compression:")
+        layout.prop(md, "smoke_cache_comp", expand=True)
+
+        point_cache_ui(self, context, cache, (cache.baked is False), 'SMOKE')
 
 
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
@@ -176,18 +171,20 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
 
     def poll(self, context):
         md = context.smoke
-        return md and (md.smoke_type == 'TYPE_DOMAIN')
+        return md and (md.smoke_type == 'DOMAIN')
 
     def draw_header(self, context):
-        high = context.smoke.domain_settings
+        md = context.smoke.domain_settings
 
-        self.layout.prop(high, "highres", text="")
+        self.layout.prop(md, "highres", text="")
 
     def draw(self, context):
         layout = self.layout
 
         md = context.smoke.domain_settings
         wide_ui = context.region.width > narrowui
+
+        layout.active = md.highres
 
         split = layout.split()
 
@@ -209,21 +206,18 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
 
     def poll(self, context):
         md = context.smoke
-        return md and (md.smoke_type == 'TYPE_DOMAIN') and md.domain_settings.highres
+        return md and (md.smoke_type == 'DOMAIN') and md.domain_settings.highres
 
     def draw(self, context):
         layout = self.layout
 
-        domain = context.smoke.domain_settings
-
-        layout.label(text="Compression:")
-        layout.prop(domain, "smoke_cache_high_comp", expand=True)
-
-
         md = context.smoke.domain_settings
         cache = md.point_cache_high
 
-        point_cache_ui(self, context, cache, (cache.baked is False), 0, 1)
+        layout.label(text="Compression:")
+        layout.prop(md, "smoke_cache_high_comp", expand=True)
+
+        point_cache_ui(self, context, cache, (cache.baked is False), 'SMOKE')
 
 
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
@@ -232,7 +226,7 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
 
     def poll(self, context):
         smoke = context.smoke
-        return (smoke and smoke.smoke_type == 'TYPE_DOMAIN')
+        return (smoke and smoke.smoke_type == 'DOMAIN')
 
     def draw(self, context):
         domain = context.smoke.domain_settings

@@ -31,10 +31,6 @@
 #include "SYS_System.h"
 #include "SYS_SingletonSystem.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 SYS_SystemHandle SYS_GetSystem()
 {
 	return (SYS_SystemHandle) SYS_SingletonSystem::Instance();

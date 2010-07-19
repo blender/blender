@@ -47,7 +47,7 @@ extern "C" {
 #define	FNM_PATHNAME	(1 << 0) /* No wildcard can ever match `/'.  */
 #define	FNM_NOESCAPE	(1 << 1) /* Backslashes don't quote special chars.  */
 #define	FNM_PERIOD	(1 << 2) /* Leading `.' is matched only explicitly.  */
-
+	
 #if !defined (_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 2 || defined (_GNU_SOURCE)
 #define	FNM_FILE_NAME	FNM_PATHNAME /* Preferred GNU name.  */
 #define	FNM_LEADING_DIR	(1 << 3) /* Ignore `/...' after a match.  */

@@ -35,13 +35,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_image_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -66,7 +63,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -2514,7 +2510,7 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	MTexPoly *tface;
 	int x, y, radius, width, height, select;
 	float zoomx, zoomy, offset[2], ellipse[2];
-    int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
+	int gesture_mode= RNA_int_get(op->ptr, "gesture_mode");
     
 	/* get operator properties */
 	select= (gesture_mode == GESTURE_MODAL_SELECT);
@@ -2580,17 +2576,17 @@ static void snap_uv_to_pixel(float *uvco, float w, float h)
 	uvco[1] = ((float)((int)((uvco[1]*h) + 0.5f)))/h;
 }
 
-static void snap_cursor_to_pixels(SpaceImage *sima, View2D *v2d)
+static void snap_cursor_to_pixels(SpaceImage *sima)
 {
 	int width= 0, height= 0;
 
 	ED_space_image_size(sima, &width, &height);
-	snap_uv_to_pixel(v2d->cursor, width, height);
+	snap_uv_to_pixel(sima->cursor, width, height);
 }
 
-static int snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, View2D *v2d)
+static int snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
 {
-	return uvedit_center(scene, ima, obedit, v2d->cursor, 0);
+	return uvedit_center(scene, ima, obedit, sima->cursor, 0);
 }
 
 static int snap_cursor_exec(bContext *C, wmOperator *op)
@@ -2599,23 +2595,22 @@ static int snap_cursor_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
-	ARegion *ar= CTX_wm_region(C);
 	int change= 0;
 
 	switch(RNA_boolean_get(op->ptr, "target")) {
 		case 0:
-			snap_cursor_to_pixels(sima, &ar->v2d);
+			snap_cursor_to_pixels(sima);
 			change= 1;
 			break;
 		case 1:
-			change= snap_cursor_to_selection(scene, ima, obedit, &ar->v2d);
+			change= snap_cursor_to_selection(scene, ima, obedit, sima);
 			break;
 	}
 
 	if(!change)
 		return OPERATOR_CANCELLED;
 	
-	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_IMAGE, sima);
 
 	return OPERATOR_FINISHED;
 }
@@ -2643,7 +2638,7 @@ void UV_OT_snap_cursor(wmOperatorType *ot)
 
 /* ******************** snap selection operator **************** */
 
-static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, View2D *v2d)
+static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
 {
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	BMFace *efa;
@@ -2661,7 +2656,7 @@ static int snap_uvs_to_cursor(Scene *scene, Image *ima, Object *obedit, View2D *
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 			if(uvedit_uv_selected(em, scene, l)) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				VECCOPY2D(luv->uv, v2d->cursor);
+				VECCOPY2D(luv->uv, sima->cursor);
 				change= 1;
 			}
 		}
@@ -2804,7 +2799,6 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
-	ARegion *ar= CTX_wm_region(C);
 	int change= 0;
 
 	switch(RNA_boolean_get(op->ptr, "target")) {
@@ -2812,7 +2806,7 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 			change= snap_uvs_to_pixels(sima, scene, obedit);
 			break;
 		case 1:
-			change= snap_uvs_to_cursor(scene, ima, obedit, &ar->v2d);
+			change= snap_uvs_to_cursor(scene, ima, obedit, sima);
 			break;
 		case 2:
 			change= snap_uvs_to_adjacent_unselected(scene, ima, obedit);
@@ -3085,14 +3079,14 @@ void UV_OT_reveal(wmOperatorType *ot)
 
 static int set_2d_cursor_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
+	SpaceImage *sima = CTX_wm_space_image(C);
 	float location[2];
 
 	RNA_float_get_array(op->ptr, "location", location);
-	ar->v2d.cursor[0]= location[0];
-	ar->v2d.cursor[1]= location[1];
+	sima->cursor[0]= location[0];
+	sima->cursor[1]= location[1];
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_IMAGE, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3143,7 +3137,7 @@ static int set_tile_exec(bContext *C, wmOperator *op)
 	RNA_int_get_array(op->ptr, "tile", tile);
 	ED_uvedit_set_tile(C, CTX_data_scene(C), CTX_data_edit_object(C), ima, tile[0] + ima->xrep*tile[1]);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -3265,7 +3259,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "UV_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_pinned", PKEY, KM_PRESS, KM_SHIFT, 0);
 
-	WM_keymap_add_item(keymap, "UV_OT_weld", WKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_weldalign", WKEY, KM_PRESS, 0, 0);
 
 	/* uv operations */
 	WM_keymap_add_item(keymap, "UV_OT_stitch", VKEY, KM_PRESS, 0, 0);
@@ -3290,7 +3284,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	/* menus */
 	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 
-	ED_object_generic_keymap(keyconf, keymap, TRUE);
+	ED_object_generic_keymap(keyconf, keymap, 1);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_IMAGE);
 }

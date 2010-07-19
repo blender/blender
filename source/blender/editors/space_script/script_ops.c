@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -31,11 +31,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -45,12 +42,10 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
 
 #include "script_intern.h"
 
@@ -60,6 +55,7 @@
 void script_operatortypes(void)
 {
 	WM_operatortype_append(SCRIPT_OT_python_file_run);
+	WM_operatortype_append(SCRIPT_OT_reload);
 }
 
 void script_keymap(wmKeyConfig *keyconf)
@@ -67,6 +63,6 @@ void script_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Script", SPACE_SCRIPT, 0);
 
 	/* TODO - this is just while we have no way to load a text datablock */
-	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", PKEY, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0)->ptr, "path", "test.py");
+	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_python_file_run", PKEY, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0)->ptr, "filepath", "test.py");
 }
 

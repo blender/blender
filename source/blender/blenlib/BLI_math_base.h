@@ -115,6 +115,9 @@ extern "C" {
 #ifndef fmodf
 #define fmodf(a, b) ((float)fmod(a, b))
 #endif
+#ifndef hypotf
+#define hypotf(a, b) ((float)hypot(a, b))
+#endif
 
 #ifdef WIN32
 #ifndef FREE_WINDOWS

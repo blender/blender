@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 from properties_physics_common import point_cache_ui
@@ -36,7 +36,7 @@ class CLOTH_MT_presets(bpy.types.Menu):
     '''
     bl_label = "Cloth Presets"
     preset_subdir = "cloth"
-    preset_operator = "script.python_file_run"
+    preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
 
@@ -62,7 +62,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
-        split.operator_context = 'EXEC_DEFAULT'
 
         if md:
             # remove modifier + settings
@@ -76,9 +75,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'CLOTH'
             if wide_ui:
-                split.column()
-
-        split.operator_context = 'INVOKE_DEFAULT'
+                split.label()
 
         if md:
             cloth = md.settings
@@ -90,9 +87,9 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
             col = split.column()
 
             col.label(text="Presets:")
-            sub = col.row(align=True).split(percentage=0.75)
-            sub.menu("CLOTH_MT_presets", text="Presets")
-            sub.operator("cloth.preset_add", text="Add")
+            sub = col.row(align=True)
+            sub.menu("CLOTH_MT_presets", text=bpy.types.CLOTH_MT_presets.bl_label)
+            sub.operator("cloth.preset_add", text="", icon="ZOOMIN")
 
             col.label(text="Quality:")
             col.prop(cloth, "quality", text="Steps", slider=True)
@@ -129,6 +126,12 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
                 col.prop(cloth, "goal_friction", text="Friction")
             """
 
+            key = ob.data.shape_keys
+
+            if key:
+                col.label(text="Rest Shape Key:")
+                col.prop_object(cloth, "rest_shape_key", key, "keys", text="")
+
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
     bl_label = "Cloth Cache"
@@ -139,7 +142,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 
     def draw(self, context):
         md = context.cloth
-        point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 0, 0)
+        point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 'CLOTH')
 
 
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
@@ -178,6 +181,8 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
         sub.active = cloth.enable_self_collision
         sub.prop(cloth, "self_collision_quality", slider=True, text="Quality")
         sub.prop(cloth, "self_min_distance", slider=True, text="Distance")
+
+        layout.prop(cloth, "group")
 
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):

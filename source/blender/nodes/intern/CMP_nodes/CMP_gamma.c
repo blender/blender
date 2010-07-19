@@ -35,7 +35,7 @@
 static bNodeSocketType cmp_node_gamma_in[]= {
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Gamma",			1.0f, 0.0f, 0.0f, 0.0f, 0.001f, 10.0f},
-    {	-1, 0, ""	}
+	{	-1, 0, ""	}
 };
 static bNodeSocketType cmp_node_gamma_out[]= {
 	{	SOCK_RGBA, 0, "Image",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
@@ -82,11 +82,11 @@ bNodeType cmp_node_gamma= {
 	/* output sock */	cmp_node_gamma_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_gamma,	
-        /* butfunc     */       NULL,
-        /* initfunc    */       NULL,
-        /* freestoragefunc      */ NULL,
-        /* copysotragefunc      */ NULL,
-        /* id          */       NULL
+		/* butfunc     */       NULL,
+		/* initfunc    */       NULL,
+		/* freestoragefunc      */ NULL,
+		/* copysotragefunc      */ NULL,
+		/* id          */       NULL
 };
 
 

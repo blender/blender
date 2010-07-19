@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -70,6 +70,8 @@ void	load_editText	(struct Object *obedit);
 void	free_editText	(struct Object *obedit);
 
 void	ED_text_to_object(struct bContext *C, struct Text *text, int split_lines);
+
+int CU_select_nth(struct Object *obedit, int nth);
 
 #endif /* ED_CURVE_H */
 

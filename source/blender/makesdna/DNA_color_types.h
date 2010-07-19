@@ -64,6 +64,8 @@ typedef struct CurveMap {
 
 typedef struct CurveMapping {
 	int flag, cur;					/* cur; for buttons, to show active curve */
+	int preset;
+	int changed_timestamp;
 	
 	rctf curr, clipr;				/* current rect, clip rect (is default rect too) */
 	
@@ -80,16 +82,66 @@ typedef struct CurveMapping {
 #define CUMA_DRAW_CFRA			4
 #define CUMA_DRAW_SAMPLE		8
 
+/* cumapping->preset */
+typedef enum CurveMappingPreset {
+	CURVE_PRESET_LINE,
+	CURVE_PRESET_SHARP,
+	CURVE_PRESET_SMOOTH,
+	CURVE_PRESET_MAX,
+	CURVE_PRESET_MID9,
+	CURVE_PRESET_ROUND,
+	CURVE_PRESET_ROOT,
+} CurveMappingPreset;
+
+/* histogram->mode */
+#define HISTO_MODE_LUMA	0
+#define HISTO_MODE_RGB	1
+#define HISTO_MODE_R	2
+#define HISTO_MODE_G	3
+#define HISTO_MODE_B	4
+
 typedef struct Histogram {
 	int channels;
 	int x_resolution;
 	float data_r[256];
 	float data_g[256];
 	float data_b[256];
+	float data_luma[256];
 	float xmax, ymax;
-	int ok;
-	int flag;
+	int mode;
+	int height;
 } Histogram;
+
+struct ImBuf;
+
+typedef struct Scopes {
+	int ok;
+	int sample_full;
+	int sample_lines;
+	float accuracy;
+	int wavefrm_mode;
+	float wavefrm_alpha;
+	float wavefrm_yfac;
+	int wavefrm_height;
+	float vecscope_alpha;
+	int vecscope_height;
+	float minmax[3][2];
+	struct Histogram hist;
+	float *waveform_1;
+	float *waveform_2;
+	float *waveform_3;
+	float *vecscope;
+	int waveform_tot;
+	int pad;
+} Scopes;
+
+/* scopes->wavefrm_mode */
+#define SCOPES_WAVEFRM_LUMA		0
+#define SCOPES_WAVEFRM_RGB		1
+#define SCOPES_WAVEFRM_YCC_601	2
+#define SCOPES_WAVEFRM_YCC_709	3
+#define SCOPES_WAVEFRM_YCC_JPEG	4
+
 
 #endif
 

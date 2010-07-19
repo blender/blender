@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -32,10 +32,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -49,7 +46,6 @@
 #include "BKE_node.h"
 
 #include "ED_render.h"
-#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -57,7 +53,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -141,8 +136,8 @@ static SpaceLink *node_new(const bContext *C)
 	ar->v2d.max[0]= 32000.0f;
 	ar->v2d.max[1]= 32000.0f;
 	
-	ar->v2d.minzoom= 0.2f;
-	ar->v2d.maxzoom= 1.21f;
+	ar->v2d.minzoom= 0.09f;
+	ar->v2d.maxzoom= 2.31f;
 	
 	ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 	ar->v2d.keepzoom= V2D_LIMITZOOM|V2D_KEEPASPECT;
@@ -205,7 +200,8 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_NODE:
-			ED_area_tag_refresh(sa);
+			if (wmn->action == NA_EDITED)
+				ED_area_tag_refresh(sa);
 			break;
 	}
 }
@@ -268,6 +264,7 @@ static void node_buttons_area_draw(const bContext *C, ARegion *ar)
 static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
+	ListBase *lb;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
@@ -277,6 +274,11 @@ static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	keymap= WM_keymap_find(wm->defaultconf, "Node Editor", SPACE_NODE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	
+	/* add drop boxes */
+	lb = WM_dropboxmap_find("Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
+	
+	WM_event_add_dropbox_handler(&ar->handlers, lb);
 }
 
 static void node_main_area_draw(const bContext *C, ARegion *ar)
@@ -285,6 +287,47 @@ static void node_main_area_draw(const bContext *C, ARegion *ar)
 	
 	drawnodespace(C, ar, v2d);
 }
+
+
+/* ************* dropboxes ************* */
+
+static int node_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_ID) {
+		ID *id= (ID *)drag->poin;
+		if( GS(id->name)==ID_IM )
+			return 1;
+	}
+	else if(drag->type==WM_DRAG_PATH){
+		if(ELEM(drag->icon, 0, ICON_FILE_IMAGE))	/* rule might not work? */
+			return 1;
+	}
+	return 0;
+}
+
+static void node_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id= (ID *)drag->poin;
+	
+	if(id) {
+		RNA_string_set(drop->ptr, "name", id->name+2);
+	}
+	if (drag->path[0]) {
+		RNA_string_set(drop->ptr, "filepath", drag->path);
+	}
+}
+
+/* this region dropbox definition */
+static void node_dropboxes(void)
+{
+	ListBase *lb= WM_dropboxmap_find("Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
+	
+	WM_dropbox_add(lb, "NODE_OT_add_file", node_drop_poll, node_id_path_drop_copy);
+	
+}
+
+/* ************* end drop *********** */
+
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void node_header_area_init(wmWindowManager *wm, ARegion *ar)
@@ -297,7 +340,7 @@ static void node_header_area_draw(const bContext *C, ARegion *ar)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *scene= CTX_data_scene(C);
 
-    /* find and set the context */
+	/* find and set the context */
 	snode_set_context(snode, scene);
 
 	ED_region_header(C, ar);
@@ -346,6 +389,7 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
 				CTX_data_list_add(result, &snode->edittree->id, &RNA_Node, node);
 			}
 		}
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	
@@ -370,6 +414,7 @@ void ED_spacetype_node(void)
 	st->listener= node_area_listener;
 	st->refresh= node_area_refresh;
 	st->context= node_context;
+	st->dropboxes = node_dropboxes;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");

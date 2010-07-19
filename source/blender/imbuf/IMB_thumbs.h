@@ -50,25 +50,30 @@ typedef enum ThumbSize {
 
 typedef enum ThumbSource {
 	THB_SOURCE_IMAGE,
-	THB_SOURCE_MOVIE
+	THB_SOURCE_MOVIE,
+	THB_SOURCE_BLEND
 } ThumbSource;
 
-// IB_imginfo
+// IB_metadata
 
 /* create thumbnail for file and returns new imbuf for thumbnail */
-ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, ThumbSource source);
+ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, ImBuf *ibuf);
 
 /* read thumbnail for file and returns new imbuf for thumbnail */
-ImBuf* IMB_thumb_read(const char* dir, const char* file, ThumbSize size);
+ImBuf* IMB_thumb_read(const char* path, ThumbSize size);
 
 /* delete all thumbs for the file */
-void IMB_thumb_delete(const char* dir, const char* file, ThumbSize size);
+void IMB_thumb_delete(const char* path, ThumbSize size);
 
 /* return the state of the thumb, needed to determine how to manage the thumb */
-ImBuf* IMB_thumb_manage(const char* dir, const char* file, ThumbSize size, ThumbSource source);
+ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source);
 
 /* create the necessary dirs to store the thumbnails */
 void IMB_thumb_makedirs();
+
+/* special function for loading a thumbnail embedded into a blend file */
+ImBuf *IMB_loadblend_thumb(const char *path);
+void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float aspect);
 
 
 #endif /* _IMB_THUMBS_H */

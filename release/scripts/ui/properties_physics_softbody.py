@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 from properties_physics_common import point_cache_ui
@@ -38,7 +38,9 @@ class PhysicButtonsPanel(bpy.types.Panel):
     def poll(self, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+#        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
+# i really hate touching things i do not understand completely .. but i think this should read (bjornmose)
+        return (ob and (ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE')) and (not rd.use_game_engine)
 
 
 class PHYSICS_PT_softbody(PhysicButtonsPanel):
@@ -52,7 +54,6 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
-        split.operator_context = 'EXEC_DEFAULT'
 
         if md:
             # remove modifier + settings
@@ -96,7 +97,7 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
 
     def draw(self, context):
         md = context.soft_body
-        point_cache_ui(self, context, md.point_cache, softbody_panel_enabled(md), 0, 0)
+        point_cache_ui(self, context, md.point_cache, softbody_panel_enabled(md), 'SOFTBODY')
 
 
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
@@ -185,10 +186,13 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         sub.active = softbody.stiff_quads
         sub.prop(softbody, "shear")
 
-        col.prop(softbody, "new_aero", text="Aero")
-        sub = col.column()
-        sub.enabled = softbody.new_aero
-        sub.prop(softbody, "aero", text="Factor")
+        col.label(text="Aerodynamics:")
+        col.row().prop(softbody, "aerodynamics_type", expand=True)
+        col.prop(softbody, "aero", text="Factor")
+
+        #sub = col.column()
+        #sub.enabled = softbody.aero > 0
+
 
         col.label(text="Collision:")
         col.prop(softbody, "edge_collision", text="Edge")
@@ -196,7 +200,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 
 
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
-    bl_label = "Soft Body Collision"
+    bl_label = "Soft Body Self Collision"
     bl_default_closed = True
 
     def poll(self, context):
@@ -217,7 +221,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 
         layout.active = softbody.self_collision and softbody_panel_enabled(md)
 
-        layout.label(text="Collision Type:")
+        layout.label(text="Collision Ball Size Calculation:")
         if wide_ui:
             layout.prop(softbody, "collision_type", expand=True)
         else:

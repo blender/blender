@@ -29,41 +29,15 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.h"
 
 
 
 
-#include "DNA_armature_types.h"
-#include "DNA_boid_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_constraint_types.h" // for drawing constraint
-#include "DNA_effect_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_object_fluidsim.h"
-#include "DNA_particle_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_smoke_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -99,23 +73,13 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "GPU_draw.h"
-#include "GPU_material.h"
 #include "GPU_extensions.h"
 
 #include "ED_mesh.h"
-#include "ED_particle.h"
-#include "ED_screen.h"
-#include "ED_types.h"
-#include "ED_util.h"
 
-#include "UI_resources.h"
-#include "UI_interface_icons.h"
 
-#include "WM_api.h"
 #include "BLF_api.h"
 
-#include "GPU_extensions.h"
 
 #include "view3d_intern.h"	// own include
 
@@ -248,7 +212,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		{{-1.0f, 1.0f, -1.0f}, {2.0f, 0.0f, 0.0f}}
 	};
 
-	/* Fragment program to calculate the 3dview of smoke */
+	/* Fragment program to calculate the view3d of smoke */
 	/* using 2 textures, density and shadow */
 	const char *text = "!!ARBfp1.0\n"
 					"PARAM dx = program.local[0];\n"
@@ -271,6 +235,11 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 
 	
 	float size[3];
+
+	if(!tex) {
+		printf("Could not allocate 3D texture for 3D View smoke drawing.\n");
+		return;
+	}
 
 	tstart();
 
@@ -380,6 +349,11 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		}
 	}
 
+	if(i >= 8) {
+		/* fallback, avoid using buffer over-run */
+		i= 0;
+	}
+
 	// printf("i: %d\n", i);
 	// printf("point %f, %f, %f\n", cv[i][0], cv[i][1], cv[i][2]);
 
@@ -397,7 +371,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		glProgramLocalParameter4fARB (GL_FRAGMENT_PROGRAM_ARB, 1, 7.0, 7.0, 7.0, 1.0);
 	}
 	else
-		printf("Your gfx card does not support 3dview smoke drawing.\n");
+		printf("Your gfx card does not support 3D View smoke drawing.\n");
 
 	GPU_texture_bind(tex, 0);
 	if(tex_shadow)

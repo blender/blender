@@ -138,7 +138,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		if(node->custom1 & SH_NODE_MAT_DIFF) {
 			VECCOPY(col, shrnode.combined);
 			if(!(node->custom1 & SH_NODE_MAT_SPEC)) {
-				sub_v3_v3v3(col, col, shrnode.spec);
+				sub_v3_v3(col, shrnode.spec);
 			}
 		}
 		else if(node->custom1 & SH_NODE_MAT_SPEC) {
@@ -173,8 +173,17 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		}
 		
 		/* copy passes, now just active node */
-		if(node->flag & NODE_ACTIVE_ID)
+		if(node->flag & NODE_ACTIVE_ID) {
+			float combined[4], alpha;
+
+			copy_v4_v4(combined, shcd->shr->combined);
+			alpha= shcd->shr->alpha;
+
 			*(shcd->shr)= shrnode;
+
+			copy_v4_v4(shcd->shr->combined, combined);
+			shcd->shr->alpha= alpha;
+		}
 	}
 }
 

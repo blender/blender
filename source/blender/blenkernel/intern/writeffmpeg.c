@@ -69,10 +69,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 extern void do_init_ffmpeg();
 
 static int ffmpeg_type = 0;
@@ -206,7 +202,7 @@ static const char** get_file_extensions(int format)
 	}
 	case FFMPEG_MPEG2: {
 		static const char * rv[] = { ".dvd", ".vob", ".mpg", ".mpeg",
-					     NULL };
+						 NULL };
 		return rv;
 	}
 	case FFMPEG_MPEG4: {
@@ -271,7 +267,7 @@ static int write_video_frame(RenderData *rd, AVFrame* frame, ReportList *reports
 	}
 
 	outsize = avcodec_encode_video(c, video_buffer, video_buffersize, 
-				       frame);
+					   frame);
 	if (outsize != 0) {
 		AVPacket packet;
 		av_init_packet(&packet);
@@ -366,7 +362,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels, ReportList *reports)
 	}
 
 	if (c->pix_fmt != PIX_FMT_BGR32) {
-		sws_scale(img_convert_ctx, rgb_frame->data,
+		sws_scale(img_convert_ctx, (const uint8_t * const*) rgb_frame->data,
 			  rgb_frame->linesize, 0, c->height, 
 			  current_frame->data, current_frame->linesize);
 		delete_picture(rgb_frame);
@@ -382,7 +378,7 @@ static void set_ffmpeg_property_option(AVCodecContext* c, IDProperty * prop)
 
 	fprintf(stderr, "FFMPEG expert option: %s: ", prop->name);
 
-	strncpy(name, prop->name, 128);
+	BLI_strncpy(name, prop->name, sizeof(name));
 
 	param = strchr(name, ':');
 
@@ -446,7 +442,7 @@ static void set_ffmpeg_properties(RenderData *rd, AVCodecContext *c, const char 
 /* prepare a video stream for the output file */
 
 static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContext* of,
-				    int rectx, int recty) 
+					int rectx, int recty) 
 {
 	AVStream* st;
 	AVCodecContext* c;
@@ -520,6 +516,12 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 		/* arghhhh ... */
 		c->pix_fmt = PIX_FMT_YUV420P;
 	}
+
+	if (codec_id == CODEC_ID_H264) {
+		/* correct wrong default ffmpeg param which crash x264 */
+		c->qmin=10;
+		c->qmax=51;
+	}
 	
 	if ((of->oformat->flags & AVFMT_GLOBALHEADER)
 //		|| !strcmp(of->oformat->name, "mp4")
@@ -552,7 +554,7 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	video_buffersize = 2000000;
 	video_buffer = (uint8_t*)MEM_mallocN(video_buffersize, 
-					     "FFMPEG video buffer");
+						 "FFMPEG video buffer");
 	
 	current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
 
@@ -789,7 +791,7 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 	if (!string || !exts) return;
 
 	strcpy(string, rd->pic);
-	BLI_convertstringcode(string, G.sce);
+	BLI_path_abs(string, G.sce);
 
 	BLI_make_existing_file(string);
 
@@ -810,7 +812,7 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 	if (!*fe) {
 		strcat(string, autosplit);
 
-		BLI_convertstringframe_range(string, rd->sfra, rd->efra, 4);
+		BLI_path_frame_range(string, rd->sfra, rd->efra, 4);
 		strcat(string, *exts);
 	} else {
 		*(string + strlen(string) - strlen(*fe)) = 0;
@@ -1053,7 +1055,7 @@ IDProperty *ffmpeg_property_add(RenderData *rd, char * type, int opt_index, int 
 /* not all versions of ffmpeg include that, so here we go ... */
 
 static const AVOption *my_av_find_opt(void *v, const char *name, 
-				      const char *unit, int mask, int flags){
+					  const char *unit, int mask, int flags){
 	AVClass *c= *(AVClass**)v; 
 	const AVOption *o= c->option;
 
@@ -1078,7 +1080,7 @@ int ffmpeg_property_add_string(RenderData *rd, const char * type, const char * s
 	
 	avcodec_get_context_defaults(&c);
 
-	strncpy(name_, str, 128);
+	strncpy(name_, str, sizeof(name_));
 
 	name = name_;
 	while (*name == ' ') name++;
@@ -1242,7 +1244,8 @@ void ffmpeg_verify_image_type(RenderData *rd)
 		   rd->ffcodecdata.video_bitrate <= 1) {
 
 			rd->ffcodecdata.codec = CODEC_ID_MPEG2VIDEO;
-			ffmpeg_set_preset(rd, FFMPEG_PRESET_DVD);
+			/* Don't set preset, disturbs render resolution.
+			 * ffmpeg_set_preset(rd, FFMPEG_PRESET_DVD); */
 		}
 
 		audio= 1;

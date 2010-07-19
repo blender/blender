@@ -374,7 +374,7 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 	if (BM_Vert_EdgeCount(v1) != BM_Vert_EdgeCount(v2))
 		return 1.0f; /*full mismatch*/
 
-	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh bvh");
 
 #define SPUSH(s, d, vt, lv, e)\
 	if (BLI_array_count(s) <= lvl) BLI_array_growone(s);\
@@ -619,7 +619,7 @@ BMVert *BMBVH_FindClosestVertTopo(BMBVHTree *tree, float *co, float maxdist, BMV
 	tree->curv = NULL;
 	tree->curtag = 1;
 
-	tree->gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	tree->gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh bvh");
 
 	tree->maxdist = maxdist;
 	tree->v = sourcev;

@@ -55,7 +55,6 @@ int		BKE_imtype_is_movie(int imtype);
 
 struct anim *openanim(char * name, int flags);
 
-void	converttopremul(struct ImBuf *ibuf);
 void	image_de_interlace(struct Image *ima, int odd);
 	
 void	tag_image_time(struct Image *ima);
@@ -116,7 +115,9 @@ void BKE_image_release_ibuf(struct Image *ima, void *lock);
 struct Image *BKE_add_image_file(const char *name, int frame);
 
 /* adds image, adds ibuf, generates color or pattern */
-struct Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4]);
+struct Image *BKE_add_image_size(int width, int height, char *name, int depth, int floatbuf, short uvtestgrid, float color[4]);
+/* adds image from imbuf, owns imbuf */
+struct Image *BKE_add_image_imbuf(struct ImBuf *ibuf);
 
 /* for reload, refresh, pack */
 void BKE_image_signal(struct Image *ima, struct ImageUser *iuser, int signal);
@@ -139,6 +140,9 @@ struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct Im
 /* for multilayer images as well as for render-viewer */
 struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
+
+/* for multiple slot render, call this before render */
+void BKE_image_backup_render(struct Scene *scene, struct Image *ima);
 	
 /* goes over all textures that use images */
 void	BKE_image_free_all_textures(void);
@@ -159,6 +163,11 @@ struct Image *BKE_image_copy(struct Image *ima);
 
 /* merge source into dest, and free source */
 void BKE_image_merge(struct Image *dest, struct Image *source);
+
+/* image_gen.c */
+void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, float color[4]);
+void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int height, int width);
+void BKE_image_buf_fill_checker_color(unsigned char *rect, float *rect_float, int height, int width);
 
 #ifdef __cplusplus
 }

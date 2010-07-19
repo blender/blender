@@ -48,7 +48,7 @@ Be sure not to use modifiers that change the number or order of verts in the mes
 # ***** END GPL LICENCE BLOCK *****
 
 import bpy
-import Mathutils
+import mathutils
 from struct import pack
 
 
@@ -82,12 +82,12 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    orig_frame = sce.current_frame
+    orig_frame = sce.frame_current
     sce.set_frame(PREF_STARTFRAME)
-    me = ob.create_mesh(True, 'PREVIEW')
+    me = ob.create_mesh(sce, True, 'PREVIEW')
 
     #Flip y and z
-    mat_flip = Mathutils.Matrix(\
+    mat_flip = mathutils.Matrix(\
     [1.0, 0.0, 0.0, 0.0],\
     [0.0, 0.0, 1.0, 0.0],\
     [0.0, 1.0, 0.0, 0.0],\
@@ -113,7 +113,7 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
     """
 
     check_vertcount(me, numverts)
-    me.transform(mat_flip * ob.matrix)
+    me.transform(mat_flip * ob.matrix_world)
     f.write(pack(">%df" % (numverts * 3), *[axis for v in me.verts for axis in v.co]))
 
     for frame in range(PREF_STARTFRAME, PREF_ENDFRAME + 1):#in order to start at desired frame
@@ -123,9 +123,9 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
         """
 
         sce.set_frame(frame)
-        me = ob.create_mesh(True, 'PREVIEW')
+        me = ob.create_mesh(sce, True, 'PREVIEW')
         check_vertcount(me, numverts)
-        me.transform(mat_flip * ob.matrix)
+        me.transform(mat_flip * ob.matrix_world)
 
         # Write the vertex data
         f.write(pack(">%df" % (numverts * 3), *[axis for v in me.verts for axis in v.co]))
@@ -159,21 +159,21 @@ class ExportMDD(bpy.types.Operator):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    path = StringProperty(name="File Path", description="File path used for exporting the MDD file", maxlen=1024)
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the MDD file", maxlen=1024)
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
     fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
-    start_frame = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
-    end_frame = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default=250)
+    frame_start = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
+    frame_end = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default=250)
 
     def poll(self, context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
-        if not self.properties.path:
+        if not self.properties.filepath:
             raise Exception("filename not set")
-        write(self.properties.path, context.scene, context.active_object,
-            self.properties.start_frame, self.properties.end_frame, self.properties.fps)
+        write(self.properties.filepath, context.scene, context.active_object,
+            self.properties.frame_start, self.properties.frame_end, self.properties.fps)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -183,13 +183,15 @@ class ExportMDD(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".mdd")
-    self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)").path = default_path
+    import os
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".mdd"
+    self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)").filepath = default_path
 
 
 def register():
     bpy.types.register(ExportMDD)
     bpy.types.INFO_MT_file_export.append(menu_func)
+
 
 def unregister():
     bpy.types.unregister(ExportMDD)
@@ -197,4 +199,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

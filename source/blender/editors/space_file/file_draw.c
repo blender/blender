@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -46,20 +46,11 @@
 
 #include "BLF_api.h"
 
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
-
-#include "ED_datafiles.h"
-
 #include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
  
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
+#include "DNA_userdef_types.h"
 
 #include "RNA_access.h"
 
@@ -71,7 +62,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
 
 #include "fsmenu.h"
@@ -87,10 +77,6 @@
 
 /* button events */
 enum {
-	B_REDR 	= 0,
-	B_FS_EXEC,
-	B_FS_CANCEL,
-	B_FS_PARENT,
 	B_FS_DIRNAME,
 	B_FS_FILENAME
 } eFile_ButEvents;
@@ -99,9 +85,6 @@ enum {
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
-		case B_FS_PARENT:
-			file_parent_exec(C, NULL); /* file_ops.c */
-			break;
 		case B_FS_FILENAME:
 			file_filename_exec(C, NULL);
 			break;
@@ -142,6 +125,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	int loadbutton;
 	int fnumbuttons;
 	int min_x       = 10;
+	int chan_offs	= 0;
 	int available_w = max_x - min_x;
 	int line1_w     = available_w;
 	int line2_w     = available_w;
@@ -160,8 +144,9 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* exception to make space for collapsed region icon */
 	for (artmp=CTX_wm_area(C)->regionbase.first; artmp; artmp=artmp->next) {
 		if (artmp->regiontype == RGN_TYPE_CHANNELS && artmp->flag & RGN_FLAG_HIDDEN) {
-			min_x += 16;
-			available_w -= 16;
+			chan_offs = 16;
+			min_x += chan_offs;
+			available_w -= chan_offs;
 		}
 	}
 	
@@ -169,7 +154,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	loadbutton = UI_GetStringWidth(sfile->params->title) + btn_margin;
 	if (loadbutton < btn_minw) {
 		loadbutton = MAX2(btn_minw, 
-		                  btn_margin + UI_GetStringWidth(params->title));
+						  btn_margin + UI_GetStringWidth(params->title));
 	}
 	
 	if (available_w <= loadbutton + separator + input_minw 
@@ -191,29 +176,30 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* Text input fields for directory and file. */
 	if (available_w > 0) {
 		but = uiDefBut(block, TEX, B_FS_DIRNAME, "",
-		         min_x, line1_y, line1_w, btn_h, 
-		         params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
-		         "File path.");
+				 min_x, line1_y, line1_w-chan_offs, btn_h, 
+				 params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
+				 "File path.");
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
-		uiDefBut(block, TEX, B_FS_FILENAME, "",
-		         min_x, line2_y, line2_w, btn_h,
-		         params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, 
-		         "File name.");
+		but = uiDefBut(block, TEX, B_FS_FILENAME, "",
+				 min_x, line2_y, line2_w-chan_offs, btn_h,
+				 params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, 
+				 "File name.");
+		uiButSetCompleteFunc(but, autocomplete_file, NULL);
 	}
 	
 	/* Filename number increment / decrement buttons. */
 	if (fnumbuttons) {
 		uiBlockBeginAlign(block);
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
-		        min_x + line2_w + separator, line2_y, 
-		        btn_fn_w, btn_h, 
-		        "Decrement the filename number");    
+				min_x + line2_w + separator - chan_offs, line2_y, 
+				btn_fn_w, btn_h, 
+				"Decrement the filename number");    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", -1); 
 	
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMIN, 
-		        min_x + line2_w + separator + btn_fn_w, line2_y, 
-		        btn_fn_w, btn_h, 
-		        "Increment the filename number");    
+				min_x + line2_w + separator + btn_fn_w - chan_offs, line2_y, 
+				btn_fn_w, btn_h, 
+				"Increment the filename number");    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", 1); 
 		uiBlockEndAlign(block);
 	}
@@ -238,7 +224,7 @@ static void draw_tile(int sx, int sy, int width, int height, int colorid, int sh
 {	
 	UI_ThemeColorShade(colorid, shade);
 	uiSetRoundBox(15);	
-	uiRoundBox(sx, sy - height, sx + width, sy, 6);
+	uiRoundBox(sx, sy - height, sx + width, sy, 5);
 }
 
 #define FILE_SHORTEN_END				0
@@ -298,6 +284,9 @@ static int get_file_icon(struct direntry *file)
 		if ( strcmp(file->relname, "..") == 0) {
 				return  ICON_FILE_PARENT;
 		}
+		if(file->flags & BLENDERFILE) {
+			return ICON_FILE_BLEND;
+		}
 		return ICON_FILE_FOLDER;
 	}
 	else if (file->flags & BLENDERFILE)
@@ -315,6 +304,8 @@ static int get_file_icon(struct direntry *file)
 	else if (file->flags & FTFONTFILE) 
 		return ICON_FILE_FONT;
 	else if (file->flags & BTXFILE) 
+		return ICON_FILE_BLANK;
+	else if (file->flags & COLLADAFILE) 
 		return ICON_FILE_BLANK;
 	else
 		return ICON_FILE_BLANK;
@@ -338,10 +329,12 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 
 static void file_draw_string(int sx, int sy, const char* string, float width, int height, int flag)
 {
+	uiStyle *style= U.uistyles.first;
 	int soffs;
 	char fname[FILE_MAXFILE];
 	float sw;
 	float x,y;
+
 
 	BLI_strncpy(fname,string, FILE_MAXFILE);
 	sw = shorten_string(fname, width, flag );
@@ -350,8 +343,9 @@ static void file_draw_string(int sx, int sy, const char* string, float width, in
 	x = (float)(sx);
 	y = (float)(sy-height);
 
-	BLF_position(x, y, 0);
-	BLF_draw(fname);
+	uiStyleFontSet(&style->widget);
+	BLF_position(style->widget.uifont_id, x, y, 0);
+	BLF_draw(style->widget.uifont_id, fname);
 }
 
 void file_calc_previews(const bContext *C, ARegion *ar)
@@ -445,7 +439,7 @@ static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
 		if (!BLI_exists(newname)) {
 			BLI_rename(orgname, newname);
 			/* to make sure we show what is on disk */
-			filelist_free(sfile->files);
+			ED_fileselect_clear(C, sfile);
 		} else {
 			BLI_strncpy(file->relname, oldname, strlen(oldname)+1);
 		}
@@ -515,10 +509,17 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		draw_dividers(layout, v2d);
 	}
 
-	offset = ED_fileselect_layout_offset(layout, ar->v2d.cur.xmin, -ar->v2d.cur.ymax);
+	offset = ED_fileselect_layout_offset(layout, 0, ar->v2d.cur.xmin, -ar->v2d.cur.ymax);
 	if (offset<0) offset=0;
 
 	numfiles_layout = ED_fileselect_layout_numfiles(layout, ar);
+
+	/* adjust, so the next row is already drawn when scrolling */
+	if (layout->flag & FILE_LAYOUT_HOR) {
+		numfiles_layout += layout->rows;
+	} else {
+		numfiles_layout += layout->columns;
+	}
 
 	for (i=offset; (i < numfiles) && (i<offset+numfiles_layout); ++i)
 	{
@@ -546,20 +547,17 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		if (!(file->flags & EDITING)) {
 			if (params->active_file == i) {
-				if (file->flags & ACTIVE) colorid= TH_HILITE;
+				if (file->flags & ACTIVEFILE) colorid= TH_HILITE;
 				else colorid = TH_BACK;
-				draw_tile(sx, sy-3, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
-			} else if (file->flags & ACTIVE) {
+				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
+			} else if (file->flags & ACTIVEFILE) {
 				colorid = TH_HILITE;
-				draw_tile(sx, sy-3, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
+				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
 			} 
 		}
 		uiSetRoundBox(0);
 
 		if ( FILE_IMGDISPLAY == params->display ) {
-			if ( (file->flags & IMAGEFILE) /* || (file->flags & MOVIEFILE) */) {			
-				filelist_loadimage(files, i);
-			}
 			is_icon = 0;
 			imb = filelist_getimage(files, i);
 			if (!imb) {
@@ -624,11 +622,6 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 	}
 
-	/* XXX this timer is never removed, cause smooth view operator
-	   to get executed all the time after closing file browser */
-	if (!sfile->loadimage_timer)
-		sfile->loadimage_timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
-	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 

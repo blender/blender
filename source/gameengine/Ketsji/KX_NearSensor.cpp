@@ -38,9 +38,6 @@
 #include "PHY_IPhysicsController.h"
 #include "PHY_IMotionState.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 							 KX_GameObject* gameobj,
 							 float margin,

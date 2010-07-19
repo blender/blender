@@ -19,7 +19,8 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
+narrowcon = 260
 
 
 class ConstraintButtonsPanel(bpy.types.Panel):
@@ -30,14 +31,15 @@ class ConstraintButtonsPanel(bpy.types.Panel):
     def draw_constraint(self, context, con):
         layout = self.layout
 
-        box = layout.template_constraint(con)
         wide_ui = context.region.width > narrowui
+        compact_con = context.region.width < narrowcon
+        box = layout.template_constraint(con, compact=compact_con)
 
         if box:
             # match enum type to our functions, avoids a lookup table.
             getattr(self, con.type)(context, box, con, wide_ui)
 
-            if con.type not in ('RIGID_BODY_JOINT', 'SPLINE_IK', 'NULL'):
+            if con.type not in ('RIGID_BODY_JOINT', 'NULL'):
                 box.prop(con, "influence")
 
     def space_template(self, layout, con, wide_ui, target=True, owner=True):
@@ -76,7 +78,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
                 else:
                     layout.prop_object(con, "subtarget", con.target.data, "bones", text="")
 
-                if con.type in ('COPY_LOCATION', 'STRETCH_TO', 'TRACK_TO'):
+                if con.type in ('COPY_LOCATION', 'STRETCH_TO', 'TRACK_TO', 'PIVOT'):
                     row = layout.row()
                     row.label(text="Head/Tail:")
                     row.prop(con, "head_tail", text="")
@@ -97,12 +99,12 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         split = layout.split(percentage=0.33)
         col = split.column()
-        col.prop(con, "tail")
-        col.prop(con, "stretch")
+        col.prop(con, "use_tail")
+        col.prop(con, "use_stretch")
 
         col = split.column()
         col.prop(con, "chain_length")
-        col.prop(con, "targetless")
+        col.prop(con, "use_target")
 
     def CHILD_OF(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
@@ -205,10 +207,10 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row.label(text="Axis Ref:")
         row.prop(con, "axis_reference", expand=True)
         split = layout.split(percentage=0.33)
-        split.row().prop(con, "position")
+        split.row().prop(con, "use_position")
         row = split.row()
         row.prop(con, "weight", text="Weight", slider=True)
-        row.active = con.position
+        row.active = con.use_position
         split = layout.split(percentage=0.33)
         row = split.row()
         row.label(text="Lock:")
@@ -219,7 +221,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         split.active = con.use_position
 
         split = layout.split(percentage=0.33)
-        split.row().prop(con, "rotation")
+        split.row().prop(con, "use_rotation")
         row = split.row()
         row.prop(con, "orient_weight", text="Weight", slider=True)
         row.active = con.use_rotation
@@ -461,6 +463,17 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         self.space_template(layout, con, wide_ui)
 
+    def MAINTAIN_VOLUME(self, context, layout, con, wide_ui):
+
+        row = layout.row()
+        if wide_ui:
+            row.label(text="Free:")
+        row.prop(con, "axis", expand=True)
+
+        layout.prop(con, "volume")
+
+        self.space_template(layout, con, wide_ui)
+
     def COPY_TRANSFORMS(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
 
@@ -485,8 +498,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         col = split.column(align=True)
         col.label(text="Action Length:")
-        col.prop(con, "start_frame", text="Start")
-        col.prop(con, "end_frame", text="End")
+        col.prop(con, "frame_start", text="Start")
+        col.prop(con, "frame_end", text="End")
 
         if wide_ui:
             col = split.column(align=True)
@@ -718,6 +731,23 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         else:
             col.prop(con, "xz_scaling_mode", text="")
         col.prop(con, "use_curve_radius")
+
+    def PIVOT(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
+
+        if con.target:
+            col = layout.column()
+            col.prop(con, "offset", text="Pivot Offset")
+        else:
+            col = layout.column()
+            col.prop(con, "use_relative_position")
+            if con.use_relative_position:
+                col.prop(con, "offset", text="Relative Pivot Point")
+            else:
+                col.prop(con, "offset", text="Absolute Pivot Point")
+
+        col = layout.column()
+        col.prop(con, "enabled_rotation_range", text="Pivot When")
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel):

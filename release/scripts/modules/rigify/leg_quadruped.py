@@ -23,7 +23,7 @@ from rna_prop_ui import rna_idprop_ui_prop_get
 from math import pi
 from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple, get_side_name, get_base_name
-from Mathutils import Vector
+from mathutils import Vector
 
 METARIG_NAMES = "hips", "thigh", "shin", "foot", "toe"
 
@@ -160,7 +160,7 @@ def ik(obj, bone_definition, base_names, options):
     ik.foot_roll_e.parent = ik_chain.foot_e
     ik.foot_roll_e.head -= mt_chain.toe_e.vector.normalize() * mt_chain.foot_e.length
     ik.foot_roll_e.tail = ik.foot_roll_e.head - (mt_chain.foot_e.vector.normalize() * mt_chain.toe_e.length)
-    ik.foot_roll_e.align_roll(mt_chain.foot_e.matrix.rotation_part() * Vector(0.0, 0.0, -1.0))
+    ik.foot_roll_e.align_roll(mt_chain.foot_e.matrix.rotation_part() * Vector((0.0, 0.0, -1.0)))
 
     # MCH-foot
     ik.foot_roll_01_e = copy_bone_simple(arm, mt_chain.foot, "MCH-" + base_names[mt_chain.foot])
@@ -207,13 +207,13 @@ def ik(obj, bone_definition, base_names, options):
     prop["min"] = 0.0
     prop["max"] = 1.0
 
-    ik_driver_path = pb[ik_chain.foot].path_to_id() + '["ik"]'
+    ik_driver_path = pb[ik_chain.foot].path_from_id() + '["ik"]'
 
     # simple constraining of orig bones
     con = mt_chain.thigh_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik_chain.thigh
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'
@@ -225,7 +225,7 @@ def ik(obj, bone_definition, base_names, options):
     con = mt_chain.shin_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik_chain.shin
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'
@@ -237,7 +237,7 @@ def ik(obj, bone_definition, base_names, options):
     con = mt_chain.foot_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik.foot_roll_02
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'
@@ -249,7 +249,7 @@ def ik(obj, bone_definition, base_names, options):
     con = mt_chain.toe_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik_chain.toe
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'
@@ -369,9 +369,9 @@ def fk(obj, bone_definition, base_names, options):
     prop["min"] = 0.0
     prop["max"] = 1.0
 
-    hinge_driver_path = pb[fk_chain.thigh].path_to_id() + '["hinge"]'
+    hinge_driver_path = pb[fk_chain.thigh].path_from_id() + '["hinge"]'
 
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'

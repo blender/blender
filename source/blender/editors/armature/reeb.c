@@ -1,5 +1,5 @@
 /**
- * $Id: 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -31,14 +31,9 @@
 #include <stdlib.h> // for qsort
 #include <float.h>
 
-#include "PIL_time.h"
 
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 #include "DNA_object_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_armature_types.h"
 
 #include "BKE_context.h"
 
@@ -53,13 +48,10 @@
 
 //#include "BDR_editobject.h"
 
-#include "ED_mesh.h"
-#include "ED_armature.h"
 //#include "BIF_interface.h"
 //#include "BIF_toolbox.h"
 //#include "BIF_graphics.h"
 #include "BIF_gl.h"
-#include "UI_resources.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -357,7 +349,7 @@ ReebArc * copyArc(ReebGraph *rg, ReebArc *arc)
 	memcpy(cp_arc->buckets, arc->buckets, sizeof(EmbedBucket) * cp_arc->bcount);
 	
 	/* copy faces map */
-	cp_arc->faces = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	cp_arc->faces = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "copyArc gh");
 	mergeArcFaces(rg, cp_arc, arc);
 	
 	/* find corresponding head and tail */
@@ -500,11 +492,11 @@ void repositionNodes(ReebGraph *rg)
 			
 			VECCOPY(p, ((ReebArc*)arc)->buckets[0].p);
 			mul_v3_fl(p, 1.0f / arc->head->degree);
-			add_v3_v3v3(arc->head->p, arc->head->p, p);
+			add_v3_v3(arc->head->p, p);
 			
 			VECCOPY(p, ((ReebArc*)arc)->buckets[((ReebArc*)arc)->bcount - 1].p);
 			mul_v3_fl(p, 1.0f / arc->tail->degree);
-			add_v3_v3v3(arc->tail->p, arc->tail->p, p);
+			add_v3_v3(arc->tail->p, p);
 		}
 	}
 }
@@ -641,7 +633,7 @@ void addVertToBucket(EmbedBucket *b, float co[3])
 void removeVertFromBucket(EmbedBucket *b, float co[3])
 {
 	mul_v3_fl(b->p, (float)b->nv);
-	sub_v3_v3v3(b->p, b->p, co);
+	sub_v3_v3(b->p, co);
 	b->nv--;
 	mul_v3_fl(b->p, 1.0f / (float)b->nv);
 }
@@ -1112,7 +1104,7 @@ void REEB_AxialSymmetry(BNode* root_node, BNode* node1, BNode* node2, struct BAr
 	BLI_mirrorAlongAxis(p, root_node->p, nor);
 
 	/* average with node1 */
-	add_v3_v3v3(node1->p, node1->p, p);
+	add_v3_v3(node1->p, p);
 	mul_v3_fl(node1->p, 0.5f);
 	
 	/* mirror back on node2 */
@@ -1830,7 +1822,7 @@ int filterSmartReebGraph(ReebGraph *rg, float threshold)
 				efa->tmp.fp = saacos(fabs(angle));
 #endif
 #else
-				add_v3_v3v3(avg_vec, avg_vec, efa->n);		
+				add_v3_v3(avg_vec, efa->n);		
 #endif
 			}
 
@@ -2449,7 +2441,7 @@ ReebEdge * createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 		
 		arc->flag = 0; // clear flag on init
 		arc->symmetry_level = 0;
-		arc->faces = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+		arc->faces = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createArc gh");
 		
 		if (node1->weight <= node2->weight)
 		{

@@ -20,7 +20,7 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class ObjectButtonsPanel(bpy.types.Panel):
@@ -35,12 +35,15 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        space = context.space_data
         ob = context.object
 
         row = layout.row()
         row.label(text="", icon='OBJECT_DATA')
-        row.prop(ob, "name", text="")
+        if space.use_pin_id:
+            row.template_ID(space, "pin_id")
+        else:
+            row.prop(ob, "name", text="")
 
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel):
@@ -152,13 +155,11 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
         ob = context.object
         wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split()
-            split.operator_menu_enum("object.group_add", "group")
-            split.label()
-        else:
-            layout.operator_menu_enum("object.group_add", "group")
+        row = layout.row(align=True)
+        row.operator("object.group_link", text="Add to Group")
+        row.operator("object.group_add", text="", icon='ZOOMIN')
 
+        # XXX, this is bad practice, yes, I wrote it :( - campbell
         index = 0
         value = str(tuple(context.scene.cursor_location))
         for group in bpy.data.groups:
@@ -169,7 +170,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
                 row = col.box().row()
                 row.prop(group, "name", text="")
-                row.operator("object.group_remove", text="", icon='X')
+                row.operator("object.group_remove", text="", icon='X', emboss=False)
 
                 split = col.box().split()
 
@@ -181,7 +182,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
                 col.prop(group, "dupli_offset", text="")
 
                 prop = col.operator("wm.context_set_value", text="From Cursor")
-                prop.path = "object.group_users[%d].dupli_offset" % index
+                prop.data_path = "object.users_group[%d].dupli_offset" % index
                 prop.value = value
                 index += 1
 
@@ -213,6 +214,7 @@ class OBJECT_PT_display(ObjectButtonsPanel):
         col.prop(ob, "draw_name", text="Name")
         col.prop(ob, "draw_axis", text="Axis")
         col.prop(ob, "draw_wire", text="Wire")
+        col.prop(ob, "color", text="Object Color")
 
         if wide_ui:
             col = split.column()
@@ -268,9 +270,12 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
             else:
                 layout.prop(ob, "dupli_group", text="")
 
+# XXX: the following options are all quite buggy, ancient hacks that should be dropped
+
 
 class OBJECT_PT_animation(ObjectButtonsPanel):
-    bl_label = "Animation"
+    bl_label = "Animation Hacks"
+    bl_default_closed = True
 
     def draw(self, context):
         layout = self.layout
@@ -294,17 +299,15 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.active = (ob.parent is not None)
         col.prop(ob, "time_offset", text="Offset")
 
+        # XXX: these are still used for a few curve-related tracking features
         if wide_ui:
             col = split.column()
-        col.label(text="Track:")
-        col.prop(ob, "track", text="")
+        col.label(text="Tracking Axes:")
         col.prop(ob, "track_axis", text="Axis")
         col.prop(ob, "up_axis", text="Up Axis")
-        row = col.row()
-        row.prop(ob, "track_override_parent", text="Override Parent")
-        row.active = (ob.parent is not None)
 
-# import generic panels from other files 
+
+# import generic panels from other files
 from properties_animviz import OBJECT_PT_motion_paths, OBJECT_PT_onion_skinning
 
 classes = [
@@ -315,8 +318,8 @@ classes = [
     OBJECT_PT_groups,
     OBJECT_PT_display,
     OBJECT_PT_duplication,
-    OBJECT_PT_animation,
-    
+    OBJECT_PT_animation, # XXX: panel of old hacks pending to be removed...
+
     OBJECT_PT_motion_paths,
     #OBJECT_PT_onion_skinning,
 

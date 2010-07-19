@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -32,26 +32,10 @@
 #include <math.h>
 #include <float.h>
 
-#include "DNA_listBase.h"
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_world_types.h"
-#include "DNA_vec_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -69,13 +53,10 @@
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_draw.h"
-#include "ED_space_api.h"
-#include "ED_screen.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
 
 #include "UI_interface.h"
@@ -83,7 +64,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ED_markers.h"
 
 #include "nla_intern.h"	// own include
 
@@ -810,7 +790,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 						
 						fdrawline((float)(v2d->cur.xmax-offset), yminc, 
 								  (float)(v2d->cur.xmax-offset), ymaxc);
-						offset += 16;;
+						offset += 16;
 						
 						/* 'tweaking action' indicator - not a button */
 						UI_icon_draw((float)(v2d->cur.xmax-offset), ydatac, ICON_EDIT); 
@@ -825,7 +805,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 						glEnd(); // GL_LINES
 						
 						/* 'push down' icon for normal active-actions */
-						UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, ICON_FREEZE);
+						UI_icon_draw((float)v2d->cur.xmax-offset, ydatac, ICON_FREEZE);
 					}
 				}
 				

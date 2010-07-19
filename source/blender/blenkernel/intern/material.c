@@ -42,14 +42,10 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"		
 
 #include "BKE_animsys.h"
-#include "BKE_blender.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -214,7 +210,7 @@ Material *copy_material(Material *ma)
 #if 0 // XXX old animation system
 	id_us_plus((ID *)man->ipo);
 #endif // XXX old animation system
-	id_us_plus((ID *)man->group);
+	id_lib_extern((ID *)man->group);
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		if(ma->mtex[a]) {
@@ -248,9 +244,9 @@ void make_local_material(Material *ma)
 	int a, local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(ma->id.lib==0) return;
 	if(ma->id.us==1) {
@@ -455,7 +451,7 @@ Material *give_current_material(Object *ob, int act)
 	if(act>ob->totcol) act= ob->totcol;
 	else if(act<=0) act= 1;
 
-	if(ob->matbits[act-1]) {	/* in object */
+	if(ob->matbits && ob->matbits[act-1]) {	/* in object */
 		ma= ob->mat[act-1];
 	}
 	else {								/* in data */
@@ -734,7 +730,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	
 	/* since the raytracer doesnt recalc O structs for each ray, we have to preset them all */
 	if(r_mode & R_RAYTRACE) {
-		if((ma->mode & (MA_RAYMIRROR|MA_SHADOW_TRA)) || ((ma->mode && MA_TRANSP) && (ma->mode & MA_RAYTRANSP))) { 
+		if((ma->mode & (MA_RAYMIRROR|MA_SHADOW_TRA)) || ((ma->mode & MA_TRANSP) && (ma->mode & MA_RAYTRANSP))) {
 			ma->texco |= NEED_UV|TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM;
 			if(r_mode & R_OSA) ma->texco |= TEXCO_OSA;
 		}
@@ -1068,15 +1064,15 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 			}
 				break;
 		case MA_RAMP_DARK:
-            tmp=col[0]+((1-col[0])*facm); 
-            if(tmp < *r) *r= tmp; 
-            if(g) { 
-                tmp=col[1]+((1-col[1])*facm); 
-                if(tmp < *g) *g= tmp; 
-                tmp=col[2]+((1-col[2])*facm); 
-                if(tmp < *b) *b= tmp; 
-            } 
-                break; 
+			tmp=col[0]+((1-col[0])*facm); 
+			if(tmp < *r) *r= tmp; 
+			if(g) { 
+				tmp=col[1]+((1-col[1])*facm); 
+				if(tmp < *g) *g= tmp; 
+				tmp=col[2]+((1-col[2])*facm); 
+				if(tmp < *b) *b= tmp; 
+			} 
+				break; 
 		case MA_RAMP_LIGHT:
 			tmp= fac*col[0];
 			if(tmp > *r) *r= tmp; 
@@ -1128,7 +1124,7 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 			if(tmp <= 0.0f)
 				*r = 0.0f;
 			else if (( tmp = (1.0f - (1.0f - (*r)) / tmp )) < 0.0f)
-			        *r = 0.0f;
+					*r = 0.0f;
 			else if (tmp > 1.0f)
 				*r=1.0f;
 			else 
@@ -1139,17 +1135,17 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 				if(tmp <= 0.0f)
 					*g = 0.0f;
 				else if (( tmp = (1.0f - (1.0f - (*g)) / tmp )) < 0.0f )
-			        	*g = 0.0f;
+						*g = 0.0f;
 				else if(tmp >1.0f)
 					*g=1.0f;
 				else
 					*g = tmp;
 			        	
-			        tmp = facm + fac*col[2];
-			        if(tmp <= 0.0f)
+					tmp = facm + fac*col[2];
+					if(tmp <= 0.0f)
 					*b = 0.0f;
 				else if (( tmp = (1.0f - (1.0f - (*b)) / tmp )) < 0.0f  )
-			        	*b = 0.0f;
+						*b = 0.0f;
 				else if(tmp >1.0f)
 					*b= 1.0f;
 				else
@@ -1206,36 +1202,36 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 				}
 			}
 				break;
-        case MA_RAMP_SOFT: 
-            if (g){ 
-                float scr, scg, scb; 
+		case MA_RAMP_SOFT: 
+			if (g){ 
+				float scr, scg, scb; 
                  
-                /* first calculate non-fac based Screen mix */ 
-                scr = 1.0f - (1.0f - col[0]) * (1.0f - *r); 
-                scg = 1.0f - (1.0f - col[1]) * (1.0f - *g); 
-                scb = 1.0f - (1.0f - col[2]) * (1.0f - *b); 
+				/* first calculate non-fac based Screen mix */ 
+				scr = 1.0f - (1.0f - col[0]) * (1.0f - *r); 
+				scg = 1.0f - (1.0f - col[1]) * (1.0f - *g); 
+				scb = 1.0f - (1.0f - col[2]) * (1.0f - *b); 
                  
-                *r = facm*(*r) + fac*(((1.0f - *r) * col[0] * (*r)) + (*r * scr)); 
-                *g = facm*(*g) + fac*(((1.0f - *g) * col[1] * (*g)) + (*g * scg)); 
-                *b = facm*(*b) + fac*(((1.0f - *b) * col[2] * (*b)) + (*b * scb)); 
-            } 
-                break; 
-        case MA_RAMP_LINEAR: 
-            if (col[0] > 0.5f)  
-                *r = *r + fac*(2.0f*(col[0]-0.5f)); 
-            else  
-                *r = *r + fac*(2.0f*(col[0]) - 1.0f); 
-            if (g){ 
-                if (col[1] > 0.5f)  
-                    *g = *g + fac*(2.0f*(col[1]-0.5f)); 
-                else  
-                    *g = *g + fac*(2.0f*(col[1]) -1.0f); 
-                if (col[2] > 0.5f)  
-                    *b = *b + fac*(2.0f*(col[2]-0.5f)); 
-                else  
-                    *b = *b + fac*(2.0f*(col[2]) - 1.0f); 
-            } 
-                break; 
+				*r = facm*(*r) + fac*(((1.0f - *r) * col[0] * (*r)) + (*r * scr)); 
+				*g = facm*(*g) + fac*(((1.0f - *g) * col[1] * (*g)) + (*g * scg)); 
+				*b = facm*(*b) + fac*(((1.0f - *b) * col[2] * (*b)) + (*b * scb)); 
+			} 
+				break; 
+		case MA_RAMP_LINEAR: 
+			if (col[0] > 0.5f)  
+				*r = *r + fac*(2.0f*(col[0]-0.5f)); 
+			else  
+				*r = *r + fac*(2.0f*(col[0]) - 1.0f); 
+			if (g){ 
+				if (col[1] > 0.5f)  
+					*g = *g + fac*(2.0f*(col[1]-0.5f)); 
+				else  
+					*g = *g + fac*(2.0f*(col[1]) -1.0f); 
+				if (col[2] > 0.5f)  
+					*b = *b + fac*(2.0f*(col[2]-0.5f)); 
+				else  
+					*b = *b + fac*(2.0f*(col[2]) - 1.0f); 
+			} 
+				break; 
 	}	
 }
 
@@ -1247,6 +1243,7 @@ static short matcopied=0;
 void clear_matcopybuf(void)
 {
 	memset(&matcopybuf, 0, sizeof(Material));
+	matcopied= 0;
 }
 
 void free_matcopybuf(void)
@@ -1273,6 +1270,8 @@ void free_matcopybuf(void)
 		matcopybuf.nodetree= NULL;
 	}
 //	default_mtex(&mtexcopybuf);
+
+	matcopied= 0;
 }
 
 void copy_matcopybuf(Material *ma)

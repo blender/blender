@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -31,17 +31,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_brush_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
@@ -706,11 +699,20 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			Material *ma= ptr->data;
 
 			/* if we have a node material, get slot from material in material node */
-			if(ma && ma->use_nodes && ma->nodetree)
+			if(ma && ma->use_nodes && ma->nodetree) {
+				/* if there's an active texture node in the node tree,
+				 * then that texture is in context directly, without a texture slot */
+				if (give_current_material_texture_node(ma))
+					return 0;
+				
 				ma= give_node_material(ma);
-
-			if(ma)
+				if (ma)
+					CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);
+				else
+					return 0;
+			} else if(ma) {
 				CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);
+			}
 		}
 		else if((ptr=get_pointer_type(path, &RNA_Lamp))) {
 			Lamp *la= ptr->data;
@@ -823,21 +825,9 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 static void pin_cb(bContext *C, void *arg1, void *arg2)
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
-	ButsContextPath *path= sbuts->path;
-	PointerRNA *ptr;
-	int a;
 
 	if(sbuts->flag & SB_PIN_CONTEXT) {
-		if(path->len) {
-			for(a=path->len-1; a>=0; a--) {
-				ptr= &path->ptr[a];
-
-				if(ptr->id.data) {
-					sbuts->pinid= ptr->id.data;
-					break;
-				}
-			}
-		}
+		sbuts->pinid= buttons_context_id_path(C);
 	}
 	else
 		sbuts->pinid= NULL;
@@ -907,4 +897,25 @@ void buttons_context_register(ARegionType *art)
 	pt->draw= buttons_panel_context;
 	pt->flag= PNL_NO_HEADER;
 	BLI_addtail(&art->paneltypes, pt);
+}
+
+ID *buttons_context_id_path(const bContext *C)
+{
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
+	ButsContextPath *path= sbuts->path;
+	PointerRNA *ptr;
+	int a;
+
+	if(path->len) {
+		for(a=path->len-1; a>=0; a--) {
+			ptr= &path->ptr[a];
+
+			if(ptr->id.data) {
+				return ptr->id.data;
+				break;
+			}
+		}
+	}
+
+	return NULL;
 }

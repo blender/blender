@@ -166,9 +166,6 @@ typedef struct ShadeInput
 	int depth;				/* 1 or larger on raytrace shading */
 	int volume_depth;		/* number of intersections through volumes */
 	
-	/* stored copy of original face normal (facenor) 
-	 * before flipping. Used in Front/back output on geometry node */
-	float orignor[3];
 	/* for strand shading, normal at the surface */
 	float surfnor[3], surfdist;
 
@@ -202,7 +199,7 @@ struct Image;
 struct Object;
 
 void RE_shade_external(struct Render *re, struct ShadeInput *shi, struct ShadeResult *shr);
-int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob, short *do_update);
+int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob, short *do_update, float *progress);
 struct Image *RE_bake_shade_get_image(void);
 
 #endif /* RE_SHADER_EXT_H */

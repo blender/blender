@@ -242,11 +242,9 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 	CompBuf *crad;		// CoC radius buffer
 	BokehCoeffs BKH[8];	// bokeh shape data, here never > 8 pts.
 	float bkh_b[4] = {0};	// shape 2D bound
-	unsigned int p, px, p4, zp, cp, cp4;
-	float *ctcol, u, v, iZ, ct_crad, lwt, wt=0, cR2=0;
-	float dof_sp, maxfgc, bk_hn_theta=0, inradsq=0;
 	float cam_fdist=1, cam_invfdist=1, cam_lens=35;
-	int x, y, sx, sy, len_bkh=0;
+	float dof_sp, maxfgc, bk_hn_theta=0, inradsq=0;
+	int y, len_bkh=0, ydone=0;
 	float aspect, aperture;
 	int minsz;
 	//float bcrad, nmaxc, scf;
@@ -288,6 +286,8 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		// to prevent *reaaallly* big radius values and impossible calculation times,
 		// limit the maximum to half the image width or height, whichever is smaller
 		float maxr = 0.5f*(float)MIN2(img->x, img->y);
+		unsigned int p;
+
 		for (p=0; p<(unsigned int)(img->x*img->y); p++) {
 			crad->rect[p] = zbuf ? (zbuf->rect[p]*nqd->scale) : inpval;
 			// bug #5921, limit minimum
@@ -298,6 +298,8 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		}
 	}
 	else {
+		float wt;
+
 		// actual zbuffer.
 		// separate foreground from background CoC's
 		// then blur background and blend in again with foreground,
@@ -305,10 +307,11 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		// wts buffer here used for blendmask
 		maxfgc = 0.f; // maximum foreground CoC radius
 		for (y=0; y<img->y; y++) {
-			p = y * img->x;
+			unsigned int p = y * img->x;
+			int x;
 			for (x=0; x<img->x; x++) {
-				px = p + x;
-				iZ = (zbuf->rect[px]==0.f) ? 0.f : (1.f/zbuf->rect[px]);
+				unsigned int px = p + x;
+				float iZ = (zbuf->rect[px]==0.f) ? 0.f : (1.f/zbuf->rect[px]);
 				crad->rect[px] = 0.5f*(aperture*(dof_sp*(cam_invfdist - iZ) - 1.f));
 				if (crad->rect[px] <= 0.f) {
 					wts->rect[px] = 1.f;
@@ -342,11 +345,13 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 
 		// and blend...
 		for (y=0; y<img->y; y++) {
-			p = y*img->x;
+			unsigned int p = y*img->x;
+			int x;
+
 			for (x=0; x<img->x; x++) {
-				px = p + x;
+				unsigned px = p + x;
 				if (zbuf->rect[px]!=0.f) {
-					iZ = (zbuf->rect[px]==0.f) ? 0.f : (1.f/zbuf->rect[px]);
+					float iZ = (zbuf->rect[px]==0.f) ? 0.f : (1.f/zbuf->rect[px]);
 					
 					// bug #6656 part 2b, do not rescale
 					/*
@@ -373,18 +378,30 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 
 	//------------------------------------------------------------------
 	// main loop
+	#pragma omp parallel for private(y) if(!nqd->preview && img->y*img->x > 16384) schedule(guided)
 	for (y=0; y<img->y; y++) {
+		unsigned int p, p4, zp, cp, cp4;
+		float *ctcol, u, v, ct_crad, cR2=0;
+		int x, sx, sy;
+
 		// some sort of visual feedback would be nice, or at least this text in the renderwin header
 		// but for now just print some info in the console every 8 scanlines.
-		if (((y & 7)==0) || (y==(img->y-1))) {
-			if(G.background==0) {
-				printf("\rdefocus: Processing Line %d of %d ... ", y+1, img->y);
-				fflush(stdout);
+		#pragma omp critical
+		{
+			if (((ydone & 7)==0) || (ydone==(img->y-1))) {
+				if(G.background==0) {
+					printf("\rdefocus: Processing Line %d of %d ... ", ydone+1, img->y);
+					fflush(stdout);
+				}
 			}
+
+			ydone++;
 		}
-		// esc set by main calling process
+
+		// esc set by main calling process. don't break because openmp doesn't
+		// allow it, just continue and do nothing 
 		if(node->exec & NODE_BREAK)
-			break;
+			continue;
 
 		zp = y * img->x;
 		for (x=0; x<img->x; x++) {
@@ -412,6 +429,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 			if (!nqd->preview) {
 				int xs, xe, ys, ye;
 				float lwt, wtcol[4] = {0}, aacol[4] = {0};
+				float wt;
 
 				// shape weight
 				if (nqd->bktype==0)	// disk
@@ -700,7 +718,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 			else {
 				// sampled, simple rejection sampling here, good enough
 				unsigned int maxsam, s, ui = BLI_rand()*BLI_rand();
-				float wcor, cpr = BLI_frand();
+				float wcor, cpr = BLI_frand(), lwt;
 				if (no_zbuf)
 					maxsam = nqd->samples;	// no zbuffer input, use sample value directly
 				else {
@@ -749,8 +767,10 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 	
 	// finally, normalize
 	for (y=0; y<new->y; y++) {
-		p = y * new->x;
-		p4 = p * new->type;
+		unsigned int p = y * new->x;
+		unsigned int p4 = p * new->type;
+		int x;
+
 		for (x=0; x<new->x; x++) {
 			float dv = (wts->rect[p]==0.f) ? 1.f : (1.f/wts->rect[p]);
 			new->rect[p4] *= dv;

@@ -31,7 +31,7 @@
 
 
 /* **************** Z COMBINE ******************** */
-    /* lazy coder note: node->custom1 is abused to send signal */
+	/* lazy coder note: node->custom1 is abused to send signal */
 static bNodeSocketType cmp_node_zcombine_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 10000.0f},

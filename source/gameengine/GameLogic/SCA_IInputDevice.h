@@ -230,6 +230,13 @@ public:
 		KX_F10KEY,
 		KX_F11KEY,
 		KX_F12KEY,
+		KX_F13KEY,
+		KX_F14KEY,
+		KX_F15KEY,
+		KX_F16KEY,
+		KX_F17KEY,
+		KX_F18KEY,
+		KX_F19KEY,
 		
 		KX_PAUSEKEY,
 		KX_INSERTKEY,
@@ -309,8 +316,8 @@ public:
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_InputEvent"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_InputEvent"); }
+	void operator delete(void *mem) { MEM_freeN(mem); }
 #endif
 };
 

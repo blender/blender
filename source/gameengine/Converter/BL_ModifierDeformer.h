@@ -45,6 +45,7 @@ class BL_ModifierDeformer : public BL_ShapeDeformer
 {
 public:
 	static bool HasCompatibleDeformer(Object *ob);
+	static bool HasArmatureDeformer(Object *ob);
 
 
 	BL_ModifierDeformer(BL_DeformableGameObject *gameobj,
@@ -104,7 +105,7 @@ protected:
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ModifierDeformer"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ModifierDeformer"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

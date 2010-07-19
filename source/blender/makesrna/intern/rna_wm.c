@@ -27,7 +27,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -115,6 +114,7 @@ EnumPropertyItem event_type_items[] = {
 	{SELECTMOUSE, "SELECTMOUSE", 0, "Select Mouse", ""},
 	{0, "", 0, NULL, NULL},
 	{MOUSEMOVE, "MOUSEMOVE", 0, "Mouse Move", ""},
+	{INBETWEEN_MOUSEMOVE, "INBETWEEN_MOUSEMOVE", 0, "Inbetween Move", ""},
 	{MOUSEPAN, "TRACKPADPAN", 0, "Mouse/Trackpad Pan", ""},
 	{MOUSEZOOM, "TRACKPADZOOM", 0, "Mouse/Trackpad Zoom", ""},
 	{MOUSEROTATE, "MOUSEROTATE", 0, "Mouse/Trackpad Rotate", ""},
@@ -227,6 +227,13 @@ EnumPropertyItem event_type_items[] = {
 	{F10KEY, "F10", 0, "F10", ""},
 	{F11KEY, "F11", 0, "F11", ""},
 	{F12KEY, "F12", 0, "F12", ""},
+	{F13KEY, "F13", 0, "F13", ""},
+	{F14KEY, "F14", 0, "F14", ""},
+	{F15KEY, "F15", 0, "F15", ""},
+	{F16KEY, "F16", 0, "F16", ""},
+	{F17KEY, "F17", 0, "F17", ""},
+	{F18KEY, "F18", 0, "F18", ""},
+	{F19KEY, "F19", 0, "F19", ""},
 	{PAUSEKEY, "PAUSE", 0, "Pause", ""},
 	{INSERTKEY, "INSERT", 0, "Insert", ""},
 	{HOMEKEY, "HOME", 0, "Home", ""},
@@ -409,7 +416,7 @@ static int rna_wmKeyMapItem_map_type_get(PointerRNA *ptr)
 	wmKeyMapItem *kmi= ptr->data;
 
 	if(ISTIMER(kmi->type)) return KMI_TYPE_TIMER;
-    if(ISKEYBOARD(kmi->type)) return KMI_TYPE_KEYBOARD;
+	if(ISKEYBOARD(kmi->type)) return KMI_TYPE_KEYBOARD;
 	if(ISTWEAK(kmi->type)) return KMI_TYPE_TWEAK;
 	if(ISMOUSE(kmi->type)) return KMI_TYPE_MOUSE;
 	if(kmi->type == KM_TEXTINPUT) return KMI_TYPE_TEXTINPUT;
@@ -605,6 +612,7 @@ static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 		return 0;
 }
 
+#ifndef DISABLE_PYTHON
 static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 {
 	char *idname;
@@ -612,6 +620,12 @@ static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 
 	if(!ot)
 		return;
+
+	/* update while blender is running */
+	if(C) {
+		WM_operator_stack_clear((bContext*)C);
+		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	}
 
 	RNA_struct_free_extension(type, &ot->ext);
 
@@ -621,10 +635,6 @@ static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 
 	/* not to be confused with the RNA_struct_free that WM_operatortype_remove calls, they are 2 different srna's */
 	RNA_struct_free(&BLENDER_RNA, type);
-
-	/* update while blender is running */
-	if(C)
-		WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
 static int operator_poll(bContext *C, wmOperatorType *ot)
@@ -738,7 +748,6 @@ static void operator_draw(bContext *C, wmOperator *op)
 	RNA_parameter_list_free(&list);
 }
 
-#ifndef DISABLE_PYTHON
 void operator_wrapper(wmOperatorType *ot, void *userdata);
 void macro_wrapper(wmOperatorType *ot, void *userdata);
 
@@ -890,6 +899,66 @@ static StructRNA* rna_MacroOperator_refine(PointerRNA *opr)
 {
 	wmOperator *op= (wmOperator*)opr->data;
 	return (op->type && op->type->ext.srna)? op->type->ext.srna: &RNA_Macro;
+}
+
+static wmKeyMapItem *rna_KeyMap_add_item(wmKeyMap *km, ReportList *reports, char *idname, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
+{
+//	wmWindowManager *wm = CTX_wm_manager(C);
+	int modifier= 0;
+
+	/* only on non-modal maps */
+	if (km->flag & KEYMAP_MODAL) {
+		BKE_report(reports, RPT_ERROR, "Not a non-modal keymap.");
+		return NULL;
+	}
+
+	if(shift) modifier |= KM_SHIFT;
+	if(ctrl) modifier |= KM_CTRL;
+	if(alt) modifier |= KM_ALT;
+	if(oskey) modifier |= KM_OSKEY;
+
+	if(any) modifier = KM_ANY;
+
+	return WM_keymap_add_item(km, idname, type, value, modifier, keymodifier);
+}
+
+static wmKeyMapItem *rna_KeyMap_add_modal_item(wmKeyMap *km, bContext *C, ReportList *reports, char* propvalue_str, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	int modifier= 0;
+	int propvalue = 0;
+
+	/* only modal maps */
+	if ((km->flag & KEYMAP_MODAL) == 0) {
+		BKE_report(reports, RPT_ERROR, "Not a modal keymap.");
+		return NULL;
+	}
+
+	if (!km->modal_items) {
+		if(!WM_keymap_user_init(wm, km)) {
+			BKE_report(reports, RPT_ERROR, "User defined keymap doesn't correspond to a system keymap.");
+			return NULL;
+		}
+	}
+
+	if (!km->modal_items) {
+		BKE_report(reports, RPT_ERROR, "No property values defined.");
+		return NULL;
+	}
+
+
+	if(RNA_enum_value_from_id(km->modal_items, propvalue_str, &propvalue)==0) {
+		BKE_report(reports, RPT_WARNING, "Property value not in enumeration.");
+	}
+
+	if(shift) modifier |= KM_SHIFT;
+	if(ctrl) modifier |= KM_CTRL;
+	if(alt) modifier |= KM_ALT;
+	if(oskey) modifier |= KM_OSKEY;
+
+	if(any) modifier = KM_ANY;
+
+	return WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, propvalue);
 }
 
 #else
@@ -1204,6 +1273,56 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	RNA_api_wm(srna);
 }
 
+/* keyconfig.items */
+static void rna_def_keymap_items(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+//	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+	
+	RNA_def_property_srna(cprop, "KeyMapItems");
+	srna= RNA_def_struct(brna, "KeyMapItems", NULL);
+	RNA_def_struct_sdna(srna, "wmKeyMap");
+	RNA_def_struct_ui_text(srna, "KeyMap Items", "Collection of keymap items");
+
+	func= RNA_def_function(srna, "add", "rna_KeyMap_add_item");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_string(func, "idname", "", 0, "Operator Identifier", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", event_type_items, 0, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "value", event_value_items, 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "any", 0, "Any", "");
+	RNA_def_boolean(func, "shift", 0, "Shift", "");
+	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
+	RNA_def_boolean(func, "alt", 0, "Alt", "");
+	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
+	RNA_def_enum(func, "key_modifier", event_type_items, 0, "Key Modifier", "");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "add_modal", "rna_KeyMap_add_modal_item");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_string(func, "propvalue", "", 0, "Property Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", event_type_items, 0, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "value", event_value_items, 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "any", 0, "Any", "");
+	RNA_def_boolean(func, "shift", 0, "Shift", "");
+	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
+	RNA_def_boolean(func, "alt", 0, "Alt", "");
+	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
+	RNA_def_enum(func, "key_modifier", event_type_items, 0, "Key Modifier", "");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item.");
+	RNA_def_function_return(func, parm);
+	
+}
+
 static void rna_def_keyconfig(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1229,10 +1348,6 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Name of the key configuration");
 	RNA_def_struct_name_property(srna, prop);
 	
-	prop= RNA_def_property(srna, "filter", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "filter");
-	RNA_def_property_ui_text(prop, "Filter", "Search term for filtering in the UI");
-
 	prop= RNA_def_property(srna, "keymaps", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyMap");
 	RNA_def_property_ui_text(prop, "Key Maps", "Key maps configured as part of this configuration");
@@ -1270,6 +1385,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "items", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyMapItem");
 	RNA_def_property_ui_text(prop, "Items", "Items in the keymap, linking an operator to an input event");
+	rna_def_keymap_items(brna, prop);
 
 	prop= RNA_def_property(srna, "user_defined", PROP_BOOLEAN, PROP_NEVER_NULL);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_USER);

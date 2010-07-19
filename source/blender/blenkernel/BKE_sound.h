@@ -38,6 +38,8 @@ struct ListBase;
 struct Main;
 struct Sequence;
 
+void sound_init_once();
+
 void sound_init(struct Main *main);
 
 void sound_exit();
@@ -71,6 +73,8 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start,
 void sound_create_scene(struct Scene *scene);
 
 void sound_destroy_scene(struct Scene *scene);
+
+void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip);
 
 void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip);
 

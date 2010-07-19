@@ -55,10 +55,10 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
-#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_geom.h"
 
 #endif /* BLI_MATH */
 

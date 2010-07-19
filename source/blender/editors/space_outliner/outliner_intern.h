@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -45,7 +45,8 @@ typedef struct TreeElement {
 	ListBase subtree;
 	float xs, ys;		// do selection
 	int store_index;	// offset in tree store
-	short flag, index;	// flag for non-saved stuff, index for data arrays
+	short flag;			// flag for non-saved stuff
+	short index;		// index for data arrays
 	short idcode;		// from TreeStore id
 	short xend;			// width of item display, for select
 	char *name;
@@ -98,12 +99,6 @@ typedef struct TreeElement {
 #define TSE_KEYMAP			34
 #define TSE_KEYMAP_ITEM		35
 
-/* outliner search flags */
-#define OL_FIND					0
-#define OL_FIND_CASE			1
-#define OL_FIND_COMPLETE		2
-#define OL_FIND_COMPLETE_CASE	3
-
 /* button events */
 #define OL_NAMEBUTTON		1
 
@@ -145,22 +140,6 @@ void OUTLINER_OT_keyingset_remove_selected(struct wmOperatorType *ot);
 
 void OUTLINER_OT_drivers_add_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_drivers_delete_selected(struct wmOperatorType *ot);
-
-#if 0
-extern void outliner_mouse_event(Scene *scene, ARegion *ar, SpaceOops *soops, short event);
-extern void outliner_toggle_visible(SpaceOops *soops);
-extern void outliner_show_active(ARegion *ar, SpaceOops *soops);
-extern void outliner_show_hierarchy(Scene *scene, SpaceOops *soops);
-extern void outliner_one_level(SpaceOops *soops, int add);
-extern void outliner_select(Scene *scene, SpaceOops *soops);
-extern void outliner_toggle_selected(Scene *scene, SpaceOops *soops);
-extern void outliner_toggle_visibility(Scene *scene, SpaceOops *soops);
-extern void outliner_toggle_selectability(Scene *scene, SpaceOops *soops);
-extern void outliner_toggle_renderability(Scene *scene, SpaceOops *soops);
-extern void outliner_del(Scene *scene, SpaceOops *soops);
-extern void outliner_page_up_down(Scene *scene, ARegion *ar, SpaceOops *soops, int up);
-extern void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again, int flags);
-#endif
 
 #endif /* ED_OUTLINER_INTERN_H */
 

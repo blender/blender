@@ -42,21 +42,12 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
-#include "DNA_gpencil_types.h"
-#include "DNA_action_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view2d_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "UI_view2d.h"
 
-#include "ED_armature.h"
 #include "ED_gpencil.h"
-#include "ED_sequencer.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -170,7 +161,9 @@ static void gp_get_3d_reference (tGPsdata *p, float *vec)
 	float *fp= give_cursor(p->scene, v3d);
 	
 	/* the reference point used depends on the owner... */
-	if (p->ownerPtr.type == &RNA_Object) {
+#if 0 // XXX: disabled for now, since we can't draw relative ot the owner yet
+	if (p->ownerPtr.type == &RNA_Object) 
+	{
 		Object *ob= (Object *)p->ownerPtr.data;
 		
 		/* active Object 
@@ -178,7 +171,9 @@ static void gp_get_3d_reference (tGPsdata *p, float *vec)
 		 */
 		sub_v3_v3v3(vec, fp, ob->loc);
 	}
-	else {
+	else
+#endif	
+	{
 		/* use 3D-cursor */
 		copy_v3_v3(vec, fp);
 	}
@@ -1077,7 +1072,7 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				/* calculate zoom factor */
 				zoom= (float)(SEQ_ZOOM_FAC(sseq->zoom));
 				if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-					zoomx = zoom * ((float)p->scene->r.xasp / (float)p->scene->r.yasp);
+					zoomx = zoom * (p->scene->r.xasp / p->scene->r.yasp);
 					zoomy = zoom;
 				} 
 				else
@@ -1101,7 +1096,20 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 #endif
 			case SPACE_IMAGE:
 			{
-				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
+				SpaceImage *sima= (SpaceImage *)p->sa->spacedata.first;
+				
+				/* only set these flags if the image editor doesn't have an image active,
+				 * otherwise user will be confused by strokes not appearing after they're drawn
+				 *
+				 * Admittedly, this is a bit hacky, but it works much nicer from an ergonomic standpoint!
+				 */
+				if ELEM(NULL, sima, sima->image) {
+					/* make strokes be drawn in screen space */
+					p->gpd->sbuffer_sflag &= ~GP_STROKE_2DSPACE;
+					p->gpd->flag &= ~GP_DATA_VIEWALIGN;
+				}	
+				else
+					p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
 			}
 				break;
 		}
@@ -1473,6 +1481,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* moving mouse - assumed that mouse button is down if in painting status */
 		case MOUSEMOVE:
+		case INBETWEEN_MOUSEMOVE:
 			/* check if we're currently painting */
 			if (p->status == GP_STATUS_PAINTING) {
 				/* handle drawing event */
@@ -1507,6 +1516,8 @@ static EnumPropertyItem prop_gpencil_drawmodes[] = {
 
 void GPENCIL_OT_draw (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Grease Pencil Draw";
 	ot->idname= "GPENCIL_OT_draw";
@@ -1523,6 +1534,8 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* settings for drawing */
-	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
+	prop= RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }

@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -39,15 +39,10 @@
 #include "BLI_dynstr.h"
 #include "BLI_dlrbTree.h"
 
-#include "DNA_listBase.h"
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -62,23 +57,15 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "BIF_gl.h"
 
-#include "ED_anim_api.h"
 #include "ED_armature.h"
-#include "ED_keyframes_draw.h"
 #include "ED_keyframing.h"
-#include "ED_keyframes_edit.h"
-#include "ED_screen.h"
 
 #include "armature_intern.h"
 
@@ -229,27 +216,28 @@ void poseAnim_mapping_autoKeyframe (bContext *C, Scene *scene, Object *ob, ListB
 	
 	/* insert keyframes as necessary if autokeyframing */
 	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-		bCommonKeySrc cks;
-		ListBase dsources = {&cks, &cks};
 		tPChanFCurveLink *pfl;
-		
-		/* init common-key-source for use by KeyingSets */
-		memset(&cks, 0, sizeof(bCommonKeySrc));
-		cks.id= &ob->id;
 		
 		/* iterate over each pose-channel affected, applying the changes */
 		for (pfl= pfLinks->first; pfl; pfl= pfl->next) {
+			ListBase dsources = {NULL, NULL};
 			bPoseChannel *pchan= pfl->pchan;
-			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-			cks.pchan= pchan;
 			
-			/* insert keyframes */
+			/* add datasource override for the PoseChannel so KeyingSet will do right thing */
+			ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan); 
+			
+			/* insert keyframes 
+			 * 	- these keyingsets here use dsources, since we need to specify exactly which keyframes get affected
+			 */
 			if (pchan->flag & POSE_LOC)
-				modify_keyframes(scene, &dsources, NULL, ks_loc, MODIFYKEY_MODE_INSERT, cframe);
+				ANIM_apply_keyingset(C, &dsources, NULL, ks_loc, MODIFYKEY_MODE_INSERT, cframe);
 			if (pchan->flag & POSE_ROT)
-				modify_keyframes(scene, &dsources, NULL, ks_rot, MODIFYKEY_MODE_INSERT, cframe);
+				ANIM_apply_keyingset(C, &dsources, NULL, ks_rot, MODIFYKEY_MODE_INSERT, cframe);
 			if (pchan->flag & POSE_SIZE)
-				modify_keyframes(scene, &dsources, NULL, ks_scale, MODIFYKEY_MODE_INSERT, cframe);
+				ANIM_apply_keyingset(C, &dsources, NULL, ks_scale, MODIFYKEY_MODE_INSERT, cframe);
+				
+			/* free the temp info */
+			BLI_freelistN(&dsources);
 		}
 	}
 }

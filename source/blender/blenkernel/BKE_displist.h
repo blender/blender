@@ -62,13 +62,14 @@ struct Material;
 struct Bone;
 struct Mesh;
 struct EditMesh;
+struct DerivedMesh;
 
 /* used for curves, nurbs, mball, importing */
 typedef struct DispList {
-    struct DispList *next, *prev;
-    short type, flag;
-    int parts, nr;
-    short col, rt;              /* rt used by initrenderNurbs */
+	struct DispList *next, *prev;
+	short type, flag;
+	int parts, nr;
+	short col, rt;              /* rt used by initrenderNurbs */
 	float *verts, *nors;
 	int *index;
 	unsigned int *col1, *col2;
@@ -87,20 +88,26 @@ extern void count_displist(struct ListBase *lb, int *totvert, int *totface);
 extern void freedisplist(struct ListBase *lb);
 extern int displist_has_faces(struct ListBase *lb);
 
-extern void makeDispListSurf(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, int forRender, int forOrco);
+extern void makeDispListSurf(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, struct DerivedMesh **derivedFinal, int forRender, int forOrco);
 extern void makeDispListCurveTypes(struct Scene *scene, struct Object *ob, int forOrco);
+extern void makeDispListCurveTypes_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, struct DerivedMesh **derivedFinal, int forOrco);
+extern void makeDispListCurveTypes_forOrco(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
 extern void makeDispListMBall(struct Scene *scene, struct Object *ob);
+extern void makeDispListMBall_forRender(struct Scene *scene, struct Object *ob, struct ListBase *dispbase);
 extern void shadeDispList(struct Scene *scene, struct Base *base);
 extern void shadeMeshMCol(struct Scene *scene, struct Object *ob, struct Mesh *me);
 
 int surfindex_displist(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
 void imagestodisplist(void);
 void reshadeall_displist(struct Scene *scene);
-void filldisplist(struct ListBase *dispbase, struct ListBase *to);
+void filldisplist(struct ListBase *dispbase, struct ListBase *to, int flipnormal);
 
 void fastshade_free_render(void);
 
 float calc_taper(struct Scene *scene, struct Object *taperobj, int cur, int tot);
+
+/* add Orco layer to the displist object which has got derived mesh and return orco */
+float *makeOrcoDispList(struct Scene *scene, struct Object *ob, struct DerivedMesh *derivedFinal, int forRender);
 
 #endif
 

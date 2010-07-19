@@ -486,9 +486,6 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
 				break;
-			case SCE_PASS_RADIO:
-				col= NULL; // removed shr->rad;
-				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
 				break;
@@ -592,9 +589,6 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				break;
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
-				break;
-			case SCE_PASS_RADIO:
-				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
@@ -745,9 +739,14 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 						if(*zrect >= 9.9e10 || rgbrect[3]==0.0f) {
 							continue;
 						}
-						
+												
 						if((lar->sunsky->effect_type & LA_SUN_EFFECT_AP)) {	
 							float tmp_rgb[3];
+							
+							/* skip if worldspace lamp vector is below horizon */
+							if(go->ob->obmat[2][2] < 0.f) {
+								continue;
+							}
 							
 							VECCOPY(tmp_rgb, rgbrect);
 							if(rgbrect[3]!=1.0f) {	/* de-premul */
@@ -1034,7 +1033,7 @@ void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
 static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
 {
 	/* for all pixels with max speed, set to zero */
-    RenderLayer *rlpp[RE_MAX_OSA];
+	RenderLayer *rlpp[RE_MAX_OSA];
 	float *fp;
 	int a, sample, totsample;
 	
@@ -1051,9 +1050,9 @@ static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
 
 static unsigned short *make_solid_mask(RenderPart *pa)
 { 
- 	intptr_t *rd= pa->rectdaps;
- 	unsigned short *solidmask, *sp;
- 	int x;
+	 intptr_t *rd= pa->rectdaps;
+	 unsigned short *solidmask, *sp;
+	 int x;
  	
 	if(rd==NULL) return NULL;
  	
@@ -1098,7 +1097,7 @@ static void addAlphaOverFloatMask(float *dest, float *source, unsigned short dma
 		dest[3]+= source[3];
 		
 		return;
- 	}
+	 }
 
 	dest[0]= (mul*dest[0]) + source[0];
 	dest[1]= (mul*dest[1]) + source[1];
@@ -2217,12 +2216,23 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	}
 	else {
 		char *col= (char *)(bs->rect + bs->rectx*y + x);
-		col[0]= FTOCHAR(shr.combined[0]);
-		col[1]= FTOCHAR(shr.combined[1]);
-		col[2]= FTOCHAR(shr.combined[2]);
+
+		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE) &&	(R.r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
+			float srgb[3];
+			srgb[0]= linearrgb_to_srgb(shr.combined[0]);
+			srgb[1]= linearrgb_to_srgb(shr.combined[1]);
+			srgb[2]= linearrgb_to_srgb(shr.combined[2]);
+			
+			col[0]= FTOCHAR(srgb[0]);
+			col[1]= FTOCHAR(srgb[1]);
+			col[2]= FTOCHAR(srgb[2]);
+		} else {
+			col[0]= FTOCHAR(shr.combined[0]);
+			col[1]= FTOCHAR(shr.combined[1]);
+			col[2]= FTOCHAR(shr.combined[2]);
+		}
 		
-		
-		if (bs->type==RE_BAKE_ALL || bs->type==RE_BAKE_TEXTURE) {
+		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE)) {
 			col[3]= FTOCHAR(shr.alpha);
 		} else {
 			col[3]= 255;
@@ -2261,21 +2271,8 @@ static void bake_displacement(void *handle, ShadeInput *shi, float dist, int x, 
 	}
 }
 
-#if 0
-static int bake_check_intersect(Isect *is, int ob, RayFace *face)
-{
-	BakeShade *bs = (BakeShade*)is->userdata;
-	
-	/* no direction checking for now, doesn't always improve the result
-	 * (INPR(shi->facenor, bs->dir) > 0.0f); */
-
-	return (R.objectinstance[ob & ~RE_RAY_TRANSFORM_OFFS].obr->ob != bs->actob);
-}
-#endif
-
 static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, float *dir, float sign, float *hitco, float *dist)
 {
-	//TODO, validate against blender 2.4x, results may have changed.
 	float maxdist;
 	int hit;
 
@@ -2283,7 +2280,7 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 	if(R.r.bake_maxdist > 0.0f)
 		maxdist= R.r.bake_maxdist;
 	else
-		maxdist= FLT_MAX + R.r.bake_biasdist;
+		maxdist= RE_RAYTRACE_MAXDIST + R.r.bake_biasdist;
 	
 	/* 'dir' is always normalized */
 	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);					
@@ -2294,10 +2291,6 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 
 	isect->labda = maxdist;
 
-	/* TODO, 2.4x had this...
-	hit = RE_ray_tree_intersect_check(R.raytree, isect, bake_check_intersect);
-	...the active object may NOT be ignored in some cases.
-	*/
 	hit = RE_rayobject_raycast(raytree, isect);
 	if(hit) {
 		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
@@ -2427,7 +2420,8 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 
 			isec.orig.ob   = obi;
 			isec.orig.face = vlr;
-			isec.userdata= bs;
+			isec.userdata= bs->actob;
+			isec.skip = RE_SKIP_VLR_NEIGHBOUR|RE_SKIP_VLR_BAKE_CHECK;
 			
 			if(bake_intersect_tree(R.raytree, &isec, shi->co, shi->vn, sign, co, &dist)) {
 				if(!hit || len_v3v3(shi->co, co) < len_v3v3(shi->co, minco)) {
@@ -2625,9 +2619,9 @@ static void *do_bake_thread(void *bs_v)
 /* using object selection tags, the faces with UV maps get baked */
 /* render should have been setup */
 /* returns 0 if nothing was handled */
-int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_update)
+int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_update, float *progress)
 {
-	BakeShade handles[BLENDER_MAX_THREADS];
+	BakeShade *handles;
 	ListBase threads;
 	Image *ima;
 	int a, vdone=0, usemask=0;
@@ -2640,25 +2634,28 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	get_next_bake_face(NULL);
 	
 	/* do we need a mask? */
-	if (re->r.bake_filter && (re->r.bake_flag & R_BAKE_CLEAR)==0)
+	if (re->r.bake_filter)
 		usemask = 1;
 	
 	/* baker uses this flag to detect if image was initialized */
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		ima->id.flag |= LIB_DOIT;
-		if (ibuf)
+		if(ibuf) {
 			ibuf->userdata = NULL; /* use for masking if needed */
+			if(ibuf->rect_float)
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
+		}
 	}
 	
 	BLI_init_threads(&threads, do_bake_thread, re->r.threads);
 
+	handles= MEM_callocN(sizeof(BakeShade)*re->r.threads, "BakeShade");
+
 	/* get the threads running */
 	for(a=0; a<re->r.threads; a++) {
 		/* set defaults in handles */
-		memset(&handles[a], 0, sizeof(BakeShade));
-		
-		handles[a].ssamp.shi[0].lay= re->scene->lay;
+		handles[a].ssamp.shi[0].lay= re->lay;
 		
 		if (type==RE_BAKE_SHADOW) {
 			handles[a].ssamp.shi[0].passflag= SCE_PASS_SHADOW;
@@ -2683,19 +2680,29 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	/* wait for everything to be done */
 	a= 0;
 	while(a!=re->r.threads) {
-		
 		PIL_sleep_ms(50);
 
-		for(a=0; a<re->r.threads; a++)
+		/* calculate progress */
+		for(vdone=0, a=0; a<re->r.threads; a++)
+			vdone+= handles[a].vdone;
+		if (progress)
+			*progress = (float)(vdone / (float)re->totvlak);
+		
+		for(a=0; a<re->r.threads; a++) {
 			if(handles[a].ready==0)
 				break;
+		}
 	}
 	
 	/* filter and refresh images */
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if((ima->id.flag & LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-			if (re->r.bake_filter) {
+
+			if(!ibuf)
+				continue;
+
+			if(re->r.bake_filter) {
 				if (usemask) {
 					/* extend the mask +2 pixels from the image,
 					 * this is so colors dont blend in from outside */
@@ -2725,20 +2732,22 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 					ibuf->userdata= NULL;
 				}
 			}
+
 			ibuf->userflags |= IB_BITMAPDIRTY;
 			if (ibuf->rect_float) IMB_rect_from_float(ibuf);
 		}
 	}
 	
 	/* calculate return value */
- 	for(a=0; a<re->r.threads; a++) {
-		vdone+= handles[a].vdone;
-		
+	for(a=0; a<re->r.threads; a++) {
 		zbuf_free_span(handles[a].zspan);
 		MEM_freeN(handles[a].zspan);
- 	}
+	}
+
+	MEM_freeN(handles);
 	
 	BLI_end_threads(&threads);
+
 	return vdone;
 }
 

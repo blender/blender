@@ -30,23 +30,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "DNA_ID.h"
 #include "DNA_node_types.h"
-#include "DNA_image_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_action_types.h"
-#include "DNA_color_types.h"
-#include "DNA_customdata_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_text_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -73,9 +62,6 @@
 #include "WM_types.h"
 
 #include "ED_gpencil.h"
-#include "ED_screen.h"
-#include "ED_util.h"
-#include "ED_types.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -119,6 +105,44 @@ void ED_node_changed_update(ID *id, bNode *node)
 		DAG_id_flush_update(id, 0);
 		WM_main_add_notifier(NC_TEXTURE|ND_NODES, id);
 	}
+}
+
+static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
+{
+	bNode *node;
+	
+	if(ntree == lookup)
+		return 1;
+	
+	for(node=ntree->nodes.first; node; node=node->next)
+		if(node->type == NODE_GROUP && node->id)
+			if(has_nodetree((bNodeTree*)node->id, lookup))
+				return 1;
+	
+	return 0;
+}
+
+void ED_node_generic_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *node)
+{
+	Material *ma;
+	Tex *tex;
+	Scene *sce;
+	
+	/* look through all datablocks, to support groups */
+	for(ma=bmain->mat.first; ma; ma=ma->id.next)
+		if(ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
+			ED_node_changed_update(&ma->id, node);
+	
+	for(tex=bmain->tex.first; tex; tex=tex->id.next)
+		if(tex->nodetree && tex->use_nodes && has_nodetree(tex->nodetree, ntree))
+			ED_node_changed_update(&tex->id, node);
+	
+	for(sce=bmain->scene.first; sce; sce=sce->id.next)
+		if(sce->nodetree && sce->use_nodes && has_nodetree(sce->nodetree, ntree))
+			ED_node_changed_update(&sce->id, node);
+	
+	if(ntree->type == NTREE_TEXTURE)
+		ntreeTexCheckCyclics(ntree);
 }
 
 static void do_node_internal_buttons(bContext *C, void *node_v, int event)
@@ -373,9 +397,6 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 	rctf *rect= &gnode->totr;
 	int counter;
 	
-	/* init ui blocks for sub-nodetrees */
-	node_uiblocks_init(C, ngroup);
-	
 	/* center them, is a bit of abuse of locx and locy though */
 	for(node= ngroup->nodes.first; node; node= node->next) {
 		node->locx+= gnode->locx;
@@ -562,7 +583,7 @@ static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *socket_v)
 	
 	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, sock->locx, sock->locy-8, 140, 20, U.uistyles.first), 0);
 	
-	uiItemR(layout, "", 0, &ptr, "default_value", UI_ITEM_R_EXPAND);
+	uiItemR(layout, &ptr, "default_value", UI_ITEM_R_EXPAND, "", 0);
 	
 	return block;
 }
@@ -605,13 +626,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 		}
 	}
 	
-//	if(GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {	XXX
-//		float zoomx= curarea->winx/(float)(G.v2d->cur.xmax-G.v2d->cur.xmin);
-//		float zoomy= curarea->winy/(float)(G.v2d->cur.ymax-G.v2d->cur.ymin);
-//		glPixelZoom(zoomx*xscale, zoomy*yscale);
-//	}
-//	else
-		glPixelZoom(xscale, yscale);
+	glPixelZoom(xscale, yscale);
 
 	glEnable(GL_BLEND);
 	glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );	/* premul graphics */
@@ -640,6 +655,19 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	bNodeTree *ntree = snode->nodetree;
 	PointerRNA ptr;
 	
+	/* hurmf... another candidate for callback, have to see how this works first */
+	if(node->id && node->block && snode->treetype==NTREE_SHADER)
+		nodeShaderSynchronizeID(node, 0);
+	
+	/* skip if out of view */
+	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
+			node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax) {
+		
+		uiEndBlock(C, node->block);
+		node->block= NULL;
+		return;
+	}
+	
 	uiSetRoundBox(15-4);
 	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
 	
@@ -662,42 +690,32 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			icon_id= ICON_MATERIAL;
 		else
 			icon_id= ICON_MATERIAL_DATA;
-		iconofs-=18.0f;
-		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, icon_id, 1.0f, 0.5f);
-		glDisable(GL_BLEND);
+		iconofs-=22.0f;
+		uiDefIconBut(node->block, LABEL, B_REDR, icon_id, iconofs, rct->ymax-NODE_DY,
+					 UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, 0.5, "");
 	}
 	if(node->type == NODE_GROUP) {
 		
-		iconofs-=18.0f;
-		glEnable(GL_BLEND);
-		if(node->id->lib) {
-			float rgb[3] = {1.0f, 0.7f, 0.3f};
-			UI_icon_draw_aspect_color(iconofs, rct->ymax-NODE_DY, ICON_NODETREE, 1.0f, rgb);
-		}
-		else {
-			UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, ICON_NODETREE, 1.0f, 0.5f);
-		}
-		glDisable(GL_BLEND);
+		iconofs-=15.0f;
+		uiDefIconBut(node->block, LABEL, B_REDR, ICON_NODETREE, iconofs, rct->ymax-NODE_DY,
+					 UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, 0.5, "");
 	}
 	if(node->typeinfo->flag & NODE_OPTIONS) {
-		iconofs-=18.0f;
-		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, ICON_BUTS, 1.0f, 0.5f);
-		glDisable(GL_BLEND);
+		iconofs-=15.0f;
+		uiDefIconBut(node->block, LABEL, B_REDR, ICON_BUTS, iconofs, rct->ymax-NODE_DY,
+					 UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, 0.5, "");
 	}
 	{	/* always hide/reveal unused sockets */ 
 		int shade;
 
-		iconofs-=18.0f;
+		iconofs-=15.0f;
 		// XXX re-enable
 		/*if(node_has_hidden_sockets(node))
 			shade= -40;
 		else*/
 			shade= -90;
-		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(iconofs, rct->ymax-NODE_DY, ICON_PLUS, 1.0f, 0.5f);
-		glDisable(GL_BLEND);
+		uiDefIconBut(node->block, LABEL, B_REDR, ICON_PLUS, iconofs, rct->ymax-NODE_DY,
+						  UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, 0.5, "");
 	}
 	
 	/* title */
@@ -715,10 +733,10 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColor(TH_TEXT);
 	
 	if(node->flag & NODE_CUSTOM_NAME)
-		BLI_strncpy(showname, node->name, 32);
+		BLI_strncpy(showname, node->name, sizeof(showname));
 	else
 		/* todo: auto name display for node types */
-		BLI_strncpy(showname, node->name, 32);
+		BLI_strncpy(showname, node->name, sizeof(showname));
 
 	//if(node->flag & NODE_MUTED)
 	//	sprintf(showname, "[%s]", showname);
@@ -749,10 +767,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	if(node->flag & NODE_MUTED)
 		node_draw_mute_line(v2d, snode, node);
 
-	
-	/* hurmf... another candidate for callback, have to see how this works first */
-	if(node->id && node->block && snode->treetype==NTREE_SHADER)
-		nodeShaderSynchronizeID(node, 0);
 	
 	/* socket inputs, buttons */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
@@ -824,6 +838,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			node_draw_preview(node->preview, &node->prvr);
 		BLI_unlock_thread(LOCK_PREVIEW);
 	}
+	
+	UI_ThemeClearColor(color_id);
 		
 	uiEndBlock(C, node->block);
 	uiDrawBlock(C, node->block);
@@ -877,10 +893,10 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 
 
 		if(node->flag & NODE_CUSTOM_NAME)
-			BLI_strncpy(showname, node->name, 128);
+			BLI_strncpy(showname, node->name, sizeof(showname));
 		else
 			/* todo: auto name display */
-			BLI_strncpy(showname, node->name, 128);
+			BLI_strncpy(showname, node->name, sizeof(showname));
 	
 		//if(node->flag & NODE_MUTED)
 		//	sprintf(showname, "[%s]", showname);
@@ -1022,9 +1038,9 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	UI_ThemeColor(TH_TEXT_HI);
 
 	if (gnode->flag & NODE_CUSTOM_NAME)
-		strcat(showname, gnode->name);
+		BLI_strncpy(showname, gnode->name, sizeof(showname));
 	else
-		strcpy(showname, ngroup->id.name+2);
+		BLI_strncpy(showname, ngroup->id.name+2, sizeof(showname));
 
 	// XXX this shows some scaling artifacts
 	UI_DrawString(rect.xmin+8.0f, rect.ymax+5.0f, showname);
@@ -1046,14 +1062,12 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 
 void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 {
-	float col[3];
 	View2DScrollers *scrollers;
 	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *scene= CTX_data_scene(C);
 	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0);
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	UI_view2d_view_ortho(C, v2d);
@@ -1078,7 +1092,15 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	if(snode->nodetree) {
 		bNode *node;
 		
+		/* init ui blocks for opened node group trees first 
+		 * so they're in the correct depth stack order */
+		for(node= snode->nodetree->nodes.first; node; node= node->next) {
+			if(node->flag & NODE_GROUP_EDIT)
+				node_uiblocks_init(C, (bNodeTree *)node->id);
+		}
+
 		node_uiblocks_init(C, snode->nodetree);
+		
 		
 		/* for now, we set drawing coordinates on each redraw */
 		for(node= snode->nodetree->nodes.first; node; node= node->next) {
@@ -1101,14 +1123,14 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	
 	/* draw grease-pencil ('canvas' strokes) */
 	if (/*(snode->flag & SNODE_DISPGP) &&*/ (snode->nodetree))
-		draw_gpencil_2dview((bContext*)C, 1);
+		draw_gpencil_view2d((bContext*)C, 1);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 	
 	/* draw grease-pencil (screen strokes, and also paintbuffer) */
 	if (/*(snode->flag & SNODE_DISPGP) && */(snode->nodetree))
-		draw_gpencil_2dview((bContext*)C, 0);
+		draw_gpencil_view2d((bContext*)C, 0);
 	
 	/* scrollers */
 	scrollers= UI_view2d_scrollers_calc(C, v2d, 10, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);

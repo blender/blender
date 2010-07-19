@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -107,9 +107,9 @@ static void getMacAvailableBounds(short *top, short *left, short *bottom, short 
 	GetAvailableWindowPositioningBounds ( GetMainDevice(), &outAvailableRect);
 	
 	*top = outAvailableRect.top;  
-    *left = outAvailableRect.left;
-    *bottom = outAvailableRect.bottom; 
-    *right = outAvailableRect.right;
+	*left = outAvailableRect.left;
+	*bottom = outAvailableRect.bottom; 
+	*right = outAvailableRect.right;
 }
 
 

@@ -62,9 +62,13 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#include "BLI_threads.h"
+#include "BLI_blenlib.h"
+
+#include "GPU_buffers.h"
+#include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
-#include "GPU_draw.h"
 
 #include "smoke_API.h"
 
@@ -523,7 +527,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int tfmode, int c
 	}
 
 	/* scale if not a power of two */
-	if (!mipmap && (!is_pow2_limit(rectw) || !is_pow2_limit(recth))) {
+	if ((!is_pow2_limit(rectw) || !is_pow2_limit(recth))) {
 		rectw= smaller_pow2_limit(rectw);
 		recth= smaller_pow2_limit(recth);
 		
@@ -762,11 +766,11 @@ void GPU_free_smoke(SmokeModifierData *smd)
 	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain)
 	{
 		if(smd->domain->tex)
-	 		GPU_texture_free(smd->domain->tex);
+			 GPU_texture_free(smd->domain->tex);
 		smd->domain->tex = NULL;
 
 		if(smd->domain->tex_shadow)
-	 		GPU_texture_free(smd->domain->tex_shadow);
+			 GPU_texture_free(smd->domain->tex_shadow);
 		smd->domain->tex_shadow = NULL;
 	}
 }
@@ -781,8 +785,45 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 	smd->domain->tex_shadow = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->shadow);
 }
 
+static ListBase image_free_queue = {NULL, NULL};
+
+static void gpu_queue_image_for_free(Image *ima)
+{
+    Image *cpy = MEM_dupallocN(ima);
+
+	BLI_lock_thread(LOCK_OPENGL);
+	BLI_addtail(&image_free_queue, cpy);
+	BLI_unlock_thread(LOCK_OPENGL);
+}
+
+void GPU_free_unused_buffers(void)
+{
+	Image *ima;
+
+	if(!BLI_thread_is_main())
+		return;
+
+	BLI_lock_thread(LOCK_OPENGL);
+
+	/* images */
+	for(ima=image_free_queue.first; ima; ima=ima->id.next)
+		GPU_free_image(ima);
+
+	BLI_freelistN(&image_free_queue);
+
+	/* vbo buffers */
+	GPU_buffer_pool_free_unused(0);
+
+	BLI_unlock_thread(LOCK_OPENGL);
+}
+
 void GPU_free_image(Image *ima)
 {
+	if(!BLI_thread_is_main()) {
+		gpu_queue_image_for_free(ima);
+		return;
+	}
+
 	/* free regular image binding */
 	if(ima->bindcode) {
 		glDeleteTextures(1, (GLuint *)&ima->bindcode);
@@ -813,6 +854,17 @@ void GPU_free_images(void)
 	if(G.main)
 		for(ima=G.main->image.first; ima; ima=ima->id.next)
 			GPU_free_image(ima);
+}
+
+/* same as above but only free animated images */
+void GPU_free_images_anim(void)
+{
+	Image* ima;
+
+	if(G.main)
+		for(ima=G.main->image.first; ima; ima=ima->id.next)
+			if(ELEM(ima->type, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
+				GPU_free_image(ima);
 }
 
 /* OpenGL Materials */
@@ -1097,6 +1149,14 @@ void GPU_end_object_materials(void)
 	GMS.matbuf= NULL;
 	GMS.gmatbuf= NULL;
 	GMS.blendmode= NULL;
+
+	/* resetting the texture matrix after the glScale needed for tiled textures */
+	if(GTS.tilemode)
+	{
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+	}
 }
 
 /* Lights */
@@ -1170,7 +1230,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 	Base *base;
 	Lamp *la;
 	int count;
-	float position[4], direction[4], energy[4];
+	float position[4], direction[4], energy[4], power;
 	
 	/* disable all lights */
 	for(count=0; count<8; count++)
@@ -1211,8 +1271,8 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 
 			glLightfv(GL_LIGHT0+count, GL_POSITION, position); 
 			glLightf(GL_LIGHT0+count, GL_CONSTANT_ATTENUATION, 1.0);
-			glLightf(GL_LIGHT0+count, GL_LINEAR_ATTENUATION, la->att1/la->dist);
-			glLightf(GL_LIGHT0+count, GL_QUADRATIC_ATTENUATION, la->att2/(la->dist*la->dist));
+			glLightf(GL_LIGHT0+count, GL_LINEAR_ATTENUATION, 0.0f/la->dist);
+			glLightf(GL_LIGHT0+count, GL_QUADRATIC_ATTENUATION, 1.0f/(la->dist*la->dist));
 			
 			if(la->type==LA_SPOT) {
 				/* spot lamp */
@@ -1226,11 +1286,13 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 			else
 				glLightf(GL_LIGHT0+count, GL_SPOT_CUTOFF, 180.0);
 		}
+
+		power= (ELEM(la->type, LA_SUN, LA_HEMI))? la->energy*M_PI: la->power;
 		
 		/* setup energy */
-		energy[0]= la->energy*la->r;
-		energy[1]= la->energy*la->g;
-		energy[2]= la->energy*la->b;
+		energy[0]= power*la->r;
+		energy[1]= power*la->g;
+		energy[2]= power*la->b;
 		energy[3]= 1.0;
 
 		glLightfv(GL_LIGHT0+count, GL_DIFFUSE, energy); 

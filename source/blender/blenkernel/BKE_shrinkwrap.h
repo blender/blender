@@ -107,7 +107,7 @@ typedef struct ShrinkwrapCalcData
 
 	struct Object *ob;				//object we are applying shrinkwrap to
 
-	MVert *vert;					//Array of verts being projected (to fetch normals or other data)
+	struct MVert *vert;					//Array of verts being projected (to fetch normals or other data)
 	float (*vertexCos)[3];			//vertexs being shrinkwraped
 	int numVerts;
 

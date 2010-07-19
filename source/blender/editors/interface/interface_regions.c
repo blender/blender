@@ -30,10 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_screen_types.h"
-#include "DNA_view2d_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -413,6 +410,15 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
 		data->linedark[data->totline]= 1;
 		data->totline++;
+		
+		if(but->rnapoin.id.data) {
+			ID *id= but->rnapoin.id.data;
+			if(id->lib && id->lib->name) {
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Library: %s", id->lib->name);
+				data->linedark[data->totline]= 1;
+				data->totline++;
+			}
+		}
 	}
 	else if (but->optype) {
 		PointerRNA *opptr;
@@ -447,10 +453,10 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->fstyle.align= UI_STYLE_TEXT_CENTER;
 	uiStyleFontSet(&data->fstyle);
 
-	h= BLF_height(data->lines[0]);
+	h= BLF_height(data->fstyle.uifont_id, data->lines[0]);
 
 	for(a=0, fontw=0, fonth=0; a<data->totline; a++) {
-		w= BLF_width(data->lines[a]);
+		w= BLF_width(data->fstyle.uifont_id, data->lines[a]);
 		fontw= MAX2(fontw, w);
 		fonth += (a == 0)? h: h+5;
 	}
@@ -1553,12 +1559,21 @@ void ui_set_but_hsv(uiBut *but)
 }
 
 /* also used by small picker, be careful with name checks below... */
-void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
+void ui_update_block_buts_rgb(uiBlock *block, float *rgb, float *rhsv)
 {
 	uiBut *bt;
 	float hsv[3];
 	
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	/* this is to keep the H and S value when V is equal to zero
+	 * and we are working in HSV mode, of course!
+	 */
+	if (rhsv) {
+		hsv[0]= rhsv[0];
+		hsv[1]= rhsv[1];
+		hsv[2]= rhsv[2];
+	}
+	else
+		rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	// this updates button strings, is hackish... but button pointers are on stack of caller function
 	for(bt= block->buttons.first; bt; bt= bt->next) {
@@ -1568,9 +1583,24 @@ void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 			
 		}
 		else if(strcmp(bt->str, "Hex: ")==0) {
+			float rgb_gamma[3];
+			double intpart;
 			char col[16];
 			
-			sprintf(col, "%02X%02X%02X", (unsigned int)(rgb[0]*255.0), (unsigned int)(rgb[1]*255.0), (unsigned int)(rgb[2]*255.0));
+			/* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
+			
+			if (block->color_profile == BLI_PR_NONE) {
+				copy_v3_v3(rgb_gamma, rgb);
+			} else {
+				/* make an sRGB version, for Hex code */
+				linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
+			}
+			
+			if (rgb_gamma[0] > 1.0f) rgb_gamma[0] = modf(rgb_gamma[0], &intpart);
+			if (rgb_gamma[1] > 1.0f) rgb_gamma[1] = modf(rgb_gamma[1], &intpart);
+			if (rgb_gamma[2] > 1.0f) rgb_gamma[2] = modf(rgb_gamma[2], &intpart);
+
+			sprintf(col, "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 			
 			strcpy(bt->poin, col);
 		}
@@ -1609,7 +1639,7 @@ static void do_picker_rna_cb(bContext *C, void *bt1, void *unused)
 	
 	if (prop) {
 		RNA_property_float_get_array(&ptr, prop, rgb);
-		ui_update_block_buts_rgb(but->block, rgb);
+		ui_update_block_buts_rgb(but->block, rgb, NULL);
 	}
 	
 	if(popup)
@@ -1625,7 +1655,7 @@ static void do_hsv_rna_cb(bContext *C, void *bt1, void *hsv_arg)
 	
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 	
-	ui_update_block_buts_rgb(but->block, rgb);
+	ui_update_block_buts_rgb(but->block, rgb, hsv);
 	
 	if(popup)
 		popup->menuretval= UI_RETURN_UPDATE;
@@ -1640,7 +1670,13 @@ static void do_hex_rna_cb(bContext *C, void *bt1, void *hexcl)
 	
 	hex_to_rgb(hexcol, rgb, rgb+1, rgb+2);
 	
-	ui_update_block_buts_rgb(but->block, rgb);
+	/* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
+	if (but->block->color_profile != BLI_PR_NONE) {
+		/* so we need to linearise it for Blender */
+		srgb_to_linearrgb_v3_v3(rgb, rgb);
+	}
+	
+	ui_update_block_buts_rgb(but->block, rgb, NULL);
 	
 	if(popup)
 		popup->menuretval= UI_RETURN_UPDATE;
@@ -1661,6 +1697,13 @@ static void picker_new_hide_reveal(uiBlock *block, short colormode)
 	
 	/* tag buttons */
 	for(bt= block->buttons.first; bt; bt= bt->next) {
+		
+		if (bt->type == LABEL) {
+			if( bt->str[1]=='G') {
+				if(colormode==2) bt->flag &= ~UI_HIDDEN;
+				else bt->flag |= UI_HIDDEN;
+			}
+		}
 		
 		if(bt->type==NUMSLI || bt->type==TEX) {
 			if( bt->str[1]=='e') {
@@ -1702,11 +1745,11 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, const char *propname)
 	uiBut *bt;
 	
 	/* HS circle */
-	bt= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, PICKER_H, PICKER_W, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, PICKER_H, PICKER_W, ptr, propname, 0, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, UI_GRAD_V_ALT, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, 0, 0.0, 0.0, UI_GRAD_V_ALT, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1717,11 +1760,11 @@ static void square_picker(uiBlock *block, PointerRNA *ptr, const char *propname,
 	int bartype = type + 3;
 	
 	/* HS square */
-	bt= uiDefButR(block, HSVCUBE, 0, "",	0, PICKER_BAR+PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, propname, -1, 0.0, 0.0, type, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "",	0, PICKER_BAR+PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, propname, 0, 0.0, 0.0, type, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, -1, 0.0, 0.0, bartype, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, 0, 0.0, 0.0, bartype, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1735,17 +1778,27 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	static char tip[50];
 	static float hsv[3];
 	static char hexcol[128];
+	float rgb_gamma[3];
+	float min, max, step, precision;
 	const char *propname = RNA_property_identifier(prop);
 	
 	width= PICKER_TOTAL_W;
 	butwidth = width - UI_UNIT_X - 10;
 	
 	/* existence of profile means storage is in linear colour space, with display correction */
-	if (block->color_profile == BLI_PR_NONE)
+	if (block->color_profile == BLI_PR_NONE) {
 		sprintf(tip, "Value in Display Color Space");
-	else
+		copy_v3_v3(rgb_gamma, rgb);
+	} else {
 		sprintf(tip, "Value in Linear RGB Color Space");
+		/* make an sRGB version, for Hex code */
+		linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
+	}
 	
+	/* sneaky way to check for alpha */
+	rgb[3]= FLT_MAX;
+
+	RNA_property_float_ui_range(ptr, prop, &min, &max, &step, &precision);
 	RNA_property_float_get_array(ptr, prop, rgb);
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 
@@ -1779,13 +1832,14 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	
 	/* RGB values */
 	uiBlockBeginAlign(block);
-	bt= uiDefButR(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, propname, 0, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, propname, 0, 0.0, 0.0, 0, 3, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt= uiDefButR(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, propname, 1, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, propname, 1, 0.0, 0.0, 0, 3, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 3, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	// could use uiItemFullR(col, "", 0, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER);
+
+	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", 0);
 	// but need to use uiButSetFunc for updating other fake buttons
 	
 	/* HSV values */
@@ -1794,15 +1848,25 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	bt= uiDefButF(block, NUMSLI, 0, "S ",	0, -80, butwidth, UI_UNIT_Y, hsv+1, 0.0, 1.0, 10, 3, "");
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, butwidth, UI_UNIT_Y, hsv+2, 0.0, 1.0, 10, 3, "");
+	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, butwidth, UI_UNIT_Y, hsv+2, 0.0, max, 10, 3, "");
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
-	
+
+	if(rgb[3] != FLT_MAX) {
+		bt= uiDefButR(block, NUMSLI, 0, "A ",	0, -120, butwidth, UI_UNIT_Y, ptr, propname, 3, 0.0, 0.0, 0, 0, "");
+		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	}
+	else {
+		rgb[3]= 1.0f;
+	}
+
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(rgb[0]*255.0), (unsigned int)(rgb[1]*255.0), (unsigned int)(rgb[2]*255.0));	
+
+	sprintf(hexcol, "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 
 	bt= uiDefBut(block, TEX, 0, "Hex: ", 0, -60, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
+	uiDefBut(block, LABEL, 0, "(Gamma Corrected)", 0, -80, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	picker_new_hide_reveal(block, colormode);
 }
@@ -1833,7 +1897,7 @@ static int ui_picker_small_wheel(const bContext *C, uiBlock *block, wmEvent *eve
 
 				ui_set_but_vectorf(but, col);
 				
-				ui_update_block_buts_rgb(block, col);
+				ui_update_block_buts_rgb(block, col, NULL);
 				if(popup)
 					popup->menuretval= UI_RETURN_UPDATE;
 				
@@ -2054,13 +2118,13 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 		pup->mx= window->eventstate->x;
 		pup->my= window->eventstate->y;
 		pup->popup= 1;
+		pup->block->flag |= UI_BLOCK_NO_FLIP;
 	}
 
 	if(str) {
 		/* menu is created from a string */
 		pup->menu_func= ui_block_func_MENUSTR;
 		pup->menu_arg= str;
-		// XXX pup->block->flag |= UI_BLOCK_NO_FLIP;
 	}
 	else {
 		/* menu is created from a callback */
@@ -2264,7 +2328,7 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	ds= BLI_dynstr_new();
 
 	for(report=reports->list.first; report; report=report->next) {
-		if(report->type <= reports->printlevel)
+		if(report->type < reports->printlevel)
 			; /* pass */
 		else if(report->type >= RPT_ERROR)
 			BLI_dynstr_appendf(ds, "Error %%i%d%%t|%s", ICON_ERROR, report->message);

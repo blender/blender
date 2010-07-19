@@ -54,19 +54,19 @@ class TEXT_HT_header(bpy.types.Header):
         if text:
             row = layout.row()
             row.operator("text.run_script")
+
+            row = layout.row()
+            row.active = text.name.endswith(".py")
             row.prop(text, "use_module")
 
             row = layout.row()
-            if text.filename != "":
+            if text.filepath:
                 if text.dirty:
-                    row.label(text="File: *%s (unsaved)" % text.filename)
+                    row.label(text="File: *%s (unsaved)" % text.filepath)
                 else:
-                    row.label(text="File: %s" % text.filename)
+                    row.label(text="File: %s" % text.filepath)
             else:
-                if text.library:
-                    row.label(text="Text: External")
-                else:
-                    row.label(text="Text: Internal")
+                row.label(text="Text: External" if text.library else "Text: Internal")
 
 
 class TEXT_PT_properties(bpy.types.Panel):
@@ -147,7 +147,7 @@ class TEXT_MT_text(bpy.types.Menu):
             layout.operator("text.save")
             layout.operator("text.save_as")
 
-            if text.filename != "":
+            if text.filepath:
                 layout.operator("text.make_internal")
 
             layout.column()
@@ -177,7 +177,7 @@ class TEXT_MT_templates(bpy.types.Menu):
     bl_label = "Script Templates"
 
     def draw(self, context):
-        self.path_menu(bpy.utils.script_paths("templates"), "text.open")
+        self.path_menu(bpy.utils.script_paths("templates"), "text.open", {"internal": True})
 
 
 class TEXT_MT_edit_view(bpy.types.Menu):
@@ -274,6 +274,22 @@ class TEXT_MT_edit(bpy.types.Menu):
         layout.menu("TEXT_MT_edit_to3d")
 
 
+class TEXT_MT_toolbox(bpy.types.Menu):
+    bl_label = ""
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_DEFAULT'
+
+        layout.operator("text.cut")
+        layout.operator("text.copy")
+        layout.operator("text.paste")
+
+        layout.separator()
+
+        layout.operator("text.run_script")
+
+
 classes = [
     TEXT_HT_header,
     TEXT_PT_properties,
@@ -285,7 +301,8 @@ classes = [
     TEXT_MT_edit_view,
     TEXT_MT_edit_select,
     TEXT_MT_edit_markers,
-    TEXT_MT_edit_to3d]
+    TEXT_MT_edit_to3d,
+    TEXT_MT_toolbox]
 
 
 def register():

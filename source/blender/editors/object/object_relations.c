@@ -32,20 +32,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_math.h"
@@ -87,7 +81,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_object.h"
@@ -197,7 +190,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(ob != obedit) {
-			ob->recalc |= OB_RECALC;
+			ob->recalc |= OB_RECALC_ALL;
 			par= obedit->parent;
 			
 			while(par) {
@@ -283,7 +276,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		PointerRNA props_ptr;
 		
 		/* create operator menu item with relevant properties filled in */
-		props_ptr= uiItemFullO(layout, op->type->name, 0, op->idname, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		props_ptr= uiItemFullO(layout, op->idname, op->type->name, 0, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -343,7 +336,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		
 		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
-		DAG_id_flush_update(&newob->id, OB_RECALC);
+		DAG_id_flush_update(&newob->id, OB_RECALC_ALL);
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, newob);
 	}
 	else {
@@ -409,7 +402,7 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 
 static EnumPropertyItem prop_clear_parent_types[] = {
 	{0, "CLEAR", 0, "Clear Parent", ""},
-	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation (Clear Track)", ""},
+	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation", ""},
 	{2, "CLEAR_INVERSE", 0, "Clear Parent Inverse", ""},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -426,13 +419,12 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 		}			
 		else if(type == 1) {
 			ob->parent= NULL;
-			ob->track= NULL;
-			ED_object_apply_obmat(ob);
+			object_apply_mat4(ob, ob->obmat);
 		}
 		else if(type == 2)
 			unit_m4(ob->parentinv);
 
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_ALL;
 	}
 	CTX_DATA_END;
 	
@@ -569,7 +561,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				Object workob;
 				
 				/* apply transformation of previous parenting */
-				ED_object_apply_obmat(ob);
+				object_apply_mat4(ob, ob->obmat);
 				
 				/* set the parent (except for follow-path constraint option) */
 				if(partype != PAR_PATH_CONST)
@@ -676,23 +668,23 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_OBJECT);
+	uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_OBJECT);
 	
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_NAME);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_ENVELOPE);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_AUTO);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_BONE);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_NAME);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_AUTO);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_CURVE);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_FOLLOW);
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_PATH_CONST);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_CURVE);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_FOLLOW);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_PATH_CONST);
 	}
 	else if(ob->type == OB_LATTICE) {
-		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_LATTICE);
+		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_LATTICE);
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -874,7 +866,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		
 		/* remove track-object for old track */
 		ob->track= NULL;
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_ALL;
 		
 		/* also remove all tracking constraints */
 		for (con= ob->constraints.last; con; con= pcon) {
@@ -884,7 +876,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		}
 		
 		if(type == 1)
-			ED_object_apply_obmat(ob);
+			object_apply_mat4(ob, ob->obmat);
 	}
 	CTX_DATA_END;
 
@@ -920,7 +912,6 @@ static EnumPropertyItem prop_make_track_types[] = {
 	{1, "DAMPTRACK", 0, "Damped Track Constraint", ""},
 	{2, "TRACKTO", 0, "Track To Constraint", ""},
 	{3, "LOCKTRACK", 0, "Lock Track Constraint", ""},
-	{4, "OLDTRACK", 0, "Old Track", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -941,7 +932,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA)
@@ -960,7 +951,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
@@ -981,22 +972,13 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC;
+				ob->recalc |= OB_RECALC_ALL;
 				
 				/* Lamp and Camera track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
 					data->trackflag = TRACK_nZ;
 					data->lockflag = LOCK_Y;
 				}
-			}
-		}
-		CTX_DATA_END;
-	}
-	else {
-		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-			if(ob!=obact) {
-				ob->track= obact;
-				ob->recalc |= OB_RECALC;
 			}
 		}
 		CTX_DATA_END;
@@ -1161,7 +1143,7 @@ void link_to_scene(unsigned short nr)
 
 static int make_links_scene_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "type"));
+	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 
 	if(scene_to==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Scene not found");
@@ -1203,6 +1185,30 @@ enum {
 	MAKE_LINKS_MODIFIERS
 };
 
+/* Return 1 if make link data is allow, zero otherwise */
+static int allow_make_links_data(int ev, Object *ob, Object *obt)
+{
+	switch(ev) {
+		case MAKE_LINKS_OBDATA:
+			if (ob->type == obt->type && ob->type != OB_EMPTY)
+				return 1;
+			break;
+		case MAKE_LINKS_MATERIALS:
+			if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL) &&
+				ELEM5(obt->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL))
+				return 1;
+			break;
+		case MAKE_LINKS_ANIMDATA:
+		case MAKE_LINKS_DUPLIGROUP:
+			return 1;
+		case MAKE_LINKS_MODIFIERS:
+			if (ob->type != OB_EMPTY && obt->type != OB_EMPTY)
+				return 1;
+			break;
+	}
+	return 0;
+}
+
 static int make_links_data_exec(bContext *C, wmOperator *op)
 {
 	int event = RNA_int_get(op->ptr, "type");
@@ -1214,43 +1220,44 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN(C, Object*, obt, selected_editable_objects) {
 		if(ob != obt) {
-			switch(event) {
-			case MAKE_LINKS_OBDATA: /* obdata */
-							id= obt->data;
-							id->us--;
+			if (allow_make_links_data(event, ob, obt)) {
+				switch(event) {
+				case MAKE_LINKS_OBDATA: /* obdata */
+					id= obt->data;
+					id->us--;
 
-							id= ob->data;
-							id_us_plus(id);
-							obt->data= id;
+					id= ob->data;
+					id_us_plus(id);
+					obt->data= id;
 
-							/* if amount of material indices changed: */
-							test_object_materials(obt->data);
+					/* if amount of material indices changed: */
+					test_object_materials(obt->data);
 
-							obt->recalc |= OB_RECALC_DATA;
-				break;
-			case MAKE_LINKS_MATERIALS:
-				/* new approach, using functions from kernel */
-				for(a=0; a<ob->totcol; a++) {
-					Material *ma= give_current_material(ob, a+1);
-					assign_material(obt, ma, a+1);	/* also works with ma==NULL */
-						}
-				break;
-			case MAKE_LINKS_ANIMDATA:
-				BKE_copy_animdata_id((ID *)obt, (ID *)ob);
-				BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data);
-				break;
-			case MAKE_LINKS_DUPLIGROUP:
-					if(ob->dup_group) ob->dup_group->id.us--;
+					obt->recalc |= OB_RECALC_DATA;
+					break;
+				case MAKE_LINKS_MATERIALS:
+					/* new approach, using functions from kernel */
+					for(a=0; a<ob->totcol; a++) {
+						Material *ma= give_current_material(ob, a+1);
+						assign_material(obt, ma, a+1);	/* also works with ma==NULL */
+					}
+					break;
+				case MAKE_LINKS_ANIMDATA:
+					BKE_copy_animdata_id((ID *)obt, (ID *)ob);
+					BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data);
+					break;
+				case MAKE_LINKS_DUPLIGROUP:
 					obt->dup_group= ob->dup_group;
 					if(obt->dup_group) {
-						id_us_plus((ID *)obt->dup_group);
+						id_lib_extern(&obt->dup_group->id);
 						obt->transflag |= OB_DUPLIGROUP;
 					}
-				break;
-			case MAKE_LINKS_MODIFIERS:
-				object_link_modifiers(obt, ob);
-				obt->recalc |= OB_RECALC;
-				break;
+					break;
+				case MAKE_LINKS_MODIFIERS:
+					object_link_modifiers(obt, ob);
+					obt->recalc |= OB_RECALC_ALL;
+					break;
+						}
 			}
 		}
 	}
@@ -1279,8 +1286,9 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
-	RNA_def_enum_funcs(prop, RNA_scene_itemf);
+	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+	RNA_def_enum_funcs(prop, RNA_scene_local_itemf);
+	ot->prop= prop;
 }
 
 void OBJECT_OT_make_links_data(wmOperatorType *ot)
@@ -1357,7 +1365,6 @@ void single_object_users(Scene *scene, View3D *v3d, int flag)
 			modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
 			
 			ID_NEW(ob->parent);
-			ID_NEW(ob->track);
 		}
 	}
 
@@ -1678,13 +1685,13 @@ static void single_mat_users_expand(void)
 /* used for copying scenes */
 void ED_object_single_users(Scene *scene, int full)
 {
-    single_object_users(scene, NULL, 0);
+	single_object_users(scene, NULL, 0);
 
-    if(full) {
-        single_obdata_users(scene, 0);
-        single_mat_users_expand();
-        single_tex_users_expand();
-    }
+	if(full) {
+		single_obdata_users(scene, 0);
+		single_mat_users_expand();
+		single_tex_users_expand();
+	}
 
 	clear_id_newpoins();
 }
@@ -1726,22 +1733,21 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
 	clear_id_newpoins();
 	
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 		if(ob->id.lib)
 			id_make_local(&ob->id, 0);
 	}
 	CTX_DATA_END;
 	
 	/* maybe object pointers */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 		if(ob->id.lib==NULL) {
 			ID_NEW(ob->parent);
-			ID_NEW(ob->track);
 		}
 	}
 	CTX_DATA_END;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 		id= ob->data;
 			
 		if(id && mode>1) {
@@ -1759,7 +1765,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if(mode>1) {
-		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 			if(ob->type==OB_LAMP) {
 				la= ob->data;
 
@@ -1824,7 +1830,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 	int flag= RNA_enum_get(op->ptr, "type"); /* 0==ALL, SELECTED==selected objecs */
 
 	if(RNA_boolean_get(op->ptr, "object"))
-	    single_object_users(scene, v3d, flag);
+		single_object_users(scene, v3d, flag);
 
 	if(RNA_boolean_get(op->ptr, "obdata"))
 		single_obdata_users(scene, flag);

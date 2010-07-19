@@ -29,10 +29,6 @@
 #include "Operator1Expr.h"
 #include "IdentifierExpr.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 // this is disable at the moment, I expected a memleak from it, but the error-cleanup was the reason
 // well, looks we don't need it anyway, until maybe the Curved Surfaces are integrated into CSG 
 // cool things like (IF(LOD==1,CCurvedValue,IF(LOD==2,CCurvedValue2)) etc...

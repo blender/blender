@@ -78,7 +78,7 @@ typedef enum PropertyUnit {
 	PROP_UNIT_AREA = (2<<16),			/* m^2 */
 	PROP_UNIT_VOLUME = (3<<16),			/* m^3 */
 	PROP_UNIT_MASS = (4<<16),			/* kg */
-	PROP_UNIT_ROTATION = (5<<16),		/* rad */
+	PROP_UNIT_ROTATION = (5<<16),		/* radians */
 	PROP_UNIT_TIME = (6<<16),			/* frame */
 	PROP_UNIT_VELOCITY = (7<<16),		/* m/s */
 	PROP_UNIT_ACCELERATION = (8<<16)	/* m/(s^2) */
@@ -118,6 +118,7 @@ typedef enum PropertySubType {
 	PROP_QUATERNION = 27,
 	PROP_AXISANGLE = 28,
 	PROP_XYZ = 29,
+	PROP_XYZ_LENGTH = 29|PROP_UNIT_LENGTH,
 	PROP_COLOR_GAMMA = 30,
 
 	/* booleans */
@@ -245,8 +246,10 @@ typedef struct ParameterList {
 	/* storage for parameters */
 	void *data;
 
-	/* store the parameter count */
-	int tot;
+	/* store the parameter size */
+	int alloc_size;
+
+	int arg_count, ret_count;
 
 	/* function passed at creation time */
 	struct FunctionRNA *func;
@@ -328,17 +331,31 @@ typedef struct ExtensionRNA {
 
 /* fake struct definitions, needed otherwise collections end up owning the C
  * structs like 'Object' when defined first */
-#define MainCameras Main
-#define MainScenes Main
-#define MainArmatures Main
-#define MainMaterials Main
-#define MainMeshes Main
-#define MainLamps Main
-#define MainObjects Main
-#define MainTexts Main
-#define MainActions Main
-#define MainGroups Main
-#define MainTextures Main
+#define MainActions		Main
+#define MainArmatures		Main
+#define MainBrushes		Main
+#define MainCameras		Main
+#define MainCurves		Main
+#define MainFonts		Main
+#define MainGreasePencils	Main
+#define MainGroups		Main
+#define MainImages		Main
+#define MainLamps		Main
+#define MainLattices		Main
+#define MainLibraries		Main
+#define MainMaterials		Main
+#define MainMeshes		Main
+#define MainMetaBalls		Main
+#define MainNodeTrees		Main
+#define MainObjects		Main
+#define MainParticles		Main
+#define MainScenes		Main
+#define MainScreens		Main
+#define MainSounds		Main
+#define MainTexts		Main
+#define MainTextures		Main
+#define MainWindowManagers	Main
+#define MainWorlds		Main
 
 #ifdef __cplusplus
 }

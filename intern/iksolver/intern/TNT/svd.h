@@ -349,8 +349,9 @@ void SVD(MaTRiX &A, MaTRiX &U, VecToR &s, MaTRiX &V, VecToR &work1, VecToR &work
 
 				for (j = k; j < p-1; j++) {
 					typename MaTRiX::value_type t = hypot(f,g);
-					typename MaTRiX::value_type cs = f/t;
-					typename MaTRiX::value_type sn = g/t;
+					/* division by zero checks added to avoid NaN (brecht) */
+					typename MaTRiX::value_type cs = (t == 0.0f)? 0.0f: f/t;
+					typename MaTRiX::value_type sn = (t == 0.0f)? 0.0f: g/t;
 					if (j != k) {
 						e[j-1] = t;
 					}
@@ -366,8 +367,9 @@ void SVD(MaTRiX &A, MaTRiX &U, VecToR &s, MaTRiX &V, VecToR &work1, VecToR &work
 					}
 
 					t = hypot(f,g);
-					cs = f/t;
-					sn = g/t;
+					/* division by zero checks added to avoid NaN (brecht) */
+					cs = (t == 0.0f)? 0.0f: f/t;
+					sn = (t == 0.0f)? 0.0f: g/t;
 					s[j] = t;
 					f = cs*e[j] + sn*s[j+1];
 					s[j+1] = -sn*e[j] + cs*s[j+1];

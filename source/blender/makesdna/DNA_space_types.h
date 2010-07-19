@@ -44,6 +44,7 @@ struct Text;
 struct Script;
 struct ImBuf;
 struct Image;
+struct Scopes;
 struct Histogram;
 struct SpaceIpo;
 struct BlendHandle;
@@ -168,15 +169,16 @@ typedef struct FileSelectParams {
 
 	/* XXX - temporary, better move to filelist */
 	short active_bookmark;
+
 	int	active_file;
 	int selstate;
 
 	/* short */
 	/* XXX --- still unused -- */
 	short f_fp; /* show font preview */
-	short menu; /* currently selected option in pupmenu */
+	short pad;
 	char fp_str[8]; /* string to use for font preview */
-	char *pupmenu; /* allows menu for save options - result stored in menup */
+
 	/* XXX --- end unused -- */
 } FileSelectParams;
 
@@ -185,7 +187,7 @@ typedef struct SpaceFile {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
-	int pad;
+	int scroll_offset;
 
 	struct FileSelectParams *params; /* config and input for file select */
 	
@@ -201,7 +203,7 @@ typedef struct SpaceFile {
 	*/
 	struct wmOperator *op; 
 
-	struct wmTimer *loadimage_timer;
+	struct wmTimer *smoothscroll_timer;
 
 	struct FileLayout *layout;
 	
@@ -251,6 +253,7 @@ typedef struct SpaceImage {
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
 	char around;
+	float cursor[2];				/* UV editor 2d cursor */
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float zoom, pad4;				/* user defined zoom level */
@@ -258,7 +261,10 @@ typedef struct SpaceImage {
 	
 	struct bGPdata *gpd;			/* grease pencil data */
 	
-	struct Histogram hist;			/* viewer histogram */
+	struct Scopes scopes;			/* histogram waveform and vectorscope */
+
+	struct Histogram sample_line_hist;	/* sample line histogram */
+	
 } SpaceImage;
 
 typedef struct SpaceNla {
@@ -340,6 +346,17 @@ typedef struct SpaceScript {
 	void *but_refs;
 } SpaceScript;
 
+typedef struct SpaceTimeCache {
+	struct SpaceTimeCache *next, *prev;
+	int type;
+	int flag;
+	
+	float *array;
+	int len;
+	int startframe, endframe;
+	int ok;
+} SpaceTimeCache;
+
 typedef struct SpaceTime {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -347,6 +364,9 @@ typedef struct SpaceTime {
 	float blockscale;
 	
 	View2D v2d; /* deprecated, copied to region */
+	
+	ListBase caches;
+	int cache_display, pad;
 	
 	int flag, redraws;
 	
@@ -367,8 +387,9 @@ typedef struct SpaceNode {
 	float aspect;
 	void *curfont;
 	
-	float xof, yof;	/* offset for drawing the backdrop */
-	float mx, my;	/* mousepos for drawing socketless link */
+	float xof, yof;		/* offset for drawing the backdrop */
+	float zoom, padf;	/* zoom for backdrop */
+	float mx, my;		/* mousepos for drawing socketless link */
 	
 	struct bNodeTree *nodetree, *edittree;
 	int treetype;			/* treetype: as same nodetree->type */
@@ -524,6 +545,9 @@ typedef struct SpaceUserPref {
 	int spacetype;
 
 	int pad;
+	
+	char filter[64];		/* search term for filtering in the UI */
+
 } SpaceUserPref;
 
 /* view3d  Now in DNA_view3d_types.h */
@@ -618,6 +642,7 @@ typedef struct SpaceUserPref {
 #define BUTS_ACT_LINK		256
 #define BUTS_SENS_STATE		512
 #define BUTS_ACT_STATE		1024
+#define BUTS_CONT_INIT_STATE	2048
 
 /* FileSelectParams.display */
 enum FileDisplayTypeE {
@@ -655,7 +680,7 @@ enum FileSortTypeE {
 
 /* sfile->flag and simasel->flag */
 #define FILE_SHOWSHORT		1
-#define FILE_STRINGCODE		2
+#define FILE_RELPATH		2 /* was FILE_STRINGCODE */
 #define FILE_LINK			4
 #define FILE_HIDE_DOT		8
 #define FILE_AUTOSELECT		16
@@ -667,19 +692,20 @@ enum FileSortTypeE {
 #define FILE_GROUP_INSTANCE	1024
 
 /* files in filesel list: 2=ACTIVE  */
-#define EDITING				1
-#define ACTIVE				2
-#define BLENDERFILE			4
-#define PSXFILE				8
-#define IMAGEFILE			16
-#define MOVIEFILE			32
-#define PYSCRIPTFILE		64
-#define FTFONTFILE			128
-#define SOUNDFILE			256
-#define TEXTFILE			512
-#define MOVIEFILE_ICON		1024 /* movie file that preview can't load */
-#define FOLDERFILE			2048 /* represents folders for filtering */
-#define BTXFILE				4096
+#define EDITING				(1<<0)
+#define ACTIVEFILE			(1<<1)
+#define BLENDERFILE			(1<<2)
+#define PSXFILE				(1<<3)
+#define IMAGEFILE			(1<<4)
+#define MOVIEFILE			(1<<5)
+#define PYSCRIPTFILE		(1<<6)
+#define FTFONTFILE			(1<<7)
+#define SOUNDFILE			(1<<8)
+#define TEXTFILE			(1<<9)
+#define MOVIEFILE_ICON		(1<<10) /* movie file that preview can't load */
+#define FOLDERFILE			(1<<11) /* represents folders for filtering */
+#define BTXFILE				(1<<12)
+#define COLLADAFILE			(1<<13)
 
 /* SpaceImage->dt_uv */
 #define SI_UVDT_OUTLINE	0
@@ -768,7 +794,7 @@ enum {
 
 #define ST_SCROLL_SELECT        0x0001 // scrollable
 #define ST_CLEAR_NAMESPACE      0x0010 // clear namespace after script
-                                       // execution (see BPY_main.c)
+									   // execution (see BPY_main.c)
 #define	ST_FIND_WRAP			0x0020
 #define	ST_FIND_ALL				0x0040
 
@@ -803,6 +829,10 @@ enum {
 		/* if set, it allows redraws. gets set for some allqueue events */
 #define SO_TREESTORE_REDRAW		2
 
+/* outliner search flags (SpaceOops->search_flags) */
+#define SO_FIND_CASE_SENSITIVE		(1<<0)
+#define SO_FIND_COMPLETE			(1<<1)
+
 /* headerbuttons: 450-499 */
 
 #define B_IMASELHOME		451
@@ -813,31 +843,6 @@ enum {
 #define C_DERK  0x766666
 #define C_HI	0xCBBBBB
 #define C_LO	0x544444
-
-/* queue settings */
-#define IMS_KNOW_WIN        1
-#define IMS_KNOW_BIP        2
-#define IMS_KNOW_DIR        4
-#define IMS_DOTHE_INF		8
-#define IMS_KNOW_INF	   16
-#define IMS_DOTHE_IMA	   32
-#define IMS_KNOW_IMA	   64
-#define IMS_FOUND_BIP	  128
-#define IMS_DOTHE_BIP	  256
-#define IMS_WRITE_NO_BIP  512
-
-/* imasel->mode */
-#define IMS_NOIMA			0
-#define IMS_IMA				1
-#define IMS_ANIM			2
-#define IMS_DIR				4
-#define IMS_FILE			8
-#define IMS_STRINGCODE		16
-
-#define IMS_INDIR			1
-#define IMS_INDIRSLI		2
-#define IMS_INFILE			3
-#define IMS_INFILESLI		4
 
 /* nla->flag */
 /* flags (1<<0), (1<<1), and (1<<3) are depreceated flags from old blenders */
@@ -869,6 +874,13 @@ enum {
 #define TIME_CONTINUE_PHYSICS	128
 #define TIME_NODES				256
 
+/* time->cache */
+#define TIME_CACHE_DISPLAY		1
+#define TIME_CACHE_SOFTBODY		2
+#define TIME_CACHE_PARTICLES	4
+#define TIME_CACHE_CLOTH		8
+#define TIME_CACHE_SMOKE		16
+
 /* sseq->mainb */
 #define SEQ_DRAW_SEQUENCE         0
 #define SEQ_DRAW_IMG_IMBUF        1
@@ -888,6 +900,14 @@ enum {
 #define SEQ_VIEW_SEQUENCE			1
 #define SEQ_VIEW_PREVIEW			2
 #define SEQ_VIEW_SEQUENCE_PREVIEW	3
+
+/* sseq->render_size */
+#define SEQ_PROXY_RENDER_SIZE_NONE      -1
+#define SEQ_PROXY_RENDER_SIZE_SCENE     0
+#define SEQ_PROXY_RENDER_SIZE_25        25
+#define SEQ_PROXY_RENDER_SIZE_50        50
+#define SEQ_PROXY_RENDER_SIZE_75        75
+#define SEQ_PROXY_RENDER_SIZE_FULL      100
 
 
 /* space types, moved from DNA_screen_types.h */

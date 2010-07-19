@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,22 +29,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
-
-#include "BLI_blenlib.h"
 
 #include "BKE_context.h"
-#include "BKE_utildefines.h"
 #include "BKE_sound.h"
 
-#include "UI_interface.h"
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
@@ -53,9 +43,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframing.h"
-#include "ED_markers.h"
 #include "ED_screen.h"
 
 #include "anim_intern.h"
@@ -82,6 +69,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	/* set the new frame number */
 	CFRA= RNA_int_get(op->ptr, "frame");
 	FRAMENUMBER_MIN_CLAMP(CFRA);
+	SUBFRA = 0.f;
 	
 	/* do updates */
 	sound_seek_scene(C);
@@ -374,6 +362,8 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_keying_set_remove);
 	WM_operatortype_append(ANIM_OT_keying_set_path_add);
 	WM_operatortype_append(ANIM_OT_keying_set_path_remove);
+	
+	WM_operatortype_append(ANIM_OT_keying_set_active_set);
 }
 
 void ED_keymap_anim(wmKeyConfig *keyconf)

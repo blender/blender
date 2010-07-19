@@ -29,10 +29,6 @@
  */
 #include "KX_IPhysicsController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "PHY_DynamicTypes.h"
 
 KX_IPhysicsController::KX_IPhysicsController(bool dyna, bool sensor, bool compound, void* userdata)

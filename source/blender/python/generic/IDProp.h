@@ -1,5 +1,5 @@
 /**
- * $Id: IDProp.h
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

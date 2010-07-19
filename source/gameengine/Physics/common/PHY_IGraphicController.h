@@ -51,7 +51,7 @@ class PHY_IGraphicController : public PHY_IController
 		virtual PHY_IGraphicController*	GetReplica(class PHY_IMotionState* motionstate) {return 0;}
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IController"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IController"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

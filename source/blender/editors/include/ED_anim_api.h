@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -102,8 +102,11 @@ typedef struct bAnimListElem {
 	int		flag;			/* copy of elem's flags for quick access */
 	int 	index;			/* for un-named data, the index of the data in it's collection */
 	
-	void	*key_data;		/* motion data - mostly F-Curves, but can be other types too */
+	short	elemFlag;		/* flags for the list elem instance (not the data it represents) */
+	
 	short	datatype;		/* type of motion data to expect */
+	void	*key_data;		/* motion data - mostly F-Curves, but can be other types too */
+	
 	
 	struct ID *id;			/* ID block that channel is attached to */
 	struct AnimData *adt; 	/* source of the animation data attached to ID block (for convenience) */
@@ -192,6 +195,7 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
 	ANIMFILTER_NLATRACKS	= (1<<10),	/* only include NLA-tracks */
 	ANIMFILTER_SELEDIT		= (1<<11),	/* link editability with selected status */
+	ANIMFILTER_NODUPLIS		= (1<<12),	/* duplicate entries for animation data attached to multi-user blocks must not occur */
 	
 	/* all filters - the power inside the bracket must be the last power for left-shifts + 1 */
 	ANIMFILTER_ALLFILTERS	= ((1<<12) - 1)
@@ -326,7 +330,7 @@ typedef enum eAnimChannels_SetFlag {
 
 /* types of settings for AnimChannels */
 typedef enum eAnimChannel_Settings {
- 	ACHANNEL_SETTING_SELECT = 0,
+	 ACHANNEL_SETTING_SELECT = 0,
 	ACHANNEL_SETTING_PROTECT,			// warning: for drawing UI's, need to check if this is off (maybe inverse this later)
 	ACHANNEL_SETTING_MUTE,
 	ACHANNEL_SETTING_EXPAND,
@@ -452,8 +456,27 @@ void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 /* ************************************************* */
 /* F-MODIFIER TOOLS */
 
+/* ------------- UI Panel Drawing -------------- */
+
 /* draw a given F-Modifier for some layout/UI-Block */
 void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
+
+/* ------------- Copy/Paste Buffer -------------- */
+
+
+/* free the copy/paste buffer */
+void free_fmodifiers_copybuf(void);
+
+/* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
+ * assuming that the buffer has been cleared already with free_fmodifiers_copybuf()
+ *	- active: only copy the active modifier
+ */
+short ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, short active);
+
+/* 'Paste' the F-Modifier(s) from the buffer to the specified list 
+ *	- replace: free all the existing modifiers to leave only the pasted ones 
+ */
+short ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, short replace);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */

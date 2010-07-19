@@ -81,7 +81,7 @@ static struct bUnitDef buMetricLenDef[] = {
 	{"decimetre", "decimetres",		"dm", NULL,	"10 Centimeters", 0.1, 0.0,			B_UNIT_DEF_SUPPRESS},
 	{"centimeter", "centimeters",	"cm", NULL,	"Centimeters", 0.01, 0.0,			B_UNIT_DEF_NONE},
 	{"millimeter", "millimeters",	"mm", NULL,	"Millimeters", 0.001, 0.0,			B_UNIT_DEF_NONE},
-	{"micrometer", "micrometers",	"um", "µm",	"Micrometers", 0.000001, 0.0,		B_UNIT_DEF_NONE}, // micron too?
+	{"micrometer", "micrometers",	"µm", "um",	"Micrometers", 0.000001, 0.0,		B_UNIT_DEF_NONE}, // micron too?
 
 	/* These get displayed because of float precision problems in the transform header,
 	 * could work around, but for now probably people wont use these */

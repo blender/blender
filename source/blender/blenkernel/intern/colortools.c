@@ -40,20 +40,14 @@
 
 #include "DNA_color_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_image_types.h"
-#include "DNA_texture_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
-#include "BKE_global.h"
 #include "BKE_ipo.h"
-#include "BKE_image.h"
-#include "BKE_main.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_threads.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -132,6 +126,9 @@ CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, floa
 		cumap->cm[a].curve[1].x= maxx;
 		cumap->cm[a].curve[1].y= maxy;
 	}	
+
+	cumap->changed_timestamp = 0;
+
 	return cumap;
 }
 
@@ -239,16 +236,19 @@ void curvemap_insert(CurveMap *cuma, float x, float y)
 	cuma->curve= cmp;
 }
 
-void curvemap_reset(CurveMap *cuma, rctf *clipr, CurveMappingPreset preset)
+void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset)
 {
 	if(cuma->curve)
 		MEM_freeN(cuma->curve);
 
 	switch(preset) {
 		case CURVE_PRESET_LINE: cuma->totpoint= 2; break;
-		case CURVE_PRESET_SHARP: cuma->totpoint= 3; break;
+		case CURVE_PRESET_SHARP: cuma->totpoint= 4; break;
 		case CURVE_PRESET_SMOOTH: cuma->totpoint= 4; break;
 		case CURVE_PRESET_MAX: cuma->totpoint= 2; break;
+		case CURVE_PRESET_MID9: cuma->totpoint= 9; break;
+		case CURVE_PRESET_ROUND: cuma->totpoint= 4; break;
+		case CURVE_PRESET_ROOT: cuma->totpoint= 4; break;
 	}
 
 	cuma->curve= MEM_callocN(cuma->totpoint*sizeof(CurveMapPoint), "curve points");
@@ -256,27 +256,29 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, CurveMappingPreset preset)
 	switch(preset) {
 		case CURVE_PRESET_LINE:
 			cuma->curve[0].x= clipr->xmin;
-			cuma->curve[0].y= clipr->ymin;
+			cuma->curve[0].y= clipr->ymax;
 			cuma->curve[0].flag= 0;
 			cuma->curve[1].x= clipr->xmax;
-			cuma->curve[1].y= clipr->ymax;
+			cuma->curve[1].y= clipr->ymin;
 			cuma->curve[1].flag= 0;
 			break;
 		case CURVE_PRESET_SHARP:
 			cuma->curve[0].x= 0;
 			cuma->curve[0].y= 1;
-			cuma->curve[1].x= 0.33;
-			cuma->curve[1].y= 0.33;
-			cuma->curve[2].x= 1;
-			cuma->curve[2].y= 0;
+			cuma->curve[1].x= 0.25;
+			cuma->curve[1].y= 0.50;
+			cuma->curve[2].x= 0.75;
+			cuma->curve[2].y= 0.04;
+			cuma->curve[3].x= 1;
+			cuma->curve[3].y= 0;
 			break;
 		case CURVE_PRESET_SMOOTH:
 			cuma->curve[0].x= 0;
 			cuma->curve[0].y= 1;
 			cuma->curve[1].x= 0.25;
-			cuma->curve[1].y= 0.92;
+			cuma->curve[1].y= 0.94;
 			cuma->curve[2].x= 0.75;
-			cuma->curve[2].y= 0.08;
+			cuma->curve[2].y= 0.06;
 			cuma->curve[3].x= 1;
 			cuma->curve[3].y= 0;
 			break;
@@ -286,8 +288,38 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, CurveMappingPreset preset)
 			cuma->curve[1].x= 1;
 			cuma->curve[1].y= 1;
 			break;
+		case CURVE_PRESET_MID9:
+			{
+				int i;
+				for (i=0; i < cuma->totpoint; i++)
+				{
+					cuma->curve[i].x= i / ((float)cuma->totpoint-1);
+					cuma->curve[i].y= 0.5;
+				}
+			}
+			break;
+		case CURVE_PRESET_ROUND:
+			cuma->curve[0].x= 0;
+			cuma->curve[0].y= 1;
+			cuma->curve[1].x= 0.5;
+			cuma->curve[1].y= 0.90;
+			cuma->curve[2].x= 0.86;
+			cuma->curve[2].y= 0.5;
+			cuma->curve[3].x= 1;
+			cuma->curve[3].y= 0;
+			break;
+		case CURVE_PRESET_ROOT:
+			cuma->curve[0].x= 0;
+			cuma->curve[0].y= 1;
+			cuma->curve[1].x= 0.25;
+			cuma->curve[1].y= 0.95;
+			cuma->curve[2].x= 0.75;
+			cuma->curve[2].y= 0.44;
+			cuma->curve[3].x= 1;
+			cuma->curve[3].y= 0;
+			break;
 	}
-	
+
 	if(cuma->table) {
 		MEM_freeN(cuma->table);
 		cuma->table= NULL;
@@ -463,7 +495,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 			if(vec[0] < bezt[0].vec[1][0])
 				vec[0]= bezt[0].vec[1][0];
 			
-			sub_v3_v3v3(vec, vec, bezt[0].vec[1]);
+			sub_v3_v3(vec, bezt[0].vec[1]);
 			nlen= len_v3(vec);
 			if(nlen>FLT_EPSILON) {
 				mul_v3_fl(vec, hlen/nlen);
@@ -480,7 +512,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 			if(vec[0] > bezt[a].vec[1][0])
 				vec[0]= bezt[a].vec[1][0];
 			
-			sub_v3_v3v3(vec, vec, bezt[a].vec[1]);
+			sub_v3_v3(vec, bezt[a].vec[1]);
 			nlen= len_v3(vec);
 			if(nlen>FLT_EPSILON) {
 				mul_v3_fl(vec, hlen/nlen);
@@ -615,7 +647,9 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 	float thresh= 0.01f*(clipr->xmax - clipr->xmin);
 	float dx= 0.0f, dy= 0.0f;
 	int a;
-	
+
+	cumap->changed_timestamp++;
+
 	/* clamp with clip */
 	if(cumap->flag & CUMA_DO_CLIP) {
 		for(a=0; a<cuma->totpoint; a++) {
@@ -697,7 +731,7 @@ float curvemapping_evaluateF(CurveMapping *cumap, int cur, float value)
 	if(cuma->table==NULL) {
 		curvemap_make_table(cuma, &cumap->clipr);
 		if(cuma->table==NULL)
-			return value;
+			return 1.0f-value;
 	}
 	return curvemap_evaluateF(cuma, value);
 }
@@ -750,10 +784,10 @@ void colorcorrection_do_ibuf(ImBuf *ibuf, const char *profile)
 		cmsErrorAction(LCMS_ERROR_SHOW);
 	
 		hTransform = cmsCreateProofingTransform(imageProfile, TYPE_RGBA_8, imageProfile, TYPE_RGBA_8, 
-	                                          proofingProfile,
-	                                          INTENT_ABSOLUTE_COLORIMETRIC,
-	                                          INTENT_ABSOLUTE_COLORIMETRIC,
-	                                          cmsFLAGS_SOFTPROOFING);
+											  proofingProfile,
+											  INTENT_ABSOLUTE_COLORIMETRIC,
+											  INTENT_ABSOLUTE_COLORIMETRIC,
+											  cmsFLAGS_SOFTPROOFING);
 	
 		cmsDoTransform(hTransform, ibuf->rect, ibuf->crect, ibuf->x * ibuf->y);
 	
@@ -881,6 +915,8 @@ void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
 
 /* ***************** Histogram **************** */
 
+#define INV_255		(1.f/255.f)
+
 DO_INLINE int get_bin_float(float f)
 {
 	int bin= (int)(f*255);
@@ -893,59 +929,176 @@ DO_INLINE int get_bin_float(float f)
 	return bin;
 }
 
-
-void histogram_update(Histogram *hist, ImBuf *ibuf)
+DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, float *rgb, float *ycc)
 {
-	int x, y, n;
-	double div;
-	float *rf;
-	unsigned char *rc;
-	unsigned int *bin_r, *bin_g, *bin_b;
-	
-	if (hist->ok == 1 ) return;
-	
-	if (hist->xmax == 0.f) hist->xmax = 1.f;
-	if (hist->ymax == 0.f) hist->ymax = 1.f;
-	
+	float yuv[3];
+
+	/* vectorscope*/
+	rgb_to_yuv(rgb[0], rgb[1], rgb[2], &yuv[0], &yuv[1], &yuv[2]);
+	scopes->vecscope[idx + 0] = yuv[1];
+	scopes->vecscope[idx + 1] = yuv[2];
+
+	/* waveform */
+	switch (scopes->wavefrm_mode) {
+		case SCOPES_WAVEFRM_RGB:
+			scopes->waveform_1[idx + 0] = fx;
+			scopes->waveform_1[idx + 1] = rgb[0];
+			scopes->waveform_2[idx + 0] = fx;
+			scopes->waveform_2[idx + 1] = rgb[1];
+			scopes->waveform_3[idx + 0] = fx;
+			scopes->waveform_3[idx + 1] = rgb[2];
+			break;
+		case SCOPES_WAVEFRM_LUMA:
+			scopes->waveform_1[idx + 0] = fx;
+			scopes->waveform_1[idx + 1] = ycc[0];
+			break;
+		case SCOPES_WAVEFRM_YCC_JPEG:
+		case SCOPES_WAVEFRM_YCC_709:
+		case SCOPES_WAVEFRM_YCC_601:
+			scopes->waveform_1[idx + 0] = fx;
+			scopes->waveform_1[idx + 1] = ycc[0];
+			scopes->waveform_2[idx + 0] = fx;
+			scopes->waveform_2[idx + 1] = ycc[1];
+			scopes->waveform_3[idx + 0] = fx;
+			scopes->waveform_3[idx + 1] = ycc[2];
+			break;
+	}
+}
+
+void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
+{
+	int x, y, c, n, nl;
+	double div, divl;
+	float *rf=NULL;
+	unsigned char *rc=NULL;
+	unsigned int *bin_r, *bin_g, *bin_b, *bin_lum;
+	int savedlines, saveline;
+	float rgb[3], ycc[3], luma;
+	int ycc_mode=-1;
+
+	if (scopes->ok == 1 ) return;
+
+	if (scopes->hist.ymax == 0.f) scopes->hist.ymax = 1.f;
+
 	/* hmmmm */
 	if (!(ELEM(ibuf->channels, 3, 4))) return;
-	
-	hist->channels = 3;
-	
+	scopes->hist.channels = 3;
+	scopes->hist.x_resolution = 256;
+
+	switch (scopes->wavefrm_mode) {
+		case SCOPES_WAVEFRM_RGB:
+			ycc_mode = -1;
+			break;
+		case SCOPES_WAVEFRM_LUMA:
+		case SCOPES_WAVEFRM_YCC_JPEG:
+			ycc_mode = BLI_YCC_JFIF_0_255;
+			break;
+		case SCOPES_WAVEFRM_YCC_601:
+			ycc_mode = BLI_YCC_ITU_BT601;
+			break;
+		case SCOPES_WAVEFRM_YCC_709:
+			ycc_mode = BLI_YCC_ITU_BT709;
+			break;
+	}
+
+	/* temp table to count pix value for histo */
 	bin_r = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
 	bin_g = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
 	bin_b = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_lum = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+
+	/* convert to number of lines with logarithmic scale */
+	scopes->sample_lines = (scopes->accuracy*0.01) * (scopes->accuracy*0.01) * ibuf->y;
 	
-	if (ibuf->rect_float) {
-		hist->x_resolution = 256;
-		
-		/* divide into bins */
+	if (scopes->sample_full)
+		scopes->sample_lines = ibuf->y;
+
+	/* scan the image */
+	savedlines=0;
+	for (c=0; c<3; c++) {
+		scopes->minmax[c][0]=25500.0f;
+		scopes->minmax[c][1]=-25500.0f;
+	}
+	
+	scopes->waveform_tot = ibuf->x*scopes->sample_lines;
+	
+	if (scopes->waveform_1)
+		MEM_freeN(scopes->waveform_1);
+	if (scopes->waveform_2)
+		MEM_freeN(scopes->waveform_2);
+	if (scopes->waveform_3)
+		MEM_freeN(scopes->waveform_3);
+	if (scopes->vecscope)
+		MEM_freeN(scopes->vecscope);
+	
+	scopes->waveform_1= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 1");
+	scopes->waveform_2= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 2");
+	scopes->waveform_3= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 3");
+	scopes->vecscope= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "vectorscope point channel");
+	
+	if (ibuf->rect_float)
 		rf = ibuf->rect_float;
-		for (y = 0; y < ibuf->y; y++) {
-			for (x = 0; x < ibuf->x; x++) {
-				bin_r[ get_bin_float(rf[0]) ] += 1;
-				bin_g[ get_bin_float(rf[1]) ] += 1;
-				bin_b[ get_bin_float(rf[2]) ] += 1;
-				rf+= ibuf->channels;
-			}
-		}
-	}
-	else if (ibuf->rect) {
-		hist->x_resolution = 256;
-		
+	else if (ibuf->rect)
 		rc = (unsigned char *)ibuf->rect;
-		for (y = 0; y < ibuf->y; y++) {
-			for (x = 0; x < ibuf->x; x++) {
-				bin_r[ rc[0] ] += 1;
-				bin_g[ rc[1] ] += 1;
-				bin_b[ rc[2] ] += 1;
-				rc += ibuf->channels;
+
+	for (y = 0; y < ibuf->y; y++) {
+		if (savedlines<scopes->sample_lines && y>=((savedlines)*ibuf->y)/(scopes->sample_lines+1)) {
+			saveline=1;
+		} else saveline=0;
+		for (x = 0; x < ibuf->x; x++) {
+
+			if (ibuf->rect_float) {
+				if (use_color_management)
+					linearrgb_to_srgb_v3_v3(rgb, rf);
+				else
+					copy_v3_v3(rgb, rf);
 			}
+			else if (ibuf->rect) {
+				for (c=0; c<3; c++)
+					rgb[c] = rc[c] * INV_255;
+			}
+
+			/* we still need luma for histogram */
+			luma = 0.299*rgb[0] + 0.587*rgb[1] + 0.114 * rgb[2];
+
+			/* check for min max */
+			if(ycc_mode == -1 ) {
+				for (c=0; c<3; c++) {
+					if (rgb[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = rgb[c];
+					if (rgb[c] > scopes->minmax[c][1]) scopes->minmax[c][1] = rgb[c];
+				}
+			}
+			else {
+				rgb_to_ycc(rgb[0],rgb[1],rgb[2],&ycc[0],&ycc[1],&ycc[2], ycc_mode);
+				for (c=0; c<3; c++) {
+					ycc[c] *=INV_255;
+					if (ycc[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = ycc[c];
+					if (ycc[c] > scopes->minmax[c][1]) scopes->minmax[c][1] = ycc[c];
+				}
+			}
+			/* increment count for histo*/
+			bin_r[ get_bin_float(rgb[0]) ] += 1;
+			bin_g[ get_bin_float(rgb[1]) ] += 1;
+			bin_b[ get_bin_float(rgb[2]) ] += 1;
+			bin_lum[ get_bin_float(luma) ] += 1;
+
+			/* save sample if needed */
+			if(saveline) {
+				const float fx = (float)x / (float)ibuf->x;
+				const int idx = 2*(ibuf->x*savedlines+x);
+				save_sample_line(scopes, idx, fx, rgb, ycc);
+			}
+
+			rf+= ibuf->channels;
+			rc+= ibuf->channels;
 		}
+		if (saveline)
+			savedlines +=1;
 	}
-	
-	/* convert to float */
+
+	/* convert hist data to float (proportional to max count) */
 	n=0;
+	nl=0;
 	for (x=0; x<256; x++) {
 		if (bin_r[x] > n)
 			n = bin_r[x];
@@ -953,17 +1106,57 @@ void histogram_update(Histogram *hist, ImBuf *ibuf)
 			n = bin_g[x];
 		if (bin_b[x] > n)
 			n = bin_b[x];
+		if (bin_lum[x] > nl)
+			nl = bin_lum[x];
 	}
 	div = 1.f/(double)n;
+	divl = 1.f/(double)nl;
 	for (x=0; x<256; x++) {
-		hist->data_r[x] = bin_r[x] * div;
-		hist->data_g[x] = bin_g[x] * div;
-		hist->data_b[x] = bin_b[x] * div;
+		scopes->hist.data_r[x] = bin_r[x] * div;
+		scopes->hist.data_g[x] = bin_g[x] * div;
+		scopes->hist.data_b[x] = bin_b[x] * div;
+		scopes->hist.data_luma[x] = bin_lum[x] * divl;
 	}
-	
 	MEM_freeN(bin_r);
 	MEM_freeN(bin_g);
 	MEM_freeN(bin_b);
-	
-	hist->ok=1;
+	MEM_freeN(bin_lum);
+
+	scopes->ok = 1;
+}
+
+void scopes_free(Scopes *scopes)
+{
+	if (scopes->waveform_1) {
+		MEM_freeN(scopes->waveform_1);
+		scopes->waveform_1 = NULL;
+	}
+	if (scopes->waveform_2) {
+		MEM_freeN(scopes->waveform_2);
+		scopes->waveform_2 = NULL;
+	}
+	if (scopes->waveform_3) {
+		MEM_freeN(scopes->waveform_3);
+		scopes->waveform_3 = NULL;
+	}
+	if (scopes->vecscope) {
+		MEM_freeN(scopes->vecscope);
+		scopes->vecscope = NULL;
+	}
+}
+
+void scopes_new(Scopes *scopes)
+{
+	scopes->accuracy=30.0;
+	scopes->hist.mode=HISTO_MODE_RGB;
+	scopes->wavefrm_alpha=0.3;
+	scopes->vecscope_alpha=0.3;
+	scopes->wavefrm_height= 100;
+	scopes->vecscope_height= 100;
+	scopes->hist.height= 100;
+	scopes->ok= 0;
+	scopes->waveform_1 = NULL;
+	scopes->waveform_2 = NULL;
+	scopes->waveform_3 = NULL;
+	scopes->vecscope = NULL;
 }

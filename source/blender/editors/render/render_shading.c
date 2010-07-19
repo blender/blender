@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -32,27 +32,34 @@
 #include "DNA_curve_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
+#include "BKE_global.h"
 #include "BKE_icons.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
 #include "BKE_tessmesh.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
+#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
@@ -60,20 +67,16 @@
 #include "GPU_material.h"
 
 #include "RNA_access.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
-#include "ED_render.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "render_intern.h"	// own include
 
@@ -194,6 +197,19 @@ static void world_changed(Main *bmain, World *wo)
 			GPU_material_free(ma);
 }
 
+static void image_changed(Main *bmain, Image *ima)
+{
+	Tex *tex;
+
+	/* icons */
+	BKE_icon_changed(BKE_icon_getid(&ima->id));
+
+	/* textures */
+	for(tex=bmain->tex.first; tex; tex=tex->id.next)
+		if(tex->ima == ima)
+			texture_changed(bmain, tex);
+}
+
 void ED_render_id_flush_update(Main *bmain, ID *id)
 {
 	if(!id)
@@ -211,6 +227,9 @@ void ED_render_id_flush_update(Main *bmain, ID *id)
 			break;
 		case ID_LA:
 			lamp_changed(bmain, (Lamp*)id);
+			break;
+		case ID_IM:
+			image_changed(bmain, (Image*)id);
 			break;
 		default:
 			break;
@@ -305,7 +324,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *op)
 		}
 		else if(ob->type == OB_FONT) {
 			EditFont *ef= ((Curve*)ob->data)->editfont;
-    		int i, selstart, selend;
+			int i, selstart, selend;
 
 			if(ef && BKE_font_getselection(ob, &selstart, &selend)) {
 				for(i=selstart; i<=selend; i++)
@@ -314,8 +333,8 @@ static int material_slot_assign_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-    DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-    WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -395,7 +414,7 @@ static int material_slot_de_select(bContext *C, int select)
 		}
 	}
 
-    WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -693,6 +712,7 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 static int texture_slot_move(bContext *C, wmOperator *op)
 {
 	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+	Material *ma = (Material *)id;
 
 	if(id) {
 		MTex **mtex_ar, *mtexswap;
@@ -706,6 +726,10 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				mtexswap = mtex_ar[act];
 				mtex_ar[act] = mtex_ar[act-1];
 				mtex_ar[act-1] = mtexswap;
+				
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act-1, -1, 0);
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act, act-1, 0);
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, -1, act, 0);
 
 				if(GS(id->name)==ID_MA) {
 					Material *ma= (Material *)id;
@@ -715,7 +739,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 					ma->septex &= ~(1<<(act-1));
 					ma->septex |= mtexuse >> 1;
 				}
-
+				
 				set_active_mtex(id, act-1);
 			}
 		}
@@ -724,6 +748,10 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				mtexswap = mtex_ar[act];
 				mtex_ar[act] = mtex_ar[act+1];
 				mtex_ar[act+1] = mtexswap;
+				
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act+1, -1, 0);
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act, act+1, 0);
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, -1, act, 0);
 
 				if(GS(id->name)==ID_MA) {
 					Material *ma= (Material *)id;
@@ -733,7 +761,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 					ma->septex &= ~(1<<(act+1));
 					ma->septex |= mtexuse << 1;
 				}
-
+				
 				set_active_mtex(id, act+1);
 			}
 		}
@@ -767,6 +795,201 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 }
 
 
+
+/********************** environment map operators *********************/
+
+static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int imtype)
+{
+	ImBuf *ibuf=NULL;
+	int dx;
+	int retval;
+	
+	if(env->cube[1]==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "There is no generated environment map available to save");
+		return OPERATOR_CANCELLED;
+	}
+	
+	dx= env->cube[1]->x;
+	
+	if (env->type == ENV_CUBE) {
+		ibuf = IMB_allocImBuf(3*dx, 2*dx, 24, IB_rectfloat, 0);
+
+		IMB_rectcpy(ibuf, env->cube[0], 0, 0, 0, 0, dx, dx);
+		IMB_rectcpy(ibuf, env->cube[1], dx, 0, 0, 0, dx, dx);
+		IMB_rectcpy(ibuf, env->cube[2], 2*dx, 0, 0, 0, dx, dx);
+		IMB_rectcpy(ibuf, env->cube[3], 0, dx, 0, 0, dx, dx);
+		IMB_rectcpy(ibuf, env->cube[4], dx, dx, 0, 0, dx, dx);
+		IMB_rectcpy(ibuf, env->cube[5], 2*dx, dx, 0, 0, dx, dx);
+	}
+	else if (env->type == ENV_PLANE) {
+		ibuf = IMB_allocImBuf(dx, dx, 24, IB_rectfloat, 0);
+		IMB_rectcpy(ibuf, env->cube[1], 0, 0, 0, 0, dx, dx);		
+	}
+	
+	if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+		ibuf->profile = IB_PROFILE_LINEAR_RGB;
+	
+	if (BKE_write_ibuf(scene, ibuf, str, imtype, scene->r.subimtype, scene->r.quality)) {
+		retval = OPERATOR_FINISHED;
+	}
+	else {
+		BKE_reportf(op->reports, RPT_ERROR, "Error saving environment map to %s.", str);
+		retval = OPERATOR_CANCELLED;
+	}
+	
+	IMB_freeImBuf(ibuf);
+	ibuf = NULL;
+	
+	return retval;
+}
+
+static int envmap_save_exec(bContext *C, wmOperator *op)
+{
+	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+	Scene *scene = CTX_data_scene(C);
+	//int imtype = RNA_enum_get(op->ptr, "file_type");
+	int imtype = scene->r.imtype;
+	char path[FILE_MAX];
+	
+	RNA_string_get(op->ptr, "filepath", path);
+	
+	if(scene->r.scemode & R_EXTENSION)  {
+		BKE_add_image_extension(path, imtype);
+	}
+	
+	WM_cursor_wait(1);
+	
+	save_envmap(op, scene, tex->env, path, imtype);
+	
+	WM_cursor_wait(0);
+	
+	WM_event_add_notifier(C, NC_TEXTURE, tex);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int envmap_save_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	//Scene *scene= CTX_data_scene(C);
+	
+	if(!RNA_property_is_set(op->ptr, "relative_path"))
+		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+	
+	if(RNA_property_is_set(op->ptr, "filepath"))
+		return envmap_save_exec(C, op);
+
+	//RNA_enum_set(op->ptr, "file_type", scene->r.imtype);
+	
+	RNA_string_set(op->ptr, "filepath", G.sce);
+	WM_event_add_fileselect(C, op);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int envmap_save_poll(bContext *C)
+{
+	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+
+	if (!tex) 
+		return 0;
+	if (!tex->env || !tex->env->ok)
+		return 0;
+	if (tex->env->cube[1]==NULL)
+		return 0;
+	
+	return 1;
+}
+
+void TEXTURE_OT_envmap_save(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Save Environment Map";
+	ot->idname= "TEXTURE_OT_envmap_save";
+	ot->description="Save the current generated Environment map to an image file";
+	
+	/* api callbacks */
+	ot->exec= envmap_save_exec;
+	ot->invoke= envmap_save_invoke;
+	ot->poll= envmap_save_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	//RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
+}
+
+static int envmap_clear_exec(bContext *C, wmOperator *op)
+{
+	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+	
+	BKE_free_envmapdata(tex->env);
+	
+	WM_event_add_notifier(C, NC_TEXTURE|NA_EDITED, tex);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int envmap_clear_poll(bContext *C)
+{
+	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+	
+	if (!tex) 
+		return 0;
+	if (!tex->env || !tex->env->ok)
+		return 0;
+	if (tex->env->cube[1]==NULL)
+		return 0;
+	
+	return 1;
+}
+
+void TEXTURE_OT_envmap_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Environment Map";
+	ot->idname= "TEXTURE_OT_envmap_clear";
+	ot->description="Discard the environment map and free it from memory";
+	
+	/* api callbacks */
+	ot->exec= envmap_clear_exec;
+	ot->poll= envmap_clear_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int envmap_clear_all_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	Tex *tex;
+	
+	for (tex=bmain->tex.first; tex; tex=tex->id.next)
+		if (tex->env)
+			BKE_free_envmapdata(tex->env);
+	
+	WM_event_add_notifier(C, NC_TEXTURE|NA_EDITED, tex);
+	
+	return OPERATOR_FINISHED;
+}
+
+void TEXTURE_OT_envmap_clear_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear All Environment Maps";
+	ot->idname= "TEXTURE_OT_envmap_clear_all";
+	ot->description="Discard all environment maps in the .blend file and free them from memory";
+	
+	/* api callbacks */
+	ot->exec= envmap_clear_all_exec;
+	ot->poll= envmap_clear_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** material operators *********************/
 
 /* material copy/paste */
 static int copy_material_exec(bContext *C, wmOperator *op)
@@ -816,10 +1039,162 @@ void MATERIAL_OT_paste(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Paste Material";
 	ot->idname= "MATERIAL_OT_paste";
-	ot->description="Copy the material settings and nodes";
+	ot->description="Paste the material settings and nodes";
 
 	/* api callbacks */
 	ot->exec= paste_material_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+static short mtexcopied=0; /* must be reset on file load */
+static MTex mtexcopybuf;
+
+void ED_render_clear_mtex_copybuf(void)
+{	/* use for file reload */
+	mtexcopied= 0;
+}
+
+void copy_mtex_copybuf(ID *id)
+{
+	MTex **mtex= NULL;
+	
+	switch(GS(id->name)) {
+		case ID_MA:
+			mtex= &(((Material *)id)->mtex[(int)((Material *)id)->texact]);
+			break;
+		case ID_LA:
+			mtex= &(((Lamp *)id)->mtex[(int)((Lamp *)id)->texact]);
+			// la->mtex[(int)la->texact] // TODO
+			break;
+		case ID_WO:
+			mtex= &(((World *)id)->mtex[(int)((World *)id)->texact]);
+			// mtex= wrld->mtex[(int)wrld->texact]; // TODO
+			break;
+	}
+	
+	if(mtex && *mtex) {
+		memcpy(&mtexcopybuf, *mtex, sizeof(MTex));
+		mtexcopied= 1;
+	}
+	else {
+		mtexcopied= 0;
+	}
+}
+
+void paste_mtex_copybuf(ID *id)
+{
+	MTex **mtex= NULL;
+	
+	if(mtexcopied == 0 || mtexcopybuf.tex==NULL)
+		return;
+	
+	switch(GS(id->name)) {
+		case ID_MA:
+			mtex= &(((Material *)id)->mtex[(int)((Material *)id)->texact]);
+			break;
+		case ID_LA:
+			mtex= &(((Lamp *)id)->mtex[(int)((Lamp *)id)->texact]);
+			// la->mtex[(int)la->texact] // TODO
+			break;
+		case ID_WO:
+			mtex= &(((World *)id)->mtex[(int)((World *)id)->texact]);
+			// mtex= wrld->mtex[(int)wrld->texact]; // TODO
+			break;
+	}
+	
+	if(mtex) {
+		if(*mtex==NULL) {
+			*mtex= MEM_mallocN(sizeof(MTex), "mtex copy");
+		}
+		else if((*mtex)->tex) {
+			(*mtex)->tex->id.us--;
+		}
+		
+		memcpy(*mtex, &mtexcopybuf, sizeof(MTex));
+		
+		id_us_plus((ID *)mtexcopybuf.tex);
+	}
+}
+
+
+static int copy_mtex_exec(bContext *C, wmOperator *op)
+{
+	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+
+	if(id==NULL) {
+		/* copying empty slot */
+		ED_render_clear_mtex_copybuf();
+		return OPERATOR_CANCELLED;
+	}
+
+	copy_mtex_copybuf(id);
+
+	WM_event_add_notifier(C, NC_TEXTURE, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+static int copy_mtex_poll(bContext *C)
+{
+	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+	
+	return (id != NULL);
+}
+
+void TEXTURE_OT_slot_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Texture Slot Settings";
+	ot->idname= "TEXTURE_OT_slot_copy";
+	ot->description="Copy the material texture settings and nodes";
+
+	/* api callbacks */
+	ot->exec= copy_mtex_exec;
+	ot->poll= copy_mtex_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int paste_mtex_exec(bContext *C, wmOperator *op)
+{
+	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+
+	if(id==NULL) {
+		Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+		Lamp *la= CTX_data_pointer_get_type(C, "lamp", &RNA_Lamp).data;
+		World *wo= CTX_data_pointer_get_type(C, "world", &RNA_World).data;
+		
+		if (ma)
+			id = &ma->id;
+		else if (la)
+			id = &la->id;
+		else if (wo)
+			id = &wo->id;
+		
+		if (id==NULL)
+			return OPERATOR_CANCELLED;
+	}
+
+	paste_mtex_copybuf(id);
+
+	WM_event_add_notifier(C, NC_TEXTURE|ND_SHADING_DRAW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void TEXTURE_OT_slot_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste Texture Slot Settings";
+	ot->idname= "TEXTURE_OT_slot_paste";
+	ot->description="Copy the texture settings and nodes";
+
+	/* api callbacks */
+	ot->exec= paste_mtex_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

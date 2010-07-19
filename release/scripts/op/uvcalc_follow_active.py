@@ -65,9 +65,9 @@ def extend(obj, operator, EXTEND_MODE):
 
         # vertex index is the key, uv is the value
 
-        uvs_vhash_source = dict([(vindex, uvs_source[i]) for i, vindex in enumerate(vidx_source)])
+        uvs_vhash_source = {vindex: uvs_source[i] for i, vindex in enumerate(vidx_source)}
 
-        uvs_vhash_target = dict([(vindex, uvs_target[i]) for i, vindex in enumerate(vidx_target)])
+        uvs_vhash_target = {vindex: uvs_target[i] for i, vindex in enumerate(vidx_target)}
 
         edge_idxs_source = face_edge_vs(vidx_source)
         edge_idxs_target = face_edge_vs(vidx_target)
@@ -180,7 +180,7 @@ def extend(obj, operator, EXTEND_MODE):
     #SEAM = me.edges.seam
 
     if EXTEND_MODE == 'LENGTH':
-        edge_loops = me.edge_loops(face_sel, [ed.key for ed in me.edges if ed.seam])
+        edge_loops = me.edge_loops_from_faces(face_sel, [ed.key for ed in me.edges if ed.seam])
         me_verts = me.verts
         for loop in edge_loops:
             looplen = [0.0]
@@ -266,10 +266,10 @@ def register():
     bpy.types.register(FollowActiveQuads)
     bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
+
 def unregister():
     bpy.types.unregister(FollowActiveQuads)
     bpy.types.VIEW3D_MT_uv_map.remove(menu_func)
 
 if __name__ == "__main__":
     register()
-

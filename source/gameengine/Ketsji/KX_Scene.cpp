@@ -139,7 +139,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 				   class SCA_IInputDevice* mousedevice,
 				   class NG_NetworkDeviceInterface *ndi,
 				   const STR_String& sceneName,
-				   Scene *scene): 
+				   Scene *scene,
+				   class RAS_ICanvas* canvas): 
 	PyObjectPlus(),
 	m_keyboardmgr(NULL),
 	m_mousemgr(NULL),
@@ -170,7 +171,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	
 	m_timemgr = new SCA_TimeEventManager(m_logicmgr);
 	m_keyboardmgr = new SCA_KeyboardManager(m_logicmgr,keyboarddevice);
-	m_mousemgr = new SCA_MouseManager(m_logicmgr,mousedevice);
+	m_mousemgr = new SCA_MouseManager(m_logicmgr,mousedevice, canvas);
 	
 	//SCA_AlwaysEventManager* alwaysmgr = new SCA_AlwaysEventManager(m_logicmgr);
 	//SCA_PropertyEventManager* propmgr = new SCA_PropertyEventManager(m_logicmgr);
@@ -407,34 +408,6 @@ bool KX_Scene::IsClearingZBuffer()
 	return m_isclearingZbuffer;
 }
 
-void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
-{
-	int len;
-
-	if (cb_list && (len=PyList_GET_SIZE(cb_list)))
-	{
-		PyObject* args= PyTuple_New(0); // save python creating each call
-		PyObject* func;
-		PyObject* ret;
-
-		// Iterate the list and run the callbacks
-		for (int pos=0; pos < len; pos++)
-		{
-			func= PyList_GET_ITEM(cb_list, pos);
-			ret= PyObject_Call(func, args, NULL);
-			if (ret==NULL) {
-				PyErr_Print();
-				PyErr_Clear();
-			}
-			else {
-				Py_DECREF(ret);
-			}
-		}
-
-		Py_DECREF(args);
-	}
-}
-
 void KX_Scene::EnableZBufferClearing(bool isclearingZbuffer)
 {
 	m_isclearingZbuffer = isclearingZbuffer;
@@ -557,7 +530,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 // replica of the hierarchy in order to make cross-links work properly
 // !
 // It is VERY important that the order of sensors and actuators in
-// the replicated object is preserved: it is is used to reconnect the logic.
+// the replicated object is preserved: it is used to reconnect the logic.
 // This method is more robust then using the bricks name in case of complex 
 // group replication. The replication of logic bricks is done in 
 // SCA_IObject::ReParentLogic(), make sure it preserves the order of the bricks.
@@ -989,8 +962,8 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	{
 		m_logicmgr->RemoveSensor(*its);
 	}
-	
-    SCA_ControllerList& controllers = newobj->GetControllers();
+
+	SCA_ControllerList& controllers = newobj->GetControllers();
 	for (SCA_ControllerList::iterator itc = controllers.begin();
 		 !(itc==controllers.end());itc++)
 	{
@@ -1094,12 +1067,12 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 			bool bHasShapeKey = blendmesh->key != NULL && blendmesh->key->type==KEY_RELATIVE;
 			bool bHasDvert = blendmesh->dvert != NULL;
 			bool bHasArmature = 
+				BL_ModifierDeformer::HasArmatureDeformer(blendobj) &&
 				parentobj &&								// current parent is armature
 				parentobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE &&
 				oldblendobj &&								// needed for mesh deform
 				blendobj->parent &&							// original object had armature (not sure this test is needed)
-				blendobj->parent->type == OB_ARMATURE && 
-				blendobj->partype==PARSKEL && 
+				blendobj->parent->type == OB_ARMATURE &&
 				blendmesh->dvert!=NULL;						// mesh has vertex group
 			bool bHasSoftBody = (!parentobj && (blendobj->gameflag & OB_SOFT_BODY));
 
@@ -1657,9 +1630,6 @@ double KX_Scene::getSuspendedDelta()
 	return m_suspendeddelta;
 }
 
-#ifndef DISABLE_PYTHON
-
-
 #include "KX_BulletPhysicsController.h"
 
 static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
@@ -1754,6 +1724,9 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 				phys_ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 		}
 	}
+	/* If the object is a light, update it's scene */
+	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
+		((KX_LightObject*)gameobj)->UpdateScene(to);
 
 	/* Add the object to the scene's logic manager */
 	to->GetLogicManager()->RegisterGameObjectName(gameobj->GetName(), gameobj);
@@ -1781,7 +1754,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	}
 
 
-	GetBucketManager()->MergeBucketManager(other->GetBucketManager());
+	GetBucketManager()->MergeBucketManager(other->GetBucketManager(), this);
 
 	/* move materials across, assume they both use the same scene-converters */
 	GetSceneConverter()->MergeScene(this, other);
@@ -1852,6 +1825,36 @@ void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
 	m_filtermanager.RenderFilters(canvas);
 }
 
+#ifndef DISABLE_PYTHON
+
+void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
+{
+	int len;
+
+	if (cb_list && (len=PyList_GET_SIZE(cb_list)))
+	{
+		PyObject* args= PyTuple_New(0); // save python creating each call
+		PyObject* func;
+		PyObject* ret;
+
+		// Iterate the list and run the callbacks
+		for (int pos=0; pos < len; pos++)
+		{
+			func= PyList_GET_ITEM(cb_list, pos);
+			ret= PyObject_Call(func, args, NULL);
+			if (ret==NULL) {
+				PyErr_Print();
+				PyErr_Clear();
+			}
+			else {
+				Py_DECREF(ret);
+			}
+		}
+
+		Py_DECREF(args);
+	}
+}
+
 //----------------------------------------------------------------------------
 //Python
 
@@ -1885,6 +1888,8 @@ PyMethodDef KX_Scene::Methods[] = {
 	KX_PYMETHODTABLE(KX_Scene, end),
 	KX_PYMETHODTABLE(KX_Scene, restart),
 	KX_PYMETHODTABLE(KX_Scene, replace),
+	KX_PYMETHODTABLE(KX_Scene, suspend),
+	KX_PYMETHODTABLE(KX_Scene, resume),
 	
 	/* dict style access */
 	KX_PYMETHODTABLE(KX_Scene, get),
@@ -1994,6 +1999,8 @@ PySequenceMethods KX_Scene::Sequence = {
 	NULL,		/* sq_ass_item */
 	NULL,		/* sq_ass_slice */
 	(objobjproc)Seq_Contains,	/* sq_contains */
+	(binaryfunc) NULL, /* sq_inplace_concat */
+	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
 PyObject* KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -2187,6 +2194,24 @@ KX_PYMETHODDEF_DOC(KX_Scene, replace,
 		return NULL;
 	
 	KX_GetActiveEngine()->ReplaceScene(m_sceneName, name);
+	
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, suspend,
+					"suspend()\n"
+					"Suspends this scene.\n")
+{
+	Suspend();
+	
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, resume,
+					"resume()\n"
+					"Resumes this scene.\n")
+{
+	Resume();
 	
 	Py_RETURN_NONE;
 }

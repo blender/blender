@@ -1,5 +1,5 @@
 /**
- * $Id: 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -39,6 +39,8 @@
 #include "BKE_tessmesh.h"
 
 #include "BLI_editVert.h"
+
+#include "RNA_types.h"
 
 struct bContext;
 struct wmOperatorType;
@@ -225,35 +227,22 @@ void MESH_OT_flip_normals(struct wmOperatorType *ot);
 void MESH_OT_solidify(struct wmOperatorType *ot);
 void MESH_OT_select_nth(struct wmOperatorType *ot);
 
-extern void EM_automerge(Scene *scene, Object *obedit, int update);
-void editmesh_select_by_material(EditMesh *em, int index);
-void EM_recalc_normal_direction(EditMesh *em, int inside, int select);	/* makes faces righthand turning */
-void EM_select_more(EditMesh *em);
-void selectconnected_mesh_all(EditMesh *em);
-void faceloop_select(struct BMEditMesh *em, struct BMEdge *startedge, int select);
-
-/**
- * findnearestvert
- * 
- * dist (in/out): minimal distance to the nearest and at the end, actual distance
- * sel: selection bias
- * 		if SELECT, selected vertice are given a 5 pixel bias to make them farter than unselect verts
- * 		if 0, unselected vertice are given the bias
- * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
- */
-extern EditVert *findnearestvert(struct ViewContext *vc, int *dist, short sel, short strict);
-
-
-/* ******************* editmesh_tools.c */
 
 #define SUBDIV_SELECT_ORIG      0
 #define SUBDIV_SELECT_INNER     1
 #define SUBDIV_SELECT_INNER_SEL 2
 #define SUBDIV_SELECT_LOOPCUT 3
 
+/* edge subdivide corner cut types */
+#define SUBDIV_CORNER_PATH		0
+#define SUBDIV_CORNER_INNERVERT	1
+#define SUBDIV_CORNER_FAN		2
+
+extern EnumPropertyItem corner_type_items[];
+
 void join_triangles(EditMesh *em);
 int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
-void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beautify, int numcuts, int seltype);
+void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beautify, int numcuts, int corner_pattern, int seltype);
 int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
 
 void MESH_OT_merge(struct wmOperatorType *ot);
@@ -291,6 +280,7 @@ void MESH_OT_rip(struct wmOperatorType *ot);
 
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
 void MESH_OT_blend_from_shape(struct wmOperatorType *ot);
+void MESH_OT_sort_faces(struct wmOperatorType *ot);
 
 /* ******************* mesh_data.c */
 

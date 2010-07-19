@@ -47,12 +47,13 @@ class SCA_MouseManager : public SCA_EventManager
 {
 
 	class 	SCA_IInputDevice*				m_mousedevice;
+	class	RAS_ICanvas*						m_canvas;
 	
 	unsigned short m_xpos; // Cached location of the mouse pointer
 	unsigned short m_ypos;
 	
 public:
-	SCA_MouseManager(class SCA_LogicManager* logicmgr,class SCA_IInputDevice* mousedev);
+	SCA_MouseManager(class SCA_LogicManager* logicmgr,class SCA_IInputDevice* mousedev, class RAS_ICanvas* canvas);
 	virtual ~SCA_MouseManager();
 
 	/**
@@ -66,7 +67,7 @@ public:
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_MouseManager"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_MouseManager"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

@@ -170,7 +170,7 @@ static void *_ehashIterator_getCurrent(EHashIterator *ehi) {
 
 static void _ehashIterator_next(EHashIterator *ehi) {
 	if (ehi->curEntry) {
-        ehi->curEntry = ehi->curEntry->next;
+		ehi->curEntry = ehi->curEntry->next;
 		while (!ehi->curEntry) {
 			ehi->curBucket++;
 			if (ehi->curBucket==ehi->eh->curSize)
@@ -1159,7 +1159,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	int normalDataOffset = ss->normalDataOffset;
 	int vertDataSize = ss->meshIFC.vertDataSize;
 
-	#pragma omp parallel for private(ptrIdx) schedule(static)
+	#pragma omp parallel for private(ptrIdx) if(numEffectedF*edgeSize*edgeSize*4 >= CCG_OMP_LIMIT)
 	for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
 		CCGFace *f = (CCGFace*) effectedF[ptrIdx];
 		int S, x, y;
@@ -1285,7 +1285,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 		}
 	}
 
-	#pragma omp parallel for private(ptrIdx) schedule(static)
+	#pragma omp parallel for private(ptrIdx) if(numEffectedF*edgeSize*edgeSize*4 >= CCG_OMP_LIMIT)
 	for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
 		CCGFace *f = (CCGFace*) effectedF[ptrIdx];
 		int S, x, y;
@@ -1351,7 +1351,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 	int vertDataSize = ss->meshIFC.vertDataSize;
 	void *q = ss->q, *r = ss->r;
 
-	#pragma omp parallel for private(ptrIdx) schedule(static)
+	#pragma omp parallel for private(ptrIdx) if(numEffectedF*edgeSize*edgeSize*4 >= CCG_OMP_LIMIT)
 	for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
 		CCGFace *f = (CCGFace*) effectedF[ptrIdx];
 		int S, x, y;
@@ -1685,7 +1685,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 		}
 	}
 
-	#pragma omp parallel private(ptrIdx)
+	#pragma omp parallel private(ptrIdx) if(numEffectedF*edgeSize*edgeSize*4 >= CCG_OMP_LIMIT)
 	{
 		void *q, *r;
 
@@ -1791,14 +1791,14 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 	gridSize = 1 + (1<<((nextLvl)-1));
 	cornerIdx = gridSize-1;
 
-	#pragma omp parallel for private(i) schedule(static)
+	#pragma omp parallel for private(i) if(numEffectedF*edgeSize*edgeSize*4 >= CCG_OMP_LIMIT)
 	for (i=0; i<numEffectedE; i++) {
 		CCGEdge *e = effectedE[i];
 		VertDataCopy(EDGE_getCo(e, nextLvl, 0), VERT_getCo(e->v0, nextLvl));
 		VertDataCopy(EDGE_getCo(e, nextLvl, edgeSize-1), VERT_getCo(e->v1, nextLvl));
 	}
 
-	#pragma omp parallel for private(i) schedule(static)
+	#pragma omp parallel for private(i) if(numEffectedF*edgeSize*edgeSize*4 >= CCG_OMP_LIMIT)
 	for (i=0; i<numEffectedF; i++) {
 		CCGFace *f = effectedF[i];
 		int S, x;

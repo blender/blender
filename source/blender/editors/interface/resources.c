@@ -34,15 +34,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 
 #include "DNA_curve_types.h"
-#include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -50,8 +45,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -62,7 +55,6 @@
 #include "BIF_gl.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_interface_icons.h"
 
 #include "interface_intern.h"
@@ -279,6 +271,8 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->edge_seam; break;
 			case TH_EDGE_SHARP:
 				cp= ts->edge_sharp; break;
+			case TH_EDGE_CREASE:
+				cp= ts->edge_crease; break;
 			case TH_EDITMESH_ACTIVE:
 				cp= ts->editmesh_active; break;
 			case TH_EDGE_FACESEL:
@@ -305,7 +299,35 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->strip_select; break;
 			case TH_CFRAME:
 				cp= ts->cframe; break;
-				
+			case TH_NURB_ULINE:
+				cp= ts->nurb_uline; break;
+			case TH_NURB_VLINE:
+				cp= ts->nurb_vline; break;
+			case TH_NURB_SEL_ULINE:
+				cp= ts->nurb_sel_uline; break;
+			case TH_NURB_SEL_VLINE:
+				cp= ts->nurb_sel_vline; break;
+			case TH_ACTIVE_SPLINE:
+				cp= ts->act_spline; break;
+			case TH_LASTSEL_POINT:
+				cp= ts->lastsel_point; break;
+			case TH_HANDLE_FREE:
+				cp= ts->handle_free; break;
+			case TH_HANDLE_AUTO:
+				cp= ts->handle_auto; break;
+			case TH_HANDLE_VECT:
+				cp= ts->handle_vect; break;
+			case TH_HANDLE_ALIGN:
+				cp= ts->handle_align; break;
+			case TH_HANDLE_SEL_FREE:
+				cp= ts->handle_sel_free; break;
+			case TH_HANDLE_SEL_AUTO:
+				cp= ts->handle_sel_auto; break;
+			case TH_HANDLE_SEL_VECT:
+				cp= ts->handle_sel_vect; break;
+			case TH_HANDLE_SEL_ALIGN:
+				cp= ts->handle_sel_align; break;
+
 			case TH_SYNTAX_B:
 				cp= ts->syntaxb; break;
 			case TH_SYNTAX_V:
@@ -438,11 +460,11 @@ static void ui_theme_init_new(bTheme *btheme)
 #define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
 #define SETCOLF(col, r, g, b, a)  col[0]=r*255; col[1]=g*255; col[2]= b*255; col[3]= a*255;
 
-/* initialize default theme, can't be edited
+/* initialize default theme
    Note: when you add new colors, created & saved themes need initialized
    use function below, init_userdef_do_versions() 
 */
-void ui_theme_init_userdef(void)
+void ui_theme_init_default(void)
 {
 	bTheme *btheme= U.themes.first;
 	
@@ -499,6 +521,23 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tv3d.face_dot, 255, 133, 0, 255);
 	btheme->tv3d.facedot_size= 4;
 	SETCOL(btheme->tv3d.cframe, 0x60, 0xc0,	 0x40, 255);
+
+	SETCOL(btheme->tv3d.nurb_uline, 0x90, 0x90, 0x00, 255);
+	SETCOL(btheme->tv3d.nurb_vline, 0x80, 0x30, 0x60, 255);
+	SETCOL(btheme->tv3d.nurb_sel_uline, 0xf0, 0xff, 0x40, 255);
+	SETCOL(btheme->tv3d.nurb_sel_vline, 0xf0, 0x90, 0xa0, 255);
+
+	SETCOL(btheme->tv3d.handle_free, 0, 0, 0, 255);
+	SETCOL(btheme->tv3d.handle_auto, 0x90, 0x90, 0x00, 255);
+	SETCOL(btheme->tv3d.handle_vect, 0x40, 0x90, 0x30, 255);
+	SETCOL(btheme->tv3d.handle_align, 0x80, 0x30, 0x60, 255);
+	SETCOL(btheme->tv3d.handle_sel_free, 0, 0, 0, 255);
+	SETCOL(btheme->tv3d.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
+	SETCOL(btheme->tv3d.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
+	SETCOL(btheme->tv3d.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+
+	SETCOL(btheme->tv3d.act_spline, 0xdb, 0x25, 0x12, 255);
+	SETCOL(btheme->tv3d.lastsel_point,  0xff, 0xff, 0xff, 255);
 
 	SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
 	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);               // alpha 80 is not meant editable, used for wire+action draw
@@ -910,6 +949,14 @@ void UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, in
 	col[0] = r;
 	col[1] = g;
 	col[2] = b;
+}
+
+void UI_ThemeClearColor(int colorid)
+{
+	float col[3];
+	
+	UI_GetThemeColor3fv(colorid, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
 }
 
 void UI_make_axis_color(char *src_col, char *dst_col, char axis)
@@ -1377,7 +1424,75 @@ void init_userdef_do_versions(void)
 		if(U.wmdrawmethod == USER_DRAW_TRIPLE)
 			U.wmdrawmethod = USER_DRAW_AUTOMATIC;
 	}
+	
+	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 3)) {
+		if (U.flag & USER_LMOUSESELECT) 
+			U.flag &= ~USER_TWOBUTTONMOUSE;
+	}
+	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 4)) {
+		bTheme *btheme;
+		
+		/* default new handle type is auto handles */
+		U.keyhandles_new = HD_AUTO;
+		
+		/* init new curve colors */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* init colors used for handles in 3D-View  */
+			SETCOL(btheme->tv3d.handle_free, 0, 0, 0, 255);
+			SETCOL(btheme->tv3d.handle_auto, 0x90, 0x90, 0x00, 255);
+			SETCOL(btheme->tv3d.handle_vect, 0x40, 0x90, 0x30, 255);
+			SETCOL(btheme->tv3d.handle_align, 0x80, 0x30, 0x60, 255);
+			SETCOL(btheme->tv3d.handle_sel_free, 0, 0, 0, 255);
+			SETCOL(btheme->tv3d.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
+			SETCOL(btheme->tv3d.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
+			SETCOL(btheme->tv3d.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+			SETCOL(btheme->tv3d.act_spline, 0xdb, 0x25, 0x12, 255);
+			
+			/* same colors again for Graph Editor... */
+			SETCOL(btheme->tipo.handle_free, 0, 0, 0, 255);
+			SETCOL(btheme->tipo.handle_auto, 0x90, 0x90, 0x00, 255);
+			SETCOL(btheme->tipo.handle_vect, 0x40, 0x90, 0x30, 255);
+			SETCOL(btheme->tipo.handle_align, 0x80, 0x30, 0x60, 255);
+			SETCOL(btheme->tipo.handle_sel_free, 0, 0, 0, 255);
+			SETCOL(btheme->tipo.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
+			SETCOL(btheme->tipo.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
+			SETCOL(btheme->tipo.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+			
+			/* edge crease */
+			SETCOLF(btheme->tv3d.edge_crease, 0.8, 0, 0.6, 1.0);
+		}
+	}
+	if (G.main->versionfile <= 252) {
+		bTheme *btheme;
 
+		/* init new curve colors */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			if (btheme->tv3d.lastsel_point[3] == 0)
+				SETCOL(btheme->tv3d.lastsel_point, 0xff, 0xff, 0xff, 255);
+		}
+	}
+	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 5)) {
+		bTheme *btheme;
+		
+		/* interface_widgets.c */
+		struct uiWidgetColors wcol_progress= {
+			{0, 0, 0, 255},
+			{190, 190, 190, 255},
+			{100, 100, 100, 180},
+			{68, 68, 68, 255},
+			
+			{0, 0, 0, 255},
+			{255, 255, 255, 255},
+			
+			0,
+			5, -5
+		};
+		
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* init progress bar theme */
+			btheme->tui.wcol_progress= wcol_progress;
+		}
+	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
@@ -1403,13 +1518,25 @@ void init_userdef_do_versions(void)
 	if (U.v2d_min_gridsize == 0) {
 		U.v2d_min_gridsize= 35;
 	}
+	
+	/* Single Column UI Value */
+	if (U.propwidth == 0) {
+		U.propwidth = 200;
+	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();
 	/* this timer uses U */
 // XXX	reset_autosave();
 
+	/* GSOC Sculpt 2010 - Sanity check on Sculpt/Paint settings */
+
+	if (U.sculpt_paint_unified_alpha == 0)
+		U.sculpt_paint_unified_alpha = 0.5f;
+
+	if (U.sculpt_paint_unified_unprojected_radius == 0) 
+		U.sculpt_paint_unified_unprojected_radius = 0.125f;
+
+	if (U.sculpt_paint_unified_size == 0)
+		U.sculpt_paint_unified_size = 35;
 }
-
-
-

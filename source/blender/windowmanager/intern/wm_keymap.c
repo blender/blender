@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -47,7 +47,6 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_types.h"
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"
@@ -709,8 +708,11 @@ void WM_keymap_restore_item_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapIt
 
 				WM_keymap_properties_reset(kmi);
 			}
-			kmi->properties= IDP_CopyProperty(orig->properties);
-			kmi->ptr->data= kmi->properties;
+			
+			if (orig->properties) {
+				kmi->properties= IDP_CopyProperty(orig->properties);
+				kmi->ptr->data= kmi->properties;
+			}
 
 			kmi->propvalue = orig->propvalue;
 			kmi->type = orig->type;

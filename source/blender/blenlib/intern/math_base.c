@@ -25,10 +25,6 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#include <float.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "BLI_math.h"
 
@@ -49,12 +45,12 @@ double copysign(double x, double y)
 /* from python 3.1 pymath.c */
 double round(double x)
 {
-    double absx, y;
-    absx = fabs(x);
-    y = floor(absx);
-    if (absx - y >= 0.5)
-        y += 1.0;
-    return copysign(y, x);
+	double absx, y;
+	absx = fabs(x);
+	y = floor(absx);
+	if (absx - y >= 0.5)
+		y += 1.0;
+	return copysign(y, x);
 }
 
 #endif

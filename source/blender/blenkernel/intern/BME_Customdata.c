@@ -35,13 +35,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h>
 
-#include "BKE_bmesh.h"
 #include "BKE_bmeshCustomData.h"
 #include "bmesh_private.h"
-#include <string.h>
 #include "MEM_guardedalloc.h"
-#include "BLI_mempool.h"
 
 /********************* Layer type information **********************/
 typedef struct BME_LayerTypeInfo {
@@ -138,7 +136,7 @@ static void BME_CD_alloc_block(BME_CustomData *data, void **block)
 }
 
 void BME_CD_copy_data(const BME_CustomData *source, BME_CustomData *dest,
-                            void *src_block, void **dest_block)
+							void *src_block, void **dest_block)
 {
 	const BME_LayerTypeInfo *typeInfo;
 	int dest_i, src_i;
@@ -154,7 +152,7 @@ void BME_CD_copy_data(const BME_CustomData *source, BME_CustomData *dest,
 		 * (this should work because layers are ordered by type)
 		 */
 		while(dest_i < dest->totlayer
-		      && dest->layers[dest_i].type < source->layers[src_i].type)
+			  && dest->layers[dest_i].type < source->layers[src_i].type)
 			++dest_i;
 
 		/* if there are no more dest layers, we're done */

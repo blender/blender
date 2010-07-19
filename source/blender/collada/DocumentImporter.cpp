@@ -1,3 +1,26 @@
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 // TODO:
 // * name imported objects
 // * import object rotation as euler
@@ -174,6 +197,59 @@ static float get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigne
 		return array.getDoubleValues()->getData()[index];
 }
 
+// copied from /editors/object/object_relations.c
+static int test_parent_loop(Object *par, Object *ob)
+{
+	/* test if 'ob' is a parent somewhere in par's parents */
+	
+	if(par == NULL) return 0;
+	if(ob == par) return 1;
+	
+	return test_parent_loop(par->parent, ob);
+}
+
+// a shortened version of parent_set_exec()
+// if is_parent_space is true then ob->obmat will be multiplied by par->obmat before parenting
+static int set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space=true)
+{
+	if (!par || test_parent_loop(par, ob))
+		return false;
+
+	Object workob;
+	Scene *sce = CTX_data_scene(C);
+
+	ob->parent = par;
+	ob->partype = PAROBJECT;
+
+	ob->parsubstr[0] = 0;
+
+	if (is_parent_space) {
+		// calc par->obmat
+		where_is_object(sce, par);
+
+		// move child obmat into world space
+		float mat[4][4];
+		mul_m4_m4m4(mat, ob->obmat, par->obmat);
+		copy_m4_m4(ob->obmat, mat);
+	}
+	
+	// apply child obmat (i.e. decompose it into rot/loc/size)
+	object_apply_mat4(ob, ob->obmat);
+
+	// compute parentinv
+	what_does_parent(sce, ob, &workob);
+	invert_m4_m4(ob->parentinv, workob.obmat);
+
+	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
+	par->recalc |= OB_RECALC_OB;
+
+	DAG_scene_sort(sce);
+	DAG_ids_flush_update(0);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+
+	return true;
+}
+
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
 
 class TransformReader : public TransformBase
@@ -273,6 +349,23 @@ public:
 	{
 		unit_converter->dae_matrix_to_mat4(m, ((COLLADAFW::Matrix*)tm)->getMatrix());
 	}
+
+	void dae_translate_to_v3(COLLADAFW::Transformation *tm, float v[3])
+	{
+		dae_vector3_to_v3(((COLLADAFW::Translate*)tm)->getTranslation(), v);
+	}
+
+	void dae_scale_to_v3(COLLADAFW::Transformation *tm, float v[3])
+	{
+		dae_vector3_to_v3(((COLLADAFW::Scale*)tm)->getScale(), v);
+	}
+
+	void dae_vector3_to_v3(const COLLADABU::Math::Vector3 &v3, float v[3])
+	{
+		v[0] = v3.x;
+		v[1] = v3.y;
+		v[2] = v3.z;
+	}
 };
 
 // only for ArmatureImporter to "see" MeshImporter::get_object_by_geom_uid
@@ -324,8 +417,7 @@ private:
 	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> geom_uid_by_controller_uid;
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> joint_by_uid; // contains all joints
 	std::vector<COLLADAFW::Node*> root_joints;
-
-	std::vector<Object*> armature_objects;
+	std::map<COLLADAFW::UniqueId, Object*> joint_parent_map;
 
 	MeshImporterBase *mesh_importer;
 	AnimationImporterBase *anim_importer;
@@ -358,6 +450,7 @@ private:
 
 		Object *ob_arm;
 		COLLADAFW::UniqueId controller_uid;
+		Object *parent;
 
 	public:
 
@@ -367,7 +460,8 @@ private:
 										 joint_data(skin.joint_data),
 										 unit_converter(skin.unit_converter),
 										 ob_arm(skin.ob_arm),
-										 controller_uid(skin.controller_uid)
+										 controller_uid(skin.controller_uid),
+										 parent(skin.parent)
 		{
 			copy_m4_m4(bind_shape_matrix, (float (*)[4])skin.bind_shape_matrix);
 
@@ -376,7 +470,7 @@ private:
 			transfer_int_array_data_const(skin.joint_indices, joint_indices);
 		}
 
-		SkinInfo(UnitConverter *conv) : unit_converter(conv), ob_arm(NULL) {}
+		SkinInfo(UnitConverter *conv) : unit_converter(conv), ob_arm(NULL), parent(NULL) {}
 
 		// nobody owns the data after this, so it should be freed manually with releaseMemory
 		template <class T>
@@ -433,13 +527,11 @@ private:
 			joint_data.push_back(jd);
 		}
 
-		// called from write_controller
-		Object *create_armature(const COLLADAFW::SkinController* co, Scene *scene)
+		void set_controller(const COLLADAFW::SkinController* co)
 		{
-			ob_arm = add_object(scene, OB_ARMATURE);
-
 			controller_uid = co->getUniqueId();
 
+			// fill in joint UIDs
 			const COLLADAFW::UniqueIdArray& joint_uids = co->getJoints();
 			for (unsigned int i = 0; i < joint_uids.getCount(); i++) {
 				joint_data[i].joint_uid = joint_uids[i];
@@ -451,7 +543,21 @@ private:
 				// now we'll be able to get inv bind matrix from joint id
 				// joint_id_to_joint_index_map[joint_ids[i]] = i;
 			}
+		}
 
+		// called from write_controller
+		Object *create_armature(Scene *scene)
+		{
+			ob_arm = add_object(scene, OB_ARMATURE);
+			return ob_arm;
+		}
+
+		Object* set_armature(Object *ob_arm)
+		{
+			if (this->ob_arm)
+				return this->ob_arm;
+
+			this->ob_arm = ob_arm;
 			return ob_arm;
 		}
 
@@ -479,10 +585,12 @@ private:
 			return controller_uid;
 		}
 
+		// check if this skin controller references a joint or any descendant of it
+		// 
 		// some nodes may not be referenced by SkinController,
 		// in this case to determine if the node belongs to this armature,
 		// we need to search down the tree
-		bool uses_joint(COLLADAFW::Node *node)
+		bool uses_joint_or_descendant(COLLADAFW::Node *node)
 		{
 			const COLLADAFW::UniqueId& uid = node->getUniqueId();
 			std::vector<JointData>::iterator it;
@@ -493,7 +601,7 @@ private:
 
 			COLLADAFW::NodePointerArray& children = node->getChildNodes();
 			for (unsigned int i = 0; i < children.getCount(); i++) {
-				if (this->uses_joint(children[i]))
+				if (uses_joint_or_descendant(children[i]))
 					return true;
 			}
 
@@ -503,14 +611,17 @@ private:
 		void link_armature(bContext *C, Object *ob, std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& joint_by_uid,
 						   TransformReader *tm)
 		{
-			Object workob;
 			Scene *scene = CTX_data_scene(C);
 
 			ModifierData *md = ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Armature);
 			((ArmatureModifierData *)md)->object = ob_arm;
 
-			tm->decompose(bind_shape_matrix, ob->loc, ob->rot, NULL, ob->size);
-
+			copy_m4_m4(ob->obmat, bind_shape_matrix);
+			object_apply_mat4(ob, ob->obmat);
+#if 1
+			::set_parent(ob, ob_arm, C);
+#else
+			Object workob;
 			ob->parent = ob_arm;
 			ob->partype = PAROBJECT;
 
@@ -518,6 +629,11 @@ private:
 			invert_m4_m4(ob->parentinv, workob.obmat);
 
 			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
+
+			DAG_scene_sort(scene);
+			DAG_ids_flush_update(0);
+			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+#endif
 
 			((bArmature*)ob_arm->data)->deformflag = ARM_DEF_VGROUP;
 
@@ -560,16 +676,55 @@ private:
 					}
 				}
 			}
-
-			DAG_scene_sort(scene);
-			DAG_ids_flush_update(0);
-			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 		}
 
 		bPoseChannel *get_pose_channel_from_node(COLLADAFW::Node *node)
 		{
 			return get_pose_channel(ob_arm->pose, get_joint_name(node));
 		}
+
+		void set_parent(Object *_parent)
+		{
+			parent = _parent;
+		}
+
+		Object* get_parent()
+		{
+			return parent;
+		}
+
+		void find_root_joints(const std::vector<COLLADAFW::Node*> &root_joints,
+							  std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& joint_by_uid,
+							  std::vector<COLLADAFW::Node*>& result)
+		{
+			std::vector<COLLADAFW::Node*>::const_iterator it;
+			for (it = root_joints.begin(); it != root_joints.end(); it++) {
+				COLLADAFW::Node *root = *it;
+				std::vector<JointData>::iterator ji;
+				for (ji = joint_data.begin(); ji != joint_data.end(); ji++) {
+					COLLADAFW::Node *joint = joint_by_uid[(*ji).joint_uid];
+					if (find_node_in_tree(joint, root)) {
+						if (std::find(result.begin(), result.end(), root) == result.end())
+							result.push_back(root);
+					}
+				}
+			}
+		}
+
+		bool find_node_in_tree(COLLADAFW::Node *node, COLLADAFW::Node *tree_root)
+		{
+			if (node == tree_root)
+				return true;
+
+			COLLADAFW::NodePointerArray& children = tree_root->getChildNodes();
+			for (unsigned int i = 0; i < children.getCount(); i++) {
+				if (find_node_in_tree(node, children[i]))
+					return true;
+			}
+
+			return false;
+		}
+
 	};
 
 	std::map<COLLADAFW::UniqueId, SkinInfo> skin_by_data_uid; // data UID = skin controller data UID
@@ -753,7 +908,7 @@ private:
 			for (sit = skin_by_data_uid.begin(); sit != skin_by_data_uid.end(); sit++) {
 				SkinInfo& skin = sit->second;
 
-				if (skin.uses_joint(joint)) {
+				if (skin.uses_joint_or_descendant(joint)) {
 					bPoseChannel *pchan = skin.get_pose_channel_from_node(joint);
 
 					if (pchan) {
@@ -821,7 +976,70 @@ private:
 		// - exit edit mode
 		// - set a sphere shape to leaf bones
 
-		Object *ob_arm = skin.get_armature();
+		Object *ob_arm = NULL;
+
+		/*
+		 * find if there's another skin sharing at least one bone with this skin
+		 * if so, use that skin's armature
+		 */
+
+		/*
+		  Pseudocode:
+
+		  find_node_in_tree(node, root_joint)
+
+		  skin::find_root_joints(root_joints):
+			std::vector root_joints;
+			for each root in root_joints:
+				for each joint in joints:
+					if find_node_in_tree(joint, root):
+						if (std::find(root_joints.begin(), root_joints.end(), root) == root_joints.end())
+							root_joints.push_back(root);
+
+		  for (each skin B with armature) {
+			  find all root joints for skin B
+
+			  for each joint X in skin A:
+				for each root joint R in skin B:
+					if (find_node_in_tree(X, R)) {
+						shared = 1;
+						goto endloop;
+					}
+		  }
+
+		  endloop:
+		*/
+
+		SkinInfo *a = &skin;
+		Object *shared = NULL;
+		std::vector<COLLADAFW::Node*> skin_root_joints;
+
+		std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
+		for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
+			SkinInfo *b = &it->second;
+			if (b == a || b->get_armature() == NULL)
+				continue;
+
+			skin_root_joints.clear();
+
+			b->find_root_joints(root_joints, joint_by_uid, skin_root_joints);
+
+			std::vector<COLLADAFW::Node*>::iterator ri;
+			for (ri = skin_root_joints.begin(); ri != skin_root_joints.end(); ri++) {
+				if (a->uses_joint_or_descendant(*ri)) {
+					shared = b->get_armature();
+					break;
+				}
+			}
+
+			if (shared != NULL)
+				break;
+		}
+
+		if (shared)
+			ob_arm = skin.set_armature(shared);
+		else
+			ob_arm = skin.create_armature(scene);
 
 		// enter armature edit mode
 		ED_armature_to_edit(ob_arm);
@@ -833,12 +1051,23 @@ private:
 		// min_angle = 360.0f;		// minimum angle between bone head-tail and a row of bone matrix
 
 		// create bones
+		/*
+		   TODO:
+		   check if bones have already been created for a given joint
+		*/
 
-		std::vector<COLLADAFW::Node*>::iterator it;
-		for (it = root_joints.begin(); it != root_joints.end(); it++) {
+		std::vector<COLLADAFW::Node*>::iterator ri;
+		for (ri = root_joints.begin(); ri != root_joints.end(); ri++) {
+			// for shared armature check if bone tree is already created
+			if (shared && std::find(skin_root_joints.begin(), skin_root_joints.end(), *ri) != skin_root_joints.end())
+				continue;
+
 			// since root_joints may contain joints for multiple controllers, we need to filter
-			if (skin.uses_joint(*it)) {
-				create_bone(skin, *it, NULL, (*it)->getChildNodes().getCount(), NULL, (bArmature*)ob_arm->data);
+			if (skin.uses_joint_or_descendant(*ri)) {
+				create_bone(skin, *ri, NULL, (*ri)->getChildNodes().getCount(), NULL, (bArmature*)ob_arm->data);
+
+				if (joint_parent_map.find((*ri)->getUniqueId()) != joint_parent_map.end() && !skin.get_parent())
+					skin.set_parent(joint_parent_map[(*ri)->getUniqueId()]);
 			}
 		}
 
@@ -872,10 +1101,15 @@ public:
 	// root - if this joint is the top joint in hierarchy, if a joint
 	// is a child of a node (not joint), root should be true since
 	// this is where we build armature bones from
-	void add_joint(COLLADAFW::Node *node, bool root)
+	void add_joint(COLLADAFW::Node *node, bool root, Object *parent)
 	{
 		joint_by_uid[node->getUniqueId()] = node;
-		if (root) root_joints.push_back(node);
+		if (root) {
+			root_joints.push_back(node);
+
+			if (parent)
+				joint_parent_map[node->getUniqueId()] = parent;
+		}
 	}
 
 #if 0
@@ -904,14 +1138,17 @@ public:
 
 			create_armature_bones(skin);
 
-			// link armature with an object
+			// link armature with a mesh object
 			Object *ob = mesh_importer->get_object_by_geom_uid(*get_geometry_uid(skin.get_controller_uid()));
-			if (ob) {
+			if (ob)
 				skin.link_armature(C, ob, joint_by_uid, this);
-			}
-			else {
+			else
 				fprintf(stderr, "Cannot find object to link armature with.\n");
-			}
+
+			// set armature parent if any
+			Object *par = skin.get_parent();
+			if (par)
+				set_parent(skin.get_armature(), par, C, false);
 
 			// free memory stolen from SkinControllerData
 			skin.free();
@@ -972,10 +1209,8 @@ public:
 		const COLLADAFW::UniqueId& skin_id = controller->getUniqueId();
 
 		if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
-
 			COLLADAFW::SkinController *co = (COLLADAFW::SkinController*)controller;
-
-			// to find geom id by controller id
+			// to be able to find geom id by controller id
 			geom_uid_by_controller_uid[skin_id] = co->getSource();
 
 			const COLLADAFW::UniqueId& data_uid = co->getSkinControllerData();
@@ -984,9 +1219,7 @@ public:
 				return true;
 			}
 
-			Object *ob_arm = skin_by_data_uid[data_uid].create_armature(co, scene);
-
-			armature_objects.push_back(ob_arm);
+			skin_by_data_uid[data_uid].set_controller(co);
 		}
 		// morph controller
 		else {
@@ -1011,7 +1244,7 @@ public:
 		for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
 			SkinInfo& skin = it->second;
 
-			if (skin.uses_joint(node))
+			if (skin.uses_joint_or_descendant(node))
 				return skin.get_armature();
 		}
 
@@ -1023,19 +1256,6 @@ public:
 		BLI_snprintf(joint_path, count, "pose.bones[\"%s\"]", get_joint_name(node));
 	}
 	
-#if 0
-	void fix_animation()
-	{
-		/* Change Euler rotation to Quaternion for bone animation */
-		std::vector<Object*>::iterator it;
-		for (it = armature_objects.begin(); it != armature_objects.end(); it++) {
-			Object *ob = *it;
-			if (!ob || !ob->adt || !ob->adt->action) continue;
-			anim_importer->change_eul_to_quat(ob, ob->adt->action);
-		}
-	}
-#endif
-
 	// gives a world-space mat
 	bool get_joint_bind_mat(float m[][4], COLLADAFW::Node *joint)
 	{
@@ -1108,7 +1328,7 @@ private:
 		}
 #endif
 
-		void getUV(int uv_set_index, int uv_index[2], float *uv)
+		void getUV(int uv_index[2], float *uv)
 		{
 			switch(mVData->getType()) {
 			case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
@@ -1159,7 +1379,7 @@ private:
 	}
 #endif
 	
-	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs, int uv_set_index,
+	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
 					 COLLADAFW::IndexList& index_list, unsigned int *tris_indices)
 	{
 		int uv_indices[4][2];
@@ -1174,12 +1394,12 @@ private:
 			uv_indices[i][1] = uv_index * 2 + 1;
 		}
 
-		uvs.getUV(uv_set_index, uv_indices[0], mtface->uv[0]);
-		uvs.getUV(uv_set_index, uv_indices[1], mtface->uv[1]);
-		uvs.getUV(uv_set_index, uv_indices[2], mtface->uv[2]);
+		uvs.getUV(uv_indices[0], mtface->uv[0]);
+		uvs.getUV(uv_indices[1], mtface->uv[1]);
+		uvs.getUV(uv_indices[2], mtface->uv[2]);
 	}
 
-	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs, int uv_set_index,
+	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
 					COLLADAFW::IndexList& index_list, int index, bool quad)
 	{
 		int uv_indices[4][2];
@@ -1194,11 +1414,11 @@ private:
 			uv_indices[i][1] = uv_index * 2 + 1;
 		}
 
-		uvs.getUV(uv_set_index, uv_indices[0], mtface->uv[0]);
-		uvs.getUV(uv_set_index, uv_indices[1], mtface->uv[1]);
-		uvs.getUV(uv_set_index, uv_indices[2], mtface->uv[2]);
+		uvs.getUV(uv_indices[0], mtface->uv[0]);
+		uvs.getUV(uv_indices[1], mtface->uv[1]);
+		uvs.getUV(uv_indices[2], mtface->uv[2]);
 
-		if (quad) uvs.getUV(uv_set_index, uv_indices[3], mtface->uv[3]);
+		if (quad) uvs.getUV(uv_indices[3], mtface->uv[3]);
 
 #ifdef COLLADA_DEBUG
 		/*if (quad) {
@@ -1323,7 +1543,7 @@ private:
 			vert += 3;
 		}
 		
-		filldisplist(&dispbase, &dispbase);
+		filldisplist(&dispbase, &dispbase, 0);
 
 		int tottri = 0;
 		dl= (DispList*)dispbase.first;
@@ -1398,6 +1618,13 @@ private:
 		// allocate UV layers
 		unsigned int totuvset = mesh->getUVCoords().getInputInfosArray().getCount();
 
+		// for (i = 0; i < totuvset; i++) {
+		// 	if (mesh->getUVCoords().getLength(i) == 0) {
+		// 		totuvset = 0;
+		// 		break;
+		// 	}
+		// }
+ 
 		for (i = 0; i < totuvset; i++) {
 			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface);
 			//this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
@@ -1454,11 +1681,23 @@ private:
 					set_face_indices(mface, indices, false);
 					indices += 3;
 
+#if 0
 					for (k = 0; k < totuvset; k++) {
-						// get mtface by face index and uv set index
-						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-						set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, false);
+						if (!index_list_array.empty() && index_list_array[k]) {
+							// get mtface by face index and uv set index
+							MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
+							set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, false);
+						}
 					}
+#else
+					for (k = 0; k < index_list_array.getCount(); k++) {
+						int uvset_index = index_list_array[k]->getSetIndex();
+
+						// get mtface by face index and uv set index
+						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, uvset_index);
+						set_face_uv(&mtface[face_index], uvs, *index_list_array[k], index, false);
+					}
+#endif
 
 					test_index_face(mface, &me->fdata, face_index, 3);
 
@@ -1490,11 +1729,23 @@ private:
 						// set mtface for each uv set
 						// it is assumed that all primitives have equal number of UV sets
 						
+#if 0
 						for (k = 0; k < totuvset; k++) {
-							// get mtface by face index and uv set index
-							MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-							set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, mface->v4 != 0);
+							if (!index_list_array.empty() && index_list_array[k]) {
+								// get mtface by face index and uv set index
+								MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
+								set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, mface->v4 != 0);
+							}
 						}
+#else
+						for (k = 0; k < index_list_array.getCount(); k++) {
+							int uvset_index = index_list_array[k]->getSetIndex();
+
+							// get mtface by face index and uv set index
+							MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, uvset_index);
+							set_face_uv(&mtface[face_index], uvs, *index_list_array[k], index, mface->v4 != 0);
+						}
+#endif
 
 						test_index_face(mface, &me->fdata, face_index, vcount);
 
@@ -1530,11 +1781,24 @@ private:
 
 							set_face_indices(mface, tri_indices, false);
 							
+#if 0
 							for (unsigned int l = 0; l < totuvset; l++) {
-								// get mtface by face index and uv set index
-								MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, l);
-								set_face_uv(&mtface[face_index], uvs, l, *index_list_array[l], uv_indices);
+								if (!index_list_array.empty() && index_list_array[l]) {
+									// get mtface by face index and uv set index
+									MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, l);
+									set_face_uv(&mtface[face_index], uvs, l, *index_list_array[l], uv_indices);
+								}
 							}
+#else
+							for (unsigned int l = 0; l < index_list_array.getCount(); l++) {
+								int uvset_index = index_list_array[l]->getSetIndex();
+
+								// get mtface by face index and uv set index
+								MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, uvset_index);
+								set_face_uv(&mtface[face_index], uvs, *index_list_array[l], uv_indices);
+							}
+#endif
+
 
 							test_index_face(mface, &me->fdata, face_index, 3);
 
@@ -1884,77 +2148,50 @@ private:
 
 		std::vector<FCurve*>& fcurves = curve_map[curve->getUniqueId()];
 
-		if (dim == 1) {
-			FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
-
-			fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
-			// fcu->rna_path = BLI_strdupn(path, strlen(path));
-			fcu->array_index = 0;
-			//fcu->totvert = curve->getKeyCount();
-			
-			// create beztriple for each key
-			for (i = 0; i < curve->getKeyCount(); i++) {
-				BezTriple bez;
-				memset(&bez, 0, sizeof(BezTriple));
-
-				// intangent
-				// bez.vec[0][0] = get_float_value(intan, i + i) * fps;
-				// bez.vec[0][1] = get_float_value(intan, i + i + 1);
-
-				// input, output
-				bez.vec[1][0] = get_float_value(input, i) * fps;
-				bez.vec[1][1] = get_float_value(output, i);
-
-				// outtangent
-				// bez.vec[2][0] = get_float_value(outtan, i + i) * fps;
-				// bez.vec[2][1] = get_float_value(outtan, i + i + 1);
+		switch (dim) {
+		case 1: // X, Y, Z or angle
+		case 3: // XYZ
+		case 16: // matrix
+			{
+				for (i = 0; i < dim; i++ ) {
+					FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
 				
-				bez.ipo = U.ipo_new; /* use default interpolation mode here... */
-				bez.f1 = bez.f2 = bez.f3 = SELECT;
-				bez.h1 = bez.h2 = HD_AUTO;
-				insert_bezt_fcurve(fcu, &bez, 0);
-			}
-
-			calchandles_fcurve(fcu);
-
-			fcurves.push_back(fcu);
-		}
-		else if(dim == 3) {
-			for (i = 0; i < dim; i++ ) {
-				FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
+					fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+					// fcu->rna_path = BLI_strdupn(path, strlen(path));
+					fcu->array_index = 0;
+					//fcu->totvert = curve->getKeyCount();
 				
-				fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
-				// fcu->rna_path = BLI_strdupn(path, strlen(path));
-				fcu->array_index = 0;
-				//fcu->totvert = curve->getKeyCount();
-				
-				// create beztriple for each key
-				for (unsigned int j = 0; j < curve->getKeyCount(); j++) {
-					BezTriple bez;
-					memset(&bez, 0, sizeof(BezTriple));
+					// create beztriple for each key
+					for (unsigned int j = 0; j < curve->getKeyCount(); j++) {
+						BezTriple bez;
+						memset(&bez, 0, sizeof(BezTriple));
 
-					// intangent
-					// bez.vec[0][0] = get_float_value(intan, j * 6 + i + i) * fps;
-					// bez.vec[0][1] = get_float_value(intan, j * 6 + i + i + 1);
+						// intangent
+						// bez.vec[0][0] = get_float_value(intan, j * 6 + i + i) * fps;
+						// bez.vec[0][1] = get_float_value(intan, j * 6 + i + i + 1);
 
-					// input, output
-					bez.vec[1][0] = get_float_value(input, j) * fps; 
-					bez.vec[1][1] = get_float_value(output, j * 3 + i);
+						// input, output
+						bez.vec[1][0] = get_float_value(input, j) * fps; 
+						bez.vec[1][1] = get_float_value(output, j * dim + i);
 
-					// outtangent
-					// bez.vec[2][0] = get_float_value(outtan, j * 6 + i + i) * fps;
-					// bez.vec[2][1] = get_float_value(outtan, j * 6 + i + i + 1);
+						// outtangent
+						// bez.vec[2][0] = get_float_value(outtan, j * 6 + i + i) * fps;
+						// bez.vec[2][1] = get_float_value(outtan, j * 6 + i + i + 1);
 
-					bez.ipo = U.ipo_new; /* use default interpolation mode here... */
-					bez.f1 = bez.f2 = bez.f3 = SELECT;
-					bez.h1 = bez.h2 = HD_AUTO;
-					insert_bezt_fcurve(fcu, &bez, 0);
+						bez.ipo = U.ipo_new; /* use default interpolation mode here... */
+						bez.f1 = bez.f2 = bez.f3 = SELECT;
+						bez.h1 = bez.h2 = HD_AUTO;
+						insert_bezt_fcurve(fcu, &bez, 0);
+					}
+
+					calchandles_fcurve(fcu);
+
+					fcurves.push_back(fcu);
 				}
-
-				calchandles_fcurve(fcu);
-
-				fcurves.push_back(fcu);
 			}
+			break;
+		default:
+			fprintf(stderr, "Output dimension of %d is not yet supported (animation id = %s)\n", dim, curve->getOriginalId().c_str());
 		}
 
 		for (std::vector<FCurve*>::iterator it = fcurves.begin(); it != fcurves.end(); it++)
@@ -2225,8 +2462,10 @@ public:
 	{
 		float mat[4][4];
 		TransformReader::get_node_mat(mat, node, &uid_animated_map, ob);
-		if (ob)
-			TransformReader::decompose(mat, ob->loc, ob->rot, NULL, ob->size);
+		if (ob) {
+			copy_m4_m4(ob->obmat, mat);
+			object_apply_mat4(ob, ob->obmat);
+		}
 	}
 	
 #if 0
@@ -2332,7 +2571,9 @@ public:
 								Object *par_job = NULL)
 	{
 		bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
+		bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;
 		bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
+
 		COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
 		Object *ob = is_joint ? armature_importer->get_armature_for_joint(node) : object_map[node->getUniqueId()];
 		const char *bone_name = is_joint ? get_joint_name(node) : NULL;
@@ -2350,7 +2591,7 @@ public:
 
 		unsigned int i;
 
-		// find frames at which to sample plus convert all keys to radians
+		// find frames at which to sample plus convert all rotation keys to radians
 		for (i = 0; i < tms.getCount(); i++) {
 			COLLADAFW::Transformation *tm = tms[i];
 			COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
@@ -2367,7 +2608,7 @@ public:
 							std::vector<FCurve*>& curves = curve_map[bindings[j].animation];
 							bool xyz = ((type == COLLADAFW::Transformation::TRANSLATE || type == COLLADAFW::Transformation::SCALE) && bindings[j].animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
 
-							if ((!xyz && curves.size() == 1) || (xyz && curves.size() == 3)) {
+							if ((!xyz && curves.size() == 1) || (xyz && curves.size() == 3) || is_matrix) {
 								std::vector<FCurve*>::iterator iter;
 
 								for (iter = curves.begin(); iter != curves.end(); iter++) {
@@ -2392,16 +2633,11 @@ public:
 			}
 		}
 
-		sort(frames.begin(), frames.end());
-
 		float irest_dae[4][4];
 		float rest[4][4], irest[4][4];
 
 		if (is_joint) {
-			if (is_joint)
-				get_joint_rest_mat(irest_dae, root, node);
-			else
-				evaluate_transform_at_frame(irest_dae, node, 0.0f);
+			get_joint_rest_mat(irest_dae, root, node);
 			invert_m4(irest_dae);
 
 			Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
@@ -2415,17 +2651,17 @@ public:
 			invert_m4_m4(irest, rest);
 		}
 
-		char rna_path[200];
-
 		Object *job = NULL;
 
 #ifdef ARMATURE_TEST
-		FCurve *job_curves[4];
+		FCurve *job_curves[10];
 		job = get_joint_object(root, node, par_job);
 #endif
 
 		if (frames.size() == 0)
 			return job;
+
+		std::sort(frames.begin(), frames.end());
 
 		const char *tm_str = NULL;
 		switch (tm_type) {
@@ -2438,29 +2674,51 @@ public:
 		case COLLADAFW::Transformation::TRANSLATE:
 			tm_str = "location";
 			break;
+		case COLLADAFW::Transformation::MATRIX:
+			break;
 		default:
 			return job;
 		}
 
-		if (is_joint) {
-			char joint_path[200];
+		char rna_path[200];
+		char joint_path[200];
+
+		if (is_joint)
 			armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
-			BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
-		}
-		else {
-			strcpy(rna_path, tm_str);
-		}
 
 		// new curves
-		FCurve *newcu[4];
-		unsigned int totcu = is_rotation ? 4 : 3;
+		FCurve *newcu[10]; // if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale
+		unsigned int totcu = is_matrix ? 10 : (is_rotation ? 4 : 3);
 
 		for (i = 0; i < totcu; i++) {
-			newcu[i] = create_fcurve(i, rna_path);
+
+			int axis = i;
+
+			if (is_matrix) {
+				if (i < 4) {
+					tm_str = "rotation_quaternion";
+					axis = i;
+				}
+				else if (i < 7) {
+					tm_str = "location";
+					axis = i - 4;
+				}
+				else {
+					tm_str = "scale";
+					axis = i - 7;
+				}
+			}
+
+			if (is_joint)
+				BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
+			else
+				strcpy(rna_path, tm_str);
+
+			newcu[i] = create_fcurve(axis, rna_path);
 
 #ifdef ARMATURE_TEST
 			if (is_joint)
-				job_curves[i] = create_fcurve(i, tm_str);
+				job_curves[i] = create_fcurve(axis, tm_str);
 #endif
 		}
 
@@ -2471,11 +2729,12 @@ public:
 			float fra = *it;
 
 			float mat[4][4];
+			float matfra[4][4];
 
-			unit_m4(mat);
+			unit_m4(matfra);
 
 			// calc object-space mat
-			evaluate_transform_at_frame(mat, node, fra);
+			evaluate_transform_at_frame(matfra, node, fra);
 
 			// for joints, we need a special matrix
 			if (is_joint) {
@@ -2486,15 +2745,18 @@ public:
 
 				// calc M
 				calc_joint_parent_mat_rest(par, NULL, root, node);
-				mul_m4_m4m4(temp, mat, par);
+				mul_m4_m4m4(temp, matfra, par);
 
 				// evaluate_joint_world_transform_at_frame(temp, NULL, , node, fra);
 
 				// calc special matrix
 				mul_serie_m4(mat, irest, temp, irest_dae, rest, NULL, NULL, NULL, NULL);
 			}
+			else {
+				copy_m4_m4(mat, matfra);
+			}
 
-			float val[4];
+			float val[4], rot[4], loc[3], scale[3];
 
 			switch (tm_type) {
 			case COLLADAFW::Transformation::ROTATE:
@@ -2506,35 +2768,64 @@ public:
 			case COLLADAFW::Transformation::TRANSLATE:
 				copy_v3_v3(val, mat[3]);
 				break;
+			case COLLADAFW::Transformation::MATRIX:
+				mat4_to_quat(rot, mat);
+				copy_v3_v3(loc, mat[3]);
+				mat4_to_size(scale, mat);
+				break;
 			default:
 				break;
 			}
 
-			// add 4 or 3 keys
+			// add keys
 			for (i = 0; i < totcu; i++) {
-				add_bezt(newcu[i], fra, val[i]);
+				if (is_matrix) {
+					if (i < 4)
+						add_bezt(newcu[i], fra, rot[i]);
+					else if (i < 7)
+						add_bezt(newcu[i], fra, loc[i - 4]);
+					else
+						add_bezt(newcu[i], fra, scale[i - 7]);
+				}
+				else {
+					add_bezt(newcu[i], fra, val[i]);
+				}
 			}
 
 #ifdef ARMATURE_TEST
 			if (is_joint) {
-				evaluate_transform_at_frame(mat, node, fra);
-
 				switch (tm_type) {
 				case COLLADAFW::Transformation::ROTATE:
-					mat4_to_quat(val, mat);
+					mat4_to_quat(val, matfra);
 					break;
 				case COLLADAFW::Transformation::SCALE:
-					mat4_to_size(val, mat);
+					mat4_to_size(val, matfra);
 					break;
 				case COLLADAFW::Transformation::TRANSLATE:
-					copy_v3_v3(val, mat[3]);
+					copy_v3_v3(val, matfra[3]);
+					break;
+				case MATRIX:
+					mat4_to_quat(rot, matfra);
+					copy_v3_v3(loc, matfra[3]);
+					mat4_to_size(scale, matfra);
 					break;
 				default:
 					break;
 				}
 
-				for (i = 0; i < totcu; i++)
-					add_bezt(job_curves[i], fra, val[i]);
+				for (i = 0; i < totcu; i++) {
+					if (is_matrix) {
+						if (i < 4)
+							add_bezt(job_curves[i], fra, rot[i]);
+						else if (i < 7)
+							add_bezt(job_curves[i], fra, loc[i - 4]);
+						else
+							add_bezt(job_curves[i], fra, scale[i - 7]);
+					}
+					else {
+						add_bezt(job_curves[i], fra, val[i]);
+					}
+				}
 			}
 #endif
 		}
@@ -2556,7 +2847,7 @@ public:
 #endif
 		}
 
-		if (is_rotation) {
+		if (is_rotation || is_matrix) {
 			if (is_joint) {
 				bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
 				chan->rotmode = ROT_MODE_QUAT;
@@ -2585,7 +2876,7 @@ public:
 
 			unit_m4(m);
 
-			if (!evaluate_animation(tm, m, fra)) {
+			if (!evaluate_animation(tm, m, fra, node->getOriginalId().c_str())) {
 				switch (type) {
 				case COLLADAFW::Transformation::ROTATE:
 					dae_rotate_to_mat4(tm, m);
@@ -2611,89 +2902,147 @@ public:
 		}
 	}
 
-	bool evaluate_animation(COLLADAFW::Transformation *tm, float mat[4][4], float fra)
+	// return true to indicate that mat contains a sane value
+	bool evaluate_animation(COLLADAFW::Transformation *tm, float mat[4][4], float fra, const char *node_id)
 	{
 		const COLLADAFW::UniqueId& listid = tm->getAnimationList();
+		COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
 
-		if (animlist_map.find(listid) != animlist_map.end()) {
-			const COLLADAFW::AnimationList *animlist = animlist_map[listid];
-			const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
+		if (type != COLLADAFW::Transformation::ROTATE &&
+		    type != COLLADAFW::Transformation::SCALE &&
+		    type != COLLADAFW::Transformation::TRANSLATE &&
+		    type != COLLADAFW::Transformation::MATRIX) {
+			fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
+			return false;
+		}
 
-			if (bindings.getCount()) {
-				for (unsigned int j = 0; j < bindings.getCount(); j++) {
-					std::vector<FCurve*>& curves = curve_map[bindings[j].animation];
-					COLLADAFW::AnimationList::AnimationClass animclass = bindings[j].animationClass;
-					COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
-					bool xyz = ((type == COLLADAFW::Transformation::TRANSLATE || type == COLLADAFW::Transformation::SCALE) && bindings[j].animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
+		if (animlist_map.find(listid) == animlist_map.end())
+			return false;
 
-					if (type == COLLADAFW::Transformation::ROTATE) {
-						if (curves.size() != 1) {
-							fprintf(stderr, "expected 1 curve, got %u\n", curves.size());
-						}
-						else {
-							if (animclass == COLLADAFW::AnimationList::ANGLE) {
-								COLLADABU::Math::Vector3& axis = ((COLLADAFW::Rotate*)tm)->getRotationAxis();
-								float ax[3] = {axis[0], axis[1], axis[2]};
-								float angle = evaluate_fcurve(curves[0], fra);
-								axis_angle_to_mat4(mat, ax, angle);
+		const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+		const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
 
-								return true;
-							}
-							else {
-								// TODO support other animclasses
-								fprintf(stderr, "<rotate> animclass %d is not supported yet\n", bindings[j].animationClass);
-							}
-						}
+		if (bindings.getCount()) {
+			float vec[3];
+
+			bool is_scale = (type == COLLADAFW::Transformation::SCALE);
+			bool is_translate = (type == COLLADAFW::Transformation::TRANSLATE);
+
+			if (type == COLLADAFW::Transformation::SCALE)
+				dae_scale_to_v3(tm, vec);
+			else if (type == COLLADAFW::Transformation::TRANSLATE)
+				dae_translate_to_v3(tm, vec);
+
+			for (unsigned int j = 0; j < bindings.getCount(); j++) {
+				const COLLADAFW::AnimationList::AnimationBinding& binding = bindings[j];
+				std::vector<FCurve*>& curves = curve_map[binding.animation];
+				COLLADAFW::AnimationList::AnimationClass animclass = binding.animationClass;
+				char path[100];
+
+				switch (type) {
+				case COLLADAFW::Transformation::ROTATE:
+					BLI_snprintf(path, sizeof(path), "%s.rotate (binding %u)", node_id, j);
+					break;
+				case COLLADAFW::Transformation::SCALE:
+					BLI_snprintf(path, sizeof(path), "%s.scale (binding %u)", node_id, j);
+					break;
+				case COLLADAFW::Transformation::TRANSLATE:
+					BLI_snprintf(path, sizeof(path), "%s.translate (binding %u)", node_id, j);
+					break;
+				case COLLADAFW::Transformation::MATRIX:
+					BLI_snprintf(path, sizeof(path), "%s.matrix (binding %u)", node_id, j);
+					break;
+				default:
+					break;
+				}
+
+				if (animclass == COLLADAFW::AnimationList::UNKNOWN_CLASS) {
+					fprintf(stderr, "%s: UNKNOWN animation class\n", path);
+					continue;
+				}
+
+				if (type == COLLADAFW::Transformation::ROTATE) {
+					if (curves.size() != 1) {
+						fprintf(stderr, "expected 1 curve, got %u\n", curves.size());
+						return false;
 					}
-					else if (type == COLLADAFW::Transformation::SCALE || type == COLLADAFW::Transformation::TRANSLATE) {
-						if ((!xyz && curves.size() == 1) || (xyz && curves.size() == 3)) {
-							bool animated = true;
-							bool scale = (type == COLLADAFW::Transformation::SCALE);
 
-							float vec[3] = {0.0f, 0.0f, 0.0f};
-							if (scale)
-								vec[0] = vec[1] = vec[2] = 1.0f;
-
-							switch (animclass) {
-							case COLLADAFW::AnimationList::POSITION_X:
-								vec[0] = evaluate_fcurve(curves[0], fra);
-								break;
-							case COLLADAFW::AnimationList::POSITION_Y:
-								vec[1] = evaluate_fcurve(curves[0], fra);
-								break;
-							case COLLADAFW::AnimationList::POSITION_Z:
-								vec[2] = evaluate_fcurve(curves[0], fra);
-								break;
-							case COLLADAFW::AnimationList::POSITION_XYZ:
-								vec[0] = evaluate_fcurve(curves[0], fra);
-								vec[1] = evaluate_fcurve(curves[1], fra);
-								vec[2] = evaluate_fcurve(curves[2], fra);
-								break;
-							default:
-								fprintf(stderr, "<%s> animclass %d is not supported yet\n", scale ? "scale" : "translate", animclass);
-								animated = false;
-								break;
-							}
-
-							if (animated) {
-								if (scale)
-									size_to_mat4(mat, vec);
-								else
-									copy_v3_v3(mat[3], vec);
-							}
-
-							return animated;
-						}
-						else {
-							fprintf(stderr, "expected 1 or 3 curves, got %u, animclass is %d\n", curves.size(), animclass);
-						}
+					// TODO support other animclasses
+					if (animclass != COLLADAFW::AnimationList::ANGLE) {
+						fprintf(stderr, "%s: animation class %d is not supported yet\n", path, animclass);
+						return false;
 					}
-					else {
-						// not very useful for user
-						fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
+
+					COLLADABU::Math::Vector3& axis = ((COLLADAFW::Rotate*)tm)->getRotationAxis();
+					float ax[3] = {axis[0], axis[1], axis[2]};
+					float angle = evaluate_fcurve(curves[0], fra);
+					axis_angle_to_mat4(mat, ax, angle);
+
+					return true;
+				}
+				else if (is_scale || is_translate) {
+					bool is_xyz = animclass == COLLADAFW::AnimationList::POSITION_XYZ;
+
+					if ((!is_xyz && curves.size() != 1) || (is_xyz && curves.size() != 3)) {
+						if (is_xyz)
+							fprintf(stderr, "%s: expected 3 curves, got %u\n", path, curves.size());
+						else
+							fprintf(stderr, "%s: expected 1 curve, got %u\n", path, curves.size());
+						return false;
+					}
+					
+					switch (animclass) {
+					case COLLADAFW::AnimationList::POSITION_X:
+						vec[0] = evaluate_fcurve(curves[0], fra);
+						break;
+					case COLLADAFW::AnimationList::POSITION_Y:
+						vec[1] = evaluate_fcurve(curves[0], fra);
+						break;
+					case COLLADAFW::AnimationList::POSITION_Z:
+						vec[2] = evaluate_fcurve(curves[0], fra);
+						break;
+					case COLLADAFW::AnimationList::POSITION_XYZ:
+						vec[0] = evaluate_fcurve(curves[0], fra);
+						vec[1] = evaluate_fcurve(curves[1], fra);
+						vec[2] = evaluate_fcurve(curves[2], fra);
+						break;
+					default:
+						fprintf(stderr, "%s: animation class %d is not supported yet\n", path, animclass);
+						break;
 					}
 				}
+				else if (type == COLLADAFW::Transformation::MATRIX) {
+					// for now, of matrix animation, support only the case when all values are packed into one animation
+					if (curves.size() != 16) {
+						fprintf(stderr, "%s: expected 16 curves, got %u\n", path, curves.size());
+						return false;
+					}
+
+					COLLADABU::Math::Matrix4 matrix;
+					int i = 0, j = 0;
+
+					for (std::vector<FCurve*>::iterator it = curves.begin(); it != curves.end(); it++) {
+						matrix.setElement(i, j, evaluate_fcurve(*it, fra));
+						j++;
+						if (j == 4) {
+							i++;
+							j = 0;
+						}
+					}
+
+					COLLADAFW::Matrix tm(matrix);
+					dae_matrix_to_mat4(&tm, mat);
+
+					return true;
+				}
 			}
+
+			if (is_scale)
+				size_to_mat4(mat, vec);
+			else
+				copy_v3_v3(mat[3], vec);
+
+			return is_scale || is_translate;
 		}
 
 		return false;
@@ -2922,7 +3271,7 @@ public:
 	}
 
 	/** This method will be called if an error in the loading process occurred and the loader cannot
-		continue to to load. The writer should undo all operations that have been performed.
+		continue to load. The writer should undo all operations that have been performed.
 		@param errorMessage A message containing informations about the error that occurred.
 	*/
 	virtual void cancel(const COLLADAFW::String& errorMessage)
@@ -2970,13 +3319,14 @@ public:
 		COLLADAFW::Transformation::TransformationType types[] = {
 			COLLADAFW::Transformation::ROTATE,
 			COLLADAFW::Transformation::SCALE,
-			COLLADAFW::Transformation::TRANSLATE
+			COLLADAFW::Transformation::TRANSLATE,
+			COLLADAFW::Transformation::MATRIX
 		};
 
 		unsigned int i;
 		Object *ob;
 
-		for (i = 0; i < 3; i++)
+		for (i = 0; i < 4; i++)
 			ob = anim_importer.translate_animation(node, object_map, root_map, types[i]);
 
 		COLLADAFW::NodePointerArray &children = node->getChildNodes();
@@ -3039,13 +3389,10 @@ public:
 	void write_node (COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par)
 	{
 		Object *ob = NULL;
+		bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 
-		if (node->getType() == COLLADAFW::Node::JOINT) {
-
-			if (node->getType() == COLLADAFW::Node::JOINT) {
-				armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT);
-			}
-
+		if (is_joint) {
+			armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par);
 		}
 		else {
 			COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
@@ -3079,26 +3426,22 @@ public:
 			// XXX empty node may not mean it is empty object, not sure about this
 			else {
 				ob = add_object(sce, OB_EMPTY);
+				rename_id(&ob->id, (char*)node->getOriginalId().c_str());
 			}
 			
 			// check if object is not NULL
 			if (!ob) return;
 
-			object_map[node->getUniqueId()] = ob;
-			
-			// if par was given make this object child of the previous 
-			if (par && ob) {
-				ob->parent = par;
-
-				// doing what 'set parent' operator does
-				par->recalc |= OB_RECALC_OB;
-				ob->parsubstr[0] = 0;
-			
-				DAG_scene_sort(sce);
-			}
+			object_map[node->getUniqueId()] = ob;			
 		}
 
 		anim_importer.read_node_transform(node, ob);
+
+		if (!is_joint) {
+			// if par was given make this object child of the previous 
+			if (par && ob)
+				set_parent(ob, par, mContext);
+		}
 
 		// if node has child nodes write them
 		COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
@@ -3407,7 +3750,7 @@ public:
 		char dir[FILE_MAX];
 		char full_path[FILE_MAX];
 		
-		BLI_split_dirfile_basic(filename, dir, NULL);
+		BLI_split_dirfile(filename, dir, NULL);
 		BLI_join_dirfile(full_path, dir, filepath.c_str());
 		Image *ima = BKE_add_image_file(full_path, 0);
 		if (!ima) {

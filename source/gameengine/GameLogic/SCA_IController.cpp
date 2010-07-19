@@ -35,10 +35,6 @@
 
 #include <stdio.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 SCA_IController::SCA_IController(SCA_IObject* gameobj)
 	:
 	SCA_ILogicBrick(gameobj),

@@ -96,7 +96,16 @@ typedef struct ReportList {
 	int printlevel; /* ReportType */
 	int storelevel; /* ReportType */
 	int flag, pad;
+	struct wmTimer *reporttimer;
 } ReportList;
+
+/* timer customdata to control reports display */
+typedef struct ReportTimerInfo {
+	float col[3];
+	float greyscale;
+	float widthfac;
+} ReportTimerInfo;
+
 /* reports need to be before wmWindowManager */
 
 
@@ -251,8 +260,6 @@ typedef struct wmKeyConfig {
 
 	char idname[64];		/* unique name */
 	char basename[64];		/* idname of configuration this is derives from, "" if none */
-
-	char filter[64];		/* search term for filtering in the UI */
 	
 	ListBase keymaps;
 	int actkeymap, flag;
@@ -300,8 +307,7 @@ typedef struct wmOperator {
 typedef enum wmRadialControlMode {
 	WM_RADIALCONTROL_SIZE,
 	WM_RADIALCONTROL_STRENGTH,
-	WM_RADIALCONTROL_ANGLE
+	WM_RADIALCONTROL_ANGLE,
 } wmRadialControlMode;
 
 #endif /* DNA_WINDOWMANAGER_TYPES_H */
-

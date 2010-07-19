@@ -28,11 +28,6 @@
 #include <stdio.h>
 
 #include "DNA_object_types.h"
-#include "DNA_node_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -49,9 +44,7 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -63,7 +56,6 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "interface_intern.h"

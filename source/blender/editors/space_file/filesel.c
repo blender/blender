@@ -42,11 +42,18 @@
 #include <sys/times.h>
 #endif   
 
+/* path/file handeling stuff */
+#ifndef WIN32
+  #include <dirent.h>
+  #include <unistd.h>
+#else
+  #include <io.h>
+  #include "BLI_winstuff.h"
+#endif
+
 #include "DNA_space_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -55,16 +62,15 @@
 #include "BLI_storage_types.h"
 #include "BLI_dynstr.h"
 
+#include "BLO_readfile.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_global.h"
 
 #include "BLF_api.h"
 
-#include "DNA_userdef_types.h"
 
-#include "ED_screen.h"
-#include "ED_util.h"
 #include "ED_fileselect.h"
 
 #include "WM_api.h"
@@ -76,22 +82,14 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "file_intern.h"
 #include "filelist.h"
 
-#if defined __BeOS
-static int fnmatch(const char *pattern, const char *string, int flags)
-{
-	return 0;
-}
-#elif defined WIN32 && !defined _LIBC
-	/* use fnmatch included in blenlib */
-	#include "BLI_fnmatch.h"
+#if defined WIN32 && !defined _LIBC
+# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
 #else
-	#include <fnmatch.h>
+# include <fnmatch.h>
 #endif
 
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
@@ -104,7 +102,6 @@ FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
 
 short ED_fileselect_set_params(SpaceFile *sfile)
 {
-	char name[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
 	FileSelectParams *params;
 	wmOperator *op = sfile->op;
 
@@ -112,10 +109,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	if (!sfile->params) {
 		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
 		/* set path to most recently opened .blend */
-		BLI_strncpy(sfile->params->dir, G.sce, sizeof(sfile->params->dir));
-		BLI_split_dirfile(G.sce, dir, file);
-		BLI_strncpy(sfile->params->file, file, sizeof(sfile->params->file));
-		BLI_make_file_string(G.sce, sfile->params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
+		BLI_split_dirfile(G.sce, sfile->params->dir, sfile->params->file);
 	}
 
 	params = sfile->params;
@@ -129,19 +123,33 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		else
 			params->type = FILE_SPECIAL;
 
-		if (RNA_property_is_set(op->ptr, "path")) {
-			RNA_string_get(op->ptr, "path", name);
+		if (RNA_struct_find_property(op->ptr, "filepath") && RNA_property_is_set(op->ptr, "filepath")) {
+			char name[FILE_MAX];
+			RNA_string_get(op->ptr, "filepath", name);
 			if (params->type == FILE_LOADLIB) {
 				BLI_strncpy(params->dir, name, sizeof(params->dir));
-				BLI_cleanup_dir(G.sce, params->dir);	
-			} else { 
-				/* if operator has path set, use it, otherwise keep the last */
-				BLI_convertstringcode(name, G.sce);
-				BLI_split_dirfile(name, dir, file);
-				BLI_strncpy(params->file, file, sizeof(params->file));
-				BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
+				sfile->params->file[0]= '\0';
+			}
+			else {
+				BLI_split_dirfile(name, sfile->params->dir, sfile->params->file);
 			}
 		}
+		else {
+			if (RNA_struct_find_property(op->ptr, "directory") && RNA_property_is_set(op->ptr, "directory")) {
+				RNA_string_get(op->ptr, "directory", params->dir);
+				sfile->params->file[0]= '\0';
+			}
+
+			if (RNA_struct_find_property(op->ptr, "filename") && RNA_property_is_set(op->ptr, "filename")) {
+				RNA_string_get(op->ptr, "filename", params->file);
+			}
+		}
+
+		if(params->dir[0]) {
+			BLI_cleanup_dir(G.sce, params->dir);
+			BLI_path_abs(params->dir, G.sce);
+		}
+
 		params->filter = 0;
 		if(RNA_struct_find_property(op->ptr, "filter_blender"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_blender") ? BLENDERFILE : 0;
@@ -163,8 +171,15 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->filter |= RNA_boolean_get(op->ptr, "filter_folder") ? FOLDERFILE : 0;
 		if(RNA_struct_find_property(op->ptr, "filter_btx"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_btx") ? BTXFILE : 0;
-		if (params->filter != 0)
-			params->flag |= FILE_FILTER;
+		if(RNA_struct_find_property(op->ptr, "filter_collada"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_collada") ? COLLADAFILE : 0;
+		if (params->filter != 0) {
+			if (U.uiflag & USER_FILTERFILEEXTS) {
+				params->flag |= FILE_FILTER;
+			} else {
+				params->flag &= ~FILE_FILTER;
+			}
+		}
 
 		if (U.uiflag & USER_HIDE_DOT) {
 			params->flag |= FILE_HIDE_DOT;
@@ -192,7 +207,6 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->filter = 0;
 		params->sort = FILE_SORT_ALPHA;
 	}
-
 	return 1;
 }
 
@@ -209,16 +223,16 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
 		int width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;
-		numfiles = width/layout->tile_w + 1;
+		numfiles = (float)width/(float)layout->tile_w+0.5;
 		return numfiles*layout->rows;
 	} else {
 		int height = ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y;
-		numfiles = height/layout->tile_h + 1;
+		numfiles = (float)height/(float)layout->tile_h+0.5;
 		return numfiles*layout->columns;
 	}
 }
 
-int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
+int ED_fileselect_layout_offset(FileLayout* layout, int clamp_bounds, int x, int y)
 {
 	int offsetx, offsety;
 	int active_file;
@@ -229,9 +243,14 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
-	if (offsetx > layout->columns-1) return -1 ;
-	if (offsety > layout->rows-1) return -1 ;
-
+	if (clamp_bounds) {
+		CLAMP(offsetx, 0, layout->columns-1);
+		CLAMP(offsety, 0, layout->rows-1);
+	} else {
+		if (offsetx > layout->columns-1) return -1 ;
+		if (offsety > layout->rows-1) return -1 ;
+	}
+	
 	if (layout->flag & FILE_LAYOUT_HOR) 
 		active_file = layout->rows*offsetx + offsety;
 	else
@@ -254,7 +273,7 @@ float file_string_width(const char* str)
 {
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	return BLF_width((char *)str);
+	return BLF_width(style->widget.uifont_id, (char *)str);
 }
 
 float file_font_pointsize()
@@ -263,7 +282,7 @@ float file_font_pointsize()
 	char tmp[2] = "X";
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	s = BLF_height(tmp);
+	s = BLF_height(style->widget.uifont_id, tmp);
 	return style->widget.points;
 }
 
@@ -391,24 +410,25 @@ FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar
 	return sfile->layout;
 }
 
-void file_change_dir(struct SpaceFile *sfile, int checkdir)
+void file_change_dir(bContext *C, int checkdir)
 {
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
 	if (sfile->params) {
+
+		ED_fileselect_clear(C, sfile);
 
 		if(checkdir && BLI_is_dir(sfile->params->dir)==0) {
 			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), sizeof(sfile->params->dir));
 			/* could return but just refresh the current dir */
 		}
-
 		filelist_setdir(sfile->files, sfile->params->dir);
-
+		
 		if(folderlist_clear_next(sfile))
 			folderlist_free(sfile->folders_next);
 
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-		filelist_free(sfile->files);
-		sfile->params->active_file = -1;
 	}
 }
 
@@ -423,7 +443,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 		for (i = 0; i < n; i++) {
 			file = filelist_file(sfile->files, i);
 			if (fnmatch(pattern, file->relname, 0) == 0) {
-				file->flags |= ACTIVE;
+				file->flags |= ACTIVEFILE;
 				match = 1;
 			}
 		}
@@ -431,10 +451,55 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 	return match;
 }
 
-
 void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 {
-	char tmp[FILE_MAX];
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
+	/* search if str matches the beginning of name */
+	if(str[0] && sfile->files) {
+		char dirname[FILE_MAX];
+
+		DIR *dir;
+		struct dirent *de;
+		
+		BLI_split_dirfile(str, dirname, NULL);
+
+		dir = opendir(dirname);
+
+		if(dir) {
+			AutoComplete *autocpl= autocomplete_begin(str, FILE_MAX);
+
+			while ((de = readdir(dir)) != NULL) {
+				if (strcmp(".", de->d_name)==0 || strcmp("..", de->d_name)==0) {
+					/* pass */
+				}
+				else {
+					char path[FILE_MAX];
+					struct stat status;
+					
+					BLI_join_dirfile(path, dirname, de->d_name);
+
+					if (stat(path, &status) == 0) {
+						if (S_ISDIR(status.st_mode)) { /* is subdir */
+							autocomplete_do_name(autocpl, path);
+						}
+					}
+				}
+			}
+			closedir(dir);
+
+			autocomplete_end(autocpl, str);
+			if (BLI_exists(str)) {
+				BLI_add_slash(str);
+			} else {
+				BLI_strncpy(sfile->params->dir, str, sizeof(sfile->params->dir));
+			}
+		}
+	}
+}
+
+void autocomplete_file(struct bContext *C, char *str, void *arg_v)
+{
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
 	/* search if str matches the beginning of name */
@@ -445,18 +510,24 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 
 		for(i= 0; i<nentries; ++i) {
 			struct direntry* file = filelist_file(sfile->files, i);
-			const char* dir = filelist_dir(sfile->files);
-			if (file && S_ISDIR(file->type))	{
-				// BLI_make_file_string(G.sce, tmp, dir, file->relname);
-				BLI_join_dirfile(tmp, dir, file->relname);
-				autocomplete_do_name(autocpl,tmp);
+			if (file && S_ISREG(file->type)) {
+				autocomplete_do_name(autocpl, file->relname);
 			}
 		}
 		autocomplete_end(autocpl, str);
-		if (BLI_exists(str)) {
-			BLI_add_slash(str);
-		} else {
-			BLI_make_exist(str);
-		}
 	}
+}
+
+void ED_fileselect_clear(struct bContext *C, struct SpaceFile *sfile)
+{
+	thumbnails_stop(sfile->files, C);
+	filelist_freelib(sfile->files);
+	filelist_free(sfile->files);
+	sfile->params->active_file = -1;
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+}
+
+void ED_fileselect_exit(struct bContext *C, struct SpaceFile *sfile)
+{
+	thumbnails_stop(sfile->files, C);
 }

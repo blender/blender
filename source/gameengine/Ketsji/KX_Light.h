@@ -65,6 +65,8 @@ public:
 	void UnbindShadowBuffer(class RAS_IRasterizer *ras);
 	void Update();
 	
+	void UpdateScene(class KX_Scene *kxscene) {m_lightobj.m_scene = (void*)kxscene;}
+
 	virtual int GetGameObjectType() { return OBJ_LIGHT; }
 
 #ifndef DISABLE_PYTHON

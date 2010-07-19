@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,11 +29,7 @@
 #include <stdio.h>
 
 #include "DNA_node_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_context.h"
 #include "BKE_node.h"
@@ -41,9 +37,7 @@
 
 #include "BLI_rect.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
-#include "ED_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -57,12 +51,13 @@
 
 /* **************** Node Header Buttons ************** */
 
-static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
-{
+/* note: call node_tree_verify_groups(snode->nodetree) after this
+ */
+void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
+{	
 	bNodeSocket *sock;
-	
-	/* unhide all */
-	if( node_has_hidden_sockets(node) ) {
+
+	if(set==0) {
 		for(sock= node->inputs.first; sock; sock= sock->next)
 			sock->flag &= ~SOCK_HIDDEN;
 		for(sock= node->outputs.first; sock; sock= sock->next)
@@ -70,7 +65,7 @@ static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 	}
 	else {
 		bNode *gnode= node_tree_get_editgroup(snode->nodetree);
-		
+
 		/* hiding inside group should not break links in other group users */
 		if(gnode) {
 			nodeGroupSocketUseFlags((bNodeTree *)gnode->id);
@@ -95,7 +90,11 @@ static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 			}
 		}
 	}
+}
 
+static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
+{
+	node_set_hidden_sockets(snode, node, !node_has_hidden_sockets(node));
 	node_tree_verify_groups(snode->nodetree);
 }
 

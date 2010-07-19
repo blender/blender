@@ -58,10 +58,6 @@
 #include "BKE_bmfont.h"
 #include "BKE_bmfont_types.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /*MAART:
 void printfGlyph(bmGlyph * glyph)
 {

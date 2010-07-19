@@ -55,35 +55,26 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_image_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_editVert.h"
 
 #include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_library.h"
-#include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
-#include "BKE_exotic.h"
 #include "BKE_report.h"
 
-#include "BKE_screen.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_curve.h"
-#include "BKE_customdata.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -138,19 +129,19 @@ static int is_stl(char *str)
 
 #define READSTLVERT {                                   \
   if (fread(mvert->co, sizeof(float), 3, fpSTL) != 3) { \
-    char error_msg[255];                                \
-    MEM_freeN(vertdata);                                \
-    MEM_freeN(facedata);                                \
-    fclose(fpSTL);                                      \
-    sprintf(error_msg, "Problems reading face %d!", i); \
-    return;                                             \
+	char error_msg[255];                                \
+	MEM_freeN(vertdata);                                \
+	MEM_freeN(facedata);                                \
+	fclose(fpSTL);                                      \
+	sprintf(error_msg, "Problems reading face %d!", i); \
+	return;                                             \
   }                                                     \
   else {                                                \
-    if (ENDIAN_ORDER==B_ENDIAN) {                       \
-      SWITCH_INT(mvert->co[0]);                         \
-      SWITCH_INT(mvert->co[1]);                         \
-      SWITCH_INT(mvert->co[2]);                         \
-    }                                                   \
+	if (ENDIAN_ORDER==B_ENDIAN) {                       \
+	  SWITCH_INT(mvert->co[0]);                         \
+	  SWITCH_INT(mvert->co[1]);                         \
+	  SWITCH_INT(mvert->co[2]);                         \
+	}                                                   \
   }                                                     \
 }
 
@@ -276,9 +267,9 @@ static void read_stl_mesh_binary(Scene *scene, char *str)
 			me->totvert = totvert;
 			me->totface = totface;
 			me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN,
-			                                 vertdata, totvert);
+											 vertdata, totvert);
 			me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN,
-			                                 facedata, totface);
+											 facedata, totface);
 
 			mesh_add_normals_flags(me);
 			make_edges(me, 0);
@@ -419,9 +410,9 @@ static void read_stl_mesh_ascii(Scene *scene, char *str)
 	me->totface = totface;
 	me->totvert = totvert;
 	me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC,
-	                                 NULL, totvert);
+									 NULL, totvert);
 	me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC,
-	                                 NULL, totface);
+									 NULL, totface);
 
 	/* Copy vert coords and create topology */
 	mvert = me->mvert;
@@ -871,7 +862,7 @@ static void read_inventor(Scene *scene, char *str, struct ListBase *listb)
 				/* count the nr of lines */
 				tot= 0;
 				index= iv->data[0];
-                                lll = iv->datalen[0]-1;
+								lll = iv->datalen[0]-1;
 				for(a=0; a<lll; a++) {
 					if(index[0]!= -1 && index[1]!= -1) tot++;
 					index++;
@@ -1018,7 +1009,7 @@ static void read_inventor(Scene *scene, char *str, struct ListBase *listb)
 					}
 						
 					/* indices */
-                                        lll = index[0] - 2;
+										lll = index[0] - 2;
 					for(b=0; b<lll; b++) {
 						idata[0]= first;
 						idata[1]= first+1;
@@ -1054,7 +1045,7 @@ static void read_inventor(Scene *scene, char *str, struct ListBase *listb)
 				/* count triangles */
 				face= 0;
 				index= iv->data[0];
-                lll = iv->datalen[0]-2;
+				lll = iv->datalen[0]-2;
 				for(a=0; a<lll; a++) {
 					if(index[0]!= -1 && index[1]!= -1 && index[2]!= -1) face++;
 					index++;
@@ -1132,7 +1123,7 @@ static void read_inventor(Scene *scene, char *str, struct ListBase *listb)
 				/* count triangles */
 				face= 0;
 				index= iv->data[0];
-                                lll=iv->datalen[0]-2;
+								lll=iv->datalen[0]-2;
 				for(a=0; a<lll; a++) {
 					if(index[0]!= -1 && index[1]!= -1 && index[2]!= -1) face++;
 					index++;
@@ -1164,7 +1155,7 @@ static void read_inventor(Scene *scene, char *str, struct ListBase *listb)
 				index= iv->data[0];
 				idata= dl->index;
 				
-                                lll=iv->datalen[0]-2;
+								lll=iv->datalen[0]-2;
 				for(a=lll; a>0; a--) {
 				
 					if(index[0]!= -1 && index[1]!= -1 && index[2]!= -1) {
@@ -1485,9 +1476,9 @@ static void displist_to_mesh(Scene *scene, DispList *dlfirst)
 	me->totvert= totvert;
 	me->totface= totface;
 	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC,
-	                                NULL, me->totvert);
+									NULL, me->totvert);
 	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC,
-	                                NULL, me->totface);
+									NULL, me->totface);
 	maxvertidx= totvert-1;
 	
 	mvert= me->mvert;
@@ -1965,8 +1956,8 @@ void write_stl(Scene *scene, char *str)
 	fseek(fpSTL, 80, SEEK_SET);
 
 	if (ENDIAN_ORDER==B_ENDIAN) {
-                SWITCH_INT(numfacets);
-        }
+				SWITCH_INT(numfacets);
+		}
 	fwrite(&numfacets, 4*sizeof(char), 1, fpSTL);
 
 	fclose(fpSTL);
@@ -2583,13 +2574,13 @@ void write_dxf(struct Scene *scene, char *str)
 	/* The header part of the DXF */
 	
 	write_group(0, "SECTION");
-    write_group(2, "HEADER");
+	write_group(2, "HEADER");
 	write_group(0, "ENDSEC");
 
 	/* The blocks part of the DXF */
 	
 	write_group(0, "SECTION");
-    write_group(2, "BLOCKS");
+	write_group(2, "BLOCKS");
 
     
 	/* only write meshes we're using in this scene */
@@ -2613,7 +2604,7 @@ void write_dxf(struct Scene *scene, char *str)
 	/* The entities part of the DXF */
 	
 	write_group(0, "SECTION");
-    write_group(2, "ENTITIES");
+	write_group(2, "ENTITIES");
 
 	/* Write all the mesh objects */
 	base= scene->base.first;
@@ -3065,7 +3056,7 @@ static void dxf_read_line(Scene *scene, int noob) {
 	hasbumped=1;
 }
 
-        /* 2D Polyline state vars */
+		/* 2D Polyline state vars */
 static Object *p2dhold=NULL;
 static Mesh *p2dmhold=NULL;
 static char oldplay[32];
@@ -3140,35 +3131,35 @@ static void dxf_read_ellipse(Scene *scene, int noob)
 	read_group(id, val);								
 	while(id!=0) {
 	  if (id==8) {
-	    BLI_strncpy(layname, val, sizeof(layname));
+		BLI_strncpy(layname, val, sizeof(layname));
 	  } else if (id==10) {
-	    center[0]= (float) atof(val);
+		center[0]= (float) atof(val);
 	  } else if (id==20) {
-	    center[1]= (float) atof(val);
+		center[1]= (float) atof(val);
 	  } else if (id==30) {
-	    center[2]= (float) atof(val);
+		center[2]= (float) atof(val);
 	  } else if (id==11) {
-	    axis_endpoint[0]= (float) atof(val);
+		axis_endpoint[0]= (float) atof(val);
 	  } else if (id==21) {
-	    axis_endpoint[1]= (float) atof(val);
+		axis_endpoint[1]= (float) atof(val);
 	  } else if (id==31) {
-	    axis_endpoint[2]= (float) atof(val);
+		axis_endpoint[2]= (float) atof(val);
 	  } else if (id==40) {
-	    axis_ratio = (float) atof(val);
+		axis_ratio = (float) atof(val);
 		} else if (id==41) {
 			printf("dxf: start = %f", atof(val) * 180/M_PI);
-	    start_angle = -atof(val) + M_PI_2;
+		start_angle = -atof(val) + M_PI_2;
 	  } else if (id==42) {
 			printf("dxf: end = %f", atof(val) * 180/M_PI);
 			end_angle = -atof(val) + M_PI_2; 
 	  } else if (id==62) {
-	    int colorid= atoi(val);
-	    CLAMP(colorid, 1, 255);
-	    dxf_col_to_rgb(colorid, &color[0], &color[1], &color[2]);
+		int colorid= atoi(val);
+		CLAMP(colorid, 1, 255);
+		dxf_col_to_rgb(colorid, &color[0], &color[1], &color[2]);
 	  } else if (id==67) {
-	    vspace= atoi(val);
+		vspace= atoi(val);
 	  } else if (id==100) {
-	    isArc = 1;
+		isArc = 1;
 	  } else if (id==210) {
 			extrusion[0] = atof(val);
 		} else if (id==220) {
@@ -3299,28 +3290,28 @@ static void dxf_read_arc(Scene *scene, int noob)
 	read_group(id, val);								
 	while(id!=0) {
 	  if (id==8) {
-	    BLI_strncpy(layname, val, sizeof(layname));
+		BLI_strncpy(layname, val, sizeof(layname));
 	  } else if (id==10) {
-	    center[0]= (float) atof(val);
+		center[0]= (float) atof(val);
 	  } else if (id==20) {
-	    center[1]= (float) atof(val);
+		center[1]= (float) atof(val);
 	  } else if (id==30) {
-	    center[2]= (float) atof(val);
+		center[2]= (float) atof(val);
 	  } else if (id==40) {
-	    dia = (float) atof(val);
+		dia = (float) atof(val);
 	  } else if (id==62) {
-	    int colorid= atoi(val);
+		int colorid= atoi(val);
 	    
-	    CLAMP(colorid, 1, 255);
-	    dxf_col_to_rgb(colorid, &color[0], &color[1], &color[2]);
+		CLAMP(colorid, 1, 255);
+		dxf_col_to_rgb(colorid, &color[0], &color[1], &color[2]);
 	  } else if (id==67) {
-	    vspace= atoi(val);
+		vspace= atoi(val);
 	  } else if (id==100) {
-	    isArc = 1;
+		isArc = 1;
 	  } else if (id==50) {
-	    start_angle = (90 - atoi(val)) * M_PI/180.0;
+		start_angle = (90 - atoi(val)) * M_PI/180.0;
 	  } else if (id==51) {
-	    end_angle = (90 - atoi(val)) * M_PI/180.0;
+		end_angle = (90 - atoi(val)) * M_PI/180.0;
 	  } else if (id==210) {
 			extrusion[0] = atof(val);
 		} else if (id==220) {
@@ -4080,7 +4071,7 @@ static void dxf_read(Scene *scene, char *filename)
 	
 						ob->dupon= 1; ob->dupoff= 0;
 						ob->dupsta= 1; ob->dupend= 100;
-						ob->recalc= OB_RECALC;	/* needed because of weird way of adding libdata directly */
+						ob->recalc= OB_RECALC_ALL;	/* needed because of weird way of adding libdata directly */
 						
 						ob->data= obdata;
 						((ID*)ob->data)->us++;

@@ -85,6 +85,9 @@ CPPFLAGS += -I../../nodes
 #path to gpu
 CPPFLAGS += -I../../gpu
 
+#modifiers got moved
+CPPFLAGS += -I../../modifiers
+
 # path to our own external headerfiles
 CPPFLAGS += -I..
 
@@ -127,6 +130,10 @@ endif
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -I../../quicktime
 	CPPFLAGS += -DWITH_QUICKTIME
+endif
+
+ifeq ($(WITH_TIFF), true)
+    CPPFLAGS += -DWITH_TIFF
 endif
 
 ifeq ($(OS), darwin)

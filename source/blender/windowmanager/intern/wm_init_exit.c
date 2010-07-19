@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -54,6 +54,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_packedFile.h"
 #include "BKE_sequencer.h" /* free seq clipboard */
+#include "BKE_material.h" /* clear_matcopybuf */
 
 #include "BLI_blenlib.h"
 #include "BLI_cellalloc.h"
@@ -88,7 +89,7 @@
 #include "UI_interface.h"
 #include "BLF_api.h"
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
@@ -128,8 +129,6 @@ void WM_init(bContext *C, int argc, char **argv)
 	BLF_init(11, U.dpi);
 	BLF_lang_init();
 	
-	init_builtin_keyingsets(); /* editors/animation/keyframing.c */
-	
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL);
 
@@ -151,33 +150,49 @@ void WM_init(bContext *C, int argc, char **argv)
 
 	if (!G.background) {
 		GPU_extensions_init();
+		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 	
 		UI_init();
 	}
 	
-	//	clear_matcopybuf(); /* XXX */
-	
+	clear_matcopybuf();
+	ED_render_clear_mtex_copybuf();
+
 	//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	
-//	init_node_butfuncs();
-	
+		
 	ED_preview_init_dbase();
 	
 	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
 	
-	read_Blog();
+	read_history();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 
 }
 
 void WM_init_splash(bContext *C)
 {
+	if((U.uiflag & USER_SPLASH_DISABLE) == 0) {
+		wmWindowManager *wm= CTX_wm_manager(C);
+		wmWindow *prevwin= CTX_wm_window(C);
+	
+		if(wm->windows.first) {
+			CTX_wm_window_set(C, wm->windows.first);
+			WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
+			CTX_wm_window_set(C, prevwin);
+		}
+	}
+}
+
+void WM_init_game(bContext *C)
+{
+	//XXX copied from WM_init_splash we may not even need those "window" related code
+	//XXX not working yet, it fails at the game_start_operator pool (it needs an area)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *prevwin= CTX_wm_window(C);
 	
 	if(wm->windows.first) {
 		CTX_wm_window_set(C, wm->windows.first);
-		WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_game_start", WM_OP_EXEC_DEFAULT, NULL);
 		CTX_wm_window_set(C, prevwin);
 	}
 }
@@ -188,7 +203,7 @@ static void free_openrecent(void)
 	struct RecentFile *recent;
 	
 	for(recent = G.recent_files.first; recent; recent=recent->next)
-		MEM_freeN(recent->filename);
+		MEM_freeN(recent->filepath);
 	
 	BLI_freelistN(&(G.recent_files));
 }
@@ -203,6 +218,7 @@ extern wchar_t *copybufinfo;
 	// XXX copy/paste buffer stuff...
 extern void free_anim_copybuf(); 
 extern void free_anim_drivers_copybuf(); 
+extern void free_fmodifiers_copybuf(); 
 extern void free_posebuf(); 
 
 /* called in creator.c even... tsk, split this! */
@@ -258,6 +274,7 @@ void WM_exit(bContext *C)
 //	free_matcopybuf();
 	free_anim_copybuf();
 	free_anim_drivers_copybuf();
+	free_fmodifiers_copybuf();
 	free_posebuf();
 //	free_vertexpaint();
 //	free_imagepaint();
@@ -265,7 +282,9 @@ void WM_exit(bContext *C)
 //	fsmenu_free();
 
 	BLF_exit();
-
+	
+	ANIM_keyingset_infos_exit();
+	
 	RE_FreeAllRender();
 	RE_engines_exit();
 	
@@ -283,23 +302,19 @@ void WM_exit(bContext *C)
 	BPY_end_python();
 #endif
 
-	libtiff_exit();
-	
-#ifdef WITH_QUICKTIME
-	quicktime_exit();
-#endif
-	
 	if (!G.background) {
 // XXX		UI_filelist_free_icons();
 	}
 	
 	GPU_buffer_pool_free(0);
+	GPU_free_unused_buffers();
 	GPU_extensions_exit();
 	
 //	if (copybuf) MEM_freeN(copybuf);
 //	if (copybufinfo) MEM_freeN(copybufinfo);
-	
-	BKE_undo_save_quit();	// saves quit.blend if global undo is on
+	if (!G.background) {
+		BKE_undo_save_quit();	// saves quit.blend if global undo is on
+	}
 	BKE_reset_undo(); 
 	
 	ED_file_exit(); /* for fsmenu */

@@ -53,10 +53,6 @@
 
 #include "MT_Matrix4x4.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /** 
  * Move here pose function for game engine so that we can mix with GE objects
  * Principle is as follow:
@@ -88,6 +84,7 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint) {
 	}
 	
 	out= (bPose*)MEM_dupallocN(src);
+	out->chanhash = NULL;
 	out->agroups.first= out->agroups.last= NULL;
 	out->ikdata = NULL;
 	out->ikparam = MEM_dupallocN(out->ikparam);
@@ -95,7 +92,7 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint) {
 	BLI_duplicatelist(&out->chanbase, &src->chanbase);
 
 	/* remap pointers */
-	ghash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	ghash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "game_copy_pose gh");
 
 	pchan= (bPoseChannel*)src->chanbase.first;
 	outpchan= (bPoseChannel*)out->chanbase.first;
@@ -110,7 +107,7 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint) {
 		if (copy_constraint) {
 			ListBase listb;
 			// copy all constraint for backward compatibility
-			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
+			copy_constraints(&listb, &pchan->constraints, FALSE);  // copy_constraints NULLs listb, no need to make extern for this operation.
 			pchan->constraints= listb;
 		} else {
 			pchan->constraints.first = NULL;
@@ -119,7 +116,8 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint) {
 	}
 
 	BLI_ghash_free(ghash, NULL, NULL);
-	
+	// set acceleration structure for channel lookup
+	make_pose_channels_hash(out);
 	*dst=out;
 }
 

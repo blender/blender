@@ -152,7 +152,9 @@ typedef struct ARegion {
 	short sizex, sizey;			/* current split size in pixels (if zero it uses regiontype) */
 	
 	short do_draw;				/* private, cached notifier events */
+	short do_draw_overlay;		/* private, cached notifier events */
 	short swap;					/* private, indicator to survive swap-exchange */
+	short pad[3];
 	
 	struct ARegionType *type;	/* callbacks for this region type */
 	
@@ -243,6 +245,10 @@ enum {
 /* region flag */
 #define RGN_FLAG_HIDDEN		1
 #define RGN_FLAG_TOO_SMALL	2
+
+/* region do_draw */
+#define RGN_DRAW			1
+#define RGN_DRAW_PARTIAL	2
 
 #endif
 

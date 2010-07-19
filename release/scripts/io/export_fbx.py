@@ -54,50 +54,11 @@ import time
 import math # math.pi
 import shutil # for file copying
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# import Blender
 import bpy
-import Mathutils
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+from mathutils import Vector, Euler, Matrix, RotationMatrix
 
 def copy_file(source, dest):
+    # XXX - remove, can use shutil
     file = open(source, 'rb')
     data = file.read()
     file.close()
@@ -114,7 +75,7 @@ def copy_images(dest_dir, textures):
 
     image_paths = set()
     for tex in textures:
-        image_paths.add(Blender.sys.expandpath(tex.filename))
+        image_paths.add(bpy.utils.expandpath(tex.filepath))
 
     # Now copy images
     copyCount = 0
@@ -135,7 +96,7 @@ def copy_images(dest_dir, textures):
 # I guess FBX uses degrees instead of radians (Arystan).
 # Call this function just before writing to FBX.
 def eulerRadToDeg(eul):
-    ret = Mathutils.Euler()
+    ret = Euler()
 
     ret.x = 180 / math.pi * eul[0]
     ret.y = 180 / math.pi * eul[1]
@@ -143,10 +104,10 @@ def eulerRadToDeg(eul):
 
     return ret
 
-mtx4_identity = Mathutils.Matrix()
+mtx4_identity = Matrix()
 
 # testing
-mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'X') # used
+mtx_x90		= RotationMatrix( math.pi/2, 3, 'X') # used
 #mtx_x90n	= RotationMatrix(-90, 3, 'x')
 #mtx_y90	= RotationMatrix( 90, 3, 'y')
 #mtx_y90n	= RotationMatrix(-90, 3, 'y')
@@ -154,11 +115,11 @@ mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'X') # used
 #mtx_z90n	= RotationMatrix(-90, 3, 'z')
 
 #mtx4_x90	= RotationMatrix( 90, 4, 'x')
-mtx4_x90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'X') # used
+mtx4_x90n	= RotationMatrix(-math.pi/2, 4, 'X') # used
 #mtx4_y90	= RotationMatrix( 90, 4, 'y')
-mtx4_y90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'Y') # used
-mtx4_z90	= Mathutils.RotationMatrix( math.pi/2, 4, 'Z') # used
-mtx4_z90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'Z') # used
+mtx4_y90n	= RotationMatrix(-math.pi/2, 4, 'Y') # used
+mtx4_z90	= RotationMatrix( math.pi/2, 4, 'Z') # used
+mtx4_z90n	= RotationMatrix(-math.pi/2, 4, 'Z') # used
 
 # def strip_path(p):
 # 	return p.split('\\')[-1].split('/')[-1]
@@ -333,7 +294,7 @@ def write(filename, batch_objects = None, \
         EXP_CAMERA =				True,
         EXP_EMPTY =					True,
         EXP_IMAGE_COPY =			False,
-        GLOBAL_MATRIX =				Mathutils.Matrix(),
+        GLOBAL_MATRIX =				Matrix(),
         ANIM_ENABLE =				True,
         ANIM_OPTIMIZE =				True,
         ANIM_OPTIMIZE_PRECISSION =	6,
@@ -343,6 +304,8 @@ def write(filename, batch_objects = None, \
         BATCH_FILE_PREFIX =			'',
         BATCH_OWN_DIR =				False
     ):
+
+    bpy.ops.object.mode_set(mode='OBJECT')
 
     # ----------------- Batch support!
     if BATCH_ENABLE:
@@ -387,7 +350,6 @@ def write(filename, batch_objects = None, \
         # call this function within a loop with BATCH_ENABLE == False
         orig_sce = context.scene
 # 		orig_sce = bpy.data.scenes.active
-
 
         new_fbxpath = fbxpath # own dir option modifies, we need to keep an original
         for data in data_seq: # scene or group
@@ -545,10 +507,10 @@ def write(filename, batch_objects = None, \
             #arm_mat = self.fbxArm.parRelMatrix()
             if not self.parent:
                 #return mtx4_z90 * (self.getPoseMatrix(frame) * arm_mat) # dont apply arm matrix anymore
-                return mtx4_z90 * self.getPoseMatrix(frame)
+                return self.getPoseMatrix(frame) * mtx4_z90
             else:
                 #return (mtx4_z90 * ((self.getPoseMatrix(frame) * arm_mat)))  *  (mtx4_z90 * (self.parent.getPoseMatrix(frame) * arm_mat)).invert()
-                return (mtx4_z90 * (self.getPoseMatrix(frame)))  *  (mtx4_z90 * self.parent.getPoseMatrix(frame)).invert()
+                return (self.parent.getPoseMatrix(frame) * mtx4_z90).invert() * ((self.getPoseMatrix(frame)) * mtx4_z90)
 
         # we need thes because cameras and lights modified rotations
         def getAnimParRelMatrixRot(self, frame):
@@ -565,42 +527,41 @@ def write(filename, batch_objects = None, \
             self.blenObject = ob
             self.fbxGroupNames = []
             self.fbxParent = None # set later on IF the parent is in the selection.
-            if matrixWorld:		self.matrixWorld = matrixWorld * GLOBAL_MATRIX
-            else:				self.matrixWorld = ob.matrix * GLOBAL_MATRIX
+            if matrixWorld:		self.matrixWorld = GLOBAL_MATRIX * matrixWorld
+            else:				self.matrixWorld = GLOBAL_MATRIX * ob.matrix_world
 # 			else:				self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
             self.__anim_poselist = {} # we should only access this
 
         def parRelMatrix(self):
             if self.fbxParent:
-                return self.matrixWorld * self.fbxParent.matrixWorld.copy().invert()
+                return self.fbxParent.matrixWorld.copy().invert() * self.matrixWorld
             else:
                 return self.matrixWorld
 
         def setPoseFrame(self, f):
-            self.__anim_poselist[f] =  self.blenObject.matrix.copy()
-# 			self.__anim_poselist[f] =  self.blenObject.matrixWorld.copy()
+            self.__anim_poselist[f] =  self.blenObject.matrix_world.copy()
 
         def getAnimParRelMatrix(self, frame):
             if self.fbxParent:
                 #return (self.__anim_poselist[frame] * self.fbxParent.__anim_poselist[frame].copy().invert() ) * GLOBAL_MATRIX
-                return (self.__anim_poselist[frame] * GLOBAL_MATRIX) * (self.fbxParent.__anim_poselist[frame] * GLOBAL_MATRIX).invert()
+                return (GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).invert() * (GLOBAL_MATRIX * self.__anim_poselist[frame])
             else:
-                return self.__anim_poselist[frame] * GLOBAL_MATRIX
+                return GLOBAL_MATRIX * self.__anim_poselist[frame]
 
         def getAnimParRelMatrixRot(self, frame):
             type = self.blenObject.type
             if self.fbxParent:
-                matrix_rot = (((self.__anim_poselist[frame] * GLOBAL_MATRIX) * (self.fbxParent.__anim_poselist[frame] * GLOBAL_MATRIX).invert())).rotation_part()
+                matrix_rot = ((GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).invert() * (GLOBAL_MATRIX * self.__anim_poselist[frame])).rotation_part()
             else:
-                matrix_rot = (self.__anim_poselist[frame] * GLOBAL_MATRIX).rotation_part()
+                matrix_rot = (GLOBAL_MATRIX * self.__anim_poselist[frame]).rotation_part()
 
             # Lamps need to be rotated
             if type =='LAMP':
-                matrix_rot = mtx_x90 * matrix_rot
+                matrix_rot = matrix_rot * mtx_x90
             elif type =='CAMERA':
 # 			elif ob and type =='Camera':
-                y = Mathutils.Vector(0,1,0) * matrix_rot
-                matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, y)
+                y = matrix_rot * Vector((0.0, 1.0, 0.0))
+                matrix_rot = RotationMatrix(math.pi/2, 3, y) * matrix_rot
 
             return matrix_rot
 
@@ -651,7 +612,7 @@ def write(filename, batch_objects = None, \
 }''' % (curtime))
 
     file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
-    file.write('\nCreator: "Blender3D version %s"' % bpy.app.version_string)
+    file.write('\nCreator: "Blender version %s"' % bpy.app.version_string)
 
 
     pose_items = [] # list of (fbxName, matrix) to write pose data for, easier to collect allong the way
@@ -666,15 +627,15 @@ def write(filename, batch_objects = None, \
 
             # we know we have a matrix
             # matrix = mtx4_z90 * (ob.matrix['ARMATURESPACE'] * matrix_mod)
-            matrix = mtx4_z90 * ob.matrix_local # dont apply armature matrix anymore
+            matrix = ob.matrix_local * mtx4_z90 # dont apply armature matrix anymore
 # 			matrix = mtx4_z90 * ob.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
 
             parent = ob.parent
             if parent:
                 #par_matrix = mtx4_z90 * (parent.matrix['ARMATURESPACE'] * matrix_mod)
-                par_matrix = mtx4_z90 * parent.matrix_local # dont apply armature matrix anymore
+                par_matrix = parent.matrix_local * mtx4_z90 # dont apply armature matrix anymore
 # 				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
-                matrix = matrix * par_matrix.copy().invert()
+                matrix = par_matrix.copy().invert() * matrix
 
             matrix_rot =	matrix.rotation_part()
 
@@ -684,7 +645,7 @@ def write(filename, batch_objects = None, \
 
         else:
             # This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
-            #if ob and not matrix: matrix = ob.matrixWorld * GLOBAL_MATRIX
+            #if ob and not matrix: matrix = ob.matrix_world * GLOBAL_MATRIX
             if ob and not matrix: raise Exception("error: this should never happen!")
 
             matrix_rot = matrix
@@ -698,11 +659,11 @@ def write(filename, batch_objects = None, \
                 matrix_rot = matrix.rotation_part()
                 # Lamps need to be rotated
                 if ob and ob.type =='Lamp':
-                    matrix_rot = mtx_x90 * matrix_rot
+                    matrix_rot = matrix_rot * mtx_x90
                     rot = tuple(matrix_rot.to_euler())
                 elif ob and ob.type =='Camera':
-                    y = Mathutils.Vector(0,1,0) * matrix_rot
-                    matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, y)
+                    y = matrix_rot * Vector((0.0, 1.0, 0.0))
+                    matrix_rot = RotationMatrix(math.pi/2, 3, y) * matrix_rot
                     rot = tuple(matrix_rot.to_euler())
                 else:
                     rot = tuple(matrix_rot.to_euler())
@@ -1087,8 +1048,8 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\tTypeFlags: "Camera"')
         file.write('\n\t\tGeometryVersion: 124')
         file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
-        file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Mathutils.Vector(0,1,0) * matrix_rot) )
-        file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Mathutils.Vector(0,0,-1)*matrix_rot) )
+        file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(matrix_rot * Vector((0.0, 1.0, 0.0))))
+        file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(matrix_rot * Vector((0.0, 0.0, -1.0))))
 
         #file.write('\n\t\tUp: 0,0,0' )
         #file.write('\n\t\tLookAt: 0,0,0' )
@@ -1293,7 +1254,7 @@ def write(filename, batch_objects = None, \
         file.write('\n\t}')
 
     def copy_image(image):
-        fn = bpy.utils.expandpath(image.filename)
+        fn = bpy.utils.expandpath(image.filepath)
         fn_strip = os.path.basename(fn)
 
         if EXP_IMAGE_COPY:
@@ -1320,7 +1281,7 @@ def write(filename, batch_objects = None, \
             Property: "Height", "int", "",0''')
         if tex:
             fname_rel, fname_strip = copy_image(tex)
-# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filepath, basepath, EXP_IMAGE_COPY)
         else:
             fname = fname_strip = fname_rel = ''
 
@@ -1385,7 +1346,7 @@ def write(filename, batch_objects = None, \
 
         if tex:
             fname_rel, fname_strip = copy_image(tex)
-# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filepath, basepath, EXP_IMAGE_COPY)
         else:
             fname = fname_strip = fname_rel = ''
 
@@ -1485,10 +1446,10 @@ def write(filename, batch_objects = None, \
 
         if my_mesh.fbxParent:
             # TODO FIXME, this case is broken in some cases. skinned meshes just shouldnt have parents where possible!
-            m = mtx4_z90 * (my_bone.restMatrix * my_bone.fbxArm.matrixWorld.copy() * my_mesh.matrixWorld.copy().invert() )
+            m = (my_mesh.matrixWorld.copy().invert() * my_bone.fbxArm.matrixWorld.copy() * my_bone.restMatrix) * mtx4_z90
         else:
             # Yes! this is it...  - but dosnt work when the mesh is a.
-            m = mtx4_z90 * (my_bone.restMatrix * my_bone.fbxArm.matrixWorld.copy() * my_mesh.matrixWorld.copy().invert() )
+            m = (my_mesh.matrixWorld.copy().invert() * my_bone.fbxArm.matrixWorld.copy() * my_bone.restMatrix) * mtx4_z90
 
         #m = mtx4_z90 * my_bone.restMatrix
         matstr = mat4x4str(m)
@@ -1542,17 +1503,14 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\tPolygonVertexIndex: ')
         i=-1
         for f in me.faces:
-            fi = f.verts
-            # fi = [v_index for j, v_index in enumerate(f.verts) if v_index != 0 or j != 3]
-# 			fi = [v.index for v in f]
+            fi = f.verts[:]
 
-            # flip the last index, odd but it looks like
-            # this is how fbx tells one face from another
-            fi[-1] = -(fi[-1]+1)
+            # last index XORd w. -1 indicates end of face
+            fi[-1] = fi[-1] ^ -1
             fi = tuple(fi)
+
             if i==-1:
                 if len(fi) == 3:	file.write('%i,%i,%i' % fi )
-# 				if len(f) == 3:		file.write('%i,%i,%i' % fi )
                 else:				file.write('%i,%i,%i,%i' % fi )
                 i=0
             else:
@@ -1560,9 +1518,25 @@ def write(filename, batch_objects = None, \
                     file.write('\n\t\t')
                     i=0
                 if len(fi) == 3:	file.write(',%i,%i,%i' % fi )
-# 				if len(f) == 3:		file.write(',%i,%i,%i' % fi )
                 else:				file.write(',%i,%i,%i,%i' % fi )
             i+=1
+
+        # write loose edges as faces.
+        for ed in me.edges:
+            if ed.loose:
+                ed_val = ed.verts[:]
+                ed_val = ed_val[0], ed_val[-1] ^ -1
+
+                if i==-1:
+                    file.write('%i,%i' % ed_val)
+                    i=0
+                else:
+                    if i==13:
+                        file.write('\n\t\t')
+                        i=0
+                    file.write(',%i,%i' % ed_val)
+            i+=1
+
 
         file.write('\n\t\tEdges: ')
         i=-1
@@ -2036,12 +2010,11 @@ def write(filename, batch_objects = None, \
 
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
-                #if ob_base.type == 'Armature':
-                ob_base.make_display_list()
-# 				ob_base.makeDisplayList()
+                if ob_base.type == 'ARMATURE':
+                    ob_base.update(scene)
 
             # This causes the makeDisplayList command to effect the mesh
-            scene.set_frame(scene.current_frame)
+            scene.set_frame(scene.frame_current)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
 
@@ -2051,9 +2024,9 @@ def write(filename, batch_objects = None, \
         if ob_base.parent and ob_base.parent.dupli_type != 'NONE':
             continue
 
-        obs = [(ob_base, ob_base.matrix)]
+        obs = [(ob_base, ob_base.matrix_world)]
         if ob_base.dupli_type != 'NONE':
-            ob_base.create_dupli_list()
+            ob_base.create_dupli_list(scene)
             obs = [(dob.object, dob.matrix) for dob in ob_base.dupli_list]
 
         for ob, mtx in obs:
@@ -2082,7 +2055,7 @@ def write(filename, batch_objects = None, \
                 if tmp_ob_type != 'MESH':
 # 				if tmp_ob_type != 'Mesh':
 # 					me = bpy.data.meshes.new()
-                    try:	me = ob.create_mesh(True, 'PREVIEW')
+                    try:	me = ob.create_mesh(scene, True, 'PREVIEW')
 # 					try:	me.getFromObject(ob)
                     except:	me = None
                     if me:
@@ -2093,7 +2066,7 @@ def write(filename, batch_objects = None, \
                     # Mesh Type!
                     if EXP_MESH_APPLY_MOD:
 # 						me = bpy.data.meshes.new()
-                        me = ob.create_mesh(True, 'PREVIEW')
+                        me = ob.create_mesh(scene, True, 'PREVIEW')
 # 						me.getFromObject(ob)
 
                         # so we keep the vert groups
@@ -2212,11 +2185,9 @@ def write(filename, batch_objects = None, \
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
                 if ob_base.type == 'ARMATURE':
-# 				if ob_base.type == 'Armature':
-                    ob_base.make_display_list()
-# 					ob_base.makeDisplayList()
+                    ob_base.update(scene)
             # This causes the makeDisplayList command to effect the mesh
-            scene.set_frame(scene.current_frame)
+            scene.set_frame(scene.frame_current)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
     del tmp_ob_type, tmp_objects
@@ -2701,9 +2672,9 @@ Connections:  {''')
         return int(0.5 + ((t/fps) * 46186158000))
 
     fps = float(render.fps)
-    start =	scene.start_frame
+    start =	scene.frame_start
 # 	start =	render.sFrame
-    end =	scene.end_frame
+    end =	scene.frame_end
 # 	end =	render.eFrame
     if end < start: start, end = end, start
     if start==end: ANIM_ENABLE = False
@@ -2713,7 +2684,7 @@ Connections:  {''')
 
     if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
 
-        frame_orig = scene.current_frame
+        frame_orig = scene.frame_current
 # 		frame_orig = Blender.Get('curframe')
 
         if ANIM_OPTIMIZE:
@@ -2812,7 +2783,7 @@ Takes:  {''')
                 # Set the action active
                 for my_bone in ob_arms:
                     if blenAction in my_bone.blenActionList:
-                        ob.action = blenAction
+                        ob.animation_data.action = blenAction
                         # print '\t\tSetting Action!', blenAction
                 # scene.update(1)
 
@@ -2969,7 +2940,7 @@ Takes:  {''')
             # end action loop. set original actions
             # do this after every loop incase actions effect eachother.
             for my_bone in ob_arms:
-                my_bone.blenObject.action = my_bone.blenAction
+                my_bone.blenObject.animation_data.action = my_bone.blenAction
 
         file.write('\n}')
 
@@ -2998,8 +2969,7 @@ Takes:  {''')
     # --------------------------- Footer
     if world:
         m = world.mist
-        has_mist = m.enabled
-# 		has_mist = world.mode & 1
+        has_mist = m.use_mist
         mist_intense = m.intensity
         mist_start = m.start
         mist_end = m.depth
@@ -3150,9 +3120,9 @@ def fbx_ui_write(filename, context):
     # Make the matrix
     GLOBAL_MATRIX = mtx4_identity
     GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = GLOBALS['_SCALE'].val
-    if GLOBALS['_XROT90'].val:	GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_x90n
-    if GLOBALS['_YROT90'].val:	GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
-    if GLOBALS['_ZROT90'].val:	GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
+    if GLOBALS['_XROT90'].val:	GLOBAL_MATRIX = mtx4_x90n * GLOBAL_MATRIX
+    if GLOBALS['_YROT90'].val:	GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
+    if GLOBALS['_ZROT90'].val:	GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
 
     ret = write(\
         filename, None,\
@@ -3364,7 +3334,7 @@ class ExportFBX(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default="")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the FBX file", maxlen= 1024, default="")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
@@ -3398,16 +3368,16 @@ class ExportFBX(bpy.types.Operator):
         return context.active_object
 
     def execute(self, context):
-        if not self.properties.path:
-            raise Exception("path not set")
+        if not self.properties.filepath:
+            raise Exception("filepath not set")
 
         GLOBAL_MATRIX = mtx4_identity
         GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.properties.TX_SCALE
-        if self.properties.TX_XROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_x90n
-        if self.properties.TX_YROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
-        if self.properties.TX_ZROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
+        if self.properties.TX_XROT90: GLOBAL_MATRIX = mtx4_x90n * GLOBAL_MATRIX
+        if self.properties.TX_YROT90: GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
+        if self.properties.TX_ZROT90: GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
 
-        write(self.properties.path,
+        write(self.properties.filepath,
               None, # XXX
               context,
               self.properties.EXP_OBS_SELECTED,
@@ -3440,7 +3410,7 @@ class ExportFBX(bpy.types.Operator):
 
 
 # if __name__ == "__main__":
-# 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
+# 	bpy.ops.EXPORT_OT_ply(filepath="/tmp/test.ply")
 
 
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
@@ -3467,8 +3437,8 @@ class ExportFBX(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".fbx")
-    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").path = default_path
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".fbx"
+    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").filepath = default_path
 
 
 def register():

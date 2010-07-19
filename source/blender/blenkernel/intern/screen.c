@@ -235,27 +235,6 @@ void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 	}
 }
 
-/* lb1 should be empty */
-void BKE_spacedata_copyfirst(ListBase *lb1, ListBase *lb2)
-{
-	SpaceLink *sl;
-	
-	lb1->first= lb1->last= NULL;	/* to be sure */
-	
-	sl= lb2->first;
-	if(sl) {
-		SpaceType *st= BKE_spacetype_from_id(sl->spacetype);
-
-		if(st && st->duplicate) {
-			SpaceLink *slnew= st->duplicate(sl);
-
-			BLI_addtail(lb1, slnew);
-
-			region_copylist(st, &slnew->regionbase, &sl->regionbase);
-		}
-	}
-}
-
 /* not region itself */
 void BKE_area_region_free(SpaceType *st, ARegion *ar)
 {
@@ -352,3 +331,66 @@ ARegion *BKE_area_find_region_type(ScrArea *sa, int type)
 	return NULL;
 }
 
+void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene)
+{
+	int bit;
+
+	if(v3d->scenelock && v3d->localvd==NULL) {
+		v3d->lay= scene->lay;
+		v3d->camera= scene->camera;
+
+		if(v3d->camera==NULL) {
+			ARegion *ar;
+
+			for(ar=v3d->regionbase.first; ar; ar= ar->next) {
+				if(ar->regiontype == RGN_TYPE_WINDOW) {
+					RegionView3D *rv3d= ar->regiondata;
+					if(rv3d->persp==RV3D_CAMOB)
+						rv3d->persp= RV3D_PERSP;
+				}
+			}
+		}
+
+		if((v3d->lay & v3d->layact) == 0) {
+			for(bit= 0; bit<32; bit++) {
+				if(v3d->lay & (1<<bit)) {
+					v3d->layact= 1<<bit;
+					break;
+				}
+			}
+		}
+	}
+}
+
+void BKE_screen_view3d_scene_sync(bScreen *sc)
+{
+	/* are there cameras in the views that are not in the scene? */
+	ScrArea *sa;
+	for(sa= sc->areabase.first; sa; sa= sa->next) {
+		SpaceLink *sl;
+		for(sl= sa->spacedata.first; sl; sl= sl->next) {
+			if(sl->spacetype==SPACE_VIEW3D) {
+				View3D *v3d= (View3D*) sl;
+				BKE_screen_view3d_sync(v3d, sc->scene);
+			}
+		}
+	}
+}
+
+void BKE_screen_view3d_main_sync(ListBase *screen_lb, Scene *scene)
+{
+	bScreen *sc;
+	ScrArea *sa;
+	SpaceLink *sl;
+
+	/* from scene copy to the other views */
+	for(sc=screen_lb->first; sc; sc=sc->id.next) {
+		if(sc->scene!=scene)
+			continue;
+
+		for(sa=sc->areabase.first; sa; sa=sa->next)
+			for(sl=sa->spacedata.first; sl; sl=sl->next)
+				if(sl->spacetype==SPACE_VIEW3D)
+					BKE_screen_view3d_sync((View3D*)sl, scene);
+	}
+}

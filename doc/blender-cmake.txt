@@ -132,9 +132,9 @@ $Id$
     The commandline can be used to override detected/default settings, e.g:
  
     On Unix: 
-      cmake -D PYTHON_LIB=/usr/local/lib/python2.3/config/libpython2.3.so -D PYTHON_INC=/usr/local/include/python2.3 -D PYTHON_BINARY=/usr/local/bin/python2.3 -G "Unix Makefiles" ../blender
+      cmake -D PYTHON_LIB=/usr/local/lib/python3.1/config/libpython3.1.so -D PYTHON_INC=/usr/local/include/python3.1 -G "Unix Makefiles" ../blender
     On Macs: 
-      cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/2.5/include/python2.5 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/config -D PYTHON_BINARY=/System/Library/Frameworks/Python.framework/Versions/2.5/bin/python2.5 -G Xcode ../blender
+      cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -G Xcode ../blender
 
     Mote that this should only be needed once per build directory generation because it will keep the overrides in CMakeCache.txt for subsequent runs.
 

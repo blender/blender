@@ -34,10 +34,6 @@
  * @date	May 11, 2001
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_WindowManager.h"
 #include <algorithm>
 #include "GHOST_Debug.h"

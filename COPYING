@@ -1,3 +1,11 @@
-Please read over both of the following files:
+Blender uses the GNU General Public License, which describes the rights
+to distribute or change the code. 
+
+Please read this file for the full license.
 doc/GPL-license.txt
-doc/BL-license.txt
+
+Apart from the GNU GPL, Blender is not available under other licenses.
+
+2010, Blender Foundation
+foundation@blender.org
+

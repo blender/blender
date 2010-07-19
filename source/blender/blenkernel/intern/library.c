@@ -40,24 +40,14 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 /* all types are needed here, in order to do memory operations */
-#include "DNA_ID.h"
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
-#include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_material_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_image_types.h"
 #include "DNA_wave_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_camera_types.h"
@@ -70,17 +60,10 @@
 #include "DNA_sound_types.h"
 #include "DNA_group_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_action_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_node_types.h"
 #include "DNA_nla_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_brush_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -93,7 +76,6 @@
 #include "BKE_sound.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
-#include "BKE_script.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_curve.h"
@@ -112,7 +94,6 @@
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_node.h"
-#include "BKE_effect.h"
 #include "BKE_brush.h"
 #include "BKE_idprop.h"
 #include "BKE_particle.h"
@@ -362,7 +343,7 @@ int id_unlink(ID *id, int test)
 	if(id->us == 0) {
 		if(test) return 1;
 
-		lb= wich_libbase(mainlib, GS(id->name));
+		lb= which_libbase(mainlib, GS(id->name));
 		free_libblock(lb, id);
 
 		return 1;
@@ -371,7 +352,7 @@ int id_unlink(ID *id, int test)
 	return 0;
 }
 
-ListBase *wich_libbase(Main *mainlib, short type)
+ListBase *which_libbase(Main *mainlib, short type)
 {
 	switch( type ) {
 		case ID_SCE:
@@ -464,7 +445,7 @@ void recalc_all_library_objects(Main *main)
 	/* flag for full recalc */
 	for(ob=main->object.first; ob; ob=ob->id.next)
 		if(ob->id.lib)
-			ob->recalc |= OB_RECALC;
+			ob->recalc |= OB_RECALC_ALL;
 }
 
 /* note: MAX_LIBARRAY define should match this code */
@@ -613,10 +594,10 @@ static ID *alloc_libblock_notest(short type)
 			break;
 		case ID_PA:
 			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
-  			break;
+			  break;
 		case ID_WM:
 			id = MEM_callocN(sizeof(wmWindowManager), "Window manager");
-  			break;
+			  break;
 		case ID_GD:
 			id = MEM_callocN(sizeof(bGPdata), "Grease Pencil");
 			break;
@@ -669,11 +650,11 @@ void *copy_libblock(void *rt)
 	ID *idn, *id;
 	ListBase *lb;
 	char *cp, *cpn;
-	int idn_len;
+	size_t idn_len;
 	
 	id= rt;
 
-	lb= wich_libbase(G.main, GS(id->name));
+	lb= which_libbase(G.main, GS(id->name));
 	idn= alloc_libblock(lb, GS(id->name), id->name+2);
 	
 	if(idn==NULL) {
@@ -697,7 +678,7 @@ void *copy_libblock(void *rt)
 
 static void free_library(Library *lib)
 {
-    /* no freeing needed for libraries yet */
+	/* no freeing needed for libraries yet */
 }
 
 static void (*free_windowmanager_cb)(bContext *, wmWindowManager *)= NULL;
@@ -882,7 +863,7 @@ void free_main(Main *mainvar)
 
 ID *find_id(char *type, char *name)		/* type: "OB" or "MA" etc */
 {
-	ListBase *lb= wich_libbase(G.main, GS(type));
+	ListBase *lb= which_libbase(G.main, GS(type));
 	return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
 
@@ -1093,15 +1074,16 @@ static ID *is_dupid(ListBase *lb, ID *id, char *name)
  * id is NULL;
  */
 
-int check_for_dupid(ListBase *lb, ID *id, char *name)
+static int check_for_dupid(ListBase *lb, ID *id, char *name)
 {
 	ID *idtest;
 	int nr= 0, nrtest, a;
 	const int maxtest=32;
 	char left[32], leftest[32], in_use[32];
-	
+
 	/* make sure input name is terminated properly */
-	if( strlen(name) > 21 ) name[21]= 0;
+	/* if( strlen(name) > 21 ) name[21]= 0; */
+	/* removed since this is only ever called from one place - campbell */
 
 	while (1) {
 
@@ -1184,27 +1166,29 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 {
 	int result;
 	char name[22];
-	
+
 	/* if library, don't rename */
 	if(id->lib) return 0;
 
 	/* if no libdata given, look up based on ID */
-	if(lb==NULL) lb= wich_libbase(G.main, GS(id->name));
+	if(lb==NULL) lb= which_libbase(G.main, GS(id->name));
 
-	if(tname==0) {	/* if no name given, use name of current ID */
-		strncpy(name, id->name+2, 21);
-		result= strlen(id->name+2);
-	}
-	else { /* else make a copy (tname args can be const) */
-		strncpy(name, tname, 21);
-		result= strlen(tname);
-	}
+	/* if no name given, use name of current ID
+	 * else make a copy (tname args can be const) */
+	if(tname==NULL)
+		tname= id->name+2;
 
-	/* if result > 21, strncpy don't put the final '\0' to name. */
-	if( result >= 21 ) name[21]= 0;
+	strncpy(name, tname, sizeof(name)-1);
 
-	result = check_for_dupid( lb, id, name );
-	strcpy( id->name+2, name );
+	/* if result > 21, strncpy don't put the final '\0' to name.
+	 * easier to assign each time then to check if its needed */
+	name[sizeof(name)-1]= 0;
+
+	if(name[0] == '\0')
+		strcpy(name, ID_FALLBACK_NAME);
+
+	result = check_for_dupid(lb, id, name);
+	strcpy(id->name+2, name);
 
 	/* This was in 2.43 and previous releases
 	 * however all data in blender should be sorted, not just duplicate names
@@ -1241,18 +1225,24 @@ static void image_fix_relative_path(Image *ima)
 {
 	if(ima->id.lib==NULL) return;
 	if(strncmp(ima->name, "//", 2)==0) {
-		BLI_convertstringcode(ima->name, ima->id.lib->filename);
-		BLI_makestringcode(G.sce, ima->name);
+		BLI_path_abs(ima->name, ima->id.lib->filepath);
+		BLI_path_rel(ima->name, G.sce);
 	}
 }
 
 #define LIBTAG(a)	if(a && a->id.lib) {a->id.flag &=~LIB_INDIRECT; a->id.flag |= LIB_EXTERN;}
 
-static void lib_indirect_test_id(ID *id)
+static void lib_indirect_test_id(ID *id, Library *lib)
 {
 	
-	if(id->lib)
+	if(id->lib) {
+		/* datablocks that were indirectly related are now direct links
+		 * without this, appending data that has a link to other data will fail to write */
+		if(lib && id->lib->parent == lib) {
+			id_lib_extern(id);
+		}
 		return;
+	}
 	
 	if(GS(id->name)==ID_OB) {		
 		Object *ob= (Object *)id;
@@ -1348,7 +1338,7 @@ void all_local(Library *lib, int untagged_only)
 	a= set_listbasepointers(G.main, lbarray);
 	while(a--) {
 		for(id= lbarray[a]->first; id; id=id->next)
-			lib_indirect_test_id(id);
+			lib_indirect_test_id(id, lib);
 	}
 }
 
@@ -1360,7 +1350,7 @@ void test_idbutton(char *name)
 	ID *idtest;
 	
 
-	lb= wich_libbase(G.main, GS(name-2) );
+	lb= which_libbase(G.main, GS(name-2) );
 	if(lb==0) return;
 	
 	/* search for id */
@@ -1374,17 +1364,17 @@ void text_idbutton(struct ID *id, char *text)
 	if(id) {
 		if(GS(id->name)==ID_SCE)
 			strcpy(text, "SCE: ");
-        else if(GS(id->name)==ID_SCE)
+		else if(GS(id->name)==ID_SCE)
 			strcpy(text, "SCR: ");
-        else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
+		else if(GS(id->name)==ID_MA && ((Material*)id)->use_nodes)
 			strcpy(text, "NT: ");
-        else {
+		else {
 			text[0]= id->name[0];
 			text[1]= id->name[1];
 			text[2]= ':';
 			text[3]= ' ';
 			text[4]= 0;
-        }
+		}
 	}
 	else
 		strcpy(text, "");
@@ -1393,9 +1383,9 @@ void text_idbutton(struct ID *id, char *text)
 void rename_id(ID *id, char *name)
 {
 	ListBase *lb;
-	
+
 	strncpy(id->name+2, name, 21);
-	lb= wich_libbase(G.main, GS(id->name) );
+	lb= which_libbase(G.main, GS(id->name) );
 	
 	new_id(lb, id, name);				
 }

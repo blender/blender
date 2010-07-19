@@ -30,10 +30,6 @@
 #include "KX_ScalarInterpolator.h"
 #include "KX_WorldInfo.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #if defined(_WIN64)
 typedef unsigned __int64 uint_ptr;
 #else
@@ -48,7 +44,8 @@ bool KX_WorldIpoController::Update(double currentTime)
 		for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 			(*i)->Execute(m_ipotime);//currentTime);
 		}
-		
+
+		/* TODO, this will crash! */
 		KX_WorldInfo *world = NULL;
 
 		if (m_modify_mist_start) {

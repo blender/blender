@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 narrowmod = 260
 
 
@@ -164,7 +164,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.prop(md, "start")
+        col.prop(md, "frame_start")
         col.prop(md, "length")
 
         if wide_ui:
@@ -229,7 +229,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def DECIMATE(self, layout, ob, md, wide_ui):
         layout.prop(md, "ratio")
-        layout.prop(md, "face_count")
+        layout.label(text="Face Count: %s" % str(md.face_count))
 
     def DISPLACE(self, layout, ob, md, wide_ui):
         split = layout.split()
@@ -291,6 +291,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "unborn")
         col.prop(md, "alive")
         col.prop(md, "dead")
+        col.prop(md, "size")
 
         layout.operator("object.explode_refresh", text="Refresh")
 
@@ -368,7 +369,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
         sub = col.column()
         sub.label(text="Object:")
         sub.prop(md, "object", text="")
-        sub.prop(md, "mode", text="")
         sub.active = not md.is_bound
         if wide_ui:
             col = split.column()
@@ -386,15 +386,14 @@ class DATA_PT_modifiers(DataButtonsPanel):
         else:
             layout.operator("object.meshdeform_bind", text="Bind")
 
-            if md.mode == 'VOLUME':
-                split = layout.split()
+            split = layout.split()
 
+            col = split.column()
+            col.prop(md, "precision")
+
+            if wide_ui:
                 col = split.column()
-                col.prop(md, "precision")
-
-                if wide_ui:
-                    col = split.column()
-                col.prop(md, "dynamic")
+            col.prop(md, "dynamic")
 
     def MIRROR(self, layout, ob, md, wide_ui):
         layout.prop(md, "merge_limit")
@@ -438,6 +437,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "levels", text="Preview")
         col.prop(md, "sculpt_levels", text="Sculpt")
         col.prop(md, "render_levels", text="Render")
+        col.prop(bpy.context.tool_settings.sculpt, "fast_navigate")
 
         if wide_ui:
             col = split.column()
@@ -453,12 +453,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col = layout.column()
         row = col.row()
         if md.external:
-            row.operator("object.multires_pack_external", text="Pack External")
+            row.operator("object.multires_external_pack", text="Pack External")
             row.label()
             row = col.row()
-            row.prop(md, "filename", text="")
+            row.prop(md, "filepath", text="")
         else:
-            row.operator("object.multires_save_external", text="Save External...")
+            row.operator("object.multires_external_save", text="Save External...")
             row.label()
 
     def PARTICLE_INSTANCE(self, layout, ob, md, wide_ui):
@@ -481,10 +481,10 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         layout.separator()
 
-        layout.prop(md, "path", text="Create Along Paths")
+        layout.prop(md, "use_path", text="Create Along Paths")
 
         split = layout.split()
-        split.active = md.path
+        split.active = md.use_path
         col = split.column()
         col.row().prop(md, "axis", expand=True)
         col.prop(md, "keep_shape")
@@ -496,6 +496,28 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def PARTICLE_SYSTEM(self, layout, ob, md, wide_ui):
         layout.label(text="See Particle panel.")
+
+    def SCREW(self, layout, ob, md, wide_ui):
+        split = layout.split()
+
+        col = split.column()
+        col.prop(md, "axis")
+        col.prop(md, "object", text="AxisOb")
+        col.prop(md, "angle")
+        col.prop(md, "steps")
+        col.prop(md, "render_steps")
+
+        if wide_ui:
+            col = split.column()
+        row = col.row()
+        row.active = (md.object is None or md.use_object_screw_offset == False)
+        row.prop(md, "screw_offset")
+        row = col.row()
+        row.active = (md.object is not None)
+        row.prop(md, "use_object_screw_offset")
+        col.prop(md, "use_normal_calculate")
+        col.prop(md, "use_normal_flip")
+        col.prop(md, "iterations")
 
     def SHRINKWRAP(self, layout, ob, md, wide_ui):
         split = layout.split()
@@ -602,11 +624,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
         layout.label(text="See Soft Body panel.")
 
     def SOLIDIFY(self, layout, ob, md, wide_ui):
-        layout.prop(md, "offset")
 
         split = layout.split()
 
         col = split.column()
+        col.prop(md, "thickness")
+        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+
         col.label(text="Crease:")
         col.prop(md, "edge_crease_inner", text="Inner")
         col.prop(md, "edge_crease_outer", text="Outer")
@@ -614,10 +638,19 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         if wide_ui:
             col = split.column()
-            col.label()
-        col.prop(md, "use_rim")
+
+        col.prop(md, "offset")
+        colsub = col.column()
+        colsub.active = (md.vertex_group is not "")
+        colsub.prop(md, "invert", text="Invert")
+
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
+
+        col.prop(md, "use_rim")
+        colsub = col.column()
+        colsub.active = md.use_rim
+        colsub.prop(md, "use_rim_material")
 
         # col = layout.column()
         # col.label(text="Vertex Group:")
@@ -638,6 +671,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.label(text="Options:")
+        col.prop(md, "subsurf_uv")
         col.prop(md, "optimal_display")
 
     def SURFACE(self, layout, ob, md, wide_ui):
@@ -666,9 +700,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
             if wide_ui:
                 col = split.column()
             sub = col.column(align=True)
-            sub.label(text="Aspect Ratio:")
-            sub.prop(md, "horizontal_aspect_ratio", text="Horizontal")
-            sub.prop(md, "vertical_aspect_ratio", text="Vertical")
+            sub.prop(md, "aspect_x", text="Aspect X")
+            sub.prop(md, "aspect_y", text="Aspect Y")
+
+            sub = col.column(align=True)
+            sub.prop(md, "scale_x", text="Scale X")
+            sub.prop(md, "scale_y", text="Scale Y")
 
     def WAVE(self, layout, ob, md, wide_ui):
         split = layout.split()

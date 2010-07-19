@@ -28,6 +28,8 @@
 #ifndef BKE_PAINT_H
 #define BKE_PAINT_H
 
+#include "DNA_vec_types.h"
+
 struct Brush;
 struct MFace;
 struct MultireModifierData;
@@ -69,12 +71,14 @@ typedef struct SculptSession {
 	struct MFace *mface;
 	int totvert, totface;
 	float *face_normals;
-	struct PBVH *tree;
 	struct Object *ob;
-	struct KeyBlock *kb, *refkb;
+	struct KeyBlock *kb;
 	
 	/* Mesh connectivity */
 	struct ListBase *fmap;
+
+	/* PBVH acceleration structure */
+	struct PBVH *pbvh;
 
 	/* Used temporarily per-stroke */
 	float *vertexcosnos;
@@ -86,15 +90,18 @@ typedef struct SculptSession {
 	unsigned int texcache_side, *texcache, texcache_actual;
 
 	/* Layer brush persistence between strokes */
- 	float (*layer_co)[3]; /* Copy of the mesh vertices' locations */
-	float *layer_disps; /* Displacements for each vertex */
+	 float (*layer_co)[3]; /* Copy of the mesh vertices' locations */
 
 	struct SculptStroke *stroke;
 	struct StrokeCache *cache;
 
 	struct GPUDrawObject *drawobject;
+
+	int modifiers_active;
+
+	rcti previous_r;
 } SculptSession;
 
-void free_sculptsession(SculptSession **);
+void free_sculptsession(struct Object *ob);
 
 #endif

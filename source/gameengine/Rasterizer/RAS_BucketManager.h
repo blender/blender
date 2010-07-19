@@ -63,7 +63,7 @@ public:
 	void RemoveMaterial(RAS_IPolyMaterial * mat); // freeing scenes only
 
 	/* for merging */
-	void MergeBucketManager(RAS_BucketManager *other);
+	void MergeBucketManager(RAS_BucketManager *other, SCA_IScene *scene);
 	BucketList & GetSolidBuckets() {return m_SolidBuckets;};
 	BucketList & GetAlphaBuckets() {return m_AlphaBuckets;};
 
@@ -85,7 +85,7 @@ private:
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_BucketManager"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_BucketManager"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

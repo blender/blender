@@ -130,7 +130,7 @@ EPath *edge_find_shortest_path(BMesh *bm, BMEdge *edge, EdgeData *edata, PathBas
 {
 	BMIter iter;
 	BMEdge *e;
-	GHash *gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	GHash *gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createops find shortest path");
 	BMVert *v1, *v2;
 	BMVert **verts = NULL;
 	BLI_array_declare(verts);

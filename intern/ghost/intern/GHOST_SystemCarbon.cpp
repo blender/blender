@@ -531,7 +531,7 @@ GHOST_TSuccess GHOST_SystemCarbon::getCursorPosition(GHOST_TInt32& x, GHOST_TInt
 }
 
 
-GHOST_TSuccess GHOST_SystemCarbon::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const
+GHOST_TSuccess GHOST_SystemCarbon::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
 {
 	float xf=(float)x, yf=(float)y;
 
@@ -1215,9 +1215,10 @@ void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	}
 }
 
+
 const GHOST_TUns8* GHOST_SystemCarbon::getSystemDir() const
 {
-	return (GHOST_TUns8*)"/Library/Application Support/Blender";
+	return (GHOST_TUns8*)"/Library/Application Support";
 }
 
 const GHOST_TUns8* GHOST_SystemCarbon::getUserDir() const
@@ -1228,9 +1229,24 @@ const GHOST_TUns8* GHOST_SystemCarbon::getUserDir() const
 	if (env) {
 		strncpy(usrPath, env, 245);
 		usrPath[245]=0;
-		strcat(usrPath, "/Library/Application Support/Blender");
+		strcat(usrPath, "/Library/Application Support");
 		return (GHOST_TUns8*) usrPath;
 	}
 	else
 		return NULL;
+}
+
+const GHOST_TUns8* GHOST_SystemCarbon::getBinaryDir() const
+{
+	CFURLRef bundleURL;
+	CFStringRef pathStr;
+	static char path[256];
+	CFBundleRef mainBundle = CFBundleGetMainBundle();
+	
+	bundleURL = CFBundleCopyBundleURL(mainBundle);
+	pathStr = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
+	CFStringGetCString(pathStr, path, 255, kCFStringEncodingASCII);
+	CFRelease(pathStr);
+	CFRelease(bundleURL);
+	return (GHOST_TUns8*)path;
 }

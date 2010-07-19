@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -263,7 +262,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sun Size", "Sun size");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
 
-  	prop= RNA_def_property(srna, "backscattered_light", PROP_FLOAT, PROP_NONE);
+	  prop= RNA_def_property(srna, "backscattered_light", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -1.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Backscattered Light", "Backscattered light");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
@@ -276,6 +275,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "atmosphere_turbidity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "atm_turbidity");
 	RNA_def_property_range(prop, 1.0f, 30.0f);
+	RNA_def_property_ui_range(prop, 2.0f, 10.0f, 1, 2);
 	RNA_def_property_ui_text(prop, "Atmosphere Turbidity", "Sky turbidity");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
 
@@ -420,13 +420,13 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 	prop= RNA_def_property(srna, "linear_attenuation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "att1");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Linear Attenuation", "Linear distance attentuation");
+	RNA_def_property_ui_text(prop, "Linear Attenuation", "Linear distance attenuation");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
 	prop= RNA_def_property(srna, "quadratic_attenuation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "att2");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Quadratic Attenuation", "Quadratic distance attentuation");
+	RNA_def_property_ui_text(prop, "Quadratic Attenuation", "Quadratic distance attenuation");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 }
 

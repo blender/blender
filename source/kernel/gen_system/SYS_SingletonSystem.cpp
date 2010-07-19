@@ -31,10 +31,6 @@
 #include "SYS_SingletonSystem.h"
 #include "GEN_DataCache.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 SYS_SingletonSystem*	SYS_SingletonSystem::_instance = 0;
 
 void SYS_SingletonSystem::Destruct()

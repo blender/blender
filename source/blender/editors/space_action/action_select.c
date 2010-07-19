@@ -29,10 +29,6 @@
 #include <string.h>
 #include <float.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -40,22 +36,8 @@
 #include "BLI_dlrbTree.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_windowmanager_types.h"
-#include "DNA_world_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -73,12 +55,10 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
-#include "ED_keyframing.h"
 #include "ED_keyframes_draw.h"
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
 #include "ED_screen.h"
-#include "ED_space_api.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -110,20 +90,20 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditData bed;
-	BeztEditFunc test_cb, sel_cb;
+	KeyframeEditData ked;
+	KeyframeEditFunc test_cb, sel_cb;
 	
 	/* determine type-based settings */
 	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NODUPLIS);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
 	
 	/* filter data */
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* init BezTriple looping data */
-	memset(&bed, 0, sizeof(BeztEditData));
+	memset(&ked, 0, sizeof(KeyframeEditData));
 	test_cb= ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
 	
 	/* See if we should be selecting or deselecting */
@@ -136,7 +116,7 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 				//}
 			}
 			else {
-				if (ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, test_cb, NULL)) {
+				if (ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, test_cb, NULL)) {
 					sel= SELECT_SUBTRACT;
 					break;
 				}
@@ -152,7 +132,7 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 		//if (ale->type == ACTTYPE_GPLAYER)
 		//	set_gplayer_frame_selection(ale->data, sel);
 		//else
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, sel_cb, NULL);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, sel_cb, NULL);
 	}
 	
 	/* Cleanup */
@@ -176,7 +156,7 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 		deselect_action_keys(&ac, 1, SELECT_ADD);
 	
 	/* set notifier that keyframe selection have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -221,8 +201,8 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 	bAnimListElem *ale;
 	int filter, filterflag;
 	
-	BeztEditData bed;
-	BeztEditFunc ok_cb, select_cb;
+	KeyframeEditData ked;
+	KeyframeEditFunc ok_cb, select_cb;
 	View2D *v2d= &ac->ar->v2d;
 	rctf rectf;
 	float ymin=0, ymax=(float)(-ACHANNEL_HEIGHT_HALF);
@@ -232,7 +212,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 	UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax-2, &rectf.xmax, &rectf.ymax);
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get filtering flag for dopesheet data (if applicable) */
@@ -252,7 +232,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 		ok_cb= NULL;
 		
 	/* init editing data */
-	memset(&bed, 0, sizeof(BeztEditData));
+	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -265,12 +245,12 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 		if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
 			/* if channel is mapped in NLA, apply correction */
 			if (adt) {
-				bed.f1= BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
-				bed.f2= BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
+				ked.f1= BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
+				ked.f2= BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
 			}
 			else {
-				bed.f1= rectf.xmin;
-				bed.f2= rectf.xmax;
+				ked.f1= rectf.xmin;
+				ked.f2= rectf.xmax;
 			}
 		}
 		
@@ -282,7 +262,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 			//if (ale->type == ANIMTYPE_GPLAYER)
 			//	borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
 			//else
-				ANIM_animchannel_keys_bezier_loop(&bed, ale, ok_cb, select_cb, NULL, filterflag);
+				ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, filterflag);
 		}
 		
 		/* set minimum extent to be the maximum of the next channel */
@@ -337,7 +317,7 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	borderselect_action(&ac, rect, mode, selectmode);
 	
 	/* set notifier that keyframe selection have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -391,8 +371,8 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditFunc ok_cb, select_cb;
-	BeztEditData bed;
+	KeyframeEditFunc ok_cb, select_cb;
+	KeyframeEditData ked;
 	float min, max;
 	
 	/* get extreme markers */
@@ -404,12 +384,12 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
 	select_cb= ANIM_editkeyframes_select(SELECT_ADD);
 	
-	memset(&bed, 0, sizeof(BeztEditData));
-	bed.f1= min; 
-	bed.f2= max;
+	memset(&ked, 0, sizeof(KeyframeEditData));
+	ked.f1= min; 
+	ked.f2= max;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* select keys in-between */
@@ -418,11 +398,11 @@ static void markers_selectkeys_between (bAnimContext *ac)
 		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else {
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 		}
 	}
 	
@@ -440,11 +420,11 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	
 	Scene *scene= ac->scene;
 	CfraElem *ce;
-	BeztEditFunc select_cb, ok_cb;
-	BeztEditData bed;
+	KeyframeEditFunc select_cb, ok_cb;
+	KeyframeEditData ked;
 	
 	/* initialise keyframe editing data */
-	memset(&bed, 0, sizeof(BeztEditData));
+	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* build list of columns */
 	switch (mode) {
@@ -461,7 +441,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 				ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 				
 				for (ale= anim_data.first; ale; ale= ale->next)
-					ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_to_cfraelem, NULL);
+					ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, bezt_to_cfraelem, NULL);
 			}
 			BLI_freelistN(&anim_data);
 			break;
@@ -469,13 +449,13 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 		case ACTKEYS_COLUMNSEL_CFRA: /* current frame */
 			/* make a single CfraElem for storing this */
 			ce= MEM_callocN(sizeof(CfraElem), "cfraElem");
-			BLI_addtail(&bed.list, ce);
+			BLI_addtail(&ked.list, ce);
 			
 			ce->cfra= (float)CFRA;
 			break;
 			
 		case ACTKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
-			ED_markers_make_cfra_list(ac->markers, &bed.list, 1);
+			ED_markers_make_cfra_list(ac->markers, &ked.list, 1);
 			break;
 			
 		default: /* invalid option */
@@ -498,18 +478,18 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		/* loop over cfraelems (stored in the BeztEditData->list)
+		/* loop over cfraelems (stored in the KeyframeEditData->list)
 		 *	- we need to do this here, as we can apply fewer NLA-mapping conversions
 		 */
-		for (ce= bed.list.first; ce; ce= ce->next) {
+		for (ce= ked.list.first; ce; ce= ce->next) {
 			/* set frame for validation callback to refer to */
 			if (adt)
-				bed.f1= BKE_nla_tweakedit_remap(adt, ce->cfra, NLATIME_CONVERT_UNMAP);
+				ked.f1= BKE_nla_tweakedit_remap(adt, ce->cfra, NLATIME_CONVERT_UNMAP);
 			else
-				bed.f1= ce->cfra;
+				ked.f1= ce->cfra;
 			
 			/* select elements with frame number matching cfraelem */
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 			
 #if 0 // XXX reenable when Grease Pencil stuff is back
 			if (ale->type == ANIMTYPE_GPLAYER) {
@@ -527,7 +507,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	}
 	
 	/* free elements */
-	BLI_freelistN(&bed.list);
+	BLI_freelistN(&ked.list);
 	BLI_freelistN(&anim_data);
 }
 
@@ -551,7 +531,7 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 		columnselect_action_keys(&ac, mode);
 	
 	/* set notifier that keyframe selection have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -574,6 +554,61 @@ void ACTION_OT_select_column (wmOperatorType *ot)
 	ot->prop= RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
 }
 
+/* ******************** Select Linked Operator *********************** */
+
+static int actkeys_select_linked_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data= {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	KeyframeEditFunc ok_cb = ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
+	KeyframeEditFunc sel_cb = ANIM_editkeyframes_select(SELECT_ADD);
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* loop through all of the keys and select additional keyframes based on these */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		
+		/* check if anything selected? */
+		if (ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, ok_cb, NULL)) {
+			/* select every keyframe in this curve then */
+			ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, sel_cb, NULL);
+		}
+	}
+	
+	/* Cleanup */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_select_linked (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Linked";
+	ot->idname= "ACTION_OT_select_linked";
+	ot->description = "Select keyframes occurring the same F-Curves as selected ones";
+	
+	/* api callbacks */
+	ot->exec= actkeys_select_linked_exec;
+	ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+}
+
 /* ******************** Select More/Less Operators *********************** */
 
 /* Common code to perform selection */
@@ -583,16 +618,16 @@ static void select_moreless_action_keys (bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditData bed;
-	BeztEditFunc build_cb;
+	KeyframeEditData ked;
+	KeyframeEditFunc build_cb;
 	
 	
 	/* init selmap building data */
 	build_cb= ANIM_editkeyframes_buildselmap(mode);
-	memset(&bed, 0, sizeof(BeztEditData)); 
+	memset(&ked, 0, sizeof(KeyframeEditData)); 
 	
 	/* loop through all of the keys and select additional keyframes based on these */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -603,15 +638,15 @@ static void select_moreless_action_keys (bAnimContext *ac, short mode)
 			continue;
 		
 		/* build up map of whether F-Curve's keyframes should be selected or not */
-		bed.data= MEM_callocN(fcu->totvert, "selmap actEdit more");
-		ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, build_cb, NULL);
+		ked.data= MEM_callocN(fcu->totvert, "selmap actEdit more");
+		ANIM_fcurve_keyframes_loop(&ked, fcu, NULL, build_cb, NULL);
 		
 		/* based on this map, adjust the selection status of the keyframes */
-		ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, bezt_selmap_flush, NULL);
+		ANIM_fcurve_keyframes_loop(&ked, fcu, NULL, bezt_selmap_flush, NULL);
 		
 		/* free the selmap used here */
-		MEM_freeN(bed.data);
-		bed.data= NULL;
+		MEM_freeN(ked.data);
+		ked.data= NULL;
 	}
 	
 	/* Cleanup */
@@ -632,7 +667,7 @@ static int actkeys_select_more_exec (bContext *C, wmOperator *op)
 	select_moreless_action_keys(&ac, SELMAP_MORE);
 	
 	/* set notifier that keyframe selection has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -666,7 +701,7 @@ static int actkeys_select_less_exec (bContext *C, wmOperator *op)
 	select_moreless_action_keys(&ac, SELMAP_LESS);
 	
 	/* set notifier that keyframe selection has changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -716,17 +751,17 @@ static void actkeys_mselect_single (bAnimContext *ac, bAnimListElem *ale, short 
 	bDopeSheet *ads= (ac->datatype == ANIMCONT_DOPESHEET) ? ac->data : NULL;
 	int ds_filter = ((ads) ? (ads->filterflag) : (0));
 	
-	BeztEditData bed;
-	BeztEditFunc select_cb, ok_cb;
+	KeyframeEditData ked;
+	KeyframeEditFunc select_cb, ok_cb;
 	
 	/* get functions for selecting keyframes */
 	select_cb= ANIM_editkeyframes_select(select_mode);
 	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAME);
-	memset(&bed, 0, sizeof(BeztEditData)); 
-	bed.f1= selx;
+	memset(&ked, 0, sizeof(KeyframeEditData)); 
+	ked.f1= selx;
 	
 	/* select the nominated keyframe on the given frame */
-	ANIM_animchannel_keys_bezier_loop(&bed, ale, ok_cb, select_cb, NULL, ds_filter);
+	ANIM_animchannel_keyframes_loop(&ked, ale, ok_cb, select_cb, NULL, ds_filter);
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
@@ -736,8 +771,8 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditFunc ok_cb, select_cb;
-	BeztEditData bed;
+	KeyframeEditFunc ok_cb, select_cb;
+	KeyframeEditData ked;
 	Scene *scene= ac->scene;
 	
 	/* if select mode is replace, deselect all keyframes (and channels) first */
@@ -753,21 +788,21 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
 	select_cb= ANIM_editkeyframes_select(select_mode);
 	
-	memset(&bed, 0, sizeof(BeztEditFunc));
+	memset(&ked, 0, sizeof(KeyframeEditFunc));
 	if (leftright == ACTKEYS_LRSEL_LEFT) {
-		bed.f1 = MINAFRAMEF;
-		bed.f2 = (float)(CFRA + FRAME_CLICK_THRESH);
+		ked.f1 = MINAFRAMEF;
+		ked.f2 = (float)(CFRA + FRAME_CLICK_THRESH);
 	} 
 	else {
-		bed.f1 = (float)(CFRA - FRAME_CLICK_THRESH);
-		bed.f2 = MAXFRAMEF;
+		ked.f1 = (float)(CFRA - FRAME_CLICK_THRESH);
+		ked.f2 = MAXFRAMEF;
 	}
 	
 	/* filter data */
 	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NODUPLIS);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 	/* select keys on the side where most data occurs */
@@ -776,15 +811,35 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ANIMTYPE_GPLAYER)
 		//	borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
 		else
-			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	
+	/* Sync marker support */
+	if((select_mode==SELECT_ADD) && (ac->spacetype==SPACE_ACTION) && ELEM(leftright, ACTKEYS_LRSEL_LEFT, ACTKEYS_LRSEL_RIGHT)) {
+		SpaceAction *saction= ac->sa->spacedata.first;
+		
+		if (saction && saction->flag & SACTION_MARKERS_MOVE) {
+			TimeMarker *marker;
+			
+			for (marker= scene->markers.first; marker; marker= marker->next) {
+				if(	((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
+					((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA)) ) 
+				{
+					marker->flag |= SELECT;
+				}
+				else {
+					marker->flag &= ~SELECT;
+				}
+			}
+		}
+	}
+
 	/* Cleanup */
 	BLI_freelistN(&anim_data);
 }
@@ -796,11 +851,11 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	bAnimListElem *ale;
 	int filter;
 	
-	BeztEditFunc select_cb, ok_cb;
-	BeztEditData bed;
+	KeyframeEditFunc select_cb, ok_cb;
+	KeyframeEditData ked;
 	
 	/* initialise keyframe editing data */
-	memset(&bed, 0, sizeof(BeztEditData));
+	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* set up BezTriple edit callbacks */
 	select_cb= ANIM_editkeyframes_select(select_mode);
@@ -810,9 +865,9 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	 * based on the keys found to be selected above
 	 */
 	if (ac->datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NODUPLIS);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -820,12 +875,12 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 		
 		/* set frame for validation callback to refer to */
 		if (adt)
-			bed.f1= BKE_nla_tweakedit_remap(adt, selx, NLATIME_CONVERT_UNMAP);
+			ked.f1= BKE_nla_tweakedit_remap(adt, selx, NLATIME_CONVERT_UNMAP);
 		else
-			bed.f1= selx;
+			ked.f1= selx;
 		
 		/* select elements with frame number matching cfra */
-		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+		ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 			
 #if 0 // XXX reenable when Grease Pencil stuff is back
 			if (ale->type == ANIMTYPE_GPLAYER) {
@@ -842,7 +897,7 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	}
 	
 	/* free elements */
-	BLI_freelistN(&bed.list);
+	BLI_freelistN(&ked.list);
 	BLI_freelistN(&anim_data);
 }
  
@@ -943,10 +998,8 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 			gpl_to_keylist(ads, gpl, &anim_keys, NULL);
 		}
 		
-		// the call below is not strictly necessary, since we have adjacency info anyway
-		//BLI_dlrbTree_linkedlist_sync(&anim_keys);
-		
 		/* loop through keyframes, finding one that was within the range clicked on */
+		// TODO: replace this with API calls instead of inlining
 		for (ak= anim_keys.root; ak; ak= akn) {
 			if (IN_RANGE(ak->cfra, rectf.xmin, rectf.xmax)) {
 				/* set the frame to use, and apply inverse-correction for NLA-mapping 
@@ -1085,7 +1138,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	}
 	
 	/* set notifier that keyframe selection (and channels too) have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT|ND_ANIMCHAN_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|ND_ANIMCHAN|NA_SELECTED, NULL);
 	
 	/* for tweak grab to work */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;

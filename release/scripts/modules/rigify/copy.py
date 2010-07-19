@@ -110,4 +110,3 @@ def main(obj, bone_definition, base_names, options):
     deform(obj, bone_definition, base_names, options)
 
     return (cpy,)
-

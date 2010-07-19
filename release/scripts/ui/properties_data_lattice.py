@@ -20,7 +20,7 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class DataButtonsPanel(bpy.types.Panel):
@@ -93,7 +93,9 @@ class DATA_PT_lattice(DataButtonsPanel):
             col = split.column()
         col.prop(lat, "interpolation_type_w", text="")
 
-        layout.prop(lat, "outside")
+        row = layout.row()
+        row.prop(lat, "outside")
+        row.prop_object(lat, "vertex_group", context.object, "vertex_groups", text="")
 
 
 classes = [

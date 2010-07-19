@@ -30,10 +30,6 @@
 
 #include "GPC_RawLoadDotBlendArray.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void GetRawLoadingAnimation(unsigned char **data, int *dataSize)
 {
 	// create an array that will automatically be deleted when)

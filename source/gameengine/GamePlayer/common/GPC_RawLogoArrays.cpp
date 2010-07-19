@@ -30,10 +30,6 @@
 
 #include "GPC_RawLogoArrays.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void GetRawBlenderLogo(unsigned char **data, int *width, int *height)
 {
 	// create an array that will automatically be deleted when)

@@ -44,7 +44,8 @@
 #include "BKE_global.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
+
+#include "GPU_extensions.h"
 
 #include "WM_api.h"
 #include "wm_subwindow.h"
@@ -209,8 +210,8 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 			* Really Blender should never _ever_ try
 			* to do such a thing, but just to be safe
 			* clamp it anyway (or fix the bScreen
-		    * scaling routine, and be damn sure you
-		    * fixed it). - zr  (2001!)
+			* scaling routine, and be damn sure you
+			* fixed it). - zr  (2001!)
 			*/
 		
 		if (swin->winrct.xmax > win->sizex)
@@ -302,28 +303,6 @@ void wmOrtho2(float x1, float x2, float y1, float y2)
 
 /* *************************** Framebuffer color depth, for selection codes ********************** */
 
-static int wm_get_colordepth(void)
-{
-	static int mainwin_color_depth= 0;	
-	
-	if(mainwin_color_depth==0) {
-		GLint r, g, b;
-		
-		glGetIntegerv(GL_RED_BITS, &r);
-		glGetIntegerv(GL_GREEN_BITS, &g);
-		glGetIntegerv(GL_BLUE_BITS, &b);
-		
-		mainwin_color_depth= r + g + b;
-		if(G.f & G_DEBUG) {
-			printf("Color depth r %d g %d b %d\n", (int)r, (int)g, (int)b);
-			glGetIntegerv(GL_AUX_BUFFERS, &r);
-			printf("Aux buffers: %d\n", (int)r);
-		}
-	}
-	return mainwin_color_depth;
-}
-
-
 #ifdef __APPLE__
 
 /* apple seems to round colors to below and up on some configs */
@@ -332,7 +311,7 @@ unsigned int index_to_framebuffer(int index)
 {
 	unsigned int i= index;
 
-	switch(wm_get_colordepth()) {
+	switch(GPU_color_depth()) {
 	case 12:
 		i= ((i & 0xF00)<<12) + ((i & 0xF0)<<8) + ((i & 0xF)<<4);
 		/* sometimes dithering subtracts! */
@@ -362,7 +341,7 @@ unsigned int index_to_framebuffer(int index)
 {
 	unsigned int i= index;
 	
-	switch(wm_get_colordepth()) {
+	switch(GPU_color_depth()) {
 		case 8:
 			i= ((i & 48)<<18) + ((i & 12)<<12) + ((i & 3)<<6);
 			i |= 0x3F3F3F;
@@ -399,7 +378,7 @@ int WM_framebuffer_to_index(unsigned int col)
 {
 	if (col==0) return 0;
 
-	switch(wm_get_colordepth()) {
+	switch(GPU_color_depth()) {
 	case 8:
 		return ((col & 0xC00000)>>18) + ((col & 0xC000)>>12) + ((col & 0xC0)>>6);
 	case 12:

@@ -26,10 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "DNA_constraint_types.h"
 #include "DNA_action_types.h"
 #include "BL_ArmatureConstraint.h"
@@ -74,7 +70,7 @@ BL_ArmatureConstraint::BL_ArmatureConstraint(
 	bConstraint *constraint, 
 	KX_GameObject* target,
 	KX_GameObject* subtarget)
-	: PyObjectPlus(), m_armature(armature), m_constraint(constraint), m_posechannel(posechannel)
+	: PyObjectPlus(), m_constraint(constraint), m_posechannel(posechannel), m_armature(armature)
 {
 	m_target = target;
 	m_blendtarget = (target) ? target->GetBlenderObject() : NULL;

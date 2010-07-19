@@ -57,15 +57,10 @@
 /*  #include "BKE_object.h" */
 #include "BKE_animsys.h"
 #include "BKE_scene.h"
-#include "BKE_blender.h"
 #include "BKE_library.h"
 #include "BKE_displist.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 /* Global variables */
 
@@ -231,7 +226,7 @@ void tex_space_mball(Object *ob)
 	boundbox_set_from_min_max(bb, min, max);
 }
 
-float *make_orco_mball(Object *ob)
+float *make_orco_mball(Object *ob, ListBase *dispbase)
 {
 	BoundBox *bb;
 	DispList *dl;
@@ -248,7 +243,7 @@ float *make_orco_mball(Object *ob)
 	loc[2]= (bb->vec[0][2]+bb->vec[1][2])/2.0f;
 	size[2]= bb->vec[1][2]-loc[2];
 
-	dl= ob->disp.first;
+	dl= dispbase->first;
 	orcodata= MEM_mallocN(sizeof(float)*3*dl->nr, "MballOrco");
 
 	data= dl->verts;
@@ -280,6 +275,19 @@ int is_basis_mball(Object *ob)
 	return 1;
 }
 
+/* return nonzero if ob1 is a basis mball for ob */
+int is_mball_basis_for(Object *ob1, Object *ob2)
+{
+	int basis1nr, basis2nr;
+	char basis1name[32], basis2name[32];
+
+	splitIDname(ob1->id.name+2, basis1name, &basis1nr);
+	splitIDname(ob2->id.name+2, basis2name, &basis2nr);
+
+	if(!strcmp(basis1name, basis2name)) return is_basis_mball(ob1);
+	else return 0;
+}
+
 /* \brief copy some properties from object to other metaball object with same base name
  *
  * When some properties (wiresize, threshold, update flags) of metaball are changed, then this properties
@@ -288,6 +296,7 @@ int is_basis_mball(Object *ob)
  * because this metaball influence polygonisation of metaballs. */
 void copy_mball_properties(Scene *scene, Object *active_object)
 {
+	Scene *sce_iter= scene;
 	Base *base;
 	Object *ob;
 	MetaBall *active_mball = (MetaBall*)active_object->data;
@@ -297,10 +306,10 @@ void copy_mball_properties(Scene *scene, Object *active_object)
 	splitIDname(active_object->id.name+2, basisname, &basisnr);
 
 	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if(F_ERROR==next_object(scene, 0, 0, 0))
+	if(F_ERROR==next_object(&sce_iter, 0, 0, 0))
 		return;
 	
-	while(next_object(scene, 1, &base, &ob)) {
+	while(next_object(&sce_iter, 1, &base, &ob)) {
 		if (ob->type==OB_MBALL) {
 			if(ob!=active_object){
 				splitIDname(ob->id.name+2, obname, &obnr);
@@ -330,6 +339,7 @@ void copy_mball_properties(Scene *scene, Object *active_object)
  */
 Object *find_basis_mball(Scene *scene, Object *basis)
 {
+	Scene *sce_iter= scene;
 	Base *base;
 	Object *ob,*bob= basis;
 	MetaElem *ml=NULL;
@@ -340,10 +350,10 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 	totelem= 0;
 
 	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if(F_ERROR==next_object(scene, 0, 0, 0))
+	if(F_ERROR==next_object(&sce_iter, 0, 0, 0))
 		return NULL;
 	
-	while(next_object(scene, 1, &base, &ob)) {
+	while(next_object(&sce_iter, 1, &base, &ob)) {
 		
 		if (ob->type==OB_MBALL) {
 			if(ob==bob){
@@ -687,7 +697,7 @@ void *new_pgn_element(int size)
 	if(cur) {
 		if(size+offs < blocksize) {
 			adr= (void *) (cur->data+offs);
-		 	offs+= size;
+			 offs+= size;
 			return adr;
 		}
 	}
@@ -1092,7 +1102,7 @@ int getedge (EDGELIST *table[],
 	q = table[HASH(i1, j1, k1)+HASH(i2, j2, k2)];
 	for (; q != NULL; q = q->next)
 		if (q->i1 == i1 && q->j1 == j1 && q->k1 == k1 &&
-		    q->i2 == i2 && q->j2 == j2 && q->k2 == k2)
+			q->i2 == i2 && q->j2 == j2 && q->k2 == k2)
 			return q->vid;
 	return -1;
 }
@@ -1241,7 +1251,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		p->z = neg.z;
 		return;
 	}
-  	if((dx == 0.0f) && (dz == 0.0f)){
+	  if((dx == 0.0f) && (dz == 0.0f)){
 		p->x = neg.x;
 		p->y = neg.y - negative*dy/(positive-negative);
 		p->z = neg.z;
@@ -1273,7 +1283,7 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 			p->y = 0.5f*(pos.y + neg.y);
 			if ((function(p->x,p->y,p->z)) > 0.0)	pos.y = p->y; else neg.y = p->y;
 		}
-  	}
+	  }
    
 	if((dx == 0.0f) && (dy == 0.0f)){
 		p->x = neg.x;
@@ -1499,6 +1509,7 @@ void polygonize(PROCESS *mbproc, MetaBall *mb)
 
 float init_meta(Scene *scene, Object *ob)	/* return totsize */
 {
+	Scene *sce_iter= scene;
 	Base *base;
 	Object *bob;
 	MetaBall *mb;
@@ -1515,9 +1526,8 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 	splitIDname(ob->id.name+2, obname, &obnr);
 	
 	/* make main array */
-	
-	next_object(scene, 0, 0, 0);
-	while(next_object(scene, 1, &base, &bob)) {
+	next_object(&sce_iter, 0, 0, 0);
+	while(next_object(&sce_iter, 1, &base, &bob)) {
 
 		if(bob->type==OB_MBALL) {
 			zero_size= 0;
@@ -1581,7 +1591,7 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 					if(ml->s > 10.0) ml->s = 10.0;
 					
 					/* Rotation of MetaElem is stored in quat */
- 					quat_to_mat4( temp3,ml->quat);
+					 quat_to_mat4( temp3,ml->quat);
 
 					/* Translation of MetaElem */
 					unit_m4(temp2);
@@ -2080,21 +2090,20 @@ void init_metaball_octal_tree(int depth)
 	subdivide_metaball_octal_node(node, size[0], size[1], size[2], metaball_tree->depth);
 }
 
-void metaball_polygonize(Scene *scene, Object *ob)
+void metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 {
 	PROCESS mbproc;
 	MetaBall *mb;
 	DispList *dl;
 	int a, nr_cubes;
 	float *ve, *no, totsize, width;
-	
+
 	mb= ob->data;
 
 	if(totelem==0) return;
 	if(!(G.rendering) && (mb->flag==MB_UPDATE_NEVER)) return;
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
-	freedisplist(&ob->disp);
 	curindex= totindex= 0;
 	indices= 0;
 	thresh= mb->thresh;
@@ -2118,13 +2127,22 @@ void metaball_polygonize(Scene *scene, Object *ob)
 	if((totelem > 512) && (totelem <= 1024)) init_metaball_octal_tree(4);
 	if(totelem > 1024) init_metaball_octal_tree(5);
 
-	/* don't polygonize metaballs with too high resolution (base mball to small) */
+	/* don't polygonize metaballs with too high resolution (base mball to small)
+	 * note: Eps was 0.0001f but this was giving problems for blood animation for durian, using 0.00001f */
 	if(metaball_tree) {
-		if(ob->size[0]<=0.0001f*(metaball_tree->first->x_max - metaball_tree->first->x_min) ||
-		       ob->size[1]<=0.0001f*(metaball_tree->first->y_max - metaball_tree->first->y_min) ||
-		       ob->size[2]<=0.0001f*(metaball_tree->first->z_max - metaball_tree->first->z_min))
+		if(	ob->size[0] <= 0.00001f * (metaball_tree->first->x_max - metaball_tree->first->x_min) ||
+			ob->size[1] <= 0.00001f * (metaball_tree->first->y_max - metaball_tree->first->y_min) ||
+			ob->size[2] <= 0.00001f * (metaball_tree->first->z_max - metaball_tree->first->z_min))
 		{
+			new_pgn_element(-1); /* free values created by init_meta */
+
 			MEM_freeN(mainb);
+
+			/* free tree */
+			free_metaball_octal_node(metaball_tree->first);
+			MEM_freeN(metaball_tree);
+			metaball_tree= NULL;
+
 			return;
 		}
 	}
@@ -2157,9 +2175,8 @@ void metaball_polygonize(Scene *scene, Object *ob)
 	}
 
 	if(curindex) {
-	
 		dl= MEM_callocN(sizeof(DispList), "mbaldisp");
-		BLI_addtail(&ob->disp, dl);
+		BLI_addtail(dispbase, dl);
 		dl->type= DL_INDEX4;
 		dl->nr= mbproc.vertices.count;
 		dl->parts= curindex;

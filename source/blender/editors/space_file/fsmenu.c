@@ -248,10 +248,39 @@ void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
 	fclose(fp);
 }
 
-void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
+void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
 {
 	char line[256];
 	FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
+	FILE *fp;
+
+	fp = fopen(filename, "r");
+	if (!fp) return;
+
+	while ( fgets ( line, 256, fp ) != NULL ) /* read a line */
+	{
+		if (strncmp(line, "[Bookmarks]", 11)==0){
+			category = FS_CATEGORY_BOOKMARKS;
+		} else if (strncmp(line, "[Recent]", 8)==0){
+			category = FS_CATEGORY_RECENT;
+		} else {
+			int len = strlen(line);
+			if (len>0) {
+				if (line[len-1] == '\n') {
+					line[len-1] = '\0';
+				}
+				if (BLI_exist(line)) {
+					fsmenu_insert_entry(fsmenu, category, line, 0, 1);
+				}
+			}
+		}
+	}
+	fclose(fp);
+}
+
+void fsmenu_read_system(struct FSMenu* fsmenu)
+{
+	char line[256];
 	FILE *fp;
 
 #ifdef WIN32
@@ -266,7 +295,7 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 		
 		for (i=2; i < 26; i++) {
 			if ((tmp>>i) & 1) {
-				tmps[0]='a'+i;
+				tmps[0]='A'+i;
 				tmps[1]=':';
 				tmps[2]='\\';
 				tmps[3]=0;
@@ -429,15 +458,14 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 #else
 	/* unix */
 	{
-		char dir[FILE_MAXDIR];
 		char *home= BLI_gethome();
 
 		if(home) {
-			BLI_snprintf(dir, FILE_MAXDIR, "%s/", home);
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
-			BLI_snprintf(dir, FILE_MAXDIR, "%s/Desktop/", home);
-			if (BLI_exists(dir)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
+			BLI_snprintf(line, FILE_MAXDIR, "%s/", home);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			BLI_snprintf(line, FILE_MAXDIR, "%s/Desktop/", home);
+			if (BLI_exists(line)) {
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 			}
 		}
 
@@ -446,7 +474,6 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 #ifdef __linux__
 			/* loop over mount points */
 			struct mntent *mnt;
-			FILE *fp;
 			int len;
 
 			fp = setmntent (MOUNTED, "r");
@@ -461,8 +488,8 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 
 					len= strlen(mnt->mnt_dir);
 					if(len && mnt->mnt_dir[len-1] != '/') {
-						BLI_snprintf(dir, FILE_MAXDIR, "%s/", mnt->mnt_dir);
-						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, dir, 1, 0);
+						BLI_snprintf(line, FILE_MAXDIR, "%s/", mnt->mnt_dir);
+						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, 1, 0);
 					}
 					else
 						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, mnt->mnt_dir, 1, 0);
@@ -482,30 +509,8 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 	}
 #endif
 #endif
-
-	fp = fopen(filename, "r");
-	if (!fp) return;
-
-	while ( fgets ( line, 256, fp ) != NULL ) /* read a line */
-	{
-		if (strncmp(line, "[Bookmarks]", 11)==0){
-			category = FS_CATEGORY_BOOKMARKS;
-		} else if (strncmp(line, "[Recent]", 8)==0){
-			category = FS_CATEGORY_RECENT;
-		} else {
-			int len = strlen(line);
-			if (len>0) {
-				if (line[len-1] == '\n') {
-					line[len-1] = '\0';
-				}
-				if (BLI_exist(line)) {
-					fsmenu_insert_entry(fsmenu, category, line, 0, 1);
-				}
-			}
-		}
-	}
-	fclose(fp);
 }
+
 
 static void fsmenu_free_category(struct FSMenu* fsmenu, FSMenuCategory category)
 {

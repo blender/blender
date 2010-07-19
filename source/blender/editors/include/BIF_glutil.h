@@ -1,5 +1,5 @@
 /**
- * $Id: BIF_glutil.h
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

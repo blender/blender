@@ -35,10 +35,6 @@
 
 #define __AIFF__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "../imbuf/IMB_imbuf.h"
 #include "../imbuf/IMB_imbuf_types.h"
 

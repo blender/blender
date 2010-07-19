@@ -46,8 +46,6 @@
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -66,7 +64,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_curve.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -320,7 +317,7 @@ void FONT_OT_insert_lorem(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Lorem";
-    ot->description= "Insert placeholder text";
+	ot->description= "Insert placeholder text";
 	ot->idname= "FONT_OT_insert_lorem";
 	
 	/* api callbacks */
@@ -387,7 +384,7 @@ static int paste_file_exec(bContext *C, wmOperator *op)
 	char *path;
 	int retval;
 	
-	path= RNA_string_get_alloc(op->ptr, "path", NULL, 0);
+	path= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
 	retval= paste_file(C, op->reports, path);
 	MEM_freeN(path);
 
@@ -396,7 +393,7 @@ static int paste_file_exec(bContext *C, wmOperator *op)
 
 static int paste_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return paste_file_exec(C, op);
 
 	WM_event_add_fileselect(C, op); 
@@ -408,7 +405,7 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste File";
-    ot->description= "Paste contents from file";
+	ot->description= "Paste contents from file";
 	ot->idname= "FONT_OT_file_paste";
 	
 	/* api callbacks */
@@ -420,7 +417,7 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE, FILE_SPECIAL, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);
 }
 
 /******************* paste buffer operator ********************/
@@ -457,7 +454,7 @@ void FONT_OT_buffer_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste Buffer";
-    ot->description= "Paste text from OS buffer";
+	ot->description= "Paste text from OS buffer";
 	ot->idname= "FONT_OT_buffer_paste";
 	
 	/* api callbacks */
@@ -568,7 +565,7 @@ static short next_word(Curve *cu)
 {
 	short s;
 	for(s=cu->pos; (cu->str[s]) && (cu->str[s]!=' ') && (cu->str[s]!='\n') &&
-	                (cu->str[s]!=1) && (cu->str[s]!='\r'); s++);
+					(cu->str[s]!=1) && (cu->str[s]!='\r'); s++);
 	if(cu->str[s]) return(s+1); else return(s);
 }
 
@@ -578,7 +575,7 @@ static short prev_word(Curve *cu)
 	
 	if(cu->pos==0) return(0);
 	for(s=cu->pos-2; (cu->str[s]) && (cu->str[s]!=' ') && (cu->str[s]!='\n') &&
-	                (cu->str[s]!=1) && (cu->str[s]!='\r'); s--);
+					(cu->str[s]!=1) && (cu->str[s]!='\r'); s--);
 	if(cu->str[s]) return(s+1); else return(s);
 }
 
@@ -614,9 +611,10 @@ static int kill_selection(Object *obedit, int ins)	/* 1 == new character */
 /******************* set style operator ********************/
 
 static EnumPropertyItem style_items[]= {
-	{CU_BOLD, "BOLD", 0, "Bold", ""},
-	{CU_ITALIC, "ITALIC", 0, "Italic", ""},
-	{CU_UNDERLINE, "UNDERLINE", 0, "Underline", ""},
+	{CU_CHINFO_BOLD, "BOLD", 0, "Bold", ""},
+	{CU_CHINFO_ITALIC, "ITALIC", 0, "Italic", ""},
+	{CU_CHINFO_UNDERLINE, "UNDERLINE", 0, "Underline", ""},
+	{CU_CHINFO_SMALLCAPS, "SMALL_CAPS", 0, "Small Caps", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static int set_style(bContext *C, int style, int clear)
@@ -656,7 +654,7 @@ void FONT_OT_style_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Style";
-    ot->description= "Set font style";
+	ot->description= "Set font style";
 	ot->idname= "FONT_OT_style_set";
 	
 	/* api callbacks */
@@ -667,7 +665,7 @@ void FONT_OT_style_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "style", style_items, CU_BOLD, "Style", "Style to set selection to.");
+	RNA_def_enum(ot->srna, "style", style_items, CU_CHINFO_BOLD, "Style", "Style to set selection to.");
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear style rather than setting it.");
 }
 
@@ -694,7 +692,7 @@ void FONT_OT_style_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Style";
-    ot->description= "Toggle font style";
+	ot->description= "Toggle font style";
 	ot->idname= "FONT_OT_style_toggle";
 	
 	/* api callbacks */
@@ -705,7 +703,7 @@ void FONT_OT_style_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "style", style_items, CU_BOLD, "Style", "Style to set selection to.");
+	RNA_def_enum(ot->srna, "style", style_items, CU_CHINFO_BOLD, "Style", "Style to set selection to.");
 }
 
 /******************* copy text operator ********************/
@@ -737,7 +735,7 @@ void FONT_OT_text_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Text";
-    ot->description= "Copy selected text to clipboard";
+	ot->description= "Copy selected text to clipboard";
 	ot->idname= "FONT_OT_text_copy";
 	
 	/* api callbacks */
@@ -768,7 +766,7 @@ void FONT_OT_text_cut(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cut Text";
-    ot->description= "Cut selected text to clipboard";
+	ot->description= "Cut selected text to clipboard";
 	ot->idname= "FONT_OT_text_cut";
 	
 	/* api callbacks */
@@ -826,7 +824,7 @@ void FONT_OT_text_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste Text";
-    ot->description= "Paste text from clipboard";
+	ot->description= "Paste text from clipboard";
 	ot->idname= "FONT_OT_text_paste";
 	
 	/* api callbacks */
@@ -865,7 +863,7 @@ static int move_cursor(bContext *C, int type, int select)
 			if((select) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;
 			while(cu->pos>0) {
 				if(ef->textbuf[cu->pos-1]=='\n') break;
-				if(ef->textbufinfo[cu->pos-1].flag & CU_WRAP ) break;				
+				if(ef->textbufinfo[cu->pos-1].flag & CU_CHINFO_WRAP) break;				
 				cu->pos--;
 			}		
 			cursmove=FO_CURS;
@@ -876,7 +874,7 @@ static int move_cursor(bContext *C, int type, int select)
 			while(cu->pos<cu->len) {
 				if(ef->textbuf[cu->pos]==0) break;
 				if(ef->textbuf[cu->pos]=='\n') break;
-				if(ef->textbufinfo[cu->pos].flag & CU_WRAP ) break;
+				if(ef->textbufinfo[cu->pos].flag & CU_CHINFO_WRAP ) break;
 				cu->pos++;
 			}
 			cursmove=FO_CURS;
@@ -962,7 +960,7 @@ void FONT_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Cursor";
-    ot->description= "Move cursor to position type";
+	ot->description= "Move cursor to position type";
 	ot->idname= "FONT_OT_move";
 	
 	/* api callbacks */
@@ -989,7 +987,7 @@ void FONT_OT_move_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Select";
-    ot->description= "Make selection from current cursor position to new cursor position type";
+	ot->description= "Make selection from current cursor position to new cursor position type";
 	ot->idname= "FONT_OT_move_select";
 	
 	/* api callbacks */
@@ -1031,7 +1029,7 @@ void FONT_OT_change_spacing(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Change Spacing";
-    ot->description= "Change font spacing";
+	ot->description= "Change font spacing";
 	ot->idname= "FONT_OT_change_spacing";
 	
 	/* api callbacks */
@@ -1076,7 +1074,7 @@ void FONT_OT_change_character(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Change Character";
-    ot->description= "Change font character code";
+	ot->description= "Change font character code";
 	ot->idname= "FONT_OT_change_character";
 	
 	/* api callbacks */
@@ -1119,7 +1117,7 @@ void FONT_OT_line_break(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Line Break";
-    ot->description= "Insert line break at cursor position";
+	ot->description= "Insert line break at cursor position";
 	ot->idname= "FONT_OT_line_break";
 	
 	/* api callbacks */
@@ -1209,7 +1207,7 @@ void FONT_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
-    ot->description= "Delete text by cursor position";
+	ot->description= "Delete text by cursor position";
 	ot->idname= "FONT_OT_delete";
 	
 	/* api callbacks */
@@ -1351,7 +1349,7 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Text";
-    ot->description= "Insert text at cursor position";
+	ot->description= "Insert text at cursor position";
 	ot->idname= "FONT_OT_text_insert";
 	
 	/* api callbacks */
@@ -1365,6 +1363,99 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");
 }
+
+
+/*********************** textbox add operator *************************/
+static int textbox_poll(bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+	
+	if (!ED_operator_object_active_editable(C) ) return 0;
+	if (ob->type != OB_FONT) return 0;
+	
+	return 1;
+}
+
+static int textbox_add_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_active_object(C);
+	Curve *cu= obedit->data;
+	int i;
+	
+	if (cu->totbox < 256) {
+		for (i = cu->totbox; i>cu->actbox; i--) cu->tb[i]= cu->tb[i-1];
+		cu->tb[cu->actbox]= cu->tb[cu->actbox-1];
+		cu->actbox++;
+		cu->totbox++;
+	}
+	
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	return OPERATOR_FINISHED;
+}
+
+void FONT_OT_textbox_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Textbox";
+	ot->description= "Add a new text box";
+	ot->idname= "FONT_OT_textbox_add";
+	
+	/* api callbacks */
+	ot->exec= textbox_add_exec;
+	ot->poll= textbox_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	
+}
+
+
+
+/*********************** textbox remove operator *************************/
+
+
+
+static int textbox_remove_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_active_object(C);
+	Curve *cu= obedit->data;
+	int i;
+	int index = RNA_int_get(op->ptr, "index");
+	
+	
+	if (cu->totbox > 1) {
+		for (i = index; i < cu->totbox; i++) cu->tb[i]= cu->tb[i+1];
+		cu->totbox--;
+		if (cu->actbox >= index)
+			cu->actbox--;
+	}
+	
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void FONT_OT_textbox_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Textbox";
+	ot->description= "Remove the textbox";
+	ot->idname= "FONT_OT_textbox_remove";
+	
+	/* api callbacks */
+	ot->exec= textbox_remove_exec;
+	ot->poll= textbox_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "The current text box.", 0, INT_MAX);
+	
+	
+}
+
+
 
 /***************** editmode enter/exit ********************/
 
@@ -1487,7 +1578,7 @@ void FONT_OT_case_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Case";
-    ot->description= "Set font case";
+	ot->description= "Set font case";
 	ot->idname= "FONT_OT_case_set";
 	
 	/* api callbacks */
@@ -1530,7 +1621,7 @@ void FONT_OT_case_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Case";
-    ot->description= "Toggle font case";
+	ot->description= "Toggle font case";
 	ot->idname= "FONT_OT_case_toggle";
 	
 	/* api callbacks */
@@ -1567,7 +1658,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	PointerRNA idptr;
 	char str[FILE_MAX];
 	
-	RNA_string_get(op->ptr, "path", str);
+	RNA_string_get(op->ptr, "filepath", str);
 
 	font = load_vfont(str);
 	
@@ -1616,12 +1707,12 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	path = (font && font->name)? font->name: U.fontdir;
 	 
-	if(RNA_property_is_set(op->ptr, "path"))
+	if(RNA_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
 	
 	open_init(C, op);
 	
-	RNA_string_set(op->ptr, "path", path);
+	RNA_string_set(op->ptr, "filepath", path);
 	WM_event_add_fileselect(C, op); 
 
 	return OPERATOR_RUNNING_MODAL;
@@ -1642,7 +1733,7 @@ void FONT_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|FTFONTFILE, FILE_SPECIAL, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|FTFONTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);
 }
 
 /******************* delete operator *********************/

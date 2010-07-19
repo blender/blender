@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -30,11 +30,7 @@
 #include <stdio.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -54,7 +50,6 @@
 
 #include "ED_anim_api.h"
 #include "ED_markers.h"
-#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -62,7 +57,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -159,10 +153,10 @@ static SpaceLink *nla_new(const bContext *C)
 	ar->v2d.cur = ar->v2d.tot;
 	
 	ar->v2d.min[0]= 0.0f;
- 	ar->v2d.min[1]= 0.0f;
+	 ar->v2d.min[1]= 0.0f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
- 	ar->v2d.max[1]= 10000.0f;
+	 ar->v2d.max[1]= 10000.0f;
  	
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;
@@ -233,11 +227,9 @@ static void nla_channel_area_draw(const bContext *C, ARegion *ar)
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
-	float col[3];
 	
 	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	UI_view2d_view_ortho(C, v2d);
@@ -279,12 +271,10 @@ static void nla_main_area_draw(const bContext *C, ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
-	float col[3];
 	short unit=0, flag=0;
 	
 	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	UI_view2d_view_ortho(C, v2d);

@@ -201,7 +201,7 @@ def ik(obj, bone_definition, base_names, options):
     ik.knee_target_e.local_location = False
 
     # roll the bone to point up... could also point in the same direction as ik.foot_roll
-    # ik.foot_roll_02_e.matrix * Vector(0.0, 0.0, 1.0) # ACK!, no rest matrix in editmode
+    # ik.foot_roll_02_e.matrix * Vector((0.0, 0.0, 1.0)) # ACK!, no rest matrix in editmode
     ik.foot_roll_01_e.align_roll((0.0, 0.0, -1.0))
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -227,7 +227,7 @@ def ik(obj, bone_definition, base_names, options):
     con = ik_chain.shin_p.constraints.new('IK')
     con.chain_length = 2
     con.iterations = 500
-    con.pole_angle = -pi/2
+    con.pole_angle = -pi / 2.0
     con.use_tail = True
     con.use_stretch = True
     con.use_target = True
@@ -265,7 +265,7 @@ def ik(obj, bone_definition, base_names, options):
 
     # last step setup layers
     if "ik_layer" in options:
-        layer = [n==options["ik_layer"] for n in range(0,32)]
+        layer = [n == options["ik_layer"] for n in range(0, 32)]
     else:
         layer = list(mt_chain.thigh_b.layer)
     for attr in ik_chain.attr_names:
@@ -279,7 +279,7 @@ def ik(obj, bone_definition, base_names, options):
 
 
 def fk(obj, bone_definition, base_names, options):
-    from Mathutils import Vector
+    from mathutils import Vector
     arm = obj.data
 
     # these account for all bones in METARIG_NAMES
@@ -298,7 +298,7 @@ def fk(obj, bone_definition, base_names, options):
 
     ex.thigh_socket_e = copy_bone_simple(arm, mt_chain.thigh, "MCH-%s_socket" % base_names[mt_chain.thigh], parent=True)
     ex.thigh_socket = ex.thigh_socket_e.name
-    ex.thigh_socket_e.tail = ex.thigh_socket_e.head + Vector(0.0, 0.0, ex.thigh_socket_e.length / 4.0)
+    ex.thigh_socket_e.tail = ex.thigh_socket_e.head + Vector((0.0, 0.0, ex.thigh_socket_e.length / 4.0))
 
     ex.thigh_hinge_e = copy_bone_simple(arm, mt.hips, "MCH-%s_hinge" % base_names[mt_chain.thigh], parent=False)
     ex.thigh_hinge = ex.thigh_hinge_e.name
@@ -349,9 +349,9 @@ def fk(obj, bone_definition, base_names, options):
     con.subtarget = mt.hips
 
     # add driver
-    hinge_driver_path = fk_chain.thigh_p.path_to_id() + '["hinge"]'
+    hinge_driver_path = fk_chain.thigh_p.path_from_id() + '["hinge"]'
 
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     var = driver.variables.new()
     driver.type = 'AVERAGE'
@@ -368,7 +368,7 @@ def fk(obj, bone_definition, base_names, options):
 
     # last step setup layers
     if "fk_layer" in options:
-        layer = [n==options["fk_layer"] for n in range(0,32)]
+        layer = [n == options["fk_layer"] for n in range(0, 32)]
     else:
         layer = list(mt_chain.thigh_b.layer)
     for attr in fk_chain.attr_names:
@@ -499,4 +499,3 @@ def main(obj, bone_definition, base_names, options):
 
     bpy.ops.object.mode_set(mode='OBJECT')
     blend_bone_list(obj, bone_definition + [None], bones_fk, bones_ik, target_bone=bones_ik[6], target_prop="ik", blend_default=1.0)
-

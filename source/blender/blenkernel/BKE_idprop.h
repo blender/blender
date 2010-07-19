@@ -1,5 +1,5 @@
 /**
- * $Id: BKE_idprop.h
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -71,7 +71,8 @@ void IDP_FreeArray(struct IDProperty *prop);
 void IDP_UnlinkArray(struct IDProperty *prop);
 
 /* ---------- String Type ------------ */
-void IDP_AssignString(struct IDProperty *prop, char *st);
+IDProperty *IDP_NewString(const char *st, const char *name, int maxlen);/* maxlen excludes '\0' */
+void IDP_AssignString(struct IDProperty *prop, char *st, int maxlen);	/* maxlen excludes '\0' */
 void IDP_ConcatStringC(struct IDProperty *prop, char *st);
 void IDP_ConcatString(struct IDProperty *str1, struct IDProperty *append);
 void IDP_FreeString(struct IDProperty *prop);
@@ -114,7 +115,7 @@ int IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop);
 /*this is the same as IDP_AddToGroup, only you pass an item
   in the group list to be inserted after.*/
 int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous, 
-                      struct IDProperty *pnew);
+					  struct IDProperty *pnew);
 
 /*NOTE: this does not free the property!!
 

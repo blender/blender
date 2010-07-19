@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,9 +26,6 @@
 
 #include <math.h>
 #include <string.h>
-#include <stddef.h>
-
-#include <GL/glew.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -38,21 +35,17 @@
 #include "BLI_dlrbTree.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_image_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
-#include "BKE_image.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -64,30 +57,20 @@
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 #include "BKE_sound.h"
-#include "BKE_writeavi.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_util.h"
 #include "ED_screen.h"
-#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen_types.h"
 #include "ED_keyframes_draw.h"
-#include "ED_view3d.h"
-
-#include "RE_pipeline.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
-
-#include "GPU_extensions.h"
 
 #include "wm_window.h"
 
@@ -98,12 +81,6 @@
 #define KM_MODAL_STEP10		3
 #define KM_MODAL_STEP10_OFF	4
 
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-/* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
-#include <pthread.h>
-extern pthread_key_t gomp_tls_key;
-static void *thread_tls_data;
-#endif
 /* ************** Exported Poll tests ********************** */
 
 int ED_operator_regionactive(bContext *C)
@@ -223,12 +200,12 @@ int ED_operator_logic_active(bContext *C)
 
 int ED_operator_object_active(bContext *C)
 {
-	return NULL != CTX_data_active_object(C);
+	return NULL != ED_object_active_context(C);
 }
 
 int ED_operator_object_active_editable(bContext *C)
 {
-	Object *ob=CTX_data_active_object(C);
+	Object *ob = ED_object_active_context(C);
 	return ((ob != NULL) && !(ob->id.lib));
 }
 
@@ -589,6 +566,7 @@ static int area_swap_init(bContext *C, wmOperator *op, wmEvent *event)
 
 static void area_swap_exit(bContext *C, wmOperator *op)
 {
+	WM_cursor_restore(CTX_wm_window(C));
 	if(op->customdata)
 		MEM_freeN(op->customdata);
 	op->customdata= NULL;
@@ -629,15 +607,16 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 					
 					return area_swap_cancel(C, op);
 				}
-				ED_area_swapspace(C, sad->sa1, sad->sa2);
-				
-				area_swap_exit(C, op);
-				
+
 #ifdef WM_FAST_DRAW
 				ED_area_tag_redraw(sad->sa1);
 				ED_area_tag_redraw(sad->sa2);
 #endif
 
+				ED_area_swapspace(C, sad->sa1, sad->sa2);
+				
+				area_swap_exit(C, op);
+				
 				WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				
 				return OPERATOR_FINISHED;
@@ -1340,6 +1319,9 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, char edge)
 	 * prevents dragging regions into other opposite regions */
 	for (ar=sa->regionbase.first; ar; ar=ar->next)
 	{
+		if (ar == scalear)
+			continue;
+		
 		if (scalear->alignment == RGN_ALIGN_TOP && ar->alignment == RGN_ALIGN_BOTTOM)
 			dist -= ar->winy;
 		else if (scalear->alignment == RGN_ALIGN_BOTTOM && ar->alignment == RGN_ALIGN_TOP)
@@ -1348,8 +1330,15 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, char edge)
 			dist -= ar->winx;
 		else if (scalear->alignment == RGN_ALIGN_RIGHT && ar->alignment == RGN_ALIGN_LEFT)
 			dist -= ar->winx;
+		
+		/* case of regions in regions, like operator properties panel */
+		/* these can sit on top of other regions such as headers, so account for this */
+		else if (edge == 'b' && scalear->alignment & RGN_ALIGN_TOP && ar->alignment == RGN_ALIGN_TOP && ar->regiontype == RGN_TYPE_HEADER)
+			dist -= ar->winy;
+		else if (edge == 't' && scalear->alignment & RGN_ALIGN_BOTTOM && ar->alignment == RGN_ALIGN_BOTTOM && ar->regiontype == RGN_TYPE_HEADER)
+			dist -= ar->winy;
 	}
-	
+
 	return dist;
 }
 
@@ -1508,6 +1497,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	delta = RNA_int_get(op->ptr, "delta");
 
 	CTX_data_scene(C)->r.cfra += delta;
+	CTX_data_scene(C)->r.subframe = 0.f;
 	
 	sound_seek_scene(C);
 
@@ -1575,6 +1565,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	ActKeyColumn *ak;
 	float cfra= (scene)? (float)(CFRA) : 0.0f;
 	short next= RNA_boolean_get(op->ptr, "next");
+	short done = 0;
 	
 	/* sanity checks */
 	if (scene == NULL)
@@ -1593,15 +1584,27 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	
 	/* find matching keyframe in the right direction */
-	if (next)
-		ak= (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &cfra);
-	else
-		ak= (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &cfra);
+	do {
+		if (next)
+			ak= (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &cfra);
+		else
+			ak= (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &cfra);
+		
+		if (ak) {
+			if (CFRA != (int)ak->cfra) {
+				/* this changes the frame, so set the frame and we're done */
+				CFRA= (int)ak->cfra;
+				done = 1;
+			}
+			else {
+				/* make this the new starting point for the search */
+				cfra = ak->cfra;
+			}
+		}
+	} while ((ak != NULL) && (done == 0));
 	
-	/* set the new frame (if keyframe found) */
-	if (ak) 
-		CFRA= (int)ak->cfra;
-	else
+	/* any success? */
+	if (done == 0)
 		BKE_report(op->reports, RPT_INFO, "No more keyframes to jump to in this direction");
 	
 	/* free temp stuff */
@@ -1690,7 +1693,7 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int screen_full_area_exec(bContext *C, wmOperator *op)
 {
-	ed_screen_fullarea(C, CTX_wm_window(C), CTX_wm_area(C));
+	ED_screen_full_toggle(C, CTX_wm_window(C), CTX_wm_area(C));
 	return OPERATOR_FINISHED;
 }
 
@@ -2163,18 +2166,22 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 			
 			rv3d= ar->regiondata;
 			rv3d->viewlock= RV3D_LOCKED; rv3d->view= RV3D_VIEW_FRONT; rv3d->persp= RV3D_ORTHO;
+			if (rv3d->localvd) { rv3d->localvd->view = rv3d->view; rv3d->localvd->persp = rv3d->persp; }
 			
 			ar= ar->next;
 			rv3d= ar->regiondata;
 			rv3d->viewlock= RV3D_LOCKED; rv3d->view= RV3D_VIEW_TOP; rv3d->persp= RV3D_ORTHO;
+			if (rv3d->localvd) { rv3d->localvd->view = rv3d->view; rv3d->localvd->persp = rv3d->persp; }
 			
 			ar= ar->next;
 			rv3d= ar->regiondata;
 			rv3d->viewlock= RV3D_LOCKED; rv3d->view= RV3D_VIEW_RIGHT; rv3d->persp= RV3D_ORTHO;
+			if (rv3d->localvd) { rv3d->localvd->view = rv3d->view; rv3d->localvd->persp = rv3d->persp; }
 			
 			ar= ar->next;
 			rv3d= ar->regiondata;
 			rv3d->view= RV3D_VIEW_CAMERA; rv3d->persp= RV3D_CAMOB;
+			if (rv3d->localvd) {rv3d->localvd->view = rv3d->view; rv3d->localvd->persp = rv3d->persp; }
 		}
 		
 #ifdef WM_FAST_DRAW
@@ -2346,6 +2353,18 @@ void SCREEN_OT_header_toolbox(wmOperatorType *ot)
 
 /* ****************** anim player, with timer ***************** */
 
+static int match_area_with_refresh(int spacetype, int refresh)
+{
+	switch (spacetype) {
+		case SPACE_TIME:
+			if (refresh & SPACE_TIME)
+				return 1;
+			break;
+	}
+	
+	return 0;
+}
+
 static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 {
 	if(regiontype==RGN_TYPE_WINDOW) {
@@ -2407,23 +2426,22 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	
-	if(screen->animtimer==event->customdata) {
+
+	if(screen->animtimer && screen->animtimer==event->customdata) {
 		Scene *scene= CTX_data_scene(C);
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;
 		ScrArea *sa;
 		int sync;
-		
+		float time;
+
 		/* sync, don't sync, or follow scene setting */
 		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
 		else if(sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
 		else sync= (scene->flag & SCE_FRAME_DROP);
 		
-		if((scene->audio.flag & AUDIO_SYNC) && !(sad->flag & ANIMPLAY_FLAG_REVERSE))
-		{
-			scene->r.cfra = floor(sound_sync_scene(scene) * FPS);
-		}
+		if((scene->audio.flag & AUDIO_SYNC) && !(sad->flag & ANIMPLAY_FLAG_REVERSE) && finite(time = sound_sync_scene(scene)))
+			scene->r.cfra = round(time * FPS);
 		else
 		{
 			if(sync) {
@@ -2493,6 +2511,9 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 					if(match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
 						ED_region_tag_redraw(ar);
 			}
+			
+			if (match_area_with_refresh(sa->spacetype, sad->refresh))
+				ED_area_tag_refresh(sa);
 		}
 		
 		/* update frame rate info too 
@@ -2536,11 +2557,12 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 
 	if(screen->animtimer) {
 		/* stop playback now */
-		ED_screen_animation_timer(C, 0, 0, 0);
+		ED_screen_animation_timer(C, 0, 0, 0, 0);
 		sound_stop_scene(scene);
 	}
 	else {
 		ScrArea *sa= CTX_wm_area(C);
+		int refresh= SPACE_TIME;
 
 		if(mode == 1) // XXX only play audio forwards!?
 			sound_play_scene(scene);
@@ -2549,10 +2571,10 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 		if ((sa) && (sa->spacetype == SPACE_TIME)) {
 			SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
 
-			ED_screen_animation_timer(C, stime->redraws, sync, mode);
+			ED_screen_animation_timer(C, stime->redraws, refresh, sync, mode);
 
 			/* update region if TIME_REGION was set, to leftmost 3d window */
-			ED_screen_animation_timer_update(screen, stime->redraws);
+			ED_screen_animation_timer_update(screen, stime->redraws, refresh);
 			}
 		else {
 			int redraws = TIME_REGION|TIME_ALL_3D_WIN;
@@ -2562,7 +2584,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 				redraws |= TIME_SEQ;
 			}
 
-			ED_screen_animation_timer(C, redraws, sync, mode);
+			ED_screen_animation_timer(C, redraws, refresh, sync, mode);
 
 			if(screen->animtimer) {
 				wmTimer *wt= screen->animtimer;
@@ -2576,7 +2598,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 	return OPERATOR_FINISHED;
 }
 
-static int screen_animation_play_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int screen_animation_play_exec(bContext *C, wmOperator *op)
 {
 	int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
 	int sync= -1;
@@ -2595,7 +2617,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_animation_play";
 	
 	/* api callbacks */
-	ot->invoke= screen_animation_play_invoke;
+	ot->exec= screen_animation_play_exec;
 	
 	ot->poll= ED_operator_screenactive;
 	
@@ -2603,7 +2625,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");
 }
 
-static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
+static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	
@@ -2618,9 +2640,9 @@ static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
 		/* call the other "toggling" operator to clean up now */
-		return screen_animation_play_invoke(C, op, event);
+		ED_screen_animation_play(C, 0, 0);
 	}
-	
+
 	return OPERATOR_PASS_THROUGH;
 }
 
@@ -2632,7 +2654,7 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_animation_cancel";
 	
 	/* api callbacks */
-	ot->invoke= screen_animation_cancel;
+	ot->exec= screen_animation_cancel_exec;
 	
 	ot->poll= ED_operator_screenactive;
 }
@@ -2694,1081 +2716,6 @@ static void SCREEN_OT_border_select(wmOperatorType *ot)
 	
 }
 #endif
-
-/* ****************************** render invoking ***************** */
-
-/* set callbacks, exported to sequence render too. 
- Only call in foreground (UI) renders. */
-
-/* returns biggest area that is not uv/image editor. Note that it uses buttons */
-/* window as the last possible alternative.									   */
-static ScrArea *biggest_non_image_area(bContext *C)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa, *big= NULL;
-	int size, maxsize= 0, bwmaxsize= 0;
-	short foundwin= 0;
-	
-	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		if(sa->winx > 30 && sa->winy > 30) {
-			size= sa->winx*sa->winy;
-			if(sa->spacetype == SPACE_BUTS) {
-				if(foundwin == 0 && size > bwmaxsize) {
-					bwmaxsize= size;
-					big= sa;	
-				}
-			}
-			else if(sa->spacetype != SPACE_IMAGE && size > maxsize) {
-				maxsize= size;
-				big= sa;
-				foundwin= 1;
-			}
-		}
-	}
-	
-	return big;
-}
-
-static ScrArea *biggest_area(bContext *C)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa, *big= NULL;
-	int size, maxsize= 0;
-	
-	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		size= sa->winx*sa->winy;
-		if(size > maxsize) {
-			maxsize= size;
-			big= sa;
-		}
-	}
-	return big;
-}
-
-
-static ScrArea *find_area_showing_r_result(bContext *C)
-{
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmWindow *win;
-	ScrArea *sa = NULL;
-	SpaceImage *sima;
-	
-	/* find an imagewindow showing render result */
-	for(win=wm->windows.first; win; win=win->next) {
-		for(sa=win->screen->areabase.first; sa; sa= sa->next) {
-			if(sa->spacetype==SPACE_IMAGE) {
-				sima= sa->spacedata.first;
-				if(sima->image && sima->image->type==IMA_TYPE_R_RESULT)
-					break;
-			}
-		}
-	}
-	
-	return sa;
-}
-
-static ScrArea *find_area_image_empty(bContext *C)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa;
-	SpaceImage *sima;
-	
-	/* find an imagewindow showing render result */
-	for(sa=sc->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_IMAGE) {
-			sima= sa->spacedata.first;
-			if(!sima->image)
-				break;
-		}
-	}
-	return sa;
-}
-
-#if 0 // XXX not used
-static ScrArea *find_empty_image_area(bContext *C)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa;
-	SpaceImage *sima;
-	
-	/* find an imagewindow showing render result */
-	for(sa=sc->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_IMAGE) {
-			sima= sa->spacedata.first;
-			if(!sima->image)
-				break;
-		}
-	}
-	return sa;
-}
-#endif // XXX not used
-
-/* new window uses x,y to set position */
-static void screen_set_image_output(bContext *C, int mx, int my)
-{
-	wmWindow *win= CTX_wm_window(C);
-	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa= NULL;
-	SpaceImage *sima;
-	int area_was_image=0;
-	
-	if(scene->r.displaymode==R_OUTPUT_WINDOW) {
-		rcti rect;
-		int sizex, sizey;
-		
-		sizex= 10 + (scene->r.xsch*scene->r.size)/100;
-		sizey= 40 + (scene->r.ysch*scene->r.size)/100;
-		
-		/* arbitrary... miniature image window views don't make much sense */
-		if(sizex < 320) sizex= 320;
-		if(sizey < 256) sizey= 256;
-		
-		/* XXX some magic to calculate postition */
-		rect.xmin= mx + win->posx - sizex/2;
-		rect.ymin= my + win->posy - sizey/2;
-		rect.xmax= rect.xmin + sizex;
-		rect.ymax= rect.ymin + sizey;
-		
-		/* changes context! */
-		WM_window_open_temp(C, &rect, WM_WINDOW_RENDER);
-		
-		sa= CTX_wm_area(C);
-	}
-	else if(scene->r.displaymode==R_OUTPUT_SCREEN) {
-		if (CTX_wm_area(C)->spacetype == SPACE_IMAGE)
-			area_was_image = 1;
-		
-		/* this function returns with changed context */
-		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
-		sa= CTX_wm_area(C);
-	}
-	
-	if(!sa) {
-		sa= find_area_showing_r_result(C);
-		if(sa==NULL)
-			sa= find_area_image_empty(C);
-		
-		if(sa==NULL) {
-			/* find largest open non-image area */
-			sa= biggest_non_image_area(C);
-			if(sa) {
-				ED_area_newspace(C, sa, SPACE_IMAGE);
-				sima= sa->spacedata.first;
-				
-				/* makes ESC go back to prev space */
-				sima->flag |= SI_PREVSPACE;
-			}
-			else {
-				/* use any area of decent size */
-				sa= biggest_area(C);
-				if(sa->spacetype!=SPACE_IMAGE) {
-					// XXX newspace(sa, SPACE_IMAGE);
-					sima= sa->spacedata.first;
-					
-					/* makes ESC go back to prev space */
-					sima->flag |= SI_PREVSPACE;
-				}
-			}
-		}
-	}	
-	sima= sa->spacedata.first;
-	
-	/* get the correct image, and scale it */
-	sima->image= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
-	
-	
-	/* if we're rendering to full screen, set appropriate hints on image editor
-	 * so it can restore properly on pressing esc */
-	if(sa->full) {
-		sima->flag |= SI_FULLWINDOW;
-		
-		/* Tell the image editor to revert to previous space in space list on close
-		 * _only_ if it wasn't already an image editor when the render was invoked */
-		if (area_was_image == 0)
-			sima->flag |= SI_PREVSPACE;
-		else {
-			/* Leave it alone so the image editor will just go back from 
-			 * full screen to the original tiled setup */
-			;
-		}
-		
-	}
-
-}
-
-/* executes blocking render */
-static int screen_render_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
-	
-	if(re==NULL) {
-		re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
-	}
-	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
-	
-	if(RNA_boolean_get(op->ptr, "animation"))
-		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
-	else
-		RE_BlenderFrame(re, scene, NULL, scene->r.cfra);
-	
-	// no redraw needed, we leave state as we entered it
-	ED_update_for_newframe(C, 1);
-	
-	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
-	
-	return OPERATOR_FINISHED;
-}
-
-typedef struct RenderJob {
-	Scene *scene;
-	Render *re;
-	wmWindow *win;
-	SceneRenderLayer *srl;
-	int anim;
-	Image *image;
-	ImageUser iuser;
-	short *stop;
-	short *do_update;
-	ReportList *reports;
-} RenderJob;
-
-static void render_freejob(void *rjv)
-{
-	RenderJob *rj= rjv;
-	
-	MEM_freeN(rj);
-}
-
-/* str is IMA_RW_MAXTEXT in size */
-static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
-{
-	char info_time_str[32];	// used to be extern to header_info.c
-	uintptr_t mem_in_use, mmap_in_use;
-	float megs_used_memory, mmap_used_memory;
-	char *spos= str;
-	
-	mem_in_use= MEM_get_memory_in_use();
-	mmap_in_use= MEM_get_mapped_memory_in_use();
-	
-	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
-	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
-	
-	if(scene->lay & 0xFF000000)
-		spos+= sprintf(spos, "Localview | ");
-	else if(scene->r.scemode & R_SINGLE_LAYER)
-		spos+= sprintf(spos, "Single Layer | ");
-	
-	if(rs->statstr) {
-		spos+= sprintf(spos, "%s ", rs->statstr);
-	}
-	else {
-		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (scene->r.cfra), rs->totvert, rs->totface);
-		if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
-		if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
-		spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory);
-		
-		if(rs->curfield)
-			spos+= sprintf(spos, "Field %d ", rs->curfield);
-		if(rs->curblur)
-			spos+= sprintf(spos, "Blur %d ", rs->curblur);
-	}
-	
-	BLI_timestr(rs->lastframetime, info_time_str);
-	spos+= sprintf(spos, "Time:%s ", info_time_str);
-	
-	if(rs->infostr && rs->infostr[0])
-		spos+= sprintf(spos, "| %s ", rs->infostr);
-	
-	/* very weak... but 512 characters is quite safe */
-	if(spos >= str+IMA_RW_MAXTEXT)
-		if (G.f & G_DEBUG)
-			printf("WARNING! renderwin text beyond limit \n");
-	
-}
-
-static void image_renderinfo_cb(void *rjv, RenderStats *rs)
-{
-	RenderJob *rj= rjv;
-	
-	/* malloc OK here, stats_draw is not in tile threads */
-	if(rj->image->render_text==NULL)
-		rj->image->render_text= MEM_callocN(IMA_RW_MAXTEXT, "rendertext");
-	
-	make_renderinfo_string(rs, rj->scene, rj->image->render_text);
-	
-	/* make jobs timer to send notifier */
-	*(rj->do_update)= 1;
-	
-}
-
-/* called inside thread! */
-static void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volatile rcti *renrect)
-{
-	float x1, y1, *rectf= NULL;
-	int ymin, ymax, xmin, xmax;
-	int rymin, rxmin;
-	char *rectc;
-	
-	/* if renrect argument, we only refresh scanlines */
-	if(renrect) {
-		/* if ymax==recty, rendering of layer is ready, we should not draw, other things happen... */
-		if(rr->renlay==NULL || renrect->ymax>=rr->recty)
-			return;
-		
-		/* xmin here is first subrect x coord, xmax defines subrect width */
-		xmin = renrect->xmin + rr->crop;
-		xmax = renrect->xmax - xmin - rr->crop;
-		if (xmax<2) return;
-		
-		ymin= renrect->ymin + rr->crop;
-		ymax= renrect->ymax - ymin - rr->crop;
-		if(ymax<2)
-			return;
-		renrect->ymin= renrect->ymax;
-		
-	}
-	else {
-		xmin = ymin = rr->crop;
-		xmax = rr->rectx - 2*rr->crop;
-		ymax = rr->recty - 2*rr->crop;
-	}
-	
-	/* xmin ymin is in tile coords. transform to ibuf */
-	rxmin= rr->tilerect.xmin + xmin;
-	if(rxmin >= ibuf->x) return;
-	rymin= rr->tilerect.ymin + ymin;
-	if(rymin >= ibuf->y) return;
-	
-	if(rxmin + xmax > ibuf->x)
-		xmax= ibuf->x - rxmin;
-	if(rymin + ymax > ibuf->y)
-		ymax= ibuf->y - rymin;
-	
-	if(xmax < 1 || ymax < 1) return;
-	
-	/* find current float rect for display, first case is after composit... still weak */
-	if(rr->rectf)
-		rectf= rr->rectf;
-	else {
-		if(rr->rect32)
-			return;
-		else {
-			if(rr->renlay==NULL || rr->renlay->rectf==NULL) return;
-			rectf= rr->renlay->rectf;
-		}
-	}
-	if(rectf==NULL) return;
-	
-	if(ibuf->rect==NULL)
-		imb_addrectImBuf(ibuf);
-
-	rectf+= 4*(rr->rectx*ymin + xmin);
-	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
-	
-	/* XXX make nice consistent functions for this */
-	if (scene && (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
-		for(y1= 0; y1<ymax; y1++) {
-			float *rf= rectf;
-			float srgb[3];
-			char *rc= rectc;
-			
-			/* XXX temp. because crop offset */
-			if( rectc >= (char *)(ibuf->rect)) {
-				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
-					srgb[0]= linearrgb_to_srgb(rf[0]);
-					srgb[1]= linearrgb_to_srgb(rf[1]);
-					srgb[2]= linearrgb_to_srgb(rf[2]);
-					
-					rc[0]= FTOCHAR(srgb[0]);
-					rc[1]= FTOCHAR(srgb[1]);
-					rc[2]= FTOCHAR(srgb[2]);
-					rc[3]= FTOCHAR(rf[3]);
-				}
-			}
-			rectf += 4*rr->rectx;
-			rectc += 4*ibuf->x;
-		}
-	} else {
-		for(y1= 0; y1<ymax; y1++) {
-			float *rf= rectf;
-			char *rc= rectc;
-			
-			/* XXX temp. because crop offset */
-			if( rectc >= (char *)(ibuf->rect)) {
-				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
-					rc[0]= FTOCHAR(rf[0]);
-					rc[1]= FTOCHAR(rf[1]);
-					rc[2]= FTOCHAR(rf[2]);
-					rc[3]= FTOCHAR(rf[3]);
-				}
-			}
-			rectf += 4*rr->rectx;
-			rectc += 4*ibuf->x;
-		}
-	}
-	
-}
-
-static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrect)
-{
-	RenderJob *rj= rjv;
-	ImBuf *ibuf;
-	void *lock;
-	
-	ibuf= BKE_image_acquire_ibuf(rj->image, &rj->iuser, &lock);
-	if(ibuf) {
-		image_buffer_rect_update(rj->scene, rr, ibuf, renrect);
-		
-		/* make jobs timer to send notifier */
-		*(rj->do_update)= 1;
-	}
-	BKE_image_release_ibuf(rj->image, lock);
-}
-
-static void render_startjob(void *rjv, short *stop, short *do_update)
-{
-	RenderJob *rj= rjv;
-//	Main *mainp= BKE_undo_get_main(&rj->scene);
-	
-	rj->stop= stop;
-	rj->do_update= do_update;
-	
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
-	pthread_setspecific (gomp_tls_key, thread_tls_data);
-#endif
-
-	if(rj->anim)
-		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
-	else
-		RE_BlenderFrame(rj->re, rj->scene, rj->srl, rj->scene->r.cfra);
-	
-//	if(mainp)
-//		free_main(mainp);
-}
-
-/* called by render, check job 'stop' value or the global */
-static int render_breakjob(void *rjv)
-{
-	RenderJob *rj= rjv;
-	
-	if(G.afbreek)
-		return 1;
-	if(rj->stop && *(rj->stop))
-		return 1;
-	return 0;
-}
-
-/* catch esc */
-static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	/* no running blender, remove handler and pass through */
-	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
-		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
-	
-	/* running render */
-	switch (event->type) {
-		case ESCKEY:
-			return OPERATOR_RUNNING_MODAL;
-			break;
-	}
-	return OPERATOR_PASS_THROUGH;
-}
-
-/* using context, starts job */
-static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	/* new render clears all callbacks */
-	Scene *scene= CTX_data_scene(C);
-	SceneRenderLayer *srl=NULL;
-	Render *re;
-	wmJob *steve;
-	RenderJob *rj;
-	Image *ima;
-	
-	/* only one render job at a time */
-	if(WM_jobs_test(CTX_wm_manager(C), scene))
-		return OPERATOR_CANCELLED;
-	
-	/* stop all running jobs, currently previews frustrate Render */
-	WM_jobs_stop_all(CTX_wm_manager(C));
-	
-	/* handle UI stuff */
-	WM_cursor_wait(1);
-	
-	/* flush multires changes (for sculpt) */
-	multires_force_render_update(CTX_data_active_object(C));
-	
-	/* get editmode results */
-	ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);	/* 0 = does not exit editmode */
-	
-	// store spare
-	// get view3d layer, local layer, make this nice api call to render
-	// store spare
-	
-	/* ensure at least 1 area shows result */
-	screen_set_image_output(C, event->x, event->y);
-	
-	/* single layer re-render */
-	if(RNA_property_is_set(op->ptr, "layer")) {
-		SceneRenderLayer *rl;
-		Scene *scn;
-		char scene_name[19], rl_name[RE_MAXNAME];
-		
-		RNA_string_get(op->ptr, "layer", rl_name);
-		RNA_string_get(op->ptr, "scene", scene_name);
-		
-		scn = (Scene *)BLI_findstring(&CTX_data_main(C)->scene, scene_name, offsetof(ID, name) + 2);
-		rl = (SceneRenderLayer *)BLI_findstring(&scene->r.layers, rl_name, offsetof(SceneRenderLayer, name));
-		
-		if (scn && rl) {
-			scene = scn;
-			srl = rl;
-		}
-	}
-	
-	/* job custom data */
-	rj= MEM_callocN(sizeof(RenderJob), "render job");
-	rj->scene= scene;
-	rj->win= CTX_wm_window(C);
-	rj->srl = srl;
-	rj->anim= RNA_boolean_get(op->ptr, "animation");
-	rj->iuser.scene= scene;
-	rj->iuser.ok= 1;
-	rj->reports= op->reports;
-	
-	/* setup job */
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY);
-	WM_jobs_customdata(steve, rj, render_freejob);
-	WM_jobs_timer(steve, 0.2, NC_SCENE|ND_RENDER_RESULT, 0);
-	WM_jobs_callbacks(steve, render_startjob, NULL, NULL);
-	
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
-	thread_tls_data = pthread_getspecific(gomp_tls_key);
-#endif
-	
-	/* get a render result image, and make sure it is empty */
-	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
-	rj->image= ima;
-	
-	/* setup new render */
-	re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
-	RE_test_break_cb(re, rj, render_breakjob);
-	RE_display_draw_cb(re, rj, image_rect_update);
-	RE_stats_draw_cb(re, rj, image_renderinfo_cb);
-	
-	rj->re= re;
-	G.afbreek= 0;
-	
-	//	BKE_report in render!
-	//	RE_error_cb(re, error_cb);
-	
-	WM_jobs_start(CTX_wm_manager(C), steve);
-	
-	WM_cursor_wait(0);
-	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
-	
-	/* add modal handler for ESC */
-	WM_event_add_modal_handler(C, op);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-
-/* contextual render, using current scene, view3d? */
-static void SCREEN_OT_render(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Render";
-	ot->description= "Render active scene";
-	ot->idname= "SCREEN_OT_render";
-	
-	/* api callbacks */
-	ot->invoke= screen_render_invoke;
-	ot->modal= screen_render_modal;
-	ot->exec= screen_render_exec;
-	
-	ot->poll= ED_operator_screenactive;
-	
-	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "");
-	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render");
-	RNA_def_string(ot->srna, "scene", "", 19, "Scene", "Re-render single layer in this scene");
-}
-
-/* ****************************** opengl render *************************** */
-
-typedef struct OGLRender {
-	Render *re;
-	Scene *scene;
-	
-	View3D *v3d;
-	RegionView3D *rv3d;
-	ARegion *ar;
-	
-	Image *ima;
-	ImageUser iuser;
-	
-	GPUOffScreen *ofs;
-	int sizex, sizey;
-	
-	ReportList *reports;
-	bMovieHandle *mh;
-	int cfrao, nfra;
-	
-	wmTimer *timer; /* use to check if running modal or not (invoke'd or exec'd)*/
-} OGLRender;
-
-static void screen_opengl_render_apply(OGLRender *oglrender)
-{
-	Scene *scene= oglrender->scene;
-	ARegion *ar= oglrender->ar;
-	View3D *v3d= oglrender->v3d;
-	RegionView3D *rv3d= oglrender->rv3d;
-	RenderResult *rr;
-	ImBuf *ibuf;
-	void *lock;
-	float winmat[4][4];
-	int sizex= oglrender->sizex;
-	int sizey= oglrender->sizey;
-	
-	/* bind */
-	GPU_offscreen_bind(oglrender->ofs);
-	
-	/* render 3d view */
-	if(rv3d->persp==RV3D_CAMOB && v3d->camera) {
-		RE_GetCameraWindow(oglrender->re, v3d->camera, scene->r.cfra, winmat);
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
-	}
-	else
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL);
-	
-	/* read in pixels & stamp */
-	rr= RE_AcquireResultRead(oglrender->re);
-	glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, rr->rectf);
-	if((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
-		BKE_stamp_buf(scene, NULL, rr->rectf, rr->rectx, rr->recty, 4);
-	RE_ReleaseResult(oglrender->re);
-	
-	/* update byte from float buffer */
-	ibuf= BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
-	if(ibuf) image_buffer_rect_update(NULL, rr, ibuf, NULL);
-	BKE_image_release_ibuf(oglrender->ima, lock);
-	
-	/* unbind */
-	GPU_offscreen_unbind(oglrender->ofs);
-}
-
-static int screen_opengl_render_init(bContext *C, wmOperator *op)
-{
-	/* new render clears all callbacks */
-	Scene *scene= CTX_data_scene(C);
-	RenderResult *rr;
-	GPUOffScreen *ofs;
-	OGLRender *oglrender;
-	int sizex, sizey;
-	
-	/* ensure we have a 3d view */
-	if(!ED_view3d_context_activate(C))
-		return 0;
-	
-	/* only one render job at a time */
-	if(WM_jobs_test(CTX_wm_manager(C), scene))
-		return 0;
-	
-	/* stop all running jobs, currently previews frustrate Render */
-	WM_jobs_stop_all(CTX_wm_manager(C));
-	
-	/* handle UI stuff */
-	WM_cursor_wait(1);
-	
-	/* create offscreen buffer */
-	sizex= (scene->r.size*scene->r.xsch)/100;
-	sizey= (scene->r.size*scene->r.ysch)/100;
-	
-	view3d_operator_needs_opengl(C);
-	ofs= GPU_offscreen_create(sizex, sizey);
-	
-	if(!ofs) {
-		BKE_report(op->reports, RPT_ERROR, "Failed to create OpenGL offscreen buffer.");
-		return 0;
-	}
-	
-	/* allocate opengl render */
-	oglrender= MEM_callocN(sizeof(OGLRender), "OGLRender");
-	op->customdata= oglrender;
-	
-	oglrender->ofs= ofs;
-	oglrender->sizex= sizex;
-	oglrender->sizey= sizey;
-	oglrender->scene= scene;
-	
-	oglrender->v3d= CTX_wm_view3d(C);
-	oglrender->ar= CTX_wm_region(C);
-	oglrender->rv3d= CTX_wm_region_view3d(C);
-	
-	/* create image and image user */
-	oglrender->ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
-	BKE_image_signal(oglrender->ima, NULL, IMA_SIGNAL_FREE);
-	
-	oglrender->iuser.scene= scene;
-	oglrender->iuser.ok= 1;
-	
-	/* create render and render result */
-	oglrender->re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
-	RE_InitState(oglrender->re, NULL, &scene->r, NULL, sizex, sizey, NULL);
-	
-	rr= RE_AcquireResultWrite(oglrender->re);
-	if(rr->rectf==NULL)
-		rr->rectf= MEM_mallocN(sizeof(float)*4*sizex*sizey, "32 bits rects");
-	RE_ReleaseResult(oglrender->re);
-	
-	return 1;
-}
-
-static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
-{
-	Scene *scene= oglrender->scene;
-	
-	if(oglrender->mh) {
-		if(BKE_imtype_is_movie(scene->r.imtype))
-			oglrender->mh->end_movie();
-	}
-
-	if(oglrender->timer) { /* exec will not have a timer */
-		scene->r.cfra= oglrender->cfrao;
-		scene_update_for_newframe(scene, scene->lay);
-		
-		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), oglrender->timer);
-	}
-	
-	WM_cursor_wait(0);
-	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);
-	
-	GPU_offscreen_free(oglrender->ofs);
-	
-	MEM_freeN(oglrender);
-}
-
-static int screen_opengl_render_cancel(bContext *C, wmOperator *op)
-{
-	screen_opengl_render_end(C, op->customdata);
-	
-	return OPERATOR_CANCELLED;
-}
-
-/* share between invoke and exec */
-static int screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
-{
-	/* initialize animation */
-	OGLRender *oglrender;
-	Scene *scene;
-
-	oglrender= op->customdata;
-	scene= oglrender->scene;
-
-	oglrender->reports= op->reports;
-	oglrender->mh= BKE_get_movie_handle(scene->r.imtype);
-	if(BKE_imtype_is_movie(scene->r.imtype)) {
-		if(!oglrender->mh->start_movie(scene, &scene->r, oglrender->sizex, oglrender->sizey, oglrender->reports)) {
-			screen_opengl_render_end(C, oglrender);
-			return 0;
-		}
-	}
-
-	oglrender->cfrao= scene->r.cfra;
-	oglrender->nfra= SFRA;
-	scene->r.cfra= SFRA;
-
-	return 1;
-}
-static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
-{
-	OGLRender *oglrender= op->customdata;
-	Scene *scene= oglrender->scene;
-	ImBuf *ibuf;
-	void *lock;
-	char name[FILE_MAXDIR+FILE_MAXFILE];
-	unsigned int lay;
-	int ok= 0;
-
-	/* go to next frame */
-	while(CFRA<oglrender->nfra) {
-		if(scene->lay & 0xFF000000)
-			lay= scene->lay & 0xFF000000;
-		else
-			lay= scene->lay;
-
-		scene_update_for_newframe(scene, lay);
-		CFRA++;
-	}
-
-	scene_update_for_newframe(scene, scene->lay);
-
-	if(oglrender->rv3d->persp==RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {
-		/* since scene_update_for_newframe() is used rather
-		 * then ED_update_for_newframe() the camera needs to be set */
-		Object *camera= scene_find_camera_switch(scene);
-
-		if(camera)
-			oglrender->v3d->camera= scene->camera= camera;
-	}
-	
-	/* render into offscreen buffer */
-	screen_opengl_render_apply(oglrender);
-	
-	/* save to disk */
-	ibuf= BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
-	
-	if(ibuf) {
-		if(BKE_imtype_is_movie(scene->r.imtype)) {
-			ok= oglrender->mh->append_movie(&scene->r, CFRA, (int*)ibuf->rect, oglrender->sizex, oglrender->sizey, oglrender->reports);
-			if(ok) {
-				printf("Append frame %d", scene->r.cfra);
-				BKE_reportf(op->reports, RPT_INFO, "Appended frame: %d", scene->r.cfra);
-			}
-		}
-		else {
-			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
-			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
-			
-			if(ok==0) {
-				printf("Write error: cannot save %s\n", name);
-				BKE_reportf(op->reports, RPT_ERROR, "Write error: cannot save %s", name);
-			}
-			else {
-				printf("Saved: %s", name);
-				BKE_reportf(op->reports, RPT_INFO, "Saved file: %s", name);
-			}
-		}
-	}
-	
-	BKE_image_release_ibuf(oglrender->ima, lock);
-	
-	/* movie stats prints have no line break */
-	printf("\n");
-	
-	/* go to next frame */
-	oglrender->nfra += scene->r.frame_step;
-	scene->r.cfra++;
-	
-	/* stop at the end or on error */
-	if(scene->r.cfra > EFRA || !ok) {
-		screen_opengl_render_end(C, op->customdata);
-		return 0;
-	}
-
-	return 1;
-}
-
-
-static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	OGLRender *oglrender= op->customdata;
-
-	int ret;
-
-	switch(event->type) {
-		case ESCKEY:
-			/* cancel */
-			screen_opengl_render_end(C, op->customdata);
-			return OPERATOR_FINISHED;
-		case TIMER:
-			/* render frame? */
-			if(oglrender->timer == event->customdata)
-				break;
-		default:
-			/* nothing to do */
-			return OPERATOR_RUNNING_MODAL;
-	}
-
-	ret= screen_opengl_render_anim_step(C, op);
-
-	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);
-	
-	/* stop at the end or on error */
-	if(ret == 0) {
-		return OPERATOR_FINISHED;
-	}
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int screen_opengl_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	int anim= RNA_boolean_get(op->ptr, "animation");
-	
-	if(!screen_opengl_render_init(C, op))
-		return OPERATOR_CANCELLED;
-	
-	if(!anim) {
-		/* render image */
-		screen_opengl_render_apply(op->customdata);
-		screen_opengl_render_end(C, op->customdata);
-		screen_set_image_output(C, event->x, event->y);
-		
-		return OPERATOR_FINISHED;
-	}
-	else {
-		OGLRender *oglrender= op->customdata;
-
-		if(!screen_opengl_render_anim_initialize(C, op))
-			return OPERATOR_CANCELLED;
-
-		screen_set_image_output(C, event->x, event->y);
-
-		WM_event_add_modal_handler(C, op);
-		oglrender->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-
-		return OPERATOR_RUNNING_MODAL;
-	}
-}
-
-/* executes blocking render */
-static int screen_opengl_render_exec(bContext *C, wmOperator *op)
-{
-	int anim= RNA_boolean_get(op->ptr, "animation");
-
-	if(!screen_opengl_render_init(C, op))
-		return OPERATOR_CANCELLED;
-
-	if(!anim) { /* same as invoke */
-		/* render image */
-		screen_opengl_render_apply(op->customdata);
-		screen_opengl_render_end(C, op->customdata);
-
-		return OPERATOR_FINISHED;
-	}
-	else {
-		int ret= 1;
-
-		if(!screen_opengl_render_anim_initialize(C, op))
-			return OPERATOR_CANCELLED;
-
-		while(ret) {
-			ret= screen_opengl_render_anim_step(C, op);
-		}
-	}
-
-	// no redraw needed, we leave state as we entered it
-//	ED_update_for_newframe(C, 1);
-	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, CTX_data_scene(C));
-
-	return OPERATOR_FINISHED;
-}
-
-static void SCREEN_OT_opengl_render(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "OpenGL Render";
-	ot->description= "OpenGL render active viewport";
-	ot->idname= "SCREEN_OT_opengl_render";
-	
-	/* api callbacks */
-	ot->invoke= screen_opengl_render_invoke;
-	ot->exec= screen_opengl_render_exec; /* blocking */
-	ot->modal= screen_opengl_render_modal;
-	ot->cancel= screen_opengl_render_cancel;
-	
-	ot->poll= ED_operator_screenactive;
-	
-	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "");
-}
-
-/* *********************** cancel render viewer *************** */
-
-static int render_view_cancel_exec(bContext *C, wmOperator *unused)
-{
-	wmWindow *win= CTX_wm_window(C);
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceImage *sima= sa->spacedata.first;
-	
-	/* test if we have a temp screen in front */
-	if(CTX_wm_window(C)->screen->full==SCREENTEMP) {
-		wm_window_lower(CTX_wm_window(C));
-		return OPERATOR_FINISHED;
-	}
-	/* determine if render already shows */
-	else if(sima->flag & SI_PREVSPACE) {
-		sima->flag &= ~SI_PREVSPACE;
-		
-		if(sima->flag & SI_FULLWINDOW) {
-			sima->flag &= ~SI_FULLWINDOW;
-			ED_screen_full_prevspace(C, sa);
-		}
-		else
-			ED_area_prevspace(C, sa);
-		
-		return OPERATOR_FINISHED;
-	}
-	else if(sima->flag & SI_FULLWINDOW) {
-		sima->flag &= ~SI_FULLWINDOW;
-		ed_screen_fullarea(C, win, sa);
-		return OPERATOR_FINISHED;
-	}
-	
-	return OPERATOR_PASS_THROUGH;
-}
-
-static void SCREEN_OT_render_view_cancel(struct wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Cancel Render View";
-	ot->description= "Cancel show render view";
-	ot->idname= "SCREEN_OT_render_view_cancel";
-	
-	/* api callbacks */
-	ot->exec= render_view_cancel_exec;
-	ot->poll= ED_operator_image_active;
-}
-
-/* *********************** show render viewer *************** */
-
-static int render_view_show_invoke(bContext *C, wmOperator *unused, wmEvent *event)
-{
-	ScrArea *sa= find_area_showing_r_result(C);
-	
-	/* test if we have a temp screen in front */
-	if(CTX_wm_window(C)->screen->full==SCREENTEMP) {
-		wm_window_lower(CTX_wm_window(C));
-	}
-	/* determine if render already shows */
-	else if(sa) {
-		SpaceImage *sima= sa->spacedata.first;
-		
-		if(sima->flag & SI_PREVSPACE) {
-			sima->flag &= ~SI_PREVSPACE;
-			
-			if(sima->flag & SI_FULLWINDOW) {
-				sima->flag &= ~SI_FULLWINDOW;
-				ED_screen_full_prevspace(C, sa);
-			}
-			else if(sima->next) {
-				ED_area_newspace(C, sa, sima->next->spacetype);
-				ED_area_tag_redraw(sa);
-			}
-		}
-	}
-	else {
-		screen_set_image_output(C, event->x, event->y);
-	}
-	
-	return OPERATOR_FINISHED;
-}
-
-static void SCREEN_OT_render_view_show(struct wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Show/Hide Render View";
-	ot->description= "Toggle show render view";
-	ot->idname= "SCREEN_OT_render_view_show";
-	
-	/* api callbacks */
-	ot->invoke= render_view_show_invoke;
-	ot->poll= ED_operator_screenactive;
-}
 
 /* *********************** generic fullscreen 'back' button *************** */
 
@@ -4004,12 +2951,6 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_animation_play);
 	WM_operatortype_append(SCREEN_OT_animation_cancel);
 	
-	/* render */
-	WM_operatortype_append(SCREEN_OT_render);
-	WM_operatortype_append(SCREEN_OT_render_view_cancel);
-	WM_operatortype_append(SCREEN_OT_render_view_show);
-	WM_operatortype_append(SCREEN_OT_opengl_render);
-	
 	/* new/delete */
 	WM_operatortype_append(SCREEN_OT_new);
 	WM_operatortype_append(SCREEN_OT_delete);
@@ -4057,7 +2998,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0)->ptr, "modifier", 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "modifier", 1);
-	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "modifier", 2);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "modifier", 2);
 	
 	/* screen tools */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE_AREA, 0, 0, 0);
@@ -4094,7 +3035,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_reload_scripts", F8KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCRIPT_OT_reload", F8KEY, KM_PRESS, 0, 0);
 	
 	/* files */
 	WM_keymap_add_item(keymap, "FILE_OT_execute", RETKEY, KM_PRESS, 0, 0);
@@ -4111,11 +3052,11 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	
 	
 	/* render */
-	WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, KM_CTRL, 0)->ptr, "animation", 1);
-	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_play_rendered_anim", F11KEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "RENDER_OT_render", F12KEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "RENDER_OT_render", F12KEY, KM_PRESS, KM_CTRL, 0)->ptr, "animation", 1);
+	WM_keymap_add_item(keymap, "RENDER_OT_view_cancel", ESCKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "RENDER_OT_view_show", F11KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "RENDER_OT_play_rendered_anim", F11KEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* user prefs */
 #ifdef __APPLE__
@@ -4136,7 +3077,8 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", WHEELDOWNMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", WHEELUPMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "delta", -1);
 	
-	WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", UPARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 0);
 	

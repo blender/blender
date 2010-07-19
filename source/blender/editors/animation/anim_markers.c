@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,18 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view2d_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_access.h"
@@ -47,9 +40,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_fcurve.h"
-#include "BKE_utildefines.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -67,10 +58,10 @@
 
 #include "ED_markers.h"
 #include "ED_screen.h"
-#include "ED_types.h"
 #include "ED_util.h"
 #include "ED_numinput.h"
 #include "ED_object.h"
+#include "ED_types.h"
 
 /* ************* Marker API **************** */
 
@@ -404,7 +395,7 @@ functions:
 
 	exit()	cleanup, send notifier
 
-    cancel() to escpae from modal
+	cancel() to escpae from modal
 
 callbacks:
 
@@ -1078,7 +1069,7 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 {
 	ListBase *markers= context_get_markers(C);
-	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "type"));
+	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 	TimeMarker *marker, *marker_new;
 
 	if(scene_to==NULL) {
@@ -1119,8 +1110,9 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
 	RNA_def_enum_funcs(prop, RNA_scene_itemf);
+	ot->prop= prop;
 
 }
 
@@ -1209,6 +1201,7 @@ void ED_marker_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
 #ifdef DURIAN_CAMERA_SWITCH

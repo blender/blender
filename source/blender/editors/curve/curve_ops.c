@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -32,13 +32,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -48,7 +41,6 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -57,7 +49,6 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 
-#include "UI_interface.h"
 
 #include "curve_intern.h"
 
@@ -90,6 +81,9 @@ void ED_operatortypes_curve(void)
 	
 	WM_operatortype_append(FONT_OT_open);
 	WM_operatortype_append(FONT_OT_unlink);
+	
+	WM_operatortype_append(FONT_OT_textbox_add);
+	WM_operatortype_append(FONT_OT_textbox_remove);
 
 	WM_operatortype_append(CURVE_OT_hide);
 	WM_operatortype_append(CURVE_OT_reveal);
@@ -105,7 +99,20 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_shade_smooth);
 	WM_operatortype_append(CURVE_OT_shade_flat);
 	WM_operatortype_append(CURVE_OT_tilt_clear);
-
+	
+	WM_operatortype_append(CURVE_OT_primitive_bezier_curve_add);
+	WM_operatortype_append(CURVE_OT_primitive_bezier_circle_add);
+	WM_operatortype_append(CURVE_OT_primitive_nurbs_curve_add);
+	WM_operatortype_append(CURVE_OT_primitive_nurbs_circle_add);
+	WM_operatortype_append(CURVE_OT_primitive_nurbs_path_add);
+	
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_curve_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_circle_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_surface_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_tube_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_sphere_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_donut_add);
+	
 	WM_operatortype_append(CURVE_OT_smooth);
 	WM_operatortype_append(CURVE_OT_smooth_radius);
 
@@ -120,7 +127,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_select_more);
 	WM_operatortype_append(CURVE_OT_select_less);
 	WM_operatortype_append(CURVE_OT_select_random);
-	WM_operatortype_append(CURVE_OT_select_every_nth);
+	WM_operatortype_append(CURVE_OT_select_nth);
 
 	WM_operatortype_append(CURVE_OT_switch_direction);
 	WM_operatortype_append(CURVE_OT_subdivide);
@@ -140,9 +147,10 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	keymap->poll= ED_operator_editfont;
 	
 	/* only set in editmode font, by space_view3d listener */
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", BKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_BOLD);
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_ITALIC);
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", UKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_UNDERLINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", BKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_CHINFO_BOLD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_CHINFO_ITALIC);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", UKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_CHINFO_UNDERLINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", PKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_CHINFO_SMALLCAPS);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", DELKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_NEXT_SEL);
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_PREV_SEL);
@@ -188,8 +196,8 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	/* only set in editmode curve, by space_view3d listener */
 	keymap= WM_keymap_find(keyconf, "Curve", 0, 0);
 	keymap->poll= ED_operator_editsurfcurve;
-	
-	WM_keymap_add_item(keymap, "OBJECT_OT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+
+    WM_keymap_add_menu(keymap, "INFO_MT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_select_all", AKEY, KM_PRESS, 0, 0);
@@ -203,9 +211,10 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_extrude", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_make_segment", FKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "CURVE_OT_cyclic_toggle", CKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CURVE_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CURVE_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_tilt_clear", TKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "TRANSFORM_OT_tilt", TKEY, KM_PRESS, KM_CTRL, 0);
@@ -225,6 +234,6 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	/* menus */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 
-	ED_object_generic_keymap(keyconf, keymap, TRUE);
+	ED_object_generic_keymap(keyconf, keymap, 2);
 }
 

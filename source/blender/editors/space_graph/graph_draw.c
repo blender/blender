@@ -29,10 +29,6 @@
 #include <string.h>
 #include <float.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef _WIN32
 #include <unistd.h>
 #else
@@ -45,23 +41,10 @@
 #include "BLI_math.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view2d_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -78,12 +61,10 @@
 #include "BIF_glutil.h"
 
 #include "ED_anim_api.h"
-#include "ED_util.h"
 
 #include "graph_intern.h"
 
 #include "UI_interface.h"
-#include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -357,7 +338,6 @@ static int draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
  * note: draw_fcurve_handles_check must be checked before running this. */
 static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 {
-	extern unsigned int nurbcol[];
 	int sel, b;
 	
 	/* a single call to GL_LINES here around these calls should be sufficient to still
@@ -371,8 +351,9 @@ static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 	 */
 	for (sel= 0; sel < 2; sel++) {
 		BezTriple *bezt=fcu->bezt, *prevbezt=NULL;
-		unsigned int *col= (sel)? (nurbcol+4) : (nurbcol);
+		int basecol= (sel)? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
 		float *fp;
+		char col[4];
 		
 		/* if only selected keyframes have handles shown, skip the first round */
 		if ((sel == 0) && (sipo->flag & SIPO_SELVHANDLESONLY))
@@ -390,19 +371,24 @@ static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 			/* draw handle with appropriate set of colors if selection is ok */
 			if ((bezt->f2 & SELECT)==sel) {
 				fp= bezt->vec[0];
-				
+
 				/* only draw first handle if previous segment had handles */
 				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) 
 				{
-					cpackA(col[(unsigned char)bezt->h1], drawFCurveFade(fcu));
+					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
+					col[3]= drawFCurveFade(fcu) * 255;
+					glColor4ubv((GLubyte *)col);
 					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
-				
+
 				/* only draw second handle if this segment is bezier */
 				if (bezt->ipo == BEZT_IPO_BEZ) 
 				{
-					cpackA(col[(unsigned char)bezt->h2], drawFCurveFade(fcu));
+					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
+					col[3]= drawFCurveFade(fcu) * 255;
+					glColor4ubv((GLubyte *)col);
+
 					glVertex2fv(fp+3); glVertex2fv(fp+6); 
 				}
 			}
@@ -412,8 +398,10 @@ static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 					 ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) ) 
 				{
 					fp= bezt->vec[0];
-					cpackA(col[(unsigned char)bezt->h1], drawFCurveFade(fcu));
-					
+					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
+					col[3]= drawFCurveFade(fcu) * 255;
+					glColor4ubv((GLubyte *)col);
+
 					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
 				
@@ -422,8 +410,10 @@ static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 					 (bezt->ipo == BEZT_IPO_BEZ) )
 				{
 					fp= bezt->vec[1];
-					cpackA(col[(unsigned char)bezt->h2], drawFCurveFade(fcu));
-					
+					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
+					col[3]= drawFCurveFade(fcu) * 255;
+					glColor4ubv((GLubyte *)col);
+
 					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
 			}
@@ -512,7 +502,15 @@ static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, SpaceIpo *
 	float samplefreq, ctime;
 	float stime, etime;
 	float unitFac;
-	
+	float dx, dy;
+
+	/* when opening a blend file on a different sized screen or while dragging the toolbar this can happen
+	 * best just bail out in this case */
+	UI_view2d_grid_size(grid, &dx, &dy);
+	if(dx <= 0.0f)
+		return;
+
+
 	/* disable any drivers temporarily */
 	driver= fcu->driver;
 	fcu->driver= NULL;
@@ -529,19 +527,18 @@ static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, SpaceIpo *
 	 *	though it is impossible to predict this from the modifiers!
 	 *
 	 *	If the automatically determined sampling frequency is likely to cause an infinite
-	 *	loop (i.e. too close to FLT_EPSILON), fall back to default of 0.001
+	 *	loop (i.e. too close to 0), then clamp it to a determined "safe" value. The value
+	 * 	chosen here is just the coarsest value which still looks reasonable...
 	 */
-		/* grid->dx is the first float in View2DGrid struct, so just cast to float pointer, and use it
-		 * It represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps
-		 */
+		/* grid->dx represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps */
 		// TODO: perhaps we should have 1.0 frames as upper limit so that curves don't get too distorted?
-	samplefreq= *((float *)grid) / U.v2d_min_gridsize;
-	if (IS_EQ(samplefreq, 0)) samplefreq= 0.001f;
+	samplefreq= dx / U.v2d_min_gridsize;
+	if (samplefreq < 0.00001f) samplefreq= 0.00001f;
 	
 	
 	/* the start/end times are simply the horizontal extents of the 'cur' rect */
 	stime= v2d->cur.xmin;
-	etime= v2d->cur.xmax;
+	etime= v2d->cur.xmax + samplefreq; /* + samplefreq here so that last item gets included... */
 	
 	
 	/* at each sampling interval, add a new vertex 

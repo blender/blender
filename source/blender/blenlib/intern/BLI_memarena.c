@@ -28,21 +28,16 @@
  * Efficient memory allocation for lots of similar small chunks.
  */
 
-#include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_memarena.h"
 #include "BLI_linklist.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 struct MemArena {
 	unsigned char *curbuf;
 	int bufsize, cursize;
+	const char *name;
 	
 	int use_calloc;	
 	int align;
@@ -50,10 +45,11 @@ struct MemArena {
 	LinkNode *bufs;
 };
 
-MemArena *BLI_memarena_new(int bufsize) {
+MemArena *BLI_memarena_new(int bufsize, const char *name) {
 	MemArena *ma= MEM_callocN(sizeof(*ma), "memarena");
 	ma->bufsize= bufsize;
 	ma->align = 8;
+	ma->name= name;
 	
 	return ma;
 }
@@ -96,9 +92,9 @@ void *BLI_memarena_alloc(MemArena *ma, int size) {
 		else ma->cursize = ma->bufsize;
 
 		if(ma->use_calloc)
-			ma->curbuf= MEM_callocN(ma->cursize, "memarena calloc");
+			ma->curbuf= MEM_callocN(ma->cursize, ma->name);
 		else
-			ma->curbuf= MEM_mallocN(ma->cursize, "memarena malloc");
+			ma->curbuf= MEM_mallocN(ma->cursize, ma->name);
 		
 		BLI_linklist_prepend(&ma->bufs, ma->curbuf);
 

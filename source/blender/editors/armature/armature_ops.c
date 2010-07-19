@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -31,13 +31,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -47,14 +40,12 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_armature.h"
 #include "ED_screen.h"
-#include "ED_object.h"
 #include "ED_transform.h"
 
 #include "armature_intern.h"
@@ -105,6 +96,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(SKETCH_OT_draw_preview);
 	WM_operatortype_append(SKETCH_OT_finish_stroke);
 	WM_operatortype_append(SKETCH_OT_cancel_stroke);
+	WM_operatortype_append(SKETCH_OT_convert);
 	WM_operatortype_append(SKETCH_OT_select);
 
 	/* POSE */
@@ -134,6 +126,8 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_group_remove);
 	WM_operatortype_append(POSE_OT_group_assign);
 	WM_operatortype_append(POSE_OT_group_unassign);
+	WM_operatortype_append(POSE_OT_group_select);
+	WM_operatortype_append(POSE_OT_group_deselect);
 	
 	WM_operatortype_append(POSE_OT_paths_calculate);
 	WM_operatortype_append(POSE_OT_paths_clear);
@@ -198,14 +192,16 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	/* Armature -> Etch-A-Ton ------------------------ */
 	WM_keymap_add_item(keymap, "SKETCH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SKETCH_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SKETCH_OT_finish_stroke", SELECTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SKETCH_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SKETCH_OT_finish_stroke", RIGHTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SKETCH_OT_cancel_stroke", ESCKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SKETCH_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	// Already part of view3d select
+	//WM_keymap_add_item(keymap, "SKETCH_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 
 	/* sketch poll checks mode */	
-	WM_keymap_add_item(keymap, "SKETCH_OT_gesture", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "SKETCH_OT_draw_stroke", ACTIONMOUSE, KM_PRESS, 0, 0);
-	kmi = WM_keymap_add_item(keymap, "SKETCH_OT_draw_stroke", ACTIONMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SKETCH_OT_gesture", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SKETCH_OT_draw_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "SKETCH_OT_draw_stroke", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "snap", 1);
 	WM_keymap_add_item(keymap, "SKETCH_OT_draw_preview", MOUSEMOVE, KM_ANY, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "SKETCH_OT_draw_preview", MOUSEMOVE, KM_ANY, KM_CTRL, 0);
@@ -242,6 +238,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_extrude_move", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_extrude_forked", EKEY, KM_PRESS, KM_SHIFT, 0);
@@ -265,7 +262,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 		/* special transforms: */
 		/* 	1) envelope/b-bone size */
-	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
 		/* 	2) set roll */
 	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", RKEY, KM_PRESS, KM_CTRL, 0);
@@ -286,9 +283,9 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "unselected", 1);
 	WM_keymap_add_item(keymap, "POSE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-
+	
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_apply", AKEY, KM_PRESS, KM_CTRL, 0);
-
+	
 	// TODO: clear pose
 	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
@@ -342,12 +339,13 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 		/* special transforms: */
 		/* 	1) envelope/b-bone size */
-	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
 	
-	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
+		/* keyframes management */
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert_menu", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete_v3d", IKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_keying_set_active_set", IKEY, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0);
 	
 	/* Pose -> PoseLib ------------- */
 	/* only set in posemode, by space_view3d listener */

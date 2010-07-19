@@ -26,10 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef GEN_INLINED
 #include "MT_Plane3.h"
 #include "MT_Plane3.inl"

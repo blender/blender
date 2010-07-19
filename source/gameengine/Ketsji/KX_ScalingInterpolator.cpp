@@ -30,10 +30,6 @@
 #include "MT_Vector3.h"
 #include "KX_IScalarInterpolator.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void KX_ScalingInterpolator::Execute(float currentTime) const {
 	m_target.setValue(m_ipos[0]->GetValue(currentTime),
 					  m_ipos[1]->GetValue(currentTime),

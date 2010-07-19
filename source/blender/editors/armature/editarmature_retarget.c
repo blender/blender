@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,23 +29,13 @@
 #include <math.h> 
 #include <float.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"
 
-#include "DNA_ID.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -68,7 +58,6 @@
 
 #include "BIF_retarget.h"
 
-#include "PIL_time.h"
 
 //#include "mydevice.h"
 #include "reeb.h" // FIX ME
@@ -327,8 +316,8 @@ static RigGraph *newRigGraph()
 	
 	rg->head = NULL;
 	
-	rg->bones_map = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
-	rg->controls_map = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+	rg->bones_map = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "newRigGraph bones gh");
+	rg->controls_map = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "newRigGraph cont gh");
 	
 	rg->free_arc = RIG_freeRigArc;
 	rg->free_node = NULL;
@@ -572,7 +561,7 @@ static RigGraph *cloneRigGraph(RigGraph *src, ListBase *editbones, Object *ob, c
 	RigControl *ctrl;
 	RigGraph *rg;
 	
-	ptr_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	ptr_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "cloneRigGraph gh");
 
 	rg = newRigGraph();
 	

@@ -29,10 +29,6 @@
 #include "SCA_IActuator.h"
 #include <stdio.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 using namespace std;
 
 SCA_IActuator::SCA_IActuator(SCA_IObject* gameobj, KX_ACTUATOR_TYPE type) :

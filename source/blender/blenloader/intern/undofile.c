@@ -1,5 +1,5 @@
 /**
- * $Id: 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -27,10 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  * .blend file reading entry point
  */
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include <stdlib.h>
 #include <string.h>

@@ -1,3 +1,4 @@
+import bpy
 
 def main(context):
     for ob in context.scene.objects:
@@ -15,7 +16,11 @@ class SimpleOperator(bpy.types.Operator):
         main(context)
         return {'FINISHED'}
 
-bpy.types.register(SimpleOperator)
+def register():
+    bpy.types.register(SimpleOperator)
+
+def unregister():
+    bpy.types.unregister(SimpleOperator)
 
 if __name__ == "__main__":
-    bpy.ops.object.simple_operator()
+    register()

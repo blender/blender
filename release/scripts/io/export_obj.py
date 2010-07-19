@@ -47,7 +47,7 @@ import time
 import shutil
 
 import bpy
-import Mathutils
+import mathutils
 
 
 # Returns a tuple - path,extension.
@@ -65,19 +65,15 @@ def fixName(name):
     else:
         return name.replace(' ', '_')
 
-# A Dict of Materials
-# (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
-MTL_DICT = {}
-
-def write_mtl(scene, filename, copy_images):
+def write_mtl(scene, filepath, copy_images, mtl_dict):
 
     world = scene.world
     worldAmb = world.ambient_color
 
-    dest_dir = os.path.dirname(filename)
+    dest_dir = os.path.dirname(filepath)
 
     def copy_image(image):
-        fn = bpy.utils.expandpath(image.filename)
+        fn = bpy.utils.expandpath(image.filepath)
         fn_strip = os.path.basename(fn)
         if copy_images:
             rel = fn_strip
@@ -90,12 +86,12 @@ def write_mtl(scene, filename, copy_images):
         return rel
 
 
-    file = open(filename, "w")
+    file = open(filepath, "w")
     # XXX
-#	file.write('# Blender3D MTL File: %s\n' % Blender.Get('filename').split('\\')[-1].split('/')[-1])
-    file.write('# Material Count: %i\n' % len(MTL_DICT))
+#	file.write('# Blender MTL File: %s\n' % Blender.Get('filepath').split('\\')[-1].split('/')[-1])
+    file.write('# Material Count: %i\n' % len(mtl_dict))
     # Write material/image combinations we have used.
-    for key, (mtl_mat_name, mat, img) in MTL_DICT.items():
+    for key, (mtl_mat_name, mat, img) in mtl_dict.items():
 
         # Get the Blender data for the material and the image.
         # Having an image named None will make a bug, dont do it :)
@@ -135,15 +131,15 @@ def write_mtl(scene, filename, copy_images):
             # write relative image path
             rel = copy_image(img)
             file.write('map_Kd %s\n' % rel) # Diffuse mapping image
-# 			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image
+# 			file.write('map_Kd %s\n' % img.filepath.split('\\')[-1].split('/')[-1]) # Diffuse mapping image
 
         elif mat: # No face image. if we havea material search for MTex image.
             for mtex in mat.texture_slots:
                 if mtex and mtex.texture.type == 'IMAGE':
                     try:
-                        filename = copy_image(mtex.texture.image)
-# 						filename = mtex.texture.image.filename.split('\\')[-1].split('/')[-1]
-                        file.write('map_Kd %s\n' % filename) # Diffuse mapping image
+                        filepath = copy_image(mtex.texture.image)
+# 						filepath = mtex.texture.image.filepath.split('\\')[-1].split('/')[-1]
+                        file.write('map_Kd %s\n' % filepath) # Diffuse mapping image
                         break
                     except:
                         # Texture has no image though its an image type, best ignore.
@@ -173,7 +169,7 @@ def copy_images(dest_dir):
 
     # Get unique image names
     uniqueImages = {}
-    for matname, mat, image in MTL_DICT.values(): # Only use image name
+    for matname, mat, image in mtl_dict.values(): # Only use image name
         # Get Texface images
         if image:
             uniqueImages[image] = image # Should use sets here. wait until Python 2.4 is default.
@@ -193,7 +189,7 @@ def copy_images(dest_dir):
     copyCount = 0
 
 # 	for bImage in uniqueImages.values():
-# 		image_path = bpy.utils.expandpath(bImage.filename)
+# 		image_path = bpy.utils.expandpath(bImage.filepath)
 # 		if bpy.sys.exists(image_path):
 # 			# Make a name for the target path.
 # 			dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
@@ -225,7 +221,7 @@ def write_nurb(file, ob, ob_mat):
     cu = ob.data
 
     # use negative indices
-    Vector = Blender.Mathutils.Vector
+    Vector = Blender.mathutils.Vector
     for nu in cu:
 
         if nu.type==0:		DEG_ORDER_U = 1
@@ -286,7 +282,7 @@ def write_nurb(file, ob, ob_mat):
 
     return tot_verts
 
-def write(filename, objects, scene,
+def write(filepath, objects, scene,
           EXPORT_TRI=False,
           EXPORT_EDGES=False,
           EXPORT_NORMALS=False,
@@ -355,26 +351,26 @@ def write(filename, objects, scene,
         return ret
 
 
-    print('OBJ Export path: "%s"' % filename)
+    print('OBJ Export path: "%s"' % filepath)
     temp_mesh_name = '~tmp-mesh'
 
     time1 = time.clock()
 #	time1 = sys.time()
 #	scn = Scene.GetCurrent()
 
-    file = open(filename, "w")
+    file = open(filepath, "w")
 
     # Write Header
-    file.write('# Blender3D v%s OBJ File: %s\n' % (bpy.app.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
-    file.write('# www.blender3d.org\n')
+    file.write('# Blender v%s OBJ File: %s\n' % (bpy.app.version_string, bpy.data.filepath.split('/')[-1].split('\\')[-1] ))
+    file.write('# www.blender.org\n')
 
     # Tell the obj file what material file to use.
     if EXPORT_MTL:
-        mtlfilename = '%s.mtl' % '.'.join(filename.split('.')[:-1])
-        file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
+        mtlfilepath = '%s.mtl' % '.'.join(filepath.split('.')[:-1])
+        file.write('mtllib %s\n' % ( mtlfilepath.split('\\')[-1].split('/')[-1] ))
 
     if EXPORT_ROTX90:
-        mat_xrot90= Mathutils.RotationMatrix(-math.pi/2, 4, 'X')
+        mat_xrot90= mathutils.RotationMatrix(-math.pi/2, 4, 'X')
 
     # Initialize totals, these are updated each object
     totverts = totuvco = totno = 1
@@ -382,6 +378,10 @@ def write(filename, objects, scene,
     face_vert_index = 1
 
     globalNormals = {}
+
+    # A Dict of Materials
+    # (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
+    mtl_dict = {}
 
     # Get all meshes
     for ob_main in objects:
@@ -396,14 +396,14 @@ def write(filename, objects, scene,
         if ob_main.dupli_type != 'NONE':
             # XXX
             print('creating dupli_list on', ob_main.name)
-            ob_main.create_dupli_list()
+            ob_main.create_dupli_list(scene)
 
             obs = [(dob.object, dob.matrix) for dob in ob_main.dupli_list]
 
             # XXX debug print
             print(ob_main.name, 'has', len(obs), 'dupli children')
         else:
-            obs = [(ob_main, ob_main.matrix)]
+            obs = [(ob_main, ob_main.matrix_world)]
 
         for ob, ob_mat in obs:
 
@@ -421,7 +421,7 @@ def write(filename, objects, scene,
             if ob.type != 'MESH':
                 continue
 
-            me = ob.create_mesh(EXPORT_APPLY_MODIFIERS, 'PREVIEW')
+            me = ob.create_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
 
             if EXPORT_ROTX90:
                 me.transform(mat_xrot90 * ob_mat)
@@ -691,7 +691,7 @@ def write(filename, objects, scene,
                         file.write('usemtl (null)\n') # mat, image
 
                     else:
-                        mat_data= MTL_DICT.get(key)
+                        mat_data= mtl_dict.get(key)
                         if not mat_data:
                             # First add to global dict so we can export to mtl
                             # Then write mtl
@@ -701,9 +701,9 @@ def write(filename, objects, scene,
 
                             # If none image dont bother adding it to the name
                             if key[1] == None:
-                                mat_data = MTL_DICT[key] = ('%s'%fixName(key[0])), materialItems[f_mat], f_image
+                                mat_data = mtl_dict[key] = ('%s'%fixName(key[0])), materialItems[f_mat], f_image
                             else:
-                                mat_data = MTL_DICT[key] = ('%s_%s' % (fixName(key[0]), fixName(key[1]))), materialItems[f_mat], f_image
+                                mat_data = mtl_dict[key] = ('%s_%s' % (fixName(key[0]), fixName(key[1]))), materialItems[f_mat], f_image
 
                         if EXPORT_GROUP_BY_MAT:
                             file.write('g %s_%s_%s\n' % (fixName(ob.name), fixName(ob.data.name), mat_data[0]) ) # can be mat_image or (null)
@@ -782,22 +782,22 @@ def write(filename, objects, scene,
 
     # Now we have all our materials, save them
     if EXPORT_MTL:
-        write_mtl(scene, mtlfilename, EXPORT_COPY_IMAGES)
+        write_mtl(scene, mtlfilepath, EXPORT_COPY_IMAGES, mtl_dict)
 # 	if EXPORT_COPY_IMAGES:
-# 		dest_dir = os.path.basename(filename)
-# # 		dest_dir = filename
+# 		dest_dir = os.path.basename(filepath)
+# # 		dest_dir = filepath
 # # 		# Remove chars until we are just the path.
 # # 		while dest_dir and dest_dir[-1] not in '\\/':
 # # 			dest_dir = dest_dir[:-1]
 # 		if dest_dir:
-# 			copy_images(dest_dir)
+# 			copy_images(dest_dir, mtl_dict)
 # 		else:
-# 			print('\tError: "%s" could not be used as a base for an image path.' % filename)
+# 			print('\tError: "%s" could not be used as a base for an image path.' % filepath)
 
     print("OBJ Export time: %.2f" % (time.clock() - time1))
 #	print "OBJ Export time: %.2f" % (sys.time() - time1)
 
-def do_export(filename, context,
+def do_export(filepath, context,
               EXPORT_APPLY_MODIFIERS = True, # not used
               EXPORT_ROTX90 = True, # wrong
               EXPORT_TRI = False, # ok
@@ -816,13 +816,14 @@ def do_export(filename, context,
               EXPORT_KEEP_VERT_ORDER = False,
               EXPORT_POLYGROUPS = False,
               EXPORT_CURVE_AS_NURBS = True):
-    #	Window.EditMode(0)
-    #	Window.WaitCursor(1)
-
-    base_name, ext = splitExt(filename)
+    
+    base_name, ext = splitExt(filepath)
     context_name = [base_name, '', '', ext] # Base name, scene name, frame number, extension
 
     orig_scene = context.scene
+
+    # Exit edit mode before exporting, so current object states are exported properly.
+    bpy.ops.object.mode_set(mode='OBJECT')
 
 #	if EXPORT_ALL_SCENES:
 #		export_scenes = bpy.data.scenes
@@ -839,23 +840,23 @@ def do_export(filename, context,
     for scn in export_scenes:
         #		scn.makeCurrent() # If already current, this is not slow.
         #		context = scn.getRenderingContext()
-        orig_frame = scn.current_frame
+        orig_frame = scn.frame_current
 
         if EXPORT_ALL_SCENES: # Add scene name into the context_name
             context_name[1] = '_%s' % bpy.utils.clean_name(scn.name) # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
 
         # Export an animation?
         if EXPORT_ANIMATION:
-            scene_frames = range(scn.start_frame, context.end_frame+1) # Up to and including the end frame.
+            scene_frames = range(scn.frame_start, context.frame_end + 1) # Up to and including the end frame.
         else:
             scene_frames = [orig_frame] # Dont export an animation.
 
         # Loop through all frames in the scene and export.
         for frame in scene_frames:
-            if EXPORT_ANIMATION: # Add frame to the filename.
+            if EXPORT_ANIMATION: # Add frame to the filepath.
                 context_name[2] = '_%.6d' % frame
 
-            scn.current_frame = frame
+            scn.frame_current = frame
             if EXPORT_SEL_ONLY:
                 export_objects = context.selected_objects
             else:
@@ -874,7 +875,7 @@ def do_export(filename, context,
                   EXPORT_POLYGROUPS, EXPORT_CURVE_AS_NURBS)
 
 
-        scn.current_frame = orig_frame
+        scn.frame_current = orig_frame
 
     # Restore old active scene.
 #	orig_scene.makeCurrent()
@@ -899,7 +900,7 @@ class ExportOBJ(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    path = StringProperty(name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the OBJ file", maxlen= 1024, default= "")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     # context group
@@ -931,11 +932,11 @@ class ExportOBJ(bpy.types.Operator):
 
     def execute(self, context):
 
-        path = self.properties.path
-        if not path.lower().endswith(".obj"):
-            path += ".obj"
+        filepath = self.properties.filepath
+        if not filepath.lower().endswith(".obj"):
+            filepath += ".obj"
 
-        do_export(path, context,
+        do_export(filepath, context,
                   EXPORT_TRI=self.properties.use_triangles,
                   EXPORT_EDGES=self.properties.use_edges,
                   EXPORT_NORMALS=self.properties.use_normals,
@@ -963,8 +964,8 @@ class ExportOBJ(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".obj")
-    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)").path = default_path
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".obj"
+    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)").filepath = default_path
 
 
 def register():

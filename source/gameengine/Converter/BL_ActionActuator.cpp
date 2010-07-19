@@ -53,10 +53,6 @@
 #include "PyObjectPlus.h"
 #include "KX_PyMath.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 extern "C" {
 #include "BKE_animsys.h"
 #include "BKE_action.h"

@@ -122,6 +122,17 @@ BLO_blendfiledata_free(
 	char*
 BLO_idcode_to_name(
 	int code);
+	
+/**
+ * Convert an idcode into a name (plural).
+ * 
+ * @param code The code to convert.
+ * @return A static string representing the name of
+ * the code.
+ */
+	char*
+BLO_idcode_to_name_plural(
+	int code);
 
 /**
  * Convert a name into an idcode (ie. ID_SCE)
@@ -205,7 +216,7 @@ int BLO_has_bfile_extension(char *str);
 /* return ok when a blenderfile, in dir is the filename,
  * in group the type of libdata
  */
-int BLO_is_a_library(char *path, char *dir, char *group);
+int BLO_is_a_library(const char *path, char *dir, char *group);
 
 struct Main* BLO_library_append_begin(const struct bContext *C, BlendHandle** bh, char *dir);
 void BLO_library_append_named_part(const struct bContext *C, struct Main *mainl, BlendHandle** bh, char *name, int idcode, short flag);

@@ -331,7 +331,7 @@ public:
 	 * @param y			The y-coordinate of the cursor.
 	 * @return			Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) const = 0;
+	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) = 0;
 
 	/***************************************************************************************
 	 ** Access to mouse button and keyboard states.
@@ -370,12 +370,7 @@ public:
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
 
-	
-	/***************************************************************************************
-	 ** Determine special paths.
-	 ***************************************************************************************/
-
-	/**
+		  	/**
 	 * Determine the base dir in which shared resources are located. It will first try to use
 	 * "unpack and run" path, then look for properly installed path, not including versioning.
 	 * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
@@ -389,6 +384,11 @@ public:
 	 */
 	virtual const GHOST_TUns8* getUserDir() const = 0;
 
+	/**
+	  * Determine the directory of the current binary
+	  * @return Unsigned char string pointing to the binary dir
+	  */
+	 virtual const GHOST_TUns8* getBinaryDir() const = 0;
 protected:
 	/**
 	 * Initialize the system.

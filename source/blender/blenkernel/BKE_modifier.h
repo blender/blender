@@ -131,22 +131,22 @@ typedef struct ModifierTypeInfo {
 	 * and otherwise the ob argument.
 	 */
 	void (*deformVerts)(struct ModifierData *md, struct Object *ob,
-	                    struct DerivedMesh *derivedData,
-	                    float (*vertexCos)[3], int numVerts,
-	                    int useRenderParams, int isFinalCalc);
+						struct DerivedMesh *derivedData,
+						float (*vertexCos)[3], int numVerts,
+						int useRenderParams, int isFinalCalc);
 
 	/* Like deformVerts but called during editmode (for supporting modifiers)
 	 */
 	void (*deformVertsEM)(
-	            struct ModifierData *md, struct Object *ob,
-	            struct BMEditMesh *editData, struct DerivedMesh *derivedData,
-	            float (*vertexCos)[3], int numVerts);
+				struct ModifierData *md, struct Object *ob,
+				struct BMEditMesh *editData, struct DerivedMesh *derivedData,
+				float (*vertexCos)[3], int numVerts);
 
 	/* Set deform matrix per vertex for crazyspace correction */
 	void (*deformMatricesEM)(
-	            struct ModifierData *md, struct Object *ob,
-	            struct BMEditMesh *editData, struct DerivedMesh *derivedData,
-	            float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
+				struct ModifierData *md, struct Object *ob,
+				struct BMEditMesh *editData, struct DerivedMesh *derivedData,
+				float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
 	/********************* Non-deform modifier functions *********************/
 
@@ -170,9 +170,9 @@ typedef struct ModifierTypeInfo {
 	 * modified form), but must not release it.
 	 */
 	struct DerivedMesh *(*applyModifier)(
-	                            struct ModifierData *md, struct Object *ob,
-	                            struct DerivedMesh *derivedData,
-	                            int useRenderParams, int isFinalCalc);
+								struct ModifierData *md, struct Object *ob,
+								struct DerivedMesh *derivedData,
+								int useRenderParams, int isFinalCalc);
 
 	/* Like applyModifier but called during editmode (for supporting
 	 * modifiers).
@@ -182,9 +182,9 @@ typedef struct ModifierTypeInfo {
 	 * derivedData apply as for applyModifier.
 	 */
 	struct DerivedMesh *(*applyModifierEM)(
-	                            struct ModifierData *md, struct Object *ob,
-	                            struct BMEditMesh *editData,
-	                            struct DerivedMesh *derivedData);
+								struct ModifierData *md, struct Object *ob,
+								struct BMEditMesh *editData,
+								struct DerivedMesh *derivedData);
 
 
 	/********************* Optional functions *********************/
@@ -237,7 +237,7 @@ typedef struct ModifierTypeInfo {
 	 * This function is optional.
 	 */
 	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest, struct Scene *scene,
-	                       struct Object *ob, struct DagNode *obNode);
+						   struct Object *ob, struct DagNode *obNode);
 
 	/* Should return true if the modifier needs to be recalculated on time
 	 * changes.
@@ -253,7 +253,7 @@ typedef struct ModifierTypeInfo {
 	 * This function is optional.
 	 */
 	void (*foreachObjectLink)(struct ModifierData *md, struct Object *ob,
-	                          ObjectWalkFunc walk, void *userData);
+							  ObjectWalkFunc walk, void *userData);
 
 	/* Should call the given walk function with a pointer to each ID
 	 * pointer (i.e. each datablock pointer) that the modifier data
@@ -264,7 +264,7 @@ typedef struct ModifierTypeInfo {
 	 * will be used.
 	 */
 	void (*foreachIDLink)(struct ModifierData *md, struct Object *ob,
-	                      IDWalkFunc walk, void *userData);
+						  IDWalkFunc walk, void *userData);
 } ModifierTypeInfo;
 
 ModifierTypeInfo *modifierType_getInfo (ModifierType type);
@@ -287,15 +287,16 @@ int           modifier_isEnabled(struct Scene *scene, struct ModifierData *md, i
 void          modifier_setError(struct ModifierData *md, char *format, ...);
 
 void          modifiers_foreachObjectLink(struct Object *ob,
-                                          ObjectWalkFunc walk,
-                                          void *userData);
+										  ObjectWalkFunc walk,
+										  void *userData);
 void          modifiers_foreachIDLink(struct Object *ob,
-                                      IDWalkFunc walk,
-                                      void *userData);
+									  IDWalkFunc walk,
+									  void *userData);
 struct ModifierData  *modifiers_findByType(struct Object *ob, ModifierType type);
+struct ModifierData  *modifiers_findByName(struct Object *ob, const char *name);
 void          modifiers_clearErrors(struct Object *ob);
 int           modifiers_getCageIndex(struct Scene *scene, struct Object *ob,
-                                     int *lastPossibleCageIndex_r, int virtual_);
+									 int *lastPossibleCageIndex_r, int virtual_);
 
 int           modifiers_isSoftbodyEnabled(struct Object *ob);
 int           modifiers_isClothEnabled(struct Object *ob);
@@ -315,11 +316,14 @@ int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md
  * end of the stack.
  */
 struct LinkNode *modifiers_calcDataMasks(struct Scene *scene, 
-                                         struct Object *ob,
-                                         struct ModifierData *md,
-                                         CustomDataMask dataMask,
-                                         int required_mode);
+										 struct Object *ob,
+										 struct ModifierData *md,
+										 CustomDataMask dataMask,
+										 int required_mode);
 struct ModifierData  *modifiers_getVirtualModifierList(struct Object *ob);
+
+/* here for do_versions */
+void modifier_mdef_compact_influences(struct ModifierData *md);
 
 #endif
 

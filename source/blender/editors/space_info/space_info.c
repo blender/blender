@@ -29,10 +29,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -42,10 +38,10 @@
 
 #include "BKE_context.h"
 #include "BKE_colortools.h"
+#include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
@@ -53,12 +49,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
-
-#include "ED_markers.h"
-#include "ED_object.h"
+#include "UI_interface.h"
 
 #include "info_intern.h"	// own include
 
@@ -120,11 +112,9 @@ static void info_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void info_main_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
 	
 	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
+	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -136,11 +126,15 @@ void info_operatortypes(void)
 	WM_operatortype_append(FILE_OT_make_paths_absolute);
 	WM_operatortype_append(FILE_OT_report_missing_files);
 	WM_operatortype_append(FILE_OT_find_missing_files);
+	
+	WM_operatortype_append(INFO_OT_reports_display_update);
 }
 
 void info_keymap(struct wmKeyConfig *keyconf)
 {
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
 	
+	WM_keymap_verify_item(keymap, "INFO_OT_reports_display_update", TIMER, KM_ANY, KM_ANY, 0);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -167,6 +161,10 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 			if(ELEM(wmn->data, ND_SCREENCAST, ND_ANIMPLAY))
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_WM:	
+			if(wmn->data == ND_JOB)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			if(wmn->data==ND_RENDER_RESULT)
 				ED_region_tag_redraw(ar);
@@ -180,6 +178,31 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 	}
 	
+}
+
+static void recent_files_menu(const bContext *C, Menu *menu)
+{
+	struct RecentFile *recent;
+	uiLayout *layout= menu->layout;
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
+	if (G.recent_files.first) {
+		for(recent = G.recent_files.first; (recent); recent = recent->next) {
+			uiItemStringO(layout, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
+		}
+	} else {
+		uiItemL(layout, "No Recent Files", 0);
+	}
+}
+
+void recent_files_menu_register()
+{
+	MenuType *mt;
+
+	mt= MEM_callocN(sizeof(MenuType), "spacetype info menu recent files");
+	strcpy(mt->idname, "INFO_MT_file_open_recent");
+	strcpy(mt->label, "Open Recent...");
+	mt->draw= recent_files_menu;
+	WM_menutype_add(mt);
 }
 
 /* only called once, from space/spacetypes.c */
@@ -220,7 +243,8 @@ void ED_spacetype_info(void)
 	
 	BLI_addhead(&st->regiontypes, art);
 	
-	
+	recent_files_menu_register();
+
 	BKE_spacetype_register(st);
 }
 

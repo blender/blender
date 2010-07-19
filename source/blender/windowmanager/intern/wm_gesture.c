@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -47,8 +47,8 @@
 #include "wm.h"
 #include "wm_event_system.h"
 #include "wm_subwindow.h"
+#include "wm_draw.h"
 
-#include "ED_screen.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -70,7 +70,7 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 	
 	wm_subwindow_getorigin(window, gesture->swinid, &sx, &sy);
 	
-	if( ELEM4(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK, WM_GESTURE_CIRCLE)) {
+	if( ELEM5(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK, WM_GESTURE_CIRCLE, WM_GESTURE_STRAIGHTLINE)) {
 		rcti *rect= MEM_callocN(sizeof(rcti), "gesture rect new");
 		
 		gesture->customdata= rect;
@@ -238,7 +238,7 @@ static void draw_filled_lasso(wmGesture *gt)
 		if (lastv)
 			e = BLI_addfilledge(lastv, v);
 		lastv = v;
-        if (firstv==NULL) firstv = v;
+		if (firstv==NULL) firstv = v;
 	}
 	
 	/* highly unlikely this will fail, but could crash if (gt->points == 0) */
@@ -335,6 +335,8 @@ void wm_gesture_draw(wmWindow *win)
 			wm_gesture_draw_lasso(win, gt);
 		else if(gt->type==WM_GESTURE_LASSO) 
 			wm_gesture_draw_lasso(win, gt);
+		else if(gt->type==WM_GESTURE_STRAIGHTLINE)
+			wm_gesture_draw_line(win, gt);
 	}
 }
 
@@ -346,8 +348,8 @@ void wm_gesture_tag_redraw(bContext *C)
 	
 	if(screen)
 		screen->do_draw_gesture= 1;
-	if(ar && win->drawmethod != USER_DRAW_TRIPLE)
-		ED_region_tag_redraw(ar);
+
+	wm_tag_redraw_overlay(win, ar);
 }
 
 

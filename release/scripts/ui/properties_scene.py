@@ -20,7 +20,7 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class SceneButtonsPanel(bpy.types.Panel):
@@ -96,17 +96,16 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
         col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
 
         ks = scene.active_keying_set
-        if ks:
+        if ks and ks.absolute:
             row = layout.row()
 
             col = row.column()
             col.prop(ks, "name")
-            col.prop(ks, "absolute")
 
             subcol = col.column()
             subcol.operator_context = 'INVOKE_DEFAULT'
             op = subcol.operator("anim.keying_set_export", text="Export to File")
-            op.path = "keyingset.py"
+            op.filepath = "keyingset.py"
 
             if wide_ui:
                 col = row.column()
@@ -120,7 +119,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
     bl_label = "Active Keying Set"
 
     def poll(self, context):
-        return (context.scene.active_keying_set is not None)
+        return (context.scene.active_keying_set and context.scene.active_keying_set.absolute)
 
     def draw(self, context):
         layout = self.layout
@@ -163,6 +162,11 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
             col.prop(ksp, "grouping")
             if ksp.grouping == 'NAMED':
                 col.prop(ksp, "group")
+
+            col.label(text="Keyframing Settings:")
+            col.prop(ksp, "insertkey_needed", text="Needed")
+            col.prop(ksp, "insertkey_visual", text="Visual")
+            col.prop(ksp, "insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
 class SCENE_PT_physics(SceneButtonsPanel):
@@ -225,18 +229,16 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
     bl_idname = "anim.keying_set_export"
     bl_label = "Export Keying Set..."
 
-    path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
-    filename = bpy.props.StringProperty(name="File Name", description="Name of the file.")
-    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file.")
+    filepath = bpy.props.StringProperty(name="File Path", description="Filepath to write file to.")
     filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
-        if not self.properties.path:
-            raise Exception("File path not set.")
+        if not self.properties.filepath:
+            raise Exception("Filepath not set.")
 
-        f = open(self.properties.path, "w")
+        f = open(self.properties.filepath, "w")
         if not f:
             raise Exception("Could not open file.")
 
@@ -295,9 +297,9 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         # write paths
         f.write("# Path Definitions\n")
         for ksp in ks.paths:
-            f.write("ksp = ks.add_destination(")
+            f.write("ksp = ks.paths.add(")
 
-            # id-block + RNA-path
+            # id-block + data_path
             if ksp.id:
                 # find the relevant shorthand from the cache
                 id_bpy_path = id_to_paths_cache[ksp.id][0]
@@ -306,8 +308,10 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
 
             # array index settings (if applicable)
-            if ksp.entire_array is False:
-                f.write(", entire_array=False, array_index=%d" % ksp.array_index)
+            if ksp.entire_array:
+                f.write(", index=-1")
+            else:
+                f.write(", index=%d" % ksp.array_index)
 
             # grouping settings (if applicable)
             # NOTE: the current default is KEYINGSET, but if this changes, change this code too

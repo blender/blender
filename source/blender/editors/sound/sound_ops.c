@@ -30,12 +30,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_windowmanager_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -47,7 +48,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "ED_sound.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -64,17 +64,30 @@
 
 /******************** open sound operator ********************/
 
+static void open_init(bContext *C, wmOperator *op)
+{
+	PropertyPointerRNA *pprop;
+	
+	op->customdata= pprop= MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
+	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
+}
+
 static int open_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
 	bSound *sound;
+	PropertyPointerRNA *pprop;
+	PointerRNA idptr;
 	AUD_SoundInfo info;
 
-	RNA_string_get(op->ptr, "path", path);
-
+	RNA_string_get(op->ptr, "filepath", path);
 	sound = sound_new_file(CTX_data_main(C), path);
 
+	if(!op->customdata)
+		open_init(C, op);
+	
 	if (sound==NULL || sound->playback_handle == NULL) {
+		if(op->customdata) MEM_freeN(op->customdata);
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;
 	}
@@ -83,6 +96,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(C, sound);
+		if(op->customdata) MEM_freeN(op->customdata);
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;
 	}
@@ -90,12 +104,34 @@ static int open_exec(bContext *C, wmOperator *op)
 	if (RNA_boolean_get(op->ptr, "cache")) {
 		sound_cache(sound, 0);
 	}
+	
+	/* hook into UI */
+	pprop= op->customdata;
+	
+	if(pprop->prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		sound->id.us--;
+		
+		RNA_id_pointer_create(&sound->id, &idptr);
+		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
+		RNA_property_update(C, &pprop->ptr, pprop->prop);
+	}
 
+	if(op->customdata) MEM_freeN(op->customdata);
 	return OPERATOR_FINISHED;
 }
 
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	if(!RNA_property_is_set(op->ptr, "relative_path"))
+		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+	
+	if(RNA_property_is_set(op->ptr, "filepath"))
+		return open_exec(C, op);
+	
+	open_init(C, op);
+	
 	return WM_operator_filesel(C, op, event);
 }
 
@@ -114,7 +150,7 @@ void SOUND_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH);
 	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
 }
 
@@ -182,23 +218,23 @@ static void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder,
 	pup= uiPupMenuBegin(C, "Unpack file", 0);
 	layout= uiPupMenuLayout(pup);
 
-	uiItemEnumO(layout, "Remove Pack", 0, opname, "method", PF_REMOVE);
+	uiItemEnumO(layout, opname, "Remove Pack", 0, "method", PF_REMOVE);
 
 	if(strcmp(abs_name, local_name)) {
 		switch(checkPackedFile(local_name, pf)) {
 			case PF_NOFILE:
 				sprintf(line, "Create %s", local_name);
-				uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_LOCAL);
+				uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_LOCAL);
 				break;
 			case PF_EQUAL:
 				sprintf(line, "Use %s (identical)", local_name);
-				uiItemEnumO(layout, line, 0, opname, "method", PF_USE_LOCAL);
+				uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
 				break;
 			case PF_DIFFERS:
 				sprintf(line, "Use %s (differs)", local_name);
-				uiItemEnumO(layout, line, 0, opname, "method", PF_USE_LOCAL);
+				uiItemEnumO(layout, opname, line, 0, "method", PF_USE_LOCAL);
 				sprintf(line, "Overwrite %s", local_name);
-				uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_LOCAL);
+				uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_LOCAL);
 				break;
 		}
 	}
@@ -206,17 +242,17 @@ static void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder,
 	switch(checkPackedFile(abs_name, pf)) {
 		case PF_NOFILE:
 			sprintf(line, "Create %s", abs_name);
-			uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_ORIGINAL);
+			uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
 			break;
 		case PF_EQUAL:
 			sprintf(line, "Use %s (identical)", abs_name);
-			uiItemEnumO(layout, line, 0, opname, "method", PF_USE_ORIGINAL);
+			uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
 			break;
 		case PF_DIFFERS:
 			sprintf(line, "Use %s (differs)", local_name);
-			uiItemEnumO(layout, line, 0, opname, "method", PF_USE_ORIGINAL);
+			uiItemEnumO(layout, opname, line, 0, "method", PF_USE_ORIGINAL);
 			sprintf(line, "Overwrite %s", local_name);
-			uiItemEnumO(layout, line, 0, opname, "method", PF_WRITE_ORIGINAL);
+			uiItemEnumO(layout, opname, line, 0, "method", PF_WRITE_ORIGINAL);
 			break;
 	}
 

@@ -27,8 +27,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -44,7 +42,6 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
-#include "BKE_global.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -407,6 +404,7 @@ struct bContextDataResult {
 	PointerRNA ptr;
 	ListBase list;
 	const char **dir;
+	short type; /* 0: normal, 1: seq */
 };
 
 static int ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
@@ -551,7 +549,7 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
 }
 
 /* 1:found,  -1:found but not set,  0:not found */
-int CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb)
+int CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, short *r_type)
 {
 	bContextDataResult result;
 	int ret= ctx_data_get((bContext*)C, member, &result);
@@ -559,10 +557,12 @@ int CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListB
 	if(ret==1) {
 		*r_ptr= result.ptr;
 		*r_lb= result.list;
+		*r_type= result.type;
 	}
 	else {
 		memset(r_ptr, 0, sizeof(*r_ptr));
 		memset(r_lb, 0, sizeof(*r_lb));
+		*r_type= 0;
 	}
 
 	return ret;
@@ -683,6 +683,16 @@ int ctx_data_list_count(const bContext *C, int (*func)(const bContext*, ListBase
 void CTX_data_dir_set(bContextDataResult *result, const char **dir)
 {
 	result->dir= dir;
+}
+
+void CTX_data_type_set(bContextDataResult *result, short type)
+{
+	result->type= type;
+}
+
+short CTX_data_type_get(bContextDataResult *result)
+{
+	return result->type;
 }
 
 /* data context */

@@ -40,10 +40,6 @@
 #include <iostream>
 #include "PHY_IPhysicsEnvironment.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */

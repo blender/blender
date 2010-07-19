@@ -19,12 +19,19 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class RENDER_MT_presets(bpy.types.Menu):
     bl_label = "Render Presets"
     preset_subdir = "render"
+    preset_operator = "script.execute_preset"
+    draw = bpy.types.Menu.draw_preset
+
+
+class RENDER_MT_ffmpeg_presets(bpy.types.Menu):
+    bl_label = "FFMPEG Presets"
+    preset_subdir = "ffmpeg"
     preset_operator = "script.python_file_run"
     draw = bpy.types.Menu.draw_preset
 
@@ -53,11 +60,11 @@ class RENDER_PT_render(RenderButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.operator("screen.render", text="Image", icon='RENDER_STILL')
+        col.operator("render.render", text="Image", icon='RENDER_STILL')
 
         if wide_ui:
             col = split.column()
-        col.operator("screen.render", text="Animation", icon='RENDER_ANIMATION').animation = True
+        col.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.prop(rd, "display_mode", text="Display")
 
@@ -89,13 +96,16 @@ class RENDER_PT_layers(RenderButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.prop(scene, "visible_layers", text="Scene")
+        col.prop(scene, "layers", text="Scene")
+        col.label(text="")
+        col.prop(rl, "light_override", text="Light")
+        col.prop(rl, "material_override", text="Material")
         if wide_ui:
             col = split.column()
         col.prop(rl, "visible_layers", text="Layer")
+        col.label(text="Mask Layers:")
+        col.prop(rl, "zmask_layers", text="")
 
-        layout.prop(rl, "light_override", text="Light")
-        layout.prop(rl, "material_override", text="Material")
 
         layout.separator()
         layout.label(text="Include:")
@@ -119,11 +129,6 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.prop(rl, "edge")
         col.prop(rl, "strand")
 
-        if rl.zmask:
-            split = layout.split()
-            split.label(text="Zmask Layers:")
-            split.column().prop(rl, "zmask_layers", text="")
-
         layout.separator()
 
         split = layout.split()
@@ -145,28 +150,28 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.prop(rl, "pass_diffuse")
         row = col.row()
         row.prop(rl, "pass_specular")
-        row.prop(rl, "pass_specular_exclude", text="", icon='X')
+        row.prop(rl, "pass_specular_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_shadow")
-        row.prop(rl, "pass_shadow_exclude", text="", icon='X')
+        row.prop(rl, "pass_shadow_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_emit")
-        row.prop(rl, "pass_emit_exclude", text="", icon='X')
+        row.prop(rl, "pass_emit_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_ao")
-        row.prop(rl, "pass_ao_exclude", text="", icon='X')
+        row.prop(rl, "pass_ao_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_environment")
-        row.prop(rl, "pass_environment_exclude", text="", icon='X')
+        row.prop(rl, "pass_environment_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_indirect")
-        row.prop(rl, "pass_indirect_exclude", text="", icon='X')
+        row.prop(rl, "pass_indirect_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_reflection")
-        row.prop(rl, "pass_reflection_exclude", text="", icon='X')
+        row.prop(rl, "pass_reflection_exclude", text="")
         row = col.row()
         row.prop(rl, "pass_refraction")
-        row.prop(rl, "pass_refraction_exclude", text="", icon='X')
+        row.prop(rl, "pass_refraction_exclude", text="")
 
 
 class RENDER_PT_shading(RenderButtonsPanel):
@@ -182,14 +187,14 @@ class RENDER_PT_shading(RenderButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "render_textures", text="Textures")
-        col.prop(rd, "render_shadows", text="Shadows")
-        col.prop(rd, "render_sss", text="Subsurface Scattering")
-        col.prop(rd, "render_envmaps", text="Environment Map")
+        col.prop(rd, "use_textures", text="Textures")
+        col.prop(rd, "use_shadows", text="Shadows")
+        col.prop(rd, "use_sss", text="Subsurface Scattering")
+        col.prop(rd, "use_envmaps", text="Environment Map")
 
         if wide_ui:
             col = split.column()
-        col.prop(rd, "render_raytracing", text="Ray Tracing")
+        col.prop(rd, "use_raytracing", text="Ray Tracing")
         col.prop(rd, "color_management")
         col.prop(rd, "alpha_mode", text="Alpha")
 
@@ -211,7 +216,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
         col.label(text="Threads:")
         col.row().prop(rd, "threads_mode", expand=True)
         sub = col.column()
-        sub.enabled = rd.threads_mode == 'THREADS_FIXED'
+        sub.enabled = rd.threads_mode == 'FIXED'
         sub.prop(rd, "threads")
         sub = col.column(align=True)
         sub.label(text="Tiles:")
@@ -228,7 +233,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
         sub.active = rd.use_compositing
         sub.prop(rd, "free_image_textures")
         sub = col.column()
-        sub.active = rd.render_raytracing
+        sub.active = rd.use_raytracing
         sub.label(text="Acceleration structure:")
         sub.prop(rd, "raytrace_structure", text="")
         if rd.raytrace_structure == 'OCTREE':
@@ -305,11 +310,20 @@ class RENDER_PT_output(RenderButtonsPanel):
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 
-        if rd.file_format in ('AVIJPEG', 'JPEG'):
+        if rd.file_format in ('AVI_JPEG', 'JPEG'):
             split = layout.split()
-            split.prop(rd, "quality", slider=True)
+            split.prop(rd, "file_quality", slider=True)
 
-        elif rd.file_format == 'OPENEXR':
+        elif rd.file_format == 'MULTILAYER':
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="Codec:")
+            col.prop(rd, "exr_codec", text="")
+            if wide_ui:
+                col = split.column()
+
+        elif rd.file_format == 'OPEN_EXR':
             split = layout.split()
 
             col = split.column()
@@ -355,13 +369,37 @@ class RENDER_PT_output(RenderButtonsPanel):
 
         elif rd.file_format == 'QUICKTIME_CARBON':
             split = layout.split()
-            split.operator("scene.render_set_quicktime_codec")
+            split.operator("scene.render_data_set_quicktime_codec")
 
         elif rd.file_format == 'QUICKTIME_QTKIT':
             split = layout.split()
             col = split.column()
-            col.prop(rd, "quicktime_codec_type")
+            col.prop(rd, "quicktime_codec_type", text="Video Codec")
             col.prop(rd, "quicktime_codec_spatial_quality", text="Quality")
+
+            # Audio
+            col.prop(rd, "quicktime_audiocodec_type", text="Audio Codec")
+            if rd.quicktime_audiocodec_type != 'No audio':
+                split = layout.split()
+                col = split.column()
+                if rd.quicktime_audiocodec_type == 'LPCM':
+                    col.prop(rd, "quicktime_audio_bitdepth", text="")
+                if wide_ui:
+                    col = split.column()
+                col.prop(rd, "quicktime_audio_samplerate", text="")
+
+                split = layout.split()
+                col = split.column()
+                if rd.quicktime_audiocodec_type == 'AAC':
+                    col.prop(rd, "quicktime_audio_bitrate")
+                if wide_ui:
+                    subsplit = split.split()
+                    col = subsplit.column()
+                if rd.quicktime_audiocodec_type == 'AAC':
+                    col.prop(rd, "quicktime_audio_codec_isvbr")
+                if wide_ui:
+                    col = subsplit.column()
+                col.prop(rd, "quicktime_audio_resampling_hq")
 
 
 class RENDER_PT_encoding(RenderButtonsPanel):
@@ -378,6 +416,8 @@ class RENDER_PT_encoding(RenderButtonsPanel):
 
         rd = context.scene.render
         wide_ui = context.region.width > narrowui
+
+        layout.menu("RENDER_MT_ffmpeg_presets", text="Presets")
 
         split = layout.split()
 
@@ -441,14 +481,14 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
     def draw_header(self, context):
         rd = context.scene.render
 
-        self.layout.prop(rd, "antialiasing", text="")
+        self.layout.prop(rd, "render_antialiasing", text="")
 
     def draw(self, context):
         layout = self.layout
 
         rd = context.scene.render
         wide_ui = context.region.width > narrowui
-        layout.active = rd.antialiasing
+        layout.active = rd.render_antialiasing
 
         split = layout.split()
 
@@ -482,6 +522,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel):
 
         row = layout.row()
         row.prop(rd, "motion_blur_samples")
+        row.prop(rd, "motion_blur_shutter")
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
@@ -495,10 +536,9 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         rd = scene.render
         wide_ui = context.region.width > narrowui
 
-        row = layout.row().split()
-        sub = row.row(align=True).split(percentage=0.75)
-        sub.menu("RENDER_MT_presets", text="Presets")
-        sub.operator("render.preset_add", text="Add")
+        row = layout.row(align=True)
+        row.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
+        row.operator("render.preset_add", text="", icon="ZOOMIN")
 
         split = layout.split()
 
@@ -523,8 +563,8 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
             col = split.column()
         sub = col.column(align=True)
         sub.label(text="Frame Range:")
-        sub.prop(scene, "start_frame", text="Start")
-        sub.prop(scene, "end_frame", text="End")
+        sub.prop(scene, "frame_start", text="Start")
+        sub.prop(scene, "frame_end", text="End")
         sub.prop(scene, "frame_step", text="Step")
 
         sub.label(text="Frame Rate:")
@@ -627,6 +667,7 @@ class RENDER_PT_bake(RenderButtonsPanel):
 
 classes = [
     RENDER_MT_presets,
+    RENDER_MT_ffmpeg_presets,
     RENDER_PT_render,
     RENDER_PT_layers,
     RENDER_PT_dimensions,

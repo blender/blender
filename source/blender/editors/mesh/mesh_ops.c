@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -33,11 +33,6 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -49,18 +44,14 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_transform.h"
 #include "ED_view3d.h"
 
-#include "UI_interface.h"
 
 #include "mesh_intern.h"
 
@@ -122,6 +113,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_edge_flip);
 	WM_operatortype_append(MESH_OT_faces_shade_smooth);
 	WM_operatortype_append(MESH_OT_faces_shade_flat);
+	//WM_operatortype_append(MESH_OT_sort_faces);
 
 	WM_operatortype_append(MESH_OT_delete);
 
@@ -184,30 +176,35 @@ void ED_operatormacros_mesh(void)
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Rip polygons and move the result";
 	WM_operatortype_macro_define(ot, "MESH_OT_rip");
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_extrude_region_move", "Extrude Region and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Extrude region and move result";
 	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude_region");
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_extrude_faces_move", "Extrude Individual Faces and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Extrude faces and move result";
 	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude_faces_indiv");
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_shrink_fatten");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_extrude_edges_move", "Extrude Only Edges and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Extrude edges and move result";
 	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude_edges_indiv");
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_extrude_vertices_move", "Extrude Only Vertices and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->description = "Extrude vertices and move result";
@@ -215,6 +212,7 @@ void ED_operatormacros_mesh(void)
 	RNA_enum_set(otmacro->ptr, "type", 4);
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 }
 
 /* note mesh keymap also for other space? */
@@ -272,8 +270,9 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_fill", FKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_beautify_fill", FKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_fill", FKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_beautify_fill", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+	//WM_keymap_add_item(keymap, "MESH_OT_sort_faces", FKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_quads_convert_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_tris_convert_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_edge_flip", FKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
@@ -298,6 +297,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "MESH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, 0, KKEY);
 	RNA_enum_set(WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, KM_SHIFT, KKEY)->ptr, "type", 2/*KNIFE_MIDPOINT*/);
@@ -313,6 +313,6 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_uv_map", UKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_vertex_group", GKEY, KM_PRESS, KM_CTRL, 0);
 	
-	ED_object_generic_keymap(keyconf, keymap, TRUE);
+	ED_object_generic_keymap(keyconf, keymap, 2);
 }
 

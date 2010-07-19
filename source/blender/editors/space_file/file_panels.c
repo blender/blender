@@ -33,8 +33,6 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -42,7 +40,6 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -185,14 +182,14 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 
 			if(flag & PROP_HIDDEN)
 				continue;
-			if(strcmp(RNA_property_identifier(prop), "path") == 0)
+			if(strcmp(RNA_property_identifier(prop), "filepath") == 0)
 				continue;
 			if(strcmp(RNA_property_identifier(prop), "directory") == 0)
 				continue;
 			if(strcmp(RNA_property_identifier(prop), "filename") == 0)
 				continue;
 
-			uiItemFullR(pa->layout, NULL, 0, op->ptr, prop, -1, 0, 0);
+			uiItemFullR(pa->layout, op->ptr, prop, -1, 0, 0, NULL, 0);
 			empty= 0;
 		}
 		RNA_STRUCT_END;

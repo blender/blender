@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -24,15 +24,15 @@
 /* ****************************************** */
 /* Drivers - PyExpression Evaluation */
 
+#include <Python.h>
+
 #include "DNA_anim_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 
-#include "BPY_extern.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-
-#include <Python.h>
 
 /* for pydrivers (drivers using one-line Python expressions to express relationships between targets) */
 PyObject *bpy_pydriver_Dict = NULL;
@@ -59,10 +59,6 @@ static int bpy_pydriver_create_dict(void)
 	mod = PyImport_ImportModule("math");
 	if (mod) {
 		PyDict_Merge(d, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
-
-		/* Only keep for backwards compat! - just import all math into root, they are standard */
-		PyDict_SetItemString(d, "math", mod);
-		PyDict_SetItemString(d, "m", mod);
 		Py_DECREF(mod);
 	}
 
@@ -103,13 +99,17 @@ static int bpy_pydriver_create_dict(void)
 }
 
 /* Update function, it gets rid of pydrivers global dictionary, forcing
- * BPY_pydriver_eval to recreate it. This function is used to force
+ * BPY_eval_driver to recreate it. This function is used to force
  * reloading the Blender text module "pydrivers.py", if available, so
  * updates in it reach pydriver evaluation.
  */
 void BPY_pydriver_update(void)
 {
-	PyGILState_STATE gilstate = PyGILState_Ensure();
+	PyGILState_STATE gilstate;
+	int use_gil= 1; // (PyThreadState_Get()==NULL);
+
+	if(use_gil)
+		gilstate = PyGILState_Ensure();
 
 	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
 		PyDict_Clear(bpy_pydriver_Dict);
@@ -117,7 +117,8 @@ void BPY_pydriver_update(void)
 		bpy_pydriver_Dict = NULL;
 	}
 
-	PyGILState_Release(gilstate);
+	if(use_gil)
+		PyGILState_Release(gilstate);
 
 	return;
 }
@@ -143,42 +144,48 @@ static float pydriver_error(ChannelDriver *driver)
 
 /* This evals py driver expressions, 'expr' is a Python expression that
  * should evaluate to a float number, which is returned.
+ *
+ * note: PyGILState_Ensure() isnt always called because python can call the
+ * bake operator which intern starts a thread which calls scene update which
+ * does a driver update. to avoid a deadlock check PyThreadState_Get() if PyGILState_Ensure() is needed.
  */
-float BPY_pydriver_eval (ChannelDriver *driver)
+float BPY_eval_driver (ChannelDriver *driver)
 {
 	PyObject *driver_vars=NULL;
 	PyObject *retval= NULL;
 	PyObject *expr_vars; /* speed up by pre-hashing string & avoids re-converting unicode strings for every execution */
 	PyObject *expr_code;
 	PyGILState_STATE gilstate;
+	int use_gil;
 
 	DriverVar *dvar;
-	float result = 0.0f; /* default return */
+	double result = 0.0; /* default return */
 	char *expr = NULL;
 	short targets_ok= 1;
 	int i;
 
-	/* sanity checks - should driver be executed? */
-	/*if (G.f & G_SCRIPT_AUTOEXEC)==0) return result; */
-
 	/* get the py expression to be evaluated */
 	expr = driver->expression;
 	if ((expr == NULL) || (expr[0]=='\0'))
-		return result;
+		return 0.0f;
 
 	if(!(G.f & G_SCRIPT_AUTOEXEC)) {
 		printf("skipping driver '%s', automatic scripts are disabled\n", driver->expression);
-		return result;
+		return 0.0f;
 	}
 
-	gilstate = PyGILState_Ensure();
+	use_gil= 1; //(PyThreadState_Get()==NULL);
+
+	if(use_gil)
+		gilstate = PyGILState_Ensure();
 
 	/* init global dictionary for py-driver evaluation settings */
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr, "Pydriver error: couldn't create Python dictionary");
-			PyGILState_Release(gilstate);
-			return result;
+			if(use_gil)
+				PyGILState_Release(gilstate);
+			return 0.0f;
 		}
 	}
 
@@ -235,11 +242,11 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 			/* this target failed - bad name */
 			if (targets_ok) {
 				/* first one - print some extra info for easier identification */
-				fprintf(stderr, "\nBPY_pydriver_eval() - Error while evaluating PyDriver:\n");
+				fprintf(stderr, "\nBPY_eval_driver() - Error while evaluating PyDriver:\n");
 				targets_ok= 0;
 			}
 			
-			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace \n", dvar->name);
+			fprintf(stderr, "\tBPY_eval_driver() - couldn't add variable '%s' to namespace\n", dvar->name);
 			// BPy_errors_to_report(NULL); // TODO - reports
 			PyErr_Print();
 			PyErr_Clear();
@@ -261,12 +268,10 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	/* process the result */
 	if (retval == NULL) {
 		pydriver_error(driver);
-		result = 0.0f;
-	} else if((result= (float)PyFloat_AsDouble(retval)) == -1.0f && PyErr_Occurred()) {
+	} else if((result= PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) {
 		pydriver_error(driver);
 		Py_DECREF(retval);
-		result = 0.0f;
-
+		result = 0.0;
 	}
 	else {
 		/* all fine, make sure the "invalid expression" flag is cleared */
@@ -274,6 +279,14 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		Py_DECREF(retval);
 	}
 
-	PyGILState_Release(gilstate);
-	return result;
+	if(use_gil)
+		PyGILState_Release(gilstate);
+    
+	if(finite(result)) {
+		return (float)result;
+	}
+	else {
+		fprintf(stderr, "\tBPY_eval_driver() - driver '%s' evaluates to '%f'\n", dvar->name, result);
+		return 0.0f;
+	}
 }

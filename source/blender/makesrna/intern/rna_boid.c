@@ -32,7 +32,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -84,7 +83,7 @@ static void rna_Boids_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 	else
 		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
-	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 static void rna_Boids_reset_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -100,7 +99,7 @@ static void rna_Boids_reset_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	DAG_scene_sort(scene);
 
-	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
 }
 
 static StructRNA* rna_BoidRule_refine(struct PointerRNA *ptr)
@@ -267,7 +266,7 @@ static void rna_def_boidrule_avoid(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "fear_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 100.0f);
-	RNA_def_property_ui_text(prop, "Fear factor", "Avoid object if danger from it is above this threshol");
+	RNA_def_property_ui_text(prop, "Fear factor", "Avoid object if danger from it is above this threshold");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 }
 
@@ -446,7 +445,7 @@ static void rna_def_boidstate(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "rule_fuzziness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Rule Fuzzines", "");
+	RNA_def_property_ui_text(prop, "Rule Fuzziness", "");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
 	prop= RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);

@@ -38,10 +38,6 @@
 #include "ListValue.h"
 #include "StringValue.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef NAN_NET_DEBUG
   #include <iostream>
 #endif

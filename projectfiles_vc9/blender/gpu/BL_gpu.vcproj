@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;DWORDS_LITTLEENDIAN;GLEW_STATIC"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -194,7 +194,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;DWORDS_LITTLEENDIAN;GLEW_STATIC"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -269,7 +269,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -344,7 +344,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;DWORDS_LITTLEENDIAN;GLEW_STATIC"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -419,7 +419,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\smoke\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\gpu;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;DWORDS_LITTLEENDIAN;GLEW_STATIC"
 				StringPooling="true"
 				RuntimeLibrary="0"

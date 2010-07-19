@@ -1,5 +1,5 @@
 /**
- * $Id: 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -34,13 +34,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -69,8 +63,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "util_intern.h"
 
@@ -140,6 +132,8 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 				undo_editmode_name(C, undoname);
 			else
 				undo_editmode_step(C, step);
+
+			WM_event_add_notifier(C, NC_GEOM|ND_DATA, NULL);
 		}
 	}
 	else {
@@ -242,7 +236,7 @@ void ED_OT_undo(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Undo";
-    ot->description= "Undo previous action";
+	ot->description= "Undo previous action";
 	ot->idname= "ED_OT_undo";
 	
 	/* api callbacks */
@@ -254,7 +248,7 @@ void ED_OT_redo(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Redo";
-    ot->description= "Redo previous action";
+	ot->description= "Redo previous action";
 	ot->idname= "ED_OT_redo";
 	
 	/* api callbacks */

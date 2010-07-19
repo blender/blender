@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class IMAGE_MT_view(bpy.types.Menu):
@@ -29,7 +29,7 @@ class IMAGE_MT_view(bpy.types.Menu):
         layout = self.layout
 
         sima = context.space_data
-        # uv = sima.uv_editor
+        uv = sima.uv_editor
         toolsettings = context.tool_settings
 
         show_uvedit = sima.show_uvedit
@@ -42,6 +42,7 @@ class IMAGE_MT_view(bpy.types.Menu):
         layout.prop(sima, "update_automatically")
         if show_uvedit:
             layout.prop(toolsettings, "uv_local_view") # Numpad /
+            layout.prop(uv, "draw_other_objects")
 
         layout.separator()
 
@@ -111,9 +112,12 @@ class IMAGE_MT_image(bpy.types.Menu):
 
             layout.operator("image.save")
             layout.operator("image.save_as")
+            layout.operator("image.save_as", text="Save a Copy").copy = True
 
             if ima.source == 'SEQUENCE':
                 layout.operator("image.save_sequence")
+
+            layout.operator("image.external_edit", "Edit Externally")
 
             if not show_render:
                 layout.separator()
@@ -141,8 +145,8 @@ class IMAGE_MT_uvs_showhide(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("uv.reveal")
-        layout.operator("uv.hide")
-        layout.operator("uv.hide").unselected = True
+        layout.operator("uv.hide", text="Hide Selected")
+        layout.operator("uv.hide", text="Hide Unselected").unselected = True
 
 
 class IMAGE_MT_uvs_transform(bpy.types.Menu):
@@ -250,7 +254,7 @@ class IMAGE_HT_header(bpy.types.Header):
         iuser = sima.image_user
         toolsettings = context.tool_settings
 
-        # show_render = sima.show_render
+        show_render = sima.show_render
         # show_paint = sima.show_paint
         show_uvedit = sima.show_uvedit
 
@@ -274,6 +278,8 @@ class IMAGE_HT_header(bpy.types.Header):
                 sub.menu("IMAGE_MT_uvs")
 
         layout.template_ID(sima, "image", new="image.new")
+        if not show_render:
+            layout.prop(sima, "image_pin", text="")
 
         # uv editing
         if show_uvedit:
@@ -340,7 +346,7 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
         # ima = sima.image
         iuser = sima.image_user
 
-        layout.template_image(sima, "image", iuser, compact=True)
+        layout.template_image(sima, "image", iuser)
 
 
 class IMAGE_PT_game_properties(bpy.types.Panel):
@@ -402,7 +408,81 @@ class IMAGE_PT_view_histogram(bpy.types.Panel):
 
         sima = context.space_data
 
-        layout.template_histogram(sima, "histogram")
+        layout.template_histogram(sima.scopes, "histogram")
+        layout.prop(sima.scopes.histogram, "mode", icon_only=True)
+
+
+class IMAGE_PT_view_waveform(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+    bl_label = "Waveform"
+
+    def poll(self, context):
+        sima = context.space_data
+        return (sima and sima.image)
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+        layout.template_waveform(sima, "scopes")
+        sub = layout.row().split(percentage=0.75)
+        sub.prop(sima.scopes, "waveform_alpha")
+        sub.prop(sima.scopes, "waveform_mode", text="", icon_only=True)
+
+
+class IMAGE_PT_view_vectorscope(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+    bl_label = "Vectorscope"
+
+    def poll(self, context):
+        sima = context.space_data
+        return (sima and sima.image)
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+        layout.template_vectorscope(sima, "scopes")
+        layout.prop(sima.scopes, "vectorscope_alpha")
+
+
+class IMAGE_PT_sample_line(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+    bl_label = "Sample Line"
+
+    def poll(self, context):
+        sima = context.space_data
+        return (sima and sima.image)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("image.sample_line")
+        sima = context.space_data
+        layout.template_histogram(sima, "sample_histogram")
+        layout.prop(sima.sample_histogram, "mode")
+
+
+class IMAGE_PT_scope_sample(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+    bl_label = "Scope Samples"
+
+    def poll(self, context):
+        sima = context.space_data
+        return sima
+
+    def draw(self, context):
+        layout = self.layout
+        sima = context.space_data
+        split = layout.split()
+        row = split.row()
+        row.prop(sima.scopes, "use_full_resolution")
+        row = split.row()
+        row.active = not sima.scopes.use_full_resolution
+        row.prop(sima.scopes, "accuracy")
 
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
@@ -441,6 +521,9 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             col.prop(uvedit, "normalized_coordinates", text="Normalized")
 
         if show_uvedit:
+
+            col = layout.column()
+            col.prop(uvedit, "cursor_location")
 
             col = layout.column()
             col.label(text="UVs:")
@@ -570,7 +653,7 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
         brush = toolsettings.brush
 
         layout.template_curve_mapping(brush, "curve")
-        layout.operator_menu_enum("brush.curve_preset", property="shape")
+        layout.operator_menu_enum("brush.curve_preset", "shape")
 
 
 classes = [
@@ -590,7 +673,11 @@ classes = [
     IMAGE_PT_paint_curve,
     IMAGE_PT_game_properties,
     IMAGE_PT_view_properties,
-    IMAGE_PT_view_histogram]
+    IMAGE_PT_view_histogram,
+    IMAGE_PT_view_waveform,
+    IMAGE_PT_view_vectorscope,
+    IMAGE_PT_sample_line,
+    IMAGE_PT_scope_sample]
 
 
 def register():

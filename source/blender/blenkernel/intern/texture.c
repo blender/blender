@@ -42,28 +42,21 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_rand.h"
 #include "BLI_kdopbvh.h"
 
-#include "DNA_texture_types.h"
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_image_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_node_types.h"
 #include "DNA_color_types.h"
-#include "DNA_scene_types.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "BKE_plugin_types.h"
-
 #include "BKE_utildefines.h"
-
 #include "BKE_global.h"
 #include "BKE_main.h"
 
@@ -73,7 +66,6 @@
 #include "BKE_texture.h"
 #include "BKE_key.h"
 #include "BKE_icons.h"
-#include "BKE_brush.h"
 #include "BKE_node.h"
 #include "BKE_animsys.h"
 
@@ -253,7 +245,7 @@ void init_colorband(ColorBand *coba, int rangetype)
 		coba->data[0].b= 0.0;
 		coba->data[0].a= 0.0;
 		
-		coba->data[1].r= 0.0;
+		coba->data[1].r= 1.0;
 		coba->data[1].g= 1.0;
 		coba->data[1].b= 1.0;
 		coba->data[1].a= 1.0;
@@ -459,6 +451,7 @@ void default_tex(Tex *tex)
 	tex->nabla= 0.025;	// also in do_versions
 	tex->bright= 1.0;
 	tex->contrast= 1.0;
+	tex->saturation= 1.0;
 	tex->filtersize= 1.0;
 	tex->rfac= 1.0;
 	tex->gfac= 1.0;
@@ -483,10 +476,10 @@ void default_tex(Tex *tex)
 	tex->vn_coltype = 0;
 
 	if (tex->env) {
-		tex->env->stype=ENV_STATIC;
+		tex->env->stype=ENV_ANIM;
 		tex->env->clipsta=0.1;
 		tex->env->clipend=100;
-		tex->env->cuberes=100;
+		tex->env->cuberes=600;
 		tex->env->depth=0;
 	}
 
@@ -515,6 +508,27 @@ void default_tex(Tex *tex)
 	tex->iuser.frames= 100;
 	
 	tex->preview = NULL;
+}
+
+void tex_set_type(Tex *tex, int type)
+{
+	switch(type) {
+			
+		case TEX_VOXELDATA:
+			if (tex->vd == NULL)
+				tex->vd = BKE_add_voxeldata();
+			break;
+		case TEX_POINTDENSITY:
+			if (tex->pd == NULL)
+				tex->pd = BKE_add_pointdensity();
+			break;
+		case TEX_ENVMAP:
+			if (tex->env == NULL)
+				tex->env = BKE_add_envmap();
+			break;
+	}
+	
+	tex->type = type;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -628,6 +642,8 @@ Tex *copy_texture(Tex *tex)
 	
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
 	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
+	if(texn->pd) texn->pd= MEM_dupallocN(texn->pd);
+	if(texn->vd) texn->vd= MEM_dupallocN(texn->vd);
 	
 	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
@@ -651,9 +667,9 @@ void make_local_texture(Tex *tex)
 	int a, local=0, lib=0;
 
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	if(tex->id.lib==0) return;
 
@@ -885,9 +901,15 @@ Tex *give_current_material_texture(Material *ma)
 		}
 		else {
 			node= nodeGetActiveID(ma->nodetree, ID_MA);
-			if(node)
+			if(node) {
 				ma= (Material*)node->id;
+				if(ma) {
+					mtex= ma->mtex[(int)(ma->texact)];
+					if(mtex) tex= mtex->tex;
+				}
+			}
 		}
+		return tex;
 	}
 
 	if(ma) {
@@ -1040,10 +1062,11 @@ EnvMap *BKE_add_envmap(void)
 	
 	env= MEM_callocN(sizeof(EnvMap), "envmap");
 	env->type= ENV_CUBE;
-	env->stype= ENV_STATIC;
+	env->stype= ENV_ANIM;
 	env->clipsta= 0.1;
 	env->clipend= 100.0;
-	env->cuberes= 100;
+	env->cuberes= 600;
+	env->viewscale = 0.5;
 	
 	return env;
 } 
@@ -1110,6 +1133,7 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->totpoints = 0;
 	pd->object = NULL;
 	pd->psys = 0;
+	pd->psys_cache_space= TEX_PD_WORLDSPACE;
 	return pd;
 } 
 
@@ -1148,7 +1172,8 @@ void BKE_free_pointdensity(PointDensity *pd)
 void BKE_free_voxeldatadata(struct VoxelData *vd)
 {
 	if (vd->dataset) {
-		MEM_freeN(vd->dataset);
+		if(vd->file_format != TEX_VD_SMOKE)
+			MEM_freeN(vd->dataset);
 		vd->dataset = NULL;
 	}
 
@@ -1172,6 +1197,8 @@ struct VoxelData *BKE_add_voxeldata(void)
 	vd->int_multiplier = 1.0;
 	vd->extend = TEX_CLIP;
 	vd->object = NULL;
+	vd->cachedframe = -1;
+	vd->ok = 0;
 	
 	return vd;
  }

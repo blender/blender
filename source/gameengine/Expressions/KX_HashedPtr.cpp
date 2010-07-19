@@ -28,10 +28,6 @@
 
 #include "KX_HashedPtr.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 unsigned int KX_Hash(void * inDWord)
 {
 #if defined(_WIN64)

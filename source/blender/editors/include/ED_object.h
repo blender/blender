@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -48,6 +48,9 @@ struct wmOperator;
 struct wmEvent;
 
 /* object_edit.c */
+struct Object *ED_object_active_context(struct bContext *C);
+
+/* object_ops.c */
 void ED_operatortypes_object(void);
 void ED_operatormacros_object(void);
 void ED_keymap_object(struct wmKeyConfig *keyconf);
@@ -62,7 +65,6 @@ void ED_base_object_activate(struct bContext *C, struct Base *base);
 
 void ED_base_object_free_and_unlink(struct Scene *scene, struct Base *base);
 
-void ED_object_apply_obmat(struct Object *ob);
 	/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
 struct Base *ED_object_add_duplicate(struct Scene *scene, struct Base *base, int dupflag);
 
@@ -82,11 +84,11 @@ void ED_object_enter_editmode(struct bContext *C, int flag);
 void ED_object_location_from_view(struct bContext *C, float *loc);
 void ED_object_rotation_from_view(struct bContext *C, float *rot);
 void ED_object_base_init_transform(struct bContext *C, struct Base *base, float *loc, float *rot);
-float ED_object_new_primitive_matrix(struct bContext *C, float *loc, float *rot, float primmat[][4]);
+float ED_object_new_primitive_matrix(struct bContext *C, struct Object *editob, float *loc, float *rot, float primmat[][4]);
 
 void ED_object_add_generic_props(struct wmOperatorType *ot, int do_editmode);
 int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-void ED_object_add_generic_get_opts(struct wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer);
+int ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer);
 struct Object *ED_object_add_type(struct bContext *C, int type, float *loc, float *rot, int enter_editmode, unsigned int layer);
 
 void ED_object_single_users(struct Scene *scene, int full);

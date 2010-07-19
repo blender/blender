@@ -28,10 +28,6 @@
 
 #include "IdentifierExpr.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 CIdentifierExpr::CIdentifierExpr(const STR_String& identifier,CValue* id_context)
 :m_identifier(identifier)
 {

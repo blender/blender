@@ -201,6 +201,7 @@ struct Isect
 #define RE_SKIP_VLR_NEIGHBOUR			(1 << 1)
 #define RE_SKIP_VLR_RENDER_CHECK		(1 << 2)
 #define RE_SKIP_VLR_NON_SOLID_MATERIAL	(1 << 3)
+#define RE_SKIP_VLR_BAKE_CHECK			(1 << 4)
 
 /* TODO use: FLT_MAX? */
 #define RE_RAYTRACE_MAXDIST	1e33

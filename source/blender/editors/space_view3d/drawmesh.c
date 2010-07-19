@@ -35,20 +35,13 @@
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
-#include "DNA_image_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_bmfont.h"
@@ -70,9 +63,8 @@
 #include "BIF_glutil.h"
 
 #include "UI_resources.h"
-#include "UI_interface_icons.h"
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
@@ -440,7 +432,7 @@ static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 	} else if (tface && tface->mode&TF_OBCOL) {
 		return 2; /* Don't set color */
 	} else if (!mcol) {
-		return 2; /* Don't set color */
+		return 1; /* Don't set color */
 	} else {
 		return 1; /* Set color from mcol */
 	}
@@ -475,9 +467,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 			}
 		} else if (tface && tface->mode&TF_OBCOL) {
 			for(j=0;j<4;j++) {
-				finalCol[i*4+j].r = Gtexdraw.obcol[0];
-				finalCol[i*4+j].g = Gtexdraw.obcol[1];
-				finalCol[i*4+j].b = Gtexdraw.obcol[2];
+				finalCol[i*4+j].r = FTOCHAR(Gtexdraw.obcol[0]);
+				finalCol[i*4+j].g = FTOCHAR(Gtexdraw.obcol[1]);
+				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[2]);
 			}
 		} else if (!mcol) {
 			if (tface) {
@@ -496,9 +488,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 					else copy_v3_v3(col, &ma->r);
 					
 					for(j=0;j<4;j++) {
-						finalCol[i*4+j].b = col[2];
-						finalCol[i*4+j].g = col[1];
-						finalCol[i*4+j].r = col[0];
+						finalCol[i*4+j].b = FTOCHAR(col[2]);
+						finalCol[i*4+j].g = FTOCHAR(col[1]);
+						finalCol[i*4+j].r = FTOCHAR(col[0]);
 					}
 				}
 				else
@@ -568,7 +560,7 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 		mtf.unwrap = tpoly->unwrap;
 	}
 
-	return draw_tface__set_draw(&mtf, has_vcol, matnr);
+	return draw_tface__set_draw_legacy(&mtf, has_vcol, matnr);
 }
 
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)

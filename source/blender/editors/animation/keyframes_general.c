@@ -1,5 +1,5 @@
 /**
- * $Id: 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -36,14 +36,9 @@
 #include "BLI_math.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_access.h"
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
@@ -100,8 +95,8 @@ void delete_fcurve_keys(FCurve *fcu)
 {
 	int i;
 	
-    if(fcu->bezt==NULL) /* ignore baked curves */
-        return;
+	if(fcu->bezt==NULL) /* ignore baked curves */
+		return;
     
 	/* Delete selected BezTriples */
 	for (i=0; i < fcu->totvert; i++) {
@@ -505,7 +500,7 @@ short copy_animedit_keys (bAnimContext *ac, ListBase *anim_data)
 		 *	- skip if no selected keyframes found (so no need to create unnecessary copy-buffer data)
 		 *	- this check should also eliminate any problems associated with using sample-data
 		 */
-		if (ANIM_fcurve_keys_bezier_loop(NULL, fcu, NULL, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), NULL) == 0)
+		if (ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, ANIM_editkeyframes_ok(BEZT_OK_SELECTED), NULL) == 0)
 			continue;
 		
 		/* init copybuf item info */

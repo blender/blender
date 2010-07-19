@@ -38,10 +38,6 @@
 
 #include "PyObjectPlus.h" 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -380,7 +376,7 @@ PyTypeObject KX_CameraActuator::Type = {
 };
 
 PyMethodDef KX_CameraActuator::Methods[] = {
-	{NULL,NULL,NULL,NULL} //Sentinel
+	{NULL, NULL} //Sentinel
 };
 
 PyAttributeDef KX_CameraActuator::Attributes[] = {

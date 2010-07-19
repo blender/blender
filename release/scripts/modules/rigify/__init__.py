@@ -19,24 +19,23 @@
 # <pep8 compliant>
 
 import bpy
-from Mathutils import Vector
+from mathutils import Vector
 
 # TODO, have these in a more general module
 from rna_prop_ui import rna_idprop_ui_prop_get
 SPECIAL_TYPES = "root",
 LAYER_TYPES = "main", "extra", "ik", "fk"
 
-ORG_LAYERS = [n==31 for n in range(0,32)]
-MCH_LAYERS = [n==30 for n in range(0,32)]
-DEF_LAYERS = [n==29 for n in range(0,32)]
-ROOT_LAYERS = [n==28 for n in range(0,32)]
+ORG_LAYERS = [n == 31 for n in range(0, 32)]
+MCH_LAYERS = [n == 30 for n in range(0, 32)]
+DEF_LAYERS = [n == 29 for n in range(0, 32)]
+ROOT_LAYERS = [n == 28 for n in range(0, 32)]
 
 ORG_PREFIX = "ORG-"
 MCH_PREFIX = "MCH-"
 DEF_PREFIX = "DEF-"
 
 WGT_PREFIX = "WGT-"
-
 
 
 class RigifyError(Exception):
@@ -235,12 +234,12 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         bone_gen = obj.pose.bones[bone.name]
 
         # Rotation mode and transform locks
-        bone_gen.rotation_mode     = bone.rotation_mode
-        bone_gen.lock_rotation     = tuple(bone.lock_rotation)
-        bone_gen.lock_rotation_w   = bone.lock_rotation_w
+        bone_gen.rotation_mode = bone.rotation_mode
+        bone_gen.lock_rotation = tuple(bone.lock_rotation)
+        bone_gen.lock_rotation_w = bone.lock_rotation_w
         bone_gen.lock_rotations_4d = bone.lock_rotations_4d
-        bone_gen.lock_location     = tuple(bone.lock_location)
-        bone_gen.lock_scale        = tuple(bone.lock_scale)
+        bone_gen.lock_location = tuple(bone.lock_location)
+        bone_gen.lock_scale = tuple(bone.lock_scale)
 
         # Custom properties
         for prop in bone.keys():
@@ -456,12 +455,12 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             bone.deform = True
         else:
             # Assign bone appearance if there is a widget for it
-            obj.pose.bones[bone_name].custom_shape = context.scene.objects.get(WGT_PREFIX+bone_name)
+            obj.pose.bones[bone_name].custom_shape = context.scene.objects.get(WGT_PREFIX + bone_name)
 
         layer_tot[:] = [max(lay) for lay in zip(layer_tot, bone.layer)]
 
     # Only for demo'ing
-    layer_show = [a and not (b or c or d) for a,b,c,d in zip(layer_tot, ORG_LAYERS, MCH_LAYERS, DEF_LAYERS)]
+    layer_show = [a and not (b or c or d) for a, b, c, d in zip(layer_tot, ORG_LAYERS, MCH_LAYERS, DEF_LAYERS)]
     arm.layer = layer_show
 
 
@@ -535,7 +534,7 @@ def generate_test_all(context, GRAPH=False):
     new_objects = rigify.generate_test(context)
 
     if GRAPH:
-        base_name = os.path.splitext(bpy.data.filename)[0]
+        base_name = os.path.splitext(bpy.data.filepath)[0]
         for obj, obj_new in new_objects:
             for obj in (obj, obj_new):
                 fn = base_name + "-" + bpy.utils.clean_name(obj.name)

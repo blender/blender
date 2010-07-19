@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -80,6 +80,7 @@ void IMAGE_OT_unpack(struct wmOperatorType *ot);
 void IMAGE_OT_cycle_render_slot(struct wmOperatorType *ot);
 
 void IMAGE_OT_sample(struct wmOperatorType *ot);
+void IMAGE_OT_sample_line(struct wmOperatorType *ot);
 void IMAGE_OT_curves_point_set(struct wmOperatorType *ot);
 
 void IMAGE_OT_record_composite(struct wmOperatorType *ot);

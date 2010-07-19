@@ -340,11 +340,6 @@ int Armature::addLimitConstraint(const std::string& segment_name, unsigned int d
 	}
 	if ((joint.getNDof() == 1 && dof > 0) || (joint.getNDof() == 2 && dof > 1))
 		return -1;
-	if (joint.getType() < Joint::TransX || joint.getType() == Joint::Swing) {
-		// for rotation joint, the limit is given in degree, convert to radian
-		_min *= KDL::deg2rad;
-		_max *= KDL::deg2rad;
-	}
 	Joint_struct& p_joint = m_joints[segment_it->second.q_nr+dof];
 	p_joint.min = _min;
 	p_joint.max = _max;

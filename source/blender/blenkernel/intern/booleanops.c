@@ -45,7 +45,6 @@
 
 #include "CSG_BooleanOps.h"
 
-#include "BKE_booleanops.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -380,7 +379,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 
 	// a hash table to remap materials to indices
 	if (mat) {
-		material_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+		material_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "booleanops.c");
 		*totmat = 0;
 	}
 

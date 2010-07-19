@@ -29,11 +29,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -45,10 +40,7 @@
 
 #include "ED_screen.h"
 #include "ED_types.h"
-#include "ED_util.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -138,7 +130,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockEndAlign(block);
 	
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco+(XIC/2), ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

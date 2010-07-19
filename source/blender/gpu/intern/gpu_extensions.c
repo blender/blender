@@ -71,6 +71,7 @@ static struct GPUGlobal {
 	GLuint currentfb;
 	int glslsupport;
 	int extdisabled;
+	int colordepth;
 	GPUDeviceType device;
 	GPUOSType os;
 	GPUDriverType driver;
@@ -92,6 +93,7 @@ void GPU_extensions_disable()
 
 void GPU_extensions_init()
 {
+	GLint r, g, b;
 	const char *vendor, *renderer;
 
 	glewInit();
@@ -106,6 +108,11 @@ void GPU_extensions_init()
 	if (!GLEW_ARB_vertex_shader) GG.glslsupport = 0;
 	if (!GLEW_ARB_fragment_shader) GG.glslsupport = 0;
 
+	glGetIntegerv(GL_RED_BITS, &r);
+	glGetIntegerv(GL_GREEN_BITS, &g);
+	glGetIntegerv(GL_BLUE_BITS, &b);
+    GG.colordepth = r+g+b; /* assumes same depth for RGB */
+    
 	vendor = (const char*)glGetString(GL_VENDOR);
 	renderer = (const char*)glGetString(GL_RENDERER);
 
@@ -117,7 +124,10 @@ void GPU_extensions_init()
 		GG.device = GPU_DEVICE_NVIDIA;
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}
-	else if(strstr(vendor, "Intel") || strstr(renderer, "Mesa DRI Intel")) {
+	else if(strstr(vendor, "Intel") ||
+	        /* src/mesa/drivers/dri/intel/intel_context.c */
+	        strstr(renderer, "Mesa DRI Intel") ||
+	        strstr(renderer, "Mesa DRI Mobile Intel")) {
 		GG.device = GPU_DEVICE_INTEL;
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}
@@ -142,8 +152,8 @@ void GPU_extensions_init()
 		GG.driver = GPU_DRIVER_SOFTWARE;
 	}
 	else {
-		GG.device = GPU_DEVICE_UNKNOWN;
-		GG.driver = GPU_DRIVER_UNKNOWN;
+		GG.device = GPU_DEVICE_ANY;
+		GG.driver = GPU_DRIVER_ANY;
 	}
 
 	GG.os = GPU_OS_UNIX;
@@ -170,13 +180,18 @@ int GPU_non_power_of_two_support()
 	return GLEW_ARB_texture_non_power_of_two;
 }
 
+int GPU_color_depth()
+{
+    return GG.colordepth;
+}
+
 int GPU_print_error(char *str)
 {
 	GLenum errCode;
 
 	if (G.f & G_DEBUG) {
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
-    	    fprintf(stderr, "%s opengl error: %s\n", str, gluErrorString(errCode));
+			fprintf(stderr, "%s opengl error: %s\n", str, gluErrorString(errCode));
 			return 1;
 		}
 	}
@@ -391,6 +406,9 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	GLenum type, format, internalformat;
 	void *pixels = NULL;
 	float vfBorderColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+	if(!GLEW_VERSION_1_2)
+		return NULL;
 
 	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->w = w;
@@ -1138,7 +1156,7 @@ GPUPixelBuffer *gpu_pixelbuffer_create(int x, int y, int halffloat, int numbuffe
 	pb->numbuffers = numbuffers;
 	pb->halffloat = halffloat;
 
-   	glGenBuffersARB(pb->numbuffers, pb->bindcode);
+	   glGenBuffersARB(pb->numbuffers, pb->bindcode);
 
 	if (!pb->bindcode[0]) {
 		fprintf(stderr, "GPUPixelBuffer allocation failed\n");
@@ -1154,9 +1172,9 @@ void GPU_pixelbuffer_texture(GPUTexture *tex, GPUPixelBuffer *pb)
 	void *pixels;
 	int i;
 
-    glBindTexture(GL_TEXTURE_RECTANGLE_EXT, tex->bindcode);
+	glBindTexture(GL_TEXTURE_RECTANGLE_EXT, tex->bindcode);
  
- 	for (i = 0; i < pb->numbuffers; i++) {
+	 for (i = 0; i < pb->numbuffers; i++) {
 		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, pb->bindcode[pb->current]);
 		glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, pb->datasize, NULL,
 			GL_STREAM_DRAW_ARB);
@@ -1170,22 +1188,22 @@ void GPU_pixelbuffer_texture(GPUTexture *tex, GPUPixelBuffer *pb)
 		}
 	}
 
-    glBindTexture(GL_TEXTURE_RECTANGLE_EXT, 0);
+	glBindTexture(GL_TEXTURE_RECTANGLE_EXT, 0);
 }
 
 static int pixelbuffer_map_into_gpu(GLuint bindcode)
 {
 	void *pixels;
 
-    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, bindcode);
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, bindcode);
 	pixels = glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, GL_WRITE_ONLY);
 
 	/* do stuff in pixels */
 
-    if (!glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT)) {
+	if (!glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT)) {
 		fprintf(stderr, "Could not unmap opengl PBO\n");
 		return 0;
-    }
+	}
 	
 	return 1;
 }
@@ -1193,14 +1211,14 @@ static int pixelbuffer_map_into_gpu(GLuint bindcode)
 static void pixelbuffer_copy_to_texture(GPUTexture *tex, GPUPixelBuffer *pb, GLuint bindcode)
 {
 	GLenum type = (pb->halffloat)? GL_HALF_FLOAT_NV: GL_UNSIGNED_BYTE;
-    glBindTexture(GL_TEXTURE_RECTANGLE_EXT, tex->bindcode);
-    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, bindcode);
+	glBindTexture(GL_TEXTURE_RECTANGLE_EXT, tex->bindcode);
+	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, bindcode);
 
-    glTexSubImage2D(GL_TEXTURE_RECTANGLE_EXT, 0, 0, 0, tex->w, tex->h,
-                    GL_RGBA, type, NULL);
+	glTexSubImage2D(GL_TEXTURE_RECTANGLE_EXT, 0, 0, 0, tex->w, tex->h,
+					GL_RGBA, type, NULL);
 
 	glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-    glBindTexture(GL_TEXTURE_RECTANGLE_EXT, 0);
+	glBindTexture(GL_TEXTURE_RECTANGLE_EXT, 0);
 }
 
 void GPU_pixelbuffer_async_to_gpu(GPUTexture *tex, GPUPixelBuffer *pb)
@@ -1217,7 +1235,7 @@ void GPU_pixelbuffer_async_to_gpu(GPUTexture *tex, GPUPixelBuffer *pb)
 
 		pixelbuffer_map_into_gpu(pb->bindcode[newbuffer]);
 		pixelbuffer_copy_to_texture(tex, pb, pb->bindcode[pb->current]);
-    }
+	}
 }
 #endif
 

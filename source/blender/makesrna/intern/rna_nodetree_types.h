@@ -74,7 +74,7 @@ DefNode( CompositorNode, CMP_NODE_TRANSLATE,      0,                      "TRANS
 DefNode( CompositorNode, CMP_NODE_ZCOMBINE,       0,                      "ZCOMBINE",       Zcombine,         "Z Combine",         ""              )
 DefNode( CompositorNode, CMP_NODE_COMBRGBA,       0,                      "COMBRGBA",       CombRGBA,         "Combine RGBA",      ""              )
 DefNode( CompositorNode, CMP_NODE_DILATEERODE,    def_cmp_dilate_erode,   "DILATEERODE",    DilateErode,      "Dilate/Erode",      ""              )
-DefNode( CompositorNode, CMP_NODE_ROTATE,         0,                      "ROTATE",         Rotate,           "Rotate",            ""              )
+DefNode( CompositorNode, CMP_NODE_ROTATE,         def_cmp_rotate,         "ROTATE",         Rotate,           "Rotate",            ""              )
 DefNode( CompositorNode, CMP_NODE_SCALE,          def_cmp_scale,          "SCALE",          Scale,            "Scale",             ""              )
 DefNode( CompositorNode, CMP_NODE_SEPYCCA,        0,                      "SEPYCCA",        SepYCCA,          "Separate YCCA",     ""              )
 DefNode( CompositorNode, CMP_NODE_COMBYCCA,       0,                      "COMBYCCA",       CombYCCA,         "Combine YCCA",      ""              )

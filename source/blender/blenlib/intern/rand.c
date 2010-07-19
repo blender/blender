@@ -37,10 +37,6 @@
 #include "BLI_threads.h"
 #include "BLI_rand.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef unsigned __int64	r_uint64;
 

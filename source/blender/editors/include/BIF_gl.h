@@ -31,7 +31,7 @@
 #ifndef BIF_GL_H
 #define BIF_GL_H
 
-#include "GL/glew.h"
+#include "../../../../extern/glew/include/GL/glew.h"
 
 	/*
 	 * these should be phased out. cpack should be replaced in

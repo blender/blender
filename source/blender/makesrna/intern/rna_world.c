@@ -26,7 +26,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -363,9 +362,9 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "World");
 	RNA_def_struct_ui_text(srna, "World Mist", "Mist settings for a World data-block");
 
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_mist", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_MIST);
-	RNA_def_property_ui_text(prop, "Enabled", "Occlude objects with the environment color as they are further away");
+	RNA_def_property_ui_text(prop, "Use Mist", "Occlude objects with the environment color as they are further away");
 	RNA_def_property_update(prop, 0, "rna_World_draw_update");
 
 	prop= RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
@@ -411,10 +410,10 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "World");
 	RNA_def_struct_ui_text(srna, "World Stars", "Stars setting for a World data-block");
 
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_stars", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_STARS);
-	RNA_def_property_ui_text(prop, "Enabled", "Enable starfield generation");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_ui_text(prop, "Use Stars", "Enable starfield generation");
+	RNA_def_property_update(prop, 0, "rna_World_draw_update");
 
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "starsize");
@@ -432,7 +431,7 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "stardist");
 	RNA_def_property_range(prop, 2, 1000);
 	RNA_def_property_ui_text(prop, "Average Separation", "Average distance between any two stars");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, 0, "rna_World_draw_update");
 
 	prop= RNA_def_property(srna, "color_randomization", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "starcolnoise");

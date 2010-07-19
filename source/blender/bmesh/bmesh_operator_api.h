@@ -392,7 +392,7 @@ BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname,
 
 	if (!slot->data.ghash) {
 		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash, 
-			                             BLI_ghashutil_ptrcmp);
+										 BLI_ghashutil_ptrcmp, "bmesh op");
 	}
 	
 	BLI_ghash_insert(slot->data.ghash, element, mapping);

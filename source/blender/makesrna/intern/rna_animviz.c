@@ -24,10 +24,7 @@
 
 #include <stdlib.h>
 
-#include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
-#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -128,11 +125,13 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Motion Path Points", "Cached positions per frame");
 	
 	/* Playback Ranges */
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
+	RNA_def_property_int_sdna(prop, NULL, "start_frame");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Start Frame", "Starting frame of the stored range");
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
+	RNA_def_property_int_sdna(prop, NULL, "end_frame");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "End Frame", "End frame of the stored range");
 	
@@ -159,7 +158,7 @@ static void rna_def_animviz_ghosts(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static const EnumPropertyItem prop_type_items[] = {
-		{GHOST_TYPE_NONE, "NONE", 0, "No Ghosts", "Don not show any ghosts"},
+		{GHOST_TYPE_NONE, "NONE", 0, "No Ghosts", "Do not show any ghosts"},
 		{GHOST_TYPE_ACFRA, "CURRENT_FRAME", 0, "Around Current Frame", "Show ghosts from around the current frame"},
 		{GHOST_TYPE_RANGE, "RANGE", 0, "In Range", "Show ghosts for the specified frame range"},
 		{GHOST_TYPE_KEYS, "KEYS", 0, "On Keyframes", "Show ghosts on keyframes"},
@@ -187,17 +186,17 @@ static void rna_def_animviz_ghosts(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ghost_step");
 	RNA_def_property_range(prop, 1, 20);
-	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames between ghosts shown (not for 'On Keyframes' Onion-skining method)");
+	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames between ghosts shown (not for 'On Keyframes' Onion-skinning method)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
 	/* Playback Ranges */
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghost_sf");
 	RNA_def_property_int_funcs(prop, NULL, "rna_AnimViz_ghost_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "Starting frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghost_ef");
 	RNA_def_property_int_funcs(prop, NULL, "rna_AnimViz_ghost_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "End frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method)");
@@ -223,8 +222,8 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static const EnumPropertyItem prop_type_items[]= {
-		{MOTIONPATH_TYPE_RANGE, "RANGE", 0, "In Range", "Display Paths of poses within specified range"},
 		{MOTIONPATH_TYPE_ACFRA, "CURRENT_FRAME", 0, "Around Frame", "Display Paths of poses within a fixed number of frames around the current frame"},
+		{MOTIONPATH_TYPE_RANGE, "RANGE", 0, "In Range", "Display Paths of poses within specified range"},
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_location_items[]= {
 		{MOTIONPATH_BAKE_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
@@ -265,21 +264,26 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Keyframe Numbers", "Show frame numbers of Keyframes on Motion Paths");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
+	prop= RNA_def_property(srna, "search_all_action_keyframes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "path_viewflag", MOTIONPATH_VIEW_KFACT);
+	RNA_def_property_ui_text(prop, "All Action Keyframes", "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
+	
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "path_step");
 	RNA_def_property_range(prop, 1, 100);
-	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames between paths shown (not for 'On Keyframes' Onion-skining method)");
+	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames between paths shown (not for 'On Keyframes' Onion-skinning method)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
 	
 	/* Playback Ranges */
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "path_sf");
 	RNA_def_property_int_funcs(prop, NULL, "rna_AnimViz_path_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "path_ef");
 	RNA_def_property_int_funcs(prop, NULL, "rna_AnimViz_path_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)");

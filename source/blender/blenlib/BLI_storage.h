@@ -50,7 +50,7 @@ int    BLI_filesize(int file);
 int    BLI_filepathsize(const char *path);
 double BLI_diskfree(char *dir);
 char *BLI_getwdN(char *dir);
-void BLI_hide_dot_files(int set);
+
 unsigned int BLI_getdir(char *dirname, struct direntry **filelist);
 /**
  * @attention Do not confuse with BLI_exists
@@ -75,6 +75,9 @@ struct LinkNode *BLI_read_file_as_lines(char *name);
 	 * Free the list returned by BLI_read_file_as_lines.
 	 */
 void BLI_free_file_lines(struct LinkNode *lines);
+
+	/* Compare if one was last modified before the other */
+int		BLI_file_older(const char *file1, const char *file2);
 
 #endif /* BLI_STORAGE_H */
 

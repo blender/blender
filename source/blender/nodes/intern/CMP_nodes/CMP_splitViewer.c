@@ -61,6 +61,7 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		CompBuf *cbuf, *buf1, *buf2, *mask;
 		int x, y;
 		float offset;
+		void *lock;
 		
 		buf1= typecheck_compbuf(in[0]->data, CB_RGBA);
 		buf2= typecheck_compbuf(in[1]->data, CB_RGBA);
@@ -68,9 +69,10 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		BKE_image_user_calc_frame(node->storage, rd->cfra, 0);
 		
 		/* always returns for viewer image, but we check nevertheless */
-		ibuf= BKE_image_get_ibuf(ima, node->storage);
+		ibuf= BKE_image_acquire_ibuf(ima, node->storage, &lock);
 		if(ibuf==NULL) {
 			printf("node_composit_exec_viewer error\n");
+			BKE_image_release_ibuf(ima, lock);
 			return;
 		}
 		
@@ -120,6 +122,8 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		}
 		
 		composit3_pixel_processor(node, cbuf, buf1, in[0]->vec, buf2, in[1]->vec, mask, NULL, do_copy_split_rgba, CB_RGBA, CB_RGBA, CB_VAL);
+		
+		BKE_image_release_ibuf(ima, lock);
 		
 		generate_preview(data, node, cbuf);
 		free_compbuf(cbuf);

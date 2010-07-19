@@ -36,10 +36,6 @@
 #include "GHOST_EventDragnDrop.h"
 #include "GHOST_Debug.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 {

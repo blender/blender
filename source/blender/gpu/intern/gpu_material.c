@@ -105,8 +105,8 @@ struct GPULamp {
 
 	int type, mode, lay;
 
-	float dynenergy, dyncol[3];
-	float energy, col[3];
+	float dynpower, dyncol[3];
+	float power, col[3];
 
 	float co[3], vec[3];
 	float dynco[3], dynvec[3];
@@ -115,7 +115,7 @@ struct GPULamp {
 	float dynimat[4][4];
 
 	float spotsi, spotbl, k;
-	float dist, att1, att2;
+	float dist;
 
 	float bias, d, clipend;
 	int size;
@@ -257,11 +257,11 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 			lamp= nlink->data;
 
 			if((lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))) {
-				lamp->dynenergy = lamp->energy;
+				lamp->dynpower = lamp->power;
 				VECCOPY(lamp->dyncol, lamp->col);
 			}
 			else {
-				lamp->dynenergy = 0.0f;
+				lamp->dynpower = 0.0f;
 				lamp->dyncol[0]= lamp->dyncol[1]= lamp->dyncol[2] = 0.0f;
 			}
 		}
@@ -396,9 +396,6 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 			case LA_FALLOFF_INVSQUARE:
 				GPU_link(mat, "lamp_falloff_invsquare", GPU_uniform(&lamp->dist), *dist, &visifac);
 				break;
-			case LA_FALLOFF_SLIDERS:
-				GPU_link(mat, "lamp_falloff_sliders", GPU_uniform(&lamp->dist), GPU_uniform(&lamp->att1), GPU_uniform(&lamp->att2), *dist, &visifac);
-				break;
 			case LA_FALLOFF_CURVE:
 				{
 					float *array;
@@ -435,34 +432,34 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 #if 0
 static void area_lamp_vectors(LampRen *lar)
 {
-    float xsize= 0.5*lar->area_size, ysize= 0.5*lar->area_sizey, multifac;
+	float xsize= 0.5*lar->area_size, ysize= 0.5*lar->area_sizey, multifac;
 
-    /* make it smaller, so area light can be multisampled */
-    multifac= 1.0f/sqrt((float)lar->ray_totsamp);
-    xsize *= multifac;
-    ysize *= multifac;
+	/* make it smaller, so area light can be multisampled */
+	multifac= 1.0f/sqrt((float)lar->ray_totsamp);
+	xsize *= multifac;
+	ysize *= multifac;
 
-    /* corner vectors */
-    lar->area[0][0]= lar->co[0] - xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
-    lar->area[0][1]= lar->co[1] - xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
-    lar->area[0][2]= lar->co[2] - xsize*lar->mat[0][2] - ysize*lar->mat[1][2];
+	/* corner vectors */
+	lar->area[0][0]= lar->co[0] - xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
+	lar->area[0][1]= lar->co[1] - xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
+	lar->area[0][2]= lar->co[2] - xsize*lar->mat[0][2] - ysize*lar->mat[1][2];
 
-    /* corner vectors */
-    lar->area[1][0]= lar->co[0] - xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
-    lar->area[1][1]= lar->co[1] - xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
-    lar->area[1][2]= lar->co[2] - xsize*lar->mat[0][2] + ysize*lar->mat[1][2];
+	/* corner vectors */
+	lar->area[1][0]= lar->co[0] - xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
+	lar->area[1][1]= lar->co[1] - xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
+	lar->area[1][2]= lar->co[2] - xsize*lar->mat[0][2] + ysize*lar->mat[1][2];
 
-    /* corner vectors */
-    lar->area[2][0]= lar->co[0] + xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
-    lar->area[2][1]= lar->co[1] + xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
-    lar->area[2][2]= lar->co[2] + xsize*lar->mat[0][2] + ysize*lar->mat[1][2];
+	/* corner vectors */
+	lar->area[2][0]= lar->co[0] + xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
+	lar->area[2][1]= lar->co[1] + xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
+	lar->area[2][2]= lar->co[2] + xsize*lar->mat[0][2] + ysize*lar->mat[1][2];
 
-    /* corner vectors */
-    lar->area[3][0]= lar->co[0] + xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
-    lar->area[3][1]= lar->co[1] + xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
-    lar->area[3][2]= lar->co[2] + xsize*lar->mat[0][2] - ysize*lar->mat[1][2];
-    /* only for correction button size, matrix size works on energy */
-    lar->areasize= lar->dist*lar->dist/(4.0*xsize*ysize);
+	/* corner vectors */
+	lar->area[3][0]= lar->co[0] + xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
+	lar->area[3][1]= lar->co[1] + xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
+	lar->area[3][2]= lar->co[2] + xsize*lar->mat[0][2] - ysize*lar->mat[1][2];
+	/* only for correction button size, matrix size works on energy */
+	lar->areasize= lar->dist*lar->dist/(4.0*xsize*ysize);
 }
 #endif
 
@@ -525,9 +522,6 @@ static void add_to_diffuse(GPUMaterial *mat, Material *ma, GPUShadeInput *shi, G
 		else {
 			/* input */
 			switch(ma->rampin_col) {
-			case MA_RAMP_IN_ENERGY:
-				GPU_link(mat, "ramp_rgbtobw", rgb, &fac);
-				break;
 			case MA_RAMP_IN_SHADER:
 				fac= is;
 				break;
@@ -578,9 +572,6 @@ static void do_specular_ramp(GPUShadeInput *shi, GPUNodeLink *is, GPUNodeLink *t
 		
 		/* input */
 		switch(ma->rampin_spec) {
-		case MA_RAMP_IN_ENERGY:
-			fac = t;
-			break;
 		case MA_RAMP_IN_SHADER:
 			fac = is;
 			break;
@@ -682,7 +673,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 			
 			if(lamp->mode & LA_ONLYSHADOW) {
 				GPU_link(mat, "shade_only_shadow", i, shadfac,
-					GPU_dynamic_uniform(&lamp->dynenergy), &shadfac);
+					GPU_dynamic_uniform(&lamp->dynpower), &shadfac);
 				
 				if(!(lamp->mode & LA_NO_DIFF))
 					GPU_link(mat, "shade_only_shadow_diffuse", shadfac, shi->rgb,
@@ -965,7 +956,7 @@ static void do_material_tex(GPUShadeInput *shi)
 
 				if(tex->imaflag & TEX_USEALPHA)
 					talpha= 1;
-		    }
+			}
 			else continue;
 
 			/* texture output */
@@ -1146,10 +1137,10 @@ void GPU_shadeinput_set(GPUMaterial *mat, Material *ma, GPUShadeInput *shi)
 void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 {
 	GPUMaterial *mat= shi->gpumat;
-	GPUNodeLink *emit, *ulinfac, *ulogfac, *mistfac;
+	GPUNodeLink *emit, *mistfac;
 	Material *ma= shi->mat;
 	World *world= mat->scene->world;
-	float linfac, logfac, misttype;
+	float misttype;
 
 	memset(shr, 0, sizeof(*shr));
 
@@ -1187,20 +1178,6 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		shr->alpha = shi->alpha;
 
 		if(world) {
-        	/* exposure correction */
-			if(world->exp!=0.0f || world->range!=1.0f) {
-				linfac= 1.0 + pow((2.0*world->exp + 0.5), -10);
-				logfac= log((linfac-1.0)/linfac)/world->range;
-
-				GPU_link(mat, "set_value", GPU_uniform(&linfac), &ulinfac);
-				GPU_link(mat, "set_value", GPU_uniform(&logfac), &ulogfac);
-
-				GPU_link(mat, "shade_exposure_correct", shr->combined,
-					ulinfac, ulogfac, &shr->combined);
-				GPU_link(mat, "shade_exposure_correct", shr->spec,
-					ulinfac, ulogfac, &shr->spec);
-			}
-
 			/* ambient color */
 			if(world->ambr!=0.0f || world->ambg!=0.0f || world->ambb!=0.0f) {
 				if(GPU_link_changed(shi->amb) || ma->amb != 0.0f)
@@ -1325,14 +1302,14 @@ void GPU_lamp_update(GPULamp *lamp, int lay, float obmat[][4])
 	invert_m4_m4(lamp->imat, mat);
 }
 
-void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float energy)
+void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float power)
 {
-	lamp->energy = energy;
-	if(lamp->mode & LA_NEG) lamp->energy= -lamp->energy;
+	lamp->power = power;
+	if(lamp->mode & LA_NEG) lamp->power= -lamp->power;
 
-	lamp->col[0]= r* lamp->energy;
-	lamp->col[1]= g* lamp->energy;
-	lamp->col[2]= b* lamp->energy;
+	lamp->col[0]= r* lamp->power;
+	lamp->col[1]= g* lamp->power;
+	lamp->col[2]= b* lamp->power;
 }
 
 static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *la, GPULamp *lamp)
@@ -1348,12 +1325,12 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	lamp->mode = la->mode;
 	lamp->type = la->type;
 
-	lamp->energy = la->energy;
-	if(lamp->mode & LA_NEG) lamp->energy= -lamp->energy;
+	lamp->power= (ELEM(la->type, LA_SUN, LA_HEMI))? la->energy*M_PI: la->power;
+	if(lamp->mode & LA_NEG) lamp->power= -lamp->power;
 
-	lamp->col[0]= la->r*lamp->energy;
-	lamp->col[1]= la->g*lamp->energy;
-	lamp->col[2]= la->b*lamp->energy;
+	lamp->col[0]= la->r*lamp->power;
+	lamp->col[1]= la->g*lamp->power;
+	lamp->col[2]= la->b*lamp->power;
 
 	GPU_lamp_update(lamp, ob->lay, ob->obmat);
 
@@ -1367,8 +1344,6 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 
 	lamp->dist= la->dist;
 	lamp->falloff_type= la->falloff_type;
-	lamp->att1= la->att1;
-	lamp->att2= la->att2;
 	lamp->curfalloff= la->curfalloff;
 
 	/* initshadowbuf */
@@ -1478,7 +1453,7 @@ void GPU_lamp_free(Object *ob)
 int GPU_lamp_has_shadow_buffer(GPULamp *lamp)
 {
 	return (!(lamp->scene->gm.flag & GAME_GLSL_NO_SHADOWS) &&
-	        !(lamp->scene->gm.flag & GAME_GLSL_NO_LIGHTS) &&
+			!(lamp->scene->gm.flag & GAME_GLSL_NO_LIGHTS) &&
 			lamp->tex && lamp->fb);
 }
 

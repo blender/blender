@@ -36,15 +36,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
 #include "BLI_cellalloc.h"
 
 /*split this all into a seperate bevel.c file in src*/
@@ -55,8 +51,8 @@ BME_TransData_Head *BME_init_transdata(int bufsize) {
 	BME_TransData_Head *td;
 
 	td = MEM_callocN(sizeof(BME_TransData_Head), "BMesh transdata header");
-	td->gh = BLI_ghash_new(BLI_ghashutil_ptrhash,BLI_ghashutil_ptrcmp);
-	td->ma = BLI_memarena_new(bufsize);
+	td->gh = BLI_ghash_new(BLI_ghashutil_ptrhash,BLI_ghashutil_ptrcmp, "BME_init_transdata gh");
+	td->ma = BLI_memarena_new(bufsize, "BME_TransData arena");
 	BLI_memarena_use_calloc(td->ma);
 
 	return td;

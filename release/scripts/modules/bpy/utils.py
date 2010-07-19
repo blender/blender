@@ -27,7 +27,7 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
-from _bpy import home_paths
+from _bpy import home_paths, blend_paths
 
 
 def _test_import(module_name, loaded_modules):
@@ -144,6 +144,9 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             _loaded.append(mod)
 
     if reload_scripts:
+
+        # TODO, this is broken but should work, needs looking into
+        '''
         # reload modules that may not be directly included
         for type_class_name in dir(_bpy.types):
             type_class = getattr(_bpy.types, type_class_name)
@@ -156,6 +159,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         for module_name in sorted(loaded_modules):
             print("Reloading:", module_name)
             test_reload(_sys.modules[module_name])
+        '''
 
         # loop over and unload all scripts
         _loaded.reverse()
@@ -166,23 +170,26 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     unregister()
                 except:
                     traceback.print_exc()
+
+        for mod in _loaded:
+            reload(mod)
+
         _loaded[:] = []
 
-    for base_path in script_paths(user=False):
-        for path_subdir in ("ui", "op", "io", "cfg"):
+    user_path = user_script_path()
+
+    for base_path in script_paths():
+        for path_subdir in ("", "ui", "op", "io", "cfg", "keyingsets", "modules"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
                 sys_path_ensure(path)
 
-                for mod in modules_from_path(path, loaded_modules):
-                    test_register(mod)
+                # only add this to sys.modules, dont run
+                if path_subdir == "modules":
+                    continue
 
-    user_path = user_script_path()
-    if user_path:
-        for path_subdir in ("", "ui", "op", "io", "cfg"):
-            path = _os.path.join(user_path, path_subdir)
-            if _os.path.isdir(path):
-                sys_path_ensure(path)
+                if user_path != base_path and path_subdir == "":
+                    continue # avoid loading 2.4x scripts
 
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
@@ -206,8 +213,26 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
 
 def expandpath(path):
+    """
+    Returns the absolute path relative to the current blend file using the "//" prefix.
+    """
     if path.startswith("//"):
-        return _os.path.join(_os.path.dirname(_bpy.data.filename), path[2:])
+        return _os.path.join(_os.path.dirname(_bpy.data.filepath), path[2:])
+
+    return path
+
+
+def relpath(path, start=None):
+    """
+    Returns the path relative to the current blend file using the "//" prefix.
+
+    :arg start: Relative to this path, when not set the current filename is used.
+    :type start: string
+    """
+    if not path.startswith("//"):
+        if start is None:
+            start = _os.path.dirname(_bpy.data.filepath)
+        return "//" + _os.path.relpath(path, start)
 
     return path
 
@@ -315,3 +340,51 @@ def preset_paths(subdir):
     '''
 
     return (_os.path.join(_presets, subdir), )
+
+
+def smpte_from_seconds(time, fps=None):
+    '''
+    Returns an SMPTE formatted string from the time in seconds: "HH:MM:SS:FF".
+
+    If the fps is not given the current scene is used.
+    '''
+    import math
+
+    if fps is None:
+        fps = _bpy.context.scene.render.fps
+
+    hours = minutes = seconds = frames = 0
+
+    if time < 0:
+        time = - time
+        neg = "-"
+    else:
+        neg = ""
+
+    if time >= 3600.0: # hours
+        hours = int(time / 3600.0)
+        time = time % 3600.0
+    if time >= 60.0: # mins
+        minutes = int(time / 60.0)
+        time = time % 60.0
+
+    seconds = int(time)
+    frames = int(round(math.floor(((time - seconds) * fps))))
+
+    return "%s%02d:%02d:%02d:%02d" % (neg, hours, minutes, seconds, frames)
+
+
+def smpte_from_frame(frame, fps=None, fps_base=None):
+    '''
+    Returns an SMPTE formatted string from the frame: "HH:MM:SS:FF".
+
+    If the fps and fps_base are not given the current scene is used.
+    '''
+
+    if fps is None:
+        fps = _bpy.context.scene.render.fps
+
+    if fps_base is None:
+        fps_base = _bpy.context.scene.render.fps_base
+
+    return smpte_from_seconds((frame * fps_base) / fps, fps)

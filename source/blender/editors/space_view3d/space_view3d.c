@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,13 +29,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -50,21 +45,19 @@
 #include "BKE_utildefines.h"
 #include "BKE_image.h"
 
-#include "ED_armature.h"
-#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_object.h"
 
 #include "BIF_gl.h"
 
+
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
 #include "RNA_access.h"
+
+#include "UI_resources.h"
 
 #include "view3d_intern.h"	// own include
 
@@ -230,7 +223,7 @@ static SpaceLink *view3d_new(const bContext *C)
 	ar= MEM_callocN(sizeof(ARegion), "toolshelf for view3d");
 	
 	BLI_addtail(&v3d->regionbase, ar);
-	ar->regiontype= RGN_TYPE_UI;
+	ar->regiontype= RGN_TYPE_TOOLS;
 	ar->alignment= RGN_ALIGN_LEFT;
 	ar->flag = RGN_FLAG_HIDDEN;
 	
@@ -238,7 +231,7 @@ static SpaceLink *view3d_new(const bContext *C)
 	ar= MEM_callocN(sizeof(ARegion), "tool properties for view3d");
 	
 	BLI_addtail(&v3d->regionbase, ar);
-	ar->regiontype= RGN_TYPE_UI;
+	ar->regiontype= RGN_TYPE_TOOL_PROPS;
 	ar->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
 	ar->flag = RGN_FLAG_HIDDEN;
 	
@@ -420,10 +413,16 @@ static int view3d_mat_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 
 static int view3d_ima_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 {
-	if(drag->type==WM_DRAG_ID) {
-		ID *id= (ID *)drag->poin;
-		if( GS(id->name)==ID_IM )
-			return 1;
+	if( ED_view3d_give_base_under_cursor(C, event->mval) ) {
+		if(drag->type==WM_DRAG_ID) {
+			ID *id= (ID *)drag->poin;
+			if( GS(id->name)==ID_IM )
+				return 1;
+		}
+		else if(drag->type==WM_DRAG_PATH){
+			if(ELEM(drag->icon, 0, ICON_FILE_IMAGE))	/* rule might not work? */
+				return 1;
+		}
 	}
 	return 0;
 }
@@ -444,8 +443,18 @@ static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
 static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	ID *id= (ID *)drag->poin;
-
+	
 	RNA_string_set(drop->ptr, "name", id->name+2);
+}
+
+static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id= (ID *)drag->poin;
+	
+	if(id)
+		RNA_string_set(drop->ptr, "name", id->name+2);
+	if(drag->path[0]) 
+		RNA_string_set(drop->ptr, "filepath", drag->path);
 }
 
 
@@ -456,7 +465,7 @@ static void view3d_dropboxes(void)
 	
 	WM_dropbox_add(lb, "OBJECT_OT_add_named_cursor", view3d_ob_drop_poll, view3d_ob_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
-	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_drop_poll, view3d_id_drop_copy);
+	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_drop_poll, view3d_id_path_drop_copy);
 }
 
 
@@ -514,12 +523,18 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_ANIMATION:
 			switch(wmn->data) {
-				case ND_KEYFRAME_EDIT:
 				case ND_KEYFRAME_PROP:
-				case ND_NLA_EDIT:
 				case ND_NLA_ACTCHANGE:
-				case ND_ANIMCHAN_SELECT:
 					ED_region_tag_redraw(ar);
+					break;
+				case ND_NLA:
+				case ND_KEYFRAME:
+					if (wmn->action == NA_EDITED)
+						ED_region_tag_redraw(ar);
+					break;
+				case ND_ANIMCHAN:
+					if (wmn->action == NA_SELECTED)
+						ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
@@ -548,8 +563,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_MODIFIER:
 				case ND_CONSTRAINT:
 				case ND_KEYS:
-				case ND_PARTICLE_SELECT:
-				case ND_PARTICLE_DATA:
+				case ND_PARTICLE:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -573,7 +587,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_BRUSH:
 			if(wmn->action == NA_EDITED)
-				ED_region_tag_redraw(ar);
+				ED_region_tag_redraw_overlay(ar);
 			break;			
 		case NC_MATERIAL:
 			switch(wmn->data) {
@@ -601,9 +615,18 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			 * more context than just the region */
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_TEXTURE:	
+			/* same as above */
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_VIEW3D)
+			if(wmn->data == ND_SPACE_VIEW3D) {
+				if (wmn->subtype == NS_VIEW3D_GPU) {
+					RegionView3D *rv3d= ar->regiondata;
+					rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
+				}
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_ID:
 			if(wmn->action == NA_RENAME)
@@ -691,12 +714,15 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_ANIMATION:
 			switch(wmn->data) {
-				case ND_KEYFRAME_EDIT:
 				case ND_KEYFRAME_PROP:
-				case ND_NLA_EDIT:
 				case ND_NLA_ACTCHANGE:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_NLA:
+				case ND_KEYFRAME:
+					if (wmn->action == NA_EDITED)
+						ED_region_tag_redraw(ar);
+					break;	
 			}
 			break;
 		case NC_SCENE:
@@ -723,6 +749,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_POSE:
 				case ND_DRAW:
 				case ND_KEYS:
+				case ND_MODIFIER:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -734,6 +761,8 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			if (wmn->action == NA_EDITED)
+				ED_region_tag_redraw(ar);
 			break;
 		case NC_TEXTURE:
 			/* for brush textures */
@@ -774,6 +803,25 @@ static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, CTX_data_mode_string(C), -1);
 }
 
+static void view3d_props_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_WM:
+			if(wmn->data == ND_HISTORY)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SCENE:
+			if(wmn->data == ND_MODE)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
+			break;
+	}
+}
+
 static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	View3D *v3d= CTX_wm_view3d(C);
@@ -802,7 +850,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 				}
 			}
 		}
-
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selected_editable_objects") || CTX_data_equals(member, "selected_editable_bases")) {
@@ -820,7 +868,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 				}
 			}
 		}
-		
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "visible_objects") || CTX_data_equals(member, "visible_bases")) {
@@ -836,7 +884,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 				}
 			}
 		}
-		
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "selectable_objects") || CTX_data_equals(member, "selectable_bases")) {
@@ -852,7 +900,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 				}
 			}
 		}
-		
+		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "active_base")) {
@@ -948,7 +996,10 @@ void ED_spacetype_view3d(void)
 	art->draw= view3d_tools_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
+#if 0
+	/* unfinished still */
 	view3d_toolshelf_register(art);
+#endif
 
 	/* regions: tool properties */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
@@ -956,7 +1007,7 @@ void ED_spacetype_view3d(void)
 	art->prefsizex= 0;
 	art->prefsizey= 120;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
-	art->listener= view3d_buttons_area_listener;
+	art->listener= view3d_props_area_listener;
 	art->init= view3d_tools_area_init;
 	art->draw= view3d_tools_area_draw;
 	BLI_addhead(&st->regiontypes, art);

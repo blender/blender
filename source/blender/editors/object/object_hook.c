@@ -35,16 +35,11 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
@@ -60,17 +55,15 @@
 
 #include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_view3d.h"
 #include "ED_screen.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "object_intern.h"
@@ -94,7 +87,7 @@ static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, floa
 	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if(BM_TestHFlag(eve, BM_SELECT)) {
 			*index= nr; index++;
-			add_v3_v3v3(cent, cent, eve->co);
+			add_v3_v3(cent, eve->co);
 		}
 		nr++;
 	}
@@ -123,7 +116,7 @@ static int return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *name, fl
 				for(i=0; i<dvert->totweight; i++){
 					if(dvert->dw[i].def_nr == (obedit->actdef-1)) {
 						totvert++;
-						add_v3_v3v3(cent, cent, eve->co);
+						add_v3_v3(cent, eve->co);
 					}
 				}
 			}
@@ -190,7 +183,7 @@ static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar
 		if(bp->f1 & SELECT) {
 			if(bp->hide==0) {
 				*index= nr; index++;
-				add_v3_v3v3(cent, cent, bp->vec);
+				add_v3_v3(cent, bp->vec);
 			}
 		}
 		bp++;
@@ -263,17 +256,17 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 			while(a--) {
 				if(bezt->f1 & SELECT) {
 					*index= nr; index++;
-					add_v3_v3v3(cent, cent, bezt->vec[0]);
+					add_v3_v3(cent, bezt->vec[0]);
 				}
 				nr++;
 				if(bezt->f2 & SELECT) {
 					*index= nr; index++;
-					add_v3_v3v3(cent, cent, bezt->vec[1]);
+					add_v3_v3(cent, bezt->vec[1]);
 				}
 				nr++;
 				if(bezt->f3 & SELECT) {
 					*index= nr; index++;
-					add_v3_v3v3(cent, cent, bezt->vec[2]);
+					add_v3_v3(cent, bezt->vec[2]);
 				}
 				nr++;
 				bezt++;
@@ -285,7 +278,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 			while(a--) {
 				if(bp->f1 & SELECT) {
 					*index= nr; index++;
-					add_v3_v3v3(cent, cent, bp->vec);
+					add_v3_v3(cent, bp->vec);
 				}
 				nr++;
 				bp++;
@@ -540,9 +533,6 @@ void OBJECT_OT_hook_add_newobj(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static EnumPropertyItem hook_mod_items[]= {
-{0, NULL, 0, NULL, NULL}};
-
 static int object_hook_remove_exec(bContext *C, wmOperator *op)
 {
 	int num= RNA_enum_get(op->ptr, "modifier");
@@ -577,7 +567,7 @@ static EnumPropertyItem *hook_mod_itemf(bContext *C, PointerRNA *ptr, int *free)
 	int a, totitem= 0;
 	
 	if(!ob)
-		return hook_mod_items;
+		return DummyRNA_NULL_items;
 	
 	for(a=0, md=ob->modifiers.first; md; md= md->next, a++) {
 		if (md->type==eModifierType_Hook) {
@@ -613,7 +603,7 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", hook_mod_items, 0, "Modifier", "Modifier number to remove.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove.");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 	ot->prop= prop;
 }
@@ -669,7 +659,7 @@ void OBJECT_OT_hook_reset(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Reset Hook";
-	ot->description= "Recalculate and and clear offset transformation";
+	ot->description= "Recalculate and clear offset transformation";
 	ot->idname= "OBJECT_OT_hook_reset";
 	
 	/* callbacks */
@@ -680,7 +670,7 @@ void OBJECT_OT_hook_reset(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", hook_mod_items, 0, "Modifier", "Modifier number to assign to.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to.");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 
@@ -736,7 +726,7 @@ void OBJECT_OT_hook_recenter(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", hook_mod_items, 0, "Modifier", "Modifier number to assign to.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to.");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 
@@ -799,7 +789,7 @@ void OBJECT_OT_hook_assign(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", hook_mod_items, 0, "Modifier", "Modifier number to assign to.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to.");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 
@@ -848,7 +838,7 @@ void OBJECT_OT_hook_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", hook_mod_items, 0, "Modifier", "Modifier number to remove.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove.");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 

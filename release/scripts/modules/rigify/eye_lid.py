@@ -21,7 +21,7 @@
 import bpy
 from rna_prop_ui import rna_idprop_ui_prop_get
 from math import acos
-from Mathutils import Vector
+from mathutils import Vector
 from rigify import RigifyError
 from rigify_utils import copy_bone_simple
 
@@ -299,14 +299,15 @@ def control(obj, definitions, base_names, options):
     lid8 = copy_bone_simple(obj.data, definitions[9], base_names[definitions[9]]).name
 
     size = eb[lid1].length
-    eb[lid1].tail = eb[lid1].head + Vector(0,size,0)
-    eb[lid2].tail = eb[lid2].head + Vector(0,size,0)
-    eb[lid3].tail = eb[lid3].head + Vector(0,size,0)
-    eb[lid4].tail = eb[lid4].head + Vector(0,size,0)
-    eb[lid5].tail = eb[lid5].head + Vector(0,size,0)
-    eb[lid6].tail = eb[lid6].head + Vector(0,size,0)
-    eb[lid7].tail = eb[lid7].head + Vector(0,size,0)
-    eb[lid8].tail = eb[lid8].head + Vector(0,size,0)
+    size_y = Vector(0.0, size, 0.0)
+    eb[lid1].tail = eb[lid1].head + size_y
+    eb[lid2].tail = eb[lid2].head + size_y
+    eb[lid3].tail = eb[lid3].head + size_y
+    eb[lid4].tail = eb[lid4].head + size_y
+    eb[lid5].tail = eb[lid5].head + size_y
+    eb[lid6].tail = eb[lid6].head + size_y
+    eb[lid7].tail = eb[lid7].head + size_y
+    eb[lid8].tail = eb[lid8].head + size_y
 
     eb[lid1].roll = 0
     eb[lid2].roll = 0
@@ -355,7 +356,7 @@ def control(obj, definitions, base_names, options):
     prop["min"] = 0.0
     prop["max"] = 1.0
 
-    close_driver_path = pb[upper_lid_ctrl].path_to_id() + '["close_action"]'
+    close_driver_path = pb[upper_lid_ctrl].path_from_id() + '["close_action"]'
 
     # Constraints
 
@@ -433,12 +434,12 @@ def control(obj, definitions, base_names, options):
     con.subtarget = upper_lid_ctrl
     con.action = close_action
     con.transform_channel = 'LOCATION_Y'
-    con.start_frame = -30
-    con.end_frame = 30
+    con.frame_start = -30
+    con.frame_end = 30
     con.minimum = -distance*2
     con.maximum = distance
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -452,12 +453,12 @@ def control(obj, definitions, base_names, options):
     con.subtarget = upper_lid_ctrl
     con.action = close_action
     con.transform_channel = 'LOCATION_Y'
-    con.start_frame = -30
-    con.end_frame = 30
+    con.frame_start = -30
+    con.frame_end = 30
     con.minimum = -distance*2
     con.maximum = distance
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -470,12 +471,12 @@ def control(obj, definitions, base_names, options):
     con.subtarget = upper_lid_ctrl
     con.action = close_action
     con.transform_channel = 'LOCATION_Y'
-    con.start_frame = -30
-    con.end_frame = 30
+    con.frame_start = -30
+    con.frame_end = 30
     con.minimum = -distance*2
     con.maximum = distance
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -488,12 +489,12 @@ def control(obj, definitions, base_names, options):
     con.subtarget = upper_lid_ctrl
     con.action = close_action
     con.transform_channel = 'LOCATION_Y'
-    con.start_frame = -30
-    con.end_frame = 30
+    con.frame_start = -30
+    con.frame_end = 30
     con.minimum = -distance*2
     con.maximum = distance
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -506,12 +507,12 @@ def control(obj, definitions, base_names, options):
     con.subtarget = upper_lid_ctrl
     con.action = close_action
     con.transform_channel = 'LOCATION_Y'
-    con.start_frame = -30
-    con.end_frame = 30
+    con.frame_start = -30
+    con.frame_end = 30
     con.minimum = -distance*2
     con.maximum = distance
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -525,12 +526,12 @@ def control(obj, definitions, base_names, options):
     con.subtarget = lower_lid_ctrl
     con.action = close_action
     con.transform_channel = 'LOCATION_Y'
-    con.start_frame = -30
-    con.end_frame = 30
+    con.frame_start = -30
+    con.frame_end = 30
     con.minimum = -distance
     con.maximum = distance*2
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -543,12 +544,12 @@ def control(obj, definitions, base_names, options):
     con.subtarget = lower_lid_ctrl
     con.action = close_action
     con.transform_channel = 'LOCATION_Y'
-    con.start_frame = -30
-    con.end_frame = 30
+    con.frame_start = -30
+    con.frame_end = 30
     con.minimum = -distance
     con.maximum = distance*2
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -561,12 +562,12 @@ def control(obj, definitions, base_names, options):
     con.subtarget = lower_lid_ctrl
     con.action = close_action
     con.transform_channel = 'LOCATION_Y'
-    con.start_frame = -30
-    con.end_frame = 30
+    con.frame_start = -30
+    con.frame_end = 30
     con.minimum = -distance
     con.maximum = distance*2
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -579,12 +580,12 @@ def control(obj, definitions, base_names, options):
     con.subtarget = lower_lid_ctrl
     con.action = close_action
     con.transform_channel = 'LOCATION_Y'
-    con.start_frame = -30
-    con.end_frame = 30
+    con.frame_start = -30
+    con.frame_end = 30
     con.minimum = -distance
     con.maximum = distance*2
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()
@@ -597,12 +598,12 @@ def control(obj, definitions, base_names, options):
     con.subtarget = lower_lid_ctrl
     con.action = close_action
     con.transform_channel = 'LOCATION_Y'
-    con.start_frame = -30
-    con.end_frame = 30
+    con.frame_start = -30
+    con.frame_end = 30
     con.minimum = -distance
     con.maximum = distance*2
     con.target_space = 'LOCAL'
-    fcurve = con.driver_add("influence", 0)
+    fcurve = con.driver_add("influence")
     driver = fcurve.driver
     driver.type = 'AVERAGE'
     var = driver.variables.new()

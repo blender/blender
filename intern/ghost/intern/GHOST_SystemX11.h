@@ -158,7 +158,7 @@ public:
 	setCursorPosition(
 		GHOST_TInt32 x,
 		GHOST_TInt32 y
-	) const;
+	);
 
 	/**
 	 * Returns the state of all modifier keys.
@@ -239,6 +239,12 @@ public:
 	 * @return Unsigned char string pointing to user dir (eg ~/.blender/).
 	 */
 	const GHOST_TUns8* getUserDir() const;
+
+	/**
+	  * Determine the directory of the current binary
+	  * @return Unsigned char string pointing to the binary dir
+	  */
+	 const GHOST_TUns8* getBinaryDir() const;
 
 	/**
 	 * Atom used for ICCCM, WM-spec and Motif.

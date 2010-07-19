@@ -164,7 +164,7 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask, int flag)
 	walker->flag = flag;
 	walker->bm = bm;
 	walker->restrictflag = searchmask;
-	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 1");
 
 	switch(type){
 		case BMW_SHELL:
@@ -622,7 +622,7 @@ static void loopWalker_begin(BMWalker *walker, void *data){
 	lwalk->startv = lwalk->lastv;
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
-	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 2");
 	BLI_ghash_insert(walker->visithash, owalk.cur, NULL);
 }
 
@@ -720,7 +720,7 @@ static void faceloopWalker_begin(BMWalker *walker, void *data)
 	lwalk->nocalc = 0;
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
-	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 3");
 	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
 }
 
@@ -799,7 +799,7 @@ static void edgeringWalker_begin(BMWalker *walker, void *data)
 		lwalk->l = lwalk->l->radial_next;
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
-	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 4");
 	BLI_ghash_insert(walker->visithash, lwalk->l->e, NULL);
 }
 

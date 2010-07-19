@@ -34,54 +34,11 @@
 #include "BLI_math.h"
 
 #include "imbuf.h"
-#include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
-#include "IMB_divers.h"
 #include "BKE_utildefines.h"
 #include "BKE_colortools.h"
-
-void imb_checkncols(struct ImBuf *ibuf)
-{
-	unsigned int i;
-
-	if (ibuf==0) return;
-	
-	if (IS_amiga(ibuf)){
-		if (IS_ham(ibuf)){
-			if (ibuf->depth == 0) ibuf->depth = 6;
-			ibuf->mincol = 0;
-			ibuf->maxcol = 1 << (ibuf->depth - 2);
-			/*printf("%d %d\n", ibuf->maxcol, ibuf->depth);*/
-			return;
-		} else if (IS_hbrite(ibuf)){
-			ibuf->mincol = 0;
-			ibuf->maxcol = 64;
-			ibuf->depth = 6;
-			return;
-		}
-	}
-
-	if (ibuf->maxcol == 0){
-		if (ibuf->depth <= 8){
-			ibuf->mincol = 0;
-			ibuf->maxcol = (1 << ibuf->depth);
-			return;
-		} else if (ibuf->depth == 0){
-			ibuf->depth = 5;
-			ibuf->mincol = 0;
-			ibuf->maxcol = 32;
-		}
-		return;
-	} else {
-		/* ibuf->maxcol defines the depth */
-		for (i=1 ; ibuf->maxcol > (1 << i); i++);
-		ibuf->depth = i;
-		return;
-	}
-}
-
 
 void IMB_de_interlace(struct ImBuf *ibuf)
 {
@@ -134,43 +91,6 @@ void IMB_interlace(struct ImBuf *ibuf)
 
 		IMB_freeImBuf(tbuf1);
 		IMB_freeImBuf(tbuf2);
-	}
-}
-
-
-void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
-{
-	uchar gam[256];
-	int i;
-	uchar *rect;
-	float *rectf;
-
-	if (ibuf == 0) return;
-	if (gamma == 1.0) return;
-
-	rect = (uchar *) ibuf->rect;
-	rectf = ibuf->rect_float;
-
-	gamma = 1.0 / gamma;
-
-	if (rect) {
-		for (i = 255 ; i >= 0 ; i--) 
-			gam[i] = (255.0 * pow(i / 255.0 ,
-					      gamma))  + 0.5;
-
-		for (i = ibuf->x * ibuf->y ; i>0 ; i--, rect+=4){
-			rect[0] = gam[rect[0]];
-			rect[1] = gam[rect[1]];
-			rect[2] = gam[rect[2]];
-		}
-	}
-
-	if (rectf) {
-		for (i = ibuf->x * ibuf->y ; i>0 ; i--, rectf+=4){
-			rectf[0] = pow(rectf[0] / 255.0, gamma);
-			rectf[1] = pow(rectf[1] / 255.0, gamma);
-			rectf[2] = pow(rectf[2] / 255.0, gamma);
-		}
 	}
 }
 
@@ -302,3 +222,74 @@ void IMB_float_from_rect(struct ImBuf *ibuf)
 	}
 }
 
+/* no profile conversion */
+void IMB_float_from_rect_simple(struct ImBuf *ibuf)
+{
+	int profile = IB_PROFILE_NONE;
+
+	/* no color management:
+	 * don't disturb the existing profiles */
+	SWAP(int, ibuf->profile, profile);
+
+	IMB_float_from_rect(ibuf);
+
+	SWAP(int, ibuf->profile, profile);
+}
+
+void IMB_convert_profile(struct ImBuf *ibuf, int profile)
+{
+	int ok= FALSE;
+	int i;
+
+	unsigned char *rct= (unsigned char *)ibuf->rect;
+	float *rctf= ibuf->rect_float;
+
+	if(ibuf->profile == profile)
+		return;
+
+	if(ELEM(ibuf->profile, IB_PROFILE_NONE, IB_PROFILE_SRGB)) { /* from */
+		if(profile == IB_PROFILE_LINEAR_RGB) { /* to */
+			if(ibuf->rect_float) {
+				for (i = ibuf->x * ibuf->y; i > 0; i--, rctf+=4) {
+					rctf[0]= srgb_to_linearrgb(rctf[0]);
+					rctf[1]= srgb_to_linearrgb(rctf[1]);
+					rctf[2]= srgb_to_linearrgb(rctf[2]);
+				}
+			}
+			if(ibuf->rect) {
+				for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
+					rctf[0]= (unsigned char)((srgb_to_linearrgb((float)rctf[0]/255.0f) * 255.0f) + 0.5f);
+					rctf[1]= (unsigned char)((srgb_to_linearrgb((float)rctf[1]/255.0f) * 255.0f) + 0.5f);
+					rctf[2]= (unsigned char)((srgb_to_linearrgb((float)rctf[2]/255.0f) * 255.0f) + 0.5f);
+				}
+			}
+			ok= TRUE;
+		}
+	}
+	else if (ibuf->profile == IB_PROFILE_LINEAR_RGB) { /* from */
+		if(ELEM(profile, IB_PROFILE_NONE, IB_PROFILE_SRGB)) { /* to */
+			if(ibuf->rect_float) {
+				for (i = ibuf->x * ibuf->y; i > 0; i--, rctf+=4) {
+					rctf[0]= linearrgb_to_srgb(rctf[0]);
+					rctf[1]= linearrgb_to_srgb(rctf[1]);
+					rctf[2]= linearrgb_to_srgb(rctf[2]);
+				}
+			}
+			if(ibuf->rect) {
+				for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
+					rctf[0]= (unsigned char)((linearrgb_to_srgb((float)rctf[0]/255.0f) * 255.0f) + 0.5f);
+					rctf[1]= (unsigned char)((linearrgb_to_srgb((float)rctf[1]/255.0f) * 255.0f) + 0.5f);
+					rctf[2]= (unsigned char)((linearrgb_to_srgb((float)rctf[2]/255.0f) * 255.0f) + 0.5f);
+				}
+			}
+			ok= TRUE;
+		}
+	}
+
+	if(ok==FALSE){
+		printf("IMB_convert_profile: failed profile conversion %d -> %d\n", ibuf->profile, profile);
+		return;
+	}
+
+	ibuf->profile= profile;
+}

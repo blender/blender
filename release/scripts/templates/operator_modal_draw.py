@@ -1,13 +1,16 @@
+import bpy
 import bgl
 import blf
 
 def draw_callback_px(self, context):
     print("mouse points", len(self.mouse_path))
 
+    font_id = 0 # XXX, need to find out how best to get this.
+
     # draw some text
-    blf.position(15, 30, 0)
-    blf.size(20, 72)
-    blf.draw("Hello Word " + str(len(self.mouse_path)))
+    blf.position(font_id, 15, 30, 0)
+    blf.size(font_id, 20, 72)
+    blf.draw(font_id, "Hello Word " + str(len(self.mouse_path)))
 
     # 50% alpha, 2 pixel width line
     bgl.glEnable(bgl.GL_BLEND)
@@ -20,7 +23,7 @@ def draw_callback_px(self, context):
 
     bgl.glEnd()
 
-    # restore opengl defaults 
+    # restore opengl defaults
     bgl.glLineWidth(1)
     bgl.glDisable(bgl.GL_BLEND)
     bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
@@ -50,7 +53,7 @@ class ModalDrawOperator(bpy.types.Operator):
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
             context.manager.add_modal_handler(self)
-            
+
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
             self._handle = context.region.callback_add(draw_callback_px, (self, context), 'POST_PIXEL')

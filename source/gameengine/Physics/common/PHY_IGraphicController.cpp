@@ -28,10 +28,6 @@
  */
 #include "PHY_IGraphicController.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 PHY_IGraphicController::~PHY_IGraphicController()
 {
 

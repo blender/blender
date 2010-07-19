@@ -28,12 +28,13 @@
 
 #include "bpy_internal_import.h"
 #include "DNA_text_types.h"
-#include "DNA_ID.h"
 
 #include "MEM_guardedalloc.h"
 #include "BKE_text.h" /* txt_to_buf */	
 #include "BKE_main.h"
+#include "BKE_global.h" /* grr, only for G.sce */
 #include "BLI_listbase.h"
+#include "BLI_path_util.h"
 #include <stddef.h>
 
 static Main *bpy_import_main= NULL;
@@ -56,6 +57,12 @@ void bpy_import_main_set(struct Main *maggie)
 	bpy_import_main= maggie;
 }
 
+/* returns a dummy filename for a textblock so we can tell what file a text block comes from */
+void bpy_text_filename_get(char *fn, Text *text)
+{
+	sprintf(fn, "%s/%s", text->id.lib ? text->id.lib->filepath : G.sce, text->id.name+2);
+}
+
 PyObject *bpy_text_import( Text *text )
 {
 	char *buf = NULL;
@@ -63,8 +70,11 @@ PyObject *bpy_text_import( Text *text )
 	int len;
 
 	if( !text->compiled ) {
+		char fn_dummy[256];
+		bpy_text_filename_get(fn_dummy, text);
+
 		buf = txt_to_buf( text );
-		text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
+		text->compiled = Py_CompileString( buf, fn_dummy, Py_file_input );
 		MEM_freeN( buf );
 
 		if( PyErr_Occurred(  ) ) {
@@ -120,8 +130,8 @@ PyObject *bpy_text_import_name( char *name, int *found )
 PyObject *bpy_text_reimport( PyObject *module, int *found )
 {
 	Text *text;
-	const char *txtname;
 	const char *name;
+	char *filepath;
 	char *buf = NULL;
 //XXX	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie= bpy_import_main;
@@ -134,14 +144,14 @@ PyObject *bpy_text_reimport( PyObject *module, int *found )
 	*found= 0;
 	
 	/* get name, filename from the module itself */
+	if((name= PyModule_GetName(module)) == NULL)
+		return NULL;
 
-	txtname = PyModule_GetFilename( module );
-	name = PyModule_GetName( module );
-	if( !txtname || !name)
+	if((filepath= (char *)PyModule_GetFilename(module)) == NULL)
 		return NULL;
 
 	/* look up the text object */
-	text= BLI_findstring(&maggie->text, txtname, offsetof(ID, name) + 2);
+	text= BLI_findstring(&maggie->text, BLI_path_basename(filepath), offsetof(ID, name) + 2);
 
 	/* uh-oh.... didn't find it */
 	if( !text )
@@ -187,7 +197,7 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 	static char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", 0};
 	
 	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOOi:bpy_import_meth", kwlist,
-			       &name, &globals, &locals, &fromlist, &dummy_val) )
+				   &name, &globals, &locals, &fromlist, &dummy_val) )
 		return NULL;
 
 	/* import existing builtin modules or modules that have been imported alredy */
@@ -227,16 +237,11 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
  * our reload() module, to handle reloading in-memory scripts
  */
 
-static PyObject *blender_reload( PyObject * self, PyObject * args )
+static PyObject *blender_reload( PyObject * self, PyObject * module )
 {
 	PyObject *exception, *err, *tb;
-	PyObject *module = NULL;
 	PyObject *newmodule = NULL;
 	int found= 0;
-	
-	/* check for a module arg */
-	if( !PyArg_ParseTuple( args, "O:bpy_reload_meth", &module ) )
-		return NULL;
 
 	/* try reimporting from file */
 	newmodule = PyImport_ReloadModule( module );
@@ -270,7 +275,7 @@ static PyObject *blender_reload( PyObject * self, PyObject * args )
 }
 
 PyMethodDef bpy_import_meth[] = { {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"} };
-PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", (PyCFunction)blender_reload, METH_VARARGS, "blenders reload"} };
+PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"} };
 
 
 /* Clear user modules.

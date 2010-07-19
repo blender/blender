@@ -39,6 +39,10 @@ typedef enum {
 
 /***/
 
+#define CCG_OMP_LIMIT	1000000
+
+/***/
+
 typedef struct _CCGSubSurf CCGSubSurf;
 
 CCGSubSurf*	ccgSubSurf_new	(CCGMeshIFC *ifc, int subdivisionLevels, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator);

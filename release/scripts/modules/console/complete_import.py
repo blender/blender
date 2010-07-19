@@ -32,6 +32,7 @@ changes have been made:
 - limit list of modules to prefix in case of "from w"
 - sorted modules
 - added sphinx documentation
+- complete() returns a blank list of the module isnt found
 """
 
 
@@ -183,3 +184,8 @@ def complete(line):
     if len(words) >= 3 and words[0] == 'from':
         mod = words[1]
         return filter_prefix(try_import(mod), words[-1])
+
+    # get here if the import is not found
+    # import invalidmodule
+    #                      ^, in this case return nothing
+    return []

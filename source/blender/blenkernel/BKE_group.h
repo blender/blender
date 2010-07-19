@@ -31,6 +31,7 @@
 #ifndef BKE_GROUP_H
 #define BKE_GROUP_H
 
+struct Base;
 struct Group;
 struct GroupObject;
 struct Object;

@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,10 +29,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
 
 #include "RNA_access.h"
 
@@ -51,7 +47,6 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_fileselect.h"
 
@@ -61,13 +56,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
 
-#include "ED_markers.h"
-#include "ED_fileselect.h"
 
 #include "file_intern.h"	// own include
 #include "fsmenu.h"
@@ -120,6 +112,7 @@ static void file_free(SpaceLink *sl)
 	SpaceFile *sfile= (SpaceFile *) sl;
 	
 	if(sfile->files) {
+		// XXXXX would need to do thumbnails_stop here, but no context available
 		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
@@ -139,8 +132,6 @@ static void file_free(SpaceLink *sl)
 	}
 
 	if (sfile->params) {
-		if(sfile->params->pupmenu)
-			MEM_freeN(sfile->params->pupmenu);
 		MEM_freeN(sfile->params);
 		sfile->params= NULL;
 	}
@@ -170,18 +161,18 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	sfilen->op = NULL; /* file window doesn't own operators */
 
-	if (sfileo->params)
+	if (sfileo->params) {
 		sfilen->files = filelist_new(sfileo->params->type);
+		sfilen->params= MEM_dupallocN(sfileo->params);
+		filelist_setdir(sfilen->files, sfilen->params->dir);
+	}
+
 	if(sfileo->folders_prev)
 		sfilen->folders_prev = folderlist_duplicate(sfileo->folders_prev);
 
 	if(sfileo->folders_next)
 		sfilen->folders_next = folderlist_duplicate(sfileo->folders_next);
-
-	if(sfileo->params) {
-		sfilen->params= MEM_dupallocN(sfileo->params);
-		file_change_dir(sfilen, 0);
-	}
+	
 	if (sfileo->layout) {
 		sfilen->layout= MEM_dupallocN(sfileo->layout);
 	}
@@ -197,17 +188,42 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 		sfile->folders_prev = folderlist_new();
 	if (!sfile->files) {
 		sfile->files = filelist_new(params->type);
-		file_change_dir(sfile, 0);
+		filelist_setdir(sfile->files, params->dir);
 		params->active_file = -1; // added this so it opens nicer (ton)
 	}
 	filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
 	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
 	if (filelist_empty(sfile->files))
 	{
+		thumbnails_stop(sfile->files, C);
 		filelist_readdir(sfile->files);
+		if(params->sort!=FILE_SORT_NONE) {
+			filelist_sort(sfile->files, params->sort);
+		}
 		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
+		if(params->display == FILE_IMGDISPLAY) {
+			thumbnails_start(sfile->files, C);
+		}
+	} else {
+		if(params->sort!=FILE_SORT_NONE) {
+			thumbnails_stop(sfile->files, C);
+			filelist_sort(sfile->files, params->sort);
+			if(params->display == FILE_IMGDISPLAY) {
+				thumbnails_start(sfile->files, C);
+			}
+		} else {
+			if(params->display == FILE_IMGDISPLAY) {
+				if (!thumbnails_running(sfile->files,C)) {
+					thumbnails_start(sfile->files, C);
+				}
+			} else {
+				/* stop any running thumbnail jobs if we're not 
+				 displaying them - speedup for NFS */
+				thumbnails_stop(sfile->files, C);
+			}
+			filelist_filter(sfile->files);
+		}
 	}
-	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
 	
 	if (params->renamefile[0] != '\0') {
 		int idx = filelist_find(sfile->files, params->renamefile);
@@ -225,14 +241,13 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 
 static void file_listener(ScrArea *sa, wmNotifier *wmn)
 {
-	SpaceFile* sfile = (SpaceFile*)sa->spacedata.first;
+	/* SpaceFile* sfile = (SpaceFile*)sa->spacedata.first; */
 
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SPACE:
 			switch (wmn->data) {
 				case ND_SPACE_FILE_LIST:
-					if (sfile->files) filelist_free(sfile->files);
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
@@ -345,7 +360,6 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_select_all_toggle);
 	WM_operatortype_append(FILE_OT_select_border);
 	WM_operatortype_append(FILE_OT_select_bookmark);
-	WM_operatortype_append(FILE_OT_loadimages);
 	WM_operatortype_append(FILE_OT_highlight);
 	WM_operatortype_append(FILE_OT_execute);
 	WM_operatortype_append(FILE_OT_cancel);
@@ -361,6 +375,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_directory_new);
 	WM_operatortype_append(FILE_OT_delete);
 	WM_operatortype_append(FILE_OT_rename);
+	WM_operatortype_append(FILE_OT_smoothscroll);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -378,6 +393,9 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0);  /* XXX needs button */
 	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_delete", BACKSPACEKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_verify_item(keymap, "FILE_OT_smoothscroll", TIMER1, KM_ANY, KM_ANY, 0);
 
 	/* keys for main area */
 	keymap= WM_keymap_find(keyconf, "File Browser Main", SPACE_FILE, 0);
@@ -385,12 +403,14 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", 1);
+	kmi = WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_CLICK, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
+	RNA_boolean_set(kmi->ptr, "fill", 1);
 	WM_keymap_add_item(keymap, "FILE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", EVT_TWEAK_L, KM_ANY, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_highlight", MOUSEMOVE, KM_ANY, KM_ANY, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "increment", 1);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, KM_SHIFT, 0);
@@ -403,6 +423,7 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	RNA_int_set(kmi->ptr, "increment", -10);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	RNA_int_set(kmi->ptr, "increment",-100);
+	
 	
 	/* keys for button area (top) */
 	keymap= WM_keymap_find(keyconf, "File Browser Buttons", SPACE_FILE, 0);
@@ -448,7 +469,12 @@ static void file_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void file_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	wmKeyMap *keymap;
+	
 	ED_region_header_init(ar);
+	
+	keymap= WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);	
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 static void file_header_area_draw(const bContext *C, ARegion *ar)
@@ -565,9 +591,16 @@ void ED_spacetype_file(void)
 
 void ED_file_init(void)
 {
-	char name[FILE_MAX];
-	BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
-	fsmenu_read_file(fsmenu_get(), name);
+	char *cfgdir = BLI_get_folder(BLENDER_CONFIG, NULL);
+	
+	fsmenu_read_system(fsmenu_get());
+
+	if (cfgdir) {
+		char name[FILE_MAX];
+		BLI_make_file_string("/", name, cfgdir, BLENDER_BOOKMARK_FILE);
+		fsmenu_read_bookmarks(fsmenu_get(), name);
+	}
+	
 	filelist_init_icons();
 	IMB_thumb_makedirs();
 }

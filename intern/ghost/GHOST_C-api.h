@@ -264,7 +264,24 @@ extern int GHOST_DispatchEvents(GHOST_SystemHandle systemhandle);
 extern GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle,
 											  GHOST_EventConsumerHandle consumerhandle);
 	
+/***************************************************************************************
+ ** Progress bar functionality
+ ***************************************************************************************/
 
+/**
+ * Sets the progress bar value displayed in the window/application icon
+ * @param windowhandle The handle to the window
+ * @param progress The progress % (0.0 to 1.0)
+ */
+extern GHOST_TSuccess GHOST_SetProgressBar(GHOST_WindowHandle windowhandle, float progress);
+
+/**
+ * Hides the progress bar in the icon
+ * @param windowhandle The handle to the window
+ */
+extern GHOST_TSuccess GHOST_EndProgressBar(GHOST_WindowHandle windowhandle);
+	
+	
 /***************************************************************************************
  ** N-degree of freedom device management functionality
  ***************************************************************************************/
@@ -818,20 +835,6 @@ extern GHOST_TUns8* GHOST_getClipboard(int selection);
  * @param	set the selection instead, X11 only feature
  */
 extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
-
-/**
- * Determine the base dir in which shared resources are located. It will first try to use
- * "unpack and run" path, then look for properly installed path, not including versioning.
- * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
- */
-extern const GHOST_TUns8* GHOST_getSystemDir();
-
-/**
- * Determine the base dir in which user configuration is stored, not including versioning.
- * If needed, it will create the base directory.
- * @return Unsigned char string pointing to user dir (eg ~/.blender/).
- */
-extern const GHOST_TUns8* GHOST_getUserDir();
 
 
 #ifdef __cplusplus

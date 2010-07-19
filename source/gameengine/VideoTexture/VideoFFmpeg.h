@@ -61,7 +61,7 @@ static inline AVCodecContext* get_codec_from_stream(AVStream* stream)
 
 #include "VideoBase.h"
 
-#define CACHE_FRAME_SIZE	5
+#define CACHE_FRAME_SIZE	10
 #define CACHE_PACKET_SIZE	30
 
 // type VideoFFmpeg declaration
@@ -152,6 +152,9 @@ protected:
 
 	/// is image loading done in a separate thread?
 	bool m_isThreaded;
+
+	/// is streaming or camera?
+	bool m_isStreaming;
 
 	/// keep last image name
 	STR_String m_imageName;

@@ -199,7 +199,14 @@ public:
 			m_reverseKeyTranslateTable[F9KEY                            ] = KX_F9KEY                   ;                  
 			m_reverseKeyTranslateTable[F10KEY                           ] = KX_F10KEY                  ;                  
 			m_reverseKeyTranslateTable[F11KEY      ] = KX_F11KEY                  ;                  
-			m_reverseKeyTranslateTable[F12KEY      ] = KX_F12KEY                  ;                  
+			m_reverseKeyTranslateTable[F12KEY      ] = KX_F12KEY                  ;
+			m_reverseKeyTranslateTable[F13KEY      ] = KX_F13KEY                  ;
+			m_reverseKeyTranslateTable[F14KEY      ] = KX_F14KEY                  ;
+			m_reverseKeyTranslateTable[F15KEY      ] = KX_F15KEY                  ;
+			m_reverseKeyTranslateTable[F16KEY      ] = KX_F16KEY                  ;
+			m_reverseKeyTranslateTable[F17KEY      ] = KX_F17KEY                  ;
+			m_reverseKeyTranslateTable[F18KEY      ] = KX_F18KEY                  ;
+			m_reverseKeyTranslateTable[F19KEY      ] = KX_F19KEY                  ;
 	                                                                                                           
 			m_reverseKeyTranslateTable[PAUSEKEY    ] = KX_PAUSEKEY                ;                  
 			m_reverseKeyTranslateTable[INSERTKEY   ] = KX_INSERTKEY               ;                  
@@ -227,8 +234,8 @@ public:
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_BlenderInputDevice"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_BlenderInputDevice"); }
+	void operator delete(void *mem) { MEM_freeN(mem); }
 #endif
 };                                                                                                                 
 #endif //__KX_BLENDERINPUTDEVICE

@@ -18,7 +18,7 @@
 
 # <pep8-80 compliant>
 import bpy
-import Mathutils
+import mathutils
 from math import cos, sin, pi
 
 # could this be stored elsewhere?
@@ -609,10 +609,10 @@ def register():
     bpy.types.register(AddHuman)
     bpy.types.INFO_MT_armature_add.append(menu_func)
 
+
 def unregister():
     bpy.types.unregister(AddHuman)
     bpy.types.INFO_MT_armature_add.remove(menu_func)
 
 if __name__ == "__main__":
     register()
-

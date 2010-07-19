@@ -51,13 +51,13 @@ def compat_str(text, line_length=0):
     return text
 
 
-def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, XTRA_INFO=True):
+def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, XTRA_INFO=True):
     CONSTRAINTS = DRIVERS = True
 
-    fileobject = open(path, "w")
+    fileobject = open(filepath, "w")
     fw = fileobject.write
     fw(header)
-    fw('label = "%s::%s" ;' % (bpy.data.filename.split("/")[-1].split("\\")[-1], obj.name))
+    fw('label = "%s::%s" ;' % (bpy.data.filepath.split("/")[-1].split("\\")[-1], obj.name))
 
     arm = obj.data
 
@@ -157,17 +157,18 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, 
                 pbone = rna_path_as_pbone(rna_path)
 
                 if pbone:
-                    for target in fcurve_driver.driver.targets:
-                        pbone_target = rna_path_as_pbone(target.data_path)
-                        rna_path_target = target.data_path
-                        if pbone_target:
-                            opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=4"] # ,
-                            display_source = rna_path.replace("pose.bones", "")
-                            display_target = rna_path_target.replace("pose.bones", "")
-                            if XTRA_INFO:
-                                label = "%s\\n%s" % (display_source, display_target)
-                                opts.append('label="%s"' % compat_str(label))
-                            fw('"%s" -> "%s" [%s] ;\n' % (pbone_target.name, pbone.name, ','.join(opts)))
+                    for var in fcurve_driver.driver.variables:
+                        for target in var.targets:
+                            pbone_target = rna_path_as_pbone(target.data_path)
+                            rna_path_target = target.data_path
+                            if pbone_target:
+                                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=4"] # ,
+                                display_source = rna_path.replace("pose.bones", "")
+                                display_target = rna_path_target.replace("pose.bones", "")
+                                if XTRA_INFO:
+                                    label = "%s\\n%s" % (display_source, display_target)
+                                    opts.append('label="%s"' % compat_str(label))
+                                fw('"%s" -> "%s" [%s] ;\n' % (pbone_target.name, pbone.name, ','.join(opts)))
 
     fw(footer)
     fileobject.close()
@@ -177,7 +178,7 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, 
     import sys
     sys.stdout.flush()
     '''
-    print("\nSaved:", path)
+    print("\nSaved:", filepath)
     return True
 
 if __name__ == "__main__":

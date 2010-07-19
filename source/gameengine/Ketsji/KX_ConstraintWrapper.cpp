@@ -31,10 +31,6 @@
 #include "KX_ConstraintWrapper.h"
 #include "PHY_IPhysicsEnvironment.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_ConstraintWrapper::KX_ConstraintWrapper(
 						PHY_ConstraintType ctype,
 						int constraintId,

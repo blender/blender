@@ -27,7 +27,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "DNA_ID.h"
 
@@ -246,6 +245,12 @@ ID *rna_ID_copy(ID *id)
 	return NULL;
 }
 
+void rna_ID_user_clear(ID *id)
+{
+	id->us= 0; /* dont save */
+	id->flag &= ~LIB_FAKEUSER;
+}
+
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -372,6 +377,9 @@ static void rna_def_ID(BlenderRNA *brna)
 	parm= RNA_def_pointer(func, "id", "ID", "", "New copy of the ID.");
 	RNA_def_function_return(func, parm);
 
+	func= RNA_def_function(srna, "user_clear", "rna_ID_user_clear");
+	RNA_def_function_ui_description(func, "Clears the user count of a datablock so its not saved, on reload the data will be removed.");
+
 	func= RNA_def_function(srna, "animation_data_create", "BKE_id_add_animdata");
 	RNA_def_function_ui_description(func, "Create animation data to this ID, note that not all ID types support this.");
 	parm= RNA_def_pointer(func, "anim_data", "AnimData", "", "New animation data or NULL.");
@@ -391,10 +399,14 @@ static void rna_def_library(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Library", "External .blend file from which data is linked");
 	RNA_def_struct_ui_icon(srna, ICON_LIBRARY_DATA_DIRECT);
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Filename", "Path to the library .blend file");
+	RNA_def_property_ui_text(prop, "File Path", "Path to the library .blend file");
+	/* TODO - lib->filename isnt updated, however the outliner also skips this, probably only needed on read. */
+	
+	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Library");
+	RNA_def_property_ui_text(prop, "Parent", "");	
 }
 void RNA_def_ID(BlenderRNA *brna)
 {

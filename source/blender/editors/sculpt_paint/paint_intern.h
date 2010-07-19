@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -50,8 +50,8 @@ typedef void (*StrokeUpdateStep)(struct bContext *C, struct PaintStroke *stroke,
 typedef void (*StrokeDone)(struct bContext *C, struct PaintStroke *stroke);
 
 struct PaintStroke *paint_stroke_new(struct bContext *C,
-				     StrokeGetLocation get_location, StrokeTestStart test_start,
-				     StrokeUpdateStep update_step, StrokeDone done);
+					 StrokeGetLocation get_location, StrokeTestStart test_start,
+					 StrokeUpdateStep update_step, StrokeDone done);
 void paint_stroke_free(struct PaintStroke *stroke);
 
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
@@ -93,6 +93,9 @@ void PAINT_OT_sample_color(struct wmOperatorType *ot);
 void PAINT_OT_clone_cursor_set(struct wmOperatorType *ot);
 void PAINT_OT_texture_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_texture_paint_radial_control(struct wmOperatorType *ot);
+void PAINT_OT_project_image(struct wmOperatorType *ot);
+void PAINT_OT_image_from_view(struct wmOperatorType *ot);
+
 
 /* paint_utils.c */
 int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, int *mval, unsigned int *index);
@@ -106,6 +109,13 @@ void PAINT_OT_face_select_linked_pick(struct wmOperatorType *ot);
 void PAINT_OT_face_select_all(struct wmOperatorType *ot);
 
 int facemask_paint_poll(struct bContext *C);
+
+/* stroke operator */
+typedef enum wmBrushStrokeMode {
+	WM_BRUSHSTROKE_NORMAL,
+	WM_BRUSHSTROKE_INVERT,
+	WM_BRUSHSTROKE_SMOOTH,
+} wmBrushStrokeMode;
 
 /* paint_undo.c */
 typedef void (*UndoRestoreCb)(struct bContext *C, struct ListBase *lb);

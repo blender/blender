@@ -98,7 +98,7 @@ void init_render_texture(Render *re, Tex *tex)
 	if(tex->type==TEX_PLUGIN) {
 		if(tex->plugin && tex->plugin->doit) {
 			if(tex->plugin->cfra) {
-				*(tex->plugin->cfra)= (float)cfra; //frame_to_float(re->scene, cfra); // XXX old animsys - timing stuff to be fixed 
+				*(tex->plugin->cfra)= (float)cfra; //BKE_curframe(re->scene); // XXX old animsys - timing stuff to be fixed 
 			}
 		}
 	}
@@ -1479,16 +1479,16 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 		VECCOPY(in, out);
 		ramp_blend(MA_RAMP_COLOR, in, in+1, in+2, fact, tex);
 		break;
-    case MTEX_SOFT_LIGHT: 
-        fact*= facg; 
-        VECCOPY(in, out); 
-        ramp_blend(MA_RAMP_SOFT, in, in+1, in+2, fact, tex); 
-        break; 
-    case MTEX_LIN_LIGHT: 
-        fact*= facg; 
-        VECCOPY(in, out); 
-        ramp_blend(MA_RAMP_LINEAR, in, in+1, in+2, fact, tex); 
-        break; 
+	case MTEX_SOFT_LIGHT: 
+		fact*= facg; 
+		VECCOPY(in, out); 
+		ramp_blend(MA_RAMP_SOFT, in, in+1, in+2, fact, tex); 
+		break; 
+	case MTEX_LIN_LIGHT: 
+		fact*= facg; 
+		VECCOPY(in, out); 
+		ramp_blend(MA_RAMP_LINEAR, in, in+1, in+2, fact, tex); 
+		break; 
 	}
 }
 
@@ -1551,18 +1551,18 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 		if(col > out) in= col; else in= out;
 		break;
 
-    case MTEX_SOFT_LIGHT: 
-        col= fact*tex; 
-        scf=1.0 - (1.0 - tex) * (1.0 - out); 
-        in= facm*out + fact * ((1.0 - out) * tex * out) + (out * scf); 
-        break;       
+	case MTEX_SOFT_LIGHT: 
+		col= fact*tex; 
+		scf=1.0 - (1.0 - tex) * (1.0 - out); 
+		in= facm*out + fact * ((1.0 - out) * tex * out) + (out * scf); 
+		break;       
 
-    case MTEX_LIN_LIGHT: 
-        if (tex > 0.5) 
-            in = out + fact*(2*(tex - 0.5)); 
-        else 
-            in = out + fact*(2*tex - 1); 
-        break;
+	case MTEX_LIN_LIGHT: 
+		if (tex > 0.5) 
+			in = out + fact*(2*(tex - 0.5)); 
+		else 
+			in = out + fact*(2*tex - 1); 
+		break;
 	}
 	
 	return in;
@@ -2676,7 +2676,8 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			switch(mtex->texco) {
 			case TEXCO_ANGMAP:
 				/* only works with texture being "real" */
-				fact= (1.0/M_PI)*acos(lo[2])/(sqrt(lo[0]*lo[0] + lo[1]*lo[1])); 
+				/* use saacos(), fixes bug [#22398], float precission caused lo[2] to be slightly less then -1.0 */
+				fact= (1.0/M_PI)*saacos(lo[2])/(sqrt(lo[0]*lo[0] + lo[1]*lo[1])); 
 				tempvec[0]= lo[0]*fact;
 				tempvec[1]= lo[1]*fact;
 				tempvec[2]= 0.0;

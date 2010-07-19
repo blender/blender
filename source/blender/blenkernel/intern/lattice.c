@@ -42,22 +42,15 @@
 #include "BLI_math.h"
 #include "BLI_cellalloc.h"
 
-#include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 
 #include "BKE_anim.h"
-#include "BKE_armature.h"
-#include "BKE_curve.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -66,9 +59,8 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_deform.h"
 
 //XXX #include "BIF_editdeform.h"
 
@@ -348,19 +340,29 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 {
 	Lattice *lt= ob->data;
 	float u, v, w, tu[4], tv[4], tw[4];
-	float *fpw, *fpv, *fpu, vec[3];
+	float vec[3];
+	int idx_w, idx_v, idx_u;
 	int ui, vi, wi, uu, vv, ww;
-	
+
+	/* vgroup influence */
+	int defgroup_nr= -1;
+	float co_prev[3], weight_blend= 0.0f;
+	MDeformVert *dvert= lattice_get_deform_verts(ob);
+
+
 	if(lt->editlatt) lt= lt->editlatt;
 	if(lt->latticedata==NULL) return;
-	
+
+	if(lt->vgroup[0] && dvert) {
+		defgroup_nr= defgroup_name_index(ob, lt->vgroup);
+		copy_v3_v3(co_prev, co);
+	}
+
 	/* co is in local coords, treat with latmat */
-	
-	VECCOPY(vec, co);
-	mul_m4_v3(lt->latmat, vec);
-	
+	mul_v3_m4v3(vec, lt->latmat, co);
+
 	/* u v w coords */
-	
+
 	if(lt->pntsu>1) {
 		u= (vec[0]-lt->fu)/lt->du;
 		ui= (int)floor(u);
@@ -371,7 +373,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 		tu[0]= tu[2]= tu[3]= 0.0; tu[1]= 1.0;
 		ui= 0;
 	}
-	
+
 	if(lt->pntsv>1) {
 		v= (vec[1]-lt->fv)/lt->dv;
 		vi= (int)floor(v);
@@ -382,7 +384,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 		tv[0]= tv[2]= tv[3]= 0.0; tv[1]= 1.0;
 		vi= 0;
 	}
-	
+
 	if(lt->pntsw>1) {
 		w= (vec[2]-lt->fw)/lt->dw;
 		wi= (int)floor(w);
@@ -393,46 +395,51 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 		tw[0]= tw[2]= tw[3]= 0.0; tw[1]= 1.0;
 		wi= 0;
 	}
-	
+
 	for(ww= wi-1; ww<=wi+2; ww++) {
 		w= tw[ww-wi+1];
-		
+
 		if(w!=0.0) {
 			if(ww>0) {
-				if(ww<lt->pntsw) fpw= lt->latticedata + 3*ww*lt->pntsu*lt->pntsv;
-				else fpw= lt->latticedata + 3*(lt->pntsw-1)*lt->pntsu*lt->pntsv;
+				if(ww<lt->pntsw) idx_w= ww*lt->pntsu*lt->pntsv;
+				else idx_w= (lt->pntsw-1)*lt->pntsu*lt->pntsv;
 			}
-			else fpw= lt->latticedata;
-			
+			else idx_w= 0;
+
 			for(vv= vi-1; vv<=vi+2; vv++) {
 				v= w*tv[vv-vi+1];
-				
+
 				if(v!=0.0) {
 					if(vv>0) {
-						if(vv<lt->pntsv) fpv= fpw + 3*vv*lt->pntsu;
-						else fpv= fpw + 3*(lt->pntsv-1)*lt->pntsu;
+						if(vv<lt->pntsv) idx_v= idx_w + vv*lt->pntsu;
+						else idx_v= idx_w + (lt->pntsv-1)*lt->pntsu;
 					}
-					else fpv= fpw;
-					
+					else idx_v= idx_w;
+
 					for(uu= ui-1; uu<=ui+2; uu++) {
 						u= weight*v*tu[uu-ui+1];
-						
+
 						if(u!=0.0) {
 							if(uu>0) {
-								if(uu<lt->pntsu) fpu= fpv + 3*uu;
-								else fpu= fpv + 3*(lt->pntsu-1);
+								if(uu<lt->pntsu) idx_u= idx_v + uu;
+								else idx_u= idx_v + (lt->pntsu-1);
 							}
-							else fpu= fpv;
-							
-							co[0]+= u*fpu[0];
-							co[1]+= u*fpu[1];
-							co[2]+= u*fpu[2];
+							else idx_u= idx_v;
+
+							madd_v3_v3fl(co, &lt->latticedata[idx_u * 3], u);
+
+							if(defgroup_nr != -1)
+								weight_blend += (u * defvert_find_weight(dvert + idx_u, defgroup_nr));
 						}
 					}
 				}
 			}
 		}
 	}
+
+	if(defgroup_nr != -1)
+		interp_v3_v3v3(co, co_prev, co, weight_blend);
+
 }
 
 void end_latt_deform(Object *ob)
@@ -491,7 +498,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 	else ctime1= ctime;
 	
 	/* vec needs 4 items */
-	if(where_on_path(ob, ctime1, vec, dir, quat, radius)) {
+	if(where_on_path(ob, ctime1, vec, dir, quat, radius, NULL)) {
 		
 		if(cycl==0) {
 			Path *path= cu->path;
@@ -510,6 +517,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 				VECADD(vec, vec, dvec);
 				if(quat) QUATCOPY(quat, path->data[path->len-1].quat);
 				if(radius) *radius= path->data[path->len-1].radius;
+				/* weight - not used but could be added */
 			}
 		}
 		return 1;
@@ -724,7 +732,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 		
 		/* find the group (weak loop-in-loop) */
 		for(index = 0, curdef = target->defbase.first; curdef;
-		    curdef = curdef->next, index++)
+			curdef = curdef->next, index++)
 			if (!strcmp(curdef->name, vgroup))
 				break;
 
@@ -756,7 +764,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 						VECCOPY(vec, vertexCos[a]);
 						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
 						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec,
-						         dvert->dw[j].weight);
+								 dvert->dw[j].weight);
 						mul_m4_v3(cd.objectspace, vertexCos[a]);
 						break;
 					}
@@ -814,7 +822,7 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco
 }
 
 void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
-                          float (*vertexCos)[3], int numVerts, char *vgroup)
+						  float (*vertexCos)[3], int numVerts, char *vgroup)
 {
 	int a;
 	int use_vgroups;
@@ -838,26 +846,20 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 		use_vgroups = 0;
 	
 	if(vgroup && vgroup[0] && use_vgroups) {
-		bDeformGroup *curdef;
 		Mesh *me = target->data;
-		int index = 0;
-		
-		/* find the group (weak loop-in-loop) */
-		for(curdef = target->defbase.first; curdef;
-		    curdef = curdef->next, index++)
-			if(!strcmp(curdef->name, vgroup)) break;
+		int index = defgroup_name_index(target, vgroup);
+		float weight;
 
-		if(curdef && (me->dvert || dm)) {
+		if(index >= 0 && (me->dvert || dm)) {
 			MDeformVert *dvert = me->dvert;
-			int j;
 			
 			for(a = 0; a < numVerts; a++, dvert++) {
 				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
-				for(j = 0; j < dvert->totweight; j++) {
-					if (dvert->dw[j].def_nr == index) {
-						calc_latt_deform(laOb, vertexCos[a], dvert->dw[j].weight);
-					}
-				}
+
+				weight= defvert_find_weight(dvert, index);
+
+				if(weight > 0.0f)
+					calc_latt_deform(laOb, vertexCos[a], weight);
 			}
 		}
 	} else {
@@ -868,14 +870,14 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 	end_latt_deform(laOb);
 }
 
-int object_deform_mball(Object *ob)
+int object_deform_mball(Object *ob, ListBase *dispbase)
 {
 	if(ob->parent && ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
 		DispList *dl;
 
-		for (dl=ob->disp.first; dl; dl=dl->next) {
+		for (dl=dispbase->first; dl; dl=dl->next) {
 			lattice_deform_verts(ob->parent, ob, NULL,
-			                     (float(*)[3]) dl->verts, dl->nr, NULL);
+								 (float(*)[3]) dl->verts, dl->nr, NULL);
 		}
 
 		return 1;

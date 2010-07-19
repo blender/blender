@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -31,6 +31,7 @@
 struct SpaceFile;
 struct ARegion;
 struct FileSelectParams;
+struct bContext;
 
 #define FILE_LAYOUT_HOR 1
 #define FILE_LAYOUT_VER 2
@@ -82,11 +83,15 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar);
 FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar);
 
 int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar);
-int ED_fileselect_layout_offset(FileLayout* layout, int x, int y);
+int ED_fileselect_layout_offset(FileLayout* layout, int clamp_bounds, int x, int y);
 
 void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, int *x, int *y);
 
 void ED_operatormacros_file(void);
+
+void ED_fileselect_clear(struct bContext *C, struct SpaceFile *sfile);
+
+void ED_fileselect_exit(struct bContext *C, struct SpaceFile *sfile);
 
 #endif /* ED_FILES_H */
 

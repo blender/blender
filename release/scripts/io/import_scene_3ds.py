@@ -144,7 +144,7 @@ import struct
 from import_scene_obj import unpack_face_list, load_image
 
 import bpy
-import Mathutils
+import mathutils
 
 BOUNDS_3DS = []
 
@@ -310,8 +310,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
     contextObName = None
     contextLamp = [None, None] # object, Data
     contextMaterial = None
-    contextMatrix_rot = None # Blender.Mathutils.Matrix(); contextMatrix.identity()
-    #contextMatrix_tx = None # Blender.Mathutils.Matrix(); contextMatrix.identity()
+    contextMatrix_rot = None # Blender.mathutils.Matrix(); contextMatrix.identity()
+    #contextMatrix_tx = None # Blender.mathutils.Matrix(); contextMatrix.identity()
     contextMesh_vertls = None
     contextMesh_facels = None
     contextMeshMaterials = {} # matname:[face_idxs]
@@ -360,7 +360,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             vertMappingIndex = 0
 
             vertsToUse = [i for i in range(len(myContextMesh_vertls)) if faceVertUsers[i]]
-            myVertMapping = dict( [ (ii, i) for i, ii in enumerate(vertsToUse) ] )
+            myVertMapping = {ii: i for i, ii in enumerate(vertsToUse)}
 
             tempName= '%s_%s' % (contextObName, matName) # matName may be None.
             bmesh = bpy.data.meshes.new(tempName)
@@ -427,9 +427,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             '''
 
             if contextMatrix_rot:
-                # ob.matrix = [x for row in contextMatrix_rot for x in row]
-                ob.matrix = contextMatrix_rot
-# 				ob.setMatrix(contextMatrix_rot)
+                ob.matrix_world = contextMatrix_rot
 
             importedObjects.append(ob)
             bmesh.update()
@@ -722,7 +720,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             def getuv():
                 temp_data = file.read(STRUCT_SIZE_2FLOAT)
                 new_chunk.bytes_read += STRUCT_SIZE_2FLOAT #2 float x 4 bytes each
-                return Mathutils.Vector( struct.unpack('<2f', temp_data) )
+                return mathutils.Vector( struct.unpack('<2f', temp_data) )
 
             contextMeshUV = [ getuv() for i in range(num_uv) ]
 
@@ -732,7 +730,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             data = list( struct.unpack('<ffffffffffff', temp_data)  )
             new_chunk.bytes_read += STRUCT_SIZE_4x3MAT
 
-            contextMatrix_rot = Mathutils.Matrix(\
+            contextMatrix_rot = mathutils.Matrix(\
              data[:3] + [0],\
              data[3:6] + [0],\
              data[6:9] + [0],\
@@ -740,7 +738,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
 
             '''
-            contextMatrix_rot = Blender.Mathutils.Matrix(\
+            contextMatrix_rot = Blender.mathutils.Matrix(\
              data[:3] + [0],\
              data[3:6] + [0],\
              data[6:9] + [0],\
@@ -748,14 +746,14 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             '''
 
             '''
-            contextMatrix_rot = Blender.Mathutils.Matrix(\
+            contextMatrix_rot = Blender.mathutils.Matrix(\
              data[:3] ,\
              data[3:6],\
              data[6:9])
             '''
 
             '''
-            contextMatrix_rot = Blender.Mathutils.Matrix()
+            contextMatrix_rot = Blender.mathutils.Matrix()
             m = 0
             for j in xrange(4):
                 for i in xrange(3):
@@ -773,7 +771,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             #print contextMatrix_rot
             contextMatrix_rot.invert()
             #print contextMatrix_rot
-            #contextMatrix_tx = Blender.Mathutils.TranslationMatrix(0.5 * Blender.Mathutils.Vector(data[9:]))
+            #contextMatrix_tx = Blender.mathutils.TranslationMatrix(0.5 * Blender.mathutils.Vector(data[9:]))
             #contextMatrix_tx.invert()
 
             #tx.invert()
@@ -892,7 +890,7 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
 # 			me = ob.getData(mesh=1)
 # 			me.verts.delete([me.verts[0],])
 # 			if not APPLY_MATRIX:
-# 				me.transform(ob.matrixWorld.copy().invert())
+# 				me.transform(ob.matrix_world.copy().invert())
 
     # Done DUMMYVERT
     """
@@ -946,11 +944,11 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
                 SCALE/=10
 
             # SCALE Matrix
-            SCALE_MAT = Mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
-# 			SCALE_MAT = Blender.Mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
+            SCALE_MAT = mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
+# 			SCALE_MAT = Blender.mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
 
             for ob in importedObjects:
-                ob.setMatrix(ob.matrixWorld * SCALE_MAT)
+                ob.matrix_world =  ob.matrix_world * SCALE_MAT
 
         # Done constraining to bounds.
 
@@ -1012,16 +1010,14 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    path = StringProperty(name="File Path", description="File path used for importing the 3DS file", maxlen= 1024, default= "")
-    filename = StringProperty(name="File Name", description="Name of the file.")
-    directory = StringProperty(name="Directory", description="Directory of the file.")
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the 3DS file", maxlen= 1024, default= "")
 
 # 	size_constraint = FloatProperty(name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0),
 # 	search_images = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True),
 # 	apply_matrix = BoolProperty(name="Transform Fix", description="Workaround for object transformations importing incorrectly", default=False),
 
     def execute(self, context):
-        load_3ds(self.properties.path, context, 0.0, False, False)
+        load_3ds(self.properties.filepath, context, 0.0, False, False)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -1030,8 +1026,8 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-menu_func = lambda self, context: self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)")
-
+def menu_func(self, context):
+    self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)")
 
 def register():
     bpy.types.register(IMPORT_OT_autodesk_3ds)

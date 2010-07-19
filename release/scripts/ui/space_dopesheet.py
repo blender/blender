@@ -77,6 +77,7 @@ class DOPESHEET_MT_view(bpy.types.Menu):
         layout.prop(st, "show_cframe_indicator")
         layout.prop(st, "show_sliders")
         layout.prop(st, "automerge_keyframes")
+        layout.prop(st, "use_marker_sync")
 
         if st.show_seconds:
             layout.operator("anim.time_toggle", text="Show Frames")
@@ -123,6 +124,9 @@ class DOPESHEET_MT_select(bpy.types.Menu):
         layout.operator("action.select_more")
         layout.operator("action.select_less")
 
+        layout.separator()
+        layout.operator("action.select_linked")
+
 
 class DOPESHEET_MT_channel(bpy.types.Menu):
     bl_label = "Channel"
@@ -154,8 +158,8 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.column()
         layout.menu("DOPESHEET_MT_key_transform", text="Transform")
 
-        layout.operator_menu_enum("action.snap", property="type", text="Snap")
-        layout.operator_menu_enum("action.mirror", property="type", text="Mirror")
+        layout.operator_menu_enum("action.snap", "type", text="Snap")
+        layout.operator_menu_enum("action.mirror", "type", text="Mirror")
 
         layout.separator()
         layout.operator("action.keyframe_insert")
@@ -165,10 +169,10 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.operator("action.delete")
 
         layout.separator()
-        layout.operator_menu_enum("action.keyframe_type", property="type", text="Keyframe Type")
-        layout.operator_menu_enum("action.handle_type", property="type", text="Handle Type")
-        layout.operator_menu_enum("action.interpolation_type", property="type", text="Interpolation Mode")
-        layout.operator_menu_enum("action.extrapolation_type", property="type", text="Extrapolation Mode")
+        layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
+        layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
+        layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
+        layout.operator_menu_enum("action.extrapolation_type", "type", text="Extrapolation Mode")
 
         layout.separator()
         layout.operator("action.clean")
@@ -186,9 +190,10 @@ class DOPESHEET_MT_key_transform(bpy.types.Menu):
         layout = self.layout
 
         layout.column()
-        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.transform", text="Grab/Move").mode = 'TIME_TRANSLATE'
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
-        layout.operator("transform.resize", text="Scale")
+        layout.operator("transform.transform", text="Slide").mode = 'TIME_SLIDE'
+        layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
 
 
 classes = [

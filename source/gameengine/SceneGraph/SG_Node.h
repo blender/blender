@@ -77,6 +77,13 @@ public:
 		SG_Node* child
 	);
 
+	/**
+	 * Return true if the node is the ancessor of child
+	 */
+		bool
+	IsAncessor(
+		const SG_Node* child
+	) const;
 	/** 
 	 * Get the current list of children. Do not use this interface for
 	 * adding or removing children please use the methods of this class for
@@ -262,7 +269,7 @@ private:
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_Node"); }
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_Node"); }
 	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };

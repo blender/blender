@@ -28,14 +28,8 @@
  */
 
 #include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 
 #include "../PIL_dynlib.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #if !defined(CHAR_MAX)
 #define CHAR_MAX 255
@@ -47,6 +41,8 @@
  */
  
 #ifdef WIN32
+#include <string.h>
+#include <stdio.h>
 
 #include <windows.h>
 

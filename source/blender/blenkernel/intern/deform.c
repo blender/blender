@@ -38,34 +38,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_scene_types.h"
 
-#include "BKE_curve.h"
 #include "BKE_deform.h"
-#include "BKE_displist.h"
-#include "BKE_effect.h"
-#include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
-#include "BKE_object.h"
-#include "BKE_softbody.h"
-#include "BKE_utildefines.h"
-#include "BKE_mesh.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_cellalloc.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 
 void defgroup_copy_list (ListBase *outbase, ListBase *inbase)
@@ -223,7 +202,7 @@ int defgroup_name_index (Object *ob, const char *name)
 	bDeformGroup *curdef;
 	int def_nr;
 	
-	if(name[0] != '\0') {
+	if(name && name[0] != '\0') {
 		for (curdef=ob->defbase.first, def_nr=0; curdef; curdef=curdef->next, def_nr++) {
 			if (!strcmp(curdef->name, name))
 				return def_nr;
@@ -386,10 +365,10 @@ void defgroup_unique_name (bDeformGroup *dg, Object *ob)
 void flip_side_name (char *name, const char *from_name, int strip_number)
 {
 	int     len;
-	char    prefix[sizeof((bDeformGroup *)NULL)->name]={""};   /* The part before the facing */
-	char    suffix[sizeof((bDeformGroup *)NULL)->name]={""};   /* The part after the facing */
-	char    replace[sizeof((bDeformGroup *)NULL)->name]={""};  /* The replacement string */
-	char    number[sizeof((bDeformGroup *)NULL)->name]={""};   /* The number extension string */
+	char    prefix[sizeof(((bDeformGroup *)NULL)->name)]= {""};   /* The part before the facing */
+	char    suffix[sizeof(((bDeformGroup *)NULL)->name)]= {""};   /* The part after the facing */
+	char    replace[sizeof(((bDeformGroup *)NULL)->name)]=  {""};  /* The replacement string */
+	char    number[sizeof(((bDeformGroup *)NULL)->name)]=  {""};   /* The number extension string */
 	char    *index=NULL;
 
 	len= strlen(from_name);

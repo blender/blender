@@ -146,7 +146,9 @@ struct Render
 	int partx, party;
 	
 	/* values for viewing */
-	float lens, ycor, viewfac;
+	float lens;
+	float ycor; /* (scene->xasp / scene->yasp), multiplied with 'winy' */
+	
 	float panophi, panosi, panoco, panodxp, panodxv;
 	
 	/* Matrices */
@@ -172,6 +174,7 @@ struct Render
 	Scene *scene;
 	RenderData r;
 	World wrld;
+	unsigned int lay;
 	
 	ListBase parts;
 	
@@ -186,7 +189,8 @@ struct Render
 	ListBase strandsurface;
 	
 	/* use this instead of R.r.cfra */
-	float cfra;	
+	float cfra;
+	float mblur_offs, field_offs;
 	
 	/* render database */
 	int totvlak, totvert, tothalo, totstrand, totlamp;
@@ -231,8 +235,8 @@ struct Render
 	
 	void (*stats_draw)(void *handle, RenderStats *ri);
 	void *sdh;
-	void (*timecursor)(void *handle, int i);
-	void *tch;
+	void (*progress)(void *handle, float i);
+	void *prh;
 	
 	int (*test_break)(void *handle);
 	void *tbh;
@@ -373,18 +377,18 @@ typedef struct VlakRen {
 
 typedef struct HaloRen
 {	
-    short miny, maxy;
-    float alfa, xs, ys, rad, radsq, sin, cos, co[3], no[3];
+	short miny, maxy;
+	float alfa, xs, ys, rad, radsq, sin, cos, co[3], no[3];
 	float hard, b, g, r;
-    int zs, zd;
-    int zBufDist;	/* depth in the z-buffer coordinate system */
-    char starpoints, type, add, tex;
-    char linec, ringc, seed;
+	int zs, zd;
+	int zBufDist;	/* depth in the z-buffer coordinate system */
+	char starpoints, type, add, tex;
+	char linec, ringc, seed;
 	short flarec; /* used to be a char. why ?*/
-    float hasize;
-    int pixels;
-    unsigned int lay;
-    struct Material *mat;
+	float hasize;
+	int pixels;
+	unsigned int lay;
+	struct Material *mat;
 } HaloRen;
 
 /* ------------------------------------------------------------------------- */
@@ -561,13 +565,6 @@ typedef struct LampRen {
 	
 	/* passes & node shader support: all shadow info for a pixel */
 	LampShadowSample *shadsamp;
-		
-	/* yafray: photonlight params */
-	int YF_numphotons, YF_numsearch;
-	short YF_phdepth, YF_useqmc, YF_bufsize;
-	float YF_causticblur, YF_ltradius;
-	float YF_glowint, YF_glowofs;
-	short YF_glowtype;
 	
 	/* ray optim */
 	struct RayObject *last_hit[BLENDER_MAX_THREADS];

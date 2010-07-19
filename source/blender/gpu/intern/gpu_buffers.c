@@ -1,5 +1,5 @@
 /**
- * $Id: gpu_buffers.c 23816 2009-10-13 19:02:30Z nicholasbishop $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -38,8 +38,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_ghash.h"
+#include "BLI_math.h"
+#include "BLI_threads.h"
 
 #include "DNA_meshdata_types.h"
 
@@ -48,7 +49,7 @@
 
 #include "DNA_userdef_types.h"
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 
 #define GPU_BUFFER_VERTEX_STATE 1
 #define GPU_BUFFER_NORMAL_STATE 2
@@ -82,35 +83,10 @@ GPUBufferPool *GPU_buffer_pool_new()
 	}
 
 	pool = MEM_callocN(sizeof(GPUBufferPool), "GPU_buffer_pool_new");
+	pool->maxsize = MAX_FREE_GPU_BUFFERS;
+	pool->buffers = MEM_callocN(sizeof(GPUBuffer*)*pool->maxsize, "GPU_buffer_pool_new buffers");
 
 	return pool;
-}
-
-void GPU_buffer_pool_free(GPUBufferPool *pool)
-{
-	int i;
-
-	DEBUG_VBO("GPU_buffer_pool_free\n");
-
-	if( pool == 0 )
-		pool = globalPool;
-	if( pool == 0 )
-		return;
-
-	for( i = 0; i < pool->size; i++ ) {
-		if( pool->buffers[i] != 0 ) {
-			if( useVBOs ) {
-				glDeleteBuffersARB( 1, &pool->buffers[i]->id );
-			}
-			else {
-				MEM_freeN( pool->buffers[i]->pointer );
-			}
-			MEM_freeN(pool->buffers[i]);
-		} else {
-			ERROR_VBO("Why are we accessing a null buffer in GPU_buffer_pool_free?\n");
-		}
-	}
-	MEM_freeN(pool);
 }
 
 void GPU_buffer_pool_remove( int index, GPUBufferPool *pool )
@@ -157,6 +133,35 @@ void GPU_buffer_pool_delete_last( GPUBufferPool *pool )
 		DEBUG_VBO("Why are we accessing a null buffer?\n");
 	}
 	pool->size--;
+}
+
+void GPU_buffer_pool_free(GPUBufferPool *pool)
+{
+	DEBUG_VBO("GPU_buffer_pool_free\n");
+
+	if( pool == 0 )
+		pool = globalPool;
+	if( pool == 0 )
+		return;
+	
+	while( pool->size )
+		GPU_buffer_pool_delete_last(pool);
+
+	MEM_freeN(pool->buffers);
+	MEM_freeN(pool);
+}
+
+void GPU_buffer_pool_free_unused(GPUBufferPool *pool)
+{
+	DEBUG_VBO("GPU_buffer_pool_free_unused\n");
+
+	if( pool == 0 )
+		pool = globalPool;
+	if( pool == 0 )
+		return;
+	
+	while( pool->size > MAX_FREE_GPU_BUFFERS )
+		GPU_buffer_pool_delete_last(pool);
 }
 
 GPUBuffer *GPU_buffer_alloc( int size, GPUBufferPool *pool )
@@ -226,6 +231,7 @@ GPUBuffer *GPU_buffer_alloc( int size, GPUBufferPool *pool )
 void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 {
 	int i;
+
 	DEBUG_VBO("GPU_buffer_free\n");
 
 	if( buffer == 0 )
@@ -235,9 +241,19 @@ void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 	if( pool == 0 )
 		globalPool = GPU_buffer_pool_new();
 
-	/* free the last used buffer in the queue if no more space */
-	if( pool->size == MAX_FREE_GPU_BUFFERS ) {
-		GPU_buffer_pool_delete_last( pool );
+	/* free the last used buffer in the queue if no more space, but only
+	   if we are in the main thread. for e.g. rendering or baking it can
+	   happen that we are in other thread and can't call OpenGL, in that
+	   case cleanup will be done GPU_buffer_pool_free_unused */
+	if( BLI_thread_is_main() ) {
+		while( pool->size >= MAX_FREE_GPU_BUFFERS )
+			GPU_buffer_pool_delete_last( pool );
+	}
+	else {
+		if( pool->maxsize == pool->size ) {
+			pool->maxsize += MAX_FREE_GPU_BUFFERS;
+			pool->buffers = MEM_reallocN(pool->buffers, sizeof(GPUBuffer*)*pool->maxsize);
+		}
 	}
 
 	for( i =pool->size; i > 0; i-- ) {
@@ -273,9 +289,9 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 	memset(numverts,0,sizeof(int)*32768);
 
 	mvert = dm->getVertArray(dm);
-	mface = dm->getTessFaceArray(dm);
+	mface = dm->getFaceArray(dm);
 
-	numfaces= dm->getNumTessFaces(dm);
+	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		if( mface[i].v4 )
 			numverts[mface[i].mat_nr+16383] += 6;	/* split every quad into two triangles */
@@ -315,11 +331,10 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 		if( object->indices[INDEX].element == -1 ) { \
 			object->indices[INDEX].element = ACTUAL; \
 		} else { \
-			IndexLink *lnk = &object->indices[INDEX], *lnk2; \
-			lnk2 = &object->indexMem[object->indexMemUsage]; \
-			lnk2->element = ACTUAL; \
-			SWAP(IndexLink, *lnk, *lnk2); \
-			lnk->next = lnk2; \
+			IndexLink *lnk = &object->indices[INDEX]; \
+			while( lnk->next != 0 ) lnk = lnk->next; \
+			lnk->next = &object->indexMem[object->indexMemUsage]; \
+			lnk->next->element = ACTUAL; \
 			object->indexMemUsage++; \
 		}
 
@@ -460,7 +475,7 @@ void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 	for(i = 0, tottri = 0; i < totface; ++i)
 		tottri += mface[face_indices[i]].v4 ? 2 : 1;
 	
-	if(GL_ARB_vertex_buffer_object)
+	if(GL_ARB_vertex_buffer_object && !(U.gameflags & USER_DISABLE_VBO))
 		glGenBuffersARB(1, &buffers->index_buf);
 
 	if(buffers->index_buf) {
@@ -521,11 +536,11 @@ void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 }
 
 void GPU_update_grid_buffers(void *buffers_v, DMGridData **grids,
-	int *grid_indices, int totgrid, int gridsize)
+	int *grid_indices, int totgrid, int gridsize, int smooth)
 {
 	GPU_Buffers *buffers = buffers_v;
 	DMGridData *vert_data;
-	int i, totvert;
+	int i, j, k, totvert;
 
 	totvert= gridsize*gridsize*totgrid;
 
@@ -540,6 +555,22 @@ void GPU_update_grid_buffers(void *buffers_v, DMGridData **grids,
 			for(i = 0; i < totgrid; ++i) {
 				DMGridData *grid= grids[grid_indices[i]];
 				memcpy(vert_data, grid, sizeof(DMGridData)*gridsize*gridsize);
+
+				if(!smooth) {
+					/* for flat shading, recalc normals and set the last vertex of
+					   each quad in the index buffer to have the flat normal as
+					   that is what opengl will use */
+					for(j = 0; j < gridsize-1; ++j) {
+						for(k = 0; k < gridsize-1; ++k) {
+							normal_quad_v3(vert_data[(j+1)*gridsize + (k+1)].no,
+								vert_data[(j+1)*gridsize + k].co,
+								vert_data[(j+1)*gridsize + k+1].co,
+								vert_data[j*gridsize + k+1].co,
+								vert_data[j*gridsize + k].co);
+						}
+					}
+				}
+
 				vert_data += gridsize*gridsize;
 			}
 			glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
@@ -571,7 +602,7 @@ void *GPU_build_grid_buffers(DMGridData **grids,
 	totquad= (gridsize-1)*(gridsize-1)*totgrid;
 
 	/* Generate index buffer object */
-	if(GL_ARB_vertex_buffer_object)
+	if(GL_ARB_vertex_buffer_object && !(U.gameflags & USER_DISABLE_VBO))
 		glGenBuffersARB(1, &buffers->index_buf);
 
 	if(buffers->index_buf) {
@@ -590,10 +621,10 @@ void *GPU_build_grid_buffers(DMGridData **grids,
 				for(i = 0; i < totgrid; ++i) {
 					for(j = 0; j < gridsize-1; ++j) {
 						for(k = 0; k < gridsize-1; ++k) {
+							*(quad_data++)= offset + j*gridsize + k+1;
 							*(quad_data++)= offset + j*gridsize + k;
 							*(quad_data++)= offset + (j+1)*gridsize + k;
 							*(quad_data++)= offset + (j+1)*gridsize + k+1;
-							*(quad_data++)= offset + j*gridsize + k+1;
 						}
 					}
 
@@ -620,10 +651,10 @@ void *GPU_build_grid_buffers(DMGridData **grids,
 				for(i = 0; i < totgrid; ++i) {
 					for(j = 0; j < gridsize-1; ++j) {
 						for(k = 0; k < gridsize-1; ++k) {
+							*(quad_data++)= offset + j*gridsize + k+1;
 							*(quad_data++)= offset + j*gridsize + k;
 							*(quad_data++)= offset + (j+1)*gridsize + k;
 							*(quad_data++)= offset + (j+1)*gridsize + k+1;
-							*(quad_data++)= offset + j*gridsize + k+1;
 						}
 					}
 
@@ -643,7 +674,6 @@ void *GPU_build_grid_buffers(DMGridData **grids,
 	/* Build VBO */
 	if(buffers->index_buf)
 		glGenBuffersARB(1, &buffers->vert_buf);
-	GPU_update_grid_buffers(buffers, grids, grid_indices, totgrid, gridsize);
 
 	buffers->tot_quad = totquad;
 
@@ -831,9 +861,9 @@ void GPU_buffer_copy_vertex( DerivedMesh *dm, float *varray, int *index, int *re
 	DEBUG_VBO("GPU_buffer_copy_vertex\n");
 
 	mvert = dm->getVertArray(dm);
-	mface = dm->getTessFaceArray(dm);
+	mface = dm->getFaceArray(dm);
 
-	numfaces= dm->getNumTessFaces(dm);
+	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
@@ -875,13 +905,13 @@ void GPU_buffer_copy_normal( DerivedMesh *dm, float *varray, int *index, int *re
 	int start;
 	float norm[3];
 
-	float *nors= dm->getTessFaceDataArray(dm, CD_NORMAL);
+	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
 	MVert *mvert = dm->getVertArray(dm);
-	MFace *mface = dm->getTessFaceArray(dm);
+	MFace *mface = dm->getFaceArray(dm);
 
 	DEBUG_VBO("GPU_buffer_copy_normal\n");
 
-	numfaces= dm->getNumTessFaces(dm);
+	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
@@ -943,7 +973,7 @@ void GPU_buffer_copy_uv( DerivedMesh *dm, float *varray, int *index, int *redir,
 
 	DEBUG_VBO("GPU_buffer_copy_uv\n");
 
-	mface = dm->getTessFaceArray(dm);
+	mface = dm->getFaceArray(dm);
 	mtface = DM_get_face_data_layer(dm, CD_MTFACE);
 
 	if( mtface == 0 ) {
@@ -951,7 +981,7 @@ void GPU_buffer_copy_uv( DerivedMesh *dm, float *varray, int *index, int *redir,
 		return;
 	}
 		
-	numfaces= dm->getNumTessFaces(dm);
+	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
@@ -987,11 +1017,11 @@ void GPU_buffer_copy_color3( DerivedMesh *dm, float *varray_, int *index, int *r
 	int i, numfaces;
 	unsigned char *varray = (unsigned char *)varray_;
 	unsigned char *mcol = (unsigned char *)user;
-	MFace *mface = dm->getTessFaceArray(dm);
+	MFace *mface = dm->getFaceArray(dm);
 
 	DEBUG_VBO("GPU_buffer_copy_color3\n");
 
-	numfaces= dm->getNumTessFaces(dm);
+	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		int start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
@@ -1017,11 +1047,11 @@ void GPU_buffer_copy_color4( DerivedMesh *dm, float *varray_, int *index, int *r
 	int i, numfaces;
 	unsigned char *varray = (unsigned char *)varray_;
 	unsigned char *mcol = (unsigned char *)user;
-	MFace *mface = dm->getTessFaceArray(dm);
+	MFace *mface = dm->getFaceArray(dm);
 
 	DEBUG_VBO("GPU_buffer_copy_color4\n");
 
-	numfaces= dm->getNumTessFaces(dm);
+	numfaces= dm->getNumFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		int start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
@@ -1061,7 +1091,7 @@ GPUBuffer *GPU_buffer_color( DerivedMesh *dm )
 		dm->drawObject->colType = CD_MCOL;
 	}
 
-	numfaces= dm->getNumTessFaces(dm);
+	numfaces= dm->getNumFaces(dm);
 	colors = MEM_mallocN(numfaces*12*sizeof(unsigned char), "GPU_buffer_color");
 	for( i=0; i < numfaces*4; i++ ) {
 		colors[i*3] = mcol[i].b;
@@ -1113,7 +1143,7 @@ void GPU_buffer_copy_uvedge( DerivedMesh *dm, float *varray, int *index, int *re
 	if(tf) {
 		for(i = 0; i < dm->numFaceData; i++, tf++) {
 			MFace mf;
-			dm->getTessFace(dm,i,&mf);
+			dm->getFace(dm,i,&mf);
 
 			VECCOPY2D(&varray[j],tf->uv[0]);
 			VECCOPY2D(&varray[j+2],tf->uv[1]);
@@ -1501,8 +1531,9 @@ void GPU_buffer_unbind()
 		else
 			break;
 	}
-	if( GLStates != 0 )
+	if( GLStates != 0 ) {
 		DEBUG_VBO( "Some weird OpenGL state is still set. Why?" );
+	}
 	if( useVBOs )
 		glBindBufferARB( GL_ARRAY_BUFFER_ARB, 0 );
 }

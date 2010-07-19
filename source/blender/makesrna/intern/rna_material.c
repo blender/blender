@@ -26,7 +26,6 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -648,8 +647,8 @@ static void rna_def_material_colors(StructRNA *srna)
 		{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
 		{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
 		{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
-        {MA_RAMP_SOFT, "SOFT LIGHT", 0, "Soft Light", ""}, 
-        {MA_RAMP_LINEAR, "LINEAR LIGHT", 0, "Linear Light", ""}, 
+		{MA_RAMP_SOFT, "SOFT LIGHT", 0, "Soft Light", ""}, 
+		{MA_RAMP_LINEAR, "LINEAR LIGHT", 0, "Linear Light", ""}, 
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_ramp_input_items[] = {
@@ -800,7 +799,7 @@ static void rna_def_material_diffuse(StructRNA *srna)
 	prop= RNA_def_property(srna, "diffuse_fresnel_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "param[0]");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
-	RNA_def_property_ui_text(prop, "Diffuse Fresnel Factor", "Blending factor of Frensel");
+	RNA_def_property_ui_text(prop, "Diffuse Fresnel Factor", "Blending factor of Fresnel");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "darkness", PROP_FLOAT, PROP_NONE);
@@ -871,7 +870,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Gloss Threshold", "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "ray_depth");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Depth", "Maximum allowed number of light inter-reflections");
@@ -936,7 +935,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Gloss Threshold", "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "ray_depth_tra");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Depth", "Maximum allowed number of light inter-refractions");
@@ -1353,7 +1352,7 @@ static void rna_def_material_specularity(StructRNA *srna)
 	prop= RNA_def_property(srna, "specular_toon_smooth", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "param[3]");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Specular Toon Smooth", "Ssmoothness of specular toon area");
+	RNA_def_property_ui_text(prop, "Specular Toon Smooth", "Smoothness of specular toon area");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "specular_slope", PROP_FLOAT, PROP_NONE);
@@ -1449,7 +1448,7 @@ static void rna_def_material_physics(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "friction");
 	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "Friction", "Coulomb friction coeffecient, when inside the physics distance area");
+	RNA_def_property_ui_text(prop, "Friction", "Coulomb friction coefficient, when inside the physics distance area");
 
 	prop= RNA_def_property(srna, "force", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fh");
@@ -1487,6 +1486,16 @@ void RNA_def_material(BlenderRNA *brna)
 		{MA_ZTRANSP, "Z_TRANSPARENCY", 0, "Z Transparency", "Use alpha buffer for transparent faces"},
 		{MA_RAYTRANSP, "RAYTRACE", 0, "Raytrace", "Use raytracing for transparent refraction rendering"},
 		{0, NULL, 0, NULL, NULL}};
+	
+	/* Render Preview Types */
+	static EnumPropertyItem preview_type_items[] = {
+		{MA_FLAT, "FLAT", ICON_MATPLANE, "Flat", "Preview type: Flat XY plane"},
+		{MA_SPHERE, "SPHERE", ICON_MATSPHERE, "Sphere", "Preview type: Sphere"},
+		{MA_CUBE, "CUBE", ICON_MATCUBE, "Flat", "Preview type: Cube"},
+		{MA_MONKEY, "MONKEY", ICON_MONKEY, "Flat", "Preview type: Monkey"},
+		{MA_HAIR, "HAIR", ICON_HAIR, "Flat", "Preview type: Hair strands"},
+		{MA_SPHERE_A, "SPHERE_A", ICON_MAT_SPHERE_SKY, "Flat", "Preview type: Large sphere with sky"},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Material", "ID");
 	RNA_def_struct_ui_text(srna, "Material", "Material datablock to defined the appearance of geometric objects for rendering");
@@ -1508,6 +1517,13 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, transparency_items);
 	RNA_def_property_ui_text(prop, "Transparency Method", "Method to use for rendering transparency");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+	
+	/* For Preview Render */
+	prop= RNA_def_property(srna, "preview_render_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "pr_type");
+	RNA_def_property_enum_items(prop, preview_type_items);
+	RNA_def_property_ui_text(prop, "Preview render type", "Type of preview render");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "ambient", PROP_FLOAT, PROP_FACTOR);

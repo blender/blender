@@ -27,12 +27,7 @@
  */
 
 #include <sys/stat.h>
-#include <sys/types.h>
 
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <string.h>
 
 /* path/file handeling stuff */
@@ -46,13 +41,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h" /* Library */
-#include "DNA_customdata_types.h"
-#include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h" /* to get the current frame */
 #include "DNA_sequence_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -71,9 +62,6 @@
 /* for sequence */
 //XXX #include "BSE_sequence.h"
 //XXX define below from BSE_sequence.h - otherwise potentially odd behaviour
-#define SEQ_HAS_PATH(seq) (seq->type==SEQ_MOVIE || seq->type==SEQ_IMAGE)
-
-
 
 #define FILE_MAX			240
 
@@ -86,7 +74,7 @@ enum BPathTypes {
 	BPATH_SEQ,
 	BPATH_CDATA,
 
- 	BPATH_DONE
+	 BPATH_DONE
 };
 
 void BLI_bpathIterator_init( struct BPathIterator *bpi, char *base_path ) {
@@ -137,10 +125,11 @@ void BLI_bpathIterator_getPathExpanded( struct BPathIterator *bpi, char *path_ex
 	libpath = BLI_bpathIterator_getLib(bpi);
 	
 	if (libpath) { /* check the files location relative to its library path */
-		BLI_convertstringcode(path_expanded, libpath);
+		BLI_path_abs(path_expanded, libpath);
 	} else { /* local data, use the blend files path */
-		BLI_convertstringcode(path_expanded, bpi->base_path);
+		BLI_path_abs(path_expanded, bpi->base_path);
 	}
+	BLI_cleanup_file(NULL, path_expanded);
 }
 char* BLI_bpathIterator_getLib( struct BPathIterator *bpi) {
 	return bpi->lib;
@@ -270,7 +259,7 @@ static void seq_getpath(struct BPathIterator *bpi, char *path) {
 	path[0] = '\0'; /* incase we cant get the path */
 	if (seq==NULL) return;
 	if (SEQ_HAS_PATH(seq)) {
-		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
+		if (ELEM3(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_SOUND)) {
 			BLI_strncpy(path, seq->strip->dir, FILE_MAX);
 			BLI_add_slash(path); /* incase its missing */
 			if (seq->strip->stripdata) { /* should always be true! */
@@ -289,8 +278,8 @@ static void seq_setpath(struct BPathIterator *bpi, char *path) {
 	if (seq==NULL) return; 
 	
 	if (SEQ_HAS_PATH(seq)) {
-		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
-			BLI_split_dirfile_basic(path, seq->strip->dir, seq->strip->stripdata->name);
+		if (ELEM3(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_SOUND)) {
+			BLI_split_dirfile(path, seq->strip->dir, seq->strip->stripdata->name);
 		} else {
 			/* simple case */
 			BLI_strncpy(seq->strip->dir, path, sizeof(seq->strip->dir));
@@ -343,7 +332,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				Image *ima = (Image *)bpi->data;
 				
-				bpi->lib = ima->id.lib ? ima->id.lib->filename : NULL;
+				bpi->lib = ima->id.lib ? ima->id.lib->filepath : NULL;
 				bpi->path = ima->name;
 				bpi->name = ima->id.name+2;
 				bpi->len = sizeof(ima->name);
@@ -364,7 +353,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				bSound *snd = (bSound *)bpi->data;
 				
-				bpi->lib = snd->id.lib ? snd->id.lib->filename : NULL;
+				bpi->lib = snd->id.lib ? snd->id.lib->filepath : NULL;
 				bpi->path = snd->name;
 				bpi->name = snd->id.name+2;
 				bpi->len = sizeof(snd->name);
@@ -385,7 +374,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* get the path info from this datatype */
 				VFont *vf = (VFont *)bpi->data;
 				
-				bpi->lib = vf->id.lib ? vf->id.lib->filename : NULL;
+				bpi->lib = vf->id.lib ? vf->id.lib->filepath : NULL;
 				bpi->path = vf->name;
 				bpi->name = vf->id.name+2;
 				bpi->len = sizeof(vf->name);
@@ -432,7 +421,7 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 
 			if (bpi->data) {
 				Mesh *me = (Mesh *)bpi->data;
-				bpi->lib = me->id.lib ? me->id.lib->filename : NULL;
+				bpi->lib = me->id.lib ? me->id.lib->filepath : NULL;
 				bpi->path = me->fdata.external->filename;
 				bpi->name = me->id.name+2;
 				bpi->len = sizeof(me->fdata.external->filename);
@@ -533,7 +522,7 @@ void makeFilesRelative(char *basepath, ReportList *reports) {
 				/* Important BLI_cleanup_dir runs before the path is made relative
 				 * because it wont work for paths that start with "//../" */ 
 				BLI_cleanup_file(bpi.base_path, filepath_relative); /* fix any /foo/../foo/ */
-				BLI_makestringcode(bpi.base_path, filepath_relative);
+				BLI_path_rel(filepath_relative, bpi.base_path);
 				/* be safe and check the length */
 				if (BLI_bpathIterator_getPathMaxLen(&bpi) <= strlen(filepath_relative)) {
 					bpath_as_report(&bpi, "couldn't make path relative (too long)", reports);
@@ -631,7 +620,7 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 	
 	while ((de = readdir(dir)) != NULL) {
 		
-		if (strncmp(".", de->d_name, 2)==0 || strncmp("..", de->d_name, 3)==0)
+		if (strcmp(".", de->d_name)==0 || strcmp("..", de->d_name)==0)
 			continue;
 		
 		BLI_join_dirfile(path, dirname, de->d_name);
@@ -669,11 +658,11 @@ void findMissingFiles(char *basepath, char *str) {
 	char filepath[FILE_MAX], *libpath;
 	int filesize, recur_depth;
 	
-	char dirname[FILE_MAX], filename[FILE_MAX], filename_new[FILE_MAX];
+	char dirname[FILE_MAX], filename_new[FILE_MAX];
 	
 	//XXX waitcursor( 1 );
 	
-	BLI_split_dirfile_basic(str, dirname, NULL);
+	BLI_split_dirfile(str, dirname, NULL);
 	
 	BLI_bpathIterator_init(&bpi, basepath);
 	
@@ -694,9 +683,8 @@ void findMissingFiles(char *basepath, char *str) {
 				/* can the dir be opened? */
 				filesize = -1;
 				recur_depth = 0;
-				BLI_split_dirfile_basic(filepath, NULL, filename); /* the file to find */
 				
-				findFileRecursive(filename_new, dirname, filename, &filesize, &recur_depth);
+				findFileRecursive(filename_new, dirname, BLI_path_basename(filepath), &filesize, &recur_depth);
 				if (filesize == -1) { /* could not open dir */
 					printf("Could not open dir \"%s\"\n", dirname);
 					return;
@@ -709,7 +697,7 @@ void findMissingFiles(char *basepath, char *str) {
 					} else {
 						/* copy the found path into the old one */
 						if (G.relbase_valid)
-							BLI_makestringcode(bpi.base_path, filename_new);
+							BLI_path_rel(filename_new, bpi.base_path);
 						
 						BLI_bpathIterator_setPath( &bpi, filename_new );
 					}

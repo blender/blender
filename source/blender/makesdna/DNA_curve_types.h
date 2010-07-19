@@ -55,7 +55,7 @@ struct EditFont;
 typedef struct PathPoint {
 	float vec[4]; /* grr, cant get rid of tilt yet */
 	float quat[4];
-	float radius;
+	float radius, weight;
 } PathPoint;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
@@ -80,7 +80,7 @@ typedef struct BevList {
 #
 #
 typedef struct BevPoint {
-	float vec[3], alfa, radius;
+	float vec[3], alfa, radius, weight;
 	float sina, cosa;				/* 2D Only */
 	float dir[3], tan[3], quat[4];	/* 3D Only */
 	short split_tag, dupe_tag;
@@ -177,7 +177,7 @@ typedef struct Curve {
 	short texflag, pad1; /* keep a short because of give_obdata_texspace() */
 
 	short drawflag, twist_mode,  pad[2];
-	float twist_smooth, pad2;
+	float twist_smooth, smallcaps_scale;
 
 	short pathlen, totcol;
 	short flag, bevresol;
@@ -189,8 +189,8 @@ typedef struct Curve {
 
 	/* edit, index in nurb list */
 	int actnu;
-	/* edit, last selected bpoint */
-	BPoint *lastselbp;
+	/* edit, last selected point */
+	void *lastsel;
 	
 	/* font part */
 	short len, lines, pos, spacemode;
@@ -243,6 +243,7 @@ typedef struct Curve {
 #define CU_RETOPO               1024
 #define CU_DS_EXPAND	2048
 #define CU_PATH_RADIUS	4096 /* make use of the path radius if this is enabled (default for new curves) */
+#define CU_DEFORM_FILL	8192 /* fill 2d curve after deformation */
 
 /* twist mode */
 #define CU_TWIST_Z_UP			0
@@ -287,7 +288,9 @@ typedef struct Curve {
 
 
 /* flagu flagv (nurb) */
-#define CU_CYCLIC		1
+#define CU_NURB_CYCLIC		1
+#define CU_NURB_ENDPOINT	2
+#define CU_NURB_BEZIER		4
 
 /* *************** BEZTRIPLE **************** */
 
@@ -321,11 +324,13 @@ typedef enum eBezTriple_KeyframeType {
 /* *************** CHARINFO **************** */
 
 /* flag */
-#define CU_STYLE		(1+2)
-#define CU_BOLD			1
-#define CU_ITALIC		2
-#define CU_UNDERLINE	4
-#define CU_WRAP			8	/* wordwrap occured here */
+/* note: CU_CHINFO_WRAP and CU_CHINFO_SMALLCAPS_TEST are set dynamically */
+#define CU_CHINFO_BOLD			(1<<0)
+#define CU_CHINFO_ITALIC		(1<<1)
+#define CU_CHINFO_UNDERLINE	(1<<2)
+#define CU_CHINFO_WRAP			(1<<3)	/* wordwrap occured here */
+#define CU_CHINFO_SMALLCAPS	(1<<4)
+#define CU_CHINFO_SMALLCAPS_CHECK (1<<5) /* set at runtime, checks if case switching is needed */
 
 #endif
 

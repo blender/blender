@@ -30,7 +30,6 @@
 #include <stdio.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "BLO_sys_types.h"
 

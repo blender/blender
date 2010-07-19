@@ -32,7 +32,6 @@ SET(INC
 	../../../intern/string
 	../../../source/gameengine/Expressions 
 	../../../source/gameengine/SceneGraph
-	../../../source/gameengine/Ketsji
 	../../../intern/moto/include
 	../../../source/gameengine/Rasterizer
 )

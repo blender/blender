@@ -30,10 +30,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -53,26 +51,22 @@
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
-#include "ED_util.h"
-#include "ED_types.h"
 
 #include "interface_intern.h"
 
 /* ************** widget base functions ************** */
 /*
-     - in: roundbox codes for corner types and radius
-     - return: array of [size][2][x,y] points, the edges of the roundbox, + UV coords
+	 - in: roundbox codes for corner types and radius
+	 - return: array of [size][2][x,y] points, the edges of the roundbox, + UV coords
  
-     - draw black box with alpha 0 on exact button boundbox
-     - for ever AA step:
-        - draw the inner part for a round filled box, with color blend codes or texture coords
-        - draw outline in outline color
-        - draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
-        - draw extra decorations
-     - draw background color box with alpha 1 on exact button boundbox
+	 - draw black box with alpha 0 on exact button boundbox
+	 - for ever AA step:
+		- draw the inner part for a round filled box, with color blend codes or texture coords
+		- draw outline in outline color
+		- draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
+		- draw extra decorations
+	 - draw background color box with alpha 1 on exact button boundbox
  
  */
 
@@ -289,10 +283,10 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	float maxxi= maxx - 1.0f;
 	float minyi= miny + 1.0f;
 	float maxyi= maxy - 1.0f;
-	float facxi= 1.0f/(maxxi-minxi); /* for uv */
-	float facyi= 1.0f/(maxyi-minyi);
+	float facxi= (maxxi!=minxi) ? 1.0f/(maxxi-minxi) : 0.0f; /* for uv, can divide by zero */
+	float facyi= (maxyi!=minyi) ? 1.0f/(maxyi-minyi) : 0.0f;
 	int a, tot= 0, minsize;
-	
+
 	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
 	
 	if(2.0f*rad > minsize)
@@ -614,14 +608,67 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	/* backdrop non AA */
 	if(wtb->inner) {
 		if(wcol->shaded==0) {
-			
-			/* filled center, solid */
-			glColor4ubv((unsigned char*)wcol->inner);
-			glBegin(GL_POLYGON);
-			for(a=0; a<wtb->totvert; a++)
-				glVertex2fv(wtb->inner_v[a]);
-			glEnd();
+			if (wcol->alpha_check) {
+				GLubyte checker_stipple_sml[32*32/8] =
+				{
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+					0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+				};
 
+				float x_mid= 0.0f; /* used for dumb clamping of values */
+
+				/* dark checkers */
+				glColor4ub(100, 100, 100, 255);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++) {
+					glVertex2fv(wtb->inner_v[a]);
+				}
+				glEnd();
+
+				/* light checkers */
+				glEnable(GL_POLYGON_STIPPLE);
+				glColor4ub(160, 160, 160, 255);
+				glPolygonStipple(checker_stipple_sml);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++) {
+					glVertex2fv(wtb->inner_v[a]);
+				}
+				glEnd();
+				glDisable(GL_POLYGON_STIPPLE);
+
+				/* alpha fill */
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+				glColor4ubv((unsigned char*)wcol->inner);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++) {
+					glVertex2fv(wtb->inner_v[a]);
+					x_mid += wtb->inner_v[a][0];
+				}
+				x_mid /= wtb->totvert;
+				glEnd();
+
+				/* 1/2 solid color */
+				glColor4ub(wcol->inner[0], wcol->inner[1], wcol->inner[2], 255);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++)
+					glVertex2f(MIN2(wtb->inner_v[a][0], x_mid), wtb->inner_v[a][1]);
+				glEnd();
+			}
+			else {
+				/* simple fill */
+				glColor4ubv((unsigned char*)wcol->inner);
+				glBegin(GL_POLYGON);
+				for(a=0; a<wtb->totvert; a++)
+					glVertex2fv(wtb->inner_v[a]);
+				glEnd();
+			}
 		}
 		else {
 			char col1[4], col2[4];
@@ -817,14 +864,17 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	
 	/* need to set this first */
 	uiStyleFontSet(fstyle);
+	
+	if (fstyle->kerning==1)	/* for BLF_width */
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 
-	but->strwidth= BLF_width(but->drawstr);
+	but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr);
 	but->ofs= 0;
 	
 	while(but->strwidth > okwidth ) {
 		
 		but->ofs++;
-		but->strwidth= BLF_width(but->drawstr+but->ofs);
+		but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 		
 		/* textbut exception */
 		if(but->editstr && but->pos != -1) {
@@ -843,6 +893,9 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		
 		if(but->strwidth < 10) break;
 	}
+	
+	if (fstyle->kerning==1)
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 }
 
 static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
@@ -855,7 +908,10 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	/* need to set this first */
 	uiStyleFontSet(fstyle);
 	
-	but->strwidth= BLF_width(but->drawstr);
+	if (fstyle->kerning==1)	/* for BLF_width */
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+	
+	but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr);
 	but->ofs= 0;
 	
 	/* find the space after ':' separator */
@@ -870,7 +926,7 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 			memmove(cp2-1, cp2, strlen(cp2)+1);
 			cp2--;
 			
-			but->strwidth= BLF_width(but->drawstr+but->ofs);
+			but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 			if(but->strwidth < 10) break;
 		}
 	
@@ -879,7 +935,7 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		while ((but->strwidth > okwidth) && (but->ofs < 2))
 		{
 			but->ofs++;
-			but->strwidth= BLF_width(but->drawstr+but->ofs);
+			but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 			if(but->strwidth < 10) break;
 		}
 		
@@ -892,10 +948,12 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		but->drawstr[ pos-1 ] = 0;
 		pos--;
 		
-		but->strwidth= BLF_width(but->drawstr+but->ofs);
+		but->strwidth= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 		if(but->strwidth < 10) break;
 	}
 	
+	if (fstyle->kerning==1)
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 }
 
 
@@ -910,7 +968,10 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		fstyle->align= UI_STYLE_TEXT_LEFT;
 	else
 		fstyle->align= UI_STYLE_TEXT_CENTER;			
-		
+	
+	if (fstyle->kerning==1)	/* for BLF_width */
+		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+	
 	/* text button selection and cursor */
 	if(but->editstr && but->pos != -1) {
 		short t=0, pos=0, ch;
@@ -927,7 +988,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 					ch= but->drawstr[selsta_tmp];
 					but->drawstr[selsta_tmp]= 0;
 					
-					selsta_draw = BLF_width(but->drawstr+but->ofs);
+					selsta_draw = BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 					
 					but->drawstr[selsta_tmp]= ch;
 				} else
@@ -936,7 +997,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 				ch= but->drawstr[selend_tmp];
 				but->drawstr[selend_tmp]= 0;
 				
-				selwidth_draw = BLF_width(but->drawstr+but->ofs);
+				selwidth_draw = BLF_width(fstyle->uifont_id, but->drawstr+but->ofs);
 				
 				but->drawstr[selend_tmp]= ch;
 
@@ -951,16 +1012,20 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 					ch= but->drawstr[pos];
 					but->drawstr[pos]= 0;
 					
-					t= BLF_width(but->drawstr+but->ofs);
+					t= BLF_width(fstyle->uifont_id, but->drawstr+but->ofs) / but->aspect;
 					
 					but->drawstr[pos]= ch;
 				}
 
-				glColor3ub(255,0,0);
+				glColor3f(0.20, 0.6, 0.9);
 				glRects(rect->xmin+t, rect->ymin+2, rect->xmin+t+2, rect->ymax-2);
 			}
 		}
 	}
+	
+	if (fstyle->kerning == 1)
+		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+	
 	//	ui_rasterpos_safe(x, y, but->aspect);
 //	if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
 //	else transopts= ui_translate_buttons();
@@ -1264,6 +1329,19 @@ static struct uiWidgetColors wcol_scroll= {
 	5, -5
 };
 
+static struct uiWidgetColors wcol_progress= {
+	{0, 0, 0, 255},
+	{190, 190, 190, 255},
+	{100, 100, 100, 180},
+	{68, 68, 68, 255},
+	
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	
+	0,
+	0, 0
+};
+
 static struct uiWidgetColors wcol_list_item= {
 	{0, 0, 0, 255},
 	{0, 0, 0, 0},
@@ -1310,6 +1388,7 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_box= wcol_box;
 	tui->wcol_scroll= wcol_scroll;
 	tui->wcol_list_item= wcol_list_item;
+	tui->wcol_progress= wcol_progress;
 
 	tui->wcol_state= wcol_state;
 }
@@ -1577,10 +1656,10 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	copy_v3_v3(hsvo, hsv);
 	
-	/* exception: if 'lock' is set (stored in but->a2),
+	/* exception: if 'lock' is set
 	 * lock the value of the color wheel to 1.
 	 * Useful for color correction tools where you're only interested in hue. */
-	if (but->a2) hsv[2] = 1.f;
+	if (but->flag & UI_BUT_COLOR_LOCK) hsv[2] = 1.f;
 	
 	hsv_to_rgb(0.f, 0.f, hsv[2], colcent, colcent+1, colcent+2);
 	
@@ -1595,6 +1674,8 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		float co= cos(ang);
 		
 		ui_hsvcircle_vals_from_pos(hsv, hsv+1, rect, centx + co*radius, centy + si*radius);
+		CLAMP(hsv[2], 0.0f, 1.0f); /* for display only */
+
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		glColor3fv(col);
 		glVertex2f( centx + co*radius, centy + si*radius);
@@ -1609,14 +1690,19 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH );
 	glColor3ubv((unsigned char*)wcol->outline);
-	glutil_draw_lined_arc(0.0f, M_PI*2.0, radius, tot);
+	glutil_draw_lined_arc(0.0f, M_PI*2.0, radius, tot + 1);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH );
 	glPopMatrix();
 
 	/* cursor */
 	ang= 2.0f*M_PI*hsvo[0] + 0.5f*M_PI;
-	radius= hsvo[1]*radius;
+
+	if(but->flag & UI_BUT_COLOR_CUBIC)
+		radius= (1.0f - pow(1.0f - hsvo[1], 3.0f)) *radius;
+	else
+		radius= hsvo[1] * radius;
+
 	ui_hsv_cursor(centx + cos(-ang)*radius, centy + sin(-ang)*radius);
 	
 }
@@ -1942,6 +2028,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 	uiWidgetBase wtb;
 	float rad;
 	int horizontal;
+	short outline=0;
 
 	widget_init(&wtb);
 
@@ -1983,6 +2070,10 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 		/* draw */
 		wtb.emboss= 0; /* only emboss once */
 		
+		/* exception for progress bar */
+		if (state & UI_SCROLL_NO_OUTLINE)	
+			SWAP(short, outline, wtb.outline);
+		
 		round_box_edges(&wtb, 15, slider, rad); 
 		
 		if(state & UI_SCROLL_ARROWS) {
@@ -2001,6 +2092,9 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 			}
 		}
 		widgetbase_draw(&wtb, wcol);
+		
+		if (state & UI_SCROLL_NO_OUTLINE)
+			SWAP(short, outline, wtb.outline);
 	}	
 }
 
@@ -2065,9 +2159,35 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	uiWidgetScrollDraw(wcol, rect, &rect1, state);
 }
 
+static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	rcti rect_prog = *rect, rect_bar = *rect;
+	float value = but->a1;
+	float w, min;
+	
+	/* make the progress bar a proportion of the original height */
+	/* hardcoded 4px high for now */
+	rect_prog.ymax = rect_prog.ymin + 4;
+	rect_bar.ymax = rect_bar.ymin + 4;
+	
+	w = value * (rect_prog.xmax - rect_prog.xmin);
+	
+	/* ensure minimium size */
+	min= rect_prog.ymax - rect_prog.ymin;
+	w = MAX2(w, min);
+	
+	rect_bar.xmax = rect_bar.xmin + w;
+		
+	uiWidgetScrollDraw(wcol, &rect_prog, &rect_bar, UI_SCROLL_NO_OUTLINE);
+	
+	/* raise text a bit */
+	rect->ymin += 6;
+	rect->xmin -= 6;
+}
+
 static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
-
+	
 	if(but->flag & UI_SELECT) {
 		rcti rectlink;
 		
@@ -2081,7 +2201,6 @@ static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state,
 		ui_draw_link_bezier(&rectlink);
 	}
 }
-
 
 static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
@@ -2149,9 +2268,15 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	float col[4];
 	int color_profile = but->block->color_profile;
 	
+	col[3]= 1.0f;
+
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 			color_profile = BLI_PR_NONE;
+
+		if(RNA_property_array_length(&but->rnapoin, but->rnaprop)==4) {
+			col[3]= RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
+		}
 	}
 	
 	widget_init(&wtb);
@@ -2167,8 +2292,10 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	wcol->inner[0]= FTOCHAR(col[0]);
 	wcol->inner[1]= FTOCHAR(col[1]);
 	wcol->inner[2]= FTOCHAR(col[2]);
+	wcol->inner[3]= FTOCHAR(col[3]);
 	wcol->shaded = 0;
-	
+	wcol->alpha_check = (wcol->inner[3] < 255);
+
 	widgetbase_draw(&wtb, wcol);
 	
 }
@@ -2306,6 +2433,36 @@ static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 
 }
 
+static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	uiWidgetBase wtb;
+	char old_col[3];
+	
+	widget_init(&wtb);
+	
+	VECCOPY(old_col, wcol->inner);
+	
+	/* abuse but->hsv - if it's non-zero, use this colour as the box's background */
+	if ((but->hsv[0] != 0.0) || (but->hsv[1] != 0.0) || (but->hsv[2] != 0.0)) {
+		float rgb[3];
+		hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], rgb+0, rgb+1, rgb+2);
+		wcol->inner[0] = rgb[0] * 255;
+		wcol->inner[1] = rgb[1] * 255;
+		wcol->inner[2] = rgb[2] * 255;
+	}
+	
+	/* half rounded */
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+	
+	widgetbase_draw(&wtb, wcol);
+	
+	/* store the box bg as gl clearcolor, to retrieve later when drawing semi-transparent rects
+	 * over the top to indicate disabled buttons */
+	glClearColor(wcol->inner[0]/255.0, wcol->inner[1]/255.0, wcol->inner[2]/255.0, 1.0);
+	
+	VECCOPY(wcol->inner, old_col);
+}
+
 static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
@@ -2372,10 +2529,11 @@ static void widget_disabled(rcti *rect)
 	/* can't use theme TH_BACK or TH_PANEL... undefined */
 	glGetFloatv(GL_COLOR_CLEAR_VALUE, col);
 	glColor4f(col[0], col[1], col[2], 0.5f);
+
 	/* need -1 and +1 to make it work right for aligned buttons,
 	 * but problem may be somewhere else? */
-	glRectf(rect->xmin-1, rect->ymin, rect->xmax, rect->ymax+1);
-
+	glRectf(rect->xmin-1, rect->ymin-1, rect->xmax, rect->ymax+1);
+	
 	glDisable(GL_BLEND);
 }
 
@@ -2492,6 +2650,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 			
 		case UI_WTYPE_BOX:
+			wt.custom= widget_box;
 			wt.wcol_theme= &btheme->tui.wcol_box;
 			break;
 			
@@ -2510,6 +2669,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 		case UI_WTYPE_LISTITEM:
 			wt.wcol_theme= &btheme->tui.wcol_list_item;
 			wt.draw= widget_list_itembut;
+			break;
+			
+		case UI_WTYPE_PROGRESSBAR:
+			wt.wcol_theme= &btheme->tui.wcol_progress;
+			wt.custom= widget_progressbar;
 			break;
 	}
 	
@@ -2715,8 +2879,21 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				ui_draw_but_HISTOGRAM(ar, but, &tui->wcol_regular, rect);
 				break;
 				
+			case WAVEFORM:
+				ui_draw_but_WAVEFORM(ar, but, &tui->wcol_regular, rect);
+				break;
+				
+			case VECTORSCOPE:
+				ui_draw_but_VECTORSCOPE(ar, but, &tui->wcol_regular, rect);
+				break;
+					
 			case BUT_CURVE:
 				ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
+				break;
+				
+			case PROGRESSBAR:
+				wt= widget_type(UI_WTYPE_PROGRESSBAR);
+				fstyle= &style->widgetlabel;
 				break;
 
 			case SCROLL:
@@ -2801,7 +2978,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, 
 	cpoin= strchr(name, '|');
 	if(cpoin) {
 		*cpoin= 0;
-		rect->xmax -= BLF_width(cpoin+1) + 10;
+		rect->xmax -= BLF_width(fstyle->uifont_id, cpoin+1) + 10;
 	}
 	
 	glColor3ubv((unsigned char*)wt->wcol.text);
@@ -2844,8 +3021,8 @@ void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconi
 		glColor3ubv((unsigned char*)wt->wcol.text_sel);
 	
 	trect.xmin += 0;
-	trect.xmax = trect.xmin + BLF_width(name) + 10;
+	trect.xmax = trect.xmin + BLF_width(fstyle->uifont_id, name) + 10;
 	trect.ymin += 10;
-	trect.ymax = trect.ymin + BLF_height(name);
+	trect.ymax = trect.ymin + BLF_height(fstyle->uifont_id, name);
 	uiStyleFontDraw(fstyle, &trect, name);
 }

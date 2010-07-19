@@ -1,3 +1,4 @@
+import bpy
 bpy.context.cloth.settings.quality = 15
 bpy.context.cloth.settings.mass = 0.4
 bpy.context.cloth.settings.structural_stiffness = 80

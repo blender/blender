@@ -227,7 +227,6 @@ void BKE_spacetypes_free(void);	/* only for quitting blender */
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
-void BKE_spacedata_copyfirst(ListBase *lb1, ListBase *lb2);
 
 /* area/regions */
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
@@ -235,6 +234,11 @@ void	BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
 void	BKE_screen_area_free(struct ScrArea *sa);
 
 struct ARegion *BKE_area_find_region_type(struct ScrArea *sa, int type);
+
+void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene);
+void BKE_screen_view3d_scene_sync(struct bScreen *sc);
+void BKE_screen_view3d_main_sync(ListBase *screen_lb, struct Scene *scene);
+
 
 /* screen */
 void free_screen(struct bScreen *sc); 

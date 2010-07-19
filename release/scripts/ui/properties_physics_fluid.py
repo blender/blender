@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = 180
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
 class PhysicButtonsPanel(bpy.types.Panel):
@@ -43,7 +43,6 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
-        split.operator_context = 'EXEC_DEFAULT'
 
         if md:
             # remove modifier + settings
@@ -67,9 +66,18 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 
         if fluid:
             if wide_ui:
-                layout.prop(fluid, "type")
+                row = layout.row()
+                row.prop(fluid, "type")
+                if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
+                    row.prop(fluid, "active", text="")
             else:
                 layout.prop(fluid, "type", text="")
+                if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
+                    layout.prop(fluid, "active", text="")
+
+            layout = layout.column()
+            if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
+                layout.active = fluid.active
 
             if fluid.type == 'DOMAIN':
                 layout.operator("fluid.bake", text="Bake Fluid Simulation", icon='MOD_FLUIDSIM')
@@ -220,15 +228,29 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
         layout = self.layout
 
         fluid = context.fluid.settings
+        scene = context.scene
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
         col = split.column()
-        col.label(text="Gravity:")
-        col.prop(fluid, "gravity", text="")
-        col.label(text="Real World Size:")
-        col.prop(fluid, "real_world_size", text="Metres")
+        if scene.use_gravity:
+            col.label(text="Using Scene Gravity", icon="SCENE_DATA")
+            sub = col.column()
+            sub.enabled = False
+            sub.prop(fluid, "gravity", text="")
+        else:
+            col.label(text="Gravity:")
+            col.prop(fluid, "gravity", text="")
+
+        if scene.unit_settings.system != 'NONE':
+            col.label(text="Using Scene Size Units", icon="SCENE_DATA")
+            sub = col.column()
+            sub.enabled = False
+            sub.prop(fluid, "real_world_size", text="Metres")
+        else:
+            col.label(text="Real World Size:")
+            col.prop(fluid, "real_world_size", text="Metres")
 
         if wide_ui:
             col = split.column()

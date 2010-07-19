@@ -67,11 +67,11 @@ extern "C" {
 		some_drawspace_pylist = PyList_New(0);
 		BPy_Set_DrawButtonsList(some_drawspace_pylist);
 
-      Also, BPy_Free_DrawButtonsList() must be called as necassary when a drawspace
-      with python callbacks is destroyed.
+	  Also, BPy_Free_DrawButtonsList() must be called as necassary when a drawspace
+	  with python callbacks is destroyed.
       
-      This is necassary to avoid blender buttons storing invalid pointers to freed
-      python data.*/
+	  This is necassary to avoid blender buttons storing invalid pointers to freed
+	  python data.*/
 //	void BPy_Set_DrawButtonsList(void *list);
 //	void BPy_Free_DrawButtonsList(void);
 //
@@ -119,9 +119,11 @@ extern "C" {
 //		short eventValue, unsigned short space_event);
 //
 //	void BPY_pydriver_update(void);
-	float BPY_pydriver_eval(struct ChannelDriver *driver);
+	float BPY_eval_driver(struct ChannelDriver *driver);
 //
-	int BPY_button_eval(struct bContext *C, char *expr, double *value);
+	int BPY_eval_button(struct bContext *C, const char *expr, double *value);
+
+	int BPY_eval_string(struct bContext *C, const char *expr);
 
 /* format importer hook */
 	int BPY_call_importloader( char *name );

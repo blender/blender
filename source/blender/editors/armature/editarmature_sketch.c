@@ -26,14 +26,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_userdef_types.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -55,7 +49,6 @@
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
-#include "UI_resources.h"
 //#include "BIF_screen.h"
 //#include "BIF_space.h"
 //#include "BIF_mywindow.h"
@@ -175,7 +168,7 @@ void BIF_makeListTemplates(const bContext *C)
 		BLI_ghash_free(TEMPLATES_HASH, NULL, NULL);
 	}
 
-	TEMPLATES_HASH = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+	TEMPLATES_HASH = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "makeListTemplates gh");
 	TEMPLATES_CURRENT = 0;
 
 	for ( base = FIRSTBASE; base; base = base->next )
@@ -575,8 +568,8 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int end)
 	{
 		float d_rgb[3] = {1, 1, 1};
 
-		VECCOPY(rgb, color);
-		sub_v3_v3v3(d_rgb, d_rgb, rgb);
+		copy_v3_v3(rgb, color);
+		sub_v3_v3(d_rgb, rgb);
 		mul_v3_fl(d_rgb, 1.0f / (float)stk->nb_points);
 
 		for (i = 0; i < stk->nb_points; i++)
@@ -614,7 +607,7 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int end)
 
 			glPopMatrix();
 
-			add_v3_v3v3(rgb, rgb, d_rgb);
+			add_v3_v3(rgb, d_rgb);
 		}
 	}
 
@@ -1012,7 +1005,7 @@ void sk_interpolateDepth(bContext *C, SK_Stroke *stk, int start, int end, float 
 		viewray(ar, v3d, pval, ray_start, ray_normal);
 
 		mul_v3_fl(ray_normal, distance * progress / length);
-		add_v3_v3v3(stk->points[i].p, stk->points[i].p, ray_normal);
+		add_v3_v3(stk->points[i].p, ray_normal);
 
 		progress += delta ;
 	}
@@ -1635,7 +1628,7 @@ int sk_getSelfIntersections(bContext *C, ListBase *list, SK_Stroke *gesture)
 
 				sub_v3_v3v3(isect->p, gesture->points[s_i + 1].p, gesture->points[s_i].p);
 				mul_v3_fl(isect->p, lambda);
-				add_v3_v3v3(isect->p, isect->p, gesture->points[s_i].p);
+				add_v3_v3(isect->p, gesture->points[s_i].p);
 
 				BLI_addtail(list, isect);
 
@@ -2161,7 +2154,7 @@ void sk_applyGesture(bContext *C, SK_Sketch *sketch)
 /********************************************/
 
 
-void sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int extend)
+int sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int extend)
 {
 	ViewContext vc;
 	rcti rect;
@@ -2206,7 +2199,10 @@ void sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int extend)
 
 
 		}
+		return 1;
 	}
+
+	return 0;
 }
 
 void sk_queueRedrawSketch(SK_Sketch *sketch)
@@ -2308,7 +2304,7 @@ void sk_drawSketch(Scene *scene, View3D *v3d, SK_Sketch *sketch, int with_names)
 		}
 	}
 
-#if 1
+#if 0
 	if (sketch->depth_peels.first != NULL)
 	{
 		float colors[8][3] = {
@@ -2478,7 +2474,8 @@ void BIF_sk_selectStroke(bContext *C, short mval[2], short extend)
 
 	if (sketch != NULL && ts->bone_sketching & BONE_SKETCHING)
 	{
-		sk_selectStroke(C, sketch, mval, extend);
+		if (sk_selectStroke(C, sketch, mval, extend))
+			ED_area_tag_redraw(CTX_wm_area(C));
 	}
 }
 
@@ -2565,6 +2562,17 @@ SK_Sketch* viewcontextSketch(ViewContext *vc, int create)
 	return sketch;
 }
 
+static int sketch_convert(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch != NULL)
+	{
+		sk_convert(C, sketch);
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+	return OPERATOR_FINISHED;
+}
+
 static int sketch_cancel(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
@@ -2597,8 +2605,8 @@ static int sketch_select(bContext *C, wmOperator *op, wmEvent *event)
 	if (sketch)
 	{
 		short extend = 0;
-		sk_selectStroke(C, sketch, event->mval, extend);
-		ED_area_tag_redraw(CTX_wm_area(C));
+		if (sk_selectStroke(C, sketch, event->mval, extend))
+			ED_area_tag_redraw(CTX_wm_area(C));
 	}
 
 	return OPERATOR_FINISHED;
@@ -2671,6 +2679,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 		RNA_boolean_set(op->ptr, "snap", snap);
 		break;
 	case MOUSEMOVE:
+	case INBETWEEN_MOUSEMOVE:
 		dd->mval[0] = event->mval[0];
 		dd->mval[1] = event->mval[1];
 		sk_draw_stroke(C, sketch, stk, dd, snap);
@@ -2864,6 +2873,21 @@ void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
 
 	/* flags */
 //	ot->flag= OPTYPE_UNDO;
+}
+
+void SKETCH_OT_convert(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "convert";
+	ot->idname= "SKETCH_OT_convert";
+
+	/* api callbacks */
+	ot->invoke= sketch_convert;
+
+	ot->poll= ED_operator_sketch_full_mode;
+
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
 }
 
 void SKETCH_OT_finish_stroke(wmOperatorType *ot)

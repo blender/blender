@@ -28,20 +28,9 @@
  * A general (pointer -> pointer) hash table ADT
  */
 
-#include <stdlib.h>
-#include <string.h>
 
-#include "MEM_guardedalloc.h"
 #include "BLI_ghash.h"
-#include "BLI_mempool.h"
-
 #include "BLO_sys_types.h" // for intptr_t support
-
-#include "BKE_utildefines.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 /***/
 
@@ -56,8 +45,8 @@ unsigned int hashsizes[]= {
 
 /***/
 
-GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp) {
-	GHash *gh= MEM_mallocN(sizeof(*gh), "GHash");
+GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info) {
+	GHash *gh= MEM_mallocN(sizeof(*gh), info);
 	gh->hashfp= hashfp;
 	gh->cmpfp= cmpfp;
 	gh->entrypool = BLI_mempool_create(sizeof(Entry), 64, 64, 1, 0);
@@ -145,7 +134,7 @@ void *BLI_ghashIterator_getValue(GHashIterator *ghi) {
 
 void BLI_ghashIterator_step(GHashIterator *ghi) {
 	if (ghi->curEntry) {
-        ghi->curEntry= ghi->curEntry->next;
+		ghi->curEntry= ghi->curEntry->next;
 		while (!ghi->curEntry) {
 			ghi->curBucket++;
 			if (ghi->curBucket==ghi->gh->nbuckets)
@@ -180,7 +169,7 @@ unsigned int BLI_ghashutil_inthash(void *ptr) {
 	key += ~(key <<  9);
 	key ^=  (key >> 17);
 
-  	return (unsigned int)(key & 0xffffffff);
+	  return (unsigned int)(key & 0xffffffff);
 }
 
 int BLI_ghashutil_intcmp(void *a, void *b) {

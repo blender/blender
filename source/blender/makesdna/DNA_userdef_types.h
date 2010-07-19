@@ -119,7 +119,7 @@ typedef struct uiWidgetColors {
 	char text_sel[4];
 	short shaded;
 	short shadetop, shadedown;
-	short pad;
+	short alpha_check;
 } uiWidgetColors;
 
 typedef struct uiWidgetStateColors {
@@ -139,8 +139,8 @@ typedef struct ThemeUI {
 	uiWidgetColors wcol_radio, wcol_option, wcol_toggle;
 	uiWidgetColors wcol_num, wcol_numslider;
 	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item;
-	uiWidgetColors wcol_box, wcol_scroll, wcol_list_item;
-
+	uiWidgetColors wcol_box, wcol_scroll, wcol_progress, wcol_list_item;
+	
 	uiWidgetStateColors wcol_state;
 	
 	char iconfile[80];	// FILE_MAXFILE length
@@ -192,7 +192,7 @@ typedef struct ThemeSpace {
 	char active[4], group[4], group_active[4], transform[4];
 	char vertex[4], vertex_select[4];
 	char edge[4], edge_select[4];
-	char edge_seam[4], edge_sharp[4], edge_facesel[4];
+	char edge_seam[4], edge_sharp[4], edge_facesel[4], edge_crease[4];
 	char face[4], face_select[4];	// solid faces
 	char face_dot[4];				// selected color
 	char normal[4];
@@ -200,6 +200,10 @@ typedef struct ThemeSpace {
 	char bone_solid[4], bone_pose[4];
 	char strip[4], strip_select[4];
 	char cframe[4];
+	char nurb_uline[4], nurb_vline[4];
+	char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4], lastsel_point[4];
+	char handle_free[4], handle_auto[4], handle_vect[4], handle_align[4];
+	char handle_sel_free[4], handle_sel_auto[4], handle_sel_vect[4], handle_sel_align[4];
 	char ds_channel[4], ds_subchannel[4]; // dopesheet
 	
 	char console_output[4], console_input[4], console_info[4], console_error[4];
@@ -219,7 +223,7 @@ typedef struct ThemeSpace {
 	char handle_vertex_select[4];
 	
 	char handle_vertex_size;
-	char hpad[3];
+	char hpad[7];
 	
 	char preview_back[4];
 
@@ -300,6 +304,7 @@ typedef struct UserDef {
 	char plugseqdir[160];
 	char pythondir[160];
 	char sounddir[160];
+	char image_editor[240];	// FILE_MAX length
 	char anim_player[240];	// FILE_MAX length
 	int anim_player_preset;
 	
@@ -339,9 +344,10 @@ typedef struct UserDef {
 	short gp_settings;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
+	short sculpt_paint_settings; /* user preferences for sculpt and paint */
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 	short textimeout,texcollectrate;
-	short wmdrawmethod, wmpad;
+	short wmdrawmethod; /* removed wmpad */
 	int memcachelimit;
 	int prefetchframes;
 	short frameserverport;
@@ -353,12 +359,15 @@ typedef struct UserDef {
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
 	short ndof_pan, ndof_rotate;
-	short curssize, ipo_new;
+	short curssize;
 	short color_picker_type;
-	short pad2;
+	short ipo_new;			/* interpolation mode for newly added F-Curves */
+	short keyhandles_new;	/* handle types for newly added keyframes */
 
 	short scrcastfps;		/* frame rate for screencast to be played back */
 	short scrcastwait;		/* milliseconds between screencast snapshots */
+	
+	short propwidth, pad[3]; /* Value for Dual/Single Column UI */
 
 	char versemaster[160];
 	char verseuser[160];
@@ -368,6 +377,11 @@ typedef struct UserDef {
 	short autokey_flag;		/* flags for autokeying */
 
 	struct ColorBand coba_weight;	/* from texture.h */
+
+	int sculpt_paint_unified_size; /* unified radius of brush in pixels */
+	float sculpt_paint_unified_unprojected_radius;/* unified radius of brush in Blender units */
+	float sculpt_paint_unified_alpha; /* unified strength of brush */
+	float sculpt_paint_overlay_col[3];
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */
@@ -385,9 +399,9 @@ extern UserDef U; /* from blenkernel blender.c */
 
 /* flag */
 #define USER_AUTOSAVE			(1 << 0)
-#define USER_AUTOGRABGRID		(1 << 1)
-#define USER_AUTOROTGRID		(1 << 2)
-#define USER_AUTOSIZEGRID		(1 << 3)
+#define USER_AUTOGRABGRID		(1 << 1)	/* deprecated */
+#define USER_AUTOROTGRID		(1 << 2)	/* deprecated */
+#define USER_AUTOSIZEGRID		(1 << 3)	/* deprecated */
 #define USER_SCENEGLOBAL		(1 << 4)
 #define USER_TRACKBALL			(1 << 5)
 #define USER_DUPLILINK			(1 << 6)
@@ -405,10 +419,11 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_ADD_EDITMODE		(1 << 18)
 #define USER_ADD_VIEWALIGNED	(1 << 19)
 #define USER_RELPATHS			(1 << 20)
-#define USER_DRAGIMMEDIATE		(1 << 21)
+#define USER_RELEASECONFIRM		(1 << 21)
 #define USER_SCRIPT_AUTOEXEC_DISABLE	(1 << 22)
 #define USER_FILENOUI			(1 << 23)
 #define USER_NONEGFRAMES		(1 << 24)
+#define USER_TXT_TABSTOSPACES_DISABLE	(1 << 25)
 
 /* helper macro for checking frame clamping */
 #define FRAMENUMBER_MIN_CLAMP(cfra) \
@@ -433,7 +448,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_FLIPFULLSCREEN		(1 << 7)
 #define USER_ALLWINCODECS		(1 << 8)
 #define USER_MENUOPENAUTO		(1 << 9)
-#define USER_PANELPINNED		(1 << 10)
+#define USER_PANELPINNED		(1 << 10)		/* deprecated */
 #define USER_AUTOPERSP     		(1 << 11)
 #define USER_LOCKAROUND     	(1 << 12)
 #define USER_GLOBALUNDO     	(1 << 13)
@@ -451,6 +466,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_CONTINUOUS_MOUSE	(1 << 24)
 #define USER_ZOOM_INVERT		(1 << 25)
 #define USER_ZOOM_DOLLY_HORIZ	(1 << 26)
+#define USER_SPLASH_DISABLE		(1 << 27)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */
@@ -516,6 +532,11 @@ extern UserDef U; /* from blenkernel blender.c */
 /* gp_settings (Grease Pencil Settings) */
 #define GP_PAINT_DOSMOOTH		(1<<0)
 #define GP_PAINT_DOSIMPLIFY		(1<<1)
+
+/* sculpt_paint_settings */
+#define SCULPT_PAINT_USE_UNIFIED_SIZE        (1<<0)
+#define SCULPT_PAINT_USE_UNIFIED_ALPHA       (1<<1)
+#define SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE (1<<2)
 
 /* color picker types */
 #define USER_CP_CIRCLE		0

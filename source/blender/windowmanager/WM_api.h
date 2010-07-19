@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -57,6 +57,7 @@ void		WM_init				(struct bContext *C, int argc, char **argv);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
+void		WM_init_game		(struct bContext *C);
 void		WM_init_splash		(struct bContext *C);
 
 
@@ -77,7 +78,7 @@ void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 int			WM_read_homefile	(struct bContext *C, struct wmOperator *op);
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
-void		WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports);
+int			WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports);
 void		WM_read_autosavefile(struct bContext *C);
 void		WM_autosave_init	(struct wmWindowManager *wm);
 
@@ -183,14 +184,15 @@ int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEven
 int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-		/* invoke callback, file selector "path" unset + exec */
+		/* invoke callback, file selector "filepath" unset + exec */
 int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
 int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int 		WM_operator_props_dialog_popup (struct bContext *C, struct wmOperator *op, int width, int height);
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
-void		WM_operator_ui_popup	(struct bContext *C, struct wmOperator *op, int width, int height);
+int			WM_operator_ui_popup	(struct bContext *C, struct wmOperator *op, int width, int height);
 
 int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, char *message);
 
@@ -221,8 +223,9 @@ void		WM_operator_properties_sanitize(struct PointerRNA *ptr, int val); /* make 
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
-void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action);
+void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action, short flag);
 void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int extend);
+void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 
 /* MOVE THIS SOMEWHERE ELSE */
@@ -230,6 +233,15 @@ void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 #define	SEL_SELECT		1
 #define SEL_DESELECT	2
 #define SEL_INVERT		3
+
+
+/* flags for WM_operator_properties_filesel */
+#define WM_FILESEL_RELPATH		(1 << 0)
+
+#define WM_FILESEL_DIRECTORY	(1 << 1)
+#define WM_FILESEL_FILENAME		(1 << 2)
+#define WM_FILESEL_FILEPATH		(1 << 3)
+
 
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
@@ -251,6 +263,8 @@ int			WM_gesture_lines_invoke(struct bContext *C, struct wmOperator *op, struct 
 int			WM_gesture_lines_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_lasso_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_lasso_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_straightline_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_straightline_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 
 			/* default operator for arearegions, generates event */
 void		WM_OT_tweak_gesture(struct wmOperatorType *ot);
@@ -294,25 +308,34 @@ int			WM_framebuffer_to_index(unsigned int col);
 			/* threaded Jobs Manager */
 #define WM_JOB_PRIORITY		1
 #define WM_JOB_EXCL_RENDER	2
+#define WM_JOB_PROGRESS		4
 
-struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, int flag);
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, char *name, int flag);
 
 int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
+float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
+char		*WM_jobs_name(struct wmWindowManager *wm, void *owner);
 
 void		WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *));
 void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
 void		WM_jobs_callbacks(struct wmJob *, 
-							  void (*startjob)(void *, short *, short *),
+							  void (*startjob)(void *, short *, short *, float *),
 							  void (*initjob)(void *),
-							  void (*update)(void *));
+							  void (*update)(void *),
+							  void (*endjob)(void *));
 
 void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
-void		WM_jobs_stop(struct wmWindowManager *wm, void *owner);
+void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);
+void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void *startjob);
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
 			/* clipboard */
 char		*WM_clipboard_text_get(int selection);
 void		WM_clipboard_text_set(char *buf, int selection);
+
+			/* progress */
+void		WM_progress_set(struct wmWindow *win, float progress);
+void		WM_progress_clear(struct wmWindow *win);
 
 #endif /* WM_API_H */
 

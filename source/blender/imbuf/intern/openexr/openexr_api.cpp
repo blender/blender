@@ -46,10 +46,12 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math_color.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
+#include "IMB_metadata.h"
 
 #include "openexr_multi.h"
 }
@@ -177,7 +179,15 @@ static void openexr_header_compression(Header *header, int compression)
 	}
 }
 
-static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
+static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
+{
+	ImMetaData* info;
+
+	for(info= ibuf->metadata; info; info= info->next)
+		header->insert(info->key, StringAttribute(info->value));
+}
+
+static int imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 {
 	int channels = ibuf->channels;
 	int width = ibuf->x;
@@ -189,6 +199,7 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 		Header header (width, height);
 		
 		openexr_header_compression(&header, ibuf->ftype & OPENEXR_COMPRESS);
+		openexr_header_metadata(&header, ibuf);
 		
 		header.channels().insert ("R", Channel (HALF));
 		header.channels().insert ("G", Channel (HALF));
@@ -218,35 +229,65 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 											sizeof(float), sizeof(float) * -width));
 		if(ibuf->rect_float) {
 			float *from;
-			
-			for (int i = ibuf->y-1; i >= 0; i--) 
-			{
-				from= ibuf->rect_float + channels*i*width;
-				
-				for (int j = ibuf->x; j > 0; j--) 
+
+			if(ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+				for (int i = ibuf->y-1; i >= 0; i--)
 				{
-					to->r = from[0];
-					to->g = (channels >= 2)? from[1]: from[0];
-					to->b = (channels >= 3)? from[2]: from[0];
-					to->a = (channels >= 4)? from[3]: from[0];
-					to++; from += 4;
+					from= ibuf->rect_float + channels*i*width;
+
+					for (int j = ibuf->x; j > 0; j--)
+					{
+						to->r = from[0];
+						to->g = from[1];
+						to->b = from[2];
+						to->a = (channels >= 4)? from[3]: 1.0f;
+						to++; from += 4;
+					}
+				}
+			}
+			else {
+				for (int i = ibuf->y-1; i >= 0; i--)
+				{
+					from= ibuf->rect_float + channels*i*width;
+
+					for (int j = ibuf->x; j > 0; j--)
+					{
+						to->r = srgb_to_linearrgb(from[0]);
+						to->g = srgb_to_linearrgb(from[1]);
+						to->b = srgb_to_linearrgb(from[2]);
+						to->a = (channels >= 4)? from[3]: 1.0f;
+						to++; from += 4;
+					}
 				}
 			}
 		}
 		else {
 			unsigned char *from;
-			
-			for (int i = ibuf->y-1; i >= 0; i--) 
-			{
-				from= (unsigned char *)ibuf->rect + channels*i*width;
-				
-				for (int j = ibuf->x; j > 0; j--) 
+
+			if(ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+				for (int i = ibuf->y-1; i >= 0; i--)
 				{
-					to->r = (float)(from[0])/255.0;
-					to->g = (float)((channels >= 2)? from[1]: from[0])/255.0;
-					to->b = (float)((channels >= 3)? from[2]: from[0])/255.0;
-					to->a = (float)((channels >= 4)? from[3]: from[0])/255.0;
-					to++; from += 4;
+					for (int j = ibuf->x; j > 0; j--)
+					{
+						to->r = (float)(from[0])/255.0;
+						to->g = (float)(from[1])/255.0;
+						to->b = (float)(from[2])/255.0;
+						to->a = (float)(channels >= 4) ? from[3]/255.0 : 1.0f;
+						to++; from += 4;
+					}
+				}
+			}
+			else {
+				for (int i = ibuf->y-1; i >= 0; i--)
+				{
+					for (int j = ibuf->x; j > 0; j--)
+					{
+						to->r = srgb_to_linearrgb((float)from[0] / 255.0);
+						to->g = srgb_to_linearrgb((float)from[1] / 255.0);
+						to->b = srgb_to_linearrgb((float)from[2] / 255.0);
+						to->a = channels >= 4 ? (float)from[3]/255.0 : 1.0f;
+						to++; from += 4;
+					}
 				}
 			}
 		}
@@ -269,7 +310,7 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 	return (1);
 }
 
-static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
+static int imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 {
 	int channels = ibuf->channels;
 	int width = ibuf->x;
@@ -281,6 +322,7 @@ static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 		Header header (width, height);
 		
 		openexr_header_compression(&header, ibuf->ftype & OPENEXR_COMPRESS);
+		openexr_header_metadata(&header, ibuf);
 		
 		header.channels().insert ("R", Channel (FLOAT));
 		header.channels().insert ("G", Channel (FLOAT));
@@ -297,9 +339,9 @@ static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 		float *rect[4] = {NULL, NULL, NULL, NULL};
 
 		rect[0]= ibuf->rect_float + channels*(height-1)*width;
-		rect[1]= (channels >= 2)? rect[0]+1: rect[0];
-		rect[2]= (channels >= 3)? rect[0]+2: rect[0];
-		rect[3]= (channels >= 4)? rect[0]+3: rect[0];
+		rect[1]= rect[0]+1;
+		rect[2]= rect[0]+2;
+		rect[3]= (channels >= 4)? rect[0]+3:rect[0]; /* red as alpha, is this needed since alpha isnt written? */
 
 		frameBuffer.insert ("R", Slice (FLOAT,  (char *)rect[0], xstride, ystride));
 		frameBuffer.insert ("G", Slice (FLOAT,  (char *)rect[1], xstride, ystride));
@@ -326,7 +368,7 @@ static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 }
 
 
-short imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
+int imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
 {
 	if (flags & IB_mem) 
 	{
@@ -435,6 +477,7 @@ void IMB_exr_add_channel(void *handle, const char *layname, const char *passname
 	BLI_addtail(&data->channels, echan);
 }
 
+/* only used for writing temp. render results (not image files) */
 void IMB_exr_begin_write(void *handle, char *filename, int width, int height, int compress)
 {
 	ExrHandle *data= (ExrHandle *)handle;
@@ -448,6 +491,7 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height, in
 		header.channels().insert (echan->name, Channel (FLOAT));
 	
 	openexr_header_compression(&header, compress);
+	// openexr_header_metadata(&header, ibuf); // no imbuf. cant write
 	/* header.lineOrder() = DECREASING_Y; this crashes in windows for file read! */
 	
 	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43 and newer"));
@@ -518,12 +562,9 @@ void IMB_exr_set_channel(void *handle, char *layname, char *passname, int xstrid
 	}
 	else
 		BLI_strncpy(name, passname, EXR_TOT_MAXNAME-1);
-	
-	
-	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
-		if(strcmp(echan->name, name)==0)
-			break;
-	
+
+	echan= (ExrChannel *)BLI_findstring(&data->channels, name, offsetof(ExrChannel, name));
+
 	if(echan) {
 		echan->xstride= xstride;
 		echan->ystride= ystride;
@@ -575,7 +616,12 @@ void IMB_exr_write_channels(void *handle)
 													echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
 		
 		data->ofile->setFrameBuffer (frameBuffer);
-		data->ofile->writePixels (data->height);	
+		try {
+			data->ofile->writePixels (data->height);	
+		}
+		catch (const std::exception &exc) {
+			std::cerr << "OpenEXR-writePixels: ERROR: " << exc.what() << std::endl;
+		}
 	}
 	else {
 		printf("Error: attempt to save MultiLayer without layers.\n");
@@ -598,7 +644,13 @@ void IMB_exr_read_channels(void *handle)
 	}
 	
 	data->ifile->setFrameBuffer (frameBuffer);
-	data->ifile->readPixels (0, data->height-1);	
+
+	try {
+		data->ifile->readPixels (0, data->height-1);	
+	}
+	catch (const std::exception &exc) {
+		std::cerr << "OpenEXR-readPixels: ERROR: " << exc.what() << std::endl;
+	}
 }
 
 void IMB_exr_multilayer_convert(void *handle, void *base,  
@@ -700,35 +752,30 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 
 static ExrLayer *imb_exr_get_layer(ListBase *lb, char *layname)
 {
-	ExrLayer *lay;
-	
-	for(lay= (ExrLayer *)lb->first; lay; lay= lay->next) {
-		if( strcmp(lay->name, layname)==0 )
-			return lay;
+	ExrLayer *lay= (ExrLayer *)BLI_findstring(lb, layname, offsetof(ExrLayer, name));
+
+	if(lay==NULL) {
+		lay= (ExrLayer *)MEM_callocN(sizeof(ExrLayer), "exr layer");
+		BLI_addtail(lb, lay);
+		BLI_strncpy(lay->name, layname, EXR_LAY_MAXNAME);
 	}
-	lay= (ExrLayer *)MEM_callocN(sizeof(ExrLayer), "exr layer");
-	BLI_addtail(lb, lay);
-	BLI_strncpy(lay->name, layname, EXR_LAY_MAXNAME);
-	
+
 	return lay;
 }
 
 static ExrPass *imb_exr_get_pass(ListBase *lb, char *passname)
 {
-	ExrPass *pass;
+	ExrPass *pass= (ExrPass *)BLI_findstring(lb, passname, offsetof(ExrPass, name));
 	
-	for(pass= (ExrPass *)lb->first; pass; pass= pass->next) {
-		if( strcmp(pass->name, passname)==0 )
-			return pass;
-	}
-	
-	pass= (ExrPass *)MEM_callocN(sizeof(ExrPass), "exr pass");
+	if(pass==NULL) {
+		pass= (ExrPass *)MEM_callocN(sizeof(ExrPass), "exr pass");
 
-	if(strcmp(passname, "Combined")==0)
-		BLI_addhead(lb, pass);
-	else
-		BLI_addtail(lb, pass);
-	
+		if(strcmp(passname, "Combined")==0)
+			BLI_addhead(lb, pass);
+		else
+			BLI_addtail(lb, pass);
+	}
+
 	BLI_strncpy(pass->name, passname, EXR_LAY_MAXNAME);
 	
 	return pass;
@@ -880,14 +927,7 @@ static const char *exr_rgba_channelname(InputFile *file, const char *chan)
 
 static int exr_has_zbuffer(InputFile *file)
 {
-	const ChannelList &channels = file->header().channels();
-	
-	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
-	{
-		if(strcmp("Z", i.name())==0)
-			return 1;
-	}
-	return 0;
+	return !(file->header().channels().findChannel("Z") == NULL);
 }
 
 static int exr_is_renderresult(InputFile *file)
@@ -984,16 +1024,22 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 					
 					file->setFrameBuffer (frameBuffer);
 					file->readPixels (dw.min.y, dw.max.y);
-					
-					IMB_rect_from_float(ibuf);
+
+					// XXX, ImBuf has no nice way to deal with this.
+					// ideally IM_rect would be used when the caller wants a rect BUT
+					// at the moment all functions use IM_rect.
+					// Disabling this is ok because all functions should check if a rect exists and create one on demand.
+					//
+					// Disabling this because the sequencer frees immediate.
+					//
+					// if(flag & IM_rect)
+					//     IMB_rect_from_float(ibuf);
 				}
 			}
 			
 		}
 		delete file;
-		
 		return(ibuf);
-				
 	}
 	catch (const std::exception &exc)
 	{

@@ -1,5 +1,5 @@
 /**
- * $Id: 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -34,14 +34,11 @@
 
 #include "PIL_time.h"
 
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h" // Temporary, for snapping to other unselected meshes
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -75,7 +72,6 @@
 #include "ED_armature.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
-#include "ED_transform.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 
@@ -239,7 +235,7 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 void applyProject(TransInfo *t)
 {
 	/* XXX FLICKER IN OBJECT MODE */
-	if ((t->tsnap.project) && activeSnap(t))
+	if ((t->tsnap.project) && activeSnap(t) && (t->flag & T_NO_PROJECT) == 0)
 	{
 		TransData *td = t->data;
 		float tvec[3];
@@ -285,7 +281,7 @@ void applyProject(TransInfo *t)
 				
 				mul_m3_v3(td->smtx, tvec);
 				
-				add_v3_v3v3(td->loc, td->loc, tvec);
+				add_v3_v3(td->loc, tvec);
 			}
 			
 			//XXX constraintTransLim(t, td);
@@ -918,7 +914,7 @@ void TargetSnapMedian(TransInfo *t)
 		
 		for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 		{
-			add_v3_v3v3(t->tsnap.snapTarget, t->tsnap.snapTarget, td->center);
+			add_v3_v3(t->tsnap.snapTarget, td->center);
 		}
 		
 		mul_v3_fl(t->tsnap.snapTarget, 1.0 / i);
@@ -1036,7 +1032,7 @@ int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], float *v4
 		
 		VECCOPY(intersect, ray_normal_local);
 		mul_v3_fl(intersect, lambda);
-		add_v3_v3v3(intersect, intersect, ray_start_local);
+		add_v3_v3(intersect, ray_start_local);
 		
 		VECCOPY(location, intersect);
 		
@@ -1749,7 +1745,7 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 					
 					VECCOPY(intersect, ray_normal_local);
 					mul_v3_fl(intersect, lambda);
-					add_v3_v3v3(intersect, intersect, ray_start_local);
+					add_v3_v3(intersect, ray_start_local);
 					
 					VECCOPY(location, intersect);
 					
@@ -1779,7 +1775,7 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 						
 						VECCOPY(intersect, ray_normal_local);
 						mul_v3_fl(intersect, lambda);
-						add_v3_v3v3(intersect, intersect, ray_start_local);
+						add_v3_v3(intersect, ray_start_local);
 						
 						VECCOPY(location, intersect);
 						
@@ -1918,26 +1914,13 @@ void snapGridAction(TransInfo *t, float *val, GearsType action) {
 
 
 void snapGrid(TransInfo *t, float *val) {
-	int invert;
 	GearsType action;
 
 	// Only do something if using Snap to Grid
 	if (t->tsnap.mode != SCE_SNAP_MODE_INCREMENT)
 		return;
 
-	if(t->mode==TFM_ROTATION || t->mode==TFM_WARP || t->mode==TFM_TILT || t->mode==TFM_TRACKBALL || t->mode==TFM_BONE_ROLL)
-		invert = U.flag & USER_AUTOROTGRID;
-	else if(t->mode==TFM_RESIZE || t->mode==TFM_SHEAR || t->mode==TFM_BONESIZE || t->mode==TFM_SHRINKFATTEN || t->mode==TFM_CURVE_SHRINKFATTEN)
-		invert = U.flag & USER_AUTOSIZEGRID;
-	else
-		invert = U.flag & USER_AUTOGRABGRID;
-
-	if(invert) {
-		action = activeSnap(t) ? NO_GEARS: BIG_GEARS;
-	}
-	else {
-		action = activeSnap(t) ? BIG_GEARS : NO_GEARS;
-	}
+	action = activeSnap(t) ? BIG_GEARS : NO_GEARS;
 
 	if (action == BIG_GEARS && (t->modifiers & MOD_PRECISION)) {
 		action = SMALL_GEARS;

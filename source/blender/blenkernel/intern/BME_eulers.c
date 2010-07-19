@@ -35,17 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_customdata.h"
-#include "BKE_bmesh.h"
-
-#include "BLI_blenlib.h"
 #include "bmesh_private.h"
-#include "BLI_ghash.h"
 
 /*********************************************************
  *                    "Euler API"                        *
@@ -81,7 +72,7 @@
 	code. 
 
    *The term "Euler Operator" is actually a misnomer when referring to a non-manifold 
-    data structure. Its use is in keeping with the convention established by others.
+	data structure. Its use is in keeping with the convention established by others.
 
 	TODO:
 	-Finish inserting 'strict' validation in all Eulers

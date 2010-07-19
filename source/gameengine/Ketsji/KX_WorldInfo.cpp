@@ -28,10 +28,6 @@
 
 #include "KX_WorldInfo.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 KX_WorldInfo::~KX_WorldInfo()
 {
 }

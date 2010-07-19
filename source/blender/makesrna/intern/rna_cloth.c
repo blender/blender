@@ -26,7 +26,6 @@
 #include <limits.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "rna_internal.h"
 
@@ -139,6 +138,22 @@ static void rna_ClothSettings_bend_vgroup_set(PointerRNA *ptr, const char *value
 {
 	ClothSimSettings *sim= (ClothSimSettings*)ptr->data;
 	rna_object_vgroup_name_index_set(ptr, value, &sim->vgroup_bend);
+}
+
+static PointerRNA rna_ClothSettings_rest_shape_key_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ClothSimSettings *sim= (ClothSimSettings*)ptr->data;
+
+	return rna_object_shapekey_index_get(ob->data, sim->shapekey_rest);
+}
+
+static void rna_ClothSettings_rest_shape_key_set(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ClothSimSettings *sim= (ClothSimSettings*)ptr->data;
+
+	sim->shapekey_rest= rna_object_shapekey_index_set(ob->data, value, sim->shapekey_rest);
 }
 
 static void rna_ClothSettings_gravity_get(PointerRNA *ptr, float *values)
@@ -335,6 +350,12 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pre Roll", "Simulation starts on this frame");
 	RNA_def_property_update(prop, 0, "rna_cloth_reset");
 
+	prop= RNA_def_property(srna, "rest_shape_key", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "ShapeKey");
+	RNA_def_property_pointer_funcs(prop, "rna_ClothSettings_rest_shape_key_get", "rna_ClothSettings_rest_shape_key_set", NULL);
+	RNA_def_property_ui_text(prop, "Rest Shade Key", "Shape key to use the rest spring lengths from");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	/* unused */
 
@@ -430,6 +451,11 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "self_loop_count");
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Self Collision Quality", "How many self collision iterations should be done. (higher is better quality but slower)");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Collision Group", "Limit colliders to this Group");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 }
 

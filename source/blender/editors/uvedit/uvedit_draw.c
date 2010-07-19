@@ -62,7 +62,6 @@
 
 static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 {
-	View2D *v2d= &ar->v2d;
 	float zoomx, zoomy, w, h;
 	int width, height;
 
@@ -73,7 +72,7 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 	h= zoomy*height/256.0f;
 	
 	cpack(0xFFFFFF);
-	glTranslatef(v2d->cursor[0], v2d->cursor[1], 0.0f);  
+	glTranslatef(sima->cursor[0], sima->cursor[1], 0.0f);  
 	fdrawline(-0.05/w, 0, 0, 0.05/h);
 	fdrawline(0, 0.05/h, 0.05/w, 0);
 	fdrawline(0.05/w, 0, 0, -0.05/h);
@@ -101,7 +100,7 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 	fdrawline(0, -0.020/h, 0, -0.1/h);
 	fdrawline(0, 0.1/h, 0, 0.020/h);
 	
-	glTranslatef(-v2d->cursor[0], -v2d->cursor[1], 0.0f);
+	glTranslatef(-sima->cursor[0], -sima->cursor[1], 0.0f);
 	setlinestyle(0);
 }
 
@@ -758,7 +757,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		pointsize = UI_GetThemeValuef(TH_FACEDOT_SIZE);
 		glPointSize(pointsize); // TODO - drawobject.c changes this value after - Investigate!
 		
-	    /* unselected faces */
+		/* unselected faces */
 		UI_ThemeColor(TH_WIRE);
 
 		bglBegin(GL_POINTS);
@@ -792,7 +791,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	/* 6. draw uv vertices */
 	
 	if(drawfaces != 2) { /* 2 means Mesh Face Mode */
-	    /* unselected uvs */
+		/* unselected uvs */
 		UI_ThemeColor(TH_VERTEX);
 		pointsize = UI_GetThemeValuef(TH_VERTEX_SIZE);
 		glPointSize(pointsize);
@@ -812,7 +811,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	
 		/* pinned uvs */
 		/* give odd pointsizes odd pin pointsizes */
-	    glPointSize(pointsize*2 + (((int)pointsize % 2)? (-1): 0));
+		glPointSize(pointsize*2 + (((int)pointsize % 2)? (-1): 0));
 		cpack(0xFF);
 	
 		bglBegin(GL_POINTS);
@@ -859,12 +858,6 @@ void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedi
 	show_uvshadow= ED_space_image_show_uvshadow(sima, obedit);
 
 	if(show_uvedit || show_uvshadow) {
-		/* this is basically the same object_handle_update as in the 3d view,
-		 * here we have to do it as well for the object we are editing if we
-		 * are displaying the final result */
-		if(obedit && (sima->flag & SI_DRAWSHADOW))
-			object_handle_update(scene, obedit);
-
 		if(show_uvshadow)
 			draw_uvs_shadow(sima, obedit);
 		else

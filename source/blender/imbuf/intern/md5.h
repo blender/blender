@@ -54,11 +54,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  
    typedef unsigned short md5_uint32;
 # else
 #  if ULONG_MAX == UINT_MAX_32_BITS
-    typedef unsigned long md5_uint32;
+	typedef unsigned long md5_uint32;
 #  else
-    /* The following line is intended to evoke an error.
-       Using #error is not portable enough.  */
-    "Cannot determine unsigned 32-bit data type."
+	/* The following line is intended to evoke an error.
+	   Using #error is not portable enough.  */
+	"Cannot determine unsigned 32-bit data type."
 #  endif
 # endif
 #endif
@@ -93,7 +93,7 @@ void md5_init_ctx __P ((struct md5_ctx *ctx));
    starting at BUFFER.
    It is necessary that LEN is a multiple of 64!!! */
 void md5_process_block __P ((const void *buffer, size_t len,
-			     struct md5_ctx *ctx));
+				 struct md5_ctx *ctx));
 
 /* Put result from CTX in first 16 bytes following RESBUF.  The result is
    always in little endian byte order, so that a byte-wise output yields

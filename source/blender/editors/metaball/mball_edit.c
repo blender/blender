@@ -30,10 +30,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -43,9 +39,6 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
-#include "DNA_userdef_types.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -54,6 +47,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_context.h"
+#include "BKE_library.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -66,6 +60,10 @@
 /* This function is used to free all MetaElems from MetaBall */
 void free_editMball(Object *obedit)
 {
+	MetaBall *mb = (MetaBall*)obedit->data;
+
+	mb->editelems= NULL;
+	mb->lastelem= NULL;
 }
 
 /* This function is called, when MetaBall Object is
@@ -87,13 +85,9 @@ void make_editMball(Object *obedit)
 
 /* This function is called, when MetaBall Object switched from
  * edit mode to object mode. List od MetaElements is copied
- * from object->data->edit_elems to to object->data->elems. */
+ * from object->data->edit_elems to object->data->elems. */
 void load_editMball(Object *obedit)
 {
-	MetaBall *mb = (MetaBall*)obedit->data;
-	
-	mb->editelems= NULL;
-	mb->lastelem= NULL;
 }
 
 /* Add metaelem primitive to metaball object (which is in edit mode) */
@@ -129,24 +123,29 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int new
 	case MB_BALL:
 		ml->type = MB_BALL;
 		ml->expx= ml->expy= ml->expz= 1.0;
+
 		break;
 	case MB_TUBE:
 		ml->type = MB_TUBE;
 		ml->expx= ml->expy= ml->expz= 1.0;
+
 		break;
 	case MB_PLANE:
 		ml->type = MB_PLANE;
 		ml->expx= ml->expy= ml->expz= 1.0;
+
 		break;
 	case MB_ELIPSOID:
 		ml->type = MB_ELIPSOID;
 		ml->expx= 1.2f;
 		ml->expy= 0.8f;
 		ml->expz= 1.0;
+		
 		break;
 	case MB_CUBE:
 		ml->type = MB_CUBE;
 		ml->expx= ml->expy= ml->expz= 1.0;
+
 		break;
 	default:
 		break;
@@ -206,7 +205,7 @@ void MBALL_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect All";
-    ot->description= "Change selection of all meta elements";
+	ot->description= "Change selection of all meta elements";
 	ot->idname= "MBALL_OT_select_all";
 
 	/* callback functions */
@@ -247,7 +246,7 @@ void MBALL_OT_select_inverse_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Inverse";
-    ot->description= "Select inverse of (un)selected metaelements";
+	ot->description= "Select inverse of (un)selected metaelements";
 	ot->idname= "MBALL_OT_select_inverse_metaelems";
 
 	/* callback functions */
@@ -293,7 +292,7 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Random...";
-    ot->description= "Randomly select metaelements";
+	ot->description= "Randomly select metaelements";
 	ot->idname= "MBALL_OT_select_random_metaelems";
 	
 	/* callback functions */
@@ -352,7 +351,7 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate";
-    ot->description= "Delete selected metaelement(s)";
+	ot->description= "Delete selected metaelement(s)";
 	ot->idname= "MBALL_OT_duplicate_metaelems";
 
 	/* callback functions */
@@ -398,7 +397,7 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
-    ot->description= "Delete selected metaelement(s)";
+	ot->description= "Delete selected metaelement(s)";
 	ot->idname= "MBALL_OT_delete_metaelems";
 
 	/* callback functions */
@@ -448,7 +447,7 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hide";
-    ot->description= "Hide (un)selected metaelement(s)";
+	ot->description= "Hide (un)selected metaelement(s)";
 	ot->idname= "MBALL_OT_hide_metaelems";
 
 	/* callback functions */
@@ -489,7 +488,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reveal";
-    ot->description= "Reveal all hidden metaelements";
+	ot->description= "Reveal all hidden metaelements";
 	ot->idname= "MBALL_OT_reveal_metaelems";
 	
 	/* callback functions */

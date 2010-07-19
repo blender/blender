@@ -25,10 +25,6 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
-#include <float.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "BLI_math.h"
 
@@ -904,12 +900,12 @@ void quat_to_eul(float *eul,float *quat)
 /* XYZ order */
 void eul_to_quat(float *quat,float *eul)
 {
-    float ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
+	float ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
  
-    ti = eul[0]*0.5f; tj = eul[1]*0.5f; th = eul[2]*0.5f;
-    ci = (float)cos(ti);  cj = (float)cos(tj);  ch = (float)cos(th);
-    si = (float)sin(ti);  sj = (float)sin(tj);  sh = (float)sin(th);
-    cc = ci*ch; cs = ci*sh; sc = si*ch; ss = si*sh;
+	ti = eul[0]*0.5f; tj = eul[1]*0.5f; th = eul[2]*0.5f;
+	ci = (float)cos(ti);  cj = (float)cos(tj);  ch = (float)cos(th);
+	si = (float)sin(ti);  sj = (float)sin(tj);  sh = (float)sin(th);
+	cc = ci*ch; cs = ci*sh; sc = si*ch; ss = si*sh;
 	
 	quat[0] = cj*cc + sj*ss;
 	quat[1] = cj*sc - sj*cs;
@@ -923,8 +919,8 @@ void rotate_eul(float *beul, char axis, float ang)
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 	
 	eul[0]= eul[1]= eul[2]= 0.0f;
-	if(axis=='x') eul[0]= ang;
-	else if(axis=='y') eul[1]= ang;
+	if(axis=='X') eul[0]= ang;
+	else if(axis=='Y') eul[1]= ang;
 	else eul[2]= ang;
 	
 	eul_to_mat3(mat1,eul);
@@ -1029,7 +1025,7 @@ void mat3_to_compatible_eul(float *eul, float *oldrot,float mat[][3])
 
 /* Euler Rotation Order Code:
  * was adapted from  
-  		ANSI C code from the article
+		  ANSI C code from the article
 		"Euler Angle Conversion"
 		by Ken Shoemake, shoemake@graphics.cis.upenn.edu
 		in "Graphics Gems IV", Academic Press, 1994
@@ -1242,9 +1238,9 @@ void rotate_eulO(float beul[3], short order, char axis, float ang)
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 	
 	eul[0]= eul[1]= eul[2]= 0.0f;
-	if (axis=='x') 
+	if (axis=='X') 
 		eul[0]= ang;
-	else if (axis=='y') 
+	else if (axis=='Y')
 		eul[1]= ang;
 	else 
 		eul[2]= ang;
@@ -1303,11 +1299,11 @@ void eulO_to_gimbal_axis(float gmat[][3], float *eul, short order)
    freely, subject to the following restrictions:
 
    1. The origin of this software must not be misrepresented; you must not
-      claim that you wrote the original software. If you use this software
-      in a product, an acknowledgment in the product documentation would be
-      appreciated but is not required.
+	  claim that you wrote the original software. If you use this software
+	  in a product, an acknowledgment in the product documentation would be
+	  appreciated but is not required.
    2. Altered source versions must be plainly marked as such, and must not be
-      misrepresented as being the original software.
+	  misrepresented as being the original software.
    3. This notice may not be removed or altered from any source distribution.
 
    Author: Ladislav Kavan, kavanl@cs.tcd.ie
@@ -1507,3 +1503,13 @@ void copy_dq_dq(DualQuat *dq1, DualQuat *dq2)
 	memcpy(dq1, dq2, sizeof(DualQuat));
 }
 
+/* lense/angle conversion (radians) */
+float lens_to_angle(float lens)
+{
+	return 2.0f * atan(16.0f/lens);
+}
+
+float angle_to_lens(float angle)
+{
+	return 16.0f / tan(angle * 0.5f);
+}

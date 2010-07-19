@@ -47,7 +47,6 @@
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 
-#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
@@ -228,7 +227,7 @@ void LATTICE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-    ot->description= "Change selection of all UVW control points";
+	ot->description= "Change selection of all UVW control points";
 	ot->idname= "LATTICE_OT_select_all";
 	
 	/* api callbacks */
@@ -276,7 +275,7 @@ void LATTICE_OT_make_regular(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Regular";
-    ot->description= "Set UVW control points a uniform distance apart";
+	ot->description= "Set UVW control points a uniform distance apart";
 	ot->idname= "LATTICE_OT_make_regular";
 	
 	/* api callbacks */
@@ -389,8 +388,8 @@ static int validate_undoLatt(void *data, void *edata)
 	Lattice *editlatt= (Lattice *)edata;
 
 	return (ult->pntsu == editlatt->pntsu &&
-	        ult->pntsv == editlatt->pntsv &&
-	        ult->pntsw == editlatt->pntsw);
+			ult->pntsv == editlatt->pntsv &&
+			ult->pntsw == editlatt->pntsw);
 }
 
 static void *get_editlatt(bContext *C)

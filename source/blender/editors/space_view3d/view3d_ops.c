@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -35,9 +35,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -47,12 +45,10 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
 #include "ED_transform.h"
 
 #include "view3d_intern.h"
@@ -74,6 +70,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_remove_background_image);
 	WM_operatortype_append(VIEW3D_OT_view_selected);
 	WM_operatortype_append(VIEW3D_OT_view_center_cursor);
+	WM_operatortype_append(VIEW3D_OT_view_center_camera);
 	WM_operatortype_append(VIEW3D_OT_select);
 	WM_operatortype_append(VIEW3D_OT_select_border);
 	WM_operatortype_append(VIEW3D_OT_clip_border);
@@ -97,7 +94,6 @@ void view3d_operatortypes(void)
 	
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_grid);
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_cursor);
-	WM_operatortype_append(VIEW3D_OT_snap_selected_to_center);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_grid);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_center);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_selected);
@@ -119,7 +115,8 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/* only for region 3D window */
 	keymap= WM_keymap_find(keyconf, "3D View", SPACE_VIEW3D, 0);
 	
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
+	kmi = WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
+	RNA_boolean_set(kmi->ptr, "release_confirm", 1);
 	/*
 	 * Doesn't work with KM_SHIFT, have to use KM_ANY and filter in invoke
 	 * */
@@ -154,7 +151,8 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", WHEELINMOUSE, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", WHEELOUTMOUSE, KM_PRESS, 0, 0)->ptr, "delta", -1);
 
-	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, 0, 0)->ptr, "center", 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_camera", HOMEKEY, KM_PRESS, 0, 0); /* only with camera view */
+	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, 0, 0)->ptr, "center", 0); /* only without camera view */
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", CKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "center", 1);
 
 	/* numpad view hotkeys*/
@@ -186,25 +184,25 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", WHEELUPMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "type", V3D_VIEW_STEPUP);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", WHEELDOWNMOUSE, KM_PRESS, KM_SHIFT|KM_ALT, 0)->ptr, "type", V3D_VIEW_STEPDOWN);
 	
-    /* active aligned, replaces '*' key in 2.4x */
-    kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_SHIFT, 0);
-    RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
-    RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-    kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_SHIFT, 0);
-    RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
-    RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-    kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT, 0);
-    RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
-    RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-    kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
-    RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BACK);
-    RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-    kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
-    RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_LEFT);
-    RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-    kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
-    RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
-    RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	/* active aligned, replaces '*' key in 2.4x */
+	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BACK);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_LEFT);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_localview", PADSLASHKEY, KM_PRESS, 0, 0);
 	
@@ -224,12 +222,12 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/* drawtype */
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.viewport_shading");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.viewport_shading");
 	RNA_string_set(kmi->ptr, "value_1", "SOLID");
 	RNA_string_set(kmi->ptr, "value_2", "WIREFRAME");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, KM_ALT, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.viewport_shading");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.viewport_shading");
 	RNA_string_set(kmi->ptr, "value_1", "TEXTURED");
 	RNA_string_set(kmi->ptr, "value_2", "SOLID");
 
@@ -270,29 +268,29 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	
 	/* context ops */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
 	RNA_string_set(kmi->ptr, "value", "BOUNDING_BOX_CENTER");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, KM_CTRL, 0); /* 2.4x allowed Comma+Shift too, rather not use both */
-	RNA_string_set(kmi->ptr, "path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
 	RNA_string_set(kmi->ptr, "value", "MEDIAN_POINT");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", COMMAKEY, KM_PRESS, KM_ALT, 0); /* new in 2.5 */
-	RNA_string_set(kmi->ptr, "path", "space_data.pivot_point_align");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point_align");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* new in 2.5 */
-	RNA_string_set(kmi->ptr, "path", "space_data.manipulator");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.manipulator");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
 	RNA_string_set(kmi->ptr, "value", "CURSOR");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
 	RNA_string_set(kmi->ptr, "value", "INDIVIDUAL_ORIGINS");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, KM_ALT, 0);
-	RNA_string_set(kmi->ptr, "path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
 	RNA_string_set(kmi->ptr, "value", "ACTIVE_ELEMENT");
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_VIEW3D);

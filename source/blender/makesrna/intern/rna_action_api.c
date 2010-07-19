@@ -30,7 +30,6 @@
 #include <time.h>
 
 #include "RNA_define.h"
-#include "RNA_types.h"
 
 #include "DNA_action_types.h"
 

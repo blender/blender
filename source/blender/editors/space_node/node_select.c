@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,11 +29,7 @@
 #include <stdio.h>
 
 #include "DNA_node_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_context.h"
 #include "BKE_node.h"
@@ -42,7 +38,6 @@
 
 #include "BLI_rect.h"
 
-#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 
@@ -117,9 +112,6 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	/* perform the select */
 	node= node_mouse_select(snode, ar, mval, extend);
 
-	/* need refresh/a notifier vs compo notifier */
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
-
 	/* WATCH THIS, there are a few other ways to change the active material */
 	if(node) {
 		if (node->id && ELEM(GS(node->id->name), ID_MA, ID_TE)) {
@@ -127,8 +119,8 @@ static int node_select_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-    /* send notifiers */
-	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	/* send notifiers */
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	
 	/* allow tweak event to work too */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
@@ -196,7 +188,7 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -272,7 +264,7 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
 			node->flag |= NODE_SELECT;
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -312,7 +304,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *op)
 			node->flag |= NODE_SELECT;
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -352,7 +344,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *op)
 			node->flag |= NODE_SELECT;
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -371,3 +363,78 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ****** Select Same Type ****** */
+
+static int node_select_same_type_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	node_select_same_type(snode);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_same_type(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Same Type";
+	ot->description = "Select all the same type";
+	ot->idname = "NODE_OT_select_same_type";
+	
+	/* api callbacks */
+	ot->exec = node_select_same_type_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****** Select The Next/Prev Node Of The Same Type ****** */
+
+static int node_select_same_type_next_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	node_select_same_type_np(snode, 0);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_same_type_next(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Same Type Next";
+	ot->description = "Select the next node of the same type.";
+	ot->idname = "NODE_OT_select_same_type_next";
+	
+	/* api callbacks */
+	ot->exec = node_select_same_type_next_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int node_select_same_type_prev_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	node_select_same_type_np(snode, 1);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_select_same_type_prev(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Same Type Prev";
+	ot->description = "Select the prev node of the same type.";
+	ot->idname = "NODE_OT_select_same_type_prev";
+	
+	/* api callbacks */
+	ot->exec = node_select_same_type_prev_exec;
+	ot->poll = ED_operator_node_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}

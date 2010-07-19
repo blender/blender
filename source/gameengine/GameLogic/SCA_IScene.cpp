@@ -29,10 +29,6 @@
 #include "SCA_IScene.h"
 #include "Value.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 SCA_DebugProp::SCA_DebugProp(): m_obj(NULL)
 {
 }

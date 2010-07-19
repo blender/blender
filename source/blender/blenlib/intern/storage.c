@@ -76,7 +76,6 @@
 #endif
 
 #ifdef WIN32
-#include <sys/types.h>
 #include <io.h>
 #include <direct.h>
 #include "BLI_winstuff.h"
@@ -90,8 +89,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
-#include "BLI_path_util.h"
-#include "BLI_storage.h"
 #include "BLI_storage_types.h"
 #include "BLI_string.h"
 #include "BKE_utildefines.h"
@@ -204,14 +201,6 @@ double BLI_diskfree(char *dir)
 #endif
 }
 
-static int hide_dot= 0;
-
-void BLI_hide_dot_files(int set)
-{
-	if(set) hide_dot= 1;
-	else hide_dot= 0;
-}
-
 void BLI_builddir(char *dirname, char *relname)
 {
 	struct dirent *fname;
@@ -237,17 +226,12 @@ void BLI_builddir(char *dirname, char *relname)
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
 			len= strlen(fname->d_name);
 			
-			if(hide_dot && fname->d_name[0]=='.' && fname->d_name[1]!='.' && fname->d_name[1]!=0); /* ignore .file */
-			else if(hide_dot && len && fname->d_name[len-1]=='~'); /* ignore file~ */
-			else if (((fname->d_name[0] == '.') && (fname->d_name[1] == 0) )); /* ignore . */
-			else {
-				dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-				if (dlink){
-					strcpy(buf+rellen,fname->d_name);
-					dlink->name = BLI_strdup(buf);
-					BLI_addhead(dirbase,dlink);
-					newnum++;
-				}
+			dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+			if (dlink){
+				strcpy(buf+rellen,fname->d_name);
+				dlink->name = BLI_strdup(buf);
+				BLI_addhead(dirbase,dlink);
+				newnum++;
 			}
 		}
 		
@@ -308,10 +292,8 @@ void BLI_adddirstrings()
 	struct direntry * file;
 	struct tm *tm;
 	time_t zero= 0;
-
-	file = &files[0];
 	
-	for(num=0;num<actnum;num++){
+	for(num=0, file= files; num<actnum; num++, file++){
 #ifdef WIN32
 		mode = 0;
 		strcpy(file->mode1, types[0]);
@@ -340,43 +322,43 @@ void BLI_adddirstrings()
 #endif
 
 #ifdef WIN32
-		strcpy(files[num].owner,"user");
+		strcpy(file->owner,"user");
 #else
 		{
 			struct passwd *pwuser;
-			pwuser = getpwuid(files[num].s.st_uid);
+			pwuser = getpwuid(file->s.st_uid);
 			if ( pwuser ) {
-			strcpy(files[num].owner, pwuser->pw_name);
+				BLI_strncpy(file->owner, pwuser->pw_name, sizeof(file->owner));
 			} else {
-				sprintf(files[num].owner, "%d", files[num].s.st_uid);
-            }
+				snprintf(file->owner, sizeof(file->owner), "%d", file->s.st_uid);
+			}
 		}
 #endif
 
-		tm= localtime(&files[num].s.st_mtime);
+		tm= localtime(&file->s.st_mtime);
 		// prevent impossible dates in windows
 		if(tm==NULL) tm= localtime(&zero);
-		strftime(files[num].time, 8, "%H:%M", tm);
-		strftime(files[num].date, 16, "%d-%b-%y", tm);
+		strftime(file->time, 8, "%H:%M", tm);
+		strftime(file->date, 16, "%d-%b-%y", tm);
 
 		/*
 		 * Seems st_size is signed 32-bit value in *nix and Windows.  This
 		 * will buy us some time until files get bigger than 4GB or until
 		 * everyone starts using __USE_FILE_OFFSET64 or equivalent.
 		 */
-		st_size= files[num].s.st_size;
+		st_size= file->s.st_size;
 
 		if (st_size > 1024*1024*1024) {
-			sprintf(files[num].size, "%.2f GB", ((double)st_size)/(1024*1024*1024));	
+			sprintf(file->size, "%.2f GB", ((double)st_size)/(1024*1024*1024));	
 		}
 		else if (st_size > 1024*1024) {
-			sprintf(files[num].size, "%.1f MB", ((double)st_size)/(1024*1024));
+			sprintf(file->size, "%.1f MB", ((double)st_size)/(1024*1024));
 		}
 		else if (st_size > 1024) {
-			sprintf(files[num].size, "%d KB", (int)(st_size/1024));
+			sprintf(file->size, "%d KB", (int)(st_size/1024));
 		}
 		else {
-			sprintf(files[num].size, "%d B", (int)st_size);
+			sprintf(file->size, "%d B", (int)st_size);
 		}
 
 		strftime(datum, 32, "%d-%b-%y %H:%M", tm);
@@ -392,15 +374,13 @@ void BLI_adddirstrings()
 			sprintf(size, "%10d", (int) st_size);
 		}
 
-		sprintf(buf,"%s %s %s %7s %s %s %10s %s", file->mode1, file->mode2, file->mode3, files[num].owner, files[num].date, files[num].time, size,
-			files[num].relname);
+		sprintf(buf,"%s %s %s %7s %s %s %10s %s", file->mode1, file->mode2, file->mode3, file->owner, file->date, file->time, size,
+			file->relname);
 
-		files[num].string=MEM_mallocN(strlen(buf)+1, "filestring");
-		if (files[num].string){
-			strcpy(files[num].string,buf);
+		file->string=MEM_mallocN(strlen(buf)+1, "filestring");
+		if (file->string){
+			strcpy(file->string,buf);
 		}
-
-		file++;
 	}
 }
 
@@ -452,18 +432,20 @@ int BLI_filepathsize(const char *path)
 
 int BLI_exist(char *name)
 {
-	struct stat st;
 #ifdef WIN32
+	struct _stat64i32 st;
 	/*  in Windows stat doesn't recognize dir ending on a slash 
 		To not break code where the ending slash is expected we
 		don't mess with the argument name directly here - elubie */
 	char tmp[FILE_MAXDIR+FILE_MAXFILE];
-	int len;
+	int len, res;
 	BLI_strncpy(tmp, name, FILE_MAXDIR+FILE_MAXFILE);
 	len = strlen(tmp);
 	if (len > 3 && ( tmp[len-1]=='\\' || tmp[len-1]=='/') ) tmp[len-1] = '\0';
-	if (stat(tmp,&st)) return(0);
+	res = _stat(tmp, &st);
+	if (res == -1) return(0);
 #else
+	struct stat st;
 	if (stat(name,&st)) return(0);	
 #endif
 	return(st.st_mode);
@@ -519,3 +501,14 @@ void BLI_free_file_lines(LinkNode *lines)
 {
 	BLI_linklist_free(lines, (void(*)(void*)) MEM_freeN);
 }
+
+int BLI_file_older(const char *file1, const char *file2)
+{
+	struct stat st1, st2;
+
+	if(stat(file1, &st1)) return 0;
+	if(stat(file2, &st2)) return 0;
+
+	return (st1.st_mtime < st2.st_mtime);
+}
+

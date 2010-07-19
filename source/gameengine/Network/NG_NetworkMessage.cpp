@@ -30,10 +30,6 @@
 #include "NG_NetworkMessage.h"
 #include <assert.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 int NG_NetworkMessage::s_nextID = 3; // just some number to start with
 
 NG_NetworkMessage::NG_NetworkMessage(

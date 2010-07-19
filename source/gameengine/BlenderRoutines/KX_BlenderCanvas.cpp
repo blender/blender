@@ -30,15 +30,14 @@
 #include "DNA_screen_types.h"
 #include "stdio.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
-
-KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, RAS_Rect &rect) :
+KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, RAS_Rect &rect, struct ARegion *ar) :
 m_win(win),
 m_frame_rect(rect)
 {
+	// area boundaries needed for mouse coordinates in Letterbox framing mode
+	m_area_left = ar->winrct.xmin;
+	m_area_top = ar->winrct.ymax;
 }
 
 KX_BlenderCanvas::~KX_BlenderCanvas()
@@ -104,6 +103,30 @@ int KX_BlenderCanvas::GetHeight(
 	return m_frame_rect.GetHeight();
 }
 
+int KX_BlenderCanvas::GetMouseX(int x)
+{
+	float left = GetWindowArea().GetLeft();
+	return float(x - (left - m_area_left));
+}
+
+int KX_BlenderCanvas::GetMouseY(int y)
+{
+	float top = GetWindowArea().GetTop();
+	return float(y - (m_area_top - top));
+}
+
+float KX_BlenderCanvas::GetMouseNormalizedX(int x)
+{
+	int can_x = GetMouseX(x);
+	return float(can_x)/this->GetWidth();
+}
+
+float KX_BlenderCanvas::GetMouseNormalizedY(int y)
+{
+	int can_y = GetMouseY(y);
+	return float(can_y)/this->GetHeight();
+}
+
 RAS_Rect &
 KX_BlenderCanvas::
 GetWindowArea(
@@ -117,6 +140,11 @@ SetViewPort(
 	int x1, int y1,
 	int x2, int y2
 ){
+	/*	x1 and y1 are the min pixel coordinate (e.g. 0)
+		x2 and y2 are the max pixel coordinate
+		the width,height is calculated including both pixels
+		therefore: max - min + 1
+	*/
 	int vp_width = (x2 - x1) + 1;
 	int vp_height = (y2 - y1) + 1;
 	int minx = m_frame_rect.GetLeft();
@@ -134,6 +162,8 @@ SetViewPort(
 
 void KX_BlenderCanvas::SetMouseState(RAS_MouseState mousestate)
 {
+	m_mousestate = mousestate;
+
 	switch (mousestate)
 	{
 	case MOUSE_INVISIBLE:
@@ -166,7 +196,7 @@ void KX_BlenderCanvas::SetMousePosition(int x,int y)
 	int winY = m_frame_rect.GetBottom();
 	int winH = m_frame_rect.GetHeight();
 	
-	BL_warp_pointer(m_win, winX + x, winY + (winH-y-1));
+	BL_warp_pointer(m_win, winX + x, winY + (winH-y));
 }
 
 

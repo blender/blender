@@ -1,5 +1,5 @@
 /**
-* $Id:
+* $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -176,7 +176,7 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	/* copy additional passes */
-	if(shi->passflag & (SCE_PASS_VECTOR|SCE_PASS_NORMAL|SCE_PASS_RADIO)) {
+	if(shi->passflag & (SCE_PASS_VECTOR|SCE_PASS_NORMAL)) {
 		QUATCOPY(shr->winspeed, shi->winspeed);
 		VECCOPY(shr->nor, shi->vn);
 	}
@@ -276,11 +276,6 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 	/* facenormal copy, can get flipped */
 	shi->flippednor= RE_vlakren_get_normal(&R, obi, vlr, shi->facenor);
 	
-	/* copy of original pre-flipped normal, for geometry->front/back node output */
-	VECCOPY(shi->orignor, shi->facenor);
-	if(shi->flippednor)
-		VECMUL(shi->orignor, -1.0f);
-	
 	/* calculate vertexnormals */
 	if(vlr->flag & R_SMOOTH) {
 		VECCOPY(shi->n1, shi->v1->n);
@@ -372,7 +367,6 @@ void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spo
 
 	/* facenormal, simply viewco flipped */
 	VECCOPY(shi->facenor, spoint->nor);
-	VECCOPY(shi->orignor, shi->facenor);
 
 	/* shade_input_set_normals equivalent */
 	if(shi->mat->mode & MA_TANGENT_STR) {

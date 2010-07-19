@@ -36,10 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <errno.h>
 
 #ifdef WIN32
 #include <io.h>		// read, open
@@ -140,7 +137,7 @@ blo_read_runtime(
 
 	fd= open(path, O_BINARY|O_RDONLY, 0);
 	if (fd==-1) {
-		BKE_report(reports, RPT_ERROR, "Unable to open");
+		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", path, strerror(errno));
 		goto cleanup;
 	}
 	
@@ -150,13 +147,13 @@ blo_read_runtime(
 
 	datastart= handle_read_msb_int(fd);
 	if (datastart==-1) {
-		BKE_report(reports, RPT_ERROR, "Unable to read");
+		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (problem seeking)", path);
 		goto cleanup;
 	} else if (read(fd, buf, 8)!=8) {
-		BKE_report(reports, RPT_ERROR, "Unable to read");
+		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (truncated header)", path);
 		goto cleanup;
 	} else if (memcmp(buf, "BRUNTIME", 8)!=0) {
-		BKE_report(reports, RPT_ERROR, "File is not a Blender file");
+		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (not a blend file)", path);
 		goto cleanup;
 	} else {	
 		//printf("starting to read runtime from %s at datastart %d\n", path, datastart);

@@ -23,15 +23,12 @@
  */
 
 #include "bpy_operator_wrap.h"
-#include "BKE_context.h"
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "RNA_define.h"
 
 #include "bpy_rna.h"
-#include "bpy_props.h"
-#include "bpy_util.h"
 
 static void operator_properties_init(wmOperatorType *ot)
 {
@@ -113,7 +110,7 @@ PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args)
 	}
 
 	/* identifiers */
-	srna= srna_from_self(macro);
+	srna= srna_from_self(macro, "Macro Define:");
 	macroname = RNA_struct_identifier(srna);
 
 	ot = WM_operatortype_exists(macroname);

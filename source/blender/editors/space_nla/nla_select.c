@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -30,13 +30,7 @@
 #include <stdio.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -52,8 +46,6 @@
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
-#include "ED_markers.h"
-#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "RNA_access.h"
@@ -62,8 +54,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "nla_intern.h"	// own include
@@ -80,7 +70,7 @@ static short selmodes_to_flagmodes (short sel)
 			break;
 			
 		case SELECT_INVERT:
-			return ACHANNEL_SETFLAG_TOGGLE;
+			return ACHANNEL_SETFLAG_INVERT;
 			break;
 			
 		case SELECT_ADD:
@@ -186,7 +176,7 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 		deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_ADD);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -323,7 +313,7 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 	borderselect_nla_strips(&ac, rect, mode, selectmode);
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -580,7 +570,7 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	}
 	
 	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_SELECT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_SELECTED, NULL);
 	
 	/* for tweak grab to work */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
