@@ -437,7 +437,7 @@ int BLI_filepathsize(const char *path)
 
 int BLI_exist(char *name)
 {
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 	struct _stat64i32 st;
 	/*  in Windows stat doesn't recognize dir ending on a slash 
 		To not break code where the ending slash is expected we
