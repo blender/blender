@@ -167,7 +167,18 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_RIGHT);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
-	
+
+	/* multicam editing keyboard layout, switch to camera 1-10 using
+	   regular number keys */
+	{
+		int keys[] = { ONEKEY, TWOKEY, THREEKEY, FOURKEY, FIVEKEY,
+			       SIXKEY, SEVENKEY, EIGHTKEY, NINEKEY, ZEROKEY };
+		int i;
+
+		for (i = 1; i <= 10; i++) {
+			RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_cut_multicam", keys[i-1], KM_PRESS, 0, 0)->ptr, "camera", i);
+		}
+	}
 
 	/* Mouse selection, a bit verbose :/ */
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
