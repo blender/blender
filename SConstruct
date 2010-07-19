@@ -630,9 +630,6 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
 					'${BF_FFMPEG_LIBPATH}/avdevice-52.dll',
 					'${BF_FFMPEG_LIBPATH}/avutil-50.dll',
 					'${BF_FFMPEG_LIBPATH}/swscale-0.dll']
-
-	if env['WITH_BF_JACK']:
-		dllsources += ['${LCGDIR}/jack/lib/libjack.dll']
 	windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
 	allinstall += windlls
 
