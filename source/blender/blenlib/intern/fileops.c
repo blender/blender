@@ -80,7 +80,7 @@ char *BLI_last_slash(const char *string) {
 	else return lfslash;
 }
 
-/* adds a slash if there isnt one there alredy */
+/* adds a slash if there isnt one there already */
 int BLI_add_slash(char *string) {
 	int len = strlen(string);
 #ifdef WIN32

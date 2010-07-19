@@ -2222,7 +2222,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				/* impliment WASD keys */
 			case FLY_MODAL_DIR_FORWARD:
 				if (fly->speed < 0.0f) fly->speed= -fly->speed; /* flip speed rather then stopping, game like motion */
-				else fly->speed += fly->grid; /* increse like mousewheel if were alredy moving in that difection*/
+				else fly->speed += fly->grid; /* increse like mousewheel if were already moving in that difection*/
 				fly->axis= 2;
 				break;
 			case FLY_MODAL_DIR_BACKWARD:

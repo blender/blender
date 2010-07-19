@@ -200,8 +200,12 @@ IF(WITH_INSTALL)
             DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
         )
 		INSTALL(
+			PROGRAMS ${CMAKE_SOURCE_DIR}/bin/blender-thumbnailer.py
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+		)
+		INSTALL(
             FILES ${CMAKE_SOURCE_DIR}/doc/blender.1
-            DESTINATION ${CMAKE_INSTALL_PREFIX}/man
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
         )
 		INSTALL(
             DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
@@ -212,6 +216,7 @@ IF(WITH_INSTALL)
             DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts/
             DESTINATION ${BLENDERPATH}/scripts
             PATTERN ".svn" EXCLUDE
+			PATTERN "*.pyc" EXCLUDE
         )
 		IF(WITH_INTERNATIONAL)
 			INSTALL(

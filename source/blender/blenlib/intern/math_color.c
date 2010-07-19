@@ -33,17 +33,14 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 	int i;
 	float f, p, q, t;
 
-	h *= 360.0f;
-	
 	if(s==0.0f) {
 		*r = v;
 		*g = v;
 		*b = v;
 	}
 	else {
-		if(h== 360.0f) h = 0.0f;
-		
-		h /= 60.0f;
+		h= (h - floor(h))*6.0f;
+
 		i = (int)floor(h);
 		f = h - i;
 		p = v*(1.0f-s);

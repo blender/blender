@@ -136,7 +136,8 @@ Sound_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(M_aud_Sound_sine_doc,
-			 "Creates a sine sound at a specific frequency.");
+			 "sine()\n"
+			 "\tCreates a sine sound at a specific frequency.\n");
 
 static PyObject *
 Sound_sine(PyObject* nothing, PyObject* args);
@@ -1652,7 +1653,9 @@ Device_get_status(Device *self, PyObject *object)
 }
 
 PyDoc_STRVAR(M_aud_Device_lock_doc,
-			 "Locks the sound device.");
+			 ".. function:: lock()\n"
+			 "\n"
+			 "   Locks the sound device.\n");
 
 static PyObject *
 Device_lock(Device *self)

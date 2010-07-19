@@ -589,6 +589,7 @@ class SEQUENCER_PT_input_movie(SEQUENCER_PT_input):
         col.label(text="Path:")
         col = split.column()
         col.prop(strip, "filepath", text="")
+        col.prop(strip, "mpeg_preseek", text="MPEG Preseek")
 
 
 class SEQUENCER_PT_input_image(SEQUENCER_PT_input):

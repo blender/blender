@@ -1111,7 +1111,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
     def execute(self, context):
         module_name = self.properties.module
 
-        # unlikely to fail, module should have alredy been imported
+        # unlikely to fail, module should have already been imported
         try:
             mod = __import__(module_name)
         except:

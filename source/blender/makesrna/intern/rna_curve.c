@@ -342,13 +342,13 @@ static void rna_Curve_resolution_v_update_data(Main *bmain, Scene *scene, Pointe
 void rna_Curve_body_get(PointerRNA *ptr, char *value)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	strcpy(value, cu->str);
+	BLI_strncpy(value, cu->str, cu->len+1);
 }
 
 int rna_Curve_body_length(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	return strlen(cu->str);
+	return cu->len;
 }
 
 /* TODO - check UTF & python play nice */
@@ -357,8 +357,7 @@ void rna_Curve_body_set(PointerRNA *ptr, const char *value)
 	int len= strlen(value);
 	Curve *cu= (Curve*)ptr->id.data;
 
-	cu->pos = len;
-	cu->len = len;
+	cu->len= cu->pos = len;
 
 	if(cu->str)		MEM_freeN(cu->str);
 	if(cu->strinfo)	MEM_freeN(cu->strinfo);
@@ -805,8 +804,12 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Body Text", "contents of this text object");
 	RNA_def_property_string_funcs(prop, "rna_Curve_body_get", "rna_Curve_body_length", "rna_Curve_body_set");
 	RNA_def_property_string_maxlength(prop, 8192); /* note that originally str did not have a limit! */
-	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop= RNA_def_property(srna, "body_format", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "strinfo", "len");
+	RNA_def_property_struct_type(prop, "TextCharacterFormat");
+	RNA_def_property_ui_text(prop, "Character Info", "Stores the style of each character");
 	
 	/* pointers */
 	prop= RNA_def_property(srna, "text_on_curve", PROP_POINTER, PROP_NONE);

@@ -205,6 +205,10 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel):
     bl_label = "Indirect Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
+    def poll(self, context):
+        light = context.world.lighting
+        return light.gather_method == 'APPROXIMATE'
+
     def draw_header(self, context):
         light = context.world.lighting
         self.layout.prop(light, "use_indirect_lighting", text="")

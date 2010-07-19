@@ -131,7 +131,9 @@ Brush *copy_brush(Brush *brush)
 	brushn= copy_libblock(brush);
 
 	if(brush->mtex.tex) id_us_plus((ID*)brush->mtex.tex);
-	
+
+	if(brush->image_icon) id_us_plus((ID*)brush->image_icon);
+
 	brushn->curve= curvemapping_copy(brush->curve);
 
 	/* enable fake user by default */

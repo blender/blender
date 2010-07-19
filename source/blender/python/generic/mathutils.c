@@ -634,7 +634,7 @@ int Mathutils_RegisterCallback(Mathutils_Callback *cb)
 	
 	/* find the first free slot */
 	for(i= 0; mathutils_callbacks[i]; i++) {
-		if(mathutils_callbacks[i]==cb) /* alredy registered? */
+		if(mathutils_callbacks[i]==cb) /* already registered? */
 			return i;
 	}
 	

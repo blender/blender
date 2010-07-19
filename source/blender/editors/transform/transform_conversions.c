@@ -2283,7 +2283,7 @@ void flushTransNodes(TransInfo *t)
 #define XXX_DURIAN_ANIM_TX_HACK
 void flushTransSeq(TransInfo *t)
 {
-	ListBase *seqbasep= seq_give_editing(t->scene, FALSE)->seqbasep; /* Editing null check alredy done */
+	ListBase *seqbasep= seq_give_editing(t->scene, FALSE)->seqbasep; /* Editing null check already done */
 	int a, new_frame;
 	TransData *td= NULL;
 	TransData2D *td2d= NULL;

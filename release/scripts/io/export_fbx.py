@@ -83,7 +83,7 @@ def copy_images(dest_dir, textures):
         if Blender.sys.exists(image_path):
             # Make a name for the target path.
             dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
-            if not Blender.sys.exists(dest_image_path): # Image isnt alredy there
+            if not Blender.sys.exists(dest_image_path): # Image isnt already there
                 print('\tCopying "%s" > "%s"' % (image_path, dest_image_path))
                 try:
                     copy_file(image_path, dest_image_path)
@@ -359,7 +359,7 @@ def write(filename, batch_objects = None, \
 
             if BATCH_OWN_DIR:
                 new_fbxpath = fbxpath + newname + os.sep
-                # path may alredy exist
+                # path may already exist
                 # TODO - might exist but be a file. unlikely but should probably account for it.
 
                 if bpy.utils.exists(new_fbxpath) == 0:
@@ -391,7 +391,7 @@ def write(filename, batch_objects = None, \
 
 
             # Call self with modified args
-            # Dont pass batch options since we alredy usedt them
+            # Dont pass batch options since we already usedt them
             write(filename, data.objects,
                 context,
                 False,
@@ -2763,7 +2763,7 @@ Takes:  {''')
                 act_end =	end
             else:
                 # use existing name
-                if blenAction == blenActionDefault: # have we alredy got the name
+                if blenAction == blenActionDefault: # have we already got the name
                     file.write('\n\tTake: "%s" {' % sane_name_mapping_take[blenAction.name])
                 else:
                     file.write('\n\tTake: "%s" {' % sane_takename(blenAction))
@@ -2918,7 +2918,7 @@ Takes:  {''')
                                         for val, frame in context_bone_anim_keys:
                                             if frame != context_bone_anim_keys[0][1]: # not the first
                                                 file.write(',')
-                                            # frame is alredy one less then blenders frame
+                                            # frame is already one less then blenders frame
                                             file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame), val ))
 
                                 if		i==0:	file.write('\n\t\t\t\t\t\tColor: 1,0,0')

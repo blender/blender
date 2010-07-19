@@ -433,7 +433,7 @@ void free_keyed_keys(ParticleSystem *psys)
 		}
 	}
 }
-void psys_free_child_path_cache(ParticleSystem *psys)
+static void free_child_path_cache(ParticleSystem *psys)
 {
 	psys_free_path_cache_buffers(psys->childcache, &psys->childcachebufs);
 	psys->childcache = NULL;
@@ -451,7 +451,7 @@ void psys_free_path_cache(ParticleSystem *psys, PTCacheEdit *edit)
 		psys->pathcache= NULL;
 		psys->totcached= 0;
 
-		psys_free_child_path_cache(psys);
+		free_child_path_cache(psys);
 	}
 }
 void psys_free_children(ParticleSystem *psys)
@@ -462,7 +462,7 @@ void psys_free_children(ParticleSystem *psys)
 		psys->totchild=0;
 	}
 
-	psys_free_child_path_cache(psys);
+	free_child_path_cache(psys);
 }
 void psys_free_particles(ParticleSystem *psys)
 {
@@ -2721,7 +2721,7 @@ void psys_cache_child_paths(ParticleSimulationData *sim, float cfra, int editupd
 	}
 	else {
 		/* clear out old and create new empty path cache */
-		psys_free_child_path_cache(sim->psys);
+		free_child_path_cache(sim->psys);
 		sim->psys->childcache= psys_alloc_path_cache_buffers(&sim->psys->childcachebufs, totchild, ctx->steps+1);
 		sim->psys->totchildcache = totchild;
 	}

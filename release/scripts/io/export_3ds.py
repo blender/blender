@@ -1006,7 +1006,7 @@ def save_3ds(filename, context):
                             mat = mat_ls[mat_index]
                             if mat:	mat_name = mat.name
                             else:	mat_name = None
-                        # else there alredy set to none
+                        # else there already set to none
 
                         img = uf.image
 # 						img = f.image

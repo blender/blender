@@ -2441,20 +2441,20 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		ScrArea *sa;
 		int sync;
 		float time;
-
+		
 		/* sync, don't sync, or follow scene setting */
-		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
-		else if(sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
+		if (sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
+		else if (sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
 		else sync= (scene->flag & SCE_FRAME_DROP);
 		
 		if((scene->audio.flag & AUDIO_SYNC) && !(sad->flag & ANIMPLAY_FLAG_REVERSE) && finite(time = sound_sync_scene(scene)))
 			scene->r.cfra = time * FPS + 0.5;
 		else
 		{
-			if(sync) {
+			if (sync) {
 				int step = floor(wt->duration * FPS);
 				/* skip frames */
-				if(sad->flag & ANIMPLAY_FLAG_REVERSE)
+				if (sad->flag & ANIMPLAY_FLAG_REVERSE)
 					scene->r.cfra -= step;
 				else
 					scene->r.cfra += step;
@@ -2462,7 +2462,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			else {
 				/* one frame +/- */
-				if(sad->flag & ANIMPLAY_FLAG_REVERSE)
+				if (sad->flag & ANIMPLAY_FLAG_REVERSE)
 					scene->r.cfra--;
 				else
 					scene->r.cfra++;
@@ -2503,19 +2503,19 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 		
-		if(sad->flag & ANIMPLAY_FLAG_JUMPED)
+		if (sad->flag & ANIMPLAY_FLAG_JUMPED)
 			sound_seek_scene(C);
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
 		ED_update_for_newframe(C, 1);
 		
-		for(sa= screen->areabase.first; sa; sa= sa->next) {
+		for (sa= screen->areabase.first; sa; sa= sa->next) {
 			ARegion *ar;
-			for(ar= sa->regionbase.first; ar; ar= ar->next) {
-				if(ar==sad->ar)
+			for (ar= sa->regionbase.first; ar; ar= ar->next) {
+				if (ar==sad->ar)
 					ED_region_tag_redraw(ar);
 				else
-					if(match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
+					if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
 						ED_region_tag_redraw(ar);
 			}
 			
@@ -2560,9 +2560,9 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 int ED_screen_animation_play(bContext *C, int sync, int mode)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	struct Scene* scene = CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 
-	if(screen->animtimer) {
+	if (screen->animtimer) {
 		/* stop playback now */
 		ED_screen_animation_timer(C, 0, 0, 0, 0);
 		sound_stop_scene(scene);
@@ -2570,33 +2570,33 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 	else {
 		ScrArea *sa= CTX_wm_area(C);
 		int refresh= SPACE_TIME;
-
-		if(mode == 1) // XXX only play audio forwards!?
+		
+		if (mode == 1) // XXX only play audio forwards!?
 			sound_play_scene(scene);
-
+		
 		/* timeline gets special treatment since it has it's own menu for determining redraws */
 		if ((sa) && (sa->spacetype == SPACE_TIME)) {
 			SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
-
+			
 			ED_screen_animation_timer(C, stime->redraws, refresh, sync, mode);
-
+			
 			/* update region if TIME_REGION was set, to leftmost 3d window */
 			ED_screen_animation_timer_update(screen, stime->redraws, refresh);
 		}
 		else {
 			int redraws = TIME_REGION|TIME_ALL_3D_WIN;
-
+			
 			/* XXX - would like a better way to deal with this situation - Campbell */
-			if((!sa) || (sa->spacetype == SPACE_SEQ)) {
+			if ((!sa) || (sa->spacetype == SPACE_SEQ)) {
 				redraws |= TIME_SEQ;
 			}
-
+			
 			ED_screen_animation_timer(C, redraws, refresh, sync, mode);
-
+			
 			if(screen->animtimer) {
 				wmTimer *wt= screen->animtimer;
 				ScreenAnimData *sad= wt->customdata;
-
+				
 				sad->ar= CTX_wm_region(C);
 			}
 		}
@@ -2609,10 +2609,10 @@ static int screen_animation_play_exec(bContext *C, wmOperator *op)
 {
 	int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
 	int sync= -1;
-
-	if(RNA_property_is_set(op->ptr, "sync"))
+	
+	if (RNA_property_is_set(op->ptr, "sync"))
 		sync= (RNA_boolean_get(op->ptr, "sync"));
-
+	
 	return ED_screen_animation_play(C, sync, mode);
 }
 
@@ -2999,6 +2999,7 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
 void ED_keymap_screen(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	//wmKeyMapItem *kmi;
 	
 	/* Screen Editing ------------------------------------------------ */
 	keymap= WM_keymap_find(keyconf, "Screen Editing", 0, 0);
@@ -3094,10 +3095,22 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	
 	/* play (forward and backwards) */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", KKEY, KM_PRESS, 0, LKEY);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_cancel", ESCKEY, KM_PRESS, 0, 0);
 	
+	/* Alternative keys for animation and sequencer playing */
+#if 0 // XXX: disabled for restoring later... bad implementation
+	keymap= WM_keymap_find(keyconf, "Frames", 0, 0);
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
+		RNA_boolean_set(kmi->ptr, "cycle_speed", 1);
+	
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
+		RNA_boolean_set(kmi->ptr, "reverse", 1);
+		RNA_boolean_set(kmi->ptr, "cycle_speed", 1);
+	
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", DOWNARROWKEY, KM_PRESS, KM_ALT, 0);
+#endif
+
 	keymap_modal_set(keyconf);
 }
 

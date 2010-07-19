@@ -40,16 +40,14 @@
 
 static ImBuf *loadblend_thumb(gzFile gzfile)
 {
-	char buf[8];
-	int code= 0;
+	char buf[12];
+	int bhead[24/sizeof(int)]; /* max size on 64bit */
 	char endian, pointer_size;
 	char endian_switch;
-	int len, im_len, x, y;
-	ImBuf *img= NULL;
-
+	int sizeof_bhead ;
 
 	/* read the blend file header */
-	if(gzread(gzfile, buf, 8) != 8)
+	if(gzread(gzfile, buf, 12) != 12)
 		return NULL;
 	if(strncmp(buf, "BLENDER", 7))
 		return NULL;
@@ -61,38 +59,23 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 	else
 		return NULL;
 
-	/* read the next 4 bytes, only need the first char, ignore the version */
-	/* endian and vertsion (ignored) */
-	if(gzread(gzfile, buf, 4) != 4)
-		return NULL;
+	 sizeof_bhead = 16 + pointer_size;
 
-	if(buf[0]=='V')
+	if(buf[8]=='V')
 		endian= B_ENDIAN; /* big: PPC */
-	else if(buf[0]=='v')
+	else if(buf[8]=='v')
 		endian= L_ENDIAN; /* little: x86 */
 	else
 		return NULL;
 
-	while(gzread(gzfile, &code, sizeof(int)) == sizeof(int)) {
-		endian_switch = ((ENDIAN_ORDER != endian)) ? 1 : 0;
+	endian_switch = ((ENDIAN_ORDER != endian)) ? 1 : 0;
 
-		if(gzread(gzfile, buf, sizeof(int)) != sizeof(int))
-			return NULL;
-
-		len = *( (int *)((void *)buf) );
-
+	while(gzread(gzfile, bhead, sizeof_bhead) == sizeof_bhead) {
 		if(endian_switch)
-			SWITCH_INT(len);
+			SWITCH_INT(bhead[1]); /* length */
 
-		/* finally read the rest of the bhead struct, pointer and 2 ints */
-		if(gzread(gzfile, buf, pointer_size) != pointer_size)
-			return NULL;
-		if(gzread(gzfile, buf, sizeof(int) * 2) != sizeof(int) * 2)
-			return NULL;
-
-		/* we dont actually care whats in the bhead */
-		if (code==REND) {
-			gzseek(gzfile, len, SEEK_CUR); /* skip to the next */
+		if (bhead[0]==REND) {
+			gzseek(gzfile, bhead[1], SEEK_CUR); /* skip to the next */
 		}
 		else {
 			break;
@@ -100,35 +83,36 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 	}
 
 	/* using 'TEST' since new names segfault when loading in old blenders */
-	if(code != TEST)
-		return NULL;
+	if(bhead[0] == TEST) {
+		ImBuf *img= NULL;
+		int size[2];
 
-	if(gzread(gzfile, &x, sizeof(int)) != sizeof(int))
-		return NULL;
-	if(gzread(gzfile, &y, sizeof(int)) != sizeof(int))
-		return NULL;
+		if(gzread(gzfile, size, sizeof(size)) != sizeof(size))
+			return NULL;
 
-	len -= sizeof(int) * 2;
+		if(endian_switch) {
+			SWITCH_INT(size[0]);
+			SWITCH_INT(size[1]);
+		}
+		/* length */
+		bhead[1] -= sizeof(int) * 2;
 
-	if(endian_switch) {
-		SWITCH_INT(x);
-		SWITCH_INT(y);
+		/* inconsistant image size, quit early */
+		if(bhead[1] != size[0] * size[1] * sizeof(int))
+			return NULL;
+	
+		/* finally malloc and read the data */
+		img= IMB_allocImBuf(size[0], size[1], 32, IB_rect | IB_metadata, 0);
+	
+		if(gzread(gzfile, img->rect, bhead[1]) != bhead[1]) {
+			IMB_freeImBuf(img);
+			img= NULL;
+		}
+	
+		return img;
 	}
-
-	/* inconsistant image size, quit early */
-	im_len = x * y * sizeof(int);
-	if(im_len != len)
-		return NULL;
-
-	/* finally malloc and read the data */
-	img= IMB_allocImBuf(x, y, 32, IB_rect | IB_metadata, 0);
-
-	if(gzread(gzfile, img->rect, len) != len) {
-		IMB_freeImBuf(img);
-		img= NULL;
-	}
-
-	return img;
+	
+	return NULL;
 }
 
 ImBuf *IMB_loadblend_thumb(const char *path)
