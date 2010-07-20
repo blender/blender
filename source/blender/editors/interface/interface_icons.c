@@ -981,7 +981,7 @@ int ui_id_icon_get(bContext *C, ID *id, int preview)
 		case ID_BR:
 			{ /* use the image in the brush as the icon */
 			  /* XXX redundancy here can be reduced be rewriting this switch as an if */
-				ID* ima_id = (ID*)((Brush*)id)->image_icon;
+				ID* ima_id = (ID*)get_brush_icon((Brush*)id);
 				id = ima_id ? ima_id : id;
 				iconid= BKE_icon_getid(id);
 				/* checks if not exists, or changed */

@@ -104,6 +104,36 @@ static int rna_Brush_is_imapaint_brush(Brush *me, bContext *C)
 	return 0;
 }
 
+static void rna_Brush_image_icon_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Brush *br= (Brush*)ptr->data;
+
+	if (br->image_icon) {
+		// store path to external image so it can be reloaded later
+		BLI_strncpy(br->image_icon_path, br->image_icon->name, sizeof(br->image_icon_path));
+
+		// setting or loading image_icon bumps its user count
+		// we do not want writefile to save the image if a brush is the only user,
+		// so decrement the user count by one
+		id_us_min((ID*)(br->image_icon));
+	}
+	else {
+		memset(br->image_icon_path, 0, sizeof(br->image_icon_path));
+	}
+
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
+}
+
+static void rna_Brush_image_icon_path_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Brush *br= (Brush*)ptr->data;
+
+	if (br->image_icon)
+		br->image_icon = NULL;
+
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
+}
+
 #else
 
 static void rna_def_brush_texture_slot(BlenderRNA *brna)
@@ -642,7 +672,12 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image Icon", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
+	RNA_def_property_update(prop, 0, "rna_Brush_image_icon_update");
+
+	prop= RNA_def_property(srna, "image_icon_path", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_sdna(prop, NULL, "image_icon_path");
+	RNA_def_property_ui_text(prop, "Image Icon Filepath", "File path for brush icon");
+	RNA_def_property_update(prop, 0, "rna_Brush_image_icon_path_update");
 
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);

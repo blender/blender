@@ -54,6 +54,7 @@ typedef struct Brush {
 	struct CurveMapping *curve;	/* falloff curve */
 	struct MTex mtex;
 	struct Image *image_icon;
+	char image_icon_path[240];
 
 	float normal_weight;
 

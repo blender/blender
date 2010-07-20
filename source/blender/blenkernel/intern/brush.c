@@ -132,8 +132,6 @@ Brush *copy_brush(Brush *brush)
 
 	if(brush->mtex.tex) id_us_plus((ID*)brush->mtex.tex);
 
-	if(brush->image_icon) id_us_plus((ID*)brush->image_icon);
-
 	brushn->curve= curvemapping_copy(brush->curve);
 
 	/* enable fake user by default */
@@ -203,6 +201,37 @@ void make_local_brush(Brush *brush)
 					brush->id.us--;
 				}
 	}
+}
+
+/* image icon function */
+Image* get_brush_icon(Brush *brush)
+{
+
+	if (!(brush->image_icon) && brush->image_icon_path[0]) {
+		// first use the path directly to try and load the file
+		brush->image_icon= BKE_add_image_file(brush->image_icon_path, 1);
+
+		// otherwise lets try to find it in other directories
+		if (!(brush->image_icon)) {
+			char path[240];
+			char *folder;
+			
+			folder= BLI_get_folder(BLENDER_DATAFILES, "brushicons");
+
+			path[0] = 0;
+
+			BLI_make_file_string(G.sce, path, folder, brush->image_icon_path);
+
+			if (path[0])
+				brush->image_icon= BKE_add_image_file(path, 1);
+		}
+
+		// remove user count so image isn't saved on exit
+		if (brush->image_icon)
+			id_us_min((ID*)(brush->image_icon));
+	}
+
+	return brush->image_icon;
 }
 
 /* Library Operations */

@@ -1539,8 +1539,11 @@ static void lib_link_brush(FileData *fd, Main *main)
 			brush->id.flag -= LIB_NEEDLINK;
 
 			brush->mtex.tex= newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
-			brush->image_icon= newlibadr_us(fd, brush->id.lib, brush->image_icon);
 			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
+
+			// Image icons not saved if only used as an icon,
+			// but if it used elsewhere in the file it will have been saved
+			brush->image_icon= newlibadr_us(fd, brush->id.lib, brush->image_icon);
 		}
 	}
 }
@@ -10980,6 +10983,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Brush *brush;
 		for (brush= main->brush.first; brush; brush= brush->id.next) {
 			/* Sanity Check */
+
+			// brush icon loaded but not the path
+			//if (brush->image_icon && !(brush->image_icon_path[0]))
+			//	BLI_strncpy(brush->image_icon_path, brush->image_icon->name, sizeof(brush->image_icon_path));
 
 			// infinite number of dabs
 			if (brush->spacing == 0)
