@@ -281,7 +281,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.sculpt.active_brush_name");
-	RNA_string_set(kmi->ptr, "value", "Pinch");
+	RNA_string_set(kmi->ptr, "value", "Pinch/Magnify");
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", GKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.sculpt.active_brush_name");
@@ -291,9 +291,13 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.sculpt.active_brush_name");
 	RNA_string_set(kmi->ptr, "value", "Layer");
 
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", CKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.sculpt.active_brush_name");
+	RNA_string_set(kmi->ptr, "value", "Crease");
+
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", TKEY, KM_PRESS, KM_SHIFT, 0); // was just T in 2.4x
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.sculpt.active_brush_name");
-	RNA_string_set(kmi->ptr, "value", "Flatten");
+	RNA_string_set(kmi->ptr, "value", "Flatten/Contrast");
 
 	/* Vertex Paint mode */
 	keymap= WM_keymap_find(keyconf, "Vertex Paint", 0, 0);
