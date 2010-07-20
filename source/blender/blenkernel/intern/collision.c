@@ -591,7 +591,7 @@ int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifier
 	return result;
 }
 
-//Determines collisions on overlap, collisions are writen to collpair[i] and collision+number_collision_found is returned
+//Determines collisions on overlap, collisions are written to collpair[i] and collision+number_collision_found is returned
 CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap *overlap, CollPair *collpair )
 {
 	ClothModifierData *clmd = ( ClothModifierData * ) md1;

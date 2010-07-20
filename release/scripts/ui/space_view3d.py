@@ -2147,10 +2147,11 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
                     box.template_image(bg, "image", bg.image_user, compact=True)
 
                     box.prop(bg, "transparency", slider=True)
-                    box.prop(bg, "size")
-                    row = box.row(align=True)
-                    row.prop(bg, "offset_x", text="X")
-                    row.prop(bg, "offset_y", text="Y")
+                    if bg.view_axis != 'CAMERA':
+                        box.prop(bg, "size")
+                        row = box.row(align=True)
+                        row.prop(bg, "offset_x", text="X")
+                        row.prop(bg, "offset_y", text="Y")
 
 
 class VIEW3D_PT_transform_orientations(bpy.types.Panel):

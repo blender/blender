@@ -628,6 +628,14 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 					fprintf(f, "	if(value.data)\n");
 					fprintf(f, "		id_us_plus((ID*)value.data);\n\n");
 				}
+				else {
+					PointerPropertyRNA *pprop= (PointerPropertyRNA*)dp->prop;
+					StructRNA *type= rna_find_struct((char*)pprop->type);
+					if(type && (type->flag & STRUCT_ID)) {
+						fprintf(f, "	if(value.data)\n");
+						fprintf(f, "		id_lib_extern((ID*)value.data);\n\n");
+					}
+				}
 
 				fprintf(f, "	data->%s= value.data;\n", dp->dnaname);
 

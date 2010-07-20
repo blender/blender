@@ -214,7 +214,7 @@ public:
 	 * @param draggedObjectType The type object concerned (currently array of file names, string, ?bitmap)
 	 * @param mouseX x mouse coordinate (in window coordinates)
 	 * @param mouseY y mouse coordinate
-	 * @param window The window on which the event occured
+	 * @param window The window on which the event occurred
 	 * @return Indication whether the event was handled. 
 	 */
 	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,GHOST_IWindow* window, int mouseX, int mouseY, void* data);

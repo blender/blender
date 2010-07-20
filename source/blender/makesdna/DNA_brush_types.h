@@ -53,7 +53,12 @@ typedef struct Brush {
 	struct BrushClone clone;
 	struct CurveMapping *curve;	/* falloff curve */
 	struct MTex mtex;
-	struct Image *image_icon;
+
+	struct ImBuf *icon_imbuf;
+	char icon;
+	char pad2[7];
+	PreviewImage *preview;
+	char icon_filepath[240];
 
 	float normal_weight;
 
@@ -141,6 +146,26 @@ typedef struct Brush {
 #define SCULPT_TOOL_CREASE     16
 #define SCULPT_TOOL_BLOB       17
 #define SCULPT_TOOL_CLAY_TUBES 18
+
+/* Internal Icons */
+#define BRUSH_ICON_FILE        0
+#define BRUSH_ICON_BLOB        1
+#define BRUSH_ICON_CLAY        2
+#define BRUSH_ICON_CREASE      3
+#define BRUSH_ICON_DRAW        4
+#define BRUSH_ICON_FILL        5
+#define BRUSH_ICON_FLATTEN     6
+#define BRUSH_ICON_GRAB        7
+#define BRUSH_ICON_INFLATE     8
+#define BRUSH_ICON_LAYER       9
+#define BRUSH_ICON_NUDGE      10
+#define BRUSH_ICON_PINCH      11
+#define BRUSH_ICON_SCRAPE     12
+#define BRUSH_ICON_SMOOTH     13
+#define BRUSH_ICON_SNAKE_HOOK 14
+#define BRUSH_ICON_THUMB      15
+#define BRUSH_ICON_TWIST      16
+#define BRUSH_ICON_COUNT      17
 
 /* ImagePaintSettings.tool */
 #define PAINT_TOOL_DRAW		0

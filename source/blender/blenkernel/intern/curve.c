@@ -148,7 +148,7 @@ Curve *add_curve(char *name, int type)
 		cu->vfont->id.us+=4;
 		cu->str= MEM_mallocN(12, "str");
 		strcpy(cu->str, "Text");
-		cu->pos= 4;
+		cu->len= cu->pos= 4;
 		cu->strinfo= MEM_callocN(12*sizeof(CharInfo), "strinfo new");
 		cu->totbox= cu->actbox= 1;
 		cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");

@@ -1180,6 +1180,10 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	}
 	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
 		ibuf->ftype= PNG;
+
+		if(imtype==R_PNG)
+			ibuf->ftype |= quality;  /* quality is actually compression 0-100 --> 0-9 */
+
 	}
 #ifdef WITH_DDS
 	else if ((imtype==R_DDS)) {

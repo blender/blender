@@ -351,7 +351,7 @@ static PyObject *KX_PythonSeq_getIter(KX_PythonSeq *self)
 		return NULL;
 	}
 	
-	/* create a new iterator if were alredy using this one */
+	/* create a new iterator if were already using this one */
 	if (self->iter == -1) {
 		self->iter = 0;
 		Py_INCREF(self);

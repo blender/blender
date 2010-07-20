@@ -153,7 +153,7 @@ static PyObject *py_blf_draw(PyObject *self, PyObject *args)
 static char py_blf_dimensions_doc[] =
 ".. function:: dimensions(fontid, text)\n"
 "\n"
-"   Return the width and hight of the text.\n"
+"   Return the width and height of the text.\n"
 "\n"
 "   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
 "   :type fontid: int\n"

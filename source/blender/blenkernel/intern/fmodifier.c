@@ -1193,7 +1193,7 @@ short list_has_suitable_fmodifier (ListBase *modifiers, int mtype, short acttype
  *	- this step acts as an optimisation to prevent the F-Curve stack being evaluated 
  *	  several times by modifiers requesting the time be modified, as the final result
  *	  would have required using the modified time
- *	- modifiers only ever recieve the unmodified time, as subsequent modifiers should be
+ *	- modifiers only ever receive the unmodified time, as subsequent modifiers should be
  *	  working on the 'global' result of the modified curve, not some localised segment,
  *	  so nevaltime gets set to whatever the last time-modifying modifier likes...
  *	- we start from the end of the stack, as only the last one matters for now

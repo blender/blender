@@ -567,10 +567,10 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             if edit.sculpt_paint_use_unified_size:
                 if edit.sculpt_paint_unified_lock_brush_size:
                     row.prop(edit, "sculpt_paint_unified_lock_brush_size", toggle=True, text="", icon='LOCKED')
-                    row.prop(edit, "sculpt_paint_unified_unprojected_radius", text="Unified Radius", slider=True)
+                    row.prop(edit, "sculpt_paint_unified_unprojected_radius", text="Radius", slider=True)
                 else:
                     row.prop(edit, "sculpt_paint_unified_lock_brush_size", toggle=True, text="", icon='UNLOCKED')
-                    row.prop(edit, "sculpt_paint_unified_size", text="Unified Radius", slider=True)
+                    row.prop(edit, "sculpt_paint_unified_size", text="Radius", slider=True)
 
             else:
                 if brush.lock_brush_size:
@@ -1111,10 +1111,10 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel):
         col = layout.column();
 
         if context.sculpt_object and context.tool_settings.sculpt:
-            #if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'CLAY_TUBES', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN'):
-            if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN'):
+            #if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'CLAY_TUBES', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE'):
+            if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE'):
                 col.prop(brush, "add_col", text="Add Color")
-                col.prop(brush, "sub_col", text="Substract Color")
+                col.prop(brush, "sub_col", text="Subtract Color")
             else:
                 col.prop(brush, "add_col", text="Color")
 
@@ -1122,8 +1122,12 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel):
 
         col = layout.column()
         col.label(text="Icon:")
-        #col.template_ID_preview(brush, "image_icon", open="image.open", filter="is_image_icon", rows=3, cols=8)
-        col.template_ID_preview(brush, "image_icon", open="image.open", rows=3, cols=8)
+
+        row = col.row(align=True)
+        row.prop(brush, "icon", text="")
+
+        row = col.row(align=True)
+        row.prop(brush, "icon_filepath", text="")
 
 # ********** default tools for weightpaint ****************
 

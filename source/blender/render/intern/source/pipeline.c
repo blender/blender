@@ -2527,6 +2527,8 @@ static void do_render_seq(Render * re)
 	RenderResult *rr = re->result;
 	int cfra = re->r.cfra;
 
+	re->i.cfra= cfra;
+
 	if(recurs_depth==0) {
 		/* otherwise sequencer animation isnt updated */
 		BKE_animsys_evaluate_all_animation(G.main, (float)cfra); // XXX, was BKE_curframe(re->scene)
@@ -2582,7 +2584,7 @@ static void do_render_seq(Render * re)
 		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
 			Editing * ed = re->scene->ed;
 			if (ed) {
-				free_imbuf_seq(re->scene, &ed->seqbase, TRUE);
+				free_imbuf_seq(re->scene, &ed->seqbase, TRUE, TRUE);
 			}
 		}
 	}

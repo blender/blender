@@ -1046,17 +1046,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	
 	/* Update event for pose and deformation children */
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	
-	if (IS_AUTOKEY_ON(scene)) {
-// XXX		remake_action_ipos(ob->action);
-	}
-	else {
-		/* need to trick depgraph, action is not allowed to execute on pose */
-		// XXX: this is probably not an issue anymore
-		where_is_pose(scene, ob);
-		ob->recalc= 0;
-	}
-	
+		
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 

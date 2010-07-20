@@ -156,7 +156,7 @@
 #include <errno.h>
 
 /*
- Remark: still a weak point is the newadress() function, that doesnt solve reading from
+ Remark: still a weak point is the newaddress() function, that doesnt solve reading from
  multiple files at the same time
 
  (added remark: oh, i thought that was solved? will look at that... (ton)
@@ -1540,7 +1540,6 @@ static void lib_link_brush(FileData *fd, Main *main)
 			brush->id.flag -= LIB_NEEDLINK;
 
 			brush->mtex.tex= newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
-			brush->image_icon= newlibadr_us(fd, brush->id.lib, brush->image_icon);
 			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
 		}
 	}
@@ -1556,6 +1555,9 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 		direct_link_curvemapping(fd, brush->curve);
 	else
 		brush_curve_preset(brush, CURVE_PRESET_SHARP);
+
+	brush->preview= NULL;
+	brush->icon_imbuf= NULL;
 }
 
 static void direct_link_script(FileData *fd, Script *script)
@@ -10990,7 +10992,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(scene) {
 				Sequence *seq;
 				SEQ_BEGIN(scene->ed, seq) {
-					seq->sat= 1.0f;
+					if(seq->sat==0.0f) {
+						seq->sat= 1.0f;
+					}
 				}
 				SEQ_END
 			}
@@ -11363,7 +11367,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				else {
 					/* The line below was commented by Ton (I assume), when Hos did the merge from the orange branch. rev 6568
 					 * This line is NEEDED, the case is that you have 3 blend files...
-					 * user.blend, lib.blend and lib_indirect.blend - if user.blend alredy references a "tree" from
+					 * user.blend, lib.blend and lib_indirect.blend - if user.blend already references a "tree" from
 					 * lib_indirect.blend but lib.blend does too, linking in a Scene or Group from lib.blend can result in an
 					 * empty without the dupli group referenced. Once you save and reload the group would appier. - Campbell */
 					/* This crashes files, must look further into it */
@@ -12156,7 +12160,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 			
 				/* IF below is quite confusing!
 				if we are appending, but this object wasnt just added allong with a group,
-				then this is alredy used indirectly in the scene somewhere else and we didnt just append it.
+				then this is already used indirectly in the scene somewhere else and we didnt just append it.
 				
 				(ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */
 			if (is_group_append==0 || (ob->id.flag & LIB_PRE_EXISTING)==0) {

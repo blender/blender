@@ -634,7 +634,7 @@ static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 	boxPack *box;
 	
 	
-	/* Error checking must alredy be done */
+	/* Error checking must already be done */
 	if( !PyList_Check( value ) ) {
 		PyErr_SetString( PyExc_TypeError, "can only back a list of [x,y,x,w]" );
 		return -1;

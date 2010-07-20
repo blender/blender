@@ -328,7 +328,7 @@ typedef enum eBezTriple_KeyframeType {
 #define CU_CHINFO_BOLD			(1<<0)
 #define CU_CHINFO_ITALIC		(1<<1)
 #define CU_CHINFO_UNDERLINE	(1<<2)
-#define CU_CHINFO_WRAP			(1<<3)	/* wordwrap occured here */
+#define CU_CHINFO_WRAP			(1<<3)	/* wordwrap occurred here */
 #define CU_CHINFO_SMALLCAPS	(1<<4)
 #define CU_CHINFO_SMALLCAPS_CHECK (1<<5) /* set at runtime, checks if case switching is needed */
 

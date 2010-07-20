@@ -767,7 +767,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			mface_index++;
 			
 			/* new vertical edge */
-			if (j) { /* The first set is alredy dome */
+			if (j) { /* The first set is already dome */
 				med_new->v1= i1;
 				med_new->v2= i2;
 				med_new->flag= med_new_firstloop->flag;

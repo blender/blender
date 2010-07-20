@@ -301,7 +301,7 @@ extern Object workob;
 #define OB_LAMP			10
 #define OB_CAMERA		11
 
-#define OB_WAVE			21
+// #define OB_WAVE			21
 #define OB_LATTICE		22
 
 /* 23 and 24 are for life and sector (old file compat.) */

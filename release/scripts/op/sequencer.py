@@ -94,7 +94,7 @@ class SequencerCutMulticam(bpy.types.Operator):
 
         s = context.scene.sequence_editor.active_strip
 
-        if s.multicam_source == camera:
+        if s.multicam_source == camera or camera >= s.channel:
             return {'FINISHED'}
 
         if not s.select:

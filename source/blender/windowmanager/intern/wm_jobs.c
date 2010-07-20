@@ -355,9 +355,16 @@ void WM_jobs_kill(wmWindowManager *wm, void *owner, void *startjob)
 {
 	wmJob *steve;
 	
-	for(steve= wm->jobs.first; steve; steve= steve->next)
-		if(steve->owner==owner || steve->startjob==startjob)
-			wm_jobs_kill_job(wm, steve);
+	steve= wm->jobs.first;
+	while(steve) {
+		if(steve->owner==owner || steve->startjob==startjob) {
+			wmJob* bill = steve;
+			steve= steve->next;
+			wm_jobs_kill_job(wm, bill);
+		} else {
+			steve= steve->next;
+		}
+	}
 }
 
 

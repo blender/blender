@@ -566,7 +566,7 @@ int write_crash_blend(void)
 	}
 }
 
-int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
+int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports, int copy)
 {
 	Library *li;
 	int len;
@@ -620,11 +620,13 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 	do_history(di, reports);
 
 	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
-		strcpy(G.sce, di);
-		G.relbase_valid = 1;
-		strcpy(G.main->name, di);	/* is guaranteed current file */
-
-		G.save_over = 1; /* disable untitled.blend convention */
+		if(!copy) {
+			strcpy(G.sce, di);
+			G.relbase_valid = 1;
+			strcpy(G.main->name, di);	/* is guaranteed current file */
+	
+			G.save_over = 1; /* disable untitled.blend convention */
+		}
 
 		if(fileflags & G_FILE_COMPRESS) G.fileflags |= G_FILE_COMPRESS;
 		else G.fileflags &= ~G_FILE_COMPRESS;
@@ -689,14 +691,14 @@ void wm_autosave_location(char *filename)
 	sprintf(pidstr, "%d.blend", abs(getpid()));
 	
 #ifdef WIN32
-	// XXX Need to investigate how to handle default location of '/tmp/'
-	// This is a relative directory on Windows, and it may be
-	// found. Example:
-	// Blender installed on D:\ drive, D:\ drive has D:\tmp\
-	// Now, BLI_exists() will find '/tmp/' exists, but
-	// BLI_make_file_string will create string that has it most likely on C:\
-	// through get_default_root().
-	// If there is no C:\tmp autosave fails.
+	/* XXX Need to investigate how to handle default location of '/tmp/'
+	 * This is a relative directory on Windows, and it may be
+	 * found. Example:
+	 * Blender installed on D:\ drive, D:\ drive has D:\tmp\
+	 * Now, BLI_exists() will find '/tmp/' exists, but
+	 * BLI_make_file_string will create string that has it most likely on C:\
+	 * through get_default_root().
+	 * If there is no C:\tmp autosave fails. */
 	if (!BLI_exists(U.tempdir)) {
 		savedir = BLI_get_folder_create(BLENDER_USER_AUTOSAVE, NULL);
 		BLI_make_file_string("/", filename, savedir, pidstr);

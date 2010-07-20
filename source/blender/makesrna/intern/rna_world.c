@@ -33,6 +33,8 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
@@ -42,7 +44,6 @@
 #include "BKE_texture.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 static PointerRNA rna_World_lighting_get(PointerRNA *ptr)
 {
@@ -476,7 +477,11 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "horr");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Horizon Color", "Color at the horizon");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	/* RNA_def_property_update(prop, 0, "rna_World_update"); */
+	/* render-only uses this, the notifier could be made to be more spesific */
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_World_update");
+
+
 	
 	prop= RNA_def_property(srna, "zenith_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "zenr");

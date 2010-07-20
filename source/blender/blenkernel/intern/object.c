@@ -948,12 +948,6 @@ void free_lamp(Lamp *la)
 	la->id.icon_id = 0;
 }
 
-void *add_wave()
-{
-	return 0;
-}
-
-
 /* *************************************************** */
 
 static void *add_obdata_from_type(int type)
@@ -967,7 +961,6 @@ static void *add_obdata_from_type(int type)
 	case OB_CAMERA: return add_camera("Camera");
 	case OB_LAMP: return add_lamp("Lamp");
 	case OB_LATTICE: return add_lattice("Lattice");
-	case OB_WAVE: return add_wave();
 	case OB_ARMATURE: return add_armature("Armature");
 	case OB_EMPTY: return NULL;
 	default:
@@ -987,7 +980,6 @@ static char *get_obdata_defname(int type)
 	case OB_CAMERA: return "Camera";
 	case OB_LAMP: return "Lamp";
 	case OB_LATTICE: return "Lattice";
-	case OB_WAVE: return "Wave";
 	case OB_ARMATURE: return "Armature";
 	case OB_EMPTY: return "Empty";
 	default:

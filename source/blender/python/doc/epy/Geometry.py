@@ -90,7 +90,7 @@ def LineIntersect(vec1, vec2, vec3, vec4):
 def PolyFill(polylines):
 	"""
 	Takes a list of polylines and calculates triangles that would fill in the polylines.
-	Multiple lines can be used to make holes inside a polyline, or fill in 2 seperate lines at once.
+	Multiple lines can be used to make holes inside a polyline, or fill in 2 separate lines at once.
 	@type polylines: List of lists containing vectors, each representing a closed polyline.
 	@rtype: list
 	@return: a list if tuples each a tuple of 3 ints representing a triangle indexing the points given.

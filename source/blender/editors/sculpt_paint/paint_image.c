@@ -1444,7 +1444,7 @@ static ProjPixel *project_paint_uvpixel_init(
 			sub_v2_v2v2(co, projPixel->projCoSS, (float *)ps->cloneOffset);
 			
 			/* no need to initialize the bucket, we're only checking buckets faces and for this
-			 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
+			 * the faces are already initialized in project_paint_delayed_face_init(...) */
 			if (ibuf->rect_float) {
 				if (!project_paint_PickColor(ps, co, ((ProjPixelClone *)projPixel)->clonepx.f, NULL, 1)) {
 					((ProjPixelClone *)projPixel)->clonepx.f[3] = 0; /* zero alpha - ignore */
@@ -1694,7 +1694,7 @@ static float Vec2Lenf_nosqrt_other(const float *v1, const float v2_1, const floa
 static int project_bucket_isect_circle(const int bucket_x, const int bucket_y, const float cent[2], const float radius_squared, rctf *bucket_bounds)
 {
 	 
-	/* Would normally to a simple intersection test, however we know the bounds of these 2 alredy intersect 
+	/* Would normally to a simple intersection test, however we know the bounds of these 2 already intersect 
 	 * so we only need to test if the center is inside the vertical or horizontal bounds on either axis,
 	 * this is even less work then an intersection test
 	 * 

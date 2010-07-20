@@ -41,9 +41,9 @@
 #include "DNA_sdna_types.h" // for SDNA ;-)
 
 
-/* gcc 4.1 on mingw was complaining that __int64 was alredy defined
+/* gcc 4.1 on mingw was complaining that __int64 was already defined
 actually is saw the line below as typedef long long long long... 
-Anyhow, since its alredy defined, its safe to do an ifndef here- Cambpell*/
+Anyhow, since its already defined, its safe to do an ifndef here- Cambpell*/
 #ifdef FREE_WINDOWS
 #ifndef __int64
 typedef long long __int64;

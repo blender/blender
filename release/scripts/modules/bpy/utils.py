@@ -60,7 +60,7 @@ def modules_from_path(path, loaded_modules):
 
     :arg path: this path is scanned for scripts and packages.
     :type path: string
-    :arg loaded_modules: alredy loaded module names, files matching these names will be ignored.
+    :arg loaded_modules: already loaded module names, files matching these names will be ignored.
     :type loaded_modules: set
     :return: all loaded modules.
     :rtype: list

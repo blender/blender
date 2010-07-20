@@ -64,7 +64,7 @@ Example::
 """
 def getLastError():
 	"""
-	Returns the description of the last error that occured in a VideoTexture function.
+	Returns the description of the last error that occurred in a VideoTexture function.
 	
 	@rtype: string
 	"""

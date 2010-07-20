@@ -2880,7 +2880,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 
 	/*----------------------------------------------------
 	 * record how much time has passed. clamp at 10 Hz
-	 * pretend the previous frame occured at the clamped time
+	 * pretend the previous frame occurred at the clamped time
 	 */
 //    now = PIL_check_seconds_timer();
  //   frametime = (now - prevTime);

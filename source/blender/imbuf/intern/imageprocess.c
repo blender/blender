@@ -129,7 +129,7 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *o
 	unsigned char *dataI;
 	float a,b,w,wx,wy[4], outR,outG,outB,outA,*dataF;
 
-	/* ImBuf in must have a valid rect or rect_float, assume this is alredy checked */
+	/* ImBuf in must have a valid rect or rect_float, assume this is already checked */
 
 	i= (int)floor(u);
 	j= (int)floor(v);
@@ -245,7 +245,7 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 	int y1, y2, x1, x2;
 	
 	
-	/* ImBuf in must have a valid rect or rect_float, assume this is alredy checked */
+	/* ImBuf in must have a valid rect or rect_float, assume this is already checked */
 
 	x1= (int)floor(u);
 	x2= (int)ceil(u);
@@ -319,7 +319,7 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 	int y1, y2, x1, x2;
 	
 	
-	/* ImBuf in must have a valid rect or rect_float, assume this is alredy checked */
+	/* ImBuf in must have a valid rect or rect_float, assume this is already checked */
 
 	x1= (int)floor(u);
 	x2= (int)ceil(u);
@@ -393,7 +393,7 @@ void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 	unsigned char *dataI;
 	int y1, x1;
 
-	/* ImBuf in must have a valid rect or rect_float, assume this is alredy checked */
+	/* ImBuf in must have a valid rect or rect_float, assume this is already checked */
 	
 	x1= (int)(u);
 	y1= (int)(v);

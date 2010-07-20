@@ -524,7 +524,7 @@ def mergeUvIslands(islandList):
                                 then move us 1 whole width accross,
                                 Its possible this is a bad idea since 2 skinny Angular faces
                                 could join without 1 whole move, but its a lot more optimal to speed this up
-                                since we have alredy tested for it.
+                                since we have already tested for it.
 
                                 It gives about 10% speedup with minimal errors.
                                 '''
@@ -1027,7 +1027,7 @@ def main(context, island_margin, projection_limit):
             bestAng = fvec.dot(projectVecs[0])
             bestAngIdx = 0
 
-            # Cycle through the remaining, first alredy done
+            # Cycle through the remaining, first already done
             while i-1:
                 i-=1
 

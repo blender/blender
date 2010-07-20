@@ -1020,7 +1020,7 @@ static int convert_whitespace_exec(bContext *C, wmOperator *op)
 	
 	tmp = text->lines.first;
 	
-	//first convert to all space, this make it alot easier to convert to tabs because there is no mixtures of ' ' && '\t'
+	//first convert to all space, this make it a lot easier to convert to tabs because there is no mixtures of ' ' && '\t'
 	while(tmp) {
 		text_check_line = tmp->line;
 		number = flatten_string(st, &fs, text_check_line)+1;

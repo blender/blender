@@ -1142,7 +1142,7 @@ static TStripElem *give_tstripelem(Sequence *seq, int cfra)
 		Strip * s = seq->strip;
 		if (cfra < seq->start) {
 			se = s->tstripdata_startstill;
-			if (seq->startstill > s->startstill) {
+			if (seq->startstill != s->startstill) {
 				free_tstripdata(s->startstill, 
 						s->tstripdata_startstill);
 				se = 0;
@@ -1159,7 +1159,7 @@ static TStripElem *give_tstripelem(Sequence *seq, int cfra)
 
 		} else if (cfra > seq->start + seq->len-1) {
 			se = s->tstripdata_endstill;
-			if (seq->endstill > s->endstill) {
+			if (seq->endstill != s->endstill) {
 				free_tstripdata(s->endstill, 
 						s->tstripdata_endstill);
 				se = 0;
@@ -3267,59 +3267,8 @@ static void free_anim_seq(Sequence *seq)
 	}
 }
 
-#if 0
-static void free_imbuf_seq_except(Scene *scene, int cfra)
-{
-	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *seq;
-	TStripElem *se;
-	int a;
-
-	if(ed==NULL) return;
-
-	SEQ_BEGIN(ed, seq) {
-		if(seq->strip) {
-			TStripElem * curelem = give_tstripelem(seq, cfra);
-
-			for(a = 0, se = seq->strip->tstripdata; 
-				a < seq->strip->len && se; a++, se++) {
-				if(se != curelem) {
-					free_imbuf_strip_elem(se);
-				}
-			}
-			for(a = 0, se = seq->strip->tstripdata_startstill;
-				a < seq->strip->startstill && se; a++, se++) {
-				if(se != curelem) {
-					free_imbuf_strip_elem(se);
-				}
-			}
-			for(a = 0, se = seq->strip->tstripdata_endstill;
-				a < seq->strip->endstill && se; a++, se++) {
-				if(se != curelem) {
-					free_imbuf_strip_elem(se);
-				}
-			}
-			if(seq->strip->ibuf_startstill) {
-				IMB_freeImBuf(seq->strip->ibuf_startstill);
-				seq->strip->ibuf_startstill = 0;
-			}
-
-			if(seq->strip->ibuf_endstill) {
-				IMB_freeImBuf(seq->strip->ibuf_endstill);
-				seq->strip->ibuf_endstill = 0;
-			}
-
-			if(seq->type==SEQ_MOVIE)
-				if(seq->startdisp > cfra || seq->enddisp < cfra)
-					free_anim_seq(seq);
-			free_proxy_seq(seq);
-		}
-	}
-	SEQ_END
-}
-#endif
-
-void free_imbuf_seq(Scene *scene, ListBase * seqbase, int check_mem_usage)
+void free_imbuf_seq(Scene *scene, ListBase * seqbase, int check_mem_usage,
+		    int keep_file_handles)
 {
 	Sequence *seq;
 	TStripElem *se;
@@ -3374,14 +3323,15 @@ void free_imbuf_seq(Scene *scene, ListBase * seqbase, int check_mem_usage)
 				seq->strip->ibuf_endstill = 0;
 			}
 
-			if(seq->type==SEQ_MOVIE)
+			if(seq->type==SEQ_MOVIE && !keep_file_handles)
 				free_anim_seq(seq);
 			if(seq->type==SEQ_SPEED) {
 				sequence_effect_speed_rebuild_map(scene, seq, 1);
 			}
 		}
 		if(seq->type==SEQ_META) {
-			free_imbuf_seq(scene, &seq->seqbase, FALSE);
+			free_imbuf_seq(scene, &seq->seqbase, FALSE,
+				       keep_file_handles);
 		}
 		if(seq->type==SEQ_SCENE) {
 			/* FIXME: recurs downwards, 

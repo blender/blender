@@ -789,6 +789,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 	
 	reload_sequence_new_file(scene, seq, FALSE);
 	calc_sequence(scene, seq);
+	new_tstripdata(seq); 
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
@@ -828,6 +829,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 		
 		reload_sequence_new_file(scene, seqn, FALSE);
 		calc_sequence(scene, seqn);
+		new_tstripdata(seqn);
 	}
 	return seqn;
 }
@@ -878,6 +880,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 	}
 	
 	calc_sequence(scene, seq);
+	new_tstripdata(seq);
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
@@ -913,6 +916,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 		}
 		
 		calc_sequence(scene, seqn);
+		new_tstripdata(seqn);
 	}
 	return seqn;
 }
@@ -1415,7 +1419,7 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	free_imbuf_seq(scene, &ed->seqbase, FALSE);
+	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 

@@ -103,6 +103,7 @@ static void rna_Controller_state_number_set(struct PointerRNA *ptr, const int va
 	cont->state_mask = (1 << (value - 1));
 }
 
+#if 0 /* editable is set to false, comment for now. */
 static void rna_Controller_state_get(PointerRNA *ptr, int *values)
 {
 	bController *cont= (bController *)ptr->data;
@@ -113,7 +114,6 @@ static void rna_Controller_state_get(PointerRNA *ptr, int *values)
 		values[i] = (cont->state_mask & (1<<i));
 }
 
-#if 0 /* editable is set to false, comment for now. */
 static void rna_Controller_state_set(PointerRNA *ptr, const int *values)
 {
 	bController *cont= (bController *)ptr->data;
@@ -229,7 +229,6 @@ void RNA_def_controller(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "module", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Module", "Module name and function to run e.g. \"someModule.main\". Internal texts and external python files can be used");
-	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "debug", PROP_BOOLEAN, PROP_NONE);

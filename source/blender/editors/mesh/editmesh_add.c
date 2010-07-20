@@ -1286,7 +1286,7 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 	Object *obedit= CTX_data_edit_object(C);
 	int newob = 0;
 	float mat[4][4];
-	int scale;
+	float scale;
 
 	if(obedit==NULL || obedit->type!=OB_MESH) {
 		obedit= ED_object_add_type(C, OB_MESH, loc, rot, FALSE, layer);

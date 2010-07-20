@@ -104,8 +104,6 @@ Brush *add_brush(const char *name)
 
 	/* brush appearance  */
 
-	brush->image_icon= NULL;
-
 	brush->add_col[0]= 1.00; /* add mode color is light red */
 	brush->add_col[1]= 0.39;
 	brush->add_col[2]= 0.39;
@@ -130,8 +128,12 @@ Brush *copy_brush(Brush *brush)
 	
 	brushn= copy_libblock(brush);
 
-	if(brush->mtex.tex) id_us_plus((ID*)brush->mtex.tex);
-	
+	if (brush->mtex.tex)
+		id_us_plus((ID*)brush->mtex.tex);
+
+	if (brush->icon_imbuf)
+		brushn->icon_imbuf= IMB_dupImBuf(brush->icon_imbuf);
+
 	brushn->curve= curvemapping_copy(brush->curve);
 
 	/* enable fake user by default */
@@ -146,7 +148,13 @@ Brush *copy_brush(Brush *brush)
 /* not brush itself */
 void free_brush(Brush *brush)
 {
-	if(brush->mtex.tex) brush->mtex.tex->id.us--;
+	if (brush->mtex.tex)
+		brush->mtex.tex->id.us--;
+
+	if (brush->icon_imbuf)
+		IMB_freeImBuf(brush->icon_imbuf);
+
+	BKE_previewimg_free(&(brush->preview));
 
 	curvemapping_free(brush->curve);
 }
@@ -176,7 +184,7 @@ void make_local_brush(Brush *brush)
 			if(scene->id.lib) lib= 1;
 			else local= 1;
 		}
-	
+
 	if(local && lib==0) {
 		brush->id.lib= 0;
 		brush->id.flag= LIB_LOCAL;
