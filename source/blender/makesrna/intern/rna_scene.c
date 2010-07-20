@@ -34,6 +34,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_linestyle_types.h"
 
 /* Include for Bake Options */
 #include "RE_pipeline.h"

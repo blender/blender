@@ -110,6 +110,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_lattice_types.h"
 #include "DNA_listBase.h" /* for Listbase, the type of samples, ...*/
 #include "DNA_lamp_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

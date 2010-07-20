@@ -90,6 +90,10 @@ extern EnumPropertyItem property_unit_items[];
 
 extern EnumPropertyItem viewport_shading_items[];
 
+extern EnumPropertyItem linestyle_color_modifier_type_items[];
+extern EnumPropertyItem linestyle_alpha_modifier_type_items[];
+extern EnumPropertyItem linestyle_thickness_modifier_type_items[];
+
 struct bContext;
 struct PointerRNA;
 EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);

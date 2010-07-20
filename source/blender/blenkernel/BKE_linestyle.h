@@ -32,11 +32,27 @@
 #ifndef BKE_LINESTYLE_H
 #define BKE_LINESTYLE_H
 
-#include "DNA_freestyle_types.h"
+#include "DNA_linestyle_types.h"
+
+#define LS_MODIFIER_TYPE_COLOR      1
+#define LS_MODIFIER_TYPE_ALPHA      2
+#define LS_MODIFIER_TYPE_THICKNESS  3
 
 struct Main;
 
 FreestyleLineStyle *FRS_new_linestyle(char *name, struct Main *main);
 void FRS_free_linestyle(FreestyleLineStyle *linestyle);
+
+int FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type);
+int FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type);
+int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type);
+
+void FRS_remove_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
+void FRS_remove_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
+void FRS_remove_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
+
+void FRS_move_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+void FRS_move_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+void FRS_move_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
 
 #endif

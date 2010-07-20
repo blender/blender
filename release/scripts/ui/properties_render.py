@@ -200,9 +200,7 @@ class RENDER_PT_freestyle(RenderButtonsPanel):
             col.label(text="Edge Detection Options:")
             col.prop(freestyle, "crease_angle")
             col.prop(freestyle, "sphere_radius")
-            sub = col.row()
-            sub.prop(freestyle, "dkr_epsilon")
-            sub.active = any(lineset.select_suggestive_contour for lineset in freestyle.linesets)
+            col.prop(freestyle, "dkr_epsilon")
 
             lineset = freestyle.active_lineset
 
@@ -293,6 +291,91 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel):
             return freestyle.mode == "EDITOR" and freestyle.active_lineset
         return False
 
+    def draw_modifier_box_header(self, box, modifier):
+        row = box.row()
+        row.set_context_pointer("modifier", modifier)
+        if modifier.expanded:
+            icon = "TRIA_DOWN"
+        else:
+            icon = "TRIA_RIGHT"
+        row.operator("scene.freestyle_modifier_toggle_fold", icon=icon, text="", emboss=False)
+        row.label(text=modifier.rna_type.name)
+        row.prop(modifier, "name", text="")
+        row.prop(modifier, "enabled", text="")
+        sub = row.row(align=True)
+        sub.operator("scene.freestyle_modifier_move", icon='TRIA_UP', text="").direction = 'UP'
+        sub.operator("scene.freestyle_modifier_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+        row.operator("scene.freestyle_modifier_remove", icon='X', text="")
+
+    def draw_color_modifier(self, context, modifier):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        self.draw_modifier_box_header(col.box(), modifier)
+        if modifier.expanded:
+            box = col.box()
+            row = box.row()
+            row.prop(modifier, "blend", text="")
+            row.prop(modifier, "influence")
+            if modifier.type == "DISTANCE_FROM_OBJECT":
+                box.prop(modifier, "target")
+            box.template_color_ramp(modifier, "color_ramp", expand=True)
+            if modifier.type not in ["ALONG_STROKE"]:
+                row = box.row(align=True)
+                row.prop(modifier, "range_min")
+                row.prop(modifier, "range_max")
+
+    def draw_alpha_modifier(self, context, modifier):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        self.draw_modifier_box_header(col.box(), modifier)
+        if modifier.expanded:
+            box = col.box()
+            row = box.row()
+            row.prop(modifier, "blend", text="")
+            row.prop(modifier, "influence")
+            if modifier.type == "DISTANCE_FROM_OBJECT":
+                box.prop(modifier, "target")
+            row = box.row()
+            row.prop(modifier, "mapping", text="")
+            sub = row.column()
+            sub.prop(modifier, "invert")
+            if modifier.mapping == "CURVE":
+                sub.enabled = False
+                box.template_curve_mapping(modifier, "curve") # FIXME: not properly displayed
+            if modifier.type not in ["ALONG_STROKE"]:
+                row = box.row(align=True)
+                row.prop(modifier, "range_min")
+                row.prop(modifier, "range_max")
+
+    def draw_thickness_modifier(self, context, modifier):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        self.draw_modifier_box_header(col.box(), modifier)
+        if modifier.expanded:
+            box = col.box()
+            row = box.row()
+            row.prop(modifier, "blend", text="")
+            row.prop(modifier, "influence")
+            if modifier.type == "DISTANCE_FROM_OBJECT":
+                box.prop(modifier, "target")
+            row = box.row()
+            row.prop(modifier, "mapping", text="")
+            sub = row.column()
+            sub.prop(modifier, "invert")
+            if modifier.mapping == "CURVE":
+                sub.enabled = False
+                box.template_curve_mapping(modifier, "curve") # FIXME: not properly displayed
+            if modifier.type not in ["ALONG_STROKE"]:
+                row = box.row(align=True)
+                row.prop(modifier, "range_min")
+                row.prop(modifier, "range_max")
+            row = box.row(align=True)
+            row.prop(modifier, "value_min")
+            row.prop(modifier, "value_max")
+
     def draw(self, context):
         layout = self.layout
 
@@ -304,6 +387,38 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel):
         split = layout.split()
         col = split.column()
         col.template_ID(lineset, "linestyle", new="scene.freestyle_linestyle_new")
+
+        col.separator()
+        sub = col.row(align=True)
+        sub.prop(linestyle, "panel", expand=True)
+
+        if linestyle.panel == "COLOR":
+            col.label(text="Base Color:")
+            col.prop(linestyle, "color", text="")
+            col.label(text="Modifiers:")
+            layout.operator_menu_enum("scene.freestyle_color_modifier_add", "type", text="Add Modifier")
+            for modifier in linestyle.color_modifiers:
+                self.draw_color_modifier(context, modifier)
+        elif linestyle.panel == "ALPHA":
+            col.label(text="Base Transparency:")
+            col.prop(linestyle, "alpha")
+            col.label(text="Modifiers:")
+            layout.operator_menu_enum("scene.freestyle_alpha_modifier_add", "type", text="Add Modifier")
+            for modifier in linestyle.alpha_modifiers:
+                self.draw_alpha_modifier(context, modifier)
+        elif linestyle.panel == "THICKNESS":
+            col.label(text="Base Thickness:")
+            col.prop(linestyle, "thickness")
+            col.label(text="Modifiers:")
+            layout.operator_menu_enum("scene.freestyle_thickness_modifier_add", "type", text="Add Modifier")
+            for modifier in linestyle.thickness_modifiers:
+                self.draw_thickness_modifier(context, modifier)
+        elif linestyle.panel == "STROKES":
+            pass
+        elif linestyle.panel == "DISTORT":
+            pass
+        elif linestyle.panel == "MISC":
+            pass
 
 
 class RENDER_PT_shading(RenderButtonsPanel):
