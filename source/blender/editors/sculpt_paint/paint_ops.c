@@ -209,6 +209,36 @@ static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *path)
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", ZEROKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", path);
 	RNA_int_set(kmi->ptr, "value", 9);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", ONEKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", path);
+	RNA_int_set(kmi->ptr, "value", 10);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", TWOKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", path);
+	RNA_int_set(kmi->ptr, "value", 11);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", THREEKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", path);
+	RNA_int_set(kmi->ptr, "value", 12);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", FOURKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", path);
+	RNA_int_set(kmi->ptr, "value", 13);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", FIVEKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", path);
+	RNA_int_set(kmi->ptr, "value", 14);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", SIXKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", path);
+	RNA_int_set(kmi->ptr, "value", 15);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", SEVENKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", path);
+	RNA_int_set(kmi->ptr, "value", 16);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", EIGHTKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", path);
+	RNA_int_set(kmi->ptr, "value", 17);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", NINEKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", path);
+	RNA_int_set(kmi->ptr, "value", 18);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", ZEROKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", path);
+	RNA_int_set(kmi->ptr, "value", 19);
 }
 
 static void ed_keymap_paint_brush_size(wmKeyMap *keymap, const char *path)
@@ -291,10 +321,18 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.sculpt.active_brush_name");
 	RNA_string_set(kmi->ptr, "value", "Layer");
 
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", CKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", CKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.sculpt.active_brush_name");
 	RNA_string_set(kmi->ptr, "value", "Crease");
 
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", CKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.sculpt.active_brush_name");
+	RNA_string_set(kmi->ptr, "value", "Clay");
+	
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", IKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.sculpt.active_brush_name");
+	RNA_string_set(kmi->ptr, "value", "Inflate/Deflate");
+	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", TKEY, KM_PRESS, KM_SHIFT, 0); // was just T in 2.4x
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.sculpt.active_brush_name");
 	RNA_string_set(kmi->ptr, "value", "Flatten/Contrast");
