@@ -1142,7 +1142,7 @@ static TStripElem *give_tstripelem(Sequence *seq, int cfra)
 		Strip * s = seq->strip;
 		if (cfra < seq->start) {
 			se = s->tstripdata_startstill;
-			if (seq->startstill > s->startstill) {
+			if (seq->startstill != s->startstill) {
 				free_tstripdata(s->startstill, 
 						s->tstripdata_startstill);
 				se = 0;
@@ -1159,7 +1159,7 @@ static TStripElem *give_tstripelem(Sequence *seq, int cfra)
 
 		} else if (cfra > seq->start + seq->len-1) {
 			se = s->tstripdata_endstill;
-			if (seq->endstill > s->endstill) {
+			if (seq->endstill != s->endstill) {
 				free_tstripdata(s->endstill, 
 						s->tstripdata_endstill);
 				se = 0;
