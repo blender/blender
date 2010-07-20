@@ -5479,8 +5479,17 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 				/* Rename the pose channel, if it exists */
 				if (ob->pose) {
 					bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
-					if (pchan)
+					if (pchan) {
 						BLI_strncpy(pchan->name, newname, MAXBONENAME);
+						
+						if (ob->pose->chanhash) {
+							GHash *gh = ob->pose->chanhash;
+							
+							/* remove the old hash entry, and replace with the new name */
+							BLI_ghash_remove(gh, oldname, NULL, NULL);
+							BLI_ghash_insert(gh, pchan->name, pchan);
+						}
+					}
 				}
 				
 				/* Update any object constraints to use the new bone name */
