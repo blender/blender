@@ -261,7 +261,7 @@ static void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem brush_icon_items[] = {
-		{BRUSH_ICON_FILE, "FILE", 0, "Use Image File", ""},
+		{BRUSH_ICON_FILE, "FILE", 0, "Use An Image File", ""},
 		{BRUSH_ICON_BLOB, "BLOB", 0, "Blob", ""},
 		{BRUSH_ICON_CREASE, "CREASE", 0, "Crease", ""},
 		{BRUSH_ICON_CLAY, "CLAY", 0, "Clay", ""},
