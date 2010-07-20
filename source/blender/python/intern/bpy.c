@@ -149,6 +149,7 @@ void BPy_init_modules( void )
 	/* stand alone utility modules not related to blender directly */
 	Geometry_Init();
 	Mathutils_Init();
+	Noise_Init();
 	BGL_Init();
 	BLF_Init();
 	IDProp_Init_Types();
