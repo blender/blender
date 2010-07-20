@@ -110,11 +110,12 @@ static void rna_Brush_icon_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
 
-	if (br->icon==BRUSH_ICON_FILE && br->icon_imbuf)
+	if (br->icon_imbuf) {
 		IMB_freeImBuf(br->icon_imbuf);
+		br->icon_imbuf= NULL;
+	}
 
-	br->icon_imbuf= NULL;
-	br->icon_imbuf= get_brush_icon(br);
+	BKE_icon_changed(BKE_icon_getid(&(br->id)));
 
 	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
 }
@@ -260,7 +261,7 @@ static void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem brush_icon_items[] = {
-		//{BRUSH_ICON_FILE, "FILE", 0, "File", ""},
+		{BRUSH_ICON_FILE, "FILE", 0, "Use Image File", ""},
 		{BRUSH_ICON_BLOB, "BLOB", 0, "Blob", ""},
 		{BRUSH_ICON_CREASE, "CREASE", 0, "Crease", ""},
 		{BRUSH_ICON_CLAY, "CLAY", 0, "Clay", ""},

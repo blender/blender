@@ -1540,9 +1540,6 @@ static void lib_link_brush(FileData *fd, Main *main)
 
 			brush->mtex.tex= newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
 			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
-
-			brush->preview=0;
-			brush->icon_imbuf=0;
 		}
 	}
 }
@@ -1557,6 +1554,9 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 		direct_link_curvemapping(fd, brush->curve);
 	else
 		brush_curve_preset(brush, CURVE_PRESET_SHARP);
+
+	brush->preview= NULL;
+	brush->icon_imbuf= NULL;
 }
 
 static void direct_link_script(FileData *fd, Script *script)

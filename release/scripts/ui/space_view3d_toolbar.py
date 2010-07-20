@@ -1126,8 +1126,8 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel):
         row = col.row(align=True)
         row.prop(brush, "icon", text="")
 
-        #row = col.row(align=True)
-        #row.prop(brush, "icon_filepath", text="")
+        row = col.row(align=True)
+        row.prop(brush, "icon_filepath", text="")
 
 # ********** default tools for weightpaint ****************
 
