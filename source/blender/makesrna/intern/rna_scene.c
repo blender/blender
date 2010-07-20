@@ -1548,12 +1548,12 @@ static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "detailsampledist", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_range(prop, 0.0, 16.0, 1, 2);
-	RNA_def_property_ui_text(prop, "Sample Distance", "Detail mesh sample spacing");
+	RNA_def_property_ui_text(prop, "Sample distance", "Detail mesh sample spacing");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "detailsamplemaxerror", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_range(prop, 0.0, 16.0, 1, 2);
-	RNA_def_property_ui_text(prop, "Max Sample Error", "Detail mesh simplification max sample error");
+	RNA_def_property_ui_text(prop, "Max sample error", "Detail mesh simplification max sample error");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 }
 
@@ -1608,7 +1608,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	static EnumPropertyItem obstacle_simulation_items[] = {
 		{OBSTSIMULATION_NONE, "NONE", 0, "None", ""},
-		{OBSTSIMULATION_TOI, "TOI", 0, "TOI", ""},
+		{OBSTSIMULATION_TOI, "RVO", 0, "RVO", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SceneGameData", NULL);

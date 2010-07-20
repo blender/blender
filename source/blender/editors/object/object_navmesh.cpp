@@ -365,8 +365,8 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 				else
 					face[k] = uniquevbase+tri[k]-nv; //unique vertex
 			}
-			newFace = addfacelist(em, EM_get_vert_for_index(face[0]), EM_get_vert_for_index(face[1]), 
-									EM_get_vert_for_index(face[2]), NULL, NULL, NULL);
+			newFace = addfacelist(em, EM_get_vert_for_index(face[0]), EM_get_vert_for_index(face[2]), 
+									EM_get_vert_for_index(face[1]), NULL, NULL, NULL);
 
 			//set navigation polygon idx to the custom layer
 			int* polygonIdx = (int*)CustomData_em_get(&em->fdata, newFace->data, CD_PROP_INT);

@@ -468,8 +468,10 @@ void init_actuator(bActuator *act)
 	case ACT_STEERING:
 		act->data = MEM_callocN(sizeof( bSteeringActuator), "steering act");
 		sta = act->data;
-		sta->acceleration = 3;
-		sta->turnspeed = 120;
+		sta->acceleration = 3.f;
+		sta->turnspeed = 120.f;
+		sta->dist = 1.f;
+		sta->velocity= 3.f;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */

@@ -147,7 +147,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 			return true;
 		}
 
-		//build detailed mesh adjacency
+		//build detailed mesh adjacency (with triangle reordering)
 		ndtris = numfaces;
 		dtris = new unsigned short[numfaces*3*2];
 		memset(dtris, 0xffff, sizeof(unsigned short)*3*2*numfaces);
@@ -155,8 +155,8 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 		{
 			MFace* mf = &mface[i];
 			dtris[i*3*2+0] = mf->v1;
-			dtris[i*3*2+1] = mf->v2;
-			dtris[i*3*2+2] = mf->v3;
+			dtris[i*3*2+1] = mf->v3;
+			dtris[i*3*2+2] = mf->v2;
 			
 		}
 		buildMeshAdjacency(dtris, numfaces, numverts, 3);
@@ -476,14 +476,6 @@ bool KX_NavMeshObject::BuildNavMesh()
 	{
 		flipAxes(&dvertices[i*3]);
 	}
-
-/*
-	//reorder tris 
-	for (int i=0; i<npolys; i++)
-	{
-		std::swap(polys[6*i+1], polys[6*i+2]);
-	}
-*/
 
 	buildMeshAdjacency(polys, npolys, nverts, vertsPerPoly);
 	
