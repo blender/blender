@@ -69,6 +69,7 @@
 #include "BKE_world.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_brush.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -1066,6 +1067,19 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 			return;
 		
 		icon_copy_rect(ibuf, sp->sizex, sp->sizey, sp->pr_rect);
+
+		*do_update= 1;
+	}
+	else if(idtype == ID_BR) {
+		Brush *br= (Brush*)id;
+
+		br->icon_imbuf= get_brush_icon(br);
+
+		if(!(br->icon_imbuf) || !(br->icon_imbuf->rect))
+			return;
+
+		memset(sp->pr_rect, 0x888888, sp->sizex*sp->sizey*sizeof(unsigned int));
+		icon_copy_rect(br->icon_imbuf, sp->sizex, sp->sizey, sp->pr_rect);
 
 		*do_update= 1;
 	}

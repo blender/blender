@@ -45,7 +45,7 @@ void make_local_brush(struct Brush *brush);
 void free_brush(struct Brush *brush);
 
 /* image icon function */
-struct Image *get_brush_icon(struct Brush *brush);
+struct ImBuf *get_brush_icon(struct Brush *brush);
 
 /* brush library operations used by different paint panels */
 int brush_set_nr(struct Brush **current_brush, int nr, const char *name);

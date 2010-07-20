@@ -43,6 +43,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_texture.h"
+#include "BKE_brush.h"
+#include "BKE_icons.h"
 
 #include "WM_api.h"
 
@@ -104,32 +106,15 @@ static int rna_Brush_is_imapaint_brush(Brush *me, bContext *C)
 	return 0;
 }
 
-static void rna_Brush_image_icon_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Brush_icon_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
 
-	if (br->image_icon) {
-		// store path to external image so it can be reloaded later
-		BLI_strncpy(br->image_icon_path, br->image_icon->name, sizeof(br->image_icon_path));
+	if (br->icon==BRUSH_ICON_FILE && br->icon_imbuf)
+		IMB_freeImBuf(br->icon_imbuf);
 
-		// setting or loading image_icon bumps its user count
-		// we do not want writefile to save the image if a brush is the only user,
-		// so decrement the user count by one
-		id_us_min((ID*)(br->image_icon));
-	}
-	else {
-		memset(br->image_icon_path, 0, sizeof(br->image_icon_path));
-	}
-
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
-}
-
-static void rna_Brush_image_icon_path_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	Brush *br= (Brush*)ptr->data;
-
-	if (br->image_icon)
-		br->image_icon = NULL;
+	br->icon_imbuf= NULL;
+	br->icon_imbuf= get_brush_icon(br);
 
 	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
 }
@@ -274,6 +259,26 @@ static void rna_def_brush(BlenderRNA *brna)
 		{SCULPT_DISP_DIR_Z, "Z", 0, "Z Plane", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem brush_icon_items[] = {
+		//{BRUSH_ICON_FILE, "FILE", 0, "File", ""},
+		{BRUSH_ICON_BLOB, "BLOB", 0, "Blob", ""},
+		{BRUSH_ICON_CREASE, "CREASE", 0, "Crease", ""},
+		{BRUSH_ICON_CLAY, "CLAY", 0, "Clay", ""},
+		{BRUSH_ICON_DRAW, "DRAW", 0, "Draw", ""},
+		{BRUSH_ICON_FILL, "FILL", 0, "Fill", ""},
+		{BRUSH_ICON_FLATTEN, "FLATTEN", 0, "Flatten", ""},
+		{BRUSH_ICON_GRAB, "GRAB", 0, "Grab", ""},
+		{BRUSH_ICON_INFLATE, "INFLATE", 0, "Inflate", ""},
+		{BRUSH_ICON_LAYER, "LAYER", 0, "Layer", ""},
+		{BRUSH_ICON_NUDGE, "NUDGE", 0, "Nudge", ""},
+		{BRUSH_ICON_PINCH, "PINCH", 0, "Pinch", ""},
+		{BRUSH_ICON_TWIST, "TWIST", 0, "Twist", ""},
+		{BRUSH_ICON_SCRAPE, "SCRAPE", 0, "Scrape", ""},
+		{BRUSH_ICON_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+		{BRUSH_ICON_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
+		{BRUSH_ICON_THUMB, "THUMB", 0, "Thumb", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
@@ -336,7 +341,12 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_flip_direction_items);
 	RNA_def_property_ui_text(prop, "Direction", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
-	
+
+	prop= RNA_def_property(srna, "icon", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, brush_icon_items);
+	RNA_def_property_ui_text(prop, "Brush Icon", "");
+	RNA_def_property_update(prop, 0, "rna_Brush_icon_update");
+
 	prop= RNA_def_property(srna, "stroke_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, brush_stroke_method_items);
@@ -667,17 +677,10 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Subract Color", "Color of cursor when subtracting");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop= RNA_def_property(srna, "image_icon", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "image_icon");
-	RNA_def_property_struct_type(prop, "Image");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Image Icon", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_image_icon_update");
-
-	prop= RNA_def_property(srna, "image_icon_path", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_string_sdna(prop, NULL, "image_icon_path");
-	RNA_def_property_ui_text(prop, "Image Icon Filepath", "File path for brush icon");
-	RNA_def_property_update(prop, 0, "rna_Brush_image_icon_path_update");
+	prop= RNA_def_property(srna, "icon_filepath", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_sdna(prop, NULL, "icon_filepath");
+	RNA_def_property_ui_text(prop, "Brush Icon Filepath", "File path to brush icon");
+	RNA_def_property_update(prop, 0, "rna_Brush_icon_update");
 
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);
