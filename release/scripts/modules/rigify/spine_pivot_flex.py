@@ -236,7 +236,7 @@ def main(obj, bone_definition, base_names, options):
             attr_parent = ex_chain.attr_names[i - 1] + "_e"
             ebone.parent = getattr(ex_chain, attr_parent)
 
-        # intentional! get the parent from the other paralelle chain member
+        # intentional! get the parent from the other parallel chain member
         getattr(rv_chain, attr).parent = ebone
 
 

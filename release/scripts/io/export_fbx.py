@@ -3037,7 +3037,7 @@ Takes:  {''')
 
 # --------------------------------------------
 # UI Function - not a part of the exporter.
-# this is to seperate the user interface from the rest of the exporter.
+# this is to separate the user interface from the rest of the exporter.
 # from Blender import Draw, Window
 EVENT_NONE = 0
 EVENT_EXIT = 1

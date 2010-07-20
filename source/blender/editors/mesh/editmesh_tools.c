@@ -3417,7 +3417,7 @@ void join_triangles(EditMesh *em)
 				efaa= (EVPtr *)eed->tmp.p;
 				v1 = v2 = v3 = v4 = NULL;
 				givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, vindex);
-				if((v1 && v2 && v3 && v4) && (exist_face(em, v1, v2, v3, v4)==0)){ /*exist_face is very slow! Needs to be adressed.*/
+				if((v1 && v2 && v3 && v4) && (exist_face(em, v1, v2, v3, v4)==0)){ /*exist_face is very slow! Needs to be addressed.*/
 					/*flag for delete*/
 					eed->f1 |= T2QDELETE;
 					/*create new quad and select*/

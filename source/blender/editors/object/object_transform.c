@@ -1017,7 +1017,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	}
 	
-	/* Warn if any errors occured */
+	/* Warn if any errors occurred */
 	if (tot_lib_error+tot_multiuser_arm_error) {
 		BKE_reportf(op->reports, RPT_WARNING, "%i Object(s) Not Centered, %i Changed:",tot_lib_error+tot_multiuser_arm_error, tot_change);		
 		if (tot_lib_error)

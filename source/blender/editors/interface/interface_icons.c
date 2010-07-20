@@ -52,6 +52,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_icons.h"
+#include "BKE_brush.h"
 #include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"

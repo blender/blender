@@ -155,7 +155,7 @@
 #include <errno.h>
 
 /*
- Remark: still a weak point is the newadress() function, that doesnt solve reading from
+ Remark: still a weak point is the newaddress() function, that doesnt solve reading from
  multiple files at the same time
 
  (added remark: oh, i thought that was solved? will look at that... (ton)

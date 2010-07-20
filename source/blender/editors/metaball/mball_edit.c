@@ -550,7 +550,7 @@ int mouse_mball(bContext *C, short mval[2], int extend)
 			if(ml==startelem) break;
 		}
 		
-		/* When some metaelem was found, then it is neccessary to select or
+		/* When some metaelem was found, then it is necessary to select or
 		 * deselet it. */
 		if(act) {
 			if(extend==0) {
