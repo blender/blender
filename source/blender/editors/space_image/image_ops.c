@@ -127,10 +127,15 @@ static int space_image_file_exists_poll(bContext *C)
 		SpaceImage *sima= CTX_wm_space_image(C);
 		ImBuf *ibuf;
 		void *lock;
-		int poll;
-		
+		int poll= 0;
+		char name[FILE_MAX];
+
 		ibuf= ED_space_image_acquire_buffer(sima, &lock);
-		poll= (ibuf && BLI_exists(ibuf->name) && BLI_is_writable(ibuf->name));
+		if(ibuf) {
+			BLI_strncpy(name, ibuf->name, FILE_MAX);
+			BLI_path_abs(name, G.sce);
+			poll= (BLI_exists(name) && BLI_is_writable(name));
+		}
 		ED_space_image_release_buffer(sima, lock);
 
 		return poll;
@@ -1030,6 +1035,8 @@ static int save_exec(bContext *C, wmOperator *op)
 	BLI_strncpy(name, ibuf->name, FILE_MAX);
 	if(name[0]==0)
 		BLI_strncpy(name, G.ima, FILE_MAX);
+	else
+		BLI_path_abs(name, G.sce);
 	
 	if(BLI_exists(name) && BLI_is_writable(name)) {
 		rr= BKE_image_acquire_renderresult(scene, ima);
