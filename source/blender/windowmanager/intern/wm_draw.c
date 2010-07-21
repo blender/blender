@@ -686,9 +686,11 @@ static int wm_automatic_draw_method(wmWindow *win)
 		/* ATI opensource driver is known to be very slow at this */
 		if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE))
 			return USER_DRAW_OVERLAP;
+#if 0
 		/* also Intel drivers don't work well with this */
 		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
 			return USER_DRAW_OVERLAP;
+#endif
 		/* Windows software driver darkens color on each redraw */
 		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
 			return USER_DRAW_OVERLAP_FLIP;

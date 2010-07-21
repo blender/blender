@@ -620,6 +620,8 @@ void drawConstraint(const struct bContext *C, TransInfo *t)
 		if (tc->mode & CON_SELECT) {
 			float vec[3];
 			char col2[3] = {255,255,255};
+			int depth_test_enabled;
+
 			convertViewVec(t, vec, (short)(t->mval[0] - t->con.imval[0]), (short)(t->mval[1] - t->con.imval[1]));
 			add_v3_v3(vec, tc->center);
 
@@ -629,15 +631,18 @@ void drawConstraint(const struct bContext *C, TransInfo *t)
 
 			glColor3ubv((GLubyte *)col2);
 
-			glDisable(GL_DEPTH_TEST);
+			depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
+			if(depth_test_enabled)
+				glDisable(GL_DEPTH_TEST);
+
 			setlinestyle(1);
 			glBegin(GL_LINE_STRIP);
 				glVertex3fv(tc->center);
 				glVertex3fv(vec);
 			glEnd();
 			setlinestyle(0);
-			// TRANSFORM_FIX_ME
-			//if(G.vd->zbuf)
+
+			if(depth_test_enabled)
 				glEnable(GL_DEPTH_TEST);
 		}
 

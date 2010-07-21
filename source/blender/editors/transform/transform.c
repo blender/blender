@@ -4780,10 +4780,11 @@ int doEdgeSlide(TransInfo *t, float perc)
 		//Non prop code
 		look = vertlist;
 		while(look) {
-			float newlen;
+			float newlen, edgelen;
 			ev = look->link;
 			tempsv = BLI_ghash_lookup(vertgh,ev);
-			newlen = (len / len_v3v3(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
+			edgelen = len_v3v3(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co);
+			newlen = (edgelen != 0.0f)? (len / edgelen): 0.0f;
 			if(newlen > 1.0) {newlen = 1.0;}
 			if(newlen < 0.0) {newlen = 0.0;}
 			if(flip == 0) {

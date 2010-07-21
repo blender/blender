@@ -953,6 +953,7 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			return NULL;
 			
 		case BLENDER_USER_DATAFILES:
+			if (get_path_local(path, "datafiles", subfolder)) break;
 			if (get_path_user(path, "datafiles", subfolder, "BLENDER_USER_DATAFILES"))	break;
 			return NULL;
 			
@@ -973,6 +974,7 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			return NULL;
 			
 		case BLENDER_USER_CONFIG:
+			if (get_path_local(path, "config", subfolder)) break;
 			if (get_path_user(path, "config", subfolder, "BLENDER_USER_CONFIG")) break;
 			return NULL;
 			
@@ -988,6 +990,7 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 			return NULL;
 			
 		case BLENDER_USER_SCRIPTS:
+			if (get_path_local(path, "scripts", subfolder)) break;
 			if (get_path_user(path, "scripts", subfolder, "BLENDER_USER_SCRIPTS")) break;
 			return NULL;
 			

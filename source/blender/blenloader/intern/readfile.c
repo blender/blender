@@ -10878,12 +10878,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 
-	/* put 2.50 compatibility code here until next subversion bump */
+	if (main->versionfile < 253)
 	{
 		Object *ob;
 		Scene *scene;
 		bScreen *sc;
 		Tex *tex;
+		Brush *brush;
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
@@ -10999,12 +11000,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				SEQ_END
 			}
 		}
-	}
 
-	{
 		/* GSOC 2010 Sculpt - New settings for Brush */
 
-		Brush *brush;
 		for (brush= main->brush.first; brush; brush= brush->id.next) {
 			/* Sanity Check */
 
@@ -11075,6 +11073,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

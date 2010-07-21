@@ -2782,7 +2782,7 @@ Takes:  {''')
 
                 # Set the action active
                 for my_bone in ob_arms:
-                    if blenAction in my_bone.blenActionList:
+                    if ob.animation_data and blenAction in my_bone.blenActionList:
                         ob.animation_data.action = blenAction
                         # print '\t\tSetting Action!', blenAction
                 # scene.update(1)
