@@ -1108,9 +1108,9 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        col = layout.column();
-
         if context.sculpt_object and context.tool_settings.sculpt:
+            col = layout.column();
+
             #if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'CLAY_TUBES', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE'):
             if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE'):
                 col.prop(brush, "add_col", text="Add Color")
@@ -1118,7 +1118,7 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel):
             else:
                 col.prop(brush, "add_col", text="Color")
 
-        col.separator()
+            col.separator()
 
         col = layout.column()
         col.label(text="Icon:")
