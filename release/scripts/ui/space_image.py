@@ -562,22 +562,10 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
-        wide_ui = context.region.width > narrowui
 
         col = layout.split().column()
         row = col.row()
-        row.template_list(toolsettings, "brushes", toolsettings, "active_brush_index", rows=2)
-
-        col.template_ID(toolsettings, "brush", new="brush.add")
-
-        if wide_ui:
-            sub = layout.row(align=True)
-        else:
-            sub = layout.column(align=True)
-        sub.prop_enum(brush, "imagepaint_tool", 'DRAW')
-        sub.prop_enum(brush, "imagepaint_tool", 'SOFTEN')
-        sub.prop_enum(brush, "imagepaint_tool", 'CLONE')
-        sub.prop_enum(brush, "imagepaint_tool", 'SMEAR')
+        col.template_ID_preview(toolsettings, "brush", new="brush.add", filter="is_imapaint_brush", rows=3, cols=8)
 
         if brush:
             col = layout.column()
