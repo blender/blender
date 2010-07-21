@@ -62,6 +62,7 @@ float normal_tri_v3(float n[3], const float v1[3], const float v2[3], const floa
 	n[0]= n1[1]*n2[2]-n1[2]*n2[1];
 	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
 	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
+
 	return normalize_v3(n);
 }
 
@@ -316,7 +317,7 @@ static short IsectLLPt2Df(float x0,float y0,float x1,float y1,
 		return -1; /*m2 = (float) 1e+10;*/   // close enough to infinity
 
 	if (fabs(m1-m2) < 0.000001)
-		return -1; /* paralelle lines */
+		return -1; /* parallel lines */
 	
 // compute constants
 
@@ -401,15 +402,16 @@ int isect_line_tri_v3(float p1[3], float p2[3], float v0[3], float v1[3], float 
 	
 	sub_v3_v3v3(s, p1, v0);
 	
-	cross_v3_v3v3(q, s, e1);
-	*lambda = f * dot_v3v3(e2, q);
-	if ((*lambda < 0.0)||(*lambda > 1.0)) return 0;
-	
 	u = f * dot_v3v3(s, p);
 	if ((u < 0.0)||(u > 1.0)) return 0;
 	
-	v = f * dot_v3v3(d, q);
+	cross_v3_v3v3(q, s, e1);
+	
+        v = f * dot_v3v3(d, q);
 	if ((v < 0.0)||((u + v) > 1.0)) return 0;
+
+	*lambda = f * dot_v3v3(e2, q);
+	if ((*lambda < 0.0)||(*lambda > 1.0)) return 0;
 
 	if(uv) {
 		uv[0]= u;
@@ -440,17 +442,18 @@ int isect_ray_tri_v3(float p1[3], float d[3], float v0[3], float v1[3], float v2
 	
 	sub_v3_v3v3(s, p1, v0);
 	
-	cross_v3_v3v3(q, s, e1);
-	*lambda = f * dot_v3v3(e2, q);
-	if ((*lambda < 0.0)) return 0;
-	
 	u = f * dot_v3v3(s, p);
 	if ((u < 0.0)||(u > 1.0)) return 0;
+	
+	cross_v3_v3v3(q, s, e1);
 	
 	v = f * dot_v3v3(d, q);
 	if ((v < 0.0)||((u + v) > 1.0)) return 0;
 
-	if(uv) {
+	*lambda = f * dot_v3v3(e2, q);
+	if ((*lambda < 0.0)) return 0;
+
+        if(uv) {
 		uv[0]= u;
 		uv[1]= v;
 	}
@@ -460,36 +463,36 @@ int isect_ray_tri_v3(float p1[3], float d[3], float v0[3], float v1[3], float v2
 
 int isect_ray_tri_epsilon_v3(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float epsilon)
 {
-	float p[3], s[3], e1[3], e2[3], q[3];
-	float a, f, u, v;
-	
-	sub_v3_v3v3(e1, v1, v0);
-	sub_v3_v3v3(e2, v2, v0);
-	
-	cross_v3_v3v3(p, d, e2);
-	a = dot_v3v3(e1, p);
-	if (a == 0.0f) return 0;
-	f = 1.0f/a;
-	
-	sub_v3_v3v3(s, p1, v0);
-	
-	cross_v3_v3v3(q, s, e1);
+    float p[3], s[3], e1[3], e2[3], q[3];
+    float a, f, u, v;
 
-	u = f * dot_v3v3(s, p);
-	if ((u < -epsilon)||(u > 1.0f+epsilon)) return 0;
-	
-	v = f * dot_v3v3(d, q);
-	if ((v < -epsilon)||((u + v) > 1.0f+epsilon)) return 0;
+    sub_v3_v3v3(e1, v1, v0);
+    sub_v3_v3v3(e2, v2, v0);
 
-	*lambda = f * dot_v3v3(e2, q);
-	if ((*lambda < 0.0f)) return 0;
+    cross_v3_v3v3(p, d, e2);
+    a = dot_v3v3(e1, p);
+    if (a == 0.0f) return 0;
+    f = 1.0f/a;
 
-	if(uv) {
-		uv[0]= u;
-		uv[1]= v;
-	}
-	
-	return 1;
+    sub_v3_v3v3(s, p1, v0);
+
+    u = f * dot_v3v3(s, p);
+    if ((u < -epsilon)||(u > 1.0f+epsilon)) return 0;
+
+    cross_v3_v3v3(q, s, e1);
+
+    v = f * dot_v3v3(d, q);
+    if ((v < -epsilon)||((u + v) > 1.0f+epsilon)) return 0;
+
+    *lambda = f * dot_v3v3(e2, q);
+    if ((*lambda < 0.0f)) return 0;
+
+    if(uv) {
+        uv[0]= u;
+        uv[1]= v;
+    }
+
+    return 1;
 }
 
 int isect_ray_tri_threshold_v3(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float threshold)
@@ -990,14 +993,14 @@ void isect_point_quad_uv_v2(float v0[2], float v1[2], float v2[2], float v3[2], 
 {
 	float x0,y0, x1,y1, wtot, v2d[2], w1, w2;
 	
-	/* used for paralelle lines */
+	/* used for parallel lines */
 	float pt3d[3], l1[3], l2[3], pt_on_line[3];
 	
 	/* compute 2 edges  of the quad  intersection point */
 	if (IsectLLPt2Df(v0[0],v0[1],v1[0],v1[1],  v2[0],v2[1],v3[0],v3[1], &x0,&y0) == 1) {
 		/* the intersection point between the quad-edge intersection and the point in the quad we want the uv's for */
 		/* should never be paralle !! */
-		/*printf("\tnot paralelle 1\n");*/
+		/*printf("\tnot parallel 1\n");*/
 		IsectLLPt2Df(pt[0],pt[1],x0,y0,  v0[0],v0[1],v3[0],v3[1], &x1,&y1);
 		
 		/* Get the weights from the new intersection point, to each edge */
@@ -1013,8 +1016,8 @@ void isect_point_quad_uv_v2(float v0[2], float v1[2], float v2[2], float v3[2], 
 		/*w2 = w2/wtot;*/
 		uv[0] = w1/wtot;
 	} else {
-		/* lines are paralelle, lambda_cp_line_ex is 3d grrr */
-		/*printf("\tparalelle1\n");*/
+		/* lines are parallel, lambda_cp_line_ex is 3d grrr */
+		/*printf("\tparallel1\n");*/
 		pt3d[0] = pt[0];
 		pt3d[1] = pt[1];
 		pt3d[2] = l1[2] = l2[2] = 0.0f;
@@ -1040,7 +1043,7 @@ void isect_point_quad_uv_v2(float v0[2], float v1[2], float v2[2], float v3[2], 
 	
 	if (IsectLLPt2Df(v0[0],v0[1],v3[0],v3[1],  v1[0],v1[1],v2[0],v2[1], &x0,&y0) == 1) { /* was v0,v1  v2,v3  now v0,v3  v1,v2*/
 		/* never paralle if above was not */
-		/*printf("\tnot paralelle2\n");*/
+		/*printf("\tnot parallel2\n");*/
 		IsectLLPt2Df(pt[0],pt[1],x0,y0,  v0[0],v0[1],v1[0],v1[1], &x1,&y1);/* was v0,v3  now v0,v1*/
 		
 		v2d[0] = x1-v0[0];
@@ -1053,8 +1056,8 @@ void isect_point_quad_uv_v2(float v0[2], float v1[2], float v2[2], float v3[2], 
 		wtot = w1+w2;
 		uv[1] = w1/wtot;
 	} else {
-		/* lines are paralelle, lambda_cp_line_ex is 3d grrr */
-		/*printf("\tparalelle2\n");*/
+		/* lines are parallel, lambda_cp_line_ex is 3d grrr */
+		/*printf("\tparallel2\n");*/
 		pt3d[0] = pt[0];
 		pt3d[1] = pt[1];
 		pt3d[2] = l1[2] = l2[2] = 0.0f;

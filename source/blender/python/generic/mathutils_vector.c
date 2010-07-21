@@ -1468,7 +1468,7 @@ static int Vector_setLength(VectorObject *self, PyObject * value )
 		self->vec[i]= self->vec[i] / (float)dot;
 	}
 	
-	BaseMath_WriteCallback(self); /* checked alredy */
+	BaseMath_WriteCallback(self); /* checked already */
 	
 	return 0;
 }
@@ -2034,7 +2034,7 @@ static PyObject *Vector_Negate(VectorObject *self)
 	for(i = 0; i < self->size; i++)
 		self->vec[i] = -(self->vec[i]);
 	
-	BaseMath_WriteCallback(self); // alredy checked for error
+	BaseMath_WriteCallback(self); // already checked for error
 	
 	Py_INCREF(self);
 	return (PyObject*)self;

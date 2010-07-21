@@ -814,7 +814,7 @@ void link_logicbricks(void **poin, void ***ppoin, short *tot, short size)
 		(*tot) ++;
 		*ppoin = MEM_callocN((*tot)*size, "new link");
 	
-		for (ibrick=0; ibrick < *tot - 1; ibrick++) {
+		for (ibrick=0; ibrick < *(tot) - 1; ibrick++) {
 			(*ppoin)[ibrick] = old_links[ibrick];
 		}
 		(*ppoin)[ibrick] = *poin;

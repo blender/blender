@@ -55,6 +55,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 #include <pthread.h>
 
 #include "IMB_imbuf.h"
@@ -247,9 +248,9 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 
 		if(seq->scene_sound)
 			sound_remove_scene_sound(scene, seq->scene_sound);
-	}
 
-	seq_free_animdata(scene, seq);
+		seq_free_animdata(scene, seq);
+	}
 
 	MEM_freeN(seq);
 }
@@ -517,6 +518,31 @@ void calc_sequence_disp(Scene *scene, Sequence *seq)
 	seq_update_sound(scene, seq);
 }
 
+static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
+{
+	Sequence *seq;
+
+	/* for sound we go over full meta tree to update bounds of the sound strips,
+	   since sound is played outside of evaluating the imbufs, */
+	for(seq=metaseq->seqbase.first; seq; seq=seq->next) {
+		if(seq->type == SEQ_META) {
+			seq_update_sound_bounds_recursive(scene, seq);
+		}
+		else if((seq->type == SEQ_SOUND) || (seq->type == SEQ_SCENE)) {
+			if(seq->scene_sound) {
+				int startofs = seq->startofs;
+				int endofs = seq->endofs;
+				if(seq->startofs + seq->start < metaseq->start + metaseq->startofs)
+					startofs = metaseq->start + metaseq->startofs - seq->start;
+
+				if(seq->start + seq->len - seq->endofs > metaseq->start + metaseq->len - metaseq->endofs)
+					endofs = seq->start + seq->len - metaseq->start - metaseq->len + metaseq->endofs;
+				sound_move_scene_sound(scene, seq->scene_sound, seq->start + startofs, seq->start+seq->len - endofs, startofs);
+			}
+		}
+	}
+}
+
 void calc_sequence(Scene *scene, Sequence *seq)
 {
 	Sequence *seqm;
@@ -576,6 +602,7 @@ void calc_sequence(Scene *scene, Sequence *seq)
 					new_tstripdata(seq);
 				}
 			}
+			seq_update_sound_bounds_recursive(scene, seq);
 		}
 		calc_sequence_disp(scene, seq);
 	}
@@ -769,7 +796,7 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 	Sequence *seq;
 	for(seq=seqbasep->first; seq; seq= seq->next) {
 		if (sui->seq != seq && strcmp(sui->name_dest, seq->name+2)==0) {
-			sprintf(sui->name_dest, "%.18s.%03d",  sui->name_src, sui->count++);
+			sprintf(sui->name_dest, "%.17s.%03d",  sui->name_src, sui->count++); /*24 - 2 for prefix, -1 for \0 */
 			sui->match= 1; /* be sure to re-scan */
 		}
 	}
@@ -790,12 +817,17 @@ void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq)
 	strcpy(sui.name_src, seq->name+2);
 	strcpy(sui.name_dest, seq->name+2);
 
-	/* Strip off the suffix */
-	if ((dot=strrchr(sui.name_src, '.')))
-		*dot= '\0';
-
 	sui.count= 1;
 	sui.match= 1; /* assume the worst to start the loop */
+
+	/* Strip off the suffix */
+	if ((dot=strrchr(sui.name_src, '.'))) {
+		*dot= '\0';
+		dot++;
+
+		if(*dot)
+			sui.count= atoi(dot) + 1;
+	}
 
 	while(sui.match) {
 		sui.match= 0;
@@ -1111,7 +1143,7 @@ static TStripElem *give_tstripelem(Sequence *seq, int cfra)
 		Strip * s = seq->strip;
 		if (cfra < seq->start) {
 			se = s->tstripdata_startstill;
-			if (seq->startstill > s->startstill) {
+			if (seq->startstill != s->startstill) {
 				free_tstripdata(s->startstill, 
 						s->tstripdata_startstill);
 				se = 0;
@@ -1128,7 +1160,7 @@ static TStripElem *give_tstripelem(Sequence *seq, int cfra)
 
 		} else if (cfra > seq->start + seq->len-1) {
 			se = s->tstripdata_endstill;
-			if (seq->endstill > s->endstill) {
+			if (seq->endstill != s->endstill) {
 				free_tstripdata(s->endstill, 
 						s->tstripdata_endstill);
 				se = 0;
@@ -1769,12 +1801,35 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 	if(seq->flag & SEQ_FLIPX) {
 		IMB_flipx(se->ibuf);
 	}
+	
 	if(seq->flag & SEQ_FLIPY) {
 		IMB_flipy(se->ibuf);
 	}
 
-	if(seq->mul == 0.0) {
-		seq->mul = 1.0;
+	if(seq->sat != 1.0f) {
+		/* inline for now, could become an imbuf function */
+		int i;
+		char *rct= (char *)se->ibuf->rect;
+		float *rctf= se->ibuf->rect_float;
+		const float sat= seq->sat;
+		float hsv[3];
+
+		if(rct) {
+			float rgb[3];
+			for (i = se->ibuf->x * se->ibuf->y; i > 0; i--, rct+=4) {
+				rgb_byte_to_float(rct, rgb);
+				rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+				hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb+1, rgb+2);
+				rgb_float_to_byte(rgb, rct);
+			}
+		}
+
+		if(rctf) {
+			for (i = se->ibuf->x * se->ibuf->y; i > 0; i--, rctf+=4) {
+				rgb_to_hsv(rctf[0], rctf[1], rctf[2], hsv, hsv+1, hsv+2);
+				hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rctf, rctf+1, rctf+2);
+			}
+		}
 	}
 
 	mul = seq->mul;
@@ -2204,7 +2259,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			seq->scene->markers.first= seq->scene->markers.last= NULL;
 #endif
 
-			if(sequencer_view3d_cb && doseq_gl && (seq->scene == scene || have_seq==0) && seq->scene->camera) {
+			if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (seq->scene == scene || have_seq==0) && seq->scene->camera) {
 				/* opengl offscreen render */
 				scene_update_for_newframe(seq->scene, seq->scene->lay);
 				se->ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, scene->r.seq_prev_type);
@@ -2229,6 +2284,13 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 						addzbuffloatImBuf(se->ibuf);
 						memcpy(se->ibuf->zbuf_float, rres.rectz, sizeof(float)*rres.rectx*rres.recty);
 					}
+
+					/* {
+						ImBuf *imb= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat, 0);
+						IMB_saveiff(imb, "/tmp/foo.image", IB_rect | IB_metadata);
+						IMB_freeImBuf(imb);
+					} */
+
 				} else if (rres.rect32) {
 					se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect, 0);
 					memcpy(se->ibuf->rect, rres.rect32, 4*rres.rectx*rres.recty);
@@ -3206,59 +3268,8 @@ static void free_anim_seq(Sequence *seq)
 	}
 }
 
-#if 0
-static void free_imbuf_seq_except(Scene *scene, int cfra)
-{
-	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *seq;
-	TStripElem *se;
-	int a;
-
-	if(ed==NULL) return;
-
-	SEQ_BEGIN(ed, seq) {
-		if(seq->strip) {
-			TStripElem * curelem = give_tstripelem(seq, cfra);
-
-			for(a = 0, se = seq->strip->tstripdata; 
-				a < seq->strip->len && se; a++, se++) {
-				if(se != curelem) {
-					free_imbuf_strip_elem(se);
-				}
-			}
-			for(a = 0, se = seq->strip->tstripdata_startstill;
-				a < seq->strip->startstill && se; a++, se++) {
-				if(se != curelem) {
-					free_imbuf_strip_elem(se);
-				}
-			}
-			for(a = 0, se = seq->strip->tstripdata_endstill;
-				a < seq->strip->endstill && se; a++, se++) {
-				if(se != curelem) {
-					free_imbuf_strip_elem(se);
-				}
-			}
-			if(seq->strip->ibuf_startstill) {
-				IMB_freeImBuf(seq->strip->ibuf_startstill);
-				seq->strip->ibuf_startstill = 0;
-			}
-
-			if(seq->strip->ibuf_endstill) {
-				IMB_freeImBuf(seq->strip->ibuf_endstill);
-				seq->strip->ibuf_endstill = 0;
-			}
-
-			if(seq->type==SEQ_MOVIE)
-				if(seq->startdisp > cfra || seq->enddisp < cfra)
-					free_anim_seq(seq);
-			free_proxy_seq(seq);
-		}
-	}
-	SEQ_END
-}
-#endif
-
-void free_imbuf_seq(Scene *scene, ListBase * seqbase, int check_mem_usage)
+void free_imbuf_seq(Scene *scene, ListBase * seqbase, int check_mem_usage,
+		    int keep_file_handles)
 {
 	Sequence *seq;
 	TStripElem *se;
@@ -3313,14 +3324,15 @@ void free_imbuf_seq(Scene *scene, ListBase * seqbase, int check_mem_usage)
 				seq->strip->ibuf_endstill = 0;
 			}
 
-			if(seq->type==SEQ_MOVIE)
+			if(seq->type==SEQ_MOVIE && !keep_file_handles)
 				free_anim_seq(seq);
 			if(seq->type==SEQ_SPEED) {
 				sequence_effect_speed_rebuild_map(scene, seq, 1);
 			}
 		}
 		if(seq->type==SEQ_META) {
-			free_imbuf_seq(scene, &seq->seqbase, FALSE);
+			free_imbuf_seq(scene, &seq->seqbase, FALSE,
+				       keep_file_handles);
 		}
 		if(seq->type==SEQ_SCENE) {
 			/* FIXME: recurs downwards, 
@@ -4043,6 +4055,7 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	seq->flag= SELECT;
 	seq->start= cfra;
 	seq->machine= machine;
+	seq->sat= 1.0;
 	seq->mul= 1.0;
 	seq->blend_opacity = 100.0;
 	seq->volume = 1.0f;

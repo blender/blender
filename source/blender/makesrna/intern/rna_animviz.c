@@ -104,9 +104,9 @@ static void rna_def_animviz_motionpath_vert(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Coordinates", "");
 	
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOTIONPATH_VERT_SEL);
-	RNA_def_property_ui_text(prop, "Selected", "Path point is selected for editing");
+	RNA_def_property_ui_text(prop, "Select", "Path point is selected for editing");
 }
 
 static void rna_def_animviz_motion_path(BlenderRNA *brna)

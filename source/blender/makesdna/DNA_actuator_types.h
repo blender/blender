@@ -249,13 +249,6 @@ typedef struct bActuator {
 	
 } bActuator;
 
-typedef struct FreeCamera {
-	float mass, accelleration;
-	float maxspeed, maxrotspeed,  maxtiltspeed;
-	int flag;
-	float rotdamp, tiltdamp, speeddamp, pad;
-} FreeCamera;
-
 /* objectactuator->flag */
 #define ACT_FORCE_LOCAL			1
 #define ACT_TORQUE_LOCAL		2

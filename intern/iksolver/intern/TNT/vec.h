@@ -416,7 +416,7 @@ void vectoradd(
             A[i] += B[i];
 }
 
-// same with seperate output vector
+// same with separate output vector
 
 template <class T>
 void vectoradd(

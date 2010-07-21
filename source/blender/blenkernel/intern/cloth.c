@@ -144,6 +144,9 @@ void cloth_init ( ClothModifierData *clmd )
 
 	if(!clmd->sim_parms->effector_weights)
 		clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
+
+	if(clmd->point_cache)
+		clmd->point_cache->step = 1;
 }
 
 static BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)

@@ -342,13 +342,13 @@ static void rna_Curve_resolution_v_update_data(Main *bmain, Scene *scene, Pointe
 void rna_Curve_body_get(PointerRNA *ptr, char *value)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	strcpy(value, cu->str);
+	BLI_strncpy(value, cu->str, cu->len+1);
 }
 
 int rna_Curve_body_length(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	return strlen(cu->str);
+	return cu->len;
 }
 
 /* TODO - check UTF & python play nice */
@@ -357,8 +357,7 @@ void rna_Curve_body_set(PointerRNA *ptr, const char *value)
 	int len= strlen(value);
 	Curve *cu= (Curve*)ptr->id.data;
 
-	cu->pos = len;
-	cu->len = len;
+	cu->len= cu->pos = len;
 
 	if(cu->str)		MEM_freeN(cu->str);
 	if(cu->strinfo)	MEM_freeN(cu->strinfo);
@@ -525,14 +524,14 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "SplinePoint", "Spline point without handles");
 
 	/* Boolean values */
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
-	RNA_def_property_ui_text(prop, "Selected", "Selection status");
+	RNA_def_property_ui_text(prop, "Select", "Selection status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "hide", 0);
-	RNA_def_property_ui_text(prop, "Hidden", "Visibility status");
+	RNA_def_property_ui_text(prop, "Hide", "Visibility status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Vector value */
@@ -578,24 +577,24 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Bezier Curve Point", "Bezier curve point with two handles");
 
 	/* Boolean values */
-	prop= RNA_def_property(srna, "selected_handle1", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
 	RNA_def_property_ui_text(prop, "Handle 1 selected", "Handle 1 selection status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "selected_handle2", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_right_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f3", 0);
 	RNA_def_property_ui_text(prop, "Handle 2 selected", "Handle 2 selection status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "selected_control_point", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_control_point", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f2", 0);
 	RNA_def_property_ui_text(prop, "Control Point selected", "Control point selection status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "hide", 0);
-	RNA_def_property_ui_text(prop, "Hidden", "Visibility status");
+	RNA_def_property_ui_text(prop, "Hide", "Visibility status");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Enums */
@@ -730,6 +729,12 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Font size", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
+	prop= RNA_def_property(srna, "small_caps_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "smallcaps_scale");
+	RNA_def_property_ui_range(prop, 0, 1.0, 0.1, 0);
+	RNA_def_property_ui_text(prop, "Small Caps", "Scale of small capitals");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
 	prop= RNA_def_property(srna, "line_dist", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "linedist");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
@@ -799,8 +804,12 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Body Text", "contents of this text object");
 	RNA_def_property_string_funcs(prop, "rna_Curve_body_get", "rna_Curve_body_length", "rna_Curve_body_set");
 	RNA_def_property_string_maxlength(prop, 8192); /* note that originally str did not have a limit! */
-	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop= RNA_def_property(srna, "body_format", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "strinfo", "len");
+	RNA_def_property_struct_type(prop, "TextCharacterFormat");
+	RNA_def_property_ui_text(prop, "Character Info", "Stores the style of each character");
 	
 	/* pointers */
 	prop= RNA_def_property(srna, "text_on_curve", PROP_POINTER, PROP_NONE);
@@ -872,29 +881,30 @@ static void rna_def_charinfo(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Text Character Format", "Text character formatting settings");
 	
 	/* flags */
-	prop= RNA_def_property(srna, "style", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_STYLE);
-	RNA_def_property_ui_text(prop, "Style", "");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
 	prop= RNA_def_property(srna, "bold", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_BOLD);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_BOLD);
 	RNA_def_property_ui_text(prop, "Bold", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "italic", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_ITALIC);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_ITALIC);
 	RNA_def_property_ui_text(prop, "Italic", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "underline", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UNDERLINE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_UNDERLINE);
 	RNA_def_property_ui_text(prop, "Underline", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
-	prop= RNA_def_property(srna, "wrap", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_WRAP);
+	/* probably there is no reason to expose this */
+	/* prop= RNA_def_property(srna, "wrap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_WRAP);
 	RNA_def_property_ui_text(prop, "Wrap", "");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data"); */
+
+	prop= RNA_def_property(srna, "use_small_caps", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_SMALLCAPS);
+	RNA_def_property_ui_text(prop, "Small Caps", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 

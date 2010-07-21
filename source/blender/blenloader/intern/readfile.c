@@ -155,7 +155,7 @@
 #include <errno.h>
 
 /*
- Remark: still a weak point is the newadress() function, that doesnt solve reading from
+ Remark: still a weak point is the newaddress() function, that doesnt solve reading from
  multiple files at the same time
 
  (added remark: oh, i thought that was solved? will look at that... (ton)
@@ -174,7 +174,7 @@ READ
 		- read associated 'direct data'
 		- link direct data (internal and to LibBlock)
 - read FileGlobal
-- read USER data, only when indicated (file is ~/.B.blend or .B25.blend)
+- read USER data, only when indicated (file is ~/X.XX/startup.blend)
 - free file
 - per Library (per Main)
 	- read file
@@ -1554,6 +1554,9 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 		direct_link_curvemapping(fd, brush->curve);
 	else
 		brush_curve_preset(brush, CURVE_PRESET_SHARP);
+
+	brush->preview= NULL;
+	brush->icon_imbuf= NULL;
 }
 
 static void direct_link_script(FileData *fd, Script *script)
@@ -9689,7 +9692,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if(sAct->sound)
 					{
 						sound = newlibadr(fd, lib, sAct->sound);
-						sAct->flag = sound->flags | SOUND_FLAGS_3D ? ACT_SND_3D_SOUND : 0;
+						sAct->flag = sound->flags & SOUND_FLAGS_3D ? ACT_SND_3D_SOUND : 0;
 						sAct->pitch = sound->pitch;
 						sAct->volume = sound->volume;
 						sAct->sound3D.reference_distance = sound->distance;
@@ -10855,12 +10858,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 
-	/* put 2.50 compatibility code here until next subversion bump */
+	if (main->versionfile < 253)
 	{
 		Object *ob;
 		Scene *scene;
 		bScreen *sc;
 		Tex *tex;
+		Brush *brush;
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
@@ -10995,7 +10999,103 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					sce->gm.recastData.detailsamplemaxerror = 1.0f;
 			}			
 		}
+
+		{
+			Curve *cu;
+			for(cu= main->curve.first; cu; cu= cu->id.next) {
+				cu->smallcaps_scale= 0.75f;
+			}
+		}
+
+		for (scene= main->scene.first; scene; scene=scene->id.next) {
+			if(scene) {
+				Sequence *seq;
+				SEQ_BEGIN(scene->ed, seq) {
+					if(seq->sat==0.0f) {
+						seq->sat= 1.0f;
+					}
+				}
+				SEQ_END
+			}
+		}
+
+		/* GSOC 2010 Sculpt - New settings for Brush */
+
+		for (brush= main->brush.first; brush; brush= brush->id.next) {
+			/* Sanity Check */
+
+			// infinite number of dabs
+			if (brush->spacing == 0)
+				brush->spacing = 10;
+
+			// will have no effect
+			if (brush->alpha == 0)
+				brush->alpha = 0.5f;
+
+			// bad radius
+			if (brush->unprojected_radius == 0)
+				brush->unprojected_radius = 0.125;
+
+			// unusable size
+			if (brush->size == 0)
+				brush->size = 35;
+
+			// can't see overlay
+			if (brush->texture_overlay_alpha == 0)
+				brush->texture_overlay_alpha = 33;
+
+			// same as draw brush
+			if (brush->crease_pinch_factor == 0)
+				brush->crease_pinch_factor = 0.5f;
+
+			// will sculpt no vertexes
+			if (brush->plane_trim == 0)
+				brush->plane_trim = 0.5f;
+
+			// same as smooth stroke off
+			if (brush->smooth_stroke_radius == 0)
+				brush->smooth_stroke_radius= 75;
+
+			// will keep cursor in one spot
+			if (brush->smooth_stroke_radius == 1)
+				brush->smooth_stroke_factor= 0.9f;
+
+			// same as dots
+			if (brush->rate == 0)
+				brush->rate = 0.1f;
+
+			/* New Settings */
+			if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 5)) {
+				brush->flag |= BRUSH_SPACE_ATTEN; // explicitly enable adaptive space
+
+				// spacing was originally in pixels, convert it to percentage for new version
+				// size should not be zero due to sanity check above
+				brush->spacing = (int)(100*((float)brush->spacing) / ((float)brush->size));
+
+				if (brush->add_col[0] == 0 &&
+					brush->add_col[1] == 0 &&
+					brush->add_col[2] == 0)
+				{
+					brush->add_col[0] = 1.00;
+					brush->add_col[1] = 0.39;
+					brush->add_col[2] = 0.39;
+				}
+
+				if (brush->sub_col[0] == 0 &&
+					brush->sub_col[1] == 0 &&
+					brush->sub_col[2] == 0)
+				{
+					brush->sub_col[0] = 0.39;
+					brush->sub_col[1] = 0.39;
+					brush->sub_col[2] = 1.00;
+				}
+			}
+		}
 	}
+	/* put compatibility code here until next subversion bump */
+	{
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
@@ -11286,7 +11386,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				else {
 					/* The line below was commented by Ton (I assume), when Hos did the merge from the orange branch. rev 6568
 					 * This line is NEEDED, the case is that you have 3 blend files...
-					 * user.blend, lib.blend and lib_indirect.blend - if user.blend alredy references a "tree" from
+					 * user.blend, lib.blend and lib_indirect.blend - if user.blend already references a "tree" from
 					 * lib_indirect.blend but lib.blend does too, linking in a Scene or Group from lib.blend can result in an
 					 * empty without the dupli group referenced. Once you save and reload the group would appier. - Campbell */
 					/* This crashes files, must look further into it */
@@ -12075,7 +12175,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 			
 				/* IF below is quite confusing!
 				if we are appending, but this object wasnt just added allong with a group,
-				then this is alredy used indirectly in the scene somewhere else and we didnt just append it.
+				then this is already used indirectly in the scene somewhere else and we didnt just append it.
 				
 				(ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */
 			if (is_group_append==0 || (ob->id.flag & LIB_PRE_EXISTING)==0) {

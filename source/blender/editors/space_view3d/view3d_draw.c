@@ -1116,6 +1116,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
+	ar->swap= 0; /* mark invalid backbuf for wm draw */
 
 	G.f &= ~G_BACKBUFSEL;
 	v3d->zbuf= FALSE; 
@@ -2208,7 +2209,11 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	/* clear background */
-	UI_ThemeClearColor(TH_BACK);
+	if((v3d->flag2 & V3D_RENDER_OVERRIDE) && scene->world)
+		glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+	else
+		UI_ThemeClearColor(TH_BACK);
+
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	
 	/* setup view matrices */

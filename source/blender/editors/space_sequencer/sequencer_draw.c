@@ -168,7 +168,7 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 	}
 }
 
-static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, float stepsize)
+static void drawseqwave(Scene *scene, Sequence *seq, float x1, float y1, float x2, float y2, float stepsize)
 {
 	/*
 	x1 is the starting x value to draw the wave,
@@ -184,7 +184,9 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, f
 		float* samples = MEM_mallocN(length * sizeof(float) * 2, "seqwave_samples");
 		if(!samples)
 			return;
-		if(sound_read_sound_buffer(seq->sound, samples, length) != length)
+		if(sound_read_sound_buffer(seq->sound, samples, length,
+								   (seq->startofs + seq->anim_startofs)/FPS,
+								   (seq->startofs + seq->anim_startofs + seq->enddisp - seq->startdisp)/FPS) != length)
 		{
 			MEM_freeN(samples);
 			return;
@@ -380,6 +382,8 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, SpaceSeq *sseq, Seque
 	y2= seq->machine+SEQ_STRIP_OFSTOP;
 
 	pixely = (v2d->cur.ymax - v2d->cur.ymin)/(v2d->mask.ymax - v2d->mask.ymin);
+	
+	if(pixely <= 0) return; /* can happen when the view is split/resized */
 	
 	blendcol[0] = blendcol[1] = blendcol[2] = 120;
 
@@ -588,7 +592,7 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 }
 
 /*
-Draw a sequence strip, bounds check alredy made
+Draw a sequence strip, bounds check already made
 ARegion is currently only used to get the windows width in pixels
 so wave file sample drawing precision is zoom adjusted
 */
@@ -634,7 +638,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 	x2= seq->enddisp;
 	
 	/* draw sound wave */
-	if(seq->type == SEQ_SOUND) drawseqwave(seq, x1, y1, x2, y2, (ar->v2d.cur.xmax - ar->v2d.cur.xmin)/ar->winx);
+	if(seq->type == SEQ_SOUND) drawseqwave(scene, seq, x1, y1, x2, y2, (ar->v2d.cur.xmax - ar->v2d.cur.xmin)/ar->winx);
 
 	get_seq_color3ubv(scene, seq, col);
 	if (G.moving && (seq->flag & SELECT)) {
@@ -838,33 +842,47 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	glDisable(GL_TEXTURE_2D);
 	glDeleteTextures(1, &texid);
 
-	/* safety border */
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && 
-		(sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
-		float fac= 0.1;
+	if(sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+
 		float x1 = v2d->tot.xmin;
 		float y1 = v2d->tot.ymin;
 		float x2 = v2d->tot.xmax;
 		float y2 = v2d->tot.ymax;
-		
-		float a= fac*(x2-x1);
-		x1+= a; 
-		x2-= a;
-	
-		a= fac*(y2-y1);
-		y1+= a;
-		y2-= a;
-	
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
+
+		/* border */
 		setlinestyle(3);
 
 		UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 1.0, 0);
-		
-		uiSetRoundBox(15);
-		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+
+		glBegin(GL_LINE_LOOP);
+		glVertex2f(x1-0.5, y1-0.5);
+		glVertex2f(x1-0.5, y2+0.5);
+		glVertex2f(x2+0.5, y2+0.5);
+		glVertex2f(x2+0.5, y1-0.5);
+		glEnd();
+
+		/* safety border */
+		if ((sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
+			float fac= 0.1;
+
+			float a= fac*(x2-x1);
+			x1+= a;
+			x2-= a;
+
+			a= fac*(y2-y1);
+			y1+= a;
+			y2-= a;
+
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+			uiSetRoundBox(15);
+			gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		}
 
 		setlinestyle(0);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	
 	/* draw grease-pencil (image aligned) */

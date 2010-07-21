@@ -58,7 +58,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             col = split.column()
             col.prop(game, "actor")
             col.prop(game, "ghost")
-            col.prop(ob, "restrict_render", text="Invisible") # out of place but useful
+            col.prop(ob, "hide_render", text="Invisible") # out of place but useful
 
             if wide_ui:
                 col = split.column()
@@ -120,7 +120,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             col = layout.column()
             col.prop(game, "actor")
             col.prop(game, "ghost")
-            col.prop(ob, "restrict_render", text="Invisible")
+            col.prop(ob, "hide_render", text="Invisible")
 
             layout.separator()
 
@@ -156,10 +156,10 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             col = layout.column()
             col.prop(game, "actor")
             col.prop(game, "ghost")
-            col.prop(ob, "restrict_render", text="Invisible")
+            col.prop(ob, "hide_render", text="Invisible")
 
         elif game.physics_type in ('SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'):
-            layout.prop(ob, "restrict_render", text="Invisible")
+            layout.prop(ob, "hide_render", text="Invisible")
 
 
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):

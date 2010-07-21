@@ -27,9 +27,10 @@ def get(handler):
     def output(text):
         handler.wfile.write(bytes(text, encoding='utf8'))
 
-    def head(title):
+    def head(title, refresh = False):
         output("<html><head>")
-        output("<meta http-equiv='refresh' content=5>")
+        if refresh:
+            output("<meta http-equiv='refresh' content=5>")
         output("<script src='/html/netrender.js' type='text/javascript'></script>")
 #		output("<script src='/html/json2.js' type='text/javascript'></script>")
         output("<title>")
@@ -104,7 +105,7 @@ def get(handler):
         f.close()
     elif handler.path == "/html" or handler.path == "/":
         handler.send_head(content = "text/html")
-        head("NetRender")
+        head("NetRender", refresh = True)
 
         output("<h2>Jobs</h2>")
 

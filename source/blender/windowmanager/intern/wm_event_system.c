@@ -801,7 +801,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 }
 
 /* Similar to WM_operator_name_call called with WM_OP_EXEC_DEFAULT context.
-   - wmOperatorType is used instead of operator name since python alredy has the operator type
+   - wmOperatorType is used instead of operator name since python already has the operator type
    - poll() must be called by python before this runs.
    - reports can be passed to this function (so python can report them as exceptions)
 */
@@ -1598,7 +1598,7 @@ void wm_event_do_handlers(bContext *C)
 					}
 					
 					if(playing == 0) {
-						int ncfra = floor(sound_sync_scene(scene) * FPS);
+						int ncfra = sound_sync_scene(scene) * FPS + 0.5;
 						if(ncfra != scene->r.cfra)	{
 							scene->r.cfra = ncfra;
 							ED_update_for_newframe(C, 1);

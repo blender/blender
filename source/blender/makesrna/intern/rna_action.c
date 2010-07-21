@@ -100,7 +100,7 @@ static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, char *da
 
 	/* annoying, check if this exists */
 	if(verify_fcurve(act, group, data_path, index, 0)) {
-		BKE_reportf(reports, RPT_ERROR, "FCurve '%s[%d]' alredy exists in action '%s'", data_path, index, act->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "FCurve '%s[%d]' already exists in action '%s'", data_path, index, act->id.name+2);
 		return NULL;
 	}
 	return verify_fcurve(act, group, data_path, index, 1);
@@ -326,14 +326,14 @@ static void rna_def_action_group(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, 0, "rna_ActionGroup_channels_next", 0, 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Channels", "F-Curves in this group");
 	
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_SELECTED);
-	RNA_def_property_ui_text(prop, "Selected", "Action Group is selected");
+	RNA_def_property_ui_text(prop, "Select", "Action Group is selected");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_SELECTED, NULL);
 	
-	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_PROTECTED);
-	RNA_def_property_ui_text(prop, "Locked", "Action Group is locked");
+	RNA_def_property_ui_text(prop, "Lock", "Action Group is locked");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);

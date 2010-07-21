@@ -137,8 +137,8 @@ def ik(obj, definitions, base_names, options):
     ik.pole_vis = add_stretch_to(obj, mt.forearm, ik.pole, "VIS-%s_ik" % base_names[mt.forearm])
 
     ik.update()
-    ik.hand_vis_e.restrict_select = True
-    ik.pole_vis_e.restrict_select = True
+    ik.hand_vis_e.hide_select = True
+    ik.pole_vis_e.hide_select = True
 
     bpy.ops.object.mode_set(mode='OBJECT')
 

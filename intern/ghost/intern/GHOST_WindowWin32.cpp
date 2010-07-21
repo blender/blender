@@ -1093,7 +1093,7 @@ static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd) {
 		!(pfd.dwFlags & PFD_DRAW_TO_WINDOW) ||
 		!(pfd.dwFlags & PFD_DOUBLEBUFFER) || /* Blender _needs_ this */
 		( pfd.cDepthBits <= 8 ) ||
-		!(pfd.iPixelType == PFD_TYPE_RGBA) )
+		!(pfd.iPixelType == PFD_TYPE_RGBA))
 		return 0;
 
 	weight = 1;  /* it's usable */

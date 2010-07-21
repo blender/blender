@@ -296,6 +296,7 @@ int is_mball_basis_for(Object *ob1, Object *ob2)
  * because this metaball influence polygonisation of metaballs. */
 void copy_mball_properties(Scene *scene, Object *active_object)
 {
+	Scene *sce_iter= scene;
 	Base *base;
 	Object *ob;
 	MetaBall *active_mball = (MetaBall*)active_object->data;
@@ -305,10 +306,10 @@ void copy_mball_properties(Scene *scene, Object *active_object)
 	splitIDname(active_object->id.name+2, basisname, &basisnr);
 
 	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if(F_ERROR==next_object(scene, 0, 0, 0))
+	if(F_ERROR==next_object(&sce_iter, 0, 0, 0))
 		return;
 	
-	while(next_object(scene, 1, &base, &ob)) {
+	while(next_object(&sce_iter, 1, &base, &ob)) {
 		if (ob->type==OB_MBALL) {
 			if(ob!=active_object){
 				splitIDname(ob->id.name+2, obname, &obnr);
@@ -338,6 +339,7 @@ void copy_mball_properties(Scene *scene, Object *active_object)
  */
 Object *find_basis_mball(Scene *scene, Object *basis)
 {
+	Scene *sce_iter= scene;
 	Base *base;
 	Object *ob,*bob= basis;
 	MetaElem *ml=NULL;
@@ -348,10 +350,10 @@ Object *find_basis_mball(Scene *scene, Object *basis)
 	totelem= 0;
 
 	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if(F_ERROR==next_object(scene, 0, 0, 0))
+	if(F_ERROR==next_object(&sce_iter, 0, 0, 0))
 		return NULL;
 	
-	while(next_object(scene, 1, &base, &ob)) {
+	while(next_object(&sce_iter, 1, &base, &ob)) {
 		
 		if (ob->type==OB_MBALL) {
 			if(ob==bob){
@@ -1507,6 +1509,7 @@ void polygonize(PROCESS *mbproc, MetaBall *mb)
 
 float init_meta(Scene *scene, Object *ob)	/* return totsize */
 {
+	Scene *sce_iter= scene;
 	Base *base;
 	Object *bob;
 	MetaBall *mb;
@@ -1523,9 +1526,8 @@ float init_meta(Scene *scene, Object *ob)	/* return totsize */
 	splitIDname(ob->id.name+2, obname, &obnr);
 	
 	/* make main array */
-	
-	next_object(scene, 0, 0, 0);
-	while(next_object(scene, 1, &base, &bob)) {
+	next_object(&sce_iter, 0, 0, 0);
+	while(next_object(&sce_iter, 1, &base, &bob)) {
 
 		if(bob->type==OB_MBALL) {
 			zero_size= 0;

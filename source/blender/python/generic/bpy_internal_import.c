@@ -200,7 +200,7 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 				   &name, &globals, &locals, &fromlist, &dummy_val) )
 		return NULL;
 
-	/* import existing builtin modules or modules that have been imported alredy */
+	/* import existing builtin modules or modules that have been imported already */
 	newmodule = PyImport_ImportModuleEx( name, globals, locals, fromlist );
 	
 	if(newmodule)

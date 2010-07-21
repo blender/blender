@@ -55,16 +55,14 @@ PROJECT(Blender)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
 
-# Note! - Could create this from the blender version string
-# ...but thats quite involved, make sure this matches the blender version.
-SET(BLENDER_VERSION  2.5)
-
 #-----------------------------------------------------------------------------
 # Load some macros.
 INCLUDE(build_files/cmake/macros.cmake)
 
 #-----------------------------------------------------------------------------
 # Set default config options
+
+GET_BLENDER_VERSION()
 
 # Blender internal features
 OPTION(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
@@ -627,6 +625,12 @@ IF(WIN32)
 			# TODO, gives linking errors, force off
 			SET(WITH_JACK OFF)
 		ENDIF(WITH_JACK)
+
+		IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+			SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+			ADD_DEFINITIONS(-D__SSE__)
+			ADD_DEFINITIONS(-D__MMX__)
+		ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	ENDIF(MSVC)
 

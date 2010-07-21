@@ -611,9 +611,10 @@ static int kill_selection(Object *obedit, int ins)	/* 1 == new character */
 /******************* set style operator ********************/
 
 static EnumPropertyItem style_items[]= {
-	{CU_BOLD, "BOLD", 0, "Bold", ""},
-	{CU_ITALIC, "ITALIC", 0, "Italic", ""},
-	{CU_UNDERLINE, "UNDERLINE", 0, "Underline", ""},
+	{CU_CHINFO_BOLD, "BOLD", 0, "Bold", ""},
+	{CU_CHINFO_ITALIC, "ITALIC", 0, "Italic", ""},
+	{CU_CHINFO_UNDERLINE, "UNDERLINE", 0, "Underline", ""},
+	{CU_CHINFO_SMALLCAPS, "SMALL_CAPS", 0, "Small Caps", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static int set_style(bContext *C, int style, int clear)
@@ -664,7 +665,7 @@ void FONT_OT_style_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "style", style_items, CU_BOLD, "Style", "Style to set selection to.");
+	RNA_def_enum(ot->srna, "style", style_items, CU_CHINFO_BOLD, "Style", "Style to set selection to.");
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear style rather than setting it.");
 }
 
@@ -702,7 +703,7 @@ void FONT_OT_style_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "style", style_items, CU_BOLD, "Style", "Style to set selection to.");
+	RNA_def_enum(ot->srna, "style", style_items, CU_CHINFO_BOLD, "Style", "Style to set selection to.");
 }
 
 /******************* copy text operator ********************/
@@ -862,7 +863,7 @@ static int move_cursor(bContext *C, int type, int select)
 			if((select) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;
 			while(cu->pos>0) {
 				if(ef->textbuf[cu->pos-1]=='\n') break;
-				if(ef->textbufinfo[cu->pos-1].flag & CU_WRAP ) break;				
+				if(ef->textbufinfo[cu->pos-1].flag & CU_CHINFO_WRAP) break;				
 				cu->pos--;
 			}		
 			cursmove=FO_CURS;
@@ -873,7 +874,7 @@ static int move_cursor(bContext *C, int type, int select)
 			while(cu->pos<cu->len) {
 				if(ef->textbuf[cu->pos]==0) break;
 				if(ef->textbuf[cu->pos]=='\n') break;
-				if(ef->textbufinfo[cu->pos].flag & CU_WRAP ) break;
+				if(ef->textbufinfo[cu->pos].flag & CU_CHINFO_WRAP ) break;
 				cu->pos++;
 			}
 			cursmove=FO_CURS;
@@ -1228,7 +1229,7 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	char *inserted_utf8;
 	wchar_t *inserted_text, first;
-	int len;
+	int a, len;
 
 	if(!RNA_property_is_set(op->ptr, "text"))
 		return OPERATOR_CANCELLED;
@@ -1240,13 +1241,12 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	utf8towchar(inserted_text, inserted_utf8);
 	first= inserted_text[0];
 
+	for(a=0; a<len; a++)
+		insert_into_textbuf(obedit, inserted_text[a]);
+
 	MEM_freeN(inserted_text);
 	MEM_freeN(inserted_utf8);
 
-	if(!first)
-		return OPERATOR_CANCELLED;
-
-	insert_into_textbuf(obedit, first);
 	kill_selection(obedit, 1);
 	text_update_edited(C, scene, obedit, 1, 0);
 

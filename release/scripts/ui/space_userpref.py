@@ -327,7 +327,21 @@ class USERPREF_PT_edit(bpy.types.Panel):
         row.separator()
         row.separator()
 
+        sculpt = context.tool_settings.sculpt
         col = row.column()
+        col.label(text="Paint and Sculpt:")
+        col.prop(edit, "sculpt_paint_use_unified_size", text="Unify Size")
+        col.prop(edit, "sculpt_paint_use_unified_strength", text="Unify Strength")
+        row = col.row(align=True)
+        row.label("Overlay Color:")
+        row.prop(edit, "sculpt_paint_overlay_col", text="")
+        col.prop(sculpt, "use_openmp", text="Threaded Sculpt")
+        col.prop(sculpt, "show_brush")
+
+        col.separator()
+        col.separator()
+        col.separator()
+
         col.label(text="Duplicate Data:")
         col.prop(edit, "duplicate_mesh", text="Mesh")
         col.prop(edit, "duplicate_surface", text="Surface")
@@ -338,7 +352,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "duplicate_lamp", text="Lamp")
         col.prop(edit, "duplicate_material", text="Material")
         col.prop(edit, "duplicate_texture", text="Texture")
-        col.prop(edit, "duplicate_fcurve", text="F-Curve")
+        #col.prop(edit, "duplicate_fcurve", text="F-Curve")
         col.prop(edit, "duplicate_action", text="Action")
         col.prop(edit, "duplicate_particle", text="Particle")
 
@@ -764,8 +778,9 @@ class USERPREF_PT_input(InputKeyMapPanel):
 
         #col.separator()
 
-        #sub = col.column()
-        #sub.label(text="Mouse Wheel:")
+        sub = col.column()
+        sub.label(text="Mouse Wheel:")
+        sub.prop(inputs, "wheel_invert_zoom", text="Invert Wheel Zoom Direction")
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()
@@ -1097,7 +1112,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
     def execute(self, context):
         module_name = self.properties.module
 
-        # unlikely to fail, module should have alredy been imported
+        # unlikely to fail, module should have already been imported
         try:
             mod = __import__(module_name)
         except:

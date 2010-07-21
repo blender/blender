@@ -85,9 +85,9 @@ class ExportUVLayout(bpy.types.Operator):
             for i in range(uv_layer_len):
                 uv_elem = uv_layer[i]
                 # context checks
-                if faces[i].selected and (local_image is Ellipsis or local_image == uv_elem.image):
+                if faces[i].select and (local_image is Ellipsis or local_image == uv_elem.image):
                     #~ uv = uv_elem.uv
-                    #~ if False not in uv_elem.uv_selected[:len(uv)]:
+                    #~ if False not in uv_elem.select_uv[:len(uv)]:
                     #~     yield (i, uv)
 
                     # just write what we see.
@@ -210,7 +210,8 @@ class ExportUVLayout(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filepath.replace(".blend", ".svg")
+    import os
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".svg"
     self.layout.operator(ExportUVLayout.bl_idname).filepath = default_path
 
 

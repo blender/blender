@@ -498,7 +498,9 @@ def AppIt(target=None, source=None, env=None):
 	builddir, b = os.path.split(a)
 	libdir = env['LCGDIR'][1:]
 	osxarch = env['MACOSX_ARCHITECTURE']
+	installdir = env['BF_INSTALLDIR']
 	print("compiled architecture: %s"%(osxarch))
+	print("Installing to %s"%(installdir))
 	if  libdir == '../lib/darwin-9.x.universal':
 		python_zip = 'python_' + osxarch + '.zip' # set specific python_arch.zip
 	else:
@@ -513,45 +515,45 @@ def AppIt(target=None, source=None, env=None):
 	
 	sourcedir = bldroot + '/source/darwin/%s.app'%binary
 	sourceinfo = bldroot + "/source/darwin/%s.app/Contents/Info.plist"%binary
-	targetinfo = builddir +'/' + "%s.app/Contents/Info.plist"%binary
-	cmd = builddir + '/' +'%s.app'%binary
+	targetinfo = installdir +'/' + "%s.app/Contents/Info.plist"%binary
+	cmd = installdir + '/' +'%s.app'%binary
 	
 	if os.path.isdir(cmd):
 		shutil.rmtree(cmd)
 	shutil.copytree(sourcedir, cmd)
 	cmd = "cat %s | sed s/VERSION/`cat release/VERSION`/ | sed s/DATE/`date +'%%Y-%%b-%%d'`/ > %s"%(sourceinfo,targetinfo)
 	commands.getoutput(cmd)
-	cmd = 'cp %s/%s %s/%s.app/Contents/MacOS/%s'%(builddir, binary,builddir, binary, binary)
+	cmd = 'cp %s/%s %s/%s.app/Contents/MacOS/%s'%(builddir, binary,installdir, binary, binary)
 	commands.getoutput(cmd)
-	cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/'%(builddir, binary, VERSION)
+	cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/'%(installdir, binary, VERSION)
 #	print cmd
 	commands.getoutput(cmd)
-	cmd = builddir + '/%s.app/Contents/MacOS/%s'%(binary,VERSION)
+	cmd = installdir + '/%s.app/Contents/MacOS/%s'%(binary,VERSION)
 	shutil.copy(bldroot + '/bin/.blender/.bfont.ttf', cmd)
 	shutil.copy(bldroot + '/bin/.blender/.Blanguages', cmd)
-	cmd = 'cp -R %s/bin/%s/locale %s/%s.app/Contents/Resources/'%(bldroot,VERSION,builddir,binary)
+	cmd = 'cp -R %s/bin/%s/locale %s/%s.app/Contents/Resources/'%(bldroot,VERSION,installdir,binary)
 	commands.getoutput(cmd)
-	cmd = 'cp -R %s/bin/%s/locale %s/%s.app/Contents/MacOS/%s/'%(bldroot,VERSION,builddir,binary,VERSION)
+	cmd = 'cp -R %s/bin/%s/locale %s/%s.app/Contents/MacOS/%s/'%(bldroot,VERSION,installdir,binary,VERSION)
 	commands.getoutput(cmd)
-	cmd = 'cp %s/bin/%s/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,VERSION,builddir,binary)
+	cmd = 'cp %s/bin/%s/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,VERSION,installdir,binary)
 	commands.getoutput(cmd)
-	cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(builddir,binary, VERSION)
+	cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(installdir,binary, VERSION)
 	commands.getoutput(cmd)
-	cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,builddir,binary,VERSION)
+	cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,installdir,binary,VERSION)
 	commands.getoutput(cmd) 
-	cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,builddir,binary,VERSION)
+	cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
 	commands.getoutput(cmd)
-	cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/%s/'%(bldroot,builddir,binary,VERSION)
+	cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
 	commands.getoutput(cmd)
-	cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/%s/'%(bldroot,builddir,binary,VERSION)
+	cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
 	commands.getoutput(cmd)
-	cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
+	cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(installdir,binary, binary)
 	commands.getoutput(cmd)
-	cmd = 'find %s/%s.app -name .svn -prune -exec rm -rf {} \;'%(builddir, binary)
+	cmd = 'find %s/%s.app -name .svn -prune -exec rm -rf {} \;'%(installdir, binary)
 	commands.getoutput(cmd)
-	cmd = 'find %s/%s.app -name .DS_Store -exec rm -rf {} \;'%(builddir, binary)
+	cmd = 'find %s/%s.app -name .DS_Store -exec rm -rf {} \;'%(installdir, binary)
 	commands.getoutput(cmd)
-	cmd = 'find %s/%s.app -name __MACOSX -exec rm -rf {} \;'%(builddir, binary)
+	cmd = 'find %s/%s.app -name __MACOSX -exec rm -rf {} \;'%(installdir, binary)
 	commands.getoutput(cmd)
 
 # extract copy system python, be sure to update other build systems

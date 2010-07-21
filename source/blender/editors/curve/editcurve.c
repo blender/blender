@@ -4737,7 +4737,7 @@ static int delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CURVE_OT_delete(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
-		{0, "SELECTED", 0, "Selected", ""},
+		{0, "SELECTED", 0, "Select", ""},
 		{1, "SEGMENT", 0, "Segment", ""},
 		{2, "ALL", 0, "All", ""},
 		{0, NULL, 0, NULL, NULL}};

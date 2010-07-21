@@ -44,6 +44,9 @@ struct Brush *copy_brush(struct Brush *brush);
 void make_local_brush(struct Brush *brush);
 void free_brush(struct Brush *brush);
 
+/* image icon function */
+struct ImBuf *get_brush_icon(struct Brush *brush);
+
 /* brush library operations used by different paint panels */
 int brush_set_nr(struct Brush **current_brush, int nr, const char *name);
 int brush_delete(struct Brush **current_brush);
@@ -83,6 +86,16 @@ unsigned int *brush_gen_texture_cache(struct Brush *br, int half_side);
 /* radial control */
 void brush_radial_control_invoke(struct wmOperator *op, struct Brush *br, float size_weight);
 int brush_radial_control_exec(struct wmOperator *op, struct Brush *br, float size_weight);
+
+/* unified strength and size */
+int sculpt_get_brush_size(struct Brush *brush);
+void sculpt_set_brush_size(struct Brush *brush, int size);
+int sculpt_get_lock_brush_size(struct Brush *brush);
+float sculpt_get_brush_unprojected_radius(struct Brush *brush);
+void sculpt_set_brush_unprojected_radius(struct Brush *brush, float unprojected_radius);
+float sculpt_get_brush_alpha(struct Brush *brush);
+void sculpt_set_brush_alpha(struct Brush *brush, float alpha);
+
 
 #endif
 

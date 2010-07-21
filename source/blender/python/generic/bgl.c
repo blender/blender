@@ -27,9 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
-/* This file is the Blender.BGL part of opy_draw.c, from the old
- * bpython/intern dir, with minor changes to adapt it to the new Python
- * implementation.  The BGL submodule "wraps" OpenGL functions and constants,
+/* This file is the 'bgl' module.
+ * The BGL submodule "wraps" OpenGL functions and constants,
  * allowing script writers to make OpenGL calls in their Python scripts. */
 
 #include "bgl.h" /*This must come first */

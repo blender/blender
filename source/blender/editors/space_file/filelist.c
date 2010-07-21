@@ -807,9 +807,6 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 
 			/* Don't check extensions for directories */ 
 		if (file->type & S_IFDIR) {
-			if(BLO_has_bfile_extension(file->relname)) {
-				file->flags |= BLENDERFILE;
-			}
 			continue;
 		}
 
@@ -872,11 +869,15 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".movie")
 				||	BLI_testextensie(file->relname, ".mp4")
 				||	BLI_testextensie(file->relname, ".m4v")
+				||	BLI_testextensie(file->relname, ".m2v")
+				||	BLI_testextensie(file->relname, ".m2t")
+				||	BLI_testextensie(file->relname, ".mts")
 				||	BLI_testextensie(file->relname, ".mv")
+				||	BLI_testextensie(file->relname, ".avs")
 				||	BLI_testextensie(file->relname, ".wmv")
 				||	BLI_testextensie(file->relname, ".ogv")
-				||	BLI_testextensie(file->relname, ".mpeg")
 				||	BLI_testextensie(file->relname, ".dv")
+				||	BLI_testextensie(file->relname, ".mpeg")
 				||	BLI_testextensie(file->relname, ".mpg")
 				||	BLI_testextensie(file->relname, ".mpg2")
 				||	BLI_testextensie(file->relname, ".vob")
@@ -932,7 +933,11 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".movie")
 				||	BLI_testextensie(file->relname, ".mp4")
 				||	BLI_testextensie(file->relname, ".m4v")
+				||	BLI_testextensie(file->relname, ".m2v")
+				||	BLI_testextensie(file->relname, ".m2t")
+				||	BLI_testextensie(file->relname, ".mts")
 				||	BLI_testextensie(file->relname, ".mv")
+				||	BLI_testextensie(file->relname, ".avs")
 				||	BLI_testextensie(file->relname, ".wmv")
 				||	BLI_testextensie(file->relname, ".ogv")
 				||	BLI_testextensie(file->relname, ".dv")

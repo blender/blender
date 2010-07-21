@@ -40,39 +40,14 @@ extern "C" {
 struct ListBase;
 struct direntry;
 
-char *BLI_gethome(void);
-char *BLI_gethome_folder(char *folder_name, int flag);
-
-/* BLI_gethome_folder flag */
-#define BLI_GETHOME_LOCAL		1<<1 /* relative location for portable binaries */
-#define BLI_GETHOME_SYSTEM		1<<2 /* system location, or set from the BLENDERPATH env variable (UNIX only) */
-#define BLI_GETHOME_USER		1<<3 /* home folder ~/.blender */
-#define BLI_GETHOME_ALL			(BLI_GETHOME_SYSTEM|BLI_GETHOME_LOCAL|BLI_GETHOME_USER)
-
-
-#ifdef __APPLE__
-typedef enum {
-	BasePath_Temporary = 1,
-	BasePath_BlenderShared,
-	BasePath_BlenderUser,
-	BasePath_ApplicationBundle
-} basePathesTypes;
-
-/**
- * Gets the base path. The path may not exist.
- * Note that return string must be copied as its persistence is not guaranteed
- *
- * @return base path of pathType
- */
-const char* BLI_osx_getBasePath(basePathesTypes pathType);
-#endif
+char *BLI_getDefaultDocumentFolder(void);
 
 char *BLI_get_folder(int folder_id, char *subfolder);
 char *BLI_get_folder_create(int folder_id, char *subfolder);
 
 /* folder_id */
 
-/* general, will find baserd on user/local/system priority */
+/* general, will find based on user/local/system priority */
 #define BLENDER_CONFIG				1
 #define BLENDER_DATAFILES			2
 #define BLENDER_SCRIPTS				3
@@ -84,6 +59,7 @@ char *BLI_get_folder_create(int folder_id, char *subfolder);
 #define BLENDER_USER_DATAFILES		32
 #define BLENDER_USER_SCRIPTS		33
 #define BLENDER_USER_PLUGINS		34
+#define BLENDER_USER_AUTOSAVE		35
 
 /* system */
 #define BLENDER_SYSTEM_CONFIG		51	/* optional */

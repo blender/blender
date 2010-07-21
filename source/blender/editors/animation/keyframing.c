@@ -817,15 +817,21 @@ short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, fl
 short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {	
 	PointerRNA id_ptr, ptr;
-	PropertyRNA *prop;
+	PropertyRNA *prop = NULL;
 	FCurve *fcu;
 	int array_index_max= array_index+1;
 	int ret= 0;
 	
 	/* validate pointer first - exit if failure */
+	if (id == NULL) {
+		printf("Insert Key: no ID-block to insert keyframe in (Path = %s) \n", rna_path);
+		return 0;
+	}
+	
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
-		printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
+		printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", 
+			(id)? id->name : "<Missing ID-Block>", rna_path);
 		return 0;
 	}
 	
@@ -922,7 +928,7 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	if ELEM(NULL, id, adt) {
 		printf("ERROR: no ID-block and/or AnimData to delete keyframe from \n");
 		return 0;
-	}	
+	}
 	
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);

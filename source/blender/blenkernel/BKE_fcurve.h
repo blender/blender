@@ -143,7 +143,7 @@ typedef enum eFMI_Action_Types {
 typedef enum eFMI_Requirement_Flags {
 		/* modifier requires original data-points (kindof beats the purpose of a modifier stack?) */
 	FMI_REQUIRES_ORIGINAL_DATA		= (1<<0),
-		/* modifier doesn't require on any preceeding data (i.e. it will generate a curve). 
+		/* modifier doesn't require on any preceding data (i.e. it will generate a curve). 
 		 * Use in conjunction with FMI_TYPE_GENRATE_CURVE 
 		 */
 	FMI_REQUIRES_NOTHING			= (1<<1),

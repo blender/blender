@@ -460,7 +460,7 @@ static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	free_imbuf_seq(scene, &ed->seqbase, FALSE);
+	free_imbuf_seq(scene, &ed->seqbase, FALSE, TRUE);
 
 	if(RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
 		seq_update_sound(scene, ptr->data);
@@ -776,17 +776,17 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	/* flags */
 
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "");
+	RNA_def_property_ui_text(prop, "Select", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER|NA_SELECTED, NULL);
 
-	prop= RNA_def_property(srna, "left_handle_selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_LEFTSEL);
 	RNA_def_property_ui_text(prop, "Left Handle Selected", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER|NA_SELECTED, NULL);
 
-	prop= RNA_def_property(srna, "right_handle_selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_right_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_RIGHTSEL);
 	RNA_def_property_ui_text(prop, "Right Handle Selected", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER|NA_SELECTED, NULL);
@@ -846,7 +846,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "frame_offset_end", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
-	RNA_def_property_ui_text(prop, "End offset", "");
+	RNA_def_property_ui_text(prop, "End Offset", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "frame_still_start", PROP_INT, PROP_TIME);
@@ -990,6 +990,13 @@ static void rna_def_filter_video(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "mul");
 	RNA_def_property_range(prop, 0.0f, 20.0f);
 	RNA_def_property_ui_text(prop, "Multiply Colors", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "color_saturation", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "sat");
+	RNA_def_property_range(prop, 0.0f, 20.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 2.0f, 3, 3);
+	RNA_def_property_ui_text(prop, "Saturation", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "strobe", PROP_FLOAT, PROP_NONE);
@@ -1196,7 +1203,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "File", "");
 	RNA_def_property_string_funcs(prop, "rna_Sequence_filepath_get", "rna_Sequence_filepath_length", 
 										"rna_Sequence_filepath_set");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_filepath_update");
 	
 	rna_def_input(srna);
 }

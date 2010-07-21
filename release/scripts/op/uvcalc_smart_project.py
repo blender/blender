@@ -524,7 +524,7 @@ def mergeUvIslands(islandList):
                                 then move us 1 whole width accross,
                                 Its possible this is a bad idea since 2 skinny Angular faces
                                 could join without 1 whole move, but its a lot more optimal to speed this up
-                                since we have alredy tested for it.
+                                since we have already tested for it.
 
                                 It gives about 10% speedup with minimal errors.
                                 '''
@@ -821,7 +821,7 @@ def main(context, island_margin, projection_limit):
 #XXX	ob = objects.active
     ob= objects[0]
 
-    if ob and ob.selected == 0 and ob.type == 'MESH':
+    if ob and (not ob.select) and ob.type == 'MESH':
         # Add to the list
         obList =[ob]
     del objects
@@ -899,7 +899,7 @@ def main(context, island_margin, projection_limit):
         me_verts = list(me.verts)
 
         if USER_ONLY_SELECTED_FACES:
-            meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces) if f.selected]
+            meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces) if f.select]
         #else:
         #	meshFaces = map(thickface, me.faces)
 
@@ -1027,7 +1027,7 @@ def main(context, island_margin, projection_limit):
             bestAng = fvec.dot(projectVecs[0])
             bestAngIdx = 0
 
-            # Cycle through the remaining, first alredy done
+            # Cycle through the remaining, first already done
             while i-1:
                 i-=1
 

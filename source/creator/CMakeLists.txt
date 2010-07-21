@@ -192,9 +192,40 @@ IF(WITH_INSTALL)
 		ENDIF(WITH_GAMEENGINE AND WITH_PLAYER)
 
 		INSTALL(
-			DIRECTORY ${TARGETDIR}/.blender/
-			DESTINATION ${BLENDERPATH}
+            FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications
+        )
+		INSTALL(
+            FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/blender.svg
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
+        )
+		INSTALL(
+			PROGRAMS ${CMAKE_SOURCE_DIR}/bin/blender-thumbnailer.py
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 		)
+		INSTALL(
+            FILES ${CMAKE_SOURCE_DIR}/doc/blender.1
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+        )
+		INSTALL(
+            DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
+            PATTERN ".svn" EXCLUDE
+        )
+		INSTALL(
+            DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts/
+            DESTINATION ${BLENDERPATH}/scripts
+            PATTERN ".svn" EXCLUDE
+			PATTERN "*.pyc" EXCLUDE
+        )
+		IF(WITH_INTERNATIONAL)
+			INSTALL(
+    	        DIRECTORY ${CMAKE_SOURCE_DIR}/bin/.blender/locale/
+    	        DESTINATION ${BLENDERPATH}/datafiles/locale
+    	        PATTERN ".svn" EXCLUDE
+	        )
+		ENDIF(WITH_INTERNATIONAL)
+        
 		# end "make install"
     
 	ENDIF(UNIX AND NOT APPLE)

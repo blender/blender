@@ -93,6 +93,8 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK').check_existing = False
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_as_mainfile", text="Save As...")
+        layout.operator_context = 'INVOKE_AREA'
+        layout.operator("wm.save_as_mainfile", text="Save Copy...").copy = True
 
         layout.separator()
 

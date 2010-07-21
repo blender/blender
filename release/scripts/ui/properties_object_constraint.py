@@ -523,7 +523,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row = layout.row()
         if wide_ui:
             row.label(text="Lock:")
-        row.prop(con, "locked", expand=True)
+        row.prop(con, "lock", expand=True)
 
     def LIMIT_DISTANCE(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)

@@ -907,7 +907,7 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 
 	draw_spot_cone(la, x, z);
 
-	/* draw front side lightening */
+	/* draw front side lighting */
 	glCullFace(GL_BACK);
 
 	glBlendFunc(GL_ONE,  GL_ONE); 
@@ -3475,11 +3475,12 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			select=1;
 	}
 
-	psys_update_children(&sim);
-
 	psys->flag|=PSYS_DRAWING;
 
-	totchild=psys->totchild*part->disp/100;
+	if(part->type==PART_HAIR && !psys->childcache)
+		totchild=0;
+	else
+		totchild=psys->totchild*part->disp/100;
 
 	ma= give_current_material(ob,part->omat);
 
@@ -3516,16 +3517,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	cfra=bsystem_time(scene, 0, (float)CFRA, 0.0f);
 
-	if(draw_as==PART_DRAW_PATH) {
-		if(psys->pathcache==NULL && psys->childcache==NULL)
-			psys_update_path_cache(&sim, cfra);
-
-		/* can't create pathcache for some reason*/
-		if(psys->pathcache==NULL && psys->childcache==NULL)
-			draw_as=PART_DRAW_DOT;
-		else if(psys->childcache==NULL)
-			totchild = 0;
-	}
+	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL && psys->childcache==NULL)
+		draw_as=PART_DRAW_DOT;
 
 /* 3. */
 	switch(draw_as){
@@ -3842,7 +3835,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						sprintf(val_pos, (val_pos==val) ? "%.2f" : ":%.2f", pa_health);
 
 					/* in path drawing state.co is the end point */
-					/* use worldspace beause object matrix is alredy applied */
+					/* use worldspace beause object matrix is already applied */
 					mul_v3_m4v3(vec_txt, ob->imat, state.co);
 					view3d_cached_text_draw_add(vec_txt[0],  vec_txt[1],  vec_txt[2], val, 10, V3D_CACHE_TEXT_WORLDSPACE);
 				}
@@ -3877,7 +3870,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			UI_ThemeColor(TH_WIRE);
 		}*/
 
-		if(totchild && ((part->draw&PART_DRAW_PARENT)==0 || psys_in_edit_mode(scene, psys)))
+		if(totchild && (part->draw&PART_DRAW_PARENT)==0)
 			totpart=0;
 		else if(psys->pathcache==NULL)
 			totpart=0;
@@ -3936,7 +3929,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				val[0]= '\0';
 
 				sprintf(val, "%i", a);
-				/* use worldspace beause object matrix is alredy applied */
+				/* use worldspace beause object matrix is already applied */
 				mul_v3_m4v3(vec_txt, ob->imat, cache[a]->co);
 				view3d_cached_text_draw_add(vec_txt[0],  vec_txt[1],  vec_txt[2], val, 10, V3D_CACHE_TEXT_WORLDSPACE);
 			}

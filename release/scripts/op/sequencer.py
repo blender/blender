@@ -40,7 +40,7 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
         seq1 = None
         seq2 = None
         for s in context.scene.sequence_editor.sequences:
-            if s.selected and s.type == 'SOUND':
+            if s.select and s.type == 'SOUND':
                 if seq1 == None:
                     seq1 = s
                 elif seq2 == None:
@@ -94,16 +94,16 @@ class SequencerCutMulticam(bpy.types.Operator):
 
         s = context.scene.sequence_editor.active_strip
 
-        if s.multicam_source == camera:
+        if s.multicam_source == camera or camera >= s.channel:
             return {'FINISHED'}
 
-        if not s.selected:
-            s.selected = True
+        if not s.select:
+            s.select = True
 
         cfra = context.scene.frame_current
         bpy.ops.sequencer.cut(frame=cfra, type='SOFT', side='RIGHT')
         for s in context.scene.sequence_editor.sequences_all:
-            if s.selected and s.type == 'MULTICAM' and s.frame_final_start <= cfra and cfra < s.frame_final_end:
+            if s.select and s.type == 'MULTICAM' and s.frame_final_start <= cfra and cfra < s.frame_final_end:
                 context.scene.sequence_editor.active_strip = s
 
         context.scene.sequence_editor.active_strip.multicam_source = camera
@@ -125,7 +125,7 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
 
     def execute(self, context):
         for s in context.scene.sequence_editor.sequences_all:
-            if s.selected and s.type == 'MOVIE':
+            if s.select and s.type == 'MOVIE':
                 s.de_interlace = True
 
         return {'FINISHED'}

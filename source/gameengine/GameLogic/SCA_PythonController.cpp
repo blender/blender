@@ -264,7 +264,7 @@ void SCA_PythonController::ErrorPrint(const char *error_msg)
 	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
 	 * their user count. Not to mention holding references to wrapped data.
 	 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
-	 * has alredy dealocated the pointer */
+	 * has already dealocated the pointer */
 	PySys_SetObject( (char *)"last_traceback", NULL);
 	PyErr_Clear(); /* just to be sure */
 }
@@ -452,7 +452,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
 		 * their user count. Not to mention holding references to wrapped data.
 		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
-		 * has alredy dealocated the pointer */
+		 * has already dealocated the pointer */
 		PySys_SetObject( (char *)"last_traceback", NULL);
 		PyErr_Clear(); /* just to be sure */
 	}

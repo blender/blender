@@ -200,9 +200,9 @@ void free_image(Image *ima)
 	}
 	BKE_icon_delete(&ima->id);
 	ima->id.icon_id = 0;
-	if (ima->preview) {
-		BKE_previewimg_free(&ima->preview);
-	}
+
+	BKE_previewimg_free(&ima->preview);
+
 	for(a=0; a<IMA_MAX_RENDER_SLOT; a++) {
 		if(ima->renders[a]) {
 			RE_FreeRenderResult(ima->renders[a]);
@@ -1180,6 +1180,10 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	}
 	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
 		ibuf->ftype= PNG;
+
+		if(imtype==R_PNG)
+			ibuf->ftype |= quality;  /* quality is actually compression 0-100 --> 0-9 */
+
 	}
 #ifdef WITH_DDS
 	else if ((imtype==R_DDS)) {

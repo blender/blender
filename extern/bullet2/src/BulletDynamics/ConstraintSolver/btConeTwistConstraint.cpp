@@ -601,7 +601,7 @@ void btConeTwistConstraint::calcAngleInfo2()
 	m_solveSwingLimit = false;
 	// compute rotation of A wrt B (in constraint space)
 	if (m_bMotorEnabled && (!m_useSolveConstraintObsolete))
-	{	// it is assumed that setMotorTarget() was alredy called 
+	{	// it is assumed that setMotorTarget() was already called 
 		// and motor target m_qTarget is within constraint limits
 		// TODO : split rotation to pure swing and pure twist
 		// compute desired transforms in world

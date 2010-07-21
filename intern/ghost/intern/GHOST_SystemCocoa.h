@@ -155,7 +155,7 @@ public:
 	 * @param draggedObjectType The type object concerned (currently array of file names, string, TIFF image)
 	 * @param mouseX x mouse coordinate (in cocoa base window coordinates)
 	 * @param mouseY y mouse coordinate
-	 * @param window The window on which the event occured
+	 * @param window The window on which the event occurred
      * @return Indication whether the event was handled. 
      */
 	GHOST_TSuccess handleDraggingEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,
@@ -236,7 +236,7 @@ public:
 	/**
      * Handles a window event. Called by GHOST_WindowCocoa window delegate
      * @param eventType The type of window event
-	 * @param window The window on which the event occured
+	 * @param window The window on which the event occurred
      * @return Indication whether the event was handled. 
      */
     GHOST_TSuccess handleWindowEvent(GHOST_TEventType eventType, GHOST_WindowCocoa* window);

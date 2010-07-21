@@ -74,10 +74,10 @@ extern "C" {
 #define MAXPATHLEN MAX_PATH
 
 #ifndef S_ISREG
-#define S_ISREG(x) ((x&S_IFMT) == S_IFREG)
+#define S_ISREG(x) (((x)&_S_IFREG) == _S_IFREG)
 #endif
 #ifndef S_ISDIR
-#define S_ISDIR(x) ((x&S_IFMT) == S_IFDIR)
+#define S_ISDIR(x) (((x)&_S_IFDIR) == _S_IFDIR)
 #endif
 
 /* defines for using ISO C++ conformant names */

@@ -295,6 +295,7 @@ class RENDER_PT_output(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render
+        file_format = rd.file_format
         wide_ui = context.region.width > narrowui
 
         layout.prop(rd, "output_path", text="")
@@ -310,11 +311,15 @@ class RENDER_PT_output(RenderButtonsPanel):
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 
-        if rd.file_format in ('AVI_JPEG', 'JPEG'):
+        if file_format in ('AVI_JPEG', 'JPEG'):
             split = layout.split()
             split.prop(rd, "file_quality", slider=True)
+        
+        if file_format == 'PNG':
+            split = layout.split()
+            split.prop(rd, "file_quality", slider=True, text="Compression")
 
-        elif rd.file_format == 'MULTILAYER':
+        elif file_format == 'MULTILAYER':
             split = layout.split()
 
             col = split.column()
@@ -323,7 +328,7 @@ class RENDER_PT_output(RenderButtonsPanel):
             if wide_ui:
                 col = split.column()
 
-        elif rd.file_format == 'OPEN_EXR':
+        elif file_format == 'OPEN_EXR':
             split = layout.split()
 
             col = split.column()
@@ -340,7 +345,7 @@ class RENDER_PT_output(RenderButtonsPanel):
                 col = subsplit.column()
             col.prop(rd, "exr_preview")
 
-        elif rd.file_format == 'JPEG2000':
+        elif file_format == 'JPEG2000':
             split = layout.split()
             col = split.column()
             col.label(text="Depth:")
@@ -351,7 +356,7 @@ class RENDER_PT_output(RenderButtonsPanel):
             col.prop(rd, "jpeg2k_preset", text="")
             col.prop(rd, "jpeg2k_ycc")
 
-        elif rd.file_format in ('CINEON', 'DPX'):
+        elif file_format in ('CINEON', 'DPX'):
             split = layout.split()
             col = split.column()
             col.prop(rd, "cineon_log", text="Convert to Log")
@@ -363,15 +368,15 @@ class RENDER_PT_output(RenderButtonsPanel):
             col.prop(rd, "cineon_white", text="White")
             col.prop(rd, "cineon_gamma", text="Gamma")
 
-        elif rd.file_format == 'TIFF':
+        elif file_format == 'TIFF':
             split = layout.split()
             split.prop(rd, "tiff_bit")
 
-        elif rd.file_format == 'QUICKTIME_CARBON':
+        elif file_format == 'QUICKTIME_CARBON':
             split = layout.split()
             split.operator("scene.render_data_set_quicktime_codec")
 
-        elif rd.file_format == 'QUICKTIME_QTKIT':
+        elif file_format == 'QUICKTIME_QTKIT':
             split = layout.split()
             col = split.column()
             col.prop(rd, "quicktime_codec_type", text="Video Codec")

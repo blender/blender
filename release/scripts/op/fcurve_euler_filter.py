@@ -40,7 +40,7 @@ def main(context):
 
     flist = bpy.context.active_object.animation_data.action.fcurves
     for f in flist:
-        if f.selected and f.data_path.endswith("rotation_euler"):
+        if f.select and f.data_path.endswith("rotation_euler"):
             cleanupEulCurve(f)
 
 class DiscontFilterOp(bpy.types.Operator):

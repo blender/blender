@@ -83,7 +83,6 @@ struct Lamp *copy_lamp(struct Lamp *la);
 void make_local_lamp(struct Lamp *la);
 void free_camera(struct Camera *ca);
 void free_lamp(struct Lamp *la);
-void *add_wave(void);
 
 struct Object *add_only_object(int type, char *name);
 struct Object *add_object(struct Scene *scene, int type);

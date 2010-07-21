@@ -46,11 +46,13 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_brush_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_icons.h"
+#include "BKE_brush.h"
 #include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"
@@ -762,6 +764,7 @@ static void icon_create_mipmap(struct PreviewImage* prv_img, int miplevel)
 		prv_img->w[miplevel] = size;
 		prv_img->h[miplevel] = size;
 		prv_img->changed[miplevel] = 1;
+		prv_img->changed_timestamp[miplevel] = 0;
 		prv_img->rect[miplevel] = MEM_callocN(size*size*sizeof(unsigned int), "prv_rect"); 
 	}
 }
@@ -972,6 +975,7 @@ int ui_id_icon_get(bContext *C, ID *id, int preview)
 		case ID_IM: /* fall through */
 		case ID_WO: /* fall through */
 		case ID_LA: /* fall through */
+		case ID_BR: /* fall through */
 			iconid= BKE_icon_getid(id);
 			/* checks if not exists, or changed */
 			ui_id_icon_render(C, id, preview);

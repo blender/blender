@@ -422,11 +422,11 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_ACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "NLA Strip is active");
 	
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "NLA Strip is selected");
+	RNA_def_property_ui_text(prop, "Select", "NLA Strip is selected");
 	
-	prop= RNA_def_property(srna, "muted", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_MUTED);
 	RNA_def_property_ui_text(prop, "Muted", "NLA Strip is not evaluated");
 	
@@ -468,15 +468,15 @@ static void rna_def_nlatrack(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_SOLO);
 	RNA_def_property_ui_text(prop, "Solo", "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)");
 	
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_SELECTED);
-	RNA_def_property_ui_text(prop, "Selected", "NLA Track is selected");
+	RNA_def_property_ui_text(prop, "Select", "NLA Track is selected");
 	
-	prop= RNA_def_property(srna, "muted", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_MUTED);
 	RNA_def_property_ui_text(prop, "Muted", "NLA Track is not evaluated");
 
-	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_PROTECTED);
 	RNA_def_property_ui_text(prop, "Locked", "NLA Track is locked");
 }

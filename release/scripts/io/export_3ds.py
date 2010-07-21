@@ -1006,7 +1006,7 @@ def save_3ds(filename, context):
                             mat = mat_ls[mat_index]
                             if mat:	mat_name = mat.name
                             else:	mat_name = None
-                        # else there alredy set to none
+                        # else there already set to none
 
                         img = uf.image
 # 						img = f.image
@@ -1140,7 +1140,7 @@ class Export3DS(bpy.types.Operator):
 
 # Add to a menu
 def menu_func(self, context):
-    default_path = bpy.data.filepath.replace(".blend", ".3ds")
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".3ds"
     self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").filepath = default_path
 
 
@@ -1154,4 +1154,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

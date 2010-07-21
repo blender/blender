@@ -57,7 +57,7 @@ def check_commandline():
         usage()
     if sys.argv[1] == '-h':
         help()
-    elif not (sys.argv[1][-4:] == '.txt' or sys.argv[1][-3:] == '.py'):
+    elif not (sys.argv[1].endswith(".txt") or sys.argv[1].endswith(".py")):
         print ('\nBad input file extension... exiting.')
         usage()
     else:
@@ -147,7 +147,7 @@ def get_props_from_txt(input_filename):
         changed = check_if_changed(bfrom, bto)
         
         # lists formatting
-        props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
+        props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, repr(description)]
         props_list.append(props)
         props_length_max=list(map(max,zip(props_length_max,list(map(len,props)))))
         
@@ -164,9 +164,10 @@ def get_props_from_py(input_filename):
 
     props_length_max = [0 for i in rna_api[0]] # this way if the vector will take more elements we are safe
     for index,props in enumerate(rna_api):
-        [comment, changed, bclass, bfrom, bto, kwcheck, btype, description] = props
+        comment, changed, bclass, bfrom, bto, kwcheck, btype, description = props
         kwcheck = check_prefix(bto)   # keyword-check
         changed = check_if_changed(bfrom, bto)  # changed?
+        description = repr(description)
         rna_api[index] = [comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
         props_length = list(map(len,props)) # lengths
         props_length_max = list(map(max,zip(props_length_max,props_length)))    # max lengths
@@ -174,9 +175,9 @@ def get_props_from_py(input_filename):
 
 
 def get_props(input_filename):
-    if input_filename[-4:] == '.txt':
+    if input_filename.endswith(".txt"):
         props_list,props_length_max = get_props_from_txt(input_filename)
-    elif input_filename[-3:] == '.py':
+    elif input_filename.endswith(".py"):
         props_list,props_length_max = get_props_from_py(input_filename)
     return (props_list,props_length_max)
 
@@ -200,16 +201,17 @@ def sort(props_list, sort_priority):
 
 def file_basename(input_filename):
     # if needed will use os.path
-    if input_filename[-4:] == '.txt':
-        if input_filename[-9:] == '_work.txt':
-            base_filename = input_filename[:-9]
+    if input_filename.endswith(".txt"):
+        if input_filename.endswith("_work.txt"):
+            base_filename = input_filename.replace("_work.txt", "")
         else:
-            base_filename = input_filename[:-4]
-    elif input_filename[-3:] == '.py':
-        if input_filename[-8:] == '_work.py':
-            base_filename = input_filename[:-8]
+            base_filename = input_filename.replace(".txt", "")
+    elif input_filename.endswith(".py"):
+        if input_filename.endswith("_work.py"):
+            base_filename = input_filename.replace("_work.py", "")
         else:
-            base_filename = input_filename[:-3]
+            base_filename = input_filename.replace(".py", "")
+
     return base_filename
 
 
@@ -236,15 +238,21 @@ def write_files(basename, props_list, props_length_max):
         # rna_api
         if props[0] == 'NOTE': indent = '#   '
         else: indent = '    '
-        rna += indent + '("%s", "%s", "%s", "%s", "%s"),\n' % tuple(props[2:5] + props[6:])    
+        rna += indent + '("%s", "%s", "%s", "%s", %s),\n' % tuple(props[2:5] + props[6:]) # description is already string formatted
         # py
         blanks = [' '* (x[0]-x[1]) for x in zip(props_length_max,list(map(len,props)))]
-        props = ['"%s"%s'%(x[0],x[1]) for x in zip(props,blanks)]
+        props = [('"%s"%s' if props[-1] != x[0] else "%s%s") % (x[0],x[1]) for x in zip(props,blanks)]
         py += indent + '(%s, %s, %s, %s, %s, %s, %s, %s),\n' % tuple(props)
 
     f_txt.write(txt)
     f_py.write("rna_api = [\n%s]\n" % py)
     f_rna.write("rna_api = [\n%s]\n" % rna)
+    
+    # write useful py script, wont hurt
+    f_py.write("\n'''\n")
+    f_py.write("for p_note, p_changed, p_class, p_from, p_to, p_check, p_type, p_desc in rna_api:\n")
+    f_py.write("    print(p_to)\n")
+    f_py.write("\n'''\n")
 
     f_txt.close()
     f_py.close()
@@ -260,10 +268,9 @@ def main():
 
     sort_choices = ['note','changed','class','from','to','kw']
     default_sort_choice = sort_choices[0]
-    #kw_prefixes = ['invert','is','lock','show','show_only','use','use_only']
-    #kw = ['hide','select','layer','state']
-    kw_prefixes = ['has','invert','is','lock','layers','show','show_only','states','use','use_only']
-    kw = ['layers','states','value']
+    kw_prefixes = [ 'active','apply','bl','exclude','has','invert','is','lock', \
+                    'pressed','show','show_only','use','use_only','layers','states']
+    kw = ['active','hide','invert','select','layers','mute','states','use','lock']
 
     input_filename, sort_priority = check_commandline()
     props_list,props_length_max = get_props(input_filename)

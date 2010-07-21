@@ -986,11 +986,6 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Quaternion", "Deform rotation interpolation with quaternions");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "b_bone_rest", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_B_BONE_REST);
-	RNA_def_property_ui_text(prop, "B-Bone Rest",  "Make B-Bones deform already in rest position");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
 	prop= RNA_def_property(srna, "multi_modifier", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "multi", 0);
 	RNA_def_property_ui_text(prop, "Multi Modifier",  "Use same input as previous modifier, and mix results using overall vgroup");
@@ -2073,7 +2068,7 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "offset_fac");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -1, 1, 0.1, 4);
-	RNA_def_property_ui_text(prop, "Offset", "");
+	RNA_def_property_ui_text(prop, "Offset", "Offset the thickness from the center");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "edge_crease_inner", PROP_FLOAT, PROP_FACTOR);

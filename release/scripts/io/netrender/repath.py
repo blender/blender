@@ -83,14 +83,17 @@ def process(paths):
         elif paths[i].endswith(".bobj.gz"):
             path_map[os.path.split(paths[i])[0]] = os.path.split(paths[i+1])[0]
         else:
-            path_map[paths[i]] = paths[i+1]
+            path_map[os.path.split(paths[i])[1]] = paths[i+1]
+            
+    # TODO original paths aren't really the orignal path (they are the normalized path
+    # so we repath using the filenames only. 
     
     ###########################
     # LIBRARIES
     ###########################
     for lib in bpy.data.libraries:
         file_path = bpy.utils.expandpath(lib.filepath)
-        new_path = path_map.get(file_path, None)
+        new_path = path_map.get(os.path.split(file_path)[1], None)
         if new_path:
             lib.filepath = new_path
 
@@ -100,7 +103,7 @@ def process(paths):
     for image in bpy.data.images:
         if image.source == "FILE" and not image.packed_file:
             file_path = bpy.utils.expandpath(image.filepath)
-            new_path = path_map.get(file_path, None)
+            new_path = path_map.get(os.path.split(file_path)[1], None)
             if new_path:
                 image.filepath = new_path
             
@@ -144,4 +147,4 @@ if __name__ == "__main__":
         
         process(args)
         
-        bpy.ops.wm.save_as_mainfile(path=new_path, check_existing=False)
+        bpy.ops.wm.save_as_mainfile(filepath=new_path, check_existing=False)

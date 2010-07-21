@@ -1595,8 +1595,8 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	static EnumPropertyItem mode_items[] = {
 		{SACTCONT_DOPESHEET, "DOPESHEET", 0, "DopeSheet", ""},
 		{SACTCONT_ACTION, "ACTION", 0, "Action Editor", ""},
-		{SACTCONT_SHAPEKEY, "SHAPEKEY", 0, "ShapeKey Editor", ""}, // XXX to be depreceated?
-		{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", ""},
+		{SACTCONT_SHAPEKEY, "SHAPEKEY", 0, "ShapeKey Editor", ""},
+		//{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", ""}, // XXX: to be reimplemented, but not enough time before 2.53 - Aligorith, 2010Jul14
 		{0, NULL, 0, NULL, NULL}};
 		
 	
@@ -1638,7 +1638,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	/* editing */
 	prop= RNA_def_property(srna, "automerge_keyframes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SACTION_NOTRANSKEYCULL);
-	RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Show handles of Bezier control points");
+	RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Automatically merge nearby keyframes");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
 	
 	prop= RNA_def_property(srna, "realtime_updates", PROP_BOOLEAN, PROP_NONE);
@@ -1731,7 +1731,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	/* editing */
 	prop= RNA_def_property(srna, "automerge_keyframes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NOTRANSKEYCULL);
-	RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Show handles of Bezier control points");
+	RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Automatically merge nearby keyframes");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
 	prop= RNA_def_property(srna, "realtime_updates", PROP_BOOLEAN, PROP_NONE);

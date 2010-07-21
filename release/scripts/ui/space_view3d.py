@@ -859,9 +859,9 @@ class VIEW3D_MT_object_showhide(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.restrictview_clear", text="Show Hidden")
-        layout.operator("object.restrictview_set", text="Hide Selected")
-        layout.operator("object.restrictview_set", text="Hide Unselected").unselected = True
+        layout.operator("object.hide_view_clear", text="Show Hidden")
+        layout.operator("object.hide_view_set", text="Hide Selected")
+        layout.operator("object.hide_view_set", text="Hide Unselected").unselected = True
 
 
 class VIEW3D_MT_make_single_user(bpy.types.Menu):
@@ -1707,6 +1707,13 @@ class VIEW3D_MT_edit_text(bpy.types.Menu):
 
         layout.menu("VIEW3D_MT_edit_text_chars")
 
+        layout.separator()
+        
+        layout.operator("font.style_toggle", text="Toggle Bold").style = 'BOLD'
+        layout.operator("font.style_toggle", text="Toggle Italic").style = 'ITALIC'
+        layout.operator("font.style_toggle", text="Toggle Underline").style = 'UNDERLINE'
+        layout.operator("font.style_toggle", text="Toggle Small Caps").style = 'SMALL_CAPS'
+
 
 class VIEW3D_MT_edit_text_chars(bpy.types.Menu):
     bl_label = "Special Characters"
@@ -2140,10 +2147,11 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
                     box.template_image(bg, "image", bg.image_user, compact=True)
 
                     box.prop(bg, "transparency", slider=True)
-                    box.prop(bg, "size")
-                    row = box.row(align=True)
-                    row.prop(bg, "offset_x", text="X")
-                    row.prop(bg, "offset_y", text="Y")
+                    if bg.view_axis != 'CAMERA':
+                        box.prop(bg, "size")
+                        row = box.row(align=True)
+                        row.prop(bg, "offset_x", text="X")
+                        row.prop(bg, "offset_y", text="Y")
 
 
 class VIEW3D_PT_transform_orientations(bpy.types.Panel):

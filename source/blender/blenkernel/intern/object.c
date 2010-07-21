@@ -283,7 +283,6 @@ void free_object(Object *ob)
 	ob->path= 0;
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
-	if(ob->dup_group) ob->dup_group->id.us--;
 	if(ob->gpd) ob->gpd->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
@@ -949,12 +948,6 @@ void free_lamp(Lamp *la)
 	la->id.icon_id = 0;
 }
 
-void *add_wave()
-{
-	return 0;
-}
-
-
 /* *************************************************** */
 
 static void *add_obdata_from_type(int type)
@@ -968,7 +961,6 @@ static void *add_obdata_from_type(int type)
 	case OB_CAMERA: return add_camera("Camera");
 	case OB_LAMP: return add_lamp("Lamp");
 	case OB_LATTICE: return add_lattice("Lattice");
-	case OB_WAVE: return add_wave();
 	case OB_ARMATURE: return add_armature("Armature");
 	case OB_EMPTY: return NULL;
 	default:
@@ -988,7 +980,6 @@ static char *get_obdata_defname(int type)
 	case OB_CAMERA: return "Camera";
 	case OB_LAMP: return "Lamp";
 	case OB_LATTICE: return "Lattice";
-	case OB_WAVE: return "Wave";
 	case OB_ARMATURE: return "Armature";
 	case OB_EMPTY: return "Empty";
 	default:
@@ -1321,7 +1312,7 @@ Object *copy_object(Object *ob)
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
-	id_us_plus((ID *)obn->dup_group);
+	id_lib_extern((ID *)obn->dup_group);
 	
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);

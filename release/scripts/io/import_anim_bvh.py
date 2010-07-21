@@ -347,7 +347,7 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
     scn = context.scene
 #XXX	scn.objects.selected = []
     for ob in scn.objects:
-        ob.selected = False
+        ob.select = False
 
     scn.set_frame(IMPORT_START_FRAME)
 
@@ -356,7 +356,7 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
 
     scn.objects.link(arm_ob)
 
-    arm_ob.selected = True
+    arm_ob.select = True
     scn.objects.active = arm_ob
     print(scn.objects.active)
 

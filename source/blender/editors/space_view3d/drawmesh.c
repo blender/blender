@@ -62,7 +62,7 @@
 
 #include "UI_resources.h"
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 

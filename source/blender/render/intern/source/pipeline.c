@@ -2453,6 +2453,8 @@ static void do_render_seq(Render * re)
 	RenderResult *rr = re->result;
 	int cfra = re->r.cfra;
 
+	re->i.cfra= cfra;
+
 	if(recurs_depth==0) {
 		/* otherwise sequencer animation isnt updated */
 		BKE_animsys_evaluate_all_animation(G.main, (float)cfra); // XXX, was BKE_curframe(re->scene)
@@ -2470,8 +2472,21 @@ static void do_render_seq(Render * re)
 		if(ibuf->rect_float) {
 			if (!rr->rectf)
 				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
-			
+
 			memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
+
+			/* sequencer float buffer is not in linear color space, convert
+			 * should always be true, use a fake ibuf for the colorspace conversion */
+			if(ibuf->profile != IB_PROFILE_LINEAR_RGB) {
+				ImBuf ibuf_dummy;
+				memset(&ibuf_dummy, 0, sizeof(ImBuf));
+				ibuf_dummy.profile= ibuf->profile;
+				ibuf_dummy.x= rr->rectx;
+				ibuf_dummy.y= rr->recty;
+				ibuf_dummy.rect_float= rr->rectf;
+				/* only touch the rr->rectf */
+				IMB_convert_profile(&ibuf_dummy, IB_PROFILE_LINEAR_RGB);
+			}
 			
 			/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
 			   can hang around when sequence render has rendered a 32 bits one before */
@@ -2495,7 +2510,7 @@ static void do_render_seq(Render * re)
 		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
 			Editing * ed = re->scene->ed;
 			if (ed) {
-				free_imbuf_seq(re->scene, &ed->seqbase, TRUE);
+				free_imbuf_seq(re->scene, &ed->seqbase, TRUE, TRUE);
 			}
 		}
 	}

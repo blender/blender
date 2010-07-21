@@ -356,7 +356,7 @@
 			Filter="c"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\datafiles\B.blend.c"
+				RelativePath="..\..\..\source\blender\editors\datafiles\add.png.c"
 				>
 			</File>
 			<File
@@ -372,7 +372,75 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\blob.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\blur.png.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\datafiles\bmonofont.ttf.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\clay.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\clone.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\crease.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\darken.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\draw.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\fill.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\flatten.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\grab.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\inflate.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\layer.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\lighten.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\mix.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\multiply.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\nudge.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\pinch.png.c"
 				>
 			</File>
 			<File
@@ -384,7 +452,51 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\scrape.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\smear.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\smooth.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\snake_hook.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\soften.png.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\datafiles\splash.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\startup.blend.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\subtract.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\texdraw.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\thumb.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\twist.png.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\vertexdraw.png.c"
 				>
 			</File>
 		</Filter>
@@ -1349,6 +1461,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt_undo.c"
 				>
 			</File>
 		</Filter>

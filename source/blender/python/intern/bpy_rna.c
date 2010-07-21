@@ -3970,7 +3970,7 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		- myClass = type(name='myClass', bases=(myBase,), dict={'__module__':'bpy.types'})
 		*/
 
-		/* Assume RNA_struct_py_type_get(srna) was alredy checked */
+		/* Assume RNA_struct_py_type_get(srna) was already checked */
 		PyObject *py_base= pyrna_srna_PyBase(srna);
 
 		const char *idname= RNA_struct_identifier(srna);

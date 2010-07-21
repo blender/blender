@@ -37,95 +37,102 @@
 
 /* extracts the thumbnail from between the 'REND' and the 'GLOB'
  * chunks of the header, dont use typical blend loader because its too slow */
-ImBuf *IMB_loadblend_thumb(const char *path)
+
+static ImBuf *loadblend_thumb(gzFile gzfile)
 {
-	char buf[8];
-	int code= 0;
+	char buf[12];
+	int bhead[24/sizeof(int)]; /* max size on 64bit */
 	char endian, pointer_size;
 	char endian_switch;
-	int len, im_len, x, y;
-	int *rect= NULL;
+	int sizeof_bhead ;
 
+	/* read the blend file header */
+	if(gzread(gzfile, buf, 12) != 12)
+		return NULL;
+	if(strncmp(buf, "BLENDER", 7))
+		return NULL;
+
+	if(buf[7]=='-')
+		pointer_size= 8;
+	else if(buf[7]=='_')
+		pointer_size= 4;
+	else
+		return NULL;
+
+	 sizeof_bhead = 16 + pointer_size;
+
+	if(buf[8]=='V')
+		endian= B_ENDIAN; /* big: PPC */
+	else if(buf[8]=='v')
+		endian= L_ENDIAN; /* little: x86 */
+	else
+		return NULL;
+
+	endian_switch = ((ENDIAN_ORDER != endian)) ? 1 : 0;
+
+	while(gzread(gzfile, bhead, sizeof_bhead) == sizeof_bhead) {
+		if(endian_switch)
+			SWITCH_INT(bhead[1]); /* length */
+
+		if (bhead[0]==REND) {
+			gzseek(gzfile, bhead[1], SEEK_CUR); /* skip to the next */
+		}
+		else {
+			break;
+		}
+	}
+
+	/* using 'TEST' since new names segfault when loading in old blenders */
+	if(bhead[0] == TEST) {
+		ImBuf *img= NULL;
+		int size[2];
+
+		if(gzread(gzfile, size, sizeof(size)) != sizeof(size))
+			return NULL;
+
+		if(endian_switch) {
+			SWITCH_INT(size[0]);
+			SWITCH_INT(size[1]);
+		}
+		/* length */
+		bhead[1] -= sizeof(int) * 2;
+
+		/* inconsistant image size, quit early */
+		if(bhead[1] != size[0] * size[1] * sizeof(int))
+			return NULL;
+	
+		/* finally malloc and read the data */
+		img= IMB_allocImBuf(size[0], size[1], 32, IB_rect | IB_metadata, 0);
+	
+		if(gzread(gzfile, img->rect, bhead[1]) != bhead[1]) {
+			IMB_freeImBuf(img);
+			img= NULL;
+		}
+	
+		return img;
+	}
+	
+	return NULL;
+}
+
+ImBuf *IMB_loadblend_thumb(const char *path)
+{
 	gzFile gzfile;
-	
-	ImBuf *img;
-	
+
 	/* not necessarily a gzip */
 	gzfile = gzopen(path, "rb");
 
 	if (NULL == gzfile ) {
 		return NULL;
 	}
-	
-	/* read the blend file header */
-	if(gzread(gzfile, buf, 8) != 8)		goto thumb_error;
-	if(strncmp(buf, "BLENDER", 7))		goto thumb_error;
-	
-	if(buf[7]=='-')						pointer_size= 8;
-	else if(buf[7]=='_')				pointer_size= 4;
-	else								goto thumb_error;
-	
-	/* read the next 4 bytes, only need the first char, ignore the version */
-	/* endian and vertsion (ignored) */
-	if(gzread(gzfile, buf, 4) != 4)		goto thumb_error;
-	
-	if(buf[0]=='V')						endian= B_ENDIAN; /* big: PPC */
-	else if(buf[0]=='v')				endian= L_ENDIAN; /* little: x86 */
-	else								goto thumb_error;
+	else {
+		ImBuf *img= loadblend_thumb(gzfile);
 
-	while(gzread(gzfile, &code, sizeof(int)) == sizeof(int)) {
-		endian_switch = ((ENDIAN_ORDER != endian)) ? 1 : 0;
-		
-		if(gzread(gzfile, buf, sizeof(int)) != sizeof(int))		goto thumb_error;
-		len = *( (int *)((void *)buf) );
-		if(endian_switch) SWITCH_INT(len);
-		
-		/* finally read the rest of the bhead struct, pointer and 2 ints */
-		if(gzread(gzfile, buf, pointer_size) != pointer_size)	goto thumb_error;
-		if(gzread(gzfile, buf, sizeof(int) * 2) != sizeof(int) * 2)	goto thumb_error;
-		/* we dont actually care whats in the bhead */
-		
-		if (code==REND) {
-			gzseek(gzfile, len, SEEK_CUR); /* skip to the next */
-		}
-		else {
-			break;
-		}
+		/* read ok! */
+		gzclose(gzfile);
+
+		return img;
 	}
-	
-	/* using 'TEST' since new names segfault when loading in old blenders */
-	if(code != TEST)					goto thumb_error;
-	
-	if(gzread(gzfile, &x, sizeof(int)) != sizeof(int))		goto thumb_error;
-	if(gzread(gzfile, &y, sizeof(int)) != sizeof(int))		goto thumb_error;
-	len -= sizeof(int) * 2;
-
-	if(endian_switch) { SWITCH_INT(x); SWITCH_INT(y); }
-
-	/* inconsistant image size, quit early */
-	im_len = x * y * sizeof(int);
-	if(im_len != len)					goto thumb_error;
-
-	/* finally malloc and read the data */
-	rect= MEM_mallocN(len, "imb_loadblend_thumb");
-
-	if(gzread(gzfile, rect, len) != len) goto thumb_error;
-
-	/* read ok! */
-	gzclose(gzfile);
-
-	img = IMB_allocImBuf(x, y, 32, IB_rect | IB_metadata, 0);
-
-	memcpy(img->rect, rect, im_len);
-
-	MEM_freeN(rect);
-	
-	return img;	
-
-thumb_error:
-	gzclose(gzfile);
-	if(rect) MEM_freeN(rect);
-	return NULL;
 }
 
 /* add a fake passepartout overlay to a byte buffer, use for blend file thumbnails */

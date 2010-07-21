@@ -4185,6 +4185,12 @@ Game Engine  bge.types Module
 
       :type: float
 
+   .. attribute:: ortho_scale
+
+      The camera's view scale when in orthographic mode.
+
+      :type: float
+
    .. attribute:: near
 
       The camera's near clip distance.

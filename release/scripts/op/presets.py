@@ -27,8 +27,8 @@ class AddPresetBase(bpy.types.Operator):
     subclasses must define
      - preset_values
      - preset_subdir '''
-    bl_idname = "script.add_preset_base"
-    bl_label = "Add a Python Preset"
+    # bl_idname = "script.preset_base_add"
+    # bl_label = "Add a Python Preset"
 
     name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen=64, default="")
 

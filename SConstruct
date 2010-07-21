@@ -46,20 +46,22 @@ import glob
 import re
 from tempfile import mkdtemp
 
-# needed for importing tools
-sys.path.append(os.path.join(".", "build_files", "scons"))
+# store path to tools
+toolpath=os.path.join(".", "build_files", "scons", "tools")
 
-import tools.Blender
-import tools.btools
-import tools.bcolors
+# needed for importing tools
+sys.path.append(toolpath)
+
+import Blender
+import btools
+import bcolors
 
 EnsureSConsVersion(1,0,0)
 
-BlenderEnvironment = tools.Blender.BlenderEnvironment
-btools = tools.btools
-B = tools.Blender
+BlenderEnvironment = Blender.BlenderEnvironment
+B = Blender
 
-VERSION = tools.btools.VERSION # This is used in creating the local config directories
+VERSION = btools.VERSION # This is used in creating the local config directories
 
 ### globals ###
 platform = sys.platform
@@ -122,7 +124,7 @@ if toolset:
 	print "Using " + toolset
 	if toolset=='mstoolkit':
 		env = BlenderEnvironment(ENV = os.environ)
-		env.Tool('mstoolkit', ['tools'])
+		env.Tool('mstoolkit', [toolpath])
 	else:
 		env = BlenderEnvironment(tools=[toolset], ENV = os.environ)
 		# xxx commented out, as was supressing warnings under mingw..
@@ -171,7 +173,7 @@ else:
 
 if crossbuild and env['PLATFORM'] != 'win32':
 	print B.bc.HEADER+"Preparing for crossbuild"+B.bc.ENDC
-	env.Tool('crossmingw', ['tools'])
+	env.Tool('crossmingw', [toolpath])
 	# todo: determine proper libs/includes etc.
 	# Needed for gui programs, console programs should do without it
 
@@ -628,9 +630,6 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
 					'${BF_FFMPEG_LIBPATH}/avdevice-52.dll',
 					'${BF_FFMPEG_LIBPATH}/avutil-50.dll',
 					'${BF_FFMPEG_LIBPATH}/swscale-0.dll']
-
-	if env['WITH_BF_JACK']:
-		dllsources += ['${LCGDIR}/jack/lib/libjack.dll']
 	windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
 	allinstall += windlls
 

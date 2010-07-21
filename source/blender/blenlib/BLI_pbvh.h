@@ -36,12 +36,17 @@ struct ListBase;
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
 
+typedef struct {
+	float (*co)[3];
+} PBVHProxyNode;
+
 /* Callbacks */
 
 /* returns 1 if the search should continue from this node, 0 otherwise */
 typedef int (*BLI_pbvh_SearchCallback)(PBVHNode *node, void *data);
 
 typedef void (*BLI_pbvh_HitCallback)(PBVHNode *node, void *data);
+typedef void (*BLI_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float* tmin);
 
 /* Building */
 
@@ -70,7 +75,7 @@ void BLI_pbvh_search_gather(PBVH *bvh,
    it's up to the callback to find the primitive within the leaves that is
    hit first */
 
-void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitCallback cb, void *data,
+void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
 			  float ray_start[3], float ray_normal[3], int original);
 int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	float ray_start[3], float ray_normal[3], float *dist);
@@ -105,6 +110,8 @@ void BLI_pbvh_node_get_verts(PBVH *bvh, PBVHNode *node,
 
 void BLI_pbvh_node_get_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
 void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
+
+float BLI_pbvh_node_get_tmin(PBVHNode* node);
 
 /* Update Normals/Bounding Box/Draw Buffers/Redraw and clear flags */
 
@@ -159,13 +166,21 @@ typedef struct PBVHVertexIter {
 	float *fno;
 } PBVHVertexIter;
 
+#ifdef _MSC_VER
+#pragma warning (disable:4127) // conditional expression is constant
+#endif
+
 #define BLI_pbvh_vertex_iter_begin(bvh, node, vi, mode) \
 	{ \
 		struct DMGridData **grids; \
 		struct MVert *verts; \
 		int *grid_indices, totgrid, gridsize, *vert_indices, uniq_verts, totvert; \
 		\
-		memset(&vi, 0, sizeof(PBVHVertexIter)); \
+		vi.grid= 0; \
+		vi.no= 0; \
+		vi.fno= 0; \
+		vi.mvert= 0; \
+		vi.skip= 0; \
 		\
 		BLI_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids, NULL); \
 		BLI_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert); \
@@ -222,6 +237,13 @@ typedef struct PBVHVertexIter {
 		} \
 	}
 
+void BLI_pbvh_node_get_proxies(PBVHNode* node, PBVHProxyNode** proxies, int* proxy_count);
+void BLI_pbvh_node_free_proxies(PBVHNode* node);
+PBVHProxyNode* BLI_pbvh_node_add_proxy(PBVH* bvh, PBVHNode* node);
+void BLI_pbvh_gather_proxies(PBVH* pbvh, PBVHNode*** nodes,  int* totnode);
+
+//void BLI_pbvh_node_BB_reset(PBVHNode* node);
+//void BLI_pbvh_node_BB_expand(PBVHNode* node, float co[3]);
 
 #endif /* BLI_PBVH_H */
 
