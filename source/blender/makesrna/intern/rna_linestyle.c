@@ -302,6 +302,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "target");
 	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Target", "Target object from which the distance is measured.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
@@ -330,6 +331,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "target");
 	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Target", "Target object from which the distance is measured.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
@@ -358,6 +360,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "target");
 	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Target", "Target object from which the distance is measured.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
