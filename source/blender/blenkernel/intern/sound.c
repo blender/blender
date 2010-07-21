@@ -122,10 +122,15 @@ struct bSound* sound_new_file(struct Main *bmain, char* filename)
 	bSound* sound = NULL;
 
 	char str[FILE_MAX];
+	char *path;
+
 	int len;
 
 	strcpy(str, filename);
-	BLI_path_abs(str, bmain->name);
+
+	path = /*bmain ? bmain->name :*/ G.sce;
+
+	BLI_path_abs(str, path);
 
 	len = strlen(filename);
 	while(len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
@@ -258,7 +263,7 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			if(sound->id.lib)
 				path = sound->id.lib->filepath;
 			else
-				path = bmain ? bmain->name : G.sce;
+				path = /*bmain ? bmain->name :*/ G.sce;
 
 			BLI_path_abs(fullpath, path);
 
