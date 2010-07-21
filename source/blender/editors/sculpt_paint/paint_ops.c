@@ -78,10 +78,11 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 	/*int type = RNA_enum_get(op->ptr, "type");*/
 	Paint *paint = paint_get_active(CTX_data_scene(C));
 	Brush *br = paint_brush(paint);
+	Object *ob = CTX_data_active_object(C);
 	float factor = RNA_float_get(op->ptr, "scalar");
 
 	if (br) {
-		if (U.sculpt_paint_settings & SCULPT_PAINT_USE_UNIFIED_SIZE) {
+		if (ob && (ob->mode & OB_MODE_SCULPT) && (U.sculpt_paint_settings & SCULPT_PAINT_USE_UNIFIED_SIZE)) {
 			U.sculpt_paint_unified_size *= factor;
 		}
 		else {
