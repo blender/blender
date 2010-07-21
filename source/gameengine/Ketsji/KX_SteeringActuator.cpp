@@ -318,7 +318,7 @@ PyMethodDef KX_SteeringActuator::Methods[] = {
 };
 
 PyAttributeDef KX_SteeringActuator::Attributes[] = {
-	KX_PYATTRIBUTE_INT_RW("bevaiour", KX_STEERING_NODEF+1, KX_STEERING_MAX-1, true, KX_SteeringActuator, m_mode),
+	KX_PYATTRIBUTE_INT_RW("behaviour", KX_STEERING_NODEF+1, KX_STEERING_MAX-1, true, KX_SteeringActuator, m_mode),
 	KX_PYATTRIBUTE_RW_FUNCTION("target", KX_SteeringActuator, pyattr_get_target, pyattr_set_target),
 	KX_PYATTRIBUTE_RW_FUNCTION("navmesh", KX_SteeringActuator, pyattr_get_navmesh, pyattr_set_navmesh),
 	KX_PYATTRIBUTE_FLOAT_RW("distance", 0.0f, 1000.0f, KX_SteeringActuator, m_distance),
@@ -376,10 +376,16 @@ int KX_SteeringActuator::pyattr_set_navmesh(void *self, const struct KX_PYATTRIB
 	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_SteeringActuator"))
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 
+	if (!PyObject_TypeCheck(value, &KX_NavMeshObject::Type))
+	{
+		PyErr_Format(PyExc_TypeError, "KX_NavMeshObject is expected");
+		return PY_SET_ATTR_FAIL;
+	}
+
 	if (actuator->m_navmesh != NULL)
 		actuator->m_navmesh->UnregisterActuator(actuator);	
 
-	actuator->m_navmesh = dynamic_cast<KX_NavMeshObject*>(gameobj);
+	actuator->m_navmesh = static_cast<KX_NavMeshObject*>(gameobj);
 
 	if (actuator->m_navmesh)
 		actuator->m_navmesh->RegisterActuator(actuator);

@@ -441,6 +441,18 @@ static void rna_Actuator_Armature_update(Main *bmain, Scene *scene, PointerRNA *
 	constraint[0] = 0;
 }
 
+static void rna_SteeringActuator_navmesh_set(PointerRNA *ptr, PointerRNA value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bSteeringActuator *sa = (bSteeringActuator*) act->data;
+
+	Object* obj = value.data;
+	if (obj && obj->body_type==OB_BODY_TYPE_NAVMESH)
+		sa->navmesh = obj;
+	else
+		sa->navmesh = NULL;
+}
+
 /* note: the following set functions exists only to avoid id refcounting */
 static void rna_Actuator_editobject_mesh_set(PointerRNA *ptr, PointerRNA value)
 {
@@ -1942,6 +1954,7 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "navmesh");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "NavMesh Object", "Navigation mesh");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SteeringActuator_navmesh_set", NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 

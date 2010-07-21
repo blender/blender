@@ -856,18 +856,10 @@ KX_PYMETHODDEF_DOC(KX_NavMeshObject, draw,
 				   "draw(mode): navigation mesh debug drawing\n"
 				   "mode: WALLS, POLYS, TRIS\n")
 {
-	char* mode;
+	int arg;
 	NavMeshRenderMode renderMode = RM_TRIS;
-	if (PyArg_ParseTuple(args,"s:rebuild",&mode))
-	{
-		STR_String mode_str(mode);
-		if (mode_str.IsEqualNoCase("WALLS"))
-			renderMode = RM_WALLS;
-		else if (mode_str.IsEqualNoCase("POLYS"))
-			renderMode = RM_POLYS;
-		else if (mode_str.IsEqualNoCase("TRIS"))
-			renderMode = RM_TRIS;
-	}
+	if (PyArg_ParseTuple(args,"i:rebuild",&arg) && arg>=0 && arg<RM_MAX)
+		renderMode = (NavMeshRenderMode)arg;
 	DrawNavMesh(renderMode);
 	Py_RETURN_NONE;
 }

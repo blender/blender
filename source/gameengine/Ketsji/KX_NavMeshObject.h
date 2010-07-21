@@ -61,7 +61,7 @@ public:
 	int FindPath(const MT_Point3& from, const MT_Point3& to, float* path, int maxPathLen);
 	float Raycast(const MT_Point3& from, const MT_Point3& to);
 
-	enum NavMeshRenderMode {RM_WALLS, RM_POLYS, RM_TRIS};
+	enum NavMeshRenderMode {RM_WALLS, RM_POLYS, RM_TRIS, RM_MAX};
 	void DrawNavMesh(NavMeshRenderMode mode);
 	void DrawPath(const float *path, int pathLen, const MT_Vector3& color);
 
