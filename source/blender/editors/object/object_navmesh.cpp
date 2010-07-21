@@ -36,6 +36,7 @@ extern "C"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_ID.h"
 
 #include "BKE_library.h"
@@ -306,6 +307,7 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 	int i,j, k, polyverts;
 	unsigned short* v;
 	int face[3];
+	Scene *scene= CTX_data_scene(C);
 
 	zero_v3(co);
 	zero_v3(rot);
@@ -392,6 +394,9 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 	obedit->gameflag |= OB_NAVMESH;
 	obedit->body_type = OB_BODY_TYPE_NAVMESH;
 	rename_id((ID *)obedit, "Navmesh");
+
+	ED_object_modifier_add(NULL, scene, obedit, NULL, eModifierType_NavMesh);
+	//ModifierData *md= modifiers_findByType(ob, eModifierType_NavMesh);
 	return obedit;
 }
 

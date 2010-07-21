@@ -727,21 +727,7 @@ typedef struct ScrewModifierData {
 
 typedef struct NavMeshModifierData {
 	ModifierData modifier;
-	char pad[4];
-	float cellsize;
-	float cellheight;
-	float agentmaxslope;
-	float agentmaxclimb;
-	float agentheight;
-	float agentradius;
-	float edgemaxlen;
-	float edgemaxerror;
-	float regionminsize;
-	float regionmergesize;
-	int vertsperpoly;
-	float detailsampledist;
-	float detailsamplemaxerror;
-
+	
 } NavMeshModifierData;
 
 #endif

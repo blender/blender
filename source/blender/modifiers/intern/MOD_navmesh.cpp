@@ -46,20 +46,6 @@ extern "C"{
 static void initData(ModifierData *md)
 {
 	NavMeshModifierData *nmmd = (NavMeshModifierData*) md;
-
-	nmmd->cellsize = 0.3f;
-	nmmd->cellheight = 0.2f;
-	nmmd->agentmaxslope = 45.0f;
-	nmmd->agentmaxclimb = 0.9f;
-	nmmd->agentheight = 2.0f;
-	nmmd->agentradius = 0.6f;
-	nmmd->edgemaxlen = 12.0f;
-	nmmd->edgemaxerror = 1.3f;
-	nmmd->regionminsize = 50.f;
-	nmmd->regionmergesize = 20.f;
-	nmmd->vertsperpoly = 6;
-	nmmd->detailsampledist = 6.0f;
-	nmmd->detailsamplemaxerror = 1.0f;
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -70,228 +56,11 @@ static void copyData(ModifierData *md, ModifierData *target)
 	//.todo - deep copy
 }
 
-static DerivedMesh *buildNavMesh(NavMeshModifierData *mmd,DerivedMesh *dm)
-{
-	const int nverts = dm->getNumVerts(dm);
-	MVert *mvert = dm->getVertArray(dm);
-	const int nfaces = dm->getNumFaces(dm);
-	MFace *mface = dm->getFaceArray(dm);
-	float* verts;
-	int *tris, *tri;
-	float bmin[3], bmax[3];
-	int i,j;
-	DerivedMesh* result = NULL;
-	rcHeightfield* solid;
-	unsigned char *triflags;
-	rcCompactHeightfield* chf;
-	rcContourSet *cset;
-	rcPolyMesh* pmesh;
-	rcPolyMeshDetail* dmesh;
-	int numVerts, numEdges, numFaces;
-
-	//calculate count of tris
-	int ntris = nfaces;
-	for (i=0; i<nfaces; i++)
-	{
-		MFace* mf = &mface[i];
-		if (mf->v4)
-			ntris+=1;
-	}
-
-	//create verts
-	verts = (float*) MEM_mallocN(sizeof(float)*3*nverts, "verts");
-	for (i=0; i<nverts; i++)
-	{
-		MVert *v = &mvert[i];
-		verts[3*i+0] = v->co[0];
-		verts[3*i+1] = v->co[2];
-		verts[3*i+2] = v->co[1];
-	}
-	//create tris
-	tris = (int*) MEM_mallocN(sizeof(int)*3*ntris, "faces");
-	tri = tris;
-	for (i=0; i<nfaces; i++)
-	{
-		MFace* mf = &mface[i]; 
-		tri[0]= mf->v1; tri[1]= mf->v3;	tri[2]= mf->v2; 
-		tri += 3;
-		if (mf->v4)
-		{
-			tri[0]= mf->v1; tri[1]= mf->v4; tri[2]= mf->v3; 
-			tri += 3;
-		}
-	}
-
-	rcCalcBounds(verts, nverts, bmin, bmax);
-
-	//
-	// Step 1. Initialize build config.
-	//
-	rcConfig cfg;
-	memset(&cfg, 0, sizeof(cfg));
-	cfg.cs = mmd->cellsize;
-	cfg.ch = mmd->cellheight;
-	cfg.walkableSlopeAngle = mmd->agentmaxslope;
-	cfg.walkableHeight = (int)ceilf(mmd->agentheight/ cfg.ch);
-	cfg.walkableClimb = (int)floorf(mmd->agentmaxclimb / cfg.ch);
-	cfg.walkableRadius = (int)ceilf(mmd->agentradius / cfg.cs);
-	cfg.maxEdgeLen = (int)(mmd->edgemaxlen/ mmd->cellsize);
-	cfg.maxSimplificationError = mmd->edgemaxerror;
-	cfg.minRegionSize = (int)rcSqr(mmd->regionminsize);
-	cfg.mergeRegionSize = (int)rcSqr(mmd->regionmergesize);
-	cfg.maxVertsPerPoly = mmd->vertsperpoly;
-	cfg.detailSampleDist = mmd->detailsampledist< 0.9f ? 0 : mmd->cellsize * mmd->detailsampledist;
-	cfg.detailSampleMaxError = mmd->cellheight * mmd->detailsamplemaxerror;
-
-	// Set the area where the navigation will be build.
-	vcopy(cfg.bmin, bmin);
-	vcopy(cfg.bmax, bmax);
-	rcCalcGridSize(cfg.bmin, cfg.bmax, cfg.cs, &cfg.width, &cfg.height);
-
-	//
-	// Step 2. Rasterize input polygon soup.
-	//
-	// Allocate voxel heightfield where we rasterize our input data to.
-	solid = new rcHeightfield;
-	if (!solid)
-		return NULL;
-
-	if (!rcCreateHeightfield(*solid, cfg.width, cfg.height, cfg.bmin, cfg.bmax, cfg.cs, cfg.ch))
-		return NULL;
-
-	// Allocate array that can hold triangle flags.
-	triflags = (unsigned char*) MEM_mallocN(sizeof(unsigned char)*ntris, "triflags");
-	if (!triflags)
-		return NULL;
-	// Find triangles which are walkable based on their slope and rasterize them.
-	memset(triflags, 0, ntris*sizeof(unsigned char));
-	rcMarkWalkableTriangles(cfg.walkableSlopeAngle, verts, nverts, tris, ntris, triflags);
-	rcRasterizeTriangles(verts, nverts, tris, triflags, ntris, *solid);
-	MEM_freeN(triflags);
-	MEM_freeN(verts);
-	MEM_freeN(tris);
-
-	//
-	// Step 3. Filter walkables surfaces.
-	//
-	rcFilterLedgeSpans(cfg.walkableHeight, cfg.walkableClimb, *solid);
-	rcFilterWalkableLowHeightSpans(cfg.walkableHeight, *solid);
-
-	//
-	// Step 4. Partition walkable surface to simple regions.
-	//
-
-	chf = new rcCompactHeightfield;
-	if (!chf)
-		return NULL;
-	if (!rcBuildCompactHeightfield(cfg.walkableHeight, cfg.walkableClimb, RC_WALKABLE, *solid, *chf))
-		return NULL;
-
-	delete solid; 
-
-	// Prepare for region partitioning, by calculating distance field along the walkable surface.
-	if (!rcBuildDistanceField(*chf))
-		return NULL;
-
-	// Partition the walkable surface into simple regions without holes.
-	if (!rcBuildRegions(*chf, cfg.walkableRadius, cfg.borderSize, cfg.minRegionSize, cfg.mergeRegionSize))
-		return NULL;
-	
-	//
-	// Step 5. Trace and simplify region contours.
-	//
-	// Create contours.
-	cset = new rcContourSet;
-	if (!cset)
-		return NULL;
-
-	if (!rcBuildContours(*chf, cfg.maxSimplificationError, cfg.maxEdgeLen, *cset))
-		return NULL;
-
-	//
-	// Step 6. Build polygons mesh from contours.
-	//
-	pmesh = new rcPolyMesh;
-	if (!pmesh)
-		return NULL;
-	if (!rcBuildPolyMesh(*cset, cfg.maxVertsPerPoly, *pmesh))
-		return NULL;
-
-
-	//
-	// Step 7. Create detail mesh which allows to access approximate height on each polygon.
-	//
-
-	dmesh = new rcPolyMeshDetail;
-	if (!dmesh)
-		return NULL;
-
-	if (!rcBuildPolyMeshDetail(*pmesh, *chf, cfg.detailSampleDist, cfg.detailSampleMaxError, *dmesh))
-		return NULL;
-
-	delete chf;
-	delete cset;
-
-
-	//
-	// Create blender mesh from detail poly mesh 
-	//
-
-	numVerts = dmesh->nverts;
-	numFaces = dmesh->ntris;
-	numEdges = dmesh->ntris*3;
-
-	result = CDDM_new(numVerts, numEdges, numFaces);
-	//copy verts
-	for(i = 0; i < numVerts; i++) {
-		MVert *mv = CDDM_get_vert(result, i);
-		copy_v3_v3(mv->co, &dmesh->verts[3*i]);
-		SWAP(float, mv->co[1], mv->co[2]);
-	}
-
-	//create faces and edges
-	numFaces = numEdges = 0;
-	for (i=0; i<dmesh->nmeshes; i++)
-	{
-		unsigned short vbase = dmesh->meshes[4*i+0];
-		unsigned short vnum = dmesh->meshes[4*i+1];
-		unsigned short tribase = dmesh->meshes[4*i+2];
-		unsigned short trinum = dmesh->meshes[4*i+3];
-
-		for (j=0; j<trinum; j++)
-		{
-			unsigned char* tri = &dmesh->tris[4*(tribase+j)];
-			MFace *mf = CDDM_get_face(result, numFaces);
-			MEdge *med;
-			mf->v1 = vbase + tri[0];
-			mf->v2 = vbase + tri[1];
-			mf->v3 = vbase + tri[2];
-			numFaces++;
-			
-			{
-				int e1=0, e2=2;
-				for (;e1<3; e2=e1++)
-				{
-					med = CDDM_get_edge(result, numEdges);
-					med->v1 = vbase + tri[e2];
-					med->v2 = vbase + tri[e1];
-					numEdges++;
-				}
-			}
-		}
-	}
-
-	
-	delete pmesh;
-	delete dmesh;
-
-	return result;
-}
-
 inline int bit(int a, int b)
 {
 	return (a & (1 << b)) >> b;
 }
+
 inline void intToCol(int i, float* col)
 {
 	int	r = bit(i, 0) + bit(i, 3) * 2 + 1;
@@ -301,33 +70,42 @@ inline void intToCol(int i, float* col)
 	col[1] = 1 - g*63.0f/255.0f;
 	col[2] = 1 - b*63.0f/255.0f;
 }
+/*
+static void (*drawFacesSolid_original)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
+					   int fast, int (*setMaterial)(int, void *attribs)) = NULL;*/
 
-static void navDM_drawFacesSolid(DerivedMesh *dm,
-								float (*partial_redraw_planes)[4],
-								int fast, int (*setMaterial)(int, void *attribs))
+static void drawNavMeshColored(DerivedMesh *dm)
 {
 	int a, glmode;
 	MVert *mvert = (MVert *)CustomData_get_layer(&dm->vertData, CD_MVERT);
 	MFace *mface = (MFace *)CustomData_get_layer(&dm->faceData, CD_MFACE);
 	int* polygonIdx = (int*)CustomData_get_layer(&dm->faceData, CD_PROP_INT);
+	if (!polygonIdx)
+		return;
 	float col[3];
-	col[0] = 1.f;
-	col[1] = 0.f;
-	col[2] = 0.f;
+	/*
+	//UI_ThemeColor(TH_WIRE);
+	glDisable(GL_LIGHTING);
+	glLineWidth(2.0);
+	dm->drawEdges(dm, 0, 1);
+	glLineWidth(1.0);
+	glEnable(GL_LIGHTING);*/
+
+	glDisable(GL_LIGHTING);
 	if(GPU_buffer_legacy(dm) ) {
-		DEBUG_VBO( "Using legacy code. navDM_drawFacesSolid\n" );
+		DEBUG_VBO( "Using legacy code. drawNavMeshColored\n" );
 		//glShadeModel(GL_SMOOTH);
 		glBegin(glmode = GL_QUADS);
-		for(a = 0; a < dm->numFaceData; a++, mface++, polygonIdx++) {
+		for(a = 0; a < dm->numFaceData; a++, mface++) {
 			int new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
-			intToCol(a, col);
-			//intToCol(*polygonIdx, col);
+			int* polygonIdx = (int*)CustomData_get(&dm->faceData, a, CD_PROP_INT);
+			intToCol(*polygonIdx, col);
 
 			if(new_glmode != glmode) {
 				glEnd();
 				glBegin(glmode = new_glmode);
 			}
-			//glColor3fv(col);
+			glColor3fv(col);
 			glVertex3fv(mvert[mface->v1].co);
 			glVertex3fv(mvert[mface->v2].co);
 			glVertex3fv(mvert[mface->v3].co);
@@ -337,9 +115,23 @@ static void navDM_drawFacesSolid(DerivedMesh *dm,
 		}
 		glEnd();
 	}
+	glEnable(GL_LIGHTING);
 }
 
-static DerivedMesh *testCreateNavMesh(NavMeshModifierData *mmd,DerivedMesh *dm)
+static void navDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
+{
+	drawNavMeshColored(dm);
+}
+
+static void navDM_drawFacesSolid(DerivedMesh *dm,
+								float (*partial_redraw_planes)[4],
+								int fast, int (*setMaterial)(int, void *attribs))
+{
+	//drawFacesSolid_original(dm, partial_redraw_planes, fast, setMaterial);
+	drawNavMeshColored(dm);
+}
+
+static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,DerivedMesh *dm)
 {
 	int i;
 	DerivedMesh *result;
@@ -348,40 +140,23 @@ static DerivedMesh *testCreateNavMesh(NavMeshModifierData *mmd,DerivedMesh *dm)
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
 
-/*	MVert *mv;
-	MEdge *med;
-	MFace *mf;
-	numVerts = numEdges = numFaces = 0;
-
-	result = CDDM_new(3, 3, 1);
-	mv = CDDM_get_vert(result, 0);
-	mv->co[0] = -10; mv->co[1] = -10; mv->co[2] = 0;
-	mv = CDDM_get_vert(result, 1);
-	mv->co[0] = -10; mv->co[1] = 10; mv->co[2] = 0;
-	mv = CDDM_get_vert(result, 2);
-	mv->co[0] = 10; mv->co[1] = -10; mv->co[2] = 0;
+	result = CDDM_copy(dm);
+	CustomData_add_layer_named(&result->faceData, CD_PROP_INT, CD_DUPLICATE, 
+			CustomData_get_layer(&dm->faceData, CD_PROP_INT), maxFaces, "recastData");
 	
-	med = CDDM_get_edge(result, 0);
-	med->v1 = 0; med->v1 = 1;
-	med = CDDM_get_edge(result, 1);
-	med->v1 = 1; med->v1 = 2;
-	med = CDDM_get_edge(result, 2);
-	med->v1 = 2; med->v1 = 0;
+	/*result = CDDM_new(maxVerts, maxEdges, maxFaces);
+	DM_copy_vert_data(dm, result, 0, 0, maxVerts);
+	DM_copy_edge_data(dm, result, 0, 0, maxEdges);
+	DM_copy_face_data(dm, result, 0, 0, maxFaces);*/
 
-	mf = CDDM_get_face(result, 0);
-	mf->v1 = 0; mf->v2 = 1; mf->v3 = 2;
-*/
-
-	int actualFaces = 0;
-	for(i = 0; i < maxFaces; i++) {
-		int* polygonIdx = (int*)CustomData_get(&dm->faceData, i, CD_PROP_INT);
-		if (*polygonIdx==1)
-			actualFaces++;
-	}
-
-
-	result = CDDM_new(maxVerts, maxEdges, maxFaces);//maxFaces actualFaces
+	
+	/*
+	if (!drawFacesSolid_original)
+		drawFacesSolid_original= result->drawFacesSolid;*/
+	result->drawFacesTex =  navDM_drawFacesTex;
 	result->drawFacesSolid = navDM_drawFacesSolid;
+	
+/*
 	numVerts = numEdges = numFaces = 0;
 	for(i = 0; i < maxVerts; i++) {
 		MVert inMV;
@@ -390,10 +165,9 @@ static DerivedMesh *testCreateNavMesh(NavMeshModifierData *mmd,DerivedMesh *dm)
 		dm->getVert(dm, i, &inMV);
 		copy_v3_v3(co, inMV.co);
 		*mv = inMV;
-		mv->co[2] +=.5f;
+		//mv->co[2] +=.5f;
 		numVerts++;
 	}
-	
 	for(i = 0; i < maxEdges; i++) {
 		MEdge inMED;
 		MEdge *med = CDDM_get_edge(result, numEdges);
@@ -401,36 +175,35 @@ static DerivedMesh *testCreateNavMesh(NavMeshModifierData *mmd,DerivedMesh *dm)
 		*med = inMED;
 		numEdges++;
 	}
-
 	for(i = 0; i < maxFaces; i++) {
-		/*
-		int* polygonIdx = (int*)CustomData_get(&dm->faceData, i, CD_PROP_INT);
-		if (*polygonIdx!=2)
-			continue;*/
-		
 		MFace inMF;
 		MFace *mf = CDDM_get_face(result, numFaces);
 		dm->getFace(dm, i, &inMF);
 		*mf = inMF;
 		numFaces++;
-	}
+	}*/
 
 	return result;
 }
+
+/*
+static int isDisabled(ModifierData *md, int useRenderParams)
+{
+	NavMeshModifierData *amd = (NavMeshModifierData*) md;
+	return false; 
+}*/
+
 
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
 								  int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *result;
-
+	DerivedMesh *result = NULL;
 	NavMeshModifierData *nmmd = (NavMeshModifierData*) md;
 
-
-	//for test
-	//result = testCreateNavMesh(nmmd, derivedData);
-	//result = buildNavMesh(nmmd, derivedData);
-
+	if (ob->body_type==OB_BODY_TYPE_NAVMESH)
+		result = createNavMeshForVisualization(nmmd, derivedData);
+	
 	return result;
 }
 
@@ -440,7 +213,8 @@ ModifierTypeInfo modifierType_NavMesh = {
 	/* structName */        "NavMeshModifierData",
 	/* structSize */        sizeof(NavMeshModifierData),
 	/* type */              eModifierTypeType_Constructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh,
+	/* flags */             (ModifierTypeFlag) (eModifierTypeFlag_AcceptsMesh
+							| eModifierTypeFlag_NoUserAdd),
 	/* copyData */          copyData,
 	/* deformVerts */       0,
 	/* deformVertsEM */     0,
