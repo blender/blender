@@ -481,7 +481,12 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
     GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setTitle(): window invalid")
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-	NSString *windowTitle = [[NSString alloc] initWithUTF8String:title];
+	NSString *windowTitle = [[NSString alloc] initWithCString:title encoding:NSASCIIStringEncoding];
+	
+	if (windowTitle == nil) {
+		[pool drain];
+		return;
+	}
 	
 	//Set associated file if applicable
 	if ([windowTitle hasPrefix:@"Blender"])
@@ -530,7 +535,7 @@ void GHOST_WindowCocoa::getTitle(STR_String& title) const
 	NSString *windowTitle = [m_window title];
 
 	if (windowTitle != nil) {
-		title = [windowTitle UTF8String];		
+		title = [windowTitle cStringUsingEncoding:NSASCIIStringEncoding];		
 	}
 	
 	[pool drain];
