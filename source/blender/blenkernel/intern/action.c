@@ -301,7 +301,7 @@ void action_groups_add_channel (bAction *act, bActionGroup *agrp, FCurve *fcurve
 		/* firstly, link this F-Curve to the group */
 		agrp->channels.first = agrp->channels.last = fcurve;
 		
-		/* step through the groups preceeding this one, finding the F-Curve there to attach this one after */
+		/* step through the groups preceding this one, finding the F-Curve there to attach this one after */
 		for (grp= agrp->prev; grp; grp= grp->prev) {
 			/* if this group has F-Curves, we want weave the given one in right after the last channel there,
 			 * but via the Action's list not this group's list

@@ -155,7 +155,7 @@
 #include <errno.h>
 
 /*
- Remark: still a weak point is the newadress() function, that doesnt solve reading from
+ Remark: still a weak point is the newaddress() function, that doesnt solve reading from
  multiple files at the same time
 
  (added remark: oh, i thought that was solved? will look at that... (ton)
@@ -1539,7 +1539,6 @@ static void lib_link_brush(FileData *fd, Main *main)
 			brush->id.flag -= LIB_NEEDLINK;
 
 			brush->mtex.tex= newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
-			brush->image_icon= newlibadr_us(fd, brush->id.lib, brush->image_icon);
 			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
 		}
 	}
@@ -1555,6 +1554,9 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 		direct_link_curvemapping(fd, brush->curve);
 	else
 		brush_curve_preset(brush, CURVE_PRESET_SHARP);
+
+	brush->preview= NULL;
+	brush->icon_imbuf= NULL;
 }
 
 static void direct_link_script(FileData *fd, Script *script)

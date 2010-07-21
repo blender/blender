@@ -8,36 +8,37 @@ incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna ../makesrna'
 incs += ' extern/include ../blenkernel ../radiosity/extern/include ../imbuf'
 incs += ' ../include ../blenloader ../../../intern/smoke/extern'
 
-cflags = env['CCFLAGS']
-cxxflags = env['CXXFLAGS']
+cflags_raytrace = env['CCFLAGS']
+cxxflags_raytrace = env['CXXFLAGS']
 
 defs = []
+defs_raytrace = []
 
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
     if env['WITH_BF_RAYOPTIMIZATION']:
-        cflags = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
-        cxxflags = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cflags_raytrace = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cxxflags_raytrace = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
 
 if env['OURPLATFORM'] == 'win32-mingw':
     if env['WITH_BF_RAYOPTIMIZATION']:
-        cflags = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
-        cxxflags = env['CXXFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cflags_raytrace = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cxxflags_raytrace = env['CXXFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
 
 if env['OURPLATFORM'] == 'darwin':
     if env['MACOSX_ARCHITECTURE'] in ('i386', 'x86_64') and env['WITH_BF_RAYOPTIMIZATION']:
-        cflags = env['CFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
-        cxxflags = env['CXXFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cflags_raytrace = env['CFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cxxflags_raytrace = env['CXXFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
         
 if env['OURPLATFORM'] == 'linux2':
     if env['WITH_BF_RAYOPTIMIZATION']:
-        cflags = env['CCFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
-        cxxflags = env['CXXFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cflags_raytrace = env['CCFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cxxflags_raytrace = env['CXXFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
     incs += ' ../../../extern/binreloc/include'
 
 if env['OURPLATFORM'] == 'linuxcross':
     if env['WITH_BF_RAYOPTIMIZATION']:
-        cflags = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
-        cxxflags = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cflags_raytrace = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cxxflags_raytrace = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
 
 if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
@@ -53,10 +54,12 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
 # HACK: To fix problem with error 'MMX instruction set not enabled' from mmintrin.h
 #
 if env['OURPLATFORM'] == 'linuxcross':
-    defs.append('__MMX__')
+    defs.append('__SSE__')
+    defs_raytrace.append('__MMX__')
 
 if env['WITH_BF_RAYOPTIMIZATION']:
     defs.append('__SSE__')
+    defs_raytrace.append('__SSE__')
 
-env.BlenderLib ( libname = 'bf_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=145, compileflags=cflags )
-env.BlenderLib ( libname = 'bf_render_raytrace', sources = raysources, includes = Split(incs), defines=defs, libtype='core', priority=145, compileflags=cflags, cxx_compileflags=cxxflags )
+env.BlenderLib ( libname = 'bf_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=145 )
+env.BlenderLib ( libname = 'bf_render_raytrace', sources = raysources, includes = Split(incs), defines=defs_raytrace, libtype='core', priority=145, compileflags=cflags_raytrace, cxx_compileflags=cxxflags_raytrace )

@@ -359,7 +359,7 @@ int STR_String::Find(char c, int pos) const
 
 
 //
-// Find the first occurence of <str> in the string
+// Find the first occurrence of <str> in the string
 //
 int	STR_String::Find(const char *str, int pos) const
 {
@@ -373,7 +373,7 @@ int	STR_String::Find(const char *str, int pos) const
 
 
 //
-// Find the first occurence of <str> in the string
+// Find the first occurrence of <str> in the string
 //
 int	STR_String::Find(rcSTR_String str, int pos) const
 {
@@ -387,7 +387,7 @@ int	STR_String::Find(rcSTR_String str, int pos) const
 
 
 //
-// Find the last occurence of <c> in the string
+// Find the last occurrence of <c> in the string
 //
 int STR_String::RFind(char c) const
 {
@@ -399,7 +399,7 @@ int STR_String::RFind(char c) const
 
 
 //
-// Find the first occurence of any character in character set <set> in the string
+// Find the first occurrence of any character in character set <set> in the string
 //
 int STR_String::FindOneOf(const char *set, int pos) const
 {

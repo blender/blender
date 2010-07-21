@@ -906,7 +906,7 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 			*array_index= dummy_index;
 	}
 	
-	/* append preceeding bits to path */
+	/* append preceding bits to path */
 	if ((actname && actname[0]) && (constname && constname[0])) {
 		/* Constraint in Pose-Channel */
 		sprintf(buf, "pose.bones[\"%s\"].constraints[\"%s\"]", actname, constname);

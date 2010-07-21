@@ -1989,20 +1989,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mini Axis Brightness", "The brightness of the icon");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	/* middle mouse button */
-	prop= RNA_def_property(srna, "use_middle_mouse_paste", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_MMB_PASTE);
-	RNA_def_property_ui_text(prop, "Middle Mouse Paste", "In text window, paste with middle mouse button instead of panning");
-	
-	prop= RNA_def_property(srna, "wheel_invert_zoom", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_WHEELZOOMDIR);
-	RNA_def_property_ui_text(prop, "Wheel Invert Zoom", "Swap the Mouse Wheel zoom direction");
-
-	prop= RNA_def_property(srna, "wheel_scroll_lines", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "wheellinescroll");
-	RNA_def_property_range(prop, 0, 32);
-	RNA_def_property_ui_text(prop, "Wheel Scroll Lines", "The number of lines scrolled at a time with the mouse wheel");
-
 	prop= RNA_def_property(srna, "smooth_view", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "smooth_viewtx");
 	RNA_def_property_range(prop, 0, 1000);
@@ -2671,6 +2657,20 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "emulate_numpad", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_NONUMPAD);
 	RNA_def_property_ui_text(prop, "Emulate Numpad", "Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
+	
+	/* middle mouse button */
+	prop= RNA_def_property(srna, "use_middle_mouse_paste", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_MMB_PASTE);
+	RNA_def_property_ui_text(prop, "Middle Mouse Paste", "In text window, paste with middle mouse button instead of panning");
+	
+	prop= RNA_def_property(srna, "wheel_invert_zoom", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_WHEELZOOMDIR);
+	RNA_def_property_ui_text(prop, "Wheel Invert Zoom", "Swap the Mouse Wheel zoom direction");
+
+	prop= RNA_def_property(srna, "wheel_scroll_lines", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "wheellinescroll");
+	RNA_def_property_range(prop, 0, 32);
+	RNA_def_property_ui_text(prop, "Wheel Scroll Lines", "The number of lines scrolled at a time with the mouse wheel");
 	
 	/* U.keymaps - custom keymaps that have been edited from default configs */
 	prop= RNA_def_property(srna, "edited_keymaps", PROP_COLLECTION, PROP_NONE);

@@ -1554,7 +1554,7 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 	ot->exec= frame_jump_exec;
 	
 	ot->poll= ED_operator_screenactive;
-	ot->flag= 0;
+	ot->flag= OPTYPE_UNDO;
 	
 	/* rna */
 	RNA_def_boolean(ot->srna, "end", 0, "Last Frame", "Jump to the last frame of the frame range.");
@@ -1633,7 +1633,7 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 	ot->exec= keyframe_jump_exec;
 	
 	ot->poll= ED_operator_screenactive;
-	ot->flag= 0;
+	ot->flag= OPTYPE_UNDO;
 	
 	/* rna */
 	RNA_def_boolean(ot->srna, "next", 1, "Next Keyframe", "");

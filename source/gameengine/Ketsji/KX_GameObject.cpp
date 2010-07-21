@@ -846,7 +846,7 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 	{	
 		case 0: //x axis
 			ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
-			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector paralell to the pivot?
+			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector parallel to the pivot?
 				ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
 			if (fac == 1.0) {
 				x = vect;

@@ -174,7 +174,7 @@ void GRAPH_OT_cursor_set(wmOperatorType *ot)
 	ot->poll= ED_operator_ipo_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
 
 	/* rna */
 	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);

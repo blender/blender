@@ -506,7 +506,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
 def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, SPLIT_MATERIALS):
     '''
-    Takes vert_loc and faces, and seperates into multiple sets of
+    Takes vert_loc and faces, and separates into multiple sets of
     (verts_loc, faces, unique_materials, dataname)
     '''
 
@@ -1346,7 +1346,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
     'Separate objects from obj...',\
     ('Object', SPLIT_OBJECTS, 'Import OBJ Objects into Blender Objects'),\
     ('Group', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
-    ('Split Materials', SPLIT_MATERIALS, 'Import each material into a seperate mesh'),\
+    ('Split Materials', SPLIT_MATERIALS, 'Import each material into a separate mesh'),\
     'Options...',\
     ('Keep Vert Order', KEEP_VERT_ORDER, 'Keep vert and face order, disables some other options.'),\
     ('Clamp Scale:', CLAMP_SIZE, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)'),\
@@ -1432,7 +1432,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
             Draw.BeginAlign()
             SPLIT_OBJECTS = Draw.Toggle('Object', EVENT_REDRAW, ui_x+9, ui_y+89, 55, 21, SPLIT_OBJECTS.val, 'Import OBJ Objects into Blender Objects', do_split)
             SPLIT_GROUPS = Draw.Toggle('Group', EVENT_REDRAW, ui_x+64, ui_y+89, 55, 21, SPLIT_GROUPS.val, 'Import OBJ Groups into Blender Objects', do_split)
-            SPLIT_MATERIALS = Draw.Toggle('Split Materials', EVENT_REDRAW, ui_x+119, ui_y+89, 60, 21, SPLIT_MATERIALS.val, 'Import each material into a seperate mesh', do_split)
+            SPLIT_MATERIALS = Draw.Toggle('Split Materials', EVENT_REDRAW, ui_x+119, ui_y+89, 60, 21, SPLIT_MATERIALS.val, 'Import each material into a separate mesh', do_split)
             Draw.EndAlign()
 
             # Only used for user feedback
@@ -1570,7 +1570,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
     CREATE_EDGES = BoolProperty(name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default= True)
     SPLIT_OBJECTS = BoolProperty(name="Object", description="Import OBJ Objects into Blender Objects", default= True)
     SPLIT_GROUPS = BoolProperty(name="Group", description="Import OBJ Groups into Blender Objects", default= True)
-    SPLIT_MATERIALS = BoolProperty(name="Split Materials", description="Import each material into a seperate mesh", default= False)
+    SPLIT_MATERIALS = BoolProperty(name="Split Materials", description="Import each material into a separate mesh", default= False)
     # old comment: only used for user feedback
     # disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
     # KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)

@@ -1550,7 +1550,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						NSPoint mousePos = [event locationInWindow];
 						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
 						m_cursorDelta_x=0;
-						m_cursorDelta_y=0; //Mouse motion occured between two cursor warps, so we can reset the delta counter
+						m_cursorDelta_y=0; //Mouse motion occurred between two cursor warps, so we can reset the delta counter
 					}
 						break;
 				}

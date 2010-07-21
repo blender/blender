@@ -61,6 +61,7 @@ PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );
 void BaseMathObject_dealloc(BaseMathObject * self);
 
 PyObject *Mathutils_Init(void);
+PyObject *Noise_Init(void); /* lazy, saves having own header */
 
 PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);
 

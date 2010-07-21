@@ -69,7 +69,7 @@ typedef struct PaintStroke {
 
 	float last_mouse_position[2];
 
-	/* Set whether any stroke step has yet occured
+	/* Set whether any stroke step has yet occurred
 	   e.g. in sculpt mode, stroke doesn't start until cursor
 	   passes over the mesh */
 	int stroke_started;

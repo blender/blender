@@ -187,7 +187,7 @@ vector<NG_NetworkMessage*> NG_NetworkScene::FindMessages(
 	if (!notfound)
 		notfound = (subject.IsEmpty() ? notfound : m_messagesBySubject[subject] == NULL);
 	if (notfound) {
-		// it's definately NOT in the scene, so stop looking
+		// it's definitely NOT in the scene, so stop looking
 	} else { // narrow phase
 		// possibly it's there, but maybe not (false hit)
 		if (to.IsEmpty()) {

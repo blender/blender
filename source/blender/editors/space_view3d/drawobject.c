@@ -907,7 +907,7 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 
 	draw_spot_cone(la, x, z);
 
-	/* draw front side lightening */
+	/* draw front side lighting */
 	glCullFace(GL_BACK);
 
 	glBlendFunc(GL_ONE,  GL_ONE); 

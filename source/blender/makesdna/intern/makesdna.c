@@ -138,11 +138,11 @@ int maxdata= 500000, maxnr= 50000;
 int nr_names=0;
 int nr_types=0;
 int nr_structs=0;
-char **names, *namedata;		/* at adress names[a] is string a */
-char **types, *typedata;		/* at adress types[a] is string a */
+char **names, *namedata;		/* at address names[a] is string a */
+char **types, *typedata;		/* at address types[a] is string a */
 short *typelens;				/* at typelens[a] is de length of type a */
 short *alphalens;			    /* contains sizes as they are calculated on the DEC Alpha (64 bits) */
-short **structs, *structdata;	/* at sp= structs[a] is the first adress of a struct definition
+short **structs, *structdata;	/* at sp= structs[a] is the first address of a struct definition
 								   sp[0] is type number
 								   sp[1] is amount of elements
 								   sp[2] sp[3] is typenr,  namenr (etc) */

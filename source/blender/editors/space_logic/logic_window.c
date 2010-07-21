@@ -1610,7 +1610,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 					str = "Type %t|Up Axis %x1 |Down Axis %x3|Left Axis %x2|Right Axis %x0"; 
 					uiDefButI(block, MENU, B_REDR, str, xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
 					&joy->axisf, 2.0, 31, 0, 0,
-					"The direction of the axis, use 'All Events' to recieve events on any direction");
+					"The direction of the axis, use 'All Events' to receive events on any direction");
 				}
 			}
 			else if (joy->type == SENS_JOY_HAT)
@@ -1623,7 +1623,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 					str = "Direction%t|Up%x1|Down%x4|Left%x8|Right%x2|%l|Up/Right%x3|Down/Left%x12|Up/Left%x9|Down/Right%x6"; 
 					uiDefButI(block, MENU, 0, str, xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
 					&joy->hatf, 2.0, 31, 0, 0,
-					"The direction of the hat, use 'All Events' to recieve events on any direction");
+					"The direction of the hat, use 'All Events' to receive events on any direction");
 				}
 			}
 			else { /* (joy->type == SENS_JOY_AXIS_SINGLE)*/
@@ -3173,12 +3173,6 @@ static int is_sensor_linked(uiBlock *block, bSensor *sens)
 	}
 	return 0;
 }
-
-/* never used, see CVS 1.134 for the code */
-/*  static FreeCamera *new_freecamera(void) */
-
-/* never used, see CVS 1.120 for the code */
-/*  static uiBlock *freecamera_menu(void) */
 
 /* Sensors code */
 

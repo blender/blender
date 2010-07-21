@@ -52,11 +52,11 @@ typedef struct World {
 	
 	short colormodel, totex;
 	short texact, mistype;
-	
-	/* TODO - hork, zenk and ambk are not used, should remove at some point (Campbell) */
-	float horr, horg, horb, hork;
-	float zenr, zeng, zenb, zenk;
-	float ambr, ambg, ambb, ambk;
+
+	float horr, horg, horb;
+	float zenr, zeng, zenb;
+	float ambr, ambg, ambb;
+	float pad2;
 
 	unsigned int fastcol;	
 	
