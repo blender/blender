@@ -1116,6 +1116,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
+	ar->swap= 0; /* mark invalid backbuf for wm draw */
 
 	G.f &= ~G_BACKBUFSEL;
 	v3d->zbuf= FALSE; 
