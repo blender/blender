@@ -3420,7 +3420,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select/Deselect All";
+	ot->name= "Select or Deselect All";
 	ot->description= "Change selection of all vertices, edges or faces";
 	ot->idname= "MESH_OT_select_all";
 	
