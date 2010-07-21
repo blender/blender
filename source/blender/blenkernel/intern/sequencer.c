@@ -55,6 +55,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 #include <pthread.h>
 
 #include "IMB_imbuf.h"
@@ -2258,7 +2259,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			seq->scene->markers.first= seq->scene->markers.last= NULL;
 #endif
 
-			if(sequencer_view3d_cb && doseq_gl && (seq->scene == scene || have_seq==0) && seq->scene->camera) {
+			if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (seq->scene == scene || have_seq==0) && seq->scene->camera) {
 				/* opengl offscreen render */
 				scene_update_for_newframe(seq->scene, seq->scene->lay);
 				se->ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, scene->r.seq_prev_type);
