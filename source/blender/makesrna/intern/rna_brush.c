@@ -265,7 +265,7 @@ static void rna_def_brush(BlenderRNA *brna)
 		{BRUSH_ICON_BLOB, "BLOB", 0, "Blob", ""},
 		{BRUSH_ICON_CREASE, "CREASE", 0, "Crease", ""},
 		{BRUSH_ICON_CLAY, "CLAY", 0, "Clay", ""},
-		{BRUSH_ICON_DRAW, "DRAW", 0, "Draw", ""},
+		{BRUSH_ICON_SCULPTDRAW, "SCULPTDRAW", 0, "Sculpt Draw", ""},
 		{BRUSH_ICON_FILL, "FILL", 0, "Fill", ""},
 		{BRUSH_ICON_FLATTEN, "FLATTEN", 0, "Flatten", ""},
 		{BRUSH_ICON_GRAB, "GRAB", 0, "Grab", ""},
@@ -278,6 +278,18 @@ static void rna_def_brush(BlenderRNA *brna)
 		{BRUSH_ICON_SMOOTH, "SMOOTH", 0, "Smooth", ""},
 		{BRUSH_ICON_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
 		{BRUSH_ICON_THUMB, "THUMB", 0, "Thumb", ""},
+		{BRUSH_ICON_ADD, "ADD", 0, "Add", ""},
+		{BRUSH_ICON_BLUR, "BLUR", 0, "Blur", ""},
+		{BRUSH_ICON_CLONE, "CLONE", 0, "Clone", ""},
+		{BRUSH_ICON_DARKEN, "DARKEN", 0, "Darken", ""},
+		{BRUSH_ICON_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
+		{BRUSH_ICON_MIX, "MIX", 0, "Mix", ""},
+		{BRUSH_ICON_MULTIPLY, "MULTIPLY", 0, "Multiply", ""},
+		{BRUSH_ICON_SMEAR, "SMEAR", 0, "Smear", ""},
+		{BRUSH_ICON_SOFTEN, "SOFTEN", 0, "Soften", ""},
+		{BRUSH_ICON_SUBTRACT, "SUBTRACT", 0, "Subtract", ""},
+		{BRUSH_ICON_TEXDRAW, "TEXDRAW", 0, "Texture Draw", ""},
+		{BRUSH_ICON_VERTEXDRAW, "VERTEXDRAW", 0, "Vertex Draw", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	FunctionRNA *func;

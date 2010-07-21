@@ -149,10 +149,11 @@ typedef struct Brush {
 
 /* Internal Icons */
 #define BRUSH_ICON_FILE        0
+
 #define BRUSH_ICON_BLOB        1
 #define BRUSH_ICON_CLAY        2
 #define BRUSH_ICON_CREASE      3
-#define BRUSH_ICON_DRAW        4
+#define BRUSH_ICON_SCULPTDRAW        4
 #define BRUSH_ICON_FILL        5
 #define BRUSH_ICON_FLATTEN     6
 #define BRUSH_ICON_GRAB        7
@@ -165,7 +166,21 @@ typedef struct Brush {
 #define BRUSH_ICON_SNAKE_HOOK 14
 #define BRUSH_ICON_THUMB      15
 #define BRUSH_ICON_TWIST      16
-#define BRUSH_ICON_COUNT      17
+
+#define BRUSH_ICON_ADD        17
+#define BRUSH_ICON_BLUR       18
+#define BRUSH_ICON_CLONE      19
+#define BRUSH_ICON_DARKEN     20
+#define BRUSH_ICON_LIGHTEN    21
+#define BRUSH_ICON_MIX        22
+#define BRUSH_ICON_MULTIPLY   23
+#define BRUSH_ICON_SMEAR      24
+#define BRUSH_ICON_SOFTEN     25
+#define BRUSH_ICON_SUBTRACT   26
+#define BRUSH_ICON_TEXDRAW    27
+#define BRUSH_ICON_VERTEXDRAW 28
+
+#define BRUSH_ICON_COUNT      29
 
 /* ImagePaintSettings.tool */
 #define PAINT_TOOL_DRAW		0
