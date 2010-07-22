@@ -1074,8 +1074,13 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 						// if (m_input_fidelity_hint == HI_FI) // can't access hint from static function
 							
 						putchar('\n');
-						/* int n = */ getMoreMousePoints(mousePosX, mousePosY, xPrev, yPrev, window);
-//						printf("%d more mouse points found\n", n);
+
+						if (m_input_fidelity_hint == HI_FI)
+							{
+							/* int n = */ getMoreMousePoints(mousePosX, mousePosY, xPrev, yPrev, window);
+							// printf("%d more mouse points found\n", n);
+							}
+
 						printf("  (%d,%d)\n", mousePosX, mousePosY);
 
 						event = processCursorEvent(GHOST_kEventCursorMove, window, mousePosX, mousePosY);
