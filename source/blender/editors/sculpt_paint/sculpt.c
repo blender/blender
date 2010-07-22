@@ -112,8 +112,14 @@ void ED_sculpt_force_update(bContext *C)
    it's the last modifier on the stack and it is not on the first level */
 struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 {
+	Mesh *me= (Mesh*)ob->data;
 	ModifierData *md, *nmd;
-	
+
+	if(!CustomData_get_layer(&me->fdata, CD_MDISPS)) {
+		/* multires can't work without displacement layer */
+		return NULL;
+	}
+
 	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
 		if(md->type == eModifierType_Multires) {
 			MultiresModifierData *mmd= (MultiresModifierData*)md;
