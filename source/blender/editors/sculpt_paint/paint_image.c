@@ -4830,7 +4830,9 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		if ((pop->s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|BRUSH_SPACING_PRESSURE)) && tablet && (pressure >= 0.99f))
 			return;
 
-		/* at zero pressure we should do nothing 1/2^12 is .0002 which is the sensitivity of the most sensitive pen tablet available*/
+		/* This can be removed once fixed properly in
+		 brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user) 
+		 at zero pressure we should do nothing 1/2^12 is .0002 which is the sensitivity of the most sensitive pen tablet available*/
 		if ((pop->s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|BRUSH_SPACING_PRESSURE)) && tablet && (pressure <= 0.0002f))
 			return;
 	
