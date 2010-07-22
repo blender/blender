@@ -189,6 +189,12 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 	ARegion *ar;
 	static rcti rect= {0, 0, 0, 0};
 
+	/* back needs to be ok for swap, if not, mark for redraw */
+	for(sa= screen->areabase.first; sa; sa= sa->next)
+		for(ar= sa->regionbase.first; ar; ar= ar->next)
+			if(ar->swinid && !(ar->swap & WIN_BACK_OK))
+				ar->do_draw= RGN_DRAW;
+
 	/* flush overlapping regions */
 	if(screen->regionbase.first) {
 		/* flush redraws of area regions up to overlapping regions */
