@@ -51,6 +51,7 @@
 #include "BKE_global.h"
 
 #include "MEM_guardedalloc.h"
+#include "MEM_CacheLimiterC-Api.h"
 
 static void rna_userdef_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -169,6 +170,11 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 static void rna_UserDef_audio_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	sound_init(bmain);
+}
+
+static void rna_Userdef_memcache_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
 }
 
 static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -2477,6 +2483,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "memcachelimit");
 	RNA_def_property_range(prop, 0, (sizeof(void *) ==8)? 1024*16: 1024); /* 32 bit 2 GB, 64 bit 16 GB */
 	RNA_def_property_ui_text(prop, "Memory Cache Limit", "Memory cache limit in sequencer (megabytes)");
+	RNA_def_property_update(prop, 0, "rna_Userdef_memcache_update");
 
 	prop= RNA_def_property(srna, "frame_server_port", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frameserverport");
