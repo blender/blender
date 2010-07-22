@@ -589,9 +589,10 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 	Brush *brush = paint_brush(&sd->paint);
 
 	/* Primary strength input; square it to make lower values more sensitive */
-	float alpha        = sculpt_get_brush_alpha(brush)*sculpt_get_brush_alpha(brush);
+	const root_alpha   = brush_alpha(brush);
+	float alpha        = root_alpha*root_alpha;
 	float dir          = brush->flag & BRUSH_DIR_IN ? -1 : 1;
-	float pressure     = brush->flag & BRUSH_ALPHA_PRESSURE	? cache->pressure : 1;
+	float pressure     = brush_use_alpha_pressure(brush) ? cache->pressure : 1;
 	float pen_flip     = cache->pen_flip ? -1 : 1;
 	float invert       = cache->invert ? -1 : 1;
 	float accum        = integrate_overlap(brush);
@@ -739,7 +740,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float *point, const floa
 	else if(ss->texcache) {
 		float rotation = -mtex->rot;
 		float x, y, point_2d[3];
-		float diameter;
+		float radius;
 
 		/* if the active area is being applied for symmetry, flip it
 		   across the symmetry axis and rotate it back to the orignal
@@ -760,7 +761,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float *point, const floa
 			point_2d[0] -= ss->cache->tex_mouse[0];
 			point_2d[1] -= ss->cache->tex_mouse[1];
 
-			diameter = ss->cache->pixel_radius; // use pressure adjusted size for fixed mode
+			radius = ss->cache->pixel_radius; // use pressure adjusted size for fixed mode
 
 			x = point_2d[0];
 			y = point_2d[1];
@@ -768,7 +769,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float *point, const floa
 		else /* else (mtex->brush_map_mode == MTEX_MAP_MODE_TILED),
 		        leave the coordinates relative to the screen */
 		{
-			diameter = sculpt_get_brush_size(br); // use unadjusted size for tiled mode
+			radius = brush_size(br); // use unadjusted size for tiled mode
 		
 			x = point_2d[0] - ss->cache->vc->ar->winrct.xmin;
 			y = point_2d[1] - ss->cache->vc->ar->winrct.ymin;
@@ -782,8 +783,8 @@ static float tex_strength(SculptSession *ss, Brush *br, float *point, const floa
 			y -= 0.5f;
 		}
 		
-		x *= ss->cache->vc->ar->winx / diameter;
-		y *= ss->cache->vc->ar->winy / diameter;
+		x *= ss->cache->vc->ar->winx / radius;
+		y *= ss->cache->vc->ar->winy / radius;
 
 		/* it is probably worth optimizing for those cases where 
 		   the texture is not rotated by skipping the calls to
@@ -1253,8 +1254,8 @@ static void do_crease_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int
 	
 	/* we divide out the squared alpha and multiply by the squared crease to give us the pinch strength */
 	
-	if(sculpt_get_brush_alpha(brush) > 0.0f)
-		crease_correction = brush->crease_pinch_factor*brush->crease_pinch_factor/(sculpt_get_brush_alpha(brush)*sculpt_get_brush_alpha(brush));
+	if(brush_alpha(brush) > 0.0f)
+		crease_correction = brush->crease_pinch_factor*brush->crease_pinch_factor/(brush_alpha(brush)*brush_alpha(brush));
 	else
 		crease_correction = brush->crease_pinch_factor*brush->crease_pinch_factor;
 
@@ -1807,7 +1808,12 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, SculptSession *ss, P
 	normalize_v3(an);
 
 	// fc
-	mul_v3_fl(fc, 1.0f / count);
+	if (count != 0) {
+		mul_v3_fl(fc, 1.0f / count);
+	}
+	else {
+		zero_v3(fc);
+	}
 }
 
 static void calc_sculpt_plane(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int totnode, float an[3], float fc[3])
@@ -2614,6 +2620,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd, SculptSession *ss)
 static void sculpt_update_tex(Sculpt *sd, SculptSession *ss)
 {
 	Brush *brush = paint_brush(&sd->paint);
+	const int radius= brush_size(brush);
 
 	if(ss->texcache) {
 		MEM_freeN(ss->texcache);
@@ -2621,9 +2628,9 @@ static void sculpt_update_tex(Sculpt *sd, SculptSession *ss)
 	}
 
 	/* Need to allocate a bigger buffer for bigger brush size */
-	ss->texcache_side = 2*sculpt_get_brush_size(brush);
+	ss->texcache_side = 2*radius;
 	if(!ss->texcache || ss->texcache_side > ss->texcache_actual) {
-		ss->texcache = brush_gen_texture_cache(brush, sculpt_get_brush_size(brush));
+		ss->texcache = brush_gen_texture_cache(brush, radius);
 		ss->texcache_actual = ss->texcache_side;
 	}
 }
@@ -2795,50 +2802,6 @@ static void sculpt_cache_free(StrokeCache *cache)
 	if(cache->mats)
 		MEM_freeN(cache->mats);
 	MEM_freeN(cache);
-}
-
-int sculpt_get_brush_size(Brush *brush)
-{
-	return (U.sculpt_paint_settings & SCULPT_PAINT_USE_UNIFIED_SIZE) ? U.sculpt_paint_unified_size : brush->size;
-}
-
-void sculpt_set_brush_size(Brush *brush, int size)
-{
-	if (U.sculpt_paint_settings & SCULPT_PAINT_USE_UNIFIED_SIZE)
-		U.sculpt_paint_unified_size = size;
-	else
-		brush->size = size;
-}
-
-int sculpt_get_lock_brush_size(Brush *brush)
-{
-	return (U.sculpt_paint_settings & SCULPT_PAINT_USE_UNIFIED_SIZE) ? (U.sculpt_paint_settings & SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE) : (brush->flag & BRUSH_LOCK_SIZE);
-}
-
-float sculpt_get_brush_unprojected_radius(Brush *brush)
-{
-	return (U.sculpt_paint_settings & SCULPT_PAINT_USE_UNIFIED_SIZE) ? U.sculpt_paint_unified_unprojected_radius : brush->unprojected_radius;
-}
-
-void sculpt_set_brush_unprojected_radius(Brush *brush, float unprojected_radius)
-{
-	if (U.sculpt_paint_settings & SCULPT_PAINT_USE_UNIFIED_SIZE)
-		U.sculpt_paint_unified_unprojected_radius = unprojected_radius;
-	else
-		brush->unprojected_radius = unprojected_radius;
-}
-
-float sculpt_get_brush_alpha(Brush *brush)
-{
-	return (U.sculpt_paint_settings & SCULPT_PAINT_USE_UNIFIED_ALPHA) ? U.sculpt_paint_unified_alpha : brush->alpha;
-}
-
-void sculpt_set_brush_alpha(Brush *brush, float alpha)
-{
-	if (U.sculpt_paint_settings & SCULPT_PAINT_USE_UNIFIED_ALPHA) 
-		U.sculpt_paint_unified_alpha = alpha;
-	else
-		brush->alpha = alpha;
 }
 
 /* Initialize the stroke cache invariants from operator properties */
@@ -3064,22 +3027,22 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, SculptSession 
 	sd->pressure_value= cache->pressure;
 
 	cache->previous_pixel_radius = cache->pixel_radius;
-	cache->pixel_radius = sculpt_get_brush_size(brush);
+	cache->pixel_radius = brush_size(brush);
 
 	if(cache->first_time) {
-		if (!sculpt_get_lock_brush_size(brush)) {
-			cache->initial_radius= unproject_brush_radius(ss->ob, cache->vc, cache->true_location, sculpt_get_brush_size(brush));
-			sculpt_set_brush_unprojected_radius(brush, cache->initial_radius);
+		if (!brush_use_locked_size(brush)) {
+			cache->initial_radius= unproject_brush_radius(ss->ob, cache->vc, cache->true_location, brush_size(brush));
+			brush_set_unprojected_radius(brush, cache->initial_radius);
 		}
 		else {
-			cache->initial_radius= sculpt_get_brush_unprojected_radius(brush);
+			cache->initial_radius= brush_unprojected_radius(brush);
 		}
 
 		if (ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK))
 			cache->initial_radius *= 2.0f;
 	}
 
-	if(brush->flag & BRUSH_SIZE_PRESSURE) {
+	if(brush_use_size_pressure(brush)) {
 		cache->pixel_radius *= cache->pressure;
 		cache->radius= cache->initial_radius * cache->pressure;
 	}
@@ -3290,7 +3253,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 
 	/* Restore the mesh before continuing with anchored stroke */
 	if((brush->flag & BRUSH_ANCHORED) ||
-	   (brush->sculpt_tool == SCULPT_TOOL_GRAB && (brush->flag & BRUSH_SIZE_PRESSURE)) ||
+	   (brush->sculpt_tool == SCULPT_TOOL_GRAB && brush_use_size_pressure(brush)) ||
 	   (brush->flag & BRUSH_RESTORE_MESH))
 	{
 		StrokeCache *cache = ss->cache;
@@ -3604,7 +3567,7 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 	ot->exec= sculpt_set_persistent_base;
 	ot->poll= sculpt_mode_poll;
 	
-	ot->flag= 0;//OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
@@ -3612,8 +3575,8 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 static void sculpt_init_session(Scene *scene, Object *ob)
 {
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
-	ob->sculpt->ob = ob; 	
-	
+	ob->sculpt->ob = ob; 
+
 	sculpt_update_mesh_elements(scene, ob, 0);
 }
 
@@ -3685,7 +3648,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	ot->exec= sculpt_toggle_mode;
 	ot->poll= ED_operator_object_active;
 	
-	ot->flag= 0;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void ED_operatortypes_sculpt()

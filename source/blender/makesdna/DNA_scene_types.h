@@ -726,6 +726,12 @@ typedef struct ToolSettings {
 	short proportional, prop_mode;
 
 	int auto_normalize, intpad; /*auto normalizing mode in wpaint*/
+
+	short sculpt_paint_settings; /* user preferences for sculpt and paint */
+	short pad;
+	int sculpt_paint_unified_size; /* unified radius of brush in pixels */
+	float sculpt_paint_unified_unprojected_radius;/* unified radius of brush in Blender units */
+	float sculpt_paint_unified_alpha; /* unified strength of brush */
 } ToolSettings;
 
 typedef struct bStats {
@@ -1140,6 +1146,13 @@ typedef enum SculptFlags {
 	SCULPT_SYMMETRY_FEATHER = (1<<6),
 	SCULPT_USE_OPENMP = (1<<7),
 } SculptFlags;
+
+/* sculpt_paint_settings */
+#define SCULPT_PAINT_USE_UNIFIED_SIZE        (1<<0)
+#define SCULPT_PAINT_USE_UNIFIED_ALPHA       (1<<1)
+#define SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE (1<<2)
+#define SCULPT_PAINT_UNIFIED_SIZE_PRESSURE   (1<<3)
+#define SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE  (1<<4)
 
 /* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				1
