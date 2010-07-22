@@ -4829,6 +4829,11 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		   windows for some tablets, then we just skip first touch ..  */
 		if ((pop->s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|BRUSH_SPACING_PRESSURE)) && tablet && (pressure >= 0.99f))
 			return;
+
+		/* at zero pressure we should do nothing 1/2^12 is .0002 which is the sensitivity of the most sensitive pen tablet available*/
+		if ((pop->s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|BRUSH_SPACING_PRESSURE)) && tablet && (pressure <= 0.0002f))
+			return;
+	
 	}
 
 	/* fill in stroke */
