@@ -28,6 +28,7 @@ sources += env.Glob('operators/*.c')
 incs = ['#/intern/guardedalloc'] 
 incs.append('../blenlib') 
 incs.append('../makesdna')
+incs.append('../makesrna')
 incs.append('../blenkernel')
 incs.append('./')
 incs.append('./intern')
