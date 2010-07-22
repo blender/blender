@@ -25,9 +25,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
+void global_bounds_obi(Render *re, ObjectInstanceRen *obi, float *bbmin, float *bbmax);
+int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, float *co);
+
 void volume_precache(Render *re);
 void free_volume_precache(Render *re);
-int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, float *co);
 
 #define VOL_MS_TIMESTEP	0.1f

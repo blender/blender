@@ -205,7 +205,7 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *co
 	} else {
 		shadeSkyView(col, co, shi->view, NULL, shi->thread);
 		shadeSunView(col, shi->view);
-	}
+	} 
 }
 
 
@@ -214,18 +214,19 @@ static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, fl
 {
 	VolumePrecache *vp = shi->obi->volume_precache;
 	float bbmin[3], bbmax[3], dim[3];
-	float sample_co[3];
+	float world_co[3], sample_co[3];
 	
 	if (!vp) return;
 	
-	/* convert input coords to 0.0, 1.0 */
-	VECCOPY(bbmin, shi->obi->obr->boundbox[0]);
-	VECCOPY(bbmax, shi->obi->obr->boundbox[1]);
+	/* find sample point in global space bounding box 0.0-1.0 */
+	global_bounds_obi(re, shi->obi, bbmin, bbmax);
 	sub_v3_v3v3(dim, bbmax, bbmin);
+	mul_v3_m4v3(world_co, re->viewinv, co);	
 
-	sample_co[0] = ((co[0] - bbmin[0]) / dim[0]);
-	sample_co[1] = ((co[1] - bbmin[1]) / dim[1]);
-	sample_co[2] = ((co[2] - bbmin[2]) / dim[2]);
+	/* sample_co in 0.0-1.0 */
+	sample_co[0] = (world_co[0] - bbmin[0]) / dim[0];
+	sample_co[1] = (world_co[1] - bbmin[1]) / dim[1];
+	sample_co[2] = (world_co[2] - bbmin[2]) / dim[2];
 
 	scatter_col[0] = voxel_sample_triquadratic(vp->data_r, vp->res, sample_co);
 	scatter_col[1] = voxel_sample_triquadratic(vp->data_g, vp->res, sample_co);
@@ -602,7 +603,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 		const float density = vol_get_density(shi, p);
 		
 		if (density > 0.01f) {
-			float scatter_col[3], emit_col[3];
+			float scatter_col[3] = {0.f, 0.f, 0.f}, emit_col[3];
 			const float stepd = (t0 - pt0) * density;
 			
 			/* transmittance component (alpha) */
@@ -619,7 +620,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 				p2[1] = p[1] + (step_vec[1] * 0.5);
 				p2[2] = p[2] + (step_vec[2] * 0.5);
 				
-				vol_get_precached_scattering(shi, scatter_col, p2);
+				vol_get_precached_scattering(&R, shi, scatter_col, p2);
 			} else
 				vol_get_scattering(shi, scatter_col, p);
 			

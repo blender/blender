@@ -464,6 +464,7 @@ typedef struct VolPrecachePart
 	struct RayObject *tree;
 	struct ShadeInput *shi;
 	struct ObjectInstanceRen *obi;
+	float viewmat[4][4];
 	int num;
 	int minx, maxx;
 	int miny, maxy;
@@ -477,6 +478,7 @@ typedef struct VolPrecachePart
 typedef struct VolumePrecache
 {
 	int res[3];
+	float *bbmin, *bbmax;
 	float *data_r;
 	float *data_g;
 	float *data_b;
