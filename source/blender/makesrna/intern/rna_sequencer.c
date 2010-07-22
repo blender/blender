@@ -466,6 +466,16 @@ static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		seq_update_sound(scene, ptr->data);
 }
 
+static void rna_Sequence_update_reopen_files(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+
+	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
+
+	if(RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
+		seq_update_sound(scene, ptr->data);
+}
+
 static void rna_Sequence_mute_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -960,6 +970,7 @@ static void rna_def_filter_video(StructRNA *srna)
 	prop= RNA_def_property(srna, "de_interlace", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_FILTERY);
 	RNA_def_property_ui_text(prop, "De-Interlace", "For video movies to remove fields");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update_reopen_files");
 
 	prop= RNA_def_property(srna, "premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MAKE_PREMUL);
