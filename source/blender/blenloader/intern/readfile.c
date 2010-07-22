@@ -11053,7 +11053,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* GSOC Sculpt 2010 - Sanity check on Sculpt/Paint settings */
 	if (main->versionfile < 253) {
 		Scene *sce;
-		for (sce= main->brush.first; sce; sce= sce->id.next) {
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			if (sce->toolsettings->sculpt_paint_unified_alpha == 0)
 				sce->toolsettings->sculpt_paint_unified_alpha = 0.5f;
 
