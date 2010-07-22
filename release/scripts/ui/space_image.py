@@ -665,8 +665,15 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
         brush = toolsettings.brush
 
         layout.template_curve_mapping(brush, "curve")
-        layout.operator_menu_enum("brush.curve_preset", "shape")
 
+        row = layout.row(align=True)
+        row.operator("brush.curve_preset", icon="SMOOTHCURVE", text="").shape = 'SMOOTH'
+        row.operator("brush.curve_preset", icon="SPHERECURVE", text="").shape = 'ROUND'
+        row.operator("brush.curve_preset", icon="ROOTCURVE", text="").shape = 'ROOT'
+        row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
+        row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
+        row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+        row.operator("brush.curve_preset", icon="RNDCURVE", text="").shape = 'MID9'
 
 classes = [
     IMAGE_MT_view,
