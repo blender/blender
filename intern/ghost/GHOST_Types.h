@@ -154,7 +154,8 @@ typedef enum {
 	GHOST_kEventTrackpad,		/// Trackpad event
 
 	GHOST_kEventNDOFMotion,		/// N degree of freedom device motion event
-	GHOST_kEventNDOFButton,		/// N degree of freedom device button event
+	GHOST_kEventNDOFButtonDown,/// N degree of freedom device button events
+	GHOST_kEventNDOFButtonUp,
 
 	GHOST_kEventKeyDown,
 	GHOST_kEventKeyUp,
@@ -432,17 +433,17 @@ typedef struct {
 //   float dt;
 //} GHOST_TEventNDOFData;
 
-typedef struct {
-   /** N-degree of freedom device data v2*/
-   int changed;
-   GHOST_TUns64 client;
-   GHOST_TUns64 address;
-   GHOST_TInt16 tx, ty, tz;   /** -x left, +y up, +z forward */
-   GHOST_TInt16 rx, ry, rz;
-   GHOST_TInt16 buttons;
-   GHOST_TUns64 time;
-   GHOST_TUns64 delta;
-} GHOST_TEventNDOFData;
+// typedef struct {
+//    /** N-degree of freedom device data v2*/
+//    int changed;
+//    GHOST_TUns64 client;
+//    GHOST_TUns64 address;
+//    GHOST_TInt16 tx, ty, tz;   /** -x left, +y up, +z forward */
+//    GHOST_TInt16 rx, ry, rz;
+//    GHOST_TInt16 buttons;
+//    GHOST_TUns64 time;
+//    GHOST_TUns64 delta;
+// } GHOST_TEventNDOFData;
 
 typedef struct {
    /** N-degree of freedom device data v3 [GSoC 2010]*/
@@ -454,13 +455,8 @@ typedef struct {
 
    float tx, ty, tz;   /** -x left, +y forward, -z up */
    float rx, ry, rz;
-   GHOST_TInt16 buttons;
-} GHOST_TEventNDOFData_3;
+} GHOST_TEventNDOFData;
 
-// [mce] consider scrapping these, in favor of built-in SpaceNav handling.
-typedef int     (*GHOST_NDOFLibraryInit_fp)();
-typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
-typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
 
 typedef struct {
 	/** The key code. */

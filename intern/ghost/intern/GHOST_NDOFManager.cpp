@@ -20,108 +20,70 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdio.h> /* just for printf */
-
 #include "GHOST_NDOFManager.h"
+#include "GHOST_EventNDOF.h"
 
+GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
+	: m_system(sys)
+//	, m_translation((short[]){0,0,0})
+//	, m_rotation((short[]){0,0,0})
+	, m_buttons(0)
+	, m_atRest(true)
+	{ }
 
-// the variable is outside the class because it must be accessed from plugin
-static volatile GHOST_TEventNDOFData currentNdofValues = {0,0,0,0,0,0,0,0,0,0,0};
+void GHOST_NDOFManager::updateTranslation(short t[3], GHOST_TUns64 time)
+	{
+	memcpy(m_translation, t, sizeof(m_translation));
+	m_motionTime = time;
+	m_atRest = false;
+	}
 
-#if !defined(_WIN32) && !defined(__APPLE__)
-#include "GHOST_SystemX11.h"
-#endif
+void GHOST_NDOFManager::updateRotation(short r[3], GHOST_TUns64 time)
+	{
+	memcpy(m_rotation, r, sizeof(m_rotation));
+	m_motionTime = time;
+	m_atRest = false;
+	}
 
-namespace
-{
-    GHOST_NDOFLibraryInit_fp ndofLibraryInit = 0;
-    GHOST_NDOFLibraryShutdown_fp ndofLibraryShutdown = 0;
-    GHOST_NDOFDeviceOpen_fp ndofDeviceOpen = 0;
-}
+void GHOST_NDOFManager::updateButtons(unsigned short buttons, GHOST_TUns64 time)
+	{
+	unsigned short diff = m_buttons ^ buttons;
+	for (int i = 0; i < 16; ++i)
+		{
+		unsigned short mask = 1 << i;
+		if (diff & mask)
+			m_system.pushEvent(new GHOST_EventNDOFButton(time, i + 1,
+				(buttons & mask) ? GHOST_kEventNDOFButtonDown : GHOST_kEventNDOFButtonUp));
+		}
 
-GHOST_NDOFManager::GHOST_NDOFManager()
-{
-    m_DeviceHandle = 0;
+	m_buttons = buttons;
+	}
 
-    // discover the API from the plugin
-    ndofLibraryInit = 0;
-    ndofLibraryShutdown = 0;
-    ndofDeviceOpen = 0;
-}
+bool GHOST_NDOFManager::sendMotionEvent()
+	{
+	if (m_atRest)
+		return false;
 
-GHOST_NDOFManager::~GHOST_NDOFManager()
-{
-    if (ndofLibraryShutdown)
-        ndofLibraryShutdown(m_DeviceHandle);
+	GHOST_EventNDOFMotion* event = new GHOST_EventNDOFMotion(m_motionTime);
+	GHOST_TEventNDOFData* data = (GHOST_TEventNDOFData*) event->getData();
 
-    m_DeviceHandle = 0;
-}
+	const float scale = 1.f / 350.f; // SpaceNavigator sends +/- 350 usually
 
+	// scale *= m_sensitivity;
 
-int
-GHOST_NDOFManager::deviceOpen(GHOST_IWindow* window,
-        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
-        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
-{
-	int Pid;
+	data->tx = scale * m_translation[0];
+	data->ty = scale * m_translation[1];
+	data->tz = scale * m_translation[2];
+
+	data->rx = scale * m_rotation[0];
+	data->ry = scale * m_rotation[1];
+	data->rz = scale * m_rotation[2];
+
+	m_system.pushEvent(event);
+
+	// 'at rest' test goes at the end so that the first 'rest' event gets sent
+	m_atRest = m_rotation[0] == 0 && m_rotation[1] == 0 && m_rotation[2] == 0 &&
+		m_translation[0] == 0 && m_translation[1] == 0 && m_translation[2] == 0;
 	
-    ndofLibraryInit = setNdofLibraryInit;
-    ndofLibraryShutdown = setNdofLibraryShutdown;
-    ndofDeviceOpen = setNdofDeviceOpen;
-
-    if (ndofLibraryInit  && ndofDeviceOpen)
-    {
-    	Pid= ndofLibraryInit();
-#if 0
-       	printf("%i client \n", Pid);
-#endif
-		#if defined(_WIN32) || defined(__APPLE__)
-			m_DeviceHandle = ndofDeviceOpen((void *)&currentNdofValues);    
-		#else
-			GHOST_SystemX11 *sys;
-			sys = static_cast<GHOST_SystemX11*>(GHOST_ISystem::getSystem());
-			void *ndofInfo = sys->prepareNdofInfo(&currentNdofValues);
-			m_DeviceHandle = ndofDeviceOpen(ndofInfo);
-		#endif
-		 return (Pid > 0) ? 0 : 1;
-			
-	} else
-		return 1;
-}
-
-
-bool 
-GHOST_NDOFManager::available() const
-{ 
-    return m_DeviceHandle != 0; 
-}
-
-bool 
-GHOST_NDOFManager::event_present() const
-{ 
-    if( currentNdofValues.changed >0) {
-		printf("time %llu but%u x%i y%i z%i rx%i ry%i rz%i \n"	, 			
-				currentNdofValues.time,		currentNdofValues.buttons,
-				currentNdofValues.tx,currentNdofValues.ty,currentNdofValues.tz,
-				currentNdofValues.rx,currentNdofValues.ry,currentNdofValues.rz);
-    	return true;
-	}else
-	return false;
-
-}
-
-void        GHOST_NDOFManager::GHOST_NDOFGetDatas(GHOST_TEventNDOFData &datas) const
-{
-	datas.tx = currentNdofValues.tx;
-	datas.ty = currentNdofValues.ty;
-	datas.tz = currentNdofValues.tz;
-	datas.rx = currentNdofValues.rx;
-	datas.ry = currentNdofValues.ry;
-	datas.rz = currentNdofValues.rz;
-	datas.buttons = currentNdofValues.buttons;
-	datas.client = currentNdofValues.client;
-	datas.address = currentNdofValues.address;
-	datas.time = currentNdofValues.time;
-	datas.delta = currentNdofValues.delta;
-}
+	return true;
+	}

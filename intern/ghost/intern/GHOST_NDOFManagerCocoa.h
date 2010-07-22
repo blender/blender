@@ -20,42 +20,25 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef _GHOST_NDOFMANAGER_H_
-#define _GHOST_NDOFMANAGER_H_
+#ifndef _GHOST_NDOFMANAGERCOCOA_H_
+#define _GHOST_NDOFMANAGERCOCOA_H_
 
-#include "GHOST_System.h"
+#include "GHOST_NDOFManager.h"
 
 
-class GHOST_NDOFManager
+class GHOST_NDOFManagerCocoa : public GHOST_NDOFManager
 {
 public:
-	GHOST_NDOFManager(GHOST_System&);
+	GHOST_NDOFManagerCocoa(GHOST_System&);
 
-	virtual ~GHOST_NDOFManager() {};
+	~GHOST_NDOFManagerCocoa();
 
 	// whether multi-axis functionality is available (via the OS or driver)
 	// does not imply that a device is plugged in or being used
-	virtual bool available() = 0;
+	bool available();
 
-	// the latest raw data from the device
-	void updateTranslation(short t[3], GHOST_TUns64 time);
-	void updateRotation(short r[3], GHOST_TUns64 time);
-	// this one sends events immediately for changed buttons
-	void updateButtons(unsigned short b, GHOST_TUns64 time);
-
-	// processes most recent raw data into an NDOFMotion event and sends it
-	// returns whether an event was sent
-	bool sendMotionEvent();
-
-protected:
-	GHOST_System& m_system;
-
-	short m_translation[3];
-	short m_rotation[3];
-	unsigned short m_buttons;
-
-	GHOST_TUns64 m_motionTime;
-	bool m_atRest;
+private:
+	unsigned short m_clientID;
 };
 
 

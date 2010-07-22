@@ -26,32 +26,35 @@
 
 #include "GHOST_Event.h"
 
-/**
- * N-degree of freedom device event.
- */
-class GHOST_EventNDOF : public GHOST_Event
-{
-public:
-	/**
-	 * Constructor.
-	 * @param msec		The time this event was generated.
-	 * @param type		The type of this event.
-	 * @param x			The x-coordinate of the location the cursor was at at the time of the event.
-	 * @param y			The y-coordinate of the location the cursor was at at the time of the event.
-	 */
-	GHOST_EventNDOF(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, 
-        GHOST_TEventNDOFData data)
-		: GHOST_Event(msec, type, window)
-	{
-		m_ndofEventData = data;
-		m_data = &m_ndofEventData;
-	}
 
+class GHOST_EventNDOFMotion : public GHOST_Event
+{
 protected:
-	/** translation & rotation from the device. */
-	GHOST_TEventNDOFData m_ndofEventData;
+	GHOST_TEventNDOFData m_axisData;
+
+public:
+	GHOST_EventNDOFMotion(GHOST_TUns64 time)
+		: GHOST_Event(time, GHOST_kEventNDOFMotion, NULL)
+//		, m_data(&m_axisData)
+		{
+		m_data = &m_axisData;
+		}
+};
+
+class GHOST_EventNDOFButton : public GHOST_Event
+{
+protected:
+	GHOST_TUns16 m_buttonNumber;
+
+public:
+	GHOST_EventNDOFButton(GHOST_TUns64 time, GHOST_TUns16 buttonNumber, GHOST_TEventType upOrDown)
+		: GHOST_Event(time, upOrDown, NULL)
+		, m_buttonNumber(buttonNumber)
+//		, m_data(&m_buttonNumber)
+		{
+		m_data = &m_buttonNumber;
+		}
 };
 
 
 #endif // _GHOST_EVENT_NDOF_H_
-
