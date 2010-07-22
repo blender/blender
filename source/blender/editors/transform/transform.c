@@ -4273,9 +4273,10 @@ static int createSlideVerts(TransInfo *t)
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	TransDataSlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;
 	RegionView3D *v3d = t->ar->regiondata;
+	ARegion *ar = t->ar;
 	float projectMat[4][4];
 	float start[3] = {0.0f, 0.0f, 0.0f}, end[3] = {0.0f, 0.0f, 0.0f};
-	float vec[3], vec2[3];
+	float vec[3], vec2[3], size, dis=0.0, z;
 	float totvec=0.0;
 	int uvlay_tot= CustomData_number_of_layers(&em->bm->pdata, CD_MTFACE);
 	int uvlay_idx, numsel, i, j;
@@ -4443,11 +4444,66 @@ static int createSlideVerts(TransInfo *t)
 	sld->sv = tempsv;
 	sld->totsv = j;
 	
-	sld->start[0] = t->mval[0] - 40;
-	sld->start[1] = t->mval[1];
+	/*find mouse vector*/
+	dis = z = 10000.0f;
+	size = 50.0;
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_TestHFlag(e, BM_SELECT)) {
+			BMIter iter2;
+			BMEdge *e2;
+			float vec1[3], vec2[3], dir[3], vec[3], mval[2] = {t->mval[0], t->mval[1]}, d, z2;
+			
+			for (i=0; i<2; i++) {
+				BM_ITER(e2, &iter2, em->bm, BM_EDGES_OF_VERT, i?e->v1:e->v2) {
+					if (BM_TestHFlag(e2, BM_SELECT))
+						continue;
 
-	sld->end[0] = t->mval[0] + 40;
-	sld->end[1] = t->mval[1];
+					view3d_project_float_v3(ar, e2->v1->co, vec1, projectMat);
+					view3d_project_float_v3(ar, e2->v2->co, vec2, projectMat);
+					
+					add_v3_v3v3(vec, vec1, vec2);
+					mul_v3_fl(vec, 0.5);
+					z2 = vec[2];
+
+					d = dist_to_line_segment_v2(mval, vec1, vec2);
+					if (d < dis || (d < 15 && z2 < z)) {
+						dis = d;
+						size = len_v3v3(vec1, vec2);
+					}
+				}
+			}
+			view3d_project_float(ar, e->v1->co, vec1, projectMat);
+			view3d_project_float(ar, e->v2->co, vec2, projectMat);
+
+			sub_v3_v3v3(vec, vec1, vec2);
+			normalize_v3(vec);
+
+			if (dot_v3v3(dir, dir) != 0.0f) {
+				copy_v3_v3(dir, start);
+				normalize_v3(dir);
+				
+				if (dot_v3v3(dir, vec) < 0.0) {
+					mul_v3_fl(dir, -1.0);
+				}
+			}
+
+			add_v3_v3(start, dir);
+		}
+	}
+	
+	normalize_v3(start);
+	mul_v3_fl(start, size);
+
+	end[0] = start[1];
+	end[1] = -start[0];
+
+	SWAP(float, start[0], start[1]);
+
+	sld->start[0] = t->mval[0] + start[0];
+	sld->start[1] = t->mval[1] + start[1];
+
+	sld->end[0] = t->mval[0] + end[0];
+	sld->end[1] = t->mval[1] + end[1];
 	
 	t->customData = sld;
 

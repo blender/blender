@@ -107,7 +107,10 @@ int get_view3d_cliprange(struct View3D *v3d, struct RegionView3D *rv3d, float *c
 int get_view3d_viewplane(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
 int get_view3d_ortho(struct View3D *v3d, struct RegionView3D *rv3d);
 void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
+/* computes screen x/y in vec */
 void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
+/* computes z, as well as x and y */
+void view3d_project_float_v3(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
 
 /* drawobject.c itterators */
 void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BMVert *eve, int x, int y, int index), void *userData, int clipVerts);

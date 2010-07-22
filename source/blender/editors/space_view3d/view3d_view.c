@@ -699,6 +699,26 @@ void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
 	}
 }
 
+/* use above call to get projecting mat */
+void view3d_project_float_v3(ARegion *ar, float *vec, float *adr, float mat[4][4])
+{
+	float vec4[4];
+	
+	VECCOPY(vec4, vec);
+	adr[0]= IS_CLIPPED;
+	vec4[3]= 1.0;
+	
+	mul_m4_v4(mat, vec4);
+	
+	if( vec4[3]>FLT_EPSILON ) {
+		adr[0] = (float)(ar->winx/2.0f)+(ar->winx/2.0f)*vec4[0]/vec4[3];	
+		adr[1] = (float)(ar->winy/2.0f)+(ar->winy/2.0f)*vec4[1]/vec4[3];
+		adr[2] = vec4[2]/vec4[3];
+	} else {
+		adr[0] = adr[1] = adr[2] = 0.0f;
+	}
+}
+
 int boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
 {
 	/* return 1: draw */

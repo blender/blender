@@ -223,7 +223,8 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 
 	/*clean up extreneous 2-valence vertices*/
 	for (i=0; i<BLI_array_count(verts); i++) {
-		BM_Collapse_Vert(bm, verts[i]->e, verts[i], 1.0);
+		if (verts[i]->e)
+			BM_Collapse_Vert(bm, verts[i]->e, verts[i], 1.0);
 	}
 	
 	BLI_array_free(verts);
