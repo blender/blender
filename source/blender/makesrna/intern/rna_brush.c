@@ -52,7 +52,7 @@ static void rna_Brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
 	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
-	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	//WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
 static int rna_Brush_is_sculpt_brush(Brush *me, bContext *C)
