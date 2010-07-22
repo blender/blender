@@ -210,7 +210,7 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *co
 
 
 /* trilinear interpolation */
-static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, float *co)
+static void vol_get_precached_scattering(Render *re, ShadeInput *shi, float *scatter_col, float *co)
 {
 	VolumePrecache *vp = shi->obi->volume_precache;
 	float bbmin[3], bbmax[3], dim[3];

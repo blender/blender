@@ -700,7 +700,6 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 		vp = NULL;
 		return;
 	}
-	//obi->volume_precache = vp;
 
 	/* Need a shadeinput to calculate scattering */
 	precache_setup_shadeinput(re, obi, ma, &shi);
