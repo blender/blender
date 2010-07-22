@@ -15,6 +15,7 @@
 
 #define ELE_NEW		1
 #define ELE_OUT		2
+#define ELE_ORIG	4
 
 typedef struct EPathNode {
 	struct EPathNode *next, *prev;
@@ -211,6 +212,10 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 
 	edata = MEM_callocN(sizeof(EdgeData)*bm->totedge, "EdgeData");
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BMO_SetFlag(bm, f, ELE_ORIG);
+	}
 
 	i = 0;
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
@@ -263,7 +268,7 @@ void bmesh_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		edges[i++] = edge;
 
 		f = BM_Make_Ngon(bm, edge->v1, edge->v2, edges, i, 1);
-		if (f)
+		if (f && !BMO_TestFlag(bm, f, ELE_ORIG))
 			BMO_SetFlag(bm, f, FACE_NEW);
 
 		edge_free_path(pathbase, path);

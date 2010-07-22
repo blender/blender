@@ -340,7 +340,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 	/*create the face, if necassary*/
 	if (!f && !overlap)
 		f = BM_Make_Face(bm, verts, edges2, len);
-	else if (!overlap) 
+	else if (!overlap)
 		f = NULL;
 
 	/*clean up flags*/

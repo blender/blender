@@ -573,9 +573,8 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 }
 
 /* generic extern called extruder */
-int EDBM_Extrude_Mesh(Object *obedit, BMEditMesh *em, wmOperator *op, float *norin)
+int EDBM_Extrude_Mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOperator *op, float *norin)
 {
-	Scene *scene= NULL;		// XXX CTX!
 	short nr, transmode= 0;
 	float stacknor[3] = {0.0f, 0.0f, 0.0f};
 	float *nor = norin ? norin : stacknor;
@@ -658,10 +657,11 @@ int EDBM_Extrude_Mesh(Object *obedit, BMEditMesh *em, wmOperator *op, float *nor
 /* extrude without transform */
 static int mesh_extrude_region_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	
-	EDBM_Extrude_Mesh(obedit, em, op, NULL);
+	EDBM_Extrude_Mesh(scene, obedit, em, op, NULL);
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	
@@ -2362,8 +2362,8 @@ void MESH_OT_merge(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use.");
-	RNA_def_enum_funcs(prop, merge_type_itemf);
+	ot->prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use.");
+	RNA_def_enum_funcs(ot->prop, merge_type_itemf);
 	RNA_def_boolean(ot->srna, "uvs", 1, "UVs", "Move UVs according to merge.");
 }
 

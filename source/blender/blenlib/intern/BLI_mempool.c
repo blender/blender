@@ -243,7 +243,7 @@ static void *bli_mempool_iternext(BLI_mempool_iter *iter)
 {
 	void *ret = NULL;
 	
-	if (!iter->curchunk) return NULL;
+	if (!iter->curchunk || !iter->pool->totused) return NULL;
 	
 	ret = ((char*)iter->curchunk->data) + iter->pool->esize*iter->curindex;
 	
