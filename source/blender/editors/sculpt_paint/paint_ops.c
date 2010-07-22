@@ -77,7 +77,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 {
 	Paint  *paint=  paint_get_active(CTX_data_scene(C));
 	Brush  *brush=  paint_brush(paint);
-	Object *ob=     CTX_data_active_object(C);
+	// Object *ob=     CTX_data_active_object(C);
 	float   scalar= RNA_float_get(op->ptr, "scalar");
 
 	if (brush) {
@@ -86,14 +86,14 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 			const int old_size= brush_size(brush);
 			int size= (int)(scalar*old_size);
 
-			if (old_size == size)
+			if (old_size == size) {
 				if (scalar > 1) {
 					size++;
 				}
 				else if (scalar < 1) {
 					size--;
 				}
-
+			}
 			CLAMP(size, 1, 2000); // XXX magic number
 
 			brush_set_size(brush, size);

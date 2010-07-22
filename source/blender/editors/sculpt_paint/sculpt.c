@@ -589,7 +589,7 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 	Brush *brush = paint_brush(&sd->paint);
 
 	/* Primary strength input; square it to make lower values more sensitive */
-	const root_alpha   = brush_alpha(brush);
+	const float root_alpha = brush_alpha(brush);
 	float alpha        = root_alpha*root_alpha;
 	float dir          = brush->flag & BRUSH_DIR_IN ? -1 : 1;
 	float pressure     = brush_use_alpha_pressure(brush) ? cache->pressure : 1;
