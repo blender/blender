@@ -20,27 +20,26 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef _GHOST_NDOFMANAGERCOCOA_H_
-#define _GHOST_NDOFMANAGERCOCOA_H_
+#ifndef _GHOST_NDOFMANAGERX11_H_
+#define _GHOST_NDOFMANAGERX11_H_
 
 #include "GHOST_NDOFManager.h"
 
-// Event capture is handled within the NDOFManager on Macintosh,
-// so there's no need for SystemCocoa to look for them.
 
-class GHOST_NDOFManagerCocoa : public GHOST_NDOFManager
+class GHOST_NDOFManagerX11 : public GHOST_NDOFManager
 {
 public:
-	GHOST_NDOFManagerCocoa(GHOST_System&);
-
-	~GHOST_NDOFManagerCocoa();
+	GHOST_NDOFManagerX11(GHOST_System& sys)
+		: GHOST_NDOFManager(sys)
+		{}
 
 	// whether multi-axis functionality is available (via the OS or driver)
 	// does not imply that a device is plugged in or being used
-	bool available();
-
-private:
-	unsigned short m_clientID;
+	bool available()
+		{
+		// never available since I've not yet written it!
+		return false;
+		}
 };
 
 

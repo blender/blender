@@ -80,10 +80,8 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 			return;
 			}
 
-//		char* name = "\pBlender";
-//		name[0] = 7; // convert to Pascal string
-
-		m_clientID = RegisterConnexionClient('blnd', (UInt8*) "\pBlender"/*name*/,
+		// Pascal string *and* a four-letter constant. How old-skool.
+		m_clientID = RegisterConnexionClient('blnd', (UInt8*) "\pBlender",
 			kConnexionClientModeTakeOver, kConnexionMaskAll);
 
 		printf("client id = %d\n", m_clientID);
@@ -104,8 +102,5 @@ GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
 bool GHOST_NDOFManagerCocoa::available()
 	{
 	extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
-// [mce] C likes the above line, but Obj-C++ does not. Make sure it works for
-//       machines without the driver installed! Try it on the QuickSilver.
-
 	return InstallConnexionHandlers != NULL;
 	}

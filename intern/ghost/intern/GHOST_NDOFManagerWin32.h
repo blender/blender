@@ -20,27 +20,26 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef _GHOST_NDOFMANAGERCOCOA_H_
-#define _GHOST_NDOFMANAGERCOCOA_H_
+#ifndef _GHOST_NDOFMANAGERWIN32_H_
+#define _GHOST_NDOFMANAGERWIN32_H_
 
 #include "GHOST_NDOFManager.h"
 
-// Event capture is handled within the NDOFManager on Macintosh,
-// so there's no need for SystemCocoa to look for them.
 
-class GHOST_NDOFManagerCocoa : public GHOST_NDOFManager
+class GHOST_NDOFManagerWin32 : public GHOST_NDOFManager
 {
 public:
-	GHOST_NDOFManagerCocoa(GHOST_System&);
-
-	~GHOST_NDOFManagerCocoa();
+	GHOST_NDOFManagerWin32(GHOST_System& sys)
+		: GHOST_NDOFManager(sys)
+		{}
 
 	// whether multi-axis functionality is available (via the OS or driver)
 	// does not imply that a device is plugged in or being used
-	bool available();
-
-private:
-	unsigned short m_clientID;
+	bool available()
+		{
+		// always available since RawInput is built into Windows
+		return true;
+		}
 };
 
 

@@ -38,14 +38,14 @@
 #include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
 #include "GHOST_EventNDOF.h"
-#include "GHOST_NDOFManager.h"
+#include "GHOST_NDOFManagerX11.h"
 #include "GHOST_DisplayManagerX11.h"
 
 #include "GHOST_Debug.h"
 
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
-#include <X11/XKBlib.h> /* allow detectable autorepeate */
+#include <X11/XKBlib.h> /* allow detectable autorepeat */
 
 #ifdef __sgi
 
@@ -67,10 +67,11 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
+// [mce] these are for communication with the plugin
 typedef struct NDOFPlatformInfo {
 	Display *display;
 	Window window;
-	volatile GHOST_TEventNDOFData *currValues;
+//	volatile GHOST_TEventNDOFData *currValues;
 	Atom cmdAtom;
 	Atom motionAtom;
 	Atom btnPressAtom;
@@ -78,7 +79,6 @@ typedef struct NDOFPlatformInfo {
 } NDOFPlatformInfo;
 
 static NDOFPlatformInfo sNdofInfo = {NULL, 0, NULL, 0, 0, 0, 0};
-
 
 //these are for copy and select copy
 static char *txt_cut_buffer= NULL;
@@ -142,7 +142,7 @@ GHOST_SystemX11(
 	m_start_time = GHOST_TUns64(tv.tv_sec*1000 + tv.tv_usec/1000);
 	
 	
-	/* use detectable autorepeate, mac and windows also do this */
+	/* use detectable autorepeat, mac and windows also do this */
 	int use_xkb;
 	int xkb_opcode, xkb_event, xkb_error;
 	int xkb_major = XkbMajorVersion, xkb_minor = XkbMinorVersion;
@@ -168,6 +168,9 @@ init(
 	GHOST_TSuccess success = GHOST_System::init();
 
 	if (success) {
+
+		m_ndofManager = new GHOST_NDOFManagerX11;
+
 		m_displayManager = new GHOST_DisplayManagerX11(this);
 
 		if (m_displayManager) {
@@ -246,9 +249,6 @@ createWindow(
 	GHOST_WindowX11 * window = 0;
 	
 	if (!m_display) return 0;
-	
-
-	
 
 	window = new GHOST_WindowX11 (
 		this,m_display,title, left, top, width, height, state, parentWindow, type, stereoVisual
@@ -628,29 +628,49 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			} else 
 #endif
 			if (sNdofInfo.currValues) {
-				static GHOST_TEventNDOFData data = {0,0,0,0,0,0,0,0,0,0,0};
+//				static GHOST_TEventNDOFData data = {0,0,0,0,0,0,0,0,0,0,0};
 				if (xcme.message_type == sNdofInfo.motionAtom)
 				{
-					data.changed = 1;
-					data.delta = xcme.data.s[8] - data.time;
-					data.time = xcme.data.s[8];
-					data.tx = xcme.data.s[2] >> 2;
-					data.ty = xcme.data.s[3] >> 2;
-					data.tz = xcme.data.s[4] >> 2;
-					data.rx = xcme.data.s[5];
-					data.ry = xcme.data.s[6];
-					data.rz =-xcme.data.s[7];
-					g_event = new GHOST_EventNDOF(getMilliSeconds(),
-					                              GHOST_kEventNDOFMotion,
-					                              window, data);
+// 					data.changed = 1;
+// 					data.delta = xcme.data.s[8] - data.time;
+// 					data.time = xcme.data.s[8];
+// 					data.tx = xcme.data.s[2] >> 2;
+// 					data.ty = xcme.data.s[3] >> 2;
+// 					data.tz = xcme.data.s[4] >> 2;
+// 					data.rx = xcme.data.s[5];
+// 					data.ry = xcme.data.s[6];
+// 					data.rz =-xcme.data.s[7];
+						
+					short t[3], r[3];
+					t[0] = xcme.data.s[2] >> 2;
+					t[1] = xcme.data.s[3] >> 2;
+					t[2] = xcme.data.s[4] >> 2;
+					r[0] = xcme.data.s[5];
+					r[1] = xcme.data.s[6];
+					r[2] =-xcme.data.s[7];
+
+					// [mce] look into this soon, as in find out why some values
+					// are shifted and where this message originates.
+
+					m_ndofManager->updateTranslation(t, getMilliseconds);
+					m_ndofManager->updateRotation(r, getMilliseconds);
+
+// 					g_event = new GHOST_EventNDOF(getMilliSeconds(),
+// 					                              GHOST_kEventNDOFMotion,
+// 					                              window, data);
+
 				} else if (xcme.message_type == sNdofInfo.btnPressAtom) {
-					data.changed = 2;
-					data.delta = xcme.data.s[8] - data.time;
-					data.time = xcme.data.s[8];
-					data.buttons = xcme.data.s[2];
-					g_event = new GHOST_EventNDOF(getMilliSeconds(),
-					                              GHOST_kEventNDOFButton,
-					                              window, data);
+// 					data.changed = 2;
+// 					data.delta = xcme.data.s[8] - data.time;
+// 					data.time = xcme.data.s[8];
+// 					data.buttons = xcme.data.s[2];
+
+					unsigned short buttons = xcme.data.s[2];
+					m_ndofManager->updateButtons(buttons, getMilliseconds());
+
+// 					g_event = new GHOST_EventNDOF(getMilliSeconds(),
+// 					                              GHOST_kEventNDOFButton,
+// 					                              window, data);
 				}
 			} else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
 				XWindowAttributes attr;
@@ -814,6 +834,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	}
 }
 
+/*
 	void *
 GHOST_SystemX11::
 prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
@@ -825,6 +846,7 @@ prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
 	sNdofInfo.currValues = currentNdofValues;
 	return (void*)&sNdofInfo;
 }
+*/
 
 	GHOST_TSuccess 
 GHOST_SystemX11::

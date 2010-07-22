@@ -73,7 +73,7 @@
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
-#include "GHOST_NDOFManager.h"
+#include "GHOST_NDOFManagerWin32.h"
 
 // Key code values not found in winuser.h
 #ifndef VK_MINUS
@@ -346,6 +346,8 @@ GHOST_TSuccess GHOST_SystemWin32::getButtons(GHOST_Buttons& buttons) const
 GHOST_TSuccess GHOST_SystemWin32::init()
 {
 	GHOST_TSuccess success = GHOST_System::init();
+
+	m_ndofManager = new GHOST_NDOFManagerWin32(*this);
 
 	/* Disable scaling on high DPI displays on Vista */
 	HMODULE user32 = ::LoadLibraryA("user32.dll");
@@ -736,9 +738,6 @@ vendor ID
 No other registered devices use the c62_ space, so a simple mask will work!
 */
 
-		short t[3], r[3];       // defined here just for quick testing,
-		unsigned short buttons; // will maintain shared copy for all NDOF events
-
 		// multiple events per RAWHID? MSDN hints at this.
 		printf("%d events\n", raw.data.hid.dwCount);
 
@@ -754,14 +753,24 @@ No other registered devices use the c62_ space, so a simple mask will work!
 		switch (packetType)
 			{
 			case 1: // translation
+				{
+				short t[3];
 				memcpy(t, data + 1, sizeof(t));
 				printf("T: %+5d %+5d %+5d\n", t[0], t[1], t[2]);
+				m_ndofManager->updateTranslation(t, getMilliseconds());
 				break;
+				}
 			case 2: // rotation
+				{
+				short r[3];
 				memcpy(r, data + 1, sizeof(r));
 				printf("R: %+5d %+5d %+5d\n", r[0], r[1], r[2]);
+				m_ndofManager->updateRotation(r, getMilliseconds());
 				break;
+				}
 			case 3: // buttons
+				{
+				unsigned short buttons;
 				memcpy(&buttons, data + 1, sizeof(buttons));
 				printf("buttons:");
 				if (buttons)
@@ -774,7 +783,9 @@ No other registered devices use the c62_ space, so a simple mask will work!
 					}
 				else
 					printf(" none\n");
+				m_ndofManager->updateButtons(buttons, getMilliseconds());
 				break;
+				}
 			}
 		}
 

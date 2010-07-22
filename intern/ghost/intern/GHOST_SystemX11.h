@@ -202,10 +202,12 @@ public:
 		return m_display;
 	}	
 
+/* [mce] is this needed?
 		void *
 	prepareNdofInfo(
 		volatile GHOST_TEventNDOFData *current_values
 	);
+*/
 
 	/* Helped function for get data from the clipboard. */
 	void getClipboard_xcout(XEvent evt, Atom sel, Atom target,
@@ -317,4 +319,3 @@ private :
 };
 
 #endif
-
