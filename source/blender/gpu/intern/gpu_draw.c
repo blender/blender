@@ -1287,7 +1287,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 				glLightf(GL_LIGHT0+count, GL_SPOT_CUTOFF, 180.0);
 		}
 
-		power= (ELEM(la->type, LA_SUN, LA_HEMI))? la->energy*M_PI: la->power;
+		power= (ELEM(la->type, LA_SUN, LA_HEMI))? la->energy*M_PI: la->energy*M_PI; //XXX la->power
 		
 		/* setup energy */
 		energy[0]= power*la->r;

@@ -1325,7 +1325,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	lamp->mode = la->mode;
 	lamp->type = la->type;
 
-	lamp->power= (ELEM(la->type, LA_SUN, LA_HEMI))? la->energy*M_PI: la->power;
+	lamp->power= (ELEM(la->type, LA_SUN, LA_HEMI))? la->energy*M_PI: la->energy*M_PI; //XXX la->power;
 	if(lamp->mode & LA_NEG) lamp->power= -lamp->power;
 
 	lamp->col[0]= la->r*lamp->power;

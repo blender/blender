@@ -100,7 +100,7 @@ EPath *edge_path_new(PathBase *pb, BMVert *start)
 float edge_weight_path(EPath *path, EdgeData *edata)
 {
 	EPathNode *node;
-	float w;
+	float w = 0.0;
 
 	for (node=path->nodes.first; node; node=node->next) {
 		if (node->e) {

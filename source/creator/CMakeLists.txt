@@ -411,13 +411,9 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_python 
 		bf_gen_python 
 		bf_ikplugin
-<<<<<<< .working
 		bf_bmesh
-		bf_blenkernel
-=======
 		bf_modifiers
 		bf_blenkernel
->>>>>>> .merge-right.r30358
 		bf_nodes
 		bf_gpu
 		bf_blenloader

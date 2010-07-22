@@ -2226,6 +2226,8 @@ static void do_fill_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int t
 static void do_scrape_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int totnode)
 {
 	Brush *brush = paint_brush(&sd->paint);
+	rctf mr;
+	float xrad, yrad;
 
 	float bstrength = ss->cache->bstrength;
 	const float radius = ss->cache->radius;

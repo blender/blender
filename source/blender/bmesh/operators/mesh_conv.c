@@ -312,6 +312,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
 	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
+	
+	ototvert = me->totvert;
 
 	/* new Vertex block */
 	if(bm->totvert==0) mvert= NULL;

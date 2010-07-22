@@ -3064,6 +3064,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 	ccgdm->dm.getMinMax = cgdm_getMinMax;
 	ccgdm->dm.getNumVerts = cgdm_getNumVerts;
+	ccgdm->dm.getNumEdges = cgdm_getNumEdges;
 	ccgdm->dm.getNumTessFaces = cgdm_getNumTessFaces;
 	ccgdm->dm.getNumFaces = cgdm_getNumTessFaces;
 

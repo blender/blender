@@ -668,31 +668,6 @@ static int mesh_extrude_region_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-static int mesh_extrude_region_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
-	float nor[3];
-	int constraint_axis[3] = {0, 0, 1};
-	int tmode;
-
-	tmode = EDBM_Extrude_edge(obedit, em, BM_SELECT, nor);
-
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-	RNA_enum_set(op->ptr, "proportional", 0);
-	RNA_boolean_set(op->ptr, "mirror", 0);
-
-	if (tmode == 'n') {
-		RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
-		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-	}
-	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
-
-	return OPERATOR_FINISHED;
-}
-
 void MESH_OT_extrude_region(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -700,15 +675,13 @@ void MESH_OT_extrude_region(wmOperatorType *ot)
 	ot->idname= "MESH_OT_extrude_region";
 	
 	/* api callbacks */
-	ot->invoke= mesh_extrude_region_invoke;
+	//ot->invoke= mesh_extrude_region_invoke;
 	ot->exec= mesh_extrude_region_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	/* to give to transform */
-	Transform_Properties(ot, P_PROPORTIONAL|P_CONSTRAINT|P_AXIS);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
@@ -725,31 +698,6 @@ static int mesh_extrude_verts_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-static int mesh_extrude_verts_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
-	float nor[3];
-	int constraint_axis[3] = {0, 0, 1};
-	int tmode;
-
-	tmode = EDBM_Extrude_verts_indiv(em, op, BM_SELECT, nor);
-
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-	RNA_enum_set(op->ptr, "proportional", 0);
-	RNA_boolean_set(op->ptr, "mirror", 0);
-
-	if (tmode == 'n') {
-		RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
-		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-	}
-	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
-
-	return OPERATOR_FINISHED;
-}
-
 void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -757,7 +705,6 @@ void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
 	ot->idname= "MESH_OT_extrude_verts_indiv";
 	
 	/* api callbacks */
-	ot->invoke= mesh_extrude_verts_invoke;
 	ot->exec= mesh_extrude_verts_exec;
 	ot->poll= ED_operator_editmesh;
 	
@@ -765,7 +712,6 @@ void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	Transform_Properties(ot, P_PROPORTIONAL|P_CONSTRAINT|P_AXIS);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
@@ -782,30 +728,6 @@ static int mesh_extrude_edges_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-static int mesh_extrude_edges_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
-	float nor[3];
-	int tmode;
-
-	tmode = EDBM_Extrude_edges_indiv(em, op, BM_SELECT, nor);
-
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-	RNA_enum_set(op->ptr, "proportional", 0);
-	RNA_boolean_set(op->ptr, "mirror", 0);
-
-	/*if (tmode == 'n') {
-		RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
-		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-	}*/
-	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
-
-	return OPERATOR_FINISHED;
-}
-
 void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -813,7 +735,6 @@ void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
 	ot->idname= "MESH_OT_extrude_edges_indiv";
 	
 	/* api callbacks */
-	ot->invoke= mesh_extrude_edges_invoke;
 	ot->exec= mesh_extrude_edges_exec;
 	ot->poll= ED_operator_editmesh;
 	
@@ -821,7 +742,6 @@ void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	Transform_Properties(ot, P_PROPORTIONAL|P_CONSTRAINT|P_AXIS);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
@@ -838,34 +758,6 @@ static int mesh_extrude_faces_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-static int mesh_extrude_faces_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
-	float nor[3];
-	int constraint_axis[3] = {0, 0, 1};
-	int tmode;
-
-	tmode = EDBM_Extrude_face_indiv(em, op, BM_SELECT, nor);
-
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-	RNA_enum_set(op->ptr, "proportional", 0);
-	RNA_boolean_set(op->ptr, "mirror", 0);
-	
-	if (tmode == 's') {
-		WM_operator_name_call(C, "TRANSFORM_OT_shrink_fatten", WM_OP_INVOKE_REGION_WIN, op->ptr);
-	} else {
-		if (tmode == 'n') {
-			RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
-			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-		}
-		WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
-	}
-	return OPERATOR_FINISHED;
-}
-
 void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -873,15 +765,12 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
 	ot->idname= "MESH_OT_extrude_faces_indiv";
 	
 	/* api callbacks */
-	ot->invoke= mesh_extrude_faces_invoke;
 	ot->exec= mesh_extrude_faces_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	/* to give to transform */
-	Transform_Properties(ot, P_PROPORTIONAL|P_CONSTRAINT|P_AXIS);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 

@@ -289,9 +289,9 @@ GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
 	memset(numverts,0,sizeof(int)*32768);
 
 	mvert = dm->getVertArray(dm);
-	mface = dm->getFaceArray(dm);
+	mface = dm->getTessFaceArray(dm);
 
-	numfaces= dm->getNumFaces(dm);
+	numfaces= dm->getNumTessFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		if( mface[i].v4 )
 			numverts[mface[i].mat_nr+16383] += 6;	/* split every quad into two triangles */
@@ -861,9 +861,9 @@ void GPU_buffer_copy_vertex( DerivedMesh *dm, float *varray, int *index, int *re
 	DEBUG_VBO("GPU_buffer_copy_vertex\n");
 
 	mvert = dm->getVertArray(dm);
-	mface = dm->getFaceArray(dm);
+	mface = dm->getTessFaceArray(dm);
 
-	numfaces= dm->getNumFaces(dm);
+	numfaces= dm->getNumTessFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
@@ -905,13 +905,13 @@ void GPU_buffer_copy_normal( DerivedMesh *dm, float *varray, int *index, int *re
 	int start;
 	float norm[3];
 
-	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
+	float *nors= dm->getTessFaceDataArray(dm, CD_NORMAL);
 	MVert *mvert = dm->getVertArray(dm);
-	MFace *mface = dm->getFaceArray(dm);
+	MFace *mface = dm->getTessFaceArray(dm);
 
 	DEBUG_VBO("GPU_buffer_copy_normal\n");
 
-	numfaces= dm->getNumFaces(dm);
+	numfaces= dm->getNumTessFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
@@ -973,7 +973,7 @@ void GPU_buffer_copy_uv( DerivedMesh *dm, float *varray, int *index, int *redir,
 
 	DEBUG_VBO("GPU_buffer_copy_uv\n");
 
-	mface = dm->getFaceArray(dm);
+	mface = dm->getTessFaceArray(dm);
 	mtface = DM_get_face_data_layer(dm, CD_MTFACE);
 
 	if( mtface == 0 ) {
@@ -981,7 +981,7 @@ void GPU_buffer_copy_uv( DerivedMesh *dm, float *varray, int *index, int *redir,
 		return;
 	}
 		
-	numfaces= dm->getNumFaces(dm);
+	numfaces= dm->getNumTessFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
@@ -1017,11 +1017,11 @@ void GPU_buffer_copy_color3( DerivedMesh *dm, float *varray_, int *index, int *r
 	int i, numfaces;
 	unsigned char *varray = (unsigned char *)varray_;
 	unsigned char *mcol = (unsigned char *)user;
-	MFace *mface = dm->getFaceArray(dm);
+	MFace *mface = dm->getTessFaceArray(dm);
 
 	DEBUG_VBO("GPU_buffer_copy_color3\n");
 
-	numfaces= dm->getNumFaces(dm);
+	numfaces= dm->getNumTessFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		int start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
@@ -1047,11 +1047,11 @@ void GPU_buffer_copy_color4( DerivedMesh *dm, float *varray_, int *index, int *r
 	int i, numfaces;
 	unsigned char *varray = (unsigned char *)varray_;
 	unsigned char *mcol = (unsigned char *)user;
-	MFace *mface = dm->getFaceArray(dm);
+	MFace *mface = dm->getTessFaceArray(dm);
 
 	DEBUG_VBO("GPU_buffer_copy_color4\n");
 
-	numfaces= dm->getNumFaces(dm);
+	numfaces= dm->getNumTessFaces(dm);
 	for( i=0; i < numfaces; i++ ) {
 		int start = index[redir[mface[i].mat_nr+16383]];
 		if( mface[i].v4 )
@@ -1091,7 +1091,7 @@ GPUBuffer *GPU_buffer_color( DerivedMesh *dm )
 		dm->drawObject->colType = CD_MCOL;
 	}
 
-	numfaces= dm->getNumFaces(dm);
+	numfaces= dm->getNumTessFaces(dm);
 	colors = MEM_mallocN(numfaces*12*sizeof(unsigned char), "GPU_buffer_color");
 	for( i=0; i < numfaces*4; i++ ) {
 		colors[i*3] = mcol[i].b;
@@ -1143,7 +1143,7 @@ void GPU_buffer_copy_uvedge( DerivedMesh *dm, float *varray, int *index, int *re
 	if(tf) {
 		for(i = 0; i < dm->numFaceData; i++, tf++) {
 			MFace mf;
-			dm->getFace(dm,i,&mf);
+			dm->getTessFace(dm,i,&mf);
 
 			VECCOPY2D(&varray[j],tf->uv[0]);
 			VECCOPY2D(&varray[j+2],tf->uv[1]);

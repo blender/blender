@@ -934,10 +934,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 				}
 			}
 
-			i++;
 			continue;
 		} else if (!pat) {
-			i++;
 			continue;
 		}
 
@@ -974,7 +972,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	BLI_array_free(loops);
 
 	BMO_Flag_To_Slot(bmesh, op, "outinner",
-		         ELE_INNER, BM_ALL);
+		         ELE_INNER, BM_ALL);	
 	BMO_Flag_To_Slot(bmesh, op, "outsplit",
 		         ELE_SPLIT, BM_ALL);
 	
