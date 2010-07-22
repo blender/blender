@@ -1,5 +1,5 @@
 /**
- * $Id: GHOST_WindowCocoa.h 23789 2009-10-12 16:51:36Z damien78 $
+ * $Id: GHOST_WindowCocoa.h 29143 2010-06-01 20:21:40Z damien78 $
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
