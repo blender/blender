@@ -3600,7 +3600,7 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 	return(perc);
 } 
 
-#define MAX_CUTS 256
+#define MAX_CUTS 2048
 
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
@@ -3616,7 +3616,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	struct GHash *gh;
 	float isect=0.0;
 	float  *scr, co[4];
-	int len=0, isected, flag, i;
+	int len=0, isected, i;
 	short numcuts=1, mode= RNA_int_get(op->ptr, "type");
 	
 	/* edit-object needed for matrix, and ar->regiondata for projections to work */
@@ -3674,10 +3674,14 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	
 	BMO_Flag_To_Slot(bm, &bmop, "edges", 1, BM_EDGE);
 
-	BMO_Set_Int(&bmop, "numcuts", numcuts);
-	flag = B_KNIFE;
 	if (mode == KNIFE_MIDPOINT) numcuts = 1;
-	BMO_Set_Int(&bmop, "flag", flag);
+	BMO_Set_Int(&bmop, "numcuts", numcuts);
+
+	BMO_Set_Int(&bmop, "flag", B_KNIFE);
+	BMO_Set_Int(&bmop, "quadcornertype", SUBD_STRAIGHT_CUT);
+	BMO_Set_Int(&bmop, "singleedge", 0);
+	BMO_Set_Int(&bmop, "gridfill", 0);
+
 	BMO_Set_Float(&bmop, "radius", 0);
 	
 	BMO_Exec_Op(bm, &bmop);
