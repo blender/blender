@@ -237,17 +237,6 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent* event)
 	return success;
 }
 
-int GHOST_System::openNDOF(GHOST_IWindow* w,
-        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
-        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
-{
- return   m_ndofManager->deviceOpen(w,
-        setNdofLibraryInit, 
-        setNdofLibraryShutdown,
-        setNdofDeviceOpen);
-}
-
 
 GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKeyMask mask, bool& isDown) const
 {
@@ -284,7 +273,8 @@ GHOST_TSuccess GHOST_System::init()
 	m_timerManager = new GHOST_TimerManager ();
 	m_windowManager = new GHOST_WindowManager ();
 	m_eventManager = new GHOST_EventManager ();
-    m_ndofManager = new GHOST_NDOFManager();
+//	m_ndofManager = new GHOST_NDOFManager();
+// Each platform now has their own NDOFManager subclass
 
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {

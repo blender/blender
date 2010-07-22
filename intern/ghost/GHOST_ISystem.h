@@ -295,21 +295,6 @@ public:
 	 * @return Indication of success.
 	 */
 	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer) = 0;
-	
-	 /***************************************************************************************
-	 ** N-degree of freedom device management functionality
-	 ***************************************************************************************/
-
-   /**
-    * Starts the N-degree of freedom device manager
-    */
-   virtual int openNDOF(GHOST_IWindow*,
-       GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
-       GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-       GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen
-       // original patch only
-      // GHOST_NDOFEventHandler_fp setNdofEventHandler
-       ) = 0;
 
 
 	/***************************************************************************************
