@@ -1,5 +1,5 @@
 /**
-* $Id: seqcache.c 29923 2010-07-04 10:51:10Z schlaile $
+* $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
