@@ -235,8 +235,8 @@ static GHOST_TButtonMask convertButton(int button)
  * @return Ghost key code
  */
 static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction) 
-{	
-	
+{
+
 	//printf("\nrecvchar %c 0x%x",recvChar,recvChar);
 	switch (rawCode) {
 		/*Physical keycodes not used due to map changes in int'l keyboards
@@ -266,7 +266,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 		case kVK_ANSI_X:	return GHOST_kKeyX;
 		case kVK_ANSI_Y:	return GHOST_kKeyY;
 		case kVK_ANSI_Z:	return GHOST_kKeyZ;*/
-		
+
 		/* Numbers keys mapped to handle some int'l keyboard (e.g. French)*/
 		case kVK_ISO_Section: return	GHOST_kKeyUnknown;
 		case kVK_ANSI_1:	return GHOST_kKey1;
@@ -279,7 +279,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 		case kVK_ANSI_8:	return GHOST_kKey8;
 		case kVK_ANSI_9:	return GHOST_kKey9;
 		case kVK_ANSI_0:	return GHOST_kKey0;
-	
+
 		case kVK_ANSI_Keypad0:			return GHOST_kKeyNumpad0;
 		case kVK_ANSI_Keypad1:			return GHOST_kKeyNumpad1;
 		case kVK_ANSI_Keypad2:			return GHOST_kKeyNumpad2;
@@ -318,24 +318,24 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 		case kVK_F18:				return GHOST_kKeyF18;
 		case kVK_F19:				return GHOST_kKeyF19;
 		case kVK_F20:				return GHOST_kKeyF20;
-			
+
 		case kVK_UpArrow:			return GHOST_kKeyUpArrow;
 		case kVK_DownArrow:			return GHOST_kKeyDownArrow;
 		case kVK_LeftArrow:			return GHOST_kKeyLeftArrow;
 		case kVK_RightArrow:		return GHOST_kKeyRightArrow;
-			
+
 		case kVK_Return:			return GHOST_kKeyEnter;
 		case kVK_Delete:			return GHOST_kKeyBackSpace;
 		case kVK_ForwardDelete:		return GHOST_kKeyDelete;
 		case kVK_Escape:			return GHOST_kKeyEsc;
 		case kVK_Tab:				return GHOST_kKeyTab;
 		case kVK_Space:				return GHOST_kKeySpace;
-			
+
 		case kVK_Home:				return GHOST_kKeyHome;
 		case kVK_End:				return GHOST_kKeyEnd;
 		case kVK_PageUp:			return GHOST_kKeyUpPage;
 		case kVK_PageDown:			return GHOST_kKeyDownPage;
-			
+
 		/*case kVK_ANSI_Minus:		return GHOST_kKeyMinus;
 		case kVK_ANSI_Equal:		return GHOST_kKeyEqual;
 		case kVK_ANSI_Comma:		return GHOST_kKeyComma;
@@ -347,12 +347,12 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 		case kVK_ANSI_LeftBracket: 	return GHOST_kKeyLeftBracket;
 		case kVK_ANSI_RightBracket:	return GHOST_kKeyRightBracket;
 		case kVK_ANSI_Grave:		return GHOST_kKeyAccentGrave;*/
-			
+
 		case kVK_VolumeUp:
 		case kVK_VolumeDown:
 		case kVK_Mute:
 			return GHOST_kKeyUnknown;
-			
+
 		default:
 			/* alphanumerical or punctuation key that is remappable in int'l keyboards */
 			if ((recvChar >= 'A') && (recvChar <= 'Z')) {
@@ -363,42 +363,38 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 #if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
 				KeyboardLayoutRef keyLayout;
 				UCKeyboardLayout *uchrData;
-				
+
 				KLGetCurrentKeyboardLayout(&keyLayout);
 				KLGetKeyboardLayoutProperty(keyLayout, kKLuchrData, (const void **)
 											&uchrData);
 				/*get actual character value of the "remappable" keys in int'l keyboards,
 				 if keyboard layout is not correctly reported (e.g. some non Apple keyboards in Tiger),
 				 then fallback on using the received charactersIgnoringModifiers */
-				if (uchrData)
-				{
+				if (uchrData) {
 					UInt32 deadKeyState=0;
 					UniCharCount actualStrLength=0;
-					
+
 					UCKeyTranslate(uchrData, rawCode, keyAction, 0,
-								   LMGetKbdType(), kUCKeyTranslateNoDeadKeysBit, &deadKeyState, 1, &actualStrLength, &recvChar);
-					
-				}				
+							LMGetKbdType(), kUCKeyTranslateNoDeadKeysBit, &deadKeyState, 1, &actualStrLength, &recvChar);
+				}
 #else
 				/* Leopard and Snow Leopard 64bit compatible API*/
 				CFDataRef uchrHandle; /*the keyboard layout*/
 				TISInputSourceRef kbdTISHandle;
-				
+
 				kbdTISHandle = TISCopyCurrentKeyboardLayoutInputSource();
 				uchrHandle = (CFDataRef)TISGetInputSourceProperty(kbdTISHandle,kTISPropertyUnicodeKeyLayoutData);
 				CFRelease(kbdTISHandle);
-				
+
 				/*get actual character value of the "remappable" keys in int'l keyboards,
 				 if keyboard layout is not correctly reported (e.g. some non Apple keyboards in Tiger),
 				 then fallback on using the received charactersIgnoringModifiers */
-				if (uchrHandle)
-				{
+				if (uchrHandle) {
 					UInt32 deadKeyState=0;
 					UniCharCount actualStrLength=0;
-					
+
 					UCKeyTranslate((UCKeyboardLayout*)CFDataGetBytePtr(uchrHandle), rawCode, keyAction, 0,
 								   LMGetKbdType(), kUCKeyTranslateNoDeadKeysBit, &deadKeyState, 1, &actualStrLength, &recvChar);
-					
 				}
 #endif
 				switch (recvChar) {
@@ -476,9 +472,9 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 {
 	int result;
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
+
 	result = fromcocoa_request_qtcodec_settings(C, op);
-	
+
 	[pool drain];
 	return result;
 }
@@ -549,7 +545,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	struct timeval boottime;
 	size_t len;
 	char *rstring = NULL;
-	
+
 	m_modifierMask =0;
 	m_pressedMouseButtons =0;
 	m_isGestureInProgress = false;
@@ -568,27 +564,27 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_BOOTTIME;
 	len = sizeof(struct timeval);
-	
+
 	sysctl(mib, 2, &boottime, &len, NULL, 0);
 	m_start_time = ((boottime.tv_sec*1000)+(boottime.tv_usec/1000));
-	
+
 	//Detect multitouch trackpad
 	mib[0] = CTL_HW;
 	mib[1] = HW_MODEL;
 	sysctl( mib, 2, NULL, &len, NULL, 0 );
 	rstring = (char*)malloc( len );
 	sysctl( mib, 2, rstring, &len, NULL, 0 );
-	
+
 	//Hack on MacBook revision, as multitouch avail. function missing
 	m_hasMultiTouchTrackpad =
 		(strstr(rstring,"MacBookAir") ||
 		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')));
-	
+
 	free( rstring );
 	rstring = NULL;
-	
+
 	m_ignoreWindowSizedMessages = false;
-	
+
 	m_input_fidelity_hint = HI_FI; // just for testing...
 }
 
@@ -599,63 +595,63 @@ GHOST_SystemCocoa::~GHOST_SystemCocoa()
 
 GHOST_TSuccess GHOST_SystemCocoa::init()
 {
-    GHOST_TSuccess success = GHOST_System::init();
-    if (success) {
+	GHOST_TSuccess success = GHOST_System::init();
+	if (success) {
 
 		m_ndofManager = new GHOST_NDOFManagerCocoa(*this);
 		
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		if (NSApp == nil) {
 			[NSApplication sharedApplication];
-			
+
 			if ([NSApp mainMenu] == nil) {
 				NSMenu *mainMenubar = [[NSMenu alloc] init];
 				NSMenuItem *menuItem;
 				NSMenu *windowMenu;
 				NSMenu *appMenu;
-				
+
 				//Create the application menu
 				appMenu = [[NSMenu alloc] initWithTitle:@"Blender"];
-				
+
 				[appMenu addItemWithTitle:@"About Blender" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
 				[appMenu addItem:[NSMenuItem separatorItem]];
-				
+
 				menuItem = [appMenu addItemWithTitle:@"Hide Blender" action:@selector(hide:) keyEquivalent:@"h"];
 				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
-				 
+
 				menuItem = [appMenu addItemWithTitle:@"Hide others" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
 				[menuItem setKeyEquivalentModifierMask:(NSAlternateKeyMask | NSCommandKeyMask)];
-				
+
 				[appMenu addItemWithTitle:@"Show All" action:@selector(unhideAllApplications:) keyEquivalent:@""];
-				
+
 				menuItem = [appMenu addItemWithTitle:@"Quit Blender" action:@selector(terminate:) keyEquivalent:@"q"];
 				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
-				
+
 				menuItem = [[NSMenuItem alloc] init];
 				[menuItem setSubmenu:appMenu];
-				
+
 				[mainMenubar addItem:menuItem];
 				[menuItem release];
 				[NSApp performSelector:@selector(setAppleMenu:) withObject:appMenu]; //Needed for 10.5
 				[appMenu release];
-				
+
 				//Create the window menu
 				windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
-				
+
 				menuItem = [windowMenu addItemWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
 				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
-				
+
 				[windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
-				
+
 				menuItem = [windowMenu addItemWithTitle:@"Close" action:@selector(performClose:) keyEquivalent:@"w"];
 				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];
-				
+
 				menuItem = [[NSMenuItem	alloc] init];
 				[menuItem setSubmenu:windowMenu];
-				
+
 				[mainMenubar addItem:menuItem];
 				[menuItem release];
-				
+
 				[NSApp setMainMenu:mainMenubar];
 				[NSApp setWindowsMenu:windowMenu];
 				[windowMenu release];
@@ -666,12 +662,12 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 			[appDelegate setSystemCocoa:this];
 			[NSApp setDelegate:appDelegate];
 		}
-		
+
 		[NSApp finishLaunching];
-		
+
 		[pool drain];
-    }
-    return success;
+	}
+	return success;
 }
 
 
@@ -681,11 +677,10 @@ GHOST_TUns64 GHOST_SystemCocoa::getMilliSeconds() const
 {
 	//Cocoa equivalent exists in 10.6 ([[NSProcessInfo processInfo] systemUptime])
 	struct timeval currentTime;
-	
+
 	gettimeofday(&currentTime, NULL);
-	
+
 	//Return timestamp of system uptime
-	
 	return ((currentTime.tv_sec*1000)+(currentTime.tv_usec/1000)-m_start_time);
 }
 
@@ -708,11 +703,11 @@ void GHOST_SystemCocoa::getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	//Get visible frame, that is frame excluding dock and top menu bar
 	NSRect frame = [[NSScreen mainScreen] visibleFrame];
-	
+
 	//Returns max window contents (excluding title bar...)
 	NSRect contentRect = [NSWindow contentRectForFrameRect:frame
 												 styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask)];
-	
+
 	width = contentRect.size.width;
 	height = contentRect.size.height;
 
@@ -721,7 +716,7 @@ void GHOST_SystemCocoa::getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns
 
 
 GHOST_IWindow* GHOST_SystemCocoa::createWindow(
-	const STR_String& title, 
+	const STR_String& title,
 	GHOST_TInt32 left,
 	GHOST_TInt32 top,
 	GHOST_TUns32 width,
@@ -733,59 +728,58 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 	const GHOST_TEmbedderWindowID parentWindow
 )
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_IWindow* window = 0;
-	
+
 	//Get the available rect for including window contents
 	NSRect frame = [[NSScreen mainScreen] visibleFrame];
 	NSRect contentRect = [NSWindow contentRectForFrameRect:frame
 												 styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask)];
-	
+
 	//Ensures window top left is inside this available rect
 	left = left > contentRect.origin.x ? left : contentRect.origin.x;
 	top = top > contentRect.origin.y ? top : contentRect.origin.y;
-	
+
 	window = new GHOST_WindowCocoa (this, title, left, top, width, height, state, type, stereoVisual, numOfAASamples);
 
-    if (window) {
-        if (window->getValid()) {
-            // Store the pointer to the window 
-            GHOST_ASSERT(m_windowManager, "m_windowManager not initialized");
-            m_windowManager->addWindow(window);
-            m_windowManager->setActiveWindow(window);
+	if (window) {
+		if (window->getValid()) {
+			// Store the pointer to the window 
+			GHOST_ASSERT(m_windowManager, "m_windowManager not initialized");
+			m_windowManager->addWindow(window);
+			m_windowManager->setActiveWindow(window);
 			//Need to tell window manager the new window is the active one (Cocoa does not send the event activate upon window creation)
-            pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window));
+			pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window));
 			pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
-
-        }
-        else {
-			GHOST_PRINT("GHOST_SystemCocoa::createWindow(): window invalid\n");
-            delete window;
-            window = 0;
-        }
-    }
+		}
+		else {
+		GHOST_PRINT("GHOST_SystemCocoa::createWindow(): window invalid\n");
+		delete window;
+		window = 0;
+		}
+	}
 	else {
 		GHOST_PRINT("GHOST_SystemCocoa::createWindow(): could not create window\n");
 	}
 	[pool drain];
-    return window;
+	return window;
 }
 
 GHOST_TSuccess GHOST_SystemCocoa::beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window, const bool stereoVisual)
-{	
+{
 	GHOST_IWindow* currentWindow = m_windowManager->getActiveWindow();
 	*window = currentWindow;
-	
+
 	if(!currentWindow) return GHOST_kFailure;
-	
+
 	return currentWindow->setState(GHOST_kWindowStateFullScreen);
 }
 
 GHOST_TSuccess GHOST_SystemCocoa::endFullScreen(void)
-{	
+{
 	GHOST_IWindow* currentWindow = m_windowManager->getActiveWindow();
 	if(!currentWindow) return GHOST_kFailure;
-	
+
 	return currentWindow->setState(GHOST_kWindowStateNormal);
 }
 
@@ -796,12 +790,13 @@ GHOST_TSuccess GHOST_SystemCocoa::endFullScreen(void)
  */
 GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const
 {
-    NSPoint mouseLoc = [NSEvent mouseLocation];
-	
-    // Returns the mouse location in screen coordinates
-    x = (GHOST_TInt32)mouseLoc.x;
-    y = (GHOST_TInt32)mouseLoc.y;
-    return GHOST_kSuccess;
+	NSPoint mouseLoc = [NSEvent mouseLocation];
+
+	// Returns the mouse location in screen coordinates
+	x = (GHOST_TInt32)mouseLoc.x;
+	y = (GHOST_TInt32)mouseLoc.y;
+
+	return GHOST_kSuccess;
 }
 
 /**
@@ -814,12 +809,12 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 	if (!window) return GHOST_kFailure;
 
 	setMouseCursorPosition(x, y);
-	
+
 	//Force mouse move event (not pushed by Cocoa)
 	window->screenToClient(x, y, wx, wy);
 	pushEvent(new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, wx,wy));
 	m_outsideLoopEventProcessed = true;
-	
+
 	return GHOST_kSuccess;
 }
 
@@ -832,18 +827,18 @@ GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(float xf, float yf)
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSScreen *windowScreen = window->getScreen();
 	NSRect screenRect = [windowScreen frame];
-	
+
 	//Set position relative to current screen
 	xf -= screenRect.origin.x;
 	yf -= screenRect.origin.y;
-	
+
 	//Quartz Display Services uses the old coordinates (top left origin)
 	yf = screenRect.size.height -yf;
-
+	
 	CGDisplayMoveCursorToPoint((CGDirectDisplayID)[[[windowScreen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue], CGPointMake(xf, yf));
 
 	[pool drain];
-    return GHOST_kSuccess;
+	return GHOST_kSuccess;
 }
 
 
@@ -853,19 +848,19 @@ GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys& keys) cons
 	keys.set(GHOST_kModifierKeyLeftAlt, (m_modifierMask & NSAlternateKeyMask) ? true : false);
 	keys.set(GHOST_kModifierKeyLeftShift, (m_modifierMask & NSShiftKeyMask) ? true : false);
 	keys.set(GHOST_kModifierKeyLeftControl, (m_modifierMask & NSControlKeyMask) ? true : false);
-	
-    return GHOST_kSuccess;
+
+	return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons& buttons) const
 {
 	buttons.clear();
-    buttons.set(GHOST_kButtonMaskLeft, m_pressedMouseButtons & GHOST_kButtonMaskLeft);
+	buttons.set(GHOST_kButtonMaskLeft, m_pressedMouseButtons & GHOST_kButtonMaskLeft);
 	buttons.set(GHOST_kButtonMaskRight, m_pressedMouseButtons & GHOST_kButtonMaskRight);
 	buttons.set(GHOST_kButtonMaskMiddle, m_pressedMouseButtons & GHOST_kButtonMaskMiddle);
 	buttons.set(GHOST_kButtonMaskButton4, m_pressedMouseButtons & GHOST_kButtonMaskButton4);
 	buttons.set(GHOST_kButtonMaskButton5, m_pressedMouseButtons & GHOST_kButtonMaskButton5);
-    return GHOST_kSuccess;
+	return GHOST_kSuccess;
 }
 
 
@@ -975,10 +970,10 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 				 case NSEventTypeGesture:
 				 case NSEventTypeSwipe:
 				 break; */
-				
+
 			default:
 				break;
-			/*	Unused events:
+			/* Unused events:
 				NSMouseEntered       = 8,
 				NSMouseExited        = 9,
 				NSAppKitDefined      = 13,
@@ -988,20 +983,18 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 				NSCursorUpdate       = 17,*/
 		}
 	} while (event != nil);		
-	
+
 	[pool drain];
-	
+
 	if (m_needDelayedApplicationBecomeActiveEventProcessing)
 		handleApplicationBecomeActiveEvent();
-	
-//	m_outsideLoopEventProcessed |= m_ndofManager->sendMotionEvent();
-	
+
 	if (m_outsideLoopEventProcessed) {
 		m_outsideLoopEventProcessed = false;
 		return true;
 	}
-	
-    return anyProcessed;
+
+	return anyProcessed;
 }
 
 
@@ -1012,7 +1005,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	//(that is when update events are sent to another application)
 	unsigned int modifiers;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
-	
+
 	if (!window) {
 		m_needDelayedApplicationBecomeActiveEventProcessing = true;
 		return GHOST_kFailure;
@@ -1020,7 +1013,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	else m_needDelayedApplicationBecomeActiveEventProcessing = false;
 
 	modifiers = [[[NSApplication sharedApplication] currentEvent] modifierFlags];
-	
+
 	if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
 		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
 	}
@@ -1033,9 +1026,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	if ((modifiers & NSCommandKeyMask) != (m_modifierMask & NSCommandKeyMask)) {
 		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSCommandKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
 	}
-	
+
 	m_modifierMask = modifiers;
-	
+
 	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
 }
@@ -1051,37 +1044,36 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 	if (!validWindow(window)) {
 		return GHOST_kFailure;
 	}
-		switch(eventType) 
-		{
-			case GHOST_kEventWindowClose:
-				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
-				break;
-			case GHOST_kEventWindowActivate:
-				m_windowManager->setActiveWindow(window);
-				window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
-				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window) );
-				break;
-			case GHOST_kEventWindowDeactivate:
-				m_windowManager->setWindowInactive(window);
-				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowDeactivate, window) );
-				break;
-			case GHOST_kEventWindowUpdate:
-				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
-				break;
-			case GHOST_kEventWindowMove:
-				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowMove, window) );
-				break;
-			case GHOST_kEventWindowSize:
-				if (!m_ignoreWindowSizedMessages)
-				{
-					window->updateDrawingContext();
-					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
-				}
-				break;
-			default:
-				return GHOST_kFailure;
-				break;
-		}
+
+	switch(eventType) {
+		case GHOST_kEventWindowClose:
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
+			break;
+		case GHOST_kEventWindowActivate:
+			m_windowManager->setActiveWindow(window);
+			window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window) );
+			break;
+		case GHOST_kEventWindowDeactivate:
+			m_windowManager->setWindowInactive(window);
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowDeactivate, window) );
+			break;
+		case GHOST_kEventWindowUpdate:
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
+			break;
+		case GHOST_kEventWindowMove:
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowMove, window) );
+			break;
+		case GHOST_kEventWindowSize:
+			if (!m_ignoreWindowSizedMessages) {
+				window->updateDrawingContext();
+				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
+			}
+			break;
+		default:
+			return GHOST_kFailure;
+			break;
+	}
 	
 	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
@@ -1094,76 +1086,76 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 	if (!validWindow(window)) {
 		return GHOST_kFailure;
 	}
-	switch(eventType) 
-	{
+
+	switch(eventType) {
 		case GHOST_kEventDraggingEntered:
 		case GHOST_kEventDraggingUpdated:
 		case GHOST_kEventDraggingExited:
 			pushEvent(new GHOST_EventDragnDrop(getMilliSeconds(),eventType,draggedObjectType,window,mouseX,mouseY,NULL));
 			break;
-			
+
 		case GHOST_kEventDraggingDropDone:
 		{
 			GHOST_TUns8 * temp_buff;
 			GHOST_TStringArray *strArray;
 			NSArray *droppedArray;
-			size_t pastedTextSize;	
+			size_t pastedTextSize;
 			NSString *droppedStr;
 			GHOST_TEventDataPtr eventData;
 			int i;
 
 			if (!data) return GHOST_kFailure;
-			
+
 			switch (draggedObjectType) {
 				case GHOST_kDragnDropTypeFilenames:
 					droppedArray = (NSArray*)data;
-					
+
 					strArray = (GHOST_TStringArray*)malloc(sizeof(GHOST_TStringArray));
 					if (!strArray) return GHOST_kFailure;
-					
+
 					strArray->count = [droppedArray count];
 					if (strArray->count == 0) return GHOST_kFailure;
-					
+
 					strArray->strings = (GHOST_TUns8**) malloc(strArray->count*sizeof(GHOST_TUns8*));
-					
+
 					for (i=0;i<strArray->count;i++)
 					{
 						droppedStr = [droppedArray objectAtIndex:i];
-						
+
 						pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-						temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
-					
+						temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1);
+
 						if (!temp_buff) {
 							strArray->count = i;
 							break;
 						}
-					
+
 						strncpy((char*)temp_buff, [droppedStr cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
 						temp_buff[pastedTextSize] = '\0';
-						
+
 						strArray->strings[i] = temp_buff;
 					}
 
-					eventData = (GHOST_TEventDataPtr) strArray;	
+					eventData = (GHOST_TEventDataPtr) strArray;
 					break;
-					
+
 				case GHOST_kDragnDropTypeString:
 					droppedStr = (NSString*)data;
 					pastedTextSize = [droppedStr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-					
+
 					temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
-					
+
 					if (temp_buff == NULL) {
 						return GHOST_kFailure;
 					}
-					
+
 					strncpy((char*)temp_buff, [droppedStr cStringUsingEncoding:NSUTF8StringEncoding], pastedTextSize);
-					
+
 					temp_buff[pastedTextSize] = '\0';
-					
+
 					eventData = (GHOST_TEventDataPtr) temp_buff;
 					break;
-				
+
 				case GHOST_kDragnDropTypeBitmap:
 				{
 					NSImage *droppedImg = (NSImage*)data;
@@ -1176,13 +1168,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					NSBitmapImageRep *blBitmapFormatImageRGB,*blBitmapFormatImageRGBA,*bitmapImage=nil;
 					NSEnumerator *enumerator;
 					NSImageRep *representation;
-					
+
 					ibuf = IMB_allocImBuf (imgSize.width , imgSize.height, 32, IB_rect, 0);
 					if (!ibuf) {
 						[droppedImg release];
 						return GHOST_kFailure;
 					}
-					
+
 					/*Get the bitmap of the image*/
 					enumerator = [[droppedImg representations] objectEnumerator];
 					while ((representation = [enumerator nextObject])) {
@@ -1192,7 +1184,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 						}
 					}
 					if (bitmapImage == nil) return GHOST_kFailure;
-					
+
 					if (([bitmapImage bitsPerPixel] == 32) && (([bitmapImage bitmapFormat] & 0x5) == 0)
 						&& ![bitmapImage isPlanar]) {
 						/* Try a fast copy if the image is a meshed RGBA 32bit bitmap*/
@@ -1207,11 +1199,11 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					else {
 						/* Tell cocoa image resolution is same as current system one */
 						[bitmapImage setSize:imgSize];
-						
+
 						/* Convert the image in a RGBA 32bit format */
-						/* As Core Graphics does not support contextes with non premutliplied alpha,
+						/* As Core Graphics does not support contexts with non premutliplied alpha,
 						 we need to get alpha key values in a separate batch */
-						
+
 						/* First get RGB values w/o Alpha to avoid pre-multiplication, 32bit but last byte is unused */
 						blBitmapFormatImageRGB = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
 																						 pixelsWide:imgSize.width 
@@ -1221,12 +1213,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 																					   bitmapFormat:(NSBitmapFormat)0
 																						bytesPerRow:4*imgSize.width
 																					   bitsPerPixel:32/*RGB format padded to 32bits*/];
-						
+
 						[NSGraphicsContext saveGraphicsState];
 						[NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithBitmapImageRep:blBitmapFormatImageRGB]];
 						[bitmapImage draw];
 						[NSGraphicsContext restoreGraphicsState];
-						
+
 						rasterRGB = (GHOST_TUns8*)[blBitmapFormatImageRGB bitmapData];
 						if (rasterRGB == NULL) {
 							[bitmapImage release];
@@ -1234,7 +1226,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 							[droppedImg release];
 							return GHOST_kFailure;
 						}
-						
+
 						/* Then get Alpha values by getting the RGBA image (that is premultiplied btw) */
 						blBitmapFormatImageRGBA = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
 																						  pixelsWide:imgSize.width
@@ -1244,12 +1236,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 																						bitmapFormat:(NSBitmapFormat)0
 																						 bytesPerRow:4*imgSize.width
 																						bitsPerPixel:32/* RGBA */];
-						
+
 						[NSGraphicsContext saveGraphicsState];
 						[NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithBitmapImageRep:blBitmapFormatImageRGBA]];
 						[bitmapImage draw];
 						[NSGraphicsContext restoreGraphicsState];
-						
+
 						rasterRGBA = (GHOST_TUns8*)[blBitmapFormatImageRGBA bitmapData];
 						if (rasterRGBA == NULL) {
 							[bitmapImage release];
@@ -1258,37 +1250,37 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 							[droppedImg release];
 							return GHOST_kFailure;
 						}
-						
+
 						/*Copy the image to ibuf, flipping it vertically*/
 						toIBuf = (GHOST_TUns8*)ibuf->rect;
 						for (y = 0; y < imgSize.height; y++) {
 							for (x = 0; x < imgSize.width; x++) {
 								to_i = (imgSize.height-y-1)*imgSize.width + x;
 								from_i = y*imgSize.width + x;
-								
+
 								toIBuf[4*to_i] = rasterRGB[4*from_i]; /* R */
 								toIBuf[4*to_i+1] = rasterRGB[4*from_i+1]; /* G */
 								toIBuf[4*to_i+2] = rasterRGB[4*from_i+2]; /* B */
 								toIBuf[4*to_i+3] = rasterRGBA[4*from_i+3]; /* A */
 							}
 						}
-						
+
 						[blBitmapFormatImageRGB release];
 						[blBitmapFormatImageRGBA release];
 						[droppedImg release];
 					}
-					
+
 					eventData = (GHOST_TEventDataPtr) ibuf;
-				}
 					break;
-					
+				}
+
 				default:
 					return GHOST_kFailure;
 					break;
 			}
 			pushEvent(new GHOST_EventDragnDrop(getMilliSeconds(),eventType,draggedObjectType,window,mouseX,mouseY,eventData));
-		}
 			break;
+		}
 		default:
 			return GHOST_kFailure;
 	}
@@ -1300,11 +1292,11 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 {
 	GHOST_Window* window = (GHOST_Window*)m_windowManager->getActiveWindow();
-	
+
 	//Discard quit event if we are in cursor grab sequence
 	if (window && (window->getCursorGrabMode() != GHOST_kGrabDisable) && (window->getCursorGrabMode() != GHOST_kGrabNormal))
 		return GHOST_kExitCancel;
-	
+
 	//Check open windows if some changes are not saved
 	if (m_windowManager->getAnyModifiedState())
 	{
@@ -1328,7 +1320,7 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 		m_outsideLoopEventProcessed = true;
 		return GHOST_kExitNow;
 	}
-	
+
 	return GHOST_kExitCancel;
 }
 
@@ -1340,11 +1332,11 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 	char * temp_buff;
 	size_t filenameTextSize;	
 	GHOST_Window* window= (GHOST_Window*)m_windowManager->getActiveWindow();
-	
+
 	if (!window) {
 		return NO;
 	}	
-	
+
 	//Discard event if we are in cursor grab sequence, it'll lead to "stuck cursor" situation if the alert panel is raised
 	if (window && (window->getCursorGrabMode() != GHOST_kGrabDisable) && (window->getCursorGrabMode() != GHOST_kGrabNormal))
 		return GHOST_kExitCancel;
@@ -1366,15 +1358,15 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 	if (confirmOpen == NSAlertAlternateReturn)
 	{
 		filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
-		
+
 		temp_buff = (char*) malloc(filenameTextSize+1); 
-		
+
 		if (temp_buff == NULL) {
 			return GHOST_kFailure;
 		}
-		
+
 		strncpy(temp_buff, [filepath cStringUsingEncoding:NSISOLatin1StringEncoding], filenameTextSize);
-		
+
 		temp_buff[filenameTextSize] = '\0';
 
 		pushEvent(new GHOST_EventString(getMilliSeconds(),GHOST_kEventOpenMainFile,window,(GHOST_TEventDataPtr) temp_buff));
@@ -1395,7 +1387,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 		printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
 	}
-	
+
 	GHOST_TabletData& ct = window->GetCocoaTabletData();
 
 	GHOST_TTabletMode active_tool;
@@ -1461,7 +1453,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 	}
 
 	GHOST_TabletData& ct = window->GetCocoaTabletData();
-	
+
 	ct.Pressure = [event pressure];
 	NSPoint tilt = [event tilt];
 	ct.Xtilt = tilt.x;
@@ -1512,8 +1504,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 	static float warp_dx = 0, warp_dy = 0; // need to reset these. e.g. each grab operation should get its own.
 		// ^^ not currently useful, try m_cursorDelta_* instead.
 
-	switch ([event type])
-    {
+	switch ([event type]) {
 		case NSLeftMouseDown:
 		case NSRightMouseDown:
 		case NSOtherMouseDown:
@@ -1525,7 +1516,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				}
 			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
 			break;
-						
+
 		case NSLeftMouseUp:
 		case NSRightMouseUp:
 		case NSOtherMouseUp:
@@ -1539,7 +1530,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			// cheap hack, should reset when grab ends.
 			warp_dx = warp_dy = 0;
 			break;
-			
+
 		case NSLeftMouseDragged:
 		case NSRightMouseDragged:
 		case NSOtherMouseDragged:
@@ -1556,128 +1547,121 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
 			event_dy = -event_dy; //Strange Apple implementation (inverted coordinates for the deltaY) ...
 
-
 				switch (window->getCursorGrabMode()) {
 					case GHOST_kGrabHide: //Cursor hidden grab operation : no cursor move
-					{
+						{
 						printf(" - grab hide\n");
 						GHOST_TInt32 x_warp, y_warp, x_accum, y_accum;
-						
+
 						window->getCursorGrabInitPos(x_warp, y_warp);
-						
+
 						window->getCursorGrabAccum(x_accum, y_accum);
 						x_accum += event_dx;
 						y_accum += event_dy;
 						window->setCursorGrabAccum(x_accum, y_accum);
-						
+
 						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum));
-					}
 						break;
+						}
 					case GHOST_kGrabWrap: //Wrap cursor at area/window boundaries
-					{
+						{
 						NSPoint mousePos = [event locationInWindow];
 						GHOST_TInt32 x_mouse= mousePos.x;
 						GHOST_TInt32 y_mouse= mousePos.y;
 						GHOST_TInt32 x_accum, y_accum, x_cur, y_cur;
 						GHOST_Rect bounds, windowBounds, correctedBounds;
-						
+
 						/* fallback to window bounds */
 						if(window->getCursorGrabBounds(bounds)==GHOST_kFailure)
 							window->getClientBounds(bounds);
-						
+
 						//Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
 						window->getClientBounds(windowBounds);
 						window->screenToClient(bounds.m_l,bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
 						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);
 						correctedBounds.m_b = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_b;
 						correctedBounds.m_t = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_t;
-						
+
 						//Update accumulation counts
 						window->getCursorGrabAccum(x_accum, y_accum);
 						x_accum += event_dx - m_cursorDelta_x;
 						y_accum += event_dy - m_cursorDelta_y;
 						window->setCursorGrabAccum(x_accum, y_accum);
-						
-						
+
 						//Warp mouse cursor if needed
 						x_mouse += event_dx - m_cursorDelta_x;
 						y_mouse += event_dy - m_cursorDelta_y;
 						correctedBounds.wrapPoint(x_mouse, y_mouse, 2);
-						
+
 						//Compensate for mouse moved event taking cursor position set into account
 						m_cursorDelta_x = x_mouse-mousePos.x;
 						m_cursorDelta_y = y_mouse-mousePos.y;
-						
+
 						//Set new cursor position
 						window->clientToScreen(x_mouse, y_mouse, x_cur, y_cur);
 						setMouseCursorPosition(x_cur, y_cur); /* wrap */
-						
+
 						//Post event
 						window->getCursorGrabInitPos(x_cur, y_cur);
 						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_cur + x_accum, y_cur + y_accum));
-					}
+
 						break;
+						}
 					default:
-					{
 						//Normal cursor operation: send mouse position in window
 						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, mousePos.x, mousePos.y));
 						m_cursorDelta_x=0;
 						m_cursorDelta_y=0; //Mouse motion occured between two cursor warps, so we can reset the delta counter
-
 						warp_dx = 0;
 						warp_dy = 0;
-					}
-						break;
-				}
-				break;
-			}
+				} // END cursor grab mode
+			break;
+			} // END mouse moved
 
 		case NSScrollWheel:
-			{
-				/* Send trackpad event if inside a trackpad gesture, send wheel event otherwise */
-				if (m_hasMultiTouchTrackpad and m_isGestureInProgress) {
-					NSPoint mousePos = [event locationInWindow];
-					double dx = [event deltaX];
-					double dy = -[event deltaY];
-					
-					const double deltaMax = 50.0;
-					
-					if ((dx == 0) && (dy == 0)) break;
-					
-					/* Quadratic acceleration */
-					dx = dx*(fabs(dx)+0.5);
-					if (dx<0.0) dx-=0.5; else dx+=0.5;
-					if (dx< -deltaMax) dx= -deltaMax; else if (dx>deltaMax) dx=deltaMax;
-					
-					dy = dy*(fabs(dy)+0.5);
-					if (dy<0.0) dy-=0.5; else dy+=0.5;
-					if (dy< -deltaMax) dy= -deltaMax; else if (dy>deltaMax) dy=deltaMax;
+			/* Send trackpad event if inside a trackpad gesture, send wheel event otherwise */
+			if (m_hasMultiTouchTrackpad and m_isGestureInProgress) {
+				NSPoint mousePos = [event locationInWindow];
+				double dx = [event deltaX];
+				double dy = -[event deltaY];
 
-					pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventScroll, mousePos.x, mousePos.y, dx, dy));
-				}
-				else {
-					GHOST_TInt32 delta;
-					
-					double deltaF = [event deltaY];
-					if (deltaF == 0.0) break; //discard trackpad delta=0 events
-					
-					delta = deltaF > 0.0 ? 1 : -1;
-					pushEvent(new GHOST_EventWheel([event timestamp]*1000, window, delta));
-				}
+				const double deltaMax = 50.0;
+
+				if ((dx == 0) && (dy == 0)) break;
+
+				/* Quadratic acceleration */
+				dx = dx*(fabs(dx)+0.5);
+				if (dx<0.0) dx-=0.5; else dx+=0.5;
+				if (dx< -deltaMax) dx= -deltaMax; else if (dx>deltaMax) dx=deltaMax;
+
+				dy = dy*(fabs(dy)+0.5);
+				if (dy<0.0) dy-=0.5; else dy+=0.5;
+				if (dy< -deltaMax) dy= -deltaMax; else if (dy>deltaMax) dy=deltaMax;
+
+				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventScroll, mousePos.x, mousePos.y, dx, dy));
+			}
+			else {
+				GHOST_TInt32 delta;
+
+				double deltaF = [event deltaY];
+				if (deltaF == 0.0) break; //discard trackpad delta=0 events
+
+				delta = deltaF > 0.0 ? 1 : -1;
+				pushEvent(new GHOST_EventWheel([event timestamp]*1000, window, delta));
 			}
 			break;
-			
+
 		case NSEventTypeMagnify:
 			{
-				NSPoint mousePos = [event locationInWindow];
-				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, mousePos.x, mousePos.y, [event magnification]*250.0 + 0.1, 0));
-			}
+			NSPoint mousePos = [event locationInWindow];
+			pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, mousePos.x, mousePos.y, [event magnification]*250.0 + 0.1, 0));
 			break;
-
+			}
 		case NSEventTypeRotate:
 			{
-				NSPoint mousePos = [event locationInWindow];
-				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, mousePos.x, mousePos.y, -[event rotation] * 5.0, 0));
+			NSPoint mousePos = [event locationInWindow];
+			pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, mousePos.x, mousePos.y, -[event rotation] * 5.0, 0));
+			break;
 			}
 		case NSEventTypeBeginGesture:
 			m_isGestureInProgress = true;
@@ -1688,8 +1672,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		default:
 			printf("<!> unknown event type %d\n", [event type]);
 			return GHOST_kFailure;
-		}
-	
+	}
+
 	return GHOST_kSuccess;
 }
 
@@ -1710,7 +1694,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 		//printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
 	}
-	
+
 	switch ([event type]) {
 		case NSKeyDown:
 		case NSKeyUp:
@@ -1723,7 +1707,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				keyCode = convertKey([event keyCode],0,
 									 [event type] == NSKeyDown?kUCKeyActionDown:kUCKeyActionUp);
 
-				
+
 			characters = [event characters];
 			if ([characters length]>0) { //Check for dead keys
 				//Convert characters to iso latin 1 encoding
@@ -1735,7 +1719,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 			}
 			else
 				ascii= 0;
-			
+
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa
 
@@ -1747,10 +1731,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				//printf("\nKey up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii);
 			}
 			break;
-	
+
 		case NSFlagsChanged: 
 			modifiers = [event modifierFlags];
-			
+
 			if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
 			}
@@ -1763,18 +1747,17 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 			if ((modifiers & NSCommandKeyMask) != (m_modifierMask & NSCommandKeyMask)) {
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, (modifiers & NSCommandKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
 			}
-			
+
 			m_modifierMask = modifiers;
 			break;
-			
+
 		default:
 			return GHOST_kFailure;
 			break;
 	}
-	
+
 	return GHOST_kSuccess;
 }
-
 
 
 #pragma mark Clipboard get/set
@@ -1783,45 +1766,45 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 {
 	GHOST_TUns8 * temp_buff;
 	size_t pastedTextSize;	
-	
+
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
+
 	NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
-	
+
 	if (pasteBoard == nil) {
 		[pool drain];
 		return NULL;
 	}
-	
+
 	NSArray *supportedTypes =
 		[NSArray arrayWithObjects: NSStringPboardType, nil];
-	
+
 	NSString *bestType = [[NSPasteboard generalPasteboard]
 						  availableTypeFromArray:supportedTypes];
-	
+
 	if (bestType == nil) {
 		[pool drain];
 		return NULL;
 	}
-	
+
 	NSString * textPasted = [pasteBoard stringForType:NSStringPboardType];
 
 	if (textPasted == nil) {
 		[pool drain];
 		return NULL;
 	}
-	
+
 	pastedTextSize = [textPasted lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
-	
+
 	temp_buff = (GHOST_TUns8*) malloc(pastedTextSize+1); 
 
 	if (temp_buff == NULL) {
 		[pool drain];
 		return NULL;
 	}
-	
+
 	strncpy((char*)temp_buff, [textPasted cStringUsingEncoding:NSISOLatin1StringEncoding], pastedTextSize);
-	
+
 	temp_buff[pastedTextSize] = '\0';
 	
 	[pool drain];
@@ -1836,26 +1819,26 @@ GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 {
 	NSString *textToCopy;
-	
+
 	if(selection) {return;} // for copying the selection, used on X11
 
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		
+
 	NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
-	
+
 	if (pasteBoard == nil) {
 		[pool drain];
 		return;
 	}
-	
+
 	NSArray *supportedTypes = [NSArray arrayWithObject:NSStringPboardType];
-	
+
 	[pasteBoard declareTypes:supportedTypes owner:nil];
-	
+
 	textToCopy = [NSString stringWithCString:buffer encoding:NSISOLatin1StringEncoding];
-	
+
 	[pasteBoard setString:textToCopy forType:NSStringPboardType];
-	
+
 	[pool drain];
 }
 
@@ -1868,23 +1851,23 @@ const GHOST_TUns8* GHOST_SystemCocoa::getSystemDir() const
 	NSFileManager *fileManager;
 	NSString *basePath;
 	NSArray *paths;
-	
+
 	paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSLocalDomainMask, YES);
-	
+
 	if ([paths count] > 0)
 		basePath = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"Blender"];
 	else { //Fall back to standard unix path in case of issue
 		basePath = @"/usr/share/blender";
 	}
-	
+
 	/* Ensure path exists, creates it if needed */
 	fileManager = [NSFileManager defaultManager];
 	if (![fileManager fileExistsAtPath:basePath isDirectory:NULL]) {
 		[fileManager createDirectoryAtPath:basePath attributes:nil];
 	}
-	
+
 	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
-	
+
 	[pool drain];
 	return tempPath;
 }
@@ -1904,15 +1887,15 @@ const GHOST_TUns8* GHOST_SystemCocoa::getUserDir() const
 	else { //Fall back to HOME in case of issue
 		basePath = [NSHomeDirectory() stringByAppendingPathComponent:@".blender"];
 	}
-	
+
 	/* Ensure path exists, creates it if needed */
 	fileManager = [NSFileManager defaultManager];
 	if (![fileManager fileExistsAtPath:basePath isDirectory:NULL]) {
 		[fileManager createDirectoryAtPath:basePath attributes:nil];
 	}
-	
+
 	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
-	
+
 	[pool drain];
 	return tempPath;
 }
