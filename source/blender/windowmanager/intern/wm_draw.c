@@ -101,6 +101,14 @@ static void wm_area_mark_invalid_backbuf(ScrArea *sa)
 		((View3D*)sa->spacedata.first)->flag |= V3D_INVALID_BACKBUF;
 }
 
+static int wm_area_test_invalid_backbuf(ScrArea *sa)
+{
+	if(sa->spacetype == SPACE_VIEW3D)
+		return (((View3D*)sa->spacedata.first)->flag & V3D_INVALID_BACKBUF);
+	else
+		return 0;
+}
+
 /********************** draw all **************************/
 /* - reference method, draw all each time                 */
 
@@ -189,11 +197,11 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 	ARegion *ar;
 	static rcti rect= {0, 0, 0, 0};
 
-	/* back needs to be ok for swap, if not, mark for redraw */
+	/* after backbuffer selection draw, we need to redraw */
 	for(sa= screen->areabase.first; sa; sa= sa->next)
 		for(ar= sa->regionbase.first; ar; ar= ar->next)
-			if(ar->swinid && !(ar->swap & WIN_BACK_OK))
-				ar->do_draw= RGN_DRAW;
+			if(ar->swinid && !wm_area_test_invalid_backbuf(sa))
+					ED_region_tag_redraw(ar);
 
 	/* flush overlapping regions */
 	if(screen->regionbase.first) {
@@ -692,11 +700,13 @@ static int wm_automatic_draw_method(wmWindow *win)
 		/* ATI opensource driver is known to be very slow at this */
 		if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE))
 			return USER_DRAW_OVERLAP;
-#if 0
-		/* also Intel drivers don't work well with this */
-		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
+		/* also Intel drivers are slow */
+		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_UNIX, GPU_DRIVER_ANY))
 			return USER_DRAW_OVERLAP;
-#endif
+		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY))
+			return USER_DRAW_OVERLAP_FLIP;
+		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY))
+			return USER_DRAW_OVERLAP_FLIP;
 		/* Windows software driver darkens color on each redraw */
 		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
 			return USER_DRAW_OVERLAP_FLIP;
@@ -796,5 +806,13 @@ void wm_draw_region_clear(wmWindow *win, ARegion *ar)
 		wm_flush_regions_down(win->screen, &ar->winrct);
 
 	win->screen->do_draw= 1;
+}
+
+void wm_draw_region_modified(wmWindow *win, ARegion *ar)
+{
+	int drawmethod= wm_automatic_draw_method(win);
+
+	if(ELEM(drawmethod, USER_DRAW_OVERLAP, USER_DRAW_OVERLAP_FLIP))
+		ED_region_tag_redraw(ar);
 }
 
