@@ -164,6 +164,28 @@ struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 // intern?
 void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_seq, int len_change, int ibuf_change);
 
+/* seqcache.c */
+
+typedef enum {
+	SEQ_STRIPELEM_IBUF,
+	SEQ_STRIPELEM_IBUF_COMP,
+	SEQ_STRIPELEM_IBUF_STARTSTILL,
+	SEQ_STRIPELEM_IBUF_ENDSTILL
+} seq_stripelem_ibuf_t;
+
+void seq_stripelem_cache_init();
+void seq_stripelem_cache_destruct();
+
+void seq_stripelem_cache_cleanup();
+
+struct ImBuf * seq_stripelem_cache_get(
+	struct Sequence * seq, int rectx, int recty, 
+	float cfra, seq_stripelem_ibuf_t type);
+void seq_stripelem_cache_put(
+	struct Sequence * seq, int rectx, int recty, 
+	float cfra, seq_stripelem_ibuf_t type, struct ImBuf * nval);
+
+
 /* seqeffects.c */
 // intern?
 struct SeqEffectHandle get_sequence_blend(struct Sequence *seq);

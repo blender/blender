@@ -2513,6 +2513,7 @@ static void do_render_seq(Render * re)
 				free_imbuf_seq(re->scene, &ed->seqbase, TRUE, TRUE);
 			}
 		}
+		IMB_freeImBuf(ibuf);
 	}
 	else {
 		/* render result is delivered empty in most cases, nevertheless we handle all cases */

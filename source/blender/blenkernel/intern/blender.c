@@ -102,6 +102,7 @@ void free_blender(void)
 	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
 	
 	IMB_exit();
+	seq_stripelem_cache_destruct();
 	
 	free_nodesystem();	
 }

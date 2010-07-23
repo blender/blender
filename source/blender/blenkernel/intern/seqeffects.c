@@ -2786,6 +2786,7 @@ static void do_multicam(Scene *scene, Sequence *seq, int cfra,
 		IMB_float_from_rect_simple(i);
 		memcpy(out->rect_float, i->rect_float, out->x * out->y *4*sizeof(float));
 	}
+	IMB_freeImBuf(i);
 }
 
 /* **********************************************************************
