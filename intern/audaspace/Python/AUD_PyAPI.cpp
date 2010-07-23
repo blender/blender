@@ -118,104 +118,228 @@ Sound_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(M_aud_Sound_sine_doc,
-			 "sine()\n"
-			 "\tCreates a sine sound at a specific frequency.\n");
+			 "sine(frequency)\n\n"
+			 "Creates a sine sound wave.\n\n"
+			 ":arg frequency: The frequency of the sine wave in Hz.\n"
+			 ":type frequency: float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_sine(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_file_doc,
-			 "Creates a sound object of a sound file.");
+			 "file(filename)\n\n"
+			 "Creates a sound object of a sound file.\n\n"
+			 ":arg filename: Path of the file.\n"
+			 ":type filename: string\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_file(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_lowpass_doc,
-			 "Creates a lowpass filter with a specific cut off frequency.");
+			 "lowpass(sound, frequency)\n\n"
+			 "Creates a low quality lowpass filter.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg frequency: The cut off trequency of the lowpass.\n"
+			 ":type frequency: float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_lowpass(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_delay_doc,
-			 "Delays a sound by a specific amount of seconds.");
+			 "delay(sound, time)\n\n"
+			 "Delays a sound by playing silence before the sound starts.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg time: How many seconds of silence should be added before the sound.\n"
+			 ":type time: float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_delay(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_double_doc,
-			 "Plays two sounds of the same specs in sequence.");
+			 "double(first, second)\n\n"
+			 "Plays two sounds in sequence.\n\n"
+			 ":arg first: The sound to play first.\n"
+			 ":type first: aud.Sound\n"
+			 ":arg second: The sound to play second.\n"
+			 ":type second: aud.Sound\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound\n"
+			 ".. note:: The two sounds have to have the same specifications "
+			 "(channels and samplerate).");
 
 static PyObject *
 Sound_double(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_highpass_doc,
-			 "Creates a highpass filter with a specific cut off frequency.");
+			 "highpass(sound, frequency)\n\n"
+			 "Creates a low quality highpass filter.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg frequency: The cut off trequency of the highpass.\n"
+			 ":type frequency: float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_highpass(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_limiter_doc,
-			 "Limits a sound within a specific start and end time.");
+			 "limit(sound, start, end)\n\n"
+			 "Limits a sound within a specific start and end time.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg start: Start time in seconds.\n"
+			 ":type start: float\n"
+			 ":arg end: End time in seconds.\n"
+			 ":type end: float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_limiter(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_pitch_doc,
-			 "Changes the pitch of a sound with a specific factor.");
+			 "pitch(sound, factor)\n\n"
+			 "Changes the pitch of a sound with a specific factor.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg factor: The factor to change the pitch with.\n"
+			 ":type factor: float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound\n"
+			 ".. note:: This is done by changing the sample rate of the "
+			 "underlying sound, which has to be an integer, so the factor "
+			 "value rounded and the factor may not be 100 % accurate.");
 
 static PyObject *
 Sound_pitch(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_volume_doc,
-			 "Changes the volume of a sound with a specific factor.");
+			 "volume(sound, volume)\n\n"
+			 "Changes the volume of a sound.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg volume: The new volume..\n"
+			 ":type volume: float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound\n"
+			 ".. note:: Should be in the range [0, 1] to avoid clipping.");
 
 static PyObject *
 Sound_volume(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_fadein_doc,
-			 "Fades a sound in from a specific start time and with a specific length.");
+			 "fadein(sound, start, length)\n\n"
+			 "Fades a sound in.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg start: Time in seconds when the fading should start.\n"
+			 ":type filename: float\n"
+			 ":arg length: Time in seconds how long the fading should last.\n"
+			 ":type filename: float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_fadein(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_fadeout_doc,
-			 "Fades a sound out from a specific start time and with a specific length.");
+			 "fadeout(sound, start, length)\n\n"
+			 "Fades a sound out.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg start: Time in seconds when the fading should start.\n"
+			 ":type filename: float\n"
+			 ":arg length: Time in seconds how long the fading should last.\n"
+			 ":type filename: float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_fadeout(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_loop_doc,
-			 "Loops a sound a specific amount of times, negative values mean endlessly.");
+			 "loop(sound, count)\n\n"
+			 "Loops a sound.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg count: How often the sound should be looped. "
+			 "Negative values mean endlessly.\n"
+			 ":type count: integer\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_loop(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_superpose_doc,
-			 "Mixes two sounds of the same specs.");
+			 "superpose(sound1, sound2)\n\n"
+			 "Mixes two sounds.\n\n"
+			 ":arg sound1: The sound to filter.\n"
+			 ":type sound1: aud.Sound\n"
+			 ":arg sound2: The sound to filter.\n"
+			 ":type sound2: aud.Sound\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_superpose(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_pingpong_doc,
-			 "Plays a sound forward and then backward.");
+			 "pingpong(sound)\n\n"
+			 "Plays a sound forward and then backward.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound\n"
+			 ".. note:: The sound has to be buffered to be played reverse.");
 
 static PyObject *
 Sound_pingpong(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_reverse_doc,
-			 "Plays a sound reversed.");
+			 "reverse(sound)\n\n"
+			 "Plays a sound reversed.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound\n"
+			 ".. note:: The sound has to be buffered to be played reverse.");
 
 static PyObject *
 Sound_reverse(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_buffer_doc,
-			 "Buffers a sound into RAM.");
+			 "buffer(sound)\n\n"
+			 "Buffers a sound into RAM.\n\n"
+			 ":arg sound: The sound to buffer.\n"
+			 ":type sound: aud.Sound\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound\n"
+			 ".. note:: Raw PCM data needs a lot of space, only buffer short sounds.");
 
 static PyObject *
 Sound_buffer(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_square_doc,
-			 "Makes a square wave out of an audio wave depending on a threshold value.");
+			 "squre(sound, threshold)\n\n"
+			 "Makes a square wave out of an audio wave.\n\n"
+			 ":arg sound: The sound to filter.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg threshold: Threshold value over which an amplitude counts non-zero.\n"
+			 ":type threshold: float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
 
 static PyObject *
 Sound_square(PyObject* nothing, PyObject* args);
@@ -958,7 +1082,10 @@ Handle_dealloc(Handle* self)
 }
 
 PyDoc_STRVAR(M_aud_Handle_pause_doc,
-			 "Pauses the sound.");
+			 "pause()\n\n"
+			 "Pauses playback.\n\n"
+			 ":return: Whether the action succeeded.\n"
+			 ":rtype: boolean");
 
 static PyObject *
 Handle_pause(Handle *self)
@@ -967,7 +1094,10 @@ Handle_pause(Handle *self)
 }
 
 PyDoc_STRVAR(M_aud_Handle_resume_doc,
-			 "Resumes the sound.");
+			 "resume()\n\n"
+			 "Resumes playback.\n\n"
+			 ":return: Whether the action succeeded.\n"
+			 ":rtype: boolean");
 
 static PyObject *
 Handle_resume(Handle *self)
@@ -976,7 +1106,10 @@ Handle_resume(Handle *self)
 }
 
 PyDoc_STRVAR(M_aud_Handle_stop_doc,
-			 "Stops the sound.");
+			 "stop()\n\n"
+			 "Stops playback.\n\n"
+			 ":return: Whether the action succeeded.\n"
+			 ":rtype: boolean");
 
 static PyObject *
 Handle_stop(Handle *self)
@@ -985,7 +1118,13 @@ Handle_stop(Handle *self)
 }
 
 PyDoc_STRVAR(M_aud_Handle_update_doc,
-			 "Updates the 3D information of the source. Awaits a 3D position and velocity vector and a 3x3 orientation matrix.");
+			 "update(info)\n\n"
+			 "Updates the 3D information of the source."
+			 ":arg info: The 3D info in the format (fff)(fff)((fff)(fff)(fff))."
+			 " Position, velocity and a 3x3 orientation matrix.\n"
+			 ":type info: float tuple\n"
+			 ":return: Whether the action succeeded.\n"
+			 ":rtype: boolean");
 
 static PyObject *
 Handle_update(Handle *self, PyObject *data)
@@ -1031,7 +1170,7 @@ Handle_set_position(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_keep_doc,
-			 "Whether the sound should be kept paused in the device when it's end is reached.");
+			 "Whether the sound should be kept paused in the device when its end is reached.");
 
 static int
 Handle_set_keep(Handle *self, PyObject* args, void* nothing)
@@ -1091,7 +1230,7 @@ Handle_set_pitch(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_loop_count_doc,
-			 "The loop count of the sound. A negative value indicates infinity.");
+			 "The (remaining) loop count of the sound. A negative value indicates infinity.");
 
 static int
 Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
@@ -1380,7 +1519,14 @@ Device_dealloc(Device* self)
 }
 
 PyDoc_STRVAR(M_aud_Device_play_doc,
-			 "Plays a sound.");
+			 "play(sound[, keep])\n\n"
+			 "Plays a sound.\n\n"
+			 ":arg sound: The sound to play.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg keep: Whether the sound should be kept paused in the device when its end is reached.\n"
+			 ":type keep: boolean\n"
+			 ":return: The playback handle.\n"
+			 ":rtype: aud.Handle");
 
 static PyObject *
 Device_play(Device *self, PyObject *args, PyObject *kwds)
@@ -1635,9 +1781,12 @@ Device_get_status(Device *self, PyObject *object)
 }
 
 PyDoc_STRVAR(M_aud_Device_lock_doc,
-			 ".. function:: lock()\n"
-			 "\n"
-			 "   Locks the sound device.\n");
+			 "lock()\n\n"
+			 "Locks the device so that it's guaranteed, that no samples are "
+			 "read from the streams until the unlock is called. The device has "
+			 "to be unlocked as often as locked to be able to continue "
+			 "playback. Make sure the time between locking and unlocking is as "
+			 "short as possible to avoid clicks.");
 
 static PyObject *
 Device_lock(Device *self)
@@ -1655,7 +1804,9 @@ Device_lock(Device *self)
 }
 
 PyDoc_STRVAR(M_aud_Device_unlock_doc,
-			 "Unlocks the sound device.");
+			 "unlock()\n\n"
+			 "Plays a sound.\n\n"
+			 "Unlocks the device after a lock call, see lock() for details.");
 
 static PyObject *
 Device_unlock(Device *self)
@@ -1811,7 +1962,14 @@ Device_set_pitch(Device *self, PyObject *args)
 }
 
 PyDoc_STRVAR(M_aud_Device_play3D_doc,
-			 "Plays a sound 3 dimensional if possible.");
+			 "play3d(sound[, keep])\n\n"
+			 "Plays a sound 3 dimensional if possible.\n\n"
+			 ":arg sound: The sound to play.\n"
+			 ":type sound: aud.Sound\n"
+			 ":arg keep: Whether the sound should be kept paused in the device when its end is reached.\n"
+			 ":type keep: boolean\n"
+			 ":return: The playback handle.\n"
+			 ":rtype: aud.Handle");
 
 static PyObject *
 Device_play3D(Device *self, PyObject *args, PyObject *kwds)
@@ -1878,7 +2036,11 @@ Device_play3D(Device *self, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(M_aud_Device_update_listener_doc,
-			 "Updates the listener's position, velocity and orientation.");
+			 "update_listener(info)\n\n"
+			 "Updates the 3D information of the listener."
+			 ":arg info: The 3D info in the format (fff)(fff)((fff)(fff)(fff))."
+			 " Position, velocity and a 3x3 orientation matrix.\n"
+			 ":type info: float tuple");
 
 static PyObject *
 Device_update_listener(Device *self, PyObject *args)
@@ -2614,25 +2776,52 @@ Device_set_cone_outer_gain(Device *self, PyObject *args)
 }
 
 PyDoc_STRVAR(M_aud_Device_OpenAL_doc,
-			 "Creates an OpenAL device.");
+			 "OpenAL([frequency[, buffer_size]])\n\n"
+			 "Creates an OpenAL device.\n\n"
+			 ":arg frequency: The prefered sampling frequency.\n"
+			 ":type frequency: integer\n"
+			 ":arg buffer_size: The size of a playback buffer, "
+			 "must be at least 128.\n"
+			 ":type buffer_size: integer\n"
+			 ":return: The created aud.Device object.\n"
+			 ":rtype: aud.Device");
 
 static PyObject *
 Device_OpenAL(PyTypeObject *type, PyObject *args, PyObject *kwds);
 
 PyDoc_STRVAR(M_aud_Device_SDL_doc,
-			 "Creates an SDL device.");
+			 "SDL([frequency[, buffer_size]])\n\n"
+			 "Creates an SDL device.\n\n"
+			 ":arg frequency: The sampling frequency.\n"
+			 ":type frequency: integer\n"
+			 ":arg buffer_size: The size of the playback buffer, "
+			 "must be at least 128.\n"
+			 ":type buffer_size: integer\n"
+			 ":return: The created aud.Device object.\n"
+			 ":rtype: aud.Device");
 
 static PyObject *
 Device_SDL(PyTypeObject *type, PyObject *args, PyObject *kwds);
 
 PyDoc_STRVAR(M_aud_Device_Jack_doc,
-			 "Creates an Jack device.");
+			 "Jack([channels[, buffer_size]])\n\n"
+			 "Creates a Jack device.\n\n"
+			 ":arg channels: The count of channels.\n"
+			 ":type channels: integer\n"
+			 ":arg buffer_size: The size of the playback buffer, "
+			 "must be at least 128.\n"
+			 ":type buffer_size: integer\n"
+			 ":return: The created aud.Device object.\n"
+			 ":rtype: aud.Device");
 
 static PyObject *
 Device_Jack(PyTypeObject *type, PyObject *args, PyObject *kwds);
 
 PyDoc_STRVAR(M_aud_Device_Null_doc,
-			 "Creates an Null device.");
+			 "Null()\n\n"
+			 "Creates a Null device.\n\n"
+			 ":return: The created aud.Device object.\n"
+			 ":rtype: aud.Device");
 
 static PyObject *
 Device_Null(PyTypeObject *type);
@@ -3085,14 +3274,14 @@ Device_OpenAL(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
 	int frequency = AUD_RATE_44100;
 
-	static const char *kwlist[] = {"frequency", "buffersize", NULL};
+	static const char *kwlist[] = {"frequency", "buffer_size", NULL};
 
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", const_cast<char**>(kwlist), &frequency, &buffersize))
 		return NULL;
 
 	if(buffersize < 128)
 	{
-		PyErr_SetString(PyExc_ValueError, "buffersize must be greater than 127!");
+		PyErr_SetString(PyExc_ValueError, "buffer_size must be greater than 127!");
 		return NULL;
 	}
 
@@ -3131,14 +3320,14 @@ Device_SDL(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
 	int frequency = AUD_RATE_44100;
 
-	static const char *kwlist[] = {"frequency", "buffersize", NULL};
+	static const char *kwlist[] = {"frequency", "buffer_size", NULL};
 
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", const_cast<char**>(kwlist), &frequency, &buffersize))
 		return NULL;
 
 	if(buffersize < 128)
 	{
-		PyErr_SetString(PyExc_ValueError, "buffersize must be greater than 127!");
+		PyErr_SetString(PyExc_ValueError, "buffer_size must be greater than 127!");
 		return NULL;
 	}
 
@@ -3177,14 +3366,14 @@ Device_Jack(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
 	int channels = AUD_CHANNELS_STEREO;
 
-	static const char *kwlist[] = {"channels", "buffersize", NULL};
+	static const char *kwlist[] = {"channels", "buffer_size", NULL};
 
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", const_cast<char**>(kwlist), &channels, &buffersize))
 		return NULL;
 
 	if(buffersize < 128)
 	{
-		PyErr_SetString(PyExc_ValueError, "buffersize must be greater than 127!");
+		PyErr_SetString(PyExc_ValueError, "buffer_size must be greater than 127!");
 		return NULL;
 	}
 
