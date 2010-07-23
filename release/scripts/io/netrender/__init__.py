@@ -42,6 +42,9 @@ def register():
 
 def unregister():
     import bpy
+
+    bpy.types.Scene.RemoveProperty("network_render")
+
     bpy.types.unregister(ui.NetRenderJob)
     bpy.types.unregister(ui.NetRenderSettings)
     bpy.types.unregister(ui.NetRenderSlave)

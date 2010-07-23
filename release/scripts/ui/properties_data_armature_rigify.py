@@ -360,6 +360,7 @@ def register():
 
 
 def unregister():
+    bpy.types.Scene.RemoveProperty("pose_templates")
     unregister = bpy.types.unregister
     for cls in classes:
         unregister(cls)
