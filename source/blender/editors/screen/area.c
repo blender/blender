@@ -1427,7 +1427,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 
 	/* draw all headers types */
 	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {
-		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
+		block= uiBeginBlock(C, ar, ht->idname, UI_EMBOSS);
 		layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, HEADERY-6, 1, style);
 
 		if(ht->draw) {
