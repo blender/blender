@@ -994,6 +994,8 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 	if (m_needDelayedApplicationBecomeActiveEventProcessing)
 		handleApplicationBecomeActiveEvent();
 	
+//	m_outsideLoopEventProcessed |= m_ndofManager->sendMotionEvent();
+	
 	if (m_outsideLoopEventProcessed) {
 		m_outsideLoopEventProcessed = false;
 		return true;
@@ -1036,6 +1038,11 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	
 	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
+}
+
+void GHOST_SystemCocoa::notifyExternalEventProcessed()
+{
+	m_outsideLoopEventProcessed = true;
 }
 
 //Note: called from NSWindow delegate
