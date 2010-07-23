@@ -253,6 +253,70 @@ static void rna_Sequence_use_crop_set(PointerRNA *ptr, int value)
 		seq->flag ^= SEQ_USE_CROP;
 	}
 }
+
+static int transform_seq_cmp_cb(Sequence *seq, void *arg_pt)
+{
+	struct { Sequence *seq; void *transform; } *data= arg_pt;
+
+	if(seq->strip && seq->strip->transform == data->transform) {
+		data->seq= seq;
+		return -1; /* done so bail out */
+	}
+	return 1;
+}
+
+static char *rna_SequenceTransform_path(PointerRNA *ptr)
+{
+	Scene *scene= ptr->id.data;
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq;
+
+	struct { Sequence *seq; void *transform; } data;
+	data.seq= NULL;
+	data.transform= ptr->data;
+
+	/* irritating we need to search for our sequence! */
+	seqbase_recursive_apply(&ed->seqbase, transform_seq_cmp_cb, &data);
+	seq= data.seq;
+
+	if (seq && seq->name+2)
+		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform", seq->name+2);
+	else
+		return BLI_strdup("");
+}
+
+static int crop_seq_cmp_cb(Sequence *seq, void *arg_pt)
+{
+	struct { Sequence *seq; void *crop; } *data= arg_pt;
+
+	if(seq->strip && seq->strip->crop == data->crop) {
+		data->seq= seq;
+		return -1; /* done so bail out */
+	}
+	return 1;
+}
+
+static char *rna_SequenceCrop_path(PointerRNA *ptr)
+{
+	Scene *scene= ptr->id.data;
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq;
+
+	struct { Sequence *seq; void *crop; } data;
+	data.seq= NULL;
+	data.crop= ptr->data;
+
+	/* irritating we need to search for our sequence! */
+	seqbase_recursive_apply(&ed->seqbase, crop_seq_cmp_cb, &data);
+	seq= data.seq;
+
+	if (seq && seq->name+2)
+		return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop", seq->name+2);
+	else
+		return BLI_strdup("");
+}
+
+
 /* name functions that ignore the first two characters */
 static void rna_Sequence_name_get(PointerRNA *ptr, char *value)
 {
@@ -625,6 +689,8 @@ static void rna_def_strip_crop(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Right", "");
 	RNA_def_property_ui_range(prop, 0, 4096, 1, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	RNA_def_struct_path_func(srna, "rna_SequenceCrop_path");
 }
 
 static void rna_def_strip_transform(BlenderRNA *brna)
@@ -647,6 +713,9 @@ static void rna_def_strip_transform(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Offset Y", "");
 	RNA_def_property_ui_range(prop, -4096, 4096, 1, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	RNA_def_struct_path_func(srna, "rna_SequenceTransform_path");
+
 }
 
 static void rna_def_strip_proxy(BlenderRNA *brna)
