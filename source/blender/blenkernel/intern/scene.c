@@ -512,6 +512,10 @@ void set_scene_bg(Scene *scene)
 	/* check for cyclic sets, for reading old files but also for definite security (py?) */
 	scene_check_setscene(scene);
 	
+	/* can happen when switching modes in other scenes */
+	if(scene->obedit && !(scene->obedit->mode & OB_MODE_EDIT))
+		scene->obedit= NULL;
+
 	/* deselect objects (for dataselect) */
 	for(ob= G.main->object.first; ob; ob= ob->id.next)
 		ob->flag &= ~(SELECT|OB_FROMGROUP);
