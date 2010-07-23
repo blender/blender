@@ -196,6 +196,9 @@ bool GHOST_System::getFullScreen(void)
 
 bool GHOST_System::dispatchEvents()
 {
+	// NDOF Motion event is sent only once per dispatch, so do it now:
+	m_ndofManager->sendMotionEvent();
+
 	bool handled;
 	if (m_eventManager) {
 		if (m_input_fidelity_hint == LO_FI)

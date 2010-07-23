@@ -79,6 +79,9 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	data->ry = scale * m_rotation[1];
 	data->rz = scale * m_rotation[2];
 
+	printf("sending T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f)\n", data->tx, data->ty, data->tz, data->rx, data->ry, data->rz);
+	fflush(stdout);
+
 	m_system.pushEvent(event);
 
 	// 'at rest' test goes at the end so that the first 'rest' event gets sent

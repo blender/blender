@@ -21,8 +21,12 @@
  */
  
 #include "GHOST_NDOFManagerCocoa.h"
-#include <3DconnexionClient/ConnexionClientAPI.h>
-#include <stdio.h>
+#include "GHOST_SystemCocoa.h"
+
+extern "C" {
+	#include <3DconnexionClient/ConnexionClientAPI.h>
+	#include <stdio.h>
+	}
 
 static void SpaceNavAdded(io_connect_t connection)
 	{
@@ -36,7 +40,7 @@ static void SpaceNavRemoved(io_connect_t connection)
 
 static void SpaceNavEvent(io_connect_t connection, natural_t messageType, void *messageArgument)
 	{
-	GHOST_System* system = (GHOST_System*) GHOST_ISystem::getSystem();
+	GHOST_SystemCocoa* system = (GHOST_SystemCocoa*) GHOST_ISystem::getSystem();
 	GHOST_NDOFManager* manager = system->getNDOFManager();
 	switch (messageType)
 		{
@@ -48,10 +52,12 @@ static void SpaceNavEvent(io_connect_t connection, natural_t messageType, void *
 				case kConnexionCmdHandleAxis:
 					manager->updateTranslation(s->axis, s->time);
 					manager->updateRotation(s->axis + 3, s->time);
+					system->notifyExternalEventProcessed();
 					break;
 
 				case kConnexionCmdHandleButtons:
 					manager->updateButtons(s->buttons, s->time);
+					system->notifyExternalEventProcessed();
 					break;
 				}
 			break;
@@ -101,6 +107,7 @@ GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
 
 bool GHOST_NDOFManagerCocoa::available()
 	{
-	extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
+//	extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
+// ^-- not needed since the entire framework is weak-linked
 	return InstallConnexionHandlers != NULL;
 	}
