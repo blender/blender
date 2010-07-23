@@ -1063,7 +1063,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 /* *********************** backdraw for selection *************** */
 
-void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
+static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;

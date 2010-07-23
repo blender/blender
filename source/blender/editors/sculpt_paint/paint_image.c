@@ -4699,7 +4699,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	}
 	
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-	undo_paint_push_begin(UNDO_PAINT_IMAGE, "Image Paint",
+	undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
 		image_undo_restore, image_undo_free);
 
 	/* create painter */
@@ -5440,7 +5440,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 
 	scene->toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
 
-	undo_paint_push_begin(UNDO_PAINT_IMAGE, "Image Paint",
+	undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
 		image_undo_restore, image_undo_free);
 
 	/* allocate and initialize spacial data structures */

@@ -116,7 +116,9 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
 		
 		if((obact && obact->mode & OB_MODE_TEXTURE_PAINT) || sima->flag & SI_DRAWTOOL) {
-			ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step);
+			if(!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname) && undoname)
+				if(U.uiflag & USER_GLOBALUNDO)
+					BKE_undo_name(C, undoname);
 
 			WM_event_add_notifier(C, NC_WINDOW, NULL);
 			return OPERATOR_FINISHED;
@@ -139,10 +141,14 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	else {
 		int do_glob_undo= 0;
 		
-		if(obact && obact->mode & OB_MODE_TEXTURE_PAINT)
-			ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step);
-		else if(obact && obact->mode & OB_MODE_SCULPT)
-			ED_undo_paint_step(C, UNDO_PAINT_MESH, step);
+		if(obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
+			if(!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname) && undoname)
+				do_glob_undo= 1;
+		}
+		else if(obact && obact->mode & OB_MODE_SCULPT) {
+			if(!ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname) && undoname)
+				do_glob_undo= 1;
+		}
 		else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
 			if(step==1)
 				PE_undo(CTX_data_scene(C));

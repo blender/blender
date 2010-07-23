@@ -49,7 +49,7 @@ void ED_keymap_paint(struct wmKeyConfig *keyconf);
 #define UNDO_PAINT_IMAGE	0
 #define UNDO_PAINT_MESH		1
 
-void ED_undo_paint_step(struct bContext *C, int type, int step);
+int ED_undo_paint_step(struct bContext *C, int type, int step, const char *name);
 void ED_undo_paint_free(void);
 
 #endif
