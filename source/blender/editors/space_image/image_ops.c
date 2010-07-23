@@ -1245,7 +1245,7 @@ static int new_exec(bContext *C, wmOperator *op)
 void IMAGE_OT_new(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	float default_color[4]= {0.0f, 0.0f, 0.0f, 1.0f};
+	static float default_color[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 	
 	/* identifiers */
 	ot->name= "New";
