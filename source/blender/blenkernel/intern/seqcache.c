@@ -68,7 +68,7 @@ static unsigned int HashHash(void *key_)
 
 	rval ^= *(unsigned int*) &key->cfra;
 	rval += key->type;
-	rval ^= (unsigned int) key->seq;
+	rval ^= ((unsigned int) key->seq) << 6;
 
 	return rval;
 }
