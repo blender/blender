@@ -132,8 +132,6 @@ Brush *copy_brush(Brush *brush)
 	if (brush->mtex.tex)
 		id_us_plus((ID*)brush->mtex.tex);
 
-	brushn->preview= NULL;
-
 	if (brush->icon_imbuf)
 		brushn->icon_imbuf= IMB_dupImBuf(brush->icon_imbuf);
 
@@ -483,7 +481,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 typedef struct BrushPainterCache {
 	short enabled;
 
-	int size;			/* size override, if 0 uses brush_size(brush) */
+	int size;			/* size override, if 0 uses 2*brush_size(brush) */
 	short flt;			/* need float imbuf? */
 	short texonly;		/* no alpha, color or fallof, only texture in imbuf */
 
@@ -720,10 +718,10 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 	MTex *mtex= &brush->mtex;
 	int size;
 	short flt;
-	const int radius= brush_size(brush);
+	const int diameter= 2*brush_size(brush);
 	const float alpha= brush_alpha(brush);
 
-	if (radius != cache->lastsize ||
+	if (diameter != cache->lastsize ||
 		alpha != cache->lastalpha ||
 		brush->jitter != cache->lastjitter)
 	{
@@ -737,7 +735,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 		}
 
 		flt= cache->flt;
-		size= (cache->size)? cache->size: radius;
+		size= (cache->size)? cache->size: diameter;
 
 		if (!(mtex && mtex->tex) || (mtex->tex->type==0)) {
 			brush_imbuf_new(brush, flt, 0, size, &cache->ibuf);
@@ -749,7 +747,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 		else
 			brush_imbuf_new(brush, flt, 2, size, &cache->ibuf);
 
-		cache->lastsize= radius;
+		cache->lastsize= diameter;
 		cache->lastalpha= alpha;
 		cache->lastjitter= brush->jitter;
 	}
@@ -784,6 +782,7 @@ void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
 	if(brush->jitter){
 		float rand_pos[2];
 		const int radius= brush_size(brush);
+		const int diameter= 2*radius;
 
 		// find random position within a circle of diameter 1
 		do {
@@ -791,8 +790,8 @@ void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
 			rand_pos[1] = BLI_frand()-0.5f;
 		} while (len_v2(rand_pos) > 0.5f);
 
-		jitterpos[0] = pos[0] + 2*rand_pos[0]*radius*brush->jitter;
-		jitterpos[1] = pos[1] + 2*rand_pos[1]*radius*brush->jitter;
+		jitterpos[0] = pos[0] + 2*rand_pos[0]*diameter*brush->jitter;
+		jitterpos[1] = pos[1] + 2*rand_pos[1]*diameter*brush->jitter;
 	}
 	else {
 		VECCOPY2D(jitterpos, pos);
@@ -831,7 +830,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		double starttime, curtime= time;
 
 		/* compute brush spacing adapted to brush size */
-		spacing= brush->rate; //brush_size(brush)*brush->spacing*0.01f;
+		spacing= brush->rate; //radius*brush->spacing*0.01f;
 
 		/* setup starting time, direction vector and accumulated time */
 		starttime= painter->accumtime;
@@ -863,6 +862,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		float startdistance, spacing, step, paintpos[2], dmousepos[2], finalpos[2];
 		float t, len, press;
 		const int radius= brush_size(brush);
+		const int diameter= 2*radius;
 
 		/* compute brush spacing adapted to brush radius, spacing may depend
 		   on pressure, so update it */
@@ -1239,7 +1239,7 @@ void brush_set_size(Brush *brush, int size)
 	else
 		brush->size= size;
 
-	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_size(Brush *brush)
@@ -1259,7 +1259,7 @@ void brush_set_use_locked_size(Brush *brush, int value)
 			brush->flag &= ~BRUSH_LOCK_SIZE;
 	}
 
-	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_use_locked_size(Brush *brush)
@@ -1279,7 +1279,7 @@ void brush_set_use_size_pressure(Brush *brush, int value)
 			brush->flag &= ~BRUSH_SIZE_PRESSURE;
 	}
 
-	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_use_size_pressure(Brush *brush)
@@ -1299,7 +1299,7 @@ void brush_set_use_alpha_pressure(Brush *brush, int value)
 			brush->flag &= ~BRUSH_ALPHA_PRESSURE;
 	}
 
-	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_use_alpha_pressure(Brush *brush)
@@ -1314,7 +1314,7 @@ void brush_set_unprojected_radius(Brush *brush, float unprojected_radius)
 	else
 		brush->unprojected_radius= unprojected_radius;
 
-	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 float brush_unprojected_radius(Brush *brush)
@@ -1329,7 +1329,7 @@ void brush_set_alpha(Brush *brush, float alpha)
 	else
 		brush->alpha= alpha;
 
-	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 float brush_alpha(Brush *brush)
