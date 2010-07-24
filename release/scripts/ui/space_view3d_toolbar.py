@@ -1355,7 +1355,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         col = layout.column(align=True)
         col.active = pe.editable
         col.label(text="Keep:")
-        col.prop(pe, "keep_lengths", text="Lenghts")
+        col.prop(pe, "keep_lengths", text="Lengths")
         col.prop(pe, "keep_root", text="Root")
         if not pe.hair:
             col.label(text="Correct:")
