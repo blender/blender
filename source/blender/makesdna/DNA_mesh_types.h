@@ -128,7 +128,7 @@ typedef struct TFace {
 
 
 /* me->flag */
-#define ME_ISDONE		1
+/* #define ME_ISDONE		1 */
 #define ME_NOPUNOFLIP	2
 #define ME_TWOSIDED		4
 #define ME_UVEFFECT		8
