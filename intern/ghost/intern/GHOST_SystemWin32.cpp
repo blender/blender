@@ -27,7 +27,6 @@
  */
 
 /**
-
  * $Id$
  * Copyright (C) 2001 NaN Technologies B.V.
  * @author	Maarten Gribnau
@@ -47,28 +46,12 @@
 #endif
 #endif
 
-/*
- * According to the docs the mouse wheel message is supported from windows 98 
- * upwards. Leaving WINVER at default value, the WM_MOUSEWHEEL message and the 
- * wheel detent value are undefined.
-
- [mce] able to remove this too?
-
-#ifndef WM_MOUSEWHEEL
-#define WM_MOUSEWHEEL 0x020A
-#endif // WM_MOUSEWHEEL
-#ifndef WHEEL_DELTA
-#define WHEEL_DELTA 120	// Value for rolling one detent, (old convention! MS changed it)
-#endif // WHEEL_DELTA
- */
-
 #include "GHOST_Debug.h"
 #include "GHOST_DisplayManagerWin32.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
-#include "GHOST_EventNDOF.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
@@ -130,13 +113,7 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 
 	// register for RawInput devices
 	RAWINPUTDEVICE devices[1];
-/*
-	// standard HID mouse
-	devices[0].usUsagePage = 0x01;
-	devices[0].usUsage = 0x02;
-	devices[0].dwFlags = 0; // RIDEV_NOLEGACY; // ignore legacy mouse messages
-	devices[0].hwndTarget = NULL;
-*/
+
 	// multi-axis mouse (SpaceNavigator)
 	devices[0].usUsagePage = 0x01;
 	devices[0].usUsage = 0x08;
@@ -396,6 +373,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 
 GHOST_TSuccess GHOST_SystemWin32::exit()
 {
+	// [mce] since this duplicates its super, why bother?
 	return GHOST_System::exit();
 }
 
@@ -522,15 +500,10 @@ GHOST_EventButton* GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type, 
 }
 
 
-GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow, int x, int y)
+GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow, int x_screen, int y_screen)
 {
-	GHOST_TInt32 x_screen, y_screen;
 	GHOST_SystemWin32 * system = ((GHOST_SystemWin32 * ) getSystem());
 	GHOST_WindowWin32 * window = ( GHOST_WindowWin32 * ) Iwindow;
-	
-//	system->getCursorPosition(x_screen, y_screen);
-	x_screen = x;
-	y_screen = y;
 
 	if(window->getCursorGrabMode() != GHOST_kGrabDisable && window->getCursorGrabMode() != GHOST_kGrabNormal)
 	{
@@ -639,80 +612,9 @@ void GHOST_SystemWin32::processMinMaxInfo(MINMAXINFO * minmax)
 	minmax->ptMinTrackSize.y=240;
 }
 
-bool GHOST_SystemWin32::processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* window /*, int& x, int& y */ )
+bool GHOST_SystemWin32::processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* window)
 {
-	GHOST_IEvent* event = NULL;
 	bool eventSent = false;
-
-	puts("BEGIN");
-
-#if 0 // now using the existing mouse button handlers, improved movement handler
-				if (raw.header.dwType == RIM_TYPEMOUSE)
-					{
-					USHORT const& buttonFlags = raw.data.mouse.usButtonFlags;
-					if (buttonFlags)
-						{
-						printf("button flags: %04X\n", buttonFlags);
-
-						if (buttonFlags & RI_MOUSE_LEFT_BUTTON_DOWN)
-							{
-							puts("left button down");
-							window->registerMouseClickEvent(true);
-							event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskLeft);
-							}
-						else if (buttonFlags & RI_MOUSE_LEFT_BUTTON_UP)
-							{
-							puts("left button up");
-							window->registerMouseClickEvent(false);
-							event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
-							}
-
-						if (buttonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN)
-							{
-							puts("right button down");
-							window->registerMouseClickEvent(true);
-							event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskRight);
-							}
-						else if (buttonFlags & RI_MOUSE_RIGHT_BUTTON_UP)
-							{
-							puts("right button up");
-							window->registerMouseClickEvent(false);
-							event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskRight);
-							}
-
-						if (buttonFlags & RI_MOUSE_MIDDLE_BUTTON_DOWN)
-							{
-							puts("middle button down");
-							window->registerMouseClickEvent(true);
-							event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskMiddle);
-							}
-						else if (buttonFlags & RI_MOUSE_MIDDLE_BUTTON_UP)
-							{
-							puts("middle button up");
-							window->registerMouseClickEvent(false);
-							event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskMiddle);
-							}
-
-						// similar for BUTTON_4 and BUTTON_5
-
-						if (buttonFlags & RI_MOUSE_WHEEL)
-							{
-							signed short wheelDelta = raw.data.mouse.usButtonData;
-							printf("wheel moved %+d\n", wheelDelta);
-							}
-						}
-
-					int dx = raw.data.mouse.lLastX; // These might be in Mickeys, not pixels.
-					int dy = raw.data.mouse.lLastY;
-					if (dx || dy)
-						{
-						printf("mouse moved <%+d,%+d>\n", dx, dy);
-						x += dx;
-						x += dy;
-						event = processCursorEvent(GHOST_kEventCursorMove, window, x, y);
-						}
-					}
-#endif // unused experimental mouse code
 
 	if (raw.header.dwType == RIM_TYPEHID)
 		{
@@ -738,16 +640,20 @@ vendor ID
 No other registered devices use the c62_ space, so a simple mask will work!
 */
 
+		// The NDOF manager sends button changes immediately, and *pretends* to
+		// send motion. Mark as 'sent' so motion will always get dispatched.
+		eventSent = true;
+
 		// multiple events per RAWHID? MSDN hints at this.
-		printf("%d events\n", raw.data.hid.dwCount);
+		printf("%d events\n", (int)raw.data.hid.dwCount);
 
 		BYTE const* data = &raw.data.hid.bRawData;
-// MinGW's definition (below) doesn't agree with MSDN reference for bRawData:
-// typedef struct tagRAWHID {
-// 	DWORD dwSizeHid;
-// 	DWORD dwCount;
-// 	BYTE bRawData;
-// } RAWHID,*PRAWHID,*LPRAWHID;
+		// MinGW's definition (below) doesn't agree with MSDN reference for bRawData:
+		// typedef struct tagRAWHID {
+		// 	DWORD dwSizeHid;
+		// 	DWORD dwCount;
+		// 	BYTE bRawData; // <== isn't this s'posed to be a BYTE*?
+		// } RAWHID,*PRAWHID,*LPRAWHID;
 
 		BYTE packetType = data[0];
 		switch (packetType)
@@ -756,16 +662,20 @@ No other registered devices use the c62_ space, so a simple mask will work!
 				{
 				short t[3];
 				memcpy(t, data + 1, sizeof(t));
-				printf("T: %+5d %+5d %+5d\n", t[0], t[1], t[2]);
-				m_ndofManager->updateTranslation(t, getMilliseconds());
+				// too much noise -- disable for now
+				// printf("T: %+5d %+5d %+5d\n", t[0], t[1], t[2]);
+				m_ndofManager->updateTranslation(t, getMilliSeconds());
+				// wariness of alignment issues prevents me from saying it this way:
+				// m_ndofManager->updateTranslation((short*)(data + 1), getMilliSeconds());
+				// though it probably (94.7%) works fine
 				break;
 				}
 			case 2: // rotation
 				{
 				short r[3];
 				memcpy(r, data + 1, sizeof(r));
-				printf("R: %+5d %+5d %+5d\n", r[0], r[1], r[2]);
-				m_ndofManager->updateRotation(r, getMilliseconds());
+				// printf("R: %+5d %+5d %+5d\n", r[0], r[1], r[2]);
+				m_ndofManager->updateRotation(r, getMilliSeconds());
 				break;
 				}
 			case 3: // buttons
@@ -783,24 +693,11 @@ No other registered devices use the c62_ space, so a simple mask will work!
 					}
 				else
 					printf(" none\n");
-				m_ndofManager->updateButtons(buttons, getMilliseconds());
+				m_ndofManager->updateButtons(buttons, getMilliSeconds());
 				break;
 				}
 			}
 		}
-
-	// assume only one event will come from this RawInput report
-	// test and adjust assumptions as needed!
-
-	if (event)
-		{
-		pushEvent(event);
-		event = NULL;
-		eventSent = true;
-		}
-
-	puts("END");
-
 	return eventSent;
 }
 
@@ -823,6 +720,7 @@ int GHOST_SystemWin32::getMoreMousePoints(int xLatest, int yLatest, int xPrev, i
 		}
 
 	// search for 'prev' point (we want only newer points)
+	// TODO: detect & ignore points that don't belong to our window
 	for (int i = 1; i < n; ++i)
 		if (morePoints[i].x == xPrev && morePoints[i].y == yPrev)
 			{
@@ -835,13 +733,14 @@ int GHOST_SystemWin32::getMoreMousePoints(int xLatest, int yLatest, int xPrev, i
 		signed short x = morePoints[i].x;
 		signed short y = morePoints[i].y;
 
-		printf("> (%d,%d)\n", x, y);
-		
+		// uncomment here and in WM_MOUSEMOVE handler to show effectiveness of hi-fi input
+		// printf("> (%d,%d)\n", x, y);
+
 		pushEvent(processCursorEvent(GHOST_kEventCursorMove, window, x, y));
 		}
 
 	return n;
-	} // END getMoreMousePoints
+	}
 
 LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -901,479 +800,426 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 
 	static int mousePosX = 0, mousePosY = 0; // track mouse position between calls
 
-			switch (msg) {
-				////////////////////////////////////////////////////////////////////////
-				// Keyboard events, processed
-				////////////////////////////////////////////////////////////////////////
-				case WM_KEYDOWN:
-					/* The WM_KEYDOWN message is posted to the window with the keyboard focus when a
-					 * nonsystem key is pressed. A nonsystem key is a key that is pressed when the alt
-					 * key is not pressed. 
-					 */
-				case WM_SYSKEYDOWN:
-					/* The WM_SYSKEYDOWN message is posted to the window with the keyboard focus when 
-					 * the user presses the F10 key (which activates the menu bar) or holds down the 
-					 * alt key and then presses another key. It also occurs when no window currently 
-					 * has the keyboard focus; in this case, the WM_SYSKEYDOWN message is sent to the 
-					 * active window. The window that receives the message can distinguish between these 
-					 * two contexts by checking the context code in the lKeyData parameter. 
-					 */
-					switch (wParam) {
-						case VK_SHIFT:
-						case VK_CONTROL:
-						case VK_MENU:
-							if (!m_separateLeftRightInitialized) {
-								// Check whether this system supports separate left and right keys
-								switch (wParam) {
-									case VK_SHIFT:
-										m_separateLeftRight =
-											(HIBYTE(::GetKeyState(VK_LSHIFT)) != 0) ||
-											(HIBYTE(::GetKeyState(VK_RSHIFT)) != 0) ?
-											true : false;
-										break;
-									case VK_CONTROL:
-										m_separateLeftRight =
-											(HIBYTE(::GetKeyState(VK_LCONTROL)) != 0) ||
-											(HIBYTE(::GetKeyState(VK_RCONTROL)) != 0) ?
-											true : false;
-										break;
-									case VK_MENU:
-										m_separateLeftRight =
-											(HIBYTE(::GetKeyState(VK_LMENU)) != 0) ||
-											(HIBYTE(::GetKeyState(VK_RMENU)) != 0) ?
-											true : false;
-										break;
-								}
-								m_separateLeftRightInitialized = true;
-							}
-							processModifierKeys(window);
-							// Bypass call to DefWindowProc
-							return true;
-						default:
-							event = processKeyEvent(window, true, wParam, lParam);
-							if (!event) {
-								GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
-								GHOST_PRINT(msg)
-								GHOST_PRINT(" key ignored\n")
-							}
-							break;
+	switch (msg) {
+		////////////////////////////////////////////////////////////////////////
+		// Keyboard events, processed
+		////////////////////////////////////////////////////////////////////////
+		case WM_KEYDOWN:
+			/* The WM_KEYDOWN message is posted to the window with the keyboard focus when a
+			 * nonsystem key is pressed. A nonsystem key is a key that is pressed when the alt
+			 * key is not pressed.
+			 */
+		case WM_SYSKEYDOWN:
+			/* The WM_SYSKEYDOWN message is posted to the window with the keyboard focus when 
+			 * the user presses the F10 key (which activates the menu bar) or holds down the 
+			 * alt key and then presses another key. It also occurs when no window currently 
+			 * has the keyboard focus; in this case, the WM_SYSKEYDOWN message is sent to the 
+			 * active window. The window that receives the message can distinguish between these 
+			 * two contexts by checking the context code in the lKeyData parameter. 
+			 */
+			switch (wParam) {
+				case VK_SHIFT:
+				case VK_CONTROL:
+				case VK_MENU:
+					if (!m_separateLeftRightInitialized) {
+						// Check whether this system supports separate left and right keys
+						switch (wParam) {
+							case VK_SHIFT:
+								m_separateLeftRight =
+									(HIBYTE(::GetKeyState(VK_LSHIFT)) != 0) ||
+									(HIBYTE(::GetKeyState(VK_RSHIFT)) != 0) ?
+									true : false;
+								break;
+							case VK_CONTROL:
+								m_separateLeftRight =
+									(HIBYTE(::GetKeyState(VK_LCONTROL)) != 0) ||
+									(HIBYTE(::GetKeyState(VK_RCONTROL)) != 0) ?
+									true : false;
+								break;
+							case VK_MENU:
+								m_separateLeftRight =
+									(HIBYTE(::GetKeyState(VK_LMENU)) != 0) ||
+									(HIBYTE(::GetKeyState(VK_RMENU)) != 0) ?
+									true : false;
+								break;
 						}
-					break;
-
-				case WM_KEYUP:
-				case WM_SYSKEYUP:
-					switch (wParam) {
-						case VK_SHIFT:
-						case VK_CONTROL:
-						case VK_MENU:
-							processModifierKeys(window);
-							// Bypass call to DefWindowProc
-							return true;
-						default:
-							event = processKeyEvent(window, false, wParam, lParam);
-							if (!event) {
-								GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
-								GHOST_PRINT(msg)
-								GHOST_PRINT(" key ignored\n")
-							}
-							break;
+						m_separateLeftRightInitialized = true;
+					}
+					processModifierKeys(window);
+					// Bypass call to DefWindowProc
+					return true;
+				default:
+					event = processKeyEvent(window, true, wParam, lParam);
+					if (!event) {
+						GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
+						GHOST_PRINT(msg)
+						GHOST_PRINT(" key ignored\n")
 					}
 					break;
-
-#if 0 // this code is illustrative; no need to compile
-				////////////////////////////////////////////////////////////////////////
-				// Keyboard events, ignored
-				////////////////////////////////////////////////////////////////////////
-				case WM_CHAR:
-					/* The WM_CHAR message is posted to the window with the keyboard focus when 
-					 * a WM_KEYDOWN message is translated by the TranslateMessage function. WM_CHAR 
-					 * contains the character code of the key that was pressed. 
-					 */
-				case WM_DEADCHAR:
-					/* The WM_DEADCHAR message is posted to the window with the keyboard focus when a
-					 * WM_KEYUP message is translated by the TranslateMessage function. WM_DEADCHAR 
-					 * specifies a character code generated by a dead key. A dead key is a key that 
-					 * generates a character, such as the umlaut (double-dot), that is combined with 
-					 * another character to form a composite character. For example, the umlaut-O 
-					 * character (Ù) is generated by typing the dead key for the umlaut character, and 
-					 * then typing the O key.
-					 */
-				case WM_SYSDEADCHAR:
-					/* The WM_SYSDEADCHAR message is sent to the window with the keyboard focus when 
-					 * a WM_SYSKEYDOWN message is translated by the TranslateMessage function. 
-					 * WM_SYSDEADCHAR specifies the character code of a system dead key - that is, 
-					 * a dead key that is pressed while holding down the alt key. 
-					 */
-					break;
-#endif // illustrative code
-
-				////////////////////////////////////////////////////////////////////////
-				// Tablet events, processed
-				////////////////////////////////////////////////////////////////////////
-				case WT_PACKET:
-					puts("WT_PACKET");
-					window->processWin32TabletEvent(wParam, lParam);
-					break;
-				case WT_CSRCHANGE:
-				case WT_PROXIMITY:
-					window->processWin32TabletInitEvent();
-					break;
-
-				////////////////////////////////////////////////////////////////////////
-				// Mouse events, processed
-				////////////////////////////////////////////////////////////////////////
-				case WM_LBUTTONDOWN:
-					window->registerMouseClickEvent(true);
-					event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskLeft);
-					break;
-				case WM_MBUTTONDOWN:
-					window->registerMouseClickEvent(true);
-					event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskMiddle);
-					break;
-				case WM_RBUTTONDOWN:
-					window->registerMouseClickEvent(true);
-					event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskRight);
-					break;
-				case WM_XBUTTONDOWN:
-					window->registerMouseClickEvent(true);
-					if ((short) HIWORD(wParam) == XBUTTON1){
-						event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton4);
-					}else if((short) HIWORD(wParam) == XBUTTON2){
-						event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton5);
-					}
-					break;
-				case WM_LBUTTONUP:
-					window->registerMouseClickEvent(false);
-					event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
-					break;
-				case WM_MBUTTONUP:
-					window->registerMouseClickEvent(false);
-					event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskMiddle);
-					break;
-				case WM_RBUTTONUP:
-					window->registerMouseClickEvent(false);
-					event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskRight);
-					break;
-				case WM_XBUTTONUP:
-					window->registerMouseClickEvent(false);
-					if ((short) HIWORD(wParam) == XBUTTON1){
-						event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton4);
-					}else if((short) HIWORD(wParam) == XBUTTON2){
-						event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton5);
-					}
-					break;
-//#endif // replaced mouse code
-
-				case WM_MOUSEMOVE:
-					{
-//					puts("WM_MOUSEMOVE");
-
-//					bool IsFromPen = ((GetMessageExtraInfo() & 0xFF515700) == 0xFF515700); // this only works on TabletPCs
-					int tabletTool = GetMessageExtraInfo() & 0x7f; // true for tablet mouse, not just pen
-					if (tabletTool)
-						puts("(from tablet)");
-					else
-						{
-						// these give window coords, we need view coords
-//						mousePosX = LOWORD(lParam);
-//						mousePosY = HIWORD(lParam);
-//						window->clientToScreen(mousePosX, mousePosY, mousePosX, mousePosY);
-
-						int xPrev = mousePosX;
-						int yPrev = mousePosY;
-						window->clientToScreen(LOWORD(lParam), HIWORD(lParam), mousePosX, mousePosY);
-						// if (m_input_fidelity_hint == HI_FI) // can't access hint from static function
-							
-						putchar('\n');
-
-						if (m_input_fidelity_hint == HI_FI)
-							{
-							/* int n = */ getMoreMousePoints(mousePosX, mousePosY, xPrev, yPrev, window);
-							// printf("%d more mouse points found\n", n);
-							}
-
-						printf("  (%d,%d)\n", mousePosX, mousePosY);
-
-						event = processCursorEvent(GHOST_kEventCursorMove, window, mousePosX, mousePosY);
-						}
-					break;
-					}
-
-				case WM_INPUT:
-					puts("WM_INPUT");
-{
-/*
-    UINT dwSize;
-    GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
-    LPBYTE lpb = new BYTE[dwSize];
-    GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
-    RAWINPUT* raw = (RAWINPUT*)lpb;
-*/
-
-	RAWINPUT raw;
-	RAWINPUT* raw_ptr = &raw;
-	UINT rawSize = sizeof(RAWINPUT);
-//	UINT bufferSize = rawSize;
-
-	puts("processing first event:");
-	// I don't know if this is needed. Can we get by with just GetRawInputBuffer?
-	// Thought some mouse events were missing, so I put this in to be cautious.
-	// Test and remove if redundant. [mce]
-	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw_ptr, &rawSize, sizeof(RAWINPUTHEADER));
-	eventSent |= processRawInput(raw, window /*, mousePosX, mousePosY*/ );
-	DefRawInputProc(&raw_ptr, 1, sizeof(RAWINPUTHEADER));
-
-//	GetRawInputBuffer(NULL, &bufferSize, sizeof(RAWINPUTHEADER));
-//	UINT n = bufferSize / rawSize;
-//	printf("allocating %d bytes (room for %d events)\n", bufferSize, n);
-
-	RAWINPUT rawBuffer[10];// = new RAWINPUT[n];
-	rawSize *= 10;
-	while (true)
-		{
-		int n = GetRawInputBuffer(rawBuffer, &rawSize, sizeof(RAWINPUTHEADER));
-		if (n == -1)
-			{
-			printf("<!> error %d\n", (int) GetLastError());
-			break;
-			}
-		else if (n == 0)
-			{
-			//puts("no more events");
-			putchar('\n');
-			break;
-			}
-		else
-			{
-			printf("processing %d more events:\n", n);
-			for (int i = 0; i < n; ++i)
-				{
-				RAWINPUT const& raw = rawBuffer[i];
-				eventSent |= processRawInput(raw, window /*, mousePosX, mousePosY*/ );
 				}
+			break;
 
-			// clear processed events from the queue
-			DefRawInputProc((RAWINPUT**)&rawBuffer, n, sizeof(RAWINPUTHEADER));
-			}
-		} // inf. loop
-}
- 					break;
-				case WM_MOUSEWHEEL:
-					puts("WM_MOUSEWHEEL");
-					/* The WM_MOUSEWHEEL message is sent to the focus window
-					 * when the mouse wheel is rotated. The DefWindowProc
-					 * function propagates the message to the window's parent.
-					 * There should be no internal forwarding of the message,
-					 * since DefWindowProc propagates it up the parent chain 
-					 * until it finds a window that processes it.
-					 */
-					event = processWheelEvent(window, wParam, lParam);
-					break;
-				case WM_SETCURSOR:
-					/* The WM_SETCURSOR message is sent to a window if the mouse causes the cursor
-					 * to move within a window and mouse input is not captured.
-					 * This means we have to set the cursor shape every time the mouse moves!
-					 * The DefWindowProc function uses this message to set the cursor to an 
-					 * arrow if it is not in the client area.
-					 */
-					if (LOWORD(lParam) == HTCLIENT) {
-						// Load the current cursor
-						window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
-						// Bypass call to DefWindowProc
-						return 0;
-					} 
-					else {
-						// Outside of client area show standard cursor
-						window->loadCursor(true, GHOST_kStandardCursorDefault);
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+			switch (wParam) {
+				case VK_SHIFT:
+				case VK_CONTROL:
+				case VK_MENU:
+					processModifierKeys(window);
+					// Bypass call to DefWindowProc
+					return true;
+				default:
+					event = processKeyEvent(window, false, wParam, lParam);
+					if (!event) {
+						GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
+						GHOST_PRINT(msg)
+						GHOST_PRINT(" key ignored\n")
 					}
 					break;
+			}
+			break;
 
 #if 0 // this code is illustrative; no need to compile
-				////////////////////////////////////////////////////////////////////////
-				// Mouse events, ignored
-				////////////////////////////////////////////////////////////////////////
-				case WM_NCMOUSEMOVE:
-					/* The WM_NCMOUSEMOVE message is posted to a window when the cursor is moved 
-					 * within the nonclient area of the window. This message is posted to the window 
-					 * that contains the cursor. If a window has captured the mouse, this message is not posted.
-					 */
-				case WM_NCHITTEST:
-					/* The WM_NCHITTEST message is sent to a window when the cursor moves, or 
-					 * when a mouse button is pressed or released. If the mouse is not captured, 
-					 * the message is sent to the window beneath the cursor. Otherwise, the message 
-					 * is sent to the window that has captured the mouse. 
-					 */
-					break;
+		////////////////////////////////////////////////////////////////////////
+		// Keyboard events, ignored
+		////////////////////////////////////////////////////////////////////////
+		case WM_CHAR:
+			/* The WM_CHAR message is posted to the window with the keyboard focus when 
+			 * a WM_KEYDOWN message is translated by the TranslateMessage function. WM_CHAR 
+			 * contains the character code of the key that was pressed. 
+			 */
+		case WM_DEADCHAR:
+			/* The WM_DEADCHAR message is posted to the window with the keyboard focus when a
+			 * WM_KEYUP message is translated by the TranslateMessage function. WM_DEADCHAR 
+			 * specifies a character code generated by a dead key. A dead key is a key that 
+			 * generates a character, such as the umlaut (double-dot), that is combined with 
+			 * another character to form a composite character. For example, the umlaut-O 
+			 * character (Ù) is generated by typing the dead key for the umlaut character, and 
+			 * then typing the O key.
+			 */
+		case WM_SYSDEADCHAR:
+			/* The WM_SYSDEADCHAR message is sent to the window with the keyboard focus when 
+			 * a WM_SYSKEYDOWN message is translated by the TranslateMessage function. 
+			 * WM_SYSDEADCHAR specifies the character code of a system dead key - that is, 
+			 * a dead key that is pressed while holding down the alt key. 
+			 */
+			break;
 #endif // illustrative code
 
-				////////////////////////////////////////////////////////////////////////
-				// Window events, processed
-				////////////////////////////////////////////////////////////////////////
-				case WM_CLOSE:
-					/* The WM_CLOSE message is sent as a signal that a window or an application should terminate. */
-					event = processWindowEvent(GHOST_kEventWindowClose, window);
+		////////////////////////////////////////////////////////////////////////
+		// Tablet events, processed
+		////////////////////////////////////////////////////////////////////////
+		case WT_PACKET:
+			puts("WT_PACKET");
+			window->processWin32TabletEvent(wParam, lParam);
+			break;
+		case WT_CSRCHANGE:
+		case WT_PROXIMITY:
+			window->processWin32TabletInitEvent();
+			break;
+
+		////////////////////////////////////////////////////////////////////////
+		// Mouse events, processed
+		////////////////////////////////////////////////////////////////////////
+		case WM_LBUTTONDOWN:
+			window->registerMouseClickEvent(true);
+			event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskLeft);
+			break;
+		case WM_MBUTTONDOWN:
+			window->registerMouseClickEvent(true);
+			event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskMiddle);
+			break;
+		case WM_RBUTTONDOWN:
+			window->registerMouseClickEvent(true);
+			event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskRight);
+			break;
+		case WM_XBUTTONDOWN:
+			window->registerMouseClickEvent(true);
+			if ((short) HIWORD(wParam) == XBUTTON1){
+				event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton4);
+			}else if((short) HIWORD(wParam) == XBUTTON2){
+				event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton5);
+			}
+			break;
+		case WM_LBUTTONUP:
+			window->registerMouseClickEvent(false);
+			event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskLeft);
+			break;
+		case WM_MBUTTONUP:
+			window->registerMouseClickEvent(false);
+			event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskMiddle);
+			break;
+		case WM_RBUTTONUP:
+			window->registerMouseClickEvent(false);
+			event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskRight);
+			break;
+		case WM_XBUTTONUP:
+			window->registerMouseClickEvent(false);
+			if ((short) HIWORD(wParam) == XBUTTON1){
+				event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton4);
+			}else if((short) HIWORD(wParam) == XBUTTON2){
+				event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton5);
+			}
+			break;
+
+		case WM_MOUSEMOVE:
+			{
+			// bool IsFromPen = ((GetMessageExtraInfo() & 0xFF515700) == 0xFF515700); // this only works on TabletPCs
+			int tabletTool = GetMessageExtraInfo() & 0x7f; // true for tablet mouse, not just pen
+			if (tabletTool)
+				puts("(from tablet)");
+			else
+				{
+				int xPrev = mousePosX;
+				int yPrev = mousePosY;
+				// window coordinates are passed in via lParam
+				window->clientToScreen(LOWORD(lParam), HIWORD(lParam), mousePosX, mousePosY);
+
+				// putchar('\n');
+
+				if (m_input_fidelity_hint == HI_FI)
+					{
+					/* int n = */ getMoreMousePoints(mousePosX, mousePosY, xPrev, yPrev, window);
+					// printf("%d more mouse points found\n", n);
+					}
+
+				// uncomment here and in getMoreMousePoints to show effectiveness of hi-fi input
+				// printf("  (%d,%d)\n", mousePosX, mousePosY);
+
+				event = processCursorEvent(GHOST_kEventCursorMove, window, mousePosX, mousePosY);
+				}
+			break;
+			}
+
+		case WM_INPUT:
+			{
+			puts("WM_INPUT");
+
+			#define RAWCOUNT 10
+			// just a guess that we'll receive up to 10 event reports
+			// the following code fetches all available, 10 at a time
+			RAWINPUT rawBuffer[RAWCOUNT];
+
+			while (true)
+				{
+				UINT rawSize = sizeof(rawBuffer);
+				int n = GetRawInputBuffer(rawBuffer, &rawSize, sizeof(RAWINPUTHEADER));
+				if (n == -1)
+					{
+					printf("<!> error %d\n", (int) GetLastError());
 					break;
-				case WM_ACTIVATE:
-					/* The WM_ACTIVATE message is sent to both the window being activated and the window being 
-					 * deactivated. If the windows use the same input queue, the message is sent synchronously, 
-					 * first to the window procedure of the top-level window being deactivated, then to the window
-					 * procedure of the top-level window being activated. If the windows use different input queues,
-					 * the message is sent asynchronously, so the window is activated immediately. 
-					 */
-					event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate, window);
+					}
+				else if (n == 0)
+					{
+					putchar('\n');
 					break;
-				case WM_PAINT:
-					/* An application sends the WM_PAINT message when the system or another application
-					 * makes a request to paint a portion of an application's window. The message is sent
-					 * when the UpdateWindow or RedrawWindow function is called, or by the DispatchMessage 
-					 * function when the application obtains a WM_PAINT message by using the GetMessage or 
-					 * PeekMessage function. 
-					 */
-					event = processWindowEvent(GHOST_kEventWindowUpdate, window);
-					break;
-				case WM_GETMINMAXINFO:
-					/* The WM_GETMINMAXINFO message is sent to a window when the size or 
-					 * position of the window is about to change. An application can use 
-					 * this message to override the window's default maximized size and 
-					 * position, or its default minimum or maximum tracking size. 
-					 */
-					processMinMaxInfo((MINMAXINFO *) lParam);
-					/* Let DefWindowProc handle it. */
-					break;
-				case WM_SIZE:
-					/* The WM_SIZE message is sent to a window after its size has changed.
-					 * The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
-					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
-					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
-					 * message without calling DefWindowProc.
-					 */
-					event = processWindowEvent(GHOST_kEventWindowSize, window);
-					break;
-				case WM_CAPTURECHANGED:
-					window->lostMouseCapture();
-					break;
-				case WM_MOVING:
-					/* The WM_MOVING message is sent to a window that the user is moving. By processing 
-					 * this message, an application can monitor the size and position of the drag rectangle
-					 * and, if needed, change its size or position.
-					 */
-				case WM_MOVE:
-					/* The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
-					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
-					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
-					 * message without calling DefWindowProc. 
-					 */
-					event = processWindowEvent(GHOST_kEventWindowMove, window);
-					break;
+					}
+				else
+					{
+					printf("processing %d events:\n", n);
+					for (int i = 0; i < n; ++i)
+						{
+						RAWINPUT const& raw = rawBuffer[i];
+						eventSent |= processRawInput(raw, window);
+						}
+		
+					// clear processed events from the queue
+					DefRawInputProc((RAWINPUT**)&rawBuffer, n, sizeof(RAWINPUTHEADER));
+					}
+				}
+ 			break;
+			}
+		case WM_MOUSEWHEEL:
+			puts("WM_MOUSEWHEEL");
+			/* The WM_MOUSEWHEEL message is sent to the focus window
+			 * when the mouse wheel is rotated. The DefWindowProc
+			 * function propagates the message to the window's parent.
+			 * There should be no internal forwarding of the message,
+			 * since DefWindowProc propagates it up the parent chain 
+			 * until it finds a window that processes it.
+			 */
+			event = processWheelEvent(window, wParam, lParam);
+			break;
+		case WM_SETCURSOR:
+			/* The WM_SETCURSOR message is sent to a window if the mouse causes the cursor
+			 * to move within a window and mouse input is not captured.
+			 * This means we have to set the cursor shape every time the mouse moves!
+			 * The DefWindowProc function uses this message to set the cursor to an 
+			 * arrow if it is not in the client area.
+			 */
+			if (LOWORD(lParam) == HTCLIENT) {
+				// Load the current cursor
+				window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
+				// Bypass call to DefWindowProc
+				return 0;
+			} 
+			else {
+				// Outside of client area show standard cursor
+				window->loadCursor(true, GHOST_kStandardCursorDefault);
+			}
+			break;
 
 #if 0 // this code is illustrative; no need to compile
-				////////////////////////////////////////////////////////////////////////
-				// Window events, ignored
-				////////////////////////////////////////////////////////////////////////
-				case WM_WINDOWPOSCHANGED:
-					/* The WM_WINDOWPOSCHANGED message is sent to a window whose size, position, or place
-					 * in the Z order has changed as a result of a call to the SetWindowPos function or 
-					 * another window-management function.
-					 * The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
-					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
-					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
-					 * message without calling DefWindowProc.
-					 */
-				case WM_ERASEBKGND:
-					/* An application sends the WM_ERASEBKGND message when the window background must be 
-					 * erased (for example, when a window is resized). The message is sent to prepare an 
-					 * invalidated portion of a window for painting. 
-					 */
-				case WM_NCPAINT:
-					/* An application sends the WM_NCPAINT message to a window when its frame must be painted. */
-				case WM_NCACTIVATE:
-					/* The WM_NCACTIVATE message is sent to a window when its nonclient area needs to be changed 
-					 * to indicate an active or inactive state. 
-					 */
-				case WM_DESTROY:
-					/* The WM_DESTROY message is sent when a window is being destroyed. It is sent to the window 
-					 * procedure of the window being destroyed after the window is removed from the screen.	
-					 * This message is sent first to the window being destroyed and then to the child windows 
-					 * (if any) as they are destroyed. During the processing of the message, it can be assumed 
-					 * that all child windows still exist. 
-					 */
-				case WM_NCDESTROY:
-					/* The WM_NCDESTROY message informs a window that its nonclient area is being destroyed. The 
-					 * DestroyWindow function sends the WM_NCDESTROY message to the window following the WM_DESTROY
-					 * message. WM_DESTROY is used to free the allocated memory object associated with the window. 
-					 */
-				case WM_KILLFOCUS:
-					/* The WM_KILLFOCUS message is sent to a window immediately before it loses the keyboard focus. */
-				case WM_SHOWWINDOW:
-					/* The WM_SHOWWINDOW message is sent to a window when the window is about to be hidden or shown. */
-				case WM_WINDOWPOSCHANGING:
-					/* The WM_WINDOWPOSCHANGING message is sent to a window whose size, position, or place in 
-					 * the Z order is about to change as a result of a call to the SetWindowPos function or 
-					 * another window-management function. 
-					 */
-				case WM_SETFOCUS:
-					/* The WM_SETFOCUS message is sent to a window after it has gained the keyboard focus. */
-				case WM_ENTERSIZEMOVE:
-					/* The WM_ENTERSIZEMOVE message is sent one time to a window after it enters the moving 
-					 * or sizing modal loop. The window enters the moving or sizing modal loop when the user 
-					 * clicks the window's title bar or sizing border, or when the window passes the 
-					 * WM_SYSCOMMAND message to the DefWindowProc function and the wParam parameter of the 
-					 * message specifies the SC_MOVE or SC_SIZE value. The operation is complete when 
-					 * DefWindowProc returns. 
-					 */
-					break;
-					
-				////////////////////////////////////////////////////////////////////////
-				// Other events
-				////////////////////////////////////////////////////////////////////////
-				case WM_GETTEXT:
-					/* An application sends a WM_GETTEXT message to copy the text that 
-					 * corresponds to a window into a buffer provided by the caller. 
-					 */
-				case WM_ACTIVATEAPP:
-					/* The WM_ACTIVATEAPP message is sent when a window belonging to a 
-					 * different application than the active window is about to be activated.
-					 * The message is sent to the application whose window is being activated
-					 * and to the application whose window is being deactivated. 
-					 */
-				case WM_TIMER:
-					/* The WIN32 docs say:
-					 * The WM_TIMER message is posted to the installing thread's message queue
-					 * when a timer expires. You can process the message by providing a WM_TIMER
-					 * case in the window procedure. Otherwise, the default window procedure will
-					 * call the TimerProc callback function specified in the call to the SetTimer
-					 * function used to install the timer. 
-					 *
-					 * In GHOST, we let DefWindowProc call the timer callback.
-					 */
-					break;
+		////////////////////////////////////////////////////////////////////////
+		// Mouse events, ignored
+		////////////////////////////////////////////////////////////////////////
+		case WM_NCMOUSEMOVE:
+			/* The WM_NCMOUSEMOVE message is posted to a window when the cursor is moved 
+			 * within the nonclient area of the window. This message is posted to the window 
+			 * that contains the cursor. If a window has captured the mouse, this message is not posted.
+			 */
+		case WM_NCHITTEST:
+			/* The WM_NCHITTEST message is sent to a window when the cursor moves, or 
+			 * when a mouse button is pressed or released. If the mouse is not captured, 
+			 * the message is sent to the window beneath the cursor. Otherwise, the message 
+			 * is sent to the window that has captured the mouse. 
+			 */
+			break;
 #endif // illustrative code
 
-#if 0 // this is part of the 'old' NDOF system; new one coming soon!
-				case WM_BLND_NDOF_AXIS:
-					{
-						GHOST_TEventNDOFData ndofdata;
-						m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
-						m_eventManager->
-							pushEvent(new GHOST_EventNDOF(
-								getMilliSeconds(),
-								GHOST_kEventNDOFMotion,
-								window, ndofdata));
-					}
-					break;
-				case WM_BLND_NDOF_BTN:
-					{
-						GHOST_TEventNDOFData ndofdata;
-						m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
-						m_eventManager->
-							pushEvent(new GHOST_EventNDOF(
-								getMilliSeconds(),
-								GHOST_kEventNDOFButton,
-								window, ndofdata));
-					}
-					break;
-#endif // old NDOF
-			}
+		////////////////////////////////////////////////////////////////////////
+		// Window events, processed
+		////////////////////////////////////////////////////////////////////////
+		case WM_CLOSE:
+			/* The WM_CLOSE message is sent as a signal that a window or an application should terminate. */
+			event = processWindowEvent(GHOST_kEventWindowClose, window);
+			break;
+		case WM_ACTIVATE:
+			/* The WM_ACTIVATE message is sent to both the window being activated and the window being 
+			 * deactivated. If the windows use the same input queue, the message is sent synchronously, 
+			 * first to the window procedure of the top-level window being deactivated, then to the window
+			 * procedure of the top-level window being activated. If the windows use different input queues,
+			 * the message is sent asynchronously, so the window is activated immediately. 
+			 */
+			event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate, window);
+			break;
+		case WM_PAINT:
+			/* An application sends the WM_PAINT message when the system or another application
+			 * makes a request to paint a portion of an application's window. The message is sent
+			 * when the UpdateWindow or RedrawWindow function is called, or by the DispatchMessage 
+			 * function when the application obtains a WM_PAINT message by using the GetMessage or 
+			 * PeekMessage function. 
+			 */
+			event = processWindowEvent(GHOST_kEventWindowUpdate, window);
+			break;
+		case WM_GETMINMAXINFO:
+			/* The WM_GETMINMAXINFO message is sent to a window when the size or 
+			 * position of the window is about to change. An application can use 
+			 * this message to override the window's default maximized size and 
+			 * position, or its default minimum or maximum tracking size. 
+			 */
+			processMinMaxInfo((MINMAXINFO *) lParam);
+			/* Let DefWindowProc handle it. */
+			break;
+		case WM_SIZE:
+			/* The WM_SIZE message is sent to a window after its size has changed.
+			 * The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
+			 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
+			 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
+			 * message without calling DefWindowProc.
+			 */
+			event = processWindowEvent(GHOST_kEventWindowSize, window);
+			break;
+		case WM_CAPTURECHANGED:
+			window->lostMouseCapture();
+			break;
+		case WM_MOVING:
+			/* The WM_MOVING message is sent to a window that the user is moving. By processing 
+			 * this message, an application can monitor the size and position of the drag rectangle
+			 * and, if needed, change its size or position.
+			 */
+		case WM_MOVE:
+			/* The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
+			 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
+			 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
+			 * message without calling DefWindowProc. 
+			 */
+			event = processWindowEvent(GHOST_kEventWindowMove, window);
+			break;
+
+#if 0 // this code is illustrative; no need to compile
+		////////////////////////////////////////////////////////////////////////
+		// Window events, ignored
+		////////////////////////////////////////////////////////////////////////
+		case WM_WINDOWPOSCHANGED:
+			/* The WM_WINDOWPOSCHANGED message is sent to a window whose size, position, or place
+			 * in the Z order has changed as a result of a call to the SetWindowPos function or 
+			 * another window-management function.
+			 * The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
+			 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
+			 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
+			 * message without calling DefWindowProc.
+			 */
+		case WM_ERASEBKGND:
+			/* An application sends the WM_ERASEBKGND message when the window background must be 
+			 * erased (for example, when a window is resized). The message is sent to prepare an 
+			 * invalidated portion of a window for painting. 
+			 */
+		case WM_NCPAINT:
+			/* An application sends the WM_NCPAINT message to a window when its frame must be painted. */
+		case WM_NCACTIVATE:
+			/* The WM_NCACTIVATE message is sent to a window when its nonclient area needs to be changed 
+			 * to indicate an active or inactive state. 
+			 */
+		case WM_DESTROY:
+			/* The WM_DESTROY message is sent when a window is being destroyed. It is sent to the window 
+			 * procedure of the window being destroyed after the window is removed from the screen.	
+			 * This message is sent first to the window being destroyed and then to the child windows 
+			 * (if any) as they are destroyed. During the processing of the message, it can be assumed 
+			 * that all child windows still exist. 
+			 */
+		case WM_NCDESTROY:
+			/* The WM_NCDESTROY message informs a window that its nonclient area is being destroyed. The 
+			 * DestroyWindow function sends the WM_NCDESTROY message to the window following the WM_DESTROY
+			 * message. WM_DESTROY is used to free the allocated memory object associated with the window. 
+			 */
+		case WM_KILLFOCUS:
+			/* The WM_KILLFOCUS message is sent to a window immediately before it loses the keyboard focus. */
+		case WM_SHOWWINDOW:
+			/* The WM_SHOWWINDOW message is sent to a window when the window is about to be hidden or shown. */
+		case WM_WINDOWPOSCHANGING:
+			/* The WM_WINDOWPOSCHANGING message is sent to a window whose size, position, or place in 
+			 * the Z order is about to change as a result of a call to the SetWindowPos function or 
+			 * another window-management function. 
+			 */
+		case WM_SETFOCUS:
+			/* The WM_SETFOCUS message is sent to a window after it has gained the keyboard focus. */
+		case WM_ENTERSIZEMOVE:
+			/* The WM_ENTERSIZEMOVE message is sent one time to a window after it enters the moving 
+			 * or sizing modal loop. The window enters the moving or sizing modal loop when the user 
+			 * clicks the window's title bar or sizing border, or when the window passes the 
+			 * WM_SYSCOMMAND message to the DefWindowProc function and the wParam parameter of the 
+			 * message specifies the SC_MOVE or SC_SIZE value. The operation is complete when 
+			 * DefWindowProc returns. 
+			 */
+			break;
+			
+		////////////////////////////////////////////////////////////////////////
+		// Other events
+		////////////////////////////////////////////////////////////////////////
+		case WM_GETTEXT:
+			/* An application sends a WM_GETTEXT message to copy the text that 
+			 * corresponds to a window into a buffer provided by the caller. 
+			 */
+		case WM_ACTIVATEAPP:
+			/* The WM_ACTIVATEAPP message is sent when a window belonging to a 
+			 * different application than the active window is about to be activated.
+			 * The message is sent to the application whose window is being activated
+			 * and to the application whose window is being deactivated. 
+			 */
+		case WM_TIMER:
+			/* The WIN32 docs say:
+			 * The WM_TIMER message is posted to the installing thread's message queue
+			 * when a timer expires. You can process the message by providing a WM_TIMER
+			 * case in the window procedure. Otherwise, the default window procedure will
+			 * call the TimerProc callback function specified in the call to the SetTimer
+			 * function used to install the timer. 
+			 *
+			 * In GHOST, we let DefWindowProc call the timer callback.
+			 */
+			break;
+#endif // illustrative code
+	}
 
 	if (!eventSent)
 		if (event) {

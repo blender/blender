@@ -15,21 +15,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Mike Erwin, July 2010.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "GHOST_NDOFManager.h"
 #include "GHOST_EventNDOF.h"
+#include <string.h> // for memory functions
+#include <stdio.h> // for debug tracing
 
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	: m_system(sys)
-//	, m_translation((short[]){0,0,0})
-//	, m_rotation((short[]){0,0,0})
 	, m_buttons(0)
 	, m_atRest(true)
-	{ }
+	{
+	// to avoid the rare situation where one triple is updated and
+	// the other is not, initialize them both here:
+	memset(m_translation, 0, sizeof(m_translation));
+	memset(m_rotation, 0, sizeof(m_rotation));
+	}
 
 void GHOST_NDOFManager::updateTranslation(short t[3], GHOST_TUns64 time)
 	{
@@ -68,7 +73,9 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	GHOST_TEventNDOFData* data = (GHOST_TEventNDOFData*) event->getData();
 
 	const float scale = 1.f / 350.f; // SpaceNavigator sends +/- 350 usually
+	// 350 according to their developer's guide; others recommend 500 as comfortable
 
+	// possible future enhancement
 	// scale *= m_sensitivity;
 
 	data->tx = scale * m_translation[0];
@@ -80,7 +87,6 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	data->rz = scale * m_rotation[2];
 
 	printf("sending T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f)\n", data->tx, data->ty, data->tz, data->rx, data->ry, data->rz);
-	fflush(stdout);
 
 	m_system.pushEvent(event);
 

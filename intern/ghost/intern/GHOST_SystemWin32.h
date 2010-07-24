@@ -304,10 +304,9 @@ protected:
 	 * Creates and sends mouse or multi-axis events.
 	 * @param raw		a single RawInput structure
 	 * @param window	The window receiving the event (the active window).
-	 * @param x,y		current mouse coordinates, which may be updated by this function
 	 * @return Whether any events (possibly more than one) were created and sent.
 	 */
-	bool processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* window /*, int& x, int& y */ );
+	bool processRawInput(RAWINPUT const& raw, GHOST_WindowWin32* window);
 
 	/**
 	 * Creates and sends mouse events for mouse movements "in between" WM_MOUSEMOVEs.
@@ -333,10 +332,11 @@ protected:
 
 	/**
 	 * Windows call back routine for our window class.
+	 * This handles general errors, then passes control to handleEvent.
 	 */
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-	// non-static version of WndProc
+	/** Non-static version of WndProc. */
 	bool handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	/** The current state of the modifier keys. */
