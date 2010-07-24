@@ -132,7 +132,7 @@ Brush *copy_brush(Brush *brush)
 	if (brush->mtex.tex)
 		id_us_plus((ID*)brush->mtex.tex);
 
-	//brushn->preview= NULL;
+	brushn->preview= NULL;
 
 	if (brush->icon_imbuf)
 		brushn->icon_imbuf= IMB_dupImBuf(brush->icon_imbuf);
