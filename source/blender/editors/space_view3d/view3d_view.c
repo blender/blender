@@ -458,7 +458,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
+void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 {
 	
 	/* identifiers */
