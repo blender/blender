@@ -5192,7 +5192,8 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 			button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 		}
 		else {
-			if(event->type != MOUSEMOVE) {
+			if (ISKEYBOARD(event->type)) {
+				/* keyboard menu hierarchy navigation, going back to previous level */
 				but->active->used_mouse= 0;
 				button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 			}
