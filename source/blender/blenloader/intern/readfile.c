@@ -5380,11 +5380,127 @@ static void lib_link_group(FileData *fd, Main *main)
 
 /* ************ READ LINE STYLE ***************** */
 
-static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
+static void lib_link_linestyle(FileData *fd, Main *main)
 {
+	FreestyleLineStyle *linestyle;
+	LineStyleModifier *m;
 
+	linestyle = main->linestyle.first;
+	while (linestyle) {
+		for (m = linestyle->color_modifiers.first; m; m = m->next) {
+			if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+				LineStyleColorModifier_DistanceFromObject *cm = (LineStyleColorModifier_DistanceFromObject *)m;
+				cm->target = newlibadr(fd, linestyle->id.lib, cm->target);
+			}
+		}
+		for (m = linestyle->alpha_modifiers.first; m; m = m->next){
+			if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+				LineStyleAlphaModifier_DistanceFromObject *am = (LineStyleAlphaModifier_DistanceFromObject *)m;
+				am->target = newlibadr(fd, linestyle->id.lib, am->target);
+			}
+		}
+		for (m = linestyle->thickness_modifiers.first; m; m = m->next){
+			if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+				LineStyleThicknessModifier_DistanceFromObject *tm = (LineStyleThicknessModifier_DistanceFromObject *)m;
+				tm->target = newlibadr(fd, linestyle->id.lib, tm->target);
+			}
+		}
+		linestyle = linestyle->id.next;
+	}
 }
 
+static void direct_link_linestyle_color_modifier(FileData *fd, LineStyleModifier *modifier)
+{
+	switch (modifier->type) {
+	case LS_MODIFIER_ALONG_STROKE:
+		{
+			LineStyleColorModifier_AlongStroke *m = (LineStyleColorModifier_AlongStroke *)modifier;
+			m->color_ramp = newdataadr(fd, m->color_ramp);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+		{
+			LineStyleColorModifier_DistanceFromCamera *m = (LineStyleColorModifier_DistanceFromCamera *)modifier;
+			m->color_ramp = newdataadr(fd, m->color_ramp);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+		{
+			LineStyleColorModifier_DistanceFromObject *m = (LineStyleColorModifier_DistanceFromObject *)modifier;
+			m->color_ramp = newdataadr(fd, m->color_ramp);
+		}
+		break;
+	}
+}
+
+static void direct_link_linestyle_alpha_modifier(FileData *fd, LineStyleModifier *modifier)
+{
+	switch (modifier->type) {
+	case LS_MODIFIER_ALONG_STROKE:
+		{
+			LineStyleAlphaModifier_AlongStroke *m = (LineStyleAlphaModifier_AlongStroke *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+		{
+			LineStyleAlphaModifier_DistanceFromCamera *m = (LineStyleAlphaModifier_DistanceFromCamera *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+		{
+			LineStyleAlphaModifier_DistanceFromObject *m = (LineStyleAlphaModifier_DistanceFromObject *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	}
+}
+
+static void direct_link_linestyle_thickness_modifier(FileData *fd, LineStyleModifier *modifier)
+{
+	switch (modifier->type) {
+	case LS_MODIFIER_ALONG_STROKE:
+		{
+			LineStyleThicknessModifier_AlongStroke *m = (LineStyleThicknessModifier_AlongStroke *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+		{
+			LineStyleThicknessModifier_DistanceFromCamera *m = (LineStyleThicknessModifier_DistanceFromCamera *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+		{
+			LineStyleThicknessModifier_DistanceFromObject *m = (LineStyleThicknessModifier_DistanceFromObject *)modifier;
+			m->curve = newdataadr(fd, m->curve);
+			direct_link_curvemapping(fd, m->curve);
+		}
+		break;
+	}
+}
+
+static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
+{
+	LineStyleModifier *modifier;
+
+	link_list(fd, &linestyle->color_modifiers);
+	for(modifier=linestyle->color_modifiers.first; modifier; modifier= modifier->next)
+		direct_link_linestyle_color_modifier(fd, modifier);
+	link_list(fd, &linestyle->alpha_modifiers);
+	for(modifier=linestyle->alpha_modifiers.first; modifier; modifier= modifier->next)
+		direct_link_linestyle_alpha_modifier(fd, modifier);
+	link_list(fd, &linestyle->thickness_modifiers);
+	for(modifier=linestyle->thickness_modifiers.first; modifier; modifier= modifier->next)
+		direct_link_linestyle_thickness_modifier(fd, modifier);
+}
 
 /* ************** GENERAL & MAIN ******************** */
 
@@ -11122,6 +11238,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_nodetree(fd, main);	/* has to be done after scene/materials, this will verify group nodes */
 	lib_link_brush(fd, main);
 	lib_link_particlesettings(fd, main);
+	lib_link_linestyle(fd, main);
 
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 
@@ -12040,9 +12157,21 @@ static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 
 static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *linestyle)
 {
+	LineStyleModifier *m;
 
+	for (m = linestyle->color_modifiers.first; m; m = m->next) {
+		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT)
+			expand_doit(fd, mainvar, ((LineStyleColorModifier_DistanceFromObject *)m)->target);
+	}
+	for (m = linestyle->alpha_modifiers.first; m; m = m->next){
+		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT)
+			expand_doit(fd, mainvar, ((LineStyleAlphaModifier_DistanceFromObject *)m)->target);
+	}
+	for (m = linestyle->thickness_modifiers.first; m; m = m->next){
+		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT)
+			expand_doit(fd, mainvar, ((LineStyleThicknessModifier_DistanceFromObject *)m)->target);
+	}
 }
-
 
 static void expand_main(FileData *fd, Main *mainvar)
 {

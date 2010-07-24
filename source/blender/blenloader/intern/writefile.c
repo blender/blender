@@ -2375,13 +2375,124 @@ static void write_scripts(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
+{
+	LineStyleModifier *m;
+	char *struct_name;
+
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			struct_name = "LineStyleColorModifier_AlongStroke";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			struct_name = "LineStyleColorModifier_DistanceFromCamera";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			struct_name = "LineStyleColorModifier_DistanceFromObject";
+			break;
+		default:
+			struct_name = "LineStyleColorModifier"; // this should not happen
+		}
+		writestruct(wd, DATA, struct_name, 1, m);
+	}
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			writestruct(wd, DATA, "ColorBand", 1, ((LineStyleColorModifier_AlongStroke *)m)->color_ramp);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			writestruct(wd, DATA, "ColorBand", 1, ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			writestruct(wd, DATA, "ColorBand", 1, ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp);
+			break;
+		}
+	}
+}
+
+static void write_linestyle_alpha_modifiers(WriteData *wd, ListBase *modifiers)
+{
+	LineStyleModifier *m;
+	char *struct_name;
+
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			struct_name = "LineStyleAlphaModifier_AlongStroke";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			struct_name = "LineStyleAlphaModifier_DistanceFromCamera";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			struct_name = "LineStyleAlphaModifier_DistanceFromObject";
+			break;
+		default:
+			struct_name = "LineStyleAlphaModifier"; // this should not happen
+		}
+		writestruct(wd, DATA, struct_name, 1, m);
+	}
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			write_curvemapping(wd, ((LineStyleAlphaModifier_AlongStroke *)m)->curve);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			write_curvemapping(wd, ((LineStyleAlphaModifier_DistanceFromCamera *)m)->curve);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			write_curvemapping(wd, ((LineStyleAlphaModifier_DistanceFromObject *)m)->curve);
+			break;
+		}
+	}
+}
+
+static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifiers)
+{
+	LineStyleModifier *m;
+	char *struct_name;
+
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			struct_name = "LineStyleThicknessModifier_AlongStroke";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			struct_name = "LineStyleThicknessModifier_DistanceFromCamera";
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			struct_name = "LineStyleThicknessModifier_DistanceFromObject";
+			break;
+		default:
+			struct_name = "LineStyleThicknessModifier"; // this should not happen
+		}
+		writestruct(wd, DATA, struct_name, 1, m);
+	}
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			write_curvemapping(wd, ((LineStyleThicknessModifier_AlongStroke *)m)->curve);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			write_curvemapping(wd, ((LineStyleThicknessModifier_DistanceFromCamera *)m)->curve);
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			write_curvemapping(wd, ((LineStyleThicknessModifier_DistanceFromObject *)m)->curve);
+			break;
+		}
+	}
+}
+
 static void write_linestyles(WriteData *wd, ListBase *idbase)
 {
 	FreestyleLineStyle *linestyle;
-	
+
 	for(linestyle=idbase->first; linestyle; linestyle= linestyle->id.next) {
 		if(linestyle->id.us>0 || wd->current) {
 			writestruct(wd, ID_LS, "FreestyleLineStyle", 1, linestyle);
+			write_linestyle_color_modifiers(wd, &linestyle->color_modifiers);
+			write_linestyle_alpha_modifiers(wd, &linestyle->alpha_modifiers);
+			write_linestyle_thickness_modifiers(wd, &linestyle->thickness_modifiers);
 		}
 	}
 }
