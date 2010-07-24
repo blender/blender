@@ -396,7 +396,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Color", "Base line color, possibly modified by line color modifiers.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Alpha", "Base alpha transparency, possibly modified by alpha transparency modifiers.");
