@@ -2102,6 +2102,10 @@ static ImBuf * seq_render_strip(Scene *scene, Sequence * seq, float cfra,
 			(short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
 	}
 
+	if (ibuf->x != seqrectx || ibuf->y != seqrecty) {
+		use_preprocess = TRUE;
+	}
+
 	if (use_preprocess) {
 		ibuf = input_preprocess(scene, seq, cfra, seqrectx,
 					seqrecty, ibuf);
