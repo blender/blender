@@ -85,6 +85,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_datafiles.h"
 #include "ED_render.h"
 #include "ED_view3d.h"
 
@@ -103,68 +104,6 @@ static int qtest() {return 0;}
 
 ImBuf* get_brush_icon(Brush *brush)
 {
-	/* Sculpt */
-	extern char datatoc_blob_png;
-	extern char datatoc_clay_png;
-	extern char datatoc_crease_png;
-	extern char datatoc_draw_png;
-	extern char datatoc_fill_png;
-	extern char datatoc_flatten_png;
-	extern char datatoc_grab_png;
-	extern char datatoc_inflate_png;
-	extern char datatoc_layer_png;
-	extern char datatoc_nudge_png;
-	extern char datatoc_pinch_png;
-	extern char datatoc_scrape_png;
-	extern char datatoc_smooth_png;
-	extern char datatoc_snake_hook_png;
-	extern char datatoc_thumb_png;
-	extern char datatoc_twist_png;
-
-	/* Paint */
-	extern char datatoc_add_png;
-	extern char datatoc_blur_png;
-	extern char datatoc_clone_png;
-	extern char datatoc_darken_png;
-	extern char datatoc_lighten_png;
-	extern char datatoc_mix_png;
-	extern char datatoc_multiply_png;
-	extern char datatoc_smear_png;
-	extern char datatoc_soften_png;
-	extern char datatoc_subtract_png;
-	extern char datatoc_texdraw_png;
-	extern char datatoc_vertexdraw_png;
-
-	extern int datatoc_blob_png_size;
-	extern int datatoc_clay_png_size;
-	extern int datatoc_crease_png_size;
-	extern int datatoc_draw_png_size;
-	extern int datatoc_fill_png_size;
-	extern int datatoc_flatten_png_size;
-	extern int datatoc_grab_png_size;
-	extern int datatoc_inflate_png_size;
-	extern int datatoc_layer_png_size;
-	extern int datatoc_nudge_png_size;
-	extern int datatoc_pinch_png_size;
-	extern int datatoc_scrape_png_size;
-	extern int datatoc_smooth_png_size;
-	extern int datatoc_snake_hook_png_size;
-	extern int datatoc_thumb_png_size;
-	extern int datatoc_twist_png_size;
-
-	extern int datatoc_add_png_size;
-	extern int datatoc_blur_png_size;
-	extern int datatoc_clone_png_size;
-	extern int datatoc_darken_png_size;
-	extern int datatoc_lighten_png_size;
-	extern int datatoc_mix_png_size;
-	extern int datatoc_multiply_png_size;
-	extern int datatoc_smear_png_size;
-	extern int datatoc_soften_png_size;
-	extern int datatoc_subtract_png_size;
-	extern int datatoc_texdraw_png_size;
-	extern int datatoc_vertexdraw_png_size;
-
 	void *icon_data[]= {
 		0,
 

@@ -240,23 +240,22 @@ static void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem brush_sculpt_tool_items[] = {
-		{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
-		{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-		{SCULPT_TOOL_CREASE, "CREASE", 0, "Crease", ""},
 		{SCULPT_TOOL_BLOB, "BLOB", 0, "Blob", ""},
-		{SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", ""},
-		{SCULPT_TOOL_INFLATE, "INFLATE", 0, "Inflate", ""},
-		{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
-		{SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
-		{SCULPT_TOOL_ROTATE, "ROTATE", 0, "Rotate", ""},
-		{SCULPT_TOOL_THUMB, "THUMB", 0, "Thumb", ""},
-		{SCULPT_TOOL_NUDGE, "NUDGE", 0, "Nudge", ""},
-		{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
-		{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
 		{SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
-		//{SCULPT_TOOL_CLAY_TUBES, "CLAY_TUBES", 0, "Clay Tubes", ""}, XXX: remove clay tubes from UI
+		{SCULPT_TOOL_CREASE, "CREASE", 0, "Crease", ""},
+		{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
 		{SCULPT_TOOL_FILL, "FILL", 0, "Fill", ""},
+		{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
+		{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
+		{SCULPT_TOOL_INFLATE, "INFLATE", 0, "Inflate", ""},
+		{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
+		{SCULPT_TOOL_NUDGE, "NUDGE", 0, "Nudge", ""},
+		{SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", ""},
+		{SCULPT_TOOL_ROTATE, "ROTATE", 0, "Rotate", ""},
 		{SCULPT_TOOL_SCRAPE, "SCRAPE", 0, "Scrape", ""},
+		{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+		{SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
+		{SCULPT_TOOL_THUMB, "THUMB", 0, "Thumb", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem brush_stroke_method_items[] = {
